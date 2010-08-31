@@ -40,7 +40,8 @@ class DDI_Import{
     }
 
 	/**
-	* Import DDI file
+	*
+	* Import DDI file - study + variable information
 	*
 	* @return boolean
 	*/
@@ -66,8 +67,6 @@ class DDI_Import{
 				return FALSE;
 			}
 		}
-		//start transactions		
-		//$this->ci->db->trans_begin();
 		
 		//import study description
 		$result=$this->import_study();
@@ -97,20 +96,15 @@ class DDI_Import{
 		}
 		
 		return FALSE;
-		//finish transaction
-		/*if ($this->ci->db->trans_status() === FALSE)
-		{
-			$this->ci->db->trans_rollback();
-			return false;
-		}
-		else
-		{
-			$this->ci->db->trans_commit();
-			return true;
-		}*/
-
 	}
 
+	/**
+	*
+	* Import only the Study description part to database
+	*
+	* return @int	database row id
+	*
+	**/
 	function import_study()
 	{		
 		$data=$this->ddi_array['study'];
@@ -256,7 +250,11 @@ class DDI_Import{
 		}
 	}
 
-	
+	/**
+	*
+	* Import survey variables to the database
+	*
+	**/
 	function import_variables()
 	{
 		$survey_id=$this->ddi_array['study']['id'];
@@ -310,10 +308,10 @@ class DDI_Import{
 		}
 		
 		//update varcount field
-			$row=array('varcount'=>$this->variables_imported);
-			$where=sprintf('id=%d',$id);
-			$sql= $this->ci->db->update_string('surveys', $row,$where);			
-			$this->ci->db->query($sql);
+		$row=array('varcount'=>$this->variables_imported);
+		$where=sprintf('id=%d',$id);
+		$sql= $this->ci->db->update_string('surveys', $row,$where);			
+		$this->ci->db->query($sql);
 		
 		return true;
 	}
@@ -349,6 +347,7 @@ class DDI_Import{
 		if ($survey_folder!==false)
 		{
 			$survey_file_path=$survey_folder."/$surveyid.xml";
+			
 			//copy the ddi file 			
 			if ( !copy($ddi_source_path,$survey_file_path) ) 
 			{
@@ -362,6 +361,8 @@ class DDI_Import{
 		}
 		return false;
 	}
+	
+	
 	/**
 	* Returns the survey folder path, 
 	* if the survey folder does not exists, it will create it.

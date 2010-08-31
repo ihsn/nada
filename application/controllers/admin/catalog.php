@@ -448,6 +448,77 @@ class Catalog extends MY_Controller {
 	}
 	
 	
+	/**
+	*
+	* Refresh DDI Information in the database
+	* 
+	* Note: Useful for updating study information in the database for existing DDIs
+	**/
+	function refresh($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			show_404();
+		}
+		
+		//load DDI Parser Library
+		$this->load->library('DDI_Parser');
+		$this->load->library('DDI_Import','','DDI_Import');
+
+		//get survey ddi file path by id
+		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+		
+		if ($ddi_file===FALSE)
+		{
+			show_error('DDI_NOT_FOUND');
+		}
+		
+		//load DDI Parser Library
+		$this->load->library('DDI_Parser');
+		$this->load->library('DDI_Import','','DDI_Import');
+
+		//set file for parsing
+		$this->ddi_parser->ddi_file=$ddi_file;
+		
+		//only available for xml_reader
+		$this->ddi_parser->use_xml_reader=TRUE;
+		
+		//validate DDI file
+		if ($this->ddi_parser->validate()===false)
+		{
+			$error= 'Invalid DDI file: '.$ddi_file;
+			log_message('error', $error);
+			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
+
+			$this->session->set_flashdata('error', $error);
+			redirect('admin/catalog','refresh');
+		}
+						
+		//parse ddi study to array	
+		$data['study']=$this->ddi_parser->get_study_array();
+
+		//pass study data
+		$this->DDI_Import->ddi_array=$data;			
+		
+		//import to study data to db
+		$result=$this->DDI_Import->import_study();
+
+		//import failed
+		if ($result===FALSE)
+		{
+			log_message('DEBUG', 'FAILED - Survey import - <em>'. $data['study']['id']. '</em>');
+			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
+			$this->session->set_flashdata('error', $import_failed);
+		}
+
+		//display import success 
+		$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
+		log_message('DEBUG', 'Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables');
+			
+		$this->session->set_flashdata('message', $success);			
+		redirect('admin/catalog','refresh');		
+	}
+	
 
 	/**
 	 * Imports multiple ddi files from the server folder
