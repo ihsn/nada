@@ -1,0 +1,66 @@
+NADA 3.0 Installation
+
+1. Unzip the zip contents to a folder e.g. nada3
+
+2. Setup folders
+Before running the installer, the following folder MUST be configured to have both READ/WRITE permissions:
+
+
+a. application/logs
+This folder is used for logging the application errors and other debugging messages.
+
+b. application/cache
+This is for storing the site cache files created for the DDI Browser pages. 
+
+c. datafiles
+This is where all of your DDIs and other files are stored.
+
+d. imports
+This is an optional folder for importing multiple DDIs into NADA.
+
+3. Database settings
+The database settings are located in the application/config/database.php file.
+
+a. edit the database.php file and fill in the information for the database connection
+
+
+4. Running the Installer
+The installer won't work if the database connection settings are incorrect. To launch the installer, open the web browser
+and type the url for the installer. Assumming nada is installed at http://localhost/nada3, the installer URL will be http://localhost/nada3/index.php/install.
+
+a. Launch the installer
+b. Make sure installer does not return any errors (red boxes) for the folder permissions at the bottom of the page and database connection is successful.
+c. Click on the install button at the bottom to install the database.
+d. If database install is successful, you will see the link to launch the application.
+
+
+5. Default admin account
+Currently, the installer creates the admin account by default with the following credentials:
+
+username: admin@example.org
+password: admin001
+
+
+6. Post installation
+a. It is recommended that you change the admin password immediately after the installation is complete.
+b. remove or rename the install folder
+c. Update the site information and other configurations through the admin web interface from http://localhost/nada3/index.php/admin/configurations
+
+
+7. Setup email account for NADA
+a. The email configuration file is located at application/config/email.php. NADA supports two mail protocols, MAIL and SMTP. The configuration file provides examples
+for both methods.
+b. Whatever protocol you select for emails, you MUST make sure that those ports are not blocked by the Firewall or your web hosting company. 
+
+
+8. Testing emails
+The simplest method to test emails is to use the Forget Password page.
+a. Create a new user account or change your current account in nada to have your email address
+b. Logout of nada
+c. Click on the login link on the site home page.
+d. On the login page, there is a link to "forgot password"
+e. Enter your email address and submit
+f. Check if you have received the email
+g. To see the email debugging messages, open the log file from application/logs/<log-file-name>. The log files are created daily, you should be able to see the email 
+error in the daily log file.
+

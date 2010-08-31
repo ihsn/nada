@@ -1,0 +1,6 @@
+*.cache
+trash
+/trash
+modules
+.settings
+datafiles

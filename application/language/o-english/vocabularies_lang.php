@@ -1,0 +1,14 @@
+<?php
+
+$lang['title_vocabulary'] = "Vocabularies";
+$lang['vocabulary'] = "Vocabulary";
+$lang['term'] = "Term";
+$lang['edit_vocabulary'] = "Edit Vocabulary";
+$lang['add_vocabulary'] = "Add Vocabulary";
+$lang['home'] = "Home";
+$lang['add_term'] = "Add Term";
+$lang['edit_term'] = "Edit Term";
+$lang['select_term_parent'] = "Select term parent";
+
+/* End of file vocabularies_lang.php */
+/* Location: ./system/language/english/vocabularies_lang.php */

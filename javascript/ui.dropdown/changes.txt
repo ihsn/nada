@@ -1,0 +1,27 @@
+0.6
+- fixed a problem when the text is not shown when using groups (#17)
+- change event is now rises when the checkbox is clicked, the previous version only rised the event on label click (#18)
+- blur and focus events are rised when the ddl is shown/hidden (#19)
+- fixed a small issue with "float" keyword not correctly used from js (#20)
+- fixed the firstItemChecksAll incorect behavior when using groups (#23)
+
+0.5
+- fixed destroy function to allow dynamic updates scenarios (#7)
+- moved text height to css to fix the problem of zero text height when the control is initially hidden (#8)
+- fixed hover over items in firefox (#11)
+- fire onchange event on the source select when the chackboxes are checked (#12)
+- fixed control text when using select groups (#14)
+- other minor fixes
+
+0.4
+- added support for groups. The optgroup tags are visible in the drop down and have their own style. The options are indented if they are in a group (#5)
+- fixed a css issue with text remaining gray on hover
+
+0.3
+- fixed a problem where checkboxes are not checked when options are initially selected in IE6 (#3)
+
+0.2
+- works in Chrome and Opera
+
+0.1
+- initial version
