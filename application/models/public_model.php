@@ -26,6 +26,7 @@ class Public_model extends Model {
 		{
 			return $result;
 		}
+		
 		return FALSE;
 	}
 	
