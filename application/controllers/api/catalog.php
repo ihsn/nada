@@ -15,18 +15,23 @@ class Catalog extends REST_Controller
 	{
 
 		$params=array(
-				'study_keywords'=>'',
-				//'variable_keywords'=>'school',
-				//'variable_fields'=>array('name','labl'),
-				'countries'=>array(),
-				//'topics'=>array('1','2'),
-				//'from'=>'2000',
-				//'to'=>'2004'
+				'study_keywords'	=>	$this->input->xss_clean($this->input->get("sk")),
+				'variable_keywords'	=>	$this->input->xss_clean($this->input->get("vk")),
+				'variable_fields'	=>	array('name','labl'),
+				'countries'			=>	$this->input->xss_clean($this->input->get("country")),
+				//'topics'			=>	array('1','2'),
+				'from'				=>	$this->input->xss_clean($this->input->get("from")),
+				'to'				=>	$this->input->xss_clean($this->input->get("to")),
 		);
 		
+		$limit=5;
+		$page=$this->input->get('page');
+		$page= ($page >0) ? $page : 1;
+		$offset=($page-1)*$limit;
+
 		$this->load->library('catalog_search',$params);
 
-		$content=$this->catalog_search->search();
+		$content=$this->catalog_search->search($limit,$offset);
 		
 		//var_dump($result);
 		//return;
@@ -42,7 +47,7 @@ class Catalog extends REST_Controller
         	$this->response(NULL, 400);
         }
 
-		$this->load->model('Catalog_model');
+		$this->load->model('Catalog_model'); 	
 		$this->load->library('DDI_Browser','','DDI_Browser');
 		
 		//get ddi file path from db
