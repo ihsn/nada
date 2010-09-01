@@ -64,7 +64,7 @@ $lang['ACTIVE'] = "ACTIVE";
 $lang['DISABLED'] = "DISABLED";
 
 $lang['click_here_to_login'] = "Click here to login";
-$lang['user_account_activated'] = "Account has been activated";
+$lang['user_account_activated'] = "Your account has been activated successfuly";
 $lang['user_account_not_activated'] = "Account was not activated";
 $lang['account_activation_failed'] = "Account Activation Failed";
 $lang['forgot_password'] = "Forgot password";
@@ -76,6 +76,6 @@ $lang['login_failed'] = "Login failed";
 $lang['login'] = "Login";
 $lang['profile_updated'] = "Profile has been updated.";
 $lang['forgot_password_failed'] = "Failed to reset your password, please try again.";
-
+$lang['account_activation_successful'] = "Account Activation Successful";
 /* End of file users_lang.php */
 /* Location: ./system/language/english/users_lang.php */
