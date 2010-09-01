@@ -9,7 +9,7 @@
 	//sorting
 	$sort_by=$this->input->get("sort_by");
 	$sort_order=$this->input->get("sort_order");	
-	
+
 	//current page url with query strings
 	$page_url=site_url().'/catalog/';		
 
@@ -50,10 +50,6 @@
 </tr>
 </table>
 <?php 
-	//sort
-	$sort_by=$this->input->get("sort_by");
-	$sort_order=$this->input->get("sort_order");
-	
 	//current page url
 	$page_url=site_url().$this->uri->uri_string();
 	
@@ -247,7 +243,9 @@
 </tr>
 </table>
 </div>
-    
+<script type="text/javascript">
+	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
+</script>
 <?php else: ?>
 	<?php echo t('no_records_found');?>
 <?php endif; ?>

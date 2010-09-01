@@ -13,7 +13,6 @@
 
 <form name="search_form" id="search_form" method="get" autocomplete = "off">
 <input type="hidden" id="view" name="view" value="<?php echo ($this->input->get_post('view')!=='v') ? 's': 'v'; ?>"/>
-
 <div id="accordion" > 
 	<?php if ($this->regional_search=='yes'):?>
 	<h3><a href="#"><?php echo t('filter_by_country');?><span id="selected-countries" style="font-size:11px;padding-left:10px;"></span></a></h3> 

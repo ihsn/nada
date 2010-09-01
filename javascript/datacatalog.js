@@ -33,7 +33,7 @@ function block_search_form(block){
 function advanced_search(){	
 	if ($("#from").val() > $("#to").val()){ alert(i18n.invalid_year_range_selected); return false;}
  	data=$("#search_form").serialize();
-	
+	data+='&sort_order='+sort_info.sort_order+'&sort_by='+sort_info.sort_by;
 	$("#link_export").attr("href",CI.base_url+"/catalog/export/?"+data);
 	
 	block_search_form(true);
@@ -79,11 +79,12 @@ function bindBehaviors(e)
 		}	
 		return false;
 	})
-	
+	//sort links
 	$(".catalog-sort-links a").unbind('click').click(function(event) {
+		formdata=$(this).attr("href")+'&ajax=1&'+$("#search_form").serialize();
 		$('#surveys')
 			.html('<img src="images/loading.gif" align="bottom" border="0"/> '+ i18n.searching)
-			.load($(this).attr("href")+'&ajax=1', function (data){
+			.load(formdata, function (data){
 				bindBehaviors(this);
 				});return false;
 	});	
@@ -326,6 +327,9 @@ function filter_by_year()
 		jQuery.each(data['topics'], function() {
     		$("#topics-list .topic-container input:checkbox[value='"+this+"']").attr('disabled',false).parent().removeClass("disabled");;
 		})
+		
+		//reset page number
+		$("#page").val(0);
 		
 		//now run the search function to display surveys based on the new filter
 		advanced_search();
