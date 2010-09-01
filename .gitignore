@@ -4,5 +4,6 @@ trash
 modules
 .settings
 datafiles
-.spc
+*.spc
 logs
+*.zip

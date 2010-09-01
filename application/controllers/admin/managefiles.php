@@ -105,8 +105,6 @@ class Managefiles extends MY_Controller {
 		//array of folders and subfolders	
 		$this->folders=$data;
 		
-//		echo '<pre>';
-//		var_dump($this->folders);
 		//get array of resources to check which files are linked
 		$this->resources=$this->managefiles_model->get_resource_paths_array($surveyid);
 
@@ -293,6 +291,7 @@ class Managefiles extends MY_Controller {
 		$this->form_message=$this->load->view('managefiles/form_message',array('model'=>$forminfo['model']),TRUE);
 	}
 	
+	
     function _remap()
     {
 		switch($this->uri->segment(4))
@@ -423,6 +422,8 @@ class Managefiles extends MY_Controller {
 		}	
 	}
 
+
+
 	/*
 	* Delete a single file
 	*
@@ -437,10 +438,13 @@ class Managefiles extends MY_Controller {
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
 		
-		$filepath=$this->_clean_filepath(urldecode(base64_decode($filepath)));
+		$filepath=$this->_clean_filepath(urldecode(base64_decode($base64_filepath)));
 		
 		$fullpath=unix_path($folderpath.'/'.$filepath);
-
+		
+		//log deletion
+		$this->db_logger->write_log('delete',$fullpath,'external-resource');
+		
 		if (is_dir($fullpath))
 		{
 			$isdeleted=$this->delete_folder($fullpath);
@@ -488,6 +492,9 @@ class Managefiles extends MY_Controller {
 					}
 					else
 					{
+						//log deletion
+						$this->db_logger->write_log('delete',$filepath,'external-resource');
+					
 						if (is_dir($filepath))
 						{							
 							$isremoved=$this->delete_folder($filepath);
