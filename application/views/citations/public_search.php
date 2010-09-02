@@ -83,6 +83,7 @@ em{font-style:italic}
     <?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,array('keywords','field') ); ?>
     <?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field') ); ?>
     <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field') ); ?>
+	<?php echo create_sort_link($sort_by,$sort_order,'place_state',t('country'),$page_url,array('place_state','field') ); ?>    
     </div>
 
 	<div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
