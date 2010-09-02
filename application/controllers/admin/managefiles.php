@@ -15,6 +15,7 @@ class Managefiles extends MY_Controller {
 		$this->load->model("managefiles_model");
 		$this->load->model("resource_model");
 		$this->load->model("form_model");
+		$this->load->model("catalog_model");
 		
 		$this->lang->load("general");
 		$this->lang->load("resource_manager");
@@ -27,8 +28,16 @@ class Managefiles extends MY_Controller {
 	*/
 	function index($surveyid=NULL)
 	{
+		if (!is_numeric($surveyid))
+		{
+			show_error('INVALID_ID');
+		}
+		
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
+		
+		//name of the file to lock for deletion
+		$this->ddi_file_name=basename($this->catalog_model->get_survey_ddi_path($surveyid));
 		
 		//process file upload if any
 		$this->_process_uploads($folderpath);
@@ -71,6 +80,9 @@ class Managefiles extends MY_Controller {
 		//get survey folder path
 		$survey_folder=$this->managefiles_model->get_survey_path($surveyid);
 		
+		//name of the file to lock for deletion
+		$this->ddi_file_name=basename($this->catalog_model->get_survey_ddi_path($surveyid));
+
 		//build path for the folder to show files
 		$current_folder=$survey_folder;
 		
@@ -304,6 +316,10 @@ class Managefiles extends MY_Controller {
 				$this->edit($this->uri->segment(3),$this->uri->segment(5));
 			break;
 
+			case 'download':
+				$this->download($this->uri->segment(3),$this->uri->segment(5));
+			break;
+
 			case 'delete':
 				$this->delete($this->uri->segment(3),$this->uri->segment(5));
 			break;
@@ -423,6 +439,40 @@ class Managefiles extends MY_Controller {
 	}
 
 
+
+	/*
+	* Download a file
+	*
+	*/
+	function download($surveyid, $base64_filepath)
+	{
+		if(!is_numeric($surveyid))
+		{
+			show_error('Invalid parameters supplied');
+		}
+
+		//get survey folder path
+		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
+		
+		$filepath=$this->_clean_filepath(urldecode(base64_decode($base64_filepath)));
+		
+		$fullpath=unix_path($folderpath.'/'.$filepath);
+		
+		//log deletion
+		$this->db_logger->write_log('download',$fullpath,'external-resource');
+		
+		if (is_dir($fullpath))
+		{
+			return false;
+		}
+		else if (is_file($fullpath))
+		{
+			//download file
+			$this->load->helper('download');
+			log_message('info','Downloading file <em>'.$fullpath.'</em>');
+			force_download2($fullpath);
+		}
+	}
 
 	/*
 	* Delete a single file
