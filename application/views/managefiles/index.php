@@ -127,7 +127,7 @@ form{margin:10px;padding:0px;}
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
             <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
-                <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ','onclick="return delete_confirm();"');?> 
+                <?php echo '<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ';?> 
                 <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
             </td>
             <?php else:?>
