@@ -459,5 +459,6 @@ class Resource_model extends Model {
 		$this->db->where('filename', $filepath); 
 		return $this->db->get('resources')->result_array();
 	}
+		
 }
 ?>
