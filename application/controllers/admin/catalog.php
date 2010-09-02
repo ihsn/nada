@@ -21,7 +21,8 @@ class Catalog extends MY_Controller {
 		
 		//load language file
 		$this->lang->load('general');
-    	$this->lang->load('catalog_admin');
+    	$this->lang->load('catalog_search');
+		$this->lang->load('catalog_admin');
 		$this->lang->load('resource_manager');
 
 		//$this->output->enable_profiler(TRUE);	
@@ -789,6 +790,19 @@ class Catalog extends MY_Controller {
 	  		$this->template->render();
 		}		
 	}
+	
+	/**
+	*
+	* Export External Resources as RDF
+	**/
+	function export_rdf($id=NULL)
+	{	
+		$this->load->helper('download');
+		$data=$this->Catalog_model->get_survey_rdf($id);
+		force_download('rdf-'.$id.'.rdf', $data);
+		//application/rdf+xml
+	}
+	
 	
 	/**
 	*
