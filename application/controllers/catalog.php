@@ -6,19 +6,56 @@ class Catalog extends MY_Controller {
         parent::__construct($skip_auth=TRUE);
 		
        	$this->template->set_template('default');	
-    		$this->template->write('sidebar', $this->_menu(),true);	
-    		$this->load->model('Search_helper_model');
-    		$this->load->library('pagination');
-    		//$this->output->enable_profiler(TRUE);
+		$this->template->write('sidebar', $this->_menu(),true);	
+		$this->load->model('Search_helper_model');
+		$this->load->library('pagination');
+	 	//$this->output->enable_profiler(TRUE);
     		
-    		//language files
-    		$this->lang->load('general');
-    		$this->lang->load('catalog_search');
-    		
-    		//configuration settings
-    		$this->limit= ($this->config->item("catalog_records_per_page")===FALSE) ? 15 : $this->config->item("catalog_records_per_page");
-    		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
-    		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");		
+		//language files
+		$this->lang->load('general');
+		$this->lang->load('catalog_search');
+		
+		//configuration settings
+		$this->limit= $this->get_page_size();
+		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
+		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");		
+	}
+
+	/**
+	*
+	* Return the page size from querystring, session, config
+	*
+	**/
+	function get_page_size()
+	{
+		//default from the config
+		$limit=($this->config->item("catalog_records_per_page")===FALSE) ? 15 : $this->config->item("catalog_records_per_page");
+		
+		//check session
+		$sess_ps=$this->session->userdata('catalog_page_size');
+		
+		if(is_numeric($sess_ps))
+		{
+			$limit=$sess_ps;
+		}
+		
+		//check from querystring
+		$ps=$this->input->get_post("ps");
+
+		if (is_numeric($ps))
+		{
+			$limit=$ps;
+		}
+		
+		if (!is_numeric($limit))
+		{
+			return 15;
+		}
+		
+		//save in the session
+		$this->session->set_userdata('catalog_page_size',$limit);		
+
+		return $limit;
 	}
  
  	/**
