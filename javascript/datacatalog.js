@@ -107,6 +107,13 @@ function bindBehaviors(e)
 	
 	//attach variable compare handlers
 	variable_compare_handlers();
+	
+	//page size switch
+	$(".switch-page-size .button").unbind('click').click(function(event) {
+		$("#ps").val($(this).html());
+		$("#page").val(1);
+		advanced_search();
+	});
 }
 
 //compare checkbox click
