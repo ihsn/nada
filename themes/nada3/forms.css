@@ -115,6 +115,11 @@
 	background-color:black;
 	color:white;
 }
+
+.light{font-size:11px;color:gray;}
+.light .button{background-color:#CCCCCC;}
+.light .button:hover{background-color:black}
+
 /*adim form styles*/
 .form {
 	border:0px solid red;
