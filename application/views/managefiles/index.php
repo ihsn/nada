@@ -15,6 +15,7 @@
 .file{background:url(images/page_white.png) no-repeat;padding-left:20px;color:#333333;display:block;margin-bottom:5px;}
 .micro-file{background:url(images/database_table.png) no-repeat;}
 .resource-file{background:url(images/page_green.png) no-repeat;}
+.locked-file{background:url(images/lock.png) no-repeat;}
 .actions{text-align:right;margin-top:15px;}
 #file-uploads{text-align:left;background-color:#EFEFEF;padding:10px;display:none;margin-bottom:10px;margin-top:10px;}
 .input-file{width:300px;}
@@ -60,7 +61,6 @@ form{margin:10px;padding:0px;}
         </select>
         <input type="text" size="20" name="name"/>
         <input type="submit" name="create" value="<?php echo t('create');?>"/>
-        <input type="button" value="<?php echo t('upload_files');?>" onClick="$('#file-uploads').toggle();return false;"/>
     </div>
     <br style="clear:both;"/>
 </div>
@@ -119,16 +119,29 @@ form{margin:10px;padding:0px;}
 				}
 		?>
         <tr valign="top" class="unknown <?php echo $resource_type;?>-tr">
+	        <?php if ($file['name'] ==$this->ddi_file_name):?>
+    		<td><input type="checkbox" disabled="disabled"/></td>
+            <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file locked-file '.$resource_type ));?></td>
+			<td><?php echo ($file["relative"])=='' ? '-' : $file["relative"];?></td>            
+            <td><?php echo $file['size'];?></td>
+            <td><?php echo $file['fileperms'];?></td>
+            <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
+            <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
+                <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ','onclick="return delete_confirm();"');?> 
+                <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
+            </td>
+            <?php else:?>
         	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo $file["relative"].'/'.$file["name"];?>"/></td>            
             <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
 			<td><?php echo ($file["relative"])=='' ? '-' : $file["relative"];?></td>            
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
-            <!--<td><?php echo $file["resource"];?></td>-->
-            <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),t('edit'));?> | 
-				<?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),t('delete'),'onclick="return delete_confirm();"');?>
-            </td>
+            <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
+                <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ','onclick="return delete_confirm();"');?> 
+                <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
+            </td>            
+			<?php endif;?>
         </tr>
     <?php endforeach;?>        
 <?php endif;?>
