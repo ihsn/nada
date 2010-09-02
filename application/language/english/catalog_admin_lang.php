@@ -45,7 +45,7 @@ $lang['ddi_import_success'] = "The DDI was imported successfully!";
 $lang['authenty'] = "Publisher";
 $lang['missing'] = "MISSING";
 $lang['collection_date'] = "Collection dates";
-$lang['click_to_return_to_catalog_page'] = "Click here to return to the Catalog Maintencance page.";
-$lang['rdf_export'] = "Download RDF";
+$lang['click_to_return_to_catalog_page'] = "Click here to return to the Catalog Maintenance page.";
+$lang['rdf_export'] = "Export RDF";
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
