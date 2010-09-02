@@ -946,6 +946,12 @@ class CI_Upload {
 
 		foreach ($parts as $part)
 		{
+			//Added by Mehmood - allowed_types MUST be an array for the line 955 to work
+			if (!is_array($this->allowed_types))
+			{
+				$this->allowed_types=array();
+			}
+			
 			if ( ! in_array(strtolower($part), $this->allowed_types) OR $this->mimes_types(strtolower($part)) === FALSE)
 			{
 				$filename .= '.'.$part.'_';
@@ -957,7 +963,7 @@ class CI_Upload {
 		}
 
 		$filename .= '.'.$ext;
-		
+
 		return $filename;
 	}
 
