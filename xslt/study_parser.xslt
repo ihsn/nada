@@ -390,7 +390,7 @@ select="substring-after($text,$replace)"/>
    <xsl:choose>
       <xsl:when test='contains($string, "&apos;")'>
          <xsl:value-of select='substring-before($string, "&apos;")' />
-         <xsl:text>''</xsl:text>
+         <xsl:text>'</xsl:text>
          <xsl:call-template name="escape-apos">
             <xsl:with-param name="string"
                select='substring-after($string, "&apos;")' />
