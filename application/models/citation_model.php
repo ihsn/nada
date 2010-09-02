@@ -14,7 +14,7 @@ class Citation_model extends Model {
 		$this->db->select('*');
 
 		//allowed_fields
-		$db_fields=array('title','subtitle','alt_title','authors','editors','translators','place_publication','publisher','url');
+		$db_fields=array('title','subtitle','alt_title','authors','editors','translators','place_publication','publisher','url','place_state');
 		
 		//set where
 		if ($filter)
