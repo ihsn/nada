@@ -379,8 +379,10 @@ class Catalog_model extends Model {
 		$this->db->where('survey_id', $id); 
 		$rows=$this->db->get('resources')->result_array();
 		
-		$rdf='<?xml version=\'1.0\' encoding=\'UTF-8\'?>';
-		$rdf.='<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">';
+		$line_br="\r\n";
+		
+		$rdf='<?xml version=\'1.0\' encoding=\'UTF-8\'?>'.$line_br;
+		$rdf.='<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">'.$line_br;
 		
 		foreach($rows as $row)
 		{
@@ -404,13 +406,13 @@ class Catalog_model extends Model {
 			{
 				$rdf.='<dcterms:created>'.$row->dcdate.'</dcterms:created>';
 			}	
-			if ($row->format)
+			if ($row->dcformat)
 			{
-				$rdf.='<dc:format><![CDATA['.$row->format.']]></dc:format>';
+				$rdf.='<dc:format><![CDATA['.$row->dcformat.']]></dc:format>';
 			}	
-			if ($row->type)
+			if ($row->dctype)
 			{
-				$rdf.='<dc:type><![CDATA['.$row->type.']]></dc:type>';
+				$rdf.='<dc:type><![CDATA['.$row->dctype.']]></dc:type>';
 			}	
 			if ($row->country)
 			{
@@ -428,7 +430,7 @@ class Catalog_model extends Model {
 			{
 				$rdf.='<dcterms:abstract><![CDATA['.$row->abstract.']]></dcterms:abstract>';
 			}
-			$rdf.='</rdf:Description>';
+			$rdf.='</rdf:Description>'.$line_br;
 		}
 		$rdf.='</rdf:RDF>';
 		
@@ -485,7 +487,7 @@ class Catalog_model extends Model {
 	{
 		//get survey folder path
 		$data=$this->select_single($id);
-		
+				
 		if ($data===FALSE || count($data)<1)
 		{
 			return FALSE;
@@ -501,7 +503,7 @@ class Catalog_model extends Model {
 
 		$ddi_file=str_replace('\\','/',$ddi_file);
 		$ddi_file=str_replace('//','/',$ddi_file);
-
+		
 		if (!file_exists($ddi_file))
 		{
 			return FALSE;
