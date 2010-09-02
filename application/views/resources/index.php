@@ -9,6 +9,7 @@
 	<a href="<?php echo current_url(); ?>/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('link_add_new_resource'); ?></a> 
     <a href="<?php echo current_url(); ?>/import" class="button"><img src="images/icon_plus.gif"/><?php echo t('link_import_rdf'); ?></a> 
     <a href="<?php echo current_url(); ?>/fixlinks" class="button"><img src="images/wrench.png"/><?php echo t('link_fix_broken'); ?></a> 
+	<a href="<?php echo site_url(); ?>/admin/catalog/export_rdf/<?php echo $this->uri->segment(3);?>" class="button"><img src="images/rdf.gif"/><?php echo t('rdf_export'); ?></a> 
 </div>
 
 <?php $message=$this->session->flashdata('message');?>
@@ -109,8 +110,13 @@
             <td><span class="<?php echo $resource_class; ?>">&nbsp;</span></td>
             <td><?php echo $row->dctype; ?>&nbsp;</td>
 			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
-			<td nowrap="nowrap"><a href="<?php echo current_url();?>/edit/<?php echo $row->resource_id;?>"><?php echo t('edit'); ?></a> | 
-            <a href="<?php echo current_url();?>/delete/<?php echo $row->resource_id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete'); ?></a></td>
+			<td nowrap="nowrap">
+            <a href="<?php echo current_url();?>/edit/<?php echo $row->resource_id;?>"><?php echo t('edit'); ?></a> | 
+            <a href="<?php echo current_url();?>/delete/<?php echo $row->resource_id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete'); ?></a>
+            <?php if($row->filename!=''):?>
+            | <a href="<?php echo site_url();?>/ddibrowser/<?php echo $this->uri->segment(3); ?>/download/<?php echo $row->resource_id;?>"><?php echo t('download'); ?></a>
+            <?php endif;?>
+            </td>
         </tr>
     <?php endforeach;?>
     </table>    
