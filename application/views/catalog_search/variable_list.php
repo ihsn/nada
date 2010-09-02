@@ -171,6 +171,16 @@ $current_page=1;
 </tr>
 </table>
 </div>
+
+<span class="light switch-page-size">
+    <?php echo t('select_number_of_records_per_page');?>:
+    <span class="button">5</span>
+    <span class="button">8</span>
+    <span class="button">15</span>
+    <span class="button">30</span>
+    <span class="button light">50</span>
+    <span class="button light">100</span>
+</span>
     
 <?php else: ?>
 	<?php echo t('no_records_found');?>
