@@ -68,7 +68,7 @@ class Catalog extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 20;
+		$per_page = 5;
 				
 		//current page
 		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
