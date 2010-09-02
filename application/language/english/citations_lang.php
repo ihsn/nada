@@ -72,5 +72,6 @@ $lang['journal_title'] = "Journal";
 
 $lang['corporate-author'] = "Corporate Author";
 $lang['citation_home'] = "Return to Citations' home";
+$lang['country'] = "Country";
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
