@@ -25,6 +25,7 @@ em{font-style:italic}
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title')?></option>
     <option value="authors"	<?php echo ($this->input->get('field')=='authors') ? 'selected="selected"' : '' ; ?> ><?php echo t('authors')?></option>
     <option value="pub_year"	<?php echo ($this->input->get('field')=='pub_year') ? 'selected="selected"' : '' ; ?> ><?php echo t('date')?></option>
+    <option value="place_state"	<?php echo ($this->input->get('field')=='place_state') ? 'selected="selected"' : '' ; ?> ><?php echo t('country')?></option>
   </select>
   <input type="submit" value="<?php echo t('search')?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
