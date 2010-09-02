@@ -25,28 +25,6 @@
     </tr>    
 </table>
 <div class="action-bar" >
-    <ul>
-        <li>                	
-        	<a title="<?php echo t('resource_manager');?> - <?php echo $nation.' - ' .$titl;?>" href="<?php echo site_url()."/admin/managefiles/$id/"; ?>" onclick="IFrameDialog(this);return false;">
-        		<img border="0" align="absbottom" src="images/page_attach.png"/> <?php echo t('resource_manager');?>
-        	</a>
-        </li>  
-        <li>
-        	<a title="<?php echo t('browse_metadata');?>" target="_blank" href="<?php echo site_url();?>/ddibrowser/<?php echo $id;?>" >
-        		<img border="0" align="absbottom" src="images/page_white_cd.png"/> <?php echo t('browse_metadata');?> 
-        	</a>
-        </li>                        
-        <li>
-            <div class="field" style="display:inline;">
-                <label><input type="checkbox" name="isshared" id="isshared" value="1" onclick="share_ddi(this,<?php echo $id;?>);" <?php echo (get_form_value('isshared',isset($isshared) ? $isshared: '') ? 'checked="checked"' : '') ; ?> /> <?php echo t('share_ddi_w_harvester'); ?></label>
-            </div>        
-        </li>                  
-        <li class="float-right">
-        	<a title="<?php echo t('delete');?>" style="cursor: pointer;" href="<?php echo site_url().'/admin/catalog/delete/'.$id; ?>">
-        		<img border="0" align="absbottom" src="images/bin_closed.png"/> <?php echo t('delete');?>
-            </a>
-        </li>
-    </ul> 
 <span style="float:right;padding-right:10px;">
 	<?php if($model=='direct'): ?>
         <a href="<?php echo site_url().'/access_direct/'.$id;?>" class="accessform" title="<?php echo t('link_data_direct_hover');?>">
@@ -69,4 +47,26 @@
         <span><img src="images/rdf_metadata_button.32.gif"/></span>
         </a>                    
 </span>
+    <ul>
+        <li>                	
+        	<a title="<?php echo t('resource_manager');?> - <?php echo $nation.' - ' .$titl;?>" href="<?php echo site_url()."/admin/managefiles/$id/"; ?>" onclick="IFrameDialog(this);return false;">
+        		<img border="0" align="absbottom" src="images/page_attach.png"/> <?php echo t('resource_manager');?>
+        	</a>
+        </li>  
+        <li>
+        	<a title="<?php echo t('browse_metadata');?>" target="_blank" href="<?php echo site_url();?>/ddibrowser/<?php echo $id;?>" >
+        		<img border="0" align="absbottom" src="images/page_white_cd.png"/> <?php echo t('browse_metadata');?> 
+        	</a>
+        </li>                        
+        <li>
+            <div class="field" style="display:inline;">
+                <label><input type="checkbox" name="isshared" id="isshared" value="1" onclick="share_ddi(this,<?php echo $id;?>);" <?php echo (get_form_value('isshared',isset($isshared) ? $isshared: '') ? 'checked="checked"' : '') ; ?> /> <?php echo t('share_ddi_w_harvester'); ?></label>
+            </div>        
+        </li>                  
+        <li class="float-right">
+        	<a title="<?php echo t('delete');?>" style="cursor: pointer;" href="<?php echo site_url().'/admin/catalog/delete/'.$id; ?>">
+        		<img border="0" align="absbottom" src="images/bin_closed.png"/> <?php echo t('delete');?>
+            </a>
+        </li>
+    </ul> 
 </div>
