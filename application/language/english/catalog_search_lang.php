@@ -113,6 +113,8 @@ $lang['table_of_contents'] = "Technical documents";
 
 $lang['classification'] = "Classification";
 $lang['compare_hover_text'] = "Compare the selected variables";
+$lang['select_number_of_records_per_page'] = "Select number of records to show per page";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./system/language/english/catalog_search_lang.php */
