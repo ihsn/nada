@@ -1,3 +1,10 @@
+<?php
+	//set default page size, if none selected
+	if(!$this->input->get("ps"))
+	{
+		$ps=15;
+	}
+?>
 <style>
 .resource-found{background:url(images/tick.png) no-repeat; padding-left:25px;}
 .resource-notfound{background:url(images/close.gif) no-repeat; padding-left:25px;}
@@ -19,7 +26,7 @@
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
 
 <!--<h1 class="page-title">External Resources</h1>-->
-<form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
+<form class="left-pad" style="margin-bottom:10px;" method="GET" id="search-form">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo $this->input->get('keywords'); ?>"/>
   <select name="field" id="field">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields'); ?></option>
@@ -30,7 +37,7 @@
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo current_url();?>">Reset</a>
   <?php endif; ?>
-</form>
+
 <?php endif; ?>
 <?php if ($rows): ?>
 <?php		
@@ -122,6 +129,11 @@
     </table>    
     <div class="pagination">
     	<div style="float:left;color:#999999">
+        	<span style="padding-right:20px;">
+            <?php echo t("select_number_of_records_per_page");?>:
+        	<?php echo form_dropdown('ps', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",isset($ps) ? $ps : ''),'id="ps" style="font-size:10px;"'); ?>
+			</span>
+            	
         	<div style="display:inline;"><img src="images/tick.png"/> <?php echo t('legend_file_exist'); ?></div>
             <div style="display:inline;margin-left:10px;"><img src="images/close.gif"/> <?php echo t('legend_file_no_exist'); ?></div>
         </div>
@@ -195,5 +207,8 @@ function batch_delete(){
 		}
 	});	
 }
-
+//page change
+$('#ps').change(function() {
+  $('#search-form').submit();
+});
 </script>
