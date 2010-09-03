@@ -113,7 +113,7 @@ padding-left:5px;
 padding-right:5px;
 font-size:14px;
 margin-left:5px;
-margin-bottom:-1px;
+margin-bottom:-2px;
 }
 
 #navcontainer>ul#navlist li a { width: auto; }
