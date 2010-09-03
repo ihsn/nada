@@ -10,6 +10,19 @@
 	$sort_by=$this->input->get("sort_by");
 	$sort_order=$this->input->get("sort_order");	
 
+	//set default sort
+	if(!$sort_by)
+	{
+		if ($this->config->item("regional_search")=='yes')
+		{
+			$sort_by='nation';
+		}
+		else
+		{
+			$sort_by='titl';
+		}
+	}
+
 	//current page url with query strings
 	$page_url=site_url().'/catalog/';		
 
@@ -250,7 +263,6 @@
     <span class="button light">50</span>
     <span class="button light">100</span>
 </span>
-
 
 <script type="text/javascript">
 	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};

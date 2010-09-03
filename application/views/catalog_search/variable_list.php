@@ -1,15 +1,20 @@
 <?php if ($rows): ?>
 
 <?php		
-	//sorting
+	//sort
 	$sort_by=$this->input->get("sort_by");
-	$sort_order=$this->input->get("sort_order");	
+	$sort_order=$this->input->get("sort_order");
+
+	//set default sort
+	if(!$sort_by)
+	{
+		$sort_by='name';
+	}
 	
 	//current page url with query strings
 	$page_url=site_url().'/catalog/';		
 
 	//page querystring for variable sub-search
-	//$variable_qs=get_querystring(array('keyword1','field1','keyword2','field2','op') );	
 	$variable_querystring=get_querystring( array('sk', 'vk', 'vf','view'));
 	
 	$compare_items=$this->session->userdata('compare');
@@ -45,15 +50,6 @@
 </tr>
 </table>
 <?php 
-/*
-$limit=15;
-$total=100;
-$current_page=1;
-*/
-	//sort
-	$sort_by=$this->input->get("sort_by");
-	$sort_order=$this->input->get("sort_order");
-	
 	//current page url
 	$page_url=site_url().$this->uri->uri_string();
 	
@@ -151,7 +147,7 @@ $current_page=1;
         </span>  
 
 		<?php 
-			$page_dropdown='<select onchange="advanced_search()">';
+			$page_dropdown='<select name="page2" id="page2" onchange="navigate_page()">';
 			for($i=1;$i<=$pages;$i++)
 			{
                 $page_dropdown.='<option '. (($current_page==$i) ? 'selected="selected"' : '').'>'.$i.'</option>';
@@ -179,6 +175,9 @@ $current_page=1;
     <span class="button light">50</span>
     <span class="button light">100</span>
 </span>
+<script type="text/javascript">
+	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
+</script>
     
 <?php else: ?>
 	<?php echo t('no_records_found');?>
