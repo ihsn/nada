@@ -68,14 +68,12 @@ class Upgrade extends MY_Controller {
 		
 		//---------------------------------------------------
 		// start upgrade
-		//---------------------------------------------------				
-		$this->upgrade_public_requests();//public requests
-		exit;
+		//---------------------------------------------------	
 		$this->upgrade_repository();	//upgrade repository info
 		$this->upgrade_surveys();		//upgrade surveys
+		$this->upgrade_survey_links();	//survey links - MUST BE RUN before upgrade_resources();
 		$this->upgrade_resources();		//upgrade resources
 		$this->upgrade_menus();			//upgrade menus
-		$this->upgrade_resources();		//upgrade resources
 		$this->upgrade_users();			//upgrade users
 
 		set_time_limit(0);
@@ -90,8 +88,10 @@ class Upgrade extends MY_Controller {
 		set_time_limit(0);
 		$this->upgrade_lic_requests(); //licensed requests
 		
-		//survey years
-		//survey topics
+		set_time_limit(0);
+		$this->refresh_from_ddi(); //refresh survey collection dates, topics, etc from the ddi
+
+		echo '<HR><a href="'.site_url().'">Click here to return to the website</a>';
 	} 
 
 
@@ -120,8 +120,8 @@ class Upgrade extends MY_Controller {
 		
 		switch($method)
 		{
-			case 'upgrade_users':
-				$this->upgrade_users();
+			case 'refresh_from_ddi':
+				//$this->refresh_from_ddi();
 			break;
 			
 			case false:
@@ -202,6 +202,94 @@ class Upgrade extends MY_Controller {
 		}
 		echo '<BR>';
 		echo $k.' - survey were copied<br>';
+	}
+
+	/**
+	*
+	* copy survey links (reports, indicators) as external resources
+	*
+	**/
+	function upgrade_survey_links()
+	{		
+		//get data from nada2
+		$prefix=$this->db_nada->dbprefix;
+		$sql=sprintf('select s.id,overview_pdf as report, surveypackage as zip_package, questionnaire from %ssurvey s', $prefix);
+
+		$query=$this->db_nada->query($sql);
+
+		if (!$query)
+		{
+			show_error('Failed to upgrade survey table');
+		}
+		
+		$rows=$query->result_array();	
+		
+		//delete existing resources
+		$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
+		$this->db->query($empty_sql);
+		
+				
+		$k=0;
+		foreach($rows as $row)
+		{
+			//build data for import
+
+			$data=array();
+			//report
+			if ($row['report']!='')
+			{
+				$data[]=array(
+						'survey_id'		=>$row['id'],
+						'dctype'		=>0,
+						'dcformat'		=>0,
+						'title'			=>'Reports and analytical outputs',
+						'filename'		=>$row['report'],
+						'changed'		=>date("U"),
+					);
+			}
+			//zip
+			if ($row['zip_package']!='')
+			{
+				$data[]=array(
+						'survey_id'		=>$row['id'], 
+						'title'			=>'Technical documentation',
+						'filename'		=>$row['zip_package'],
+						'changed'		=>date("U"),
+						'dctype'		=>0,
+						'dcformat'		=>0,						
+					);
+			}
+			//questionnaire
+			if ($row['questionnaire']!='')
+			{
+				$data[]=array(
+						'survey_id'		=>$row['id'], 
+						'title'			=>'Questionnaire',
+						'filename'		=>$row['questionnaire'],
+						'changed'		=>date("U"),
+						'dctype'		=>0,
+						'dcformat'		=>0,						
+					);
+			}
+			
+			foreach($data as $d)
+			{
+				//insert into nada3.resources
+				$result=$this->db->insert('resources',$d);
+			
+				if (!$result)
+				{
+					echo $this->db->_error_message().'<HR>';
+					echo $this->db->last_query().'<BR>';
+					echo '<HR>';
+					return;
+				}
+			
+				$k++;			
+			}	
+		}
+		echo '<BR>';
+		echo $k.' - resource-links were copied<br>';
 	}
 
 
@@ -551,8 +639,8 @@ class Upgrade extends MY_Controller {
 		$rows=$query->result_array();
 
 		//empty the target table
-		$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
-		$result=$this->db->query($empty_sql);
+		//$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
+		//$result=$this->db->query($empty_sql);
 		
 	
 		$k=0;
@@ -794,5 +882,95 @@ class Upgrade extends MY_Controller {
 			return $row['formid'];
 		}
 	}
+	
+	
+	/**
+	*
+	* Refresh DDI Information in the database
+	* 
+	* Note: Useful for updating study information in the database for existing DDIs
+	**/
+	function refresh_from_ddi()
+	{
+		$prefix=$this->db_nada->dbprefix;
+		$sql=sprintf('select id from %ssurveys',$this->db->dbprefix);
+
+		//get data from nada3
+		$query=$this->db->query($sql);
+
+		if (!$query)
+		{
+			show_error('Failed to get data from nada3.0 database');
+		}
+		
+		$rows=$query->result_array();
+		
+		echo '<hr>Refreshing study description from DDI<br>';
+		
+		foreach($rows as $row)
+		{
+			set_time_limit(0);
+			$this->_refresh_study($row['id']);
+			echo '<HR>';
+		}
+	}
+	
+	function _refresh_study($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			return FALSE;
+		}
+		
+		//load DDI Parser Library
+		$this->load->library('DDI_Parser');
+		$this->load->library('DDI_Import','','DDI_Import');
+		$this->load->model('Catalog_model');
+
+		//get survey ddi file path by id
+		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+		
+		if ($ddi_file===FALSE)
+		{
+			echo ('DDI_NOT_FOUND - '. $ddi_file.'<BR>');
+		}
+		
+		//load DDI Parser Library
+		$this->load->library('DDI_Parser');
+		$this->load->library('DDI_Import','','DDI_Import');
+
+		//set file for parsing
+		$this->ddi_parser->ddi_file=$ddi_file;
+		
+		//only available for xml_reader
+		$this->ddi_parser->use_xml_reader=TRUE;
+		
+		//validate DDI file
+		if ($this->ddi_parser->validate()===false)
+		{
+			$error= 'Invalid DDI file: '.$ddi_file;
+			echo $error.'<br>';
+			return FALSE;
+		}
+						
+		//parse ddi study to array	
+		$data['study']=$this->ddi_parser->get_study_array();
+
+		//pass study data
+		$this->DDI_Import->ddi_array=$data;			
+		
+		//import to study data to db
+		$result=$this->DDI_Import->import_study();
+
+		//import failed
+		if ($result===FALSE)
+		{
+			echo 'FAILED - study description - <em>'. $data['study']['id']. '</em><BR>';
+		}
+
+		//display import success 		
+		echo 'Updated - study description - <em>'. $data['study']['id']. '</em><BR>';
+	}
+
 		
 }//end class
