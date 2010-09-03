@@ -68,7 +68,12 @@ class Catalog extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 5;
+		$per_page = $this->input->get("ps");
+		
+		if($per_page===FALSE || !is_numeric($per_page))
+		{
+			$per_page=15;
+		}
 				
 		//current page
 		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
@@ -93,7 +98,7 @@ class Catalog extends MY_Controller {
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('keywords', 'field','ps'));//pass any additional querystrings
 		$config['next_link'] = t('page_next');
 		$config['num_links'] = 5;
 		$config['prev_link'] = t('page_prev');
