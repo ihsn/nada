@@ -1,3 +1,10 @@
+<?php
+	//set default page size, if none selected
+	if(!$this->input->get("ps"))
+	{
+		$ps=15;
+	}
+?>
 <div class="body-container" style="padding:10px;">
 <?php include 'catalog_page_links.php';?>
 
@@ -24,7 +31,7 @@
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo site_url();?>/admin/catalog"><?php echo t('reset');?></a>
   <?php endif; ?>
-</form>
+
 
 <?php if ($rows): ?>
 <?php		
@@ -83,10 +90,10 @@
           <div style="float:left;"><input type="checkbox" id="chk_toggle"/></div>
           <div class="row-text">
 			<?php if ($this->config->item("regional_search")=='yes'):?>
-                <span style="float:left;display:block;width:150px;overflow:hidden;"><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('keywords','field')); ?></span>
+                <span style="float:left;display:block;width:150px;overflow:hidden;"><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('keywords','field','ps')); ?></span>
             <?php endif;?>                
-			<?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,array('keywords','field')); ?></div>
-          <div class="row-date"><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field')); ?></div>
+			<?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,array('keywords','field','ps')); ?></div>
+          <div class="row-date"><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field','ps')); ?></div>
         </div>
     </div>
 	    
@@ -106,17 +113,26 @@
         </div>
       </div>
     <?php endforeach;?>
-    
-<div class="pagination">
-		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
-</div>
 
+<table width="100%">
+    <tr>
+        <td>
+        <?php echo t("select_number_of_records_per_page");?>:
+        <?php echo form_dropdown('ps', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",isset($ps) ? $ps : ''),'id="ps" style="font-size:10px;"'); ?>
+        </td>
+        <td>    
+            <div class="pagination">
+                    <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
+            </div>
+		</td>
+    </tr>
+</table>
 </div>
 <?php else: ?>
 <?php echo t('no_records_found');?>
 <?php endif; ?>
+</form>
 </div>
-
 <script type='text/javascript'>
 //translations	
 var i18n={
@@ -211,4 +227,8 @@ function share_ddi(e,surveyid)
 	url=CI.base_url+'/admin/catalog/shareddi/'+surveyid+'/'+share;
 	$.get(url);
 }
+//page change
+$('#ps').change(function() {
+  $('#catalog-search').submit();
+});
 </script>
