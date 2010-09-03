@@ -47,7 +47,7 @@ code {
 
 <h1>Upgrade NADA 2.0 to NADA 3.0</h1>
 
-<p style="background-color:#F0F0F0;padding:5px;">Note: Before running the upgrade script please make sure you have made a backup of NADA 2.0 database and files. The script will remove data from the NADA 3.0 database, if you have added data that to NADA3.0 that you want to keep, DO NOT run this script.</p>
+<p style="background-color:#CCCC99;padding:5px;">Note: Before running the upgrade script please make sure you have made a backup of NADA 2.0 database and files. The script will remove data from the NADA 3.0 database, if you have added data to NADA3.0 that you want to keep, DO NOT run this script.</p>
 
 <p>1) The script requires that you edit the following file and add information about NADA 2.0:</p>
 <code>
