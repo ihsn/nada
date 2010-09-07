@@ -140,6 +140,11 @@ class DDIbrowser extends MY_Controller {
 		//language
 		$language=array('lang'=>$this->config->item("language"));
 		
+		if($language===FALSE)
+		{
+			$language="english";
+		}
+		
 		//page URLs
 		$current_url=site_url().'/ddibrowser/'.$id.'/';
 		
