@@ -22,10 +22,11 @@ em{font-style:italic}
 <form class="search-box" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
   <select name="field" id="field">
+    <option value="all"	<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields')?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title')?></option>
     <option value="authors"	<?php echo ($this->input->get('field')=='authors') ? 'selected="selected"' : '' ; ?> ><?php echo t('authors')?></option>
     <option value="pub_year"	<?php echo ($this->input->get('field')=='pub_year') ? 'selected="selected"' : '' ; ?> ><?php echo t('date')?></option>
-    <option value="place_state"	<?php echo ($this->input->get('field')=='place_state') ? 'selected="selected"' : '' ; ?> ><?php echo t('country')?></option>
+    <option value="country"	<?php echo ($this->input->get('field')=='country') ? 'selected="selected"' : '' ; ?> ><?php echo t('country')?></option>
   </select>
   <input type="submit" value="<?php echo t('search')?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
@@ -83,7 +84,6 @@ em{font-style:italic}
     <?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,array('keywords','field') ); ?>
     <?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field') ); ?>
     <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field') ); ?>
-	<?php echo create_sort_link($sort_by,$sort_order,'place_state',t('country'),$page_url,array('place_state','field') ); ?>    
     </div>
 
 	<div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>

@@ -40,6 +40,16 @@ class Citation_model extends Model {
 								$this->db->or_like($field, trim($keyword)); 
 							}
 						}
+						else if ($f['field']==strtolower('country'))
+						{
+							//study country search
+							$citations=$this->search_citation_by_country(trim($keyword));
+							
+							if (count($citations)>0)
+							{
+								$this->db->where_in('id', $citations);
+							}
+						}
 					}
 				}
 			}
@@ -54,6 +64,7 @@ class Citation_model extends Model {
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('citations');
+
         $query= $this->db->get();
 		
 		if ($query)
@@ -72,7 +83,37 @@ class Citation_model extends Model {
 		
 		return FALSE;
     }
-  	
+	
+  	/**
+	*
+	* Search on citation survey country
+	*
+	* return arrayy of citation IDs
+ 	**/
+	function search_citation_by_country($keyword=NULL)
+	{
+		$this->db->select('citationid');
+		$this->db->from('survey_citations');
+		$this->db->join('surveys', 'survey_citations.sid = surveys.id','inner');
+		$this->db->group_by('survey_citations.citationid');
+		$this->db->like('surveys.nation',$keyword);
+        $query= $this->db->get();
+
+		$output=array();			
+
+		if ($query)
+		{
+			$result=$query->result_array();
+			
+			foreach($result as $row)
+			{
+				$output[]=$row['citationid'];
+			}			
+		}		
+
+		return $output;
+	}
+	
     function search_count($filter=NULL)
     {
 		//select columns for output
