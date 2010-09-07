@@ -13,6 +13,12 @@ $options_country=$this->ion_auth_model->get_all_countries();
         </div>
     <?php endif; ?>
     
+    <?php if ( isset($this->error)) : ?>
+        <div class="error">
+            <p><?php echo $this->error; ?></p>
+        </div>
+    <?php endif; ?>
+    
     <?php $error=$this->session->flashdata('error');?>
     <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
         
