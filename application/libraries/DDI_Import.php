@@ -113,7 +113,7 @@ class DDI_Import{
 		//insert study description
 		$row = array(
 			'repositoryid'=>$this->repository_identifier,
-			'surveyid'=>substr($data->id,0,44), 
+			'surveyid'=>substr($data->id,0,200), 
 			'titl'=>substr($data->titl,0,254), 
 			'titlstmt'=>$data->titlstmt,
 			'authenty'=>substr($data->authenty,0,254),
@@ -257,7 +257,7 @@ class DDI_Import{
 	**/
 	function import_variables()
 	{
-		$survey_id=$this->ddi_array['study']['id'];
+		$survey_id=substr($this->ddi_array['study']['id'],0,200);
 		$id=$this->survey_exists($survey_id,$this->repository_identifier);
 		
 		if($id===false)
