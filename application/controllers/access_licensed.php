@@ -157,7 +157,7 @@ class Access_licensed extends MY_Controller {
 		$data->lname=$user->last_name;
 		$data->organization=$user->company;
 		$data->email=$user->email;
-		$data->survey_title=$data->titl;
+		$data->survey_title=$data->nation. ' - '.$data->titl;
 		$data->survey_id=$data->surveyid;
 		
 		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->survey_title;			
