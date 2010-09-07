@@ -226,7 +226,7 @@ class Licensed_model extends Model {
 	 */
 	function get_request_by_id($request_id)
 	{	
-		$this->db->select('lic_requests.*, titl,surveys.id as survey_uid, proddate');		
+		$this->db->select('lic_requests.*, titl,surveys.id as survey_uid, proddate,nation');		
 		$this->db->from('lic_requests');		
 		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');
 		$this->db->where('lic_requests.id',$request_id);		
