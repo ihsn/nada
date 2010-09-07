@@ -126,7 +126,7 @@ class Catalog_model extends Model {
 		$fields=$this->input->get("field");
 		$keywords=trim($this->input->get("keywords"));
 		
-		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'repositoryid');
+		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'repositoryid','nation');
 		
 		$where=NULL;
 		
