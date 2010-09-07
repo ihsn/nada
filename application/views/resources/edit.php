@@ -1,3 +1,14 @@
+<style>
+.field-expanded,.always-visible{background-color:#F8F8F8;border:1px solid gainsboro;margin-top:5px;margin-bottom:10px;margin-right:8px;}
+.always-visible{padding:10px;}
+.field-expanded .field, .always-visible .field {padding:5px;}
+.field-expanded legend, .field-collapsed legend, .always-visible legend{background:white;padding-left:5px;padding-right:5px;font-weight:bold; cursor:pointer}
+.field-collapsed{background:none; border:0px;border-top:1px solid gainsboro;margin-top:5px;margin-bottom:5px;}
+.field-collapsed legend {background-image:url(images/next.gif); background-position:left top; padding-left:20px;background-repeat:no-repeat;}
+.field-collapsed .field{display:none;}
+.field-expanded .field label, .always-visible label{font-weight:normal;}
+</style>
+
 <?php
 $select_[0]=t('__select__');
 $option_types = array_merge($select_,$this->Resource_model->get_dc_types());
@@ -73,6 +84,14 @@ foreach($option_formats as $key=>$value)
 </div>
 
 <div class="field">
+	<label for="url"><?php echo t('resource_url_filepath');?></label>
+	<input name="url" type="text" id="url" size="50" class="input-flex"  value="<?php echo get_form_value('url',isset($filename) ? $filename : ''); ?>"/>
+</div>
+
+<fieldset class="field-expanded">
+<legend><?php echo t('additional_info');?></legend>
+
+<div class="field">
 	<label for="contributer"><?php echo t('contributors');?></label>
 	<input name="contributor" type="text" id="contributor" class="input-flex" value="<?php echo get_form_value('contributor',isset($contributor) ? $contributor : ''); ?>"/>
 </div>
@@ -97,10 +116,7 @@ foreach($option_formats as $key=>$value)
 <textarea name="toc" cols="50" rows="6" id="toc" class="input-flex"><?php echo get_form_value('toc',isset($toc) ? $toc : ''); ?></textarea>
 </div>
 
-<div class="field">
-	<label for="url"><?php echo t('resource_url_filepath');?></label>
-	<input name="url" type="text" id="url" size="50" class="input-flex"  value="<?php echo get_form_value('url',isset($filename) ? $filename : ''); ?>"/>
-</div>
+</fieldset>
 
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
@@ -109,8 +125,25 @@ foreach($option_formats as $key=>$value)
 <?php echo form_close();?>
 </div>
 <script type="text/javascript">
-	function toggle_file_url(field_show,field_hide){
-		$('#'+field_show).show();
-		$('#'+field_hide).hide();
-	}
+function toggle_file_url(field_show,field_hide){
+	$('#'+field_show).show();
+	$('#'+field_hide).hide();
+}
+
+//auto complete
+$(document).ready(function(){
+    var data = "<?php echo $this->js_files;?>".split(" ");
+	$("#url").autocomplete(data);
+});
+
+//expand/collapse
+$(document).ready(function() {
+	$('.field-expanded > legend').parent('fieldset').toggleClass('field-collapsed');
+	
+	$('.field-expanded > legend').click(function(e) {
+			e.preventDefault();
+			$(this).parent('fieldset').toggleClass("field-collapsed");
+			return false;
+	});
+});
 </script>

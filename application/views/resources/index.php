@@ -25,7 +25,6 @@
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
 
-<!--<h1 class="page-title">External Resources</h1>-->
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="search-form">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo $this->input->get('keywords'); ?>"/>
   <select name="field" id="field">
@@ -79,7 +78,7 @@
 				,$this->pagination->total_rows);
 	}
 ?>
-<form autocomplete="off">
+
 	<!-- batch operations -->
     <table width="100%">
         <tr>
@@ -99,10 +98,10 @@
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></th>
             <th><?php echo t('link'); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'dctype',t('resource_type'),$page_url); ?></th>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'dctype',t('resource_type'),$page_url,array('keywords','field','ps')); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field','ps')); ?></th>
 			<th><?php echo t('actions'); ?></th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -141,7 +140,9 @@
     </div>
 
 <?php else: ?>
+<div>
 <?php echo t('no_records_found'); ?>
+</div>
 <?php endif; ?>
 </form>
 </div>
