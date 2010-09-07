@@ -71,8 +71,9 @@ class Upgrade extends MY_Controller {
 		//---------------------------------------------------	
 		$this->upgrade_repository();	//upgrade repository info
 		$this->upgrade_surveys();		//upgrade surveys
-		$this->upgrade_survey_links();	//survey links - MUST BE RUN before upgrade_resources();
-		$this->upgrade_resources();		//upgrade resources
+$this->upgrade_resources();		
+$this->upgrade_survey_links();	//survey links - MUST BE RUN before upgrade_resources();
+				//upgrade resources
 		$this->upgrade_menus();			//upgrade menus
 		$this->upgrade_users();			//upgrade users
 
@@ -409,7 +410,8 @@ class Upgrade extends MY_Controller {
 
 		if (!$query)
 		{
-			show_error('Failed to upgrade public_requests table');
+			echo ('Failed to upgrade public_requests table');
+			return;
 		}
 		
 		$rows=$query->result_array();
@@ -639,8 +641,8 @@ class Upgrade extends MY_Controller {
 		$rows=$query->result_array();
 
 		//empty the target table
-		//$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
-		//$result=$this->db->query($empty_sql);
+		$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
+		$result=$this->db->query($empty_sql);
 		
 	
 		$k=0;
@@ -930,9 +932,10 @@ class Upgrade extends MY_Controller {
 		//get survey ddi file path by id
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
 		
-		if ($ddi_file===FALSE)
+		if (!file_exists($ddi_file))
 		{
 			echo ('DDI_NOT_FOUND - '. $ddi_file.'<BR>');
+			return FALSE;
 		}
 		
 		//load DDI Parser Library
