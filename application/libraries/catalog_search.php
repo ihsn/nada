@@ -90,6 +90,25 @@ class Catalog_search{
 		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
+		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
+		
+		//multi-column sort
+		if ($sort_by=='nation')
+		{
+			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
+		}
+		elseif ($sort_by=='titl')
+		{
+			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
+		}
+		if ($sort_by=='proddate')
+		{
+			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
+			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
+		}
+				
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years);
 		
@@ -124,7 +143,13 @@ class Catalog_search{
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
 			$this->ci->db->group_by('id,surveyid,titl,nation');
-			$this->ci->db->order_by($sort_by,$sort_order);
+			
+			//multi-sort
+			foreach($sort_options as $sort)
+			{
+				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
+			}
+			
 			$this->ci->db->limit($limit,$offset);
 			
 			if ($where!='') {
@@ -132,16 +157,6 @@ class Catalog_search{
 			}
 		
 			$query=$this->ci->db->get();
-
-			/*
-			$sql='select SQL_CALC_FOUND_ROWS '.$study_fields.',varcount, count(*) as var_found
-					from surveys
-					left join forms on surveys.formid=forms.formid
-			    	inner join variables v on surveys.id=v.surveyid_fk ';
-			$sql.=$where;
-			$sql.=' group by id,surveyid,titl,nation';
-			$sql.=sprintf(" ORDER BY %s %s",$this->sort_by,$this->sort_order);
-			*/
 		}		
 		else 
 		{
@@ -149,7 +164,13 @@ class Catalog_search{
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-			$this->ci->db->order_by($sort_by,$sort_order);
+
+			//multi-sort
+			foreach($sort_options as $sort)
+			{
+				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
+			}
+
 			$this->ci->db->limit($limit,$offset);
 			
 			if ($where!='') {
