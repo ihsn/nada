@@ -2,6 +2,7 @@
 	//other settings
 	echo '<h1>'.t('other_php_settings').'</h1>';
 	echo '<table cellpadding="3" cellspacing="0" class="grid-table">';
+	
 	echo '<tr class="header">';
 	echo '<th>'.t('setting').'</th>';
 	echo '<th>'.t('value').'</th>';
@@ -31,5 +32,22 @@
 	echo '</td>';
 	echo '<td>15M</td>';
 	echo '</tr>';
+
+
+echo '<tr>';
+	echo '<td>date.timezone</td>';
+	echo '<td>';
+	if (!ini_get('date.timezone'))
+	{
+		echo '<div class="red">'.t('not_set').'</div>';
+	}
+	else{
+		echo ini_get('date.timezone');
+	}	
+	echo '</td>';
+	echo '<td>'.sprintf(t('time_zone_is_required'),'http://php.net/manual/en/datetime.configuration.php','http://php.net/manual/en/timezones.php').'</td>';
+	echo '</tr>';
+
+
 	echo '</table>';
 ?>
