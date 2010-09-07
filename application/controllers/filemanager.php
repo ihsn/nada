@@ -35,7 +35,7 @@ class Filemanager extends MY_Controller {
         $controller = array_shift( $segment_array );
         $virtual_root = array_shift( $segment_array );
         
-        if( empty( $this->roots )) exit( 'no roots defined' );
+        if( empty( $this->roots )) exit( 'no root defined' );
         
         // let's check if a virtual root is choosen
         // if this controller is the default controller, first segment is 'index'
