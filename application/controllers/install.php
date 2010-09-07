@@ -148,99 +148,100 @@ class Install extends Controller {
         	
         	//register the user
         	$user_created=$this->ion_auth->register($username,$password,$email,$additional_data);
-        	
-        	if ($user_created)
-        	{
 
-        		//get the user data by email
-        		$user=$this->ion_auth->get_user_by_email($email);
-        		
-        		//$data=$additional_data;
-        		$data['username']=$username;
-        		$data['active']=1;
-        		$data['group_id']=1;	
-        				        				
-        		//update user group to ADMIN and ACTIVATE account
-        		$this->ion_auth->update_user($user->id, $data);	
-        	
-        		//auto login the user
-        		$this->ion_auth->login($email, $password, $remember=true);
-        		
-        		//redirect them back to the admin page
-        		$this->session->set_flashdata('message', t("form_update_success") );
-       			redirect("install/complete", 'refresh');        	
-        	}        		        	
-        	
+			//get the user data by email
+			$user=$this->ion_auth->get_user_by_email($email);
+				
+			if ($user)
+			{
+				//$data=$additional_data;
+				$data['username']=$username;
+				$data['active']=1;
+				$data['group_id']=1;	
+												
+				//update user group to ADMIN and ACTIVATE account
+				$this->ion_auth->update_user($user->id, $data);	
+			
+				//auto login the user
+				$this->ion_auth->login($email, $password, $remember=true);
+				
+				//redirect them back to the admin page
+				$this->session->set_flashdata('message', t("form_update_success") );
+				redirect("install/complete", 'refresh');
+				return;
+			}
+			else
+			{
+				$this->error=$this->ion_auth->errors();
+			}        	
 		} 
-		else 
-		{ 
-			//display the create user form
-	        
-			//set the flash data error message if there is one
-	        $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
-			
-			$this->data['first_name']          = array('name'   => 'first_name',
-		                                              'id'      => 'first_name',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('first_name'),
-													  'class'=>'input-fixed300'
-		                                             );
-            $this->data['last_name']           = array('name'   => 'last_name',
-		                                              'id'      => 'last_name',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('last_name'),
-													  'class'=>'input-fixed300'
-		                                             );
-            $this->data['email']              = array('name'    => 'email',
-		                                              'id'      => 'email',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('email'),
-													  'class'=>'input-fixed300'
-		                                             );
-            $this->data['username']           = array('name'    => 'username',
-		                                              'id'      => 'username',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('username'),
-													  'class'=>'input-fixed300'
-		                                             );
+		//display the create user form
+		
+		//set the flash data error message if there is one
+		$this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+		
+		$this->data['first_name']          = array('name'   => 'first_name',
+												  'id'      => 'first_name',
+												  'type'    => 'text',
+												  'value'   => $this->form_validation->set_value('first_name'),
+												  'class'=>'input-fixed300'
+												 );
+		$this->data['last_name']           = array('name'   => 'last_name',
+												  'id'      => 'last_name',
+												  'type'    => 'text',
+												  'value'   => $this->form_validation->set_value('last_name'),
+												  'class'=>'input-fixed300'
+												 );
+		$this->data['email']              = array('name'    => 'email',
+												  'id'      => 'email',
+												  'type'    => 'text',
+												  'value'   => $this->form_validation->set_value('email'),
+												  'class'=>'input-fixed300'
+												 );
+		$this->data['username']           = array('name'    => 'username',
+												  'id'      => 'username',
+												  'type'    => 'text',
+												  'value'   => $this->form_validation->set_value('username'),
+												  'class'=>'input-fixed300'
+												 );
 
-            $this->data['company']            = array('name'    => 'company',
-		                                              'id'      => 'company',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('company'),
-													  'class'=>'input-fixed300'
-		                                             );
-            $this->data['phone1']             = array('name'    => 'phone1',
-		                                              'id'      => 'phone1',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('phone1'),
-													  'class'=>'input-fixed300'
-		                                             );
-		    $this->data['password']           = array('name'    => 'password',
-		                                              'id'      => 'password',
-		                                              'type'    => 'password',
-		                                              'value'   => $this->form_validation->set_value('password'),
-													  'class'=>'input-fixed200'
-		                                             );
-            $this->data['password_confirm']   = array('name'    => 'password_confirm',
-                                                      'id'      => 'password_confirm',
-                                                      'type'    => 'password',
-                                                      'value'   => $this->form_validation->set_value('password_confirm'),
-													  'class'=>'input-fixed200'
-                                                     );
-            $this->data['active']=$this->form_validation->set_value('active',1);
-			
-            $content=$this->load->view('install/create_user', $this->data,TRUE);
-			
-			//pass data to the site's template
-			$this->template->write('content', $content,true);
-			
-			//set page title
-			$this->template->write('title', $this->data['page_title'],true);
-	
-			//render final output
-			$this->template->render();	
-		}
+		$this->data['company']            = array('name'    => 'company',
+												  'id'      => 'company',
+												  'type'    => 'text',
+												  'value'   => $this->form_validation->set_value('company'),
+												  'class'=>'input-fixed300'
+												 );
+		$this->data['phone1']             = array('name'    => 'phone1',
+												  'id'      => 'phone1',
+												  'type'    => 'text',
+												  'value'   => $this->form_validation->set_value('phone1'),
+												  'class'=>'input-fixed300'
+												 );
+		$this->data['password']           = array('name'    => 'password',
+												  'id'      => 'password',
+												  'type'    => 'password',
+												  'value'   => $this->form_validation->set_value('password'),
+												  'class'=>'input-fixed200'
+												 );
+		$this->data['password_confirm']   = array('name'    => 'password_confirm',
+												  'id'      => 'password_confirm',
+												  'type'    => 'password',
+												  'value'   => $this->form_validation->set_value('password_confirm'),
+												  'class'=>'input-fixed200'
+												 );
+		$this->data['active']=$this->form_validation->set_value('active',1);
+		
+		$content=$this->load->view('install/create_user', $this->data,TRUE);
+		
+		//pass data to the site's template
+		$this->template->write('content', $content,true);
+		
+		//set page title
+		$this->template->write('title', $this->data['page_title'],true);
+
+		//render final output
+		$this->template->render();	
+
     }
 	
 	function complete()
