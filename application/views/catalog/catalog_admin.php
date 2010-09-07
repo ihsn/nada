@@ -22,6 +22,7 @@
   <select name="field" id="field">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
     <option value="titl"	<?php echo ($this->input->get('field')=='titl') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
+    <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
     <option value="surveyid"><?php echo t('survey_id');?></option>
     <option value="authenty"><?php echo t('producer');?></option>
     <option value="sponsor"><?php echo t('sponsor');?></option>
