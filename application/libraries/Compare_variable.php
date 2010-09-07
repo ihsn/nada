@@ -45,8 +45,15 @@ class Compare_variable{
 		{
 			return false;
 		}
+
+		$language=array('lang'=>$this->ci->config->item("language"));
 		
-		return $this->ci->ddi_browser->get_variable_html($ddi_file,$variable_id);
+		if($language===FALSE)
+		{
+			$language="english";
+		}
+
+		return $this->ci->ddi_browser->get_variable_html($ddi_file,$variable_id,$language);
 	}
 	
 	function get_survey_title($survey_id)
