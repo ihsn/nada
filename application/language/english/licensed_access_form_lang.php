@@ -81,5 +81,5 @@ $lang['agreement_text']='<p>The representative of the Receiving Organization agr
 $lang['success_request_submitted']='You have successfully submitted the request for data access. A confirmation email has been sent to your email address.';
 $lang['track_status_request']='To track the status of your request, visit';
 $lang['thank_you']='Thank you!';
-$lang['cofirmation_application_for_licensed_dataset']='[confirmation] Application for Access to a Licensed Dataset';
+$lang['confirmation_application_for_licensed_dataset']='[confirmation] Application for Access to a Licensed Dataset';
 ?>

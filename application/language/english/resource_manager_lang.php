@@ -137,5 +137,6 @@ $lang['Image, TIFF [image/tiff]']= 							"Image, TIFF [image/tiff]";
 
 $lang['status'] = "Status";
 $lang['file_delete_success'] = "File was deleted successfuly!";
+$lang['additional_info'] = "Additional Information";
 /* End of file resource_manager_lang.php */
 /* Location: ./system/language/english/resource_manager_lang.php */

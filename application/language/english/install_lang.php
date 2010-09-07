@@ -43,7 +43,8 @@ $lang['disabled'] = "Disabled";
 $lang['install_database'] = "Install Database";
 $lang['create_user'] = "Create account";
 $lang['installer_title'] = "NADA Installer";
-
+$lang['time_zone_is_required'] = "See how to <a target=\"_blank\" href=\"%s\">configure</a> and select the right <a target=\"_blank\" href=\"%s\">timezone</a>";
+$lang['not_set'] = "Not set";
 
 /* End of file install_lang.php */
 /* Location: ./system/language/english/install_lang.php */

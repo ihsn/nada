@@ -77,5 +77,7 @@ $lang['login'] = "Login";
 $lang['profile_updated'] = "Profile has been updated.";
 $lang['forgot_password_failed'] = "Failed to reset your password, please try again.";
 $lang['account_activation_successful'] = "Account Activation Successful";
+$lang['activation_email_unsuccessful'] = "Activation email was not sent.";
+
 /* End of file users_lang.php */
 /* Location: ./system/language/english/users_lang.php */
