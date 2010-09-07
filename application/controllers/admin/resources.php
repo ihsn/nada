@@ -232,6 +232,19 @@ class Resources extends MY_Controller {
 			$this->session->set_flashdata('error', 'Invalid id was provided.');
 			redirect('admin/catalog');			
 		}
+		
+		//js auto complete file list
+		$files_array=$this->get_files_array($survey_id);
+		$this->js_files='';
+		
+		if (is_array($files_array))
+		{
+			$this->js_files=implode(' ', $files_array);
+		}
+		
+		//js and css for auto complete field
+		$this->template->add_css('javascript/autocomplete/jquery.autocomplete.css');
+		$this->template->add_js('javascript/autocomplete/jquery.autocomplete.pack.js');		
 
 		//check id
 		if (!is_numeric($id) && $id!='add')
@@ -674,58 +687,38 @@ class Resources extends MY_Controller {
 		return $content;
 	}
 	
-	/*
-	function _find_resource($path, $pattern) 
-	{
-	  $path = rtrim(str_replace("\\", "/", $path), '/') . '/*';
-									 
-	  foreach (glob($path) as $fullname) 
-	  {
-		if (is_dir($fullname)) 
-		{
-		  $this->_find_resource($fullname, $pattern);
-		} 
-		else if (strtolower(basename($fullname))==$pattern ) 	
-		{
-		  return $fullname;
-		}
-	  }
-	  return FALSE;
-	}*/
-
 	/**
-	* TODO: REMOVE - NO LONGER IN USE
-	* Return an array of all files in the path
 	*
-	*/
-	/*
-	function _folder_to_array($path) 
+	* Returns an array of all files in the survey folder
+	*
+	**/
+	function get_files_array($surveyid=NULL)
 	{
-	  //$path = rtrim(str_replace("\\", "/", $path), '/') . '/*';
-		$files=FALSE;
-										 
-		foreach (glob($path) as $fullname) 
+		if (!is_numeric($surveyid))
 		{
-			echo $fullname.'<BR>';
-			if (is_dir($fullname)) 
-			{
-			 $tmp=$this->_folder_to_array($fullname);exit;
-			  return $tmp;
-			  if($files!=false)
-			  {
-			  	foreach($files as $key=>$file){
-					$files[$key]=$file;
-				}				
-			  }
-			} 
-			else			
-			{
-				$files[basename($fullname)]=$fullname; 	
-			}
+			return NULL;
 		}
+		
+		//get survey folder path
+		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
+		
+		//name of the file to lock for deletion
+		$this->ddi_file_name=basename($this->Catalog_model->get_survey_ddi_path($surveyid));
+			
+		//get all survey files
+		$data=$this->managefiles_model->get_files_recursive($folderpath,$folderpath);
+		
+		$files=array();
+		
+		if (isset($data['files']))
+		{
+			foreach($data['files'] as $file)
+			{
+				$files[]=$file['relative'].'/'.$file['name'];
+			}
+		}		
 		return $files;
-	}
-	*/ 
+	}	
 }
 /* End of file resources.php */
 /* Location: ./controllers/resources.php */
