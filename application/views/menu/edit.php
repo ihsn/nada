@@ -32,7 +32,7 @@
            
     <div class="field">
         <label for="body"><?php echo t('body');?></label>
-        <textarea class="input-flex"  name="body" rows="10"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>        
+        <textarea id="body" class="input-flex"  name="body" rows="30"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>        
     </div>
 
     <div class="field">
