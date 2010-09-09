@@ -516,7 +516,7 @@ class Resources extends MY_Controller {
 					}
 					
 					//check if the resource file already exists
-					$resource_exists=$this->Resource_model->get_resources_by_filepath($insert_data['filename']);
+					$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($insert_data['survey_id'],$insert_data['filename']);
 					
 					if (!$resource_exists)
 					{										
@@ -568,7 +568,7 @@ class Resources extends MY_Controller {
 		unset($path_arr[count($path_arr)-1]);
 
 		//folder path without filename
-		$folder_structure=implode('/',$path_arr);
+		$folder_structure=trim(implode('/',$path_arr));
 
 		if ($folder_structure=='')
 		{
@@ -590,7 +590,7 @@ class Resources extends MY_Controller {
 		if (!file_exists($survey_folder.'/'.$folder_structure))
 		{
 			log_message('debug', 'Creating folder for external resources - '.$survey_folder.'/'.$folder_structure);
-			if (!mkdir($survey_folder.'/'.$folder_structure, 0777, true)) 
+			if (!@mkdir($survey_folder.'/'.$folder_structure, 0777, true)) 
 			{
 				log_message('debug', 'Failed creating folder for external resources - '.$survey_folder.'/'.$folder_structure);
 			}
