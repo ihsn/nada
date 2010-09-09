@@ -459,6 +459,19 @@ class Resource_model extends Model {
 		$this->db->where('filename', $filepath); 
 		return $this->db->get('resources')->result_array();
 	}
+	
+	/**
+	*
+	* Get a resource by filepath
+	*
+	* @filepath	relative path to the resource
+	*/
+	function get_survey_resources_by_filepath($surveyid,$filepath)
+	{
+		$this->db->where('survey_id', $surveyid); 
+		$this->db->where('filename', $filepath); 		
+		return $this->db->get('resources')->result_array();
+	}
 		
 }
 ?>
