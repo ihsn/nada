@@ -74,7 +74,7 @@ if ( ! function_exists('is_url'))
 	function is_url($str)
 	{
 		$str=trim($str);
-		if (strpos($str,'http:') || strpos($str,'https:') || strpos($str,'ftp:') )
+		if (strpos($str,'http:')!==FALSE || strpos($str,'https:')!==FALSE || strpos($str,'ftp:')!==FALSE )
 		{
 			return TRUE;
 		}
@@ -82,7 +82,7 @@ if ( ! function_exists('is_url'))
 	}
 }
 /**
- * unix_path
+ * silent_unlink
  *
  * Deletes a file silently without throwing any warnings if the file was not found
  *
