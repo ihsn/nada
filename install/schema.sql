@@ -12,7 +12,7 @@ CREATE TABLE `sitelogs` (
   `keyword` text,
   `username` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=13906 DEFAULT CHARSET=utf8;
 
 
 
@@ -20,7 +20,7 @@ CREATE TABLE `sitelogs` (
 CREATE TABLE `surveys` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `repositoryid` varchar(128) NOT NULL,
-  `surveyid` varchar(45) DEFAULT NULL,
+  `surveyid` varchar(200) DEFAULT NULL,
   `titl` varchar(255) DEFAULT '',
   `titlstmt` text,
   `authenty` varchar(255) DEFAULT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE `surveys` (
   UNIQUE KEY `idx_srvy_unq` (`surveyid`,`repositoryid`),
   FULLTEXT KEY `ft_titl` (`titl`),
   FULLTEXT KEY `ft_all` (`titl`,`authenty`,`geogcover`,`nation`,`topic`,`scope`,`sername`,`producer`,`sponsor`,`refno`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=40 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -76,7 +76,7 @@ CREATE TABLE `variables` (
   FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
   FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
   FULLTEXT KEY `idx_nm` (`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=17391 DEFAULT CHARSET=utf8;
 
 
 
@@ -125,7 +125,7 @@ CREATE TABLE `citations` (
   `pub_year` int(10) unsigned DEFAULT NULL,
   `abstract` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -139,7 +139,7 @@ CREATE TABLE `lic_file_downloads` (
   `lastdownloaded` int(10) unsigned DEFAULT NULL,
   `requestid` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -164,7 +164,7 @@ CREATE TABLE `lic_files_log` (
   `created` int(10) unsigned NOT NULL,
   `username` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='licensed files download log';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='licensed files download log';
 
 
 
@@ -172,7 +172,7 @@ CREATE TABLE `lic_files_log` (
 CREATE TABLE `lic_requests` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `userid` int(10) unsigned NOT NULL,
-  `surveyid` varchar(100) NOT NULL,
+  `surveyid` int(11) NOT NULL,
   `org_rec` varchar(200) DEFAULT NULL,
   `org_type` varchar(45) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
@@ -194,7 +194,7 @@ CREATE TABLE `lic_requests` (
   `updatedby` varchar(45) DEFAULT NULL,
   `ip_limit` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -208,23 +208,7 @@ CREATE TABLE `meta` (
   `phone` varchar(20) DEFAULT NULL,
   `country` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-
-
-
-# TABLE STRUCTURE FOR: pages
-CREATE TABLE `pages` (
-  `pid` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(45) NOT NULL,
-  `body` text,
-  `url` varchar(45) DEFAULT NULL,
-  `created` datetime DEFAULT NULL,
-  `changed` datetime DEFAULT NULL,
-  `weight` smallint(5) unsigned DEFAULT NULL,
-  `status` smallint(5) unsigned DEFAULT '1',
-  PRIMARY KEY (`pid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
+) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 # TABLE STRUCTURE FOR: planned_surveys
@@ -288,7 +272,7 @@ CREATE TABLE `resources` (
   `dcformat` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
   `changed` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`resource_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -299,7 +283,7 @@ CREATE TABLE `survey_citations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Idx_s_c` (`sid`,`citationid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=164 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -310,7 +294,7 @@ CREATE TABLE `survey_topics` (
   `uid` int(10) unsigned NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `Idx_uniq` (`tid`,`sid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -320,7 +304,7 @@ CREATE TABLE `survey_years` (
   `sid` int(10) unsigned DEFAULT NULL,
   `data_coll_year` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=235 DEFAULT CHARSET=utf8;
 
 
 
@@ -361,7 +345,7 @@ CREATE TABLE `users` (
   `last_login` int(10) unsigned NOT NULL,
   `active` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8;
 
 
 
@@ -374,7 +358,7 @@ CREATE TABLE `citation_authors` (
   `initial` varchar(255) DEFAULT NULL,
   `author_type` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 
 
@@ -404,7 +388,7 @@ CREATE TABLE `configurations` (
 
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('app_version', '8.12.2010.10.46', 'Application version', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('cache_folder', 'application/cache', 'Site cache folder', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_records_per_page', '10', 'Catalog search page - records per page', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_records_per_page', '5', 'Catalog search page - records per page', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_root', 'datafiles', 'Survey catalog folder', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('db_version', '8.12.2010.10.46', 'Database version', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('ddi_import_folder', 'imports', 'Survey catalog import folder', NULL, NULL);
@@ -415,7 +399,7 @@ INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) 
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('mail_protocol', 'smtp', 'Select method for sending emails', 'Supported protocols: MAIL, SMTP, SENDMAIL', NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('min_password_length', '5', 'Minimum password length', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('regional_search', 'yes', 'Enable regional search', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('repository_identifier', 'default', 'Repository Identifier', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('repository_identifier', 'www.surveynetwork.org', 'Repository Identifier', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('site_password_protect', 'no', 'Password protect website', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_auth', 'no', 'Use SMTP Authentication', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_debug', 'yes', 'Enable SMTP Debugging', NULL, NULL);
