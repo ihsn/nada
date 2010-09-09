@@ -216,3 +216,7 @@
 .form .field label.desc{font-weight:normal;font-style:italic}
 .form .required{color:Red;padding:2px;}
 .form label.small{font-size:10px;color:#666666;font-weight:normal;}
+
+.light{font-size:11px;color:gray;}
+.light .button{background-color:#CCCCCC;}
+.light .button:hover{background-color:black}

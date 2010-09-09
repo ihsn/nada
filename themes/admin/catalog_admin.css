@@ -70,11 +70,11 @@
 	background-color:white;
 	border-top:1px solid #C1DAD7;
 	margin-left:-10px;
-	padding-top:3px;
+	padding-top:5px;
 	margin-bottom:3px;
 }
 /*reset ul,li*/
 #surveys .action-bar ul{display:inline;list-style:none;padding:0px;margin:0px;margin-left:12px;}
-#surveys .action-bar ul li{display:inline;}
-#surveys .action-bar ul li a{margin-right:10px;}
-#surveys .action-bar ul li a:hover{color:#990000}
+#surveys .action-bar ul li{display:inline;font-size:11px;color:#009900;padding:5px;}
+#surveys .action-bar ul li a{margin-right:10px;color:#009900;}
+#surveys .action-bar ul li a:hover, #surveys .action-bar ul li:hover{color:white;background-color:black;}
