@@ -88,27 +88,47 @@ class Catalog extends MY_Controller {
 		$page=$this->input->get('page');
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$this->limit;
-		
-		//set search params
-		$params=array(
-			'study_keywords'=>$this->input->get_post('sk'),
-			'variable_keywords'=>$this->input->get_post('vk'),
-			'variable_fields'=>$this->input->get_post('vf'),
-			'countries'=>$this->input->get_post('country'),
-			'topics'=>$this->input->get_post('topic'),
-			'from'=>$this->input->get_post('from'),
-			'to'=>$this->input->get_post('to')
-		);
-		
-		//intialize search class
-		$this->load->library('catalog_search',$params);
-		
-		//perform the search
-		$surveys=$this->catalog_search->search($this->limit);
+		$view=$this->input->get("view");
 
-		$surveys['current_page']=$page;
-		
-		$data['search_result']=$this->load->view('catalog_search/survey_list', $surveys,true);		
+		if ($this->input->get('vk')!='' && $view=='v')
+		{
+			//variable search
+			$params=array(
+				'study_keywords'=>$this->input->get_post('sk'),
+				'variable_keywords'=>$this->input->get_post('vk'),
+				'variable_fields'=>$this->input->get_post('vf'),
+				'countries'=>$this->input->get_post('country'),
+				'topics'=>$this->input->get_post('topic'),
+				'from'=>$this->input->get_post('from'),
+				'to'=>$this->input->get_post('to'),
+				'sort_by'=>$this->input->get_post('sort_by'),
+				'sort_order'=>$this->input->get_post('sort_order')
+			);		
+
+			$this->load->library('catalog_search',$params);
+			$surveys=$this->catalog_search->vsearch($this->limit,$offset);
+			$surveys['current_page']=$page;
+			$data['search_result']=	$this->load->view('catalog_search/variable_list', $surveys,true);
+		}
+		else
+		{		
+			//study search view
+			$params=array(
+				'study_keywords'=>$this->input->get_post('sk'),
+				'variable_keywords'=>$this->input->get_post('vk'),
+				'variable_fields'=>$this->input->get_post('vf'),
+				'countries'=>$this->input->get_post('country'),
+				'topics'=>$this->input->get_post('topic'),
+				'from'=>$this->input->get_post('from'),
+				'to'=>$this->input->get_post('to')
+			);
+				
+			//intialize search class
+			$this->load->library('catalog_search',$params);			
+			$surveys=$this->catalog_search->search($this->limit,$offset);
+			$surveys['current_page']=$page;
+			$data['search_result']=$this->load->view('catalog_search/survey_list', $surveys,true);
+		}
 		
 		//get list of active countries
 		$data['countries']=$this->Search_helper_model->get_active_countries();
