@@ -38,17 +38,13 @@ class Citation_model extends Model {
 							foreach($db_fields as $field)
 							{
 								$this->db->or_like($field, trim($keyword)); 
-							}
+							}							
 						}
 						else if ($f['field']==strtolower('country'))
 						{
 							//study country search
 							$citations=$this->search_citation_by_country(trim($keyword));
-							
-							if (count($citations)>0)
-							{
-								$this->db->where_in('id', $citations);
-							}
+							$this->db->where_in('id', $citations);
 						}
 					}
 				}
@@ -468,9 +464,9 @@ class Citation_model extends Model {
 		$valid_fields=array(
 				'title',
 				'subtitle',
-				//'authors',
-				//'editors',
-				//'translators',
+				'authors',
+				'editors',
+				'translators',
 				'alt_title',
 				'volume',
 				'issue',
@@ -495,9 +491,31 @@ class Citation_model extends Model {
 				'abstract'		
 			);
 
+		$authors=array();
+		$editors=array();
+		$translators=array();
+		
+		if (isset($options['authors'])) {
+			$authors=$options['authors'];
+		}
+
+		if (isset($options['editors'])) {		
+			$editors=$options['editors'];
+		}
+				
+		if (isset($options['translators'])) {
+			$translators=$options['translators'];
+		}
+
+
 		//add date modified and changed
 		$options['changed']=date("U");
 		$options['created']=date("U");
+		
+		$options['authors']=$this->authors_to_string($authors);
+		$options['translators']=$this->authors_to_string($translators);
+		$options['editors']=$this->authors_to_string($editors);
+		
 							
 		$data=array();
 		
@@ -522,20 +540,14 @@ class Citation_model extends Model {
 		$id=$this->db->insert_id();
 		
 		//add authors
-		if (isset($options['authors'])) {
-			$this->add_authors($id,$options['authors'],"author");
-		}
+		$this->add_authors($id,$authors,"author");
 
 		//add editors
-		if (isset($options['editors'])) {		
-			$this->add_authors($id,$options['editors'],"editor");
-		}
+		$this->add_authors($id,$editors,"editor");
 				
 		//add translators
-		if (isset($options['translators'])) {
-			$this->add_authors($id,$options['translators'],"translator");
-		}
-		
+		$this->add_authors($id,$translators,"translator");
+				
 		//return the new record
 		return $id;
 	}
