@@ -107,8 +107,22 @@
 	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
     	<?php $row=(object)$row; //var_dump($row);exit;?>
-		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-        <?php $resource_exists=file_exists(unix_path($this->survey_folder.'/'.$row->filename)); ?>
+		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>        
+        <?php 
+				$resource_exists=FALSE;
+				if( trim($row->filename)=='')
+				{
+					$resource_exists=FALSE;
+				}
+				else if(file_exists(unix_path($this->survey_folder.'/'.$row->filename)) )
+				{
+					$resource_exists=TRUE;
+				}
+				else if (is_url($row->filename))
+				{
+					$resource_exists=TRUE;
+				}		
+		?>
         <?php $resource_class=($resource_exists===TRUE) ? 'resource-found' : 'resource-notfound';?> 
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->resource_id; ?>" class="chk"/></td>
