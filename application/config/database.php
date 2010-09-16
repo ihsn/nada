@@ -50,6 +50,13 @@ $db['default']['cachedir'] = "system/cache";
 $db['default']['char_set'] = "utf8";
 $db['default']['dbcollat'] = "utf8_general_ci";
 
+/**
+*
+* FOR NADA 2 to NADA 3 Upgrade
+*
+* Provide your nada2 database settings here
+*
+**/
 $db['nada2']['hostname'] = "localhost";
 $db['nada2']['username'] = "ihsn";
 $db['nada2']['password'] = "";
