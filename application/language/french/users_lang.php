@@ -1,0 +1,61 @@
+<?php
+
+$lang['title_user_management']="Gestion de l\'utilisateur";
+$lang['create_user_account']="Créer un nouveau compte";
+$lang['username']="Nom utilisateur";
+$lang['email']="Adresse email";
+$lang['first_name']="Nom";
+$lang['last_name']="Prénom (s)";
+$lang['phone']="Téléphone";
+$lang['company']="Organisation";
+$lang['password']="Mot de passe";
+$lang['password_confirmation']="Confirmer le mot de passe";
+$lang['edit_user_account']="Modifier le compte";
+$lang['leave_password_blank']="Laisser le champs du mot de passe vide pour conserver le mot de passe actuel";
+$lang['administrator']="Administrateur";
+$lang['user']="Utilisateur";
+$lang['user_account_status']="Status du compte?";
+$lang['user_active']="Actif";
+$lang['user_blocked']="Bloqué";
+$lang['select_user_group']="Selectionner le groupe utilisateur";
+$lang['remember']="Enregistrer";
+$lang['remember_me']="S\'enregistrer";
+$lang['register']="S\'inscrir";
+$lang['forgot_password']="Mot de passe oublié?";
+$lang['user_registration']="Inscription";
+$lang['math_question']="Question de math";
+$lang['provide_math_question_answer']="Fournir une réponse à la question mathématique ci-dessus";
+$lang['account_created_email_confirmation']="You account has been created but before you can login, we need to confirm your email address. We have emailed you the instructions to activate your user account.";
+$lang['user_account_activated']="Your account has been activated successfuly";
+$lang['user_account_activation']="Activate Account";
+$lang['join_date']="Joined";
+$lang['last_login']="Last login";
+$lang['group']="User group";
+$lang['status']="Status";
+$lang['survey_title']="Study title";
+$lang['country']="Country";
+$lang['licensed_survey_requests']="Licensed Survey Requests";
+$lang['edit_profile']="Edit Profile";
+$lang['old_password']="Old password";
+$lang['new_password']="New password";
+$lang['confirm_new_password']="Confirm new password";
+$lang['change']="Change";
+$lang['ADMIN']="ADMIN";
+$lang['USER']="USER";
+$lang['ACTIVE']="ACTIVE";
+$lang['DISABLED']="DISABLED";
+$lang['click_here_to_login']="Click here to login";
+$lang['user_account_not_activated']="Account was not activated";
+$lang['account_activation_failed']="Account Activation Failed";
+$lang['try_reset_password']="Try %s to reset your password";
+$lang['password_change_failed']="Password Change Failed";
+$lang['password_change_success']="Password Changed Successfully";
+$lang['login_failed']="Login failed";
+$lang['login']="Login";
+$lang['profile_updated']="Profile has been updated.";
+$lang['forgot_password_failed']="Failed to reset your password, please try again.";
+$lang['account_activation_successful']="Account Activation Successful";
+$lang['activation_email_unsuccessful']="Activation email was not sent.";
+
+/* End of file users_lang.php */
+/* Location: ./application/language/french/users_lang.php */
