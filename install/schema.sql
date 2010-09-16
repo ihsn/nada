@@ -412,7 +412,7 @@ INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) 
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('topics_vocab', '1', 'Vocabulary ID for Topics', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('topic_search', 'yes', 'Topic search', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('use_html_editor', 'yes', 'Use HTML editor for entering HTML for static pages', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('website_footer', 'Site developed using IHSN NADA 3.0 - © 2010', 'Website footer text', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('website_footer', 'Powered by NADA 3.0 and DDI', 'Website footer text', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('website_title', 'Your website title here', 'Website title', 'Provide the title of the website', 'website');
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('website_url', 'http://localhost/nada3', 'Website URL', 'URL of the website', 'website');
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('website_webmaster_email', 'webmaster@example.com', 'Site webmaster email address', '-', 'website');
