@@ -388,7 +388,7 @@ class REST_Controller extends Controller
         	header('WWW-Authenticate: Digest realm="'.$this->config->item('rest_realm'). '" qop="auth" nonce="'.$nonce.'" opaque="'.md5($this->config->item('rest_realm')).'"');
         }
     	
-	    echo 'Text to send if user hits Cancel button';
+	    echo 'Authentication failed.';
 	    die();
     }
 
