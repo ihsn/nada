@@ -31,18 +31,16 @@ and type the url for the installer. Assumming nada is installed at http://localh
 a. Launch the installer
 b. Make sure installer does not return any errors (red boxes) for the folder permissions at the bottom of the page and database connection is successful.
 c. Click on the install button at the bottom to install the database.
-d. If database install is successful, you will see the link to launch the application.
+d. If database install is successful, you will be asked to create an admin account.
+e. Fill the form for user account and submit
+d. Once the user account is created, you will see the link to launch the application.
+e. Click on the launch application button to view the website and you should already be logged in to access the site adminstration page.
 
 
 5. Default admin account
-Currently, the installer creates the admin account by default with the following credentials:
-
-username: admin@example.org
-password: admin001
-
+There is no default account. The user account you created in the step 4 is your admin account. 
 
 6. Post installation
-a. It is recommended that you change the admin password immediately after the installation is complete.
 b. remove or rename the install folder
 c. Update the site information and other configurations through the admin web interface from http://localhost/nada3/index.php/admin/configurations
 
