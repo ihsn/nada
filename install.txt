@@ -5,7 +5,6 @@ NADA 3.0 Installation
 2. Setup folders
 Before running the installer, the following folder MUST be configured to have both READ/WRITE permissions:
 
-
 a. application/logs
 This folder is used for logging the application errors and other debugging messages.
 
@@ -17,6 +16,7 @@ This is where all of your DDIs and other files are stored.
 
 d. imports
 This is an optional folder for importing multiple DDIs into NADA.
+
 
 3. Database settings
 The database settings are located in the application/config/database.php file.
@@ -62,3 +62,6 @@ f. Check if you have received the email
 g. To see the email debugging messages, open the log file from application/logs/<log-file-name>. The log files are created daily, you should be able to see the email 
 error in the daily log file.
 
+
+9. Upgrading NADA 2.0 to NADA 3.0
+todo
