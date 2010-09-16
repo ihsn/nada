@@ -29,7 +29,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
 </head>
 
 <body>
-<div id="doc3" class="yui-t2" > 
+<div id="custom-doc" class="yui-t2" > 
 	<!--login information bar-->
     <span id="user-container">
     <?php $this->load->view('user_bar');?>
@@ -37,7 +37,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
     
     <!-- header -->
     <div id="hd" >
-        <div style="background:url(themes/<?php echo $this->template->theme();?>/banner-bg.gif) ;background-color:#497EA6;height:151px;">
+        <div style="background:url(themes/<?php echo $this->template->theme();?>/banner-bg.gif) ;background-color:#497EA6;height:120px;">
             <!-- logo -->
             <div class="site-logo" >
                 <a title="<?php echo $this->config->item("website_title");?> - Home Page"  href="<?php echo site_url();?>">
