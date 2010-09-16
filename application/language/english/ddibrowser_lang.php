@@ -37,5 +37,6 @@ $lang['export_documentation'] = "Export documentation";
 $lang['select_output_format'] = "Select output format";
 $lang['download_instructions'] = "The documentation is generated on the fly and can take from few seconds to couple of minutes, so please be patient if nothing happens on pressing the GENERATE button.";
 $lang['generate'] = "Generate";
+$lang['table_of_contents'] = "Table of contents";
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
