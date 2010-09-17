@@ -520,8 +520,8 @@ class Catalog extends MY_Controller {
 	
 	/**
 	* Returns survey DDI file
-	*
-	* //TODO: add support for returning ddi zip file if available
+	* as .xml or .zip
+	* 
 	*/
 	function ddi($id=NULL)
 	{
@@ -530,8 +530,11 @@ class Catalog extends MY_Controller {
 			show_404();
 		}
 	
+		$format=$this->input->get("format");
+		
 		//required for getting ddi file path
 		$this->load->model('Catalog_model');
+		$this->load->helper('download');
 			
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
@@ -543,8 +546,29 @@ class Catalog extends MY_Controller {
 
 		if (file_exists($ddi_file))
 		{
-			$this->load->helper('download');
-			//download the file
+			if($format=='zip')
+			{
+				$this->load->library('zip');
+
+				//zip file path
+				$zip_file=$ddi_file.'.zip';
+			
+				//create zip if not created already
+				if (!file_exists($zip_file))
+				{			
+					$this->zip->read_file($ddi_file);
+					$this->zip->archive($zip_file); 
+				}
+				
+				//download zip file
+				if (file_exists($zip_file))
+				{
+					force_download2($zip_file);
+					return;
+				}
+			}
+			
+			//download the xml file
 			force_download2($ddi_file);
 			return;
 		}
