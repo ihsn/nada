@@ -32,7 +32,7 @@ if ($language=='')
         <item>
           <title><?php echo ($entry->titl); ?></title>
           <link><?php echo site_url('catalog/' . $entry->id) ?></link>
-          <guid><?php echo site_url('catalog/' . $entry->id) ?></guid>
+          <guid><?php echo $entry->surveyid ?></guid>
           <description><![CDATA[<?php echo (strip_tags($entry->titlstmt.', ' . $entry->authenty.  ' - ' . $entry->nation)); ?>]]></description>
           <pubDate><?php echo date ('r', $entry->changed);?></pubDate>
         </item>
