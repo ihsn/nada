@@ -11,7 +11,7 @@
 |	http://example.com/
 |
 */
-//$config['base_url']	= "http://pn1030533/nada2.1/";
+//$config['base_url']	= "http://localhost/nada3/";
 $config['base_url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
 $config['base_url'] .= "://".$_SERVER['HTTP_HOST'];
 $config['base_url'] .= str_replace(basename($_SERVER['SCRIPT_NAME']),"",$_SERVER['SCRIPT_NAME']);
@@ -68,7 +68,7 @@ $config['url_suffix'] = "";
 | than english.
 |
 */
-$config['language']	= "english";
+$config['language']	= "spanish";
 
 //List of supported languages. type language name in lower case
 $config['supported_languages']=array();//array("english","russian");
@@ -367,6 +367,23 @@ $config['date_format_long']='m/d/Y H:i';
 */
 $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
+
+
+/*
+|--------------------------------------------------------------------------
+| NADA SSL configurations
+|--------------------------------------------------------------------------
+|
+| Enable SSL for the site login, user registration, etc pages. You must have SSL
+| enabled on your server before using these settings.
+|
+|	enable_ssl	= TRUE/FALSE	whether to enable SSL or not
+|	http_port	=  port number application is using. e.g. if you are running website on a
+|					non-standard port e.g. http://localhost:81/nada, enter 81  	
+| 
+*/
+$config['enable_ssl']=TRUE;
+$config['http_port']=80;
 
 
 /* End of file config.php */
