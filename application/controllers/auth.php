@@ -4,6 +4,7 @@ class Auth extends MY_Controller {
     function __construct() 
     {
         parent::__construct($skip_auth=TRUE);
+		
         $this->load->library('ion_auth');
         $this->load->library('session');
         $this->load->library('form_validation');
