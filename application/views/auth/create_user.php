@@ -53,12 +53,12 @@ $options_country=$this->ion_auth_model->get_all_countries();
 
       <div class="field">
 	      <label for="password"><?php echo t('password');?><span class="required">*</span></label>
-	      <?php echo form_input($password,'','class="input-flex"');?>
+	      <?php echo form_input($password,'','class="input-flex" autocomplete="off"');?>
       </div>
       
       <div class="field">
 	      <label for="password_confirm"><?php echo t('password_confirmation');?><span class="required">*</span></label>
-	      <?php echo form_input($password_confirm,'','class="input-flex"');?>
+	      <?php echo form_input($password_confirm,'','class="input-flex" autocomplete="off"');?>
       </div>
 
       <div class="field">
