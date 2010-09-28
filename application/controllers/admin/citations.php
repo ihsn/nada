@@ -141,10 +141,15 @@ class Citations extends MY_Controller {
 					//load data from database
 					$db_row=$this->Citation_model->select_single($id);			
 					
+					if (!$db_row)
+					{
+						show_error('INVALID ID');
+					}
+					
 					if ($db_row['authors'])
 					{
 						$this->_set_post_from_db($db_row);
-					}			
+					}
 					$data=array_merge($data,$db_row);
 				}
 			}
