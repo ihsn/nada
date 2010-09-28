@@ -663,7 +663,8 @@ class CI_Session {
 					$this->sess_expiration + time(),
 					$this->cookie_path,
 					$this->cookie_domain,
-					0
+					0,
+					$httponly_=1//make the cookie http only
 				);
 	}
 
