@@ -6,7 +6,7 @@ class Access_public extends MY_Controller {
 	
 	public function __construct()
     {
-        parent::__construct($auth=TRUE,$is_admin=false);
+        parent::__construct($skip=FALSE,$is_admin=FALSE);
        	
         $this->load->model('Form_model');
 		$this->load->model('Catalog_model');
