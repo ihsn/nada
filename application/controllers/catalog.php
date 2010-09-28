@@ -75,7 +75,6 @@ class Catalog extends MY_Controller {
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.accordion.css');
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.theme.css');
 
-		//$this->carabiner->css('javascript/jquery/themes/ui-lightness/ui.all.css');
 		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');	
 		$this->template->add_js('javascript/ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/ui.accordion.js');		
@@ -83,7 +82,7 @@ class Catalog extends MY_Controller {
 
 		//js & css for ceebox
 		$this->template->add_css('javascript/ceebox/css/ceebox-min.css');
-		$this->template->add_js('javascript/ceebox/js/jquery.ceebox.js');
+		$this->template->add_js('javascript/ceebox/js/jquery.ceebox-min.js');
 
 		$page=$this->input->get('page');
 		$page= ($page >0) ? $page : 1;
