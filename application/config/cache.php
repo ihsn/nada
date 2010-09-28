@@ -7,6 +7,6 @@ $config['cache_dir'] = APPPATH.'cache/';
 $config['cache_default_expires'] = 0;
 
 //To disable cache set value to 0
-$config['cache_disabled'] = 1;
+$config['cache_disabled'] = 0;
 
 ?>
