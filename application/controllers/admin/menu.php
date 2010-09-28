@@ -106,6 +106,11 @@ class Menu extends MY_Controller {
 	*/
 	function edit($id=NULL)	
 	{
+		if (!is_numeric($id)  && $id!=NULL)
+		{
+			show_error('INVALID ID');
+		}
+		
 		if ($this->config->item("use_html_editor")!=='no')
 		{
 			//load js rich text editor
@@ -115,11 +120,6 @@ class Menu extends MY_Controller {
 		$menu=NULL;
 		$content=NULL;
 		
-		if (!is_numeric($id)  && $id!=NULL)
-		{
-			show_error('Invalid id provided');exit;		
-		}
-
 		//edit page link
 		if ($this->input->post("linktype")==1)
 		{
@@ -180,9 +180,9 @@ class Menu extends MY_Controller {
 					//get menu from db
 					$menu=$this->Menu_model->select_single($id);
 								
-					if ( $menu===FALSE)
+					if (!$menu)
 					{
-						show_error("invalid id");
+						show_error("INVALID ID");
 					}
 				
 					$menu=(object)$menu;
@@ -220,7 +220,11 @@ class Menu extends MY_Controller {
 	*/
 	function add_link($id=NULL)
 	{
-	
+		if ($id!=NULL && !is_numeric($id))
+		{
+			show_error('INVALID ID');
+		}
+		
 		if ($id==NULL)
 		{
 			//form/page title
@@ -288,6 +292,12 @@ class Menu extends MY_Controller {
 			{
 				//load data from database
 				$menu_row=$this->Menu_model->select_single($id);
+				
+				if (!$menu_row)
+				{
+					show_404();
+				}
+				
 				$data=array_merge($data,$menu_row);
 			}
 			

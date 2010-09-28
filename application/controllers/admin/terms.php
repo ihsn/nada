@@ -34,8 +34,13 @@ class Terms extends MY_Controller {
 	  	$this->template->render();
 	}
 	
-	function edit($id)
+	function edit($id=NULL)
 	{
+		if (!is_numeric($id) && $id!=NULL)
+		{
+			show_404();
+		}
+	
 		$data=NULL;
 		
 		//vocabulary id
@@ -87,9 +92,9 @@ class Terms extends MY_Controller {
 					//get menu from db
 					$row=$this->term_model->select_single($id);
 								
-					if ( $row===FALSE)
+					if (!$row)
 					{
-						throw new Exception("invalid id");
+						show_404();
 					}
 				
 					$data['title']=$row['title'];

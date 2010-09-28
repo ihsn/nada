@@ -285,7 +285,11 @@ class Users extends MY_Controller {
 	        
 			//get user id
 			$db_data=$this->ion_auth->get_user($id);		
-			//var_dump($db_data);exit;
+			
+			if (!$db_data)
+			{
+				show_404();
+			}
 			
 			//set the flash data error message if there is one
 	        $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');

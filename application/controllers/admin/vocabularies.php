@@ -22,9 +22,15 @@ class Vocabularies extends MY_Controller {
 	  	$this->template->render();
 	}
 	
-	function edit($id)
+	function edit($id=NULL)
 	{
-		$data=NULL;		
+	
+		if (!is_numeric($id) || $id!=NULL)
+		{
+			show_error("INVALID ID");
+		}
+	
+		$data=NULL;
 		
 		//validation rules
 		$this->form_validation->set_rules('title', t('title'), 'trim|required|max_length[255]');
@@ -66,10 +72,10 @@ class Vocabularies extends MY_Controller {
 				{
 					//get menu from db
 					$row=$this->vocabulary_model->select_single($id);
-								
-					if ( $row===FALSE)
+
+					if ( $row===FALSE || count($row)==0)
 					{
-						throw new Exception("invalid id");
+						show_error("INVALID ID");
 					}
 				
 					$data['title']=$row['title'];				
