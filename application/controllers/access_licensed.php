@@ -5,17 +5,18 @@ class Access_licensed extends MY_Controller {
 	
     public function __construct()
     {
-        parent::__construct($SKIP=FALSE,$is_admin=FALSE);//requires authentication, and user can be non-admin
-       	
-        $this->load->model('Licensed_model');
-    		$this->load->model('Datafiles_model');
-    		$this->load->model('Catalog_model');
-           	$this->template->set_template('blank');
-    		$this->load->helper('admin_notifications');
-    		
-    		$this->lang->load('general');
-    		$this->lang->load('licensed_request');
-    		$this->lang->load('licensed_access_form');
+		//requires authentication, and user can be non-admin
+		parent::__construct($SKIP=FALSE,$is_admin=FALSE);
+			
+		$this->load->model('Licensed_model');
+		$this->load->model('Datafiles_model');
+		$this->load->model('Catalog_model');
+		$this->template->set_template('blank');
+		$this->load->helper('admin_notifications');
+		
+		$this->lang->load('general');
+		$this->lang->load('licensed_request');
+		$this->lang->load('licensed_access_form');
     		
     		//$this->load->library(array('site_configurations'));
     		//$this->output->enable_profiler(TRUE);
