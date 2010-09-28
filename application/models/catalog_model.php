@@ -210,14 +210,26 @@ class Catalog_model extends Model {
 	{
 		//study fields
 		$fields=$this->study_fields;
+		
 		//form fields
 		$fields[]='forms.model as model';
+		
 		//implode
 		$fields=implode(",",$fields);	
+		
 		$this->db->select($fields);
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');		
 		$this->db->where('id', $id); 
-		return $this->db->get('surveys')->row_array();
+		
+		//execute query
+		$query=$this->db->get('surveys');
+		
+		if ($query)
+		{
+			return $query->row_array();
+		}
+		
+		return FALSE;
 	}
 	
 	/**
