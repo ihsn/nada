@@ -146,7 +146,20 @@ class Citation_model extends Model {
 		$this->db->where('id', $id); 
 		
 		//get citation row
-		$row=$this->db->get('citations')->row_array();
+		$query=$this->db->get('citations');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		//convert to array
+		$row=$query->row_array();
+		
+		if (!$row)
+		{
+			return FALSE;
+		}
 		
 		//get related survey
 		$row['related_surveys']=$this->get_related_surveys($id);
@@ -155,6 +168,7 @@ class Citation_model extends Model {
 		$row['editors']=unserialize($row['editors']);
 		$row['translators']=unserialize($row['translators']);
 		*/
+
 		$row['authors']=$this->get_citation_authors($id,'author');
 		$row['editors']=$this->get_citation_authors($id,'editor');
 		$row['translators']=$this->get_citation_authors($id,'translator');
