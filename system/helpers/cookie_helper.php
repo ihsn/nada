@@ -89,7 +89,7 @@ if ( ! function_exists('set_cookie'))
 			}
 		}
 	
-		setcookie($prefix.$name, $value, $expire, $path, $domain, 0);
+		setcookie($prefix.$name, $value, $expire, $path, $domain, 0,1);
 	}
 }
 	
