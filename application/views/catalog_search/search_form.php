@@ -80,7 +80,7 @@
 			</div>            
         </div>
       
-		<div style="text-align:right;margin-top:-15px;">
+		<div style="text-align:right;margin-top:-15px;" class="search-buttons">
         	<input class="button" type="submit" id="btnsearch" name="search" value="<?php echo t('search');?>"/>
             <input class="button" style="background-color:gray;margin-left:5px;" type="button" name="search" value="<?php echo t('reset');?>" onclick="window.location.reload();"/>
 		</div> 
