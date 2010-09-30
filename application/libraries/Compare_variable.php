@@ -21,7 +21,7 @@ class Compare_variable{
 		$this->ci =& get_instance();
 		$this->ci->load->helper('xslt_helper');
 		$this->ci->load->model('catalog_model');
-		$this->ci->load->library('ddi_browser');
+		$this->ci->load->library('DDI_Browser');
     }
 
 	
