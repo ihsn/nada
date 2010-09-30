@@ -4,19 +4,8 @@
   Dan Vanderkam, http://danvk.org/dragtable/
                  http://code.google.com/p/dragtable/
 
-  Instructions:
-    - Download this file
-    - Add <script src="dragtable.js"></script> to your HTML.
-    - Add class="draggable" to any table you might like to reorder.
-    - Drag the headers around to reorder them.
-
-  This is code was based on:
-    - Stuart Langridge's SortTable (kryogenix.org/code/browser/sorttable)
-    - Mike Hall's draggable class (http://www.brainjar.com/dhtml/drag/)
-    - A discussion of permuting table columns on comp.lang.javascript
-
   Licensed under the MIT license.
- */
+*/
 
 // Here's the notice from Mike Hall's draggable script:
 //*****************************************************************************
