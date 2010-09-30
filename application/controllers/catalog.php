@@ -69,7 +69,7 @@ class Catalog extends MY_Controller {
 			$this->search();return;
 		}
 
-		$this->template->add_js('javascript/datacatalog.js');
+		$this->template->add_js('javascript/datacatalog-min.js');
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.core.css');
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.base.css');
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.accordion.css');
@@ -268,7 +268,7 @@ class Catalog extends MY_Controller {
 
 	function compare($option=NULL, $format=NULL)
 	{
-		$this->load->library('compare_variable');
+		$this->load->library('Compare_variable');
 		$list=NULL;
 		$compare_items=$this->session->userdata('compare');
 
