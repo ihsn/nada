@@ -1,6 +1,7 @@
 <?php
-header("Cache-Control: no-cache, must-revalidate");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header("Pragma: no-cache");
 ?>
 <?php
 //build a list of links for available languages
@@ -22,44 +23,44 @@ if ($languages!==FALSE)
 "http://www.w3.org/TR/html4/strict.dtd">
 <html >
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<base href="<?php echo base_url(); ?>">
-	<title><?php echo $title; ?></title>
-	<link rel="stylesheet" type="text/css" href="themes/admin/reset-fonts-grids.css">
-    <link rel="stylesheet" type="text/css" href="themes/admin/generic.css" />
-   	<link rel="stylesheet" type="text/css" href="themes/admin/forms.css">
-	<script type="text/javascript" src="javascript/jquery.js"></script>
-    <script type="text/javascript"> 
-       var CI = {'base_url': '<?php echo site_url(); ?>'}; 
-    </script> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<base href="<?php echo base_url(); ?>">
+<title><?php echo $title; ?></title>
+<link rel="stylesheet" type="text/css" href="themes/admin/reset-fonts-grids.css">
+<link rel="stylesheet" type="text/css" href="themes/admin/generic.css" />
+<link rel="stylesheet" type="text/css" href="themes/admin/forms.css">
+<script type="text/javascript" src="javascript/jquery.js"></script>
+<script type="text/javascript"> 
+   var CI = {'base_url': '<?php echo site_url(); ?>'}; 
+</script> 
 
-	<?php if (isset($_styles) ){ echo $_styles;} ?>
-    <?php if (isset($_scripts) ){ echo $_scripts;} ?>
+<?php if (isset($_styles) ){ echo $_styles;} ?>
+<?php if (isset($_scripts) ){ echo $_scripts;} ?>
     
-    <style>
-	#doc3 {
-		margin:auto;	
-		min-width:960px;/* optional but recommended */
-	}
+<style>
+#doc3 {
+	margin:auto;	
+	min-width:960px;/* optional but recommended */
+}
 
-	#menu {margin-bottom:20px;}
-	#menu ul{ list-style:none;100px;height:35px;border:1px solid gainsboro; }
-	#menu li{float:left;margin:0px;margin-top:10px;}
-	#menu li a{color:black;text-decoration:none;margin-top:5px;margin-right:10px;height:35px;}
-	#menu li a.selected{background:#D1D4E3;color:black;}
-	#menu li a:hover{background:#D1D4E3;color:black;}
+#menu {margin-bottom:20px;}
+#menu ul{ list-style:none;100px;height:35px;border:1px solid gainsboro; }
+#menu li{float:left;margin:0px;margin-top:10px;}
+#menu li a{color:black;text-decoration:none;margin-top:5px;margin-right:10px;height:35px;}
+#menu li a.selected{background:#D1D4E3;color:black;}
+#menu li a:hover{background:#D1D4E3;color:black;}
 
-	
-	html, body{background-color:white;font-size:12px;}
-	
-	#bd{background-color:white;border:4px solid #D1D4E3;margin:20px;margin-top:0px;padding:5px;-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;	min-height:400px;
-	}	
 
-	#login-box{font-size:12px; color:white; background:#8099A3;border-top:0px;position:absolute;top:0px;right:30px;padding:5px;}
-	#login-box a{color:white;text-decoration:none;}
-	#login-box a:hover{color:black;}
-	#header{background:#000033;}
+html, body{background-color:white;font-size:12px;}
+
+#bd{background-color:white;border:4px solid #D1D4E3;margin:20px;margin-top:0px;padding:5px;-moz-border-radius: 5px;
+-webkit-border-radius: 5px;	min-height:400px;
+}	
+
+#login-box{font-size:12px; color:white; background:#8099A3;border-top:0px;position:absolute;top:0px;right:30px;padding:5px;}
+#login-box a{color:white;text-decoration:none;}
+#login-box a:hover{color:black;}
+#header{background:#000033;}
 	
 	
 #navcontainer
@@ -130,7 +131,8 @@ color: black;
 background: white;
 border-color: #aaab9c #fff #fff #ccc;
 }
-	</style>
+</style>
+
 </head>
 <body>
 <div id="doc3">
