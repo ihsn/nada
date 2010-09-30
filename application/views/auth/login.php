@@ -24,9 +24,9 @@ body
 .login-container a.button:hover{color:white;}	
 .input-flex{font-family:"Courier New", Courier, monospace;font-size:18px;font-weight:bold;color:#003399}
 .error{border:0px;background:none;}
-
 </style>
-<?php echo form_open("auth/login",array('class'=>'form'));?>
+
+<?php echo form_open("auth/login",array('class'=>'form','autocomplete'=>'off'));?>
 <div id ="login-container" class="login-container" >
     <div class='login-box' >
     
@@ -51,7 +51,7 @@ body
         
             <div class="field">
                 <label for="password"><?php echo t('password');?>:</label>
-                <?php echo form_input($password,NULL, 'class="input-flex"');?>
+                <?php echo form_input($password,NULL, 'class="input-flex" autocomplete="off"');?>
             </div>    
     
             <div class="field-inline">            
