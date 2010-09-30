@@ -38,8 +38,8 @@ function pre_system_url_check()
 	
 	$http_port=(int)$config["http_port"];
 	$enable_ssl=(bool)$config["enable_ssl"];
-	
-	if ($enable_ssl!==TRUE)
+		
+	if (!$enable_ssl)
 	{
 		return FALSE;
 	}
@@ -52,17 +52,23 @@ function pre_system_url_check()
 	
 	$segments= array_filter(explode("/",$path_info));
 	
-	$url="https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-	
+	$url="https://".$_SERVER['HTTP_HOST']._request_uri();
+
 	//build url for redirect
-	$redirect= "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+	$redirect= "https://".$_SERVER['HTTP_HOST']._request_uri();
 		
 	//remove http port
 	if ($http_port>0 && $http_port!=80)
 	{
 		$redirect=str_replace(':'.$http_port,'',$redirect);
 	}
-		
+
+	//check server variable is set
+	if(!isset($_SERVER['HTTPS']))
+	{
+		return FALSE;
+	}
+				
 	//it is a http page
 	if($_SERVER['HTTPS']!=="on")
 	{	
@@ -88,9 +94,26 @@ function pre_system_url_check()
 			}
 			
 			//redirect to NON-SSL page			
-			$redirect= "http://".$_SERVER['HTTP_HOST'].$http_port.$_SERVER['REQUEST_URI'];			
+			$redirect= "http://".$_SERVER['HTTP_HOST'].$http_port._request_uri();
 			header("Location:$redirect");
 		}
+	}
+}
+
+/**
+*
+* Returns the URI for the current page
+**/
+function _request_uri()
+{
+	//on IIS 6 request_uri is not available
+	if (!empty($_SERVER['REQUEST_URI']))
+	{
+		return $_SERVER['REQUEST_URI'];
+	}
+	else
+	{
+		return $_SERVER['PHP_SELF'];
 	}
 }
 
