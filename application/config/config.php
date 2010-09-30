@@ -68,7 +68,7 @@ $config['url_suffix'] = "";
 | than english.
 |
 */
-$config['language']	= "spanish";
+$config['language']	= "english";
 
 //List of supported languages. type language name in lower case
 $config['supported_languages']=array();//array("english","russian");
