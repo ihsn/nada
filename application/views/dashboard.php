@@ -56,10 +56,23 @@
                 <div class="dashboard-box">
                     <div class="dashboard-box-title"><?php echo t('bug_report');?></div>
                     <div class="dashboard-box-body">
-                        <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna.</p>
                         <p>&nbsp;</p>
-                    
-                    	<form class="form">
+                    	<?php if (isset($this->error)):?>
+                        	<div class="error">
+                                <?php echo $this->error; ?>
+                            </div>
+						<?php endif;?>
+                        <?php if (validation_errors() ) : ?>
+                            <div class="error">
+                                <?php echo validation_errors(); ?>
+                            </div>
+                        <?php endif; ?>
+                    	<?php $error=$this->session->flashdata('error');?>
+						<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+						<?php $message=$this->session->flashdata('message');?>
+                        <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+
+                    	<form class="form" method="post" action="<?php echo site_url().'/admin';?>">
                         	<div class="field">
 						        <label for="name"><?php echo t('reporter_name');?><span class="required">*</span></label>
 						        <input class="input-flex" name="name" type="text" id="name"  value="<?php echo get_form_value('name',isset($name) ? $name : ''); ?>"/>
@@ -71,16 +84,16 @@
 						    </div>
 
                         	<div class="field">
-						        <label for="title"><?php echo t('subject');?><span class="required">*</span></label>
-						        <input class="input-flex" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($title) ? $title : ''); ?>"/>
+						        <label for="subject"><?php echo t('subject');?><span class="required">*</span></label>
+						        <input class="input-flex" name="subject" type="text" id="subject"  value="<?php echo get_form_value('subject',isset($subject) ? $subject : ''); ?>"/>
 						    </div>
 
                             <div class="field">
-                                <label for="body"><?php echo t('bug_request_description');?></label>
+                                <label for="body"><?php echo t('bug_request_description');?><span class="required">*</span></label>
                                 <textarea class="input-flex"  name="body" rows="10"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>
                             </div>
                             
-							<?php echo form_submit('submit',t('submit')); ?>
+							<?php echo form_submit('submit_bug',t('submit')); ?>
                             
                         </form>
                     </div>											
