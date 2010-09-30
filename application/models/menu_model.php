@@ -72,7 +72,14 @@ class Menu_model extends Model {
 		$this->db->select('id,url,title,target,linktype');	
 		$this->db->order_by($sort_by, $sort_order);
 		$this->db->where('published', 1); 
-		return $this->db->get('menus')->result_array();
+		$query=$this->db->get('menus');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
 	}
 
 	/**
@@ -217,12 +224,24 @@ class Menu_model extends Model {
         $result= $this->db->get()->row_array();
 		return $result;
     }
+	
+	/**
+	* 
+	* Return a page item by minimum weight
+	*/
 	function get_page_by_min_weight()
     {
 		$this->db->select('*,min(weight)');		
 		$this->db->group_by('id');
-		$this->db->from('menus');
-        $result= $this->db->get()->row_array();
+        $query= $this->db->get('menus');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=$query->row_array();
+		
 		return $result;
     }
 	
@@ -232,8 +251,7 @@ class Menu_model extends Model {
 		return $this->db->delete('menus');
 	}
 	
-	
-	
+		
 	function get_menu_tree($id=NULL)
 	{
 		//get parent items
