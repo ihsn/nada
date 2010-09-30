@@ -25,7 +25,7 @@ class Vocabularies extends MY_Controller {
 	function edit($id=NULL)
 	{
 	
-		if (!is_numeric($id) || $id!=NULL)
+		if (!is_numeric($id) && $id!=NULL)
 		{
 			show_error("INVALID ID");
 		}
