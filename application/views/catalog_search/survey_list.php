@@ -260,8 +260,8 @@
     <?php echo t('select_number_of_records_per_page');?>:
     <span class="button">15</span>
     <span class="button">30</span>
-    <span class="button light">50</span>
-    <span class="button light">100</span>
+    <span class="button">50</span>
+    <span class="button">100</span>
 </span>
 
 <script type="text/javascript">
