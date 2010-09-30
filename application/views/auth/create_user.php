@@ -18,7 +18,7 @@ $options_country=$this->ion_auth_model->get_all_countries();
     <?php $message=$this->session->flashdata('message');?>
     <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 	
-    <?php echo form_open(site_url().'/auth/register/', array('class'=>'form register'));?>    
+    <?php echo form_open(site_url().'/auth/register/', array('class'=>'form register','autocomplete'=>'off'));?>    
     <input type="hidden" name="form_token" value="<?php echo form_prep($this->form_token); ?>"/>
         
       <div class="field">
