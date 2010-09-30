@@ -65,5 +65,7 @@ $lang['smtp_debug_disable'] = "Disable";
 
 $lang['website_footer'] = "Website footer";
 $lang['repository_identifier'] = "Repository name";
+
+$lang['news_feed_url'] = "News feed URL (rss)";
 /* End of file vocabularies_lang.php */
 /* Location: ./system/language/english/vocabularies_lang.php */
