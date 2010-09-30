@@ -182,6 +182,14 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
  -->
 <?php endif;?>
 
+<h2><?php echo t('dashboard');?></h2>
+
+<div class="field">
+        <label for="<?php echo 'news_feed_url'; ?>"><?php echo t('news_feed_url');?></label>
+        <input class="input-flex" name="news_feed_url" type="text" id="news_feed_url"  value="<?php echo get_form_value('news_feed_url',isset($news_feed_url) ? $news_feed_url : ''); ?>"/>
+</div>
+
+
 <div style="text-align:right;">
 	<input type="submit" value="<?php echo t('update');?>" name="submit"/>
 </div>
