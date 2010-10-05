@@ -30,7 +30,7 @@ class Catalog_search{
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
 	
 	//allowed sort options
-	var $sort_allowed_fields=array('titl','nation');
+	var $sort_allowed_fields=array('titl','nation','proddate');
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
