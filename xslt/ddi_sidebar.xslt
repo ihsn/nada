@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-The transform tests the DDI for sections to list in the left sidebar menu for the ddi browser. The purpose is to only show sections with the data.
+Ths transform output the names of the sections that are filled in by the documenter. It 
+is used to removed unused menu items from the DDI-Browser left menu.
 
-Version: May 2010
+Author:	 IHSN
+Version: MAY 2010
 Platform: XSL 1.0
 
-Developed by International Household Survey Network (http://www.surveynetwork.org)
-
 License: 
-	Copyright 2010 IHSN
+	Copyright 2010 The World Bank
 
     This program is free software; you can redistribute it and/or modify it under the terms of the
     GNU Lesser General Public License as published by the Free Software Foundation; either version

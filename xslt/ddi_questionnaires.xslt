@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Ths tarnsform produces an HTML overview of a DDI 1/2.x XML document
+Ths transform produces an HTML descriptoin of the questionnaires section of a DDI 1/2.x XML document
 
-Author: Mehmood Asghar (mah0001@gmail.com)
-Version: November 2008
+Author:	 IHSN
+Version: MAY 2010
 Platform: XSL 1.0
 
-Developed with the financial and technical support of the 
-International Household Survey Network
-http://www.surveynetwork.org
-
 License: 
-	Copyright 2008 International Household Survey Network
+	Copyright 2010 The World Bank
 
     This program is free software; you can redistribute it and/or modify it under the terms of the
     GNU Lesser General Public License as published by the Free Software Foundation; either version
