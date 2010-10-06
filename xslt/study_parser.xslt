@@ -7,9 +7,8 @@ Author:	 IHSN
 Version: MAY 2010
 Platform: XSL 1.0
 
-
 License: 
-	Copyright 2010 IHSN
+	Copyright 2010 The World Bank
 
     This program is free software; you can redistribute it and/or modify it under the terms of the
     GNU Lesser General Public License as published by the Free Software Foundation; either version
@@ -109,15 +108,38 @@ License:
 	    <xsl:apply-templates select="//ddi:stdyDscr/ddi:citation/ddi:prodStmt/ddi:fundAg"/>
     </xsl:element>
 
-    <!-- data collection start date -->
-	<xsl:element name="data_coll_start">
-	    <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='start']/@date),1,4)"/>
-    </xsl:element>
+	<xsl:choose>
+    	<!-- when single date is specified, use it for start and end -->
+        <xsl:when test="normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='single']/@date)">
 
-    <!-- data collection end date -->
-	<xsl:element name="data_coll_end">
-	    <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end']/@date),1,4)"/>
-    </xsl:element>
+            <!-- data collection start date -->
+            <xsl:element name="data_coll_start">
+                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='single']/@date),1,4)"/>
+            </xsl:element>
+        
+            <!-- data collection end date -->
+            <xsl:element name="data_coll_end">
+                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='single']/@date),1,4)"/>
+            </xsl:element>
+            			        
+        </xsl:when>
+        
+        <!--look for start and end dates -->
+        <xsl:otherwise>
+
+            <!-- data collection start date -->
+            <xsl:element name="data_coll_start">
+                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='start']/@date),1,4)"/>
+            </xsl:element>
+        
+            <!-- data collection end date -->
+            <xsl:element name="data_coll_end">
+                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end']/@date),1,4)"/>
+            </xsl:element>
+
+        </xsl:otherwise>
+
+	</xsl:choose>
     
     <!-- additional fields for dime -->
 
