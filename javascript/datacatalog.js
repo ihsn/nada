@@ -267,10 +267,13 @@ function filter_by_topics()
 		//disable all countries
 		$("#countries-list input:checkbox").attr('disabled', true).parent().addClass("disabled");
 		//enable countries found in the returned data
-		jQuery.each(data["countries"], function() 
+		jQuery.each($("#countries-list input:checkbox"), function() 
 		{
-    		$("#countries-list input:checkbox[value='"+this+"']").attr('disabled',false).parent().removeClass("disabled");
+			if(jQuery.inArray($(this).attr("value"),data["countries"]) > -1) {
+				$(this).attr('disabled',false).parent().removeClass("disabled");			
+				}
 		})
+		
 		//update year from/to list
 		apply_filter_to_year(data['min_year'],data['max_year']);
 		advanced_search();
