@@ -392,7 +392,7 @@ class Auth extends MY_Controller {
 	{  
 		//$this->load->helper('form_input_helper');
 		$this->load->model('token_model');
-        $this->data['title'] = "Register";
+        $this->data['title'] = t("register");
         $content=NULL; 
 
 		//add the captcha for display on the view 
@@ -449,7 +449,7 @@ class Auth extends MY_Controller {
 			$content=$this->load->view('auth/create_user_confirm',NULL,TRUE);
 			
 			//notify admins
-			$subject='[Notification] - New user registration - '.$username;
+			$subject=sprintf('[%s] - %s',t('notification'), t('new_user_registration')).' - '.$username;
 			$message=$this->load->view('auth/email/admin_notice_new_registration', $additional_data,true);
 			notify_admin($subject,$message);			
 		} 
