@@ -266,6 +266,12 @@ class Catalog extends MY_Controller {
 		$this->load->view("catalog_search/var_quick_list", $data);
 	}
 
+	
+	/**
+	*
+	* Perform variable comparison
+	*
+	**/
 	function compare($option=NULL, $format=NULL)
 	{
 		$this->load->library('Compare_variable');
@@ -295,8 +301,6 @@ class Catalog extends MY_Controller {
 			{
 				$this->load->library('pdf_export');
 				$contents=$this->load->view("catalog_search/compare_print",$data,TRUE);
-				//echo $contents;
-				//$contents="some html text";
 				$this->pdf_export->create_pdf($contents);
 				exit;
 			}	
@@ -307,6 +311,12 @@ class Catalog extends MY_Controller {
 		}	
 	}
 	
+	/**
+	*
+	* Add a variable to session cookie for comparison
+	*
+	* TODO: //move the compare_limit to site configurations
+	**/
 	function compare_add($surveyid,$varid)
 	{
 		//maximum variables to compare
@@ -333,6 +343,11 @@ class Catalog extends MY_Controller {
 	}
 	
 	
+	/**
+	*
+	* Remove variables from the session
+	*
+	**/
 	function compare_remove($surveyid,$varid)
 	{		
 		if (is_numeric($surveyid) && $this->input->xss_clean($varid)!='')
@@ -351,12 +366,23 @@ class Catalog extends MY_Controller {
 	}
 	
 	
+	
+	/**
+	*
+	* Clear variable selection from session
+	*
+	**/
 	function compare_remove_all()
 	{
 		$this->session->unset_userdata('compare');
 	}
 	
 	
+	/**
+	*
+	* Returns a JSON data for filtering by country selection
+	*
+	**/
 	function filter_by_country()
 	{
 		$countries=$this->input->xss_clean($this->input->get('country'));
@@ -374,8 +400,10 @@ class Catalog extends MY_Controller {
 		echo json_encode($data);		
 	}
 
+
+
 	/**
-	* return data to filter search box by topic
+	* Return JSON data to filter search box by topic
 	*
 	*/
 	function filter_by_topic()
@@ -390,15 +418,12 @@ class Catalog extends MY_Controller {
 		}
 
 		$this->load->model('Search_helper_model');
-		
-		//$countries=$this->Search_helper_model->get_countries_by_topics($topics);
-		//get filtered list of countries and min/min years
 		$data=$this->Search_helper_model->filter_by_topics($topics,$min_year,$max_year);		
 		echo json_encode($data);
 	}
 
 	/**
-	* return data to filter search box by topic
+	* return data to filter search box by year
 	*
 	*/
 	function filter_by_years()
@@ -411,7 +436,6 @@ class Catalog extends MY_Controller {
 			return false;
 		}
 		
-		//$countries=$this->Search_helper_model->get_countries_by_topics($topics);
 		//get filtered list of countries and min/min years
 		$data=$this->Search_helper_model->filter_by_years($min_year, $max_year);
 		
@@ -426,6 +450,8 @@ class Catalog extends MY_Controller {
 		
 		echo json_encode($data);
 	}
+	
+	
 	
 	/**
 	* Search help page
@@ -446,6 +472,7 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();		
 	}
 	
+
 	/**
 	* Data Catalog RSS feeds
 	*
@@ -484,6 +511,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 	
+
 	/**
 	* Creates a zip file for data catalog rss
 	*
@@ -498,6 +526,7 @@ class Catalog extends MY_Controller {
 		//start file download
 		$this->zip->download('rss.zip');
 	}
+
 
 	/**
 	* Returns survey external resources (RDF) 
@@ -577,16 +606,25 @@ class Catalog extends MY_Controller {
 		}		
 	}
 	
+
 	/**
+	* 
 	* display survey information by survey id
-	*/
+	*
+	**/
 	function survey($id=NULL)
 	{				
 		if (!is_numeric($id))
 		{
 			show_404();
 		}
-		
+
+		if ($this->input->get('format')=='json')
+		{
+			$this->_survey_json($id);
+			return;
+		}
+				
 		$this->load->model('Catalog_model');
 		$this->load->model('Citation_model');
 		$this->load->library('chicago_citation');
@@ -604,8 +642,6 @@ class Catalog extends MY_Controller {
 			$this->template->set_template('blank');	
 		}
 		
-		//$this->template->add_css('css/admin.css');	
-					
 		//get survey folder path - NEEDED BY THE VIEW
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
 
@@ -622,6 +658,26 @@ class Catalog extends MY_Controller {
 		//render final output
 	  	$this->template->render();
 	}
+
+	/**
+	*
+	* Output JSON survey metadata including citations, external resources, etc
+	*
+	**/
+	function _survey_json($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			return FALSE;
+		}
+		
+		$this->load->model('Catalog_model');						
+		
+		//output JSON
+		echo $this->Catalog_model->survey_to_json($id);
+	}
+
+
 
 	/**
 	* show study related citations
