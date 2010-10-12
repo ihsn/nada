@@ -1,13 +1,13 @@
 <html>
 <body>
-	<p>A new user registration is received. The user details are:</p>
-    <p>	Username: <?php echo $identity; ?><br/>
-    	First name: <?php echo $first_name; ?><br/>
-        Last name: <?php echo $last_name; ?><br/>
-        Email: <?php echo $email; ?><br/>
-        Company: <?php echo $company; ?><br/>
-        Phone: <?php echo $phone; ?><br/>
-        Country: <?php echo $country; ?><br/>
+	<p><?php echo t('new_user_registration_received');?></p>
+    <p>	<?php echo t('username');?>: <?php echo $identity; ?><br/>
+    	<?php echo t('first_name');?>: <?php echo $first_name; ?><br/>
+        <?php echo t('last_name');?>: <?php echo $last_name; ?><br/>
+        <?php echo t('email');?>: <?php echo $email; ?><br/>
+        <?php echo t('company');?>: <?php echo $company; ?><br/>
+        <?php echo t('phone');?>: <?php echo $phone; ?><br/>
+        <?php echo t('country');?>: <?php echo $country; ?><br/>
       </p>  
 </body>
 </html>

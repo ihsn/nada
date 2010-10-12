@@ -1,16 +1,16 @@
-<h1 class="page-title">Forgot Password</h1>
+<h1 class="page-title"><?php echo t('forgot_password');?></h1>
 <?php if ($message):?>
 	<div class="error"><?php echo $message;?></div>
 <?php endif;?>
 
-<p>Please enter your email address so we can send you an email to reset your password.</p>
+<p><?php echo t('enter_email_to_reset_password');?></p>
 
 <?php echo form_open("auth/forgot_password");?>
 
       <div class="field">
-	      <label for="email">Email</label>
+	      <label for="email"><?php echo t('email');?></label>
 	      <?php echo form_input($email);?>
-          <?php echo form_submit('submit', 'Submit');?>
+          <?php echo form_submit('submit', t('submit'));?>
       </div>
 
 <?php echo form_close();?>

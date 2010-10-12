@@ -1,4 +1,4 @@
-<h1 class="page-title">Forgot Password</h1>
+<h1 class="page-title"><?php echo t('forgot_password');?></h1>
 <div style="margin-top:10px;font-size:14px;">
-An email message has been sent to your email address, please check your inbox.
+<?php echo t('message_sent_to_your_email');?>
 </div>

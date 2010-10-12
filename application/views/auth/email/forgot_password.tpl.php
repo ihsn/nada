@@ -1,13 +1,13 @@
 <html>
 <body>
-    <p>To reset your password, click on the link below or open the url in a web browser:</p>
+    <p><?php echo t('click_url_to_reset_password');?>:</p>
     <p><?php echo anchor('auth/reset_password/'. $forgotten_password_code);?></p>
     <p>&nbsp;</p>
-    <p>If you did not request password reset, ignore this message.</p>
+    <p><?php echo t('request_password_ignore');?></p>
     <p>&nbsp;</p>
     <p>-----------------------------------------------------------
     <br/><?php echo $this->config->item('website_title'); ?> - <?php echo site_url(); ?></p>
     <p>&nbsp;</p>
-    <p>DO NOT REPLY TO THIS EMAIL</p>    
+    <p><?php echo t('do_not_reply_to_this_email');?></p>
 </body>
 </html>
