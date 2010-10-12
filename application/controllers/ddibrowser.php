@@ -162,7 +162,26 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
-				}        
+				}
+				
+				//check if it is a harvested survey
+				$is_harvested=$this->Catalog_model->is_harvested($id);
+
+				if ($is_harvested===TRUE)
+				{
+					//get repository data
+					$repo=$this->Catalog_model->get_repository_by_survey($id);
+					$repo['surveyid']=$id;
+					
+					if ($repo!==FALSE)
+					{
+						//create box
+						$repo_box=$this->load->view('ddibrowser/repository',array('repository'=>$repo),TRUE);
+						
+						//add info to page output
+						$html=$repo_box.$html;
+					}	
+				}
 			break;
 			
 			case 'summary':
