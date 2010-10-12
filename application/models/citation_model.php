@@ -44,7 +44,13 @@ class Citation_model extends Model {
 						{
 							//study country search
 							$citations=$this->search_citation_by_country(trim($keyword));
-							$this->db->where_in('id', $citations);
+							
+							//if no citations found by country
+							if (!$citations)
+							{
+								return FALSE;
+							}
+							$this->db->where_in('id', $citations);		
 						}
 					}
 				}
