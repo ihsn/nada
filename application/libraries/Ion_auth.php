@@ -15,8 +15,9 @@
 * Description:  Modified auth system based on redux_auth with extensive customization.  This is basically what Redux Auth 2 should be.  Original redux license is below.
 * Original Author name has been kept but that does not mean that the method has not been modified.
 * 
-* Requirements: PHP5 or above
-* 
+* Modifications made for NADA (@author: Mehmood Asghar)
+* - uses MD5 instead of SHA1/SALT to be compatible with nada 2 database
+*
 */
  
 class Ion_auth
@@ -190,7 +191,7 @@ class Ion_auth
 			$this->ci->email->set_newline("\r\n");
 			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
 			$this->ci->email->to($profile->email);
-			$this->ci->email->subject('Forgotten Password Verification');
+			$this->ci->email->subject(t('forgot_password_verification'));
 			$this->ci->email->message($message);
 			
 			if ($this->ci->email->send())
@@ -238,7 +239,7 @@ class Ion_auth
 			$this->ci->email->set_newline("\r\n");
 			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
 			$this->ci->email->to($profile->email);
-			$this->ci->email->subject($this->ci->config->item('website_title') . ' - New Password');
+			$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('new_password'));
 			$this->ci->email->message($message);
 
 			if ($this->ci->email->send())
@@ -320,7 +321,7 @@ class Ion_auth
 			$this->ci->email->set_newline("\r\n");
 			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
 			$this->ci->email->to($email);
-			$this->ci->email->subject($this->ci->config->item('website_title') . ' - Account Activation');
+			$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('account_activation'));
 			$this->ci->email->message($message);
 			
 			if ($this->ci->email->send() == TRUE) 
