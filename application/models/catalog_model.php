@@ -238,7 +238,7 @@ class Catalog_model extends Model {
 	*
 	**/
 	function get_survey($id){
-		$this->db->select('id,titl,surveyid,proddate,nation');
+		$this->db->select('id,titl,surveyid,proddate,nation,repositoryid');
 		$this->db->where('id', $id); 
 		return $this->db->get('surveys')->row_array();
 	}
@@ -652,7 +652,121 @@ class Catalog_model extends Model {
 			//insert			
 			$this->db->insert('survey_years',$options);
 		}
+	}
+	
+	
+	/**
+	*
+	* Produce JSON for survey, related citations and external resources
+	*
+	**/
+	function survey_to_json($id)
+	{
+	    $ci =& get_instance();
+		$ci->load->model('Citation_model');
 
+		//get survey
+		$survey_array=$this->select_single($id);		
+		
+		if ($survey_array===FALSE || count($survey_array)==0)
+		{
+			return FALSE;
+		}
+
+		//DDI file path
+		$ddi_file=$this->get_survey_ddi_path($id);
+
+		if (!file_exists($ddi_file))
+		{
+			return FALSE;
+		}
+		
+		//fields to export
+		$survey['id']=$survey_array['id'];
+		$survey['model']=$survey_array['model'];
+						
+		//Checksum
+		$survey['ddi_checksum']=md5_file($ddi_file);
+		
+		//get external resources
+		$survey['resources']=$this->get_resources_by_survey($id);
+		
+		//get survey related citations
+		$survey['citations']=$ci->Citation_model->get_citations_by_survey($id);
+
+		return json_encode($survey);
+	}
+	
+	
+	/**
+	*
+	* Check it is harvested survey
+	*
+	* returns True/False - 
+	**/
+	function is_harvested($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			return FALSE;
+		}
+		
+		//get survey array
+		$survey=$this->get_survey($id);
+		
+		//check if survey repositoryid exists in the repositories
+		$this->db->select('id');
+		$this->db->where('repositoryid',$survey['repositoryid']);
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=$query->row_array();
+		
+		if ($result)
+		{
+			return TRUE;
+		}
+
+		return FALSE;
+	}
+	
+	/**
+	*
+	* Returns survey repository info as array
+	*	
+	**/
+	function get_repository_by_survey($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			return FALSE;
+		}
+		
+		//get survey array
+		$survey=$this->get_survey($id);
+		
+		//check if survey repositoryid exists in the repositories
+		$this->db->select('*');
+		$this->db->where('repositoryid',$survey['repositoryid']);
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=$query->row_array();
+		
+		if ($result)
+		{
+			return $result;
+		}
+
+		return FALSE;
 	}
 }
 ?>
