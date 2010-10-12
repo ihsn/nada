@@ -378,7 +378,8 @@ class Search_helper_model extends Model {
 	*/
 	function get_active_countries()
 	{
-		$sql='select nation,count(nation) as surveys_found from surveys
+		$sql='select nation,count(nation) as surveys_found 
+				from '.$this->db->dbprefix.'surveys
 			  group by nation';		
 		
 		return $this->db->query($sql)->result_array();		
