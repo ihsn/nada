@@ -8,7 +8,11 @@ class Access_enclave extends MY_Controller {
         parent::__construct($skip_auth=TRUE);
        	
 		$this->load->model('Catalog_model');       	
-       	$this->template->set_template('blank');		
+       	$this->template->set_template('blank');
+		
+		//language
+		$this->lang->load('data_enclave');		
+		
 		//$this->output->enable_profiler(TRUE);
     }
  
