@@ -27,12 +27,12 @@
 	/**
 	 * Site Title, example.com
 	 */
-	$config['site_title']		   = "NADA v2.1";
+	$config['site_title']		   = "NADA 3.0";
 	
 	/**
 	 * Admin Email, admin@example.com
 	 */
-	$config['admin_email']		   = "noreply@ihsn.org";
+	$config['admin_email']		   = "noreply@example.org";
 	
 	/**
 	 * Default group, use name
