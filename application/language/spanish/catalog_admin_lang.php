@@ -11,7 +11,7 @@ $lang['sponsor']="Patrocinador";
 $lang['repository']="Repositorio";
 $lang['ref_no']="Nro. de Referencia";
 $lang['country']="País";
-$lang['primary_investigator']="Investigador Primario";
+$lang['primary_investigator']="Investigador Principal";
 $lang['metadata_by']="Metadato Por";
 $lang['folder']="Directorio";
 $lang['file_manager']="Administrador de Archivos";
@@ -30,15 +30,15 @@ $lang['import_completed']="Importación finalizada!";
 $lang['indicator_database']="Indicador de base de datos";
 $lang['study_website']="Sito Web del Estudio";
 
-$lang['btn_import']="Import";
-$lang['catalog_home']="Catalog Home";
-$lang['ddi_import_success']="The DDI was imported successfully!";
-$lang['authenty']="Publisher";
-$lang['missing']="MISSING";
-$lang['collection_date']="Collection dates";
-$lang['click_to_return_to_catalog_page']="Click here to return to the Catalog Maintenance page.";
-$lang['rdf_export']="Export RDF";
-$lang['select_number_of_records_per_page']="Select number of records to show per page";
+$lang['btn_import']="Importar";
+$lang['catalog_home']="Página principal";
+$lang['ddi_import_success']="El archivo IDD ha sido importado con éxito!";
+$lang['authenty']="Editor";
+$lang['missing']="Faltante";
+$lang['collection_date']="Fecha de Colección";
+$lang['click_to_return_to_catalog_page']="Haga clic aquí para volver a la página de Mantenimiento del Catálogo.";
+$lang['rdf_export']="Exportar a RDF";
+$lang['select_number_of_records_per_page']="Seleccione el número de registros a mostrar por página";
 
 /* End of file catalog_admin_lang.php */
 /* Location: ./application/language/spanish/catalog_admin_lang.php */
