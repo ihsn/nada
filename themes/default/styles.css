@@ -143,10 +143,21 @@ a:hover {
 .note{padding:5px;font-size:14px;background-color:#FFFFCC;border:1px solid gainsboro;margin-bottom:20px;}
 
 
-.button {	
-	border:1px solid gainsboro;
-	text-decoration:none;
-	color:gray;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
+/*Table/Grid style*/
+.grid-table tr td {
+	padding:5px;
+	border-bottom:1px solid #C1DAD7;
 }
+.grid-table .alternate {
+	background-color:#FBFBFB
+}
+.grid-table a {
+	color:#00679C;
+	text-decoration:none;
+}
+.grid-table a:hover {
+	color:maroon;
+}
+/*Button styles*/
+.button{padding:1px;margin-top:5px;cursor:pointer;background-color:#6699FF;color:white;border:0px;}
+.button:hover{background-color:black;color:white;}
