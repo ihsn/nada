@@ -40,7 +40,7 @@ $lang['form_update_success']="El formulario ha sido actualizado satisfactoriamen
 $lang['form_update_fail']="La actualización de la base de datos ha fallado";
 $lang['callback_error_url_exists']="El %s ya existe. Elija un URL diferente.";
 
-$lang['weight']="Weight";
+$lang['weight']="Peso";
 
 /* End of file menu_lang.php */
 /* Location: ./application/language/spanish/menu_lang.php */

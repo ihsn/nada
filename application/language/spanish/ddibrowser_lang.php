@@ -27,15 +27,15 @@ $lang['name']="Nombre";
 $lang['label']="Etiqueta";
 $lang['question']="Pregunta";
 
-$lang['classification']="Classification";
-$lang['description']="Description";
-$lang['overview']="Overview";
-$lang['variable_information']="Variable information";
-$lang['export_documentation']="Export documentation";
-$lang['select_output_format']="Select output format";
-$lang['download_instructions']="The documentation is generated on the fly and can take from few seconds to couple of minutes, so please be patient if nothing happens on pressing the GENERATE button.";
-$lang['generate']="Generate";
-$lang['table_of_contents']="Table of contents";
+$lang['classification']="Clasificación";
+$lang['description']="Descripción";
+$lang['overview']="Información general";
+$lang['variable_information']="Información de la Variable";
+$lang['export_documentation']="Documentación de exportación";
+$lang['select_output_format']="Seleccione el formato de salida";
+$lang['download_instructions']="La documentación se genera en el momento y puede durar unos minutos, por favor tenga paciencia y aguarde luego de pulsar el botón GENERAR.";
+$lang['generate']="Generar";
+$lang['table_of_contents']="Tabla de contenidos";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./application/language/spanish/ddibrowser_lang.php */

@@ -88,10 +88,10 @@ $lang['abstract']="Resumen";
 $lang['table_of_contents']="Documentación Técnica";
 $lang['classification']="Clasificación";
 
-$lang['found_study']="Found <b>%d</b> study out of <b>%d</b>";
-$lang['found_studies']="Found <b>%d</b> studies out of <b>%d</b>";
-$lang['compare_hover_text']="Compare the selected variables";
-$lang['select_number_of_records_per_page']="Select number of records to show per page";
+$lang['found_study']="Encontró <b>%d</b> estudio de <b>%d</b>";
+$lang['found_studies']="Encontró <b>%d</b> estudios de <b>%d</b>";
+$lang['compare_hover_text']="Comparar las variables seleccionadas";
+$lang['select_number_of_records_per_page']="Seleccionar el número de registros a desplegar por página";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/spanish/catalog_search_lang.php */

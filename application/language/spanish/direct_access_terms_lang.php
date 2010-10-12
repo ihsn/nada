@@ -1,37 +1,38 @@
 <?php
 
-$lang['title_terms_and_conditions']="Terms and conditions";
+$lang['title_terms_and_conditions']="Términos y condiciones";
 $lang['terms_text']="
 <ol>
-  <li>The data and other materials provided by the National Data Archive will not
-    be redistributed or sold to other individuals, institutions, or organizations
-    without the written agreement of the National Data Archive. </li>
-  <li>The data will be used for statistical and scientific research purposes only. They will be used solely for reporting of aggregated information, and not for
-    investigation of specific individuals or organizations.</li>
-  <li>No attempt will be made to re-identify respondents, and no use will be made
-    of the identity of any person or establishment discovered inadvertently. Any
-    such discovery would immediately be reported to the National Data Archive.</li>
-  <li>No attempt will be made to produce links among datasets provided by the
-    National Data Archive, or among data from the National Data Archive and other
-    datasets that could identify individuals or organizations.</li>
-  <li>Any books, articles, conference papers, theses, dissertations, reports, or other
-    publications that employ data obtained from the National Data Archive will cite
-    the source of data in accordance with the Citation Requirement provided with each
-    dataset.</li>
-  <li>An electronic copy of all reports and publications based on the requested
-    data will be sent to the National Data Archive.</li>
-  <li>The original collector of the data, the National Data Archive, and the
-    relevant funding agencies bear no responsibility for use of the data or for
-    interpretations or inferences based upon such uses.</li>
+  <li>Los datos y otros materiales proporcionados por el Archivo Nacional de Datos no
+    podrán ser redistribuidos o vendidos a otras personas, instituciones u organizaciones
+    sin el consentimiento por escrito del Archivo Nacional de Datos.</li>
+  <li>Los datos se utilizarán solamente con fines de investigación científica y estadística.
+	Serán utilizados exclusivamente para la elaboración de informes agregados, y no
+	para investigación específicas de determinadas personas u organizaciones.</li>
+  <li>No se intentará resolver la identificación de los encuestados, y no prodrán ser 
+    usados ninguna identidad de cualquier persona o establecimiento que haya sido 
+    descubierto accidentalmente. Cualquiera de tales descubrimientos debe ser informado de inmediato 
+    al Archivo Nacional de Datos</li>
+  <li>Ningún intento debe hacerse para producir enlaces entre los conjuntos de datos proporcionados por el
+    Archivo Nacional de Datos, o entre los datos del Archivo Nacional de Datos y otros
+    conjuntos de datos que pudieran identificar a los individuos u organizaciones.</li>
+  <li>Cualquier libro, artículo, ponencia, tesis, disertación, informe, u otros
+    publicaciones que utilicen datos obtenidos del Archivo Nacional de Datos deben citar
+    la fuente de datos de acuerdo a los requerimientos de citas previstas con cada
+    conjunto de datos.</li>
+  <li>Una copia electrónica de todos los informes y publicaciones hechas sobre los datos solicitados, deberán ser enviados al Archivo Nacional de Datos.</li>
+  <li>El colector original de los datos, el Archivo Nacional de Datos, y los
+    organismos de financiación pertinentes no tienen ninguna responsabilidad por el uso de los datos o por las 
+    interpretaciones o inferencias basadas en tales usos.</li>
 </ol>
-<p>By continuing past this point to the data retrieval process, you signify your
-  agreement to comply with the above-stated terms and conditions and give your
-  assurance that the use of statistical data obtained from the National Data
-  Archive will conform to widely-accepted standards of practice and legal
-  restrictions that are intended to protect the confidentiality of respondents.</p>
+<p>Al ir más allá de este punto con el proceso de recuperación de datos, usted expresa su
+  acuerdo para cumplir con los términos y condiciones antes mencionados y da su
+  garantía de que el uso de los datos estadísticos obtenidos a partir del Archivo Nacional de Datos 
+   se ajusten a los estandares de las prácticas y restricciones legales ampliamente-aceptadas
+   que tienen por objeto proteger la confidencialidad de los encuestados.</p>
 ";
-$lang['form_removed_and_not_available']="Form has been removed and is not longer available.";
-$lang['survey_data_files']="Survey Data Files";
+$lang['form_removed_and_not_available']="El formulario ha sido eliminado y ya no se tiene disponible.";
+$lang['survey_data_files']="Archivo de Datos de la Encuesta";
 
 /* End of file direct_access_terms_lang.php */
 /* Location: ./application/language/spanish/direct_access_terms_lang.php */

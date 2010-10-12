@@ -1,47 +1,47 @@
 <?php
 
-$lang['application_for_access_to_public_use_dataset']="Application for Access to a Public Use Dataset";
-$lang['fields_marked_mandatory']="Fields marked with * are mandatory.";
-$lang['msg_information_confidential']="The information provided on this page will be kept confidential and will be used for internal purposes only.";
-$lang['first_name']="First name";
-$lang['last_name']="Last name";
-$lang['organization']="Organization";
-$lang['email']="E-mail";
-$lang['dataset_requested']="Dataset requested";
-$lang['intended_use_of_data']="Intended use of the data";
-$lang['describe_your_project']="Please provide a short description of your research project (project question, objectives, methods, expected outputs, partners)";
-$lang['i_agree']="I agree";
-$lang['terms_and_conditions']="Terms and conditions";
+$lang['application_for_access_to_public_use_dataset']="Solicitud de acceso al conjunto de datos de uso público";
+$lang['fields_marked_mandatory']="Los campos marcados con * son obligatorios.";
+$lang['msg_information_confidential']="La información proporcionada en ésta página se mantendrá confidencial y será utilizada sólo para propósitos internos.";
+$lang['first_name']="Nombre";
+$lang['last_name']="Apellido";
+$lang['organization']="Organización";
+$lang['email']="Correo electrónico";
+$lang['dataset_requested']="Conjunto de Datos solicitados";
+$lang['intended_use_of_data']="Intensión de uso de los datos";
+$lang['describe_your_project']="Por favor provea una breve descripción de su proyecto de investigación (pregunta del proyecto, objetivos, métodos, resultados previstos, los socios)";
+$lang['i_agree']="Estoy de acuerdo";
+$lang['terms_and_conditions']="Términos y condiciones";
 $lang['terms_text']="
 <ol>
-  <li>The data and other materials provided by the National Data Archive will not
-    be redistributed or sold to other individuals, institutions, or organizations
-    without the written agreement of the National Data Archive. </li>
-  <li>The data will be used for statistical and scientific research purposes only. They will be used solely for reporting of aggregated information, and not for
-    investigation of specific individuals or organizations.</li>
-  <li>No attempt will be made to re-identify respondents, and no use will be made
-    of the identity of any person or establishment discovered inadvertently. Any
-    such discovery would immediately be reported to the National Data Archive.</li>
-  <li>No attempt will be made to produce links among datasets provided by the
-    National Data Archive, or among data from the National Data Archive and other
-    datasets that could identify individuals or organizations.</li>
-  <li>Any books, articles, conference papers, theses, dissertations, reports, or other
-    publications that employ data obtained from the National Data Archive will cite
-    the source of data in accordance with the Citation Requirement provided with each
-    dataset.</li>
-  <li>An electronic copy of all reports and publications based on the requested
-    data will be sent to the National Data Archive.</li>
-  <li>The original collector of the data, the National Data Archive, and the
-    relevant funding agencies bear no responsibility for use of the data or for
-    interpretations or inferences based upon such uses.</li>
+  <li>Los datos y otros materiales proporcionados por el Archivo Nacional de Datos no deben
+    ser redistribuidos o vendidos a otras personas, instituciones u organizaciones
+    sin el consentimiento por escrito del Archivo Nacional de Datos.</li>
+  <li>Los datos se utilizarán con fines de investigación científica y estadística solamente. Serán utilizados exclusivamente para la presentación de la información agregada, y no para
+    investigación de determinadas personas u organizaciones.</li>
+  <li>No se intentará volver a identificar los encuestados, y no se harán uso
+    de la identidad de cualquier persona o establecimiento descubierto accidentalmente. Cualquier
+    de tales descubrimientos deben ser inmediatamente comunicados al Archivo Nacional de Datos.</li>
+  <li>Ningún intento se deberá hacer para producir los vínculos entre los conjuntos de datos proporcionados por el
+    Archivo Nacional de Datos, o entre los datos del Archivo Nacional de Datos y otros
+    conjuntos de datos que pudieran identificar a los individuos u organizaciones.</li>
+  <li>Cualquier libro, artículo, ponencia, tesis, disertación, informe, u otras
+    publicaciones que emplean datos obtenidos del Archivo Nacional de Datos deben citar
+    la fuente de datos de acuerdo con la exigencia de citas previstas con cada
+    conjunto de datos. </li>
+  <li>Una copia electrónica de todos los informes y publicaciones basados sobre los datos solicitados
+    deberán ser enviados al Archivo Nacional de Datos.</li>
+  <li>El colector original de los datos, el Archivo Nacional de Datos, y el
+    organismos de financiación pertinentes no tienen ninguna responsabilidad por el uso de los datos o por las
+    interpretaciones o inferencias basadas en dichos usos.</li>
 </ol>
-<p>By continuing past this point to the data retrieval process, you signify your
-  agreement to comply with the above-stated terms and conditions and give your
-  assurance that the use of statistical data obtained from the National Data
-  Archive will conform to widely-accepted standards of practice and legal
-  restrictions that are intended to protect the confidentiality of respondents.</p>
+<p>Al ir más allá de este punto con el proceso de recuperación de datos, usted expresa su
+  acuerdo para cumplir con los términos y condiciones antes mencionados y da su
+  garantía de que el uso de los datos estadísticos obtenidos a partir del Archivo Nacional de Datos 
+   se ajusten a los estandares de las prácticas y restricciones legales ampliamente-aceptadas
+   que tienen por objeto proteger la confidencialidad de los encuestados.</p>
 ";
-$lang['public_use_files']="Public Use Files";
+$lang['public_use_files']="Archivos de Uso Público";
 
 /* End of file public_access_terms_lang.php */
 /* Location: ./application/language/spanish/public_access_terms_lang.php */

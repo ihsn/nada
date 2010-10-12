@@ -1,6 +1,6 @@
 <?php
 
-$lang['email_must_be_array'] = "El método de validación del correo electrónico debe pasa en un arreglo.";
+$lang['email_must_be_array'] = "El método de validación del correo electrónico debe pasar en un arreglo(vector).";
 $lang['email_invalid_address'] = "Cuenta de correo electrónico inválido: %s";
 $lang['email_attachment_missing'] = "No se ha podido localizar el adjunto del correo: %s";
 $lang['email_attachment_unreadable'] = "No se ha podido abrir éste adjunto: %s";
