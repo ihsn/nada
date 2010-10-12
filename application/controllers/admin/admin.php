@@ -115,7 +115,7 @@ class Admin extends MY_Controller {
 		return $k;
 	}
 	
-	
+		
 	function _submit_bug_report()
 	{
 		if (!$this->input->post("submit_bug"))
