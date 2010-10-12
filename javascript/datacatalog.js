@@ -30,9 +30,25 @@ function block_search_form(block){
     }); 
 }
 
-function advanced_search(){	
-	if ($("#from").val() > $("#to").val()){ alert(i18n.invalid_year_range_selected); return false;}
- 	data=$("#search_form").serialize();
+function advanced_search()
+{	
+	if ($("#from").val() > $("#to").val()){ 
+		alert(i18n.invalid_year_range_selected); 
+		return false;
+	}
+	
+	//topics
+	selected_topics=$("#search_form .chk-topic:checked").length;
+	total_topics=$("#search_form .chk-topic").length;
+
+	//remove topics from posting
+	if (selected_topics==total_topics) {
+		data=$("#search_form :not(.chk-topic, .chk-topic-hd) ").serialize();
+	}
+	else{
+		data=$("#search_form").serialize();	
+	}
+	
 	data+='&sort_order='+sort_info.sort_order+'&sort_by='+sort_info.sort_by;
 	$("#link_export").attr("href",CI.base_url+"/catalog/export/?"+data);
 	
@@ -253,13 +269,14 @@ function filter_by_countries(){
 function filter_by_topics()
 {
 	selected_topics=$("#search_form .chk-topic:checked").length;
-	
-	if (selected_topics==0)
+	total_topics=$("#search_form .chk-topic").length;
+	if (selected_topics==0 || selected_topics==total_topics)
 	{
-		$("#countries-list input:checkbox").attr('disabled', false).parent().removeClass("disabled");advanced_search();
+		$("#countries-list input:checkbox").attr('disabled', false).parent().removeClass("disabled");
 		//reset years
 		//apply_filter_to_year(years.from,years.to);
-		advanced_search();return;
+		advanced_search();
+		return;
 	}
 	
 	//get countries and years info	
