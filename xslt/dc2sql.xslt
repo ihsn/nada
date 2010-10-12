@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Ths tarnsform converts the RDF to custom CSV format for database import
 
@@ -18,7 +19,6 @@ License:
   
     The full text of the license is available at http://www.gnu.org/copyleft/lesser.html
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet 
 				version="1.0" 
 				exclude-result-prefixes="rdf dc dcterms"
