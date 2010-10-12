@@ -4,6 +4,10 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 ?>
 <?php
 $menu_horizontal=TRUE;
+
+//side menu
+$data['menus']= $this->Menu_model->select_all();		
+$sidebar=$this->load->view('default_menu', $data,true);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
@@ -11,34 +15,17 @@ $menu_horizontal=TRUE;
 <title><?php echo t($title);?></title>
 <base href="<?php echo base_url(); ?>" />
 
-
-<?php $this->carabiner->css('themes/'.$this->template->theme().'/reset-fonts-grids.css');?>
-<?php $this->carabiner->css('themes/'.$this->template->theme().'/styles.css');?>
-<?php $this->carabiner->css('themes/'.$this->template->theme().'/forms.css');?>
-<?php //$this->carabiner->css('themes/'.$this->template->theme().'/datacatalog.css');?>
-<!--
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
--->
+<script type="text/javascript" src="javascript/jquery.js"></script>
 
-
-
-<!--<script type="text/javascript" src="javascript/jquery.js"></script>-->
-<?php $this->carabiner->js('javascript/jquery.js');?>
-
-<?php //if (isset($_styles) ){ echo $_styles;} ?>
-<?php //if (isset($_scripts) ){ echo $_scripts;} ?>
-
-<?php $this->template->min_css(); ?>
-<?php $this->template->min_js();
-//var_dump($this->template->js_array);
-?>
+<?php if (isset($_styles) ){ echo $_styles;} ?>
+<?php if (isset($_scripts) ){ echo $_scripts;} ?>
 
 <script type="text/javascript"> 
    var CI = {'base_url': '<?php echo site_url(); ?>'}; 
 </script> 
-
 
 </head>
 <body>
@@ -54,13 +41,13 @@ $menu_horizontal=TRUE;
         <div class="site-logo">
         	<a title="<?php echo $this->config->item("website_title");?> - Home Page"  href="<?php echo site_url();?>">
             <img src="themes/<?php echo $this->template->theme();?>/logo.gif"  border="0" alt="Logo"/>
-            <span class="site-logo-title"><?php echo $this->config->item("website_title");?></span></a>
+            <span class="site-logo-title"> LOGO TEXT HERE</span></a>
         </div>
     </div>
     
     <div id="bd" >
     	<!-- banner-->
-        <div id="banner">NADA Data Catalog</div>
+        <div id="banner"><?php echo $this->config->item("website_title");?></div>
         
         <div id="inner-body">
             <!-- menu -->
@@ -87,7 +74,7 @@ $menu_horizontal=TRUE;
 		</div>
 
     <!-- footer -->
-    <div id="ft">Demo site developed by the International Household Survey Network</div>
+    <div id="ft"><?php echo $this->config->item("website_footer");?> </div>
 	<!--end bd-->
     </div>
 
