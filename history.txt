@@ -1,1 +1,21 @@
 09/10/2010	NADA 3.0 Released
+09/12/2010	Updated Installation instructions 
+09/12/2010	Updated Spanish translations done by Mercedez Rivaldi
+09/16/2010	Updated Installation instructions 
+09/20/2010	Added SSL for secure login and other secure pages such as forgot password, user registration
+09/23/2010	Bug fix: Upgrade script would fail if the phone field in nada2 was very long
+09/23/2010	Bug fix: Upgrade script would not import data access types from nada2
+09/25/2010	Changed the default setting for cache to be enabled for the DDI Browser pages to reduce no. of transforms
+09/28/2010	Bug fix: If a user is not logged in and clicks on the public form, the login page does not redirect to the public form after login.
+09/28/2010	Updated the forms to disable auto-complete. The forms such as login won't remember the previous enteries.
+09/28/2010	JS files are packed using JS Min to reduce the file sizes.
+09/28/2010	Cookies are updated to have the HTTPOnly attribute added to them for enhancing security
+09/28/2010	Bug fix: Sorting on year does not sort correctly
+09/30/2010	Updated the report bug form on the dashboard and is now functional
+09/30/2010	Added: news_feed_url setting to the configurations table
+09/30/2010  Bug fix: Data catalog search stops working if a country name contains apostrophe(').
+10/04/2010	Fixed: The sort on year does not work
+10/05/2010	Updated: DDI's using event="single" for the collection dates appeared with no year info in the data catalog.
+10/06/2010	Translation files are updated and include the missing strings that were not translated e.g. email messages
+10/06/2010  Bug fix: Searching for a country with no records will result in either showing all citations or a database error.
+10/12/2010	NADA 3.0.1 Released
