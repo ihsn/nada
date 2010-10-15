@@ -112,7 +112,8 @@ function bindBehaviors(e)
 
 	//data forms dialog
 	$('.accessform').unbind('click').click(function(event) {
-			iframe_dialog($(this),on_lightbox_unload);return false;
+			item_link=$(this).clone().attr("href",$(this).attr("href")+'?ajax=true');;
+			iframe_dialog(item_link,on_lightbox_unload);return false;
 	});
 
 	//compare dialog link
