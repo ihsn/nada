@@ -1,0 +1,17 @@
+Checklist 
+
+1. index.php - error_reporting	- set to E_ERROR
+2. application/config/database.php	- Make sure the database settings are generalized and do not contain any irrelevant info
+3. application/config/email.php	- clear the email settings
+4. database install script - install/schema.sql - is upgraded to the latest changes
+	a. application version
+	b. database version
+	c. configurations settings
+5. Create folders and make sure they are empty
+	a. application/logs
+	b. application/cache
+	c. datafiles
+	d. imports
+	e. backup
+	
+6. Include the license file	
