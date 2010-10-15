@@ -444,21 +444,6 @@ class Licensed_model extends Model {
 		$this->db->where('lic_files_log.requestid', $requestid);
 		return $this->db->get('lic_files_log')->result_array();	
 	}
-	/**
-	 * Get user download history
-	 * 
-	 * TODO://this function should work with the licensed request but we are not logging the request id for downloads
-	 * TODO:// ths is a dummy function to be removed lated
-	 * @return array
-	 */
-	/*function get_files()
-	{
-		$this->db->select('*');	
-		$this->db->join('lic_files', 'lic_files.id = lic_file_downloads.fileid');
-		return $this->db->get('lic_file_downloads')->result_array();	
-	}*/
-	
-	
 	
 	
 	/**
@@ -472,6 +457,7 @@ class Licensed_model extends Model {
 		return $this->db->get('lic_requests')->result_array();	
 	}
 	
+
 	
 	/**
 	 * Get a single request by request-id
@@ -574,5 +560,26 @@ class Licensed_model extends Model {
 		return $this->db->delete('lic_requests'); 
 	}
 
+	/**
+	*
+	* Return requets for a survey by user id
+	*
+	**/
+	function get_survey_requests_by_user($user_id=NULL,$survey_id=NULL)
+	{
+			$this->db->select('lic_requests.id,expiry,status');
+			$this->db->where('userid',$user_id);
+			$this->db->where('lic_requests.surveyid',$survey_id);
+			$this->db->where('lic_requests.status !=','DENIED');
+			$this->db->join('lic_file_downloads', 'lic_requests.id = lic_file_downloads.requestid','left');
+			$query=$this->db->get("lic_requests");
+			//echo mktime(0,0,0,9,9,2010);
+			if (!$query)
+			{
+				return FALSE;
+			}
+			
+			return $query->result_array();
+	}
 }
 ?>

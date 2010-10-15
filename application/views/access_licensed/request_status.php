@@ -1,5 +1,4 @@
 <style>
-	h1{}
 	.info td{
 		border-bottom:1px solid gainsboro;padding:5px;
 	}
@@ -12,6 +11,10 @@
 	color:gray;font-family:Arial;font-size:11px;
 	}
 </style>
+
+<div style="text-align:right;">
+<a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?> href="<?php echo site_url();?>/auth/profile" class="button"><?php echo t('view_all_requests');?></a>
+</div>
 
 <h1><?php echo t('licensed_dataset_request_status');?></h1>
 <?php 

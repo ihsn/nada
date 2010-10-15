@@ -11,38 +11,46 @@ class Access_licensed extends MY_Controller {
 		$this->load->model('Licensed_model');
 		$this->load->model('Datafiles_model');
 		$this->load->model('Catalog_model');
-		$this->template->set_template('blank');
+		$this->template->set_template('default');
 		$this->load->helper('admin_notifications');
 		
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
 		$this->lang->load('licensed_access_form');
     		
-    		//$this->load->library(array('site_configurations'));
-    		//$this->output->enable_profiler(TRUE);
+    	//$this->load->library(array('site_configurations'));
+    	//$this->output->enable_profiler(TRUE);
     }
  
     /**
      * Show the request form
      * 
      * @param $survey_id
-     * @return unknown_type
      */
 	function index($survey_id=NULL)
 	{	
-		$this->load->library( array('form_validation') );
-		
+		//change template for ajax
+		$ajax_params='';
+		if ($this->input->get_post("ajax"))
+		{
+			$this->ajax=1;
+			$this->template->set_template('blank');
+			$ajax_params='/?ajax=1';
+		}
+				
 		if ( !is_numeric($survey_id))
 		{
 			show_404();return;
 		}
-
+			
 		//check if user is logged in
 		if (!$this->ion_auth->logged_in()) 
 		{
 	    	//redirect them to the login page
 			redirect("auth/login", 'refresh');
     	}
+
+		$this->load->library( array('form_validation') );
 			
 		//get user info
 		$user=$this->ion_auth->current_user();
@@ -59,8 +67,36 @@ class Access_licensed extends MY_Controller {
 		if ($this->Catalog_model->get_survey_form_model($survey_id)!=$this->form_model)
 		{
 			show_404();
-			return;
 		}
+
+		//check if user has already submitted this form. if the request is PENDING or was APPROVED
+		// 	and the approved expiry period is still valid then redirect them to the previous request 
+		//	information page
+		$this->requests=$this->Licensed_model->get_survey_requests_by_user($user->id,$survey_id);
+
+		if ($this->requests)
+		{
+			foreach($this->requests as $request)
+			{
+				if ($request['status']=='PENDING')
+				{
+					//redirect to PENDING request page
+					//redirect('access_licensed/track/'.$request['id'].$ajax_params);
+					$this->track($request['id']);
+		   			return;
+				}	 
+    			elseif ($request['status']=='APPROVED')
+				{
+					if ($request['expiry']>=date("U") || (int)$request['expiry']==0)
+					{
+						//redirect to APPROVED request page
+						//redirect('access_licensed/track/'.$request['id'].$ajax_params);
+						$this->track($request['id']);
+						return;
+        			}
+    			}
+			}
+		}		
 
 		$content=NULL;
 			
@@ -113,7 +149,7 @@ class Access_licensed extends MY_Controller {
 				$this->_confirmation_email($new_requestid);
 								
 				//redirect to the confirmation page
-				redirect('access_licensed/confirm/'.$new_requestid,"refresh");
+				redirect('access_licensed/confirm/'.$new_requestid.$ajax_params,"refresh");
 			}
 			else
 			{
@@ -123,7 +159,7 @@ class Access_licensed extends MY_Controller {
 		}
 			
 		//load the contents of the page into a variable
-		$content=$this->load->view('access_licensed/request_form', $data,true);			
+		$content.=$this->load->view('access_licensed/request_form', $data,true);			
 	
 		//set page title
 		$this->template->write('title', t('application_access_licensed_dataset'),true);
@@ -138,6 +174,12 @@ class Access_licensed extends MY_Controller {
 	//does nothing, except to show a confirmation message
 	function confirm()
 	{
+		//change template for ajax
+		if ($this->input->get_post("ajax"))
+		{
+			$this->template->set_template('blank');
+		}
+		
 		$content=$this->load->view('access_licensed/request_confirmation',NULL,TRUE);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
@@ -227,7 +269,7 @@ class Access_licensed extends MY_Controller {
 			$contents.=$this->_get_licensed_files($request_id);
 		}
 		
-		if ($this->input->get("print")=='yes')
+		if ($this->input->get("print")=='yes' || $this->input->get("ajax"))
 		{
 			$this->template->set_template('blank');	
 		}
@@ -252,7 +294,7 @@ class Access_licensed extends MY_Controller {
 		//check if the survey form is set to LICENSED
 		if ($this->Catalog_model->get_survey_form_model($survey_id)!='licensed')
 		{
-			show_error('Form has been removed and is not longer available.');
+			show_error('form_not_available');
 			return;
 		}
 		

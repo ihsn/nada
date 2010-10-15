@@ -29,6 +29,12 @@ $options_datamatching=array(
 	);
 ?>
 
+<div style="text-align:right">
+	<a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?>href="<?php echo site_url();?>/auth/profile/" class="button">View all requests</a> 
+    <a target="_blank" href="<?php echo site_url().$this->uri->uri_string();?>" class="button">Open in new window</a>
+</div>
+
+
 <h1 class="page-title"><?php echo t('application_access_licensed_dataset');?></h1>
 <div style="font-style:italic;color:red;"><?php echo t('required_fields');?></div>
 
@@ -50,7 +56,9 @@ $options_datamatching=array(
 	<input type="hidden" name="surveytitle" value="<?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?>" />
 	<input type="hidden" name="surveyid" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?>" />
 	<input type="hidden" name="survey_uid" value="<?php echo get_form_value('survey_uid',isset($survey_uid) ? $survey_uid : ''); ?>" />
-    
+    <?php if (isset($this->ajax)):?>
+    	<input type="hidden" name="ajax" value="1" />
+    <?php endif;?>
   <table class="public-use" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
   	<tr>
     	<td colspan="2" class="note">
