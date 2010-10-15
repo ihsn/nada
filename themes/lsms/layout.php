@@ -1,6 +1,7 @@
 <?php
-header("Cache-Control: no-cache, must-revalidate");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header("Pragma: no-cache");
 ?>
 <?php
 //load blocks for the current page
@@ -70,7 +71,6 @@ if ($secondary_menu!==FALSE && count($secondary_menu)>1)
 <script type="text/javascript" src="javascript/superfish/js/superfish.js"></script>
 
 <script type="text/javascript">
-//initialize menu
 jQuery(function(){
 	jQuery('ul.sf-menu').superfish();
 });
@@ -96,7 +96,7 @@ function toggle_banner(e){
     <!-- header -->
     <div id="hd">
     
-       	<!-- bank logo -->
+       	<!-- logo -->
         <div class="site-logo">
         	<a title="<?php echo $this->config->item("website_title");?> - Home Page"  href="<?php echo site_url();?>">
             <img src="themes/<?php echo $this->template->theme();?>/wb-logo.gif"  border="0" alt="Logo"/>
@@ -162,7 +162,7 @@ function toggle_banner(e){
 
 
     <!-- footer -->
-    <div id="ft">Demo site developed using IHSN NADA 3.0</div>
+    <div id="ft"><?php echo $this->config->item("website_footer");?></div>
 	<!--end bd-->
 
 </div>

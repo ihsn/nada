@@ -117,3 +117,7 @@ div.left {
 
 .button{padding:2px;margin-top:5px;cursor:pointer;background-color:#6699FF;color:white;border:0px;}
 .button:hover{border:0px;color:white;}
+
+.light .button{background:none;border:none;font-size:11px;color:gray;}
+.light{background-color:none;color:gray;}
+.light .button:hover{background:none;border:none;color:black;}

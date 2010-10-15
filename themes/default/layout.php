@@ -2,6 +2,15 @@
 		header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
 		header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 ?>
+<?php
+$menu_horizontal=FALSE;
+
+//side menu
+$data['menus']= $this->Menu_model->select_all();		
+$sidebar=$this->load->view('default_menu', $data,true);
+?>
+
+dfdf
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -9,7 +18,10 @@
     <meta http-equiv="Content-type" content="text/html;charset=UTF-8" /> 
     <title><?php if ($title) echo $title; ?></title>
    	<base href="<?php echo base_url(); ?>" />
-    <link href="<?php echo base_url();?>themes/default/styles.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />    
+    <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
+
     <script type="text/javascript" src="javascript/jquery.js"></script>
     <?php if (isset($_styles) ){ echo $_styles;} ?>
     <?php if (isset($_scripts) ){ echo $_scripts;} ?>
@@ -27,7 +39,7 @@
 </head>
 <body>
 <!--document layout-->
-<table border="0" style="width:780px;border-collapse:collapse" cellspacing="0"  cellpadding="0" align="center">
+<table border="0" style="width:880px;border-collapse:collapse" cellspacing="0"  cellpadding="0" align="center">
 
 	<!--login-->
     <tr>
@@ -71,7 +83,7 @@
         </td>
         <td style="width:5px;"></td>
         <!--content -->
-        <td class="content-container" style="width:575px" valign="top">
+        <td class="content-container" style="width:675px" valign="top">
         	<div style="margin:5px;margin-bottom:20px;" id="page-content">
                 <div><?php echo isset($content) ? $content : '';?></div>
           </div>

@@ -97,24 +97,7 @@ body, html {
 	margin-bottom:20px;
 	margin-top:0px;
 }
-/*
-.menu-horizontal li {
-	float:left;
-	padding:10px;
-	border-right:1px solid gainsboro;
-}
-.menu-horizontal li a {
-	font-weight:bold;
-	color:gray;
-}
-.menu-horizontal li.selected {
-	border-bottom:1px solid white;
-	margin-bottom:-1px;
-}
-.menu-horizontal li a:hover, .menu-horizontal li.selected a {
-	color:black;
-}
-*/
+
 /* site general styles */
 h1 {
 	font-size:1.8em;
