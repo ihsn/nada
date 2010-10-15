@@ -89,5 +89,19 @@ $lang['dataset_access'] = "Access to dataset";
 $lang['notification_licensed_survey_request_received']='[Notification] - Licensed survey request received';
 
 $lang['survey_data_files']='Survey Data Files';
+
+//user_notification_email
+$lang['dear'] = "Dear";
+$lang['request_licensed_reviewed'] = "Your request for the licensed dataset [<b>%s</b>] has been reviewed. To view the review outcome, please visit:";
+//admin_notification_email
+$lang['user_has_requested_licensed'] = "The user <b>%s</b> has requested access to a licensed survey <b>%s</b>."; 
+$lang['to_view_request_instructions'] = "To view the request, login to the NADA site administration and visit the 'Licensed survey requests' page.";
+//request_form_view
+$lang['received_licensed_request'] = "The <b>%s</b> has received your request for the licensed datafiles. We will notify you via email once your application has been reviewed.";
+$lang['to_view_request_status']="To view the status of your request, please visit:";
+$lang['for_further_information'] = "For further information, please contact us at";
+$lang['form_not_available'] = "Form has been removed and is no longer available.";
+$lang['view_all_requests'] = "View all requests";
+
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
