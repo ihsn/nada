@@ -109,8 +109,8 @@ $template['admin']['parse_template'] = FALSE;
 */
 
 //default site template
-$template['default']['template'] = '../../themes/nada3/layout';
-$template['default']['theme_folder'] = 'nada3';
+$template['default']['template'] = '../../themes/wb/layout';
+$template['default']['theme_folder'] = 'wb';
 
 //regions for the site template
 $template['default']['regions'] = array(
