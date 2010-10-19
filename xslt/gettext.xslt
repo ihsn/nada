@@ -22,7 +22,7 @@ License:
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format">
 
 		<!-- language  -->
-		<xsl:param name="lang" select="'es'" />				
+		<xsl:param name="lang" select="'english'" />				
 		<!-- path to the language file -->
 		<xsl:param name="langfile" select="concat($lang,'.xml')" />
 		<!-- read the xml file -->
