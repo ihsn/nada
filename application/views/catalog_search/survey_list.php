@@ -117,6 +117,14 @@
 </div>
 
 <?php foreach($rows as $row): ?>
+	<?php
+		$repo_source=FALSE;
+		if (array_key_exists($row['repositoryid'],$this->repositories))
+		{
+			$repo_link=sprintf('<a target="_blank" href="%s">%s</a>',$this->repositories[$row['repositoryid']]['url'],$this->repositories[$row['repositoryid']]['title']);
+			$repo_source=sprintf(t('source_catalog'),$repo_link);
+		}
+	?>
 	<div class="survey-row">
         <div class="title">
         <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>" class="dlg" title="<?php echo $row['titl']; ?>">
@@ -127,6 +135,9 @@
         </a>
         </div>
         <div class="sub-title"><?php echo $row['authenty'];?>, <em><?php echo $row['refno'];?></em></div>
+        <?php if ($repo_source):?>
+        	<div class="source-cat"><?php echo $repo_source; ?></div>
+        <?php endif;?>
 
 		<?php if ( isset($row['var_found']) ): ?>
         <div class="variables-found">
