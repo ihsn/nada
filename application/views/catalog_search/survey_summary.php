@@ -39,6 +39,17 @@
         <td><?php echo $sponsor;?></td>
     </tr>
     <?php endif;?>    
+    <?php if (array_key_exists($repositoryid,$this->repositories)):?>
+	<tr>
+    	<td><?php echo t('source');?></td>
+        <td><?php 
+				$repo_link=sprintf('<a target="_blank" href="%s">%s</a>',$this->repositories[$repositoryid]['url'],$this->repositories[$repositoryid]['title']);
+				$repo_source=sprintf(t('source_catalog'),$repo_link);
+				echo $repo_source;
+			?>
+        </td>
+    </tr>
+    <?php endif;?>
     <tr>
     	<td>&nbsp;</td>
         <td><?php echo anchor("ddibrowser/$id",t('click_to_browse_metadata'), array('target'=>'_blank'));?></td>
