@@ -140,11 +140,21 @@ class DDIbrowser extends MY_Controller {
 		//language
 		$language=array('lang'=>$this->config->item("language"));
 		
-		if($language===FALSE)
+		if(!$language)
 		{
-			$language="english";
+			//default language
+			$language=array('lang'=>"english");
 		}
+
+		//get the xml translation file path
+		$language_file=$this->DDI_Browser->get_language_path($language['lang']);
 		
+		if ($language_file)
+		{
+			//change to the language file (without .xml) in cache
+			$language['lang']=unix_path(FCPATH.$language_file);
+		}		
+			
 		//page URLs
 		$current_url=site_url().'/ddibrowser/'.$id.'/';
 		
