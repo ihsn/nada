@@ -15,10 +15,9 @@ if ($language=='')
 ?>
 <rss version="2.0"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
-    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
-    xmlns:admin="http://webns.net/mvcb/"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    xmlns:nada="http://ihsn.org/nada/"
+>
 
     <channel>    
         <title><?php echo $this->config->item("website_title"); ?></title>
@@ -26,8 +25,7 @@ if ($language=='')
         <description></description>
         <dc:language><?php echo $language; ?></dc:language>
         <dc:creator><?php echo $admin_email; ?></dc:creator>
-        <dc:rights>Copyright <?php echo gmdate("Y", time()); ?></dc:rights>
-    
+        <dc:rights>Copyright <?php echo gmdate("Y", time()); ?></dc:rights>    	
         <?php foreach($records->result() as $entry): ?>
         <item>
           <title><?php echo ($entry->titl); ?></title>
@@ -35,6 +33,8 @@ if ($language=='')
           <guid><?php echo $entry->surveyid ?></guid>
           <description><![CDATA[<?php echo (strip_tags($entry->titlstmt.', ' . $entry->authenty.  ' - ' . $entry->nation)); ?>]]></description>
           <pubDate><?php echo date ('r', $entry->changed);?></pubDate>
+          <nada:country><?php echo $entry->nation; ?></nada:country>
+          <nada:colldate><?php echo $entry->proddate; ?></nada:colldate>
         </item>
         <?php endforeach; ?>   
     </channel>
