@@ -130,7 +130,7 @@ class Catalog_search{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='id,refno,surveyid,titl,nation,authenty, forms.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared';
+		$study_fields='id,refno,surveyid,titl,nation,authenty, forms.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid';
 
 		//build final search sql query
 		$sql='';
