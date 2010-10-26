@@ -8,6 +8,7 @@ class Catalog extends MY_Controller {
        	$this->template->set_template('default');	
 		$this->template->write('sidebar', $this->_menu(),true);	
 		$this->load->model('Search_helper_model');
+		$this->load->model('Catalog_model');
 		$this->load->library('pagination');
 	 	//$this->output->enable_profiler(TRUE);
     		
@@ -83,6 +84,9 @@ class Catalog extends MY_Controller {
 		//js & css for ceebox
 		$this->template->add_css('javascript/ceebox/css/ceebox-min.css');
 		$this->template->add_js('javascript/ceebox/js/jquery.ceebox-min.js');
+
+		//get list of all repositories
+		$this->repositories=$this->Catalog_model->get_repositories();
 
 		$page=$this->input->get('page');
 		$page= ($page >0) ? $page : 1;
@@ -191,6 +195,9 @@ class Catalog extends MY_Controller {
 		//log
 		$this->db_logger->write_log('search',$this->input->get("sk"),'study');
 		$this->db_logger->write_log('search',$this->input->get("vk"),'question');
+
+		//get list of all repositories
+		$this->repositories=$this->Catalog_model->get_repositories();
 
 		//which view to use for display	
 		if ($this->input->get('vk')!='' && $view=='v')
@@ -486,7 +493,7 @@ class Catalog extends MY_Controller {
 	*/
 	function rss()
 	{	
-		$this->load->model('Catalog_model');
+		//$this->load->model('Catalog_model');
 		
 		$limit=50;
 		
@@ -625,7 +632,7 @@ class Catalog extends MY_Controller {
 			return;
 		}
 				
-		$this->load->model('Catalog_model');
+		//$this->load->model('Catalog_model');
 		$this->load->model('Citation_model');
 		$this->load->library('chicago_citation');
 						
@@ -645,6 +652,9 @@ class Catalog extends MY_Controller {
 		//get survey folder path - NEEDED BY THE VIEW
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
 
+		//get list of repositories
+		$this->repositories=$this->Catalog_model->get_repositories();
+		
 		//get external resources
 		$survey['resources']=$this->Catalog_model->get_grouped_resources_by_survey($id);
 		
