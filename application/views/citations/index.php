@@ -1,7 +1,8 @@
 <div class="body-container" style="padding:10px;">
 <?php if (!isset($hide_form)):?>
 <div class="page-links">
-	<a href="<?php echo current_url(); ?>/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('add_new_citation');?></a> 
+	<a href="<?php echo site_url(); ?>/admin/citations/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('add_new_citation');?></a> 
+    <a href="<?php echo site_url(); ?>/admin/citations/import" class="button"><img src="images/icon_plus.gif"/><?php echo t('import_citation');?></a> 
 </div>
 
 <?php $message=$this->session->flashdata('message');?>
