@@ -123,6 +123,29 @@ class Citations extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+
+	/**
+	*
+	* Export citation
+	*
+	**/
+	function export($citationid=NULL,$format='bibtex')
+	{
+		if ( !is_numeric($citationid))
+		{
+			show_404();
+		}
+		
+		$citation=$this->Citation_model->select_single($citationid);
+		header("Content-Type: text/plain");
+		$this->load->view('citations/export_bibtex', array('bib'=>$citation));
+		//$this->load->library('bibtex');
+		
+		//echo $this->bibtex->export($citation);
+	}
+	
+	
+	
 	
 	function _remap()
 	{
@@ -138,7 +161,18 @@ class Citations extends MY_Controller {
 		{
 			//show citations by id
 			case is_numeric($method):
-				$this->view($method);
+				$action=$this->uri->segment(3);
+				
+				if ($action=='export')
+				{
+					$this->export($method);
+				}
+				else
+				{
+					//default view
+					$this->view($method);
+				}
+					
 			break;
 			
 			default:
