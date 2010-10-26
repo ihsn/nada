@@ -140,7 +140,6 @@ class Citations extends MY_Controller {
 				{
 					//load data from database
 					$db_row=$this->Citation_model->select_single($id);			
-					
 					if (!$db_row)
 					{
 						show_error('INVALID ID');
@@ -472,6 +471,73 @@ class Citations extends MY_Controller {
 	  		$this->template->render();
 		}		
 	}
+	
+	function import()
+	{	
+		$this->form_validation->set_rules('bibtex_string', 'Bibtex_String', 'xss_clean|trim|required');
+		
+		if ($this->form_validation->run() == TRUE) 
+		{					
+			$this->load->library('bibtex');		
+			$string=$this->input->post("bibtex_string");
+		
+			if ($string)
+			{
+				//parsed entries to nada format
+				$bib_array=$this->bibtex->parse_string($string);
+				
+				if (count($bib_array)>0)
+				{	
+					$success=0;
+					$failed=0;
+					
+					foreach($bib_array as $entry)
+					{	
+						if (!isset($entry['title']))
+						{
+							$failed++;
+							continue;
+						}
+						
+						$new_id=$this->Citation_model->insert($entry);
+					
+						if (is_numeric($new_id))
+						{
+							$success++;
+							//redirect('admin/citations/edit/'.$new_id);
+							//return;
+						}
+						else
+						{
+							$failed++;
+						}
+					}
+					
+					//set message
+					$this->session->set_flashdata('message', sprintf(t('bibtex_import_status'),$success,$failed));
+					//redirect
+					redirect('admin/citations/');
+				}
+				else				
+				{	
+					$this->form_validation->set_error('bibtex_string_invalid');
+				}
+			}
+		}
+		
+		//load the contents of the page into a variable
+		$content=$this->load->view('citations/import_bibtex', NULL,true);
+		
+		//page title
+		$this->template->write('title', t('title_citations'),true);	
+	
+		//pass data to the site's template
+		$this->template->write('content', $content,true);
+		
+		//render final output
+	  	$this->template->render();
+	}
+
 	
 }
 /* End of file citations.php */
