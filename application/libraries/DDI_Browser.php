@@ -46,7 +46,7 @@ class DDI_Browser{
 
 	//returns the overview of the ddi file
 	function get_overview_html($ddi_file,$parameters=NULL)
-	{				
+	{			
 		$xslt=FCPATH.'xslt/ddi_overview.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 
@@ -376,6 +376,101 @@ class DDI_Browser{
 		$xml.='</codeBook>';
 		return $xml;
 	}
+	
+	
+	/**
+	*
+	* Get the language file path. If the file does not exist, create one 
+	*
+	*
+	**/
+	function get_language_path($language)
+	{
+		//cache folder path
+		$cache_folder=$this->ci->config->item("cache_dir");
+		
+		if (!$cache_folder)
+		{
+			return FALSE;
+		}
+				
+		//path to the language file, do not include file extension e.g. xml
+		$xml_file=unix_path($cache_folder.'/'.$language);
+		
+		//ddi_browser trnslation file
+		$lang_file=APPPATH.'language/'.$language.'/ddibrowser_lang.php';
+		
+		//create file if not exists		
+		if (!file_exists($xml_file.'.xml'))
+		{
+			//get xml for the translation file
+			$xml_content=$this->_create_lang_xml($lang_file);
+			
+			//save to cache folder
+			$is_saved=@file_put_contents($xml_file.'.xml',$xml_content);			
+			
+			if (!$is_saved)
+			{
+				log_message('error','failed to create language file <em>'.$xml_file.'</em>');
+				return FALSE;
+			}
+		}
+		else
+		{
+			//check file timestamp and see if it needs to be re-created
+			if (filemtime($xml_file.'.xml') < filemtime($lang_file))
+			{
+				//get xml for the translation file
+				$xml_content=$this->_create_lang_xml($lang_file);
+				
+				//save to cache folder
+				$is_saved=@file_put_contents($xml_file.'.xml',$xml_content);
+				
+				if (!$is_saved)
+				{
+					log_message('error','failed to create language file <em>'.$xml_file.'</em>');
+					return FALSE;
+				}
+			}
+		}
+		
+		//return xml path without the file extension (.xml)
+		return $xml_file;
+	}
+	
+	/**
+	*
+	* Turn language translation key/values to equivalent xml key/pair
+	*
+	**/
+	function _create_lang_xml($lang_file_path)
+	{
+		if (!file_exists($lang_file_path))
+		{
+			log_message('error','language file not found <em>'.$lang_file_path.'</em>');
+			return FALSE;
+		}
+		
+		@include $lang_file_path;
+		
+		if (!isset($lang))
+		{
+			log_message('error','could not load language file <em>'.$lang_file_path.'</em>');
+			return FALSE;
+		}
+		
+		//convert to xml
+		$output='<?xml version="1.0" encoding="utf-8"?>'."\r\n";
+		$output.='<properties>';
+		foreach($lang as $key=>$value)
+		{
+			$output.='<entry key="'.htmlspecialchars($key, ENT_QUOTES).'"><![CDATA['.$value.']]></entry>'."\r\n";
+		}
+		$output.='</properties>';
+
+		return $output;		
+	}
+	
 }
 // END DDIBrowser Class
 
