@@ -768,5 +768,38 @@ class Catalog_model extends Model {
 
 		return FALSE;
 	}
+
+	/**
+	*
+	* Returns an array of all repositories
+	*	
+	**/
+	function get_repositories()
+	{
+		$this->db->select('*');
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		if (!$result)
+		{
+			return array();
+		}
+
+		//create an array, making the repositoryid array key
+		$repos=array();
+		foreach($result as $row)
+		{
+			$repos[$row['repositoryid']]=$row;
+		}
+	
+		return $repos;
+	}
+
 }
 ?>
