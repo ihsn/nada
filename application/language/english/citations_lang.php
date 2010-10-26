@@ -73,5 +73,11 @@ $lang['journal_title'] = "Journal";
 $lang['corporate-author'] = "Corporate Author";
 $lang['citation_home'] = "Return to Citations' home";
 $lang['country'] = "Country";
+
+$lang['import_citation'] = "Import Citations";
+$lang['paste_bibtex_string'] = "Paste BibTex";
+$lang['bibtex_url'] = "URL - to the BibTex entry";
+$lang['bibtex_import_status'] = "%s entrie(s) were imported successfully, %s were skipped";
+
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
