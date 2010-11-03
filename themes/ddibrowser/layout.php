@@ -1,16 +1,23 @@
 <?php
-//	$survey_title='Zambia HIV/AIDS Service Provision Assessment Survey 2005, Health Facility - [ZMB-CSO-ZSPA-2009-v1.0]';
+$enable_rtl=$this->config->item("enable_rtl");
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" >
+<html xmlns="http://www.w3.org/1999/xhtml" <?php echo ($enable_rtl===TRUE) ? 'dir="rtl"' : '';?> >
 <head> 
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
 	<title><?php echo $survey_title;?></title> 
    	<base href="<?php echo base_url(); ?>"/>
     
+    <?php if($enable_rtl===TRUE):?>
+    <link rel="stylesheet" href="javascript/tree/rtl/jquery.treeview.rtl.css" />
+    <link type="text/css" rel="stylesheet" href="themes/ddibrowser/ddi-layout.rtl.css" />
+    <?php else:?>
     <link rel="stylesheet" href="javascript/tree/jquery.treeview.css" />
-	<link type="text/css" rel="stylesheet" href="themes/ddibrowser/ddi.css" />
     <link type="text/css" rel="stylesheet" href="themes/ddibrowser/ddi-layout.css" />    
+	<?php endif;?>
+    
+	<link type="text/css" rel="stylesheet" href="themes/ddibrowser/ddi.css" />
+    
 
     <script type="text/javascript" src="javascript/jquery.js"></script>
     <script src="javascript/jquery/ui/ui.core.js"></script>
@@ -33,6 +40,28 @@
 	var outerLayout, middleLayout, innerLayout; 
 	
 	$(document).ready(function () { 
+		<?php if ($enable_rtl===TRUE):?>
+		outerLayout = $('body').layout({ 
+			center__paneSelector:	".outer-center" 
+		,	west__paneSelector:		".outer-east" 
+		,	east__paneSelector:		".outer-west" 
+		,	west__size:				125 
+		,	east__size:				200 
+		,	spacing_open:			8 // ALL panes
+		,	spacing_closed:			12 // ALL panes
+		,	north__spacing_open:	6
+		,	north__spacing_closed:	12
+		//,	south__spacing_open:	0
+		,	north__maxSize:			50
+		,	south__maxSize:			200
+		,	center__onresize:		"middleLayout.resizeAll" 		
+		,	north__resizable: 		false
+		,	north__slidable:		false
+		,	west__slidable: 		false
+		,   west__togglerLength_open:         0
+		,   north__togglerLength_open:         0
+		}); 
+		<?php else:?>
 		outerLayout = $('body').layout({ 
 			center__paneSelector:	".outer-center" 
 		,	west__paneSelector:		".outer-west" 
@@ -53,6 +82,7 @@
 		,   west__togglerLength_open:         0
 		,   north__togglerLength_open:         0
 		}); 
+		<?php endif;?>
 
 		middleLayout = $('div.outer-center').layout({ 
 			center__paneSelector:	".middle-center" 
@@ -157,6 +187,7 @@
     	#variable-list{width:98%}
     </style>
 <![endif]-->
+
 </head> 
 
 <body> 
