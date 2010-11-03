@@ -86,7 +86,13 @@ License:
 									<xsl:with-param name="caption">Data Collection Notes</xsl:with-param>
 									<xsl:with-param name="cols">1</xsl:with-param>
 							</xsl:apply-templates>		
-						</xsl:if>								
+						</xsl:if>
+                        
+                        <!-- data collectors -->
+						<xsl:if test="ddi:stdyDscr//ddi:method/ddi:dataColl/ddi:dataCollector">
+							<xsl:apply-templates select="ddi:stdyDscr//ddi:method/ddi:dataColl" />
+						</xsl:if>
+                        								
 						<!--supervision -->
 						<xsl:if test="ddi:stdyDscr//ddi:actMin">
 							<xsl:apply-templates select="ddi:stdyDscr//ddi:actMin" mode="row">
@@ -216,17 +222,6 @@ License:
 			<tr valign="top">
 				<td colspan="2">
                 	<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Collection Dates</xsl:with-param></xsl:call-template></div>
-                	<!--
-						<xsl:for-each select="ddi:collDate">
-								<xsl:value-of select="concat(  translate( substring(@event,1,1),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ' )          , substring(@event,2,100) )"/> <xsl:text> </xsl:text>
-								<xsl:value-of select="@event"/>
-								<xsl:value-of select="@date"/>
-								<xsl:value-of select="@cycle"/>
-							<xsl:if test="@event | @date">							
-								<br/>
-							</xsl:if>
-						</xsl:for-each>
-						-->
 						<table border="0" class="data-collection" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
 						<tr align="left">
 							<th style="width:100px"><xsl:call-template name="gettext"><xsl:with-param name="msg">Start</xsl:with-param></xsl:call-template></th>
@@ -237,14 +232,14 @@ License:
 						<xsl:for-each select="ddi:collDate[@event='start' and normalize-space(@cycle)!='']">
 							<xsl:variable name="cycle" select="@cycle"/>
 								<tr align="left">		
-								<td><p><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='start'][@cycle=$cycle]/@date"/></p></td>
-								<td><p><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end'][@cycle=$cycle]/@date"/></p></td>
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='start'][@cycle=$cycle]/@date"/></td>
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end'][@cycle=$cycle]/@date"/></td>
 									<td>
 										<xsl:choose>
 											<xsl:when test="normalize-space(@cycle)">
-													<p><xsl:value-of select="@cycle"/></p>
+													<xsl:value-of select="@cycle"/>
 											</xsl:when>
-											<xsl:otherwise><p>N/A</p></xsl:otherwise>
+											<xsl:otherwise>N/A</xsl:otherwise>
 										</xsl:choose>
 									</td>
 								</tr>														
@@ -254,24 +249,71 @@ License:
 								<td>
 								<!-- print all start dates -->
 								<xsl:for-each select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[normalize-space(@cycle)=''][@event='start']">
-										<p><xsl:value-of select="@date"/></p>
+										<xsl:value-of select="@date"/>
 								</xsl:for-each>
 								</td>
 								<td>
 								<!-- print all end dates -->
 								<xsl:for-each select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[normalize-space(@cycle)=''][@event='end']">
-										<p><xsl:value-of select="@date"/></p>
+										<xsl:value-of select="@date"/>
 								</xsl:for-each>
 								</td>
-								<td>
-									<p>N/A</p>
-									</td>
+								<td>N/A</td>
 								</tr>														
 						</xsl:if>						
 					</table>
 				</td>
 			</tr>
 		</xsl:if>	
+		<!-- time periods -->
+		<xsl:if test="ddi:timePrd/@event | ddi:timePrd/@date">
+			<tr valign="top">
+				<td colspan="2">
+                	<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Time Periods</xsl:with-param></xsl:call-template></div>
+						<table border="0" class="data-collection" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+						<tr align="left">
+							<th style="width:100px"><xsl:call-template name="gettext"><xsl:with-param name="msg">Start</xsl:with-param></xsl:call-template></th>
+							<th style="width:100px"><xsl:call-template name="gettext"><xsl:with-param name="msg">End</xsl:with-param></xsl:call-template></th>
+							<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Cycle</xsl:with-param></xsl:call-template></th>
+						</tr>	
+						<!-- get all collection start dates -->
+						<xsl:for-each select="ddi:timePrd[@event='start' and normalize-space(@cycle)!='']">
+							<xsl:variable name="cycle" select="@cycle"/>
+								<tr align="left">		
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[@event='start'][@cycle=$cycle]/@date"/></td>
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[@event='end'][@cycle=$cycle]/@date"/></td>
+									<td>
+										<xsl:choose>
+											<xsl:when test="normalize-space(@cycle)">
+													<xsl:value-of select="@cycle"/>
+											</xsl:when>
+											<xsl:otherwise>N/A</xsl:otherwise>
+										</xsl:choose>
+									</td>
+								</tr>														
+						</xsl:for-each>
+						<xsl:if test="ddi:timePrd[@event='start' and normalize-space(@cycle)='']">
+								<tr valign="top">		
+								<td>
+								<!-- print all start dates -->
+								<xsl:for-each select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[normalize-space(@cycle)=''][@event='start']">
+										<xsl:value-of select="@date"/>
+								</xsl:for-each>
+								</td>
+								<td>
+								<!-- print all end dates -->
+								<xsl:for-each select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[normalize-space(@cycle)=''][@event='end']">
+										<xsl:value-of select="@date"/>
+								</xsl:for-each>
+								</td>
+								<td>N/A</td>
+								</tr>														
+						</xsl:if>						
+					</table>
+				</td>
+			</tr>
+		</xsl:if>	
+
 	</xsl:template>
 	<!-- Data Collection Mode -->
 	<xsl:template match="ddi:stdyDscr//ddi:collMode">
@@ -287,12 +329,34 @@ License:
 					<xsl:with-param name="text" select="."/>
 				</xsl:call-template>
 	</xsl:template>
-		<!-- Data Collection Notes-->
+
+	<!-- Data Collection Notes-->
 	<xsl:template match="ddi:stdyDscr//ddi:collSitu">
 				<xsl:call-template name="lf2br">
 					<xsl:with-param name="text" select="."/>
 				</xsl:call-template>
 	</xsl:template>
+
+	<!-- Data Collectors-->
+	<xsl:template match="ddi:stdyDscr//ddi:method/ddi:dataColl">
+		<div class="xsl-subtitle" style="margin-bottom:10px;">Data Collectors</div>
+    	<table class="xsl-table">
+			<tr>
+                <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
+                <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Abbreviation</xsl:with-param></xsl:call-template></th>
+                <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Affiliation</xsl:with-param></xsl:call-template></th>
+            </tr>
+    	<xsl:for-each select="ddi:dataCollector">
+			<tr>
+            	<td><xsl:value-of select="."/></td>
+                <td><xsl:value-of select="@abbr"/></td>
+                <td><xsl:value-of select="@affiliation"/></td>
+            </tr>            
+        </xsl:for-each>
+        </table>
+	</xsl:template>
+
+
 
 	<!-- Supervision-->
 	<xsl:template match="ddi:stdyDscr//ddi:actMin">
