@@ -60,12 +60,25 @@ License:
 				<div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Overview</xsl:with-param></xsl:call-template></div>
 				<!--Overview (this section is never empty) -->
 				<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Identification</xsl:with-param></xsl:call-template></div>
-				<table class="xsl-table" cellspacing="5">
+				<table cellspacing="0">
                 
                     <xsl:if test="ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:nation">
-                        <xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:nation" mode="row">
-                            <xsl:with-param name="caption">Country</xsl:with-param>
-                        </xsl:apply-templates>
+                    	
+                        <xsl:variable name="country_count" select="count(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:nation)"/>
+                        
+                        <div class="xsl-caption">
+                        <xsl:choose>
+                            	<xsl:when test="$country_count&gt;1"><xsl:call-template name="gettext"><xsl:with-param name="msg">Countries</xsl:with-param></xsl:call-template></xsl:when>
+                                <xsl:otherwise><xsl:call-template name="gettext"><xsl:with-param name="msg">Country</xsl:with-param></xsl:call-template></xsl:otherwise>
+                         </xsl:choose>
+                        </div>
+                        
+                    	<xsl:for-each select="ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:nation">
+                        	<xsl:value-of select="normalize-space(.)"/>
+                            <xsl:choose>
+                            	<xsl:when test="position()&lt;$country_count">, </xsl:when>
+                            </xsl:choose>
+                        </xsl:for-each>
                     </xsl:if>
 
                     <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:titl">
@@ -82,7 +95,7 @@ License:
 
                     <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:serStmt/ddi:serName">
                         <xsl:apply-templates select="//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName" mode="row">
-                            <xsl:with-param name="caption">Survey Type</xsl:with-param>
+                            <xsl:with-param name="caption">Study Type</xsl:with-param>
                         </xsl:apply-templates>
                     </xsl:if>
                     
@@ -152,6 +165,34 @@ License:
 						</xsl:apply-templates>
                  </xsl:if>    
 
+                <!-- TOPICS -->
+                <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:topcClas">
+                	<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Topics</xsl:with-param></xsl:call-template></div>
+                    <table class="xsl-table" border="1">
+                    	<tr>
+                        	<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Topic</xsl:with-param></xsl:call-template></th>
+                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Vocabulary</xsl:with-param></xsl:call-template></th>
+                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">URI</xsl:with-param></xsl:call-template></th>
+                        </tr>
+                	<xsl:for-each select="ddi:stdyDscr/ddi:stdyInfo//ddi:topcClas">
+						<tr>
+                        	<td><xsl:value-of select="."/></td>
+                            <td><xsl:value-of select="@vocab"/></td>
+                            <td><xsl:value-of select="@vocabURI"/></td>
+                        </tr>
+                    </xsl:for-each>
+                    </table>
+                </xsl:if>
+
+                <!-- KEYWORDS -->
+                <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:keyword">
+                	<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Keywords</xsl:with-param></xsl:call-template></div>
+                    <xsl:variable name="keywords_count" select="count(ddi:stdyDscr/ddi:stdyInfo//ddi:keyword)"/>
+                	<xsl:for-each select="ddi:stdyDscr/ddi:stdyInfo//ddi:keyword">
+                    	<xsl:value-of select="normalize-space(.)"/><xsl:if test="not(position()=$keywords_count)">, </xsl:if>						
+                    </xsl:for-each>
+                </xsl:if>				
+
                 <!-- COVERAGE -->                
                 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover or ddi:stdyDscr/ddi:stdyInfo//ddi:universe">
 					 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover">
@@ -167,50 +208,82 @@ License:
 						</xsl:apply-templates>
 					 </xsl:if>    
 				</xsl:if>
-                
-                <!-- TOPICS -->
-                <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:topcClas">
-                	<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Topics</xsl:with-param></xsl:call-template></div>
-                    <ul style="margin-top:0px;padding-top:0px;">
-                	<xsl:for-each select="ddi:stdyDscr/ddi:stdyInfo//ddi:topcClas">
-						<li><xsl:value-of select="."/></li>
-                    </xsl:for-each>
-                    </ul>
-                </xsl:if>
-
-                <!-- KEYWORDS -->
-                <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:keyword">
-                	<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Keywords</xsl:with-param></xsl:call-template></div>
-                    <xsl:variable name="keywords_count" select="count(ddi:stdyDscr/ddi:stdyInfo//ddi:keyword)"/>
-                	<xsl:for-each select="ddi:stdyDscr/ddi:stdyInfo//ddi:keyword">
-                    	<xsl:value-of select="normalize-space(.)"/><xsl:if test="not(position()=$keywords_count)">, </xsl:if>						
-                    </xsl:for-each>
-                </xsl:if>				
-                		 
+                                		 
                 <!--PRODUCERS & SPONSORS --> 
                 <xsl:if test="ddi:stdyDscr//ddi:AuthEnty | ddi:stdyDscr//ddi:othId | ddi:stdyDscr//ddi:producer | ddi:stdyDscr//ddi:fundAg">
 							<div class="xsl-subtitle" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Producers and Sponsors</xsl:with-param></xsl:call-template></div>
 							 <xsl:if test="ddi:stdyDscr//ddi:AuthEnty">
 								<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Primary Investigator(s)</xsl:with-param></xsl:call-template></div>
 								<div style="margin-bottom:10px;">
-								<xsl:apply-templates select="ddi:stdyDscr//ddi:AuthEnty"/></div>
+                                    <table class="xsl-table">
+                                    	<tr>
+                                        	<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Affiliation</xsl:with-param></xsl:call-template></th>
+										</tr>	                                    
+                                    <xsl:for-each select="ddi:stdyDscr//ddi:AuthEnty">
+                                        <tr>
+                                            <td><xsl:value-of select="."/></td>
+                                            <td><xsl:value-of select="@affiliation"/></td>
+                                        </tr>
+                                    </xsl:for-each>    
+                                    </table>                                	                                    
+                                </div>
 							 </xsl:if>                     
 							 <xsl:if test="ddi:stdyDscr//ddi:producer">
 								<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Other Producer(s)</xsl:with-param></xsl:call-template></div>
 								<div style="margin-bottom:10px;">
-								<xsl:apply-templates select="ddi:stdyDscr//ddi:producer" />
+									<table class="xsl-table">
+                                    	<tr>
+                                        	<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Affiliation</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Role</xsl:with-param></xsl:call-template></th>
+                                        </tr>
+                                    <xsl:for-each select="ddi:stdyDscr//ddi:producer">
+                                        <tr>
+                                            <td><xsl:value-of select="."/></td>
+                                            <td><xsl:value-of select="@affiliation"/></td>
+                                            <td><xsl:value-of select="@role"/></td>
+                                        </tr>
+                                    </xsl:for-each>    
+                                    </table>                                
 								</div>
 							 </xsl:if>    				
 							 <xsl:if test="ddi:stdyDscr//ddi:fundAg">
 								<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Funding</xsl:with-param></xsl:call-template></div>
 								<div style="margin-bottom:10px;">
-									<xsl:apply-templates select="ddi:stdyDscr//ddi:fundAg" />
+									<table class="xsl-table">
+                                    	<tr>
+                                        	<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Abbreviation</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Role</xsl:with-param></xsl:call-template></th>
+                                        </tr>
+                                    <xsl:for-each select="ddi:stdyDscr//ddi:fundAg">
+                                        <tr>
+                                            <td><xsl:value-of select="."/></td>
+                                            <td><xsl:value-of select="@abbr"/></td>
+                                            <td><xsl:value-of select="@role"/></td>
+                                        </tr>
+                                    </xsl:for-each>    
+                                    </table>                                     
 								</div>    
 							 </xsl:if>    
 							 <xsl:if test="ddi:stdyDscr//ddi:othId">
 								<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Other Acknowledgements</xsl:with-param></xsl:call-template></div>
 								<div style="margin-bottom:10px;">
-									<xsl:apply-templates select="ddi:stdyDscr//ddi:othId" />
+									<table class="xsl-table">
+                                    	<tr>
+                                        	<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Affiliation</xsl:with-param></xsl:call-template></th>
+                                            <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Role</xsl:with-param></xsl:call-template></th>
+                                        </tr>
+                                    <xsl:for-each select="ddi:stdyDscr//ddi:othId">
+                                        <tr>
+                                            <td><xsl:value-of select="."/></td>
+                                            <td><xsl:value-of select="@affiliation"/></td>
+                                            <td><xsl:value-of select="@role"/></td>
+                                        </tr>
+                                    </xsl:for-each>    
+                                    </table>                                      
 								</div>    
 							 </xsl:if>
 				</xsl:if>			 
@@ -231,8 +304,9 @@ License:
                 </xsl:if>
 	
 				<xsl:if test="normalize-space(ddi:docDscr//ddi:version)">
-                    <div class="xsl-caption" style="margin-top:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">DDI Document Version</xsl:with-param></xsl:call-template></div>
-                    <xsl:value-of select="normalize-space(ddi:docDscr//ddi:version)"/>
+                    <xsl:apply-templates select="ddi:docDscr//ddi:version" mode="row">
+								<xsl:with-param name="caption">DDI Document Version</xsl:with-param>
+					</xsl:apply-templates>                    
 				</xsl:if>
                 
                 <xsl:if test="normalize-space(//ddi:codeBook/@ID)">
@@ -242,17 +316,22 @@ License:
 	</xsl:template>
 
 	<xsl:template name="metadata_production">
+    	<table class="xsl-table">
+        	<tr>
+            	<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
+                <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Abbreviation</xsl:with-param></xsl:call-template></th>
+                <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Affiliation</xsl:with-param></xsl:call-template></th>
+                <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Role</xsl:with-param></xsl:call-template></th>
+            </tr>
       	<xsl:for-each select="ddi:docDscr//ddi:producer">
-        	<xsl:if test="normalize-space(@abbr)">
-        		<xsl:value-of select="normalize-space(@abbr)"/>
-            </xsl:if>	
-            <div>
-            	<xsl:value-of select="normalize-space(.)"/> - 
-            	<xsl:value-of select="normalize-space(@affiliation)"/>
-            </div>
-            <xsl:if test="normalize-space(@role)">
-            	(<xsl:value-of select="normalize-space(@role)"/>)</xsl:if>
+        	<tr>            	
+            	<td><xsl:value-of select="normalize-space(.)"/></td>
+                <td><xsl:value-of select="normalize-space(@abbr)"/></td>
+                <td><xsl:value-of select="normalize-space(@affiliation)"/></td>
+                <td><xsl:value-of select="normalize-space(@role)"/></td>
+            </tr>
         </xsl:for-each>
+        </table>
     </xsl:template>
 	
 	<!-- docsDscr -->
@@ -284,39 +363,6 @@ License:
 	<!--ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:dataKind-->
 	<xsl:template match="ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:dataKind">
 		<xsl:value-of select="."/>
-		<br/>
-	</xsl:template>
-	<!--primary investigators - ddi:stdyDscr//ddi:AuthEnty-->
-	<xsl:template match="ddi:stdyDscr//ddi:AuthEnty">
-		<xsl:value-of select="."/>		
-		<xsl:if test="normalize-space(@affiliation)">
-				, <xsl:value-of select="@affiliation"/>
-		</xsl:if>
-		<br/>
-	</xsl:template>
-	<!-- Funding agencies - stdyDscr//Funding Agencies -->
-	<xsl:template match="ddi:stdyDscr//ddi:prodStmt/ddi:fundAg">
-		<xsl:value-of select="."/>
-		<xsl:if test="normalize-space(@abbr)">
-			(<xsl:value-of select="@abbr"/>)
-		</xsl:if>
-		<xsl:if test="normalize-space(@role) ">
-			, <xsl:value-of select="@role"/>
-		</xsl:if>
-		<br/>
-	</xsl:template>
-	<!--other producers - ddi:stdyDscr//ddi:prodStmt/ddi:producer-->
-	<xsl:template match="ddi:stdyDscr//ddi:prodStmt/ddi:producer">
-		<xsl:value-of select="."/>
-		<xsl:if test="normalize-space(@abbr)">
-				(<xsl:value-of select="@abbr"/>)
-			</xsl:if>
-		<xsl:if test="normalize-space(@affiliation)">
-				, <xsl:value-of select="@affiliation"/>
-		</xsl:if>
-		<xsl:if test="normalize-space(@role)">
-				, <xsl:value-of select="@role"/>
-		</xsl:if>
 		<br/>
 	</xsl:template>
 
@@ -381,7 +427,27 @@ License:
 				</td>
 			</tr>
 		</xsl:if>	
+
+		<!-- time periods -->
+		<xsl:if test="ddi:timePrd/@event | ddi:timePrd/@date">
+			<tr valign="top">
+				<td ><xsl:call-template name="gettext"><xsl:with-param name="msg">Time Periods</xsl:with-param></xsl:call-template></td>
+				<td >
+					<xsl:for-each select="ddi:timePrd">
+							<xsl:value-of select="concat(  translate( substring(@event,1,1),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ' )          , substring(@event,2,100) )"/> <xsl:text> </xsl:text>
+							<xsl:value-of select="@date"/>
+						<xsl:if test="@event | @date">							
+							<br/>						
+						</xsl:if>						
+					</xsl:for-each>
+				</td>
+			</tr>
+		</xsl:if>	
+
 	</xsl:template>
+
+    
+    
 	<!-- Data Collection Mode -->
 	<xsl:template match="ddi:stdyDscr//ddi:collMode">
 		<tr valign="top">
@@ -432,17 +498,6 @@ License:
 				</xsl:call-template>
 	</xsl:template>
 
-		<!-- Other aknowledgements -->
-		<xsl:template match="ddi:stdyDscr//ddi:othId">
-		        <xsl:value-of select="concat(.,'- ')"/>
-                <xsl:if test="@affiliation">
-                <xsl:value-of select="normalize-space(@affiliation)"/>,
-                </xsl:if>
-                <xsl:if test="@role">                
-	                <xsl:value-of select="normalize-space(@role)"/>
-                </xsl:if>
-                <br/>
-		</xsl:template>
 
 <!-- End Data Processing & Appraisal -->	
 
@@ -497,7 +552,10 @@ License:
 								</xsl:call-template>
 							</xsl:when>
 							<xsl:otherwise>
-								<xsl:apply-templates select="."/>
+                            <xsl:call-template name="lf2br">
+									<xsl:with-param name="text" select="."/>
+								</xsl:call-template>
+								<!--<xsl:apply-templates select="."/>-->
 							</xsl:otherwise>
 						</xsl:choose>
 					</td>
