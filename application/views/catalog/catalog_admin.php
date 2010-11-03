@@ -110,7 +110,7 @@
             <?php endif;?>
           	<?php echo $row['titl']; ?>
           </div>
-          <div class="row-date"><?php echo date($this->config->item('date_format'), $row['changed']); ?></div>
+          <div class="row-date"><?php echo date($this->config->item('date_format_long'), $row['changed']); ?></div>
         </div>
       </div>
     <?php endforeach;?>
