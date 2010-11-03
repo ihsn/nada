@@ -46,18 +46,9 @@ $route['scaffolding_trigger'] = "";
 //$route['admin/user/(:num)'] = "admin/user/$1";
 
 //data-catalog page
-//$route['data-catalog'] = "catalog";
-//$route['data-catalog/(:num)/accesspolicy'] = "catalog/accesspolicy/$1";
-//$route['data-catalog/(:num)/download'] = "catalog/download/$1";
-//$route['data-catalog/(:num)/ddi'] = "catalog/ddi/$1";
-//$route['data-catalog/rss'] = "catalog/rss";
 $route['catalog/(:num)'] = "catalog/survey/$1";
-$route['catalog/(.*)'] = "catalog/$1";//this should always be teh last route for the data-catalog routes
-
-//user
-//$route['admin/users'] = "admin/user";
-//$route['admin/users/:any'] = "admin/user";
-#$route['register'] = "admin/user/register";
+$route['catalog/(:num)/rdf'] = "catalog/rdf/$1";
+$route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for the data-catalog routes
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";
 
@@ -89,20 +80,6 @@ $route['admin/catalog/(:num)/datafiles/add'] = "admin/datafiles/add/$1";//add pa
 $route['admin/datafiles/(:num)/edit/(:num)'] = "admin/datafiles/edit/$1/$2";//edit page
 $route['admin/datafiles/(:num)/delete/(:num)'] = "admin/datafiles/delete/$1/$2";//edit page
 
-//$route['admin/catalog/(:num)/data_files'] = "admin/data_files/$2"; 
-
-
-//catalog/edit
-//$route['admin/catalog/(:num)/edit'] = "admin/catalog/edit/$2";
-//$route['admin/catalog/(:num)/delete'] = "admin/catalog/delete/$2";
-
-//$route['admin/(.*)'] = "admin/admin";
-//$route['admin/(.*)'] = "catalog/data_catalog";
-
-//$route['admin/catalog2/(:num)/resources'] = "admin/resources";
-//$route['admin/catalog2/(:num)/resources/add'] = "admin/resources/add";
-
-
 //access request forms
 $route['catalog/(:num)/request'] = "catalog/access_request_form/$1";
 $route['survey/(:num)/request'] = "catalog/access_request_form/$1";
@@ -127,26 +104,5 @@ $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2
 $route['ddibrowser/(:num)'] = "ddibrowser/index/$1";
 $route['ddibrowser/(:num)/overview'] = "ddibrowser/overview/$1";
 
-
-/*
-//catalog routes
-$route['admin/catalog'] = "catalog/catalog/admin";
-$route['admin/catalog/(.*)'] = "catalog/catalog/$1";
- 
-$route['admin/users'] = "users/user";
-$route['admin/user'] = "users/user";
-$route['admin/user/(.*)'] = "users/user/$1";
-*/
-
-//$this->load->database();
-//html pages
-//$route['pages'] = "page";
-//$route['page/(.*)'] = "page";
-//$route['pages/(.*)'] = "page";
-
-//$route['home'] = "page";
-//$route['home-page'] = "page";
-//$route['contact-us'] = "page";
-//$route['(:any)'] = 'page';
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */
