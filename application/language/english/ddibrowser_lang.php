@@ -14,7 +14,7 @@ $lang['data_processing'] = "Data Processing";
 $lang['data_appraisal'] = "Data Appraisal";
 $lang['technical_information'] = "Technical Information";
 $lang['technical_documents'] = "Technical Documents";
-$lang['tables_and_reports'] = "Tables and Reports";
+$lang['tabulation_and_analysis'] = "Tabulation and Analysis";
 $lang['statistical_tables'] = "Statistical Tables";
 $lang['reports'] = "Reports";
 
@@ -57,6 +57,7 @@ $lang['Content'] = "Content";
 $lang['Continuous'] = "Continuous";
 $lang['Copyright'] = "Copyright";
 $lang['Country'] = "Country";
+$lang['Countries'] = "Countries";
 $lang['Coverage'] = "Coverage";
 $lang['Cycle'] = "Cycle";
 $lang['Data Appraisal'] = "Data Appraisal";
@@ -127,7 +128,7 @@ $lang['Start'] = "Start";
 $lang['Structure'] = "Structure";
 $lang['Subtitle'] = "Subtitle";
 $lang['Supervision'] = "Supervision";
-$lang['Survey Type'] = "Survey Type";
+$lang['Study Type'] = "Study Type";
 $lang['survey(s) out of'] = "survey(s) out of";
 $lang['surveys per page'] = "surveys per page";
 $lang['Title'] = "Title";
@@ -146,6 +147,17 @@ $lang['View variable info'] = "View variable info";
 $lang['warning_figures_indicate_number_of_cases_found'] = "Warning: these figures indicate the number of cases found in the data file. They cannot be interpreted as summary statistics of the population of interest.";
 $lang['Weighting'] = "Weighting";
 $lang['Width'] = "Width";
+$lang['Topic'] = "Topic";
+$lang['Vocabulary'] = "Vocabulary";
+$lang['URI'] = "URI";
+$lang['Name'] = "Name";
+$lang['Abbreviation'] = "Abbreviation";
+$lang['Affiliation'] = "Affiliation";
+$lang['Role'] = "Role";
+$lang['Processing Checks'] = "Processing Checks";
+$lang['Definition'] = "Definition";
+$lang['Content'] = "Content";
+$lang['title_analytical'] = "Analytical Outputs";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
