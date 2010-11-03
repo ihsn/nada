@@ -173,6 +173,25 @@ License:
             </div>
 		</xsl:if>        
 
+        <!-- Concepts -->
+        <xsl:if test="count(ddi:concept)>0">
+            <div class="xsl-caption" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Concepts</xsl:with-param></xsl:call-template></div>
+            <table class="xsl-table" border="1">
+                <tr>
+                    <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Concept</xsl:with-param></xsl:call-template></th>
+                    <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Vocabulary</xsl:with-param></xsl:call-template></th>
+                    <th><xsl:call-template name="gettext"><xsl:with-param name="msg">URI</xsl:with-param></xsl:call-template></th>
+                </tr>
+            <xsl:for-each select="ddi:concept">
+                <tr>
+                    <td><xsl:value-of select="."/></td>
+                    <td><xsl:value-of select="@vocab"/></td>
+                    <td><xsl:value-of select="@vocabURI"/></td>
+                </tr>
+            </xsl:for-each>
+            </table>        
+        </xsl:if>
+        
         <xsl:if test="normalize-space(ddi:qstn)">            
              <div style="margin-top:10px;">
         	<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Questions and instructions</xsl:with-param></xsl:call-template></div>
@@ -182,35 +201,35 @@ License:
 		</xsl:if>
 
         <!-- IMPUTATION / DERIVATION-->
-        <!-- Imputation -->
-        <xsl:apply-templates select="ddi:imputation"/>
-        <!-- Response Unit -->
-        <xsl:apply-templates select="ddi:codInstr"/>
-        <!-- OTHERS -->
-        <!-- Security -->
-        <xsl:apply-templates select="ddi:security"/>
-        <!-- Concepts -->
-        <xsl:if test="count(ddi:concept)>0">
+        <xsl:if test="normalize-space(ddi:imputation | ddi:codInstr)">
+             <div style="margin-top:10px;">
+			<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Imputation and Derivation</xsl:with-param></xsl:call-template></div>
+            
+            <!-- Imputation -->
+            <xsl:apply-templates select="ddi:imputation"/>        
+            
+            <!-- Response Unit -->
+            <xsl:apply-templates select="ddi:codInstr"/>
+            
+			</div>		
+		</xsl:if>        
         
-            <xsl:variable name="concepts">
-                <xsl:apply-templates select="ddi:concept"/>
-            </xsl:variable>
-            <xsl:call-template name="var_info">
-                <xsl:with-param name="title"><xsl:value-of select="'Concepts'"/></xsl:with-param>
-                <xsl:with-param name="text">
-                    <xsl:value-of select="$concepts"/>
-                </xsl:with-param>
-            </xsl:call-template>
-        </xsl:if>
-        <!-- Notes -->
-        <xsl:apply-templates select="ddi:notes"/>
-
-        <!-- OPEN NESSTAR -->
-<!--        <xsl:if test="position()=1">
-            <xsl:call-template name="open_in_reader"/>
-        </xsl:if>	-->
+        <!-- OTHERS -->
+        <xsl:if test="normalize-space(ddi:security | ddi:notes)">
+             <div style="margin-top:10px;">
+			 <div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Others</xsl:with-param></xsl:call-template></div>
+            
+                <!-- Security -->
+                <xsl:apply-templates select="ddi:security"/>
+                
+                <!-- Notes -->
+                <xsl:apply-templates select="ddi:notes"/>
+            
+			</div>		
+		</xsl:if>        
 
 	</xsl:template>
+
 	<!--
 	    DDI ELEMENT TEMPLATES 
 	-->
@@ -223,6 +242,7 @@ License:
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
+    
 	<!-- 4.3.4 Security -->
 	<xsl:template match="ddi:security">
 		<xsl:call-template name="var_info">
@@ -331,7 +351,7 @@ License:
 	<!-- 4.3.15 variable text -->
 	<xsl:template match="ddi:txt">
 		<xsl:call-template name="var_info">
-			<xsl:with-param name="title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Description</xsl:with-param></xsl:call-template></xsl:with-param>
+			<xsl:with-param name="title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Definition</xsl:with-param></xsl:call-template></xsl:with-param>
 			<xsl:with-param name="text">
 				<xsl:value-of select="."/>
 			</xsl:with-param>
@@ -415,13 +435,15 @@ License:
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
+    
 	<!-- 4.3.21 Concepts -->
-	<xsl:template match="ddi:concept">
+	<xsl:template match="ddi:concept">    	
 		<xsl:if test="position()>1">, </xsl:if>	
 		<xsl:value-of select="normalize-space(text())"/>
 		<xsl:if test="normalize-space(./@vocab)"> (<xsl:value-of select="./@vocab"/>)</xsl:if>
 	</xsl:template>
-	<!-- 4.3.24 Notes -->
+	
+    <!-- 4.3.24 Notes -->
 	<xsl:template match="ddi:notes">
 		<xsl:call-template name="var_info">
 			<xsl:with-param name="title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Notes</xsl:with-param></xsl:call-template></xsl:with-param>
