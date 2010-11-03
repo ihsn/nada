@@ -32,12 +32,12 @@ $lang['authors'] = "Author(s)";
 $lang['citation_information'] = "Citation Information";
 $lang['related_studies'] = "Related Studies";
 
-//come from db
+//comes from db
 $lang['Book'] = "Book";
 $lang['Book Section'] = "Book Section";
 $lang['Anthology (Author & Editor)'] = "Anthology (Author & Editor)";
 $lang['Anthology (Author & Translator)'] = "Anthology (Author & Translator)";
-$lang['Journal'] = "Journal";
+$lang['Journal'] = "Journal Article";
 $lang['Magazine'] = "Magazine";
 $lang['Newspaper'] = "Newspaper";
 $lang['Website'] = "Website";
@@ -47,7 +47,7 @@ $lang['book'] = "Book";
 $lang['book-section'] = "Book Section";
 $lang['anthology-editor'] = "Anthology";
 $lang['Anthology-translator'] = "Anthology";
-$lang['journal'] = "Journal";
+$lang['journal'] = "Journal Article";
 $lang['magazine'] = "Magazine";
 $lang['newspaper'] = "Newspaper";
 $lang['website'] = "Website";
