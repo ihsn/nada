@@ -3,7 +3,9 @@ body{font-family:Arial, Helvetica, sans-serif}
 /* overview styles */
 .xsl-title{font-size:18px;color:#CC6600;font-weight:bold;margin-bottom:20px;}
 .xsl-subtitle{font-size:16px;color:#CC6600;font-weight:bold;margin-top:15px;border-bottom:1px solid #CC6600;}
-.xsl-table {border:0px;}
+.xsl-table {border-collapse:collapse}
+.xsl-table tr td{padding:5px;font-size:12px;border:1px solid gainsboro;}
+.xsl-table tr th{padding:5px;font-size:12px;border:1px solid gainsboro;font-weight:bold;}
 .xsl-caption{font-weight:bold;color:#CC6600;white-space:nowrap;margin-top:10px;}
 .xsl-block{margin-top:5px;margin-bottom:5px}
 
@@ -15,3 +17,5 @@ body{font-family:Arial, Helvetica, sans-serif}
 .row-color2{background-color:none;cursor:pointer}
 /*row hover*/
 .table-variable-list .row-color1:hover, .table-variable-list .row-color2:hover{background-color:#DFC499}
+.var-link{text-decoration:none;color:black;}
+.table-variable-list td{padding:5px;}
