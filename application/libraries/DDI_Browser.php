@@ -269,6 +269,7 @@ class DDI_Browser{
 			$this->ci->db->not_like('dctype','[doc/qst]');
 			$this->ci->db->not_like('dctype','[dat]');
 			$this->ci->db->not_like('dctype','[dat/micro]');
+			$this->ci->db->not_like('dctype','[doc/anl]');
 		}
 		else
 		{
@@ -309,6 +310,10 @@ class DDI_Browser{
 				else if (strpos($dctype,'[tbl]') ) 
 				{
 					$output[]='tables';
+				}
+				else if (strpos($dctype,'[doc/anl]') ) 
+				{
+					$output[]='analytical';
 				}
 				else
 				{
