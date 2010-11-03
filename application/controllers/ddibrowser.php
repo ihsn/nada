@@ -270,6 +270,12 @@ class DDIbrowser extends MY_Controller {
 				$data['title']=t('title_reports');
 				$html=$this->load->view("ddibrowser/resources",$data,TRUE);
 			break;
+			
+			case 'analytical':
+				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[doc/anl]');
+				$data['title']=t('title_analytical');
+				$html=$this->load->view("ddibrowser/resources",$data,TRUE);
+			break;
 
 			case 'stat_tables':
 				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[tbl]');
