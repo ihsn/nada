@@ -19,9 +19,13 @@
 
 <div class="content-container">
 <?php if (!$this->input->get("print")) :?>
-<div style="text-align:right;">
-	<a target="_blank" href="<?php echo site_url();?>/catalog/<?php echo $id; ?>/?print=yes" ><img src="images/print.gif" border="0"/> <?php echo t('print');?></a>
+<div style="text-align:right;padding-bottom:20px;">
+<a style="float:right;margin-right:5px;" target="_blank" href="<?php echo site_url();?>/catalog/<?php echo $id; ?>/?print=yes" ><img src="images/print.gif" border="0"/></a>
+<a style="float:right;margin-right:5px;" href="http://www.delicious.com/save" onclick="window.open('http://www.delicious.com/save?v=5&noui&jump=close&url='+encodeURIComponent('<?php echo current_url(); ?>')+'&title='+encodeURIComponent(document.title), 'delicious','toolbar=no,width=550,height=550'); return false;"> <img src="images/delicious.med.gif" alt="Delicious" /></a>
+<a style="float:right;padding-right:5px;" href="http://twitter.com/share" class="twitter-share-button" data-url="<?php echo current_url();?>" data-text="<?php echo $nation;?> - <?php echo $titl;?>" data-count="none">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>&nbsp;
+<a style="float:right;margin-right:5px;" name="fb_share" type="button" share_url="<?php echo current_url(); ?>" href="http://www.facebook.com/sharer.php">Share</a><script src="http://static.ak.fbcdn.net/connect.php/js/FB.Share" type="text/javascript"></script>
 </div>
+
 <?php endif;?>
 <h1><?php echo $nation;?> - <?php echo $titl;?></h1>
 <table class="grid-table" cellspacing="0">
