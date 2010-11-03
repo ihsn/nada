@@ -64,7 +64,7 @@ License:
         <td class="var-td"><a style="text-decoration:none;color:black;" href="{$link}" ><xsl:value-of select="@ID"/></a></td>
         <td  class="var-td"><xsl:value-of select="@name"/></td>
         <td class="var-td"><xsl:value-of select="ddi:labl"/></td>
-        <td class="var-td"><xsl:value-of select="ddi:qstn/ddi:qstnLit"/></td>
+        <td class="var-td"><xsl:call-template name="lf2br"><xsl:with-param name="text" select="ddi:qstn/ddi:qstnLit"/></xsl:call-template></td>
     </tr>
 </xsl:template>
 
@@ -79,11 +79,9 @@ License:
 			<tr valign="top">
 				<td style="width:100px"><xsl:call-template name="gettext"><xsl:with-param name="msg">Content</xsl:with-param></xsl:call-template></td>
 				<td>
-                		<div style="width:100%;height:50px; overflow:auto;border:1px solid silver;background-color:white;">
-                            <div style="padding:5px;">
-                                <xsl:value-of select="normalize-space(ddi:fileTxt/ddi:fileCont)"/>
-                            </div>
-                        </div>
+                    <xsl:call-template name="lf2br">
+                        <xsl:with-param name="text" select="ddi:fileTxt/ddi:fileCont"/>
+                    </xsl:call-template>
 				</td>
 			</tr>
 			</xsl:if>
@@ -107,26 +105,52 @@ License:
 			<xsl:if test="normalize-space(ddi:fileTxt/ddi:verStmt/ddi:version)">
             <tr valign="top">
 				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Version</xsl:with-param></xsl:call-template></td>
-				<td><xsl:value-of select="ddi:fileTxt/ddi:verStmt/ddi:version"/></td>
+				<td><xsl:call-template name="lf2br">
+                        <xsl:with-param name="text" select="ddi:fileTxt/ddi:verStmt/ddi:version"/>
+                    </xsl:call-template>
+				</td>
 			</tr>
             </xsl:if>
             <xsl:if test="ddi:fileTxt/ddi:filePlac">
 			<tr valign="top">
 				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Producer</xsl:with-param></xsl:call-template></td>
-				<td><xsl:value-of select="ddi:fileTxt/ddi:filePlac"/></td>
-			</tr>
-			</xsl:if>
-            <xsl:if test="normalize-space(ddi:fileTxt/ddi:dataMsng)">
-			<tr valign="top">
-				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Missing Data</xsl:with-param></xsl:call-template></td>
-				<td>	<div style="width:100%;height:50px; overflow:auto;border:1px solid silver;background-color:white;">
-                            <div style="padding:5px;">
-                                <xsl:value-of select="ddi:fileTxt/ddi:dataMsng"/>
-                            </div>
-                        </div>
+				<td><xsl:call-template name="lf2br">
+                        <xsl:with-param name="text" select="ddi:fileTxt/ddi:filePlac"/>
+                    </xsl:call-template>
                 </td>
 			</tr>
 			</xsl:if>
+            
+            <xsl:if test="normalize-space(ddi:fileTxt/ddi:dataMsng)">
+			<tr valign="top">
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Missing Data</xsl:with-param></xsl:call-template></td>
+				<td><xsl:call-template name="lf2br">
+                        <xsl:with-param name="text" select="ddi:fileTxt/ddi:dataMsng"/>
+                    </xsl:call-template>
+                </td>
+			</tr>
+			</xsl:if>
+            
+            <xsl:if test="normalize-space(ddi:fileTxt/ddi:dataChck)">
+			<tr valign="top">
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Processing Checks</xsl:with-param></xsl:call-template></td>
+				<td><xsl:call-template name="lf2br">
+                        <xsl:with-param name="text" select="ddi:fileTxt/ddi:dataChck"/>
+                    </xsl:call-template>
+                </td>
+			</tr>
+			</xsl:if>
+
+            <xsl:if test="normalize-space(ddi:notes)">
+			<tr valign="top">
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Notes</xsl:with-param></xsl:call-template></td>
+				<td><xsl:call-template name="lf2br">
+                        <xsl:with-param name="text" select="ddi:notes"/>
+                    </xsl:call-template>
+                </td>
+			</tr>
+			</xsl:if>
+            
 		</table>
 	</xsl:template>	
 	
@@ -171,4 +195,28 @@ License:
         </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
+
+
+	<!-- Function/template: converts line feed to break line <BR> for html display -->
+	<xsl:template name="lf2br">
+		<xsl:param name="text"/>
+		<xsl:choose>
+			<xsl:when test="contains($text,'&#10;')">
+				<xsl:variable name="p" select="substring-before($text,'&#10;')"/>
+                <xsl:value-of select="$p"/>
+                <xsl:if test="normalize-space($p)">
+				<br/><br/>
+                </xsl:if>
+				<xsl:call-template name="lf2br">
+					<xsl:with-param name="text">
+						<xsl:value-of select="substring-after($text,'&#10;')"/>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$text"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>	
+
 </xsl:stylesheet>
