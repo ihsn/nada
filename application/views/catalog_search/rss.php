@@ -33,8 +33,10 @@ if ($language=='')
           <guid><?php echo $entry->surveyid ?></guid>
           <description><![CDATA[<?php echo (strip_tags($entry->titlstmt.', ' . $entry->authenty.  ' - ' . $entry->nation)); ?>]]></description>
           <pubDate><?php echo date ('r', $entry->changed);?></pubDate>
+          <nada:surveyid><?php echo $entry->surveyid; ?></nada:surveyid>
           <nada:country><?php echo $entry->nation; ?></nada:country>
           <nada:colldate><?php echo $entry->proddate; ?></nada:colldate>
+          <nada:accesspolicy><?php echo $entry->model; ?></nada:accesspolicy>
         </item>
         <?php endforeach; ?>   
     </channel>
