@@ -259,9 +259,13 @@ class Catalog_model extends Model {
 	*
 	*/ 
 	function select($limit=NULL,$offset=NULL,$sort_by='changed',$sort_order='desc')
-	{
-    	
+	{    	
+
+		$this->db->select('surveys.*',FALSE);
+		$this->db->select('forms.model as model',FALSE);		
+		$this->db->join('forms', 'forms.formid= surveys.formid','left');
 	    $this->db->orderby('changed', 'desc');
+		
 		if ($limit!=NULL)
 		{
 			$this->db->limit($limit,$offset);
@@ -715,7 +719,7 @@ class Catalog_model extends Model {
 		$survey=$this->get_survey($id);
 		
 		//check if survey repositoryid exists in the repositories
-		$this->db->select('id');
+		$this->db->select('repositoryid');
 		$this->db->where('repositoryid',$survey['repositoryid']);
 		$query=$this->db->get('repositories');
 
