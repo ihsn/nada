@@ -72,12 +72,16 @@ License:
 	                        <xsl:if test="normalize-space(@affiliation)">
                                   (<xsl:value-of select="@affiliation"/>) 
                             </xsl:if>
-                            <xsl:if test="normalize-space(@URI)">
-                                                , <a href="mailto:{@URI}"><xsl:value-of select="@URI"/></a>
-                            </xsl:if>
-                            <xsl:if test="normalize-space(@email)">
-                                            , <a href="mailto:{@email}"><xsl:value-of select="@email"/></a>
-                            </xsl:if>
+                            <xsl:if test="normalize-space(@email)">, <a href="mailto:{@email}"><xsl:value-of select="@email"/></a></xsl:if>
+                            <xsl:choose>
+                                    <xsl:when test="substring(@URI,1,4)='www.'">
+                                        <xsl:if test="normalize-space(@URI)">, <a href="http://{@URI}"><xsl:value-of select="@URI"/></a></xsl:if>        
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:if test="normalize-space(@URI)">, <a href="{@URI}"><xsl:value-of select="@URI"/></a></xsl:if>					        
+                                    </xsl:otherwise>
+                            </xsl:choose>
+                            
                             <br/>
                         </xsl:for-each>
 					</xsl:if>
@@ -302,28 +306,27 @@ License:
 	</xsl:template>
 <!-- End Data Processing & Appraisal -->	
 
-<!-- Accessibility -->
-	<!--Access Authority-->
+	<!-- Accessibility -->
+	
+    <!--Access Authority-->
 	<xsl:template match="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:contact">
 			<xsl:for-each select=".">
 					<xsl:value-of select="."/>
-					<xsl:if test="normalize-space(@affiliation)">
-										(<xsl:value-of select="@affiliation"/>) 
-							</xsl:if>
-					<xsl:if test="normalize-space(@URI)">
-										, <a href="mailto:{@URI}">
-							<xsl:value-of select="@URI"/>
-						</a>
-					</xsl:if>
-					<xsl:if test="normalize-space(@email)">
-									, <a href="mailto:{@email}">
-							<xsl:value-of select="@email"/>
-						</a>
-					</xsl:if>
+					<xsl:if test="normalize-space(@affiliation)">(<xsl:value-of select="@affiliation"/>)</xsl:if>
+                    <xsl:if test="normalize-space(@email)">, <a href="mailto:{@email}"><xsl:value-of select="@email"/></a></xsl:if>
+                    <xsl:choose>
+                    		<xsl:when test="substring(@URI,1,4)='www.'">
+			                    <xsl:if test="normalize-space(@URI)">, <a href="http://{@URI}"><xsl:value-of select="@URI"/></a></xsl:if>        
+                            </xsl:when>
+                            <xsl:otherwise>
+			                    <xsl:if test="normalize-space(@URI)">, <a href="{@URI}"><xsl:value-of select="@URI"/></a></xsl:if>					        
+                            </xsl:otherwise>
+                    </xsl:choose>
 					<br/>
 			</xsl:for-each>
 	</xsl:template>
-	<!--Confidentiality-->
+	
+    <!--Confidentiality-->
 	<xsl:template match="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:confDec">
 		<xsl:call-template name="lf2br">
 					<xsl:with-param name="text" select="."/>
