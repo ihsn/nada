@@ -20,7 +20,7 @@ License:
     The full text of the license is available at http://www.gnu.org/copyleft/lesser.html
 -->
 <xsl:stylesheet version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:i18n="http://toolkit.sf.net/i18n/messages" xmlns:ddi="http://www.icpsr.umich.edu/DDI" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:outline="http://worldbank.org/toolkit/cdrom/outline" exclude-result-prefixes="ddi outline">
-	<xsl:output method="html" version="1.0" encoding="UTF-8" indent="yes"/>
+	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
     
     <xsl:include href="gettext.xslt"/>
 	<!--vargrp id -->
@@ -31,7 +31,51 @@ License:
 		<div id="variable-list">
 			<!-- find the variable group -->
 			<xsl:variable name="variable" select="//ddi:codeBook/ddi:dataDscr/ddi:varGrp[@ID=$VarGroupID]"/>
-			<h1 class="xsl-title"><xsl:value-of select="$variable/ddi:labl"/></h1>						
+			<h1 class="xsl-title"><xsl:value-of select="$variable/ddi:labl"/></h1>
+            
+            <!-- group txt -->
+            <xsl:if test="normalize-space($variable/ddi:txt | $variable/ddi:defntn | $variable/ddi:universe | $variable/ddi:notes  )">
+            <table>
+	            <xsl:if test="normalize-space($variable/@type)">
+            	<tr valign="top">
+                	<td style="width:100px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Type</xsl:with-param></xsl:call-template></td>
+                    <td><xsl:call-template name="lf2br"><xsl:with-param name="text" select="$variable/@type"/></xsl:call-template></td>
+                </tr>
+                </xsl:if>
+
+	            <xsl:if test="normalize-space($variable/ddi:txt)">
+            	<tr valign="top">
+                	<td style="width:100px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Content</xsl:with-param></xsl:call-template></td>
+                    <td><xsl:call-template name="lf2br"><xsl:with-param name="text" select="$variable/ddi:txt"/></xsl:call-template></td>
+                </tr>
+                </xsl:if>
+                
+                <xsl:if test="normalize-space($variable/ddi:defntn)">
+				<tr valign="top">
+                	<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Definition</xsl:with-param></xsl:call-template></td>
+                    <td><xsl:call-template name="lf2br"><xsl:with-param name="text" select="$variable/ddi:defntn"/></xsl:call-template></td>
+                </tr>                
+    			</xsl:if>        
+
+                <xsl:if test="normalize-space($variable/ddi:universe)">
+				<tr valign="top">
+                	<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Universe</xsl:with-param></xsl:call-template></td>
+                    <td><xsl:call-template name="lf2br"><xsl:with-param name="text" select="$variable/ddi:universe"/></xsl:call-template></td>
+                </tr>                
+    			</xsl:if>        
+
+                <xsl:if test="normalize-space($variable/ddi:notes)">
+				<tr valign="top">
+                	<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Notes</xsl:with-param></xsl:call-template></td>
+                    <td><xsl:call-template name="lf2br"><xsl:with-param name="text" select="$variable/ddi:notes"/></xsl:call-template></td>
+                </tr>                
+    			</xsl:if>        
+
+            </table>
+            
+            </xsl:if>
+
+            
 			<xsl:choose>
 					<xsl:when test="normalize-space($variable/@var)=''">
 						<xsl:call-template name="gettext"><xsl:with-param name="msg">No variables were found.</xsl:with-param></xsl:call-template>
@@ -57,41 +101,42 @@ License:
 			</xsl:choose>
 		</div>
 	</xsl:template>
+    
 	<xsl:template match="ddi:var">
 		<xsl:variable name="class">
 			<xsl:choose>
-				<xsl:when test="position() mod 2 = 0">
-					<xsl:value-of select="'row-color1'"/>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="'row-color2'"/>
-				</xsl:otherwise>
-			</xsl:choose>
+                <xsl:when test="position() mod 2 = 0">
+                    <xsl:value-of select="'row-color1'"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="'row-color2'"/>
+                </xsl:otherwise>
+            </xsl:choose>
 		</xsl:variable>
 		<xsl:variable name="id" select="@ID"/>
         <xsl:variable name="link"><xsl:value-of select="$browser_url"/>/variable/<xsl:value-of select="$id"/></xsl:variable>
 
-		<tr valign="top" class="{$class}" style="cursor:pointer" onclick="showVariable(this)" id="{$id}" title="Click to view variable info">
-			<td>
+		<tr valign="top" class="{$class}" style="cursor:pointer" id="{$id}" title="Click to view variable info">
+			<td class="var-td">
 				<a class="var-link" href="{$link}">
 					<xsl:value-of select="@ID"/>
 				</a>
 			</td>
-			<td>
+			<td  class="var-td">
 				<a class="var-link"  href="{$link}">
 					<xsl:value-of select="@name"/>
 				</a>
 			</td>
-			<td>
+			<td  class="var-td">
 				<xsl:value-of select="ddi:labl"/>
 			</td>
-			<td>
+			<td  class="var-td">
 				<xsl:value-of select="@intrvl"/>
 			</td>
-			<td>
+			<td  class="var-td">
 				<xsl:value-of select="ddi:varFormat/@type"/>
 			</td>
-			<td>
+			<td  class="var-td">
 				<xsl:value-of select="ddi:qstn/ddi:qstnLit"/>
 			</td>
 		</tr>
@@ -142,5 +187,27 @@ License:
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
+
+	<!-- Function/template: converts line feed to break line <BR> for html display -->
+	<xsl:template name="lf2br">
+		<xsl:param name="text"/>
+		<xsl:choose>
+			<xsl:when test="contains($text,'&#10;')">
+				<xsl:variable name="p" select="substring-before($text,'&#10;')"/>
+                <xsl:value-of select="$p"/>
+                <xsl:if test="normalize-space($p)">
+				<br/><br/>
+                </xsl:if>
+				<xsl:call-template name="lf2br">
+					<xsl:with-param name="text">
+						<xsl:value-of select="substring-after($text,'&#10;')"/>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$text"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>	
 
 </xsl:stylesheet>
