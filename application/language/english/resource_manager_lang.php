@@ -53,7 +53,7 @@ $lang['legend_file_no_exist'] = "File not found";
 //resources tab
 $lang['link_add_new_resource'] = "Add new resource";
 $lang['link_import_rdf'] = "Import RDF";
-$lang['link_fix_broken'] = "Fix broken links";
+$lang['link_fix_broken'] = "Link resources";
 
 //import rdf page
 $lang['title_import_rdf'] = "Import External Resources";
@@ -62,7 +62,7 @@ $lang['create_folder_structure'] = "Create folder structure";
 
 
 //fix links pagee
-$lang['title_fix_broken'] = "Fix Broken Links";
+$lang['title_fix_broken'] = "Link Resources";
 $lang['instruction_fix_broken'] = "This tool will correct the file paths for external resources so they match those on this server. First upload all the files referenced in your external resources and then click on Fix It to update the links to these files.";
 $lang['fix_it'] = "Fix it!";
 $lang['n_resources_fixed'] = "%d resources has been updated. The detailed script output is given below:";
