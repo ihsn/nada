@@ -493,8 +493,6 @@ class Catalog extends MY_Controller {
 	*/
 	function rss()
 	{	
-		//$this->load->model('Catalog_model');
-		
 		$limit=50;
 		
 		if (is_numeric($this->input->get('limit')))
@@ -502,10 +500,7 @@ class Catalog extends MY_Controller {
 			$limit=$this->input->get('limit');
 		}
 
-		
-		$data['records']=$this->Catalog_model->select($limit,$offset=0,$sort_by='changed',$sort_order='desc');
-
-		header("Content-Type: application/xml");
+		$data['records']=$this->Catalog_model->select($limit,$offset=0,$sort_by='changed',$sort_order='desc');	
         $contents=$this->load->view('catalog_search/rss', $data,TRUE);
 		
 		if ($this->input->get('format')=='zip')
@@ -514,6 +509,7 @@ class Catalog extends MY_Controller {
 		}
 		else
 		{
+			header("Content-Type: application/xml");
 			echo $contents;
 		}
 	}
@@ -618,6 +614,10 @@ class Catalog extends MY_Controller {
 	* 
 	* display survey information by survey id
 	*
+	* @format={json,checksum}
+	*	- json - returns the survey as JSON array
+	*	- checksum - returns survey ddi checksum
+	*
 	**/
 	function survey($id=NULL)
 	{				
@@ -626,13 +626,6 @@ class Catalog extends MY_Controller {
 			show_404();
 		}
 
-		if ($this->input->get('format')=='json')
-		{
-			$this->_survey_json($id);
-			return;
-		}
-				
-		//$this->load->model('Catalog_model');
 		$this->load->model('Citation_model');
 		$this->load->library('chicago_citation');
 						
@@ -652,6 +645,27 @@ class Catalog extends MY_Controller {
 		//get survey folder path - NEEDED BY THE VIEW
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
 
+		//DDI file path
+		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+
+		if (!file_exists($ddi_file))
+		{
+			show_error('FILE_NOT_FOUND');
+		}
+		
+		//output to JSON
+		if ($this->input->get('format')=='json')
+		{
+			$this->_survey_json($id);
+			return;
+		}
+		else if ($this->input->get('format')=='checksum')
+		{
+			echo md5_file($ddi_file);
+			return;
+		}
+		
+				
 		//get list of repositories
 		$this->repositories=$this->Catalog_model->get_repositories();
 		
@@ -662,7 +676,7 @@ class Catalog extends MY_Controller {
 		$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
 		
 		$content_body=$this->load->view('catalog_search/survey_summary',$survey,TRUE);		
-		$this->template->write('title', t('study_information'),true);
+		$this->template->write('title', $survey['titl'].' - '.$survey['nation'],true);
 		$this->template->write('content', $content_body,true);
 		
 		//render final output
