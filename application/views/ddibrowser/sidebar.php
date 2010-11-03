@@ -29,13 +29,19 @@ $menu_tech_info['dataappraisal']	=anchor('ddibrowser/'.$this->uri->segment(2).'/
 	    <?php if (in_array('technical',$resources)):?>
 			<li><?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/technicaldocuments',t('technical_documents'),array('class'=>'ajax')); ?></li>
         <?php endif; ?>        
+
+        <!-- other materials-->
+        <?php if (in_array('othermaterials',$resources)):?>
+			<li><?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/othermaterials',t('other_materials'),array('class'=>'ajax')); ?></li>
+        <?php endif; ?>
+
     </ul> 	
 </div>
 
 <!-- Tables and reports -->
 <?php if (in_array('tables',$resources) || in_array('reports',$resources) ):?>
 <div class="left-bar-section">
-    <img src="images/database_table.png" border="0"/> <?php echo t('tables_and_reports');?>
+    <img src="images/database_table.png" border="0"/> <?php echo t('tabulation_and_analysis');?>
 </div>
 <div class="left-bar-section">
     <ul class="menu-item" >
@@ -45,6 +51,10 @@ $menu_tech_info['dataappraisal']	=anchor('ddibrowser/'.$this->uri->segment(2).'/
 	    <?php if (in_array('reports',$resources)):?>
 			<li><?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/reports',t('reports'),array('class'=>'ajax')); ?></li>
         <?php endif; ?>        
+	    <?php if (in_array('analytical',$resources)):?>
+			<li><?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/analytical',t('title_analytical'),array('class'=>'ajax')); ?></li>
+        <?php endif; ?>        
+
     </ul> 	
 </div>
 <?php endif; ?>
@@ -82,13 +92,6 @@ $menu_tech_info['dataappraisal']	=anchor('ddibrowser/'.$this->uri->segment(2).'/
 </ul>
 
 <!--variable groups-->
-
-<!-- other materials-->
-<?php if (in_array('othermaterials',$resources)):?>
-<div class="left-bar-section">
-    <img src="images/page_white.png" border="0"/> <?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/othermaterials',t('other_materials'),array('class'=>'ajax')); ?>
-</div>
-<?php endif; ?>
 
 <!-- export-->
 <div class="left-bar-section">
