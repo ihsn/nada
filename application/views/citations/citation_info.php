@@ -15,6 +15,18 @@
 
 <h1><?php echo t('citation_information'); ?></h1>
 <table class="grid-table">
+<?php if ($ctype!=''):?>
+<tr>
+	<td><?php echo t('type');?></td>
+    <td>
+		<?php echo t($ctype);?>		
+		<?php if ($subtitle!=''):?>
+        	- <?php echo $subtitle;?>
+		<?php endif;?>
+</td>
+</tr>
+<?php endif;?>
+
 <?php if ($title!=''):?>
 <tr>
 	<td><?php echo t('title');?></td>
@@ -67,6 +79,26 @@
     <td><?php echo $pub_year;?></td>
 </tr>
 <?php endif;?>
+
+<?php if ($page_from!='' || $page_to!=''):?>
+<tr>
+	<td><?php echo t('page_numbers');?></td>
+    <td>
+		<?php 
+			if ($page_from!='')
+			{
+				$page_[]=$page_from;
+			}
+			if ($page_to!='')
+			{
+				$page_[]=$page_to;
+			}
+			echo implode("-",$page_);
+		?>
+    </td>
+</tr>
+<?php endif;?>
+
 
 <?php if ($publisher!=''):?>
 <tr>
