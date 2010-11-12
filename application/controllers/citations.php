@@ -67,8 +67,8 @@ class Citations extends MY_Controller {
 		//records
 		$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
 
-		//total records in the db
-		$total = $this->Citation_model->search_count($filter);
+		//total records found
+		$total = $this->Citation_model->search_count();
 
 		if ($offset>$total)
 		{
