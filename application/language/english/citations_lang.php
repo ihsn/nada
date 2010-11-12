@@ -15,7 +15,6 @@ $lang['select_studies'] = "Select studies";
 $lang['add_new_citation'] = "Add New Citation";
 $lang['edit_citation'] = "Edit Citation";
 
-
 $lang['select_citation_type'] = "Select citation type";
 $lang['first_name'] = "First name";
 $lang['last_name'] = "Last name";
@@ -78,6 +77,6 @@ $lang['import_citation'] = "Import Citations";
 $lang['paste_bibtex_string'] = "Paste BibTex";
 $lang['bibtex_url'] = "URL - to the BibTex entry";
 $lang['bibtex_import_status'] = "%s entrie(s) were imported successfully, %s were skipped";
-
+$lang['journal_title'] = "Journal";
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
