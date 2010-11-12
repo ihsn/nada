@@ -167,7 +167,7 @@ input{padding-left:3px;padding-right:3px;}
 
 /*ordered lists*/
 ol{ display: block;margin-bottom:20px; }
-ol li{list-style-type:decimal;margin-left:20px;}
+ol li{list-style-type:decimal;margin-left:40px;}
 
 .sidebar ul, .sidebar li{list-style:none;}
 
