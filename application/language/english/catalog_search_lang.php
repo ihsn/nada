@@ -117,5 +117,6 @@ $lang['select_number_of_records_per_page'] = "Select number of records to show p
 
 $lang['source_catalog'] = "Metadata provided by %s";
 $lang['source'] = "Source";
+$lang['download_ddi'] = "Download DDI";
 /* End of file catalog_search_lang.php */
 /* Location: ./system/language/english/catalog_search_lang.php */
