@@ -20,10 +20,10 @@
 <div class="content-container">
 <?php if (!$this->input->get("print")) :?>
 <div style="text-align:right;padding-bottom:20px;">
-<a style="float:right;margin-right:5px;" target="_blank" href="<?php echo site_url();?>/catalog/<?php echo $id; ?>/?print=yes" ><img src="images/print.gif" border="0"/></a>
-<a style="float:right;margin-right:5px;" href="http://www.delicious.com/save" onclick="window.open('http://www.delicious.com/save?v=5&noui&jump=close&url='+encodeURIComponent('<?php echo current_url(); ?>')+'&title='+encodeURIComponent(document.title), 'delicious','toolbar=no,width=550,height=550'); return false;"> <img src="images/delicious.med.gif" alt="Delicious" /></a>
-<a style="float:right;padding-right:5px;" href="http://twitter.com/share" class="twitter-share-button" data-url="<?php echo current_url();?>" data-text="<?php echo $nation;?> - <?php echo $titl;?>" data-count="none">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>&nbsp;
-<a style="float:right;margin-right:5px;" name="fb_share" type="button" share_url="<?php echo current_url(); ?>" href="http://www.facebook.com/sharer.php">Share</a><script src="http://static.ak.fbcdn.net/connect.php/js/FB.Share" type="text/javascript"></script>
+<a target="_blank" 	title="<?php echo t('print');?>"	href="<?php echo site_url();?>/catalog/<?php echo $id; ?>/?print=yes" ><img src="images/print.gif" border="0"/></a>
+<a target="_blank" 	title="<?php echo t('share_with_facebook');?>"		href="http://www.facebook.com/sharer.php?u=<?php echo current_url(); ?>&t=<?php echo ($nation. ' - '.$titl); ?>&src=sp"><img src="images/facebook.png"/></a>
+<a target="_blank"  title="<?php echo t('share_with_twitter');?>"		href="http://twitter.com/share?_=<?php echo date("U");?>&count=none&original_referer=<?php echo current_url();?>&text=<?php echo ($nation. ' - '.$titl); ?>&url=<?php echo current_url();?>"><img src="images/twitter.png"/></a>
+<a target="_blank"  title="<?php echo t('share_with_delicious');?>"	href="http://www.delicious.com/save?v=5&noui&jump=close&url=<?php echo current_url(); ?>&title=<?php echo ($nation. ' - '.$titl); ?>"><img src="images/delicious.png"/></a>
 </div>
 
 <?php endif;?>
@@ -31,7 +31,26 @@
 <table class="grid-table" cellspacing="0">
 	<tr class="header" >
     	<td><?php echo t('year');?></td>
-        <td><?php echo ($proddate>0) ? $proddate : 'N/A';?></td>
+        <td><?php 
+				if ($data_coll_start==$data_coll_end)
+				{
+					echo $data_coll_start;
+				}
+				else
+				{
+					if ($data_coll_start!='')
+					{
+						$dates[]=$data_coll_start;
+					}
+					if ($data_coll_end!='')
+					{
+						$dates[]=$data_coll_end;
+					}						
+					echo implode(" - ", $dates);
+				}
+				
+			?>
+        </td>
     </tr>
 	<tr>
     	<td><?php echo t('producers');?></td>
