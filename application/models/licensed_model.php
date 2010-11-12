@@ -505,7 +505,7 @@ class Licensed_model extends Model {
 		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title');
 		
 		//allowed_fields
-		$db_fields=array('status','username','survey_title');
+		$db_fields=array('status'=>'status','username'=>'username','title'=>'surveys.titl');
 		
 		//set where
 		if ($filter)
@@ -513,9 +513,9 @@ class Licensed_model extends Model {
 			foreach($filter as $f)
 			{
 				//search only in the allowed fields
-				if (in_array($f['field'],$db_fields))
+				if (array_key_exists($f['field'],$db_fields))
 				{
-					$this->db->like($f['field'], $f['keywords']); 
+					$this->db->like( $db_fields[$f['field']], $f['keywords']); 
 				}
 				else if ($f['field']=='all')
 				{
