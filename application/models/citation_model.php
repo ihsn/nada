@@ -1,6 +1,9 @@
 <?php
 class Citation_model extends Model {
  
+ 	//no. of rows found by search
+ 	var $search_found_rows=0;
+	
     public function __construct()
     {
         parent::__construct();
@@ -10,11 +13,74 @@ class Citation_model extends Model {
 	//search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {
+		//fields returned by select
+		$select_fields='SQL_CALC_FOUND_ROWS 
+						citations.id,
+						citations.title,
+						citations.subtitle,
+						citations.alt_title,
+						citations.authors,
+						citations.editors,
+						citations.translators,
+						citations.changed,
+						citations.created,
+						citations.published,
+						citations.volume,
+						citations.issue,
+						citations.idnumber,
+						citations.edition,
+						citations.place_publication,
+						citations.place_state,
+						citations.publisher,
+						citations.publication_medium,
+						citations.url,
+						citations.page_from,
+						citations.page_to,
+						citations.data_accessed,
+						citations.organization,
+						citations.ctype,
+						citations.pub_day,
+						citations.pub_month,
+						citations.pub_year,
+						citations.abstract,
+						count(survey_citations.id) as survey_count';
+						
 		//select columns for output
-		$this->db->select('*');
-
+		$this->db->select($select_fields, FALSE);
+	
 		//allowed_fields
-		$db_fields=array('title','subtitle','alt_title','authors','editors','translators','place_publication','publisher','url','place_state');
+		$db_fields=array(
+					'title'=>'citations.title',
+					'subtitle'=>'citations.subtitle',
+					'alt_title'=>'citations.alt_title',
+					'authors'=>'citations.authors',
+					'editors'=>'citations.editors',
+					'translators'=>'citations.translators',
+					'place_publication'=>'citations.place_publication',
+					'publisher'=>'citations.publisher',
+					'url'=>'citations.url',
+					'place_state'=>'citations.place_state',
+					'country'=>'surveys.nation',
+					'pub_year'=>'citations.pub_year',
+					'survey_count'=>'survey_count',
+					'changed'=>'citations.changed'
+					);
+		
+		//fields to search when search=ALL FIELDS
+		$all_fields=array(
+					'citations.title',
+					'citations.subtitle',
+					'citations.alt_title',
+					'citations.authors',
+					'citations.url',
+					'citations.pub_year',
+					'surveys.nation'
+					);
+		
+		$this->db->from('citations');
+		$this->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
+		$this->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+		$this->db->group_by('citations.id');
 		
 		//set where
 		if ($filter)
@@ -29,20 +95,20 @@ class Citation_model extends Model {
 					if (trim($keyword)!="" && strlen($keyword)>2)
 					{
 						//search only in the allowed fields
-						if (in_array($f['field'],$db_fields))
+						if (array_key_exists($f['field'],$db_fields))
 						{
-							$this->db->like($f['field'], trim($keyword)); 
+							$this->db->like($db_fields[$f['field']], trim($keyword)); 
 						}
 						else if ($f['field']=='all')
 						{
-							foreach($db_fields as $field)
+							foreach($all_fields as $field)
 							{
 								$this->db->or_like($field, trim($keyword)); 
-							}							
+							}
 						}
-						else if ($f['field']==strtolower('country'))
+						/*else if ($f['field']==strtolower('country'))
 						{
-							//study country search
+							//country search
 							$citations=$this->search_citation_by_country(trim($keyword));
 							
 							//if no citations found by country
@@ -51,7 +117,7 @@ class Citation_model extends Model {
 								return FALSE;
 							}
 							$this->db->where_in('id', $citations);		
-						}
+						}*/
 					}
 				}
 			}
@@ -60,18 +126,27 @@ class Citation_model extends Model {
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
 		{
-			$this->db->order_by($sort_by, $sort_order); 
+			if (array_key_exists($sort_by,$db_fields))
+			{
+				$this->db->order_by($sort_by, $sort_order); 
+			}
+			else
+			{
+				$this->db->order_by('citations.title', $sort_order); 
+			}			
 		}
 		
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
-		$this->db->from('citations');
-
         $query= $this->db->get();
 		
 		if ($query)
 		{
 			$result=$query->result_array();
+			
+			//get total search result count
+			$query_found_rows=$this->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();
+			$this->search_found_rows=$query_found_rows['rowcount'];
 			
 			//find authors for citations
 			foreach($result as $key=>$row)
@@ -91,6 +166,8 @@ class Citation_model extends Model {
 	* Search on citation survey country
 	*
 	* return arrayy of citation IDs
+	*
+	* TODO: remove, no longer in use
  	**/
 	function search_citation_by_country($keyword=NULL)
 	{
@@ -116,35 +193,9 @@ class Citation_model extends Model {
 		return $output;
 	}
 	
-    function search_count($filter=NULL)
+    function search_count()
     {
-		//select columns for output
-		$this->db->select('id');
-		
-		//allowed_fields
-		$db_fields=array('title','subtitle','alt_title','authors','editors','translators','place_publication','publisher','url');
-		
-		//set where
-		if ($filter)
-		{			
-			foreach($filter as $f)
-			{
-				//search only in the allowed fields
-				if (in_array($f['field'],$db_fields))
-				{
-					$this->db->like($f['field'], $f['keywords']); 
-				}
-				else if ($f['field']=='all')
-				{
-					foreach($db_fields as $field)
-					{
-						$this->db->or_like($field, $f['keywords']); 
-					}
-				}
-			}
-		}
-				
-          return $this->db->count_all_results('citations');
+		return $this->search_found_rows;
     }
 	
 	function select_single($id)
