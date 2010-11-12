@@ -355,7 +355,10 @@ class Upgrade extends MY_Controller {
 
 		if (!$query)
 		{
-			show_error('Failed to upgrade sitelogs table');
+			echo 'Failed to upgrade sitelogs table<BR>';
+			echo 'DB ERROR:'. $this->db_nada->_error_message();
+			echo '<BR>';
+			return;
 		}
 
 		$rows=$query->result_array();
