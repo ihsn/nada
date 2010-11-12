@@ -234,7 +234,7 @@ $config['cache_path'] = 'application/cache/';
 | enabled you MUST set an encryption key.  See the user guide for info.
 |
 */
-$config['encryption_key'] = "CzYs1987";
+$config['encryption_key'] = "CzYs1979";
 
 /*
 |--------------------------------------------------------------------------
@@ -249,13 +249,13 @@ $config['encryption_key'] = "CzYs1987";
 |
 */
 $config['sess_cookie_name']		= 'anda';
-$config['sess_expiration']		= 7200;
+$config['sess_expiration']		= 3600*24*7;//7200;//7 days
 $config['sess_encrypt_cookie']	= TRUE;
 $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'ci_sessions';
 $config['sess_match_ip']		= FALSE;
 $config['sess_match_useragent']	= TRUE;
-$config['sess_time_to_update'] 	= 300;
+$config['sess_time_to_update'] 	= 1000;
 
 /*
 |--------------------------------------------------------------------------
@@ -382,9 +382,21 @@ $config['ddi_import_folder']='imports';
 |					non-standard port e.g. http://localhost:81/nada, enter 81  	
 | 
 */
-$config['enable_ssl']=TRUE;
+$config['enable_ssl']=FALSE;
 $config['http_port']=80;
 
+
+/*
+|--------------------------------------------------------------------------
+| NADA RTL Support [Experimental]
+|--------------------------------------------------------------------------
+|
+| Enable Right-to-Left layout support for languages such as Arabic, Urdu, etc
+|
+|	enable_rtl	= TRUE	changes site template and other UI to use RTl
+| 
+*/
+$config['enable_rtl']=FALSE;
 
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */
