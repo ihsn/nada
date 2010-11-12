@@ -1,4 +1,9 @@
 <?php
+/**
+*
+* Backup selective database tables
+*
+**/
 class Backup extends MY_Controller {
  
     function __construct() 
@@ -32,8 +37,8 @@ class Backup extends MY_Controller {
 
 		if ($install===FALSE)
 		{
-			//do not backup data for  the tables
-			$ignore=array('sitelogs','projects');
+			//do not backup data for the tables
+			$ignore=array("sitelogs");
 		}
 		else
 		{
