@@ -45,7 +45,10 @@
     <?php endif; ?>    
         <a href="<?php echo site_url().'/admin/catalog/export_rdf/'.$id;?>"  alt="<?php echo t('rdf_export');?>" title="<?php echo t('rdf_export');?>">
         <span><img src="images/rdf_metadata_button.32.gif"/></span>
-        </a>                    
+        </a> 
+        <a href="<?php echo site_url().'/admin/catalog/ddi/'.$id;?>"  alt="<?php echo t('download_ddi');?>" title="<?php echo t('download_ddi');?>">
+        <span><img src="images/ddi2.gif"/></span>
+        </a>                            
 </span>
     <ul>
         <li>                	
