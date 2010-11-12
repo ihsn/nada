@@ -22,6 +22,7 @@ class Compare_variable{
 		$this->ci->load->helper('xslt_helper');
 		$this->ci->load->model('catalog_model');
 		$this->ci->load->library('DDI_Browser');
+		$this->ci->config->load('cache');
     }
 
 	
@@ -46,16 +47,27 @@ class Compare_variable{
 			return false;
 		}
 
+		//language
 		$language=array('lang'=>$this->ci->config->item("language"));
 		
-		if($language===FALSE)
+		if(!$language)
 		{
-			$language="english";
+			//default language
+			$language=array('lang'=>"english");
 		}
 
+		//get the xml translation file path
+		$language_file=$this->ci->ddi_browser->get_language_path($language['lang']);
+		
+		if ($language_file)
+		{
+			//change to the language file (without .xml) in cache
+			$language['lang']=unix_path(FCPATH.$language_file);
+		}				
 		return $this->ci->ddi_browser->get_variable_html($ddi_file,$variable_id,$language);
 	}
 	
+
 	function get_survey_title($survey_id)
 	{
 		$survey=$this->ci->catalog_model->get_survey($survey_id);
