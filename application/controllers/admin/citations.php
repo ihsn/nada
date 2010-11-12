@@ -44,7 +44,12 @@ class Citations extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 10;
+		$per_page = $this->input->get("ps");
+		
+		if (!is_numeric($per_page))
+		{
+			$per_page=20;
+		}
 				
 		//current page
 		$offset=$this->input->get('offset');//$this->uri->segment(4);
@@ -83,7 +88,7 @@ class Citations extends MY_Controller {
 		$config['per_page'] = $per_page;
 		$config['query_string_segment']="offset"; 
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('keywords', 'field','ps'));//pass any additional querystrings
 		$config['num_links'] = 1;
 		$config['full_tag_open'] = '<span class="page-nums">' ;
 		$config['full_tag_close'] = '</span>';
