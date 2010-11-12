@@ -77,9 +77,9 @@
             <input type="checkbox" name="vf[]" id="label" value="labl" checked="checked"/><label for="label"><?php echo t('label');?> </label>
             <input type="checkbox" name="vf[]" id="question" value="qstn"  checked="checked"/><label for="question"><?php echo t('question');?> </label>
             <input type="checkbox" name="vf[]" id="categories" value="catgry"  checked="checked"/><label for="categories"><?php echo t('classification');?> </label>
-			</div>            
+			</div>                    
         </div>
-      
+
 		<div style="text-align:right;margin-top:-15px;" class="search-buttons">
         	<input class="button" type="submit" id="btnsearch" name="search" value="<?php echo t('search');?>"/>
             <input class="button" style="background-color:gray;margin-left:5px;" type="button" name="search" value="<?php echo t('reset');?>" onclick="window.location.reload();"/>
