@@ -9,7 +9,7 @@
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('title_citations');?></h1>
-<form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
+<form class="left-pad" style="margin-bottom:10px;" method="GET" id="citation-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo $this->input->get('keywords'); ?>"/>
   <select name="field" id="field">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
@@ -21,7 +21,6 @@
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
   <?php endif; ?>
-</form>
 <?php endif; ?>
 <?php if ($rows): ?>
 <?php		
@@ -84,10 +83,11 @@
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'ctype',t('citation_type'),$page_url); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'dcdate',t('date'),$page_url); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'ctype',t('citation_type'),$page_url,array('keywords','field','ps')); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field','ps')); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'survey_count',t('related_studies'),$page_url,array('keywords','field','ps')); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field','ps')); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -99,16 +99,26 @@
             <td><?php echo t($row->ctype); ?></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <td nowrap="nowrap"><?php echo $row->pub_year; ?>&nbsp;</td>
+			<td nowrap="nowrap"><?php echo ($row->survey_count==0) ? '<img src="images/cross.png"/>' : $row->survey_count; ?></td>
 			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
 			<td nowrap="nowrap"><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
             <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete');?></a></td>
         </tr>
     <?php endforeach;?>
     </table>
-    <div class="pagination">
-		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
-    </div>
-
+<table width="100%">
+    <tr>
+        <td>
+        <?php echo t("select_number_of_records_per_page");?>:
+        <?php echo form_dropdown('ps', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",isset($ps) ? $ps : ''),'id="ps" style="font-size:10px;"'); ?>
+        </td>
+        <td>    
+            <div class="pagination">
+                    <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
+            </div>
+		</td>
+    </tr>
+</table>
 <?php else: ?>
 	<?php echo t('no_records_found');?>
 <?php endif; ?>
@@ -176,5 +186,8 @@ function batch_delete(){
 		}
 	});	
 }
-
+//page change
+$('#ps').change(function() {
+  $('#citation-search').submit();
+});
 </script>
