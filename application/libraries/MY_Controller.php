@@ -27,46 +27,46 @@ class MY_Controller extends Controller
   		//$this->load->model('Menu_model');       	
   		//$this->template->write('sidebar', $this->_menu(),true);
   		
-  		if ($skip===FALSE)
-      {
-  		   //apply IP restrictions for site administration
-  	 	   $this->apply_ip_restrictions();
-      }
+		if ($skip===FALSE)
+		{
+		   //apply IP restrictions for site administration
+		   $this->apply_ip_restrictions();
+		}
       
-  		//skip authentication
-      if ($skip!==TRUE)
-  		{
-  			$this->_auth();
-  		}
+		//skip authentication
+		if ($skip!==TRUE)
+		{
+			$this->_auth();
+		}
   }
 
-/**
- * 
- * Apply IP restrictions for Site Admin
- * 
- */
- public function apply_ip_restrictions()
- {
-    $user_ip=$this->input->ip_address();  
-    
-    $ip_list=$this->config->item("admin_allowed_ip");
-    
-    if ($ip_list!==FALSE)
-    {
-      if (is_array($ip_list) && count($ip_list)>0)
-      {
-          //check ip is in the allowed list  
-          if (!in_array($user_ip, $ip_list))
-          {
-             //log
-             $this->db_logger->write_log('blocked','site access blocked from ip:'.$user_ip,'access-blocked');
-             
-             //show page not found  
-             show_404(); 
-          }  
-      }     
-    } 
- }
+	/**
+	 * 
+	 * Apply IP restrictions for Site Admin
+	 * 
+	 */
+	 public function apply_ip_restrictions()
+	 {
+		$user_ip=$this->input->ip_address();  
+		
+		$ip_list=$this->config->item("admin_allowed_ip");
+		
+		if ($ip_list!==FALSE)
+		{
+		  if (is_array($ip_list) && count($ip_list)>0)
+		  {
+			  //check ip is in the allowed list  
+			  if (!in_array($user_ip, $ip_list))
+			  {
+				 //log
+				 $this->db_logger->write_log('blocked','site access blocked from ip:'.$user_ip,'access-blocked');
+				 
+				 //show page not found  
+				 show_404(); 
+			  }  
+		  }     
+		} 
+	 }
     
 	/**
 	* Switch site language using cookies
@@ -81,9 +81,26 @@ class MY_Controller extends Controller
 		}
 	}
 	
+	/**
+	*
+	*
+	* check if user is logged in or not
+	**/
 	function _auth()
 	{
 		$destination=$this->uri->uri_string();
+		
+		//check if ajax is set
+		if ($this->input->get_post("ajax"))
+		{
+			$destination.='/?ajax='.$this->input->get_post("ajax");
+		}
+		//check if print is set
+		if ($this->input->get_post("print"))
+		{
+			$destination.='/?print='.$this->input->get_post("print");
+		}
+				
 		$this->session->set_userdata("destination",$destination);
 
     	if (!$this->ion_auth->logged_in()) 
