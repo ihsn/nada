@@ -32,12 +32,12 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
         <label for="<?php echo 'website_title'; ?>"><?php echo t('website_title');?></label>
         <input class="input-flex" name="website_title" type="text" id="website_title"  value="<?php echo get_form_value('website_title',isset($website_title) ? $website_title : ''); ?>"/>
 </div>
-
+<!--
 <div class="field">
         <label for="<?php echo 'website_url'; ?>"><?php echo t('website_url');?></label>
         <input class="input-flex" name="website_url" type="text" id="website_url"  value="<?php echo get_form_value('website_url',isset($website_url) ? $website_url : ''); ?>"/>
 </div>
-
+-->
 <div class="field">
         <label for="<?php echo 'website_footer'; ?>"><?php echo t('website_footer');?></label>
         <textarea rows="5" cols="20" class="input-flex" name="website_footer" type="text" id="website_footer"  ><?php echo get_form_value('website_footer',isset($website_footer) ? $website_footer : ''); ?></textarea>
@@ -125,10 +125,12 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
         <span class="field-note"><?php echo t('instruction_catalog_records_per_page'); ?></span>        
 </div>
 
+<!--
 <div class="field">
         <label for="<?php echo 'repository_identifier'; ?>"><?php echo t('repository_identifier');?></label>
         <input class="input-flex" name="repository_identifier" type="text" id="repository_identifier"  value="<?php echo get_form_value('repository_identifier',isset($repository_identifier) ? $repository_identifier : ''); ?>"/>
 </div>
+-->
 
 <h2><?php echo t('site_login');?></h2>
 <div class="field">
