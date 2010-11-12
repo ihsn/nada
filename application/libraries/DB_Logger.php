@@ -18,9 +18,10 @@ class DB_Logger{
 	
 	var $ci;
     //constructor
-	function __construct()
+	function __construct() 
 	{
 		$this->ci =& get_instance();
+		$this->ci->config->load("bots");
     }
 
 	/**
@@ -33,6 +34,15 @@ class DB_Logger{
 	*/
 	function write_log($type, $message=NULL, $section=NULL,$surveyid=0)
 	{	
+		//no logging if it is a bot
+		if ($this->ci->config->item("ignore_bot_logging")===TRUE)
+		{
+			if ($this->is_bot())
+			{
+				return false;
+			}
+		}
+		
 		$username='guest';
 		
 		//check if user is logged in
@@ -79,6 +89,45 @@ class DB_Logger{
 		$url=uri_string().'?'.implode('&',$querystring);
 	 	return $url;
 	}
+	
+	/**
+	*  test user-agent for BOT
+	*
+	*  returns true if it is a BOT
+	*/
+	function is_bot()
+	{
+		//load ignore list
+		$ignore_array=$this->ci->config->item("bot_ignore");
+	
+		if (!$ignore_array || !is_array($ignore_array))
+		{
+			//echo "empty array";exit;
+			return FALSE;
+		}
+
+		//get the page user agent	 
+		$agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+	
+		//check if the page user-agent is a bot
+		foreach($ignore_array as $bot)
+		{
+			if (trim($bot)=='')
+			{
+				continue;
+			}
+			
+			if(stripos($agent,trim(strtolower($bot)))!==false)
+			{
+				//echo "found";exit;
+				return true;// bot found
+			}
+		}
+		//echo "not bot";exit;
+		return false;
+	}
+	
+	
 }// END DB_Logger
 
 /* End of file DB_Logger.php */
