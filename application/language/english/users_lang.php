@@ -98,6 +98,8 @@ $lang['message_sent_to_your_email'] = "An email message has been sent to your em
 $lang['password_reset_to'] = "You password has been reset to <b>%s</b>. To login to the website, your account details are:";
 $lang['forgot_password_verification'] = "Forgotten Password Verification";
 $lang['account_activation'] = "Account activation";
+$lang['callback_country_invalid'] = "The Country field is required.";
+
 
 /* End of file users_lang.php */
 /* Location: ./system/language/english/users_lang.php */

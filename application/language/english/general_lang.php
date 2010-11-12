@@ -98,5 +98,12 @@ $lang['js_loading'] = "Loading, please wait...";
 $lang['file_not_found'] = "File was not found";
 $lang['invalid_id'] = "Invalid ID was provided";
 $lang['sort_results_by'] = "Sort results by";
+$lang['select_number_of_records_per_page'] = "Select number of records to show per page";
+
+$lang['share_with_facebook'] = "Share with Facebook";
+$lang['share_with_twitter'] = "Share with Twitter";
+$lang['share_with_delicious'] = "Share with Delicious";
+$lang['study_home'] = "Home";
+
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */
