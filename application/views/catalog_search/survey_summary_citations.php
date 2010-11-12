@@ -16,10 +16,8 @@
 	<?php $tr_class=""; ?>
 	<?php foreach($citations as $row): ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-    	<tr class="<?php echo $tr_class; ?>">
-    	      
-            <td>
-    		      <div class="citation-row">
+    	<tr class="<?php echo $tr_class; ?>">    	      
+            <td><div class="citation-row">
                 &raquo; <?php echo $this->chicago_citation->format($row,$row['ctype']);?>
               </div>
             </td>
