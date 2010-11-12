@@ -63,7 +63,7 @@ class DDI_Import{
 			
 			if($survey_exists!==FALSE)
 			{
-				$this->errors[]='The study already exists. Please select the overwrite option to replace the existing study.';
+				$this->errors[]=t('study_already_exists');
 				return FALSE;
 			}
 		}
@@ -131,6 +131,18 @@ class DDI_Import{
 			'changed'=>date("U"),
 			'isdeleted'=>0,
 		);
+	
+		//production date, use the max date
+		// todo:fix this is a workaround, catalog search MUST use the data_coll_start or end 
+		// dates for sorting and searching instead of using proddate
+		if ($row['data_coll_end']>=$row['data_coll_start'])
+		{
+			$row['proddate']=$row['data_coll_end'];
+		}
+		else
+		{
+			$row['proddate']=$row['data_coll_start'];
+		}	
 	
 		//check if survey already exists
 		$id=$this->survey_exists($surveyid=$data->id,$repositoryid=$this->repository_identifier);
@@ -406,16 +418,17 @@ class DDI_Import{
 		return $survey_folder;
 	}	
 	
-	//check if the survey already exists?
+	/**
+	*
+	* check if the survey already exists?
+	**/
 	function survey_exists($surveyid,$repositoryid)
 	{
-		//$query = $this->db->get_where('surveys', array('surveyid' => $id,'repositoryid' => $repositoryid));
-		
 		$this->ci->db->select('id');
 		$this->ci->db->from('surveys');
 		$this->ci->db->where(array('surveyid' => $surveyid,'repositoryid' => $repositoryid) );
 		$query=$this->ci->db->get();
-		//print $this->ci->db->last_query();
+
 		if ($query->num_rows() > 0)
 		{
 		   foreach ($query->result() as $row)
@@ -425,6 +438,8 @@ class DDI_Import{
 		}
 		return false;		
 	}
+	
+	
 	
 	/**
 	* Returns Topic ID by topic name
