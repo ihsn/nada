@@ -237,7 +237,8 @@ class Catalog_model extends Model {
 	*
 	*
 	**/
-	function get_survey($id){
+	function get_survey($id)
+	{
 		$this->db->select('id,titl,surveyid,proddate,nation,repositoryid');
 		$this->db->where('id', $id); 
 		return $this->db->get('surveys')->row_array();
@@ -246,7 +247,8 @@ class Catalog_model extends Model {
 	/**
 	* get variable by varid
 	**/
-	function get_variable_by_vid($survey_id, $variable_id){
+	function get_variable_by_vid($survey_id, $variable_id)
+	{
 		$this->db->select('uid,name,labl');
 		$this->db->where('varid', $variable_id); 
 		$this->db->where('surveyid_FK', $survey_id); 
