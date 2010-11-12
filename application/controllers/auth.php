@@ -139,10 +139,12 @@ class Auth extends MY_Controller {
 
         if ($this->form_validation->run() == true) { //check to see if the user is logging in
         	//check for "remember me"
-        	if ($this->input->post('remember') == 1) {
+        	if ($this->input->post('remember') == 1) 
+			{
         		$remember = true;
         	}
-        	else {
+        	else 
+			{
         		$remember = false;
         	}
         	
@@ -416,6 +418,7 @@ class Auth extends MY_Controller {
     	$this->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]|callback_email_exists');
     	$this->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
     	$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
+		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
     	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 		$this->form_validation->set_rules('math_question', t('captcha'), 'trim|required|max_length[3]|callback_validate_captcha');
@@ -530,7 +533,17 @@ class Auth extends MY_Controller {
 	}
 	
 	
-
+	//check country name is selected
+	function country_valid($country)
+	{
+		if (strlen($country)<4)
+		{
+			$this->form_validation->set_message('country_valid', t('callback_country_invalid'));
+			return FALSE;
+		}
+		return TRUE;
+	}
+	
 	//check if the email address exists in db
 	function email_exists($email)
 	{
