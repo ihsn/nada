@@ -7,6 +7,11 @@ $menu_tech_info['dataappraisal']	=anchor('ddibrowser/'.$this->uri->segment(2).'/
 //$menu_tech_info['othermaterials']	=anchor('ddibrowser/'.$this->uri->segment(2).'/othermaterials','Other materials',array('class'=>'ajax'));
 ?>
 
+<!--home-->
+<div class="left-bar-section">
+    <img src="images/house.png" border="0"/> <?php echo anchor('catalog/'.$this->uri->segment(2).'',t('study_home')); ?>
+</div>
+
 <!--overview-->
 <div class="left-bar-section">
     <img src="images/page_white.png" border="0"/> <?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/overview',t('overview'),array('class'=>'ajax')); ?>
