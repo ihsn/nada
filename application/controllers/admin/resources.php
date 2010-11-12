@@ -51,7 +51,6 @@ class Resources extends MY_Controller {
 		
 		//render final output
 	  	$this->template->render();
-
 	}
 	
 	
@@ -125,10 +124,13 @@ class Resources extends MY_Controller {
 		$this->template->write('content', $content,true);
 		
 		//render final output
-	  	$this->template->render();
-		
+	  	$this->template->render();		
 	}
 	
+	/**
+	*
+	* Delete one or more resources
+	**/
 	function delete($id)
 	{			
 		//array of id to be deleted
@@ -218,9 +220,10 @@ class Resources extends MY_Controller {
 		}		
 	}
 	
+	
 	/**
+	*
 	* Edit Resource
-	* 
 	*/
 	function edit($id='add')
 	{
@@ -294,26 +297,38 @@ class Resources extends MY_Controller {
 			if ($id=='add')
 			{
 				$db_result=$this->Resource_model->insert($options);
+				
+				//log
+				if ($db_result)
+				{
+					$this->db_logger->write_log('resource-added',$options['title'].'-'.$options['filename'],'resources',$survey_id);
+				}	
 			}
 			else
 			{
 				//update db
 				$db_result=$this->Resource_model->update($id,$options);
+				
+				//log
+				if ($db_result)
+				{
+					$this->db_logger->write_log('resource-updated',$options['title'].'-'.$options['filename'],'resources',$survey_id);
+				}
 			}
 						
 			if ($db_result===TRUE)
-				{
-					//update successful
-					$this->session->set_flashdata('message', t('form_update_success') );
-					
-					//redirect back to the list
-					redirect("admin/catalog/$survey_id/resources");
-				}
-				else
-				{
-					//update failed
-					$this->form_validation->set_error(t('form_update_fail'));
-				}
+			{
+				//update successful
+				$this->session->set_flashdata('message', t('form_update_success') );
+				
+				//redirect back to the list
+				redirect("admin/catalog/$survey_id/resources");
+			}
+			else
+			{
+				//update failed
+				$this->form_validation->set_error(t('form_update_fail'));				
+			}
 		}
 		else
 		{
@@ -339,6 +354,8 @@ class Resources extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();		
 	}
+
+
 
 	/**
 	* validate for file or url
@@ -433,8 +450,7 @@ class Resources extends MY_Controller {
 		{
 			$data['form_title']=t('import_external_resources');
 			//import form
-			$content=$this->load->view('resources/import', $data,true);
-			
+			$content=$this->load->view('resources/import', $data,true);			
 			$this->template->write('content', $content,true);
 			$this->template->render();	
 		}
@@ -453,8 +469,6 @@ class Resources extends MY_Controller {
 		//load upload library
 		$this->load->library('upload', $config);
 
-		//var_dump($_FILES);exit;
-		
 		//process uploaded file
 		if ( ! $this->upload->do_upload())
 		{
@@ -505,6 +519,9 @@ class Resources extends MY_Controller {
 					//check if it is not a URL
 					if (!is_url($insert_data['filename']))
 					{
+						//fix html entities e.g &amp; &quot;
+						$insert_data['filename']=htmlspecialchars_decode($insert_data['filename'],ENT_QUOTES);
+						
 						//clean file paths
 						$insert_data['filename']=unix_path($insert_data['filename']);
 
@@ -523,6 +540,9 @@ class Resources extends MY_Controller {
 						//insert into db
 						$this->Resource_model->insert($insert_data);
 						
+						//log
+						$this->db_logger->write_log('resource-imported',$insert_data['title'].'-'.$insert_data['filename'],'resources',$insert_data['survey_id']);
+											
 						//create resources folder structure
 						if ($this->input->post('folder_structure')=='yes')
 						{						
