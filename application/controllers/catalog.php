@@ -764,7 +764,7 @@ class Catalog extends MY_Controller {
 			show_404();
 		}
 
-		$file_name=base64_decode($file);
+		$file_name=trim(base64_decode($file));
 		
 		//required for getting ddi file path
 		$this->load->model('Catalog_model');
