@@ -12,8 +12,15 @@
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('confirm_delete'); ?></h1>
+<?php if ( isset($deleted_items)):?>
+	<ul>
+	<?php foreach ($deleted_items as $item):?>
+    	<li><?php echo $item;?></li>
+    <?php endforeach;?>
+    </ul>
+<?php endif;?>
 
-<?php echo form_open(current_url(), array('class'=>'form') ); ?>
+<?php echo form_open($this->input->xss_clean(current_url()), array('class'=>'form') ); ?>
 <div class="field">
 	<div><?php echo t('confirm_delete_records');?></div>
 	<input type="submit" name="submit" id="submit" value="<?php echo t('yes'); ?>" />
