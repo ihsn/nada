@@ -216,6 +216,9 @@ class Catalog extends MY_Controller {
 					//update successful
 					$this->session->set_flashdata('message', t('form_update_success'));
 					
+					//log
+					$this->db_logger->write_log('edit-survey','success','catalog',$id);
+
 					//redirect back to the list
 					redirect('admin/catalog/'.$this->uri->segment(3).'/edit','refresh');
 				}
@@ -223,6 +226,9 @@ class Catalog extends MY_Controller {
 				{
 					//update failed
 					$this->form_validation->set_error(t('form_update_fail'));
+					
+					//log
+					$this->db_logger->write_log('edit-survey','failed','catalog',$id);
 				}
 			}
 		}
@@ -358,6 +364,10 @@ class Catalog extends MY_Controller {
 		{
 			//get errors while uploading
 			$error = $this->upload->display_errors();
+			
+			//log to database
+			$this->db_logger->write_log('ddi-upload',$error,'catalog');
+
 			//set error
 			$this->session->set_flashdata('error', $error);
 			
@@ -367,9 +377,11 @@ class Catalog extends MY_Controller {
 		else //successful upload
 		{			
 			//get uploaded file information
-			$data = array('upload_data' => $this->upload->data());
-									
+			$data = array('upload_data' => $this->upload->data());									
 			$ddi_progress['ddi_progress']=array('status'=>'uploaded', 'upload_data'=>$this->upload->data());
+			
+			//log to database
+			$this->db_logger->write_log('ddi-upload','success','catalog');
 			
 			//save progress to session
 			$this->session->set_userdata($ddi_progress);
@@ -411,9 +423,12 @@ class Catalog extends MY_Controller {
 		//validate DDI file
 		if ($this->ddi_parser->validate()===false)
 		{
+			//log import error
 			$error= 'Invalid DDI file: '.$ddi_file;
-
 			log_message('error', $error);
+
+			//log to database
+			$this->db_logger->write_log('ddi-import',$error,'catalog');
 
 			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
 
@@ -434,8 +449,12 @@ class Catalog extends MY_Controller {
 		{
 			//display import success 
 			$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
-			log_message('DEBUG', 'Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables');
+			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
+			log_message('DEBUG', $success_msg);
 			
+			//log
+			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
+
 			$this->session->set_flashdata('message', $success);
 			
 			//delete uploaded file
@@ -443,7 +462,12 @@ class Catalog extends MY_Controller {
 		}
 		else
 		{
-			log_message('DEBUG', 'FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables');
+			$failed_msg='FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
+			
+			//log
+			log_message('DEBUG', $failed_msg);			
+			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');
+			
 			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
 			$this->session->set_flashdata('error', $import_failed);
 		}		
@@ -762,9 +786,19 @@ class Catalog extends MY_Controller {
 		{
 			foreach($delete_arr as $item)
 			{
-				//delete survey and related data from other tables
-				//$this->Catalog_model->update_survey_options(array('id'=>$item,'isdeleted'=>1) );
-				$this->Catalog_model->delete($item);
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//delete if exists
+				if ($survey)
+				{
+					//delete survey and related data from other tables
+					$this->Catalog_model->delete($item);
+										
+					//log deletion
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$this->db_logger->write_log('study-deleted',$survey_name,'catalog',$item);
+				}	
 			}
 
 			//for ajax calls, return output as JSON						
@@ -788,8 +822,24 @@ class Catalog extends MY_Controller {
 		}
 		else
 		{
+			$items=array(); //list of deleted items
+			
+			foreach($delete_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//exists
+				if ($survey)
+				{
+					//log deletion
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$items[]=$survey_name;
+				}	
+			}
+			
 			//ask for confirmation
-			$content=$this->load->view('resources/delete', NULL,true);
+			$content=$this->load->view('resources/delete', array('deleted_items'=>$items),true);
 			
 			$this->template->write('content', $content,true);
 	  		$this->template->render();
@@ -819,6 +869,69 @@ class Catalog extends MY_Controller {
 	{
 		$this->Catalog_model->batch_update_collection_dates();		
 	}
+	
+	
+	
+	/**
+	* Returns survey DDI file
+	* as .xml or .zip
+	* 
+	*/
+	function ddi($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			show_404();
+		}
+	
+		$format=$this->input->get("format");
+		
+		//required for getting ddi file path
+		$this->load->model('Catalog_model');
+		$this->load->helper('download');
+			
+		//get ddi file path from db
+		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+		
+		if ($ddi_file===FALSE)
+		{
+			show_404();
+		}
+
+		if (file_exists($ddi_file))
+		{
+			if($format=='zip')
+			{
+				$this->load->library('zip');
+
+				//zip file path
+				$zip_file=$ddi_file.'.zip';
+			
+				//create zip if not created already
+				if (!file_exists($zip_file))
+				{			
+					$this->zip->read_file($ddi_file);
+					$this->zip->archive($zip_file); 
+				}
+				
+				//download zip file
+				if (file_exists($zip_file))
+				{
+					force_download2($zip_file);
+					return;
+				}
+			}
+			
+			//download the xml file
+			force_download2($ddi_file);
+			return;
+		}
+		else
+		{
+			show_404();
+		}		
+	}
+
 }
 /* End of file catalog.php */
 /* Location: ./controllers/admin/catalog.php */
