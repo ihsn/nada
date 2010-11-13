@@ -8,7 +8,7 @@ require_once("modules/mpdf/mpdf_source.php");
  *
  *
  *
- * @package		NADA 2.1
+ * @package		NADA 3.0
  * @subpackage	Libraries
  * @category	PDF Generator
  * @author		Mehmood
@@ -33,5 +33,5 @@ class MY_mPDF extends mPDF{
 }
 // END MY_mPDF Class
 
-/* End of file MY_mPDF.php */
-/* Location: ./application/libraries/MY_mPDF.php */
+/* End of file my_mpdf.php */
+/* Location: ./application/libraries/my_mpdf.php */
