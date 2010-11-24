@@ -1,22 +1,23 @@
-<?php
-$lang['dashboard']="Dashboard";
-$lang['nada_news_updates']="NADA News & Updates";
-$lang['users']="Users";
-$lang['database_backup']="Database Backup";
-$lang['cache_files']="Cache Files";
-$lang['report_bug']="Report Bug/Feature/Request";
-$lang['reporter_name']="Name";
+<?php 
+$lang['dashboard']="Tableau de bord";
+$lang['nada_news_updates']="Nouvelles et mises à jour de NADA";
+$lang['users']="Utilisateurs";
+$lang['database_backup']="Backup de la base de données";
+$lang['cache_files']="Fichiers Cache";
+$lang['report_bug']="Rapporter un bogue / Suggérer une amélioration";
+$lang['reporter_name']="Nom";
 $lang['reporter_email']="Email";
-$lang['subject']="Subject";
-$lang['bug_request_description']="Provide detailed description of the bug/feature";
-$lang['submit']="Submit";
-$lang['user_active']="Active";
-$lang['user_disabled']="Disabled";
-$lang['user_inactive']="Inactive - never logged in";
-$lang['bug_report']="Report Bug or Request a feature";
-$lang['run_database_backup_script']="Run database backup script";
-$lang['no_cache_files_found']="No cache files were found";
-$lang['clear_cache_files']="You have <b>%d</b> cached files, <a href=\"%s\">click here to clear cache.</a>";
+$lang['subject']="Sujet";
+$lang['bug_request_description']="Veuillez fournir une description détaillée du bogue ou de l'amélioration proposée";
+$lang['submit']="Soumettre";
+$lang['user_active']="Actif";
+$lang['user_disabled']="Désactivé";
+$lang['user_inactive']="Inactif - Jamais loggé";
+$lang['bug_report']="Rapporter un bogue / Suggérer une amélioration";
+$lang['run_database_backup_script']="Exécuter le programme de backup";
+$lang['no_cache_files_found']="Aucun fichier cache trouvé";
+$lang['clear_cache_files']="Vous avez <b>%d</b> fichiers cachés, <a href=\%s\>Cliquez ici pour purger le cache.</a> ";
+
 
 /* End of file dashboard_lang.php */
 /* Location: ./application/language/french/dashboard_lang.php */
