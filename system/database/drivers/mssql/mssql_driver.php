@@ -639,11 +639,26 @@ class CI_DB_mssql_driver extends CI_DB {
 	 * @return	string
 	 */
 	function _limit($sql, $limit, $offset)
-	{
-		$i = $limit + $offset;
-	
-		return preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 TOP '.$i.' ', $sql);		
-	}
+    {
+		$OrderBy="";
+        if (count($this->ar_orderby) > 0)
+        {
+            $OrderBy  = "ORDER BY ";
+            $OrderBy .= implode(', ', $this->ar_orderby);
+
+            if ($this->ar_order !== FALSE)
+            {
+                $OrderBy .= ($this->ar_order == 'desc') ? ' DESC' : ' ASC';
+            }
+        }
+
+        $sql = preg_replace('/(\\'. $OrderBy .'\n?)/i','', $sql);
+        $sql = preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 row_number() OVER ('.$OrderBy.') AS rownum, ', $sql);
+
+        $NewSQL = "SELECT * \nFROM (\n" . $sql . ") AS A \nWHERE A.rownum BETWEEN (" .($offset + 1) . ") AND (".($offset + $limit).")";
+
+        return     $NewSQL;
+    } 
 
 	// --------------------------------------------------------------------
 
@@ -658,6 +673,16 @@ class CI_DB_mssql_driver extends CI_DB {
 	{
 		@mssql_close($conn_id);
 	}	
+
+	/**
+	* Overrides parent class function for mssql
+	* 
+	**/
+	function x_protect_identifiers($item, $first_word_only = FALSE)
+	{
+		return $item;
+	} 
+
 
 }
 
