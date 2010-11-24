@@ -27,8 +27,8 @@ $config['charset']   = 'utf-8';
 /*
 $config['protocol']  = 'smtp';
 $config['smtp_host'] = 'ssl://smtp.googlemail.com';
-$config['smtp_user'] = 'mah0001@gmail.com';
-$config['smtp_pass'] = 'yuyuyy';
+$config['smtp_user'] = 'name@gmail.com';
+$config['smtp_pass'] = 'password';
 $config['smtp_port'] = '465';
 $config['mailtype']  = 'html';
 $config['charset']   = 'utf-8';
