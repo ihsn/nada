@@ -4,7 +4,6 @@
 <td align="right">
 <div class="page-links">
 	<a id="link_export" title="<?php echo t('link_export_search');?>" href="<?php echo site_url();?>/catalog/export"><img src="images/export.gif" border="0" alt="Export"/></a>
-	<?php echo anchor('catalog/help','<img src="images/linkto_help.gif" border="0" alt="Help"/>', array('class'=>'dlg','title'=>t('link_search_help')));?>
     <a title="<?php echo t('rss_feed');?>" href="<?php echo site_url();?>/catalog/rss" target="_blank"><img src="images/rss_icon.png" border="0" alt="RSS"/></a>
 </div>
 </td>
