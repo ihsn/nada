@@ -743,7 +743,8 @@ CREATE TABLE `forms` (
   `fname` varchar(255) DEFAULT '',
   `model` varchar(255) DEFAULT '',
   `path` varchar(255) DEFAULT '',
-  `iscustom` char(2) DEFAULT '0'
+  `iscustom` char(2) DEFAULT '0',
+   PRIMARY KEY (`formid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 INSERT INTO forms (`formid`, `fname`, `model`, `path`, `iscustom`) VALUES (2, 'Public use files', 'public', 'orderform.php', '1');
