@@ -66,6 +66,7 @@ class Upgrade extends MY_Controller {
 			show_error('NADA 2.0 Repository Identifier not set.');
 		}
 
+
 		//---------------------------------------------------
 		// start upgrade
 		//---------------------------------------------------
@@ -82,7 +83,7 @@ class Upgrade extends MY_Controller {
 		$this->upgrade_variables();	//variables
 
 		set_time_limit(0);
-		$this->upgrade_sitelogs();	//site logs
+		//$this->upgrade_sitelogs();	//site logs
 
 		set_time_limit(0);
 		$this->upgrade_public_requests();//public requests
@@ -142,8 +143,12 @@ class Upgrade extends MY_Controller {
 	{
 		//get data from nada2
 		$prefix=$this->db_nada->dbprefix;
-		$sql=sprintf('select s.*,f.model from %ssurvey s left join %sforms f on s.orderform=f.formid', $prefix, $prefix);
-
+		
+		//remove deleted surveys
+		//$sql_del=sprintf('delete from %ssurvey where isdeleted=1',$prefix);
+		//$query=$this->db_nada->query($sql_del);
+		
+		$sql=sprintf('select s.*,f.model from %ssurvey s left join %sforms f on s.orderform=f.formid where s.isdeleted!=1', $prefix, $prefix);
 		$query=$this->db_nada->query($sql);
 
 		if (!$query)
@@ -214,7 +219,7 @@ class Upgrade extends MY_Controller {
 	{
 		//get data from nada2
 		$prefix=$this->db_nada->dbprefix;
-		$sql=sprintf('select s.id,overview_pdf as report, surveypackage as zip_package, questionnaire from %ssurvey s', $prefix);
+		$sql=sprintf('select s.id,overview_pdf as report, surveypackage as zip_package, questionnaire from %ssurvey s where isdeleted!=1', $prefix);
 
 		$query=$this->db_nada->query($sql);
 
@@ -226,9 +231,8 @@ class Upgrade extends MY_Controller {
 		$rows=$query->result_array();
 
 		//delete existing resources
-		$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
-		$this->db->query($empty_sql);
-
+		//$empty_sql=sprintf('truncate %sresources',$this->db->dbprefix);
+		//$this->db->query($empty_sql);
 
 		$k=0;
 		foreach($rows as $row)
@@ -682,7 +686,6 @@ class Upgrade extends MY_Controller {
 			{
 				echo $this->db->_error_message().'<HR>';
 				echo $this->db->last_query().'<BR>';
-				return;
 			}
 
 			$k++;
