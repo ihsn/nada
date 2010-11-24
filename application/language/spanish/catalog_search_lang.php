@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 $lang['title_data_catalog']="Catálogo de Datos";
 $lang['data_catalog']="Catálogo de Datos";
 $lang['catalog_search_help']="Ayuda del Catálogo de Datos";
@@ -29,6 +28,8 @@ $lang['country']="País";
 $lang['switch_to_variable_view']="Cambiar a vista de variable";
 $lang['compare']="Comparar";
 $lang['showing_studies']="Mostrando <b>%d-%d</b> de <b>%d</b> estudios";
+$lang['found_study']="Encontró <b>%d</b> estudio de <b>%d</b>";
+$lang['found_studies']="Encontró <b>%d</b> estudios de <b>%d</b>";
 $lang['showing_variables']="Mostrando <b>%d-%d</b> de <b>%d</b> variables";
 $lang['showing_pages']="Página %s de %d";
 $lang['variables_keywords_found']="Palabras(s) encontradas en %d variable(s) de %d";
@@ -87,11 +88,12 @@ $lang['description']="Descripción";
 $lang['abstract']="Resumen";
 $lang['table_of_contents']="Documentación Técnica";
 $lang['classification']="Clasificación";
-
-$lang['found_study']="Encontró <b>%d</b> estudio de <b>%d</b>";
-$lang['found_studies']="Encontró <b>%d</b> estudios de <b>%d</b>";
 $lang['compare_hover_text']="Comparar las variables seleccionadas";
 $lang['select_number_of_records_per_page']="Seleccionar el número de registros a desplegar por página";
+$lang['source_catalog']="Metadato provisto por %s";
+$lang['source']="Fuente";
+$lang['download_ddi']="Descargar IDD";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/spanish/catalog_search_lang.php */

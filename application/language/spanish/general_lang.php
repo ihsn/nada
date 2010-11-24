@@ -1,4 +1,4 @@
-<?php
+<?php 
 $lang['confirm_delete_records']="Está seguro que quiere eliminar los registros seleccionado(s)?";
 $lang['form_update_success']="Formulario fué actualizado exitosamente!";
 $lang['form_update_fail']="La actualización de la base de datos ha fallado";
@@ -44,15 +44,14 @@ $lang['size']="Tamaño";
 $lang['date']="Fecha";
 $lang['site_administration']="Administración del Sitio";
 $lang['login']="Ingresar";
+$lang['register']="Registrese";
 $lang['logout']="Salir";
 $lang['profile']="Perfil";
+$lang['password']="Contraseña";
 $lang['__select__']="--SELECCIONAR--";
 $lang['error_invalid_parameters']="Parametros inválidos fueron provistos.";
 $lang['js_no_item_selected']="No ha seleccionado ningún elemento";
 $lang['js_confirm_delete']="Está seguro que quiere borrar los elemento(s) seleccionado(s)?";
-
-$lang['register']="Registrese";
-$lang['password']="Contraseña";
 $lang['searching_please_wait']="Buscando, por favor espere...";
 $lang['dashboard']="Tablero";
 $lang['catalog_maintenance']="Mantenimiento del Catalogo";
@@ -66,16 +65,22 @@ $lang['reports']="Reportes";
 $lang['nada_administration']="Adminsitración del ANDA";
 $lang['change_password']="Cambio de Contraseña";
 $lang['home_page']="Página principal";
-$lang['data_catalog']="Catalogo de Datos";
-$lang['captcha_provide_answer']="Provea una respuesta a la pregunta matemática";
+$lang['data_catalog']="Catálogo de Datos";
+$lang['captcha_provide_answer']="Resuelva la pregunta matemática";
 $lang['accept']="Aceptar";
 $lang['download']="Descargar";
 $lang['form_already_saved']="El formulario ya ha sido guardado, no se debe enviar de nuevo.";
 $lang['email_failed']="El Sistema no ha podido enviar el mensaje de correo electrónico, por favor, inténtelo de nuevo.";
 $lang['js_loading']="Cargando, espere por favor...";
 $lang['file_not_found']="El archivo no fue encontrado";
-$lang['invalid_id']="Identificación no válida fue proveída";
+$lang['invalid_id']="Identificación provista fue inválida";
 $lang['sort_results_by']="Ordene el resultado por";
+$lang['select_number_of_records_per_page']="Elija el número de registro a mostrarse por página";
+$lang['share_with_facebook']="Compartir en Facebook";
+$lang['share_with_twitter']="Compartir en Twitter";
+$lang['share_with_delicious']="Compartir con Delicious";
+$lang['study_home']="Inicio";
+
 
 /* End of file general_lang.php */
 /* Location: ./application/language/spanish/general_lang.php */

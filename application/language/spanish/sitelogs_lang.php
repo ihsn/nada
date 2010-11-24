@@ -1,12 +1,12 @@
-<?php
+ï»¿<?php
 
 $lang['site_logs']="Registros del Sitio";
 $lang['logtype']="Tipo";
-$lang['section']="Sección";
+$lang['section']="SecciÃ³n";
 $lang['url']="URL";
 $lang['keywords']="Palabras claves";
 $lang['user']="Usuario";
-$lang['ip_address']="Dirección IP";
+$lang['ip_address']="DirecciÃ³n IP";
 $lang['logtime']="Creado";
 
 /* End of file sitelogs_lang.php */

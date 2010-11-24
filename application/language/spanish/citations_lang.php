@@ -1,10 +1,10 @@
-<?php
-
+<?php 
 $lang['title_citations']="Citas";
 $lang['title']="Título";
 $lang['subtitle']="Subtítulo";
 $lang['volume']="Volúmen";
 $lang['issue']="Inconvenientes";
+$lang['edition']="Edición";
 $lang['page_numbers']="Número de página";
 $lang['isbn']="ISBN";
 $lang['provide_link_to_document']="Provea vínculo al documento";
@@ -13,8 +13,6 @@ $lang['add_related_studies']="Agregar estudios relacionados";
 $lang['select_studies']="Seleccionar estudios";
 $lang['add_new_citation']="Agregar nuevas citas";
 $lang['edit_citation']="Editar citas";
-
-$lang['edition']="Edición";
 $lang['select_citation_type']="Seleccione el tipo de cita";
 $lang['first_name']="Primer nombre";
 $lang['last_name']="Apellido";
@@ -60,8 +58,13 @@ $lang['periodical_number']="ISSN/ISBN/Otro número";
 $lang['article_title']="Título del artículo";
 $lang['journal_title']="Diario";
 $lang['corporate-author']="Autor Corporativo";
-$lang['citation_home']="Volver a Citas \ Página principal";
+$lang['citation_home']="Volver a Citas \\ Página principal";
 $lang['country']="País";
+$lang['import_citation']="Importar Citas";
+$lang['paste_bibtex_string']="Pegar BibTex";
+$lang['bibtex_url']="URL - solo para entradas BibTex";
+$lang['bibtex_import_status']="%s Entradas fueron importadas correctamente, %s fueron omitidas";
+
 
 /* End of file citations_lang.php */
 /* Location: ./application/language/spanish/citations_lang.php */

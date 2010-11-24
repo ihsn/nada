@@ -1,4 +1,4 @@
-<?php
+<?php 
 $lang['title_licensed_request']="Solicitud de datos con licencia";
 $lang['edit_licensed_request']="Editar la solicitud de datos con licencia";
 $lang['request_information']="Solicitud de información";
@@ -48,7 +48,6 @@ $lang['download_log']="Registro de descargas";
 $lang['ip_address']="Dirección IP";
 $lang['username']="Nombre de usuario";
 $lang['dated']="Fecha";
-
 $lang['requested_by']="Solicitado por";
 $lang['return_request_home']="Volver a la lista solicitada";
 $lang['tab_communicate']="Comunicar";
@@ -72,10 +71,20 @@ $lang['use_comma_for_multiple_ip']="separe varias direcciones IP con comas. Ejem
 $lang['js_updating_please_wait']="Cargando, por favor espere...";
 $lang['date_requested']="Fecha es requerido";
 $lang['survey_title']="Título del Estudio";
-$lang['licensed_dataset_request_status']="Estado de la solicidtud para el conjutno de dato con licencia";
+$lang['licensed_dataset_request_status']="Estado de la solicidtud para el conjunto de dato con licencia";
 $lang['dataset_access']="Acceso al conjunto de datos";
 $lang['notification_licensed_survey_request_received']="[Notificación] - Conjunto de dato con licencia recibido";
 $lang['survey_data_files']="Archivos de datos de la encuesta";
+$lang['dear']="Estimado";
+$lang['request_licensed_reviewed']="Su solicitud de acceso a datos con licencia [<b>%s</b>] ha sido revisada. Para ver la respuesta, por favor siga el enlace";
+$lang['user_has_requested_licensed']="El usuario <b>%s</b> ha solicitado acceso al estudio <b>%s</b>.";
+$lang['to_view_request_instructions']="Para ver la solicitud, inicie sesión al sitio de administración del Catálogo ANDA y acceda a la pagina \"Solicitud de Encuestas con licencia\".";
+$lang['received_licensed_request']="La <b>%s</b> ha recibido su solicitud para el acceso a datos con licencia. Se le notificara vía email una vez que su aplicación haya sido revisada.";
+$lang['to_view_request_status']="Para ver el estado de su solicitud, por favor visite:";
+$lang['for_further_information']="Para mayor información, por favor contáctese con nosotros en";
+$lang['form_not_available']="El formulario ha sido removido y no se encuentra disponible";
+$lang['view_all_requests']="Ver todas las solicitudes";
+
 
 /* End of file licensed_request_lang.php */
 /* Location: ./application/language/spanish/licensed_request_lang.php */

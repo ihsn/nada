@@ -1,16 +1,16 @@
-<?php
+ï»¿<?php
 
-$ Lang ['public_request'] = "Solicitud Pública";
-$ Lang ['request_date'] = "Fecha de Solicitud";
-$ Lang ['study_title'] = "Título del estudio";
-$ Lang ['study_id'] = "Id del Estudio";
-$ Lang ['email'] = "Correo Electrónico";
-$ Lang ['request_id'] = "Id del la Solicitud";
-$ Lang ['full_name'] = "Nombre completo";
-$ Lang ['username'] = "Usuario";
-$ Lang ['phone'] = "Teléfono";
-$ Lang ['country'] = "País";
-$ Lang ['intended_data_use'] = "El uso previsto de datos";
+$lang ['public_request'] = "Solicitud PÃºblica";
+$lang ['request_date'] = "Fecha de Solicitud";
+$lang ['study_title'] = "TÃ­tulo del estudio";
+$lang ['study_id'] = "Id del Estudio";
+$lang ['email'] = "Correo ElectrÃ³nico";
+$lang ['request_id'] = "Id del la Solicitud";
+$lang ['full_name'] = "Nombre completo";
+$lang ['username'] = "Usuario";
+$lang ['phone'] = "TelÃ©fono";
+$lang ['country'] = "PaÃ­s";
+$lang ['intended_data_use'] = "El uso previsto de datos";
 
 /* End of file public_request_lang.php */
 /* Location: ./application/language/spanish/public_request_lang.php */

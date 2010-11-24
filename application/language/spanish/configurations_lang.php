@@ -1,12 +1,14 @@
-<?php
-
+<?php 
 $lang['title_configurations']="Configuración del Sitio";
 $lang['general_site_settings']="Configuración general del sitio";
 $lang['website_title']="Título del Sitio Web";
 $lang['website_url']="URL del Sitio Web";
+$lang['default_home_page']="Página principal predeterminada";
+$lang['webmaster_name']="Nombre del Webmaster";
 $lang['webmaster_email']="Email del Administrador Web";
 $lang['language']="Idioma";
 $lang['cache_folder']="Directorio de Cache";
+$lang['survey_catalog_settings']="Configuración del Catálogo de Encuestas";
 $lang['catalog_folder']="Directorio del Catalogo";
 $lang['local_repository_id']="Identificación del repositorio Local";
 $lang['ddi_import_folder']="Directorio de importación del IDD";
@@ -16,13 +18,8 @@ $lang['regional_search_disable']="Desabilitar";
 $lang['topic_search']="Búsqueda de tema";
 $lang['year_search']="Búsqueda de año";
 $lang['website_theme_name']="Nombre de la plantilla del Sitio Web";
-$lang['site_login']="Acceso al Sitio";
-$lang['smtp_port']="Puerto del SMTP";
-
-$lang['default_home_page']="Página principal predeterminada";
-$lang['webmaster_name']="Nombre del Webmaster";
-$lang['survey_catalog_settings']="Configuración del Catálogo de Encuestas";
 $lang['data_catalog_page_size']="Tamaño de la página de búsqueda del Catalog";
+$lang['site_login']="Acceso al Sitio";
 $lang['password_protect_website']="Sitio Web protegido por Contraseña";
 $lang['login_timeout_in_min']="Tiempo de espera de inicio de sesión (en minutos)";
 $lang['min_password_length']="Longitud mínima de la contraseña";
@@ -31,6 +28,7 @@ $lang['login_not_required']="No es necesario autenticarse para visitar el sitio 
 $lang['mail_settings']="Configuración del SMTP";
 $lang['select_mail_protocol']="Protocolo para enviar correo electrónico";
 $lang['smtp_host']="Nombre del Servidor";
+$lang['smtp_port']="Puerto del SMTP";
 $lang['smtp_user']="Cuenta del usuario";
 $lang['smtp_password']="Contraseña del usuario";
 $lang['smtp_debug']="Depuración del SMTP";
@@ -52,8 +50,10 @@ $lang['year_search_enable']="Permitir - mostrará una lista adicional de tópico
 $lang['year_search_disable']="Desactivar";
 $lang['smtp_debug_enable']="Permitir - imprime mensajes de depuración para solucionar problemas de correo electrónico";
 $lang['smtp_debug_disable']="Desactivar";
-$lang['website_footer']="Pie de página del Sitio Web";
+$lang['website_footer']="Pie de página del sitio Web";
 $lang['repository_identifier']="Nombre del almacenamiento";
+$lang['news_feed_url']="Suscripción de noticias RSS ";
+
 
 /* End of file configurations_lang.php */
 /* Location: ./application/language/spanish/configurations_lang.php */
