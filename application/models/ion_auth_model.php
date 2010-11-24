@@ -131,7 +131,7 @@ class Ion_auth_model extends CI_Model
 	   					 ->select('salt')
 						 ->where($this->identity_column, $identity)
 						 ->where($this->ion_auth->_extra_where)
-						 ->limit(1)
+						 //->limit(1)
 						 ->get($this->tables['users']);
             
         $result = $query->row();
@@ -570,19 +570,18 @@ class Ion_auth_model extends CI_Model
 						  ->where($this->identity_column, $identity)
 						  ->where($this->ion_auth->_extra_where)
 						  ->where('active', 1)
-						  ->limit(1)
+						  //->limit(1)
 						  ->get($this->tables['users']);
 	    
         $result = $query->row();
-        
+
         if ($query->num_rows() == 1)
         {
             $password = $this->hash_password_db($identity, $password);
-            
+
     		if ($result->password === $password)
     		{
         		$this->update_last_login($result->id);
-        		
     		    $this->session->set_userdata('email',  $result->email);
 				$this->session->set_userdata('username',  $result->username);
     		    $this->session->set_userdata('id',  $result->id); //kept for backwards compatibility
@@ -623,7 +622,7 @@ class Ion_auth_model extends CI_Model
 	    	$this->tables['users'].'.forgotten_password_code',
 	    	$this->tables['users'].'.ip_address',
 	    	$this->tables['users'].'.active',
-	    	$this->tables['groups'].'.name AS `group`',
+	    	$this->tables['groups'].'.name AS user_group',
 	    	$this->tables['groups'].'.description AS group_description'
 	    ));
 	    
@@ -688,7 +687,7 @@ class Ion_auth_model extends CI_Model
 		}
 		
 		$this->db->where($this->tables['users'].'.id', $id);
-		$this->db->limit(1);
+		//$this->db->limit(1);
 		
 		return $this->get_users();
 	}
