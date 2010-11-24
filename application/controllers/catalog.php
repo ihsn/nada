@@ -136,9 +136,6 @@ class Catalog extends MY_Controller {
 		//get list of active countries
 		$data['countries']=$this->Search_helper_model->get_active_countries();
 		
-		//get active topics
-		//$data['topics']=$this->Search_helper_model->get_active_topics();
-		
 		$this->load->model('term_model');
 		
 		//list of topics attached to a survey
@@ -161,7 +158,6 @@ class Catalog extends MY_Controller {
 			//hide the topics box
 			$this->topic_search=FALSE;
 		}
-		//$this->term_model->get_formatted_terms_tree(3,0,$show_only=$topics_array);
 		
 		//get years
 		$min_year=$this->Search_helper_model->get_min_year();
@@ -172,8 +168,6 @@ class Catalog extends MY_Controller {
         	$data['years'][$year]=$year;
         }
 		
-//		var_dump($data['years']);exit;
-						
 		//show search form
 		$content=$this->load->view('catalog_search/search_form', $data,true);
 
