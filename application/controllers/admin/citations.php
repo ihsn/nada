@@ -236,6 +236,10 @@ class Citations extends MY_Controller {
 	}
 	
 	
+	/**
+	* Add/update a citation row using POST data
+	*
+	**/
 	function _update($id)
 	{
 		$options=array();
@@ -290,12 +294,18 @@ class Citations extends MY_Controller {
 				if($id!==FALSE)
 				{
 					$db_result=TRUE;
+					
+					//log to database
+					$this->db_logger->write_log('new',$options['title'],'citations');
 				}	
 			}
 			else
 			{				
 				//update record
-				$db_result=$this->Citation_model->update($id,$options);		
+				$db_result=$this->Citation_model->update($id,$options);	
+				
+				//log to database
+				$this->db_logger->write_log('change',$options['title'],'citations');
 			}
 		
 			if (isset($options['sid']))
@@ -314,7 +324,7 @@ class Citations extends MY_Controller {
 		if ($db_result!==FALSE)
 		{
 			//update successful
-			$this->session->set_flashdata('message', 'Form was updated successfully!');
+			$this->session->set_flashdata('message', t('form_update_success'));
 			
 			//redirect back to the list
 			redirect("admin/citations","refresh");
@@ -444,8 +454,18 @@ class Citations extends MY_Controller {
 		{
 			foreach($delete_arr as $item)
 			{
-				//confirm delete	
-				$this->Citation_model->delete($item);
+				//get citation info
+				$citation=$this->Citation_model->select_single($item);
+				
+				//delete if exists
+				if ($citation)
+				{
+					//log to database
+					$this->db_logger->write_log('delete',$citation['title'],'citations');
+					
+					//confirm delete	
+					$this->Citation_model->delete($item);	
+				}								
 			}
 
 			//for ajax calls, return output as JSON						
@@ -477,6 +497,11 @@ class Citations extends MY_Controller {
 		}		
 	}
 	
+	/**
+	*
+	* Imports a citation from BibTex format
+	*
+	**/
 	function import()
 	{	
 		$this->form_validation->set_rules('bibtex_string', 'Bibtex_String', 'xss_clean|trim|required');
@@ -509,6 +534,10 @@ class Citations extends MY_Controller {
 						if (is_numeric($new_id))
 						{
 							$success++;
+							
+							//log to database
+							$this->db_logger->write_log('import',$entry['title'],'citations');
+
 							//redirect('admin/citations/edit/'.$new_id);
 							//return;
 						}
