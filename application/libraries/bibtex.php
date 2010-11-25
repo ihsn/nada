@@ -234,8 +234,8 @@ class BibTeX{
 				//iterate and convert to nada author
 				foreach($author_array as $auth)
 				{
-					$tmp["fname"]=trim($auth[2]);
-					$tmp["lname"]=trim($auth[1]);
+					$tmp["lname"]=trim($auth[2]);
+					$tmp["fname"]=trim($auth[1]);
 					$tmp["initial"]='';
 					$nada_authors[]=$tmp;
 				}
