@@ -124,6 +124,9 @@ CREATE TABLE `citations` (
   `pub_month` varchar(45) DEFAULT NULL,
   `pub_year` int(10) unsigned DEFAULT NULL,
   `abstract` text,
+  `keywords` text,
+  `notes` text,
+  `doi` varchar(255) DEFAULT NULL,,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
