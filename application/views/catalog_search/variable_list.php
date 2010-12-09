@@ -1,3 +1,4 @@
+<?php if (isset($rows)): ?>
 <?php if ($rows): ?>
 
 <?php		
@@ -181,4 +182,5 @@
     
 <?php else: ?>
 	<?php echo t('no_records_found');?>
+<?php endif; ?>
 <?php endif; ?>
