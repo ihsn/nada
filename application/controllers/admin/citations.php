@@ -129,6 +129,9 @@ class Citations extends MY_Controller {
 		$this->form_validation->set_rules('volume', 'Volume', 'xss_clean|trim|max_length[45]');
 		$this->form_validation->set_rules('issue', 'Issue', 'xss_clean|trim|max_length[45]');
 		$this->form_validation->set_rules('pub_year', 'Year', 'xss_clean|trim|max_length[4]|is_numeric');
+		$this->form_validation->set_rules('doi', 'DOI', 'xss_clean|trim|max_length[45]');
+		$this->form_validation->set_rules('flag', t('flag_as'), 'xss_clean|trim|max_length[45]');
+		$this->form_validation->set_rules('published', t('published'), 'xss_clean|trim|is_numeric');
 		
 		//ignore the form submit if only changing the citation type
 		if ($this->input->post("select")==FALSE)
@@ -504,18 +507,37 @@ class Citations extends MY_Controller {
 	**/
 	function import()
 	{	
-		$this->form_validation->set_rules('bibtex_string', 'Bibtex_String', 'xss_clean|trim|required');
+		$this->form_validation->set_rules('citation_string', 'citation_string', 'xss_clean|trim|required');
 		
 		if ($this->form_validation->run() == TRUE) 
 		{					
-			$this->load->library('bibtex');		
-			$string=$this->input->post("bibtex_string");
-		
+			$string=$this->input->post("citation_string");
+			$format=$this->input->post("citation_format");
+			$bib_array=NULL;
+			
 			if ($string)
 			{
-				//parsed entries to nada format
-				$bib_array=$this->bibtex->parse_string($string);
-				
+				switch($format)
+				{
+					case 'bibtex':
+						$this->load->library('bibtex');
+						$bib_array=$this->bibtex->parse_string($string);
+					break;
+					
+					case 'endnote_bibix':
+						$this->load->library('endnote');
+						$bib_array=$this->endnote->parse($string);					
+					break;
+					
+					case 'endnote_ris':
+						$this->load->library('endnote_ris');
+						$bib_array=$this->endnote_ris->parse($string);										
+					break;
+				}
+				$format='bibtex';				
+				$published=(int)$this->input->post("published");
+				$flag=$this->input->post("flag");				
+
 				if (count($bib_array)>0)
 				{	
 					$success=0;
@@ -528,6 +550,9 @@ class Citations extends MY_Controller {
 							$failed++;
 							continue;
 						}
+						
+						$entry['published']=$published;
+						$entry['flag']=$flag;
 						
 						$new_id=$this->Citation_model->insert($entry);
 					
@@ -548,19 +573,19 @@ class Citations extends MY_Controller {
 					}
 					
 					//set message
-					$this->session->set_flashdata('message', sprintf(t('bibtex_import_status'),$success,$failed));
+					$this->session->set_flashdata('message', sprintf(t('citation_import_status'),$success,$failed));
 					//redirect
 					redirect('admin/citations/');
 				}
 				else				
 				{	
-					$this->form_validation->set_error('bibtex_string_invalid');
+					$this->form_validation->set_error('citation_string_invalid');
 				}
 			}
 		}
 		
 		//load the contents of the page into a variable
-		$content=$this->load->view('citations/import_bibtex', NULL,true);
+		$content=$this->load->view('citations/import_citation', NULL,true);
 		
 		//page title
 		$this->template->write('title', t('title_citations'),true);	
