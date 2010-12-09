@@ -339,7 +339,7 @@ License:
 
 	<!-- Data Collectors-->
 	<xsl:template match="ddi:stdyDscr//ddi:method/ddi:dataColl">
-		<div class="xsl-subtitle" style="margin-bottom:10px;">Data Collectors</div>
+		<div class="xsl-subtitle" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Collectors</xsl:with-param></xsl:call-template></div>
     	<table class="xsl-table">
 			<tr>
                 <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></th>
