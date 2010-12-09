@@ -127,6 +127,7 @@ CREATE TABLE `citations` (
   `keywords` text,
   `notes` text,
   `doi` varchar(255) DEFAULT NULL,,
+  `flag` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
@@ -389,11 +390,11 @@ CREATE TABLE `configurations` (
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('app_version', '3.0.1-10.12.2010', 'Application version', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('app_version', '3.0.3-12.09.2010', 'Application version', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('cache_folder', 'application/cache', 'Site cache folder', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_records_per_page', '5', 'Catalog search page - records per page', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_records_per_page', '15', 'Catalog search page - records per page', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_root', 'datafiles', 'Survey catalog folder', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('db_version', '3.0.1-10.12.2010', 'Database version', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('db_version', '3.0.3-12.09.2010', 'Database version', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('ddi_import_folder', 'imports', 'Survey catalog import folder', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('default_home_page', 'catalog', 'Default home page', 'Default home page', NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('html_folder', '/pages', NULL, NULL, NULL);
