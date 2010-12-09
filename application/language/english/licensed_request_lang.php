@@ -102,6 +102,13 @@ $lang['to_view_request_status']="To view the status of your request, please visi
 $lang['for_further_information'] = "For further information, please contact us at";
 $lang['form_not_available'] = "Form has been removed and is no longer available.";
 $lang['view_all_requests'] = "View all requests";
+//request status codes
+$lang['APPROVED'] = "Approved";
+$lang['DENIED'] = "Denied";
+$lang['PENDING'] = "Pending";
+$lang['MOREINFO'] = "More information is required";
+$lang['CANCELLED'] = "Cancelled";
+
 
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
