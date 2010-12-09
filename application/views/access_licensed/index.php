@@ -99,7 +99,7 @@
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->survey_title; ?></a></td>
             <td><?php echo $row->username; ?>&nbsp;</td>
-			<td><?php echo $row->status; ?></td>
+			<td><?php echo t($row->status); ?></td>
 			<td nowrap="nowrap"><?php echo date("m-d-Y",$row->created); ?></td>
 			<td nowrap="nowrap">
             <a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
