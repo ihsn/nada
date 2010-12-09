@@ -49,6 +49,8 @@ $lang['click_to_return_to_catalog_page'] = "Click here to return to the Catalog 
 $lang['rdf_export'] = "Export RDF";
 $lang['select_number_of_records_per_page'] = "Select number of records to show per page";
 $lang['study_already_exists'] = "The study already exists. Please select the overwrite option to replace the existing study.";
+$lang['invalid_ddi_file']="Invalid DDI file: ";
+$lang['nothing_to_process']="nothing_to_process";
 
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
