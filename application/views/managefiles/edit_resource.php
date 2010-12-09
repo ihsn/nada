@@ -18,7 +18,7 @@ foreach($option_formats as $key=>$value)
 
 <div class="content-container">
 <div class="page-links">
-	<?php echo anchor('admin/catalog/'.$this->uri->segment(3).'/resources','Resources home',array('class'=>'button') );	?>
+	<?php echo anchor('admin/catalog/'.$this->uri->segment(3).'/resources',t('link_resource_home'),array('class'=>'button') );	?>
 </div>
 
 <?php if (validation_errors() ) : ?>
