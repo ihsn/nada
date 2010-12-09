@@ -53,7 +53,7 @@ class Sitelog_model extends Model {
 		
 		if (!$query)
 		{	
-				echo $this->db->last_query();	
+			echo $this->db->last_query();	
 			return FALSE;
 		}
 		$result=$query->result_array();
