@@ -405,7 +405,7 @@ class Catalog extends MY_Controller {
 		
 		if (!is_array($session_data) )
 		{
-			show_error('Nothing to process');
+			show_error(t('nothing_to_process'));
 		}
 		
 		$ddi_file=$session_data['upload_data']['full_path'];
@@ -424,7 +424,7 @@ class Catalog extends MY_Controller {
 		if ($this->ddi_parser->validate()===false)
 		{
 			//log import error
-			$error= 'Invalid DDI file: '.$ddi_file;
+			$error= t('invalid_ddi_file').' '.$ddi_file;
 			log_message('error', $error);
 
 			//log to database
