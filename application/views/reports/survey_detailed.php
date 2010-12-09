@@ -4,15 +4,6 @@
     <td style="text-align:right;"><?php $this->load->view('reports/download_options'); ?></td>
 </tr>
 </table>
-
-<?php
-//	echo survey_details($rows);
-//return;
-//echo '<pre>';
-//var_dump($rows);
-//exit;
-?>
-
 <?php if ($rows):?>
     <table class="report-table" style="width:100%;">
 	<?php 
@@ -45,7 +36,7 @@
                 $section_total+=$row['visits'];
             ?>        
             <tr>
-                <td><?php echo (strlen($row['section'])<2) ? 'Overview' : $row['section'];?></td>
+                <td><?php echo (strlen($row['section'])<2) ? t('sec_overview') : t('sec_'.strtolower($row['section']));?></td>
                 <td><?php echo $row['visits'];?></td>
             </tr>
         <?php endforeach;?>
