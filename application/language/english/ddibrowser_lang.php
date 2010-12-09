@@ -158,6 +158,8 @@ $lang['Processing Checks'] = "Processing Checks";
 $lang['Definition'] = "Definition";
 $lang['Content'] = "Content";
 $lang['title_analytical'] = "Analytical Outputs";
+$lang['Data Collectors']="Data Collectors";
+$lang['Time Periods']="Time Periods";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
