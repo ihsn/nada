@@ -33,7 +33,7 @@ $options_datamatching=array(
       <tr class="border" valign="top">
       <td width="200px"><?php echo t('request_information');?></td>
       <td>
-          	<div style="margin-bottom:10px;font-weight:bold"><?php echo t('request_status');?>: <em><?php echo $status; ?></em></div>
+          	<div style="margin-bottom:10px;font-weight:bold"><?php echo t('request_status');?>: <em><?php echo t($status); ?></em></div>
       		<span><?php echo t('request_id');?>: <?php echo (isset($id) ? $id : ''); ?></span>, 
             <span><?php echo t('dated');?>: <?php echo date("D, M/d/Y H:i:s",(isset($created) ? $created : '')); ?></span>
       </td>
