@@ -1,21 +1,69 @@
-09/10/2010	NADA 3.0 Released
-09/12/2010	Updated Installation instructions 
-09/12/2010	Updated Spanish translations done by Mercedez Rivaldi
-09/16/2010	Updated Installation instructions 
-09/20/2010	Added SSL for secure login and other secure pages such as forgot password, user registration
-09/23/2010	Bug fix: Upgrade script would fail if the phone field in nada2 was very long
-09/23/2010	Bug fix: Upgrade script would not import data access types from nada2
-09/25/2010	Changed the default setting for cache to be enabled for the DDI Browser pages to reduce no. of transforms
-09/28/2010	Bug fix: If a user is not logged in and clicks on the public form, the login page does not redirect to the public form after login.
-09/28/2010	Updated the forms to disable auto-complete. The forms such as login won't remember the previous enteries.
-09/28/2010	JS files are packed using JS Min to reduce the file sizes.
-09/28/2010	Cookies are updated to have the HTTPOnly attribute added to them for enhancing security
-09/28/2010	Bug fix: Sorting on year does not sort correctly
-09/30/2010	Updated the report bug form on the dashboard and is now functional
-09/30/2010	Added: news_feed_url setting to the configurations table
-09/30/2010  Bug fix: Data catalog search stops working if a country name contains apostrophe(').
-10/04/2010	Fixed: The sort on year does not work
-10/05/2010	Updated: DDI's using event="single" for the collection dates appeared with no year info in the data catalog.
-10/06/2010	Translation files are updated and include the missing strings that were not translated e.g. email messages
-10/06/2010  Bug fix: Searching for a country with no records will result in either showing all citations or a database error.
-10/12/2010	NADA 3.0.1 Released
+NADA 3.0 Released (09/10/2010)
+
+NADA 3.0.1 (10/12/2010)
+- Updated Installation instructions 
+- Updated Spanish translations done by Mercedez Rivaldi
+- Updated Installation instructions 
+- Added SSL for secure login and other secure pages such as forgot password, user registration
+- Bug fix: Upgrade script would fail if the phone field in nada2 was very long
+- Bug fix: Upgrade script would not import data access types from nada2
+- Changed the default setting for cache to be enabled for the DDI Browser pages to reduce no. of transforms
+- Bug fix: If a user is not logged in and clicks on the public form, the login page does not redirect to the public form after login.
+- Updated the forms to disable auto-complete. The forms such as login won't remember the previous enteries.
+- JS files are packed using JS Min to reduce the file sizes.
+- Cookies are updated to have the HTTPOnly attribute added to them for enhancing security
+- Bug fix: Sorting on year does not sort correctly
+- Updated the report bug form on the dashboard and is now functional
+- Added: news_feed_url setting to the configurations table
+- Bug fix: Data catalog search stops working if a country name contains apostrophe(').
+- Fixed: The sort on year does not work
+- Updated: DDI's using event="single" for the collection dates appeared with no year info in the data catalog.
+- Translation files are updated and include the missing strings that were not translated e.g. email messages
+- Bug fix: Searching for a country with no records will result in either showing all citations or a database error.
+
+NADA 3.0.2
+- Fixed BibTex: The first and last name were imported to wrong database fields
+- Added Logging for the citation to track changes made by users
+- Added Microsoft SQL Native drivers (SQL_SRV): Initial version and still need to be properly tested
+- Several changes to the MSSQL/SQL_SRV driver to make the pagination work with MSSQL-2005/08
+- Codeigniter license file included with the distribution
+- Removed: Search help link is removed from data catalog page as it is very hard to maintain translations
+- Fixed: column alias 'group' is a reserved word and queries fail in MSSQL
+- Fixed: No primary key was set on FORMS table
+- Added: Initial version of NADA Language translation tool
+- Updated Spanish translation files
+- Updated French translation files
+- Fixed upgrade issue with External resources being not imported during upgrade from nada 2 to 3. 
+- Removed import of site logs during nada2 to 3 upgrade: if sitelogs are more than 100K, script might terminate with the out of memory error
+- Changed filename for PDF library to lower case to avoid issues on Linux
+- Added CSS for Data-catalog right to left support
+- Remove site_url field from the site configurations.
+- Fixed sitelogs' display of long field wrapping issue. The urls are truncated and added a title attribute to view full url
+- Added Home link to the DDI Browser left menu to return to the data catalog page
+- Added social networking icons for Twitter, Facebook and Delicious
+- Added a new column for citations to show number of related studies
+- Updated citations listing page to change number of records to be displayed per page and to remember the sort order during search
+- Updated citation info page to include additional fields such as citation type, subtitle and etc.
+- Changed proddate to use the collection end date
+- Added a DDI download link on the catalog maintenance page for each study
+- Updated several citation search issues such as country search and sorting
+- Added support to exclude site logging based on user agents
+- Updated the ddibrowser to use CI translation files instead of a seperate .xml file for translations
+- Updated: Country name is required on the user registration form
+- Fixed: If an external resource file name includes ampersand(&), it gets converted to html entities and fix broken links does not work
+- Added Custom page size support for citations admin page
+- Updated DDI Variable information page to include Concepts and re-arranged elements on the page
+- Added new sections for Variable Group page including Type, Text, Definition, Universe, Notes
+- Updated DDI Browser: Overview page formatting improved
+- Updated DDI Browser: Added new sections to the Data File page including data checks, notes.
+- Fixed DDI Browser: Line breaks are preserved
+- DDI Browser: Added new section for Time Periods and Data Collectors
+- DDI Browser: Misc. updates to the Access Policy page
+- Added RTL support for DDI-browser treeview
+- Added a new resource type [doc/anl] to the DDI Browser
+- Update catalog RSS to include additional fields (surveyid,accesspolicy)
+- Added import citation link on the citations page
+- Added suppot for import citations from BibTex
+- Added export to BibTex initial version
+- Added support for licensed forms to work with or without the site template
+- Fixed: The licensed request page will not show the form if the user has already requested access to the survey when request is either PENDING or APPROVED (not expired yet) and redirects them to the request status page
