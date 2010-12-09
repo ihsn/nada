@@ -55,7 +55,7 @@ class Vocabularies extends MY_Controller {
 			if ($db_result===TRUE)
 			{
 				//update successful
-				$this->session->set_flashdata('message', 'Form was updated successfully!');
+				$this->session->set_flashdata('message', t('form_update_success'));
 				
 				//redirect back to the list
 				redirect("admin/vocabularies","refresh");
@@ -63,7 +63,7 @@ class Vocabularies extends MY_Controller {
 			else
 			{
 				//update failed
-				$this->form_validation->set_error('Failed to update database');
+				$this->form_validation->set_error(t('form_update_fail'));
 			}
 		}
 		else //loading form the first time
