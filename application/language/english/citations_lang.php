@@ -70,13 +70,34 @@ $lang['article_title'] = "Article title";
 $lang['journal_title'] = "Journal";
 
 $lang['corporate-author'] = "Corporate Author";
-$lang['citation_home'] = "Return to Citations' home";
+$lang['citation_home'] = "Home";
 $lang['country'] = "Country";
 
 $lang['import_citation'] = "Import Citations";
-$lang['paste_bibtex_string'] = "Paste BibTex";
-$lang['bibtex_url'] = "URL - to the BibTex entry";
-$lang['bibtex_import_status'] = "%s entrie(s) were imported successfully, %s were skipped";
+$lang['paste_citation_string'] = "Paste citation text";
+$lang['citation_url'] = "URL of the citation";
+$lang['citation_import_status'] = "%s citation(s) were imported successfully, %s were skipped";
+$lang['citation_import_format'] = "Select citation import format";
 $lang['journal_title'] = "Journal";
+$lang['magazine_title'] = "Magazine title";
+$lang['newspaper_title'] = "Newspaper title";
+$lang['website_document_title'] = "Document title";
+$lang['website_organization'] = "Organization name";
+$lang['website_access_date'] = "Last access date";
+
+$lang['icon_note'] = "Entry has notes";
+$lang['icon_no_related_study'] = "No related studies are attached";
+$lang['icon_related_study'] = "Related studies are attached";
+$lang['icon_flag'] = "Flagged";
+$lang['tobe_checked'] = "to-be-checked";
+$lang['incomplete'] = "incomplete";
+$lang['ds_unclear'] = "unclear-related-dataset";
+$lang['clear_selection'] = "Clear selection";
+$lang['flag_entry_as'] = "Flag citation(s) as";
+$lang['published'] = "Published";
+$lang['option_publish'] = "Publish";
+$lang['option_do_not_publish'] = "Do not publish";
+$lang['publish_citation'] = "Publish citation(s)";
+
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
