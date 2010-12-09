@@ -1,4 +1,9 @@
 <div class="field">
+    <label for="title"><?php echo t('website_document_title');?></label>
+    <input name="title" type="text" id="title" size="50" class="input-flex"  value="<?php echo get_form_value('title',isset($title) ? $title: ''); ?>"/>
+</div>
+
+<div class="field">
     <label for="organization"><?php echo t('website_organization');?></label>
     <input name="organization" type="text" id="organization" size="50" class="input-flex"  value="<?php echo get_form_value('organization',isset($organization) ? $organization: ''); ?>"/>
 </div>
