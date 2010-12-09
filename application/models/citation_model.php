@@ -11,154 +11,29 @@ class Citation_model extends Model {
     }
 	
 	//search
-    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
+    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL)
     {
-		//fields returned by select
-		$select_fields='SQL_CALC_FOUND_ROWS 
-						citations.id,
-						citations.title,
-						citations.subtitle,
-						citations.alt_title,
-						citations.authors,
-						citations.editors,
-						citations.translators,
-						citations.changed,
-						citations.created,
-						citations.published,
-						citations.volume,
-						citations.issue,
-						citations.idnumber,
-						citations.edition,
-						citations.place_publication,
-						citations.place_state,
-						citations.publisher,
-						citations.publication_medium,
-						citations.url,
-						citations.page_from,
-						citations.page_to,
-						citations.data_accessed,
-						citations.organization,
-						citations.ctype,
-						citations.pub_day,
-						citations.pub_month,
-						citations.pub_year,
-						citations.abstract,
-						count(survey_citations.id) as survey_count';
-						
-		//select columns for output
-		$this->db->select($select_fields, FALSE);
-	
-		//allowed_fields
-		$db_fields=array(
-					'title'=>'citations.title',
-					'subtitle'=>'citations.subtitle',
-					'alt_title'=>'citations.alt_title',
-					'authors'=>'citations.authors',
-					'editors'=>'citations.editors',
-					'translators'=>'citations.translators',
-					'place_publication'=>'citations.place_publication',
-					'publisher'=>'citations.publisher',
-					'url'=>'citations.url',
-					'place_state'=>'citations.place_state',
-					'country'=>'surveys.nation',
-					'pub_year'=>'citations.pub_year',
-					'survey_count'=>'survey_count',
-					'changed'=>'citations.changed'
-					);
-		
-		//fields to search when search=ALL FIELDS
-		$all_fields=array(
-					'citations.title',
-					'citations.subtitle',
-					'citations.alt_title',
-					'citations.authors',
-					'citations.url',
-					'citations.pub_year',
-					'surveys.nation'
-					);
-		
-		$this->db->from('citations');
-		$this->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
-		$this->db->join('surveys', 'survey_citations.sid = surveys.id','left');
-		$this->db->group_by('citations.id');
-		
-		//set where
-		if ($filter)
-		{			
-			foreach($filter as $f)
-			{
-				//split keyword by space
-				$keywords_array=explode(" ", trim($f['keywords']));
-				
-				foreach($keywords_array as $keyword)
-				{
-					if (trim($keyword)!="" && strlen($keyword)>2)
-					{
-						//search only in the allowed fields
-						if (array_key_exists($f['field'],$db_fields))
-						{
-							$this->db->like($db_fields[$f['field']], trim($keyword)); 
-						}
-						else if ($f['field']=='all')
-						{
-							foreach($all_fields as $field)
-							{
-								$this->db->or_like($field, trim($keyword)); 
-							}
-						}
-						/*else if ($f['field']==strtolower('country'))
-						{
-							//country search
-							$citations=$this->search_citation_by_country(trim($keyword));
-							
-							//if no citations found by country
-							if (!$citations)
-							{
-								return FALSE;
-							}
-							$this->db->where_in('id', $citations);		
-						}*/
-					}
-				}
-			}
-		}
-				
-		//set order by
-		if ($sort_by!='' && $sort_order!='')
+		$driver=$this->db->dbdriver;
+
+		switch($driver)
 		{
-			if (array_key_exists($sort_by,$db_fields))
-			{
-				$this->db->order_by($sort_by, $sort_order); 
-			}
-			else
-			{
-				$this->db->order_by('citations.title', $sort_order); 
-			}			
-		}
-		
-		//set Limit clause
-	  	$this->db->limit($limit, $offset);
-        $query= $this->db->get();
-		
-		if ($query)
-		{
-			$result=$query->result_array();
-			
-			//get total search result count
-			$query_found_rows=$this->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();
-			$this->search_found_rows=$query_found_rows['rowcount'];
-			
-			//find authors for citations
-			foreach($result as $key=>$row)
-			{
-				$result[$key]['authors']=$this->get_citation_authors($row['id'],'author');
-			}
-			
-			return $result;
-		}
-		
-		
-		return FALSE;
+			case 'mysql';
+				//include dirname(__FILE__).'/catalog_search_sqlsrv.php';
+				//return;
+				$this->load->library('citation_search_mysql');
+				$result=$this->citation_search_mysql->search($limit, $offset,$filter,$sort_by,$sort_order,$published);
+				$this->search_found_rows=$this->citation_search_mysql->search_found_rows;
+				return $result;
+				break;
+			default:
+				//include dirname(__FILE__).'/catalog_search_mysql.php';
+				//return;
+				$this->load->library('citation_search_sql');
+				$result= $this->citation_search_sql->search($limit, $offset,$filter,$sort_by,$sort_order,$published);
+				$this->search_found_rows=$this->citation_search_sql->search_found_rows;
+				return $result;
+				break;
+		}		
     }
 	
   	/**
@@ -394,7 +269,11 @@ class Citation_model extends Model {
 				'pub_year',
 				'organization',
 				'ctype',
-				'abstract'
+				'abstract',
+				'notes',
+				'keywords',
+				'doi',
+				'flag'
 			);
 		
 		$authors=array();
@@ -559,7 +438,11 @@ class Citation_model extends Model {
 				'pub_year',
 				'organization',
 				'ctype',
-				'abstract'		
+				'abstract',
+				'notes',
+				'keywords',
+				'doi',
+				'flag'
 			);
 
 		$authors=array();
