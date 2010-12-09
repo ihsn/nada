@@ -9,7 +9,7 @@
         <?php foreach($lic_requests as $request) :?>
             <tr>
                 <td><?php echo anchor('access_licensed/track/'.$request['id'],$request['titl']);?></td>
-                <td><?php echo $request['status'];?></td>
+                <td><?php echo t($request['status']);?></td>
                 <td><?php echo date("m-d-Y",$request['created']); ?></td>
             </tr>
         <?php endforeach;?>    
