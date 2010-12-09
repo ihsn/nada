@@ -65,7 +65,7 @@ class Citations extends MY_Controller {
 		}		
 		
 		//records
-		$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+		$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1);
 
 		//total records found
 		$total = $this->Citation_model->search_count();
@@ -75,7 +75,7 @@ class Citations extends MY_Controller {
 			$offset=$total-$per_page;
 			
 			//search again
-			$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+			$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1);
 		}
 		
 		//set pagination options
