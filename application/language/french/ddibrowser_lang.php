@@ -141,7 +141,10 @@ $lang['View variable info']="Voir les informations sur la variable";
 $lang['warning_figures_indicate_number_of_cases_found']="Avertissement: ces statistiques indiquent le nombre d'enregistrements trouvés dans les fichiers de données, et non des nombres pondérés. Ils ne peuvent pas être interpretés comme étant représentatifs de la population concernées.";
 $lang['Weighting']="Pondération";
 $lang['Width']="Largeur";
-
+$lang['study_home']="Accueil";
+$lang['Study Type']="Study Type";
+$lang['Data Collectors']="Data Collectors";
+$lang['Time Periods']="Time Periods";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./application/language/french/ddibrowser_lang.php */
