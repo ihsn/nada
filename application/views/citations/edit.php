@@ -43,6 +43,19 @@ table .input-flex{margin-bottom:5px;}
 		'website-doc'			=>t('Website Document'),
 		'thesis'				=>t('Thesis or Dissertation'),
 	);
+	
+	$flag_options=array(
+		''=>'--',
+		'ds_unclear'=>t('ds_unclear'),
+		'incomplete'=>t('incomplete'),
+		'tobe_checked'=>t('tobe_checked'),
+		);
+	
+	$publish_options=array(
+		'1'=>t('option_publish'),
+		'0'=>t('option_do_not_publish')
+		);
+	
 ?>
 
 <?php if (validation_errors() ) : ?>
@@ -87,22 +100,61 @@ table .input-flex{margin-bottom:5px;}
 ?>
 </span>
 
+
+
+<table border="0" class="inline-fields">
+	<tr>
+    <td>	
+        <div class="field">
+            <label for="doi"><?php echo t('doi');?></label>
+            <input name="doi" type="text" id="doi" size="50" class="input-flex"  value="<?php echo get_form_value('doi',isset($doi) ? $doi : ''); ?>"/>
+        </div>
+    </td>
+    <td>    
+        <div class="field">
+            <label for="flag"><?php echo t('flag_entry_as');?></label>
+            <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),'id="flag"'); ?>
+        </div>
+    </td>
+</tr>
+</table>
+
+<div class="field">
+    <label for="publish"><?php echo t('publish_citation');?></label>
+    <?php echo form_dropdown('published', $publish_options, get_form_value("published",isset($published) ? $published : ''),'id="published"'); ?>
+</div>
+        
 <fieldset class="field-expanded">
 	<legend><?php echo t('abstract');?></legend>
 	<div class="field">
         <textarea name="abstract" id="abstract" rows="5" class="input-flex"><?php echo get_form_value('abstract',isset($abstract) ? $abstract : ''); ?></textarea>
 	</div>
 </fieldset>
-    
+
+<fieldset class="field-expanded">
+	<legend><?php echo t('notes');?></legend>
+	<div class="field">
+        <textarea name="notes" id="notes" rows="5" class="input-flex"><?php echo get_form_value('notes',isset($notes) ? $notes : ''); ?></textarea>
+	</div>
+</fieldset>
+
+<fieldset class="field-expanded">
+	<legend><?php echo t('keywords');?></legend>
+	<div class="field">
+        <textarea name="keywords" id="keywords" rows="5" class="input-flex"><?php echo get_form_value('keywords',isset($keywords) ? $keywords : ''); ?></textarea>
+	</div>
+</fieldset>
+ 
 <fieldset class="field-expanded">
 	<legend><?php echo t('related_studies');?></legend>
 <div class="field">
     <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
 			<?php echo $survey_list; ?>
     </div>    
-    <a style="" href="#clear" title="Clear all the selected studies" onclick="clear_studies();return false">Clear selection</a>
+    <a style="" href="#clear" title="Clear all the selected studies" onclick="clear_studies();return false"><?php echo t('clear_selection');?></a>
 </div>
 </fieldset>
+
 
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
