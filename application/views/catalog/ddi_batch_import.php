@@ -51,6 +51,14 @@
 
 </div>
 <script language="javascript">
+//translations	
+var i18n=
+{
+'cancel_import_process':"<?php echo t('cancel_import_process');?>",
+'import_completed':"<?php echo t('import_completed');?>",
+'import_cancelled':"<?php echo t('import_cancelled');?>",
+};
+
 $(".log").css({ border: '1px solid gray'});
 var batch_import = {
 	
@@ -87,7 +95,7 @@ var batch_import = {
 		if (this.queue_idx<this.queue.length) {			
 			
 			html='<img src="images/loading.gif" align="absbottom"> Importing '+ (this.queue_idx+1) +' of '+this.queue.length+'... <b>['+this.queue[this.queue_idx].name+']</b>';
-			html+=' <a href="#" onclick="batch_import.abort();return false;"><?php echo t('cancel_import_process');?></a>';
+			html+=' <a href="#" onclick="batch_import.abort();return false;">' +i18n.cancel_import_process+'</a>';
 			$("#batch-import-box").show();
 			$("#batch-import-processing").html(html);
 			
@@ -95,7 +103,7 @@ var batch_import = {
 			this.import_single(this.queue[this.queue_idx++].id);		
 		}
 		else{
-			$("#batch-import-processing").html('<?php echo t('import_completed');?>');
+			$("#batch-import-processing").html(i18n.import_completed);
 			this.isprocessing=false;
 		}
 		
@@ -122,7 +130,7 @@ var batch_import = {
 	},
 	
 	abort: function(){
-		$("#batch-import-processing").html('<?php echo t('import_cancelled');?>');
+		$("#batch-import-processing").html(i18n.import_cancelled);
 		this.xhr.abort();
 		this.isprocessing=false;
 	}	
