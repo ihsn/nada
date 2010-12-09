@@ -22,7 +22,7 @@ class Math_captcha{
     //constructor
 	function __construct()
 	{
-		$this->ci =& get_instance();	
+		$this->ci =& get_instance();
     }
 	
 	function create_question()
@@ -52,7 +52,7 @@ class Math_captcha{
 		
 		if ($question!==$answer)
 		{
-			$this->ci->form_validation->set_message('validate_captcha', '%s answer did\'t match.');
+			$this->ci->form_validation->set_message('validate_captcha', t('captcha_answer_not_matched'));
 			return FALSE;
 		}
 		return TRUE;	
