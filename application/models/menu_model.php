@@ -62,8 +62,9 @@ class Menu_model extends Model {
 	* Select a single menu item
 	*
 	**/
-	function select_single($id){
-		$this->db->where('id', $id); 
+	function select_single($id)
+	{		
+		$this->db->where('id', (integer)$id); 
 		return $this->db->get('menus')->row_array();
 	}
 	
@@ -192,6 +193,8 @@ class Menu_model extends Model {
 		
 		return $result;		
 	}
+	
+	
 	/**
 	* checks if a URL exists
 	*
@@ -219,8 +222,13 @@ class Menu_model extends Model {
     {
 		$this->db->select('*');		
 		$this->db->from('menus');
-		$this->db->where('url',$page_url );		
-		$this->db->or_where('id',$page_url );		
+		$this->db->where('url',$page_url );
+		
+		if (is_numeric($page_url))
+		{
+			$this->db->or_where('id',$page_url );
+		}
+			
         $result= $this->db->get()->row_array();
 		return $result;
     }
