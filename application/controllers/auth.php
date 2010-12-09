@@ -15,8 +15,11 @@ class Auth extends MY_Controller {
     	$this->template->set_template('default');	
     	$this->template->write('sidebar', $this->_menu(),true);	
     
+		$this->lang->load('general');
+		$this->lang->load('users');
+		
     	$this->load->library('math_captcha'); //simple math captcha library    		
-    	$this->lang->load('users');
+    	
 		
       	//$this->output->enable_profiler(TRUE);
     }
@@ -53,6 +56,7 @@ class Auth extends MY_Controller {
 		//check if user is logged in
 		$this->_is_logged_in();
 		$this->load->model('Licensed_model');
+		$this->lang->load("licensed_request");
 
 		//log
 		$this->db_logger->write_log('profile');
