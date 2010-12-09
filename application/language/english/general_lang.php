@@ -104,6 +104,7 @@ $lang['share_with_facebook'] = "Share with Facebook";
 $lang['share_with_twitter'] = "Share with Twitter";
 $lang['share_with_delicious'] = "Share with Delicious";
 $lang['study_home'] = "Home";
+$lang['captcha_answer_not_matched'] = "%s answer didn't match.";
 
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */
