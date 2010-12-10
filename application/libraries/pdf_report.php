@@ -20,6 +20,7 @@ class PDF_Report{
 		$this->ci =& get_instance();
 		$this->ci->load->library('my_mpdf',array('encoding'=>'win-1251'));
 		$this->ci->load->helper('xslt_helper');
+		$this->ci->lang->load("ddibrowser");
     }
 	
 	
