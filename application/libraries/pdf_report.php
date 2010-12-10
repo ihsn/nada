@@ -183,9 +183,30 @@ class PDF_Report{
 				$params=array('file'=>$param1);
 			break;				
 		}
+
+		//needed for finding/creating the language translation file
+		$this->ci->load->library("DDI_Browser");
+						
+		//language
+		$language=array('lang'=>$this->ci->config->item("language"));
 		
-		$parameters=array_merge( array('lang'=> $this->ci->config->item("language")), $params);
-		//$parameters=array('lang'=>"EN");
+		if(!$language)
+		{
+			//default language
+			$language=array('lang'=>"english");
+		}	
+		
+		//get the xml translation file path
+		$language_file=$this->ci->DDI_Browser->get_language_path($language['lang']);
+		
+		if ($language_file)
+		{
+			//change to the language file (without .xml) in cache
+			$language['lang']=unix_path(FCPATH.$language_file);
+		}		
+
+		//add language to params
+		$parameters=array_merge( array('lang'=> $language['lang']), $params);
 		
 		$output= xsl_transform($xml,$xslt,$parameters);
 		
@@ -197,4 +218,4 @@ class PDF_Report{
 }// END PDF_Report Class
 
 /* End of file PDF_Report.php */
-/* Location: ./application/libraries/PDF_Report.php *////////////////
+/* Location: ./application/libraries/PDF_Report.php *////////////////////////////////////////////////////////////////
