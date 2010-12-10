@@ -556,7 +556,10 @@ var	$_escape_char = '';
 
 	function _limit($sql, $limit, $offset)
     {
-		$OrderBy="";
+		//default order if no order by is defined. 
+		//limit queries require an ORDER BY
+		$OrderBy="ORDER BY RAND()"; 
+		
         if (count($this->ar_orderby) > 0)
         {
             $OrderBy  = "ORDER BY ";
@@ -589,4 +592,50 @@ var	$_escape_char = '';
 	{
 		sqlsrv_close($conn_id);
 	}	
+	
+	/**
+	 * "Count All Results" query
+	 *
+	 * Generates a platform-specific query string that counts all records 
+	 * returned by an Active Record query.
+	 *
+	 * @access	public
+	 * @param	string
+	 * @return	string
+	 */
+	function count_all_results($table = '')
+	{
+		if ($table != '')
+		{
+			$this->_track_aliases($table);
+			$this->from($table);
+		}
+		
+		$sql = $this->_compile_select($this->_count_string . $this->_protect_identifiers('num_rows'));
+		
+		//remove order by
+		$pos=strpos(strtolower($sql),"order ");
+
+		if ($pos>0)
+		{
+			$sql=substr($sql,0,$pos-1);
+		}
+		
+		$query = $this->query($sql);
+		$this->_reset_select();
+	
+		if (!$query)
+		{
+			return '0';
+		}
+	
+		if ($query->num_rows() == 0)
+		{
+			return '0';
+		}
+
+		$row = $query->row();
+		return $row->num_rows;
+	}
+	
 }
