@@ -98,6 +98,8 @@ $lang['published'] = "Published";
 $lang['option_publish'] = "Publish";
 $lang['option_do_not_publish'] = "Do not publish";
 $lang['publish_citation'] = "Publish citation(s)";
+$lang['doi'] = "Digital object identifier (DOI)";
+$lang['notes'] = "Notes (visible only to administrators)";
 
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
