@@ -101,23 +101,15 @@ table .input-flex{margin-bottom:5px;}
 </span>
 
 
+<div class="field">
+    <label for="doi"><?php echo t('doi');?></label>
+    <input name="doi" type="text" id="doi" size="50" class="input-flex"  value="<?php echo get_form_value('doi',isset($doi) ? $doi : ''); ?>"/>
+</div>
 
-<table border="0" class="inline-fields">
-	<tr>
-    <td>	
-        <div class="field">
-            <label for="doi"><?php echo t('doi');?></label>
-            <input name="doi" type="text" id="doi" size="50" class="input-flex"  value="<?php echo get_form_value('doi',isset($doi) ? $doi : ''); ?>"/>
-        </div>
-    </td>
-    <td>    
-        <div class="field">
-            <label for="flag"><?php echo t('flag_entry_as');?></label>
-            <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),'id="flag"'); ?>
-        </div>
-    </td>
-</tr>
-</table>
+<div class="field">
+    <label for="flag"><?php echo t('flag_entry_as');?></label>
+    <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),'id="flag"'); ?>
+</div>
 
 <div class="field">
     <label for="publish"><?php echo t('publish_citation');?></label>
@@ -132,20 +124,6 @@ table .input-flex{margin-bottom:5px;}
 </fieldset>
 
 <fieldset class="field-expanded">
-	<legend><?php echo t('notes');?></legend>
-	<div class="field">
-        <textarea name="notes" id="notes" rows="5" class="input-flex"><?php echo get_form_value('notes',isset($notes) ? $notes : ''); ?></textarea>
-	</div>
-</fieldset>
-
-<fieldset class="field-expanded">
-	<legend><?php echo t('keywords');?></legend>
-	<div class="field">
-        <textarea name="keywords" id="keywords" rows="5" class="input-flex"><?php echo get_form_value('keywords',isset($keywords) ? $keywords : ''); ?></textarea>
-	</div>
-</fieldset>
- 
-<fieldset class="field-expanded">
 	<legend><?php echo t('related_studies');?></legend>
 <div class="field">
     <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
@@ -155,6 +133,19 @@ table .input-flex{margin-bottom:5px;}
 </div>
 </fieldset>
 
+<fieldset class="field-expanded">
+	<legend><?php echo t('keywords');?></legend>
+	<div class="field">
+        <textarea name="keywords" id="keywords" rows="5" class="input-flex"><?php echo get_form_value('keywords',isset($keywords) ? $keywords : ''); ?></textarea>
+	</div>
+</fieldset>
+
+<fieldset class="field-expanded">
+	<legend><?php echo t('notes');?></legend>
+	<div class="field">
+        <textarea name="notes" id="notes" rows="5" class="input-flex"><?php echo get_form_value('notes',isset($notes) ? $notes : ''); ?></textarea>
+	</div>
+</fieldset>
 
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
