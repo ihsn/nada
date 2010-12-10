@@ -13,13 +13,13 @@
 	}
 ?>
 <?php if ($slave_key_found) :?>
-$lang['<?php echo $key;?>']="<?php echo addslashes($slave_value);?>";<?php echo "\n";?>
+$lang['<?php echo $key;?>']="<?php echo str_replace('"','&quot;',$slave_value);?>";<?php echo "\n";?>
 <?php endif;?>
 <?php endforeach;?>
 
 <?php if ($this->fill_missing):?>
 <?php foreach($missing as $key=>$value):?>
-$lang['<?php echo $key;?>']="<?php echo addslashes($value);?>";<?php echo "\n";?>
+$lang['<?php echo $key;?>']="<?php echo str_replace('"','&quot;',$value);?>";<?php echo "\n";?>
 <?php endforeach;?>
 <?php endif;?>
 
