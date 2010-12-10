@@ -3,7 +3,7 @@ $lang['title_data_catalog']="Catalogue de données";
 $lang['data_catalog']="Catalogue de données";
 $lang['catalog_search_help']="Aide à la recherche";
 $lang['study_information']="Information sur l'étude";
-$lang['citations']="Bibliographie";
+$lang['citations']="Citations";
 $lang['msg_website_redirect']="Vous êtes en cours de redirection vers un autre site internet:";
 $lang['link_export_search']="Exporter les résultats de la recherche";
 $lang['link_search_help']="Aide à la recherche";
@@ -42,8 +42,8 @@ $lang['link_data_direct_hover']="Formulaire de demande d'accès aux microdonnée
 $lang['link_data_public_hover']="Formulaire de demande d'accès aux microdonnées (accès public)";
 $lang['link_data_licensed_hover']="Formulaire de demande d'accès aux microdonnées (données sous license)";
 $lang['link_data_enclave_hover']="Formulaire de demande d'accès au Centre des Données";
-$lang['link_citations']="Bibliographie";
-$lang['link_citations_hover']="Bibliographie relative à l'étude";
+$lang['link_citations']="Citations";
+$lang['link_citations_hover']="Citations relative à l'étude";
 $lang['link_reports']="Rapports et analyses";
 $lang['link_reports_hover']="Rapports et documents analytiques";
 $lang['link_indicators']="Tableaux et indicateurs (base des données)";
@@ -92,6 +92,7 @@ $lang['compare_hover_text']="Comparer les variables sélectionnées";
 $lang['select_number_of_records_per_page']="Nombre d'enregistrements à afficher par page";
 $lang['source_catalog']="Métadonnées fournies par: %s";
 $lang['source']="Source";
+$lang['download_ddi']="Télécharger le DDI";
 
 
 /* End of file catalog_search_lang.php */

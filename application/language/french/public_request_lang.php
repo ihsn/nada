@@ -1,6 +1,6 @@
 <?php 
 $lang['public_request']="Demande publique";
-$lang['request_date']="Date de demande";
+$lang['request_date']="Date de la demande";
 $lang['study_title']="Titre de l'étude";
 $lang['study_id']="ID de l'étude";
 $lang['email']="E-mail";

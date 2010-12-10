@@ -61,9 +61,30 @@ $lang['corporate-author']="Auteur - entreprise";
 $lang['citation_home']="Retour à la page principale Citation";
 $lang['country']="Pays";
 $lang['import_citation']="Importer des citations";
-$lang['paste_bibtex_string']="Coller BibText";
-$lang['bibtex_url']="URL du BibText";
-$lang['bibtex_import_status']="%s citation(s) importée(s) avec succès; %s non importées";
+$lang['paste_citation_string']="Copier le texte de la citation";
+$lang['citation_url']="URL de la citation";
+$lang['citation_import_status']="%s citation(s) importée(s), %s non importée(s)";
+$lang['citation_import_format']="Choisir le format d'importation de citation";
+$lang['magazine_title']="Titre du Magazine";
+$lang['newspaper_title']="Titre du quotidien";
+$lang['website_document_title']="Titre du document";
+$lang['website_organization']="Nom de l'organisation";
+$lang['website_access_date']="Date du dernier accès";
+$lang['icon_note']="Note disponible";
+$lang['icon_no_related_study']="Aucune enquète attachée";
+$lang['icon_related_study']="Enquètes attachées";
+$lang['icon_flag']="Marquée";
+$lang['tobe_checked']="A vérifier";
+$lang['incomplete']="Incomplet";
+$lang['ds_unclear']="Doute concernant l'enquète citée";
+$lang['clear_selection']="Annuler la sélection";
+$lang['flag_entry_as']="Marquer la citation comme";
+$lang['published']="Publiée";
+$lang['option_publish']="Publier";
+$lang['option_do_not_publish']="Ne pas publier";
+$lang['publish_citation']="Publier la (les) citation(s)";
+$lang['doi']="Digital Object Identifier (DOI)";
+$lang['notes']="Notes pour l'administrateur";
 
 
 /* End of file citations_lang.php */

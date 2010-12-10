@@ -23,7 +23,7 @@ $lang['ddi_import_processing']="Veuillez patienter; fichier en cours d'imporatio
 $lang['batch_import_title']="Importation de DDIs en batch";
 $lang['import_ddi_no_files_found']="Auncun fichier DDI n'a été trouvé dans le répertoire d'importation [%s]. Veuillez copier les fichiers DDI dans un répertoire accessible par l'application.";
 $lang['import_ddi_files_found']="%s fichiers trouvés dans le répertoire d'importation. Sélectionnez les fichiers à importer et validez en sélectionnant importer.";
-$lang['btn_import']="Importation";
+$lang['btn_import']="Importer";
 $lang['cancel_import_process']="Cliquer ici pour annuler l'imporation";
 $lang['import_cancelled']="Importation annulée!";
 $lang['import_completed']="Importation achevée!";
@@ -37,6 +37,9 @@ $lang['collection_date']="Dates de la collecte";
 $lang['click_to_return_to_catalog_page']="Cliquez ici pour retourner à la page de gestion du catalogue.";
 $lang['rdf_export']="Exporter RDF";
 $lang['select_number_of_records_per_page']="Nombre d'enregistrements à afficher par page";
+$lang['study_already_exists']="Cette étude existe déjà. Sélectionnez l'option &quot;Ecraser&quot; pour remplacer l'étude existante.";
+$lang['invalid_ddi_file']="Fichier DDI non valide:";
+$lang['nothing_to_process']="Pas d'information à traiter";
 
 
 /* End of file catalog_admin_lang.php */

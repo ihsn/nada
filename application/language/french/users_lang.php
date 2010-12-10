@@ -67,9 +67,10 @@ $lang['enter_email_to_reset_password']="Veuillez entrer votre adresse email. Nou
 $lang['password_is_sent']="Votre mot de passe a été réinitialisé et un nouveu mot de passe vous a été envoyé par message électronique.";
 $lang['login_with_new_password']="Cliquez ici pour vous connecter avec votre nouveau mot de passe.";
 $lang['message_sent_to_your_email']="Un message a été envoyé à votre addresse email. Veuillez consulter vos messages.";
-$lang['password_reset_to']="otre mot de passe a été réinitialisé à <b>%s</b>. Pour vous connecter au site, les détails de votre compte sont les suivants: ";
-$lang['forgot_password_verification']="Mot de pass oublié - Vérification";
+$lang['password_reset_to']="Votre mot de passe a été réinitialisé à <b>%s</b>. Pour vous connecter au site, les détails de votre compte sont les suivants: ";
+$lang['forgot_password_verification']="Mot de passe oublié - Vérification";
 $lang['account_activation']="Activation du compte";
+$lang['callback_country_invalid']="Le champs &quot;pays&quot; est obligatoire";
 
 
 /* End of file users_lang.php */

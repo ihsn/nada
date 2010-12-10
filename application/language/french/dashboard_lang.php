@@ -16,7 +16,7 @@ $lang['user_inactive']="Inactif - Jamais loggé";
 $lang['bug_report']="Rapporter un bogue / Suggérer une amélioration";
 $lang['run_database_backup_script']="Exécuter le programme de backup";
 $lang['no_cache_files_found']="Aucun fichier cache trouvé";
-$lang['clear_cache_files']="Vous avez <b>%d</b> fichiers cachés, <a href=\"%s\">Cliquez ici pour purger le cache.</a> ";
+$lang['clear_cache_files']="Vous avez <b>%d</b> fichiers cachés, <a href=&quot;%s&quot;>Cliquez ici pour purger le cache.</a> ";
 
 
 /* End of file dashboard_lang.php */

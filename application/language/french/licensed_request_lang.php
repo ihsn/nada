@@ -64,7 +64,7 @@ $lang['send']="Envoyer";
 $lang['title_download_expired']="Le lien a expiré!";
 $lang['msg_download_limit_reached']="Vous avez atteint votre limite de téléchargement pour ce fichier. Vous êtes limité à%d téléchargements pour ce fichier. Si vous souhaitez augmenter votre nombre de téléchargements autorisés, veuillez demander à %s.";
 $lang['apply']="Appliquer";
-$lang['not_attached_any_licensed_files']="Vous n'avez pas joint de fichiers sous licence à l'enquête, consultez la page &amp;quot;fichiers d'une enquête sous licence» pour configurer les fichiers.";
+$lang['not_attached_any_licensed_files']="Vous n'avez pas joint de fichiers sous licence à l'enquête, consultez la page &quot;fichiers d'une enquête sous licence» pour configurer les fichiers.";
 $lang['restrict_data_access_by_id']="Restreindre l'accès aux données par adresse IP";
 $lang['change_all_settings']="Pour modifier tous les paramètres à la fois, remplir les cases et cliquez sur Appliquer.";
 $lang['use_comma_for_multiple_ip']="séparer plusieurs adresses IP par des virgules. Exemple: 123.133.154.1,123.133.154.2";
@@ -76,7 +76,7 @@ $lang['dataset_access']="Accès aux données";
 $lang['notification_licensed_survey_request_received']="[Notification] - Réception d'une demande d'un fichier sous license";
 $lang['survey_data_files']="Fichiers de données";
 $lang['dear']="Cher";
-$lang['request_licensed_reviewed']="Votre demande pour obtenir le fichier sous license [<b>% s </ b>] a été examinée. Pour voir le résultat, veuillez visiter :";
+$lang['request_licensed_reviewed']="Votre demande d'accès au fichier sous license [<b>% s </ b>] a été examinée. Pour voir le résultat, veuillez visiter :";
 $lang['user_has_requested_licensed']="L'utilisateur <b>%s</b> a demandé l'accès à l'enquête sous licence <b>%s</b>. 
 ";
 $lang['to_view_request_instructions']="Pour afficher la demande, connectez vous à l'administration du site NADA et affichez la page &quot;demandes d'enquête sous license&quot;.";
@@ -85,6 +85,11 @@ $lang['to_view_request_status']="Pour afficher l'état de votre demande, veuille
 $lang['for_further_information']="Pour de plus amples informations, veuillez nous contacter";
 $lang['form_not_available']="Le formulaire a été supprimé et n'est plus disponible.";
 $lang['view_all_requests']="Afficher toutes les demandes";
+$lang['APPROVED']="Approuvé";
+$lang['DENIED']="Refusé";
+$lang['PENDING']="En attente";
+$lang['MOREINFO']="Information complémentaire requise";
+$lang['CANCELLED']="Annulé";
 
 
 /* End of file licensed_request_lang.php */
