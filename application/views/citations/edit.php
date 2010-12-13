@@ -115,6 +115,11 @@ table .input-flex{margin-bottom:5px;}
     <label for="publish"><?php echo t('publish_citation');?></label>
     <?php echo form_dropdown('published', $publish_options, get_form_value("published",isset($published) ? $published : ''),'id="published"'); ?>
 </div>
+
+<div class="field">
+    <label for="owner"><?php echo t('citation_owner');?></label>
+    <input name="owner" type="text" id="owner" size="50" class="input-flex"  value="<?php echo get_form_value('owner',isset($owner) ? $owner : $this->ion_auth->current_user()->username); ?>"/>
+</div>
         
 <fieldset class="field-expanded">
 	<legend><?php echo t('abstract');?></legend>
