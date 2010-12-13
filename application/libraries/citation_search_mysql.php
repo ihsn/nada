@@ -89,7 +89,8 @@ class Citation_search_mysql{
 						citations.notes,
 						citations.doi,
 						citations.flag,
-						count(survey_citations.sid) as survey_count';
+						count(survey_citations.sid) as survey_count,
+						citations.owner';
 						
 		//select columns for output
 		$this->ci->db->select($select_fields, FALSE);
@@ -115,7 +116,8 @@ class Citation_search_mysql{
 					'notes'=>'citations.notes',
 					'doi'=>'citations.doi',
 					'flag'=>'citations.flag',
-					'published'=>'citations.published'
+					'published'=>'citations.published',
+					'owner'=>'citations.owner'
 					);
 		
 		//fields to search when search=ALL FIELDS
@@ -165,6 +167,11 @@ class Citation_search_mysql{
 							$this->ci->db->or_where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$country_fulltext_index,$this->ci->db->escape($keywords)));
 					}
 				}
+				if ( ($f['field']=='notes' ||  $f['field']=='flag') && $f['keywords']=='*')
+				{
+					$this->ci->db->where(sprintf("%s !=''",$f['field']));
+				}
+
 			}
 		}
 		
