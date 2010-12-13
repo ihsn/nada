@@ -597,6 +597,23 @@ class Citations extends MY_Controller {
 	  	$this->template->render();
 	}
 
+	/**
+	*
+	* Publish or unpublish a citation using ajax
+	*
+	*/
+	function publish($id=NULL,$publish=NULL)
+	{
+		if (!is_numeric($id) || !is_numeric($publish))
+		{
+			show_404();
+		}
+		
+		$result=$this->Citation_model->update($id,array('published'=>$publish));
+		
+		echo json_encode(array('result'=>(int)$result) );
+	}
+
 	
 }
 /* End of file citations.php */
