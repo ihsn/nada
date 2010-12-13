@@ -273,7 +273,8 @@ class Citation_model extends Model {
 				'notes',
 				'keywords',
 				'doi',
-				'flag'
+				'flag',
+				'owner'
 			);
 		
 		$authors=array();
@@ -442,7 +443,8 @@ class Citation_model extends Model {
 				'notes',
 				'keywords',
 				'doi',
-				'flag'
+				'flag',
+				'owner'
 			);
 
 		$authors=array();
