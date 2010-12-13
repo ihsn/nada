@@ -1,6 +1,8 @@
 <style>
 .icon-legend{margin-top:20px;}
 .icon-legend span{padding-right:5px;color:gray;}
+.published{background:url(images/tick.png) no-repeat center;cursor:pointer; }
+.unpublished{background:url(images/cross.png) no-repeat center; cursor:pointer;}
 </style>
 
 <div class="body-container" style="padding:10px;">
@@ -25,6 +27,7 @@
     <option value="keywords"	<?php echo ($this->input->get('field')=='keywords') ? 'selected="selected"' : '' ; ?> ><?php echo t('keywords');?></option>
     <option value="notes"	<?php echo ($this->input->get('field')=='notes') ? 'selected="selected"' : '' ; ?> ><?php echo t('notes');?></option>
     <option value="flag"	<?php echo ($this->input->get('field')=='flag') ? 'selected="selected"' : '' ; ?> ><?php echo t('flag');?></option>
+    <option value="owner"	<?php echo ($this->input->get('field')=='owner') ? 'selected="selected"' : '' ; ?> ><?php echo t('citation_owner');?></option>
   </select>
   <input type="submit" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
@@ -99,6 +102,9 @@
             <th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field','ps')); ?></th>
 			<th><?php echo t('actions');?></th>
             <th>&nbsp;</th>
+            <th>&nbsp;</th>
+            <th><a href="<?php echo site_url();?>/admin/citations/?keywords=*&field=notes"><img title="<?php echo t('show_all_note_entries');?>" src="images/note.png"/></a></th>
+            <th><a href="<?php echo site_url();?>/admin/citations/?keywords=*&field=flag"><img title="<?php echo t('show_all_flag_entries');?>" src="images/flag_yellow.png"/></a></th>
         </tr>
 	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
@@ -109,16 +115,25 @@
             <td><?php echo t($row->ctype); ?></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <td nowrap="nowrap"><?php echo $row->pub_year; ?>&nbsp;</td>
-            <td nowrap="nowrap"><?php echo ($row->published==1) ? '<img src="images/tick.png"/>' : '<img src="images/close.gif"/>'; ?>&nbsp;</td>
-			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
-            
+            <td title="Click to publish/unpublish" class="<?php echo ($row->published==1 ? 'published' : 'unpublished'); ?>" id="<?php echo $row->id; ?>"></td>
+			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>            
 			<td nowrap="nowrap"><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
             <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete');?></a></td>
             <td nowrap="nowrap">
+				<?php if (trim($row->owner)!==''):?>
+	                <a href="<?php echo site_url(); ?>/admin/citations/?field=owner&keywords=<?php echo $row->owner; ?>"><img title="<?php echo $row->owner;?>" src="images/user.png"/></a>
+                <?php endif;?>
+
+            </td>
+            <td nowrap="nowrap">
 				<?php echo ($row->survey_count==0) ? '<img title="0" src="images/bullet_error.png"/>' : '<img title="'.$row->survey_count.'" src="images/bullet_green.png"/>' ?>
+            </td>
+            <td>    
                 <?php if (trim($row->notes)!==''):?>
 	                <img title="<?php echo $row->notes;?>" src="images/note.png"/>
                 <?php endif;?>
+            </td>
+            <td>    
                 <?php if (trim($row->flag)!==''):?>
 	                <a href="<?php echo site_url(); ?>/admin/citations/?field=flag&keywords=<?php echo $row->flag; ?>"><img title="<?php echo $row->flag;?>" src="images/flag_yellow.png"/></a>
                 <?php endif;?>
@@ -141,6 +156,7 @@
 </table>
 
 <div class="icon-legend">
+<span><img src="images/user.png"/> <?php echo t('icon_user');?></span>
 <span><img src="images/bullet_green.png"/> <?php echo t('icon_related_study');?></span>
 <span><img src="images/bullet_error.png"/> <?php echo t('icon_no_related_study');?></span>
 <span><img src="images/note.png"/> <?php echo t('icon_note');?></span>
@@ -177,6 +193,8 @@ jQuery(document).ready(function(){
 			}
 		}
 	);
+	
+	bind_events();
 });
 
 function batch_delete(){
@@ -217,4 +235,26 @@ function batch_delete(){
 $('#ps').change(function() {
   $('#citation-search').submit();
 });
+
+function bind_events()
+{
+	//remove events
+    $(".unpublished, .published").unbind('click');
+    
+	$(".unpublished").click(
+			function (e) {				
+                $(this).removeClass('unpublished').addClass('published');bind_events();
+                url=CI.base_url+'/admin/citations/publish/'+$(this).attr("id")+'/'+1;
+                $.get(url);
+			}
+	);    
+
+	$(".published").click(
+			function (e) {				
+				$(this).removeClass('published').addClass('unpublished');bind_events();
+                url=CI.base_url+'/admin/citations/publish/'+$(this).attr("id")+'/'+0;
+                $.get(url);
+			}
+	);    
+}
 </script>
