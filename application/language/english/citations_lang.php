@@ -100,6 +100,10 @@ $lang['option_do_not_publish'] = "Do not publish";
 $lang['publish_citation'] = "Publish citation(s)";
 $lang['doi'] = "Digital object identifier (DOI)";
 $lang['notes'] = "Notes (visible only to administrators)";
+$lang['show_all_flag_entries'] = "Show all flagged citations";
+$lang['show_all_note_entries'] = "Show all citations with notes";
+$lang['icon_user'] = "Owner name";
+$lang['citation_owner'] = "Owner";
 
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
