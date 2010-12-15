@@ -275,7 +275,6 @@ class Menu_model extends Model {
 		
 		$this->db->order_by('weight', 'asc');
 		$query= $this->db->get('menus');
-
 		
 		$parents=array();
 		
@@ -288,8 +287,13 @@ class Menu_model extends Model {
 		foreach($parents as $item)
 		{
 			$item=(object)$item;
-			
-			$result.='<li>'.anchor($item->url,$item->title);
+			$target='';
+			if ($item->target==1)
+			{
+				$target=' target="_blank"';
+			}
+
+			$result.='<li>'.anchor($item->url,$item->title, $target);
 			$sub=$this->get_children($item->id);
 
 			if (is_array($sub))			
@@ -298,8 +302,14 @@ class Menu_model extends Model {
 				{
 				$result.='<ul>';
 				//merge array
-				foreach($sub as $value){
-					$result.='<li>'.anchor($value['url'],$value['title']).'</li>';
+				foreach($sub as $value)
+				{
+					$target='';
+					if ($item->target==1)
+					{
+						$target=' target="_blank"';
+					}
+					$result.='<li>'.anchor($value['url'],$value['title'],$target).'</li>';
 				}
 				$result.='</ul>';
 				}
