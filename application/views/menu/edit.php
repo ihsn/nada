@@ -49,7 +49,7 @@
     </div>
 <?php
  //edit user
-	echo form_submit('submit',t('update')); 
+	echo form_submit('submit',t('update'),'id="btnupdate"'); 
  	echo anchor('admin/menu',t('cancel'),array('class'=>'button') );	
 ?>
 
@@ -84,13 +84,12 @@ $(document).ready(function() {
 ?>
 <?php if ($this->config->item("use_html_editor")!=="no"):?>
 tinyMCE.init({
-	// General options
 	mode : "textareas",
 	theme : "advanced",
 	plugins : "safari,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template",
 
 	// Theme options
-	theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect,fontselect,fontsizeselect",
+	theme_advanced_buttons1 : "save,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect,fontselect,fontsizeselect",
 	theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
 	theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
 	theme_advanced_buttons4 : "moveforward,movebackward,|,styleprops,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,pagebreak",
@@ -98,16 +97,24 @@ tinyMCE.init({
 	theme_advanced_toolbar_align : "left",
 	theme_advanced_statusbar_location : "bottom",
 	theme_advanced_resizing : true,
+	document_base_url : "<?php echo base_url();?>",
 
 	//site styles
 	//content_css: "<?php echo base_url(); ?>themes/default/styles.css",
 
 	// Drop lists for link/image/media/template dialogs
-	template_external_list_url : "js/template_list.js",
-	external_link_list_url : "js/link_list.js",
-	external_image_list_url : "js/image_list.js",
-	media_external_list_url : "js/media_list.js"
-
+	//template_external_list_url : "js/template_list.js",
+	//external_link_list_url : "js/link_list.js",
+	external_image_list_url : "index.php/tinymce/image_list",
+	//media_external_list_url : "js/media_list.js",
+	
+	setup : function(ed) {
+      ed.onSaveContent.add(function(ed, o) {
+	  	$('#btnupdate').click();
+	  });
+   	}
+	
 });
+
 <?php endif;?>
 </script>
