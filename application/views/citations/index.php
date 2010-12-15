@@ -99,6 +99,7 @@
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field','ps')); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'published',t('published'),$page_url,array('keywords','field','ps')); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'created',t('created'),$page_url,array('keywords','field','ps')); ?></th>            
             <th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field','ps')); ?></th>
 			<th><?php echo t('actions');?></th>
             <th>&nbsp;</th>
@@ -116,6 +117,7 @@
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <td nowrap="nowrap"><?php echo $row->pub_year; ?>&nbsp;</td>
             <td title="Click to publish/unpublish" class="<?php echo ($row->published==1 ? 'published' : 'unpublished'); ?>" id="<?php echo $row->id; ?>"></td>
+            <td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->created); ?></td>
 			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>            
 			<td nowrap="nowrap"><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
             <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete');?></a></td>
