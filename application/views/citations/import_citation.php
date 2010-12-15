@@ -16,6 +16,7 @@ $flag_options=array(
 	'ds_unclear'=>t('ds_unclear'),
 	'incomplete'=>t('incomplete'),
 	'tobe_checked'=>t('tobe_checked'),
+	'duplicate'=>t('duplicate'),
 	);
 
 ?>
