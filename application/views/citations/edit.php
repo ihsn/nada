@@ -49,6 +49,7 @@ table .input-flex{margin-bottom:5px;}
 		'ds_unclear'=>t('ds_unclear'),
 		'incomplete'=>t('incomplete'),
 		'tobe_checked'=>t('tobe_checked'),
+		'duplicate'=>t('duplicate'),
 		);
 	
 	$publish_options=array(
