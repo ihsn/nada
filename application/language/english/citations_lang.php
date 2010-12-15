@@ -92,6 +92,7 @@ $lang['icon_flag'] = "Flagged";
 $lang['tobe_checked'] = "to-be-checked";
 $lang['incomplete'] = "incomplete";
 $lang['ds_unclear'] = "unclear-related-dataset";
+$lang['duplicate'] = "duplicate";
 $lang['clear_selection'] = "Clear selection";
 $lang['flag_entry_as'] = "Flag citation(s) as";
 $lang['published'] = "Published";
@@ -104,6 +105,7 @@ $lang['show_all_flag_entries'] = "Show all flagged citations";
 $lang['show_all_note_entries'] = "Show all citations with notes";
 $lang['icon_user'] = "Owner name";
 $lang['citation_owner'] = "Owner";
+$lang['created'] = "Created";
 
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
