@@ -128,6 +128,7 @@ CREATE TABLE `citations` (
   `notes` text,
   `doi` varchar(255) DEFAULT NULL,,
   `flag` varchar(45) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
