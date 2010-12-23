@@ -196,7 +196,7 @@ class Catalog_search{
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
-		$query_total_surveys=$this->ci->db->query('SELECT count(*) as rowcount from surveys')->row_array();
+		$query_total_surveys=$this->ci->db->query(sprintf('SELECT count(*) as rowcount from %ssurveys',$this->ci->db->dbprefix))->row_array();
 		$this->total_surveys=$query_total_surveys['rowcount'];		
 
 		//combine into one array
@@ -412,7 +412,7 @@ class Catalog_search{
 		else
 		{	
 			//concatenated fields
-			return 'concat('.implode(',',$index).')';
+			return 'concat(' . implode(",' ',",$index) .')';
 		}
 	}
 
