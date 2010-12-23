@@ -50,6 +50,7 @@ table .input-flex{margin-bottom:5px;}
 		'incomplete'=>t('incomplete'),
 		'tobe_checked'=>t('tobe_checked'),
 		'duplicate'=>t('duplicate'),
+		'back_to_editor'=>t('back_to_editor'),
 		);
 	
 	$publish_options=array(
