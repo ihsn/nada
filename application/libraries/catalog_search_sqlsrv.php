@@ -303,7 +303,7 @@ class Catalog_search{
 		$this->search_found_rows=$this->_search_count();
 		
 		//get total surveys in db
-		$query_total_surveys=$this->ci->db->query('SELECT count(*) as rowsfound from surveys')->row_array();
+		$query_total_surveys=$this->ci->db->query(sprintf('SELECT count(*) as rowsfound from %ssurveys', $this->ci->db->dbprefix))->row_array();
 		$this->total_surveys=$query_total_surveys['rowsfound'];
 
 		//combine into one array
