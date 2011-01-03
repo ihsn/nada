@@ -6,7 +6,7 @@
 class Resource_model extends Model {
 	
 	//database allowed column names
-	var $allowed_fields=array('dctype','title','author', 'dcdate','country', 'language', 'contributor','publisher','toc', 'abstract', 'filename','dcformat','description','changed');
+	var $allowed_fields=array('dctype','title','author', 'dcdate','country', 'language', 'contributor','publisher','toc', 'abstract', 'filename','dcformat','description');
 	
 	//surveyid of the survey to show external resources
 	var $surveyid;
