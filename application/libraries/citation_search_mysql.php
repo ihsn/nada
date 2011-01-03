@@ -111,6 +111,7 @@ class Citation_search_mysql{
 					'pub_year'=>'citations.pub_year',
 					'survey_count'=>'survey_count',
 					'changed'=>'citations.changed',
+					'created'=>'citations.created',
 					'ctype'=>'citations.ctype',
 					'keywords'=>'citations.keywords',
 					'notes'=>'citations.notes',
@@ -173,9 +174,7 @@ class Citation_search_mysql{
 				}
 
 			}
-		}
-		
-		
+		}				
 				
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
