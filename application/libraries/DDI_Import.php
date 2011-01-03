@@ -71,7 +71,12 @@ class DDI_Import{
 		//import study description
 		$result=$this->import_study();
 					
-		if ($result!==false)
+		if (!$result)
+		{
+			$this->errors[]=t('database_error_');
+			return FALSE;
+		}
+		else
 		{	
 			//copy survey file to the repository
 			$survey_path=$this->_copy_survey_file(
@@ -90,8 +95,10 @@ class DDI_Import{
 			$this->update_survey_pathinfo();
 
 			//import variables		
-			$this->import_variables();
-	
+			if (!$this->import_variables())
+			{
+				return FALSE;
+			}
 			return TRUE;
 		}
 		
@@ -148,16 +155,21 @@ class DDI_Import{
 		$id=$this->survey_exists($surveyid=$data->id,$repositoryid=$this->repository_identifier);
 
 		//new survey
-		if($id===false)
+		if(!$id)
 		{
 			$row['created']=date("U");
 			$insert_result=$this->ci->db->insert('surveys', $row);
-			
-			if ($insert_result!==FALSE)
+
+			if ($insert_result)
 			{
 				//get the ID for newly added survey
 				$id=$this->survey_exists($surveyid=$data->id,$repositoryid=$this->repository_identifier);
 			}	
+			else
+			{
+				$this->errors[]='DB_ERROR: '.$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
+				return FALSE;
+			}
 		}
 		else //existing survey
 		{
@@ -258,7 +270,13 @@ class DDI_Import{
 						'sid' => $surveyid,
 						'data_coll_year' => $year);
 			//insert			
-			$this->ci->db->insert('survey_years',$options);
+			$result=$this->ci->db->insert('survey_years',$options);
+			
+			if(!$result)
+			{
+				$this->errors[]=$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
+				return FALSE;
+			}
 		}
 	}
 
@@ -274,8 +292,7 @@ class DDI_Import{
 		
 		if($id===false)
 		{
-			$error='import_variables::failed to find the survey.';
-			
+			$error='import_variables::failed to find the survey.';			
 			$this->errors[]=$error;			
 			log_message('error', $error);
 			
@@ -285,35 +302,31 @@ class DDI_Import{
 		$data=$this->ddi_array['variables'];
 		
 		//delete existing variables for the survey
-		$this->ci->db->delete('variables', array('surveyid_fk' => $id)); 
+		$this->ci->db->delete('variables', array('surveyid_FK' => $id)); 
 		
 		$this->variables_imported=0;
 		
 		foreach($data as $v)
 		{
 			$row = array(
-			   'varid' => $v[0],
+			   'varID' => $v[0],
 			   'name' => $v[1],
 			   'labl' => $v[2],
 			   'qstn' => trim($v[3]),
 			   'catgry' => trim($v[4]),
-			   'surveyid_fk' => $id
+			   'surveyid_FK' => $id
 			);
 		
-			$this->ci->db->insert('variables', $row);
-		
-			//check for errors
-			if ($this->ci->db->_error_message() )
+			$result=$this->ci->db->insert('variables', $row);
+			
+			//insert failed
+			if (!$result)
 			{
-				$error='import_variables::failed to insert variables: '.$this->ci->db->_error_message();
-				$error.="\r\n".$this->ci->db->last_query();
-				
+				$error='import_variables: '.$this->ci->db->_error_message();
+				$error.="\r\n".$this->ci->db->last_query();				
 				$this->errors[]=$error;
-						
-				//add to error log file	
 				log_message('error', $error);
-				
-				return false;
+				return FALSE;
 			}
 			
 			$this->variables_imported++;			
@@ -325,7 +338,7 @@ class DDI_Import{
 		$sql= $this->ci->db->update_string('surveys', $row,$where);			
 		$this->ci->db->query($sql);
 		
-		return true;
+		return TRUE;
 	}
 	
 	
@@ -383,18 +396,28 @@ class DDI_Import{
 	*/	
 	function _get_survey_folder($surveyid,$repositoryid)
 	{
+		//datafiles foldee
 		$catalog_root=$this->ci->config->item('catalog_root');
+
+		//check if folder exists
+		if (trim($catalog_root)=='' || !file_exists($catalog_root))
+		{
+				$error= t("error_catalog_root_not_set"). " " . $catalog_root;
+				$this->errors[]=$error;
+				log_message('error', $error);
+				return FALSE;
+		}
 		
 		//repository folder path
 		$repository_folder=$catalog_root."/$repositoryid";
-		
+				
 		//survey folder path
 		$survey_folder=$repository_folder.'/'.md5("$repositoryid:$surveyid");
 		
 		//check repository folder
 		if (!file_exists($repository_folder) )
 		{
-			if ( !mkdir($repository_folder) ) 
+			if ( !@mkdir($repository_folder) ) 
 			{//create folder
 				$error= "Failed to create new folder for the repository ". " " . $repository_folder;
 				$this->errors[]=$error;
