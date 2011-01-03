@@ -10,7 +10,7 @@ class User_model extends Model {
 	//search users 
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {
-		//$this->output->enable_profiler(TRUE);
+		$this->output->enable_profiler(TRUE);
 
 		$this->db->start_cache();
 
@@ -18,7 +18,7 @@ class User_model extends Model {
 		$this->db->select('users.id,group_id,username,email,active,created_on,last_login,country,company');
 		
 		//allowed_fields for searching or sorting
-		$db_fields=array('group_id','username','first_name','last_name','active','email','created_on','last_login','country','company');
+		$db_fields=array('username','first_name','last_name','email','country','company');
 		
 		//set where
 		if ($filter)
@@ -39,6 +39,9 @@ class User_model extends Model {
 				}
 			}
 		}
+		
+		$this->db->join('meta', 'meta.user_id = users.id');
+		$this->db->stop_cache();
 
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
@@ -49,13 +52,10 @@ class User_model extends Model {
 			}	
 		}
 		
-		$this->db->join('meta', 'meta.user_id = users.id');
-
-		
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('users');
-		$this->db->stop_cache();
+		
 
         $result= $this->db->get()->result_array();
 		return $result;

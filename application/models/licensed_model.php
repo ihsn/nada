@@ -527,12 +527,6 @@ class Licensed_model extends Model {
 			}
 		}
 
-		//set order by
-		if ($sort_by!='' && $sort_order!='')
-		{
-			$this->db->order_by($sort_by, $sort_order); 
-		}
-		
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('lic_requests');		
@@ -540,6 +534,12 @@ class Licensed_model extends Model {
 		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid');
 		$this->db->stop_cache();
 
+		//set order by
+		//must be set outside the start_cache...stop_cache to produce correct count_all_results query
+		if ($sort_by!='' && $sort_order!='')
+		{
+			$this->db->order_by($sort_by, $sort_order); 
+		}
         $result= $this->db->get()->result_array();
 		return $result;
     }

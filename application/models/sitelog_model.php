@@ -37,6 +37,8 @@ class Sitelog_model extends Model {
 				}
 			}
 		}
+		
+		$this->db->stop_cache();
 
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
@@ -46,9 +48,7 @@ class Sitelog_model extends Model {
 		
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
-		$this->db->from('sitelogs');
-		$this->db->stop_cache();
-
+		$this->db->from('sitelogs');		
         $query= $this->db->get();
 		
 		if (!$query)

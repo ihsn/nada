@@ -1,6 +1,9 @@
 <?php
 class Menu_model extends Model {
  
+ 	var $search_count=0;
+	
+	
     public function __construct()
     {
         parent::__construct();
@@ -9,14 +12,14 @@ class Menu_model extends Model {
 	
 	//search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
-    {
+    {	
 		$this->db->start_cache();
-
+		
 		//select columns for output
 		$this->db->select('*');
 		
 		//allowed_fields
-		$db_fields=array('url','title','body','published','weight');
+		$db_fields=array('url','title','body');
 		
 		//set where
 		if ($filter)
@@ -38,6 +41,8 @@ class Menu_model extends Model {
 			}
 		}
 
+		$this->db->stop_cache();
+		
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
 		{
@@ -47,15 +52,18 @@ class Menu_model extends Model {
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('menus');
-		$this->db->stop_cache();
-
-        $result= $this->db->get()->result_array();
+		
+        $result= $this->db->get()->result_array();				
+		
+		//get count
+		$this->search_count=$this->db->count_all_results('menus');
+	
 		return $result;
     }
-  	
+  			
     function search_count()
     {
-          return $this->db->count_all_results('menus');
+        return $this->db->count_all_results('menus');
     }
 	
 	/**
