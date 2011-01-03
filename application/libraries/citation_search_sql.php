@@ -46,6 +46,9 @@ class Citation_search_sql{
 						citations.pub_month,
 						citations.pub_year,
 						citations.abstract,
+						citations.owner,
+						citations.notes,
+						citations.flag,
 						count(survey_citations.sid) as survey_count'; 
 
 	var $groupby_fields='citations.id,
@@ -75,6 +78,9 @@ class Citation_search_sql{
 						citations.pub_day,
 						citations.pub_month,
 						citations.pub_year,
+						citations.owner,
+						citations.notes,
+						citations.flag,
 						citations.abstract';	
 	
 	//allowed_fields
@@ -103,7 +109,7 @@ class Citation_search_sql{
 					'citations.alt_title',
 					'citations.authors',
 					'citations.url',
-					'citations.pub_year',
+					//'citations.pub_year',
 					'surveys.nation'
 					);
 		
@@ -163,9 +169,9 @@ class Citation_search_sql{
 					if (trim($keyword)!="" && strlen($keyword)>2)
 					{
 						//search only in the allowed fields
-						if (array_key_exists($f['field'],$this->ci->db_fields))
+						if (array_key_exists($f['field'],$this->db_fields))
 						{
-							$this->ci->db->like($this->ci->db_fields[$f['field']], trim($keyword)); 
+							$this->ci->db->like($this->db_fields[$f['field']], trim($keyword)); 
 						}
 						else if ($f['field']=='all')
 						{
