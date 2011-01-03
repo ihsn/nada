@@ -606,7 +606,7 @@ class Catalog extends MY_Controller {
 		//check file exists
 		if (!file_exists($ddi_file))
 		{
-			echo json_encode(array('error'=>"File was not found") );
+			echo json_encode(array('error'=>t("file_not_found")) );
 			exit;
 		}
 		//show_error($ddi_file);
@@ -624,7 +624,7 @@ class Catalog extends MY_Controller {
 		//validate DDI file
 		if ($this->ddi_parser->validate()===false)
 		{
-			$error= 'Invalid DDI file: '.$ddi_file;
+			$error= t('invalid_ddi_file').$ddi_file;
 			log_message('error', $error);
 			$this->session->set_flashdata('error', $error);
 			
@@ -642,7 +642,7 @@ class Catalog extends MY_Controller {
 		{
 			//display import success 
 			$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']));
-			$msg='Survey imported - <em>'. $data['study']['titl']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
+			$msg='<strong>'. $data['study']['titl']. '</strong> - <em>'.$this->DDI_Import->variables_imported.' '.t('variables').'</em>';
 			log_message('info', $msg);
 		
 			//try importing the RDF if exists. The RDF must match the XML file name
