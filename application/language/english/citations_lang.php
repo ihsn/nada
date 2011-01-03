@@ -93,6 +93,7 @@ $lang['tobe_checked'] = "to-be-checked";
 $lang['incomplete'] = "incomplete";
 $lang['ds_unclear'] = "unclear-related-dataset";
 $lang['duplicate'] = "duplicate";
+$lang['back_to_editor'] = "back-to-editor";
 $lang['clear_selection'] = "Clear selection";
 $lang['flag_entry_as'] = "Flag citation(s) as";
 $lang['published'] = "Published";
