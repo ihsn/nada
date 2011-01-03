@@ -6,6 +6,9 @@ $driver=$ci->db->dbdriver;
 
 switch($driver)
 {
+	case 'postgre';
+		include dirname(__FILE__).'/catalog_search_postgre.php';
+		break;
 	case 'sqlsrv';
 		include dirname(__FILE__).'/catalog_search_sqlsrv.php';
 		return;
