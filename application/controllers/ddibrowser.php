@@ -116,6 +116,7 @@ class DDIbrowser extends MY_Controller {
 		
 		$this->load->model('Catalog_model');
 		$this->load->library('DDI_Browser','','DDI_Browser');
+		$this->load->helper('url_filter');
 		
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
@@ -170,7 +171,8 @@ class DDIbrowser extends MY_Controller {
 				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
 				if ($html===FALSE)
 				{	
-					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);
+					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);					
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}
 				
@@ -202,6 +204,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_access_policy_html($ddi_file,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}	
 			break;
@@ -211,6 +214,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_sampling_html($ddi_file,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}
 		        $section_url=$current_url.'/sampling';	
@@ -222,6 +226,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_questionnaires_html($ddi_file,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}	
 				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[doc/qst]');
@@ -235,6 +240,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_dataprocessing_html($ddi_file,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}	
         		$section_url=$current_url.'/dataprocessing';
@@ -246,6 +252,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_datacollection_html($ddi_file,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}        
 			break;
@@ -255,6 +262,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_dataappraisal_html($ddi_file,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 				}				
 			break;
@@ -339,6 +347,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
+					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$variable_id.$language['lang']), 100);
 				}								
         		$section_url=$current_url.'/variable/'.$variable_id;
