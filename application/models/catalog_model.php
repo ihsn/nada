@@ -250,7 +250,7 @@ class Catalog_model extends Model {
 	function get_variable_by_vid($survey_id, $variable_id)
 	{
 		$this->db->select('uid,name,labl');
-		$this->db->where('varid', $variable_id); 
+		$this->db->where('varID', $variable_id); 
 		$this->db->where('surveyid_FK', $survey_id); 
 		return $this->db->get('variables')->row_array();
 	}
