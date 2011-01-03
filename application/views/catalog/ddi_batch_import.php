@@ -22,7 +22,7 @@
 </div>
 
 <div class="note" id="batch-import-box" style="display:none;" >
-    <div id="batch-import-processing" style="padding:5px;border-bottom:1px solid gainsboro;margin-bottom:10px;">Processing suvey...</div>
+    <div id="batch-import-processing" style="padding:5px;border-bottom:1px solid gainsboro;margin-bottom:10px;">Processing survey...</div>
     <div id="batch-import-log" ></div>
 </div>
 
@@ -110,9 +110,20 @@ var batch_import = {
 	},
 	
 	import_single: function(id) {
+		obj=this;
+		//set error hanlder
+		$.ajaxSetup({
+				error:function(x,e){					
+					alert("Error code: " + x.status);
+					obj.abort();					
+				}
+			});		
+		
+		overwrite=0
+		if ($("#overwrite").attr("checked")){overwrite=1}
 		
 		//post	
-		this.xhr=$.post(CI.base_url+"/admin/catalog/do_batch_import",{id:id,overwrite:$("#overwrite").attr("checked")},func_data, "json");
+		this.xhr=$.post(CI.base_url+"/admin/catalog/do_batch_import",{id:id,overwrite:overwrite},func_data, "json");
 		
 		obj=this;
 		//handle json returned values
@@ -146,7 +157,8 @@ jQuery(document).ready(function(){
                     this.checked = (e.target).checked; 
                 }); 
 			}
-	);		
+	);
+	
 });
 
 </script>
