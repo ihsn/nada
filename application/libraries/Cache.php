@@ -37,7 +37,7 @@ class Cache
 
 		$this->ci->load->config('cache');
 		
-		$this->path = $this->ci->config->item('cache_dir');
+		$this->path = $this->ci->config->item('cache_path');
 		$this->cache_disabled = $this->ci->config->item('cache_disabled');
 		$this->default_expires = $this->ci->config->item('cache_default_expires');
 		if ( ! is_dir($this->path))
