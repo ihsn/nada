@@ -46,7 +46,7 @@ class Admin extends MY_Controller {
 		$this->load->library('simplepie');
 		
 		//set cache path from the CI config
-		$this->simplepie->cache_location=$this->config->item("cache_folder");
+		$this->simplepie->cache_location=$this->config->item("cache_path");
 
 		//get news feed url from config
 		$feed_url=$this->config->item("news_feed_url");
@@ -78,7 +78,7 @@ class Admin extends MY_Controller {
 		//delete cache files
 		//$this->cache->delete_all();
 		
-		$cache_folder=$this->config->item("cache_folder");
+		$cache_folder=$this->config->item("cache_path");
 		
 		if ($cache_folder==false)
 		{
@@ -105,7 +105,7 @@ class Admin extends MY_Controller {
 	**/
 	function _cache_file_count()
 	{
-		$cache_folder=$this->config->item("cache_folder");
+		$cache_folder=$this->config->item("cache_path");
 
 		$k=0;
 		foreach (glob($cache_folder."/*.cache") as $filename) 
