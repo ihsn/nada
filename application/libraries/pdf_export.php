@@ -18,7 +18,8 @@ class PDF_Export{
 	function __construct()
 	{
 		$this->ci =& get_instance();
-		$this->ci->load->library('my_mpdf');		
+		$codepage=$this->ci->config->item("pdf_codepage");		
+		$this->ci->load->library('my_mpdf',array('codepage'=>$codepage));
     }
 	
 	function create_pdf($contents, $stylesheet=NULL)
