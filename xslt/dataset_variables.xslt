@@ -71,11 +71,11 @@ License:
 	<xsl:template match="ddi:fileDscr">
 		<xsl:variable name="file" select="@ID"/>
 		<h2><xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></h2>
-		<table style="width:100%;background-color:#E0EFEF;" cellpadding="4" >
+		<table class="datafile-info" cellpadding="4" >
 			<tr valign="top">
 				<td style="width:100px">Content</td>
 				<td>
-                		<div style="width:100%;height:80px; overflow:auto;border:1px solid silver;background-color:white;">
+                		<div style="width:100%;height:80px; overflow:auto;border:1px solid silver;background-color:none;">
                             <div style="padding:5px;">
                                 <xsl:value-of select="normalize-space(ddi:fileTxt/ddi:fileCont)"/>
                             </div>
