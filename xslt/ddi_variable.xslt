@@ -149,8 +149,8 @@ License:
 
     	<!-- CATEGORIES -->
 		<xsl:if test="count(./ddi:catgry)>0">
-            <div style="margin-top:10px;border:1px solid #E0A13C">
-	            <div style="padding:5px;background-color:#E0A13C;color:white;"><b><xsl:call-template name="gettext"><xsl:with-param name="msg">Categories</xsl:with-param></xsl:call-template></b></div>
+            <div class="var-category-container">
+	            <div class="var-category-title"><b><xsl:call-template name="gettext"><xsl:with-param name="msg">Categories</xsl:with-param></xsl:call-template></b></div>
 				<div>
 					<table class="varCatgry" style="font-size:12px;" >
 							<tr>
