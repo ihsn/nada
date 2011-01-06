@@ -14,7 +14,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title><?php echo t($title);?></title>
-<base href="<?php echo base_url(); ?>" />
+<base href="<?php echo JS_BASE_URL;?>" />
 
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
