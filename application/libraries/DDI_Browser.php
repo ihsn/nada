@@ -392,7 +392,7 @@ class DDI_Browser{
 	function get_language_path($language)
 	{
 		//cache folder path
-		$cache_folder=$this->ci->config->item("cache_dir");
+		$cache_folder=$this->ci->config->item("cache_path");
 		
 		if (!$cache_folder)
 		{
