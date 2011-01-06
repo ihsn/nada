@@ -87,7 +87,9 @@ class DDIbrowser extends MY_Controller {
 	**/
 	function generate_pdf($contents)
 	{	
-		$this->load->library('my_mpdf');
+		$contents= html_entity_decode(url_filter($contents));
+		$codepage=$this->config->item("pdf_codepage");		
+		$this->load->library('my_mpdf',array('codepage'=>$codepage));
 		$stylesheet = file_get_contents('themes/ddibrowser/ddi.css');
 		$this->my_mpdf->WriteHTML($stylesheet,1);	// The parameter 1 tells that this is css/style only and no body/html/text
 
