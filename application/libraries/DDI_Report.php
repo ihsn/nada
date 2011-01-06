@@ -37,8 +37,9 @@ function generate_report($ddi_file, $option=array())
 			'dataprocessing',
 			'dataappraisal'
 			);
-		
-	$this->ci->load->library('my_mpdf');
+
+	$codepage=$this->ci->config->item("pdf_codepage");		
+	$this->ci->load->library('my_mpdf',array('codepage'=>$codepage));
 	$stylesheet = file_get_contents(FCPATH.'/themes/ddibrowser/ddi.css');
 	
 	$mpdf=$this->ci->my_mpdf;
@@ -181,4 +182,4 @@ function get_section($xml, $section, $param1=NULL)
 }// END DDI Report Class
 
 /* End of file DDI_Report.php */
-/* Location: ./application/libraries/DDI_Report.php */
+/* Location: ./application/libraries/DDI_Report.php *////
