@@ -1,4 +1,6 @@
-body{font-family:Arial, Helvetica, sans-serif}
+body{font-family:Arial, Helvetica, sans-serif; color:#333333}
+table {width:100%;}
+body,p,table td, table th{font-size:12px;}
 
 /* overview styles */
 .xsl-title{font-size:18px;color:#CC6600;font-weight:bold;margin-bottom:20px;}
@@ -19,3 +21,8 @@ body{font-family:Arial, Helvetica, sans-serif}
 .table-variable-list .row-color1:hover, .table-variable-list .row-color2:hover{background-color:#DFC499}
 .var-link{text-decoration:none;color:black;}
 .table-variable-list td{padding:5px;}
+
+table th{text-align:left}
+.var-category-container{margin-top:10px;border:1px solid #A0C2DE;}
+.var-category-title{padding:5px;background-color:#A0C2DE;color:white;}
+.datafile-info{width:100%;background-color:#EFF8FF;}
