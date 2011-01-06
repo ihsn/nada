@@ -62,14 +62,12 @@ License:
             </xsl:variable>
     <tr valign="top" class="{$class}" id="{$id}" title="{$hover}">			
         <td class="var-td"><a style="text-decoration:none;color:black;" href="{$link}" ><xsl:value-of select="@ID"/></a></td>
-        <td  class="var-td"><xsl:value-of select="@name"/></td>
+        <td class="var-td"><xsl:value-of select="@name"/></td>
         <td class="var-td"><xsl:value-of select="ddi:labl"/></td>
         <td class="var-td"><xsl:call-template name="lf2br"><xsl:with-param name="text" select="ddi:qstn/ddi:qstnLit"/></xsl:call-template></td>
     </tr>
 </xsl:template>
 
-	
-	
 	<!-- 4.3 FILE -->
 	<xsl:template match="ddi:fileDscr">
 		<xsl:variable name="file" select="@ID"/>
@@ -205,7 +203,7 @@ License:
 				<xsl:variable name="p" select="substring-before($text,'&#10;')"/>
                 <xsl:value-of select="$p"/>
                 <xsl:if test="normalize-space($p)">
-				<br/><br/>
+				<br/>
                 </xsl:if>
 				<xsl:call-template name="lf2br">
 					<xsl:with-param name="text">
