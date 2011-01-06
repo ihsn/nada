@@ -21,9 +21,9 @@ class MY_mPDF extends mPDF{
 	{
 		if (is_array($params))
 		{
-			if (isset($params['encoding']))
+			if (isset($params['codepage']))
 			{
-				parent::__construct($params['encoding']);
+				parent::__construct($params['codepage']);
 				return;
 			}	
 		}
