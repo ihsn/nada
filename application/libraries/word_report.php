@@ -201,17 +201,35 @@ class Word_Report{
 			break;				
 		}
 		
-		$parameters=array_merge( array('lang'=> $this->ci->config->item("language")), $params);
-		//$parameters=array('lang'=>"EN");
+		//language
+		$language=array('lang'=>$this->ci->config->item("language"));
+		
+		if(!$language)
+		{
+			//default language
+			$language=array('lang'=>"english");
+		}	
+		
+		//get the xml translation file path
+		$language_file=$this->ci->DDI_Browser->get_language_path($language['lang']);
+		
+		if ($language_file)
+		{
+			//change to the language file (without .xml) in cache
+			$language['lang']=unix_path(FCPATH.$language_file);
+		}		
+
+		//add language to params
+		$parameters=array_merge( array('lang'=> $language['lang']), $params);
 		
 		$output= xsl_transform($xml,$xslt,$parameters);
 		
 		//$output=str_replace('php-survey-id',$surveyid, $output);
 		$output=str_replace('<table ','<table repeat_header="1" ', $output);
-		return $output;
+		return html_entity_decode(url_filter($output));
 	}
 	
 }// END WORD_Report Class
 
 /* End of file WORD_Report.php */
-/* Location: ./application/libraries/WORD_Report.php *////////////////////////////////////////////////////////////////
+/* Location: ./application/libraries/WORD_Report.php *////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
