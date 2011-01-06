@@ -18,7 +18,8 @@ class PDF_Report{
 	function __construct()
 	{
 		$this->ci =& get_instance();
-		$this->ci->load->library('my_mpdf',array('encoding'=>'win-1251'));
+		$codepage=$this->ci->config->item("pdf_codepage");		
+		$this->ci->load->library('my_mpdf',array('codepage'=>$codepage));
 		$this->ci->load->helper('xslt_helper');
 		$this->ci->lang->load("ddibrowser");
     }
@@ -213,10 +214,10 @@ class PDF_Report{
 		
 		//$output=str_replace('php-survey-id',$surveyid, $output);
 		$output=str_replace('<table ','<table repeat_header="1" ', $output);
-		return $output;
+		return html_entity_decode(url_filter($output));
 	}
 	
 }// END PDF_Report Class
 
 /* End of file PDF_Report.php */
-/* Location: ./application/libraries/PDF_Report.php *////////////////////////////////////////////////////////////////
+/* Location: ./application/libraries/PDF_Report.php *////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
