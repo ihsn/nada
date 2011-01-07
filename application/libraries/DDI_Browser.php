@@ -47,7 +47,7 @@ class DDI_Browser{
 	//returns the overview of the ddi file
 	function get_overview_html($ddi_file,$parameters=NULL)
 	{			
-		$xslt=FCPATH.'xslt/ddi_overview.xslt';
+		$xslt=APPPATH.'../xslt/ddi_overview.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 
 		//cleanup the output for whitespaces,xml header
@@ -60,7 +60,7 @@ class DDI_Browser{
 	//returns the overview of the ddi file
 	function get_access_policy_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_accesspolicy.xslt';
+		$xslt=APPPATH.'../xslt/ddi_accesspolicy.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -68,7 +68,7 @@ class DDI_Browser{
 
 	function get_sampling_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_sampling.xslt';
+		$xslt=APPPATH.'../xslt/ddi_sampling.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -76,7 +76,7 @@ class DDI_Browser{
 
 	function get_questionnaires_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_questionnaires.xslt';
+		$xslt=APPPATH.'../xslt/ddi_questionnaires.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -84,14 +84,14 @@ class DDI_Browser{
 
 	function get_dataprocessing_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_dataprocessing.xslt';
+		$xslt=APPPATH.'../xslt/ddi_dataprocessing.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
 	}
 	function get_datacollection_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_datacollection.xslt';
+		$xslt=APPPATH.'../xslt/ddi_datacollection.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -99,7 +99,7 @@ class DDI_Browser{
 
 	function get_dataappraisal_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_dataappraisal.xslt';
+		$xslt=APPPATH.'../xslt/ddi_dataappraisal.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -107,7 +107,7 @@ class DDI_Browser{
 
 	function get_technicaldocuments_html($ddi_file,$parameters=NULL)
 	{				
-		$xslt=FCPATH.'xslt/ddi_technicaldocuments.xslt';
+		$xslt=APPPATH.'../xslt/ddi_technicaldocuments.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -121,7 +121,7 @@ class DDI_Browser{
 						'browser_url'=>site_url().'/'.$this->ci->uri->segment(1). '/'.$this->ci->uri->segment(2)
 						) 
 				);
-		$xslt=FCPATH.'xslt/ddi_datafile.xslt';
+		$xslt=APPPATH.'../xslt/ddi_datafile.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -135,7 +135,7 @@ class DDI_Browser{
 						'browser_url'=>site_url().'/'.$this->ci->uri->segment(1). '/'.$this->ci->uri->segment(2)
 						) 
 				);
-		$xslt=FCPATH.'xslt/ddi_vargrp_variables.xslt';
+		$xslt=APPPATH.'../xslt/ddi_vargrp_variables.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -144,7 +144,7 @@ class DDI_Browser{
 	function get_variable_html($ddi_file,$variable_id,$parameters=array())
 	{	
 		$parameters=array_merge($parameters,array('search_varID'=>$variable_id) );
-		$xslt=FCPATH.'xslt/ddi_variable.xslt';
+		$xslt=APPPATH.'../xslt/ddi_variable.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
@@ -157,7 +157,7 @@ class DDI_Browser{
 	*/
 	function get_datafiles_array($ddi_file,$parameters=array())
 	{	
-		$xslt=FCPATH.'xslt/ddi_datafiles.xslt';
+		$xslt=APPPATH.'../xslt/ddi_datafiles.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 
@@ -181,7 +181,7 @@ class DDI_Browser{
 	*/
 	function get_variable_groups_array($ddi_file,$parameters=array())
 	{	
-		$xslt=FCPATH.'xslt/ddi_vargroups.xslt';
+		$xslt=APPPATH.'../xslt/ddi_vargroups.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		$str=$output;
@@ -250,7 +250,7 @@ class DDI_Browser{
 		$xml=$this->get_study_part($ddi_file);
 			
 		//transform the xml to string
-		$xslt=FCPATH.'xslt/ddi_sidebar.xslt';
+		$xslt=APPPATH.'../xslt/ddi_sidebar.xslt';
 		$output=xsl_transform($xml,$xslt,$parameters=NULL, $format="xml");
 		
 		return $output;
