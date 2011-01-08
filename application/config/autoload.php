@@ -39,9 +39,6 @@
 |	$autoload['libraries'] = array('database', 'session', 'xmlrpc');
 */
 
-//$autoload['libraries'] = array("database","template");
-
-//using REDUX
 $autoload['libraries'] = array(
 							'database',
 							'template',
