@@ -107,6 +107,28 @@ else
 	define('APPPATH', BASEPATH.$application_folder.'/');
 }
 
+
+/*
+|---------------------------------------------------------------
+| MULTI-SITE HOSTING USING SINGLE CODE BASE
+|---------------------------------------------------------------
+|
+| Settings for enabling multi-site hosting from single codebase. 
+|
+| SITENAME	Unqiue name for the site
+| DB_GROUP	DB Group name. It must be defined in the database.php file
+| THEME_NAME	It is the name of the theme name under /themes folder
+| JS_BASE_URL	Provide URL where JS/CSS files are located
+|
+| note: disable settings if multi-site hosting is not needed
+*/
+/*
+define('SITENAME', 'default');
+define('DB_GROUP', 'default');
+define('THEME_NAME', 'default');
+define('JS_BASE_URL', 'http://localhost/nadabase/');
+*/
+
 /*
 |---------------------------------------------------------------
 | LOAD THE FRONT CONTROLLER
