@@ -1,5 +1,5 @@
 <?php
-class Upgrade extends MY_Controller {
+class Migrate extends MY_Controller {
 
     function __construct()
     {
@@ -7,7 +7,7 @@ class Upgrade extends MY_Controller {
 		    $this->load->database();
 
 			//load upgrade configurations
-			$this->config->load('upgrade');
+			$this->config->load('migrate');
 			$this->load->library('ion_auth');
 			$this->load->helper('email');
 
