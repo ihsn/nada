@@ -1,7 +1,7 @@
 <?php  if (!defined('BASEPATH')) exit('No direct script access allowed');
 /*
 |--------------------------------------------------------------------------
-| Active template
+| Active template group
 |--------------------------------------------------------------------------
 |
 | The $template['active_template'] setting lets you choose which template 
@@ -10,6 +10,30 @@
 |
 */
 $template['active_template'] = 'default';
+$template['theme_name']='wb';
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Multi site hosting [DO NOT EDIT SETTTINGS BELOW]
+|--------------------------------------------------------------------------
+|
+| These settings are used for sharing single code base for multi site 
+| hosting, for more details on how to setup multiple sites using single
+| instance of nada code:
+|
+| --todo -- put link to the documentation here
+*/
+
+//set active theme name to use
+$theme_name=defined('THEME_NAME') ? THEME_NAME : $template['theme_name'] ;
+
+//set base url for JS and CSS files
+$template['base_url']=defined('JS_BASE_URL') ? JS_BASE_URL : base_url();
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -109,8 +133,8 @@ $template['admin']['parse_template'] = FALSE;
 */
 
 //default site template
-$template['default']['template'] = '../../themes/wb/layout';
-$template['default']['theme_folder'] = 'wb';
+$template['default']['template'] = '../../themes/'.$theme_name.'/layout';
+$template['default']['theme_folder'] = $theme_name;
 
 //regions for the site template
 $template['default']['regions'] = array(
