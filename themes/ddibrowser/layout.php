@@ -6,7 +6,7 @@ $enable_rtl=$this->config->item("enable_rtl");
 <head> 
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
 	<title><?php echo $survey_title;?></title> 
-   	<base href="<?php echo base_url(); ?>"/>
+   	<base href="<?php echo js_base_url(); ?>">
     
     <?php if($enable_rtl===TRUE):?>
     <link rel="stylesheet" href="javascript/tree/rtl/jquery.treeview.rtl.css" />
