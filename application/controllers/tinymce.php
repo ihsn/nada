@@ -27,7 +27,7 @@ class Tinymce extends MY_Controller {
 		
 		$output .= 'var tinyMCEImageList = new Array(';
 		
-		$directory = "images"; // Use your correct (relative!) path here
+		$directory = APPPATH."../images"; // Use your correct (relative!) path here
 		
 		// Since TinyMCE3.x you need absolute image paths in the list...
 		$abspath = preg_replace('~^/?(.*)/[^/]+$~', '/$1', $_SERVER['SCRIPT_NAME']);
