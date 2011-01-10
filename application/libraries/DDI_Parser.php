@@ -186,7 +186,7 @@ class DDI_Parser{
 		$xml.='</'.$codebook_name.'>';
 		
 		//transform the xml to flattened xml format
-		$xslt=FCPATH.'xslt/study_parser.xslt';
+		$xslt=APPPATH.'../xslt/study_parser.xslt';
 		$output=xsl_transform($xml,$xslt,$parameters=NULL, $format="xml");
 
 		//var_dump($output);exit;
@@ -362,7 +362,7 @@ class DDI_Parser{
 	//transforms a single/multiple variable xml to string array
 	function _transform_var($xml)
 	{
-		$xslt=FCPATH.'xslt/var_to_array.xslt';		
+		$xslt=APPPATH.'../xslt/var_to_array.xslt';		
 		$output=xsl_transform($xml,$xslt,$parameters=NULL, $format="xml");
 		
 		//remove xml/utf header
