@@ -71,7 +71,7 @@ $config['url_suffix'] = "";
 $config['language']	= "english";
 
 //List of supported languages. type language name in lower case
-$config['supported_languages']=array();//array("english","russian");
+$config['supported_languages']=array();//array("english","french");
 
 /*
 |--------------------------------------------------------------------------
@@ -190,7 +190,7 @@ $config['directory_trigger'] 	= 'd'; // experimental not currently in use
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 2;
+$config['log_threshold'] = 1;
 
 /*
 |--------------------------------------------------------------------------
@@ -368,7 +368,6 @@ $config['date_format_long']='m/d/Y H:i';
 $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
 
-
 /*
 |--------------------------------------------------------------------------
 | NADA SSL configurations
@@ -397,6 +396,25 @@ $config['http_port']=80;
 | 
 */
 $config['enable_rtl']=FALSE;
+
+
+/*
+|--------------------------------------------------------------------------
+| PDF settings
+|--------------------------------------------------------------------------
+|
+| Set PDF generator codepage settings
+|
+| pdf_codepage	set the codepage to be used for rendering PDF files
+|
+|	Win-1252	- Latin alphabets - English, Italian, Spanish, Portuguese, French, German, Dutch, Danish, Swedish, Norwegian, and Icelandic
+|	Win-1251	- Cyrillic alphabets - Russian, Bulgarian, Serbian, Macedonian and Bulgarian
+|
+| For other encodings see mPDF documentation: http://mpdf1.com/manual/index.php
+|
+*/
+$config['pdf_codepage']='Win-1252';
+
 
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */
