@@ -26,8 +26,6 @@ if ( ! function_exists('js_redirect'))
 {
 	function js_redirect($uri = '',$seconds=0)
 	{
-		//echo '<script type="text/javascript">window.location = "'.$uri.'"</script>';
-		
 		$output= '<script type="text/javascript">';
 		$output.= "var seconds=$seconds;";
 		$output.= "var uri=\"$uri\";";
@@ -89,5 +87,24 @@ if ( ! function_exists('site_home'))
         return $home;
 	}
 } 
+
+/**
+*
+* Returns JS/CSS base url
+*
+**/
+if ( ! function_exists('js_base_url'))
+{
+	function js_base_url()
+	{
+    	if (defined('JS_BASE_URL'))
+        {
+        	return JS_BASE_URL;
+		}
+		
+		return base_url();
+	}
+} 
+
 /* End of file MY_url_helper.php */
 /* Location: ./application/helpers/MY_url_helper.php */
