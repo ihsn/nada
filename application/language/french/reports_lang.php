@@ -1,5 +1,5 @@
 <?php 
-$lang['reports']="Raports";
+$lang['reports']="Rapports";
 $lang['select_reporting_period']="Selectionnez la période qui vous intéresse";
 $lang['from']="De";
 $lang['to']="A";
