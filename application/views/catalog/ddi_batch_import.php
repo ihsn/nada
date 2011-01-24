@@ -56,7 +56,7 @@ var i18n=
 {
 'cancel_import_process':"<?php echo t('cancel_import_process');?>",
 'import_completed':"<?php echo t('import_completed');?>",
-'import_cancelled':"<?php echo t('import_cancelled');?>",
+'import_cancelled':"<?php echo t('import_cancelled');?>"
 };
 
 $(".log").css({ border: '1px solid gray'});
@@ -119,13 +119,12 @@ var batch_import = {
 				}
 			});		
 		
-		overwrite=0
+		var overwrite=0;
 		if ($("#overwrite").attr("checked")){overwrite=1}
 		
 		//post	
 		this.xhr=$.post(CI.base_url+"/admin/catalog/do_batch_import",{id:id,overwrite:overwrite},func_data, "json");
 		
-		obj=this;
 		//handle json returned values
 		function func_data(data){
 			 if (data.success){
