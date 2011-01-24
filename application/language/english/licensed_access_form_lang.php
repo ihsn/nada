@@ -82,4 +82,6 @@ $lang['success_request_submitted']='You have successfully submitted the request 
 $lang['track_status_request']='To track the status of your request, visit';
 $lang['thank_you']='Thank you!';
 $lang['confirmation_application_for_licensed_dataset']='[confirmation] Application for Access to a Licensed Dataset';
+$lang['view_all_requests']='View all requests';
+$lang['open_in_new_window']='Open in new window';
 ?>
