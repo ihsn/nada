@@ -41,7 +41,7 @@
 	</tr>
 	<tr>
 		<td nowrap="nowrap"><?php echo t('status');?></td>
-		<td style="font-weight:bold;"><?php echo $status;?></td>
+		<td style="font-weight:bold;"><?php echo t($status);?></td>
 	</tr>	
 <?php if (isset($comments)): ?>
 <?php if ($comments!=""): ?>
