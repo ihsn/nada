@@ -20,7 +20,7 @@ class Migrate extends MY_Controller {
 		if (!$this->input->post("upgrade"))
 		{
 			//loading page first time
-			$this->load->view('upgrade');
+			$this->load->view('migrate');
 			return;
 		}
 
