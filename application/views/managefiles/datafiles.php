@@ -18,6 +18,6 @@
     <?php endforeach;?>
     </table>
 <?php else: ?>
-<div style="margin-bottom:20px;font-size:16px;"><?php echo sprintf(t('study_no_data_files_assigned'),anchor('admin/managefiles/'.$this->uri->segment(3),'Manage Files'));?>.</div>
+<div style="margin-bottom:20px;font-size:16px;"><?php echo sprintf(t('study_no_data_files_assigned'),anchor('admin/managefiles/'.$this->uri->segment(3),t('manage_files')));?>.</div>
 <?php endif; ?>
 </div>
