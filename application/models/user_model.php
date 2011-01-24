@@ -10,7 +10,7 @@ class User_model extends Model {
 	//search users 
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {
-		$this->output->enable_profiler(TRUE);
+		//$this->output->enable_profiler(TRUE);
 
 		$this->db->start_cache();
 
