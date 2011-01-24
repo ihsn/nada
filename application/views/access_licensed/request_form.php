@@ -30,8 +30,8 @@ $options_datamatching=array(
 ?>
 
 <div style="text-align:right">
-	<a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?>href="<?php echo site_url();?>/auth/profile/" class="button">View all requests</a> 
-    <a target="_blank" href="<?php echo site_url().$this->uri->uri_string();?>" class="button">Open in new window</a>
+	<a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?>href="<?php echo site_url();?>/auth/profile/" class="button"><?php echo t('view_all_requests');?></a> 
+    <a target="_blank" href="<?php echo site_url().$this->uri->uri_string();?>" class="button"><?php echo t('open_in_new_window');?></a>
 </div>
 
 
