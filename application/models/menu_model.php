@@ -139,6 +139,11 @@ class Menu_model extends Model {
 
 		//add date modified
 		$options['changed']=date("U");
+		
+		if (!is_numeric($options['pid']))
+		{
+			$options['pid']=0;
+		}
 					
 		//pk field name
 		$key_field='id';
@@ -194,6 +199,11 @@ class Menu_model extends Model {
 			{
 				$data[$key]=$value;
 			}
+		}
+		
+		if (!is_numeric($options['pid']))
+		{
+			$options['pid']=0;
 		}
 		
 		//insert record into db
