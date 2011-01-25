@@ -23,6 +23,6 @@ body,p,table td, table th{font-size:12px;}
 .table-variable-list td{padding:5px;}
 
 table th{text-align:left}
-.var-category-container{margin-top:10px;border:1px solid #A0C2DE;}
-.var-category-title{padding:5px;background-color:#A0C2DE;color:white;}
+.var-category-container{margin-top:10px;border:1px solid #EFD2A4;}
+.var-category-title{padding:5px;background-color:#EFD2A4;color:black;}
 .datafile-info{width:100%;background-color:#EFF8FF;}
