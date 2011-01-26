@@ -160,6 +160,7 @@ $lang['Content'] = "Content";
 $lang['title_analytical'] = "Analytical Outputs";
 $lang['Data Collectors']="Data Collectors";
 $lang['Time Periods']="Time Periods";
+$lang['variable_groups']="Variable groups";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
