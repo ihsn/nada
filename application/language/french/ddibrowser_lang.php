@@ -139,7 +139,7 @@ $lang['Version']="Version";
 $lang['Version Description']="Description de la version";
 $lang['View']="Voir";
 $lang['View variable info']="Voir les informations sur la variable";
-$lang['warning_figures_indicate_number_of_cases_found']="Avertissement: ces statistiques indiquent le nombre d'enregistrements trouvés dans les fichiers de données, et non des nombres pondérés. Ils ne peuvent pas être interpretés comme étant représentatifs de la population concernées.";
+$lang['warning_figures_indicate_number_of_cases_found']="Avertissement: ces statistiques indiquent le nombre d'enregistrements trouvés dans les fichiers de données, et non des nombres pondérés. Ils ne peuvent pas être interpretés comme étant représentatifs de la population concernée.";
 $lang['Weighting']="Pondération";
 $lang['Width']="Largeur";
 $lang['Topic']="Sujet";
@@ -153,6 +153,7 @@ $lang['Definition']="Définition";
 $lang['title_analytical']="Résultats analytiques";
 $lang['Data Collectors']="Enquêteurs";
 $lang['Time Periods']="Période";
+$lang['variable_groups']="Groupes de variables";
 
 
 /* End of file ddibrowser_lang.php */

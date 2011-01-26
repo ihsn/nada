@@ -45,27 +45,5 @@ $lang['intended_use']="Utilisation prévue";
 $lang['details']="Détails";
 
 
-$lang['sec_overview']="Overview";
-$lang['sec_accesspolicy']="Access policy";
-$lang['sec_analytical']="Analytical output";
-$lang['sec_datacollection']="Data collection";
-$lang['sec_datafile']="Data files";
-$lang['sec_dataprocessing']="Data processing";
-$lang['sec_download']="Downloads";
-$lang['sec_export']="Export";
-$lang['sec_licensed-download']="Licensed file downloads";
-$lang['sec_othermaterials']="Other materials";
-$lang['sec_questionnaires']="Questionnaires";
-$lang['sec_reports']="Reports";
-$lang['sec_sampling']="Sampling";
-$lang['sec_stat_tables']="Statistical tables";
-$lang['sec_technicaldocuments']="Technical documents";
-$lang['sec_vargrp']="Variable groups";
-$lang['sec_variable']="Variables";
-$lang['sec_search']="Search";
-$lang['sec_dataapraisal']="Data appraisal";
-
-
-
 /* End of file reports_lang.php */
 /* Location: ./application/language/french/reports_lang.php */
