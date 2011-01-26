@@ -124,7 +124,7 @@
 <?php if ($url!=''):?>
 <tr>
 	<td><?php echo t('url');?></td>
-    <td><?php echo anchor(prep_url($url),wordwrap($url,100,"&#8203;",TRUE));?></td>
+    <td><?php echo anchor(prep_url($url),wordwrap($url,100,"&#8203;",TRUE),'target="_blank"');?></td>
 </tr>
 <?php endif;?>
 
