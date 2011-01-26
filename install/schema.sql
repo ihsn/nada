@@ -126,7 +126,7 @@ CREATE TABLE `citations` (
   `abstract` text,
   `keywords` text,
   `notes` text,
-  `doi` varchar(255) DEFAULT NULL,,
+  `doi` varchar(255) DEFAULT NULL,
   `flag` varchar(45) DEFAULT NULL,
   `owner` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -772,7 +772,7 @@ CREATE TABLE `menus` (
   `changed` int(10) unsigned DEFAULT NULL,
   `linktype` tinyint(1) DEFAULT NULL,
   `weight` int(10) DEFAULT NULL,
-  `pid` int(10) unsigned DEFAULT NULL,
+  `pid` int(10) unsigned DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_url` (`url`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
