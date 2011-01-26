@@ -298,7 +298,7 @@ class Licensed_requests extends MY_Controller {
 		}
 		
 		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
-		$this->form_validation->set_rules('cc', t('cc'), 'trim|required|xss_clean');
+		$this->form_validation->set_rules('cc', t('cc'), 'trim|xss_clean');
 		$this->form_validation->set_rules('subject', t('subject'), 'trim|xss_clean|required');		
 		$this->form_validation->set_rules('body', t('body'), 'required|trim|xss_clean');		
 
