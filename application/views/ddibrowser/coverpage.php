@@ -17,7 +17,7 @@
     </div>
     
     <div style="margin-top:5px;font-size:12pt;color:gray;">
-    Generated on: <?php echo date("D, M Y",date("U")); ?>
+    Generated on: <?php echo date("F j, Y",date("U")); ?>
     </div>
 
     <div style="margin-top:50px;font-size:12pt;color:gray;">
