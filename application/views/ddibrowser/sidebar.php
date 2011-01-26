@@ -86,7 +86,7 @@ $menu_tech_info['dataappraisal']	=anchor('ddibrowser/'.$this->uri->segment(2).'/
     </li>
     <?php //variable groups ?>
     <?php if ($vargrp!==NULL):?>
-      	<li><span class="folder">Variable groups</span>
+      	<li><span class="folder"><?php echo t('variable_groups');?></span>
     		<?php echo $vargrp;?>
         </li>    
     <?php endif;?>
