@@ -40,6 +40,7 @@ if ($languages!==FALSE)
 <div class="user-box">
     <a href="<?php echo site_url(); ?>/auth/login"><?php echo t('login');?></a> | 
     <a href="<?php echo site_url(); ?>/auth/register"><?php echo t('register');?></a>
+    <?php echo $lang_ul;?>
 </div>
 <?php endif;?>
 </div>
