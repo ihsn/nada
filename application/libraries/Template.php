@@ -48,7 +48,9 @@ class CI_Template {
    var $parser = 'parser';
    var $parser_method = 'parse';
    var $parse_template = FALSE;
-   
+   var $base_url = '';
+	
+ 
    /**
 	 * Constructor
 	 *
@@ -62,18 +64,25 @@ class CI_Template {
    {
       // Copy an instance of CI so we can use the entire framework.
       $this->CI =& get_instance();
-
-	  //asset manager
-	  //$this->CI->load->library('carabiner'); 
 		      
       // Load the template config file and setup our master template and regions
       include(APPPATH.'config/template'.EXT);
       if (isset($template))
-      {
+      {		
          $this->config = $template;
          $this->set_template($template['active_template']);
       }
-   }
+	  
+	  //set base url for css/js files
+	  if (isset($this->config['base_url']))
+	  {
+	 	$this->base_url=$this->config['base_url'];
+	  }
+	 else 
+	 {
+	 	$this->base_url=base_url();
+	 }	
+ }
    
    // --------------------------------------------------------------------
    
@@ -445,7 +454,7 @@ class CI_Template {
       switch ($type)
       {
          case 'import':
-            $filepath = base_url() . $script;
+            $filepath = $this->base_url . $script;
             $js = '<script type="text/javascript" src="'. $filepath .'"';
             if ($defer)
             {
@@ -501,7 +510,7 @@ class CI_Template {
       $css = NULL;
       
       $this->CI->load->helper('url');
-      $filepath = base_url() . $style;
+      $filepath = $this->base_url . $style;
       
       switch ($type)
       {
@@ -685,28 +694,6 @@ class CI_Template {
 	   return $this->template['theme_folder'];
    }
    
-/*   function min_js()
-   {
-		//add js files
-		foreach($this->js_array as $js)
-		{
-			$this->CI->carabiner->js($js);
-    	}
-			
-		$this->CI->carabiner->display("js");
-   }
-   function min_css()
-   {
-		//add css files
-		foreach($this->css_array as $css)
-		{
-			$this->CI->carabiner->css($css);
-    	}
-			
-		$this->CI->carabiner->display("css");
-   }
-*/
-
 }
 // END Template Class
 
