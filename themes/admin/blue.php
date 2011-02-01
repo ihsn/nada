@@ -24,7 +24,7 @@ if ($languages!==FALSE)
 <html >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<base href="<?php echo base_url(); ?>">
+<base href="<?php echo js_base_url(); ?>">
 <title><?php echo $title; ?></title>
 <link rel="stylesheet" type="text/css" href="themes/admin/reset-fonts-grids.css">
 <link rel="stylesheet" type="text/css" href="themes/admin/generic.css" />
