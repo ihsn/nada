@@ -31,12 +31,6 @@ function load_email_settings()
   $config['smtp_port'] = $ci->config->item("smtp_port");
   $config['mailtype']  = 'html';
   $config['charset']   = 'utf-8';
-  
-  if ($config['protocol']===FALSE)
-  {
-      return FALSE;
-  }
-  
   return $config;
 }
   
