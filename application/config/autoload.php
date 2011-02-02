@@ -42,12 +42,11 @@
 $autoload['libraries'] = array(
 							'database',
 							'template',
-							'session', 
-							'email',
-							'ion_auth',
+							'session', 							
 							'site_configurations',
 							'DB_Logger',
-							'MY_Exception'
+							'MY_Exception',
+							'ion_auth',
 							);
 
 /*
