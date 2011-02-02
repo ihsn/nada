@@ -66,6 +66,11 @@ $lang['smtp_debug_disable'] = "Disable";
 $lang['website_footer'] = "Website footer";
 $lang['repository_identifier'] = "Repository name";
 
-$lang['news_feed_url'] = "News feed URL (rss)";
+$lang['news_feed_url'] = "News feed URL (RSS)";
+$lang['cache_expiry'] = "Cache expiration time";
+$lang['cache_default_expires_msg'] = "Provide time in mili seconds for expiring cached items e.g. 7200=2 hours";
+$lang['cache_disabled_msg'] = "Caching speeds up page load but uses additional disk space";
+$lang['cache_disabled'] = "Disable caching";
+
 /* End of file vocabularies_lang.php */
 /* Location: ./system/language/english/vocabularies_lang.php */
