@@ -35,15 +35,17 @@ class Cache
 		$this->ci =& get_instance();
 		$this->_reset();
 
-		$this->ci->load->config('cache');
-		
-		$this->path = $this->ci->config->item('cache_path');
+		$this->path = unix_path($this->ci->config->item('cache_path'));
 		$this->cache_disabled = $this->ci->config->item('cache_disabled');
 		$this->default_expires = $this->ci->config->item('cache_default_expires');
+
 		if ( ! is_dir($this->path))
 		{
 			show_error("Cache Path not found: $this->path");
 		}
+		
+		//add ending slash if missing
+		$this->path=unix_path($this->path.'/');
 	}
 	
 	/**
@@ -293,7 +295,7 @@ class Cache
 		// Check directory permissions
 		if ( ! is_dir($this->path) OR ! is_really_writable($this->path))
 		{
-			return;
+			return FALSE;
 		}
 		
 		// check if filename contains dirs
