@@ -120,3 +120,5 @@ div.left {
 
 .source-cat{padding-top:5px;color:#666666;}
 .source-cat a{font-size:11px;}
+
+.light .button{background:none;border:none;color:gray;font-size:smaller}
