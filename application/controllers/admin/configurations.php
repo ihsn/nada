@@ -18,7 +18,7 @@ class Configurations extends MY_Controller {
 	{	
 		$this->form_validation->set_rules('catalog_root', 'Catalog Folder', 'xss_clean|trim|max_length[255]|required');
 		$this->form_validation->set_rules('ddi_import_folder', 'Import Folder', 'xss_clean|trim|max_length[255]|required');
-		$this->form_validation->set_rules('cache_folder', 'Cache Folder', 'xss_clean|trim|max_length[255]|required');
+		$this->form_validation->set_rules('cache_path', 'Cache Path', 'xss_clean|trim|max_length[255]|required');
 		$this->form_validation->set_rules('website_title', 'Website Title', 'xss_clean|trim|max_length[255]|required');
 		//$this->form_validation->set_rules('website_url', 'Website URL', 'xss_clean|trim|max_length[255]|required');
 		
