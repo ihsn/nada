@@ -3,29 +3,25 @@ class Configurations_model extends Model {
  
     public function __construct()
     {
-        // model constructor
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
 	
-	//load nada configurations
+	/**
+	* load nada configurations
+	*
+	*/
     function load()
     {
-		//select columns for output
 		$this->db->select('name,value');
-		
 		$result= $this->db->get('configurations');
-		
+
 		if ($result)
 		{
 			return $result->result_array();
 		}		
 
-		return $result;
-		
-		foreach($result as $row){
-			$this->config->set_item($row['name'], $row['value']);
-		}
+		return FALSE;	
     }
   	
 	/**
@@ -39,6 +35,10 @@ class Configurations_model extends Model {
         return $this->db->get()->result_array();
     }	
 
+	/**
+	* returns an array of site configurations
+	*
+	*/	
 	function get_config_array()
     {
 		$this->db->select('name,value');		
@@ -54,9 +54,13 @@ class Configurations_model extends Model {
 		return $result;
     }	
 
+
+	/**
+	* update configurations
+	*
+	*/
 	function update($options)
-	{
-		
+	{		
 		foreach($options as $key=>$value)
 		{
 			$data=array('value'=>$value);
@@ -69,7 +73,7 @@ class Configurations_model extends Model {
 	*
 	* Return an array of vocabularies
 	*
-	**/
+	*/
 	function get_vocabularies_array()
     {
 		$this->db->select('vid,title');		
