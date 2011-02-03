@@ -392,7 +392,9 @@ CREATE TABLE `configurations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('app_version', '3.0.3-12.09.2010', 'Application version', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('cache_folder', 'application/cache', 'Site cache folder', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('cache_default_expires', '7200', 'Cache expiry (in mili seconds)', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('cache_disabled', '0', 'Enable/disable site caching', NULL, NULL);
+INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('cache_path', 'application/cache', 'Site cache folder', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_records_per_page', '15', 'Catalog search page - records per page', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('catalog_root', 'datafiles', 'Survey catalog folder', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('db_version', '3.0.3-12.09.2010', 'Database version', NULL, NULL);
@@ -406,12 +408,9 @@ INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) 
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('regional_search', 'yes', 'Enable regional search', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('repository_identifier', 'default', 'Repository Identifier', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('site_password_protect', 'no', 'Password protect website', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_auth', 'no', 'Use SMTP Authentication', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_debug', 'yes', 'Enable SMTP Debugging', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_host', 'ihsn.org', 'SMTP Host name', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_pass', 'free001', 'SMTP password', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_port', '25', 'SMTP port', NULL, NULL);
-INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_secure', 'no', 'Use Secure SMTP?', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('smtp_user', 'nada@ihsn.org', 'SMTP username', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('theme', 'default', 'Site theme name', NULL, NULL);
 INSERT INTO configurations (`name`, `value`, `label`, `helptext`, `item_group`) VALUES ('topics_vocab', '1', 'Vocabulary ID for Topics', NULL, NULL);
