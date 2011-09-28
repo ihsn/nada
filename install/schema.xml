@@ -1,0 +1,562 @@
+<?xml version="1.0" ?>
+<schema>
+  <table name="variables_xxxx">
+    <field name="uid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"  primary_key="yes" />
+    <field name="varID" type="varchar(45)" null="YES" default="" extra="" />
+    <field name="name" type="varchar(45)" null="YES" default="" extra="" />
+    <field name="labl" type="varchar(245)" null="YES" default="" extra="" />
+    <field name="qstn" type="text" null="YES" default="" extra="" />
+    <field name="catgry" type="text" null="YES" default="" extra="" />
+    <field name="surveyid_FK" type="int(10) unsigned" null="NO" default="" extra="" />
+    <index  table ="variables"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="uid"  collation ="a"  cardinality ="1184"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="0"  key_name ="idxsurvey"  seq_in_index ="1"  column_name ="varid"  collation ="a"  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="0"  key_name ="idxsurvey"  seq_in_index ="2"  column_name ="surveyid_fk"  collation ="a"  cardinality =""  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idxsurveyidfk"  seq_in_index ="1"  column_name ="surveyid_fk"  collation ="a"  cardinality =""  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_qstn"  seq_in_index ="1"  column_name ="qstn"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_labl"  seq_in_index ="1"  column_name ="labl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idxcatgry"  seq_in_index ="1"  column_name ="catgry"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_qstn"  seq_in_index ="1"  column_name ="name"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_qstn"  seq_in_index ="2"  column_name ="labl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_qstn"  seq_in_index ="3"  column_name ="qstn"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="1"  column_name ="name"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="2"  column_name ="labl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="3"  column_name ="catgry"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="4"  column_name ="qstn"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm"  seq_in_index ="1"  column_name ="name"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+  </table>
+
+  <table name="testx">
+    <field name="id" type="int(5) unsigned" null="NO" default="" extra="auto_increment" primary_key="yes" />
+    <field name="company_name" type="varchar(200)" null="NO" default="" extra="" />
+    <field name="first_name" type="varchar(200)" null="NO" default="" extra="" />
+    <field name="last_name" type="varchar(200)" null="NO" default="" extra="" />
+    <field name="phone" type="text" null="NO" default="" extra="" />
+    <field name="email" type="text" null="NO" default="" extra="" />
+    <field name="address" type="text" null="NO" default="" extra="" />
+    <field name="Last_Update" type="datetime" null="NO" default="" extra="" />
+    <field name="Created_At" type="timestamp" null="NO" default="CURRENT_TIMESTAMP" extra="" />
+    <index  table ="accounts"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="accounts">
+    <field name="id" type="int(5) unsigned" null="NO" default="" extra="auto_increment" primary_key="yes" />
+    <field name="company_name" type="varchar(200)" null="NO" default="" extra="" />
+    <field name="first_name" type="varchar(200)" null="NO" default="" extra="" />
+    <field name="last_name" type="varchar(200)" null="NO" default="" extra="" />
+    <field name="phone" type="text" null="NO" default="" extra="" />
+    <field name="email" type="text" null="NO" default="" extra="" />
+    <field name="address" type="text" null="NO" default="" extra="" />
+    <field name="Last_Update" type="datetime" null="NO" default="" extra="" />
+    <field name="Created_At" type="timestamp" null="NO" default="CURRENT_TIMESTAMP" extra="" />
+    <index  table ="accounts"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="blocks">
+    <field name="bid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="body" type="text" null="YES" default="" extra=""/>
+    <field name="region" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="weight" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="published" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="pages" type="text" null="YES" default="" extra=""/>
+    <index  table ="blocks"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="bid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="ci_sessions">
+    <field name="session_id" type="varchar(40)" null="NO" default="0" extra=""
+ primary_key="yes" />
+    <field name="ip_address" type="varchar(16)" null="YES" default="0" extra=""/>
+    <field name="user_agent" type="varchar(50)" null="YES" default="" extra=""/>
+    <field name="last_activity" type="int(10) unsigned" null="YES" default="0" extra=""/>
+    <field name="user_data" type="text" null="YES" default="" extra=""/>
+    <index  table ="ci_sessions"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="session_id"  collation ="a"  cardinality ="2"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="citation_authors">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="cid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="fname" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="lname" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="initial" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="author_type" type="varchar(45)" null="YES" default="" extra=""/>
+    <index  table ="citation_authors"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="5674"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="citations">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="subtitle" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="alt_title" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="authors" type="text" null="YES" default="" extra=""/>
+    <field name="editors" type="text" null="YES" default="" extra=""/>
+    <field name="translators" type="text" null="YES" default="" extra=""/>
+    <field name="changed" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="created" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="published" type="tinyint(3) unsigned" null="YES" default="1" extra=""/>
+    <field name="volume" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="issue" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="idnumber" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="edition" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="place_publication" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="place_state" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="publisher" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="publication_medium" type="tinyint(3) unsigned" null="YES" default="0" extra=""/>
+    <field name="url" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="page_from" type="varchar(5)" null="YES" default="" extra=""/>
+    <field name="page_to" type="varchar(5)" null="YES" default="" extra=""/>
+    <field name="data_accessed" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="organization" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="ctype" type="varchar(45)" null="NO" default="" extra=""/>
+    <field name="pub_day" type="varchar(15)" null="YES" default="" extra=""/>
+    <field name="pub_month" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="pub_year" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="abstract" type="text" null="YES" default="" extra=""/>
+    <field name="keywords" type="text" null="YES" default="" extra=""/>
+    <field name="notes" type="text" null="YES" default="" extra=""/>
+    <field name="doi" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="flag" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="owner" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="country" type="varchar(100)" null="YES" default="" extra=""/>
+    <index  table ="citations"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="2576"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="configurations">
+    <field name="name" type="varchar(200)" null="NO" default="" extra=""
+ primary_key="yes" />
+    <field name="value" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="label" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="helptext" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="item_group" type="varchar(255)" null="YES" default="" extra=""/>
+    <index  table ="configurations"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="name"  collation ="a"  cardinality ="37"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="countries">
+    <field name="countryid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="name" type="varchar(65)" null="NO" default="" extra=""/>
+    <field name="iso3" type="varchar(3)" null="NO" default="" extra=""/>
+    <index  table ="countries"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="countryid"  collation ="a"  cardinality ="240"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="dcformats">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <index  table ="dcformats"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="21"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="dctypes">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <index  table ="dctypes"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="16"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="forms">
+    <field name="formid" type="int(11)" null="NO" default="0" extra=""
+ primary_key="yes" />
+    <field name="fname" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="model" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="path" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="iscustom" type="char(2)" null="YES" default="0" extra=""/>
+    <index  table ="forms"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="formid"  collation ="a"  cardinality ="5"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="harvester_queue">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="repositoryid" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="survey_url" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="status" type="varchar(45)" null="NO" default="" extra=""/>
+    <field name="ddi_local_path" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="changed" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="survey_timestamp" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="retries" type="int(11)" null="YES" default="0" extra=""/>
+    <field name="country" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="survey_year" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="accesspolicy" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="checksum" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="surveyid" type="varchar(255)" null="YES" default="" extra=""/>
+    <index  table ="harvester_queue"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="403"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="harvester_queue"  non_unique ="0"  key_name ="idx_unq"  seq_in_index ="1"  column_name ="repositoryid"  collation ="a"  cardinality ="13"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="harvester_queue"  non_unique ="0"  key_name ="idx_unq"  seq_in_index ="2"  column_name ="survey_url"  collation ="a"  cardinality ="403"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="harvester_queue"  non_unique ="0"  key_name ="idx_s_r"  seq_in_index ="1"  column_name ="repositoryid"  collation ="a"  cardinality ="26"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="harvester_queue"  non_unique ="0"  key_name ="idx_s_r"  seq_in_index ="2"  column_name ="surveyid"  collation ="a"  cardinality ="403"  sub_part =""  packed =""  null ="yes"  index_type ="btree"  comment ="" />
+  </table>
+  <table name="lic_file_downloads">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="fileid" type="varchar(45)" null="NO" default="" extra=""/>
+    <field name="downloads" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="download_limit" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="expiry" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="lastdownloaded" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="requestid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <index  table ="lic_file_downloads"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="lic_files">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="surveyid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="file_name" type="varchar(100)" null="NO" default="" extra=""/>
+    <field name="file_path" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="changed" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <index  table ="lic_files"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="lic_files_log">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="requestid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="fileid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="ip" type="varchar(20)" null="NO" default="" extra=""/>
+    <field name="created" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="username" type="varchar(255)" null="YES" default="" extra=""/>
+    <index  table ="lic_files_log"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="lic_requests">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="userid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="surveyid" type="int(11)" null="NO" default="" extra=""/>
+    <field name="org_rec" type="varchar(200)" null="YES" default="" extra=""/>
+    <field name="org_type" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="address" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="tel" type="varchar(150)" null="YES" default="" extra=""/>
+    <field name="fax" type="varchar(100)" null="YES" default="" extra=""/>
+    <field name="datause" type="text" null="YES" default="" extra=""/>
+    <field name="outputs" type="text" null="YES" default="" extra=""/>
+    <field name="compdate" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="datamatching" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="mergedatasets" type="text" null="YES" default="" extra=""/>
+    <field name="team" type="text" null="YES" default="" extra=""/>
+    <field name="dataset_access" type="varchar(20)" null="YES" default="whole" extra=""/>
+    <field name="created" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="status" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="comments" type="text" null="YES" default="" extra=""/>
+    <field name="locked" type="tinyint(4)" null="YES" default="" extra=""/>
+    <field name="orgtype_other" type="varchar(145)" null="YES" default="" extra=""/>
+    <field name="updated" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="updatedby" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="ip_limit" type="varchar(255)" null="YES" default="" extra=""/>
+    <index  table ="lic_requests"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="4"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="menus">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="url" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="body" type="text" null="YES" default="" extra=""/>
+    <field name="published" type="tinyint(1)" null="YES" default="" extra=""/>
+    <field name="target" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="changed" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="linktype" type="tinyint(1)" null="YES" default="" extra=""/>
+    <field name="weight" type="int(10)" null="YES" default="" extra=""/>
+    <field name="pid" type="int(10) unsigned" null="YES" default="0" extra=""/>
+    <index  table ="menus"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="6"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="menus"  non_unique ="0"  key_name ="idx_url"  seq_in_index ="1"  column_name ="url"  collation ="a"  cardinality ="6"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="meta">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="user_id" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="first_name" type="varchar(50)" null="YES" default="" extra=""/>
+    <field name="last_name" type="varchar(50)" null="YES" default="" extra=""/>
+    <field name="company" type="varchar(100)" null="YES" default="" extra=""/>
+    <field name="phone" type="varchar(20)" null="YES" default="" extra=""/>
+    <field name="country" type="varchar(100)" null="YES" default="" extra=""/>
+    <index  table ="meta"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="3"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="pages">
+    <field name="pid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(45)" null="NO" default="" extra=""/>
+    <field name="body" type="text" null="YES" default="" extra=""/>
+    <field name="url" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="created" type="datetime" null="YES" default="" extra=""/>
+    <field name="changed" type="datetime" null="YES" default="" extra=""/>
+    <field name="weight" type="smallint(5) unsigned" null="YES" default="" extra=""/>
+    <field name="status" type="smallint(5) unsigned" null="YES" default="1" extra=""/>
+    <index  table ="pages"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="pid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="planned_surveys">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="abbreviation" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="studytype" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="country" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="geocoverage" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="scope" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="pinvestigator" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="producers" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="sponsors" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="fundingstatus" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="samplesize" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="sampleunit" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="datacollstart" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="datacollend" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="expect_rep_date" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="expect_data_policy" type="text" null="YES" default="" extra=""/>
+    <field name="expect_micro_rel_date" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="notes" type="text" null="YES" default="" extra=""/>
+    <index  table ="planned_surveys"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="projects">
+    <field name="projectid" type="varchar(255)" null="NO" default="" extra=""
+ primary_key="yes" />
+    <field name="projectname" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="productline" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="region" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="country" type="varchar(255)" null="YES" default="" extra=""/>
+    <index  table ="projects"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="projectid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="public_requests">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="userid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="surveyid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="abstract" type="text" null="NO" default="" extra=""/>
+    <field name="posted" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <index  table ="public_requests"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="3"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="repositories">
+    <field name="id" type="int(11)" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="repositoryid" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="title" type="varchar(100)" null="NO" default="" extra=""/>
+    <field name="url" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="organization" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="email" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="country" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="scan_lastrun" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="scan_interval" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="scan_nextrun" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="status" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="surveys_found" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="changed" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <index  table ="repositories"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="6"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="repositories"  non_unique ="0"  key_name ="ind_unq"  seq_in_index ="1"  column_name ="repositoryid"  collation ="a"  cardinality ="6"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="repositories"  non_unique ="0"  key_name ="idx_url"  seq_in_index ="1"  column_name ="url"  collation ="a"  cardinality ="6"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="resources">
+    <field name="resource_id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="survey_id" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="dctype" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="subtitle" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="author" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="dcdate" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="country" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="language" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="id_number" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="contributor" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="publisher" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="rights" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="description" type="text" null="YES" default="" extra=""/>
+    <field name="abstract" type="text" null="YES" default="" extra=""/>
+    <field name="toc" type="text" null="YES" default="" extra=""/>
+    <field name="subjects" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="filename" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="dcformat" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="changed" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <index  table ="resources"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="resource_id"  collation ="a"  cardinality ="2598"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="schema_version">
+    <field name="version" type="int(3)" null="YES" default="" extra=""/>
+  </table>
+  <table name="sitelogs">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="sessionid" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="logtime" type="varchar(45)" null="NO" default="0" extra=""/>
+    <field name="ip" type="varchar(45)" null="NO" default="" extra=""/>
+    <field name="url" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="logtype" type="varchar(45)" null="NO" default="" extra=""/>
+    <field name="surveyid" type="int(10) unsigned" null="YES" default="0" extra=""/>
+    <field name="section" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="keyword" type="text" null="YES" default="" extra=""/>
+    <field name="username" type="varchar(100)" null="YES" default="" extra=""/>
+    <index  table ="sitelogs"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="4762"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="survey_citations">
+    <field name="sid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="citationid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <index  table ="survey_citations"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="98"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="survey_citations"  non_unique ="0"  key_name ="idx_s_c"  seq_in_index ="1"  column_name ="sid"  collation ="a"  cardinality ="10"  sub_part =""  packed =""  null ="yes"  index_type ="btree"  comment ="" />
+    <index  table ="survey_citations"  non_unique ="0"  key_name ="idx_s_c"  seq_in_index ="2"  column_name ="citationid"  collation ="a"  cardinality ="98"  sub_part =""  packed =""  null ="yes"  index_type ="btree"  comment ="" />
+  </table>
+  <table name="survey_collections">
+    <field name="uid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="sid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="tid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <index  table ="survey_collections"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="uid"  collation ="a"  cardinality ="2"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="survey_projects">
+    <field name="sid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="projectid" type="varchar(255)" null="NO" default="" extra=""/>
+    <field name="uid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <index  table ="survey_projects"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="uid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="survey_projects"  non_unique ="0"  key_name ="idx_uniq"  seq_in_index ="1"  column_name ="projectid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="survey_projects"  non_unique ="0"  key_name ="idx_uniq"  seq_in_index ="2"  column_name ="sid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="survey_topics">
+    <field name="sid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="tid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="uid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <index  table ="survey_topics"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="uid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="survey_topics"  non_unique ="0"  key_name ="idx_uniq"  seq_in_index ="1"  column_name ="tid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="survey_topics"  non_unique ="0"  key_name ="idx_uniq"  seq_in_index ="2"  column_name ="sid"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="survey_years">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="sid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="data_coll_year" type="int(11)" null="YES" default="" extra=""/>
+    <index  table ="survey_years"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="10"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="surveys">
+    <field name="id" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="repositoryid" type="varchar(128)" null="NO" default="" extra=""/>
+    <field name="surveyid" type="varchar(200)" null="YES" default="" extra=""/>
+    <field name="titl" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="titlstmt" type="text" null="YES" default="" extra=""/>
+    <field name="authenty" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="geogcover" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="nation" type="varchar(100)" null="YES" default="" extra=""/>
+    <field name="topic" type="text" null="YES" default="" extra=""/>
+    <field name="scope" type="text" null="YES" default="" extra=""/>
+    <field name="sername" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="producer" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="sponsor" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="refno" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="proddate" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="varcount" type="decimal(10,0)" null="YES" default="" extra=""/>
+    <field name="ddifilename" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="dirpath" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="link_technical" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="link_study" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="link_report" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="link_indicator" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="ddi_sh" type="char(2)" null="YES" default="" extra=""/>
+    <field name="formid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="isshared" type="tinyint(1)" null="NO" default="1" extra=""/>
+    <field name="isdeleted" type="tinyint(1)" null="NO" default="0" extra=""/>
+    <field name="changed" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="created" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="link_questionnaire" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="countryid" type="int(10) unsigned" null="YES" default="" extra=""/>
+    <field name="data_coll_start" type="int(11)" null="YES" default="" extra=""/>
+    <field name="data_coll_end" type="int(11)" null="YES" default="" extra=""/>
+    <field name="abbreviation" type="varchar(45)" null="YES" default="" extra=""/>
+    <field name="kindofdata" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="keywords" type="text" null="YES" default="" extra=""/>
+    <field name="ie_program" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="ie_project_id" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="ie_project_name" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="ie_project_uri" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="ie_team_leaders" type="text" null="YES" default="" extra=""/>
+    <field name="project_id" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="project_name" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="project_uri" type="varchar(255)" null="YES" default="" extra=""/>
+    <field name="link_da" type="varchar(255)" null="YES" default="" extra=""/>
+    <index  table ="surveys"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="9"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="surveys"  non_unique ="0"  key_name ="idx_srvy_unq"  seq_in_index ="1"  column_name ="surveyid"  collation ="a"  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="btree"  comment ="" />
+    <index  table ="surveys"  non_unique ="0"  key_name ="idx_srvy_unq"  seq_in_index ="2"  column_name ="repositoryid"  collation ="a"  cardinality =""  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_titl"  seq_in_index ="1"  column_name ="titl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="1"  column_name ="titl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="2"  column_name ="authenty"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="3"  column_name ="geogcover"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="4"  column_name ="nation"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="5"  column_name ="topic"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="6"  column_name ="scope"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="7"  column_name ="sername"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="8"  column_name ="producer"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="9"  column_name ="sponsor"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="10"  column_name ="refno"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="11"  column_name ="abbreviation"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="12"  column_name ="kindofdata"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="surveys"  non_unique ="1"  key_name ="ft_all"  seq_in_index ="13"  column_name ="keywords"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+  </table>
+  <table name="terms">
+    <field name="tid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="vid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="pid" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <index  table ="terms"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="tid"  collation ="a"  cardinality ="105"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="test">
+    <field name="id" type="int(5) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="company_name" type="varchar(200)" null="NO" default="" extra=""/>
+    <field name="first_name" type="varchar(200)" null="NO" default="" extra=""/>
+    <field name="last_name" type="varchar(200)" null="NO" default="" extra=""/>
+    <field name="phone" type="text" null="NO" default="" extra=""/>
+    <field name="email" type="text" null="NO" default="" extra=""/>
+    <field name="address" type="text" null="NO" default="" extra=""/>
+    <field name="Last_Update" type="datetime" null="NO" default="" extra=""/>
+    <field name="Created_At" type="timestamp" null="NO" default="CURRENT_TIMESTAMP" extra=""/>
+    <index  table ="test"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="0"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="tokens">
+    <field name="tokenid" type="varchar(100)" null="NO" default="" extra=""
+ primary_key="yes" />
+    <field name="dated" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <index  table ="tokens"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="tokenid"  collation ="a"  cardinality ="1"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="user_groups">
+    <field name="id" type="tinyint(3) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="name" type="varchar(20)" null="NO" default="" extra=""/>
+    <field name="description" type="varchar(100)" null="NO" default="" extra=""/>
+    <index  table ="user_groups"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="2"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="users">
+    <field name="id" type="mediumint(8) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="group_id" type="mediumint(8) unsigned" null="NO" default="" extra=""/>
+    <field name="ip_address" type="char(16)" null="NO" default="" extra=""/>
+    <field name="username" type="varchar(100)" null="NO" default="" extra=""/>
+    <field name="password" type="varchar(1000)" null="NO" default="" extra=""/>
+    <field name="salt" type="varchar(40)" null="YES" default="" extra=""/>
+    <field name="email" type="varchar(100)" null="NO" default="" extra=""/>
+    <field name="activation_code" type="varchar(40)" null="YES" default="" extra=""/>
+    <field name="forgotten_password_code" type="varchar(40)" null="YES" default="" extra=""/>
+    <field name="remember_code" type="varchar(40)" null="YES" default="" extra=""/>
+    <field name="created_on" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="last_login" type="int(10) unsigned" null="NO" default="" extra=""/>
+    <field name="active" type="tinyint(3) unsigned" null="YES" default="" extra=""/>
+    <index  table ="users"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="id"  collation ="a"  cardinality ="3"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+  <table name="variables">
+    <field name="uid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"  primary_key="yes" />
+    <field name="varID" type="varchar(45)" null="YES" default="" extra="" />
+    <field name="name" type="varchar(45)" null="YES" default="" extra="" />
+    <field name="labl" type="varchar(245)" null="YES" default="" extra="" />
+    <field name="qstn" type="text" null="YES" default="" extra="" />
+    <field name="catgry" type="text" null="YES" default="" extra="" />
+    <field name="surveyid_FK" type="int(10) unsigned" null="NO" default="" extra="" />
+    <index  table ="variables"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="uid"  collation ="a"  cardinality ="1184"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="0"  key_name ="idxsurvey"  seq_in_index ="1"  column_name ="varid"  collation ="a"  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="0"  key_name ="idxsurvey"  seq_in_index ="2"  column_name ="surveyid_fk"  collation ="a"  cardinality =""  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idxsurveyidfk"  seq_in_index ="1"  column_name ="surveyid_fk"  collation ="a"  cardinality =""  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_qstn"  seq_in_index ="1"  column_name ="qstn"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_labl"  seq_in_index ="1"  column_name ="labl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idxcatgry"  seq_in_index ="1"  column_name ="catgry"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_qstn"  seq_in_index ="1"  column_name ="name"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_qstn"  seq_in_index ="2"  column_name ="labl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_qstn"  seq_in_index ="3"  column_name ="qstn"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="1"  column_name ="name"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="2"  column_name ="labl"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="3"  column_name ="catgry"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm_lbl_cat_qstn"  seq_in_index ="4"  column_name ="qstn"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+    <index  table ="variables"  non_unique ="1"  key_name ="idx_nm"  seq_in_index ="1"  column_name ="name"  collation =""  cardinality =""  sub_part =""  packed =""  null ="yes"  index_type ="fulltext"  comment ="" />
+  </table>
+  <table name="vocabularies">
+    <field name="vid" type="int(10) unsigned" null="NO" default="" extra="auto_increment"
+ primary_key="yes" />
+    <field name="title" type="varchar(255)" null="NO" default="" extra=""/>
+    <index  table ="vocabularies"  non_unique ="0"  key_name ="primary"  seq_in_index ="1"  column_name ="vid"  collation ="a"  cardinality ="2"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+    <index  table ="vocabularies"  non_unique ="0"  key_name ="idx_voc_title"  seq_in_index ="1"  column_name ="title"  collation ="a"  cardinality ="2"  sub_part =""  packed =""  null =""  index_type ="btree"  comment ="" />
+  </table>
+</schema>

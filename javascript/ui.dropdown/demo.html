@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>jQuery Dropdown Check List</title>
+    <link rel="stylesheet" type="text/css" href="ui.dropdownchecklist.css" />
+    <link rel="stylesheet" type="text/css" href="demo.css" />
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="ui.core.js"></script>
+    <script type="text/javascript" src="ui.dropdownchecklist.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#s1").dropdownchecklist();
+            $("#s2").dropdownchecklist();
+            $("#s3").dropdownchecklist({ width: 100 });
+            $("#s4").dropdownchecklist({ maxDropHeight: 120 });
+            $("#s5").dropdownchecklist({ firstItemChecksAll: true, maxDropHeight: 100 });
+			$("#s6").dropdownchecklist();
+        });
+    </script>
+    <meta name="description" content="The Dropdown Check List jQuery widget transforms a regular select html element into a dropdown checkbox list">
+    <meta name="keywords" content="dropdown, checkbox list, jquery, plugin, html multiple select">
+</head>
+<body>
+<div id="content">
+    <h1>jQuery <em>Dropdown Check List</em></h1>
+    <p>
+        The Dropdown Check List jQuery widget transforms a regular select html element into a dropdown checkbox list.
+    </p>
+    <p>
+        <img src="demo.png" alt="Dropdown Check List" title="The widget transforms a regular select html element into a dropdown checkbox list" />
+    </p>
+    <p>
+        Copyright &copy; Adrian Tosca &lt;adrian.tosca@gmail.com&gt;
+    </p>
+    <p>
+        Licensed like jQuery, see <a href="http://docs.jquery.com/Licensing">http://docs.jquery.com/Licensing</a>.
+    </p>
+    <h2>Download</h2>
+    <p>
+        Download current version can be downloaded from <a href="http://code.google.com/p/dropdown-check-list/downloads/list">google code Downloads</a>. This page including all required files to run the examples can be downloaded as zip package from the same location.
+    </p>
+    <p>
+        Dropdown check list requires <a href="http://code.jquery.com/jquery-latest.js">jquery.js</a> and <a href="http://dev.jquery.com/view/tags/ui/latest/ui/ui.core.js">ui.core.js</a> and has been tested with jquery version 1.2.6. The widget has been tested with IE 7, Firefox 3, Opera 9.6, Safari 3.1 (for windows) and Chrome 0.3 browsers.
+    </p>
+    <h2>Example</h2>
+    <p>
+        The existing select element with id 's1' is replaced by a dropdown checkbox list widget. 
+        The widget will set hide the existing select element by modifying its <code>display</code> attribute to <code>none</code>.
+        The new widget will keep the replaced select options synchronized with the checkbox list so the postback is not affected in any way.
+        The text of the control is composed on the concatenated text of selected options in the list. 
+        Because the width of the control will not allways accomodate all selected options, the control will show the full text on hover by setting its title attribute.
+    </p>
+    <p>
+        <code>
+            $("#s1").dropdownchecklist();
+        </code>
+    </p>
+    <p>
+        <select id="s1" multiple="multiple">
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+        </select>
+    </p>
+    <h2>Some option items from original select initially selected</h2>
+    <p>
+        The existing select element with id 's2' already has some options selected. 
+        In this case the widget will take over the selection automatically on initialization.
+    </p>
+    <p>
+        <code>
+            $("#s2").dropdownchecklist();
+        </code>
+    </p>
+    <p>
+        <select id="s2" multiple="multiple">
+            <option>Low</option>
+            <option selected="selected">Medium</option>
+            <option selected="selected">High</option>
+        </select>
+    </p>
+    <h2>Long text, shorter control</h2>
+    <p>
+        An option allow to set a fixed width on the control even if the dropdown list is wider. 
+        The dropdown will keep its size so the items in the list are correctly visible.
+    </p>
+    <p>
+        <code>
+            $("#s3").dropdownchecklist({ width: 100 });
+        </code>
+    </p>
+    <p>
+        <select id="s3" multiple="multiple">
+            <option>Pneumonoultramicroscopicsilicovolcanoconiosis</option>
+            <option>Pseudopseudohypoparathyroidism</option>
+            <option>Floccinaucinihilipilification</option>
+            <option>Antidisestablishmentarianism</option>
+            <option>Honorificabilitudinitatibus</option>
+        </select>
+    </p>
+    <h2>Long list of options, with scroll</h2>
+    <p>
+        Another option allow to set a fixed height of the dropdown list. 
+        This is usefull when there is a big number of items. The dropdown list is scrollable to allow selection of all the items.
+    </p>
+    <p>
+        <code>
+            $("#s4").dropdownchecklist({ maxDropHeight: 100 });
+        </code>
+    </p>
+    <p>
+        <select id="s4" multiple="multiple">
+            <option>Aries</option>
+            <option>Taurus</option>
+            <option>Gemini</option>
+            <option>Cancer</option>
+            <option>Leo	Leo</option>
+            <option>Virgo</option>
+            <option>Libra</option>
+            <option>Scorpius</option>
+            <option>Ophiuchus</option>
+            <option>Sagittarius</option>
+            <option>Capricornus</option>
+            <option>Aquarius</option>
+            <option>Pisces</option>
+        </select>
+    </p>
+    <h2>Option to let the first item in list check all items</h2>
+    <p>
+        The firstItemChecksAll option allow to set attach a special behavior to the first item in the list. 
+        If the item is checked, all items in the list are checked.
+    </p>
+    <p>
+        <code>
+            $("#s5").dropdownchecklist({ firstItemChecksAll: true, maxDropHeight: 100 });
+        </code>
+    </p>
+    <p>
+        <select id="s5" multiple="multiple">
+            <option>(all)</option>
+            <option>Banana Nut</option>
+            <option>Black Walnut</option>
+            <option>Burgundy Cherry</option>
+            <option>Butter Pecan</option>
+            <option>Chocolate Chip</option>
+            <option>Chocolate Fudge Truffle</option>
+            <option>Chocolate Mint Chip</option>
+            <option>Chocolate Peanut Butter</option>
+            <option>Coconut-Pineapple</option>
+            <option>Coffee</option>
+            <option>Coffee Caramel</option>
+            <option>Coffee Chip</option>
+            <option>Cookie Dough</option>
+            <option>Cookies 'n Cream</option>
+            <option>Dutch Chocolate</option>
+            <option>English Toffee</option>
+            <option>Fudgee Peanut Butter Cup</option>
+            <option>Macadamia Nut</option>
+            <option>Mocha Almond Fudge</option>
+            <option>Nutty Coconut</option>
+            <option>Pistachio Nut</option>
+            <option>Pralines and Cream</option>
+            <option>Rocky Road</option>
+            <option>Root Beer Float</option>
+            <option>Strawberry</option>
+            <option>Strawberry Cheesecake</option>
+            <option>Turkish Coffee</option>
+            <option>Vanilla</option>
+        </select>
+    </p>
+    <h2>Select with groups</h2>
+    <p>
+        The existing select element with id 's6' has groups (optgroup elements). The options are indented in groups as with original select element. 
+    </p>
+    <p>
+        <code>
+            $("#s6").dropdownchecklist();
+        </code>
+    </p>
+    <p>
+        <select id="s6" multiple="multiple">
+			<optgroup label="Letters">
+				<option>A</option>
+				<option>B</option>
+				<option selected="selected">C</option>
+			</optgroup>
+            <optgroup label="Numbers">
+				<option>1</option>
+				<option>2</option>
+				<option selected="selected">3</option>
+			</optgroup>
+        </select>
+    </p>
+    <h2>Style</h2>
+    <p>
+        <ul>
+            <li><code>.ui-dropdownchecklist</code> allows to modify the style of the control</li>
+            <li><code>.ui-dropdownchecklist-hover</code> allows to add additional style when the mouse is over the control</li>
+            <li><code>.ui-dropdownchecklist-active</code> allows to add aditional style to the control when the items in the drop container are collapsed</li>
+            <li><code>.ui-dropdownchecklist-text</code> allows to modify the style of the text that is shown in the control</li>
+            <li><code>.ui-dropdownchecklist-dropcontainer</code> allows to modify the style of the drop container</li>
+            <li><code>.ui-dropdownchecklist-item</code> allows to modify the style of each dropdown item</li>
+            <li><code>.ui-dropdownchecklist-item-hover</code> allows to add additional style to the dropdown items when the mouse is over them</li>
+			<li><code>.ui-dropdownchecklist-group</code> allows to modify the style of group items</li>
+			<li><code>.ui-dropdownchecklist-indent</code> allows to modify the style of indented items when they are in a group</li>
+        </ul>
+    </p>
+    <p>For more details see <a href="ui.dropdownchecklist.css">the example style sheet</a>.</p>
+</div>
+</body>
+</html>
+

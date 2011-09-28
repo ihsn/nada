@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>NADA Multi-catalog using Single Database</title>
+
+<style type='text/css' media='all'>@import url('../userguide.css');</style>
+<link rel='stylesheet' type='text/css' media='all' href='../userguide.css' />
+
+<script type="text/javascript" src="../nav/nav.js"></script>
+<script type="text/javascript" src="../nav/prototype.lite.js"></script>
+<script type="text/javascript" src="../nav/moo.fx.js"></script>
+<script type="text/javascript" src="../nav/user_guide_menu.js"></script>
+
+<meta http-equiv='expires' content='-1' />
+<meta http-equiv= 'pragma' content='no-cache' />
+<meta name='robots' content='all' />
+<meta name='author' content='ExpressionEngine Dev Team' />
+<meta name='description' content='CodeIgniter User Guide' />
+</head>
+<body>
+
+<!-- START NAVIGATION -->
+<div id="nav"><div id="nav_inner"><script type="text/javascript">create_menu('../');</script></div></div>
+<div id="nav2"><a name="top"></a><a href="javascript:void(0);" onclick="myHeight.toggle();"><img src="../images/nav_toggle_darker.jpg" width="154" height="43" border="0" title="Toggle Table of Contents" alt="Toggle Table of Contents" /></a></div>
+<div id="masthead">
+<table cellpadding="0" cellspacing="0" border="0" style="width:100%">
+<tr>
+<td><h1>CodeIgniter User Guide Version 2.0.2</h1></td>
+<td id="breadcrumb_right"><a href="../toc.html">Table of Contents Page</a></td>
+</tr>
+</table>
+</div>
+<!-- END NAVIGATION -->
+
+
+<!-- START BREADCRUMB -->
+<table cellpadding="0" cellspacing="0" border="0" style="width:100%">
+<tr>
+<td id="breadcrumb">
+<a href="http://codeigniter.com/">CodeIgniter Home</a> &nbsp;&#8250;&nbsp;
+<a href="../index.html">User Guide Home</a> &nbsp;&#8250;&nbsp;
+<a href="index.html">Database Library</a> &nbsp;&#8250;&nbsp;
+Database Caching Class
+</td>
+<td id="searchbox"><form method="get" action="http://www.google.com/search"><input type="hidden" name="as_sitesearch" id="as_sitesearch" value="codeigniter.com/user_guide/" />Search User Guide&nbsp; <input type="text" class="input" style="width:200px;" name="q" id="q" size="31" maxlength="255" value="" />&nbsp;<input type="submit" class="submit" name="sa" value="Go" /></form></td>
+</tr>
+</table>
+<!-- END BREADCRUMB -->
+
+
+<br clear="all" />
+
+
+<!-- START CONTENT -->
+<div id="content">
+
+<h1>NADA 4 - User Management</h1>
+<h2>Global User Roles</h2>
+<p>  <strong>User </strong>[access to site frontend only]</p>
+<p> <strong>Admin </strong>[super admin, access to all areas of the website]</p>
+<p> <strong>Catalog-admin </strong>[can manage all studies from all repositories] *</p>
+<p> <strong>Lic-req-admin</strong>		[can manage all licensed requests from all studies from all repositories] *</p>
+<p> <strong>Report-admin</strong>		[can manage all reports for all studies from all repositories] *</p>
+<p> Study-admin_[sid]	[can manage a single study only]<br />
+</p>
+<h2>Limit user access to a repository</h2>
+  
+  To limit user roles to a repository, add user to the repository and their global roles will be specific to that repository only.</p>
+<p>For example, Catalog-admin role has admin rights on all studies from all catalogs. If user is assigned to the repository LSMS then he can only access LSMS studies.<br />
+</p>
+<p>Configuration setting to disable default access to all catalogs: For the multi-catalog system, a global catalog-admin or other roles will not have full access to all studies. User will have access to the repository that he is assigned to and will have the roles assigned at the repository level.</p>
+<p>For example, if the user X with role CATALOG-ADMIN has been assigned to LSMS with permissions to only manage reports. he will not be able to access other sections that were granted at the global level.</p>
+<p>The sections that are accessible at the repository level are:<br />
+  [x] Catalog maintenace<br />
+  [x] Licensed request administration<br />
+  [x] Reports</p>
+<p>This allows to make it possible for a user to have different roles for different repositories. </p>
+<p><strong>Note: If a user has LIC-REQ-ADMIN rights, he will not be able to access a catalog maintenance page even he is given the rights at repository level.</strong></p>
+<p><br />
+</p>
+<h1>&nbsp;</h1>
+</div>
+<!-- END CONTENT -->
+
+
+<div id="footer">
+<p>
+Previous Topic:&nbsp;&nbsp;<a href="call_function.html">Custom Function Calls</a>
+&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+<a href="#top">Top of Page</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+<a href="../index.html">User Guide Home</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+Next Topic:&nbsp;&nbsp;<a href="forge.html">Database manipulation with Database Forge</a>
+</p>
+<p><a href="http://codeigniter.com">CodeIgniter</a> &nbsp;&middot;&nbsp; Copyright &#169; 2006 - 2011 &nbsp;&middot;&nbsp; <a href="http://ellislab.com/">EllisLab, Inc.</a></p>
+</div>
+
+</body>
+</html>

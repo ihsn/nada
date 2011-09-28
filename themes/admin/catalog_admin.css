@@ -1,0 +1,26 @@
+@charset "utf-8";
+
+#surveys .selected{background:black;border:2px solid black;color:white;}
+#surveys .hide{display:none;}
+#surveys .study-info td.study-info-box{height:200px;border:2px solid black;border-top:none;}
+
+#surveys .row:hover
+{background:black;color:white;cursor:pointer}
+
+
+/*action bar*/
+#surveys .action-bar{
+	background-color:none;
+	margin-top:15px;
+}
+
+/*reset ul,li*/
+#surveys .action-bar ul{display:inline;list-style:none;padding:0px;margin:0px;}
+#surveys .action-bar ul li{display:inline;font-size:11px;color:black;padding:5px;font-weight:bold}
+#surveys .action-bar ul li a{margin-right:5px;font-weight:bold;color:black;}
+#surveys .action-bar ul li a:hover{color:maroon}
+
+.tbl-survey-info{width:100%;}
+
+.icon {width:16px;height:16px;display:inline-block}
+.harvested{background:url("bullet-green.gif") no-repeat;}

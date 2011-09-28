@@ -1,0 +1,176 @@
+/*Page Layout based on YUI Grids*/
+body, html {
+	background-color:#D8DCD0;
+}
+#doc3, #doc4 {
+	background-color:white;margin:0px;
+}
+#custom-doc {
+	background-color:white;
+	width:73.85em;
+	*width:72.07em;
+	min-width:960px;
+	margin:auto;
+	text-align:left;
+	padding:23px;
+	padding-bottom:0px;
+	padding-top:5px;
+	background:url("bleed_page.png") repeat-y scroll 50% 0 transparent;
+}
+#yui-main .yui-b {
+	background-color:white;
+	padding:5px;
+	min-height:400px;
+}
+#banner {
+	background-color:#003366;
+	padding:15px;
+	font-size:1.5em;
+	color:white;
+}
+#ft {
+	background-color:#3E6994;
+	padding:15px;
+	text-align:left;
+	margin:0px;
+	color:#CCCCCC;
+	mheight:100px;
+}
+
+/*user login bar */
+#user-bar {
+	padding:5px;
+	text-align:right
+}
+.user-box{text-align:right;}
+.user-box li{display:inline;}
+.user-box li a{color:gray;border-left:1px solid gainsboro;padding-left:5px;}
+.user-box li a:hover{color:black;}
+
+.site-logo {
+	color:white;
+	font-size:18px;
+	font-weight:bold;
+	text-align:left;
+	padding-right:20px;
+	padding-top:30px;
+	padding-left:20px;
+}
+.site-logo img {
+	float:left;
+}
+.site-logo-title {
+	padding-top:50px;
+	color:white;
+	float:left;
+	
+}
+#content {
+	padding:15px;
+	padding-top:0px;
+	min-height:400px;
+	margin-bottom:10px;
+}
+#inner-body{border:0px solid gainsboro;}
+/*side menu*/
+#sidebar {
+	padding:5px;
+}
+#sidebar a {
+	display:block;
+	margin-top:5px;
+	background-color:gainsboro;
+	padding:5px;
+	color:black;
+	text-decoration:none;
+}
+#sidebar a:hover {
+	background-color:#3E6994;color:white;
+}
+
+#sidebar .selected a{background-color:#3E6994;color:white;}
+
+.menu-horizontal {
+	border:1px solid gainsboro;
+	border-left:0px;
+	border-right:0px;
+	border-top:0px;
+	height:36px;
+	margin-bottom:20px;
+}
+.menu-horizontal li {
+	list-style:none;
+	float:left;
+	padding:10px;
+	border-right:1px solid gainsboro;
+}
+.menu-horizontal li a {
+	font-weight:bold;
+	color:gray;
+}
+.menu-horizontal li.selected {
+	border-bottom:1px solid white;
+	margin-bottom:-1px;
+}
+.menu-horizontal li a:hover, .menu-horizontal li.selected a {
+	color:black;
+}
+
+/* site general styles */
+h1 {
+	font-size:1.8em;
+}
+h2 {
+	font-size:1.5em;
+}
+h3 {
+	font-size:1.2em;
+}
+h4 {
+	font-size:1em;
+}
+p {
+	margin-bottom:10px;
+}
+img {
+	border:0px;
+}
+a {
+	text-decoration:none;
+	color:#003399;
+}
+a:hover {
+	color:#990000;
+}
+
+/*Table/Grid style*/
+.grid-table tr td {
+	padding:5px;
+	border-bottom:1px solid #C1DAD7;
+}
+.grid-table .alternate {
+	background-color:#FBFBFB
+}
+.grid-table a {
+	color:#00679C;
+	text-decoration:none;
+}
+.grid-table a:hover {
+	color:maroon;
+}
+
+/*Button styles*/
+.button{padding:1px;margin-top:5px;cursor:pointer;background-color:#6699FF;color:white;border:0px;}
+.button:hover{background-color:black;color:white;}
+
+input{padding-left:3px;padding-right:3px;}
+
+/*ordered lists*/
+ol{ display: block;margin-bottom:20px; }
+ol li{list-style-type:decimal;margin-left:40px;}
+
+.sidebar ul, .sidebar li{list-style:none;}
+
+ul {display: block;}
+ul li{list-style-type:disc;}
+.bull-list ul{margin-left:20px;}
