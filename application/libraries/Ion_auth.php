@@ -193,7 +193,7 @@ class Ion_auth
 			$this->ci->email->to($profile->email);
 			$this->ci->email->subject(t('forgot_password_verification'));
 			$this->ci->email->message($message);
-			
+
 			if ($this->ci->email->send())
 			{
 				$this->set_error('forgot_password_successful');
@@ -202,6 +202,8 @@ class Ion_auth
 			else
 			{
 				$this->set_error('forgot_password_unsuccessful');
+				//log email error
+				//log_message('error', $this->ci->email->print_debugger());
 				return FALSE;
 			}
 		}
