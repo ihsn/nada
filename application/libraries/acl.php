@@ -32,12 +32,6 @@ class ACL
 	{
 		$userid=$this->ci->session->userdata('user_id');
 		return $userid;
-		/*
-			user
-			-- groups
-			-- repositories
-			-- user repo role
-		*/
 	}
 
 	/**
@@ -49,12 +43,24 @@ class ACL
 		{
 			$userid=$this->ci->session->userdata('user_id');
 		}
-		$this->ci->db->select("rg.*,r.title");
-		$this->ci->db->where("userid",$userid);
-		$this->ci->db->join('repositories r', 'r.id = rg.repositoryid');
 		
-		$query=$this->ci->db->get("user_repositories rg");
-
+		//get user global role
+		$user_role=$this->get_user_global_role($userid);
+		
+		if ($user_role=='admin')
+		{
+			//return all repositories;
+			$this->ci->db->select("id,title,id as repositoryid");
+			$query=$this->ci->db->get("repositories");
+		}
+		else
+		{	//non-admin account
+			$this->ci->db->select("rg.*,r.title");
+			$this->ci->db->where("userid",$userid);
+			$this->ci->db->join('repositories r', 'r.id = rg.repositoryid');			
+			$query=$this->ci->db->get("user_repositories rg");
+		}
+		
 		if (!$query)
 		{
 			return FALSE;
@@ -142,6 +148,28 @@ class ACL
 		return FALSE;
 	}
 	
+	
+	//get the user global role
+	function get_user_global_role($userid)
+	{
+		$this->ci->db->select("name as role");
+		$this->ci->db->join('user_groups', 'user_groups.id = users.group_id');
+		$query=$this->ci->db->get("users");
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=$query->row_array();
+		
+		if ($result)
+		{
+			return $result['role'];
+		}
+		
+		return FALSE;		
+	}
 	
 	/**
 	* Return user role object by repository id
