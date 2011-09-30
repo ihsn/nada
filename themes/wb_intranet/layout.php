@@ -10,7 +10,7 @@ $data['menus']= $this->Menu_model->select_all();
 $sidebar=$this->load->view('default_menu', $data,true);
 
 //repositories
-$repo_arr=$this->Repository_model->get_repositories();
+$repo_arr=$this->Repository_model->get_repositories($published=TRUE,$system=FALSE);
 $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('rows'=>$repo_arr),TRUE);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
