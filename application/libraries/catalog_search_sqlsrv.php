@@ -392,6 +392,12 @@ class Catalog_search{
 		{
 			return FALSE;
 		}
+
+		//fix quotes, nada escapes quote
+		$study_keywords=str_replace('&quot;','',$study_keywords);
+		$study_keywords=str_replace('"','',$study_keywords);
+		$study_keywords='"'.$study_keywords.'"';
+
 		
 		if ($this->use_fulltext)
 		{
@@ -430,13 +436,17 @@ class Catalog_search{
 			
 	function _build_variable_query()
 	{
-		$variable_keywords=trim($this->variable_keywords);
+		$variable_keywords=trim($this->variable_keywords);		
 		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
 
 		if ($variable_keywords=='')
 		{
 			return FALSE;
 		}
+		
+		$variable_keywords=str_replace('&quot;','',$variable_keywords);
+		$variable_keywords=str_replace('"','',$variable_keywords);
+		$variable_keywords='"'.$variable_keywords.'"';
 
 		if ($this->use_fulltext)
 		{
