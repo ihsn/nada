@@ -470,7 +470,7 @@ class Catalog extends MY_Controller {
 		}
 						
 		//parse ddi to array	
-		$data=$this->ddi_parser->parse();		
+		$data=$this->ddi_parser->parse();
 
 		//overwrite?
 		$overwrite=(bool)$this->input->post("overwrite");
