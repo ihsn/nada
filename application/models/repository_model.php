@@ -530,10 +530,24 @@ class Repository_model extends CI_Model {
 	*	
 	* Note: duplicate function see catalog_model.php
 	**/
-	function get_repositories()
+	function get_repositories($published=FALSE, $system=TRUE)
 	{
 		$this->db->select('*');
+		
+		//show published repositories
+		if ($published==TRUE)
+		{
+			$this->db->where("ispublished",1);
+		}
+		//show system repositories
+		if ($system==FALSE)
+		{
+			$this->db->where("type !=",2);
+		}
+		
+		$this->db->order_by('weight'); 
 		$query=$this->db->get('repositories');
+		
 
 		if (!$query)
 		{
