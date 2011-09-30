@@ -7,7 +7,8 @@ $active_repo=strtolower($this->session->userdata('active_repository'));
 <?php if ($rows):?>	
 	<?php foreach($rows as $row): ?>
     	<?php $row=(object)$row; ?>
-        <?php if (!$row->ispublished){continue;} //skip unpublished?>
+        <?php //if (!$row->ispublished){continue;} //skip unpublished?>
+        <?php //if ($row->type==2){continue;} //skip system?>
 			<li><a class="<?php echo ($active_repo==strtolower($row->repositoryid)) ? 'active' : ''; ?>" href="<?php echo site_url();?>/catalog/<?php echo $row->repositoryid;?>"><?php echo $row->title; ?></a></li>
     <?php endforeach;?>    
 <?php endif; ?>
