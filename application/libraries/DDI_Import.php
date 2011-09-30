@@ -512,6 +512,12 @@ class DDI_Import{
 		{
 			$survey_file_path=$survey_folder."/$surveyid.xml";
 			
+			//if source and target are same, don't copy
+			if (unix_path($ddi_source_path)==unix_path($survey_file_path))
+			{
+				return $survey_file_path;
+			}
+			
 			//copy the ddi file 			
 			if ( !copy($ddi_source_path,$survey_file_path) ) 
 			{
