@@ -1,7 +1,8 @@
 <?php
 $repo_types=array(
 	'0'=>'Internal',
-	'1'=>'External'
+	'1'=>'External',
+	'2'=>'System'
 );
 ?>
 <h1><?php echo $this->page_title;?></h1>
