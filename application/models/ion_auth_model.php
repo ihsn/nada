@@ -362,9 +362,9 @@ class Ion_auth_model extends CI_Model
 		
 		$this->db->where($this->ion_auth->_extra_where);
 		   
-		$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));
+		$result=$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));
 		
-		return $this->db->affected_rows() == 1;
+		return $result;
 	}
 	
 	/**
@@ -422,7 +422,7 @@ class Ion_auth_model extends CI_Model
 	    	$this->tables['users'].'.forgotten_password_code',
 	    	$this->tables['users'].'.ip_address',
 	    	$this->tables['users'].'.active',
-	    	$this->tables['groups'].'.name AS `group`',
+	    	$this->tables['groups'].'.name AS group_name',
 	    	$this->tables['groups'].'.description AS group_description'
 	    ));
 
