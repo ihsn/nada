@@ -1,3 +1,11 @@
+<?php
+$repository_types=array(
+	'0'=>'Internal',
+	'1'=>'External',
+	'2'=>'System'
+);
+
+?>
 <div class="body-container" style="padding:10px;">
 
 <?php include 'page_links.php'; ?>
@@ -108,7 +116,7 @@
             <!--<td><?php echo $row->url; ?></td>-->
             <td><?php echo $row->organization; ?></td>
 			<td><?php echo $row->country; ?></td>
-            <td><?php echo ($row->type==1) ? t('external') : t('internal'); ?></td>
+            <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
             <td><?php echo ($row->ispublished==1) ? t('yes') : t('no'); ?></td>
             <td><?php echo $row->status; ?></td>
             <td><?php echo ($row->changed==0) ? '-' : date("m-d-Y",$row->scan_lastrun); ?></td>
