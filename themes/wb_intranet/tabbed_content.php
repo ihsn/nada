@@ -1,5 +1,9 @@
 <?php
 $active_repo=$this->session->userdata('active_repository');
+if ($active_repo=='')
+{
+	$active_repo='central';
+}
 ?>
 <!--tab-->
 <div class="tab-panel">
@@ -21,7 +25,7 @@ $active_repo=$this->session->userdata('active_repository');
             <div id="srvcTabWrap" class="tab-wraper tabs-scroll" style="margin-right: 20px; ">
                 <ul class="tabs tabs-scroll" id="srvcTab" style="left: 0px; ">
                     <li <?php if ($this->uri->segment(3)=='about'){echo 'class="sel"';}?> >
-                        <a href="<?php echo site_url();?>/catalog/datafirst/about">About</a>
+                        <a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>/about">About</a>
                     </li>
                     <li  <?php if ($this->uri->segment(1)=='catalog'){echo 'class="sel"';}?> >
                         <a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>">Data Catalog</a>
@@ -41,7 +45,7 @@ $active_repo=$this->session->userdata('active_repository');
                     </div>
                 </div>
                 <div class="tab-content-body">
-                        <div class="show" id="category" style="display: block; ">
+                        <div class="show" style="display: block; ">
                         	<div>
 							<?php echo isset($content) ? $content : '';?>
                             </div>
