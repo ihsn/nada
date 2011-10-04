@@ -25,7 +25,7 @@ $lang['manage_repository_users'] = "Manage repository access";
 $lang['manage_users'] = "Manage users";
 $lang['msg_select_active_repo'] = "Click the repository you like to manage for your current session.";
 $lang['select_active_repository'] = "Select Repository to Manage";
-
+$lang['msg_no_repo_access']='You don\'t have permissions to access any catalogs.';
 
 /* End of file harvester_lang.php */
 /* Location: ./system/language/english/harvester_lang.php */
