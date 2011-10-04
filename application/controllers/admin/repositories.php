@@ -267,7 +267,7 @@ class Repositories extends MY_Controller {
 	* id 	int or comma seperate string
 	*/
 	function delete($id)
-	{			
+	{		
 		//array of id to be deleted
 		$delete_arr=array();
 	
