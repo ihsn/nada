@@ -333,12 +333,12 @@ class DDI_Browser{
 		if ($dctype=='other')
 		{
 			//other materials
-			$this->ci->db->not_like('dctype','[doc/tec]');
-			$this->ci->db->not_like('dctype','[doc/rep]');
-			$this->ci->db->not_like('dctype','[doc/qst]');
-			$this->ci->db->not_like('dctype','[dat]');
-			$this->ci->db->not_like('dctype','[dat/micro]');
-			$this->ci->db->not_like('dctype','[doc/anl]');
+			$this->ci->db->not_like('dctype','doc/tec]');
+			$this->ci->db->not_like('dctype','doc/rep]');
+			$this->ci->db->not_like('dctype','doc/qst]');
+			$this->ci->db->not_like('dctype','dat]');
+			$this->ci->db->not_like('dctype','dat/micro]');
+			$this->ci->db->not_like('dctype','doc/anl]');
 		}
 		else
 		{
@@ -364,23 +364,23 @@ class DDI_Browser{
 			{
 				$dctype=$row['dctype'];
 				
-				if (strpos($dctype,'[doc/tec]') ) 
+				if (strpos($dctype,'doc/tec]') ) 
 				{
 					$output[]='technical';
 				}
-				else if (strpos($dctype,'[doc/qst]') ) 
+				else if (strpos($dctype,'doc/qst]') ) 
 				{
 					$output[]='questionnaires';
 				}
-				else if (strpos($dctype,'[doc/rep]') ) 
+				else if (strpos($dctype,'doc/rep]') ) 
 				{
 					$output[]='reports';
 				}
-				else if (strpos($dctype,'[tbl]') ) 
+				else if (strpos($dctype,'tbl]') ) 
 				{
 					$output[]='tables';
 				}
-				else if (strpos($dctype,'[doc/anl]') ) 
+				else if (strpos($dctype,'doc/anl]') ) 
 				{
 					$output[]='analytical';
 				}
