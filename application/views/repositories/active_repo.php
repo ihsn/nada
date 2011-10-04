@@ -28,7 +28,11 @@ p.msg{font-size:14px;margin-bottom:10px;}
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
+<?php if ($repos):?>
 <p class="msg"><?php echo t('msg_select_active_repo'); ?></p>
+<?php else:?>
+<p class="msg"><?php echo t('msg_no_repo_access'); ?></p>
+<?php endif;?>
 <ul>
 <?php foreach($repos as $repo):?>
 	<li><a class="repo" href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['repositoryid']; ?>"><?php echo $repo['title']; ?></a></li>
