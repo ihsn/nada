@@ -282,7 +282,7 @@ class DDIbrowser extends MY_Controller {
 					$html=html_entity_decode(url_filter($html));
 					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
 				}	
-				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[doc/qst]');
+				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/qst]');
 				$data['title']=t('title_forms');
 				$html.=$this->load->view("ddibrowser/resources",$data,TRUE);
         		$section_url=$current_url.'/questionnaires';
@@ -324,28 +324,28 @@ class DDIbrowser extends MY_Controller {
 
 			case 'technicaldocuments':
 				$this->page_title.=' - '.t('title_technical_documents');
-				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[doc/tec]');
+				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/tec]');
 				$data['title']=t('title_technical_documents');
 				$html=$this->load->view("ddibrowser/resources",$data,TRUE);
 			break;
 
 			case 'reports':
 				$this->page_title.=' - '.t('reports');
-				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[doc/rep]');
+				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/rep]');
 				$data['title']=t('title_reports');
 				$html=$this->load->view("ddibrowser/resources",$data,TRUE);
 			break;
 			
 			case 'analytical':
 				$this->page_title.=' - '.t('title_analytical');
-				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[doc/anl]');
+				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/anl]');
 				$data['title']=t('title_analytical');
 				$html=$this->load->view("ddibrowser/resources",$data,TRUE);
 			break;
 
 			case 'stat_tables':
 				$this->page_title.=' - '.t('title_statistical_tables');
-				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'[tbl]');
+				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'tbl]');
 				$data['title']=t('title_statistical_tables');
 				$html=$this->load->view("ddibrowser/resources",$data,TRUE);
 			break;
