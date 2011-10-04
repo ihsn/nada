@@ -89,7 +89,7 @@ class Managefiles_model extends CI_Model {
 				//check if a microdata file
 				$ismicro=FALSE;
 				
-				if(strpos($resource['dctype'],'[dat/micro]')!==FALSE || strpos($resource['dctype'],'[dat]')!==FALSE)
+				if(strpos($resource['dctype'],'dat/micro]')!==FALSE || strpos($resource['dctype'],'dat]')!==FALSE)
 				{
 					$ismicro=TRUE;
 				}
@@ -277,7 +277,7 @@ class Managefiles_model extends CI_Model {
 	function get_data_files($surveyid)
 	{		
 		$surveyid=$this->db->escape($surveyid);		
-		$where=" survey_id=$surveyid AND (dctype like '%[dat/micro]%' OR dctype like '%[dat]%') ";
+		$where=" survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%') ";
 		
 		$this->db->select('title,filename,resource_id,changed');
 		$this->db->where($where,NULL,FALSE);
