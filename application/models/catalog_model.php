@@ -359,21 +359,21 @@ class Catalog_model extends CI_Model {
 		$output=FALSE;
 		
 		//questionnaires
-		$result=$this->get_resources_by_type($surveyid,'[doc/qst]');
+		$result=$this->get_resources_by_type($surveyid,'doc/qst]');
 		if ($result)
 		{
 			$output['questionnaires']=$result;
 		}	
 
 		//reports
-		$result=$this->get_resources_by_type($surveyid,'[doc/rep]');
+		$result=$this->get_resources_by_type($surveyid,'doc/rep]');
 		if ($result)
 		{
 			$output['reports']=$result;
 		}			
 			
 		//technical documents
-		$result=$this->get_resources_by_type($surveyid,'[doc/tec]');
+		$result=$this->get_resources_by_type($surveyid,'doc/tec]');
 		if ($result)
 		{
 			$output['technical']=$result;
@@ -415,11 +415,11 @@ class Catalog_model extends CI_Model {
 		if ($dctype=='other')
 		{
 			//other materials
-			$this->db->not_like('dctype','[doc/tec]');
-			$this->db->not_like('dctype','[doc/rep]');
-			$this->db->not_like('dctype','[doc/qst]');
-			$this->db->not_like('dctype','[dat]');
-			$this->db->not_like('dctype','[dat/micro]');
+			$this->db->not_like('dctype','doc/tec]');
+			$this->db->not_like('dctype','doc/rep]');
+			$this->db->not_like('dctype','doc/qst]');
+			$this->db->not_like('dctype','dat]');
+			$this->db->not_like('dctype','dat/micro]');
 		}
 		else
 		{
