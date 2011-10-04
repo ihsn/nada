@@ -88,7 +88,7 @@
 								//$link_text.= strtoupper($ext);
                             	if ($file_size!='')
 								{									
-									$link_text.= ' - '.$file_size;
+									$link_text.= ' &nbsp; '.$file_size;
                             	}
 								if ($url!='')
 								{
