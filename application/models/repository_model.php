@@ -474,6 +474,8 @@ class Repository_model extends CI_Model {
 	**/
 	function delete($id=NULL)
 	{
+		show_error("FEATURE_DISABLED");
+		
 		if (!is_numeric($id))
 		{
 			return FALSE;
@@ -497,14 +499,14 @@ class Repository_model extends CI_Model {
 					$this->db->escape($repositoryid) );
 		
 		//surveys
-		$sql[]=sprintf('delete from %s where repositoryid=%s)',
+		$sql[]=sprintf('delete from %s where repositoryid=%s',
 					$this->db->dbprefix('surveys'),
-					$repositoryid);
+					$this->db->escape($repositoryid) );
 					
 		//harvester_queue
-		$sql[]=sprintf('delete from %s where repositoryid=%s)',
+		$sql[]=sprintf('delete from %s where repositoryid=%s',
 					$this->db->dbprefix('harvester_queue'),
-					$repositoryid);
+					$this->db->escape($repositoryid));
 		
 		//repositories
 		$sql[]=sprintf('delete from %s where id=%d',$this->db->dbprefix('repositories'),$id);
