@@ -28,7 +28,7 @@ function attach_survey_handler(){
 		else{
 			//collapse any expanded rows
 			$("#surveys .selected").removeClass().addClass("row");
-			$("#surveys .show").removeClass("show");
+			$("#surveys .show").removeClass("show").addClass("hide");
 		}
 
 
@@ -36,7 +36,7 @@ function attach_survey_handler(){
 		$(row_sel_id).data('active', 1);
 		
 		$(row_sel_id).toggleClass("selected");
-		$(row_info_id).removeClass("hide");
+		$(row_info_id).removeClass("hide").addClass("show");
 		
 		$(row_info_id+" > td").html('<div class="info"><img src="images/loading.gif" alt=""/>'+i18n.js_loading+'</div>');
 		
