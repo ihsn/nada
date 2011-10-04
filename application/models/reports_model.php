@@ -338,7 +338,7 @@ class Reports_model extends CI_Model {
 		//data files
 		$sql='select survey_id as sid, count(survey_id) as total 
 				from resources 
-				where dctype like \'%[dat/micro]%\' or dctype like \'%[dat]%\'
+				where dctype like \'%dat/micro]%\' or dctype like \'%dat]%\'
 				group by sid;';
 				
 		$query=$this->db->query($sql);
