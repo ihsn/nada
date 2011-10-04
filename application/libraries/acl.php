@@ -154,8 +154,9 @@ class ACL
 	{
 		$this->ci->db->select("name as role");
 		$this->ci->db->join('user_groups', 'user_groups.id = users.group_id');
+		$this->ci->db->where('users.id',$userid);
 		$query=$this->ci->db->get("users");
-		
+
 		if (!$query)
 		{
 			return FALSE;
@@ -223,13 +224,19 @@ class ACL
 			show_error("ERROR_USERID_NOT_SET");
 		}
 		
-		
+		//get user global role
+		$user_role=$this->get_user_global_role($userid);
+
+		//if ADMIN, grant all permissions
+		if ($user_role=='admin')
+		{
+			return TRUE;
+		}		
 		
 		$catalog_urls[]='admin/managefiles/(:num)';
 		$catalog_urls[]='admin/managefiles/(:num)/access';
 		$catalog_urls[]='admin/catalog/26/edit';
 		$catalog_urls[]='admin/catalog/(:num)/resources';
-		
 		
 		
 		//find study id from URL
@@ -271,6 +278,7 @@ class ACL
 		//find the user roles for the study repository
 		$obj_roles=$this->get_user_roles_by_repository($userid,$repositoryid);				
 		
+
 		//user roles found
 		if ($obj_roles)
 		{
