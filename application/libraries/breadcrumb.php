@@ -21,8 +21,7 @@ class Breadcrumb
 	function __construct()
 	{
 		log_message('debug', "Breadcrumb Class Initialized.");
-
-		$this->ci =& get_instance();		
+		$this->ci =& get_instance();
 	}
 	
 	/**
@@ -42,10 +41,28 @@ class Breadcrumb
 			return FALSE;
 		}
 		
+		//find active repository
+		$active_repo=$this->ci->session->userdata('active_repository');
+		if ($active_repo=='')
+		{
+			$active_repo='central';
+		}
+		
+		//get repository title
+		$repository_title=$this->get_repository_title($active_repo);
+		
 		switch($segments[1])
 		{
-				case 'catalog':			
-					$breadcrumbs['catalog']=t('Data Catalog');
+				case 'catalog':
+					
+					if ($repository_title)
+					{
+						$breadcrumbs['catalog/'.$active_repo]=t($repository_title);
+					}
+					else
+					{
+						$breadcrumbs['catalog']=t('Data Catalog');
+					}
 					
 					if (count($segments)>1)
 					{
@@ -224,14 +241,16 @@ class Breadcrumb
 				{
 					$breadcrumbs['auth/forgot_password']=t('forgot_password');
 				}
-			break;
-			
+			break;			
 		}
 		
+		/*
+		//don't show breadcrumbs when there is only one link
 		if (count($breadcrumbs)==1)
 		{
 			return FALSE;
 		}
+		*/
 		return $breadcrumbs;		
 	}
 	
@@ -307,5 +326,31 @@ class Breadcrumb
 		}
 		
 		return FALSE;
-	}	
+	}
+	
+	
+	/**
+	*
+	* Returns the repository title by repositoryid
+	**/
+	function get_repository_title($repositoryid)
+	{
+		$this->ci->db->select('title');
+		$this->ci->db->where('repositoryid',$repositoryid);
+		$query=$this->ci->db->get('repositories');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$repository=$query->row_array();
+		
+		if($repository)
+		{
+			return $repository['title'];
+		}
+		
+		return FALSE;
+	}
 }
