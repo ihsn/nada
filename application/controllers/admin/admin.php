@@ -14,10 +14,17 @@ class Admin extends MY_Controller {
  
 	function index()
 	{	
+
+		//relative date helper
+		$this->load->helper('date_helper');
+		
 		$data['title']='Dashboard';
 		
 		//News
-		$data['news']=$this->news(true);
+		//$data['news']$this->news(true);
+		
+		//recent studies
+		$data['recent_studies']=$this->_get_recent_studies();		
 		
 		//cached files count
 		$data['cache_files']=$this->_cache_file_count();
@@ -200,6 +207,17 @@ class Admin extends MY_Controller {
 	}
 	
 	
+	/**
+	*
+	*Return top N recent studies
+	**/
+	function _get_recent_studies()
+	{
+		$this->db->select("id,titl,changed,repositoryid,created");
+		$this->db->limit(15);
+		$this->db->order_by('changed', 'DESC'); 
+		return $this->db->get("surveys")->result_array();
+	}
 	
 }
 /* End of file admin.php */
