@@ -28,7 +28,7 @@ class Repository extends MY_Controller {
 		$this->load->model("repository_model");
 		
 		//get a list of all repositories
-		$repo_arr=$this->repository_model->get_repositories();
+		$repo_arr=$this->repository_model->get_repositories(($published=TRUE, $system=FALSE);
 		
 		$content=$this->load->view("repositories/index_public",array('rows'=>$repo_arr),TRUE);
 		
