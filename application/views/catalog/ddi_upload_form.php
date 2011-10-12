@@ -6,6 +6,15 @@ foreach($user_repositories as $repo)
 {
 	$repositories_list[$repo["repositoryid"]]=$repo['title'];
 }
+
+//active repository
+$active_repository='';
+
+//get active repo
+if (isset($this->active_repo) && $this->active_repo!=NULL)
+{
+	$active_repository=$this->active_repo->repositoryid;
+}
 ?>
 <div class="content-container">
 <?php include 'catalog_page_links.php'; ?>
@@ -21,14 +30,14 @@ foreach($user_repositories as $repo)
 	<?php echo form_open_multipart('admin/catalog/do_upload', array('class'=>'form')	 );?>
     <div class="field">
     	<label for="repositoryid"><?php echo t('msg_select_repository');?></label>
-		<?php echo form_dropdown('repositoryid', $repositories_list); ?>
+		<?php echo form_dropdown('repositoryid', $repositories_list,$active_repository); ?>
     </div>    
     <div class="field">
     	<label for="userfile"><?php echo t('msg_select_ddi');?></label>
         <input  type="file" name="userfile" id="userfile" size="60"/>
     </div>
     <div class="field">
-        <label for="overwrite" class="desc"><input type="checkbox" name="overwrite" id="overwrite" checked="checked"  value="yes"/> <?php echo t('ddi_overwrite_exist');?></label>
+        <label for="overwrite" class="desc"><input type="checkbox" name="overwrite" id="overwrite" value="yes"/> <?php echo t('ddi_overwrite_exist');?></label>
     </div>
 
 	<?php echo form_submit('submit',t('submit')); ?>
