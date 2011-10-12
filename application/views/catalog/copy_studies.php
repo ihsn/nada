@@ -113,7 +113,7 @@ span.active-repo{font-size:smaller;color:gray;}
             <?php endif;?>
             <td><?php echo $row['titl']; ?></td>
             <td><?php echo date($this->config->item('date_format_long'), $row['changed']); ?></td>
-            <td><a class="repo-link" href="<?php echo site_url();?>/admin/catalog/do_copy_study/<?php echo $this->active_repo->repositoryid;?>/<?php echo $row['id'];?>"><img class="copy-study" src="images/bullet-gray.gif" alt="COPY" title="<?php echo t('alt_copy_study')?>"/></a></td>
+            <td><a class="repo-link" href="<?php echo site_url();?>/admin/catalog/do_copy_study/<?php echo $this->active_repo->repositoryid;?>/<?php echo $row['id'];?>"><img class="copy-study" src="themes/admin/bullet-gray.gif" alt="COPY" title="<?php echo t('alt_copy_study')?>"/></a></td>
         </tr>        
     <?php endforeach;?>
 	</table>
@@ -158,7 +158,7 @@ jQuery(document).ready(function(){
 				url: $(this).attr("href"),
 				success: function(data) {
 					if (data.success){
-						obj.html('<img class="loading" src="images/bullet-green.gif"/>');
+						obj.html('<img class="loading" src="themes/admin/bullet-green.gif"/>');
 					}
 					else{
 						alert(data.error);
