@@ -101,7 +101,7 @@ class Repository_model extends CI_Model {
 		$allowed_fields=array('retries','repositoryid','survey_url',
 						'status','ddi_local_path','changed','title',
 						'survey_timestamp', 'retries','country','survey_year',
-						'accesspolicy','checksum','surveyid');
+						'accesspolicy','checksum','surveyid','type');
 		
 		$data=array();
 		foreach($options as $key=>$value)
@@ -380,7 +380,9 @@ class Repository_model extends CI_Model {
 			'scan_lastrun',
 			'short_text',
 			'long_text',
-			'thumbnail'
+			'thumbnail',
+			'type',
+			'weight'
 			);
 
 		//add date modified
@@ -424,7 +426,9 @@ class Repository_model extends CI_Model {
 			'organization',
 			'country',
 			'status',
-			'changed'
+			'changed',
+			'type',
+			'weight'
 			);
 
 		//add date modified
@@ -547,7 +551,7 @@ class Repository_model extends CI_Model {
 			$this->db->where("type !=",2);
 		}
 		
-		$this->db->order_by('weight'); 
+		$this->db->order_by('title'); 
 		$query=$this->db->get('repositories');
 		
 
