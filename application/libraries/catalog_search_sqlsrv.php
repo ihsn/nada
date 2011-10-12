@@ -236,7 +236,7 @@ class Catalog_search{
 			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
 			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
 		}
-				
+
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository);
 		
