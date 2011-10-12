@@ -8,7 +8,7 @@
 <h1><a href="<?php echo site_url();?>/catalog">Central Microdata Catalog</a></h1>
 <p>The Central Microdata Catalog is a portal for all datasets held in catalogs maintained by the World Bank and a number of contributing external repositories. As of August 02, 2011, our central catalog contains 651 surveys. Users who wish to go directly to a specific catalog can visit the specific contributing repository through the links below.</p>
 
-<h1 class="page-title"><?php echo t('Contributing repositories');?></h1>
+<h1 class="page-title"><?php echo t('contributing_repositories');?></h1>
 <?php if ($rows):?>
     <table class="repo-table" width="100%" cellspacing="0" cellpadding="4">
 	<?php $tr_class=""; ?>

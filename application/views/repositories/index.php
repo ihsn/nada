@@ -100,6 +100,7 @@ $repository_types=array(
             <th><?php echo create_sort_link($sort_by,$sort_order,'linktype',t('organization'),$page_url); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'published',t('country'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('published'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'status',t('status'),$page_url); ?></th>            
             <th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('last_scan'),$page_url); ?></th>
@@ -117,6 +118,7 @@ $repository_types=array(
             <td><?php echo $row->organization; ?></td>
 			<td><?php echo $row->country; ?></td>
             <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
+            <td><?php echo $row->weight; ?></td>
             <td><?php echo ($row->ispublished==1) ? t('yes') : t('no'); ?></td>
             <td><?php echo $row->status; ?></td>
             <td><?php echo ($row->changed==0) ? '-' : date("m-d-Y",$row->scan_lastrun); ?></td>
