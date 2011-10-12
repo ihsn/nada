@@ -185,9 +185,11 @@ font-weight: bold;
 .breadcrumbs .active{color:gray;}
 
 .sidebar ul li{
-background: url(css/img_sprite_icons.png) -1120px -190px no-repeat;
-padding: 5px 10px 5px 16px;
+	background: url(css/img_sprite_icons.png) -1120px -190px no-repeat;
+	padding: 5px 10px 5px 16px;
 }
+
+
 td,tr{font-size:12px;}
 #category li{background:none;}
 
@@ -202,3 +204,13 @@ PADDING-TOP: 0px;
 padding-left: 0px;
 margin:0;
 }
+
+
+.repositories-sidebar h3 {
+margin:0px;padding:5px;
+background: url(css/bg_left_nav_grey_m_r_20100921.png) repeat-y 100% 50%;border-bottom:1px solid gainsboro;border-top:1px solid gainsboro;
+}
+
+.repositories-sidebar .first {border:none;}
+
+.repositories-sidebar li{margin-left:10px;}
