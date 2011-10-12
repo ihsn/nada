@@ -92,7 +92,7 @@ class Catalog_model extends CI_Model {
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as owner_repo');
+							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin');
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
@@ -216,11 +216,12 @@ class Catalog_model extends CI_Model {
 		{
 			if (!$this->active_repo_negate)
 			{
-				$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).' or surveys.repositoryid='.$this->db->escape($this->active_repo).')';
+				//$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).' AND surveys.repositoryid='.$this->db->escape($this->active_repo).')';
+				$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).')';
 			}
 			else
 			{	//show studies not part of the active repository
-				$where_clause.=' and surveys.repositoryid!='.$this->db->escape($this->active_repo).' and (sr.repositoryid is null or sr.repositoryid!='.$this->db->escape($this->active_repo).')';
+				$where_clause.=' and surveys.repositoryid!='.$this->db->escape($this->active_repo).' and surveys.id not in (select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
 			}	
 		}
 				
@@ -247,7 +248,7 @@ class Catalog_model extends CI_Model {
 	*
 	*
 	**/
-	function select_single($id)
+	function select_single($id,$repositoryid=FALSE)
 	{
 		//study fields
 		$fields=$this->study_fields;
@@ -263,14 +264,21 @@ class Catalog_model extends CI_Model {
 		$this->db->where('id', $id); 
 		
 		//execute query
-		$query=$this->db->get('surveys');
+		$survey=$this->db->get('surveys')->row_array();
 		
-		if ($query)
+		if ($repositoryid!==FALSE)
 		{
-			return $query->row_array();
+			//get study ownership/link info
+			$this->db->select("*");
+			$this->db->where('sid', $id); 
+			$this->db->where('repositoryid', $repositoryid); 
+			$additional=$this->db->get('survey_repos')->result_array();
+			if ($additional)
+			{
+				$survey['repo']=$additional;
+			}
 		}
-		
-		return FALSE;
+		return $survey;
 	}
 	
 	/**
@@ -1104,10 +1112,97 @@ class Catalog_model extends CI_Model {
 	{
 		$options=array(
 				'repositoryid'=>$repositoryid,
-				'sid'=>$sid
+				'sid'=>$sid,
+				'isadmin'=>0
 			);
+		
+		//first unlink incaase it is already set
+		$this->unlink_study($repositoryid,$sid);
 			
 		return $this->db->insert("survey_repos",$options);
 	}
+	
+	
+	/**
+	*
+	* unlink a study
+	**/
+	function unlink_study($repositoryid,$sid,$isadmin=0)
+	{
+		$options=array(
+				'repositoryid'=>$repositoryid,
+				'sid'=>$sid,
+				'isadmin'=>$isadmin
+		);
+			
+		return $this->db->delete("survey_repos",$options);
+	}
+
+	
+	/**
+	*
+	* transfer owndership of a study
+	*
+	* 	@target_repository_id		new owner of the study
+	*	@sid	surveyid
+	**/
+	function transfer_ownership($target_repositoryid,$sid)
+	{
+		//get study info
+		$survey=$this->select_single($sid);
+		
+		if (!$survey)
+		{
+			return FALSE;
+		}
+		
+		//update surveys table
+		$options=array(
+				'repositoryid'=>$target_repositoryid
+		);
+	
+		$this->db->where('id',$sid);
+		$this->db->update("surveys",$options);
+	
+	
+		//remove old ownership info from survey_repos
+		$this->unlink_study($survey['repositoryid'],$sid,1);
+				
+		//add new ownership info to survey_repos
+		$options=array(
+				'repositoryid'=>$target_repositoryid,
+				'sid'=>$sid,
+				'isadmin'=>1 
+		);
+
+		$this->db->where('repositoryid',$target_repositoryid);
+		$this->db->where('sid',$sid);
+		$this->db->insert("survey_repos",$options);
+		
+		//log
+		$this->db_logger->write_log('transfer-ownership','transfered study ['.$survey['titl'].'] from '.$survey['repositoryid'].' '.$target_repositoryid,'transfer-ownership',$sid);
+	}
+	
+	/**
+	*
+	* Check if a repository exists
+	*
+	**/
+	function repository_exists($repositoryid)
+	{
+		$this->db->select("repositoryid");
+		$this->db->where("repositoryid",$repositoryid);
+		$result=$this->db->get("repositories")->result_array();
+		
+		if ($result)
+		{
+			if (count($result)>0)
+			{
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
+	
 }
 ?>
