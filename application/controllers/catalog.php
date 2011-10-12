@@ -88,7 +88,14 @@ class Catalog extends MY_Controller {
 		if ($this->input->get_post('reset')=='reset')
 		{
 			$this->session->unset_userdata('search');
-			redirect('catalog');			
+			$repoid='';
+			
+			if (isset($this->active_repo) && $this->active_repo!==FALSE)
+			{
+				$repoid=$this->active_repo['repositoryid'];
+			}
+
+			redirect('catalog/'.$repoid);
 		}
 
 		$this->template->add_js('javascript/datacatalog.js');
@@ -131,7 +138,14 @@ class Catalog extends MY_Controller {
 		//set default sort options, if passed values are not valid
 		if (!in_array(trim($this->sort_by),$allowed_fields))
 		{
-			$this->sort_by='';
+			if($this->regional_search)
+			{
+				$this->sort_by='nation';
+			}
+			else
+			{
+				$this->sort_by='titl';
+			}				
 		}
 		
 		//default for sort order if no valid values found
@@ -235,9 +249,9 @@ class Catalog extends MY_Controller {
         }
 
 		//set page title
-		if (isset($this->active_repo))
+		if (isset($this->active_repo) && $this->active_repo!==FALSE)
 		{
-			$this->page_title=t($this->active_repo['title']);		
+			$this->page_title=t($this->active_repo['title']);
 		}
 		else
 		{
@@ -1249,7 +1263,7 @@ class Catalog extends MY_Controller {
 		$this->session->unset_userdata('search');
 		
 		//get a list of all repositories
-		$repo_arr=$this->repository_model->get_repositories();
+		$repo_arr=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
 		
 		$content=$this->load->view("repositories/index_public",array('rows'=>$repo_arr),TRUE);
 		
