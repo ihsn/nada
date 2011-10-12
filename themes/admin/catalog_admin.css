@@ -2,7 +2,7 @@
 
 #surveys .selected{background:black;border:2px solid black;color:white;}
 #surveys .hide{display:none;}
-#surveys .study-info td.study-info-box{height:200px;border:2px solid black;border-top:none;}
+#surveys .study-info td.study-info-box{border:2px solid black;border-top:none;}
 
 #surveys .row:hover
 {background:black;color:white;cursor:pointer}
@@ -23,4 +23,5 @@
 .tbl-survey-info{width:100%;}
 
 .icon {width:16px;height:16px;display:inline-block}
-.harvested{background:url("bullet-green.gif") no-repeat;}
+.owned{background:url("bullet-green.gif") no-repeat;}
+.linked{background:url("../../images/link.png") no-repeat;}
