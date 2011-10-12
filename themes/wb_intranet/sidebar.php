@@ -22,14 +22,16 @@
 <!--end-sidebar-reference-owner-->
 
 <!--sidebar-reference-owner-->
+<!--
 <div class="grey-module" id="stpModule">
     <div class="m-head"> 
         <h2>For Service Owner</h2>
     </div>
     <div class="m-body">
-        <?php echo $sidebar;?>	
+        <?php //echo $sidebar;?>	
     </div><div class="m-footer"><span>&nbsp;</span></div>
 </div>
+-->
 <!--end-sidebar-reference-owner-->
 
 </div>
