@@ -145,7 +145,8 @@ class Repositories extends MY_Controller {
 						'type'=>0,
 						'short_text'=>'',
 						'thumbnail'=>'',
-						'long_text'=>''
+						'long_text'=>'',
+						'weight'=>0
 						);
 												
 		//process form
@@ -202,7 +203,7 @@ class Repositories extends MY_Controller {
 		}			
 
 		//textboxes
-		$fields=array('repositoryid','title','url','organization','country','scan_interval','thumbnail');
+		$fields=array('repositoryid','title','url','organization','country','scan_interval','thumbnail','weight');
 		
 		foreach($fields as $field)
 		{
