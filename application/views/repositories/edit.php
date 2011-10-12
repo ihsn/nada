@@ -38,7 +38,7 @@ $repo_types=array(
 
     <div class="field">
         <label for="pid"><?php echo t('select_repo_type');?></label>
-        <?php echo form_dropdown('type', $repo_types,get_form_value('type',isset($type) ? $type : ''));?>
+        <?php echo form_dropdown('type', $repo_types,get_form_value('type',isset($this->data['type']) ? $this->data['type'] : ''));?>
     </div>  
 
     <div class="field">
@@ -79,6 +79,11 @@ $repo_types=array(
     <div class="field">
         <label for="long_text"><?php echo t('long_description');?><span class="required">*</span></label>
         <?php echo form_textarea('long_text', get_form_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : ''),'style="height:150px" class="input-flex"');?>
+    </div>
+
+    <div class="field">
+        <label for="weight"><?php echo t('weight');?><span class="required">*</span></label>
+        <?php echo form_input($this->data['weight']);?>        
     </div>
 
    <!--
