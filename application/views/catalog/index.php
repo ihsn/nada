@@ -18,8 +18,7 @@ margin-bottom:10px;
 }
 span.active-repo{font-size:smaller;color:gray;}
 span.link-change{font-size:10px;padding-left:5px;}
-
-
+.unlink-study .linked{padding-left:20px;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -100,11 +99,12 @@ span.link-change{font-size:10px;padding-left:5px;}
 <table width="100%">
     <tr>
         <td>
-			<select id="batch_actions">
-                    <option value="-1"><?php echo t('batch_actions');?></option>
-                    <option value="delete"><?php echo t('delete');?></option>
-                </select>
-                <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>              
+            <select id="batch_actions">
+                <option value="-1"><?php echo t('batch_actions');?></option>
+                <option value="transfer"><?php echo t('transfer_ownership');?></option>
+                <option value="delete"><?php echo t('delete');?></option>
+            </select>
+            <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>              
         </td>
         <td align="right">
             <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
@@ -136,7 +136,14 @@ span.link-change{font-size:10px;padding-left:5px;}
             <?php endif;?>
             <td><?php echo $row['titl']; ?></td>
             <td><?php echo date($this->config->item('date_format_long'), $row['changed']); ?></td>
-            <td><span class="icon harvested" title="<?php echo t('is_harvested_study');?>" /></td>
+            <td nowrap="nowrap">
+            	<?php if ($row['repo_isadmin']==0):?>
+                <span class="icon linked" title="<?php echo t('is_harvested_study');?>"></span>
+                <?php elseif ($row['repo_isadmin']==1):?>
+				<span class="icon owned" title="<?php echo t('study_owned');?>"></span>
+				<?php endif;?>
+                
+            </td>
         </tr>
         <tr class="study-info hide" id="s_<?php echo $row['id']; ?>_info">
         	<td class="study-info-box" colspan="<?php echo ($this->config->item("regional_search")=='yes') ? '6': '4'; ?>">--survey-info-box--</td>
