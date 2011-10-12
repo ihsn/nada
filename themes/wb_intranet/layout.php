@@ -17,7 +17,7 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title><?php echo t($title);?></title>
+<title><?php echo $title;?></title>
 <base href="<?php echo js_base_url(); ?>">
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/css/ihpv3_intranet_20110418.css">
