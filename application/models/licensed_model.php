@@ -507,7 +507,7 @@ class Licensed_model extends CI_Model {
 		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title');
 		
 		//allowed_fields
-		$db_fields=array('status'=>'status','username'=>'username','title'=>'surveys.titl','survey_title'=>'survey_title','created'=>'created');
+		$db_fields=array('status'=>'status','username'=>'username','title'=>'surveys.titl','survey_title'=>'survey_title','lic_requests.created'=>'created');
 		
 		//set where
 		if ($filter)
