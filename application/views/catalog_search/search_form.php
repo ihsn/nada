@@ -1,4 +1,11 @@
 <?php
+//active repositoryid
+$repoid='';
+if (isset($this->active_repo) && $this->active_repo!==FALSE)
+{
+	$repoid=$this->active_repo['repositoryid'].'/';
+}
+
 //css/js to hide the accordion content to fix the flash of unstyle html
 $script='document.documentElement.className = "js";';
 $css='.js .flash {display: none;}
@@ -118,7 +125,7 @@ $this->template->add_js($script, $type = 'embed');
 
 		<div style="text-align:right;margin-top:-15px;" class="search-buttons">
         	<input class="button" type="submit" id="btnsearch" name="search" value="<?php echo t('search');?>"/>
-            <input class="btn-cancel" type="button" id="reset" name="reset" onclick="window.location.href='<?php echo site_url();?>/catalog/?reset=reset'"  value="<?php echo t('reset');?>"/>
+            <input class="btn-cancel" type="button" id="reset" name="reset" onclick="window.location.href='<?php echo site_url();?>/catalog/<?php echo $repoid;?>?reset=reset'"  value="<?php echo t('reset');?>"/>
 		</div> 
     </div>
 
