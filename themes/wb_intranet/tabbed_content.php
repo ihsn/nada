@@ -27,12 +27,14 @@ if ($active_repo=='')
                     <li <?php if ($this->uri->segment(3)=='about'){echo 'class="sel"';}?> >
                         <a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>/about">About</a>
                     </li>
-                    <li  <?php if ($this->uri->segment(1)=='catalog'){echo 'class="sel"';}?> >
+                    <li  <?php if ($this->uri->segment(1)=='catalog' && $this->uri->segment(3)!=='about'){echo 'class="sel"';}?> >
                         <a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>">Data Catalog</a>
                     </li>
+                    <!--
                     <li <?php if ($this->uri->segment(1)=='citations'){echo 'class="sel"';}?>>
                         <a href="<?php echo site_url();?>/citations">Citations</a>
                     </li>
+                    -->
                 </ul>
             </div>
 
