@@ -594,7 +594,12 @@ class DDI_Import{
 	{
 		$this->ci->db->select('id');
 		$this->ci->db->from('surveys');
-		$this->ci->db->where(array('surveyid' => $surveyid,'repositoryid' => $repositoryid) );
+		
+		//$this->ci->db->where(array('surveyid' => $surveyid,'repositoryid' => $repositoryid) );		
+		
+		//check surveyid in all repositories
+		$this->ci->db->where(array('surveyid' => $surveyid) );
+		
 		$query=$this->ci->db->get();
 
 		if ($query->num_rows() > 0)
