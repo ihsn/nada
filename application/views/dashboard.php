@@ -10,16 +10,39 @@
 <div class="content-container">
 <h1><?php echo t('dashboard');?></h1>
 <div class="yui-g">
-	<div class="yui-u first" style="border-right:1px solid gainsboro;">
-		<?php if ($news):?>
+	
+    <?php if (isset($news)):?>
+    <div class="yui-u first" style="border-right:1px solid gainsboro;">		
         	<div class="dashboard-box">
             	<div class="dashboard-box-title"><?php echo t('nada_news_updates');?></div>
                 <div class="dashboard-box-body"><?php echo $news;?></div>
                 <div class="dashboard-box-footer"></div>
-            </div>        	
-        <?php else:?>
-        <?php endif;?>	
+            </div>        	        
 	</div>
+    <?php endif;?>
+    
+    <?php if (isset($recent_studies)):?>
+    <div class="yui-u first" >		
+        	<div class="dashboard-box">
+            	<div class="dashboard-box-title"><?php echo t('recent_studies');?></div>
+                <div class="dashboard-box-body">
+	                <?php $tr_class=""; ?>
+                	<table style="width:100%;" class="grid-table">
+					<?php foreach($recent_studies as $row):?>
+                    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
+                    	<tr class="<?php echo $tr_class;?>">
+						<td><?php echo strtoupper($row['repositoryid']);?></td>
+                        <td><?php echo anchor('catalog/'.$row['id'],$row['titl']);?></td>
+                         <td><?php echo relative_date($row['changed']); ?></td>
+                        </tr>
+                    <?php endforeach;?>
+                    </table>
+                </div>
+                <div class="dashboard-box-footer"></div>
+            </div>        	        
+	</div>
+    <?php endif;?>
+    
 	<div class="yui-u">
                 <div class="dashboard-box">
                     <div class="dashboard-box-title"><?php echo t('users');?></div>
