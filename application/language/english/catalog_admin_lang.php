@@ -59,6 +59,6 @@ $lang['repositories']='Repositories';
 $lang['msg_copy_studies']='Click on the study copy icon %s to copy studies to your repository.';
 $lang['copy_studies_to']='Copy studies to ';
 $lang['change_repo']='Switch';
-
+$lang['repositoryid']='Repository';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

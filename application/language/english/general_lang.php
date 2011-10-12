@@ -111,6 +111,10 @@ $lang['share_with_stumpleupon']="Share with Stumbleupon";
 
 $lang['study_home'] = "Home";
 $lang['captcha_answer_not_matched'] = "%s answer didn't match.";
-
+$lang['repositories'] = "Repositories";
+$lang['contributing_repositories'] = "Contributing repositories";
+$lang['home']='Home';
+$lang['regional_catalogs']='Regional catalogs';
+$lang['specialized_catalogs']='Specialized catalogs';
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

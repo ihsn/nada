@@ -1,6 +1,6 @@
 <?php
 
-$lang['title_data_catalog'] = "Data Catalog";
+$lang['title_data_catalog'] = "Central Catalog";
 $lang['data_catalog'] = "Data Catalog";
 
 $lang['catalog_search_help'] = "Catalog Search Help";
@@ -138,5 +138,6 @@ $lang['harvested_study_access_complete_metadata'] =
 	You may browse and download metadata from this page. To download related materials and access the data, <a href="%s">visit the survey page on the originating repository</a>.';
 $lang['data']='Data';
 $lang['by']='By:';
+
 /* End of file catalog_search_lang.php */
 /* Location: ./system/language/english/catalog_search_lang.php */
