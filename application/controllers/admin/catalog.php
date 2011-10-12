@@ -131,7 +131,7 @@ class Catalog extends MY_Controller {
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','ps'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
 		$config['next_link'] = t('page_next');
 		$config['num_links'] = 5;
 		$config['prev_link'] = t('page_prev');
@@ -178,8 +178,15 @@ class Catalog extends MY_Controller {
 			show_error('Invalid parameters were passed');
 		}
 		
+		$active_repository=FALSE;
+		//get active repository
+		if (isset($this->active_repo) && $this->active_repo!=NULL)
+		{
+			$active_repository=$this->active_repo->repositoryid;
+		}
+		
 		//get the survey info from db
-       	$survey_row=$this->Catalog_model->select_single($id);
+       	$survey_row=$this->Catalog_model->select_single($id,$active_repository);
 		
 		//check if survey has citations
 		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
@@ -1116,6 +1123,115 @@ class Catalog extends MY_Controller {
 		$this->Catalog_model->copy_study($repositoryid,$sid);
 		echo json_encode(array('success'=>$repositoryid));
 		exit;
+	}
+	
+	
+	/**
+	*
+	* Transfer Ownership of a study to another catalog
+	*
+	* @surveyid  number | string in case of multiple IDs seperated by comma
+	**/
+	function transfer($surveyid=NULL)
+	{
+		if ($surveyid==NULL && !$this->input->post("sid"))
+		{
+			show_error("PARAM_MISSING");
+		}
+		
+		//active repositoryid
+		$active_repo=$this->active_repo->repositoryid;
+
+		if (!$active_repo)
+		{
+			show_error("NO_ACTIVE_REPO_SET");
+		}
+
+		if ($this->input->post("sid"))
+		{
+			$surveys_arr=$this->input->post("sid");
+		}
+		else
+		{	
+			$surveys_arr=explode(",",$surveyid);
+		}		
+		
+		$surveys=array();
+		
+		//get survey info by id
+		foreach($surveys_arr as $id)
+		{
+			if (is_numeric($id))
+			{
+				$survey_row=$this->Catalog_model->get_survey($id);
+				if ($survey_row)
+				{
+					$surveys[$id]=$this->Catalog_model->get_survey($id);
+				}	
+			}	
+		}
+		
+		//postback?
+		if ($this->input->post("submit"))
+		{
+			$repositoryid=$this->input->post("repositoryid");
+			
+			//validate repository
+			$exists=$this->Catalog_model->repository_exists($repositoryid);			
+
+			if (!$exists)
+			{
+				$this->form_validation->set_error(t('error_invalid_repositoryid'));
+			}
+			
+			foreach($surveys as $key=>$value)
+			{
+				//transfer ownership
+				$this->Catalog_model->transfer_ownership($repositoryid,$key);				
+			}
+			$this->session->set_flashdata('message', t('msg_study_ownership_has_changed'));
+			redirect('admin/catalog');
+		}
+		
+		
+		$content=$this->load->view('catalog/transfer_ownership',array('surveys'=>$surveys),TRUE);
+		$this->template->write('content', $content,true);
+  		$this->template->render();
+	}
+	
+	
+	/**
+	*
+	* Unlink a study from a repository
+	*
+	**/
+	function unlink($repositoryid,$surveyid)
+	{
+		if (!is_numeric($surveyid))
+		{
+			show_error("INVALID_ID");
+		}
+		
+		$result=$this->Catalog_model->unlink_study($repositoryid,$surveyid);
+		
+		if ($result!==FALSE)
+		{
+			$content='Study link was removed successfully!';
+		}
+		else
+		{
+			$content='Error: Failed to remove study link';
+		}
+
+		$this->session->set_flashdata('message', $content);
+		
+		redirect('admin/catalog');
+		return;
+		/*
+		$content=$this->load->view('catalog/study_unlink_confirm',array('result'=>$result),TRUE);
+		$this->template->write('content', $content,true);
+  		$this->template->render();*/
+		
 	}
 }
 /* End of file catalog.php */
