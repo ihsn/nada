@@ -1,11 +1,6 @@
-$(document).ready(function() {
-	//attach_hover();
-	attach_survey_handler();
-});
-
 function attach_survey_handler(){
 
-	$("#surveys .icon").click(function(event){
+	$("#surveys .icon, #surveys .chk").click(function(event){
 	  event.stopImmediatePropagation();
 	});
 
@@ -15,8 +10,6 @@ function attach_survey_handler(){
 		surveyid=rowid.substr(2);
 		row_info_id="#"+rowid+'_info';
 		row_sel_id="#"+rowid;
-		//console.log(row_info_id);
-		//console.log(surveyid);
 		
 		//already selected, reset
 		if ($row.data('active')==1) {
@@ -59,7 +52,6 @@ function attach_survey_handler(){
 }
 
 
-
 function popup_dialog(obj) {
 	var settings = {
 			centerBrowser:1,
@@ -99,8 +91,8 @@ function popup_dialog(obj) {
 }
 
 
-//checkbox select/deselect
 jQuery(document).ready(function(){
+	//checkbox select/deselect
 	$("#chk_toggle").click(
 			function (e) 
 			{
@@ -122,8 +114,19 @@ jQuery(document).ready(function(){
 			if( $("#batch_actions").val()=="delete"){
 				batch_delete();
 			}
+			else if ($("#batch_actions").val()=="transfer"){
+				batch_transfer_ownership();
+			}
 		}
 	);
+	
+	//attach_hover();
+	attach_survey_handler();
+
+	//page change
+	$('#ps').change(function() {
+		$('#catalog-search').submit();
+	});	
 });
 
 function batch_delete(){
@@ -162,6 +165,39 @@ function batch_delete(){
 	});	
 }
 
+function batch_transfer_ownership()
+{
+	if ($('.chk:checked').length==0){
+		alert(i18n.no_item_selected);
+		return false;
+	}
+	selected='';
+	$('.chk:checked').each(function(){ 
+		if (selected!=''){selected+=',';}
+        selected+= this.value; 
+     });
+	
+	$.ajax({
+		timeout:1000*120,
+		cache:false,
+        dataType: "json",
+		data:{ submit: "submit"},
+		type:'POST', 
+		url: CI.base_url+'/admin/catalog/transfer/'+selected+'/?ajax=true',
+		success: function(data) {
+			if (data.success){
+				location.reload();
+			}
+			else{
+				alert(data.error);
+			}
+		},
+		error: function(XHR, textStatus, thrownError) {
+			alert("Error occured " + XHR.status);
+		}
+	});	
+}
+
 function share_ddi(e,surveyid)
 {
 	share=0;
@@ -169,7 +205,3 @@ function share_ddi(e,surveyid)
 	url=CI.base_url+'/admin/catalog/shareddi/'+surveyid+'/'+share;
 	$.get(url);
 }
-//page change
-$('#ps').change(function() {
-  $('#catalog-search').submit();
-});
