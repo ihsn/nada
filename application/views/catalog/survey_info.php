@@ -13,6 +13,20 @@ if ( !function_exists('decode_json_string'))
         return $json_str;
     }
 }
+
+//get study ownership type [linked/owned]
+$study_ownership_type='owned';
+foreach($repo as $repo_row)
+{
+	if ($repo_row['isadmin']==1)
+	{
+		$study_ownership_type='owned';
+	}
+	else
+	{
+		$study_ownership_type='linked';
+	}
+}
 ?>
 <table class="tbl-survey-info">
 	<tr>
@@ -38,7 +52,7 @@ if ( !function_exists('decode_json_string'))
 	<tr>
     	<td><?php echo t('folder');?></td>
         <td><?php echo $dirpath;?></td>
-    </tr>    
+    </tr>
 </table>
 <div class="action-bar" >
 <span style="float:right;padding-right:10px;">
@@ -91,6 +105,10 @@ if ( !function_exists('decode_json_string'))
         	<a title="<?php echo t('delete');?>" style="cursor: pointer;" href="<?php echo site_url().'/admin/catalog/delete/'.$id; ?>">
         		<img border="0" align="absbottom" src="images/bin_closed.png"/> <?php echo t('delete');?>
             </a>
-        </li>
+        </li>        
+        <?php if ($study_ownership_type=='linked'):?>
+        <li class="unlink-study"><span class="icon linked"><a href="<?php echo site_url();?>/admin/catalog/unlink/<?php echo $this->active_repo->repositoryid;?>/<?php echo $id;?>">Unlink</a></span></li>
+    	<?php endif;?>
+        <li class="transfer-study"><span class="icon"><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $id;?>"><?php echo t('transfer_study_ownership');?></a></span></li>
     </ul> 
 </div>
