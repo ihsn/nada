@@ -229,11 +229,13 @@ License:
 							<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Cycle</xsl:with-param></xsl:call-template></th>
 						</tr>	
 						<!-- get all collection start dates -->
-						<xsl:for-each select="ddi:collDate[@event='start' and normalize-space(@cycle)!='']">
+						<xsl:for-each select="ddi:collDate">
 							<xsl:variable name="cycle" select="@cycle"/>
+							<xsl:variable name="position" select="position()"/>
+							<xsl:if test="@event='start'">
 								<tr align="left">		
-								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='start'][@cycle=$cycle]/@date"/></td>
-								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end'][@cycle=$cycle]/@date"/></td>
+								<td><xsl:value-of select="@date"/></td>
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end' and position() > $position  and @cycle=$cycle]/@date"/></td>
 									<td>
 										<xsl:choose>
 											<xsl:when test="normalize-space(@cycle)">
@@ -242,25 +244,28 @@ License:
 											<xsl:otherwise>N/A</xsl:otherwise>
 										</xsl:choose>
 									</td>
-								</tr>														
+								</tr>
+								</xsl:if>
 						</xsl:for-each>
+						
+						<!-- no longer needed - prints all start/end dates with no cycle info
+						
 						<xsl:if test="ddi:collDate[@event='start' and normalize-space(@cycle)='']">
 								<tr valign="top">		
 								<td>
-								<!-- print all start dates -->
 								<xsl:for-each select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[normalize-space(@cycle)=''][@event='start']">
 										<xsl:value-of select="@date"/>
 								</xsl:for-each>
 								</td>
 								<td>
-								<!-- print all end dates -->
 								<xsl:for-each select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[normalize-space(@cycle)=''][@event='end']">
 										<xsl:value-of select="@date"/>
 								</xsl:for-each>
 								</td>
 								<td>N/A</td>
 								</tr>														
-						</xsl:if>						
+						</xsl:if>
+						-->
 					</table>
 <!--				</td>
 			</tr>-->
@@ -279,9 +284,10 @@ License:
 						<!-- get all collection start dates -->
 						<xsl:for-each select="ddi:timePrd[@event='start' and normalize-space(@cycle)!='']">
 							<xsl:variable name="cycle" select="@cycle"/>
+							<xsl:variable name="position" select="position()"/>
 								<tr align="left">		
 								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[@event='start'][@cycle=$cycle]/@date"/></td>
-								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[@event='end'][@cycle=$cycle]/@date"/></td>
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:timePrd[@event='end'][@cycle=$cycle and position() > $position]/@date"/></td>
 									<td>
 										<xsl:choose>
 											<xsl:when test="normalize-space(@cycle)">
@@ -438,12 +444,9 @@ License:
 								<xsl:call-template name="lf2br">
 									<xsl:with-param name="text" select="$text"/>
 								</xsl:call-template>
-							</xsl:when>:
+							</xsl:when>
 							<xsl:otherwise>
-                            <xsl:call-template name="lf2br">
-									<xsl:with-param name="text" select="."/>
-								</xsl:call-template>
-								<!--<xsl:apply-templates select="."/>-->
+								<xsl:apply-templates select="."/>
 							</xsl:otherwise>
 						</xsl:choose>
 					<!--</td>-->
