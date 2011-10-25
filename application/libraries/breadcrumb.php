@@ -257,7 +257,7 @@ class Breadcrumb
 	function to_string($seperator=" / ")
 	{
 		$data=array('breadcrumbs'=>$this->to_array());
-		$this->ci->load->view("breadcrumbs",$data);
+		return $this->ci->load->view("breadcrumbs",$data,TRUE);
 		//return implode($seperator,$this->generate());
 	}
 	
