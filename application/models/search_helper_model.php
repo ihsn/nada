@@ -178,42 +178,8 @@ class Search_helper_model extends CI_Model {
 			}
 		}
 		
-		/*
-		//get min year
-		$sql=sprintf('select min(data_coll_year) as min_year from survey_years y
-					inner join surveys s on y.sid=s.id
-					where data_coll_year>0 AND (data_coll_year between %d and %d)
-					and nation in (%s)',$min_year, $max_year,$countries);		
-
-		$min_query=$this->db->query($sql)->row_array();
-		
-		if ($min_query)
-		{
-			$output['min_year']=$min_query['min_year'];			
-		}
-
-		//get max year
-		$sql=sprintf('select max(data_coll_year) as max_year from survey_years y
-					inner join surveys s on y.sid=s.id
-					where data_coll_year>0 AND (data_coll_year between %d and %d)
-					and nation in (%s)',$min_year, $max_year,$countries);		
-
-		$max_query=$this->db->query($sql)->row_array();
-		
-		if ($max_query)
-		{
-			$output['max_year']=$max_query['max_year'];
-		}
-
-		//set min/max years to 0 if not found in db
-		if (!is_numeric($output['min_year']) || !is_numeric($output['max_year']) )
-		{
-			$output['min_year']=0;
-			$output['max_year']=0;
-		}
-		*/
-			$output['min_year']=0;//$min_year;
-			$output['max_year']=0;//$max_year;
+		$output['min_year']=0;//$min_year;
+		$output['max_year']=0;//$max_year;
 		
 		return $output;
 		
@@ -375,13 +341,19 @@ class Search_helper_model extends CI_Model {
 	/**
 	* List of countries from the survey table [nation field]
 	*
+	*
+	* @repositoryid	- repositoyr identifier to filter list of countries
 	*/
-	function get_active_countries()
+	function get_active_countries($repositoryid=NULL)
 	{
 		$sql='select nation,count(nation) as surveys_found 
-				from '.$this->db->dbprefix.'surveys
-			  group by nation';		
-		
+				from '.$this->db->dbprefix.'surveys';
+		if ($repositoryid!==NULL && trim($repositoryid)!='' && $repositoryid!='central')
+		{
+			$sql.='	inner join survey_repos sr on sr.sid=surveys.id 
+					where sr.repositoryid='.$this->db->escape($repositoryid);
+		}		
+		$sql.=' group by nation';
 		return $this->db->query($sql)->result_array();		
 	}
 	
