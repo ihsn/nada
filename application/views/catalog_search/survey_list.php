@@ -32,6 +32,9 @@
 	//page querystring for variable sub-search
 	$search_querystring='?'.get_sess_querystring( array('sk', 'vk', 'vf','view','topic','country'),'search');
 ?>
+<input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
+<input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
+
 <table style="width:100%;" border="0" cellpadding="0" cellspacing="0">
 <tr>
 <td>
@@ -59,7 +62,7 @@
 	<?php if (isset($this->vk) && $this->vk!=''):?>
      <a href="#" onclick="change_view('v');return false;"><?php echo t('switch_to_variable_view');?></a> |
      <a class="dlg" title="<?php echo t('compare_hover_text');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
-    <?php endif;?> 
+    <?php endif;?>
 </td>
 </tr>
 </table>
@@ -324,16 +327,9 @@
     <span class="btn">100</span>
 </div>
 
-<div class="da-legend">
-<span title="<?php echo t('link_data_direct');?>"><img src="images/form_direct.gif" /> <?php echo t('legend_direct_access');?></span>
-<span  title="<?php echo t('link_data_public_hover');?>"><img src="images/form_public.gif" /> <?php echo t('legend_data_public');?></span>
-<span title="<?php echo t('link_data_licensed_hover');?>"><img src="images/form_licensed.gif" /> <?php echo t('legend_data_licensed');?></span>
-<span title="<?php echo t('link_data_enclave_hover');?>"><img src="images/form_enclave.gif" /> <?php echo t('legend_data_enclave');?></span>
-<span title="<?php echo t('link_data_remote_hover');?>"><img src="images/form_remote.gif" /> <?php echo t('legend_data_remote');?></span>
-</div>
-<script type="text/javascript">
+<!--<script type="text/javascript">
 	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
-</script>
+</script>-->
 <?php else: ?>
 	<?php echo t('no_records_found');?>
 <?php endif; ?>
