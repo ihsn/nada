@@ -139,5 +139,17 @@ $lang['harvested_study_access_complete_metadata'] =
 $lang['data']='Data';
 $lang['by']='By:';
 
+$lang['data_direct_description']='Datasets and the related documentation are made available freely to users on the Bank\'s intranet. There is no need to be being logged into the application.';
+$lang['data_public_description']='Related documentation is made freely available to users on the Bank\'s intranet. Users must, however, be logged into the application to access these datasets.';
+$lang['data_licensed_description']='Related documentation is made freely available to users on the Bank\'s intranet. Access to the datasets requires the user to apply for approval to access these datasets. Users must be logged into the application and fill out an application form when applying for access.';
+$lang['data_enclave_description']='Related documentation is made freely available to users on the Bank\'s intranet. Access to the datasets requires the user to apply for approval to access these datasets at a secure onsite facility.';
+$lang['data_remote_description']='Related documentation is made freely available to users on the Bank\'s intranet. The datasets are held in catalogs outside the DDP Microdata or at other institutions.';
+$lang['data_da_description']='Related documentation is made freely available to users on the Bank\'s intranet. The datasets are however not available for these studies.';
+
+$lang['filter_by_data']='Filter by Data Access';
+
+$lang['legend_na_access']='Data not available';
+
+
 /* End of file catalog_search_lang.php */
 /* Location: ./system/language/english/catalog_search_lang.php */

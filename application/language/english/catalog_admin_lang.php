@@ -60,5 +60,12 @@ $lang['msg_copy_studies']='Click on the study copy icon %s to copy studies to yo
 $lang['copy_studies_to']='Copy studies to ';
 $lang['change_repo']='Switch';
 $lang['repositoryid']='Repository';
+$lang['copy_studies']='Copy study';
+$lang['transfer_study_ownership']='Transfer study owner';
+$lang['transfer_ownership']='Transfer owner';
+$lang['msg_studies_to_transfer']='Studies that will be changed';
+$lang['study_owned']='Owned study';
+$lang['study_linked']='Linked study';
+$lang['is_harvested_study']='Harvested study';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
