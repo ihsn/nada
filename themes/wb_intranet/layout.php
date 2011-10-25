@@ -35,8 +35,9 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
 
 <style>
 #content{padding:10px;}
-.page-contents{padding-left:250px;position:relative;}
-.sidebar{float:left;position:absolute;top:0px;left:0px}
+/*.page-contents{padding-left:250px;position:relative;padding-right:250px;}*/
+
+x.sidebar{float:left;position:absolute;top:0px;left:0px}
 .sidebar-content{font-size:13px;padding:10px;}
 .siebar ul,.siebar li{list-style:circle;}
 .sidebar-caption{color:black;padding:5px;border-bottom:1px solid gray;font-size:12px;text-align:center;}
@@ -44,7 +45,7 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
 </style>
 
 <style type="text/css">
-.footer{font-size:0.689em;background-color:#f5f3f5;color:#4177bd;overflow:hidden;padding-bottom:0px;clear:both;margin:155px 10px 0;zoom:1;}
+.footer{font-size:0.689em;background-color:#f5f3f5;color:#4177bd;overflow:hidden;padding-bottom:0px;clear:both;margin:15px 10px 0;zoom:1;}
 .footerLeftCorner{background:#f5f3f5 url(themes/<?php echo $this->template->theme();?>/css/img_sprite.gif) no-repeat left -666px;}
 .footerWarning{text-align:center;color:#333; padding-top:7px; padding-bottom:5px;background: url(themes/<?php echo $this->template->theme();?>/css/img_sprite.gif) no-repeat right -710px;}
 .footer ul{margin:0 0 8px;padding:0px 9px 0 10px;float:left}
@@ -185,12 +186,8 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
 </div>
 </form>
 
-		
 
 
-<div id="yui-main">
- 	<div id="content">
-    
     <!--login information bar-->
     <span id="user-container">
     <?php $this->load->view('user_bar');?>
@@ -208,28 +205,68 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
             <?php echo $breadcrumbs_str;?>
             </div>
         <?php endif;?>-->
-        <!--page-contents-->
-        <div class="page-contents">
-        <?php //echo isset($content) ? $content : '';?>
-        <?php @include 'tabbed_content.php';?>
-        <?php @include 'sidebar.php';?>
-        </div>
 
+
+<div id="doc3" class="yui-t2" >
+
+
+
+<div id="bd">
 		
-<!--
-    <div class="sidebar">
-    	<div class="sidebar-caption">Microdata DDP</div>
-        <div class="sidebar-content">
-		<?php echo $sidebar;?>	
-        </div>
-    </div>
--->        
+	<div id="yui-main" >
+		<div class="yui-b" >
+		  <div class="<?php echo ($this->uri->segment(1)=='catalog') ? '' : 'yui-ge';?>">
+			  <div class="yui-u first" >
+                    <!-- main content area-->
+                   <!--page-contents-->
+                    <div class="page-contents">
+                    <?php if ($this->uri->segment(1)=='catalog'):?>
+                        <?php @include 'tabbed_content.php';?>
+                    <?php else:?>            
+                            <!--breadcrumbs -->
+                            <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
+                            <?php if ($breadcrumbs_str!=''):?>
+                                <div id="breadcrumb" class="notabs">
+                                <?php echo $breadcrumbs_str;?>
+                                </div>
+                            <?php endif;?>
+                                
+                        <?php echo isset($content) ? $content : '';?>
+                    <?php endif;?>
+                    </div>                    
+			  </div>
+			  
+              <?php if ($this->uri->segment(1)!=='catalog'):?>
+              <!-- right sidebar -->	
+              <div class="yui-u">					
+               <?php @include 'right-sidebar.php';?>
+			  </div>
+              <!--end right sidebar -->
+              <?php endif;?>
+		</div>		
+		</div>
 	</div>
-    
-    
-</div>
 
-<div style="margin-top:100px;clear:both;">&nbsp;</div>
+	<!-- left side bar -->	
+    <div class="yui-b" id="tocWrapper">
+    <?php @include 'sidebar.php';?>
+    </div>
+	<!-- end left side bar -->
+	
+</div>
+<!--end bd-->
+
+
+
+
+
+
+
+
+
+
+
+<div style="margin-top:10px;clear:both;">&nbsp;</div>
 
 <!-- Footer include  -->
 <div class="footer">
