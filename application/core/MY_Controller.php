@@ -35,11 +35,10 @@ class MY_Controller extends CI_Controller
 		{
 			//perform authentication
 			$this->_auth();
+			$this->_has_access();
 		}
 
 		//echo $this->uri->uri_string();
-		$this->_has_access();
-		
 	}
 
 	/**
