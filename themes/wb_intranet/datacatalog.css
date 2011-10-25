@@ -129,7 +129,9 @@ div.left {
 }
 
 .da-legend img{vertical-align:bottom;border:0px}
-.da-legend span{margin-right:10px;color:gray;font-size:11px;}
+.da-legend span, .da-legend label{margin-right:10px;color:gray;font-size:11px;}
+.da-legend input{display:none;}
+.da-legend label.unchecked{text-decoration:line-through}
 .da-legend{padding-top:10px;}
 .switch-page-size .btn{font-size:bold;}
 .switch-page-size .btn:hover{cursor:pointer;color:black;}
@@ -146,3 +148,8 @@ display: inline-block;}
 .search-buttons .button {background-color:#036;border-color:#036;color:white;}
 
 #search_form, .vsearch{font-size:12px;}
+
+/*filter by data access*/
+.filter-da .da-desc{margin-left:23px;display:block;}
+.filter-da label {margin-bottom:10px;display:block;}
+.filter-da .title{font-weight:bold;}

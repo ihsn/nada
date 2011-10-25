@@ -66,11 +66,11 @@ color: white;display:block;
 
 /* site general styles */
 h1 {
-	font-size:26px;
+	font-size:22px;
 	font-family: Georgia;
 }
 h2 {
-	font-size:22px;
+	font-size:18px;
 	font-family: Georgia;
 	margin-bottom:10px;
 	line-height:120%;
@@ -214,3 +214,12 @@ background: url(css/bg_left_nav_grey_m_r_20100921.png) repeat-y 100% 50%;border-
 .repositories-sidebar .first {border:none;}
 
 .repositories-sidebar li{margin-left:10px;}
+
+.static-page ul {font-size:12px; margin-left:20px; line-height:150%;margin-bottom:10px;}
+.static-page li{
+	background: url(css/img_sprite_icons.png) -1120px -190px no-repeat;
+	padding: 5px 10px 5px 16px;
+}
+.notabs .breadcrumbs{margin:0px;}
+
+.static-page .box-info{background-color:#E3F1FB;padding:10px;margin-top:10px;margin-bottom:10px;}
