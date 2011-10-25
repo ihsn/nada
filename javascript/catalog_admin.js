@@ -177,25 +177,7 @@ function batch_transfer_ownership()
         selected+= this.value; 
      });
 	
-	$.ajax({
-		timeout:1000*120,
-		cache:false,
-        dataType: "json",
-		data:{ submit: "submit"},
-		type:'POST', 
-		url: CI.base_url+'/admin/catalog/transfer/'+selected+'/?ajax=true',
-		success: function(data) {
-			if (data.success){
-				location.reload();
-			}
-			else{
-				alert(data.error);
-			}
-		},
-		error: function(XHR, textStatus, thrownError) {
-			alert("Error occured " + XHR.status);
-		}
-	});	
+	window.location= CI.base_url+'/admin/catalog/transfer/'+selected;	
 }
 
 function share_ddi(e,surveyid)
