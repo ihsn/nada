@@ -16,8 +16,6 @@ $(function() {
 });
 
 function iframe_dialog(href,unload_func){
-	//$.fn.ceebox.overlay();
-	//$.fn.ceebox.popup(href,{onload:true,unload:unload_func});
 	popup_dialog($(href).attr("href")+'?ajax=1&css=true&title=true','variable');
 }
 
@@ -43,16 +41,26 @@ function advanced_search()
 	//topics
 	selected_topics=$("#search_form .chk-topic:checked").length;
 	total_topics=$("#search_form .chk-topic").length;
-
-	//remove topics from posting
-	if (selected_topics==total_topics) {
-		data=$("#search_form :not(.chk-topic, .chk-topic-hd) ").serialize();
+	
+	//countries
+	selected_countries=$("#search_form .chk-country:checked").length;
+	total_countries=$("#search_form .chk-country").length;
+	
+	//remove topics/countries from posting
+	if (selected_topics==total_topics && selected_countries==total_countries) {		
+		data=$("#search_form :not(.chk-topic, .chk-topic-hd, .chk-country, .chk-country-hd)").serialize();
+	}
+	else if (selected_countries==total_countries) {
+		data=$("#search_form :not(.chk-country, .chk-country-hd)").serialize();
+	}
+	else if (selected_topics==total_topics) {
+		data=$("#search_form :not(.chk-topic, .chk-topic-hd)").serialize();
 	}
 	else{
 		data=$("#search_form").serialize();	
 	}
-	
-	data+='&sort_order='+sort_info.sort_order+'&sort_by='+sort_info.sort_by;
+
+	data+='&sort_order='+$("#sort_order").val()+'&sort_by='+$("#sort_by").val();
 	$("#link_export").attr("href",CI.base_url+"/catalog/export/?"+data);
 	
 	block_search_form(true);
@@ -126,11 +134,6 @@ function bindBehaviors(e)
 			result.show().html(i18n.loading).load($(this).attr("href"), function(data){
 				//attach click event handler to the variable list links
 				
-				/*$('.variables-found .vsearch-result a').popupWindow({ 
-																	centerBrowser:1 ,
-																	windowURL:$(this).clone().attr("href",$(this).attr("href")+'?ajax=1&css=true&title=true'),
-																	windowName:'variable'
-																	}); */
 				$(".variables-found .vsearch-result a").click(function(e){
 					item_link=$(this).clone().attr("href",$(this).attr("href")+'?ajax=1&css=true&title=true');
 					//iframe_dialog(item_link);
@@ -155,11 +158,6 @@ function bindBehaviors(e)
 				});return false;
 	});	
 	
-	//access policy dialog
-	/*$('.accesspolicy').unbind('click').click(function(event) {
-			iframe_dialog($(this));return false;
-	});*/
-
 	//data forms dialog
 	$('.accessform').unbind('click').click(function(event) {
 			item_link=$(this).clone().attr("href",$(this).attr("href")+'?ajax=true');;
@@ -203,20 +201,36 @@ function change_view(value){
 
 $(document).ready(function() 
 {	
+	//data access selection
+	$(".da-legend label").click(function(e) {
+		var $chk=$(this).find(".chk");
+		
+		console.log($chk);
+		console.log($chk.is(':checked'))
+		
+		if ($(this).find(".chk").is(':checked')) {
+			$(this).attr("class","checked");
+		}
+		else
+		{
+			$(this).attr("class","unchecked");
+		}
+		advanced_search();
+	});
+
 	$("#search_form .chk-country").click(function(event) {
-		//$("#search_form").fadeTo("fast", 0.23);return;
-		block_search_form(true);
+		//block_search_form(true);
 		$(this).parent().parent().find('.chk-topic').attr('checked',$(this).attr('checked') );
 		selected_countries_stats();
 		selected_topics_stats();
-		filter_by_countries();//advanced_search();
+		//filter_by_countries();//advanced_search();
 	});
 
 	$("#search_form .chk-topic-hd").click(function(event) {
 		$(this).parent().parent().find('.chk-topic').attr('checked',$(this).attr('checked') );
 		selected_countries_stats();
 		selected_topics_stats();
-		filter_by_topics();
+		//filter_by_topics();
 	});
 
 	//uncheck the parent checkbox if a sub-topic is unchecked
@@ -225,7 +239,7 @@ $(document).ready(function()
 			$(this).parents('.topic-container').find('.chk-topic-hd').attr('checked',false );
 		}
 		selected_topics_stats();	
-    	filter_by_topics();
+    	//filter_by_topics();
 	});
 
 	$("#btnsearch").click(function() {
@@ -254,9 +268,10 @@ function select_countries(option){
 		$("#search_form").find('.chk-country').attr('checked',false);
 	}
 	selected_countries_stats();
-	filter_by_countries();//advanced_search();				
+	//filter_by_countries();//advanced_search();				
 	return false;
 }
+
 function selected_countries_stats()
 {
 	selected=$("#search_form .chk-country:checked").length;
@@ -282,7 +297,7 @@ function select_topics(option){
 		$("#search_form").find('.chk-topic, .chk-topic-hd').attr('checked',false);
 	}
 	selected_topics_stats();
-	filter_by_topics();
+	//filter_by_topics();
 	return false;
 }
 function selected_topics_stats()
@@ -317,37 +332,6 @@ function filter_by_countries(){
 	});
 }
 
-//Get a list of Countries and Years
-function filter_by_topics()
-{
-	selected_topics=$("#search_form .chk-topic:checked").length;
-	total_topics=$("#search_form .chk-topic").length;
-	if (selected_topics==0 || selected_topics==total_topics)
-	{
-		$("#countries-list input:checkbox").attr('disabled', false).parent().removeClass("disabled");
-		//reset years
-		//apply_filter_to_year(years.from,years.to);
-		advanced_search();
-		return;
-	}
-	
-	//get countries and years info	
-	$.getJSON(CI.base_url+'/catalog/filter_by_topic',$("#search_form").serialize(), function(data) {
-		//disable all countries
-		$("#countries-list input:checkbox").attr('disabled', true).parent().addClass("disabled");
-		//enable countries found in the returned data
-		jQuery.each($("#countries-list input:checkbox"), function() 
-		{
-			if(jQuery.inArray($(this).attr("value"),data["countries"]) > -1) {
-				$(this).attr('disabled',false).parent().removeClass("disabled");			
-				}
-		})
-		
-		//update year from/to list
-		apply_filter_to_year(data['min_year'],data['max_year']);
-		advanced_search();
-	});
-}
 
 function apply_filter_to_year(min_year, max_year)
 {
@@ -390,29 +374,6 @@ function year_change_handlers()
 function filter_by_year()
 {
 	if ($("#from").val() > $("#to").val()){ alert(i18n.invalid_year_range_selected); return false;}
-	$.getJSON(CI.base_url+'/catalog/filter_by_years',$("#search_form").serialize(), function(data) {
-		//apply filter to countries, first disable all countries
-		$("#countries-list input:checkbox").attr('disabled', true).parent().addClass("disabled");
-		
-		//iterate the returned country list and enable the countries found in the list
-		jQuery.each(data["countries"], function() {
-    		$("#countries-list input:checkbox[value='"+$.escape(this)+"']").attr('disabled',false).parent().removeClass("disabled");
-		})
-				
-		//first disable all topics	
-		$("#topics-list .topic-container input:checkbox").attr('disabled', true).parent().addClass("disabled");
-		
-		//enable topics founds in the returned data
-		jQuery.each(data['topics'], function() {
-    		$("#topics-list .topic-container input:checkbox[value='"+this+"']").attr('disabled',false).parent().removeClass("disabled");;
-		})
-		
-		//reset page number
-		$("#page").val(0);
-		
-		//now run the search function to display surveys based on the new filter
-		advanced_search();
-	});
 }
 
 //actions on existing the light box
@@ -437,3 +398,18 @@ jQuery.escape = function jQuery$escape(s) {
     jQuery.escape(s.substr(left.length+1));
 }
 })();
+
+
+/*data access filter helper functions*/
+function select_da(option){
+	if (option=='all'){
+		$("#search_form #datatype-list").find('.chk').attr('checked',true);
+	}
+	else if (option=='toggle'){
+		$("#search_form #datatype-list .chk").each(function() { $(this).attr('checked',!$(this).attr('checked')); });
+	}
+	else if (option=='none'){
+		$("#search_form #datatype-list").find('.chk').attr('checked',false);
+	}
+	return false;
+}
