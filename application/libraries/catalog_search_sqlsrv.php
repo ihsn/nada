@@ -25,6 +25,7 @@ class Catalog_search{
 	var $from=0;
 	var $to=0;
 	var $repo='';
+	var $dtype=array();//data access type
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -90,6 +91,7 @@ class Catalog_search{
 	//build the search query
 	function _search_count($limit=15, $offset=0)
 	{
+		$dtype=$this->_build_dtype_query();
 		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
@@ -102,7 +104,7 @@ class Catalog_search{
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years);
+		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
 		
 		if ($repository!='')
 		{
@@ -208,6 +210,7 @@ class Catalog_search{
 	//perform the search
 	function search($limit=15, $offset=0)
 	{
+		$dtype=$this->_build_dtype_query();
 		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
@@ -238,7 +241,7 @@ class Catalog_search{
 		}
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype);
 		
 		//create combined where clause
 		$where='';
@@ -431,8 +434,8 @@ class Catalog_search{
 		}
 		
 		return FALSE;
-
 	}
+	
 			
 	function _build_variable_query()
 	{
@@ -573,6 +576,34 @@ class Catalog_search{
 		}
 		
 		return FALSE;
+	}
+	
+	
+	function _build_dtype_query()
+	{
+		$dtypes=$this->dtype;
+
+		if (!is_array($dtypes) || count($dtypes)<1)
+		{
+			return FALSE;
+		}
+
+		foreach($dtypes as $key=>$value)
+		{
+			if (!is_numeric($value))
+			{
+				unset($dtypes[$key]);
+			}
+		}
+		
+		$types_str=implode(",",$dtypes);
+
+		if ($types_str!='')
+		{
+			return sprintf(' f.formid in (%s)',$types_str);
+		}
+		
+		return FALSE;	
 	}
 	
 		
