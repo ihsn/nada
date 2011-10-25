@@ -39,8 +39,7 @@
 */
 
 $route['default_controller'] = "page";
-$route['404_override'] = '';
-
+$route['404_override'] = 'page'; 
 
 //ddi browser
 $route['ddibrowser/(:num)'] = "ddibrowser/index/$1";
@@ -104,7 +103,6 @@ $route['access_direct/(:num)/download/(:any)'] = "access_direct/download/$1/$2";
 //data enclave
 $route['access_enclave/(:num)'] = "access_enclave/index/$1";
 $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2";
-
 
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */
