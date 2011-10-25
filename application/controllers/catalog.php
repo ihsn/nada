@@ -106,7 +106,7 @@ class Catalog extends MY_Controller {
 
 		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');	
 		$this->template->add_js('javascript/ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/ui.accordion.js');		
+		$this->template->add_js('javascript/jquery/ui/ui.accordion.js');
 		$this->template->add_js('javascript/jquery.blockui.js');		
 		
 		//page description metatags
@@ -199,7 +199,7 @@ class Catalog extends MY_Controller {
 		}
 		
 		//get list of active countries
-		$data['countries']=$this->Search_helper_model->get_active_countries();
+		$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
 		
 		$this->load->model('term_model');
 		
@@ -294,7 +294,7 @@ class Catalog extends MY_Controller {
 		//page parameters
 		$this->sk=form_prep(get_post_sess('search',"sk"));
 		$this->vk=form_prep(get_post_sess('search',"vk"));
-		$this->vf=form_prep(get_post_sess('search',"vf"));
+		$this->vf=form_prep(get_post_sess('search',"vf"));		
 		$this->country=form_prep(get_post_sess('search',"country"));
 		$this->view=form_prep(get_post_sess('search',"view"));		
 		$this->topic=form_prep(get_post_sess('search',"topic"));
@@ -305,6 +305,7 @@ class Catalog extends MY_Controller {
 		$this->page=form_prep(get_post_sess('search',"page"));
 		$this->page= ($this->page >0) ? $this->page : 1;
 		$this->filter->repo=form_prep(get_post_sess('search',"repo"));
+		$this->dtype=form_prep($this->input->get("dtype"));
 
 		$offset=($this->page-1)*$this->limit;
 
@@ -345,7 +346,7 @@ class Catalog extends MY_Controller {
 				'to'=>$this->to,
 				'sort_by'=>$this->sort_by,
 				'sort_order'=>$this->sort_order,
-				'repo'=>$this->filter->repo				
+				'repo'=>$this->filter->repo
 			);		
 
 			$this->load->library('catalog_search',$params);
@@ -367,7 +368,9 @@ class Catalog extends MY_Controller {
 			'to'=>$this->to,
 			'sort_by'=>$this->sort_by,
 			'sort_order'=>$this->sort_order,
-			'repo'=>$this->filter->repo
+			'repo'=>$this->filter->repo,
+			'dtype'=>$this->dtype
+			
 		);		
 		$this->load->library('catalog_search',$params);
 		$surveys=$this->catalog_search->search($this->limit,$offset);
