@@ -66,12 +66,13 @@ color: white;display:block;
 
 /* site general styles */
 h1 {
-	font-size:22px;
-	font-family: Georgia;
+color: #333;
+font-size: 1.25em;
+font-weight: 400;
+margin: 7px 0 14px 0;
 }
 h2 {
 	font-size:18px;
-	font-family: Georgia;
 	margin-bottom:10px;
 	line-height:120%;
 }
@@ -217,9 +218,27 @@ background: url(css/bg_left_nav_grey_m_r_20100921.png) repeat-y 100% 50%;border-
 
 .static-page ul {font-size:12px; margin-left:20px; line-height:150%;margin-bottom:10px;}
 .static-page li{
-	background: url(css/img_sprite_icons.png) -1120px -190px no-repeat;
+	background: none;
+	list-style:disc;
 	padding: 5px 10px 5px 16px;
 }
+.static-page #tabs ul{margin-left:0px;margin-bottom:0px;padding-left:20px;}
+.static-page .ui-tabs-nav li{list-style:none;}
+.static-page #tabs .ui-widget-header {
+	border:0px;
+	background: none;
+}
+.static-page #tabs .ui-widget-content {border:1px solid #AAA;}
+.static-page .ui-widget-content {
+	border: 0px;
+}
+.static-page .ui-tabs .ui-tabs-panel {
+padding: 1em 1.4em;
+display: block;
+border-width: 0;
+background: none;
+}
+
 .notabs .breadcrumbs{margin:0px;}
 
 .static-page .box-info{background-color:#E3F1FB;padding:10px;margin-top:10px;margin-bottom:10px;}
