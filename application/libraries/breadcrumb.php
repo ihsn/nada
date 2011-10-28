@@ -171,13 +171,13 @@ class Breadcrumb
 
 			
 			case 'access_direct':
-					$breadcrumbs['catalog']=t('Data Catalog');
+					$breadcrumbs['catalog']=$repository_title;
 					$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
 					$breadcrumbs['access_direct/'.$segments[2]]=t('Direct Data Access');
 			break;
 
 			case 'access_public':
-					$breadcrumbs['catalog']=t('Data Catalog');
+					$breadcrumbs['catalog']=$repository_title;
 					$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
 					$breadcrumbs['access_public/'.$segments[2]]=t('Public Use Dataset');
 			break;
@@ -185,7 +185,7 @@ class Breadcrumb
 			case 'access_licensed':
 					if (is_numeric($segments[2]))
 					{
-						$breadcrumbs['catalog']=t('Data Catalog');
+						$breadcrumbs['catalog']=$repository_title;
 						$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
 						$breadcrumbs['access_licensed/'.$segments[2]]=t('Access to a Licensed Dataset');
 					}
@@ -197,7 +197,7 @@ class Breadcrumb
 							//get survey id
 							$surveyid=$this->get_study_id_by_licensed_request_id($segments[3]);
 							
-							$breadcrumbs['catalog']=t('Data Catalog');
+							$breadcrumbs['catalog']=$repository_title;
 							$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
 							$breadcrumbs['access_licensed/'.$segments[2]]=t('Request status');
 						}
@@ -207,7 +207,7 @@ class Breadcrumb
 							//get survey id
 							$surveyid=$this->get_study_id_by_licensed_request_id($segments[3]);
 							
-							$breadcrumbs['catalog']=t('Data Catalog');
+							$breadcrumbs['catalog']=$repository_title;
 							$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
 							$breadcrumbs[]=t('Request confirmation');
 						}
