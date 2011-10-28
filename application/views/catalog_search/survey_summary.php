@@ -1,9 +1,6 @@
 <style>
 /*grid/table listing format*/
 .grid-table{width:100%;}
-.grid-table .header{background-color:none;text-align:left;}
-.grid-table .header th{padding:5px;border-bottom:2px solid #C1DAD7;border-top:2px solid #C1DAD7;}
-.grid-table .header a, .grid-table .header {color:black;}
 .grid-table tr td{padding:5px;border-bottom:1px solid #C1DAD7;}
 .grid-table .alternate{background-color:#FBFBFB}
 .grid-table a{color:#00679C;text-decoration:none;}
@@ -36,7 +33,7 @@
 <?php endif?>
 
 <table class="grid-table" cellspacing="0">
-	<tr class="header">
+	<tr>
     	<td><?php echo t('refno');?></td>
         <td><?php echo $refno;?></td>
     </tr>
