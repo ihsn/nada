@@ -47,7 +47,7 @@ class Stats_model extends CI_Model {
 		return FALSE;
 	}
 
-	function get_latest_surveys($limit)
+	function get_latest_surveys($limit=10)
 	{
 		$this->db->select("id,titl,nation");
 		$this->db->order_by("created", "desc"); 
