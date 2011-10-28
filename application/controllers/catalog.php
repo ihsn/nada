@@ -114,6 +114,9 @@ class Catalog extends MY_Controller {
 
 		//get list of all repositories
 		$this->repositories=$this->Catalog_model->get_repositories();
+		
+		//get list of DA types available for current repository
+		$this->da_types=$this->Search_helper_model->get_active_data_types($this->filter->repo);
 
 		//page parameters
 		$this->sk=form_prep(get_post_sess('search',"sk"));
@@ -294,7 +297,7 @@ class Catalog extends MY_Controller {
 		//page parameters
 		$this->sk=form_prep(get_post_sess('search',"sk"));
 		$this->vk=form_prep(get_post_sess('search',"vk"));
-		$this->vf=form_prep(get_post_sess('search',"vf"));		
+		$this->vf=form_prep(get_post_sess('search',"vf"));
 		$this->country=form_prep(get_post_sess('search',"country"));
 		$this->view=form_prep(get_post_sess('search',"view"));		
 		$this->topic=form_prep(get_post_sess('search',"topic"));
@@ -1229,6 +1232,15 @@ class Catalog extends MY_Controller {
 					$this->about_repository();return;
 				}
 				
+				//reset search options if visiting a different catalog
+				$sess_repo=get_post_sess('search',"repo");
+				
+				if ((string)$sess_repo!=='' && $sess_repo!==$method)
+				{
+					//reset any search options selected
+					$this->session->unset_userdata('search');
+				}	
+				
 				//repository options
 				if ($method=='central')
 				{
@@ -1266,17 +1278,11 @@ class Catalog extends MY_Controller {
 		$this->session->unset_userdata('search');
 		
 		//get a list of all repositories
-		$repo_arr=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
+		$repo_arr=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);		
+		$content=$this->load->view("repositories/index_public",array('rows'=>$repo_arr),TRUE);		
 		
-		$content=$this->load->view("repositories/index_public",array('rows'=>$repo_arr),TRUE);
-		
-		//set page title
 		$this->template->write('title', t('home'),true);
-		
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-		
-		//render final output
 	  	$this->template->render();
 	}
 
