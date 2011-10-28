@@ -201,23 +201,6 @@ function change_view(value){
 
 $(document).ready(function() 
 {	
-	//data access selection
-	$(".da-legend label").click(function(e) {
-		var $chk=$(this).find(".chk");
-		
-		console.log($chk);
-		console.log($chk.is(':checked'))
-		
-		if ($(this).find(".chk").is(':checked')) {
-			$(this).attr("class","checked");
-		}
-		else
-		{
-			$(this).attr("class","unchecked");
-		}
-		advanced_search();
-	});
-
 	$("#search_form .chk-country").click(function(event) {
 		//block_search_form(true);
 		$(this).parent().parent().find('.chk-topic').attr('checked',$(this).attr('checked') );
