@@ -51,6 +51,7 @@ class ACL
 		{
 			//return all repositories;
 			$this->ci->db->select("id,title,id as repositoryid");
+			$this->ci->db->order_by("title", "ASC");
 			$query=$this->ci->db->get("repositories");
 		}
 		else
@@ -58,6 +59,7 @@ class ACL
 			$this->ci->db->select("rg.*,r.title");
 			$this->ci->db->where("userid",$userid);
 			$this->ci->db->join('repositories r', 'r.id = rg.repositoryid');			
+    		$this->ci->db->order_by("r.title", "ASC");
 			$query=$this->ci->db->get("user_repositories rg");
 		}
 		
