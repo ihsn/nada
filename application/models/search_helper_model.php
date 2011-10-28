@@ -405,5 +405,42 @@ class Search_helper_model extends CI_Model {
 
 		return $output;		
 	}	
+	
+	/**
+	* Returns an array of available DA types for current repo
+	*
+	*/
+	function get_active_data_types($repositoryid)
+	{
+		if ($repositoryid=='central' || trim($repositoryid)=='')
+		{
+			$sql='select surveys.formid,forms.model  from surveys
+					inner join forms on forms.formid=surveys.formid
+				group by surveys.formid, forms.model;';
+		}
+		else
+		{
+		$sql='select surveys.formid,forms.model  from surveys
+					inner join survey_repos on surveys.id=survey_repos.sid
+					inner join forms on forms.formid=surveys.formid
+					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
+				group by surveys.formid, forms.model;';
+		}
+
+		$result=$this->db->query($sql)->result_array();
+
+		if (!$result)
+		{
+			return FALSE;
+		}
+		
+		$types=array();
+		foreach($result as $row)
+		{
+			$types[(string)$row['formid']]=$row['model'];
+		}
+		
+		return $types;
+	}
 }
 ?>
