@@ -678,32 +678,5 @@ class Citations extends MY_Controller {
 		echo json_encode(array('result'=>(int)$result) );
 	}
 
-/*	function get_post_sess($session_id,$field)
-	{
-		//check query strings
-		if ($this->input->get_post($field)!==FALSE)
-		{
-			return $this->input->get_post($field);
-		}
-
-		//check session
-		$sess_data=	$this->session->userdata($session_id);
-		
-		//no data set?
-		if (!$sess_data)
-		{
-			return FALSE;
-		}
-
-		//check key in session
-		if (isset($sess_data[$field]) && $sess_data[$field]!=='')
-		{
-			return $sess_data[$field];
-		}
-		
-		return FALSE;
-	}
-*/	
-}
 /* End of file citations.php */
 /* Location: ./controllers/admin/citations.php */
