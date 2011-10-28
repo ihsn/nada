@@ -109,6 +109,6 @@ foreach($repo as $repo_row)
         <?php if ($study_ownership_type=='linked'):?>
         <li class="unlink-study"><span class="icon linked"><a href="<?php echo site_url();?>/admin/catalog/unlink/<?php echo $this->active_repo->repositoryid;?>/<?php echo $id;?>">Unlink</a></span></li>
     	<?php endif;?>
-        <li class="transfer-study"><span class="icon"><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $id;?>"><?php echo t('transfer_study_ownership');?></a></span></li>
+        <li class="transfer-study"><span class="icon transfer"></span><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $id;?>"><?php echo t('transfer_study_ownership');?></a></li>
     </ul> 
 </div>
