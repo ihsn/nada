@@ -87,6 +87,30 @@ class Page extends MY_Controller {
 			return;			
 		}
 		
+		if (isset($data['css_links']) && trim($data['css_links'])!=='')
+		{
+			$css_arr=explode("\r",$data['css_links']);
+			foreach($css_arr as $css)
+			{
+				$this->template->add_css(trim($css));
+			}
+		}
+
+		if (isset($data['js_inline']) && trim($data['js_inline'])!=='')
+		{
+			$this->template->add_js($data['js_inline'],'embed');
+		}
+
+		if (isset($data['js_links']) && trim($data['js_links'])!=='')
+		{
+			$js_arr=explode("\r",$data['js_links']);
+			foreach($js_arr as $js)
+			{
+				$this->template->add_js(trim($js));
+			}
+		}
+
+		
 		//load the contents of the page into a variable
 		$content=$this->load->view('page_index', $data,true);
 		
