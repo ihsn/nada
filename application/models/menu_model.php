@@ -416,7 +416,6 @@ class Menu_model extends CI_Model {
 		if($query)
 		{
 			$rows=$query->result_array();
-			
 			$result=array();	
 			foreach($rows as $row)
 			{
@@ -425,6 +424,8 @@ class Menu_model extends CI_Model {
 				
 				if ($show==TRUE)
 				{
+					$result[$row['region']][]=$row;
+				/*
 					if (isset($result[$row['region']]))
 					{
 						$result[$row['region']].=$row['body'];
@@ -433,9 +434,9 @@ class Menu_model extends CI_Model {
 					{
 						$result[$row['region']]=$row['body'];
 					}	
+				*/	
 				}
 			}
-			
 			return $result;
 		}
 		else
