@@ -31,7 +31,7 @@ class Access_licensed extends MY_Controller {
 	{	
 		//change template for ajax
 		$ajax_params='';
-		if ($this->input->get_post("ajax"))
+		if ($this->input->get_post("ajax") || $this->input->get_post("print"))
 		{
 			$this->ajax=1;
 			$this->template->set_template('blank');
