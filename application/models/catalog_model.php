@@ -930,22 +930,16 @@ class Catalog_model extends CI_Model {
 	**/
 	function select_all_compact()
 	{
-		$this->db->select('id, surveyid,titl');
-		$query=$this->db->get('surveys');
-		
-		if ($query)
-		{
-			$rows=$query->result_array();
-			$output=array();
-			foreach($rows as $row)
-			{
-				$output[(string)$row['id']]=$row['surveyid']. ' - '. substr($row['titl'],0,150);
-			}
-			return $output;
-		}		
-		return FALSE;
+		$this->db->select('id, surveyid,titl,nation');
+		$this->db->order_by('nation, titl'); 
+		return $this->db->get('surveys')->result_array();		
 	}
 
+
+	/*
+====================================================================================================
+TO BE REMOVED
+*/
 
 	/**
 	* Replace a study with another study
@@ -955,6 +949,7 @@ class Catalog_model extends CI_Model {
 	* @source	Source survey ID
 	* @target	Target survey ID
 	*/
+/*
 	function replace($source, $target)
 	{
 		$debug=array();
@@ -1058,6 +1053,11 @@ class Catalog_model extends CI_Model {
 		
 		return $debug;		
 	}
+*/
+/*
+====================================================================================================
+END TO BE REMOVED
+*/
 
 	
 	/**
