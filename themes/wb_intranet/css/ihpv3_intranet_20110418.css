@@ -2342,3 +2342,8 @@ a.ic-note{height:16px;width:16px;background:url(img_sprite_icons.gif) no-repeat 
 
 .left-nav-external ul li img{margin:0 6px 0 2px}/*K*/
 .search-res-tab li.sel{*margin-top:-2px}
+
+.m-body .right-border {
+BACKGROUND: url(bg_left_nav_grey_m_r_20100921.png) repeat-y right 50%;
+background: url(bg_left_nav_grey_m_r_20100921.png) repeat-y 100% 50%;
+}
