@@ -1,37 +1,41 @@
-<!--sidebar-reference-owner-->
-<div class="grey-module" id="right-sidebar">
-    <div class="m-head"> 
-        <h2>Data Catalogs</h2>
-    </div>
-    <div class="m-body">
-        
-    <div class="wb-box-sidebar">
-      <div class="wb-box" style="text-align:center;font-size:14px;line-height:150%;padding:10px;">
-        <div class="stats">
-          <div class="stats-text">As of October 19, 2011 our catalog contains</div>
-          <div class="stats-surveys">651 surveys</div>
-          <div class="stats-citations">956 citations</div>
-          <div class="stats-variables">393,123 variables</div>
-          <div style="margin-top:3px;"><a href="index.php/catalog" title="visit central catalog"><img src="files/catalog-button.gif" alt=""></a></div>
-        </div>
-      </div>
-   
-</div>    
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    </div><div class="m-footer"><span>&nbsp;</span></div>
-</div>
-<!--end-sidebar-reference-owner-->
+<?php if (isset($this->blocks['rightsidebar'])):?>
+<?php //var_dump($this->blocks);?>
 
+<?php 
+/*
+$data['survey_count']=$this->Stats_model->get_survey_count(); 
+$data['variable_count']=$this->Stats_model->get_variable_count();
+$data['citation_count']=$this->Stats_model->get_citation_count();
+$this->load->view("blocks/catalog_status",$data);
+*/
+
+ ?>
+
+	<?php foreach($this->blocks['rightsidebar'] as $block):?>
+    <div class="grey-module" id="sidebar-faq">
+        <div class="m-head"> 
+            <h2><?php echo $block['title'];?></h2>
+        </div>
+        
+        <div class="m-body">
+            <div class="right-border">
+            <?php if ($block['block_format']=='php'):?>            
+                    <?php
+                    $filepath='cache/block-'.$block['block_name'].'.php';	
+                    file_put_contents($filepath,$block['body']);				
+                    include $filepath;
+                    ?>
+            <?php else:?>
+                <?php echo $block['body'];?>
+            <?php endif; ?>
+            <br/>
+            </div>
+            
+        </div>        
+        <div class="m-footer"><span>&nbsp;</span></div>
+    </div>
+    <?php endforeach;?>
+<?php endif;?>
 
 
 <!--sidebar-reference-owner-->
