@@ -529,7 +529,7 @@ class Catalog extends MY_Controller {
 			$failed_msg='FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
 			
 			//log
-			log_message('DEBUG', $failed_msg);			
+			log_message('DEBUG', $failed_msg);
 			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');
 			
 			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
@@ -1029,12 +1029,17 @@ class Catalog extends MY_Controller {
 		}		
 	}
 
+/*
+====================================================================================================
+TO BE REMOVED
+*/
 
 	/**
 	*
 	* Replace a DDI
 	*
 	**/
+	/*
 	function replace_ddi()
 	{
 		if ($this->input->post("source"))
@@ -1049,11 +1054,13 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $content,true);
   		$this->template->render();
 	}
+	*/
 	
 	/**
 	* Replace source with the target
 	*
 	**/
+	/*
 	function _replace_ddi($source,$target)
 	{
 		$result=$this->Catalog_model->replace($source, $target);
@@ -1062,6 +1069,43 @@ class Catalog extends MY_Controller {
 		print_r($result);
 		exit;
 	}
+	*/
+/*
+====================================================================================================
+END TO BE REMOVED
+*/
+
+
+	/**
+	*
+	* Replace a DDI
+	*
+	**/	
+	function replace_ddi($surveyid=NULL)
+	{
+		if ($this->input->post("source"))
+		{
+			//$this->_replace_ddi($this->input->post("source"),$this->input->post("target"));
+		}
+		
+		//get a compact list of surveys
+		$surveys=$this->Catalog_model->select_all_compact();
+		
+		$output=array('"0"'=>'--SELECT--');
+		foreach($surveys as $row)
+		{
+			$output[(string)$row['id']]=$row['nation']. ' - '. substr($row['titl'],0,150). '['.$row['surveyid'].']';
+		}
+
+		$data['surveys']=$output;
+		$data['id']=$surveyid;
+						
+		$content=$this->load->view('catalog/replace_ddi',$data,TRUE);
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
+	
+	
 	
 	/**
 	*
