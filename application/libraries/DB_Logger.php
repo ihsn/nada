@@ -58,7 +58,7 @@ class DB_Logger{
 		$log=array(
 				'url'=>substr($this->current_page_url(),0,255),//current_url(),
 				'logtime'=>date("U"),
-				'ip'=>$_SERVER['REMOTE_ADDR'],
+				'ip'=>$this->ci->input->ip_address(),
 				'sessionid'=>$this->ci->session->userdata('session_id'),
 				'logtype'=>$type,
 				'surveyid'=>$surveyid,
