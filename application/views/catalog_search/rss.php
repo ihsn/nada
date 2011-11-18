@@ -1,8 +1,7 @@
-<?php 
-echo '<?xml version="1.0" encoding="utf-8"?>' . "\n";
-//attach a stylesheet so browsers with no support for RSS can still display it
-echo '<?xml-stylesheet type="text/xsl" href="'.base_url().'/xslt/rss.xslt"?>';
-
+<?xml version="1.0" encoding="utf-8"?>
+<?php //attach a stylesheet so browsers with no support for RSS can still display it?>
+<?xml-stylesheet type="text/xsl" href="<?php echo base_url();?>/xslt/rss.xslt" ?>
+<?php
 //from config
 $language=$this->config->item("language");
 $admin_email=$this->config->item("admin_email");
