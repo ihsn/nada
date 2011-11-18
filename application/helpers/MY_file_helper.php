@@ -24,8 +24,20 @@ if ( ! function_exists('unix_path'))
 {
 	function unix_path($file_path)
 	{
+		$is_network_share=FALSE;
+		
+		if (substr($file_path,0,2)=='//')
+		{
+			$is_network_share=TRUE;
+		}
+		
 		$file_path=str_replace('\\','/',$file_path);
 		$file_path=str_replace('//','/',$file_path);
+		
+		if ($is_network_share)
+		{
+			$file_path='/'.$file_path;
+		}
 		return $file_path;
 	}
 }
