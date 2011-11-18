@@ -36,13 +36,20 @@
     </div>
 
     <div class="field">
+        <label for="js_inline"><?php echo t('js_inline');?></label>
+        <textarea id="js_inline" class="input-flex"  name="js_inline" rows="10"><?php echo get_form_value('js_inline',isset($js_inline) ? $js_inline : ''); ?></textarea>
+    </div>
+
+    <div class="field">
         <label for="published"><?php echo t('publish');?><span class="required">*</span></label>
         <?php echo form_dropdown('published', array(1=>t('yes'),0=>t('no')), get_form_value("published",isset($published) ? $published : '')); ?>
     </div>
+
     <div class="field">
         <label for="target"><?php echo t('open_in');?><span class="required">*</span></label>
         <?php echo form_dropdown('target', array(0=>t('same_window'),1=>t('new_window')), get_form_value("target",isset($target) ? $target : '')); ?>
     </div>
+
     <div class="field">
         <label for="weight"><?php echo t('weight');?><span class="required">*</span></label>
         <input class="input-flex" style="width:50px" name="weight" type="text" id="weight" maxlength="3"  value="<?php echo get_form_value('weight',isset($weight) ? $weight : ''); ?>"/>
