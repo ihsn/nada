@@ -53,7 +53,7 @@
                         }
                         elseif (check_resource_file($this->survey_folder.'/'.$row['filename'])!==FALSE )
                         {
-                            $url=site_url().'/ddibrowser/'.$this->uri->segment(2).'/download/'.$row['resource_id'];
+                            $url=site_url().'/catalog/'.$this->uri->segment(2).'/download/'.$row['resource_id'];
 							$file_size=format_bytes(filesize($this->survey_folder.'/'.$row['filename']),2);
                         }
 						//get file extension
@@ -92,7 +92,7 @@
                             	}
 								if ($url!='')
 								{
-									echo '<a target="_blank" href="'.$url.'" title="'.$url.'" class="download">'.$link_text.'</a>';
+									echo '<a target="_blank" href="'.$url.'" title="'.basename($row['filename']).'" class="download">'.$link_text.'</a>';
 								}
 								else
 								{

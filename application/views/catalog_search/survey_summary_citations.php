@@ -1,3 +1,4 @@
+<?php /*
 <?php if (!$this->input->get("print")) :?>
 <?php if (isset($survey)):?>
 <div style="text-align:right;">
@@ -5,9 +6,10 @@
 </div>
 <?php endif;?>
 <?php endif;?>
-
+*/
+?>
 <?php if ($citations): ?>
-	<div style="padding-top:20px;"/>
+<div>
     <?php if (isset($survey)):?>
 		<h1><?php echo $survey['nation'] . ' - ' . $survey['titl']; ?></h1>
     <?php endif;?>
@@ -24,10 +26,9 @@
             </td>
         </tr>
     <?php endforeach;?>
-    </table>
-	</div>
+    </table>	
 <?php endif; ?>
-
+</div>
 <?php 
 //turn all links into ajax links if page was accessed using the ajax parameter
 if ($this->input->get("ajax")): ?>
