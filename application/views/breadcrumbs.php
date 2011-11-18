@@ -8,17 +8,13 @@
        <span typeof="v:Breadcrumb">
         <?php if ($k!==$total):?>
         	<?php if (!is_numeric($url)):?>
-	         <a href="<?php echo site_url().'/'.$url;?>" rel="v:url" property="v:title">
-    	      	<?php echo $title;?>
-        	</a> ›
+	         <a href="<?php echo site_url().'/'.$url;?>" rel="v:url" property="v:title"><?php echo $title;?></a> ›
             <?php else:?>
     	      	<?php echo $title;?> ›
             <?php endif;?>
         <?php else:?>
 	         <?php if (!is_numeric($url)):?>
-	         <a class="active" href="<?php echo site_url().'/'.$url;?>" rel="v:url" property="v:title">
-    	      	<?php echo $title;?>
-        	</a>
+	         <a class="active" href="<?php echo site_url().'/'.$url;?>" rel="v:url" property="v:title"><?php echo $title;?></a>
             <?php else:?>
     	      	<?php echo $title;?>
             <?php endif;?>
