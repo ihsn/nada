@@ -13,10 +13,8 @@ $sidebar=$this->load->view('default_menu', $data,true);
 $repo_arr=$this->Repository_model->get_repositories($published=TRUE,$system=FALSE);
 $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('rows'=>$repo_arr),TRUE);
 
-
 //load blocks for the current page
 $this->blocks=$this->Menu_model->get_blocks($this->uri->segment(1));
-
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -37,6 +35,11 @@ $this->blocks=$this->Menu_model->get_blocks($this->uri->segment(1));
 <script type="text/javascript"> 
    var CI = {'base_url': '<?php echo site_url(); ?>'}; 
 </script> 
+
+<SCRIPT LANGUAGE = javascript>
+if (top.frames.length!=0)
+top.location=self.document.location;
+</SCRIPT>
 
 <style>
 #content{padding:10px;}
@@ -113,7 +116,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
         <ul id="headernav">
             
             <li>
-                <a class="tab-sel" href="./css/intranet.html">Home</a>
+                <a class="tab-sel" href="http://intranet.worldbank.org">Home</a>
                 | 
             </li>
             
@@ -214,13 +217,22 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 
 <div id="doc3" class="yui-t2" >
 
-
+<?php
+	//pages with two columns
+	$two_col_urls=array('catalog','citations');
+	$yui_class="";
+	//if (in_array($this->uri->segment(1),$two_col_urls))
+	if (isset($this->blocks['rightsidebar']))
+	{
+		$yui_class="yui-ge";
+	}
+?>
 
 <div id="bd">
 		
 	<div id="yui-main" >
 		<div class="yui-b" >
-		  <div class="<?php echo ($this->uri->segment(1)=='catalog') ? '' : 'yui-ge';?>">
+		  <div class="<?php echo $yui_class;?>">
 			  <div class="yui-u first" >
                     <!-- main content area-->
                    <!--page-contents-->
@@ -241,7 +253,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
                     </div>                    
 			  </div>
 			  
-              <?php if ($this->uri->segment(1)!=='catalog'):?>
+              <?php if (isset($this->blocks['rightsidebar'])):?>
               <!-- right sidebar -->	
               <div class="yui-u">					
                <?php @include 'right-sidebar.php';?>
@@ -260,14 +272,6 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 	
 </div>
 <!--end bd-->
-
-
-
-
-
-
-
-
 
 
 
@@ -302,6 +306,6 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 				<form name="propForm" id="propForm"><input id="isHStatscode" type="hidden" value="false"><input id="isGStatscode" type="hidden" value="true"></form>
 </div>
 </div>
-
+<?php $this->load->view("tracker/js_tracker");?>
 </body>
 </html>
