@@ -9,8 +9,8 @@ em{font-style:italic}
 
 .title {}
 .sub-title{font-style:italic;}
-.citation-rows{margin-left:10px;}
-.citation-rows ul li{margin-left:10px;}
+.citation-rows{list-style-position:inside;}
+.citation-rows ul li{}
 
 </style>
 <div class="body-container" style="padding:10px;">
@@ -78,7 +78,7 @@ em{font-style:italic}
 	}
 ?>
 
-<form autocomplete="off">
+<form autocomplete="off" class="citations-listing">
     <div class="sort-links">
     <?php echo t('sort_results_by');?>    
     <?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,array('keywords','field') ); ?>
