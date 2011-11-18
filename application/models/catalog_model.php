@@ -244,7 +244,7 @@ class Catalog_model extends CI_Model {
     }
 
 	/**
-	* returns a single survey row by ID
+	* returns a single survey row by ID, or surveyid
 	*
 	*
 	**/
@@ -260,8 +260,17 @@ class Catalog_model extends CI_Model {
 		$fields=implode(",",$fields);	
 		
 		$this->db->select($fields);
-		$this->db->join('forms', 'forms.formid= surveys.formid','left');		
-		$this->db->where('id', $id); 
+		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		
+		if (is_numeric($id))
+		{
+			$this->db->where('id', $id); 
+		}
+		else 
+		{	
+			//get survey by surveyid
+			$this->db->where('surveys.surveyid', $id); 
+		}	
 		
 		//execute query
 		$survey=$this->db->get('surveys')->row_array();
@@ -315,7 +324,7 @@ class Catalog_model extends CI_Model {
 		$this->db->select('surveys.*',FALSE);
 		$this->db->select('forms.model as model',FALSE);		
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
-	    $this->db->orderby('changed', 'desc');
+	    $this->db->order_by('changed', 'desc');
 		
 		if ($limit!=NULL)
 		{
@@ -568,8 +577,7 @@ class Catalog_model extends CI_Model {
 		//join to create full path
 		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->ddifilename;
 
-		$ddi_file=str_replace('\\','/',$ddi_file);
-		$ddi_file=str_replace('//','/',$ddi_file);
+		$ddi_file=unix_path($ddi_file);
 		
 		if (!file_exists($ddi_file))
 		{
@@ -1163,10 +1171,12 @@ END TO BE REMOVED
 	
 		$this->db->where('id',$sid);
 		$this->db->update("surveys",$options);
-	
-	
+		
 		//remove old ownership info from survey_repos
 		$this->unlink_study($survey['repositoryid'],$sid,1);
+		
+		//remove study link from the target repository
+		$this->unlink_study($target_repositoryid,$sid);
 				
 		//add new ownership info to survey_repos
 		$options=array(
