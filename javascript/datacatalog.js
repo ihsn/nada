@@ -69,7 +69,7 @@ function advanced_search()
         url: CI.base_url+"/catalog/search",
         data: data,
         cache: false,
-		timeout:20000,
+		timeout:30000,
 		success: function(data) {
             $("#surveys").html(data);
 			bindBehaviors(this);
