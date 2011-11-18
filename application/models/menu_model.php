@@ -2,7 +2,7 @@
 class Menu_model extends CI_Model {
  
  	var $search_count=0;
-	var $db_fields=array('url','title','body','published','target','changed','linktype','weight','pid');
+	var $db_fields=array('url','title','body','published','target','changed','linktype','weight','pid','js_inline');
 	
     public function __construct()
     {
@@ -79,6 +79,7 @@ class Menu_model extends CI_Model {
 	**/
 	function select_single($id)
 	{		
+		$this->db->select("*");
 		$this->db->where('id', (integer)$id); 
 		return $this->db->get('menus')->row_array();
 	}
@@ -141,7 +142,11 @@ class Menu_model extends CI_Model {
 			'changed',
 			'linktype',
 			'weight',
-			'pid'
+			'pid',
+			'css_links',
+			'css_inline',
+			'js_links',
+			'js_inline'
 			);
 
 		//add date modified
@@ -196,7 +201,11 @@ class Menu_model extends CI_Model {
 			'changed',
 			'linktype',
 			'weight',
-			'pid'
+			'pid',
+			'css_links',
+			'css_inline',
+			'js_links',
+			'js_inline'
 			);
 
 		//add date modified
