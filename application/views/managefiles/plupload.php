@@ -209,7 +209,7 @@ $(function() {
 
 		// Specify what files to browse for
 		filters : [
-			{title : "Resources", extensions : "jpg,gif,png,zip,doc,docx,pdf,sav,dta,do,smcl,log,ado,txt,rar,xls,xlsx"},
+			{title : "Resources", extensions : "jpg,gif,png,zip,doc,docx,pdf,sav,dta,do,smcl,log,ado,txt,rar,xls,xlsx,rtf"},
 			{title : "Others", extensions : "*.*"}
 		],
 
