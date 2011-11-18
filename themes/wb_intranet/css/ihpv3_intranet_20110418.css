@@ -1512,7 +1512,7 @@ PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-WEIGHT: 400; PADDING-BOTTOM: 0px; MA
 #serviceYellowImg{margin:4px 0 0 7px}
 
 /* Global Classes */
-.sub-title,.sub-title-l{color:#333333;font-size:1.25em;font-weight:400;padding-left:9px;margin:7px 0 14px 0}
+x.sub-title,.xsub-title-l{color:#333333;font-size:1.25em;font-weight:400;padding-left:9px;margin:7px 0 14px 0}
 .sub-title-l{margin-bottom:10px}/* less space title*/
 .cnt-txt,.cnt-txt-n,.cnt-txt-f{color:#343434;line-height:20px;padding-left:10px;font-size:0.75em;margin:0px;}/*K*/
 
