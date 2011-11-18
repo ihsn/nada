@@ -48,13 +48,13 @@
 	<?php foreach($rows as $row): ?>
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-    	<tr class="<?php echo $tr_class; ?>">
-			<td><a href="<?php echo site_url();?>/access_licensed/download/<?php echo $requestid;?>/<?php echo $row->resource_id;?>"><?php echo $row->title; ?></a></td>
-            <td><a href="<?php echo site_url();?>/access_licensed/download/<?php echo $requestid;?>/<?php echo $row->resource_id;?>"><?php echo basename($row->filename); ?></a></td>
-            <td><?php echo format_bytes(@filesize(unix_path($this->survey_folder.'/'.$row->filename)),2);?></td>
-            <td><?php echo date($this->config->item("date_format_long"),$row->changed); ?></td>            
+    	<tr class="<?php echo $tr_class; ?>" valign="top">
+			<td><?php echo $row->title; ?></td>
+            <td><?php echo basename($row->filename); ?></td>
+            <td nowrap="nowrap"><?php echo format_bytes(@filesize(unix_path($this->survey_folder.'/'.$row->filename)),2);?></td>
+            <td nowrap="nowrap"><?php echo date($this->config->item("date_format_long"),$row->changed); ?></td>            
 			<td>
-                <a href="<?php echo site_url();?>/access_licensed/download/<?php echo $requestid;?>/<?php echo $row->resource_id;?>"><?php echo t('download');?></a>
+                <a class="download df" title="<?php echo basename($row->filename); ?>" href="<?php echo site_url();?>/access_licensed/download/<?php echo $requestid;?>/<?php echo $row->resource_id;?>"><?php echo t('download');?></a>
             </td>
         </tr>
     <?php endforeach;?>
