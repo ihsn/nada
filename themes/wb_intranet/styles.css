@@ -68,7 +68,7 @@ color: white;display:block;
 h1 {
 color: #333;
 font-size: 1.25em;
-font-weight: 400;
+font-weight: bold;
 margin: 7px 0 14px 0;
 }
 h2 {
@@ -242,3 +242,20 @@ background: none;
 .notabs .breadcrumbs{margin:0px;}
 
 .static-page .box-info{background-color:#E3F1FB;padding:10px;margin-top:10px;margin-bottom:10px;}
+.citations-listing{font-size:12px;}
+
+.static-page dt{
+	font-size:smaller;
+	line-height:20px;
+	background: url(css/img_sprite_icons.png) -1120px -190px no-repeat;
+	padding-left: 20px;
+	margin-bottom:15px;
+	cursor:pointer;
+	color:navy;
+}
+
+.m-head {cursor:auto}
+
+.m-body h3{font-size:12px;line-height:normal;margin:0px;margin-bottom:5px;font-weight:normal;}
+.m-body .tbl-x{margin-left:5px;margin-right:5px;}
+.m-body .tbl-x tr,.m-body .tbl-x td{vertical-align:top;padding-bottom:15px;}
