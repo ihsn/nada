@@ -212,6 +212,7 @@
 
 <?php $this->load->view('catalog_search/survey_summary_resources',$resources);?>
 <?php if ($citations):?>
+<div style="margin-top:20px">&nbsp;</div>
 <?php $this->load->view('catalog_search/survey_summary_citations',$citations);?>
 <?php endif;?>
 </div>
