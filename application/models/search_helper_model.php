@@ -354,6 +354,7 @@ class Search_helper_model extends CI_Model {
 					where sr.repositoryid='.$this->db->escape($repositoryid);
 		}		
 		$sql.=' group by nation';
+		$sql.=' order by nation ASC';
 		return $this->db->query($sql)->result_array();		
 	}
 	
