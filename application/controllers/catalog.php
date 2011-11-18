@@ -381,6 +381,9 @@ class Catalog extends MY_Controller {
 
 		$surveys['current_page']=$this->page;				
 		$this->load->view('catalog_search/survey_list', $surveys);
+		
+		$this->load->library("tracker");
+		$this->tracker->track();
 	}
 	
 	/**
@@ -766,6 +769,24 @@ class Catalog extends MY_Controller {
 		}		
 	}
 	
+	function study($codebookid=NULL)
+	{
+		if ($codebookid==NULL)
+		{
+			show_404();
+		}
+		
+		$survey=$this->Catalog_model->select_single($codebookid);
+		
+		if ($survey)
+		{
+			redirect('catalog/'.$survey['id']);
+		}
+		else
+		{
+			show_404();
+		}
+	}
 
 	/**
 	* 
