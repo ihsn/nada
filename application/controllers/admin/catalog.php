@@ -1236,8 +1236,7 @@ END TO BE REMOVED
 			$this->session->set_flashdata('message', t('msg_study_ownership_has_changed'));
 			redirect('admin/catalog');
 		}
-		
-		
+				
 		$content=$this->load->view('catalog/transfer_ownership',array('surveys'=>$surveys),TRUE);
 		$this->template->write('content', $content,true);
   		$this->template->render();
