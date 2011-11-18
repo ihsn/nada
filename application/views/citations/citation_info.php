@@ -6,12 +6,13 @@
 .abstract {overflow:auto; height:100px;}
 <?php endif;?>
 </style>
-
+<?php /*?>
 <?php if (!$this->input->get("print")) :?>
 <div style="text-align:right;">
 	<a target="_blank" href="<?php echo site_url();?>/citations/<?php echo $id; ?>/?print=yes" ><img src="images/print.gif" border="0"/> <?php echo t('print');?></a>
 </div>
 <?php endif;?>
+<?php */?>
 
 <h1><?php echo t('citation_information'); ?></h1>
 <table class="grid-table">
