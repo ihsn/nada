@@ -37,6 +37,7 @@ $this->load->view("blocks/catalog_status",$data);
     <?php endforeach;?>
 <?php endif;?>
 
+<?php /*
 
 <!--sidebar-reference-owner-->
 <div class="grey-module" id="sidebar-faq">
@@ -52,3 +53,6 @@ $this->load->view("blocks/catalog_status",$data);
     </div><div class="m-footer"><span>&nbsp;</span></div>
 </div>
 <!--end-sidebar-reference-owner-->
+*/ ?>
+
+
