@@ -164,6 +164,13 @@
                             
 		</div>
 		<div class="right">
+        
+	        <?php if (in_array($row['id'],$citations)): ?>
+                <a href="<?php echo site_url().'/catalog/citations/'.$row['id'];?>" title="<?php echo t('link_citations_hover');?>" >
+                <img src="images/book_open.png" />
+                </a>                    
+            <?php endif;?> 
+        
        		<?php if ($row['form_model']!=''):?>
 	            <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >        
 		        <?php if($row['form_model']=='direct'): ?>
@@ -180,7 +187,8 @@
                 	<?php //endif; ?>
 				<?php endif; ?>
                 </a>
-            <?php endif;?>    
+            <?php endif;?> 
+			           
         </div>
         
         <?php if ( isset($row['var_found']) ): ?>
