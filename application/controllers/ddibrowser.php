@@ -126,7 +126,10 @@ class DDIbrowser extends MY_Controller {
 		$this->load->model('Catalog_model');
 		$this->load->model('Repository_model');
 		$this->load->library('DDI_Browser','','DDI_Browser');
-		$this->load->helper('url_filter');		
+		$this->load->helper('url_filter');
+		$this->lang->load("resource_manager");
+		$this->load->helper("resource_helper");
+
 		
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
@@ -806,9 +809,10 @@ class DDIbrowser extends MY_Controller {
 			show_error('Resource not available');exit;
 		}
 		
-		//finally start the file download
+		//finally start the file download		
 		$this->load->helper('download');		
-		log_message('info','Downloading file <em>'.$resource_path.'</em>');		
+		log_message('info','Downloading file <em>'.$resource_path.'</em>');
+		ob_clean();
 		force_download2($resource_path);
 	}
 	
@@ -831,6 +835,8 @@ class DDIbrowser extends MY_Controller {
 		$this->load->model('Citation_model');
 		$this->load->model('Repository_model');
 		$this->load->library('chicago_citation');
+		$this->lang->load("resource_manager");
+		$this->load->helper("resource_helper");
 						
 		//get survey
 		$survey=$this->Catalog_model->select_single($id);
