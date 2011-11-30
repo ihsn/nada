@@ -109,9 +109,9 @@ $this->template->add_js($script, $type = 'embed');
         <table border="0" cellspacing="0" cellpadding="0">
             <tr>
                 <td><?php echo t('show_studies_conducted_between');?>&nbsp;</td>
-                <td><input type="hidden"/><?php echo form_dropdown('from', $years, (isset($this->from) ? $this->from : ''), 'id="from"'); ?></td>
+                <td><input type="hidden"/><?php echo form_dropdown('from', $years, ((isset($this->from) && $this->from!='') ? $this->from : end($years)), 'id="from"'); ?></td>
                 <td>&nbsp;<?php echo t('and');?>&nbsp;</td>
-                <td><?php echo form_dropdown('to', $years, (isset($this->to) && $this->to!='') ? $this->to: end($years),'id="to"'); ?></td>
+                <td><?php echo form_dropdown('to', $years, (isset($this->to) && $this->to!='') ? $this->to: '','id="to"'); ?></td>
             </tr>
         </table>
         </div>
