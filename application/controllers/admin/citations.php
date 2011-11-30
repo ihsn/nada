@@ -677,6 +677,6 @@ class Citations extends MY_Controller {
 		
 		echo json_encode(array('result'=>(int)$result) );
 	}
-
+}
 /* End of file citations.php */
 /* Location: ./controllers/admin/citations.php */
