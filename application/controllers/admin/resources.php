@@ -33,7 +33,7 @@ class Resources extends MY_Controller {
 		
 		//get survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
-		
+
 		//set parent survey
 		$this->Resource_model->surveyid=$this->uri->segment(3);
 				
