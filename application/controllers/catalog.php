@@ -1294,15 +1294,18 @@ class Catalog extends MY_Controller {
 	function repositories()
 	{
 		$this->load->model("repository_model");
+		$this->lang->load('catalog_search');
 		
 		//reset any search options selected
 		$this->session->unset_userdata('search');
-		
-		//get a list of all repositories
-		$repo_arr=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);		
-		$content=$this->load->view("repositories/index_public",array('rows'=>$repo_arr),TRUE);		
-		
-		$this->template->write('title', t('home'),true);
+		$data["survey_count"]=$this->Stats_model->get_survey_count();   
+		//$data["variable_count"]=$this->Stats_model->get_variable_count();  
+		//$data["citation_count"]=$this->Stats_model->get_citation_count();  
+		$data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos
+
+		$content=$this->load->view("repositories/index_public",$data,TRUE);		
+
+		$this->template->write('title', t('microdata_catalogs'),true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
