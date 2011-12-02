@@ -246,7 +246,7 @@ class Catalog extends MY_Controller {
 		$min_year=$this->Search_helper_model->get_min_year();
 		$max_year=$this->Search_helper_model->get_max_year();
 
-		foreach (range($min_year, $max_year) as $year) 
+		foreach (range($max_year,$min_year) as $year) 
 		{
         	$data['years'][$year]=$year;
         }
