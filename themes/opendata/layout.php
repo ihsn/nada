@@ -1,90 +1,107 @@
-<?php
+﻿<?php
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header("Pragma: no-cache");
 ?>
 <?php
-//load blocks for the current page
-$this->blocks=$this->Menu_model->get_blocks($this->uri->segment(1));
-
 $menu_horizontal=FALSE;
 $secondary_menu=FALSE;
-
-//get menu info by url
-$menu=$this->Menu_model->get_menu_by_url($this->uri->segment(1));
-
-if ($menu)
-{
-	//child page, get submenu
-	if ($menu['pid']>0)
-	{
-		//get parent+sub-menu items
-		$secondary_menu=$this->Menu_model->get_secondary_menu($menu['pid']);
-	}
-	else
-	{	
-		//get parent+sub-menu items
-		$secondary_menu=$this->Menu_model->get_secondary_menu($menu['id']);
-	}		
-}
-
 $secondary_menu_formatted=FALSE;
 
-//create a formatted listed of sub menus
-if ($secondary_menu!==FALSE && count($secondary_menu)>1)
+//active repo
+$active_repo=$this->session->userdata('active_repository');
+if ($active_repo=='' || $active_repo=='central')
 {
-	$secondary_menu_formatted='<ul>';
-	foreach($secondary_menu as $item)
-	{
-		$selected="";
-		if ($this->uri->segment(1)==$item['url'])
-		{
-			$selected=' class="selected"';
-		}
-		$secondary_menu_formatted.='<li '.$selected.'>'.anchor($item['url'],$item['title']).'</li>';
-	}
-	$secondary_menu_formatted.='</ul>';	
+	$active_repo='central';
+	$active_repo_title=t('central_data_catalog'); 
 }
-
+else
+{
+	$active_repo_title=$this->breadcrumb->get_repository_title($active_repo);
+}
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+          "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title><?php echo t($title);?></title>
-<base href="<?php echo base_url(); ?>" />
+<title><?php echo $title;?></title>
+<base href="<?php echo js_base_url(); ?>" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="javascript/superfish/css/superfish.css" media="screen">
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
 
-<script type="text/javascript" src="javascript/jquery.js"></script>
+<link rel="stylesheet" type="text/css" href="javascript/jquery/themes/ui-lightness/ui.core.css" />
+<link rel="stylesheet" type="text/css" href="javascript/jquery/themes/ui-lightness/ui.base.css" />
+<link rel="stylesheet" type="text/css" href="javascript/jquery/themes/ui-lightness/ui.accordion.css" />
+<link rel="stylesheet" type="text/css" href="javascript/jquery/themes/ui-lightness/ui.theme.css" />
+
+<script src="javascript/jquery-1.5.2.min.js"></script>
+<script type="text/javascript" src="javascript/ui.core.js"></script>
+<script type="text/javascript" src="javascript/jquery/ui/ui.tabs.js"></script>
+<script src="javascript/slidesjs/slides.min.jquery.js"></script>
+	<script>
+		$(function(){
+			$('#slides').slides({
+				preload: true,
+				play: 10000,
+				pause: 2500,
+				hoverPause: true,
+				fadeSpeed: 650, 
+				slideSpeed: 950
+			});
+		});
+	</script>
+
+
 <?php if (isset($_styles) ){ echo $_styles;} ?>
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
-<script type="text/javascript" src="http://localhost/nada3/javascript/jquery/ui/ui.tabs.js"></script>
+
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/opendata.css" />
+<!--[if lt IE 8]>
+<style type="text/css">
+    .ui-tabs .ui-tabs-nav li{padding-bottom:4px;}
+    .ui-tabs .ui-tabs-nav li.ui-tabs-selected{padding-bottom:4px;}
+    .ui-tabs .ui-tabs-nav li a{padding:5px;padding-bottom:4px;}
+</style>
+<![endif]-->
+
+<script type="text/javascript"> 
+ /* <![CDATA[ */
+ if(top.frames.length > 0) top.location.href=self.location;
+ /* ]]> */
+</script> 
 
 <script type="text/javascript"> 
    var CI = {'base_url': '<?php echo site_url(); ?>'}; 
 </script> 
 
-<!--superfish menu-->
-<script type="text/javascript" src="javascript/superfish/js/hoverIntent.js"></script>
-<script type="text/javascript" src="javascript/superfish/js/superfish.js"></script>
 
 <script type="text/javascript">
+function adjust_sidebar(){
+	$("#sidebar-wrap").height("auto");
+  if ($("#sidebar-wrap").height()<$("#yui-main").height()) {
+  	$("#sidebar-wrap").height($("#yui-main").height());//fix sidebar height
+	}
+}
+
 jQuery(function(){
-	jQuery('ul.sf-menu').superfish();
-	$("#tabs").tabs();
 	$("#footer-glob-links").hide();
 	$("#glob-nav-toggle").click(function(e){toggle_global_nav();});
-	$("#sidebar-wrap").height($("#yui-main").height());//fix sidebar height	
+	adjust_sidebar();
 });
 
-$(this).ajaxComplete(function() {
-  $("#sidebar-wrap").height("100px");
-  $("#sidebar-wrap").height($("#yui-main").height());//fix sidebar height
+$.ajax({
+   complete: function(){
+	 adjust_sidebar();
+   }
 });
+ 
+$(document).ajaxComplete(function() {
+adjust_sidebar();
+});
+
 //collapse/expand div
 function toggle_global_nav(e){
 	if ($("#footer-glob-links").is(":visible")){
@@ -97,19 +114,11 @@ function toggle_global_nav(e){
 	}
 }	
 </script>
-<!--[if IE]>
-<style type="text/css">
-	x.ui-tabs .ui-tabs-nav li.ui-tabs-selected{height:32px;}
-    .ui-tabs .ui-tabs-nav li.ui-tabs-selected, .ui-tabs .ui-tabs-nav li{position:relative;top:4px;height:30px;}
-    .ui-tabs .ui-tabs-nav li a{padding:5px;}
-</style>
-<!<[endif]-->
-
 </head>
 <body>
 <div id="custom-doc" class="<?php echo ($secondary_menu_formatted!==FALSE) ? 'yui-t1' : 'yui-t1'; ?>" > 
 	<!--login information bar-->
-    <?php //$this->load->view('user_bar');?>	
+    <?php $this->load->view('user_bar');?>	
     
     <!-- masthead -->
     <div id="hd">    
@@ -136,15 +145,16 @@ function toggle_global_nav(e){
     <div id="global-navigation">
     <table cellpadding="0" cellspacing="0">
     <tr>
-        <td class="home-icon"><a href="http://www.worldbank.org/" class="home"><img alt="HOME" src="http://www.worldbank.org/wb/images/cache30/homepage/home-icon-red.png" title="World Bank home"></a></td>    
+        <td class="home-icon"><a href="http://www.worldbank.org/" class="home"><img alt="HOME" src="themes/<?php echo $this->template->theme();?>/home-icon.png" title="World Bank home"></a></td>    
         <td class="pri-links">
         <ul class="links">
-            <li class="about first"><a href="http://www.worldbank.org/about">Who we are</a></li>
-            <li class="research"><a href="http://econ.worldbank.org">Operations</a></li>
-            <li class="data"><a href="http://www.worldbank.org/data" class="active" >Data</a></li>            
-            <li class="learning"><a href="http://www.worldbank.org/wbi">Research</a></li>
-            <li class="news"><a href="http://www.worldbank.org/news">Ideas</a></li>
-            <li class="projects last"><a href="http://www.worldbank.org/projects">News & views</a></li>
+            <li class="about first"><a href="http://www.worldbank.org/about">About</a></li>
+            <li class="data"><a href="http://www.worldbank.org/data" class="active" >Data</a></li>
+            <li class="research"><a href="http://econ.worldbank.org/">Research</a></li>
+            <li class="learning"><a href="http://www.worldbank.org/wbi">Learning</a></li>
+            <li class="news"><a href="http://www.worldbank.org/news">News</a></li>            
+            <li class="project"><a href="http://www.worldbank.org/projects">Projects & Operations</a></li>
+            <li class="publications last"><a href="http://www.worldbank.org/reference">Publications</a></li>
         </ul>    
         </td>
         <td class="sec-links">
@@ -161,6 +171,26 @@ function toggle_global_nav(e){
     <div id="title-bar" >
             <div class="site-name"><a href="http://data.worldbank.org/">Data</a></div>
     </div>
+    
+    <!-- data bar -->
+    <div id="navigation">
+    	<div class="limiter clear-block">
+        	<ul class="links primary-links">
+            <li ><a href="http://data.worldbank.org/country" class="spaces-menu-editable">By Country</a></li>
+            <li ><a href="http://data.worldbank.org/topic">By Topic</a></li>
+            <li ><a href="http://data.worldbank.org/indicator">Indicators</a></li>
+            <li class=""><a href="http://data.worldbank.org/data-catalog">Data Catalog</a></li>
+            <li class="last active"><a href="<?php echo site_url();?>/home">Microdata</a></li>
+    		</ul>
+            <ul class="links secondary-links">
+            <li class="first"><a href="http://data.worldbank.org/news">News</a></li>
+            <li class=""><a href="http://data.worldbank.org/about">About</a></li>
+            <li class=""><a href="http://data.worldbank.org/developers">For Developers</a></li>
+            <li class="last"><a href="http://data.worldbank.org/products">Products</a></li>
+    		</ul>
+        </div>
+	</div>
+    
 	<div style="clear:both;"></div>
     
     <!-- content wrapper -->
@@ -170,64 +200,93 @@ function toggle_global_nav(e){
             <!-- page contents -->	
             <div id="yui-main">            	
 				<div id="content" class="yui-b">
-                	<!-- bread crumbs -->
-					<div id="breadcrumb">
-                    	<div id="page-tools"></div>
+                	
+                    <!--share-bar -->
+                    <div id="page-tools">
+                    <?php include 'share.php';?>
                     </div>
-      
-      		<h1>Microdata Library</h1>
-			<!-- page tabs -->
-            <div id="tabs"> 
-                <div class="tab-heading">&nbsp;</div>
-                <ul> 
-                    <li><a href="#tabs-1">Home</a></li>
-                    <li><a href="#data-catalog">Datasets</a></li> 
-                    <li><a href="#tabs-3">Citations</a></li> 
-                </ul> 
+                
+                    <!--breadcrumbs -->
+                    <?php if (count($this->breadcrumb->to_array())>1):?>
+					   <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
+                        <?php if ($breadcrumbs_str!=''):?>
+                            <div id="breadcrumb">
+                            <?php echo $breadcrumbs_str;?>
+                            </div>
+                        <?php endif;?>
+                    <?php endif;?>
             
-                <div id="tabs-1"> 
-                    <p>Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.</p> 
-                </div> 
-                <div id="data-catalog"> 
-                     <!-- page content area -->
-					<?php echo isset($content) ? $content : '';?>
-                </div> 
-                <div id="tabs-3"> 
-                    <p>Mauris eleifend est et turpis. Duis id erat. Suspendisse potenti. Aliquam vulputate, pede vel vehicula accumsan, mi neque rutrum erat, eu congue orci lorem eget lorem. Vestibulum non ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce sodales. Quisque eu urna vel enim commodo pellentesque. Praesent eu risus hendrerit ligula tempus pretium. Curabitur lorem enim, pretium nec, feugiat nec, luctus a, lacus.</p> 
-                    <p>Duis cursus. Maecenas ligula eros, blandit nec, pharetra at, semper at, magna. Nullam ac lacus. Nulla facilisi. Praesent viverra justo vitae neque. Praesent blandit adipiscing velit. Suspendisse potenti. Donec mattis, pede vel pharetra blandit, magna ligula faucibus eros, id euismod lacus dolor eget odio. Nam scelerisque. Donec non libero sed nulla mattis commodo. Ut sagittis. Donec nisi lectus, feugiat porttitor, tempor ac, tempor vitae, pede. Aenean vehicula velit eu tellus interdum rutrum. Maecenas commodo. Pellentesque nec elit. Fusce in lacus. Vivamus a libero vitae lectus hendrerit hendrerit.</p> 
-                </div> 
-            </div> 
-                                 
-                </div>
+            <?php 
+				$tab_urls=array('microdata-catalogs','catalog','citations','xaccess_licensed');
+				$catalog_tabs=array('catalog','xaccess_licensed');
+			?>	
+			<?php if (in_array($this->uri->segment(1),$tab_urls)):?>
+			<!-- tabs -->
+            <h1><?php echo $active_repo_title;?></h1>
+            <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+            <div class="tab-heading">&nbsp;</div>
+                <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+                	<?php if ($this->uri->segment(1)=='microdata-catalogs'):?>                    
+	                    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>/about">About</a></li>
+                    <?php elseif ($this->uri->segment(1)=='catalog' && $this->uri->segment(3)=='about'):?>
+                    	<li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>">About</a></li>
+                    <?php else:?>
+                        <li class="ui-state-default ui-corner-top"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>/about">About</a></li>
+                    <?php endif;?>
+                    <li class="ui-state-default ui-corner-top <?php echo (in_array($this->uri->segment(1),$catalog_tabs) && $this->uri->segment(3)!=='about') ? 'ui-tabs-selected ui-state-active' : '';?>"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>">Datasets</a></li>
+                    <?php if ($this->config->item("hide_citations")!=='yes'):?>
+                    <li class="ui-state-default ui-corner-top <?php echo ($this->uri->segment(1)=='citations') ? 'ui-tabs-selected ui-state-active' : '';?>"><a href="<?php echo site_url();?>/citations">Citations</a></li>
+                    <?php endif;?>
+                </ul>
+                <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
+					<!--breadcrumbs -->
+					<?php if (isset($breadcrumb) && $breadcrumb!==''):?>
+						<div id="nada-breadcrumb">
+						<?php echo $breadcrumb;?>
+						</div>
+					<?php endif;?>
+                    <div style="clear:both;">
+                    <!-- page content area -->
+                    <?php echo isset($content) ? $content : '';?>
+                    </div>
+                </div>            
             </div>
+            <?php else:?>
+				<!--breadcrumbs -->
+                <?php if (isset($breadcrumb) && $breadcrumb!==''):?>
+                	<div id="nada-breadcrumb">
+                	<?php echo $breadcrumb;?>
+                    </div>
+                <?php endif;?>
+            	<?php echo isset($content) ? $content : '';?>
+      		<?php endif;?>
             
+      </div>
+      </div>
+
             <!-- side bar -->
             <div id="sidebar" class="yui-b">
             <div class="sidebar-wrap" id="sidebar-wrap">            
                 <div class="sidebar-nav">
-					<?php //echo isset($sidebar) ? $sidebar : '';?>
+				<?php $microdata_url=site_url();?>
                     <ul>
-                    <li>
-                        <a href="http://localhost/nada3/index.php/home">Microdata library</a>
-                    </li>
-                    <li class="selected">
-                        <a href="http://localhost/nada3/index.php/catalog">Home</a>
-                    </li>
-                    <li>
-                        <a href="http://localhost/nada3/index.php/citations">Data portal</a>
-                    </li>
-                    <li>
-                        <a target="_blank" href="http://localhost/nada3/index.php/another-test">Contributing catalogs</a>
-                    </li>
-                    <li>
-                        <a target="_blank" href="http://www.google.com">Practices and standards</a>
-                    </li>
-                    <li class="last">
-                        <a target="_blank" href="http://www.google.com">Terms of use</a>
-                    </li>
+                    <li <?php echo ($this->uri->segment(1)=='home') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/home">Microdata Library</a></li>
+                    <li <?php echo (in_array($this->uri->segment(1),array('microdata-catalogs','catalog','citations'))) ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/microdata-catalogs">Microdata catalogs</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='using-our-catalog') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/using-our-catalog">Using our catalog</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='terms-of-use') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/terms-of-use">Terms of use</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='practices-and-tools') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/practices-and-tools">Practices and tools</a></li>
+                    <li class="last <?php echo ($this->uri->segment(1)=='faqs') ? 'selected' : '';?>"><a href="<?php echo $microdata_url;?>/faqs">Frequently asked questions</a></li>                    
                     </ul>
                 </div>
-                <div>some stuff here</div>
+                
+                <div class="contact-us" >              		
+                    <a href="mailto:microdata@worldbank.org">Contact us</a>
+                </div>
+                
+                <div class="help-us">
+                <h3>Help us to help you</h3>
+                <p>The Microdata Library is a collaborative effort by data producers, curators, and users. The quality and completeness of the data and metadata we provide depend on their, and your contribution. There are various ways <a href="<?php echo $microdata_url; ?>/faqs#contribute">you can participate</a>.</p>
+                </div>
             </div>
 			</div>            
 		</div>
@@ -243,7 +302,13 @@ function toggle_global_nav(e){
     		<span class="breadcrumb-link">You are here</span>
             <span class="breadcrumb-item"><a href="http://data.worldbank.org/">Data</a></span>
             <span class="breadcrumb-sep">/</span>
-            <span class="breadcrumb-item"><a href="http://data.worldbank.org/data-catalog" class="active">Data Catalog</a></span>      
+            <span class="breadcrumb-item"><a href="http://microdata.worldbank.org" class="active">Microdata</a></span>
+            <?php $breadcrumbs= $this->breadcrumb->to_array();?>
+            <?php foreach($breadcrumbs as $link=>$title):?>
+            	<?php if (strtolower($title)=="home"){continue;}?>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-item"><a href="<?php echo site_url().'/'.$link;?>" class="active"><?php echo $title;?></a></span>
+            <?php endforeach;?>
         </div>
         <div class="toggle" id="glob-nav-toggle"><img src="themes/<?php echo $this->template->theme();?>/plus.png" alt="Collapse/Expand" title="Collapse / Expand navigation"/></div>
 	</div>
@@ -251,11 +316,10 @@ function toggle_global_nav(e){
 	<!--footer global navigation links -->
     <div id="footer-glob-links">
             <div class="columns">
-              <h6><a href="http://www.worldbank.org/about">Who We Are</a></h6>
+              <h6><a href="http://www.worldbank.org/about">About</a></h6>
               <ul>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/EXTABOUTUS/0,,contentMDK:20040565~menuPK:1696892~pagePK:51123644~piPK:329829~theSitePK:29708,00.html">Mission</a></li>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/EXTABOUTUS/0,,contentMDK:20653660~menuPK:72312~pagePK:51123644~piPK:329829~theSitePK:29708,00.html">History</a></li>
-
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/EXTABOUTUS/0,,contentMDK:20040913~menuPK:1696997~pagePK:51123644~piPK:329829~theSitePK:29708,00.html">Leadership</a></li>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/EXTABOUTUS/0,,contentMDK:20040580~menuPK:1696997~pagePK:51123644~piPK:329829~theSitePK:29708,00.html">Organization &amp;
                   Affiliates</a></li>
@@ -268,51 +332,67 @@ function toggle_global_nav(e){
             </div>
 
             <div class="columns">
-              <h6><a href="http://www.worldbank.org/operations">Lending & Advice</a></h6>
+              <h6><a href="http://www.worldbank.org/data">Data</a></h6>
               <ul>
+                <li><a href="http://search.worldbank.org/data">Search Data</a></li>
+                <li><a href="http://databank.worldbank.org/ddp/home.do?Step=12&amp;id=4&amp;CNO=2">Data Bank</a></li>
+                <li><a href="http://data.worldbank.org/data-catalog">Catalog</a></li>
+                <li><a href="http://data.worldbank.org/products">Data Publications &amp; Products</a></li>
+                <li><a href="http://data.worldbank.org/developers">API-For Developers</a></li>
+              </ul>
+              <h6><a href="http://econ.worldbank.org">Research</a></h6>
+              <ul>
+                <li><a href="http://search.worldbank.org/research">Search Research</a></li>
+                <li><a href="http://econ.worldbank.org/datasets">Tools &amp; Tables</a></li>
+                <li><a href="http://www.worldbank.org/reference/">Research Publications &amp; Products</a></li>
+              </ul>
+            </div>
+
+			<div class="columns">
+              <h6><a href="http://wbi.worldbank.org/wbi/">Learning</a></h6>
+              <ul>
+                <li><a href="http://gdln.org">Global Development Learning Network</a></li>
+                <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/TOPICS/EXTCDRC/0,,menuPK:64169181~pagePK:64169192~piPK:64169180~theSitePK:489952,00.html">Capacity Development Resource Center</a></li>
+                <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/DATASTATISTICS/SCBEXTERNAL/0,,contentMDK:20100922~menuPK:982273~pagePK:229544~piPK:229605~theSitePK:239427,00.html">Statistical Capacity Building</a></li>
+                <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/WBI/EXTWBISFP/0,,menuPK:551559~pagePK:64168427~piPK:64168435~theSitePK:551553,00.html">Scholarships &amp; Fellowships</a></li>
+              </ul>
+            </div>
+            
+            <div class="columns">
+              <h6><a href="http://www.worldbank.org/news">News</a></h6>
+              <ul>
+                <li><a href="http://search.worldbank.org/newsviews/news">Search for News</a></li>
+                <li><a href="http://blogs.worldbank.org">Blogs</a></li>
+                <li><a href="http://www.worldbank.org/multimedia">Multimedia</a></li>
+                <li><a href="http://media.worldbank.org/">Media Briefing Center</a></li>
+                <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/NEWS/0,,contentMDK:20035595~menuPK:36691~pagePK:116743~piPK:36693~theSitePK:4607,00.html">Media Contacts</a></li>
+              </ul>
+            </div>
+
+			<div class="columns">
+              <h6><a href="http://www.worldbank.org/operations">Projects &amp; Operations</a></h6>
+              <ul>
+                <li><a href="http://search.worldbank.org/projects">Search Projects</a></li>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/PROJECTS/0,,contentMDK:21790401~menuPK:5119395~pagePK:41367~piPK:51533~theSitePK:40941,00.html">Our Focus</a></li>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/PROJECTS/0,,contentMDK:20120721~menuPK:232467~pagePK:41367~piPK:51533~theSitePK:40941,00.html">Product &amp; Services</a></li>
                 <li><a href="http://www.worldbank.org/projects">Projects</a></li>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/PROJECTS/0,,menuPK:64383817~pagePK:64387457~piPK:64387543~theSitePK:40941,00.html">Country Lending</a></li>
                 <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/PROJECTS/PROCUREMENT/0,,pagePK:84271~theSitePK:84266,00.html">Procurement</a></li>
                 <li><a href="http://www.worldbank.org/ieg/">Project Evaluations</a></li>
-              </ul>
-            </div>
-
-            <div class="columns">
-              <h6><a href="http://www.worldbank.org/data">Data</a></h6>
-              <ul>
-                <li><a href="http://search.worldbank.org/data">Search Data & Statistics</a></li>
-                <li><a href="">References & Tables</a></li>
-                <li><a href="http://data.worldbank.org/products">Data Publications &amp; Products</a></li>
-                <li><a href="">About Our Data</a></li>
-              </ul>
-            </div>
-
-            <div class="columns">
-              <h6><a href="http://econ.worldbank.org">Projecsts & Operations</a></h6>
-              <ul>
-                <li><a href="http://search.worldbank.org/research">Search Research & Analysis</a></li>
-                <li><a href="http://econ.worldbank.org/datasets">Analysis Tools &amp; Tables</a></li>
-                <li><a href="http://www.worldbank.org/reference/">Research & Analysis</a></li>
-                <li><a href="http://search.worldbank.org/research">Publications & Products</a></li>
-                <li><a href="http://econ.worldbank.org/datasets">About Our Research</a></li>
-              </ul>
-              <h6><a href="">Results</a></h6>
-            </div>
-            
-            <div class="columns">
-              <h6><a href="http://www.worldbank.org/news">News & Views</a></h6>
-              <ul>
-                <li><a href="http://search.worldbank.org/newsviews/news">News</a></li>
-                <li><a href="http://blogs.worldbank.org">Blogs</a></li>
-                <li><a href="http://www.worldbank.org/multimedia">Multimedia</a></li>
-                <li><a href="http://media.worldbank.org/">Get Involved</a></li>
-                <li><a href="">Stay Connected</a></li>
-                <li><a href="">Embargoed News for the Media</a></li>
+                <li><a href="http://www.worldbank.org/results">Results</a></li>
               </ul>
             </div>
             
+            <div class="columns">
+              <h6><a href="http://www.worldbank.org/reference/">Publications</a></h6>
+              <ul>
+                <li><a href="http://publications.worldbank.org/">Bookstore</a></li>
+                <li><a href="http://www-wds.worldbank.org/WBSITE/EXTERNAL/EXTWDS/0,,detailPagemenuPK:64187510~menuPK:64187513~pagePK:64187848~piPK:64187934~searchPagemenuPK:64187283~siteName:WDS~theSitePK:523679,00.html">Documents &amp; Reports</a></li>
+                <li><a href="http://web.worldbank.org/WBSITE/EXTERNAL/EXTABOUTUS/EXTARCHIVES/0,,pagePK:38167~theSitePK:29506,00.html">Archives</a></li>
+                <li><a href="http://jolis.worldbankimflib.org/external.htm">Libraries</a></li>
+              </ul>
+            </div>
+
             <div class="columns border-vert">
               <h6><a href="http://www.worldbank.org/countries">Countries</a></h6>
               <h6><a href="http://www.worldbank.org/topics">Topics</a></h6>
@@ -374,5 +454,6 @@ function toggle_global_nav(e){
 
 </div>
 <div style="padding-bottom:100px;">&nbsp;</div>
+<?php //@include_once(APPPATH.'/../tracking.php');?>
 </body>
 </html>

@@ -104,6 +104,7 @@ div.left {
 	float: left;
 	margin-right:5px;
 	margin-bottom:5px;
+	margin-left:5px;
 }
 .country{float:left;width:200px;font-size:11px;}
 #search_form label{padding-left:2px;}
@@ -133,3 +134,17 @@ div.left {
 
 .switch-page-size .btn{font-size:bold;}
 .switch-page-size .btn:hover{cursor:pointer;color:black;}
+
+
+#search_form label {
+padding-left: 2px;
+}
+
+.filter-da label {
+margin-bottom: 10px;
+display: block;
+}
+
+.filter-da .title {
+font-weight: bold;margin-left:3px;
+}
