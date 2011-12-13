@@ -10,7 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='wb_intranet';
+$template['theme_name']='opendata';
 
 
 
@@ -85,8 +85,8 @@ $template['installer']['theme_folder'] = 'installer';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/nada3/blank';
-$template['blank']['theme_folder'] = 'nada3';
+$template['blank']['template'] = '../../themes/opendata/blank';
+$template['blank']['theme_folder'] = 'opendata';
 
 
 //box template file with only the body and no layout
