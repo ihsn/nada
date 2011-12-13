@@ -41,6 +41,13 @@
 $route['default_controller'] = "page";
 $route['404_override'] = 'page'; 
 
+$route['microdata-home-x'] = "page/static_page";
+$route['terms-of-use'] = "page/static_page";
+$route['using-our-catalog'] = "page/static_page";
+$route['practices-and-tools'] = "page/static_page";
+$route['faqs'] = "page/static_page";
+
+
 //ddi browser
 $route['ddibrowser/(:num)'] = "ddibrowser/index/$1";
 
@@ -54,7 +61,7 @@ $route['catalog/(:num)/(.*)'] = "ddibrowser/$1/$2";
 $route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for the data-catalog routes
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";
-$route['home'] = "catalog/repositories";
+$route['microdata-catalogs'] = "catalog/repositories";
 $route['catalog/central/about'] = "catalog/repositories";
 
 //forms {pubic,direct, etc}
