@@ -187,6 +187,8 @@ class Ion_auth_model extends CI_Model
 	 **/
 	public function activate($id, $code = false)
 	{	    
+		$result=FALSE;
+		
 	    if ($code != false) 
 	    {  
 		    $query = $this->db->select($this->identity_column)
@@ -209,7 +211,7 @@ class Ion_auth_model extends CI_Model
 			);
 	        
 			$this->db->where($this->ion_auth->_extra_where);
-			$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
+			$result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
 	    }
 	    else 
 	    {
@@ -224,10 +226,10 @@ class Ion_auth_model extends CI_Model
 			);
 		   
 			$this->db->where($this->ion_auth->_extra_where);
-			$this->db->update($this->tables['users'], $data, array('id' => $id));
+			$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
 	    }
 		
-		return $this->db->affected_rows() == 1;
+		return $result;//$this->db->affected_rows() == 1;
 	}
 	
 	
@@ -253,9 +255,9 @@ class Ion_auth_model extends CI_Model
 		);
         
 		$this->db->where($this->ion_auth->_extra_where);
-		$this->db->update($this->tables['users'], $data, array('id' => $id));
-		
-		return $this->db->affected_rows() == 1;
+		$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
+
+		return $result;
 	}
 
 	/**
@@ -560,7 +562,7 @@ class Ion_auth_model extends CI_Model
 
 		$this->db->insert($this->tables['meta'], $data);
 		
-		return $this->db->affected_rows() > 0 ? $id : false;
+		return $id;
 	}
 	
 	/**
