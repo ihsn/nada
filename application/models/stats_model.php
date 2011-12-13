@@ -19,27 +19,30 @@ class Stats_model extends CI_Model {
 			$limit=10;
 		}
 		
-		$sql='SELECT 
-					s.id as id,
-					s.surveyid as surveyid, 
-					s.titl as titl,
-					s.nation as nation,
-					count(*) as visits					 
-			FROM sitelogs n
-				  inner join surveys s on n. surveyid=s.id
-			where logtype=\'survey\' ';
-			
+		$fields='s.id as id,
+				s.surveyid as surveyid, 
+				s.titl as titl,
+				s.nation as nation,
+				count(*) as visits';
+				
+		$fields_group_by='s.id,
+				s.surveyid, 
+				s.titl,
+				s.nation';
+				
+		$this->db->select($fields);
+		$this->db->join('surveys s', 's.id= n.surveyid','inner');
+		$this->db->limit($limit);
+		$this->db->group_by($fields_group_by); 
+		$this->db->where('logtype','survey');
+
 		if (is_numeric($start) && is_numeric($end) ) 
 		{
-			$sql.='	and (logtime between '.$start.' and '.$end.')';
+			$this->db->where(' (logtime between '.$start.' and '.$end.')');
 		}
-
-		$sql.='	group by s.surveyid, s.titl, s.id';
-		$sql.= ' order by visits desc';			
-		$sql.= " limit $limit";
 		
-		$query=$this->db->query($sql);
-
+		$query=$this->db->get('sitelogs n');
+				
 		if ($query)
 		{
 			return $query->result_array();
