@@ -3,29 +3,54 @@
 .thumb{padding-right:10px;padding-bottom:5px;}
 .page-title{border-bottom:1px solid gainsboro;}
 </style>
-<div class="body-container" style="padding:10px;">
+<div class="contributing-repos" style="padding:10px;">
+<div style="padding-bottom:30px;">
+<a title="Central Catalog" href="../index.php/catalog"><img style="float: left; display: block; margin-right: 10px;" src="files/logo-network.gif" alt="Central Catalog"></a>
+<h3 style="font-size:larger;font-weight:bold;"><a href="<?php echo site_url();?>/catalog/central">Central Microdata Catalog</a></h3>
+<p>
+The Central Microdata Catalog is a portal for all datasets held in catalogs maintained by the World Bank and a number of contributing external repositories. As of <?php echo date("F d, Y",date("U")); ?>, our central catalog contains <?php echo $survey_count;?> surveys. Users who wish to go directly to a specific catalog can visit the specific contributing repository through the links below.</p>
+</div>
+<br style="clear:both;margin-top:10px;"/>
 
-<h1><a href="<?php echo site_url();?>/catalog">Central Microdata Catalog</a></h1>
-<p>The Central Microdata Catalog is a portal for all datasets held in catalogs maintained by the World Bank and a number of contributing external repositories. As of August 02, 2011, our central catalog contains 651 surveys. Users who wish to go directly to a specific catalog can visit the specific contributing repository through the links below.</p>
-
-<h1 class="page-title"><?php echo t('contributing_repositories');?></h1>
 <?php if ($rows):?>
-    <table class="repo-table" width="100%" cellspacing="0" cellpadding="4">
-	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
-    	<?php $row=(object)$row;?>
-		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-        <?php if (!$row->ispublished){continue;} //skip unpublished?>
-    	<tr class="<?php echo $tr_class; ?>" valign="top">
-            <td class="thumb"><img src="<?php echo base_url();?>/<?php echo $row->thumbnail; ?>"/></td>
-            <td>
-			<h3><a href="<?php echo site_url();?>/catalog/<?php echo $row->repositoryid;?>"><?php echo $row->title; ?></a></h3>
-			<?php echo $row->short_text; ?>
-            </td>
-        </tr>
+    	<?php 
+			$row=(object)$row;
+			$repo_sections[$row->section]=$row->section;
+		?>        
     <?php endforeach;?>
-    </table>
+
+	<?php //show repositories divided by sections
+		
+		//internal catalogs
+		if (in_array('internal',$repo_sections))
+		{
+			$data=array(
+						'rows'=>$rows,
+						'section'=>'internal',
+						'section_title'=>t('repositories_internal') 
+						);
+			$this->load->view("repositories/repos_by_section",$data);
+		}	
+	?>
+    <div style="height:20px;">&nbsp;</div>	
+	<?php	
+		//external catalogs
+		if (in_array('external',$repo_sections))
+		{
+			$data=array(
+						'rows'=>$rows,
+						'section'=>'external',
+						'section_title'=>t('repositories_external') 
+						);
+
+			$this->load->view("repositories/repos_by_section",$data);
+		}
+    ?>
+
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
 <?php endif; ?>
+
+
 </div>
