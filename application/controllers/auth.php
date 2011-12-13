@@ -463,6 +463,8 @@ class Auth extends MY_Controller {
         							 'company'    => $this->input->post('company'),
         							 'phone'      => $this->input->post('phone1'),// .'-'. $this->input->post('phone2') .'-'. $this->input->post('phone3'),
 									 'country'      => $this->input->post('country'),
+									 'email'=>$email,
+									 'identity'=>$username
         							);
         	
         	//register the user
