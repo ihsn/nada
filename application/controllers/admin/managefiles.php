@@ -35,7 +35,7 @@ class Managefiles extends MY_Controller {
 		
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
-		
+
 		$this->survey_folder=$folderpath;
 		
 		//name of the file to lock for deletion
