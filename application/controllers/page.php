@@ -83,7 +83,11 @@ class Page extends MY_Controller {
 		//page not found in the database
 		if ( empty($data) )
 		{
-			show_404();
+			if ($this->static_page()===FALSE)
+			{
+				//show 404 page;
+				$this->_error_page();
+			}	
 			return;			
 		}
 		
@@ -157,8 +161,85 @@ class Page extends MY_Controller {
 		}
 	}
 	
+
+	/**
+	*
+	* Static pages for microdata
+	*
+	*
+	* NOTE: TOBE REMOVED LATER. This method is need because nada does not support static content with php/js/css
+	**/
+	function static_page()
+	{
+		$page=$this->uri->segment(1);
+		$data=array();
+		switch($page)
+		{
+			case 'home';
+				$this->load->model("stats_model");				
+				$data['title']='Microdata Library';
+				
+				//get stats
+				$data['survey_count']=$this->stats_model->get_survey_count();
+				$data['variable_count']=$this->stats_model->get_variable_count();
+				$data['citation_count']=$this->stats_model->get_citation_count();
+				
+				//get top popular surveys
+				$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+				
+				//get top n recent acquisitions
+				$data['latest_surveys']=$this->stats_model->get_latest_surveys(6);
+			break;
+
+			case 'microdata-catalogs';
+				/*
+				
+				//see catalog/repositories				
+				
+				$this->load->model("stats_model");
+				$data['title']='Microdata Catalog';
+				$data['survey_count']=$this->stats_model->get_survey_count();
+				
+				*/
+				
+			break;
+
+			case 'using-our-catalog';
+				$data['title']='Using our catalog';
+			break;
+
+			case 'terms-of-use':
+				$data['title']='Terms of use';
+			break;
+			
+			case 'practices-and-tools';
+				$data['title']='Using our catalog';
+			break;
+
+			case 'faqs';
+				$data['title']='Frequently asked questions';
+			break;
+			
+			default:
+			return FALSE;			
+		}
+		//$data['body']=file_get_contents("static/$page.php");
+		$data['body']=$this->load->external_view($path='static', $view=$page,$data,TRUE);
+		$content=$this->load->view('page_index', $data,true);
+		
+		$this->template->write('title', $data['title'],true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
 	
-	
+	function _error_page()
+	{
+		header('HTTP/1.0 404 Not Found');
+		$content=$this->load->view("404_page",NULL,TRUE);
+		$this->template->write('title', t('page not found'),true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
 }
 /* End of file page.php */
 /* Location: ./controllers/page.php */
