@@ -550,10 +550,7 @@ class Catalog_model extends CI_Model {
 		$catalog_root=$this->config->item("catalog_root");
 		
 		//join to create full path
-		$survey_folder=$catalog_root.'/'.$survey_rel;
-		
-		$survey_folder=str_replace('\\','/',$survey_folder);
-		$survey_folder=str_replace('//','/',$survey_folder);
+		$survey_folder=unix_path($catalog_root.'/'.$survey_rel);
 		
 		return $survey_folder;
 	}
