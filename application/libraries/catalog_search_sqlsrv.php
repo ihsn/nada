@@ -144,8 +144,8 @@ class Catalog_search{
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
 			$this->ci->db->group_by('id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount');
 			*/
-			$query_count='select count(*) as rowsfound from (';
-			$query_count.='select count(*) as rowsfound from surveys ';
+			$query_count='select count(rowsfound) as rowsfound from (';
+			$query_count.='select count(surveys.id) as rowsfound from surveys ';
 			$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
 			$query_count.='left join forms f on f.formid=surveys.formid ';
 			
