@@ -997,7 +997,7 @@ class Ion_auth_model extends CI_Model
 	 * @return bool
 	 * @author Ben Edmunds
 	 **/
-	private function remember_user($id)
+	public function remember_user($id)
 	{
 		if (!$id) {
 			return FALSE;
