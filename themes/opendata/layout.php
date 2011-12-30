@@ -118,7 +118,7 @@ function toggle_global_nav(e){
 <body>
 <div id="custom-doc" class="<?php echo ($secondary_menu_formatted!==FALSE) ? 'yui-t1' : 'yui-t1'; ?>" > 
 	<!--login information bar-->
-    <?php $this->load->view('user_bar');?>	
+    <?php $this->load->view('users/user_bar');?>	
     
     <!-- masthead -->
     <div id="hd">    
