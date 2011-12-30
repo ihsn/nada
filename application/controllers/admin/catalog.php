@@ -1273,8 +1273,152 @@ END TO BE REMOVED
 		/*
 		$content=$this->load->view('catalog/study_unlink_confirm',array('result'=>$result),TRUE);
 		$this->template->write('content', $content,true);
-  		$this->template->render();*/
+  		$this->template->render();*/		
+	}
+	
+	/**
+	*
+	* Publish/Unpublish studies
+	*
+	* $id single numeric value or a comma seperated list of IDs
+	**/
+	function publish($id,$publish=1)
+	{	
+		if (!in_array($publish,array(0,1)))
+		{
+			$publish=1;
+		}
+	
+		//array of id to be published
+		$id_arr=array();
+	
+		//is ajax call
+		$ajax=$this->input->get_post('ajax');
+
+		if (!is_numeric($id))
+		{
+			$tmp_arr=explode(",",$id);
 		
+			foreach($tmp_arr as $key=>$value)
+			{
+				if (is_numeric($value))
+				{
+					$id_arr[]=$value;
+				}
+			}
+			
+			if (count($id_arr)==0)
+			{
+				//for ajax return JSON output
+				if ($ajax!='')
+				{
+					echo json_encode(array('error'=>"invalid id was provided") );
+					exit;
+				}
+				
+				$this->session->set_flashdata('error', 'Invalid id was provided.');
+				redirect('admin/catalog');
+			}	
+		}		
+		else
+		{
+			$id_arr[]=$id;
+		}
+		
+		//test user has permissions
+		$is_owner=$this->ion_auth->is_study_owner($id);
+
+		if (!$is_owner)
+		{
+			show_error("MSG_USER_ACCESS_DENIED");
+		}
+		
+		if ($this->input->post('cancel')!='')
+		{
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				redirect($destination);
+			}
+			else
+			{
+				redirect('admin/catalog');
+			}	
+		}
+		else if ($this->input->post('submit')!='')
+		{
+			foreach($id_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//if exists
+				if ($survey)
+				{
+					//publish/unpublish a study
+					$result=$this->Catalog_model->publish_study($item,$publish);
+					
+					if ($result)
+					{
+						$this->session->set_flashdata('message', t('form_update_success'));
+					}
+					else
+					{
+						$this->session->set_flashdata('error', t('form_update_failed'));
+					}
+					
+					//log
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$this->db_logger->write_log('study-published',$survey_name,'catalog',$item);
+				}	
+			}
+
+			//for ajax calls, return output as JSON						
+			if ($ajax!='')
+			{
+				echo json_encode(array('success'=>"true") );
+				exit;
+			}
+						
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				//redirect($destination);
+			}
+			else
+			{
+				
+				redirect('admin/catalog');
+			}	
+		}
+		else
+		{
+			$items=array(); //list of deleted items
+			
+			foreach($id_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//exists
+				if ($survey)
+				{
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$items[]=$survey_name;
+				}	
+			}
+			
+			//ask for confirmation
+			$content=$this->load->view('catalog/publish_confirm', array('items'=>$items,'publish'=>$publish),true);
+			
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+		}		
+
 	}
 }
 /* End of file catalog.php */
