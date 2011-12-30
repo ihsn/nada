@@ -130,7 +130,7 @@ class Auth extends MY_Controller {
     function login() 
     {
 		$this->template->set_template('blank');
-		$this->template->add_css('themes/nada3/login.css');
+		$this->template->add_css(js_base_url().'/themes/nada3/login.css','import');
         $this->data['title'] = t("login");
 
         $destination=$this->session->userdata("destination");
