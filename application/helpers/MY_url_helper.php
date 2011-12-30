@@ -99,12 +99,70 @@ if ( ! function_exists('js_base_url'))
 	{
     	if (defined('JS_BASE_URL'))
         {
-        	return JS_BASE_URL;
+        	return force_proxy_ssl(JS_BASE_URL);
 		}
 		
-		return base_url();
+		return force_proxy_ssl(base_url());
 	}
 } 
+
+/**
+ * Anchor Link
+ *
+ * Creates an anchor based on the local URL.
+ *
+ * @access	public
+ * @param	string	the URL
+ * @param	string	the link title
+ * @param	mixed	any attributes
+ * @return	string
+ */
+if ( ! function_exists('anchor'))
+{
+	function anchor($uri = '', $title = '', $attributes = '')
+	{
+		$title = (string) $title;
+
+		if ( ! is_array($uri))
+		{
+			$site_url = ( ! preg_match('!^\w+://! i', $uri)) ? site_url($uri) : $uri;
+		}
+		else
+		{
+			$site_url = site_url($uri);
+		}
+
+		if ($title == '')
+		{
+			$title = $site_url;
+		}
+
+		if ($attributes != '')
+		{
+			$attributes = _parse_attributes($attributes);
+		}
+
+		$site_url=force_proxy_ssl($site_url);		
+		return '<a href="'.$site_url.'"'.$attributes.'>'.$title.'</a>';
+	}
+}
+
+	function force_proxy_ssl($site_url)
+	{
+		//check if proxy_ssl =TRUE
+		$CI =& get_instance();
+		if ($CI->config->item("proxy_ssl")===TRUE)
+		{
+			//Force SSL for URLs containing /auth/
+			if (strpos(current_url(),"/auth/")!==FALSE)
+			{
+				$site_url=str_replace("http:","https:",$site_url);
+			}
+		}
+		
+		return $site_url;
+	}
+
 
 /*
 if ( ! function_exists('sanitize_url'))
@@ -122,5 +180,7 @@ if ( ! function_exists('sanitize_url'))
 	}
 }
 */
+
+
 /* End of file MY_url_helper.php */
 /* Location: ./application/helpers/MY_url_helper.php */
