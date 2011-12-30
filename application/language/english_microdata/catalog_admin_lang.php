@@ -51,6 +51,11 @@ $lang['select_number_of_records_per_page'] = "Select number of records to show p
 $lang['study_already_exists'] = "The study already exists. Please select the overwrite option to replace the existing study.";
 $lang['invalid_ddi_file']="Invalid DDI file: ";
 $lang['nothing_to_process']="nothing_to_process";
-
+$lang['surveyid']='SurveyID';
+$lang['repositoryid']='Repo';
+$lang['study_owned']='Study is owned by current repository';
+$lang['publish_study']='Publish';
+$lang['unpublish_study']='Unpublish';
+$lang['transfer_ownership']='Transfer ownership';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

@@ -99,7 +99,8 @@ $lang['password_reset_to'] = "You password has been reset to <b>%s</b>. To login
 $lang['forgot_password_verification'] = "Forgotten Password Verification";
 $lang['account_activation'] = "Account activation";
 $lang['callback_country_invalid'] = "The Country field is required.";
-$lang['openid_url'] = "OpenID URL";
+$lang['log_in'] = "Log in";
+$lang['site_login_privacy_terms'] = "Information you provide by registering or login to our catalog will be used in compliance with the terms of the World Bank <a href=\"http://go.worldbank.org/FIKABS7U10\" target=\"_blank\">Privacy Policy</a>.";
 
 /* End of file users_lang.php */
 /* Location: ./system/language/english/users_lang.php */
