@@ -519,8 +519,15 @@ class CI_Template {
       $css = NULL;
       
       $this->CI->load->helper('url');
-      $filepath = $this->base_url . $style;
-      
+	  if (strpos($style,"http:")===FALSE || strpos($style,"https:") ===FALSE)
+	  {
+      	$filepath = $style;
+      }
+	  else
+	  {
+	 	 $filepath = $this->base_url . $style;
+	  }
+	  
       switch ($type)
       {
          case 'link':
