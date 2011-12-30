@@ -43,7 +43,8 @@ class Catalog_model extends CI_Model {
 					'ie_team_leaders',
 					'project_id',
 					'project_name',
-					'project_uri'
+					'project_uri',
+					'published'
 					);
 	
 	//additional filters on search
@@ -92,7 +93,7 @@ class Catalog_model extends CI_Model {
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin');
+							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin,published');
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
@@ -112,7 +113,7 @@ class Catalog_model extends CI_Model {
 		{		
 			if (in_array($sort_by, $this->study_fields) )
 			{
-				$this->db->order_by($sort_by, $sort_order); 
+				$this->db->order_by('surveys.'.$sort_by, $sort_order); 
 			}
 		}
 		else
@@ -1143,6 +1144,26 @@ END TO BE REMOVED
 		return $this->db->delete("survey_repos",$options);
 	}
 
+	/**
+	*
+	* publish/unpublish a study
+	**/
+	function publish_study($id,$publish)
+	{
+		if (!in_array($publish,array(0,1)))
+		{
+			$publish=1;
+		}
+	
+		$options=array(
+				'published'=>$publish
+		);
+		
+		$this->db->where('id',$id);	
+		return $this->db->update("surveys",$options);
+	}
+	
+	
 	
 	/**
 	*
