@@ -5,7 +5,7 @@
 </style>
 <div class="contributing-repos" style="padding:10px;">
 <div style="padding-bottom:30px;">
-<a title="Central Catalog" href="../index.php/catalog"><img style="float: left; display: block; margin-right: 10px;" src="files/logo-network.gif" alt="Central Catalog"></a>
+<a title="Central Catalog" href="<?php echo site_url();?>/catalog/central"><img style="float: left; display: block; margin-right: 10px;" src="files/logo-network.gif" alt="Central Catalog"></a>
 <h3 style="font-size:larger;font-weight:bold;"><a href="<?php echo site_url();?>/catalog/central">Central Microdata Catalog</a></h3>
 <p>
 The Central Microdata Catalog is a portal for all datasets held in catalogs maintained by the World Bank and a number of contributing external repositories. As of <?php echo date("F d, Y",date("U")); ?>, our central catalog contains <?php echo $survey_count;?> surveys. Users who wish to go directly to a specific catalog can visit the specific contributing repository through the links below.</p>
