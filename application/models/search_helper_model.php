@@ -352,6 +352,7 @@ class Search_helper_model extends CI_Model {
 		{
 			$sql.='	inner join survey_repos sr on sr.sid=surveys.id 
 					where sr.repositoryid='.$this->db->escape($repositoryid);
+			//$sql.=' and published=1';		
 		}		
 		$sql.=' group by nation';
 		$sql.=' order by nation ASC';
@@ -417,14 +418,16 @@ class Search_helper_model extends CI_Model {
 		{
 			$sql='select surveys.formid,forms.model  from surveys
 					inner join forms on forms.formid=surveys.formid
-				group by surveys.formid, forms.model;';
+				group by surveys.formid, forms.model
+				where surveys.published=1;';
 		}
 		else
 		{
-		$sql='select surveys.formid,forms.model  from surveys
+			$sql='select surveys.formid,forms.model  from surveys
 					inner join survey_repos on surveys.id=survey_repos.sid
 					inner join forms on forms.formid=surveys.formid
 					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
+					and surveys.published=1
 				group by surveys.formid, forms.model;';
 		}
 
