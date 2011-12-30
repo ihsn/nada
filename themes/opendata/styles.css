@@ -172,3 +172,6 @@ strong{font-weight:bold;}
 #breadcrumb a:hover{text-decoration:underline}
 
 .catalog-page-title{display:none;}
+
+ul.bullet1 {list-style:outside;}
+.bullet1 li{list-style:circle;}
