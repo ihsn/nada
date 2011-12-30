@@ -67,5 +67,13 @@ $lang['msg_studies_to_transfer']='Studies that will be changed';
 $lang['study_owned']='Owned study';
 $lang['study_linked']='Linked study';
 $lang['is_harvested_study']='Harvested study';
+$lang['surveyid']='SurveyID';
+$lang['repositoryid']='Repo';
+$lang['study_owned']='Study is owned by current repository';
+$lang['publish_study']='Publish';
+$lang['unpublish_study']='Unpublish';
+$lang['transfer_ownership']='Transfer ownership';
+
+
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
