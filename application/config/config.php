@@ -265,7 +265,7 @@ $config['encryption_key'] = "CzYs1979";
 |
 */
 $config['sess_cookie_name']		= 'anda';
-$config['sess_expiration']		= 3600;//1 hour
+$config['sess_expiration']		= 7200;//2 hours
 $config['sess_expire_on_close']	= FALSE;
 $config['sess_encrypt_cookie']	= TRUE;
 $config['sess_use_database']	= TRUE;
@@ -401,14 +401,19 @@ $config['date_format_long']='m/d/Y H:i';
 | Enable SSL for the site login, user registration, etc pages. You must have SSL
 | enabled on your server before using these settings.
 |
-|	enable_ssl	= TRUE/FALSE	whether to enable SSL or not
-|	http_port	=  port number application is using. e.g. if you are running website on a
+|	enable_ssl	= 	TRUE/FALSE	whether to enable SSL or not
+|	http_port	=  	port number application is using. e.g. if you are running website on a
 |					non-standard port e.g. http://localhost:81/nada, enter 81  	
+|	proxy_ssl	=	If SSL is managed by a proxy server and SSL is configured in MIXED MODE to have only fewer pages
+|					protected by SSL and proxy can't be configure to send additional headers to tell the application about the SSL,
+|					set the setting to TRUE. This is not a recommended setting and should be used only as 
+|					a workaround, the better solution is to configure proxy server to manage SSL for you.
+|	
 | 
 */
 $config['enable_ssl']=FALSE;
 $config['http_port']=80;
-
+$config['proxy_ssl']=TRUE;
 
 /*
 |--------------------------------------------------------------------------
