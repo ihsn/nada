@@ -159,6 +159,7 @@ class DDI_Import{
 			'project_id'=>substr(trim($data->project_id),0,254),
 			'project_name'=>substr(trim($data->project_name),0,254),
 			'project_uri'=>substr(trim($data->project_uri),0,254),
+			'published'=>0
 		);
 	
 		/*echo '<pre>';
