@@ -13,6 +13,11 @@ class Stats_model extends CI_Model {
 	*/	
 	function get_popular_surveys($limit=10,$start=NULL, $end=NULL)
 	{
+		if (!is_numeric($start) || !is_numeric($end))
+		{
+			$start=strtotime("-3 weeks");
+			$end=date("U");
+		}
 	
 		if (!is_numeric($limit))
 		{
@@ -70,7 +75,16 @@ class Stats_model extends CI_Model {
 	*/
 	function get_survey_count()
 	{
-		return $this->db->count_all('surveys');
+		$this->db->where('published',1);
+		$this->db->select('count(id) as total');
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			return $query['total'];
+		}
+		
+		return FALSE;
 	}
 
 	/**
@@ -78,8 +92,18 @@ class Stats_model extends CI_Model {
 	* Get total survey count
 	*/
 	function get_variable_count()
-	{
-		return $this->db->count_all('variables');
+	{		
+		$this->db->select('count(surveys.id) as total');
+		$this->db->join('variables v', 'surveys.id= v.surveyid_fk','inner');
+		$this->db->where('surveys.published',1);
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			return $query['total'];
+		}
+		
+		return FALSE;
 	}	
 
 	/**
