@@ -31,8 +31,8 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
 
 <tr valign="top">
 	<td style="width:400px;">
-        <div class='login-box' >
-        <h1>Log in</h1>
+        <div class="login-box">
+        <h1><?php echo t('log_in');?></h1>
         <form method="post" class="form" autocomplete="off">        
         <div class="pageTitleBorder"></div>
         
@@ -62,6 +62,8 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
                 <?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx"'); ?>
             </div>
         <?php echo form_close();?>
+        
+        <div class="privacy-info"><?php echo t('site_login_privacy_terms');?></div>
         </div>    
     </td>	
 </table>
