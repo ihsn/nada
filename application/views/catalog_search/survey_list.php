@@ -339,6 +339,6 @@
 	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
 </script>-->
 <?php else: ?>
-	<?php echo t('no_records_found');?>
+	<div><?php echo t('no_records_found');?></div>
 <?php endif; ?>
 <?php $this->load->view('tracker/tracker');?>
