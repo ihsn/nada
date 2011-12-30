@@ -25,3 +25,5 @@
 .icon {width:16px;height:16px;display:inline-block}
 .owned{background:url("bullet-green.gif") no-repeat;}
 .linked{background:url("../../images/link.png") no-repeat;}
+
+#surveys table th a.selected{background:none;border:none;color:black;}

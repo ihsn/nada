@@ -7,3 +7,5 @@ a:hover{color:#CC0000}
 a:visited{}
 
 h1.heading-with-border{border-bottom:1px solid gainsboro;}
+ul.bullet1 {list-style:outside;margin-left:20px;}
+.bullet1 li{list-style:disc;}
