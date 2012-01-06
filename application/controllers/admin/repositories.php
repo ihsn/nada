@@ -536,6 +536,7 @@ class Repositories extends MY_Controller {
 	**/
 	function select()
 	{
+		$this->lang->load('harvester');
 		$this->page_title=t('select_active_repository');
 		$data['repos']=$this->acl->user_repositories();
 		$content=$this->load->view('repositories/active_repo',$data,TRUE);
