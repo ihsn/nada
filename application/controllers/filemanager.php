@@ -11,10 +11,13 @@ class Filemanager extends MY_Controller {
 	
 	//allowed paths
     var $roots = array(
-        'app' => 'application',
-		'datasets' => '../nada2.1_data'//'../nada2.1_data/default/057e069438c3130490547d24687197d7/',
+        //'app' => 'application',
+		//'datasets' => '../nada2.1_data',
+		'files'=>'files',
+		'cache'=>'cache'
         );
-    
+
+	var $allowed_extensions=array('jpg','jpeg','gif','png');
 		
     function __construct()
     {
@@ -45,8 +48,8 @@ class Filemanager extends MY_Controller {
         
         // let's check if a virtual root matches
         if ( ! array_key_exists( $virtual_root, $this->roots )) {
-				echo 'not found';exit;
-			show_404();
+			echo 'not found';exit;
+			//show_404();
         }
 		
         // build absolute path
@@ -175,6 +178,17 @@ class Filemanager extends MY_Controller {
 		{
 		    if ($error == UPLOAD_ERR_OK) 
 			{
+				$filename=$_FILES["file"]['name'][$key];
+				$fileinfo=explode(".",$filename);
+				$ext=end($fileinfo);
+				
+				if (!in_array($ext,$this->allowed_extensions))
+				{
+					echo 'file ext not allowed';
+				}
+				
+				exit;
+				
 		        $tmp_name = $_FILES["file"]["tmp_name"][$key];
         		$name = $_FILES["file"]["name"][$key];
 				if (!file_exists("$absolute_path/$name"))
