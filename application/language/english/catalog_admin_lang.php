@@ -70,10 +70,18 @@ $lang['is_harvested_study']='Harvested study';
 $lang['surveyid']='SurveyID';
 $lang['repositoryid']='Repo';
 $lang['study_owned']='Study is owned by current repository';
-$lang['publish_study']='Publish';
-$lang['unpublish_study']='Unpublish';
+$lang['publish']='Publish';
+$lang['unpublish']='Unpublish';
+$lang['published']='Published';
+$lang['unpublished']='Unpublished';
 $lang['transfer_ownership']='Transfer ownership';
-
+$lang['copy_studies']='Copy studies';
+$lang['copy_studies_to']='Copy studies to';
+$lang['confirm_publish'] = "Confirm publish?";
+$lang['confirm_publish_records'] = "Are you sure you want to publish the selected studies?";
+$lang['confirm_unpublish'] = "Confirm unpublish?";
+$lang['confirm_unpublish_records'] = "Are you sure you want to unpublish the selected studies?";
+$lang['select_active_repository'] = "Select a repository";
 
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

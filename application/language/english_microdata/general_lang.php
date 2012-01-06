@@ -106,5 +106,7 @@ $lang['share_with_delicious'] = "Share with Delicious";
 $lang['study_home'] = "Home";
 $lang['captcha_answer_not_matched'] = "%s answer didn't match.";
 $lang['central_data_catalog']='Central Data Catalog';
+$lang['repositories'] = "Repositories";
+
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */
