@@ -10,14 +10,20 @@ $secondary_menu_formatted=FALSE;
 
 //active repo
 $active_repo=$this->session->userdata('active_repository');
+$active_repo_citation_count=0;
+
 if ($active_repo=='' || $active_repo=='central')
 {
 	$active_repo='central';
 	$active_repo_title=t('central_data_catalog'); 
+	$active_repo_citation_count=1;//always show citations tab for central
 }
 else
 {
 	$active_repo_title=$this->breadcrumb->get_repository_title($active_repo);
+	
+	//check if current repo has citations
+	$active_repo_citation_count=$this->Repository_model->has_citations($active_repo);
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
@@ -234,7 +240,7 @@ function toggle_global_nav(e){
                         <li class="ui-state-default ui-corner-top"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>/about">About</a></li>
                     <?php endif;?>
                     <li class="ui-state-default ui-corner-top <?php echo (in_array($this->uri->segment(1),$catalog_tabs) && $this->uri->segment(3)!=='about') ? 'ui-tabs-selected ui-state-active' : '';?>"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>">Datasets</a></li>
-                    <?php if ($this->config->item("hide_citations")!=='yes'):?>
+                    <?php if ($active_repo_citation_count>0):?>
                     <li class="ui-state-default ui-corner-top <?php echo ($this->uri->segment(1)=='citations') ? 'ui-tabs-selected ui-state-active' : '';?>"><a href="<?php echo site_url();?>/citations">Citations</a></li>
                     <?php endif;?>
                 </ul>
