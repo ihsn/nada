@@ -454,7 +454,7 @@ class Auth extends MY_Controller {
 			$this->db_logger->write_log('register',$this->input->post('email'));
 
 			//check to see if we are creating the user
-			$username  = strtolower($this->input->post('first_name')).' '.strtolower($this->input->post('last_name'));
+			$username  = $this->input->post('first_name').' '.$this->input->post('last_name');
         	$email     = $this->input->post('email');
         	$password  = $this->input->post('password');
         	
