@@ -358,6 +358,7 @@ class Catalog_search{
 		
 		//get total surveys in db
 		$this->ci->db->select('count(surveys.id) as rowsfound',FALSE);
+		$this->ci->db->where('published',1);
 		
 		if ($repository!='')
 		{			
