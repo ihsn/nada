@@ -176,19 +176,32 @@ class Page extends MY_Controller {
 		switch($page)
 		{
 			case 'home';
-				$this->load->model("stats_model");				
-				$data['title']='Microdata Library';
+				$this->load->library('cache');
+				$this->load->model("stats_model");
 				
-				//get stats
-				$data['survey_count']=$this->stats_model->get_survey_count();
-				$data['variable_count']=$this->stats_model->get_variable_count();
-				$data['citation_count']=$this->stats_model->get_citation_count();
+				//check if a cached copy of the page is available
+				$data= $this->cache->get( md5($page));
 				
-				//get top popular surveys
-				$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
-				
-				//get top n recent acquisitions
-				$data['latest_surveys']=$this->stats_model->get_latest_surveys(6);
+				//no cache found
+				if ($data===FALSE)
+				{						
+					$data['title']='Microdata Library';
+					
+					//get stats
+					$data['survey_count']=$this->stats_model->get_survey_count();
+					$data['variable_count']=$this->stats_model->get_variable_count();
+					$data['citation_count']=$this->stats_model->get_citation_count();
+					
+					//get top popular surveys
+					$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+					
+					//get top n recent acquisitions
+					$data['latest_surveys']=$this->stats_model->get_latest_surveys(6);
+					
+					//cache data
+					$this->cache->write($data, md5($page));
+				}
+	
 			break;
 
 			case 'microdata-catalogs';
@@ -200,8 +213,7 @@ class Page extends MY_Controller {
 				$data['title']='Microdata Catalog';
 				$data['survey_count']=$this->stats_model->get_survey_count();
 				
-				*/
-				
+				*/				
 			break;
 
 			case 'using-our-catalog';
