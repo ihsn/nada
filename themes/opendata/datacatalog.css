@@ -131,6 +131,7 @@ div.left {
 
 .da-legend img{vertical-align:bottom;border:1px solid gainsboro;}
 .da-legend span{margin-right:10px;color:gray;font-size:11px;}
+.da-legend label{font-size:11px;}
 
 .switch-page-size .btn{font-size:bold;}
 .switch-page-size .btn:hover{cursor:pointer;color:black;}
