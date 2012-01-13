@@ -73,7 +73,7 @@ Also note that many of the datasets are documented in languages other than Engli
 <p> Natural language searches are searches conducted using the language you would use in speaking to a person. For example:  <b>drinking water sources in rural areas.</b></p>
 <p>Boolean searching allows you to narrow, broaden, or limit a search by connecting search terms with Boolean operators such as AND, OR, and NOT. <b>Note:</b> these must be written in CAPS. Some examples of how to conduct searches using Boolean operators are shown below :</p>
 
-<br/>
+
 <a name="examples"></a><h3>Search Examples</h3>
 <ul class="bl">
 <li>Multiple keywords listed in a field separated by <strong>spaces</strong> will yield search results containing all studies that meet any of the typed criteria. A list of keywords will therefore be treated as an <strong>OR</strong> statement. For example: Listing <strong>gender age</strong> in the variable description will show all studies that have either gender or age in their variable description.<br><br></li>
@@ -121,7 +121,7 @@ Also note that many of the datasets are documented in languages other than Engli
 
 <div class="wb-box-sidebar">
   <div class="wb-box">
-  	<?php $url=$this->config->item("microdata_site_url");?>
+  	<?php $url=site_url();?>
   	<h3>Help topics</h3>
     <ul>
     	<li><a href="<?php echo $url;?>/using-our-catalog#country">Filtering by country</a></li>

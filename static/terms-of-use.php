@@ -1,4 +1,4 @@
-<h1>Terms of use</h1>
+<h1>Terms of Use</h1>
 <p>Data disseminated by the World Bank under its Open Data policy are provided under the <a href="http://data.worldbank.org/summary-terms-of-use" target="_blank">Open Data terms of use</a>. These terms of use apply to data provided through our <a href="http://data.worldbank.org/data-catalog" target="_blank">Data Catalog</a>. A number of concerns prevent the World Bank from providing similar unconditional and unrestricted access to microdata. </p>
 
 <ul class="bl"><li>Microdata are unit-level data obtained from sample surveys, censuses, and administrative systems. They provide information about characteristics of individual people or entities such as households, business enterprises, facilities, farms or even geographical areas such as villages or towns. One main concern is the need to protect, as far as possible, the privacy of the individual respondents that have provided the data. Much of the microdata have been collected under a mandate provided by different kinds of national statistical legislation, which contain requirements for data about individuals to be treated as confidential by anyone collecting and using such data.  Further, the microdata may be protected by copyright or other intellectual property protections under different intellectual property legislation. The Microdata Library adopts rules and procedures that are consistent with the type of legislation concerning this information around the world.</li>
@@ -22,7 +22,7 @@
                 <li class="ui-state-default ui-corner-top"><a href="#other">Other</a></li>
                 <li class="ui-state-default ui-corner-top"><a href="#no-access">No access</a></li>
             </ul>
-            <div id="direct" style="height:750px;">
+            <div id="direct">
 				<p><em>Direct access</em> is the least restrictive access policy. Relevant datasets and the related documentation are made freely available to  registered and unregistered users under the following basic conditions.</p>
 				<ul class="bl">
 				  <li>The data and other  materials provided by the Microdata Library will be used solely by the user, and shall not be redistributed or sold to other individuals, institutions, or  organizations without the prior written agreement of the Microdata Library or  the originating repository, and only subject to such conditions as may  accompany such consent. </li>
