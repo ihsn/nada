@@ -120,8 +120,11 @@ $lang['filter_by_data']="Filter by Data Access ";
 $lang['legend_na_access']="Data not available";
 $lang['repositories_internal']="World Bank Contributing Repositories";
 $lang['repositories_external']="External Contributing Repositories";
-$lang['central_data_catalog']="Central Microdata Catalog";
-$lang['visit_catalog']="Visit catalog";
+$lang['central_data_catalog']="Central Microdata Repository";
+$lang['data_catalogs']="Data Repositories";
+$lang['visit_catalog']="Search Repository";
+$lang['catalog_owned_by']="Repository";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english_microdata/catalog_search_lang.php */

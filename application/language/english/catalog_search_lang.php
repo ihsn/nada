@@ -123,5 +123,6 @@ $lang['repositories_external']="External Contributing Repositories";
 $lang['central_data_catalog']="Central Data Catalog";
 $lang['data_catalogs']="Data Catalogs";
 $lang['visit_catalog']="Visit catalog";
+$lang['catalog_owned_by']="Repository";
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

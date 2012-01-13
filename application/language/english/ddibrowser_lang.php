@@ -160,11 +160,11 @@ $lang['Content'] = "Content";
 $lang['title_analytical'] = "Analytical Outputs";
 $lang['Data Collectors']="Data Collectors";
 $lang['Time Periods']="Time Periods";
-$lang['variable_groups']="Variable groups";
+$lang['variable_groups']="Variable Groups";
 
 $lang['impact_evaluation']="Impact Evaluation";
 $lang['related_operations']="Related Operations";
-$lang['request_microdata'] = "Request microdata";
+$lang['request_microdata'] = "Request Microdata";
 $lang['download_metadata'] = "Metadata in XML";
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
