@@ -199,7 +199,7 @@ $(function() {
 		runtimes : 'gears,flash,silverlight,browserplus,html5',
 		url : '<?php echo site_url().'/admin/managefiles/'.$this->uri->segment(3).'/process_batch_uploads'; ?>',
 		max_file_size : '300mb',
-		chunk_size : '3mb',
+		chunk_size : '2mb',
 		unique_names : false,
 		multiple_queues:true,
 		multipart_params: { 'upload_folder': 'default', 'overwrite':0},
