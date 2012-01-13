@@ -159,7 +159,7 @@
                 <?php endif;?>
             </div>
             <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                <div class="sub-title">Catalog: <?php echo $row['repo_title'];?></div>
+                <div class="sub-title"><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
             <?php endif;?>
                             
 		</div>
