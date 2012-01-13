@@ -53,6 +53,7 @@ function pre_system_url_check()
 {
 	//load configurations
     include APPPATH.'config/config.php';
+	//$CI =& get_instance();
 	
 	if (!$config)
 	{
@@ -61,8 +62,19 @@ function pre_system_url_check()
 	
 	$http_port=(int)$config["http_port"];
 	$enable_ssl=(bool)$config["enable_ssl"];
-		
-	if (!$enable_ssl)
+	$proxy_ssl_header=$config["proxy_ssl_header"];
+	$proxy_ssl_header_value=$config["proxy_ssl_header_value"];
+	
+	/*
+	$test_port='80, 80';
+	if($_SERVER['HTTPS']=="on")
+	{
+		$test_port=$proxy_ssl_header_value;
+	}
+	$_SERVER[$proxy_ssl_header]=$test_port;//$proxy_ssl_header_value;
+	*/
+
+	if (!$enable_ssl && $proxy_ssl_header=='')
 	{
 		return FALSE;
 	}
@@ -77,7 +89,7 @@ function pre_system_url_check()
 	
 	$url="https://".$_SERVER['HTTP_HOST']._request_uri();
 
-	//build url for redirect
+	//build url for redirect to https page
 	$redirect= "https://".$_SERVER['HTTP_HOST']._request_uri();
 		
 	//remove http port
@@ -86,14 +98,38 @@ function pre_system_url_check()
 		$redirect=str_replace(':'.$http_port,'',$redirect);
 	}
 
-	//check server variable is set
-	if(!isset($_SERVER['HTTPS']))
-	{
-		return FALSE;
+	//if page is served using HTTPS
+	$is_https=FALSE;
+	
+	//check if using SSL/Proxy/Headers
+	if ($proxy_ssl_header!='' && $proxy_ssl_header_value!='')
+	{		
+		//see if the variable is set
+		if (isset($_SERVER[$proxy_ssl_header]))
+		{
+			if ($_SERVER[$proxy_ssl_header]==$proxy_ssl_header_value)
+			{
+				$is_https=TRUE;
+			}
+		}
+		else
+		{
+			//avoid redirect loop
+			return FALSE; 
+		}		
 	}
-				
-	//it is a http page
-	if($_SERVER['HTTPS']!=="on")
+	//check SSL using server HTTPS variablbe
+	else if (isset($_SERVER['HTTPS']))
+	{
+		if($_SERVER['HTTPS']=="on")
+		{
+			$is_https=TRUE;
+		}	
+	}
+
+	//var_dump($is_https);exit;
+	//page is not viewed using HTTPS
+	if($is_https===FALSE)
 	{	
 		//if url first segment has AUTH redirect to HTTPS		
 		if (current($segments)=='auth')
@@ -102,11 +138,11 @@ function pre_system_url_check()
 			header("Location:$redirect");
 		}		
 	}
-	else if($_SERVER['HTTPS']=="on")
+	//if non-ssl pages are viewed using HTTPS, force them to use http instead
+	else if($is_https===TRUE)
 	{
 		if (current($segments)!='auth')
 		{
-
 			if ($http_port!=80)
 			{
 				$http_port=':'.$http_port;
