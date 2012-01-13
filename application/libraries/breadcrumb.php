@@ -58,7 +58,7 @@ class Breadcrumb
 				case 'catalog':
 					
 					//for microdata.worldbank.org only
-					$breadcrumbs['microdata-catalogs']=t('Microdata catalogs');
+					//$breadcrumbs['microdata-catalogs']=t('Microdata catalogs');
 					
 					if ($repository_title)
 					{
@@ -226,7 +226,7 @@ class Breadcrumb
 				{
 					if (is_numeric($segments[2]))
 					{							
-						$breadcrumbs['citations/'.$segments[2]]=$this->get_citation($segments[2]);
+						$breadcrumbs['citations/'.$segments[2]]=substr($this->get_citation($segments[2]),0,70).'...';
 					}
 				}		
 			break;
