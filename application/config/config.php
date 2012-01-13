@@ -408,12 +408,18 @@ $config['date_format_long']='m/d/Y H:i';
 |					protected by SSL and proxy can't be configure to send additional headers to tell the application about the SSL,
 |					set the setting to TRUE. This is not a recommended setting and should be used only as 
 |					a workaround, the better solution is to configure proxy server to manage SSL for you.
-|	
+|
+|	proxy_ssl_header=	Name of the $_SERVER variable sent by the proxy server
+|	proxy_ssl_header_value=	Value that indicate page is served using SSL
+|
+|	NOTE: proxy_ssl and proxy_ssl_header are two different things and don't work together. and you must disable proxy_ssl setting to use proxy_ssl_header	
 | 
 */
 $config['enable_ssl']=FALSE;
 $config['http_port']=80;
-$config['proxy_ssl']=TRUE;
+$config['proxy_ssl']=FALSE;
+$config['proxy_ssl_header']='HTTP_X_FORWARDED_PROTO'; //$_SERVER variable name
+$config['proxy_ssl_header_value']='80, 443'; //$_SERVER variable value for SSL pages
 
 /*
 |--------------------------------------------------------------------------
