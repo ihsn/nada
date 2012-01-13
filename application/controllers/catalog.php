@@ -258,7 +258,7 @@ class Catalog extends MY_Controller {
 		}
 		else
 		{
-			$this->page_title=t('title_data_catalog');
+			$this->page_title=t('central_data_catalog');
 		}
 		
 		//show search form
