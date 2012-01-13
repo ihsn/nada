@@ -133,7 +133,7 @@
 <?php if ($abstract!=''):?>
 <tr valign="top">
 	<td><?php echo t('abstract');?></td>
-    <td><div "class="abstract"><?php echo nl2br($abstract);?></div></td>
+    <td><div class="abstract"><?php echo nl2br($abstract);?></div></td>
 </tr>
 <?php endif;?>
 <?php endif;?>
