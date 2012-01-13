@@ -111,6 +111,7 @@ height: 35px;
 font-size: 12px;
 background: url(sprite.png) 0px -170px repeat-x;
 color: white;
+overflow:hidden;
 }
 #footer-breadcrumb .limiter {
 line-height: 35px;
@@ -131,7 +132,7 @@ background: url(sprite.png) 100% -290px no-repeat;
 #footer-breadcrumb a:hover{text-decoration:underline;}
 #footer-breadcrumb .breadcrumb-sep, #footer-breadcrumb .breadcrumb-item{margin-left:10px;display:block;float:left;}
 #footer-breadcrumb .breadcrumb-sep{color:silver;font-weight:normal}
-
+#footer-breadcrumb .breadcrumb-last{background: transparent;}
 
 /* network footer */
 #footer-network .limiter {
