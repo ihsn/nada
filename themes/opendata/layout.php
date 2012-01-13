@@ -16,7 +16,7 @@ if ($active_repo=='' || $active_repo=='central')
 {
 	$active_repo='central';
 	$active_repo_title=t('central_data_catalog'); 
-	$active_repo_citation_count=1;//always show citations tab for central
+	$active_repo_citation_count=0;//always hide citations tab for central
 }
 else
 {
@@ -65,6 +65,11 @@ else
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
 
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/opendata.css" />
+
+<!--sharing toolbar-->
+<link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/wb-share.css" />
+<script src="themes/<?php echo $this->template->theme();?>/wb-share.js"></script>
+
 <!--[if lt IE 8]>
 <style type="text/css">
     .ui-tabs .ui-tabs-nav li{padding-bottom:4px;}
@@ -209,7 +214,7 @@ function toggle_global_nav(e){
                 	
                     <!--share-bar -->
                     <div id="page-tools">
-                    <?php include 'share.php';?>
+                    <?php include 'wb-share.php';?>
                     </div>
                 
                     <!--breadcrumbs -->
@@ -223,14 +228,15 @@ function toggle_global_nav(e){
                     <?php endif;?>
             
             <?php 
-				$tab_urls=array('microdata-catalogs','catalog','citations','xaccess_licensed');
-				$catalog_tabs=array('catalog','xaccess_licensed');
+				$tab_urls=array('microdata-catalogs','catalog','citations');
+				$catalog_tabs=array('catalog');
 			?>	
-			<?php if (in_array($this->uri->segment(1),$tab_urls)):?>
+			<?php if (in_array($this->uri->segment(1),$tab_urls)) :?>
 			<!-- tabs -->
             <h1><?php echo $active_repo_title;?></h1>
             <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
-            <div class="tab-heading">&nbsp;</div>
+            	<?php if ($active_repo!=='central'):?>
+                <div class="tab-heading">&nbsp;</div>
                 <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
                 	<?php if ($this->uri->segment(1)=='microdata-catalogs'):?>                    
 	                    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="<?php echo site_url();?>/catalog/<?php echo $active_repo;?>/about">About</a></li>
@@ -244,6 +250,7 @@ function toggle_global_nav(e){
                     <li class="ui-state-default ui-corner-top <?php echo ($this->uri->segment(1)=='citations') ? 'ui-tabs-selected ui-state-active' : '';?>"><a href="<?php echo site_url();?>/citations">Citations</a></li>
                     <?php endif;?>
                 </ul>
+                <?php endif;?>
                 <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
 					<!--breadcrumbs -->
 					<?php if (isset($breadcrumb) && $breadcrumb!==''):?>
@@ -276,12 +283,18 @@ function toggle_global_nav(e){
                 <div class="sidebar-nav">
 				<?php $microdata_url=site_url();?>
                     <ul>
-                    <li <?php echo ($this->uri->segment(1)=='home') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/home">Microdata Library</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='home') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/home">Microdata Home</a></li>                    
+                    <li <?php echo ($this->uri->segment(1)=='catalog') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/catalog/central">Central Microdata Repository</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='about') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/about">About</a></li>
+					<?php /* ?>
                     <li <?php echo (in_array($this->uri->segment(1),array('microdata-catalogs','catalog','citations'))) ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/microdata-catalogs">Microdata catalogs</a></li>
-                    <li <?php echo ($this->uri->segment(1)=='using-our-catalog') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/using-our-catalog">Using our catalog</a></li>
-                    <li <?php echo ($this->uri->segment(1)=='terms-of-use') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/terms-of-use">Terms of use</a></li>
-                    <li <?php echo ($this->uri->segment(1)=='practices-and-tools') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/practices-and-tools">Practices and tools</a></li>
-                    <li class="last <?php echo ($this->uri->segment(1)=='faqs') ? 'selected' : '';?>"><a href="<?php echo $microdata_url;?>/faqs">Frequently asked questions</a></li>                    
+					<?php */ ?>
+                    <?php /* ?>
+                    <li <?php echo ($this->uri->segment(1)=='using-our-catalog') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/using-our-catalog">Using our Library</a></li>
+					<?php */ ?>
+                    <li <?php echo ($this->uri->segment(1)=='terms-of-use') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/terms-of-use">Terms of Use</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='practices-and-tools') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/practices-and-tools">Practices & Tools</a></li>
+                    <li class="<?php echo ($this->uri->segment(1)=='faqs') ? 'selected' : '';?>"><a href="<?php echo $microdata_url;?>/faqs">Frequently Asked Questions</a></li>
                     </ul>
                 </div>
                 
@@ -305,15 +318,27 @@ function toggle_global_nav(e){
 	<!-- footer breadcrumb -->
 	<div id="footer-breadcrumb">
     	<div class="limiter">
-    		<span class="breadcrumb-link">You are here</span>
-            <span class="breadcrumb-item"><a href="http://data.worldbank.org/">Data</a></span>
-            <span class="breadcrumb-sep">/</span>
+    		<?php $breadcrumbs= $this->breadcrumb->to_array();?>            
+            <span class="breadcrumb-link">You are here</span>
+            <span class="breadcrumb-link"><a href="http://data.worldbank.org/">Data</a></span>
+            <span class="breadcrumb-link"><a href="http://microdata.worldbank.org" class="active">Microdata</a></span>
+            <?php if (count($breadcrumbs)==1):?>
+            <span class="breadcrumb-link breadcrumb-last"><?php echo $title;?></span>
+            <?php endif;?>
+			<?php /*
+			//using slash as a seperator	
+			<span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-item"><a href="http://microdata.worldbank.org" class="active">Microdata</a></span>
-            <?php $breadcrumbs= $this->breadcrumb->to_array();?>
+			*/ ?>
+                        
+            <?php $last_key=end(array_keys($breadcrumbs));?>
             <?php foreach($breadcrumbs as $link=>$title):?>
             	<?php if (strtolower($title)=="home"){continue;}?>
-                <span class="breadcrumb-sep">/</span>
-                <span class="breadcrumb-item"><a href="<?php echo site_url().'/'.$link;?>" class="active"><?php echo $title;?></a></span>
+                <?php if ($link==$last_key):?>
+                	<span class="breadcrumb-link breadcrumb-last"><a href="<?php echo site_url().'/'.$link;?>" class="active"><?php echo $title;?></a></span>
+                <?php else:?>
+                	<span class="breadcrumb-link"><a href="<?php echo site_url().'/'.$link;?>" class="active"><?php echo $title;?></a></span>
+                <?php endif;?>
             <?php endforeach;?>
         </div>
         <div class="toggle" id="glob-nav-toggle"><img src="themes/<?php echo $this->template->theme();?>/plus.png" alt="Collapse/Expand" title="Collapse / Expand navigation"/></div>
