@@ -284,9 +284,9 @@ class Ion_auth_model extends CI_Model
 	        $data = array('password' => $new);
 	        
 	        $this->db->where($this->ion_auth->_extra_where);
-	        $this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
+	        $result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
 	        
-	        return $this->db->affected_rows() == 1;
+	        return $result;
 	    }
 	    
 	    return FALSE;
