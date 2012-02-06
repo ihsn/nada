@@ -27,12 +27,14 @@ class Stats_model extends CI_Model {
 		$fields='s.id as id,
 				s.surveyid as surveyid, 
 				s.titl as titl,
-				s.nation as nation,
+				s.authenty as authenty,
+				s.nation,
 				count(*) as visits';
 				
 		$fields_group_by='s.id,
 				s.surveyid, 
 				s.titl,
+				s.authenty,
 				s.nation';
 				
 		$this->db->select($fields);
@@ -57,8 +59,9 @@ class Stats_model extends CI_Model {
 
 	function get_latest_surveys($limit=10)
 	{
-		$this->db->select("id,titl,nation");
-		$this->db->order_by("created", "desc"); 
+		$this->db->select("surveys.id,surveys.titl,surveys.nation,surveys.authenty,forms.model as form_model,surveys.created");
+		$this->db->join("forms", "surveys.formid=forms.formid","inner");
+		$this->db->order_by("surveys.created", "desc"); 
 		$this->db->limit($limit);
 		$query=$this->db->get("surveys");
 
