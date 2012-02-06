@@ -232,7 +232,44 @@ class Page extends MY_Controller {
 			break;
 			
 			case 'about';
-				$data['title']='About Microdata Library';
+				$data['title']='About the Microdata Library';
+			break;
+			
+			case 'contributing-catalogs';
+					$this->load->model("repository_model");
+					$this->lang->load('catalog_search');
+					$this->load->library('cache');
+					$this->load->model("stats_model");
+					
+					//check if a cached copy of the page is available
+					$data= $this->cache->get( $page.'_'.md5($page));
+				
+					//no cache found
+					if ($data===FALSE)
+					{						
+						//get stats
+						$data['title']='Contributing Catalogs';
+						$data['survey_count']=$this->stats_model->get_survey_count();
+						$data['variable_count']=$this->stats_model->get_variable_count();
+						$data['citation_count']=$this->stats_model->get_citation_count();
+						
+						//get top popular surveys
+						$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+						
+						//get top n recent acquisitions
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);
+						
+						
+						//cache data
+						$this->cache->write($data, $page.'_'.md5($page));
+					}
+
+					//reset any search options selected
+					$this->session->unset_userdata('search');
+					
+					//reset repository
+					$this->session->set_userdata('active_repository','central');	
+					
 			break;
 			
 			case 'home':			
@@ -241,9 +278,10 @@ class Page extends MY_Controller {
 					$this->lang->load('catalog_search');
 					$this->load->library('cache');
 					$this->load->model("stats_model");
+					$this->load->model("slideshow_model");
 				
 					//check if a cached copy of the page is available
-					$data= $this->cache->get( md5($page));
+					$data= $this->cache->get( 'home_'.md5($page));
 				
 					//no cache found
 					if ($data===FALSE)
@@ -258,10 +296,13 @@ class Page extends MY_Controller {
 						$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
 						
 						//get top n recent acquisitions
-						$data['latest_surveys']=$this->stats_model->get_latest_surveys(6);
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);
+						
+						//get slideshows
+						$data['slides']=$this->slideshow_model->get_slides();
 						
 						//cache data
-						$this->cache->write($data, md5($page));
+						$this->cache->write($data, 'home_'.md5($page));
 					}
 
 					//reset any search options selected
@@ -286,6 +327,20 @@ class Page extends MY_Controller {
 	
 	function _error_page()
 	{
+		
+		//check if url mapping is available for the url
+		$uri=$this->uri->uri_string();
+		
+		$this->db->where("source",$uri);
+		$result=$this->db->get("url_mappings")->row_array();
+		
+		if ($result)
+		{
+			$destination=$result["target"];
+			redirect($destination);
+			return;
+		}
+		
 		header('HTTP/1.0 404 Not Found');
 		$content=$this->load->view("404_page",NULL,TRUE);
 		$this->template->write('title', t('page not found'),true);
