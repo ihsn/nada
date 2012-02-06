@@ -107,7 +107,7 @@ $lang['study_meta_description']="The %s produced by the %s is listed in the Cata
 $lang['meta_description_catalog']="The data catalog lets you browse, search and download the study metadata and data. ";
 $lang['new_window']="Open in new window ";
 $lang['harvested_study_access_complete_metadata']="The information provided on this page was harvested from a contributing repository: <em>%s</em>.
-You may browse and download metadata from this page. To download related materials and access the data, <a href=&quot;%s&quot;>visit the survey page on the originating repository</a>. ";
+You may browse and download metadata from this page. To download related materials and access the data, <a target=\"_blank\" href=\"%s\">visit the survey page on the originating repository</a>. ";
 $lang['data']="Data";
 $lang['by']="By: ";
 $lang['data_direct_description']="Datasets and the related documentation are made available freely to users on the Bank's intranet. There is no need to be being logged into the application. ";
@@ -118,13 +118,21 @@ $lang['data_remote_description']="Related documentation is made freely available
 $lang['data_da_description']="Related documentation is made freely available to users on the Bank's intranet. The datasets are however not available for these studies. ";
 $lang['filter_by_data']="Filter by Data Access ";
 $lang['legend_na_access']="Data not available";
-$lang['repositories_internal']="World Bank Contributing Repositories";
-$lang['repositories_external']="External Contributing Repositories";
-$lang['central_data_catalog']="Central Microdata Repository";
+$lang['repositories_internal']="World Bank Contributing Catalogs";
+$lang['repositories_external']="External Contributing Catalogs";
+$lang['central_data_catalog']="Central Microdata Catalog";
 $lang['data_catalogs']="Data Repositories";
-$lang['visit_catalog']="Search Repository";
-$lang['catalog_owned_by']="Repository";
-
-
+$lang['visit_catalog']="Search Catalog";
+$lang['catalog_owned_by']="Catalog";
+$lang['legend_citations']="Citations of publications that used the study";
+$lang['search_no_results']="<p><strong>Your search did not match any studies held in the catalog.</strong></p>
+<p>Suggestions:</p>
+<ul>
+<li>Make sure all words are spelled correctly.</li>
+<li>Try different keywords.</li>
+<li>Try more general keywords.</li>
+<li>Try searching in the variable description field if you searched in the study description field.</li>
+</ul>
+";
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english_microdata/catalog_search_lang.php */

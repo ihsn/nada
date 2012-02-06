@@ -80,26 +80,18 @@ $lang['share']="Share";
 $lang['share_with_facebook']="Share with Facebook";
 $lang['share_with_twitter']="Share with Twitter";
 $lang['share_with_delicious']="Share with Delicious";
-$lang['share_with_linkedin']="Share with LinkedIn
-";
-$lang['share_with_digg']="Share with Digg
-";
-$lang['share_with_buzz']="Share with Google Buzz
-";
-$lang['share_with_stumpleupon']="Share with Stumbleupon
-";
+$lang['share_with_linkedin']="Share with LinkedIn";
+$lang['share_with_digg']="Share with Digg";
+$lang['share_with_buzz']="Share with Google Buzz";
+$lang['share_with_stumpleupon']="Share with Stumbleupon";
 $lang['study_home']="Home";
 $lang['captcha_answer_not_matched']="%s answer didn't match.";
 $lang['repositories']="Repositories";
-$lang['contributing_repositories']="Contributing repositories
-";
+$lang['contributing_repositories']="Contributing repositories";
 $lang['home']="Home";
-$lang['regional_catalogs']="Regional catalogs
-";
-$lang['specialized_catalogs']="Specialized catalogs
-";
+$lang['regional_catalogs']="Regional catalogs";
+$lang['specialized_catalogs']="Specialized catalogs";
 $lang['central_data_catalog']="Central Data Catalog";
-
 
 /* End of file general_lang.php */
 /* Location: ./application/language/english_microdata/general_lang.php */

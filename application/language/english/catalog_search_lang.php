@@ -124,5 +124,6 @@ $lang['central_data_catalog']="Central Data Catalog";
 $lang['data_catalogs']="Data Catalogs";
 $lang['visit_catalog']="Visit catalog";
 $lang['catalog_owned_by']="Repository";
+$lang['legend_citations']="Citations of publications that used the study";
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
