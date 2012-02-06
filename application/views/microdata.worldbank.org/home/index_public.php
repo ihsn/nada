@@ -1,5 +1,5 @@
 <style>
-.repo-table td{padding-top:10px;padding-bottom:10px;border-bottom:1px solid gainsboro;font-size:12px;line-height:140%;}
+.repo-table td{padding-top:10px;padding-bottom:0px;border-bottom:1px solid gainsboro;font-size:12px;line-height:140%;}
 .thumb{padding-right:10px;padding-bottom:5px;}
 .page-title{border-bottom:1px solid gainsboro;}
 
