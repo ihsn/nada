@@ -1,6 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class REST_Controller extends Controller
+class REST_Controller extends CI_Controller
 {
     // Set this in a controller to use a default format
     protected $rest_format = NULL;
@@ -27,7 +27,7 @@ class REST_Controller extends Controller
     // Constructor function
     function __construct()
     {
-        parent::Controller();
+        parent::__construct();
         
 	    // How is this request being made? POST, DELETE, GET, PUT?
 	    $this->_method = $this->_detect_method();
@@ -444,8 +444,7 @@ class REST_Controller extends Controller
 			else
 			{
 				// add single node.
-
-				$value = htmlentities($value, ENT_NOQUOTES, "UTF-8");
+				//$value = htmlentities($value, ENT_NOQUOTES, "UTF-8"); //commented out by M1
 
 				$UsedKeys[] = $key;
 
