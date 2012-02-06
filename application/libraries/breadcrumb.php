@@ -55,6 +55,15 @@ class Breadcrumb
 		
 		switch($segments[1])
 		{
+				case 'about':
+				case 'terms-of-use':
+				case 'contributing-catalogs':
+				case 'practices-and-tools':
+				case 'faqs':
+					$breadcrumbs[$segments[1]]=t($segments[1]);
+				break;
+				
+				
 				case 'catalog':
 					
 					//for microdata.worldbank.org only
