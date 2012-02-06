@@ -66,9 +66,11 @@ else
 
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/opendata.css" />
 
+<?php /*?>
 <!--sharing toolbar-->
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/wb-share.css" />
 <script src="themes/<?php echo $this->template->theme();?>/wb-share.js"></script>
+<?php */?>
 
 <!--[if lt IE 8]>
 <style type="text/css">
@@ -91,6 +93,7 @@ else
 
 <script type="text/javascript">
 function adjust_sidebar(){
+	return;
 	$("#sidebar-wrap").height("auto");
   if ($("#sidebar-wrap").height()<$("#yui-main").height()) {
   	$("#sidebar-wrap").height($("#yui-main").height());//fix sidebar height
@@ -100,17 +103,17 @@ function adjust_sidebar(){
 jQuery(function(){
 	$("#footer-glob-links").hide();
 	$("#glob-nav-toggle").click(function(e){toggle_global_nav();});
-	adjust_sidebar();
+	//adjust_sidebar();
 });
 
 $.ajax({
    complete: function(){
-	 adjust_sidebar();
+	 //adjust_sidebar();
    }
 });
  
 $(document).ajaxComplete(function() {
-adjust_sidebar();
+//adjust_sidebar();
 });
 
 //collapse/expand div
@@ -211,11 +214,13 @@ function toggle_global_nav(e){
             <!-- page contents -->	
             <div id="yui-main">            	
 				<div id="content" class="yui-b">
-                	
+                	&nbsp;
+                    <?php /*?>
                     <!--share-bar -->
                     <div id="page-tools">
                     <?php include 'wb-share.php';?>
                     </div>
+					<?php */?>
                 
                     <!--breadcrumbs -->
                     <?php if (count($this->breadcrumb->to_array())>1):?>
@@ -284,7 +289,8 @@ function toggle_global_nav(e){
 				<?php $microdata_url=site_url();?>
                     <ul>
                     <li <?php echo ($this->uri->segment(1)=='home') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/home">Microdata Home</a></li>                    
-                    <li <?php echo ($this->uri->segment(1)=='catalog') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/catalog/central">Central Microdata Repository</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='catalog') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/catalog/central">Central Microdata Catalog</a></li>
+                    <li <?php echo ($this->uri->segment(1)=='contributing-catalogs') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/contributing-catalogs">Contributing Catalogs</a></li>
                     <li <?php echo ($this->uri->segment(1)=='about') ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/about">About</a></li>
 					<?php /* ?>
                     <li <?php echo (in_array($this->uri->segment(1),array('microdata-catalogs','catalog','citations'))) ? 'class="selected"' : '';?>><a href="<?php echo $microdata_url;?>/microdata-catalogs">Microdata catalogs</a></li>
@@ -304,7 +310,7 @@ function toggle_global_nav(e){
                 
                 <div class="help-us">
                 <h3>Help us to help you</h3>
-                <p>The Microdata Library is a collaborative effort by data producers, curators, and users. The quality and completeness of the data and metadata we provide depend on their, and your contribution. There are various ways <a href="<?php echo $microdata_url; ?>/faqs#contribute">you can participate</a>.</p>
+                <p>The Microdata Library is a collaborative effort by data producers, curators, and users. The quality and completeness of the data and metadata we provide depend on their, and your contribution. There are various ways <a href="<?php echo $microdata_url; ?>/faqs#improve">you can participate</a>.</p>
                 </div>
             </div>
 			</div>            
@@ -485,6 +491,6 @@ function toggle_global_nav(e){
 
 </div>
 <div style="padding-bottom:100px;">&nbsp;</div>
-<?php //@include_once(APPPATH.'/../tracking.php');?>
+<?php $this->load->view("tracker/js_tracker");?>
 </body>
 </html>
