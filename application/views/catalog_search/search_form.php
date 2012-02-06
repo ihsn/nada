@@ -146,7 +146,8 @@ $this->template->add_js($script, $type = 'embed');
 <label title="<?php echo t('link_data_licensed_hover');?>" for="da_licensed"><img src="images/form_licensed.gif" /> <?php echo t('legend_data_licensed');?></label>
 <label title="<?php echo t('link_data_enclave_hover');?>" for="da_enclave"><img src="images/form_enclave.gif" /> <?php echo t('legend_data_enclave');?></label>
 <label title="<?php echo t('link_data_remote_hover');?>" for="da_remote"><img src="images/form_remote.gif" /> <?php echo t('legend_data_remote');?></label>
-<label title="<?php echo t('link_citations_hover');?>" for="citation"><img src="images/book_open.png" /> <?php echo t('citations');?></label>
+<br />
+<label title="<?php echo t('link_citations_hover');?>" for="citation"><img src="images/book_open.png" /> <?php echo t('legend_citations');?></label>
 </div>
 
 
