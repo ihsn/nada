@@ -38,8 +38,10 @@
             </div>            
 
             <div id="cataloging">
-                <p>The Library is cataloged, which supports data discovery, with users able to search for items by country, topic, variable and many other characteristics. For more information see the <a href="<?php echo $this->config->item("microdata_site_url");?>/using-our-catalog">Using our Catalog page</a>.</p>
-				<p>The catalog also includes a bibliography of publications that have used datasets in the catalog. The bibliography includes journal articles, books, book chapters, working papers, dissertations, conference papers and unpublished manuscripts. </p>
+                <p>Studies held by the Microdata Library are cataloged, presented and disseminated using an open source web application developed by the <a target="_blank" href="http://www.ihsn.org" > International Household Survey Network (IHSN)</a> and customized for use in the Microdata Library. The Microdata Library Catalog facilitates the discovery of studies, their data and their metadata, by providing users with the ability to browse or search for studies by title, country, topic, variable and many other characteristics. </p>
+				<p>The specialized web-based cataloging application adopted for use in the Microdata Library is the <a href="http://www.ihsn.org/nada" target="_blank">National Data Archive (NADA)</a>.  The NADA is a free and open source application developed by the IHSN and is designed for the cataloging and dissemination of survey, census or other microdata documented in compliance with <a href="http://www.ddialliance.org/" target="_blank">DDI</a> and <a href="http://dublincore.org/" target="_blank">Dublin Core metadata standards</a>.</p>
+				<p>Along with providing easily discoverable data and metadata for studies held in the Microdata Library the catalog also includes a bibliography of publications that have used datasets held in the Microdata Library. In many cases a link to the publication is provided.  The bibliography includes journal articles, books, book chapters, working papers, dissertations, conference papers and unpublished manuscripts. By providing this bibliography users are able to easily see what types of research or policy work have been conducted with a particular study. This may help to guide users as to the fitness of the data for use in their research area.</p>
+				
             </div>            
 
 			<!--
@@ -75,26 +77,29 @@
 
 <div class="box-item">
 <img src="files/wp.png"/>
-<h3><a href="http://ihsn.org/home/download.php?file=DDI_IHSN_Checklist_OD_06152007.pdf">Quick reference Guide for Data Archivists</a></h3>
+<h3><a title="PDF Document" target="_blank" href="http://ihsn.org/home/download.php?file=DDI_IHSN_Checklist_OD_06152007.pdf">Quick reference Guide for Data Archivists</a></h3>
 <div class="box-text">Recommendations for documenting datasets</div>
+<div class="box-text small"><a  target="_blank" title="PDF Document - Quick reference Guide for Data Archivists" href="http://ihsn.org/home/download.php?file=DDI_IHSN_Checklist_OD_06152007.pdf">[PDF 376KB]</a></div>
 </div>
 
 <div class="box-item">
 <img src="files/wp.png"/>
-<h3><a href="files/IHSN-WP005.pdf">Dissemination of Microdata Files</a></h3>
+<h3><a  target="_blank" title="PDF Document" href="files/IHSN-WP005.pdf">Dissemination of Microdata Files</a></h3>
 <div class="box-text">Formulation of microdata dissemination policies and protocols</div>
+<div class="box-text small"><a  target="_blank" title="PDF Document" href="files/IHSN-WP005.pdf">[PDF 1.8MB]</a></div>
 </div>
 
 <div class="box-item">
 <img src="files/wp.png"/>
-<h3><a href="files/IHSN-WP003.pdf">Preserving Data</a></h3>
+<h3><a title="PDF Document"  target="_blank" href="files/IHSN-WP003.pdf">Preserving Data</a></h3>
 <div class="box-text">Principles and standards of good practice as applied to data preservation.</div>
+<div class="box-text small"><a  target="_blank" title="PDF Document" href="files/IHSN-WP003.pdf">[PDF 1.3MB]</a></div>
 </div>
 
 </div>
 
 <div class="wb-box-sub">
-<img src="files/ddi-logo-tagline1.png"/>
+<a href="http://www.ddialliance.org/" target="_blank"><img src="files/ddi-logo-tagline1.png"/></a>
 </div>
 
 
@@ -103,7 +108,7 @@
 <script> 
 	$(function() {
 		$( "#tabs" ).tabs();
-		$("#tabs div.ui-tabs-panel").css('height', $("#acquisition").height()+200);
-		adjust_sidebar();
+		//$("#tabs div.ui-tabs-panel").css('height', $("#acquisition").height()+200);
+		//adjust_sidebar();
 	});
 	</script> 

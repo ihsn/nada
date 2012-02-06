@@ -12,13 +12,13 @@ dd {margin-left:20px;}
 
 <dl>
 
-<dt><a name="microdata">What do we mean by microdata?</a></dt>
+<dt id="microdata"><a name="microdata">What do we mean by microdata?</a></dt>
 <dd>
 	<p>Microdata are unit-level data obtained from sample surveys, censuses, and administrative systems. They provide information about characteristics of individual people or entities such as households, business enterprises, facilities, farms or even geographical areas such as villages or towns. They allow in-depth understanding of socio-economic issues by studying relationships and interactions among phenomena. Microdata are thus key to designing projects and formulating policies, targeting interventions and monitoring and measuring the impact and results of projects, interventions and policies.</p>
 </dd>
 
 
-<dt><a name="improve">How can I contribute to improving the catalog?</a></dt>
+<dt id="improve"><a name="improve">How can I contribute to improving the catalog?</a></dt>
 <dd>
 
 <ul class="bl">
@@ -42,7 +42,7 @@ dd {margin-left:20px;}
 <p>This is a work in progress. We have started adding citations of publications using our datasets to the LSMS datasets. We expect to extend this to all other surveys. We are working with the International Household Survey network ( IHSN)  who is leading the establishment of a central citations catalog. When ready, this will be made accessible through the IHSN website and through our own catalogs.</p>
 </dd>
 
-<dt><a name="analyze">Can you help with analyzing the data?</a></dt>
+<dt id="analyze"><a name="analyze">Can you help with analyzing the data?</a></dt>
 <dd>
 <p>No. We do not have the resources. Datasets are provided by many agencies and we do not have the staff with experience and expertise in each and every dataset. We make all metadata we have accessible to users. We are interested in feedback, but cannot provide technical support.</p>
 </dd>
@@ -64,7 +64,7 @@ dd {margin-left:20px;}
 
 <dt><a name="#">The catalog provides access to dataset in a specific file format. I would like to get the data in another format. Can you help?</a></dt>
 <dd>
-<p>In the catalogs maintained by the Microdata Library itself, data are provided in Stata and SPSS formats. If the demand justifies it, we may consider adding other formats.  Let us know about your preferences. Data provided by external catalogs are under their control. We will share with them feedback from users. We do not offer a service for data conversion. Software like StatTransfer, or the <a href="http://www.nesstar.com/software/publisher.html">Nesstar Publisher</a> (which is freeware) can be used to convert datasets into other formats.</p>
+<p>In the catalogs maintained by the Microdata Library itself, data are provided in Stata and SPSS formats. If the demand justifies it, we may consider adding other formats.  Let us know about your preferences. Data provided by external catalogs are under their control. We will share with them feedback from users. We do not offer a service for data conversion. Software like StatTransfer, or the <a  target="_blank" href="http://www.nesstar.com/software/publisher.html">Nesstar Publisher</a> (which is freeware) can be used to convert datasets into other formats.</p>
 </dd>
 
 <dt><a name="#">I need a more comprehensive list of surveys and censuses conducted in low and middle-income countries. Where can I find that?</a></dt>
@@ -102,7 +102,7 @@ dd {margin-left:20px;}
 <p>The Microdata Library application generates detailed information on visits (and more) to our websites. This information is shared with contributing repositories.</p>
 </dd>
 
-<dt><a name="tools">Can I get help in implementing a catalog in my agency?</a></dt>
+<dt id="tools"><a name="tools">Can I get help in implementing a catalog in my agency?</a></dt>
 <dd>
 <p>One of our key activities is technical support and capacity  building: supporting data producers in client countries and partner agencies in  adopting international good practices of curation and dissemination. </p>
 <p>We do this by developing and providing free open source software solutions to the community as well by developing and providing  documentation and training on good practice for data curation and  dissemination.</p>
@@ -116,4 +116,14 @@ $('dd').hide();//hide all on page load
 $('dt').click(function(e){
     $(this).nextUntil('dt').toggle();
 });
+
+$(function() {
+	//var int=self.setInterval("_expand()",1000);
+	_expand();
+});
+
+function _expand(){
+	var anchor_name=window.location.hash;
+	$(anchor_name).nextUntil('dt').show();	
+}
 </script>

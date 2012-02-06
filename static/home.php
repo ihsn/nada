@@ -5,12 +5,16 @@
       <div class="wb-box">
         <div id="slides" class="slide-show">
           <div class="slides_container">
-            <div>
-            	<a href="<?php echo site_url();?>/catalog/pets/about"><img src="files/pets-fp-02.jpeg" alt="Service Delivery Facility Surveys" /></a>
-                <h1><a href="<?php echo site_url();?>/catalog/pets/about">Featured Catalog: Service Delivery Facility Surveys</a></h1>
-                <p>The service facility survey catalog provides access to data along with accompanying survey documents from facility level surveys conducted by the World Bank. Service delivery surveys are tools to measure the effectiveness of basic services such as education, health, and water and sanitation... <a href="<?php echo site_url();?>/catalog/pets/about">Read More&raquo;</a></p>
-            </div>
-            
+          	<?php if (isset($slides)):?>
+            	<?php foreach($slides as $slide):?>
+                	<?php 
+						$text=str_replace("[site_url]",site_url(),$slide['text']);
+						$text=str_replace("[base_url]",base_url(),$text);
+						echo $text;	
+					?>
+                <?php endforeach;?>
+            <?php endif;?>
+            <!--
             <?php if (isset($popular_surveys) && is_array($popular_surveys)):?>
             <div>
               <h1>Most popular surveys in the last 30 days</h1>
@@ -31,13 +35,14 @@
               </ul>
             </div>
             <?php endif;?>
+            -->
           </div>
         </div>
       </div>
     </div>
 
 		<br style="clear:left;"/>
-
+			<!--
             <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabsx" style="width:590px;" >
                 <div id="tabs-central-catalog" class="ui-tabs-panel ui-widget-content ui-corner-bottom central-repo" style="position:relative;">
                     <div>
@@ -45,6 +50,24 @@
                         <h3><a href="<?php echo site_url();?>/catalog/central"><?php echo t('central_data_catalog');?></a></h3>
                         <p><a href="<?php echo site_url();?>/catalog/central">The <?php echo t('central_data_catalog');?> is a portal for all datasets held in repositories maintained by the World Bank and a number of contributing external repositories. </a></p>
                         <div style="margin-left:95px;"><a href="<?php echo site_url();?>/catalog/central"><img src="files/catalog-button.gif" alt="Search the Repository"/></a></div>
+                    </div>
+				</div>
+            </div>
+            -->
+            
+             <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabsx" style="width:590px;" >
+                <div id="tabs-central-catalog" class="ui-tabs-panel ui-widget-content ui-corner-bottom central-repo" style="position:relative;">
+                    <div>
+                        <h3><a href="<?php echo site_url();?>/catalog/central"><?php echo t('central_data_catalog');?></a></h3>
+                        <p>The <?php echo t('central_data_catalog');?> is a portal for all surveys and datasets held in catalogs maintained by the World Bank and a number of contributing external catalogs.</p>
+                        <form action="<?php echo site_url();?>/catalog">
+                         <div class="quick-search-box">
+                        	<input id="sk" size="14" style="outline:none;border:none;background:none;float:left;height:19px;FONT-SIZE:  11px; WIDTH: 220px; COLOR: #666;  padding:2px 5px 0px; FONT-FAMILY: Arial;margin:0px;" value="Search the Central Microdata Catalog" onfocus="value=''" name="sk">
+                        	<input id="quick-search" type="submit" value="" class="submit-button" />
+                        </div>
+                        <a style="float:left;display:block;margin-top:5px;" href="<?php echo site_url();?>/catalog/central">View all Surveys &raquo;</a>
+                        </form>
+                        
                     </div>
 				</div>
             </div>
@@ -57,17 +80,14 @@
                     <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-about">About</a></li>
                     <li class="ui-state-default ui-corner-top"><a href="<?php echo site_url();?>/catalog">Datasets</a></li>
                 </ul>
-			<?php */ ?>	
+			<?php */ ?>
                 <div id="tabs-about" class="ui-tabs-panel ui-widget-content ui-corner-bottom">
 					<?php                            
-                            //$data["survey_count"]=$this->Stats_model->get_survey_count();   
-                            //$data["variable_count"]=$this->Stats_model->get_variable_count();  
-                            //$data["citation_count"]=$this->Stats_model->get_citation_count();  
-                            $data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos                    
-                            $this->load->view("microdata.worldbank.org/home/index_public",$data);                    
-                    ?>		
-				</div>            
-
+                            $data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos
+                            //$this->load->view("microdata.worldbank.org/home/index_public",$data);
+							$this->load->view("catalog_search/recent_studies",array('rows'=>$latest_surveys));
+                    ?>
+				</div>
             </div>
 </div>
 
@@ -82,14 +102,14 @@
 	  <!--<div style="margin-top:3px;"><a href="index.php/catalog" title="visit central catalog"><img src="files/catalog-button.gif" alt=""/></a></div>-->
     </div>
   </div>
-  <div class="wb-box-sub">
+  <?php /*<div class="wb-box-sub">
     <h3>Related</h3>
     <ul>
       <li><a href="http://go.worldbank.org/BHEH82GTT0">Democratizing Development Economics</a></li>
       <li><a href="http://www.worldbank.org/open/">Open Development</a></li>
     </ul>
   </div>
-  
+  */?>
   <div class="wb-box-sub">
     <h3>FAQ's</h3>
     <ul>
@@ -118,10 +138,15 @@
 
 <script> 
 	$(function() {
-		//$( "#tabs" ).tabs();
-		//$("#tabs div.ui-tabs-panel").css('height', $("#tabs-rationale").height());		
-		adjust_sidebar();
+		//adjust_sidebar();
 		//disable hyperlinks
 		//$(".no-action a").click(function(){return false;});
+		
+		$("#quick-search").click(function(){
+			if ($("#sk").val()=="Search the Central Microdata Catalog")
+			{
+				$("#sk").val("");
+			}
+		});
 	});
 	</script> 

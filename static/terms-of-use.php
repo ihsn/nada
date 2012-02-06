@@ -19,7 +19,7 @@
                 <li class="ui-state-default ui-corner-top"><a href="#licensed">Licensed</a></li>
                 <li class="ui-state-default ui-corner-top"><a href="#data-enclave">Enclave</a></li>                
                 <li class="ui-state-default ui-corner-top"><a href="#external">External</a></li>
-                <li class="ui-state-default ui-corner-top"><a href="#other">Other</a></li>
+               <?php /* <li class="ui-state-default ui-corner-top"><a href="#other">Other</a></li> */?>
                 <li class="ui-state-default ui-corner-top"><a href="#no-access">No access</a></li>
             </ul>
             <div id="direct">
@@ -69,10 +69,11 @@
 				<p>The World Bank does not operate a data enclave (although Bank staff members, and researchers working with Bank staff under a Bank project, may be provided with access to datasets available to the Bank but not publicly disseminated).</p>
             </div>            
 
-            <div id="external" style="height:400px">
+            <div id="external" style="height:150px;" >
                 <p>The Microdata Library operates both as a data catalog for World Bank data and as a portal for external repositories. Datasets provided by external agencies are not owned or controlled by the Bank and have their own conditions of use. When a user accesses external repositories, these Terms and Conditions no longer apply, and the terms governing use of those external repositories shall govern access to their data.  The World Bank is not responsible in any way for the external repositories, their terms, or their collections.</p>
             </div>
 
+            <?php /*
             <div id="other">
                 <p>Other possible forms of access to microdata include remote job submission and remote access to microdata where users have no direct access to them. These may or may not be available for any individual item in the Microdata Library, and the World Bank has no obligation to make items available under these conditions.</p>
                 <h3>Job Submission</h3>
@@ -81,8 +82,8 @@
                 <p>This consists of providing users with access to web-based data tabulation and analysis software, with no possibility of users downloading datasets or generating tables that would reveal individual or small numbers of records. </p>
 				<p>The World Bank does not provide a Job Submission service. Some datasets may be accessible through a remote tabulation or analysis system. When this is the case, a link to such systems is provided. </p>
             </div>            
-            
-            <div id="no-access" style="height:400px">
+            */ ?>
+            <div id="no-access" style="height:150px;" >
                 <p>Some datasets have no access policy defined, or are not accessible. In some limited situations we may include a limited number of such datasets for the sake of completeness and for the purpose of providing access to questionnaires and reports.</p>
             </div>
 
@@ -95,6 +96,6 @@
 	$(function() {
 		$( "#tabs" ).tabs();
 		//$("#tabs div.ui-tabs-panel").css('height', $("#acquisition").height()+200);
-		adjust_sidebar();
+		//adjust_sidebar();
 	});
 </script>
