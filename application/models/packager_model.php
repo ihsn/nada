@@ -8,12 +8,18 @@ class Packager_model extends CI_Model {
     }
 
 	//returns all surveys
-	public function get_surveys()
+	public function get_surveys($surveyid_arr=NULL)
 	{
 		$fields='id,repositoryid,surveyid,titl,varcount,ddifilename,dirpath,link_technical, 
 				link_study, link_report, link_indicator, ddi_sh, formid, isshared, isdeleted, 
 				link_questionnaire, link_da';
 		$this->db->select($fields);
+		
+		if (is_array($surveyid_arr))
+		{
+			$this->db->where_in('surveyid',$surveyid_arr);
+		}
+		
 		return $this->db->get("surveys")->result_array();		
 	}
 	
@@ -64,6 +70,55 @@ class Packager_model extends CI_Model {
 		$this->db->where('id', $id);
 		return $this->db->update("surveys", $data);	
 	}
+
+
+	//update harvester_queue
+	public function update_harvester_queue($survey_obj)
+	{
+		//get survey id
+		$id=$this->study_exists($survey_obj->surveyid);
+		
+		if(!$id)
+		{
+			return FALSE;
+		}
+		
+		//get survey repository info
+		$repo=$this->get_survey_repository($survey_obj->surveyid);
+		
+		if(!$repo)
+		{
+			return FALSE;
+		}
+		
+		//data to be updated
+		$data['repositoryid']=$repo["repositoryid"];
+		$data['survey_url']=$repo["url"].'index.php/catalog/'.$survey_obj->id;
+		$data['status']='harvested';
+		$data['title']=$survey_obj->titl;
+		$data['accesspolicy']=$survey_obj->formid;
+		//$data['country']=$survey_obj->nation;
+		$data['surveyid']=$survey_obj->surveyid;
+		$data['survey_timestamp']=date("U");
+	
+		//delete existing
+		$this->db->where('surveyid', $survey_obj->surveyid);
+		$this->db->delete("harvester_queue");
+	
+		//insert
+		$this->db->where('surveyid', $survey_obj->surveyid);
+		return $this->db->insert("harvester_queue", $data);	
+	}	
+	
+	
+	//return repository by surveyid
+	public function get_survey_repository($surveyid)
+	{
+		$this->db->select("surveys.repositoryid,url");
+		$this->db->join('surveys', 'surveys.repositoryid= repositories.repositoryid','inner');		
+		$this->db->where("surveyid",$surveyid);
+		return $this->db->get("repositories")->row_array();
+	}
 	
 	
 	//import external resources
@@ -97,6 +152,96 @@ class Packager_model extends CI_Model {
 			$result=$this->db->insert('resources', $resource); 				
 		}
 	}
+
+	//delete external resources by surveyid
+	public function delete_resources($surveyid)
+	{
+		//check if survey exists
+		$id=$this->study_exists($surveyid);
+		
+		if (!$id)
+		{
+			return FALSE;
+		}
+		
+		//delete resources
+		$this->db->where('survey_id',$id);
+		$this->db->delete('resources'); 				
+	}
+
+
+	//import users and user meta info
+	public function import_users($users_arr)
+	{		
+		//validate resources
+		if (!is_array($users_arr) && !is_object($users_arr))
+		{
+			return FALSE;
+		}
+		
+		//import resources
+		foreach($users_arr as $user)
+		{
+			$user=(array)$user;
+			//remove columns not needed for insert
+			unset($user['id']);
+			
+			//reset user group to user
+			$user['group_id']=2;
+						
+			//check if user account already exists
+			$user_id=$this->user_exists($user['email']);
+			
+			if (!$user_id && isset($user['meta']))
+			{				
+				echo 'adding user '. $user['email'].'<br>';
+				
+				//store user meta in a local variable for later			
+				$user_meta=$user['meta'];
+				
+				//remove meta from array
+				unset($user['meta']);
+				
+				//insert user
+				$result=$this->db->insert('users', $user);
+				
+				if ($result)
+				{
+					echo '[success]<br/>';
+
+					//get user id to add user meta info
+					$user_id=$this->user_exists($user['email']);
+					
+					if ($user_id!==FALSE)
+					{
+						$user_meta=(array)$user_meta;
+						unset($user_meta['id']);
+						$user_meta['user_id']=$user_id;
+						$this->db->insert('meta',$user_meta);
+					}
+				}
+				else
+				{
+					echo $this->db->last_query();exit;
+				}
+			}
+		}//end-for-each
+	}
 	
+	//check if user exists
+	public function user_exists($email=NULL)
+	{
+		$this->db->select("id");
+		$this->db->where('email',$email);
+		$query=$this->db->get("users")->row_array();
+		
+		if ($query && count($query>0))
+		{
+			return $query['id'];
+		}
+		
+		return FALSE;
+	}
+		
 }
 ?>
