@@ -36,7 +36,7 @@ if ($this->config->item("proxy_ssl")===TRUE)
         <ul>                
             <li class="username"><?php echo $user; ?></li>
             <?php //if ($this->session->userdata('group_id')==1):?>
-            <?php if ($this->ion_auth->is_site_admin()): ?>
+            <?php if ($this->ion_auth->is_admin()): ?>
 	            <li><a href="<?php echo $site_url; ?>/admin"><?php echo t('site_administration');?></a></li>
             <?php endif;?>
             <li><a href="<?php echo $site_url; ?>/auth/profile"><?php echo t('profile');?></a></li>
