@@ -345,7 +345,7 @@ class Catalog extends MY_Controller {
 		if ( ! $this->upload->do_upload($key))
 		{
 			//failed
-			throw new Exception( $this->upload->display_errors() );
+			return FALSE;
 		}	
 		else
 		{
@@ -434,6 +434,114 @@ class Catalog extends MY_Controller {
 			$this->import();
 		}
 	}
+
+	/**
+	* Imports an uploaded DDI file or batch import
+	*
+	*/
+	function __replace_ddi()
+	{
+		//get uploaded file information
+		$data = array('upload_data' => $this->upload->data());									
+		$session_data=array('status'=>'uploaded', 'upload_data'=>$this->upload->data());
+		
+		//log to database
+		$this->db_logger->write_log('ddi-replace','success','catalog');
+		
+		$ddi_file=$session_data['upload_data']['full_path'];
+		
+		//load DDI Parser Library
+		$this->load->library('DDI_Parser');
+		$this->load->library('DDI_Import','','DDI_Import');
+
+		//set file for parsing
+		$this->ddi_parser->ddi_file=$ddi_file;
+		
+		//only available for xml_reader
+		$this->ddi_parser->use_xml_reader=TRUE;
+		
+		//validate DDI file
+		if ($this->ddi_parser->validate()===false)
+		{
+			//log import error
+			$error= t('invalid_ddi_file').' '.$ddi_file;
+			log_message('error', $error);
+
+			//log to database
+			$this->db_logger->write_log('ddi-import',$error,'catalog');
+
+			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
+
+			$this->session->set_flashdata('error', $error);
+			redirect('admin/catalog/replace','refresh');
+		}
+						
+		//parse ddi to array	
+		$data=$this->ddi_parser->parse();
+
+		//overwrite?
+		$overwrite=TRUE;
+		
+		//repository
+		$repositoryid="central";//$this->input->post("repositoryid");
+		
+		//validate if user has access to the selected repository
+		$user_repositories=$this->ion_auth->get_user_repositories();
+				
+		$user_repo_access=FALSE;
+		foreach($user_repositories as $repo)
+		{
+			if ($repo["repositoryid"]==$repositoryid)
+			{
+				$user_repo_access=TRUE;
+				break;
+			}
+		}
+		
+		if ($user_repo_access===FALSE)
+		{
+			show_error(t("REPO_ACCESS_DENIED"));
+		}
+		
+		//set the repository where the ddi will be uploaded to	
+		$this->DDI_Import->repository_identifier=$repositoryid;
+						
+		//import to db
+		$result=$this->DDI_Import->replace($data,$ddi_file,$target_survey_id=$this->uri->segment(4));
+
+		if ($result===TRUE)
+		{
+			//display import success 
+			$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
+			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
+			log_message('DEBUG', $success_msg);
+			
+			//log
+			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
+
+			$this->session->set_flashdata('message', $success);
+			
+			//delete uploaded file
+			unlink($ddi_file);
+		}
+		else
+		{
+			$failed_msg='FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
+			
+			//log
+			log_message('DEBUG', $failed_msg);
+			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');
+			
+			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
+			$this->session->set_flashdata('error', $import_failed);
+		}		
+
+		//remove session
+		$this->session->unset_userdata('ddi_progress');
+		redirect('admin/catalog/replace_ddi/'.$this->uri->segment(4),'refresh');
+	}
+
+
 
 	/**
 	* Imports an uploaded DDI file or batch import
@@ -1029,51 +1137,6 @@ class Catalog extends MY_Controller {
 		}		
 	}
 
-/*
-====================================================================================================
-TO BE REMOVED
-*/
-
-	/**
-	*
-	* Replace a DDI
-	*
-	**/
-	/*
-	function replace_ddi()
-	{
-		if ($this->input->post("source"))
-		{
-			$this->_replace_ddi($this->input->post("source"),$this->input->post("target"));
-		}
-
-		//$this->output->enable_profiler(TRUE);
-		//get a compact list of surveys
-		$surveys=$this->Catalog_model->select_all_compact();				
-		$content=$this->load->view('catalog/replace_ddi',array('surveys'=>$surveys),TRUE);
-		$this->template->write('content', $content,true);
-  		$this->template->render();
-	}
-	*/
-	
-	/**
-	* Replace source with the target
-	*
-	**/
-	/*
-	function _replace_ddi($source,$target)
-	{
-		$result=$this->Catalog_model->replace($source, $target);
-		
-		echo '<pre>';
-		print_r($result);
-		exit;
-	}
-	*/
-/*
-====================================================================================================
-END TO BE REMOVED
-*/
 
 
 	/**
@@ -1083,10 +1146,50 @@ END TO BE REMOVED
 	**/	
 	function replace_ddi($surveyid=NULL)
 	{
-		if ($this->input->post("source"))
+	
+		if (!is_numeric($surveyid))
 		{
-			//$this->_replace_ddi($this->input->post("source"),$this->input->post("target"));
+			show_error("ID_INVALID");
 		}
+		
+		//atleast one rule require for validation class to work
+		$this->form_validation->set_rules('target', t('study_to_replace'), 'trim|required|isnumeric');
+		
+		if ($this->form_validation->run() == TRUE)
+		{
+			//catalog folder path
+			$catalog_root=$this->config->item("catalog_root");
+			
+			if (!file_exists($catalog_root) )
+			{
+				show_error("CATALOG_ROOT_NOT_FOUND");
+			}		
+
+			//upload the ddi
+			$upload_result=$this->__upload_file($key='userfile',$destination=$catalog_root);
+
+			if (!$upload_result)
+			{
+				//get errors while uploading
+				$error = $this->upload->display_errors();
+				
+				//log to database
+				$this->db_logger->write_log('ddi-upload',$error,'catalog');
+	
+				//set error
+				$this->session->set_flashdata('error', $error);
+				
+				//redirect back to the upload page
+				redirect('admin/catalog/replace_ddi/'.$surveyid,'refresh');
+				
+				return FALSE;
+			}	
+			else //successful upload
+			{
+				$this->__replace_ddi();
+			}			
+		}
+
 		
 		//get a compact list of surveys
 		$surveys=$this->Catalog_model->select_all_compact();
@@ -1273,9 +1376,39 @@ END TO BE REMOVED
 		/*
 		$content=$this->load->view('catalog/study_unlink_confirm',array('result'=>$result),TRUE);
 		$this->template->write('content', $content,true);
-  		$this->template->render();*/
-		
+  		$this->template->render();*/		
 	}
+	
+	
+	/**
+	*
+	* Attach admin/reviewer note to a study
+	**/
+	function attach_note($sid,$type)
+	{
+		//$this->output->enable_profiler(TRUE);	
+		if (!is_numeric($sid))
+		{
+			show_404();
+		}
+		
+		$note=$this->input->post("note");
+		
+		$result=$this->Catalog_model->attach_note($sid,$note, $note_type=$type);
+		
+		if ($result)
+		{
+			$this->output
+    			->set_content_type('application/json')
+			    ->set_output(json_encode(array('success'=>"updated")));
+			return TRUE;	
+		}
+		
+			$this->output
+    			->set_content_type('application/json')
+			    ->set_output(json_encode(array('error'=>"failed")));
+	}
+	
 }
 /* End of file catalog.php */
 /* Location: ./controllers/admin/catalog.php */
