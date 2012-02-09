@@ -187,3 +187,36 @@ function share_ddi(e,surveyid)
 	url=CI.base_url+'/admin/catalog/shareddi/'+surveyid+'/'+share;
 	$.get(url);
 }
+
+function attach_note(sid,type)
+{
+	var note_text="";
+	if (type=="reviewer")
+	{
+		note_text=$("#reviewer_note_"+sid).val();	
+	}
+	else
+	{
+		note_text=$("#admin_note_"+sid).val();
+	}
+
+	$.ajax({
+		timeout:1000*120,
+		cache:false,
+        dataType: "json",
+		data:{ note: note_text},
+		type:'POST', 
+		url: CI.base_url+'/admin/catalog/attach_note/'+sid+'/'+type,
+		success: function(data) {
+			if (data.success){
+				alert(data.success);
+			}
+			else{
+				alert(data.error);
+			}
+		},
+		error: function(XHR, textStatus, thrownError) {
+			alert("Error occured " + XHR.status);
+		}
+	});	
+}
