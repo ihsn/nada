@@ -10,7 +10,7 @@ class Catalog_model extends CI_Model {
 	
 	//fields for the study description
 	var $study_fields=array(
-					'id',
+					'surveys.id',
 					'repositoryid',
 					'surveyid',
 					'titl',
@@ -98,6 +98,7 @@ class Catalog_model extends CI_Model {
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');		
 		$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 
 		//build search using the parameters passed to the GET/POST variables
 		$where=$this->_build_search_query();
@@ -112,7 +113,7 @@ class Catalog_model extends CI_Model {
 		{		
 			if (in_array($sort_by, $this->study_fields) )
 			{
-				$this->db->order_by($sort_by, $sort_order); 
+				$this->db->order_by('surveys.'.$sort_by, $sort_order); 
 			}
 		}
 		else
@@ -256,15 +257,20 @@ class Catalog_model extends CI_Model {
 		//form fields
 		$fields[]='forms.model as model';
 		
+		//notes
+		$fields[]='notes.admin_notes as admin_notes';
+		$fields[]='notes.reviewer_notes as reviewer_notes';
+		
 		//implode
 		$fields=implode(",",$fields);	
 		
 		$this->db->select($fields);
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 		
 		if (is_numeric($id))
 		{
-			$this->db->where('id', $id); 
+			$this->db->where('surveys.id', $id); 
 		}
 		else 
 		{	
@@ -550,10 +556,10 @@ class Catalog_model extends CI_Model {
 		$catalog_root=$this->config->item("catalog_root");
 		
 		//join to create full path
-		$survey_folder=$catalog_root.'/'.$survey_rel;
+		$survey_folder=unix_path($catalog_root.'/'.$survey_rel);
 		
-		$survey_folder=str_replace('\\','/',$survey_folder);
-		$survey_folder=str_replace('//','/',$survey_folder);
+		//$survey_folder=str_replace('\\','/',$survey_folder);
+		//$survey_folder=str_replace('//','/',$survey_folder);
 		
 		return $survey_folder;
 	}
@@ -1214,5 +1220,54 @@ END TO BE REMOVED
 		return FALSE;
 	}
 	
+	/**
+	*
+	* Attach an admin/reviewer note to a study
+	**/
+	function attach_note($sid,$note, $note_type="admin")
+	{
+		$options=array();
+		if ($note_type=="reviewer")
+		{
+			$options['reviewer_notes']=$note;
+		}
+		else
+		{
+			$options['admin_notes']=$note;
+		}
+
+		if ($this->note_exists($sid))
+		{
+			$this->db->where("sid",$sid);
+			return $this->db->update("survey_notes",$options);
+		}
+		else
+		{
+			$options['sid']=$sid;	
+			return $this->db->insert("survey_notes",$options);	
+		}
+		
+	}
+	
+	
+	/**
+	*
+	* Check if survey has a note attached
+	**/
+	function note_exists($sid)
+	{
+		$this->db->select("sid");
+		$this->db->where("sid",$sid);
+		$result=$this->db->get("survey_notes")->result_array();
+		
+		if ($result)
+		{
+			if (count($result)>0)
+			{
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
 }
 ?>
