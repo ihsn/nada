@@ -53,6 +53,25 @@ foreach($repo as $repo_row)
     	<td><?php echo t('folder');?></td>
         <td><?php echo $dirpath;?></td>
     </tr>
+	<?php if (isset($admin_notes)):?>
+	<tr valign="top" class="inline-edit">
+    	<td><?php echo t('admin_notes');?></td>
+        <td>
+        	<textarea rows="3" id="admin_note_<?php echo $id; ?>" style="width:100%;"><?php echo $admin_notes;?></textarea>
+            <a class="mini-button" href="#" onclick="attach_note(<?php echo $id;?>,'admin');return false;">Update</a>
+        </td>
+    </tr>
+    <?php endif;?>
+	<?php //if (isset($reviewer_notes)):?>
+	<tr valign="top" class="inline-edit alternate">
+    	<td><?php echo t('reviewer_notes');?></td>
+        <td>
+        	<textarea rows="3" id="reviewer_note_<?php echo $id; ?>" style="width:100%;"><?php echo isset($reviewer_notes) ? $reviewer_notes : '';?></textarea>
+            <a class="mini-button" href="#" onclick="attach_note(<?php echo $id;?>,'reviewer');return false;">Update</a>
+        </td>
+    </tr>
+    <?php //endif;?>
+
 </table>
 <div class="action-bar" >
 <span style="float:right;padding-right:10px;">
