@@ -787,5 +787,3 @@ if (class_exists('pear_error')) {
     }
 
 }
-
-?>
