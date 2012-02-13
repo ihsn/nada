@@ -33,7 +33,7 @@
 	$current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
 		
 	//current page url
-	$page_url=site_url().$this->uri->uri_string();
+	$page_url=site_url().'/'.$this->uri->uri_string();
 ?>
 
 <?php
@@ -81,6 +81,7 @@
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'survey_title',t('title'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('requested_by'),$page_url); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'status',t('status'),$page_url); ?></th>
@@ -89,11 +90,12 @@
         </tr>
 	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
-    	<?php $row=(object)$row;?>
+    	<?php $row=(object)$row; ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->survey_title; ?></a></td>
+            <td><?php echo $row->repositoryid;?></td>
+            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->nation .' - '. $row->survey_title.' - '.$row->data_coll_start; ?></a></td>
             <td><?php echo $row->username; ?>&nbsp;</td>
 			<td><?php echo t($row->status); ?></td>
 			<td nowrap="nowrap"><?php echo date("m-d-Y",$row->created); ?></td>
