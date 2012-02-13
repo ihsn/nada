@@ -345,7 +345,7 @@ class Catalog extends MY_Controller {
 		if ( ! $this->upload->do_upload($key))
 		{
 			//failed
-			return FALSE;
+			throw new Exception( $this->upload->display_errors() );
 		}	
 		else
 		{
@@ -441,11 +441,28 @@ class Catalog extends MY_Controller {
 	*/
 	function __replace_ddi()
 	{
+		//survey id
+		$survey_id=$this->uri->segment(4);
+				
+		if (!is_numeric($survey_id))
+		{
+			show_error("INVALID_SURVEY_PARAM");
+		}
+		
+		//get survey info
+		$survey=$this->Catalog_model->select_single($survey_id);
+				
+		if (!$survey)
+		{
+			show_error("SURVEY_NOT_FOUND");
+		}
+		
+		//get ddi path
+		$survey_ddi_path=$this->Catalog_model->get_survey_path_full($survey_id);
+		
 		//get uploaded file information
 		$data = array('upload_data' => $this->upload->data());									
 		$session_data=array('status'=>'uploaded', 'upload_data'=>$this->upload->data());
-		
-		//log to database
 		$this->db_logger->write_log('ddi-replace','success','catalog');
 		
 		$ddi_file=$session_data['upload_data']['full_path'];
@@ -456,8 +473,6 @@ class Catalog extends MY_Controller {
 
 		//set file for parsing
 		$this->ddi_parser->ddi_file=$ddi_file;
-		
-		//only available for xml_reader
 		$this->ddi_parser->use_xml_reader=TRUE;
 		
 		//validate DDI file
@@ -466,13 +481,10 @@ class Catalog extends MY_Controller {
 			//log import error
 			$error= t('invalid_ddi_file').' '.$ddi_file;
 			log_message('error', $error);
-
-			//log to database
 			$this->db_logger->write_log('ddi-import',$error,'catalog');
-
-			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
-
+			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);
 			$this->session->set_flashdata('error', $error);
+			
 			redirect('admin/catalog/replace','refresh');
 		}
 						
@@ -482,9 +494,19 @@ class Catalog extends MY_Controller {
 		//overwrite?
 		$overwrite=TRUE;
 		
-		//repository
-		$repositoryid="central";//$this->input->post("repositoryid");
+		//get repository ownership details for the study
+		$survey_repo_arr=$this->Catalog_model->get_repo_ownership($survey_id);
 		
+		//repository
+		$repositoryid="central";;
+		$repositoryid=$survey["repositoryid"];
+
+		/*if (count($survey_repo_arr)>0)
+		{
+			$repositoryid=$survey["repositoryid"];
+		}*/		
+		
+		/*		
 		//validate if user has access to the selected repository
 		$user_repositories=$this->ion_auth->get_user_repositories();
 				
@@ -502,12 +524,13 @@ class Catalog extends MY_Controller {
 		{
 			show_error(t("REPO_ACCESS_DENIED"));
 		}
+		*/
 		
 		//set the repository where the ddi will be uploaded to	
 		$this->DDI_Import->repository_identifier=$repositoryid;
 						
 		//import to db
-		$result=$this->DDI_Import->replace($data,$ddi_file,$target_survey_id=$this->uri->segment(4));
+		$result=$this->DDI_Import->replace($data,$ddi_file,$target_survey_id=$survey_id);
 
 		if ($result===TRUE)
 		{
@@ -515,30 +538,39 @@ class Catalog extends MY_Controller {
 			$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
 			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
 			log_message('DEBUG', $success_msg);
-			
-			//log
 			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
-
 			$this->session->set_flashdata('message', $success);
 			
 			//delete uploaded file
-			unlink($ddi_file);
+			@unlink($ddi_file);
+			
+			//remove old ddi file
+			@unlink($survey_ddi_path);
+			log_message('INFO', "removed old ddi file: ".$survey_ddi_path);
+			
+			//update survey info
+			$survey_options=array(
+						'id'=>$survey_id,
+						'published'=>$survey['published']
+						);
+			
+			$this->Catalog_model->update_survey_options($survey_options);
+			log_message('INFO', "updated survey options: ".$survey_ddi_path);
 		}
 		else
 		{
 			$failed_msg='FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
-			
-			//log
-			log_message('DEBUG', $failed_msg);
-			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');
-			
+			log_message('ERROR', $failed_msg);		
+			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');			
 			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
 			$this->session->set_flashdata('error', $import_failed);
 		}		
 
 		//remove session
 		$this->session->unset_userdata('ddi_progress');
-		redirect('admin/catalog/replace_ddi/'.$this->uri->segment(4),'refresh');
+		
+		//redirect
+		redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');
 	}
 
 
@@ -1409,6 +1441,153 @@ class Catalog extends MY_Controller {
 			    ->set_output(json_encode(array('error'=>"failed")));
 	}
 	
+
+	/**
+	*
+	* Publish/Unpublish studies
+	*
+	* $id single numeric value or a comma seperated list of IDs
+	**/
+	function publish($id,$publish=1)
+	{	
+		if (!in_array($publish,array(0,1)))
+		{
+			$publish=1;
+		}
+	
+		//array of id to be published
+		$id_arr=array();
+	
+		//is ajax call
+		$ajax=$this->input->get_post('ajax');
+
+		if (!is_numeric($id))
+		{
+			$tmp_arr=explode(",",$id);
+		
+			foreach($tmp_arr as $key=>$value)
+			{
+				if (is_numeric($value))
+				{
+					$id_arr[]=$value;
+				}
+			}
+			
+			if (count($id_arr)==0)
+			{
+				//for ajax return JSON output
+				if ($ajax!='')
+				{
+					echo json_encode(array('error'=>"invalid id was provided") );
+					exit;
+				}
+				
+				$this->session->set_flashdata('error', 'Invalid id was provided.');
+				redirect('admin/catalog');
+			}	
+		}		
+		else
+		{
+			$id_arr[]=$id;
+		}
+		
+		//test user has permissions
+		$is_owner=$this->ion_auth->is_study_owner($id);
+
+		if (!$is_owner)
+		{
+			show_error("MSG_USER_ACCESS_DENIED");
+		}
+		
+		if ($this->input->post('cancel')!='')
+		{
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				redirect($destination);
+			}
+			else
+			{
+				redirect('admin/catalog');
+			}	
+		}
+		else if ($this->input->post('submit')!='')
+		{
+			foreach($id_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//if exists
+				if ($survey)
+				{
+					//publish/unpublish a study
+					$result=$this->Catalog_model->publish_study($item,$publish);
+					
+					if ($result)
+					{
+						$this->session->set_flashdata('message', t('form_update_success'));
+					}
+					else
+					{
+						$this->session->set_flashdata('error', t('form_update_failed'));
+					}
+					
+					//log
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$this->db_logger->write_log('study-published',$survey_name,'catalog',$item);
+				}	
+			}
+
+			//for ajax calls, return output as JSON						
+			if ($ajax!='')
+			{
+				echo json_encode(array('success'=>"true") );
+				exit;
+			}
+						
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				//redirect($destination);
+			}
+			else
+			{
+				
+				redirect('admin/catalog');
+			}	
+		}
+		else
+		{
+			$items=array(); //list of deleted items
+			
+			foreach($id_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//exists
+				if ($survey)
+				{
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$items[]=$survey_name;
+				}	
+			}
+			
+			//ask for confirmation
+			$content=$this->load->view('catalog/publish_confirm', array('items'=>$items,'publish'=>$publish),true);
+			
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+		}		
+
+	}
+
+
 }
 /* End of file catalog.php */
 /* Location: ./controllers/admin/catalog.php */
