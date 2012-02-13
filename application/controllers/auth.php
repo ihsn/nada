@@ -130,7 +130,7 @@ class Auth extends MY_Controller {
     function login() 
     {
 		$this->template->set_template('blank');
-		$this->template->add_css('themes/nada3/login.css');
+		$this->template->add_css(js_base_url().'/themes/nada3/login.css','import');
         $this->data['title'] = t("login");
 
         $destination=$this->session->userdata("destination");
@@ -454,7 +454,7 @@ class Auth extends MY_Controller {
 			$this->db_logger->write_log('register',$this->input->post('email'));
 
 			//check to see if we are creating the user
-			$username  = strtolower($this->input->post('first_name')).' '.strtolower($this->input->post('last_name'));
+			$username  = $this->input->post('first_name').' '.$this->input->post('last_name');
         	$email     = $this->input->post('email');
         	$password  = $this->input->post('password');
         	
@@ -463,6 +463,8 @@ class Auth extends MY_Controller {
         							 'company'    => $this->input->post('company'),
         							 'phone'      => $this->input->post('phone1'),// .'-'. $this->input->post('phone2') .'-'. $this->input->post('phone3'),
 									 'country'      => $this->input->post('country'),
+									 'email'=>$email,
+									 'identity'=>$username
         							);
         	
         	//register the user
