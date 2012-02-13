@@ -186,18 +186,21 @@ class Ion_auth_model extends CI_Model
 	 * @author Mathew
 	 **/
 	public function activate($id, $code = false)
-	{	    
+	{	
+		$result=FALSE;
+			    
 	    if ($code != false) 
 	    {  
 		    $query = $this->db->select($this->identity_column)
 	        	->where('activation_code', $code)
 	        	->limit(1)
 	        	->get($this->tables['users']);
-	                	      
+
 			$result = $query->row();
-	        
+
 			if ($query->num_rows() !== 1)
 			{
+				log_message('error', "account activate failed: id=$id, code=$code");
 				return FALSE;
 			}
 		    
@@ -207,14 +210,15 @@ class Ion_auth_model extends CI_Model
 				'activation_code' => '',
 				'active'          => 1
 			);
-	        
+
 			$this->db->where($this->ion_auth->_extra_where);
-			$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
+			$result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
 	    }
 	    else 
 	    {
 			if (!$this->ion_auth->is_admin()) 
 			{
+				log_message('error', "account activation failed using is_admin: $id");
 				return false;
 			}
 
@@ -224,10 +228,10 @@ class Ion_auth_model extends CI_Model
 			);
 		   
 			$this->db->where($this->ion_auth->_extra_where);
-			$this->db->update($this->tables['users'], $data, array('id' => $id));
+			$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
 	    }
 		
-		return $this->db->affected_rows() == 1;
+		return $result;//$this->db->affected_rows() == 1;
 	}
 	
 	
@@ -253,9 +257,9 @@ class Ion_auth_model extends CI_Model
 		);
         
 		$this->db->where($this->ion_auth->_extra_where);
-		$this->db->update($this->tables['users'], $data, array('id' => $id));
-		
-		return $this->db->affected_rows() == 1;
+		$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
+		log_message('info', "delog_message('info' query: ".$this->db->last_query());
+		return $result;
 	}
 
 	/**
@@ -282,9 +286,9 @@ class Ion_auth_model extends CI_Model
 	        $data = array('password' => $new);
 	        
 	        $this->db->where($this->ion_auth->_extra_where);
-	        $this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
+	        $result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
 	        
-	        return $this->db->affected_rows() == 1;
+	        return $result;
 	    }
 	    
 	    return FALSE;
@@ -560,7 +564,7 @@ class Ion_auth_model extends CI_Model
 
 		$this->db->insert($this->tables['meta'], $data);
 		
-		return $this->db->affected_rows() > 0 ? $id : false;
+		return $id;
 	}
 	
 	/**
@@ -997,7 +1001,7 @@ class Ion_auth_model extends CI_Model
 	 * @return bool
 	 * @author Ben Edmunds
 	 **/
-	public function remember_user($id)
+	private function remember_user($id)
 	{
 		if (!$id) {
 			return FALSE;
