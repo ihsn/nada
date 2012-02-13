@@ -17,7 +17,7 @@ $this->template->add_js($script, $type = 'embed');
 ?>
 <table width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
 <tr valign="baseline">
-<td><h1><?php echo $this->page_title;?></h1></td>
+<td><h2><?php echo $this->page_title;?></h2></td>
 <td align="right">
 <div class="page-links">
 	<a id="link_export" title="<?php echo t('link_export_search');?>" href="<?php echo site_url();?>/catalog/export"><img src="images/export.gif" border="0" alt="Export"/></a>
@@ -146,6 +146,8 @@ $this->template->add_js($script, $type = 'embed');
 <label title="<?php echo t('link_data_licensed_hover');?>" for="da_licensed"><img src="images/form_licensed.gif" /> <?php echo t('legend_data_licensed');?></label>
 <label title="<?php echo t('link_data_enclave_hover');?>" for="da_enclave"><img src="images/form_enclave.gif" /> <?php echo t('legend_data_enclave');?></label>
 <label title="<?php echo t('link_data_remote_hover');?>" for="da_remote"><img src="images/form_remote.gif" /> <?php echo t('legend_data_remote');?></label>
+<br />
+<label title="<?php echo t('link_citations_hover');?>" for="citation"><img src="images/book_open.png" /> <?php echo t('legend_citations');?></label>
 </div>
 
 
