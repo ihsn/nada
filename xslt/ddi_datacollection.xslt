@@ -3,11 +3,11 @@
 Ths transform produces an HTML data collection output of a DDI 1/2.x XML document
 
 Author:	 IHSN
-Version: MAY 2010
+Version: DEC 2011
 Platform: XSL 1.0
 
 License: 
-	Copyright 2010 The World Bank
+	Copyright 2007-2011 The World Bank
 
     This program is free software; you can redistribute it and/or modify it under the terms of the
     GNU Lesser General Public License as published by the Free Software Foundation; either version
@@ -235,7 +235,7 @@ License:
 							<xsl:if test="@event='start'">
 								<tr align="left">		
 								<td><xsl:value-of select="@date"/></td>
-								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end' and position() > $position  and @cycle=$cycle]/@date"/></td>
+								<td><xsl:value-of select="//ddi:codeBook/ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end' and position() =$position+1]/@date"/></td>
 									<td>
 										<xsl:choose>
 											<xsl:when test="normalize-space(@cycle)">
@@ -245,7 +245,7 @@ License:
 										</xsl:choose>
 									</td>
 								</tr>
-								</xsl:if>
+							</xsl:if>
 						</xsl:for-each>
 						
 						<!-- no longer needed - prints all start/end dates with no cycle info
