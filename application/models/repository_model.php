@@ -657,5 +657,37 @@ class Repository_model extends CI_Model {
 		
 		return FALSE;
 	}
+	
+	
+	/**
+	*
+	* Checks if studies in the repository has citations
+	**/
+	function has_citations($repositoryid)
+	{
+		$this->load->library('cache');
+		
+		//check cache
+		$count= $this->cache->get( md5('repository-has-citations'.$repositoryid));
+		
+		//no cache found
+		if ($count===FALSE)
+		{					
+			$this->db->select('count(survey_repos.sid) as found');
+			$this->db->join('survey_repos', 'survey_repos.sid = survey_citations.sid','inner');
+			$this->db->where('survey_repos.repositoryid', $repositoryid); 
+			$query=$this->db->get("survey_citations")->row_array();
+			
+			if (count($query)>0)
+			{
+				$count=$query['found'];
+			}
+		
+			//write cache data
+			$this->cache->write($count, md5('repository-has-citations'.$repositoryid));
+		}
+			
+		return $count;
+	}
 }
 ?>
