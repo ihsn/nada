@@ -111,6 +111,9 @@ class Catalog_search{
 			$where_list[]=$repository;
 		}
 		
+		//show only publshed studies
+		$where_list[]='published=1';
+		
 		//create combined where clause
 		$where='';
 		
@@ -271,34 +274,26 @@ class Catalog_search{
 		
 		if ($variable!==FALSE)
 		{
-			//variable search
-			
+			//variable search			
 			$this->ci->db->select($study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
 			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+			$this->ci->db->where('surveys.published',1);
+			
 			if ($repository!='')
 			{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
+			
 			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, hq.survey_url');
-			
-			
-
-			//$sql=sprintf('SELECT %s from surveys s',$study_fields.', varcount, count(*) as var_found');
-			//$sql.=sprintf(" LEFT JOIN forms f on f.formid=s.formid \r\n");
-			//$sql.=" INNER JOIN variables v on s.id=v.surveyid_fk \r\n";
 			
 			if ($where!='') 
 			{
-				//$sql.=' WHERE '.$where;
 				$this->ci->db->where($where);
 			}
-
-			//group by
-			$sql.=" GROUP BY surveys.id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount \r\n";
 
 			//multi-sort
 			$sql_sorts=array();
@@ -324,6 +319,7 @@ class Catalog_search{
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+			$this->ci->db->where('surveys.published',1);
 			
 			if ($repository!='')
 			{
@@ -362,6 +358,7 @@ class Catalog_search{
 		
 		//get total surveys in db
 		$this->ci->db->select('count(surveys.id) as rowsfound',FALSE);
+		$this->ci->db->where('published',1);
 		
 		if ($repository!='')
 		{			
