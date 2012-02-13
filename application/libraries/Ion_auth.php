@@ -180,6 +180,13 @@ class Ion_auth
 			// Get user information
 			$profile = $this->ci->ion_auth_model->profile($email);
 
+			//profile not found
+			if (!$profile)
+			{
+				$this->set_error('forgot_password_unsuccessful');
+				return FALSE;
+			}
+			
 			$data = array('identity'                => $profile->{$this->ci->config->item('identity')},
 						  'forgotten_password_code' => $profile->forgotten_password_code
 						 );
@@ -836,6 +843,7 @@ class Ion_auth
 	*/
 	function is_site_admin()
 	{
+		
 		return TRUE;
 		
 		
