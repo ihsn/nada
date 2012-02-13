@@ -78,6 +78,7 @@ $(function() {
 		<li><a href="#tabs-2"><?php echo t('tab_process');?></a></li>
 		<li><a href="#tabs-3"><?php echo t('tab_communicate');?></a></li>
         <li><a href="#tabs-4"><?php echo t('tab_monitor');?></a></li>
+        <li><a href="#tabs-5"><?php echo t('forward_lic_request');?></a></li>
 	</ul>
 	<div id="tabs-1">
 		<?php $this->load->view('access_licensed/edit_request_view');?>	
@@ -151,4 +152,9 @@ $(function() {
 	<div id="tabs-4">
 		<?php echo $download_log;?>
 	</div>
+    
+	<div id="tabs-5">
+		<?php $this->load->view("access_licensed/forward_request");?>
+	</div>
+    
 </div>
