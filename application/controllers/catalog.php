@@ -246,7 +246,7 @@ class Catalog extends MY_Controller {
 		$min_year=$this->Search_helper_model->get_min_year();
 		$max_year=$this->Search_helper_model->get_max_year();
 
-		foreach (range($max_year,$min_year) as $year) 
+		foreach (range($max_year, $min_year) as $year) 
 		{
         	$data['years'][$year]=$year;
         }
@@ -258,7 +258,7 @@ class Catalog extends MY_Controller {
 		}
 		else
 		{
-			$this->page_title=t('title_data_catalog');
+			$this->page_title=t('central_data_catalog');
 		}
 		
 		//show search form
@@ -1248,11 +1248,6 @@ class Catalog extends MY_Controller {
 			//check if URI matches to a repository name 
 			if (in_array($method,$repositories))
 			{
-				if ($this->uri->segment(3)=='about')
-				{
-					$this->about_repository();return;
-				}
-				
 				//reset search options if visiting a different catalog
 				$sess_repo=get_post_sess('search',"repo");
 				
@@ -1281,6 +1276,12 @@ class Catalog extends MY_Controller {
 					//save active repository name in session
 					$this->session->set_userdata('active_repository',$method);		
 				}				
+
+				if ($this->uri->segment(3)=='about')
+				{
+					$this->about_repository();return;
+				}
+				
 				//load the default listing page
 				$this->index();
 			}
@@ -1294,15 +1295,22 @@ class Catalog extends MY_Controller {
 	function repositories()
 	{
 		$this->load->model("repository_model");
+		$this->lang->load('catalog_search');
 		
 		//reset any search options selected
 		$this->session->unset_userdata('search');
 		
-		//get a list of all repositories
-		$repo_arr=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);		
-		$content=$this->load->view("repositories/index_public",array('rows'=>$repo_arr),TRUE);		
+		//reset repository
+		$this->session->set_userdata('active_repository','central');	
 		
-		$this->template->write('title', t('home'),true);
+		$data["survey_count"]=$this->Stats_model->get_survey_count();   
+		//$data["variable_count"]=$this->Stats_model->get_variable_count();  
+		//$data["citation_count"]=$this->Stats_model->get_citation_count();  
+		$data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos
+
+		$content=$this->load->view("repositories/index_public",$data,TRUE);		
+
+		$this->template->write('title', t('data_catalogs'),true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
