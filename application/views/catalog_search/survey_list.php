@@ -159,7 +159,7 @@
                 <?php endif;?>
             </div>
             <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                <div class="sub-title">Catalog: <?php echo $row['repo_title'];?></div>
+                <div class="sub-title"><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
             <?php endif;?>
                             
 		</div>
@@ -293,7 +293,7 @@
 		<?php echo sprintf(t('showing_studies'),
             (($limit*$current_page)-$limit+1),
             ($limit*($current_page-1))+ count($rows),
-            $total);
+            $found);
 		?>
    </td>
     <td align="right">
@@ -339,6 +339,6 @@
 	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
 </script>-->
 <?php else: ?>
-	<?php echo t('no_records_found');?>
+	<div style="padding:10px;background:white;border:1px solid gainboro;margin-bottom:20px;"><?php echo t('search_no_results');?></div>
 <?php endif; ?>
 <?php $this->load->view('tracker/tracker');?>
