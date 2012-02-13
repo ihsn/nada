@@ -53,7 +53,7 @@ $options_datamatching=array(
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 
-<form style="padding:0px;margin:0px" name="orderform" id="orderform" method="post" action="<?php echo $_SERVER["PHP_SELF"] . '?'. $_SERVER["QUERY_STRING"] ?>">
+<form style="padding:0px;margin:0px" name="orderform" id="orderform" method="post" >
 
 	<input type="hidden" name="surveytitle" value="<?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?>" />
 	<input type="hidden" name="surveyid" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?>" />
