@@ -117,6 +117,12 @@ jQuery(document).ready(function(){
 			else if ($("#batch_actions").val()=="transfer"){
 				batch_transfer_ownership();
 			}
+			else if ($("#batch_actions").val()=="publish"){
+				batch_publish(1);
+			}
+			else if ($("#batch_actions").val()=="unpublish"){
+				batch_publish(0);
+			}
 		}
 	);
 	
@@ -179,6 +185,23 @@ function batch_transfer_ownership()
 	
 	window.location= CI.base_url+'/admin/catalog/transfer/'+selected;	
 }
+
+function batch_publish(publish)
+{
+	if ($('.chk:checked').length==0){
+		alert(i18n.no_item_selected);
+		return false;
+	}
+	selected='';
+	$('.chk:checked').each(function(){ 
+		if (selected!=''){selected+=',';}
+        selected+= this.value; 
+     });
+
+	window.location= CI.base_url+'/admin/catalog/publish/'+selected+'/'+publish;	
+}
+
+
 
 function share_ddi(e,surveyid)
 {
