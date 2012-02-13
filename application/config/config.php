@@ -401,14 +401,22 @@ $config['date_format_long']='m/d/Y H:i';
 | Enable SSL for the site login, user registration, etc pages. You must have SSL
 | enabled on your server before using these settings.
 |
-|	enable_ssl	= TRUE/FALSE	whether to enable SSL or not
-|	http_port	=  port number application is using. e.g. if you are running website on a
+|	enable_ssl	= 	TRUE/FALSE	whether to enable SSL or not
+|	http_port	=  	port number application is using. e.g. if you are running website on a
 |					non-standard port e.g. http://localhost:81/nada, enter 81  	
+
+|	proxy_ssl				=	TRUE/FALSE - use when the proxy server is managing SSL and SSL info is sent in an HTTP Header
+|	proxy_ssl_header		=	Name of the $_SERVER variable sent by the proxy server
+|	proxy_ssl_header_value	=	Value that indicate page is served using SSL
+|
+
 | 
 */
 $config['enable_ssl']=FALSE;
 $config['http_port']=80;
-
+$config['proxy_ssl']=FALSE;
+$config['proxy_ssl_header']='HTTP_X_FORWARDED_PROTO'; //$_SERVER variable name
+$config['proxy_ssl_header_value']='80, 443'; //$_SERVER variable value for SSL pages
 
 /*
 |--------------------------------------------------------------------------
