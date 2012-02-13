@@ -7,13 +7,12 @@ class Catalog extends REST_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->database();	
-		$this->load->model('menu_model');
+		//$this->load->database();	
+		//$this->load->model('menu_model');
 	}
 	
 	function search_get()
 	{
-
 		$params=array(
 				'study_keywords'	=>	$this->security->xss_clean($this->input->get("sk")),
 				'variable_keywords'	=>	$this->security->xss_clean($this->input->get("vk")),
@@ -65,8 +64,84 @@ class Catalog extends REST_Controller
 		$html=$this->DDI_Browser->get_access_policy_html($ddi_file);
 		$this->response($html, 200); 
 	}
+	
+	
+	/**
+	*
+	* Returns the most recent studies
+	*
+	* @country	string	filter by single country name
+	* @order	bit		order by date created 0=desc;1=asc
+	**/
+	function latest_get()
+	{
+		$country=$this->get("country");
+		$limit=(int)$this->get("limit");
+		
+		if (!$limit>0 && !$limit<=20 )
+		{
+			$limit=5;
+		}
+		
+		if ($country)
+		{
+			$this->db->where("nation",$country);
+		}
+		
+		$this->db->select("id,refno,titl,nation,authenty,created");
+		$this->db->where("published",1);
+		$this->db->limit($limit);
+		$this->db->order_by("created","desc");
+		
+		$query=$this->db->get("surveys");
+		$content=NULL;
+		
+		if ($query)
+		{
+			$content=$query->result_array();
+		}
+				
+		if (!$content)
+		{
+    		$content=array('error'=>'NO_RECORDS_FOUND');    	
+		}
+		else
+		{
+			foreach($content as $key=>$value)
+			{
+				$content[$key]['url']=site_url().'/catalog/'.$value['id'];
+				$content[$key]['created']=date("M-d-Y",$value["created"]);
+			}		
+		}
+		$this->response($content, 200); 
+	}
 
 
+	/**
+	*
+	* Returns all country names from db
+	*
+	**/
+	function countries_get()
+	{
+		$this->db->select("nation,count(*) as found");
+		$this->db->group_by("nation");
+		$query=$this->db->get("surveys");
+		$content=NULL;
+		
+		if ($query)
+		{
+			$content=$query->result_array();
+		}
+				
+		if (!$content)
+		{
+    		$content=array('error'=>'NO_RECORDS_FOUND');    	
+		}
+		$this->response($content, 200); 
+	}
+
+/*
 	function user_get()
     {
         if(!$this->get('id'))
@@ -129,7 +204,7 @@ class Catalog extends REST_Controller
             $this->response(array('error' => 'Couldn\'t find any users!'), 404);
         }
     }
-    
+  */  
 }
 
 ?>
