@@ -4,7 +4,7 @@
 .sort-links a{border-left:1px solid gainsboro;padding:0px 5px 0px 5px;display:inline-block;text-decoration:none;}
 .pagination{background-color:gainsboro;padding:5px;}
 .search-box{padding:4px;background-color:gainsboro;}
-.citation-row{padding:5px;margin-bottom:5px;border-bottom:1px dashed gainsboro;color:#333333; list-style-position:outside}
+.citation-row{padding:5px;margin-bottom:5px;border-bottom:1px dashed gainsboro;color:#333333; list-style-position:outside;margin-left:35px;}
 em{font-style:italic}
 
 .title {}
