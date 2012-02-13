@@ -125,6 +125,7 @@ class DDI_Import{
 		if ( !is_array($data) )
 		{
 			$this->errors[]='DDI_Import:: No data was provided for replace';
+			log_message('ERROR', 'DDI_Import:: No data was provided for replace');
 			return false;
 		}
 		
@@ -139,6 +140,7 @@ class DDI_Import{
 		{
 			$this->errors[]=t('study_already_exists')."{$this->ci->db->last_query()} ddi: {$this->ddi_array['study']['id']} source{$id} target {$target_survey_id} ";
 			$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');			
+			log_message('ERROR', 'ddi replace aborted: study already exists '.$id);
 			return FALSE;
 		}
 				
@@ -150,9 +152,10 @@ class DDI_Import{
 		$this->ci->db->update("surveys",$options);
 		
 		//$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');
+		log_message('INFO', 'DDI_Import: updated study file to new file');
 		
 		//import will replace the DDI with new metadata
-		$this->import($data,$ddi_file_path,$overwrite=TRUE);		
+		return $this->import($data,$ddi_file_path,$overwrite=TRUE);
 	}
 
 	/**
@@ -210,6 +213,8 @@ class DDI_Import{
 			'project_id'=>substr(trim($data->project_id),0,254),
 			'project_name'=>substr(trim($data->project_name),0,254),
 			'project_uri'=>substr(trim($data->project_uri),0,254),
+			'published'=>0,
+			'formid'=>6
 		);
 	
 		/*echo '<pre>';
@@ -246,6 +251,7 @@ class DDI_Import{
 			else
 			{
 				$this->errors[]='DB_ERROR: '.$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
+				log_message('ERROR', 'DDI_Import-DB_ERROR:: '.$this->ci->db->last_query());
 				return FALSE;
 			}
 		}
@@ -264,7 +270,7 @@ class DDI_Import{
 				$error.="\r\n".$this->ci->db->last_query();				
 						
 				//add to error log file	
-				log_message('error', $error);				
+				log_message('error', $error);
 				return FALSE;			
 		}
 
@@ -597,9 +603,9 @@ class DDI_Import{
 			}
 			
 			//copy the ddi file 			
-			if (!copy($ddi_source_path,$survey_file_path) ) 
+			if (!@copy($ddi_source_path,$survey_file_path) ) 
 			{
-				$this->errors[]= "File was not copied ". $survey_file_path;
+				$this->errors[]= "File was not copied source:$ddi_source_path, target:$survey_file_path";
 				return false;
 			}
 			else
