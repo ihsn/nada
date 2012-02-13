@@ -310,9 +310,6 @@ class Licensed_requests extends MY_Controller {
 			return;
 		}
 
-		//$to=explode(',',$this->input->post("to"));
-		//$cc=explode(',',$this->input->post("cc"));
-		
 		$this->load->library('email');
 		$this->email->clear();
 		$config['mailtype'] = "html";
@@ -320,7 +317,7 @@ class Licensed_requests extends MY_Controller {
 		$this->email->set_newline("\r\n");
 		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
 		$this->email->to($this->input->post("to"));
-		$this->email->bcc($this->input->post("bcc"));
+		$this->email->cc($this->input->post("cc"));
 		$this->email->subject($this->input->post("subject") );
 		$this->email->message($this->input->post("body"));
 		
@@ -332,7 +329,63 @@ class Licensed_requests extends MY_Controller {
 		{
 			echo '<div class="error">'.t('email_not_sent').'</div>';
 		}
-				
+	}
+	
+	
+	/**
+	*
+	* Forward licensed request
+	*
+	*/
+	function forward_request($requestid=NULL)
+	{
+		if (!is_numeric($requestid))
+		{
+			show_404();
+		}
+		
+		//get request from db
+		$request_data=$this->Licensed_model->get_request_by_id($requestid);
+		
+		if (!$request_data)
+		{
+			show_404("REQUEST_INVALID");
+		}
+		
+		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
+		$this->form_validation->set_rules('cc', t('cc'), 'trim|xss_clean');
+		$this->form_validation->set_rules('subject', t('subject'), 'trim|xss_clean|required');		
+		$this->form_validation->set_rules('body', t('body'), 'required|trim|xss_clean');		
+
+		//process form				
+		if ($this->form_validation->run() == FALSE)
+		{
+			echo '<div class="error">'.validation_errors().'</div>';
+			return;
+		}
+
+		//format request for email
+		$request_formatted=$this->load->view('access_licensed/forward_request_email',$request_data,TRUE);
+		
+		$this->load->library('email');
+		$this->email->clear();
+		$config['mailtype'] = "html";
+		$this->email->initialize($config);
+		$this->email->set_newline("\r\n");
+		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
+		$this->email->to($this->input->post("to"));
+		$this->email->cc($this->input->post("cc"));
+		$this->email->subject($this->input->post("subject") );
+		$this->email->message($request_formatted);
+		
+		if ($this->email->send())
+		{
+			echo '<div class="success">'.sprintf(t('email_sent'),$this->email->protocol).'</div>';
+		}
+		else
+		{
+			echo '<div class="error">'.t('email_not_sent').'</div>';
+		}
 	}
 
 	/**
@@ -385,8 +438,6 @@ class Licensed_requests extends MY_Controller {
 		$config['page_query_string'] = TRUE;
 		$config['additional_querystring']=get_querystring( array('keywords', 'field'));//pass any additional querystrings
 		$config['num_links'] = 1;
-		//$config['next_link'] = 'Next';		
-		//$config['prev_link'] = 'Prev';
 		$config['full_tag_open'] = '<span class="page-nums">' ;
 		$config['full_tag_close'] = '</span>';
 		
