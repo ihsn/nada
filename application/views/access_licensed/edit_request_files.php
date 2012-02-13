@@ -76,6 +76,16 @@
 			});
 	}
 	
+	function forward_mail(requestid){
+		$("#form_fw_lic_request_status").html('');
+		data=$("#form_fw_lic_request").serialize();
+		url=CI.base_url+'/admin/licensed_requests/forward_request/'+requestid;
+		$.post(url,data, 
+			function (data){
+				$("#form_fw_lic_request_status").html('<div>'+data+'</div>');
+			});
+	}
+	
 	$(function() {
 		$("#update-all").click(function () {
 			update_all_settings();return false;
