@@ -43,13 +43,15 @@ class Breadcrumb
 		
 		//find active repository
 		$active_repo=$this->ci->session->userdata('active_repository');
-		if ($active_repo=='')
+		if ($active_repo=='' || $active_repo=='central')
 		{
 			$active_repo='central';
+			$repository_title=t('central_data_catalog');
 		}
-		
-		//get repository title
-		$repository_title=$this->get_repository_title($active_repo);
+		else
+		{
+			$repository_title=$this->get_repository_title($active_repo);
+		}
 		
 		switch($segments[1])
 		{
@@ -61,7 +63,7 @@ class Breadcrumb
 					}
 					else
 					{
-						$breadcrumbs['catalog']=t('Data Catalog');
+						$breadcrumbs['catalog']=t('central_data_catalog');
 					}
 					
 					if (count($segments)>1)
@@ -88,7 +90,7 @@ class Breadcrumb
 							if ($segments[3]=='accesspolicy')
 							{
 								$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
-								$breadcrumbs['catalog/'.$segments[2].'/reports']=t('access_policy');
+								$breadcrumbs['catalog/'.$segments[2].'/accesspolicy']=t('access_policy');
 							}
 							
 							if ($segments[3]=='technicaldocuments')
@@ -221,7 +223,7 @@ class Breadcrumb
 				{
 					if (is_numeric($segments[2]))
 					{							
-						$breadcrumbs['citations/'.$segments[2]]=$this->get_citation($segments[2]);
+						$breadcrumbs['citations/'.$segments[2]]=substr($this->get_citation($segments[2]),0,70).'...';
 					}
 				}		
 			break;
