@@ -13,33 +13,43 @@ class Stats_model extends CI_Model {
 	*/	
 	function get_popular_surveys($limit=10,$start=NULL, $end=NULL)
 	{
+		if (!is_numeric($start) || !is_numeric($end))
+		{
+			$start=strtotime("-3 weeks");
+			$end=date("U");
+		}
 	
 		if (!is_numeric($limit))
 		{
 			$limit=10;
 		}
 		
-		$sql='SELECT 
-					s.id as id,
-					s.surveyid as surveyid, 
-					s.titl as titl,
-					s.nation as nation,
-					count(*) as visits					 
-			FROM sitelogs n
-				  inner join surveys s on n. surveyid=s.id
-			where logtype=\'survey\' ';
-			
+		$fields='s.id as id,
+				s.surveyid as surveyid, 
+				s.titl as titl,
+				s.authenty as authenty,
+				s.nation,
+				count(*) as visits';
+				
+		$fields_group_by='s.id,
+				s.surveyid, 
+				s.titl,
+				s.authenty,
+				s.nation';
+				
+		$this->db->select($fields);
+		$this->db->join('surveys s', 's.id= n.surveyid','inner');
+		$this->db->limit($limit);
+		$this->db->group_by($fields_group_by); 
+		$this->db->where('logtype','survey');
+
 		if (is_numeric($start) && is_numeric($end) ) 
 		{
-			$sql.='	and (logtime between '.$start.' and '.$end.')';
+			$this->db->where(' (logtime between '.$start.' and '.$end.')');
 		}
-
-		$sql.='	group by s.surveyid, s.titl, s.id';
-		$sql.= ' order by visits desc';			
-		$sql.= " limit $limit";
 		
-		$query=$this->db->query($sql);
-
+		$query=$this->db->get('sitelogs n');
+				
 		if ($query)
 		{
 			return $query->result_array();
@@ -49,8 +59,10 @@ class Stats_model extends CI_Model {
 
 	function get_latest_surveys($limit=10)
 	{
-		$this->db->select("id,titl,nation");
-		$this->db->order_by("created", "desc"); 
+		$this->db->select("surveys.id,surveys.titl,surveys.nation,surveys.authenty,forms.model as form_model,surveys.created");
+		$this->db->join("forms", "surveys.formid=forms.formid","inner");
+		$this->db->where("surveys.published", 1); 
+		$this->db->order_by("surveys.created", "desc"); 
 		$this->db->limit($limit);
 		$query=$this->db->get("surveys");
 
@@ -67,7 +79,16 @@ class Stats_model extends CI_Model {
 	*/
 	function get_survey_count()
 	{
-		return $this->db->count_all('surveys');
+		$this->db->where('published',1);
+		$this->db->select('count(id) as total');
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			return $query['total'];
+		}
+		
+		return FALSE;
 	}
 
 	/**
@@ -75,8 +96,18 @@ class Stats_model extends CI_Model {
 	* Get total survey count
 	*/
 	function get_variable_count()
-	{
-		return $this->db->count_all('variables');
+	{		
+		$this->db->select('count(surveys.id) as total');
+		$this->db->join('variables v', 'surveys.id= v.surveyid_fk','inner');
+		$this->db->where('surveys.published',1);
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			return $query['total'];
+		}
+		
+		return FALSE;
 	}	
 
 	/**
