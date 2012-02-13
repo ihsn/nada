@@ -110,5 +110,7 @@ $lang['MOREINFO'] = "More information is required";
 $lang['CANCELLED'] = "Cancelled";
 
 $lang['reason_login_licensed_access'] = "To request access to licensed datasets, please login to the website to continue.";
+
+$lang['forward_lic_request'] = "Forward request";
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
