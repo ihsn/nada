@@ -25,7 +25,7 @@ class Tracker //extends OmnitureMeasurement
 	{
 		log_message('debug', "Tracker Class Initialized.");
 		$this->ci =& get_instance();
-		
+		$this->ci->load->config('omniture');
 		//parent::__construct();
 	}
 
@@ -34,11 +34,21 @@ class Tracker //extends OmnitureMeasurement
 	{
 		//Instantiate instance
 		$s = new OmnitureMeasurement();
-		//Setup application config variables
-		$s->account = 'DEVWBTSTSAMP3';
+		
+		if (defined('ENVIRONMENT') && ENVIRONMENT=='production')
+		{		
+			//set s_account
+			$s->account = $this->ci->config->item("omniture_s_account_prod");
+		}
+		else
+		{
+			//dev account
+			$s->account = $this->ci->config->item("omniture_s_account_dev");
+		}	
+		
 		//$s->mobile = false;
 		
-		$s->pageName='DDP Microdata > ';
+		$s->pageName=$this->ci->config->item("omniture_pagename");
 		
 		$uri=strip_tags($_SERVER["REQUEST_URI"]);
 		$q_pos=strpos($uri,"?");
