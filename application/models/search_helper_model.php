@@ -244,6 +244,7 @@ class Search_helper_model extends CI_Model {
 	{
 		$this->db->select_min('data_coll_start','min_year');
 		$this->db->where('data_coll_start > 0'); 
+		$this->db->where('published',1); 
 		$result=$this->db->get('surveys')->row_array();
 		
 		if ($result)
@@ -262,6 +263,7 @@ class Search_helper_model extends CI_Model {
 	{
 		$this->db->select_max('data_coll_end','max_year');
 		$this->db->where('data_coll_end > 0'); 
+		$this->db->where('published',1); 
 		$result=$this->db->get('surveys')->row_array();
 		if ($result)
 		{
@@ -279,7 +281,7 @@ class Search_helper_model extends CI_Model {
 	{
 		//get start years
 		$sql='select data_coll_start from surveys
-				where data_coll_start>0
+				where data_coll_start>0 and published=1
 				group by data_coll_start;';
 		$result=$this->db->query($sql)->result_array();
 		
@@ -295,7 +297,7 @@ class Search_helper_model extends CI_Model {
 
 		//get end years
 		$sql='select data_coll_end from surveys
-				where data_coll_end>0
+				where data_coll_end>0 and published=1
 				group by data_coll_end;';
 				
 		$result=$this->db->query($sql)->result_array();
@@ -352,7 +354,12 @@ class Search_helper_model extends CI_Model {
 		{
 			$sql.='	inner join survey_repos sr on sr.sid=surveys.id 
 					where sr.repositoryid='.$this->db->escape($repositoryid);
-		}		
+			$sql.=' and published=1';
+		}
+		else
+		{
+			$sql.=' where published=1';
+		}
 		$sql.=' group by nation';
 		$sql.=' order by nation ASC';
 		return $this->db->query($sql)->result_array();		
@@ -415,16 +422,18 @@ class Search_helper_model extends CI_Model {
 	{
 		if ($repositoryid=='central' || trim($repositoryid)=='')
 		{
-			$sql='select surveys.formid,forms.model  from surveys
+			$sql='select surveys.formid,forms.model from surveys
 					inner join forms on forms.formid=surveys.formid
+					where surveys.published=1
 				group by surveys.formid, forms.model;';
 		}
 		else
 		{
-		$sql='select surveys.formid,forms.model  from surveys
+			$sql='select surveys.formid,forms.model from surveys
 					inner join survey_repos on surveys.id=survey_repos.sid
 					inner join forms on forms.formid=surveys.formid
 					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
+					and surveys.published=1
 				group by surveys.formid, forms.model;';
 		}
 
