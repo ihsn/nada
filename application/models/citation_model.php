@@ -73,6 +73,25 @@ class Citation_model extends CI_Model {
 		return $this->search_found_rows;
     }
 	
+	/**
+	*
+	* Return IDs for all citations
+	**/
+	function select_all_to_array()
+	{
+		$this->db->select("id");
+		//$this->db->limit(100);
+		$citations=$this->db->get("citations")->result_array();
+		
+		$output=array();
+		foreach($citations as $cit)
+		{
+			$output[]=$cit["id"];
+		}
+		
+		return $output;
+	}
+	
 	function select_single($id)
 	{	
 		$this->db->where('id', $id); 
@@ -595,6 +614,41 @@ class Citation_model extends CI_Model {
 		
 		return FALSE;
 	}
+
+	/**
+	*
+	* Return surveyid by codebook ID
+	*
+	* @codebookid_arr array of codebook IDs
+	**/
+	function get_surveyid_by_codebookid($codebookid_arr)
+	{
+		$this->db->select("id");
+		$this->db->where_in("surveyid",$codebookid_arr);
+		$result=$this->db->get("surveys")->result_array();
 		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[]=$row["id"];
+		}
+		
+		return $output;
+	}
+
+	/**
+	*
+	* Export citations to JSON format
+	*
+	**/
+	function export_to_json($citationid=NULL)
+	{
+		if (!is_numeric($citationid))
+		{
+		
+		}
+		
+		
+	}		
 }
 ?>
