@@ -28,6 +28,8 @@ label{font-weight:bold;}
         <option value="public-requests"><?php echo t('public_requests');?></option>
         <option value="study-statistics"><?php echo t('study_statistics');?></option>
         <option value="users-statistics"><?php echo t('users_statistics');?></option>
+        <option value="study-data-access"><?php echo t('studies_data_access');?></option>
+        <option value="broken-resources"><?php echo t('broken_resources');?></option>
     </select>
     <input type="submit" name="Submit" value="<?php echo t('submit');?>" onClick="do_report();return false;"/>
     
