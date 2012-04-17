@@ -92,7 +92,22 @@ class Logs extends MY_Controller {
 		return $rows;		
 	}
 	
-
+	
+	/**
+	* show file logs
+	**/
+	function file_logs($year=NULL,$month=NULL, $day=NULL)
+	{
+		$log_file='logs/log-'.date("Y-mm-dd",date("U")).'.php';
+		
+		if (is_numeric($year) && is_numeric($month) && is_numeric($day))
+		{
+			$log_file="logs/log-$year-$month-$day.php";
+		}
+		
+		$this->load->view("sitelogs/log_file",array('log_file'=>$log_file));
+		
+	}
 }
 
 /* End of file menu.php */
