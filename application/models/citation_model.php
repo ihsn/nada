@@ -643,12 +643,7 @@ class Citation_model extends CI_Model {
 	**/
 	function export_to_json($citationid=NULL)
 	{
-		if (!is_numeric($citationid))
-		{
-		
-		}
-		
-		
+		//todo
 	}		
 }
 ?>
