@@ -122,7 +122,9 @@ class DDP_Util extends MY_Controller {
 	//map survey to the q drive folder
 	function map_survey_folders()
 	{
-		//$this->db->query("truncate table tmp_survey_folder_mapping");
+		//empty temp table
+		$this->db->query("delete from tmp_survey_folder_mapping");
+		
 		$surveys=$this->_get_surveys();
 		foreach($surveys as $survey)
 		{
@@ -149,6 +151,12 @@ class DDP_Util extends MY_Controller {
 				'São_Tomé_and_Principe'=>'Sao_Tome_and_Principe',
 				'Venezuela,_RB'=>'Venezuela_RB',
 				'Bahamas,_The'=>'Bahamas_The',
+				'Macedonia,_FYR'=>'macedonia_FYR',
+				'St._Kitts_and_Nevis'=>'St_Kitts_and_Nevis',
+				'St._Vincent_and_the_Grenadines'=>'St_Vincent_and_the_Grenadines',
+				'Africa'=>'afr_region',
+				'Serbia and Montenegro'=>'Serbia_and_Montenegro',
+				'Serbia_and_Montenegro'=>'Serbia_and_Montenegro'
 		);
 		
 		
@@ -280,15 +288,25 @@ class DDP_Util extends MY_Controller {
 	
 	function sync_all()
 	{
+		echo "started";
 		//map_survey_folders(); //call this method to build the mappings
 		$this->db->select("*");
 		//$this->db->limit(3);
-		$this->db->where("sid > ",309);
+		//$this->db->where("sid > ",309);
 		$surveys=$this->db->get("tmp_survey_folder_mapping")->result_array();
 		$this->log_file_name='sync-log-'.date("U").'.txt';
 		
+		
+		$total=count($surveys);	
+		echo "total studies found:".count($surveys);
+
+		
+		$k=0;
 		foreach($surveys as $survey)
 		{
+			$k++;
+			echo "\r\n processing $k - $total";
+			echo "\r\n processing ".$survey['id']."\r\n";
 			$this->sync_study($survey['sid'],$survey['remotepath']);
 			set_time_limit(0);
 		}
@@ -312,11 +330,11 @@ class DDP_Util extends MY_Controller {
 			$this->log_file_name='sync-log-'.date("U").'.txt';
 		}
 				
-		$this->_write_log($this->log_file_name,$message_type="INFO",$message="################### Processing Survey ".$surveyid." ###########################");
+		$this->_write_log($this->log_file_name,$message_type="INFO",$message="################### Processing Survey \t".$surveyid." ###########################");
 		
 		if (!$survey)
 		{
-			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="SURVEY ID NOT FOUND: ".$surveyid);
+			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="SURVEY ID NOT FOUND: \t".$surveyid);
 			return false;
 		}
 				
@@ -332,7 +350,7 @@ class DDP_Util extends MY_Controller {
 		//check survey source folder exists
 		if (!file_exists($survey_source_path))
 		{
-			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="SOURCE_FOLDER_NOT_FOUND".$survey_source_path);
+			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="SOURCE_FOLDER_NOT_FOUND \t".$survey_source_path);
 			return FALSE;
 		}
 		
@@ -342,7 +360,7 @@ class DDP_Util extends MY_Controller {
 		//RDF Found
 		if (!file_exists($rdf_path))
 		{
-			$this->_write_log($this->log_file_name,$message_type="ERROR",$message='RDF_NOT_FOUND'.$rdf_path);
+			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF_NOT_FOUND \t".$rdf_path);
 			return FALSE;
 		}
 		
@@ -377,18 +395,18 @@ class DDP_Util extends MY_Controller {
 		//check RDF
 		if (count($resources)==0)
 		{
-			$this->_write_log($this->log_file_name,$message_type="ERROR",$message='RDF_EMPTY: '.$survey_source_path);
+			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF_EMPTY: \t".$survey_source_path);
 			return FALSE;
 		}
 		
 		//remove existing resources from DB
 		$this->_remove_resources($surveyid);
-		$this->_write_log($this->log_file_name,$message_type="INFO",$message='EMPTY_RDF_FROM_DB:'.$surveyid);
+		$this->_write_log($this->log_file_name,$message_type="INFO",$message="EMPTY_RDF_FROM_DB: \t".$surveyid);
 		
 		//process each resource
 		foreach($resources as $resource)
 		{
-			echo $resource['filename'].'<BR>'."\r\n";
+			//echo $resource['filename'].'<BR>'."\r\n";
 
 			//check if it is not a URL
 			if (!is_url($resource['filename']))
@@ -414,8 +432,8 @@ class DDP_Util extends MY_Controller {
 				//copy file if set to TRUE
 				$make_copy=FALSE;
 				
-				echo 'SOURCE:'.$resource_file_path_source.'<BR>'."\r\n";
-				echo 'TARGET:'.$resource_file_path_target.'<BR>'."\r\n";
+				//echo 'SOURCE:'.$resource_file_path_source.'<BR>'."\r\n";
+				//echo 'TARGET:'.$resource_file_path_target.'<BR>'."\r\n";
 				
 				//copy resource file (if newer/changed)
 				if (file_exists($resource_file_path_source))
@@ -433,8 +451,8 @@ class DDP_Util extends MY_Controller {
 				}
 				else
 				{
-					echo "#################### SOURCE FILE NOT FOUND #####################<BR>"."\r\n";
-					$this->_write_log($this->log_file_name,$message_type="ERROR",$message='RDF Source file not found: '.$resource_file_path_source);
+					//echo "#################### SOURCE FILE NOT FOUND #####################<BR>"."\r\n";
+					$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF Source file not found: \t".$resource_file_path_source);
 				}
 				
 				//copy file
@@ -442,16 +460,16 @@ class DDP_Util extends MY_Controller {
 				{
 					//echo 'copying  '.$resource_file_path_source.'<BR>';
 					$file_copied=@copy($resource_file_path_source,$resource_file_path_target);				
-					$this->_write_log($this->log_file_name,$message_type="INFO",$message='Copying RDF from: '.$resource_file_path_source. ' to: '.$resource_file_path_target);
+					$this->_write_log($this->log_file_name,$message_type="INFO",$message="Copying RDF from: \t".$resource_file_path_source. ' to: '.$resource_file_path_target);
 										
 					//copy files to overwrite existing files
 					if ($file_copied)
 					{
-						$this->_write_log($this->log_file_name,$message_type="INFO",$message='Resource copied: '.$resource_file_path_source);
+						$this->_write_log($this->log_file_name,$message_type="INFO",$message="Resource copied: \t".$resource_file_path_source);
 					}
 					else
 					{
-						$this->_write_log($this->log_file_name,$message_type="ERROR",$message='Resouce copy failed: '.$resource_file_path_source. ' to: '.$resource_file_path_target);
+						$this->_write_log($this->log_file_name,$message_type="ERROR",$message="Resouce copy failed: \t".$resource_file_path_source. ' to: '.$resource_file_path_target);
 					}
 				}
 				else
@@ -475,9 +493,10 @@ class DDP_Util extends MY_Controller {
 			$this->Resource_model->insert($resource);
 						
 			//log
-			$this->_write_log($this->log_file_name,$message_type="INFO",$message='RDF Import to DB: '.$resource['filename']);
+			$this->_write_log($this->log_file_name,$message_type="INFO",$message="RDF Import to DB: \t".$resource['filename']);
 
-			echo '<HR>';
+			//echo '<HR>';
+			echo "\r\n";
 		}
 		
 		//Copy distribute folder if exists
@@ -492,7 +511,7 @@ class DDP_Util extends MY_Controller {
 
 			if (count($data_files['files'])==0)
 			{
-				$this->_write_log($this->log_file_name,$message_type="INFO",$message='NO DATA FILES: '.$surveyid);
+				$this->_write_log($this->log_file_name,$message_type="INFO",$message="NO DATA FILES: \t".$surveyid);
 			}
 			
 			foreach($data_files['files'] as $file)
@@ -502,11 +521,11 @@ class DDP_Util extends MY_Controller {
 				
 				if ($copied)
 				{
-					$this->_write_log($this->log_file_name,$message_type="INFO",$message='Datafile copied: '.$data_target_path);
+					$this->_write_log($this->log_file_name,$message_type="INFO",$message="Datafile copied: \t".$data_target_path);
 				}
 				else
 				{
-					$this->_write_log($this->log_file_name,$message_type="ERROR",$message='Datafile copy failed: '.basename($file));
+					$this->_write_log($this->log_file_name,$message_type="ERROR",$message="Datafile copy failed: \t".basename($file));
 				}	
 			}
 		}
@@ -541,10 +560,68 @@ class DDP_Util extends MY_Controller {
 		$this->db->where('survey_id',$surveyid);
 		$this->db->where("dctype not like '%dat/micro]' and dctype not like '%dat]'");
 		$this->db->delete('resources');
-		echo $this->db->last_query();
+		//echo $this->db->last_query();
 	}
 	
 	
+	
+	//returns a list of all study iDs
+	function get_codebook_list()
+	{
+		$this->db->select("surveyid");
+		$surveys=$this->db->get("surveys")->result_array();
+		
+		$output=array();
+		foreach($surveys as $survey)
+		{
+			$output[]=$survey["surveyid"];
+		}
+		
+		return $output;
+	}
+	
+	function codebook_to_json()
+	{
+		$output=$this->get_codebook_list();
+		echo json_encode($output);
+	}
+	
+	function diff_studies()
+	{
+		if ($this->input->post("diff"))
+		{
+			//show diff result
+			$remote=$this->input->post("diff");
+			$remote=json_decode($remote);
+			
+			//survey id array local
+			$local=$this->get_codebook_list();
+
+			$diff=array();
+			
+			foreach($local as $key=>$value)
+			{
+				if (!in_array($value, $remote))
+				{
+					$diff[]=$value;
+				}
+			}
+			
+			echo count($diff);
+			echo '<BR>';
+			foreach($diff as $value)
+			{
+				echo $value.'<BR>';
+			}
+		}
+		
+		echo '<form method="POST">';
+		echo '<h2>Paste list of survey ID (JSON string)</h2>';	
+		echo '<textarea rows=20 style="width:100%;" name="diff">'.$this->input->post("diff").'</textarea>';
+		echo '<input type="submit" name="submit" value="submit"/>';
+		echo '</form>';
+		
+	}
 }
 /* End of file ddp_util.php */
 /* Location: ./controllers/ddp_util.php */
