@@ -140,6 +140,9 @@ class DDI_Parser{
 		$doc_dscr='docDscr';
 		$stdy_dscr='stdyDscr';
 		
+		$output[$doc_dscr]='';
+		
+		
 		//read only the DDI docDscr and stdyDscr sections 
 		while ($reader->read() ) 
 		{
