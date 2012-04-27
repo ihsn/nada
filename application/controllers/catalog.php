@@ -118,18 +118,19 @@ class Catalog extends MY_Controller {
 		//get list of DA types available for current repository
 		$this->da_types=$this->Search_helper_model->get_active_data_types($this->filter->repo);
 
+		$this->load->helper('security');
 		//page parameters
-		$this->sk=form_prep(get_post_sess('search',"sk"));
-		$this->vk=form_prep(get_post_sess('search',"vk"));
-		$this->vf=form_prep(get_post_sess('search',"vf"));
-		$this->country=form_prep(get_post_sess('search',"country"));
-		$this->view=form_prep(get_post_sess('search',"view"));		
-		$this->topic=form_prep(get_post_sess('search',"topic"));
-		$this->from=form_prep(get_post_sess('search',"from"));
-		$this->to=form_prep(get_post_sess('search',"to"));		
-		$this->sort_by=form_prep(get_post_sess('search',"sort_by"));
-		$this->sort_order=form_prep(get_post_sess('search',"sort_order"));
-		$this->page=(int)form_prep(get_post_sess('search',"page"));
+		$this->sk=xss_clean(get_post_sess('search',"sk"));
+		$this->vk=xss_clean(get_post_sess('search',"vk"));
+		$this->vf=xss_clean(get_post_sess('search',"vf"));
+		$this->country=xss_clean(get_post_sess('search',"country"));
+		$this->view=xss_clean(get_post_sess('search',"view"));		
+		$this->topic=xss_clean(get_post_sess('search',"topic"));
+		$this->from=xss_clean(get_post_sess('search',"from"));
+		$this->to=xss_clean(get_post_sess('search',"to"));		
+		$this->sort_by=xss_clean(get_post_sess('search',"sort_by"));
+		$this->sort_order=xss_clean(get_post_sess('search',"sort_order"));
+		$this->page=(int)xss_clean(get_post_sess('search',"page"));
 		$this->page=($this->page >0) ? $this->page : 1;
 				
 		$offset=($this->page-1)*$this->limit;
@@ -293,22 +294,24 @@ class Catalog extends MY_Controller {
 		
 		//store values to session
 		$this->session->set_userdata(array($this->session_id=>$sess_data));
-
+		
+		$this->load->helper('security');
+		
 		//page parameters
-		$this->sk=form_prep(get_post_sess('search',"sk"));
-		$this->vk=form_prep(get_post_sess('search',"vk"));
-		$this->vf=form_prep(get_post_sess('search',"vf"));
-		$this->country=form_prep(get_post_sess('search',"country"));
-		$this->view=form_prep(get_post_sess('search',"view"));		
-		$this->topic=form_prep(get_post_sess('search',"topic"));
-		$this->from=form_prep(get_post_sess('search',"from"));
-		$this->to=form_prep(get_post_sess('search',"to"));		
-		$this->sort_by=form_prep(get_post_sess('search',"sort_by"));
-		$this->sort_order=form_prep(get_post_sess('search',"sort_order"));
-		$this->page=form_prep(get_post_sess('search',"page"));
+		$this->sk=xss_clean(get_post_sess('search',"sk"));
+		$this->vk=xss_clean(get_post_sess('search',"vk"));
+		$this->vf=xss_clean(get_post_sess('search',"vf"));
+		$this->country=xss_clean(get_post_sess('search',"country"));
+		$this->view=xss_clean(get_post_sess('search',"view"));		
+		$this->topic=xss_clean(get_post_sess('search',"topic"));
+		$this->from=xss_clean(get_post_sess('search',"from"));
+		$this->to=xss_clean(get_post_sess('search',"to"));		
+		$this->sort_by=xss_clean(get_post_sess('search',"sort_by"));
+		$this->sort_order=xss_clean(get_post_sess('search',"sort_order"));
+		$this->page=xss_clean(get_post_sess('search',"page"));
 		$this->page= ($this->page >0) ? $this->page : 1;
-		$this->filter->repo=form_prep(get_post_sess('search',"repo"));
-		$this->dtype=form_prep($this->input->get("dtype"));
+		$this->filter->repo=xss_clean(get_post_sess('search',"repo"));
+		$this->dtype=xss_clean($this->input->get("dtype"));
 
 		$offset=($this->page-1)*$this->limit;
 
