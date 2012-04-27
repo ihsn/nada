@@ -54,7 +54,7 @@ $route['catalog/(:num)/(.*)'] = "ddibrowser/$1/$2";
 $route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for the data-catalog routes
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";
-$route['home'] = "catalog/repositories";
+//$route['home'] = "catalog/repositories";
 $route['catalog/central/about'] = "catalog/repositories";
 
 //forms {pubic,direct, etc}
