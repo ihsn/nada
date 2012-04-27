@@ -4,6 +4,11 @@ $repo_types=array(
 	'1'=>'External',
 	'2'=>'System'
 );
+$options_published=array(
+	'0'=>'Unpublish',
+	'1'=>'Publish'
+);
+
 ?>
 <h1><?php echo $this->page_title;?></h1>
 	
@@ -92,6 +97,12 @@ $repo_types=array(
         <?php echo form_input($this->data['scan_interval']);?>        
     </div>
 	-->    
+
+    <div class="field">
+        <label for="ispublished"><?php echo t('published');?></label>
+        <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''));?>
+    </div>  
+
     <p>
 		<?php echo form_submit('submit', 'Submit');?>
      	<?php echo anchor('admin/repositories',t('cancel'),array('class'=>'button') );?>
