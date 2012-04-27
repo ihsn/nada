@@ -382,7 +382,8 @@ class Repository_model extends CI_Model {
 			'long_text',
 			'thumbnail',
 			'type',
-			'weight'
+			'weight',
+			'ispublished'
 			);
 
 		//add date modified
@@ -427,8 +428,14 @@ class Repository_model extends CI_Model {
 			'country',
 			'status',
 			'changed',
+			'scan_interval',
+			'scan_lastrun',
+			'short_text',
+			'long_text',
+			'thumbnail',
 			'type',
-			'weight'
+			'weight',
+			'ispublished'
 			);
 
 		//add date modified
