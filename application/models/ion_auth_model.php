@@ -619,54 +619,6 @@ class Ion_auth_model extends CI_Model
 		return FALSE;		
 	}
 	
-	/**
-	* openid_login
-	*
-	* return bool
-	**/
-	
-/*	public function openid_login($identity, $remember=FALSE)
-	{
-	    if (empty($identity) )
-	    {
-	        return FALSE;
-	    }
-	    
-	    $query = $this->db->select('username,email, id, password, group_id')
-						  ->where('username', $identity)
-						  
-						  ->where('active', 1)
-						  //->limit(1)
-						  ->get('users');
-	    
-        $result = $query->row();
-
-        if ($query->num_rows() == 1)
-        {
-
-        		$this->update_last_login($result->id);
-    		    $this->session->set_userdata('email',  $result->email);
-				$this->session->set_userdata('username',  $result->username);
-    		    $this->session->set_userdata('id',  $result->id); //kept for backwards compatibility
-    		    $this->session->set_userdata('user_id',  $result->id); //everyone likes to overwrite id so we'll use user_id
-    		    $this->session->set_userdata('group_id',  $result->group_id);
-    		    
-    		    $group_row = $this->db->select('name')->where('id', $result->group_id)->get($this->tables['groups'])->row();
-
-    		    $this->session->set_userdata('group',  $group_row->name);
-    		    
-    		    if ($remember && $this->config->item('remember_users'))
-    		    {
-    		    	$this->remember_user($result->id);
-    		    }
-    		    
-    		    return TRUE;
-
-        }
-        
-		return FALSE;		
-	}
-*/
 	
 	/**
 	 * get_users
@@ -1003,15 +955,16 @@ class Ion_auth_model extends CI_Model
 	 **/
 	private function remember_user($id)
 	{
-		if (!$id) {
+		if (!$id) 
+		{			
 			return FALSE;
 		}
 		
 		$salt = sha1(md5(microtime()));
 		
-		$this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
+		$is_updated=$this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
 		
-		if ($this->db->affected_rows() == 1) 
+		if ($is_updated !== FALSE) 
 		{
 			$user = $this->get_user($id)->row();
 			
