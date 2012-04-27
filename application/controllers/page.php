@@ -185,6 +185,85 @@ class Page extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+	
+	
+	
+	function static_page()
+	{
+		$page=$this->uri->segment(1);
+		$data=array();
+		switch($page)
+		{
+			case 'home':			
+					$data['title']='Microdata Library Home';
+					$this->load->model("repository_model");
+					$this->lang->load('catalog_search');
+					$this->load->library('cache');
+					$this->load->model("stats_model");
+					//$this->load->model("slideshow_model");
+				
+					/*$js_slideshow='
+							$(function(){
+								$(\'#slides\').slides({
+									preload: true,
+									play: 10000,
+									pause: 2500,
+									hoverPause: true,
+									fadeSpeed: 650, 
+									slideSpeed: 1200
+								});
+								//$("#slides").width($(".slideshow-container").width());
+							});
+					';
+					
+					$this->template->add_js("javascript/slidesjs/slides.min.jquery.js");					
+					$this->template->add_js($js_slideshow,'embed');
+					*/
+				
+					//check if a cached copy of the page is available
+					$data= $this->cache->get( 'home_'.md5($page));
+				
+					//no cache found
+					if ($data===FALSE)
+					{						
+						//get stats
+						$data['title']='Microdata Home';
+						$data['survey_count']=$this->stats_model->get_survey_count();
+						$data['variable_count']=$this->stats_model->get_variable_count();
+						$data['citation_count']=$this->stats_model->get_citation_count();
+						
+						//get top popular surveys
+						$data['popular_surveys']=$this->stats_model->get_popular_surveys(3);
+						
+						//get top n recent acquisitions
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(3);
+						
+						//get slideshows
+						//$data['slides']=$this->slideshow_model->get_slides();
+						
+						//cache data
+						//$this->cache->write($data, 'home_'.md5($page));
+					}
+
+					//reset any search options selected
+					$this->session->unset_userdata('search');
+					
+					//reset repository
+					$this->session->set_userdata('active_repository','central');	
+	
+			break;
+			
+			default:
+			return FALSE;			
+		}
+		//$data['body']=file_get_contents("static/$page.php");
+		$data['body']=$this->load->external_view($path='static', $view=$page,$data,TRUE);
+		$content=$this->load->view('page_index', $data,true);
+		
+		$this->template->write('title', $data['title'],true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
 }
 /* End of file page.php */
 /* Location: ./controllers/page.php */
