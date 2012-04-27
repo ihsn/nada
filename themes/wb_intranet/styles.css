@@ -191,7 +191,7 @@ font-weight: bold;
 }
 
 
-td,tr{font-size:12px;}
+/*td,tr{font-size:12px;}*/
 #category li{background:none;}
 
 .sidebar .active{font-weight:bold;}
@@ -256,6 +256,126 @@ background: none;
 
 .m-head {cursor:auto}
 
-.m-body h3{font-size:12px;line-height:normal;margin:0px;margin-bottom:5px;font-weight:normal;}
+.m-body h3{font-size:12px;line-height:normal;margin:0px;padding-bottom:5px;font-weight:normal;}
 .m-body .tbl-x{margin-left:5px;margin-right:5px;}
 .m-body .tbl-x tr,.m-body .tbl-x td{vertical-align:top;padding-bottom:15px;}
+
+.grey-module .content {padding-left:10px;}
+
+.grey-module .stats{padding:10px;}
+
+.quick-search-box {
+clear: both;
+margin: 0px;
+border: 1px solid #B6C7DC;
+height: 26px;
+overflow: hidden;
+width: 266px;
+float: left;
+padding: 3px;
+margin-right: 5px;
+}
+
+.quick-search-box .submit-button {
+float: left;
+height: 26px;
+width: 35px;
+border: none;
+cursor: pointer;
+}
+
+/*slideshow */
+.slide-show {
+	clear: both;
+	position: relative;
+}
+.slide-show .slides_container img {
+	float: left;
+	margin-right: 10px;
+	height: 156px;
+	margin-top: 10px;
+}
+.slide-show .pagination {
+	width: 100px;
+	position: absolute;
+	bottom: 5px;
+	right: 0px;
+	text-align: right;
+	padding: 0px;
+	/*height: 1px;*/
+z-index: 500;
+	background:none;
+}
+.slide-show .pagination li.current a {
+	background-position:0 -12px;
+	border:0px;
+}
+.slides_container {
+	width: 600px;
+	display: none;
+	background: gainsboro;
+}
+.slides_container div {
+	width: 600px;
+	height: 170px;
+	display: block;
+}
+.slide-show .pagination li {
+	float: left;
+	margin: 0 1px;
+	list-style: none;
+	border: 0px;
+	PADDING-RIGHT: 0px;
+	BACKGROUND: none;
+	PADDING-LEFT: 0px;
+	PADDING-BOTTOM: 3px;
+	LINE-HEIGHT: normal;
+	PADDING-TOP: 2px;
+}
+.slide-show .pagination li a {
+	display: block;
+	width: 6px;
+	height: 0;
+	padding-top: 8px;
+	background-image: url(pagination.png);
+	background-position: 0 0;
+	float: left;
+	overflow: hidden;
+	border: 0px;
+}
+.slide-show .pagination li a:hover {
+	background-color:white;
+	background-position:0 -12px;
+}
+
+.recent-studies .survey-row td{padding-bottom:10px;}
+.recent-studies .title {font-weight:bold;font-size:smaller}
+.recent-studies .created {color:gray;font-size:smaller}
+.recent-studies h3{display:none;}
+
+
+.grey-module .stats {text-align:center;}
+.stats-surveys, .stats-variables, .stats-citations{font-weight:bold;color:#999999;font-size:18px;}
+.block-stats{text-align:center;line-height:200%;}
+.stats-date{color:gray;font-weight:bold;}
+.block-stats-button a{
+	color:#e5eff9;
+	margin:30px;
+	margin-bottom:0px;
+	margin-top:10px;
+	background-color:#306caa;
+	color:#e5eff9;
+	font-size:18px;
+	padding:5px;
+	text-align:center;
+	display:block;
+	text-decoration:none;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px
+	}
+.block-stats-button a:hover{background:black;text-decoration:none;}
+.content .f-box-container {width:100%;}
+.content .f-box-container td{height:100px;width:25%;}
+.content .f-box{font-size:14px;display:block;border:1px solid gainsboro;text-align:center;height:100px;padding-top:25px;margin:10px;vertical-align:middle}
+.content .f-box img{margin-bottom:10px;}
+.content .f-box:hover{background:gainsboro; cursor:pointer;}
