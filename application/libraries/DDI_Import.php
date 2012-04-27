@@ -258,6 +258,11 @@ class DDI_Import{
 		else //existing survey
 		{
 			$where=sprintf('id=%d',$id);
+			
+			//unset fields
+			unset($row['published']);
+			unset($row['formid']);
+			
 			$sql= $this->ci->db->update_string('surveys', $row,$where);			
 			$this->ci->db->query($sql);
 		}
