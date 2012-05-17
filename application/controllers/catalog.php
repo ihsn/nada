@@ -1336,8 +1336,73 @@ class Catalog extends MY_Controller {
 		$this->template->write('title', $repo->title,true);
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
-
 	}	
+	
+	
+	/**
+	*
+	* A table showing when new studies were added
+	**/
+	function history()
+	{
+		$this->load->model("Catalog_history_model");
+		
+		//records to show per page
+		$per_page = $this->input->get("ps");
+		
+		if($per_page===FALSE || !is_numeric($per_page))
+		{
+			$per_page=100;
+		}
+				
+		//current page
+		$curr_page=$this->input->get('per_page');
+
+		//filter to further limit search
+		$filter=array();
+		
+		//records
+		$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+
+		//total records in the db
+		$total = $this->Catalog_history_model->search_count;
+
+		if ($curr_page>$total)
+		{
+			$curr_page=$total-$per_page;
+			
+			//search again
+			$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+		}
+		
+		//set pagination options
+		$base_url = site_url('catalog/history');
+		$config['base_url'] = $base_url;
+		$config['total_rows'] = $total;
+		$config['per_page'] = $per_page;
+		$config['page_query_string'] = TRUE;
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['next_link'] = t('page_next');
+		$config['num_links'] = 5;
+		$config['prev_link'] = t('page_prev');
+		$config['first_link'] = t('page_first');
+		$config['last_link'] = t('last');
+		$config['full_tag_open'] = '<span class="page-nums">' ;
+		$config['full_tag_close'] = '</span>';
+		
+		//intialize pagination
+		$this->pagination->initialize($config); 
+		
+		//load the contents of the page into a variable
+		$content=$this->load->view('catalog_search/history', $data,true);
+	
+		//pass data to the site's template
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('catalog_history'),true);
+		
+		//render final output
+	  	$this->template->render();
+	}
 }
 /* End of file catalog.php */
 /* Location: ./controllers/catalog.php */
