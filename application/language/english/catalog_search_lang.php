@@ -118,7 +118,7 @@ $lang['data_remote_description']="Related documentation is made freely available
 $lang['data_da_description']="Related documentation is made freely available to users on the Bank's intranet. The datasets are however not available for these studies.";
 $lang['filter_by_data']="Filter by Data Access";
 $lang['legend_na_access']="Data not available";
-
+$lang['catalog_history']="Catalog History";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
