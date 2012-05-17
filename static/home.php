@@ -12,6 +12,7 @@
     <div class="right-border">
     	<div class="content" style="padding:15px;">
 		<?php //$this->load->view("pages/slideshow_frontpage");?>
+        <img src="files/ad_microdata.png" align="left" width="150px" style="margin-right:15px;"/>
         <p>The DDP Microdata Library is a World Bank searchable catalog and repository of survey microdata and documentation.</p>
 		<p>While the Development Data Group (DECDG) is responsible for the overall maintenance of the system, the Microdata Library is the product of a Bank-wide collaboration. Regional and specialized microdata catalogs maintained by various units within the Bank form the Central Catalog.</p>
         <div style="text-align:right;padding-right:5px"> <a href="index.php/about" title="Read more">Read more...</a> </div>
@@ -21,6 +22,36 @@
   </div>
   <div class="m-footer"><span>&nbsp;</span></div>
 </div>
+
+
+<?php /* ?>
+<!-- search box-->
+<div class="grey-module" id="sidebar-faq" >
+  <div class="m-head">
+    <h2>Stats</h2>
+  </div>
+  <div class="m-body">
+    <div class="right-border">
+    
+
+                    <div>
+                        <h3><a href="<?php echo site_url();?>/catalog/central"><?php echo t('central_data_catalog');?></a></h3>
+                        <p>The <?php echo t('central_data_catalog');?> is a portal for all surveys and datasets held in catalogs maintained by the World Bank and a number of contributing external catalogs.</p>
+                        <form action="<?php echo site_url();?>/catalog">
+                         <div class="quick-search-box">
+                        	<input id="sk" style="outline:none;border:none;background:none;float:left;height:19px;FONT-SIZE:  11px; WIDTH: 420px; COLOR: #666;  padding:2px 5px 0px; FONT-FAMILY: Arial;margin:0px;" value="Search the Central Microdata Catalog" onfocus="value=''" name="sk">
+                        	<input id="quick-search" type="submit" value="Find" class="submit-button" />
+                        </div>
+                        <a style="float:left;display:block;margin-top:5px;" href="<?php echo site_url();?>/catalog/central">View all Surveys &raquo;</a>
+                        </form>                        
+                    </div>
+
+    
+    </div>
+  </div>
+  <div class="m-footer"><span>&nbsp;</span></div>
+</div>
+<?php */?>
 
 <!-- stats -->
 <div class="grey-module" id="sidebar-faq" >
@@ -32,8 +63,8 @@
         <div class="stats" >
           <div class="stats-text" style="font-size:20px;">As of <b><?php echo date("F d, Y",date("U")); ?></b>, Library contains</div>
           <div class="stats-surveys" style="font-size:24px"><?php echo number_format($survey_count);?> surveys, 
-          <?php echo number_format($citation_count);?> citations,
-          <?php echo number_format($variable_count);?> variables<br/>
+          <?php echo number_format($variable_count);?> variables,
+          <?php echo number_format($citation_count);?> citations<br/>          
           <div class="block-stats-button" style="margin-left:25%;margin-right:25%;"><a href="index.php/catalog">Visit Catalog</a></div>
           </div>
     	</div>
@@ -47,19 +78,29 @@
 <!-- about central catalog -->
 <div class="grey-module" id="sidebar-faq" >
   <div class="m-head">
-    <h2>&nbsp;</h2>
+    <h2>Links</h2>
   </div>
   <div class="m-body">
     <div class="right-border">
 	    <div class="content" style="padding-left:5px;">
         
         <table class="f-box-container">
+       
         	<tr>
             	<td><a class="f-box" href="index.php/terms"><img src="files/file3.png" /><br/>Terms of Use</a></td>
                 <td><a class="f-box" href="index.php/help"><img src="files/file3.png" /><br/>Using the Catalog</a></td>
                 <td><a class="f-box" href="index.php/deposit"><img src="files/file3.png" /><br/>Deposit Data</a></td>
                 <td><a class="f-box" href="index.php/resources"><img src="files/file3.png" /><br/>Resources</a></td>
             </tr>
+       
+           <!-- <tr>
+            	<td><img src="files/zip-hq.png" width="170px;"/></td>
+                <td><img src="files/zip-hq.png" width="170px;"/></td>
+                <td><img src="files/zip-hq.png" width="170px;"/></td>
+                <td><img src="files/zip-hq.png" width="170px;"/></td>
+                
+            </tr>
+            -->
         </table>
         
         </div>
@@ -70,7 +111,7 @@
 
 </td>
 
-<td style="width:250px">
+<td style="width:250px" class="right-col">
 
 <!-- recent studies list -->
 <div class="grey-module" id="sidebar-faq" >
@@ -251,8 +292,8 @@
     <div class="stats">
       <div class="stats-text">As of <?php echo date("F d, Y",date("U")); ?> the Library contains</div>
       <div class="stats-surveys"><?php echo number_format($survey_count);?> surveys</div>
-      <div class="stats-citations"><?php echo number_format($citation_count);?> citations</div>
       <div class="stats-variables"><?php echo number_format($variable_count);?> variables</div>
+      <div class="stats-citations"><?php echo number_format($citation_count);?> citations</div>      
 	  <!--<div style="margin-top:3px;"><a href="index.php/catalog" title="visit central catalog"><img src="files/catalog-button.gif" alt=""/></a></div>-->
     </div>
   </div>
