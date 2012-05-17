@@ -73,6 +73,11 @@ class Breadcrumb
 							$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
 						}
 						
+						if ($segments[2]=='history')
+						{
+							$breadcrumbs['catalog/history/']=t('catalog_history');
+						}
+						
 						if ($segments[2]=='access_policy')
 						{
 							$breadcrumbs['catalog/'.$segments[3]]=$this->get_study_info($segments[3]);
