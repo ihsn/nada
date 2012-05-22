@@ -25,7 +25,18 @@ class User_model extends CI_Model {
 		$this->db->select($columns);
 		
 		//allowed_fields for searching or sorting
-		$db_fields=array('username','first_name','last_name','email','country','company','group_name');
+		$db_fields=array(
+					'username'=>'username',
+					'first_name'=>'first_name',
+					'last_name'=>'last_name',
+					'email'=>'email',
+					'country'=>'country',
+					'company'=>'company',
+					'group_name'=>'user_groups.name',
+					'active'=>'active',
+					'created_on'=>'created_on',
+					'last_login'=>'last_login'
+					);
 		
 		//set where
 		if ($filter)
@@ -54,9 +65,9 @@ class User_model extends CI_Model {
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
 		{
-			if ( in_array($sort_by,$db_fields))
+			if ( array_key_exists($sort_by,$db_fields))
 			{
-				$this->db->order_by($sort_by, $sort_order); 
+				$this->db->order_by($db_fields[$sort_by], $sort_order); 
 			}	
 		}
 		
@@ -64,10 +75,10 @@ class User_model extends CI_Model {
 	  	$this->db->limit($limit, $offset);
 		$this->db->from($this->tables['users']);
 		
-
         $result= $this->db->get()->result_array();
 		return $result;
     }
+	
   	
     function search_count($filter=NULL)
     {
