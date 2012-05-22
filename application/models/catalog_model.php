@@ -44,7 +44,9 @@ class Catalog_model extends CI_Model {
 					'project_id',
 					'project_name',
 					'project_uri',
-					'published'
+					'published',
+					'created',
+					'changed'
 					);
 	
 	//additional filters on search
@@ -88,12 +90,12 @@ class Catalog_model extends CI_Model {
 		$sort_order=$this->input->get('sort_order');
 		$sort_by=$this->input->get('sort_by');
 		
-		$this->db->start_cache();		
+		//$this->db->start_cache();		
 		
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin,published');
+							link_indicator, link_questionnaire,	isshared,changed,created,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin,published,data_coll_start');
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
@@ -124,7 +126,7 @@ class Catalog_model extends CI_Model {
 				
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('surveys');
-		$this->db->stop_cache();
+		//$this->db->stop_cache();
 
         $result= $this->db->get()->result_array();		
 		return $result;
