@@ -15,6 +15,10 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
 
 //load blocks for the current page
 $this->blocks=$this->Menu_model->get_blocks($this->uri->segment(1));
+
+//is home page
+$is_home=FALSE;
+if ($this->uri->segment(1)=="home") {$is_home=TRUE;}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -194,7 +198,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 </div>
 </form>
 
-
+<?php if (!$is_home):?>
 
     <!--login information bar-->
     <span id="user-container">
@@ -206,20 +210,14 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
         <?php include 'share.php';?>
         </div>
     
-        <!--breadcrumbs -->
-       <!-- <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
-        <?php if ($breadcrumbs_str!=''):?>
-            <div id="breadcrumb">
-            <?php echo $breadcrumbs_str;?>
-            </div>
-        <?php endif;?>-->
-
+<?php endif;?>
 
 <div id="doc3" class="yui-t2" >
 
 <?php
 	//pages with two columns
 	$two_col_urls=array('catalog','citations');
+	$sub_notab_segments=array('history');
 	$yui_class="";
 	//if (in_array($this->uri->segment(1),$two_col_urls))
 	if (isset($this->blocks['rightsidebar']))
@@ -237,17 +235,18 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
                     <!-- main content area-->
                    <!--page-contents-->
                     <div class="page-contents">
-                    <?php if ($this->uri->segment(1)=='catalog'):?>
+                    <?php if ($this->uri->segment(1)=='catalog' && !in_array($this->uri->segment(2),$sub_notab_segments)):?>
                         <?php @include 'tabbed_content.php';?>
                     <?php else:?>            
-                            <!--breadcrumbs -->
-                            <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
-                            <?php if ($breadcrumbs_str!=''):?>
-                                <div id="breadcrumb" class="notabs">
-                                <?php echo $breadcrumbs_str;?>
-                                </div>
-                            <?php endif;?>
-                                
+                            <?php if (!$is_home):?>
+                                <!--breadcrumbs -->
+                                <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
+                                <?php if ($breadcrumbs_str!=''):?>
+                                    <div id="breadcrumb" class="notabs">
+                                    <?php echo $breadcrumbs_str;?>
+                                    </div>
+                                <?php endif;?>
+                            <?php endif;?>    
                         <?php echo isset($content) ? $content : '';?>
                     <?php endif;?>
                     </div>                    
