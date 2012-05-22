@@ -93,12 +93,12 @@
                 <td><a class="f-box" href="index.php/resources"><img src="files/file3.png" /><br/>Resources</a></td>
             </tr>
        
-           <!-- <tr>
+           <!-- 
+           <tr>
             	<td><img src="files/zip-hq.png" width="170px;"/></td>
                 <td><img src="files/zip-hq.png" width="170px;"/></td>
                 <td><img src="files/zip-hq.png" width="170px;"/></td>
-                <td><img src="files/zip-hq.png" width="170px;"/></td>
-                
+                <td><img src="files/zip-hq.png" width="170px;"/></td>                
             </tr>
             -->
         </table>
@@ -120,11 +120,11 @@
   </div>
   <div class="m-body">
     <div class="right-border">
-    	<div class="content" style="padding-right:10px;">
+    	<div class="content" >
 		<?php                            
             $data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos
             //$this->load->view("microdata.worldbank.org/home/index_public",$data);
-            $this->load->view("catalog_search/recent_studies",array('rows'=>$latest_surveys));
+            $this->load->view("catalog_search/recent_studies_list",array('rows'=>$latest_surveys));
         ?>
         </div>
       <br/>
