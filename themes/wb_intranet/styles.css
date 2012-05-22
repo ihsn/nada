@@ -103,9 +103,10 @@ a:hover {
 }
 
 /*Table/Grid style*/
-.grid-table tr td {
+.grid-table tr td, .grid-table tr th{
 	padding:5px;
 	border-bottom:1px solid #C1DAD7;
+	font-size:12px;
 }
 .grid-table .alternate {
 	background-color:#FBFBFB
@@ -349,7 +350,7 @@ z-index: 500;
 }
 
 .recent-studies .survey-row td{padding-bottom:10px;}
-.recent-studies .title {font-weight:bold;font-size:smaller}
+/*.recent-studies .title {font-weight:bold;font-size:smaller}*/
 .recent-studies .created {color:gray;font-size:smaller}
 .recent-studies h3{display:none;}
 
@@ -379,3 +380,9 @@ z-index: 500;
 .content .f-box{font-size:14px;display:block;border:1px solid gainsboro;text-align:center;height:100px;padding-top:25px;margin:10px;vertical-align:middle}
 .content .f-box img{margin-bottom:10px;}
 .content .f-box:hover{background:gainsboro; cursor:pointer;}
+
+.catalog-history table td, .catalog-history table th{font-size:smaller;}
+
+.align-right{text-align:right;padding-right:5px}
+
+table.public-use td{font-size:12px;}
