@@ -119,6 +119,6 @@ $lang['data_da_description']="Related documentation is made freely available to 
 $lang['filter_by_data']="Filter by Data Access";
 $lang['legend_na_access']="Data not available";
 $lang['catalog_history']="Catalog History";
-
+$lang['catalog_owned_by']="Catalog";
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
