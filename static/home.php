@@ -1,3 +1,7 @@
+<style>
+.quick-link{background:url(files/box_wb.png) no-repeat;width:175px;height:175px; cursor:pointer;font-weight:bold;text-align:center;margin-left:5px;}
+.quick-link:hover{background:url(files/box_wb_over.png) no-repeat;}
+</style>
 <table style="width:100%;">
 <tr valign="top" style="vertical-align:top;">
 
@@ -76,37 +80,52 @@
 
 
 <!-- about central catalog -->
-<div class="grey-module" id="sidebar-faq" >
-  <div class="m-head">
-    <h2>Links</h2>
-  </div>
-  <div class="m-body">
-    <div class="right-border">
-	    <div class="content" style="padding-left:5px;">
-        
-        <table class="f-box-container">
-       
+<div class="" id="sidebar-faq" >
+        <table class="f-box-container" style="width:100%;">
+			<!--       
         	<tr>
             	<td><a class="f-box" href="index.php/terms"><img src="files/file3.png" /><br/>Terms of Use</a></td>
                 <td><a class="f-box" href="index.php/help"><img src="files/file3.png" /><br/>Using the Catalog</a></td>
                 <td><a class="f-box" href="index.php/deposit"><img src="files/file3.png" /><br/>Deposit Data</a></td>
                 <td><a class="f-box" href="index.php/resources"><img src="files/file3.png" /><br/>Resources</a></td>
             </tr>
-       
-           <!-- 
+       	-->
            <tr>
-            	<td><img src="files/zip-hq.png" width="170px;"/></td>
-                <td><img src="files/zip-hq.png" width="170px;"/></td>
-                <td><img src="files/zip-hq.png" width="170px;"/></td>
-                <td><img src="files/zip-hq.png" width="170px;"/></td>                
+            	<td>
+                    <a class="f-box" href="index.php/terms">
+                    <div class="quick-link">
+                    <img style="margin-top:50px;" src="files/file3.png" />
+                    <p>Terms of use</p>
+                    </div>
+                    </a>
+                </td>
+                <td>
+                    <a class="f-box" href="index.php/help">
+                    <div class="quick-link">
+                    <img style="margin-top:50px;" src="files/info.png" />
+                    <p>Using the catalog</p>
+                    </div>
+                    </a>
+                </td>
+                <td>
+                <a class="f-box" href="index.php/deposit">
+                <div class="quick-link">
+                <img style="margin-top:50px;" src="files/file plus.png" />
+                <p>Deposit data</p>
+                </div>
+                </a>
+                </td>
+                <td>
+                <a class="f-box" href="index.php/resources">
+                <div class="quick-link">
+                <img style="margin-top:50px;" src="files/book.png" />
+                <p>Resources</p>
+                </div>
+                </a>
+                </td>
             </tr>
-            -->
+
         </table>
-        
-        </div>
-    </div>
-  </div>
-  <div class="m-footer"><span>&nbsp;</span></div>
 </div>
 
 </td>
