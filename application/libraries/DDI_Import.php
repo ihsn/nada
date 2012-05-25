@@ -290,32 +290,40 @@ class DDI_Import{
 
 		//import topics
 		if ($data->topics)
-		{			
-			foreach($data->topics['topic'] as $topic)
+		{	
+			//topics array structure is different for single and multiple topics
+			if (isset($data->topics['topic']) && isset($data->topics['topic']['name']))
 			{
-				$pos=strrpos($topic['name'],' ');//position of the last space
-				/*if (substr($topic['name'],$pos+1,1)=='[')
-				{				
-					//remove the toolkit numbers e.g. xxxx xxxx [1.2] will become xxxx xxxxx
-					$topic_title=substr($topic['name'],0,strrpos($topic['name'],' '));
-				}
-				else
-				{
-					$topic_title=$topic['name'];
-				}*/
-				$topic_title=trim($topic['name']);
-				
-				//get topic id
-				$topic_id=$this->get_topic_by_title($topic_title);
-				
-				//add topic to db
-				if ($topic_id!==FALSE)
-				{				
-					$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
-					$this->ci->db->insert('survey_topics', $topic_row);
-					//var_dump($topic_row);
-				}	
+						$topic_title=trim($data->topics['topic']['name']);
+						
+						//get topic id
+						$topic_id=$this->get_topic_by_title($topic_title);
+						
+						//add topic to db
+						if ($topic_id!==FALSE)
+						{				
+							$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
+							$this->ci->db->insert('survey_topics', $topic_row);
+						}	
 			}
+			else //multiple topics
+			{
+					foreach($data->topics['topic'] as $topic)
+					{
+						$topic_title=trim($topic['name']);
+						
+						//get topic id
+						$topic_id=$this->get_topic_by_title($topic_title);
+						
+						//add topic to db
+						if ($topic_id!==FALSE)
+						{				
+							$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
+							$this->ci->db->insert('survey_topics', $topic_row);
+						}	
+						
+					}//end-foreach
+				}//end-else			
 		}
 		
 		//collections
