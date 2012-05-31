@@ -23,7 +23,8 @@ class Page extends MY_Controller {
 				//get page data
 				$data=$this->Menu_model->get_page($this->uri->segment(2));
 			}
-			else{
+			else
+			{
 				//this part will never get executed
 				
 				//get home page contente
@@ -63,7 +64,7 @@ class Page extends MY_Controller {
 				//no default home page set				
 				//get the page with minimum weight to be the home page
 				$data=$this->Menu_model->get_page_by_min_weight();
-				
+
 				if ($data)
 				{
 					//link or page
@@ -79,9 +80,9 @@ class Page extends MY_Controller {
 				$data=$this->Menu_model->get_page($page_);
 			}
 		}
-		
+				
 		//page not found in the database
-		if ( empty($data) )
+		if ( empty($data))
 		{
 			if ($this->static_page()===FALSE)
 			{
@@ -89,6 +90,16 @@ class Page extends MY_Controller {
 				$this->_error_page();
 			}	
 			return;			
+		}
+		else
+		{
+			if ($data['linktype']==1) //link
+			{
+				if ($this->static_page()!==FALSE)
+				{
+					return;
+				}	
+			}
 		}
 		
 		if (isset($data['css_links']) && trim($data['css_links'])!=='')
@@ -200,26 +211,7 @@ class Page extends MY_Controller {
 					$this->lang->load('catalog_search');
 					$this->load->library('cache');
 					$this->load->model("stats_model");
-					//$this->load->model("slideshow_model");
-				
-					/*$js_slideshow='
-							$(function(){
-								$(\'#slides\').slides({
-									preload: true,
-									play: 10000,
-									pause: 2500,
-									hoverPause: true,
-									fadeSpeed: 650, 
-									slideSpeed: 1200
-								});
-								//$("#slides").width($(".slideshow-container").width());
-							});
-					';
-					
-					$this->template->add_js("javascript/slidesjs/slides.min.jquery.js");					
-					$this->template->add_js($js_slideshow,'embed');
-					*/
-				
+
 					//check if a cached copy of the page is available
 					$data= $this->cache->get( 'home_'.md5($page));
 				
@@ -236,10 +228,7 @@ class Page extends MY_Controller {
 						$data['popular_surveys']=$this->stats_model->get_popular_surveys(3);
 						
 						//get top n recent acquisitions
-						$data['latest_surveys']=$this->stats_model->get_latest_surveys(3);
-						
-						//get slideshows
-						//$data['slides']=$this->slideshow_model->get_slides();
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);						
 						
 						//cache data
 						//$this->cache->write($data, 'home_'.md5($page));
@@ -251,6 +240,42 @@ class Page extends MY_Controller {
 					//reset repository
 					$this->session->set_userdata('active_repository','central');	
 	
+			break;
+			case 'contributing-catalogs';
+					$this->load->model("repository_model");
+					$this->lang->load('catalog_search');
+					$this->load->library('cache');
+					$this->load->model("stats_model");
+					
+					//check if a cached copy of the page is available
+					$data= $this->cache->get( $page.'_'.md5($page));
+				
+					//no cache found
+					if ($data===FALSE)
+					{						
+						//get stats
+						$data['title']='Contributing Catalogs';
+						$data['survey_count']=$this->stats_model->get_survey_count();
+						$data['variable_count']=$this->stats_model->get_variable_count();
+						$data['citation_count']=$this->stats_model->get_citation_count();
+						
+						//get top popular surveys
+						$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+						
+						//get top n recent acquisitions
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);
+						
+						
+						//cache data
+						//$this->cache->write($data, $page.'_'.md5($page));
+					}
+
+					//reset any search options selected
+					$this->session->unset_userdata('search');
+					
+					//reset repository
+					$this->session->set_userdata('active_repository','central');	
+					
 			break;
 			
 			default:
