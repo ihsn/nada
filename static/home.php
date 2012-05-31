@@ -1,5 +1,5 @@
 <style>
-.quick-link{background:url(files/box_wb.png) no-repeat;width:175px;height:175px; cursor:pointer;font-weight:bold;text-align:center;margin-left:5px;}
+.quick-link{background:url(files/box_wb.png) no-repeat;width:175px;height:175px; cursor:pointer;font-weight:bold;text-align:center;}
 .quick-link:hover{background:url(files/box_wb_over.png) no-repeat;}
 </style>
 <table style="width:100%;">
@@ -14,14 +14,29 @@
   </div>
   <div class="m-body">
     <div class="right-border">
-    	<div class="content" style="padding:15px;">
-		<?php //$this->load->view("pages/slideshow_frontpage");?>
-        <img src="files/ad_microdata.png" align="left" width="150px" style="margin-right:15px;"/>
-        <p>The DDP Microdata Library is a World Bank searchable catalog and repository of survey microdata and documentation.</p>
-		<p>While the Development Data Group (DECDG) is responsible for the overall maintenance of the system, the Microdata Library is the product of a Bank-wide collaboration. Regional and specialized microdata catalogs maintained by various units within the Bank form the Central Catalog.</p>
-        <div style="text-align:right;padding-right:5px"> <a href="index.php/about" title="Read more">Read more...</a> </div>
+    	<div class="content" style="padding:15px;position:relative">
+		
+        <table>
+        	<tr style="vertical-align:top">
+            <td><img src="files/ad_microdata.png" align="left" width="150px" style="margin-right:15px;"/></td>
+            <td>
+        <p>The DDP Microdata Library is a World Bank searchable catalog and repository of survey microdata and documentation. <a href="index.php/about" title="Read more">Read more...</a></p>
+
+        <form action="<?php echo site_url();?>/catalog" style="">
+         <div class="quick-search-box">
+            <input id="sk" class="sk" value="Search the Microdata Library" onfocus="value=''" name="sk">
+            <input id="quick-search" type="submit" value="Find" class="submit-button" />
         </div>
-      <br/>
+        <a style="float:left;display:block;margin-top:8px;" href="<?php echo site_url();?>/catalog/central">View all Surveys &raquo;</a>
+        <br/>
+        </form>   
+        <!--
+        <div style="margin-top:20px;text-align:right;padding-right:5px"> <a href="index.php/about" title="Read more">Read more...</a> </div>            
+        -->
+            </td>
+            </tr>
+        </table>
+        </div>
     </div>
   </div>
   <div class="m-footer"><span>&nbsp;</span></div>
@@ -43,7 +58,7 @@
                         <p>The <?php echo t('central_data_catalog');?> is a portal for all surveys and datasets held in catalogs maintained by the World Bank and a number of contributing external catalogs.</p>
                         <form action="<?php echo site_url();?>/catalog">
                          <div class="quick-search-box">
-                        	<input id="sk" style="outline:none;border:none;background:none;float:left;height:19px;FONT-SIZE:  11px; WIDTH: 420px; COLOR: #666;  padding:2px 5px 0px; FONT-FAMILY: Arial;margin:0px;" value="Search the Central Microdata Catalog" onfocus="value=''" name="sk">
+                        	<input id="sk" class="sk" value="Search the Central Microdata Catalog" onfocus="value=''" name="sk">
                         	<input id="quick-search" type="submit" value="Find" class="submit-button" />
                         </div>
                         <a style="float:left;display:block;margin-top:5px;" href="<?php echo site_url();?>/catalog/central">View all Surveys &raquo;</a>
@@ -56,7 +71,7 @@
   <div class="m-footer"><span>&nbsp;</span></div>
 </div>
 <?php */?>
-
+<?php /*?>
 <!-- stats -->
 <div class="grey-module" id="sidebar-faq" >
   <div class="m-head">
@@ -77,19 +92,27 @@
   </div>
   <div class="m-footer"><span>&nbsp;</span></div>
 </div>
-
+<?php */?>
 
 <!-- about central catalog -->
-<div class="" id="sidebar-faq" >
-        <table class="f-box-container" style="width:100%;">
-			<!--       
+<div class="grey-module" id="sidebar-faq" >
+  <div class="m-head">
+    <h2>Links</h2>
+  </div>
+  <div class="m-body">
+    <div class="right-border">
+    	<div class="content" >
+
+        <table class="f-box-container" style="width:100%;padding-top:10px;">
+
         	<tr>
-            	<td><a class="f-box" href="index.php/terms"><img src="files/file3.png" /><br/>Terms of Use</a></td>
-                <td><a class="f-box" href="index.php/help"><img src="files/file3.png" /><br/>Using the Catalog</a></td>
-                <td><a class="f-box" href="index.php/deposit"><img src="files/file3.png" /><br/>Deposit Data</a></td>
-                <td><a class="f-box" href="index.php/resources"><img src="files/file3.png" /><br/>Resources</a></td>
+            	<td><a class="f-box" href="index.php/contributing-catalogs"><img src="files/list.png" /><br/>Contributing Catalogs</a></td>
+                <td><a class="f-box" href="index.php/terms"><img src="files/file3.png" /><br/>Terms of use</a></td>
+                <td><a class="f-box" href="index.php/deposit"><img src="files/file plus.png" /><br/>Deposit data</a></td>
+                <td><a class="f-box" href="index.php/help"><img src="files/info.png" /><br/>Using the catalog</a></td>
+                <td><a class="f-box" href="index.php/resources"><img src="files/book.png" /><br/>Resources</a></td>
             </tr>
-       	-->
+<?php /* ?>
            <tr>
             	<td>
                     <a class="f-box" href="index.php/terms">
@@ -124,14 +147,62 @@
                 </a>
                 </td>
             </tr>
-
+<?php */ ?>
         </table>
+        </div>
+    </div>
+  </div>
+  <div class="m-footer"><span>&nbsp;</span></div>
 </div>
 
+
+
+
+<!-- recent studies list -->
+<div class="grey-module" id="sidebar-faq" >
+  <div class="m-head">
+    <h2>Latest additions</h2>
+  </div>
+  <div class="m-body">
+    <div class="right-border">
+    	<div class="content" >
+		<?php                            
+            $data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos
+            $this->load->view("catalog_search/recent_studies_list",array('rows'=>$latest_surveys));
+        ?>
+        </div>
+      <br/>
+    </div>
+  </div>
+  <div class="m-footer"><span>&nbsp;</span></div>
+</div>
 </td>
 
 <td style="width:250px" class="right-col">
 
+<!-- stats -->
+<div class="grey-module" id="sidebar-faq" >
+  <div class="m-head">
+    <h2>Stats</h2>
+  </div>
+  <div class="m-body">
+    <div class="right-border">
+        <div class="stats" >
+        	<div class="bg-star">
+                  <div class="stats-text" >As of <?php echo date("F d, Y",date("U")); ?><br /> the Library contains</div>
+                  <div class="stats-surveys" ><?php echo number_format($survey_count);?> surveys<br/> 
+                  <?php echo number_format($variable_count);?> variables<br/>
+                  <?php echo number_format($citation_count);?> citations
+            </div>      
+          </div>
+    	</div>
+      <br />
+    </div>
+  </div>
+  <div class="m-footer"><span>&nbsp;</span></div>
+</div>
+
+<?php /* ?>
 <!-- recent studies list -->
 <div class="grey-module" id="sidebar-faq" >
   <div class="m-head">
@@ -151,7 +222,7 @@
   </div>
   <div class="m-footer"><span>&nbsp;</span></div>
 </div>
-
+<?php */ ?>
 
 <?php if (isset($popular_surveys) && is_array($popular_surveys)):?>
 <!-- popular studies -->
