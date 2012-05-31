@@ -243,33 +243,8 @@ class Page extends MY_Controller {
 			break;
 			case 'contributing-catalogs';
 					$this->load->model("repository_model");
-					$this->lang->load('catalog_search');
-					$this->load->library('cache');
-					$this->load->model("stats_model");
+					$data['title']='Contributing Catalogs';
 					
-					//check if a cached copy of the page is available
-					$data= $this->cache->get( $page.'_'.md5($page));
-				
-					//no cache found
-					if ($data===FALSE)
-					{						
-						//get stats
-						$data['title']='Contributing Catalogs';
-						$data['survey_count']=$this->stats_model->get_survey_count();
-						$data['variable_count']=$this->stats_model->get_variable_count();
-						$data['citation_count']=$this->stats_model->get_citation_count();
-						
-						//get top popular surveys
-						$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
-						
-						//get top n recent acquisitions
-						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);
-						
-						
-						//cache data
-						//$this->cache->write($data, $page.'_'.md5($page));
-					}
-
 					//reset any search options selected
 					$this->session->unset_userdata('search');
 					
