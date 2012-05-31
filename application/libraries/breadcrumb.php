@@ -55,6 +55,17 @@ class Breadcrumb
 		
 		switch($segments[1])
 		{
+				case 'about':
+				case 'resources':
+				case 'terms':
+				case 'contributing-catalogs':
+				case 'deposit':
+				case 'help':
+				case 'faqs':
+					$breadcrumbs[$segments[1]]=t($segments[1]);
+				break;
+				
+				
 				case 'catalog':
 					
 					if ($repository_title)
