@@ -204,12 +204,13 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
     <span id="user-container">
     <?php $this->load->view('user_bar');?>
     </span>
-    
-        <!--share-bar -->
-        <div id="page-tools">
-        <?php include 'share.php';?>
-        </div>
-    
+
+    <!--share-bar -->
+    <!--
+    <div id="page-tools">
+    <?php //include 'share.php';?>
+    </div>
+    -->
 <?php endif;?>
 
 <div id="doc3" class="yui-t2" >
@@ -254,7 +255,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 			  
               <?php if (isset($this->blocks['rightsidebar'])):?>
               <!-- right sidebar -->	
-              <div class="yui-u">					
+              <div class="yui-u right-col">
                <?php @include 'right-sidebar.php';?>
 			  </div>
               <!--end right sidebar -->
