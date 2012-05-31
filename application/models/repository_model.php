@@ -455,7 +455,7 @@ class Repository_model extends CI_Model {
 		//insert record into db
 		$result=$this->db->insert('repositories', $data); 
 		
-		return $result;		
+		return $result;	
 	}
 
 
