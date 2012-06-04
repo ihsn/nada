@@ -72,10 +72,11 @@ $options_datamatching=array(
       <td colspan="2">
 				<?php echo t('filled_lead_research');?><br /><br />
 		      	<span class="required">*</span> <?php echo t('receiving_org');?>
-      			<input type="text" id="org_rec" name="org_rec"   value="<?php //echo $data['org_rec']; ?>" style="width:200px" maxlength="100" /> <br />
-		      	<?php echo t('rec_org_refers');?></p>
+      			<input type="text" id="org_rec" name="org_rec"   value="<?php echo get_form_value('org_rec',isset($org_rec) ? $org_rec : ''); ?>" style="width:200px" maxlength="100" /> <br />
+		      	<?php //echo t('rec_org_refers');?></p>
       </td>      
     </tr>
+    <?php /*?>
     <tr class="border" valign="top">
     <td><?php echo t('org_type');?></td>
     <td><?php echo form_dropdown('org_type', $options_org_type, isset($org_type) ? $org_type : '');?>
@@ -83,20 +84,23 @@ $options_datamatching=array(
       <br />
 <?php print t('other');?><br/>
 <input type="text" id="orgtype_other" name="orgtype_other"   value="<?php echo get_form_value('orgtype_other',isset($orgtype_other) ? $orgtype_other : ''); ?>" style="width:200px" maxlength="100" /></td>
-  </tr>
+  </tr>  
   <tr class="border">
     <td><span class="required">*</span> <?php echo t('post_add');?></td>
     <td><input type="text" id="address" name="address"   value="<?php echo get_form_value('address',isset($address) ? $address : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
+  <?php */ ?>
   <tr class="border">
     <td><p>      <span class="required">*</span> <?php echo t('telephone');?><br />
     </p></td>
     <td><input type="text" id="tel" name="tel"   value="<?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
+  <?php /* ?>
   <tr class="border">
     <td><?php echo t('fax');?></td>
     <td><input type="text" id="fax" name="fax"   value="<?php echo get_form_value('fax',isset($fax) ? $fax : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
+  <?php */ ?>
   <tr class="border">
     <td colspan="2"><div style="font-weight:bold;"><span class="required">*</span> <?php print t('intended_use');?><br /> <br />
     </div>
@@ -111,6 +115,7 @@ $options_datamatching=array(
     <td><strong><?php print t('expected_completion');?></strong> </td>
     <td><input type="text" id="compdate" name="compdate"   value="<?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
+  <?php /*?>
   <tr class="border">
     <td colspan="2">
     	<div style="font-weight:bold;"><?php print t('data_matching');?></div>
@@ -122,6 +127,7 @@ $options_datamatching=array(
     <td colspan="2"><?php print t('other_data_merge');?><br />
     <textarea id="mergedatasets" name="mergedatasets" style="width:98%" rows="10"><?php echo get_form_value('mergedatasets',isset($mergedatasets) ? $mergedatasets : ''); ?></textarea></td>
   </tr>
+  <?php */ ?>
   <tr class="border">
     <td colspan="2"><strong><?php print t('research_team');?></strong><br />
       <br />

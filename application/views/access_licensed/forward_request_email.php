@@ -70,6 +70,7 @@ else
 		<td><?php echo t('receiving_organization_name');?></td>
       <td><span class="ures"><?php echo get_form_value('org_rec',isset($org_rec) ? $org_rec : ''); ?></span></td>      
     </tr>
+    <?php /*?>
     <tr class="border" valign="top">
     <td><?php echo t('organization_type');?></td>
     <td>
@@ -85,14 +86,17 @@ else
     <td><?php print t('postal_address');?></td>
     <td><span class="ures"><?php echo get_form_value('address',isset($address) ? $address : ''); ?></span></td>
   </tr>
+  <?php */ ?>
   <tr class="border">
     <td><?php print t('telephone');?></td>
     <td><span class="ures"><?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?></span></td>
   </tr>
+  <?php /*?>
   <tr class="border">
     <td><?php print t('fax');?></td>
     <td><span class="ures"><?php echo get_form_value('fax',isset($fax) ? $fax : ''); ?></span></td>
   </tr>
+  <?php */?>
   <tr class="border">
     <td><div><?php print t('intended_use_of_data');?></div></td>
     <td><span class="ures"><?php echo get_form_value('datause',isset($datause) ? $datause : ''); ?></span></td>
@@ -106,6 +110,7 @@ else
     <td><?php print t('expected_completion_date');?></td>
     <td><span class="ures"><?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?></span></td>
   </tr>
+  <?php /* ?>
   <tr class="border">
     <td><?php print t('data_matching');?></td>
     <td>    	
@@ -116,6 +121,7 @@ else
     <div><span class="ures"><?php echo get_form_value('mergedatasets',isset($mergedatasets) ? $mergedatasets : ''); ?></span></div>
       </td>
   </tr>
+  <?php */ ?>
   <tr class="border">
     <td><?php print t('research_team_members');?></td>
     <td>
@@ -136,7 +142,7 @@ else
                 <?php print t('subset_dataset');?></span>
             <?php endif;?>
         <?php endif;?>    			    
-</td>
+	</td>
   </tr>
   </table>
 <body>  
