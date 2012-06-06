@@ -268,10 +268,10 @@ background: none;
 .quick-search-box {
 clear: both;
 margin: 0px;
-border: 1px solid #B6C7DC;
+border: 3px solid orange;
 height: 26px;
 overflow: hidden;
-width: 266px;
+width: 390px;
 float: left;
 padding: 3px;
 margin-right: 5px;
@@ -280,10 +280,11 @@ margin-right: 5px;
 .quick-search-box .sk{
 outline:none;
 border:none;
-background:url(css/header_sprite_0802.png) no-repeat;
+/*background:url(css/header_sprite_0802.png) no-repeat;*/
+background:white;
 float:left;
-height:19px;
-width: 220px; 
+height:21px;
+width: 345px; 
 color: #666;  
 padding:2px 5px 0px; 
 margin:0px
@@ -403,7 +404,7 @@ z-index: 500;
 table.public-use td{font-size:12px;}
 
 .bg-star {background: url(bg-star.png) no-repeat top center;padding-top:40px;}
-.stats .stats-text{margin-bottom:10px;}
+.stats .stats-text{margin-bottom:10px;font-size:16px;}
 
 .f-box-container a{display:block;text-align:center;border:1px solid gainsboro;padding:10px;margin:5px;width:100px;height:80px;padding-top:40px;background-color:#EBEBEB; color:black;text-decoration:none;}
 /*with white shadow to fix screen blinking on hover*/
@@ -430,3 +431,13 @@ table.public-use td{font-size:12px;}
 .f-box-container img{margin-bottom:5px;}
 
 .repo-table h3{margin-top:0px;}
+
+.user-box {font-size:12px;font-weight:bold;}
+.user-box .profile, .user-box .password, .user-box .register{display:none;}
+.user-box .username{text-transform:capitalize}
+
+.notice {
+margin-top: 19px;
+background-color: beige;
+padding: 10px;
+}
