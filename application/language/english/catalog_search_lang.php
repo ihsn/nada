@@ -120,5 +120,16 @@ $lang['filter_by_data']="Filter by Data Access";
 $lang['legend_na_access']="Data not available";
 $lang['catalog_history']="Catalog History";
 $lang['catalog_owned_by']="Catalog";
+$lang['search_no_results']="<p><strong>Your search did not match any studies held in the catalog.</strong></p>
+<p>Suggestions:</p>
+<ul>
+<li>Make sure all words are spelled correctly.</li>
+<li>Try different keywords.</li>
+<li>Try more general keywords.</li>
+<li>Try searching in the variable description field if you searched in the study description field.</li>
+</ul>
+";
+
+
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
