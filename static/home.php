@@ -20,11 +20,13 @@
         	<tr style="vertical-align:top">
             <td><img src="files/ad_microdata.png" align="left" width="150px" style="margin-right:15px;"/></td>
             <td>
-        <p>The DDP Microdata Library is a World Bank searchable catalog and repository of survey microdata and documentation. <a href="index.php/about" title="Read more">Read more...</a></p>
-
+            <h1>Microdata Library</h1>
+        	<p>The Microdata Library provides a searchable catalog and repository of survey microdata and documentation. 
+            The Microdata Library is the product of a Bank-wide collaboration between regions and a number of specialized units. <a href="index.php/about" title="Read more">Read more...</a></p>
+            
         <form action="<?php echo site_url();?>/catalog" style="">
          <div class="quick-search-box">
-            <input id="sk" class="sk" value="Search the Microdata Library" onfocus="value=''" name="sk">
+            <input id="sk" class="sk" value="Search the Central Microdata Catalog" onfocus="value=''" name="sk">
             <input id="quick-search" type="submit" value="Find" class="submit-button" />
         </div>
         <a style="float:left;display:block;margin-top:8px;" href="<?php echo site_url();?>/catalog/central">View all Surveys &raquo;</a>
@@ -36,12 +38,41 @@
             </td>
             </tr>
         </table>
+        
+        <div class="notice">
+        	<p>The Microdata Library is currently at the development stage. Refining of the application, migration 
+            from the old DDP microdata platform and the addition of new studies is ongoing. If you do not find the study you are looking 
+            for you should attempt to find it in the <a target="_blank" href="http://ddp.worldbank.org/microdata/index.jsp">old DDP Microdata Platform</a>.</p>
+            <p>We welcome feedback, contact us at: <a href="mailto:microdata@worldbank.org">microdata@worldbank.org</a></p>
+        </div>
+
+        
         </div>
     </div>
   </div>
   <div class="m-footer"><span>&nbsp;</span></div>
 </div>
 
+<?php /* ?>
+
+<!-- notic box-->
+<div class="grey-module" id="sidebar-faq" >
+  <div class="m-head">
+    <h2>Development Status</h2>
+  </div>
+  <div class="m-body">
+    <div class="right-border">
+    
+                    <div>
+                        <p>The DDP Microdata Library is currently at the Beta development stage. Refining of the application as well as the migration and addition of new datasets from the old DDP microdata platform is ongoing. As of October 2011 the catalog contains around 20 percent of our total holdings. If you do not find the study you are looking for you should attempt to find it in the old DDP Microdata Platform located at http://ddp.worldbank.org/microdata/index.jsp.</p>
+                    </div>
+    
+    </div>
+  </div>
+  <div class="m-footer"><span>&nbsp;</span></div>
+</div>
+
+<?php */ ?>
 
 <?php /* ?>
 <!-- search box-->
@@ -270,7 +301,20 @@
 </table>
 
 
-
+<script> 
+	$(function() {
+		//adjust_sidebar();
+		//disable hyperlinks
+		//$(".no-action a").click(function(){return false;});		
+		$("#quick-search").click(function(){
+			if ($("#sk").val()=="Search the Central Microdata Catalog")
+			{
+				$("#sk").val("");
+				return false;
+			}
+		});
+	});
+	</script> 
 
 
 <?php return;?>
