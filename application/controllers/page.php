@@ -242,6 +242,7 @@ class Page extends MY_Controller {
 	
 			break;
 			case 'contributing-catalogs';
+					$this->lang->load('harvester');
 					$this->load->model("repository_model");
 					$data['title']='Contributing Catalogs';
 					
