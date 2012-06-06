@@ -198,7 +198,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 </div>
 </form>
 
-<?php if (!$is_home):?>
+<?php //if (!$is_home):?>
 
     <!--login information bar-->
     <span id="user-container">
@@ -211,7 +211,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
     <?php //include 'share.php';?>
     </div>
     -->
-<?php endif;?>
+<?php //endif;?>
 
 <div id="doc3" class="yui-t2" >
 
