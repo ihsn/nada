@@ -56,7 +56,6 @@ class Catalog_model extends CI_Model {
 	
     public function __construct()
     {
-        // model constructor
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
