@@ -1,4 +1,4 @@
-<?php if (!$is_home):?>
+<?php //if (!$is_home):?>
 <div class="sidebar" style="width:220px;">
 <!--side-bar -->
 <div class="left-nav-gray" >
@@ -9,7 +9,7 @@
 	<div class="left-gray-f"><span>&nbsp;</span></div>
 </div>
 <!--end-sidebar-->
-<?php endif;?>
+<?php //endif;?>
 
 <!--sidebar-reference-owner-->
 <div class="grey-module" id="stpModule">
