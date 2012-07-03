@@ -3,6 +3,10 @@
 *
 * DDP Utilities 
 *
+*
+* Run from CLI: 
+*		> php index.php ddp_util sync_all
+*
 **/
 class DDP_Util extends MY_Controller {
  
@@ -124,6 +128,8 @@ class DDP_Util extends MY_Controller {
 	{
 		//empty temp table
 		$this->db->query("delete from tmp_survey_folder_mapping");
+		
+		echo "tmp_survey_folder deleted";
 		
 		$surveys=$this->_get_surveys();
 		foreach($surveys as $survey)
@@ -289,7 +295,7 @@ class DDP_Util extends MY_Controller {
 	function sync_all()
 	{
 		echo "started";
-		//map_survey_folders(); //call this method to build the mappings
+		//$this->map_survey_folders(); //call this method to build the mappings
 		$this->db->select("*");
 		//$this->db->limit(3);
 		//$this->db->where("sid > ",309);
@@ -307,7 +313,8 @@ class DDP_Util extends MY_Controller {
 			$k++;
 			echo "\r\n processing $k - $total";
 			echo "\r\n processing ".$survey['id']."\r\n";
-			$this->sync_study($survey['sid'],$survey['remotepath']);
+			$this->sync_study($survey['sid'],utf8_decode($survey['remotepath']));
+			//$this->test_folder_exists($survey['remotepath']);
 			set_time_limit(0);
 		}
 		
@@ -357,147 +364,150 @@ class DDP_Util extends MY_Controller {
 		//RDF file path
 		$rdf_path=unix_path($survey_source_path.'/'.$rdf_file_name);
 				
-		//RDF Found
+		//RDF not found
 		if (!file_exists($rdf_path))
 		{
 			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF_NOT_FOUND \t".$rdf_path);
-			return FALSE;
-		}
-		
-		
-		//Import RDF and overwrite existing RDF entries in DB
-		$rdf_content=file_get_contents($rdf_path);
-		
-		//Parse RDF to an Array
-		$resources_arr=$this->rdf_parser->parse($rdf_content);
-		
-		//field mappings
-		$rdf_fields=$this->rdf_parser->fields;
-		
-		$resources=array();
-		
-		//iterate resources array and convert to more accessible array format
-		foreach($resources_arr as $rdf_rec)
-		{
-			$insert_data=array();
-			foreach($rdf_fields as $key=>$value)
-			{
-				if ( isset($rdf_rec[$rdf_fields[$key]]))
-				{
-					$insert_data[$key]=trim($rdf_rec[$rdf_fields[$key]]);
-				}	
-			}
-			$resources[]=$insert_data;
-		}
-		
-		//var_dump($resources);
-		
-		//check RDF
-		if (count($resources)==0)
-		{
-			$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF_EMPTY: \t".$survey_source_path);
-			return FALSE;
-		}
-		
-		//remove existing resources from DB
-		$this->_remove_resources($surveyid);
-		$this->_write_log($this->log_file_name,$message_type="INFO",$message="EMPTY_RDF_FROM_DB: \t".$surveyid);
-		
-		//process each resource
-		foreach($resources as $resource)
-		{
-			//echo $resource['filename'].'<BR>'."\r\n";
 
-			//check if it is not a URL
-			if (!is_url($resource['filename']))
-			{
-				//fix html entities e.g &amp; &quot;
-				$resource['filename']=htmlspecialchars_decode($resource['filename'],ENT_QUOTES);
-				
-				//clean file paths
-				$resource['filename']=unix_path($resource['filename']);
-
-				//remove slash before the file path otherwise can't link the path to the file
-				if (substr($insert_data['filename'],0,1)=='/')
-				{
-					$resource['filename']=substr($resource['filename'],1,255);
-				}
-				
-				//file path on the Q drive
-				$resource_file_path_source=unix_path($survey_source_path.'/'.$resource['filename']);
-				
-				//file path from survey datafiles folder
-				$resource_file_path_target=unix_path($survey_folder.'/'.basename($resource['filename']));
-			
-				//copy file if set to TRUE
-				$make_copy=FALSE;
-				
-				//echo 'SOURCE:'.$resource_file_path_source.'<BR>'."\r\n";
-				//echo 'TARGET:'.$resource_file_path_target.'<BR>'."\r\n";
-				
-				//copy resource file (if newer/changed)
-				if (file_exists($resource_file_path_source))
-				{
-					//target file not found
-					if (!file_exists($resource_file_path_target) )
-					{
-						$make_copy=TRUE;
-					}
-					//source and target times are different
-					else if (filemtime($resource_file_path_source) != filemtime($resource_file_path_target))
-					{
-						$make_copy=TRUE;
-					}
-				}
-				else
-				{
-					//echo "#################### SOURCE FILE NOT FOUND #####################<BR>"."\r\n";
-					$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF Source file not found: \t".$resource_file_path_source);
-				}
-				
-				//copy file
-				if ($make_copy==TRUE)
-				{
-					//echo 'copying  '.$resource_file_path_source.'<BR>';
-					$file_copied=@copy($resource_file_path_source,$resource_file_path_target);				
-					$this->_write_log($this->log_file_name,$message_type="INFO",$message="Copying RDF from: \t".$resource_file_path_source. ' to: '.$resource_file_path_target);
-										
-					//copy files to overwrite existing files
-					if ($file_copied)
-					{
-						$this->_write_log($this->log_file_name,$message_type="INFO",$message="Resource copied: \t".$resource_file_path_source);
-					}
-					else
-					{
-						$this->_write_log($this->log_file_name,$message_type="ERROR",$message="Resouce copy failed: \t".$resource_file_path_source. ' to: '.$resource_file_path_target);
-					}
-				}
-				else
-				{
-					echo 'SKIPPED file:'.$resource_file_path_source.'<BR>'."\r\n";
-				}
-			
-				//get rid of folder paths
-				$resource['filename']=basename($resource['filename']);
-				
-				$resource['title']=substr($resource['title'],0,255);
-			
-			}//end-is_url
-			
-			//add survey id to resource array
-			$resource['survey_id']=$surveyid;
-			
-			
-			
-			//import to db
-			$this->Resource_model->insert($resource);
-						
-			//log
-			$this->_write_log($this->log_file_name,$message_type="INFO",$message="RDF Import to DB: \t".$resource['filename']);
-
-			//echo '<HR>';
-			echo "\r\n";
 		}
+		else 	//RDF FOUND
+		{	
+			
+							//Import RDF and overwrite existing RDF entries in DB
+							$rdf_content=file_get_contents($rdf_path);
+							
+							//Parse RDF to an Array
+							$resources_arr=$this->rdf_parser->parse($rdf_content);
+							
+							//field mappings
+							$rdf_fields=$this->rdf_parser->fields;
+							
+							$resources=array();
+							
+							//iterate resources array and convert to more accessible array format
+							foreach($resources_arr as $rdf_rec)
+							{
+								$insert_data=array();
+								foreach($rdf_fields as $key=>$value)
+								{
+									if ( isset($rdf_rec[$rdf_fields[$key]]))
+									{
+										$insert_data[$key]=trim($rdf_rec[$rdf_fields[$key]]);
+									}	
+								}
+								$resources[]=$insert_data;
+							}
+							
+							//var_dump($resources);
+							
+							//check RDF
+							if (count($resources)==0)
+							{
+								$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF_EMPTY: \t".$survey_source_path);
+								return FALSE;
+							}
+							
+							//remove existing resources from DB
+							$this->_remove_resources($surveyid);
+							$this->_write_log($this->log_file_name,$message_type="INFO",$message="EMPTY_RDF_FROM_DB: \t".$surveyid);
+							
+							//process each resource
+							foreach($resources as $resource)
+							{
+								//echo $resource['filename'].'<BR>'."\r\n";
+					
+								//check if it is not a URL
+								if (!is_url($resource['filename']))
+								{
+									//fix html entities e.g &amp; &quot;
+									$resource['filename']=htmlspecialchars_decode($resource['filename'],ENT_QUOTES);
+									
+									//clean file paths
+									$resource['filename']=unix_path($resource['filename']);
+					
+									//remove slash before the file path otherwise can't link the path to the file
+									if (substr($insert_data['filename'],0,1)=='/')
+									{
+										$resource['filename']=substr($resource['filename'],1,255);
+									}
+									
+									//file path on the Q drive
+									$resource_file_path_source=unix_path($survey_source_path.'/'.$resource['filename']);
+									
+									//file path from survey datafiles folder
+									$resource_file_path_target=unix_path($survey_folder.'/'.basename($resource['filename']));
+								
+									//copy file if set to TRUE
+									$make_copy=FALSE;
+									
+									//echo 'SOURCE:'.$resource_file_path_source.'<BR>'."\r\n";
+									//echo 'TARGET:'.$resource_file_path_target.'<BR>'."\r\n";
+									
+									//copy resource file (if newer/changed)
+									if (file_exists($resource_file_path_source))
+									{
+										//target file not found
+										if (!file_exists($resource_file_path_target) )
+										{
+											$make_copy=TRUE;
+										}
+										//source and target times are different
+										else if (filemtime($resource_file_path_source) != filemtime($resource_file_path_target))
+										{
+											$make_copy=TRUE;
+										}
+									}
+									else
+									{
+										//echo "#################### SOURCE FILE NOT FOUND #####################<BR>"."\r\n";
+										$this->_write_log($this->log_file_name,$message_type="ERROR",$message="RDF Source file not found: \t".$resource_file_path_source);
+									}
+									
+									//copy file
+									if ($make_copy==TRUE)
+									{
+										//echo 'copying  '.$resource_file_path_source.'<BR>';
+										$file_copied=@copy($resource_file_path_source,$resource_file_path_target);				
+										$this->_write_log($this->log_file_name,$message_type="INFO",$message="Copying RDF from: \t".$resource_file_path_source. ' to: '.$resource_file_path_target);
+															
+										//copy files to overwrite existing files
+										if ($file_copied)
+										{
+											$this->_write_log($this->log_file_name,$message_type="INFO",$message="Resource copied: \t".$resource_file_path_source);
+										}
+										else
+										{
+											$this->_write_log($this->log_file_name,$message_type="ERROR",$message="Resouce copy failed: \t".$resource_file_path_source. ' to: '.$resource_file_path_target);
+										}
+									}
+									else
+									{
+										echo 'SKIPPED file:'.$resource_file_path_source.'<BR>'."\r\n";
+									}
+								
+									//get rid of folder paths
+									$resource['filename']=basename($resource['filename']);
+									
+									$resource['title']=substr($resource['title'],0,255);
+								
+								}//end-is_url
+								
+								//add survey id to resource array
+								$resource['survey_id']=$surveyid;
+								
+								
+								
+								//import to db
+								$this->Resource_model->insert($resource);
+											
+								//log
+								$this->_write_log($this->log_file_name,$message_type="INFO",$message="RDF Import to DB: \t".$resource['filename']);
+					
+								//echo '<HR>';
+								echo "\r\n";
+							}
+		}//end-rdf-found
+		
 		
 		//Copy distribute folder if exists
 		$distribute_folder=unix_path($survey_source_path.'/data/distribute');
@@ -528,6 +538,10 @@ class DDP_Util extends MY_Controller {
 					$this->_write_log($this->log_file_name,$message_type="ERROR",$message="Datafile copy failed: \t".basename($file));
 				}	
 			}
+		}
+		else
+		{
+			$this->_write_log($this->log_file_name,$message_type="INFO",$message="DISTRIBUTE folder not found: ".$surveyid);
 		}
 		//Delete the files that are not found in RDF
 		
@@ -619,9 +633,22 @@ class DDP_Util extends MY_Controller {
 		echo '<h2>Paste list of survey ID (JSON string)</h2>';	
 		echo '<textarea rows=20 style="width:100%;" name="diff">'.$this->input->post("diff").'</textarea>';
 		echo '<input type="submit" name="submit" value="submit"/>';
-		echo '</form>';
-		
+		echo '</form>';		
 	}
+	
+	
+	function test_folder_exists($path)
+	{
+		$exists=file_exists(utf8_decode($path));
+		
+		echo "\n";
+		echo $path;
+		echo "\n";				
+		var_dump($exists);
+		echo "\n";
+	
+	}
+	
 }
 /* End of file ddp_util.php */
 /* Location: ./controllers/ddp_util.php */
