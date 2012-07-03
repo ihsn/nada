@@ -139,7 +139,7 @@
         	<tr>
             	<td><a class="f-box" href="index.php/contributing-catalogs"><img src="files/list.png" /><br/>Contributing Catalogs</a></td>
                 <td><a class="f-box" href="index.php/terms"><img src="files/file3.png" /><br/>Terms of use</a></td>
-                <td><a class="f-box" href="index.php/deposit"><img src="files/file plus.png" /><br/>Deposit data</a></td>
+                <td><a class="f-box" href="index.php/deposit"><img src="files/file-plus.png" /><br/>Deposit data</a></td>
                 <td><a class="f-box" href="index.php/help"><img src="files/info.png" /><br/>Using the catalog</a></td>
                 <td><a class="f-box" href="index.php/resources"><img src="files/book.png" /><br/>Resources</a></td>
             </tr>
