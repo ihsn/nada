@@ -86,82 +86,49 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
         </div>
     </div>
 	
-    <div class="headerLinksblock">    	
-        
-        <a href="http://mint.worldbank.org/" class="headerLinks mbllinkbg">Mobile Intranet</a>
-         |
-         
-        <a class="headerLinks" href="http://www.worldbank.org/">WB External Site</a>
-         | 
-        
-        <a class="headerLinks" href="http://community.worldbank.org/">Scoop</a>
-         | 
-        
-        <a class="headerLinks" href="http://directory.worldbank.org/">WBG Directory</a>
-         | 
-        
-        <a class="headerLinks" href="http://travel.worldbank.org/">Travel</a>
-         | 
-        
-        <a class="headerLinks" href="http://trs/">TRS</a>
-         | 
-        
-        <a class="headerLinks" href="http://lars/">LARS</a>
-         | 
-        
-        <a class="headerLinks" href="http://intranet.worldbank.org/servlet/main?menuPK=51286489&pagePK=64260944&piPK=64260838&theSitePK=328635">Jobs</a>
-		
+    <div class="headerLinksblock">    	        
+        <a href="http://mint.worldbank.org/" class="headerLinks mbllinkbg">Mobile Intranet</a> |         
+        <a class="headerLinks" href="http://www.worldbank.org/">WB External Site</a> |         
+        <a class="headerLinks" href="http://community.worldbank.org/">Scoop</a> |         
+        <a class="headerLinks" href="http://directory.worldbank.org/">WBG Directory</a> |         
+        <a class="headerLinks" href="http://travel.worldbank.org/">Travel</a>   |         
+        <a class="headerLinks" href="http://trs/">TRS</a> |         
+        <a class="headerLinks" href="http://lars/">LARS</a> |         
+        <a class="headerLinks" href="http://intranet.worldbank.org/servlet/main?menuPK=51286489&pagePK=64260944&piPK=64260838&theSitePK=328635">Jobs</a>		
     </div>
 	
 </div>
 
 <div class="headermenu clrboth" >
     <div class="fltL">
-        <ul id="headernav">
-            
+        <ul id="headernav">            
             <li>
-                <a class="tab-sel" href="http://intranet.worldbank.org">Home</a>
-                | 
-            </li>
-            
+                <a class="tab-sel" href="http://intranet.worldbank.org">Home</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/countries/Home.html">Countries</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/countries/Home.html">Countries</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/topics/Home.html">Topics</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/topics/Home.html">Topics</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/units/Home.html">Units</a>
-                | 
+                <a href="http://intranet.worldbank.org/units/Home.html">Units</a>  | 
             </li>
             <li>
-                <a href="http://myhr.worldbank.org/">myHR</a>
-                | 
+                <a href="http://myhr.worldbank.org/">myHR</a>  | 
             </li>
             <li>
-                <a href="http://intranet.worldbank.org/operations/Home.html">Operations</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/operations/Home.html">Operations</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/services/Home.html">Services &amp; References</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/services/Home.html">Services &amp; References</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/people/Home.html">People</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/people/Home.html">People</a>  | 
+            </li>            
             <li class="tab-sel">
-                <a class="tab-sel" href="http://intranet.worldbank.org/documents/Home.html">Documents &amp; Data</a>
-                | 
-            </li>
-            
+                <a class="tab-sel" href="http://intranet.worldbank.org/documents/Home.html">Documents &amp; Data</a>  | 
+            </li>            
         </ul>
     </div>
 </div>
@@ -169,7 +136,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 	
 </div>
 
-	  			
+
 <!-- SearchBar code comes here -->
 <form name="srchForm" id="srchForm" action="<?php echo site_url();?>/catalog" style="margin: 0px; padding: 0px;" autocomplete="off" >
 
