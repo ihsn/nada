@@ -1229,7 +1229,7 @@ class Ion_auth_model extends CI_Model
 
 		//get user repositories
 		$this->db->select("repositories.repositoryid as repositoryid,repositories.title as title");
-		$this->db->join('user_repositories', 'repositories.repositoryid = user_repositories.repositoryid','left');
+		$this->db->join('user_repositories', 'repositories.id= user_repositories.repositoryid','left');
 		$this->db->order_by('title'); 
 
 		if ($repo_access!=='UNLIMITED')
