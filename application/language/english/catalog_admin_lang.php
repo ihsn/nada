@@ -67,5 +67,9 @@ $lang['msg_studies_to_transfer']='Studies that will be changed';
 $lang['study_owned']='Owned study';
 $lang['study_linked']='Linked study';
 $lang['is_harvested_study']='Harvested study';
+$lang['select_publish_unpublish']='Select to publish/unpublish';
+$lang['publish']='Publish';
+$lang['series']='Series';
+$lang['data_access']='Data access';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
