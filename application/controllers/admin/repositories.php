@@ -146,7 +146,9 @@ class Repositories extends MY_Controller {
 						'short_text'=>'',
 						'thumbnail'=>'',
 						'long_text'=>'',
-						'weight'=>0
+						'weight'=>0,
+						'ispublished'=>0,
+						'section'=>'internal'//default
 						);
 												
 		//process form
