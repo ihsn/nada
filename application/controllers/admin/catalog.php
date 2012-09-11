@@ -201,95 +201,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 	
-	/**
-	 * Edit survey - by id
-	 *
-	 * @return void
-	 *
-	 **/
-	function edit($id=NULL)
-	{	
-		if (!is_numeric($id))
-		{
-			show_error('Invalid survey id was provided.');
-		}
 	
-		//redirect on Cancel
-		if ( $this->input->post("cancel")!="" )
-		{
-			redirect('admin/catalog/edit/'.$this->uri->segment(4),'refresh');
-		}		
-
-		$this->load->library('form_validation');
-				
-		//atleast one rule require for validation class to work
-		$this->form_validation->set_rules('link_report', 'link report', 'trim');
-
-		//set template
-		$this->template->set_template('blank');
-		
-		$db_values=array();
-		
-		//track form is valid
-		$form_valid=TRUE;
-		
-		if ($this->form_validation->run() == TRUE)
-		{			
-			$options=array('id'=>$id);
-			foreach($_POST as $key=>$value)
-			{
-				$options[$key]=get_form_value($key);
-			}
-			
-			$catalog_root=$this->config->item("catalog_root");
-			$survey_folder=$this->Catalog_model->get_survey_path($id);
-			
-			if($survey_folder!==false)
-			{
-				$survey_folder=$catalog_root.'/'.$survey_folder;
-			}
-						
-			if ($form_valid===TRUE)
-			{
-				//update db
-				$update_result=$this->Catalog_model->update_survey_options($options);
-				
-				if ($update_result===TRUE)
-				{
-					//update successful
-					$this->session->set_flashdata('message', t('form_update_success'));
-					
-					//log
-					$this->db_logger->write_log('edit-survey','success','catalog',$id);
-
-					//redirect back to the list
-					redirect('admin/catalog/'.$this->uri->segment(3).'/edit','refresh');
-				}
-				else
-				{
-					//update failed
-					$this->form_validation->set_error(t('form_update_fail'));
-					
-					//log
-					$this->db_logger->write_log('edit-survey','failed','catalog',$id);
-				}
-			}
-		}
-		else
-		{
-			//load form values from db
-			$db_values=$this->Catalog_model->select_single($id);
-		}
-
-		 //load the contents of the page into a variable
-		$content=$this->load->view('catalog/edit', $db_values,true);
-	
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
-		
-		//render final output
-	  	$this->template->render();
-	}
 
 	/**
 	*
@@ -1585,6 +1497,116 @@ class Catalog extends MY_Controller {
 	  		$this->template->render();
 		}		
 
+	}
+
+
+
+	/**
+	 * Edit survey - by id
+	 *
+	 * @return void
+	 *
+	 **/
+	function edit($id=NULL)
+	{
+		if ( !is_numeric($id) )
+		{
+			show_error('Invalid parameters were passed');
+		}
+
+		$this->load->library("catalog_admin");
+		
+		$active_repository=FALSE;
+
+		//get active repository
+		if (isset($this->active_repo) && $this->active_repo!=NULL)
+		{
+			$active_repository=$this->active_repo->repositoryid;
+		}
+		
+		//get the survey info from db
+       	$survey_row=$this->Catalog_model->select_single($id,$active_repository);
+		
+		if (!$survey_row)
+		{
+			show_error('Survey was not found');
+		}
+
+		//var_dump($survey_row);
+		
+		//check if survey has citations
+		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
+		
+		//get survey files
+		$survey_row['files']=$this->catalog_admin->managefiles($id);
+		
+		//get resources
+		//$resources['rows']=$this->catalog_admin->resources($id);		
+		//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
+		
+		//survey collections
+		$survey_row['collections']=$this->catalog_admin->term_list($vid=$this->config->item("collections_vocab"),$sid=$id);
+		
+		//formatted list of external resources
+		$survey_row['resources']=$this->catalog_admin->resources($id);
+				
+		//data access form list
+		$this->load->model('Form_model');
+		$this->forms_list=array('0'=>'Select');		
+		
+		//create a list of choices for the drop down
+		foreach($this->Form_model->get_all()  as $value)
+		{
+			$this->forms_list[$value['formid']]=$value['fname'];
+		}
+
+		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
+
+
+/*
+	*
+	* Update various study options
+	*/
+	function update()
+	{		
+		//study id
+		$id=$this->input->post("sid");
+		
+		if (!is_numeric($id))
+		{
+			show_404();
+		}
+		
+		//is ajax call
+		$ajax=$this->input->get_post('ajax');
+		
+		//allowed fields
+		$allowed_keys=array('published','formid','link_indicator','link_study','link_da');
+
+		foreach($allowed_keys as $key)
+		{
+			$options=array();
+			$options['id']=$id;
+			if ($this->input->post($key)!==FALSE)
+			{
+					$options[$key]=$this->input->post($key);
+					$result=$this->Catalog_model->update_survey_options($options);
+
+					if ($result)
+					{
+						$this->session->set_flashdata('message', t('form_update_success'));
+					}
+					else
+					{
+						$this->session->set_flashdata('error', t('form_update_failed'));
+					}
+			}
+		}
+		
+		redirect('admin/catalog/edit/'.$id);
 	}
 
 
