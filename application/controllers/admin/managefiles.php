@@ -154,7 +154,7 @@ class Managefiles extends MY_Controller {
 	function edit($surveyid, $filepath)
 	{		
 		$filepath=$this->_clean_filepath(urldecode(base64_decode($filepath)));
-		
+
 		//check if a resource matches the filepath
 		$resource=$this->managefiles_model->get_resources_by_filepath($surveyid,$filepath);
 		
@@ -199,7 +199,7 @@ class Managefiles extends MY_Controller {
 				$this->session->set_flashdata('message', t('form_update_success'));
 				
 				//redirect back to the list
-				redirect("admin/managefiles/".$surveyid,"refresh");
+				redirect("admin/catalog/edit/".$surveyid,"refresh");
 			}
 			else
 			{
