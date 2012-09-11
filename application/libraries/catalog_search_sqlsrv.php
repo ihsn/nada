@@ -26,6 +26,7 @@ class Catalog_search{
 	var $to=0;
 	var $repo='';
 	var $dtype=array();//data access type
+	var $collections=array();
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -38,11 +39,6 @@ class Catalog_search{
 	var $sort_by='titl';
 	var $sort_order='ASC';
 	var $use_fulltext=TRUE;
-		
-	var $use_containstable=TRUE; //use containstable
-	var $study_fulltext_index='surveys.titl,surveys.authenty,surveys.geogcover,surveys.nation,surveys.topic,surveys.scope,surveys.sername,surveys.producer,surveys.sponsor,surveys.refno';
-	var $study_fulltext_index_containstable='titl,authenty,geogcover,nation,topic,scope,sername,producer,sponsor,refno';
-	var $variable_fulltext_index_containstable='labl,name,catgry';
 		
     /**
 	 * Constructor
@@ -97,26 +93,20 @@ class Catalog_search{
 	function _search_count($limit=15, $offset=0)
 	{
 		$dtype=$this->_build_dtype_query();
-		$study='';		
-		$variable='';
-		
-		if (!$this->use_containstable)
-		{
-			$variable=$this->_build_study_query();
-			$study=$this->_build_variable_query();
-		}
-		
+		$study=$this->_build_study_query();
+		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
+		$collections=$this->_build_collections_query();
 		
 		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
+		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections);
 		
 		if ($repository!='')
 		{
@@ -144,27 +134,11 @@ class Catalog_search{
 		}
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id,refno,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid';
+		$study_fields='surveys.id,refno,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,created,data_coll_start,data_coll_end';
 
 		//build final search sql query
 		$sql='';
 		$sql_array=array();
-
-		$study_sql='';
-		$variable_sql='';
-		
-		if ($this->use_containstable==TRUE)
-		{
-			$study_sql=$this->_build_fulltext_query($this->study_keywords,$this->study_fulltext_index_containstable);
-			$variable_sql=$this->_build_fulltext_query($this->variable_keywords,$this->variable_fulltext_index_containstable);			
-		}
-		
-		if ($study_sql!='')
-		{
-			$study_fields.=', FT_TBL.rank as study_rank, FT_VAR.rank as var_rank';
-			//$group_by_fields.=',FT_TBL.rank,FT_VAR.rank';
-		}
-
 		
 		if ($variable!==FALSE)
 		{
@@ -177,22 +151,9 @@ class Catalog_search{
 			*/
 			$query_count='select count(rowsfound) as rowsfound from (';
 			$query_count.='select count(surveys.id) as rowsfound from surveys ';
-			$query_count.='inner join variables on variables.surveyid_FK=surveys.id ';
+			$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
 			$query_count.='left join forms f on f.formid=surveys.formid ';
 			
-			if ($this->use_containstable==TRUE)
-			{
-					if ($study_sql!='')
-					{
-						$query_count.="inner join containstable(surveys,({$this->study_fulltext_index_containstable}),{$study_sql}) as FT_TBL on FT_TBL.[KEY]=surveys.id ";
-					}
-					
-					if ($variable_sql!='' && $variable!==FALSE)
-					{
-						$query_count.="inner join containstable(variables,({$this->variable_fulltext_index_containstable}),{$variable_sql}) as FT_VAR on FT_VAR.[KEY]=variables.uid ";
-					}
-			}		
-					
 			if ($repository!='')
 			{
 				$query_count.='left join survey_repos on surveys.id=survey_repos.sid ';
@@ -202,44 +163,40 @@ class Catalog_search{
 			{
 				$query_count.='where '.$where;
 			}
-			
 			$query_count.=" GROUP BY surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, surveys.repositoryid,varcount \r\n";
 			$query_count.=') as result';
 			
-//echo str_replace("inner","<BR>inner",$query_count);
+			//$query_found_rows=$this->query($query_count)->row_array();
+		
+			
+			/*if ($where!='') 
+			{
+				$this->ci->db->where($where);
+			}*/
+
+			//group by
+			//$sql.=" GROUP BY id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount \r\n";
+
+			//$query=$this->ci->db->get();
 			$query=$this->ci->db->query($query_count);
 		}		
 		else 
 		{
-				//study search
-				$this->ci->db->select(" count(surveys.id) as rowsfound ",FALSE);
-				$this->ci->db->from('surveys');
-				$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-	
-				if ($repository!='')
-				{
-					$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
-				}
-				
-				if ($this->use_containstable==TRUE)
-				{
-					if ($study_sql!='')
-					{
-						$this->ci->db->join('containstable(surveys,('.$this->study_fulltext_index_containstable.'),'.$study_sql.') as FT_TBL','FT_TBL.[KEY]=surveys.id','inner');
-					}
-					
-					if ($variable_sql!='' && $variable!==FALSE)
-					{
-						$this->ci->db->join('containstable(variables,('.$this->variable_fulltext_index_containstable.'),'.$variable_sql.') as FT_VAR','FT_VAR.[KEY]=variables.uid','inner');
-					}
-				}
-					
-				if ($where!='') 
-				{
-					$this->ci->db->where($where);
-				}
+			//study search
+			$this->ci->db->select(" count(surveys.id) as rowsfound ",FALSE);
+			$this->ci->db->from('surveys');
+			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
+			if ($repository!='')
+			{
+				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+			}
 			
-				$query=$this->ci->db->get();
+			if ($where!='') 
+			{
+				$this->ci->db->where($where);
+			}
+		
+			$query=$this->ci->db->get();
 		}
 		
 		if ($query)
@@ -259,20 +216,13 @@ class Catalog_search{
 	function search($limit=15, $offset=0)
 	{
 		$dtype=$this->_build_dtype_query();
-		
-		$study='';		
-		$variable='';
-		
-		if (!$this->use_containstable)
-		{
-			$variable=$this->_build_study_query();
-			$study=$this->_build_variable_query();
-		}
-			
+		$study=$this->_build_study_query();
+		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
+		$collections=$this->_build_collections_query();
 		
 		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
@@ -297,7 +247,7 @@ class Catalog_search{
 		}
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
 		
 		//create combined where clause
 		$where='';
@@ -316,31 +266,14 @@ class Catalog_search{
 			}
 		}
 		
-		$group_by_fields='surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, hq.survey_url';
-		
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,hq.survey_url as study_remote_url';
+		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,hq.survey_url as study_remote_url,surveys.created,surveys.data_coll_start,surveys.data_coll_end';
 
 		//build final search sql query
 		$sql='';
 		$sql_array=array();
-		
-		$study_sql='';
-		$variable_sql='';
-		
-		if ($this->use_containstable==TRUE)
-		{
-			$study_sql=$this->_build_fulltext_query($this->study_keywords,$this->study_fulltext_index_containstable);
-			$variable_sql=$this->_build_fulltext_query($this->variable_keywords,$this->variable_fulltext_index_containstable);			
-		}
-		
-		if ($study_sql!='')
-		{
-			$study_fields.=', FT_TBL.rank as study_rank, FT_VAR.rank as var_rank';
-			$group_by_fields.=',FT_TBL.rank,FT_VAR.rank';
-		}
 		
 		if ($variable!==FALSE)
 		{
@@ -348,31 +281,17 @@ class Catalog_search{
 			$this->ci->db->select($study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('variables','surveys.id=variables.surveyid_fk','inner');
+			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
 			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
-
-			if ($this->use_containstable==TRUE)
-			{
-				if ($study_sql!='')
-				{
-					$this->ci->db->join('containstable(surveys,('.$this->study_fulltext_index_containstable.'),'.$study_sql.') as FT_TBL','FT_TBL.[KEY]=surveys.id','inner');
-				}
-				
-				if ($variable_sql!='' && $variable!==FALSE)
-				{
-					$this->ci->db->join('containstable(variables,('.$this->variable_fulltext_index_containstable.'),'.$variable_sql.') as FT_VAR','FT_VAR.[KEY]=variables.uid','inner');
-				}
-			}
-
 			
 			if ($repository!='')
 			{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 			
-			$this->ci->db->group_by($group_by_fields);
+			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, hq.survey_url,surveys.created,surveys.data_coll_start,surveys.data_coll_end');
 			
 			if ($where!='') 
 			{
@@ -409,23 +328,6 @@ class Catalog_search{
 			{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
-			
-			if ($this->use_containstable==TRUE)
-			{
-				$study_sql=$this->_build_fulltext_query($this->study_keywords,$this->study_fulltext_index_containstable);
-				$variable_sql=$this->_build_fulltext_query($this->variable_keywords,$this->variable_fulltext_index_containstable);			
-				
-				if ($study_sql!='')
-				{
-					$this->ci->db->join('containstable(surveys,('.$this->study_fulltext_index_containstable.'),'.$study_sql.') as FT_TBL','FT_TBL.[KEY]=surveys.id','inner');
-				}
-				
-				if ($variable_sql!='' && $variable!==FALSE)
-				{
-					$this->ci->db->join('containstable(variables,('.$this->variable_fulltext_index_containstable.'),'.$variable_sql.') as FT_VAR','FT_VAR.[KEY]=variables.uid','inner');
-				}
-			}
-
 
 			//multi-sort
 			foreach($sort_options as $sort)
@@ -481,233 +383,11 @@ class Catalog_search{
 		return $result;
 	}
 	
-	
-	function _build_fulltext_query($keywords,$ft_index)
-	{
-		if ($keywords=='')
-		{
-			return FALSE;
-		}
-
-		$disallowed_symbols=array('!','[',']','|');
-		$keywords=htmlspecialchars_decode($keywords, ENT_QUOTES);
-		$keywords=stripslashes($keywords);
-		$keywords=str_replace($disallowed_symbols," ",$keywords);
-		
-		
-		$keywords_arr=explode(" ",$keywords);		
-		$op=array('and', 'or', 'and not', 'or not','{and-not}','{and}','not');
-		
-		$expect_op=FALSE;//expect op
-		
-		$keywords_and=array();
-		$keywords_or=array();
-		$keywords_not=array();
-		$keywords=array();
-
-		$k=0;
-		foreach($keywords_arr as $key=>$word)
-		{
-			$word=trim($word);
-			if ($word=='' || strlen($word)<2 || in_array($word,$op))
-			{
-				continue;
-			}
-			
-			if ($word[0]=='+' || $k==0)
-			{				
-				$word=str_replace('+','',$word);
-				$word=$this->_generation_term($word);
-				$keywords_and[]=$word;
-			}
-			else if ($word[0]=='-')
-			{
-				$word=str_replace('-','',$word);
-				$word=$this->_generation_term($word);
-				$keywords_not[]=$word;
-			}
-			else
-			{
-				$word=$this->_generation_term($word);
-				$keywords_or[]=$word;
-			}
-			$k++;
-		}
-
-		/*
-		var_dump($keywords_and);
-		var_dump($keywords_or);
-		var_dump($keywords_not);
-		*/
-		
-		$ss='';
-		$ss_and=implode(" AND ",$keywords_and);
-		$ss_or=implode(" OR ",$keywords_or);
-		$ss_not=implode(" AND NOT",$keywords_not);
-		
-		if ($ss_and!='')
-		{
-			$ss=$ss_and;
-		}
-		if ($ss_or!='')
-		{
-			if($ss!='' )
-			{
-				$ss.=' OR '.$ss_or;
-			}
-			else
-			{
-				$ss=$ss_or;
-			}	
-		}
-		
-		if ($ss_not!='')
-		{
-			if($ss!='' )
-			{
-				$ss.=' AND NOT '.$ss_not;
-			}
-			else
-			{
-				$ss=$ss_not;
-			}	
-		}
-		
-			//fulltext_containstable
-			if ($this->use_containstable===TRUE)
-			{
-				return $this->ci->db->escape($ss);
-			}
-			else
-			{
-				return sprintf("( contains((%s),%s) )",$ft_index,$this->ci->db->escape($ss));
-			}
-			
-			return FALSE;
-	}
-	
-	
-	
-	
-
-
-	function _escape_study_keywords()
-	{
-		//study search keywords
-		$study_keywords=$this->study_keywords;
-
-		if ($study_keywords=='')
-		{
-			return FALSE;
-		}
-
-		$disallowed_symbols=array('!','[',']','|');
-		$study_keywords=htmlspecialchars_decode($study_keywords, ENT_QUOTES);
-		$study_keywords=stripslashes($study_keywords);
-		$study_keywords=str_replace($disallowed_symbols," ",$study_keywords);
-		
-		
-		$keywords_arr=explode(" ",$study_keywords);		
-		$op=array('and', 'or', 'and not', 'or not','{and-not}','{and}','not');
-		
-		$expect_op=FALSE;//expect op
-		
-		$keywords_and=array();
-		$keywords_or=array();
-		$keywords_not=array();
-		$keywords=array();
-
-		$k=0;
-		foreach($keywords_arr as $key=>$word)
-		{
-			$word=trim($word);
-			if ($word=='' || strlen($word)<2 || in_array($word,$op))
-			{
-				continue;
-			}
-			
-			if ($word[0]=='+' || $k==0)
-			{				
-				$word=str_replace('+','',$word);
-				$word=$this->_generation_term($word);
-				$keywords_and[]=$word;
-			}
-			else if ($word[0]=='-')
-			{
-				$word=str_replace('-','',$word);
-				$word=$this->_generation_term($word);
-				$keywords_not[]=$word;
-			}
-			else
-			{
-				$word=$this->_generation_term($word);
-				$keywords_or[]=$word;
-			}
-			$k++;
-		}
-
-		/*
-		var_dump($keywords_and);
-		var_dump($keywords_or);
-		var_dump($keywords_not);
-		*/
-		
-		$ss='';
-		$ss_and=implode(" AND ",$keywords_and);
-		$ss_or=implode(" OR ",$keywords_or);
-		$ss_not=implode(" AND NOT",$keywords_not);
-		
-		if ($ss_and!='')
-		{
-			$ss=$ss_and;
-		}
-		if ($ss_or!='')
-		{
-			if($ss!='' )
-			{
-				$ss.=' OR '.$ss_or;
-			}
-			else
-			{
-				$ss=$ss_or;
-			}	
-		}
-		
-		if ($ss_not!='')
-		{
-			if($ss!='' )
-			{
-				$ss.=' AND NOT '.$ss_not;
-			}
-			else
-			{
-				$ss=$ss_not;
-			}	
-		}
-		
-			//fulltext_containstable
-			if ($this->use_containstable===TRUE)
-			{
-				return $this->ci->db->escape($ss);
-			}
-			else
-			{
-				return sprintf("( contains((%s),%s) )",$this->study_fulltext_index,$this->ci->db->escape($ss));
-			}
-			
-			return FALSE;
-	}
-
-	
 	/**
 	* Build study search
 	*/
 	function _build_study_query()
 	{
-	
-		return $this->_escape_study_keywords();
-		
-		
 		//study search keywords
 		$study_keywords=$this->study_keywords;
 
@@ -717,111 +397,16 @@ class Catalog_search{
 		}
 
 		//fix quotes, nada escapes quote
-		//$study_keywords=str_replace('&quot;','',$study_keywords);
-		//$study_keywords=str_replace('"','',$study_keywords);
-		//$study_keywords='"'.$study_keywords.'"';
-		
-		$disallowed_symbols=array('!','[',']','|');
-		$study_keywords=htmlspecialchars_decode($study_keywords, ENT_QUOTES);
-		$study_keywords=stripslashes($study_keywords);
-		$study_keywords=str_replace($disallowed_symbols," ",$study_keywords);
-		
-	/*	
-		$study_keywords=str_replace(" &! "," {and-not} ",$study_keywords);
-		$study_keywords=str_replace(" & "," {and} ",$study_keywords);
-		$study_keywords=str_replace(" and "," {and} ",$study_keywords);
-		$study_keywords=str_replace(" and not "," {and} ",$study_keywords);
-		$study_keywords=str_replace("[","",$study_keywords);
-		$study_keywords=str_replace("]","",$study_keywords);
-		$study_keywords=str_replace("!","",$study_keywords);
-	*/
-		
-		$keywords_arr=explode(" ",$study_keywords);		
-		$op=array('and', 'or', 'and not', 'or not','{and-not}','{and}','not');
-		
-		$expect_op=FALSE;//expect op
-		
-		$keywords_and=array();
-		$keywords_or=array();
-		$keywords_not=array();
-		$keywords=array();
+		$study_keywords=str_replace('&quot;','',$study_keywords);
+		$study_keywords=str_replace('"','',$study_keywords);
+		$study_keywords='"'.$study_keywords.'"';
 
-		$k=0;
-		foreach($keywords_arr as $key=>$word)
-		{
-			$word=trim($word);
-			if ($word=='' || strlen($word)<2 || in_array($word,$op))
-			{
-				continue;
-			}
-			
-			if ($word[0]=='+' || $k==0)
-			{				
-				$word=str_replace('+','',$word);
-				$word=$this->_generation_term($word);
-				$keywords_and[]=$word;
-			}
-			else if ($word[0]=='-')
-			{
-				$word=str_replace('-','',$word);
-				$word=$this->_generation_term($word);
-				$keywords_not[]=$word;
-			}
-			else
-			{
-				$word=$this->_generation_term($word);
-				$keywords_or[]=$word;
-			}
-			$k++;
-		}
-
-		/*
-		var_dump($keywords_and);
-		var_dump($keywords_or);
-		var_dump($keywords_not);
-		*/
 		
-		$ss='';
-		$ss_and=implode(" AND ",$keywords_and);
-		$ss_or=implode(" OR ",$keywords_or);
-		$ss_not=implode(" AND NOT",$keywords_not);
-		
-		if ($ss_and!='')
-		{
-			$ss=$ss_and;
-		}
-		if ($ss_or!='')
-		{
-			if($ss!='' )
-			{
-				$ss.=' OR '.$ss_or;
-			}
-			else
-			{
-				$ss=$ss_or;
-			}	
-		}
-		
-		if ($ss_not!='')
-		{
-			if($ss!='' )
-			{
-				$ss.=' AND NOT '.$ss_not;
-			}
-			else
-			{
-				$ss=$ss_not;
-			}	
-		}
-		
-		//echo $ss;
-		//exit;
-
 		if ($this->use_fulltext)
 		{
-			//fulltext index name
-			$study_fulltext_index='surveys.titl,surveys.authenty,surveys.geogcover,surveys.nation,surveys.topic,surveys.scope,surveys.sername,surveys.producer,surveys.sponsor,surveys.refno';
-			return sprintf("( contains((%s),%s) )",$study_fulltext_index,$this->ci->db->escape($ss));
+		//fulltext index name
+		//$study_fulltext_index='surveys.titl,surveys.authenty,surveys.geogcover,surveys.nation,surveys.topic,surveys.scope,surveys.sername,surveys.producer,surveys.sponsor,surveys.refno';
+			return sprintf("( contains((titlstmt,authenty,nation,producer,sponsor,geogcover,abbreviation),%s) )",$this->ci->db->escape($study_keywords));
 		}
 
 		$tmp_where=NULL;
@@ -851,10 +436,6 @@ class Catalog_search{
 		return FALSE;
 	}
 	
-	function _generation_term($str)
-	{
-		return "formsof(INFLECTIONAL,$str)";
-	}
 			
 	function _build_variable_query()
 	{
@@ -1312,6 +893,40 @@ class Catalog_search{
 		return FALSE;
 	}
 
+
+	function _build_collections_query()
+	{	
+		$params=$this->collections;//must always be an array
+
+		if (!is_array($params))
+		{
+			return FALSE;
+		}
+		
+		$param_list=array();
+
+		foreach($params  as $param)
+		{
+			//escape country names for db
+			$param_list[]=$this->ci->db->escape($param);
+		}
+
+		if ( count($param_list)>0)
+		{
+			$params= implode(',',$param_list);
+		}
+		else
+		{
+			return FALSE;
+		}
+
+		if ($param!='')
+		{
+			return sprintf('surveys.id in (select sid from survey_collections where tid in (%s) )',$params);
+		}
+		
+		return FALSE;	
+	}
 }// END Search class
 
 /* End of file Catalog_search.php */
