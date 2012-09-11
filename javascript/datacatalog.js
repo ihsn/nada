@@ -209,6 +209,18 @@ $(document).ready(function()
 		//filter_by_countries();//advanced_search();
 	});
 
+	//centers
+	$("#search_form .chk-center").click(function(event) {
+		$(this).parent().parent().find('.chk-center').attr('checked',$(this).attr('checked') );
+		selected_centers_stats();
+	});
+	
+	//collections
+	$("#search_form .chk-collection").click(function(event) {
+		$(this).parent().parent().find('.chk-collection').attr('checked',$(this).attr('checked') );
+		selected_collections_stats();
+	});
+
 	$("#search_form .chk-topic-hd").click(function(event) {
 		$(this).parent().parent().find('.chk-topic').attr('checked',$(this).attr('checked') );
 		selected_countries_stats();
@@ -255,6 +267,63 @@ function select_countries(option){
 	return false;
 }
 
+function select_centers(option){
+	if (option=='all'){
+		$("#search_form").find('.chk-center').attr('checked',true);
+	}
+	else if (option=='toggle'){
+		$("#search_form .chk-center").each(function() { $(this).attr('checked',!$(this).attr('checked')); });
+	}
+	else if (option=='none'){
+		$("#search_form").find('.chk-center').attr('checked',false);
+	}
+	selected_centers_stats();
+	return false;
+}
+function selected_centers_stats()
+{
+	selected=$("#search_form .chk-center:checked").length;
+	if (selected==0) {
+		$("#selected-centers").html('');
+	}
+	else if (selected==1)
+	{
+		$("#selected-centers").html(selected + ' ' + i18n.center_selected);
+	}
+	else{
+		$("#selected-centers").html(selected + ' ' + i18n.centers_selected);
+	}		
+}
+
+function select_collections(option){
+	if (option=='all'){
+		$("#search_form").find('.chk-collection').attr('checked',true);
+	}
+	else if (option=='toggle'){
+		$("#search_form .chk-collection").each(function() { $(this).attr('checked',!$(this).attr('checked')); });
+	}
+	else if (option=='none'){
+		$("#search_form").find('.chk-collection').attr('checked',false);
+	}
+	selected_centers_stats();
+	return false;
+}
+function selected_collections_stats()
+{
+	selected=$("#search_form .chk-collection:checked").length;
+	if (selected==0) {
+		$("#selected-collections").html('');
+	}
+	else if (selected==1)
+	{
+		$("#selected-collections").html(selected + ' ' + i18n.collection_selected);
+	}
+	else{
+		$("#selected-collections").html(selected + ' ' + i18n.collections_selected);
+	}		
+}
+
+
 function selected_countries_stats()
 {
 	selected=$("#search_form .chk-country:checked").length;
@@ -269,6 +338,7 @@ function selected_countries_stats()
 		$("#selected-countries").html(selected + ' ' + i18n.countries_selected);
 	}		
 }
+
 function select_topics(option){
 	if (option=='all'){
 		$("#search_form").find('.chk-topic, .chk-topic-hd').attr('checked',true);
