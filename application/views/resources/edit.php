@@ -29,7 +29,7 @@ foreach($option_formats as $key=>$value)
 
 <div class="content-container">
 <div class="page-links">
-	<?php echo anchor('admin/catalog/'.$this->uri->segment(3).'/resources',t('link_resource_home'),array('class'=>'button') );	?>
+	<?php echo anchor('admin/catalog/edit/'.$this->uri->segment(5).'/resources',t('link_resource_home'),array('class'=>'button') );	?>	
 </div>
 
 <?php if (validation_errors() ) : ?>
@@ -120,7 +120,7 @@ foreach($option_formats as $key=>$value)
 
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
-	<?php echo anchor('admin/catalog/'.$this->uri->segment(3).'/resources',t('cancel'),array('class'=>'button') );	?>
+	<?php echo anchor('admin/catalog/edit/'.$this->uri->segment(5).'/resources',t('cancel'),array('class'=>'button') );	?>
 </div>
 <?php echo form_close();?>
 </div>
