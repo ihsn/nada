@@ -257,7 +257,7 @@ class Catalog_model extends CI_Model {
 		$fields=$this->study_fields;
 		
 		//form fields
-		$fields[]='forms.model as model';
+		$fields[]='surveys.formid, forms.model as model';
 		
 		//notes
 		$fields[]='notes.admin_notes as admin_notes';
@@ -664,7 +664,12 @@ class Catalog_model extends CI_Model {
 
 			//remove collection dates
 			$this->db->where('sid', $id); 
-			$this->db->delete('survey_years');					
+			$this->db->delete('survey_years');
+			
+			//remove collections
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_collections');					
+
 		}		
 	}
 
