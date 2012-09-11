@@ -54,6 +54,7 @@ foreach($repo as $repo_row)
         <td><?php echo $dirpath;?></td>
     </tr>
     
+    <!--
 	<tr valign="top" class="inline-edit">
     	<td><?php echo t('admin_notes');?></td>
         <td>
@@ -68,7 +69,7 @@ foreach($repo as $repo_row)
             <a class="mini-button" href="#" onclick="attach_note(<?php echo $id;?>,'reviewer');return false;">Update</a>
         </td>
     </tr>
-
+    -->
 </table>
 <div class="action-bar" >
 <span style="float:right;padding-right:10px;">
@@ -102,6 +103,12 @@ foreach($repo as $repo_row)
         </a>                            
 </span>
     <ul>
+        <li>                    
+            <a target="_blank" title="<?php echo t('edit');?> - <?php echo $nation.' - ' .$titl;?>" href="<?php echo site_url()."/admin/catalog/edit/$id/"; ?>" id="<?php echo 'survey-'.$id;?>">
+                <img border="0" align="absbottom" src="images/page_attach.png"/> <?php echo t('edit');?>
+            </a>
+        </li>
+
         <li>                	
         	<a target="_blank" title="<?php echo t('resource_manager');?> - <?php echo $nation.' - ' .$titl;?>" href="<?php echo site_url()."/admin/managefiles/$id/"; ?>" onclick="popup_dialog(this);return false;" id="<?php echo 'survey-'.$id;?>">
         		<img border="0" align="absbottom" src="images/page_attach.png"/> <?php echo t('resource_manager');?>
