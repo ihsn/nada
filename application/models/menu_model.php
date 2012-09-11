@@ -143,10 +143,10 @@ class Menu_model extends CI_Model {
 			'linktype',
 			'weight',
 			'pid',
-			'css_links',
+/*			'css_links',
 			'css_inline',
 			'js_links',
-			'js_inline'
+			'js_inline'*/
 			);
 
 		//add date modified
@@ -202,10 +202,10 @@ class Menu_model extends CI_Model {
 			'linktype',
 			'weight',
 			'pid',
-			'css_links',
+			/*'css_links',
 			'css_inline',
 			'js_links',
-			'js_inline'
+			'js_inline'*/
 			);
 
 		//add date modified
