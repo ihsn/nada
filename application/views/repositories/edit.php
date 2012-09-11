@@ -9,6 +9,11 @@ $options_published=array(
 	'1'=>'Publish'
 );
 
+$options_section=array(
+	'internal'=>'Internal',
+	'external'=>'External'
+);
+
 ?>
 <h1><?php echo $this->page_title;?></h1>
 	
@@ -97,6 +102,11 @@ $options_published=array(
         <?php echo form_input($this->data['scan_interval']);?>        
     </div>
 	-->    
+
+    <div class="field">
+        <label for="section"><?php echo t('section');?><span class="required">*</span></label>
+        <?php echo form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''));?>
+    </div>
 
     <div class="field">
         <label for="ispublished"><?php echo t('published');?></label>
