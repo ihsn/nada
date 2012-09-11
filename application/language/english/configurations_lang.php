@@ -71,6 +71,7 @@ $lang['cache_expiry'] = "Cache expiration time";
 $lang['cache_default_expires_msg'] = "Provide time in mili seconds for expiring cached items e.g. 7200=2 hours";
 $lang['cache_disabled_msg'] = "Caching speeds up page load but uses additional disk space";
 $lang['cache_disabled'] = "Disable caching";
+$lang['select_vocabulary_for_collections'] = "Select collection vocabulary";
 
 /* End of file vocabularies_lang.php */
 /* Location: ./system/language/english/vocabularies_lang.php */
