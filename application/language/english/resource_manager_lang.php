@@ -65,7 +65,7 @@ $lang['create_folder_structure'] = "Create folder structure";
 $lang['title_fix_broken'] = "Link Resources";
 $lang['instruction_fix_broken'] = "This tool will correct the file paths for external resources so they match those on this server. First upload all the files referenced in your external resources and then click on Fix It to update the links to these files.";
 $lang['fix_it'] = "Fix it!";
-$lang['n_resources_fixed'] = "%d resources have been updated. The detailed script output is given below:";
+$lang['n_resources_fixed'] = "%d resource(s) have been updated.";
 $lang['legend_not_fixed'] = "NOT FIXED";
 $lang['legend_fixed'] = "FIXED";
 
