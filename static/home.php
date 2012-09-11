@@ -22,7 +22,7 @@
             <td>
             <h1>Microdata Library</h1>
         	<p>The Microdata Library provides a searchable catalog and repository of survey microdata and documentation. 
-            The Microdata Library is the product of a Bank-wide collaboration between regions and a number of specialized units. <a href="index.php/about" title="Read more">Read more...</a></p>
+            It is a product of the Development Data Group (DECDG) and is the result of a Bank-wide collaboration between regions and a number of specialized units.  <a href="index.php/about" title="Read more">Read more...</a></p>
             
         <form action="<?php echo site_url();?>/catalog" style="">
          <div class="quick-search-box">
