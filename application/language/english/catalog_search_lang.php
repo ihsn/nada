@@ -130,6 +130,12 @@ $lang['search_no_results']="<p><strong>Your search did not match any studies hel
 </ul>
 ";
 
+$lang['filter_by_center']="Filter by Center";
+$lang['js_centers_selected']="centers selected";
+$lang['js_center_selected']="center selected";
+$lang['filter_by_collection']="Filter by Collection";
+$lang['js_collections_selected']="collections selected";
+$lang['js_collection_selected']="collection selected";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
