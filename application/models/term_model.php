@@ -379,6 +379,56 @@ class Term_model extends CI_Model {
 
 	/**
 	*
+	* Return an array of terms related to surveys by vocabularyid
+	*
+	**/
+	function get_terms_by_vocabulary($vid)
+	{
+		$this->db->select("*");
+		$this->db->where("vid",$vid);
+		$query=$this->db->get("terms");
+
+		if ($query)
+		{
+			$rows=$query->result_array();
+			return $rows;
+		}
+		
+		return NULL;
+	}
+	
+	
+	/**
+	*
+	* Return an array of terms attached to a study
+	*
+	**/
+	function get_survey_collections($sid)
+	{
+		$this->db->select("tid");
+		$this->db->from('survey_collections');
+		$this->db->where("sid",$sid);
+
+		$query=$this->db->get();
+		
+		$result=array();
+		
+		if ($query)
+		{
+			$rows=$query->result_array();
+			
+			foreach($rows as $row)
+			{
+				$result[]=$row['tid'];
+			}
+			
+			return $result;
+		}
+		return NULL;
+	}
+	
+	/**
+	*
 	* Return an array of collections related to surveys
 	*
 	**/
