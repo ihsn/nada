@@ -217,10 +217,6 @@ class DDI_Import{
 			'formid'=>6
 		);
 	
-		/*echo '<pre>';
-		var_dump($row['ie_team_leaders']);
-		var_dump($row);
-		exit;*/
 
 		//production date, use the max date
 		// todo:fix this is a workaround, catalog search MUST use the data_coll_start or end 
@@ -285,6 +281,12 @@ class DDI_Import{
 		//update data collection dates
 		$this->update_data_collection_dates($id, $row);
 		
+		//update survey centers
+		if (isset($data->center) && trim($data->center)!="")
+		{
+			$this->update_orig_arch($id,$data->center);
+		}
+		
 		//remove old topic mappings
 		$this->ci->db->delete('survey_topics',array('sid' => $id));
 
@@ -327,10 +329,12 @@ class DDI_Import{
 		}
 		
 		//collections
+		/*
+		//TODO:Remove
 		if ($data->collections)
 		{
 			$this->update_collections($id,$data->collections);
-		}
+		}*/
 		
 		$this->id=$id;
 		
@@ -489,6 +493,40 @@ class DDI_Import{
 			}
 		}
 	}
+	
+	
+	/**
+	*
+	* add/update center info using the element (origArch)
+	*
+	* Note: Expects element to be a comma separated list 
+	*/
+	function update_orig_arch($surveyid, $el)
+	{
+		//remove existing dates if any
+		$this->ci->db->delete('survey_centers',array('sid' => $surveyid));
+		
+		//split centers
+		$centers=explode(",",$el);
+
+		//insert dates into database
+		foreach($centers as $center)
+		{
+			$options=array(
+						'sid' => $surveyid,
+						'center_name' => trim($center));
+			//insert			
+			$result=$this->ci->db->insert('survey_centers',$options);
+			
+			if(!$result)
+			{
+				$this->errors[]=$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
+				return FALSE;
+			}
+		}
+	}
+
+
 
 	/**
 	*
