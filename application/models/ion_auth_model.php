@@ -1150,7 +1150,7 @@ class Ion_auth_model extends CI_Model
 		    	where users.id='.$this->db->escape($userid);
 		
 		$query=$this->db->query($sql);
-	
+
 		if (!$query)
 		{
 			return FALSE;
@@ -1168,10 +1168,10 @@ class Ion_auth_model extends CI_Model
 		{
 			return TRUE;
 		}
-		else if ($repo_access!='LIMITED')
+		/*else if ($repo_access!='LIMITED')
 		{
 			return FALSE;
-		}
+		}*/
 
 		//For LIMITED access, check permission at the repo level
 		
@@ -1187,7 +1187,7 @@ class Ion_auth_model extends CI_Model
 		{
 			show_error("No Repository info was found");
 		}
-		
+
 		//get a list of repos user has access to
 		$user_repos=$this->get_user_repositories($userid);
 		
@@ -1195,11 +1195,11 @@ class Ion_auth_model extends CI_Model
 		{
 			show_error("User has access to no repositories");
 		}
-		
+				
 		//check if user has access to current study's repo
 		foreach($user_repos as $repo)
 		{
-			if ($repo['repositoryid']==$user_repos)
+			if ($repo['repositoryid']==$repositoryid)
 			{
 				return TRUE;
 			}
