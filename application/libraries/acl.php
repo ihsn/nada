@@ -76,7 +76,8 @@ class ACL
 	**/
 	function user_active_repo()
 	{
-		$repoid=$this->ci->session->userdata('active_repo');
+		//$repoid=$this->ci->session->userdata('active_repo');
+		$repoid=$this->ci->input->cookie('active_repo',TRUE);
 		
 		if (!$repoid)
 		{
@@ -91,7 +92,8 @@ class ACL
 	**/
 	function set_active_repo($repoid)
 	{
-		$this->ci->session->set_userdata('active_repo',  $repoid);
+		$this->ci->input->set_cookie($name='active_repo', $value=$repoid, $expire=865000, $domain='', $path='/', $prefix='', $secure=FALSE);
+		//$this->ci->session->set_userdata('active_repo',  $repoid);
 		return TRUE;
 	}
 	
@@ -100,7 +102,8 @@ class ACL
 	**/
 	function clear_active_repo()
 	{
-		$this->ci->session->set_userdata('active_repo',  false);
+		//$this->ci->session->set_userdata('active_repo',  false);
+		$this->ci->input->set_cookie($name='active_repo', $value='', $expire=0, $domain='', $path='/', $prefix='', $secure=FALSE);
 	}
 
 	/**
