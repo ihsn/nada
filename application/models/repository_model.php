@@ -383,7 +383,8 @@ class Repository_model extends CI_Model {
 			'thumbnail',
 			'type',
 			'weight',
-			'ispublished'
+			'ispublished',
+			'section'
 			);
 
 		//add date modified
@@ -435,7 +436,8 @@ class Repository_model extends CI_Model {
 			'thumbnail',
 			'type',
 			'weight',
-			'ispublished'
+			'ispublished',
+			'section'
 			);
 
 		//add date modified
