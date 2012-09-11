@@ -452,5 +452,89 @@ class Search_helper_model extends CI_Model {
 		
 		return $types;
 	}
+	
+	
+	/**
+	* Returns a list of Centers 
+	*
+	**/
+	function get_active_centers($repositoryid)
+	{
+		if ($repositoryid=='central' || trim($repositoryid)=='')
+		{
+			$sql='select survey_centers.id,center_name from surveys
+					inner join survey_centers on survey_centers.sid=surveys.id
+					where surveys.published=1
+				group by survey_centers.id, survey_centers.center_name;';
+		}
+		else
+		{
+			$sql='select survey_centers.id,center_name from surveys
+					inner join survey_centers on survey_centers.sid=surveys.id
+					inner join survey_repos on surveys.id=survey_repos.sid
+					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
+					and surveys.published=1
+				group by survey_centers.id, survey_centers.center_name;';
+		}
+
+		$result=$this->db->query($sql)->result_array();
+
+		if (!$result)
+		{
+			return FALSE;
+		}
+		
+		$centers=array();
+		foreach($result as $row)
+		{
+			$centers[(string)$row['id']]=$row['center_name'];
+		}
+		
+		return $centers;
+	}
+	
+	
+	/**
+	* 
+	* Returns a list of collection terms
+	*/	
+	function get_collection_terms($repositoryid)
+	{
+		//get collection vocabulary id
+		$coll_vocab=$this->config->item("collections_vocab");
+
+		if (is_numeric($coll_vocab) && $coll_vocab >0)
+		{
+			$this->db->select('sc.tid as tid, terms.title as title, count(terms.tid) as found');
+			$this->db->join('survey_collections sc', 'sc.tid=terms.tid','inner');
+			$this->db->join('surveys s', 's.id=sc.sid','inner');
+			
+			if (trim($repositoryid)!=='' && $repositoryid!='central')
+			{
+				$this->db->join('survey_repos sr', 'sr.sid=sc.sid','inner');
+				$this->db->where('sr.repositoryid',$repositoryid);	
+			}
+			
+			$this->db->group_by('sc.tid, terms.title');
+			$this->db->where('vid',$coll_vocab);
+			$this->db->where('s.published',1);
+			$result=$this->db->get('terms')->result_array();
+			
+			$output=array();
+			foreach($result as $row)
+			{
+				$output[$row['tid']]=$row['title'] .' ('.$row['found'].')';
+			}
+			
+			return $output;
+		}
+		else
+		{
+			throw new Exception("COLLECTIONS_VOCAB not set");
+		}
+		
+		return FALSE;
+	}
+	
 }
 ?>
