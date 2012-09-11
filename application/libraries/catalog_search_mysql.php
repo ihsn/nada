@@ -26,6 +26,8 @@ class Catalog_search{
 	var $from=0;
 	var $to=0;
 	var $repo='';
+	var $center=array();
+	var $collections=array();
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -86,7 +88,9 @@ class Catalog_search{
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
-		$years=$this->_build_years_query();
+		$centers=$this->_build_centers_query();
+		$collections=$this->_build_collections_query();
+		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		
 
@@ -125,7 +129,7 @@ class Catalog_search{
 		}
 				
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$centers,$collections);
 		
 		//create combined where clause
 		$where='';
@@ -161,6 +165,7 @@ class Catalog_search{
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
 			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+			$this->ci->db->where('surveys.published',1);
 	
 			if ($repository!='')
 			{
@@ -191,6 +196,7 @@ class Catalog_search{
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+			$this->ci->db->where('surveys.published',1);
 			
 			if ($repository!='')
 			{
@@ -228,7 +234,7 @@ class Catalog_search{
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
-		$query_total_surveys=$this->ci->db->query(sprintf('SELECT count(*) as rowcount from %ssurveys',$this->ci->db->dbprefix))->row_array();
+		$query_total_surveys=$this->ci->db->query(sprintf('SELECT count(*) as rowcount from %ssurveys where published=1',$this->ci->db->dbprefix))->row_array();
 		$this->total_surveys=$query_total_surveys['rowcount'];		
 
 		//combine into one array
@@ -415,6 +421,75 @@ class Catalog_search{
 		return FALSE;
 	}
 	
+	
+	function _build_centers_query()
+	{	
+		$centers=$this->center;//must always be an array
+
+		if (!is_array($centers))
+		{
+			return FALSE;
+		}
+		
+		$centers_list=array();
+
+		foreach($centers  as $center)
+		{
+			//escape country names for db
+			$centers_list[]=$this->ci->db->escape($center);
+		}
+
+		if ( count($centers_list)>0)
+		{
+			$centers= implode(',',$centers_list);
+		}
+		else
+		{
+			return FALSE;
+		}
+
+		if ($centers!='')
+		{
+			return sprintf('surveys.id in (select sid from survey_centers where id in (%s) )',$centers);
+		}
+		
+		return FALSE;	
+	}
+
+
+	function _build_collections_query()
+	{	
+		$params=$this->collections;//must always be an array
+
+		if (!is_array($params))
+		{
+			return FALSE;
+		}
+		
+		$param_list=array();
+
+		foreach($params  as $param)
+		{
+			//escape country names for db
+			$param_list[]=$this->ci->db->escape($param);
+		}
+
+		if ( count($param_list)>0)
+		{
+			$params= implode(',',$param_list);
+		}
+		else
+		{
+			return FALSE;
+		}
+
+		if ($param!='')
+		{
+			return sprintf('surveys.id in (select sid from survey_collections where tid in (%s) )',$params);
+		}
+		
+		return FALSE;	
+	}
 		
 	/**
 	*
@@ -646,8 +721,6 @@ class Catalog_search{
 			return FALSE;
 		}
 
-		//echo $where;exit;
-		
 		//search
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,v.qstn");
