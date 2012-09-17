@@ -286,7 +286,8 @@ td.active{background:gainsboro;}
             <td><?php echo t('data_access');?></td>
             <td>
 				<div class="collapsible">
-						<div class="box-caption">										
+						<div class="box-caption">	
+                        <?php error_reporting(0); ?>									
 							<?php echo $this->forms_list[$formid];?>
 						</div>
 						
@@ -452,11 +453,13 @@ td.active{background:gainsboro;}
 </div>
 
 <div class="box">
-<div class="box-header">Notes</div>
-<ul class="bull-list">
-	<li>Admin notes</li>
-    <li>Reviewer notes</li>
-</ul>
+<div class="box-header">Admin Notes</div>
+	<?php echo $admin_notes; ?>
+</div>
+
+<div class="box">
+<div class="box-header">Reviewer Notes</div>
+	<?php echo $reviewer_notes; ?>
 </div>
 
 
@@ -468,15 +471,13 @@ td.active{background:gainsboro;}
 <div class="box">
 	<div class="box-header">Tags</div>
     <div class="box-body">
-        <div class="field">
-            <input id="tag" type="text" value="..." class="input-flex" style="width:85%;"/>
-            <input type="button" value="+" name="btn-tag" id="btn-tag" style="border:1px solid gainsboro;padding:3px 5px 3px 5px;"/>
-        </div>
-        <ul class="bull-list" id="tag-list">
-            <li>tag 1</li>
-            <li>tag 2</li>
-            <li>tag 3</li>
-            <li>tag 4</li>
-        </ul>
+		<?php echo $tags; ?>
+	</div>
+</div>
+
+<div class="box">
+	<div class="box-header">Survey Ids</div>
+    <div class="box-body">
+		<?php echo $ids; ?>
 	</div>
 </div>

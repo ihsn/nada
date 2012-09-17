@@ -32,7 +32,7 @@ class PARSEMONTH
 	function init($monthField)
 	{
 		$startMonth = $this->startDay = $endMonth = $this->endDay = FALSE;
-		$date = split("#", $monthField);
+		$date = explode("#", $monthField);
 		foreach($date as $field)
 		{
 			$field = ucfirst(strtolower(trim($field)));

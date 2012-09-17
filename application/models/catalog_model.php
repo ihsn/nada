@@ -1308,5 +1308,9 @@ END TO BE REMOVED
 		$result=$this->db->get("survey_repos")->result_array();
 		return $result;		
 	}
+	
+	function get_reference_ids_from_internal_id($id) {
+	
+	}
 }
 ?>
