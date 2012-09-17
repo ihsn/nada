@@ -259,6 +259,10 @@ class Breadcrumb
 				{
 					$breadcrumbs['auth/forgot_password']=t('forgot_password');
 				}
+			break;
+			
+			case 'collections';	
+				$breadcrumbs['collections']=t('collections');
 			break;			
 		}
 		
