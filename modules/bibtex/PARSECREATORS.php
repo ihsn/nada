@@ -58,12 +58,12 @@ class PARSECREATORS
                 if(preg_match("/(.*){([^\\\].*)}/", $value, $matches) && 
 					!(preg_match("/(.*){\\\.{.*}.*}/", $value, $matches2)))
 				{
-					$author = split(" ", $matches[1]);
+					$author = explode(" ", $matches[1]);
 					$surname = $matches[2];
 				}
 				else
 				{
-					$author = split(" ", $value);
+					$author = explode(" ", $value);
 // last of array is surname (no prefix if entered correctly)
 					$surname = array_pop($author);
 				}
@@ -97,7 +97,7 @@ class PARSECREATORS
 	function grabFirstnameInitials($remainder)
 	{
 		$firstname = $initials = '';
-		$array = split(" ", $remainder);
+		$array = explode(" ", $remainder);
 		foreach($array as $value)
 		{
 			$firstChar = substr($value, 0, 1);
@@ -121,7 +121,7 @@ class PARSECREATORS
 // uppercased part means lowercased parts following are part of the surname (e.g. Van den Bussche)
 	function grabSurname($input)
 	{
-		$surnameArray = split(" ", $input);
+		$surnameArray = explode(" ", $input);
 		$noPrefix = $surname = FALSE;
 		foreach($surnameArray as $value)
 		{

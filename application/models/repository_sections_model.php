@@ -1,15 +1,16 @@
 <?php
-class Collections_model extends CI_Model {
+class Repository_sections_model extends CI_Model {
  
  	var $search_count=0;
-	var $db_fields=array('title', 'description', 'weight', 'thumbnail');
+	var $db_fields=array('title', 'weight');
 	
     public function __construct()
     {
         parent::__construct();
     }
 
-	//search
+
+//search
     public function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {	
 		$this->db->start_cache();
@@ -18,7 +19,7 @@ class Collections_model extends CI_Model {
 		$this->db->select('*');
 		
 		//allowed_fields
-		$db_fields=array('title', 'description', 'weight', 'thumbnail');
+		$db_fields=array('title',  'weight', );
 		
 		//set where
 		if ($filter)
@@ -57,29 +58,28 @@ class Collections_model extends CI_Model {
 		
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
-		$this->db->from('collections');
+		$this->db->from('repository_sections');
 		
         $result= $this->db->get()->result_array();				
 		
 		//get count
-		$this->search_count=$this->db->count_all_results('collections');
+		$this->search_count=$this->db->count_all_results('repository_sections');
 	
 		return $result;
     }
-
- 	public function search_count()
+		
+	public function search_count()
     {
-        return $this->db->count_all_results('collections');
+        return $this->db->count_all_results('repository_sections');
     }
 	
+
 	public function update($id,$options)
 	{
 		//allowed fields
 		$valid_fields=array(
 			'title',
-			'description',
 			'weight',
-			'thumbnail'
 			);
 
 		if (!is_numeric($options['weight']))
@@ -103,7 +103,7 @@ class Collections_model extends CI_Model {
 		
 		//update db
 		$this->db->where($key_field, $id);
-		$result=$this->db->update('collections', $data); 
+		$result=$this->db->update('repository_sections', $data); 
 
 		return $result;		
 	}
@@ -113,9 +113,7 @@ class Collections_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array(
 			'title',
-			'description',
 			'weight',
-			'thumbnail'
 			);
 
 		if (!is_numeric($options['weight']))
@@ -137,7 +135,7 @@ class Collections_model extends CI_Model {
 			}
 		}
 		
-		$result=$this->db->insert('collections', $data); 
+		$result=$this->db->insert('repository_sections', $data); 
 
 		return $result;		
 	}
@@ -145,85 +143,22 @@ class Collections_model extends CI_Model {
 	public function delete($id)
 	{
 		$this->db->where('id', $id); 
-		return $this->db->delete('collections');
+		return $this->db->delete('repository_sections');
 	}
 	
 	public function select_single($id)
 	{		
 		$this->db->select("*");
 		$this->db->where('id', (integer)$id); 
-		return $this->db->get('collections')->row_array();
+		return $this->db->get('repository_sections')->row_array();
 	}
 	
 	public function select_all($sort_by='weight', $sort_order='ASC')
 	{
 		$this->db->select('*');	
 		$this->db->order_by($sort_by, $sort_order);
-		$query=$this->db->get('collections');
+		$query=$this->db->get('repository_sections');
 		
 		return $query->result_array();
 	}
-	
-	/**
-	*
-	* Return collections attached to a survey
-	**/
-	public function get_survey_collections($sid)
-	{
-		$this->db->select('*');	
-		$this->db->join('survey_collections','survey_collections.tid=collections.id','inner');
-		$this->db->order_by('weight', 'ASC');
-		$this->db->where('survey_collections.sid',$sid);
-		$query=$this->db->get('collections');	
-		return $query->result_array();
-	}
-
-	/**
-	*
-	* Return a list of collection IDs attached to a survey
-	**/
-	public function get_survey_collection_id_list($sid)
-	{
-		$this->db->select('tid');	
-		$this->db->join('survey_collections','survey_collections.tid=collections.id','inner');
-		$this->db->order_by('weight', 'ASC');
-		$this->db->where('survey_collections.sid',$sid);
-		$query=$this->db->get('collections')->result_array();	
-		$list=array();
-		foreach($query as $row)
-		{
-			$list[]=$row['tid'];
-		}
-		
-		return $list;
-	}
-
-
-	/**
-	*
-	* detach collection from survey
-	**/
-	function detach($sid,$tid)
-	{
-		$options=array(
-				'sid'=>$sid,
-				'tid'=>$tid
-		);
-			
-		return $this->db->delete("survey_collections",$options);
-	}
-
-	/**
-	*
-	* attach collection to a survey
-	**/
-	function attach($sid,$tid)
-	{
-		$options=array(
-				'sid'=>$sid,
-				'tid'=>$tid
-		);
-		
-		return $this->db->insert("survey_collections",$options);
-	}	
 }
