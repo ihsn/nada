@@ -144,8 +144,7 @@ class Citation_search_mysql{
 
 		if (is_numeric($published))
 		{
-			// bug fix here, prefix 'citations.' is required for unambiguity
-			$this->ci->db->where ('citations.published',$published);
+			$this->ci->db->where ('published',$published);
 		}
 		
 		//set where

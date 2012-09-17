@@ -9,7 +9,10 @@ $options_published=array(
 	'1'=>'Publish'
 );
 
-$options_section=$this->data['section_options'];
+$options_section=array(
+	'internal'=>'Internal',
+	'external'=>'External'
+);
 
 ?>
 <h1><?php echo $this->page_title;?></h1>

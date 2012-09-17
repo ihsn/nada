@@ -1,21 +1,35 @@
 <?php
-/**
-* Catalog tags
-*
-**/
 class Catalog_tags_model extends CI_Model {
-    
-	public function __construct()
+ 
+    public function __construct()
     {
         parent::__construct();
+		//$this->output->enable_profiler(TRUE);
     }
 	
-	public function insert($data) {
-		$result = $this->db->insert('survey_tags', $data);
-		return $result;
+	
+	
+	/**
+	* add tag
+	*
+	* 	options			array
+	**/
+	function insert($sid,$tag)
+	{	
+		$options=array(
+					'sid'=>$sid,
+					'tag'=>$tag);
+		
+		$result=$this->db->insert('survey_tags', $data); 		
+		return $result;		
 	}
 	
-	public function tag_exists($sid,$tag)
+	
+	/**
+	* checks if a tag exists for the survey
+	*
+	*/
+	function tag_exists($sid,$tag)
 	{
 		$this->db->select('sid');		
 		$this->db->from('survey_tags');		
@@ -24,22 +38,24 @@ class Catalog_tags_model extends CI_Model {
         return $this->db->count_all_results();
 	}
 	
-	public function delete($id) {
-		$this->db->where('id', $id); 
+
+	
+	function delete($sid,$tag)
+	{
+		$this->db->where('tag', $tag); 
+		$this->db->where('sid',$sid);
 		return $this->db->delete('survey_tags');
 	}
-	
-	public function single($id) {
-		$this->db->select("*");
-		$this->db->where('id', $id); 
-		return $this->db->get('survey_tags')->row_array();
+
+
+	//reurns tags associated with a survey
+	function survey_tags($sid)
+	{
+		$this->db->where('sid',$sid);
+		return $this->db->get('survey_tags')->result_aray();
 	}
 	
-	public function tags_from_catelog_id($sid) {
-		$this->db->select("*");
-		$this->db->where('sid', $sid);
-		$this->db->order_by('id', 'DESC');
-		return $this->db->get('survey_tags')->result_array();
-	}
+		
+
 }
-	
+?>
