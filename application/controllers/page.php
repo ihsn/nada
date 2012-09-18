@@ -253,6 +253,14 @@ class Page extends MY_Controller {
 					$this->session->set_userdata('active_repository','central');	
 					
 			break;
+			case 'collections';
+					$this->lang->load('collections');
+					$this->load->model("collections_model");
+					$data['title']=t('collections');
+					
+			break;
+			
+			
 			
 			default:
 			return FALSE;			
