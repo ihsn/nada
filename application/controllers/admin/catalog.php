@@ -1509,11 +1509,6 @@ class Catalog extends MY_Controller {
 	 **/
 	function edit($id=NULL)
 	{
-		$this->load->model('Catalog_Notes_model');
-       	$this->load->model('Catalog_Tags_model');
-       	$this->load->model('Catalog_Ids_model');
-        $this->load->library('ion_auth');
-		
 		if ( !is_numeric($id) )
 		{
 			show_error('Invalid parameters were passed');
@@ -1549,25 +1544,12 @@ class Catalog extends MY_Controller {
 		//$resources['rows']=$this->catalog_admin->resources($id);		
 		//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
 		
-		//survey collections for current survey
-		$survey_row['collections']=$this->catalog_admin->get_formatted_collections($id);
+		//survey collections
+		$survey_row['collections']=$this->catalog_admin->term_list($vid=$this->config->item("collections_vocab"),$sid=$id);
 		
 		//formatted list of external resources
 		$survey_row['resources']=$this->catalog_admin->resources($id);
-		
-		// get admin notes
-		if ($id != NULL) {
-			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
-			$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
-			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
-			$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
-			$tags['tags'] = $this->Catalog_Tags_model->tags_from_catelog_id($id);
-			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
-			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
-			$survey_row['ids']=$this->load->view('catalog/admin_ids', $ids, true);
-		}
-		
-
+				
 		//data access form list
 		$this->load->model('Form_model');
 		$this->forms_list=array('0'=>'Select');		

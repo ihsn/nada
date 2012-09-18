@@ -1,37 +1,42 @@
 <?php
-
+/**
+ * Catalog Tags
+ *
+ * handles all Catalog Maintenance pages
+ *
+ * @package		NADA 4
+ * @author		Mehmood Asghar
+ * @link		http://ihsn.org/nada/
+ */
 class Catalog_Tags extends MY_Controller {
 
     public function __construct()
     {
         parent::__construct();
 		
-       	$this->load->model('Catalog_Tags_model');
+       	$this->load->model('Catalog_model');
 		$this->lang->load('general');
+		//$this->output->enable_profiler(TRUE);			
 	}
+
+	//add tag to survey
+	function add($sid,$tag) 
+	{
+		if (!is_numeric($sid))
+		{
+			return FALSE;
+		}
 	
-	public function delete($id) {
-		$t=$this->Catalog_Tags_model->delete($id);
-	}
-	
-	private function _reload_tags($tags) {
-		 foreach($tags as $tag) {
-		echo "		<li id='{$tag['id']}'>{$tag['tag']}&nbsp;&nbsp;<a href='javascript:void(0);' style='text-decoration:none'>-</a></li>", PHP_EOL;
-		}	 
-    }
-	
-	public function add($id) {
-		$tag = array(
-			'sid'  => $id,
-			'tag' => $this->input->post('tag'),
-		);
-		if (!$this->Catalog_Tags_model->tag_exists($id, $this->input->post('tag'))) {
-			$this->Catalog_Tags_model->insert($tag);
+		$tag=trim($tag);
+			
+		if ($tag=="")
+		{
+			return FALSE;
 		}
 		
-		$tags['tags'] = $this->Catalog_Tags_model->tags_from_catelog_id($id);
-		
-		// a separate ajax call could probably be done instead of doing this, but whatever.
-		$this->_reload_tags($tags['tags']);	
+		echo json_encode(array('error'=>t("file_not_found")) );
 	}
+
 }
+/* End of file catalog_tags.php */
+/* Location: ./controllers/admin/catalog_tags.php */
