@@ -46,7 +46,7 @@ $(function() {
 			survey_id: $("input[name='admin_survey_id']").val(),
 		};
 		$.post("<?php echo site_url('admin/catalog_ids/add') . '/' . $this->uri->segment(4); ?>", data, function(data) {
-			$("ul#survey_ids").html(data);
+			$("ul#admin_ids").html(data);
 		});
 		$("input[name='admin_survey_id']").val('');
 	
