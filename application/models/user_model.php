@@ -129,5 +129,15 @@ class User_model extends CI_Model {
 		
 		return $output;
 	}
+	
+	function get_users_by_group($group_name) 
+	{
+		$this->db->select('*');
+		$this->db->from('users');
+		$this->db->join('user_groups', 'user_groups.name = users.group', 'inner');
+		
+		return $this->db->get();
+	}
+		
 }
 ?>
