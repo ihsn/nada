@@ -153,25 +153,25 @@ class Catalog_Admin
 
 	/**
 	*
-	* Return a formatted list of terms attached to a study
+	* Return a formatted list of collections attached to a study
 	*
 	**/
-	function term_list($vid,$sid=NULL)
+	function get_formatted_collections($sid=NULL)
 	{
-		$this->ci->load->model('term_model');
+		$this->ci->load->model('collections_model');
 		
 		//get a list of all survey collections
-		$data['terms']=$this->ci->term_model->get_terms_by_vocabulary($vid);
+		$data['collections']=$this->ci->collections_model->select_all();
 
 		$data['selected']=array();
 		
 		if (is_numeric($sid))
 		{
 			//get collections attached to a study
-			$data['selected']=$this->ci->term_model->get_survey_collections($sid);
+			$data['selected']=$this->ci->collections_model->get_survey_collection_id_list($sid);
 		}	
 
-		return $this->ci->load->view("catalog/studycollections",$data,TRUE);
+		return $this->ci->load->view("catalog/study_collections",$data,TRUE);
 	}
 	
 	
