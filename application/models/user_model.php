@@ -130,14 +130,75 @@ class User_model extends CI_Model {
 		return $output;
 	}
 	
-	function get_users_by_group($group_name) 
-	{
-		$this->db->select('*');
-		$this->db->from('users');
-		$this->db->join('user_groups', 'user_groups.name = users.group', 'inner');
+	function get_users_by_group($group_id, $limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
+    {
+		//$this->output->enable_profiler(TRUE);
+
+		$this->db->start_cache();
+
+		//columns
+		$columns=sprintf('%s.id,group_id,username,email,active,created_on,last_login,country,company',
+							$this->tables['users']);
+		$columns.=','.$this->tables['groups'].'.name as group_name';
+		//select columns for output
+		$this->db->select($columns);
 		
-		return $this->db->get();
-	}
+		//allowed_fields for searching or sorting
+		$db_fields=array(
+					'username'=>'username',
+					'first_name'=>'first_name',
+					'last_name'=>'last_name',
+					'email'=>'email',
+					'country'=>'country',
+					'company'=>'company',
+					'group_name'=>'user_groups.name',
+					'active'=>'active',
+					'created_on'=>'created_on',
+					'last_login'=>'last_login'
+					);
+		
+		//set where
+		if ($filter)
+		{			
+			foreach($filter as $f)
+			{
+				//search only in the allowed fields
+				if (in_array($f['field'],$db_fields))
+				{
+					$this->db->like($f['field'], $f['keywords']); 
+				}
+				else if ($f['field']=='all')
+				{
+					foreach($db_fields as $field)
+					{
+						$this->db->or_like($field, $f['keywords']); 
+					}
+				}
+			}
+		}
+		
+		$this->db->join($this->tables['meta'], sprintf('%s.user_id = %s.id',$this->tables['meta'],$this->tables['users']));
+		$this->db->join($this->tables['groups'], sprintf('%s.id = %s.group_id',$this->tables['groups'],$this->tables['users']),'left');
+		$this->db->stop_cache();
+
+		//set order by
+		if ($sort_by!='' && $sort_order!='')
+		{
+			if ( array_key_exists($sort_by,$db_fields))
+			{
+				$this->db->order_by($db_fields[$sort_by], $sort_order); 
+			}	
+		}
+		
+		//set Limit clause
+	  	$this->db->limit($limit, $offset);
+		$this->db->from($this->tables['users']);
+		
+		$this->db->where('group_id', $group_id);
+		
+        $result= $this->db->get()->result_array();
+		return $result;
+    }
 		
 }
 ?>

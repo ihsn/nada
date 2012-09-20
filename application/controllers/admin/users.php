@@ -68,18 +68,24 @@ class Users extends MY_Controller {
 			$filter[0]['keywords']=$this->input->get_post('keywords');			
 		}		
 		
-		//records
-		$rows=$this->User_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+		if ($this->input->get('user_group')) {
+			$rows=$this->User_model->get_users_by_group((int)$this->input->get('user_group'), $per_page, $offset,$filter, $sort_by, $sort_order);
 
-		//total records in the db
-		$total = $this->User_model->search_count();
-
-		if ($offset>$total)
-		{
-			$offset=$total-$per_page;
-			
-			//search again
+			$total = $this->User_model->search_count();
+		} else {
+			//records
 			$rows=$this->User_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+
+			//total records in the db
+			$total = $this->User_model->search_count();
+
+			if ($offset>$total)
+			{
+				$offset=$total-$per_page;
+			
+				//search again
+				$rows=$this->User_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+			}
 		}
 		
 		//set pagination options

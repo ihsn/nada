@@ -645,5 +645,18 @@ class Citation_model extends CI_Model {
 	{
 		//todo
 	}		
+	
+	
+	/**
+	* 
+	* Return an array of Surveys by survey ID list
+	*
+	**/
+	function get_surveys($id_list)
+	{
+		$this->db->select('id,titl,surveyid,proddate,nation,repositoryid');
+		$this->db->where_in('id', $id_list); 
+		return $this->db->get('surveys')->result_array();
+	}
 }
 ?>

@@ -1,7 +1,19 @@
 <?php
 class MY_Controller extends CI_Controller
 {	
-	
+    public $_ci_plugins = array();
+    var $_ci_ob_level;
+    public $_ci_view_path      = '';
+    var $_ci_library_paths  = array();
+    var $_ci_model_paths    = array();
+    var $_ci_helper_paths   = array();
+    var $_base_classes      = array(); // Set by the controller class
+    var $_ci_cached_vars    = array();
+    var $_ci_classes        = array();
+    var $_ci_loaded_files   = array();
+    var $_ci_models         = array();
+    var $_ci_helpers        = array();
+    var $_ci_varmap         = array('unit_test' => 'unit', 'user_agent' => 'agent');
 	var $is_admin=TRUE;
 	
 	/**

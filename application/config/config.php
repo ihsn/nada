@@ -481,5 +481,11 @@ $config['sqlsrv_use_fulltext']=TRUE;
 $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
 
+
+
+$config['modules_locations'] = array(
+    APPPATH.'modules/' => '../modules/',
+);
+
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */

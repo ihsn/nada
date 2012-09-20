@@ -94,12 +94,17 @@ class Catalog_model extends CI_Model {
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,changed,created,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin,published,data_coll_start');
+							link_indicator, link_questionnaire,	isshared,changed,created,published,data_coll_start');
+		
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
-		$this->db->join('forms', 'forms.formid= surveys.formid','left');		
-		$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		if ($this->active_repo!=NULL) 
+		{
+			$this->db->select("sr.repositoryid as repo_link, sr.isadmin as repo_isadmin");
+			$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		}	
 		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 
 		//build search using the parameters passed to the GET/POST variables
@@ -140,7 +145,12 @@ class Catalog_model extends CI_Model {
 		$fields=$this->input->get("field");
 		$keywords=trim($this->input->get("keywords"));
 		
-		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'repositoryid'=>'sr.repositoryid','nation');
+		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'proddate','nation');
+		
+		if ($this->active_repo!=NULL)
+		{
+			$allowed_fields['repositoryid']='sr.repositoryid';
+		}	
 		
 		$where=NULL;
 		

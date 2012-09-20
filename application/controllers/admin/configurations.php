@@ -46,7 +46,7 @@ class Configurations extends MY_Controller {
 			{			
 				// changed:
 				// Do the same as if all validation returned true, to prevent possibly deleted data
-				// HOWEVER: erroneous fields will be ommitted
+				// HOWEVER: erroneous fields will NOT be saved
 				$check_if_failed = array(
 					'catalog_root',
 					'ddi_import_folder',
