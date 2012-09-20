@@ -144,7 +144,7 @@ class Citation_search_mysql{
 
 		if (is_numeric($published))
 		{
-			$this->ci->db->where ('published',$published);
+			$this->ci->db->where ('citations.published',$published);
 		}
 		
 		//set where
