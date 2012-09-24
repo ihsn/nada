@@ -445,7 +445,7 @@ td.active{background:gainsboro;}
 <div class="box">
 <div class="box-header">External Resources</div>
 <ul class="bull-list">
-    <li><a href="<?php echo site_url();?>/admin/resources/add/new/<?php echo $sid;?>">Upload RDF</a></li>
+    <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>">Upload RDF</a></li>
     <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>">Export RDF</a></li>
 	<li><a href="<?php echo site_url();?>/admin/resources/fixlinks/<?php echo $sid;?>">Link resources</a></li>
 </ul>
