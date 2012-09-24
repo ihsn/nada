@@ -1544,8 +1544,8 @@ class Catalog extends MY_Controller {
 		//$resources['rows']=$this->catalog_admin->resources($id);		
 		//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
 		
-		//survey collections
-		$survey_row['collections']=$this->catalog_admin->term_list($vid=$this->config->item("collections_vocab"),$sid=$id);
+		//survey collections for current survey
+		$survey_row['collections']=$this->catalog_admin->get_formatted_collections($id);
 		
 		//formatted list of external resources
 		$survey_row['resources']=$this->catalog_admin->resources($id);
