@@ -1,11 +1,11 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * CodeIgniter
  *
  * An open source application development framework for PHP 5.1.6 or newer
  *
  * @package		CodeIgniter
- * @author		ExpressionEngine Dev Team
+ * @author		Esen Sagynov
  * @copyright	Copyright (c) 2008 - 2011, EllisLab, Inc.
  * @license		http://codeigniter.com/user_guide/license.html
  * @link		http://codeigniter.com
@@ -16,13 +16,13 @@
 // ------------------------------------------------------------------------
 
 /**
- * MySQLi Forge Class
+ * CUBRID Forge Class
  *
  * @category	Database
- * @author		ExpressionEngine Dev Team
+ * @author		Esen Sagynov
  * @link		http://codeigniter.com/user_guide/database/
  */
-class CI_DB_mysqli_forge extends CI_DB_forge {
+class CI_DB_cubrid_forge extends CI_DB_forge {
 
 	/**
 	 * Create database
@@ -33,7 +33,9 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 */
 	function _create_database($name)
 	{
-		return "CREATE DATABASE ".$name;
+		// CUBRID does not allow to create a database in SQL. The GUI tools
+		// have to be used for this purpose.
+		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -47,7 +49,9 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 */
 	function _drop_database($name)
 	{
-		return "DROP DATABASE ".$name;
+		// CUBRID does not allow to drop a database in SQL. The GUI tools
+		// have to be used for this purpose.
+		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -77,7 +81,7 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 			{
 				$attributes = array_change_key_case($attributes, CASE_UPPER);
 
-				$sql .= "\n\t".$this->db->_protect_identifiers($field);
+				$sql .= "\n\t\"" . $this->db->_protect_identifiers($field) . "\"";
 
 				if (array_key_exists('NAME', $attributes))
 				{
@@ -86,17 +90,34 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 
 				if (array_key_exists('TYPE', $attributes))
 				{
-					$sql .=  ' '.$attributes['TYPE'];
-				}
+					$sql .= ' '.$attributes['TYPE'];
 
-				if (array_key_exists('CONSTRAINT', $attributes))
-				{
-					$sql .= '('.$attributes['CONSTRAINT'].')';
+					if (array_key_exists('CONSTRAINT', $attributes))
+					{
+						switch ($attributes['TYPE'])
+						{
+							case 'decimal':
+							case 'float':
+							case 'numeric':
+								$sql .= '('.implode(',', $attributes['CONSTRAINT']).')';
+								break;
+							case 'enum': 	// As of version 8.4.0 CUBRID does not support
+											// enum data type.
+											break;
+							case 'set':
+								$sql .= '("'.implode('","', $attributes['CONSTRAINT']).'")';
+								break;
+							default:
+								$sql .= '('.$attributes['CONSTRAINT'].')';
+						}
+					}
 				}
 
 				if (array_key_exists('UNSIGNED', $attributes) && $attributes['UNSIGNED'] === TRUE)
 				{
-					$sql .= ' UNSIGNED';
+					//$sql .= ' UNSIGNED';
+					// As of version 8.4.0 CUBRID does not support UNSIGNED INTEGER data type.
+					// Will be supported in the next release as a part of MySQL Compatibility.
 				}
 
 				if (array_key_exists('DEFAULT', $attributes))
@@ -116,6 +137,11 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 				if (array_key_exists('AUTO_INCREMENT', $attributes) && $attributes['AUTO_INCREMENT'] === TRUE)
 				{
 					$sql .= ' AUTO_INCREMENT';
+				}
+
+				if (array_key_exists('UNIQUE', $attributes) && $attributes['UNIQUE'] === TRUE)
+				{
+					$sql .= ' UNIQUE';
 				}
 			}
 
@@ -148,18 +174,22 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 
 		if ($if_not_exists === TRUE)
 		{
-			$sql .= 'IF NOT EXISTS ';
+			//$sql .= 'IF NOT EXISTS ';
+			// As of version 8.4.0 CUBRID does not support this SQL syntax.
 		}
 
 		$sql .= $this->db->_escape_identifiers($table)." (";
 
 		$sql .= $this->_process_fields($fields);
 
+		// If there is a PK defined
 		if (count($primary_keys) > 0)
 		{
-			$key_name = $this->db->_protect_identifiers(implode('_', $primary_keys));
+			$key_name = "pk_" . $table . "_" .
+				$this->db->_protect_identifiers(implode('_', $primary_keys));
+			
 			$primary_keys = $this->db->_protect_identifiers($primary_keys);
-			$sql .= ",\n\tPRIMARY KEY ".$key_name." (" . implode(', ', $primary_keys) . ")";
+			$sql .= ",\n\tCONSTRAINT " . $key_name . " PRIMARY KEY(" . implode(', ', $primary_keys) . ")";
 		}
 
 		if (is_array($keys) && count($keys) > 0)
@@ -176,12 +206,12 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 					$key_name = $this->db->_protect_identifiers($key);
 					$key = array($key_name);
 				}
-
-				$sql .= ",\n\tKEY {$key_name} (" . implode(', ', $key) . ")";
+				
+				$sql .= ",\n\tKEY \"{$key_name}\" (" . implode(', ', $key) . ")";
 			}
 		}
 
-		$sql .= "\n) DEFAULT CHARACTER SET {$this->db->char_set} COLLATE {$this->db->dbcollat};";
+		$sql .= "\n);";
 
 		return $sql;
 	}
@@ -248,11 +278,11 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 */
 	function _rename_table($table_name, $new_table_name)
 	{
-		$sql = 'ALTER TABLE '.$this->db->_protect_identifiers($table_name)." RENAME TO ".$this->db->_protect_identifiers($new_table_name);
+		$sql = 'RENAME TABLE '.$this->db->_protect_identifiers($table_name)." AS ".$this->db->_protect_identifiers($new_table_name);
 		return $sql;
 	}
 
 }
 
-/* End of file mysqli_forge.php */
-/* Location: ./system/database/drivers/mysqli/mysqli_forge.php */
+/* End of file cubrid_forge.php */
+/* Location: ./system/database/drivers/cubrid/cubrid_forge.php */

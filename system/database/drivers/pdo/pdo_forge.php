@@ -5,24 +5,24 @@
  * An open source application development framework for PHP 5.1.6 or newer
  *
  * @package		CodeIgniter
- * @author		ExpressionEngine Dev Team
  * @copyright	Copyright (c) 2008 - 2011, EllisLab, Inc.
  * @license		http://codeigniter.com/user_guide/license.html
+ * @author		EllisLab Dev Team
  * @link		http://codeigniter.com
- * @since		Version 1.0
+ * @since		Version 2.1.2
  * @filesource
  */
 
 // ------------------------------------------------------------------------
 
 /**
- * MySQLi Forge Class
+ * PDO Forge Class
  *
  * @category	Database
- * @author		ExpressionEngine Dev Team
- * @link		http://codeigniter.com/user_guide/database/
+ * @author		EllisLab Dev Team
+ * @link		http://codeigniter.com/database/
  */
-class CI_DB_mysqli_forge extends CI_DB_forge {
+class CI_DB_pdo_forge extends CI_DB_forge {
 
 	/**
 	 * Create database
@@ -31,9 +31,15 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 * @param	string	the database name
 	 * @return	bool
 	 */
-	function _create_database($name)
+	function _create_database()
 	{
-		return "CREATE DATABASE ".$name;
+		// PDO has no "create database" command since it's
+		// designed to connect to an existing database
+		if ($this->db->db_debug)
+		{
+			return $this->db->display_error('db_unsuported_feature');
+		}
+		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -47,22 +53,39 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 */
 	function _drop_database($name)
 	{
-		return "DROP DATABASE ".$name;
+		// PDO has no "drop database" command since it's
+		// designed to connect to an existing database
+		if ($this->db->db_debug)
+		{
+			return $this->db->display_error('db_unsuported_feature');
+		}
+		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Process Fields
+	 * Create Table
 	 *
 	 * @access	private
-	 * @param	mixed	the fields
-	 * @return	string
+	 * @param	string	the table name
+	 * @param	array	the fields
+	 * @param	mixed	primary key(s)
+	 * @param	mixed	key(s)
+	 * @param	boolean	should 'IF NOT EXISTS' be added to the SQL
+	 * @return	bool
 	 */
-	function _process_fields($fields)
+	function _create_table($table, $fields, $primary_keys, $keys, $if_not_exists)
 	{
+		$sql = 'CREATE TABLE ';
+
+		if ($if_not_exists === TRUE)
+		{
+			$sql .= 'IF NOT EXISTS ';
+		}
+
+		$sql .= $this->db->_escape_identifiers($table)." (";
 		$current_field_count = 0;
-		$sql = '';
 
 		foreach ($fields as $field=>$attributes)
 		{
@@ -79,15 +102,7 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 
 				$sql .= "\n\t".$this->db->_protect_identifiers($field);
 
-				if (array_key_exists('NAME', $attributes))
-				{
-					$sql .= ' '.$this->db->_protect_identifiers($attributes['NAME']).' ';
-				}
-
-				if (array_key_exists('TYPE', $attributes))
-				{
-					$sql .=  ' '.$attributes['TYPE'];
-				}
+				$sql .=  ' '.$attributes['TYPE'];
 
 				if (array_key_exists('CONSTRAINT', $attributes))
 				{
@@ -126,40 +141,10 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 			}
 		}
 
-		return $sql;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Create Table
-	 *
-	 * @access	private
-	 * @param	string	the table name
-	 * @param	mixed	the fields
-	 * @param	mixed	primary key(s)
-	 * @param	mixed	key(s)
-	 * @param	boolean	should 'IF NOT EXISTS' be added to the SQL
-	 * @return	bool
-	 */
-	function _create_table($table, $fields, $primary_keys, $keys, $if_not_exists)
-	{
-		$sql = 'CREATE TABLE ';
-
-		if ($if_not_exists === TRUE)
-		{
-			$sql .= 'IF NOT EXISTS ';
-		}
-
-		$sql .= $this->db->_escape_identifiers($table)." (";
-
-		$sql .= $this->_process_fields($fields);
-
 		if (count($primary_keys) > 0)
 		{
-			$key_name = $this->db->_protect_identifiers(implode('_', $primary_keys));
 			$primary_keys = $this->db->_protect_identifiers($primary_keys);
-			$sql .= ",\n\tPRIMARY KEY ".$key_name." (" . implode(', ', $primary_keys) . ")";
+			$sql .= ",\n\tPRIMARY KEY (" . implode(', ', $primary_keys) . ")";
 		}
 
 		if (is_array($keys) && count($keys) > 0)
@@ -168,20 +153,18 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 			{
 				if (is_array($key))
 				{
-					$key_name = $this->db->_protect_identifiers(implode('_', $key));
 					$key = $this->db->_protect_identifiers($key);
 				}
 				else
 				{
-					$key_name = $this->db->_protect_identifiers($key);
-					$key = array($key_name);
+					$key = array($this->db->_protect_identifiers($key));
 				}
 
-				$sql .= ",\n\tKEY {$key_name} (" . implode(', ', $key) . ")";
+				$sql .= ",\n\tFOREIGN KEY (" . implode(', ', $key) . ")";
 			}
 		}
 
-		$sql .= "\n) DEFAULT CHARACTER SET {$this->db->char_set} COLLATE {$this->db->dbcollat};";
+		$sql .= "\n)";
 
 		return $sql;
 	}
@@ -192,11 +175,16 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 * Drop Table
 	 *
 	 * @access	private
-	 * @return	string
+	 * @return	bool
 	 */
 	function _drop_table($table)
 	{
-		return "DROP TABLE IF EXISTS ".$this->db->_escape_identifiers($table);
+		// Not a supported PDO feature
+		if ($this->db->db_debug)
+		{
+			return $this->db->display_error('db_unsuported_feature');
+		}
+		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -210,21 +198,38 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 	 * @access	private
 	 * @param	string	the ALTER type (ADD, DROP, CHANGE)
 	 * @param	string	the column name
-	 * @param	array	fields
+	 * @param	string	the table name
+	 * @param	string	the column definition
+	 * @param	string	the default value
+	 * @param	boolean	should 'NOT NULL' be added
 	 * @param	string	the field after which we should add the new field
 	 * @return	object
 	 */
-	function _alter_table($alter_type, $table, $fields, $after_field = '')
+	function _alter_table($alter_type, $table, $column_name, $column_definition = '', $default_value = '', $null = '', $after_field = '')
 	{
-		$sql = 'ALTER TABLE '.$this->db->_protect_identifiers($table)." $alter_type ";
+		$sql = 'ALTER TABLE '.$this->db->_protect_identifiers($table)." $alter_type ".$this->db->_protect_identifiers($column_name);
 
 		// DROP has everything it needs now.
 		if ($alter_type == 'DROP')
 		{
-			return $sql.$this->db->_protect_identifiers($fields);
+			return $sql;
 		}
 
-		$sql .= $this->_process_fields($fields);
+		$sql .= " $column_definition";
+
+		if ($default_value != '')
+		{
+			$sql .= " DEFAULT \"$default_value\"";
+		}
+
+		if ($null === NULL)
+		{
+			$sql .= ' NULL';
+		}
+		else
+		{
+			$sql .= ' NOT NULL';
+		}
 
 		if ($after_field != '')
 		{
@@ -232,7 +237,9 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 		}
 
 		return $sql;
+
 	}
+
 
 	// --------------------------------------------------------------------
 
@@ -252,7 +259,8 @@ class CI_DB_mysqli_forge extends CI_DB_forge {
 		return $sql;
 	}
 
+
 }
 
-/* End of file mysqli_forge.php */
-/* Location: ./system/database/drivers/mysqli/mysqli_forge.php */
+/* End of file pdo_forge.php */
+/* Location: ./system/database/drivers/pdo/pdo_forge.php */
