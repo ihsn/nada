@@ -45,7 +45,7 @@ class Stats_model extends CI_Model {
 
 		if (is_numeric($start) && is_numeric($end) ) 
 		{
-			$this->db->where(' (logtime between '.$start.' and '.$end.')');
+			$this->db->where('(logtime between '.$start.' and '.$end.')');
 		}
 		
 		$query=$this->db->get('sitelogs n');
