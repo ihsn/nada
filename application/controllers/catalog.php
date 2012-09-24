@@ -35,7 +35,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//set default repository filter to none
-		$this->filter->repo='central';
+		$this->filter->repo='';
 	}
 
 	/**
@@ -129,7 +129,7 @@ class Catalog extends MY_Controller {
 		if ($this->collection_search=='yes')
 		{
 			//get list of collections
-			$this->collection_list=$this->Search_helper_model->get_collection_terms($this->filter->repo);
+			$this->collection_list=$this->Search_helper_model->get_collections($this->filter->repo);
 		}	
 
 		
