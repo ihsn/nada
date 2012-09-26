@@ -221,8 +221,38 @@ td.active{background:gainsboro;}
 #survey .field{margin-bottom:10px;}
 
 /*box*/
-.box{border:1px solid gainsboro;float:right;width:18%;margin-right:5px;line-height:150%;margin-bottom:10px;}
-.box-header{font-weight:bold;padding:5px;background:gainsboro;}
+.box{border:1px solid gainsboro;float:right;width:18%;margin-right:5px;line-height:150%;margin-bottom:10px;
+-webkit-border-radius: 3px;
+border-radius: 3px;padding-bottom:10px;}
+
+.box-header{
+	font-weight:normal;
+	padding:5px;
+	font-size:14px;
+	background: #F1F1F1;
+	background-image: -webkit-gradient(linear,left bottom,left top,from(#ECECEC),to(#F9F9F9));
+	background-image: -webkit-linear-gradient(bottom,#ECECEC,#F9F9F9);
+	background-image: -moz-linear-gradient(bottom,#ECECEC,#F9F9F9);
+	background-image: -o-linear-gradient(bottom,#ECECEC,#F9F9F9);
+	background-image: linear-gradient(to top,#ECECEC,#F9F9F9);
+	border-bottom: 1px solid #DFDFDF;
+	text-shadow: white 0 1px 0;
+	-webkit-box-shadow: 0 1px 0 white;
+	box-shadow: 0 1px 0 white;
+	position:relative;
+}
+
+.box-header .sh{
+	position:absolute;
+	right:3px;
+	top:5px;
+	background: url('images/blue-remove.png') no-repeat left top;
+	display:block;
+	width:16px;
+	height:16px;
+	cursor:pointer;
+}
+
 .box-body{margin:5px;}
 .info-box{
   position: fixed;
@@ -428,7 +458,10 @@ td.active{background:gainsboro;}
 </div>
 
 <div class="box" >
-<div class="box-header" >Survey options</div>
+<div class="box-header">
+	<span>Survey options</span>
+    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+</div>
 <ul class="bull-list">
 	<li><a href="<?php echo site_url();?>/admin/catalog/upload">Upload DDI</a></li>
 	<li><a href="<?php echo site_url();?>/admin/catalog/batch_import">Import DDI</a></li>
@@ -443,7 +476,10 @@ td.active{background:gainsboro;}
 
 
 <div class="box">
-<div class="box-header">External Resources</div>
+<div class="box-header">
+	<span>External Resources</span>
+    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+</div>
 <ul class="bull-list">
     <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>">Upload RDF</a></li>
     <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>">Export RDF</a></li>
