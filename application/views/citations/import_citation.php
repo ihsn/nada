@@ -22,6 +22,57 @@ $flag_options=array(
 	);
 
 ?>
+<script>
+	//attach related surveys
+	$(function() {
+		
+		//temp session id
+		var tmp_id=$("#tmp_id").val();
+		
+		//add attached surveys to session, needed when editing a citations with survey attached
+		var url_add=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+'<?php echo implode(",",$selected_surveys_id_arr);?>/1';
+		$.get(url_add);
+		
+		//attach survey dialog
+		$('.add_survey').click(function() {
+				var iframe_url=CI.base_url+'/admin/related_surveys/index/'+tmp_id;
+				$('<div id="dialog-modal" title="Select Related Surveys"></div>').dialog({ 
+					height: 440,
+					width: 700,
+					resizable: false,
+					draggable: false,
+					modal: true,
+					close: function() {
+						$.get(CI.base_url+'/admin/citations/selected_surveys/'+tmp_id, function(data) {
+							$('#related-surveys').html(data);
+							related_surveys_click();
+						});
+					}
+				}).append('<iframe height="395" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+		});
+		
+		related_surveys_click();
+	});
+
+	//attach click event handler for survey select/unselect
+	function related_surveys_click()
+	{
+			$('.chk').unbind('click').click(function(e) {
+			
+			var tmp_id=$("#tmp_id").val();
+			
+			if($(this).is(':checked')) {
+            	url=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+$(this).val()+'/1';
+         	}
+			else{
+				url=CI.base_url+'/admin/related_surveys/remove/'+tmp_id+'/'+$(this).val()+'/1';
+			}
+			
+			$.get(url);
+		});
+	}
+	
+</script>
 <div class="page-links">
 	<a href="<?php echo site_url(); ?>/admin/citations/" class="button"><img src="images/house.png"/><?php echo t('citation_home');?></a> 
 </div>
@@ -43,6 +94,8 @@ $flag_options=array(
 <h1 class="page-title"><?php echo t('import_citation'); ?></h1>
 
 <?php echo form_open_multipart(site_url().'/admin/citations/import/', array('class'=>'form') ); ?>
+<input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
+<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: 'cit-'.date("U")); ?>"/>
 <div class="field">
 	<label for="citation_format"><?php echo t('citation_import_format');?></label>
 	<?php echo form_dropdown('citation_format', $citation_formats);?>
@@ -63,11 +116,15 @@ $flag_options=array(
     <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),'id="flag"'); ?>
 </div>
 
+<fieldset class="field-expanded">
+	<legend><?php echo t('related_studies');?></legend>
 <div class="field">
-    <label for="survey"><?php echo t('attach_to_survey');?></label>
-    <?php echo form_multiselect('survey[]', $surveys, get_form_value("survey",isset($survey) ? $survey : ''),'id="survey"'); ?>
+    <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
+			<?php echo $survey_list; ?>
+    </div> 
+	<a style="display:block" class="add_survey" href="javascript:void(0);">Add Surveys</a>   
 </div>
-
+</fieldset>
 <?php
 /*
 <div class="field">

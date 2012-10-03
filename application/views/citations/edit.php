@@ -144,7 +144,6 @@ table .input-flex{margin-bottom:5px;}
 			<?php echo $survey_list; ?>
     </div> 
 	<a style="display:block" class="add_survey" href="javascript:void(0);">Add Surveys</a>   
-    <a style="" href="#clear" title="Clear all the selected studies" onclick="clear_studies();return false"><?php echo t('clear_selection');?></a>
 </div>
 </fieldset>
 
@@ -258,7 +257,7 @@ table .input-flex{margin-bottom:5px;}
 		$('.add_survey').click(function() {
 				var iframe_url=CI.base_url+'/admin/related_surveys/index/'+tmp_id;
 				$('<div id="dialog-modal" title="Select Related Surveys"></div>').dialog({ 
-					height: 540,
+					height: 440,
 					width: 700,
 					resizable: false,
 					draggable: false,
@@ -269,7 +268,7 @@ table .input-flex{margin-bottom:5px;}
 							related_surveys_click();
 						});
 					}
-				}).append('<iframe height="485" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+				}).append('<iframe height="395" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
 		});
 		
 		related_surveys_click();

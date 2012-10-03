@@ -138,6 +138,10 @@ $template['admin']['parse_template'] = FALSE;
 |--------------------------------------------------------------------------
 */
 
+//datadeposit
+$template['datadeposit']['template'] = '../../themes/datadeposit/layout';
+$template['datadeposit']['theme_folder'] = 'datadeposit';
+
 //default site template
 $template['default']['template'] = '../../themes/'.$theme_name.'/layout';
 $template['default']['theme_folder'] = $theme_name;

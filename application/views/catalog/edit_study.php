@@ -116,6 +116,54 @@ function update_survey_collection(e) {
     });
 }
 
+	//attach related surveys
+	$(function() {
+		
+		//temp session id
+		var tmp_id=$("#tmp_id").val();
+		
+		//add attached surveys to session, needed when editing a citations with survey attached
+		var url_add=CI.base_url+'/admin/related_citations/add/'+tmp_id+'/'+'<?php echo implode(",",$selected_citations_id_arr);?>/1';
+		$.get(url_add);
+		
+		//attach survey dialog
+		$('.add_survey').click(function() {
+				var iframe_url=CI.base_url+'/admin/related_citations/index/'+tmp_id;
+				$('<div id="dialog-modal" title="Select Related Citations"></div>').dialog({ 
+					height: 450,
+					width: 700,
+					resizable: false,
+					draggable: false,
+					modal: true,
+					close: function() {
+						$.get(CI.base_url+'/admin/catalog/selected_citations/'+tmp_id, function(data) {
+							$('#related-citations').html(data);
+							related_citations_click();
+						});
+					}
+				}).append('<iframe height="404" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+		});
+		
+		related_citations_click();
+	});
+
+	//attach click event handler for survey select/unselect
+	function related_citations_click()
+	{
+			$('.chk').unbind('click').click(function(e) {
+			
+			var tmp_id=$("#tmp_id").val();
+			
+			if($(this).is(':checked')) {
+            	url=CI.base_url+'/admin/related_citations/add/'+tmp_id+'/'+$(this).val()+'/1';
+         	}
+			else{
+				url=CI.base_url+'/admin/related_citations/remove/'+tmp_id+'/'+$(this).val()+'/1';
+			}
+			
+			$.get(url);
+		});
+	}
 /*tags*/
 function add_tag() {
 	
@@ -405,6 +453,7 @@ td.active{background:gainsboro;}
             <td>notes here...</td>
         </tr>       
         </table>
+<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
 
 	<div style="margin-top:50px;margin-bottom:100px;">
 		<?php $this->load->view("catalog/study_tabs");?>
@@ -415,7 +464,12 @@ td.active{background:gainsboro;}
                     echo $resources;
                 break;
                 case 'citations':
-                    echo "todo";
+				?> <div id="related-citations" class="field"> <?php
+                    $this->load->view('catalog/selected_citations', array('selected_citations'=>$selected_citations)); ?>
+					</div>
+                    <a style="display:block" class="add_survey" href="javascript:void(0);">Add Citations</a>   
+    				<a style="" href="#clear" title="Clear all the selected citations" onclick="clear_studies();return false"><?php echo t('clear_selection');?></a>
+    			<?php
                 break;
                 default:
                     echo $files;
