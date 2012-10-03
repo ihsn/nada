@@ -16,7 +16,7 @@ class Catalog_tags_model extends CI_Model {
 	**/
 	function insert($sid,$tag)
 	{	
-		$options=array(
+		$data=array(
 					'sid'=>$sid,
 					'tag'=>$tag);
 		
@@ -40,19 +40,18 @@ class Catalog_tags_model extends CI_Model {
 	
 
 	
-	function delete($sid,$tag)
+	function delete($tid)
 	{
-		$this->db->where('tag', $tag); 
-		$this->db->where('sid',$sid);
+		$this->db->where('id',$tid);
 		return $this->db->delete('survey_tags');
 	}
 
 
-	//reurns tags associated with a survey
+	//returns tags associated with a survey
 	function survey_tags($sid)
 	{
 		$this->db->where('sid',$sid);
-		return $this->db->get('survey_tags')->result_aray();
+		return $this->db->get('survey_tags')->result_array();
 	}
 	
 		
