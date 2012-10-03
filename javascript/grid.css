@@ -1,0 +1,67 @@
+/* CSS Document */
+
+.grid_three{width:100%;}
+
+table.grid {
+
+	border:0px solid gainsboro;
+
+	border-collapse:collapse;
+
+	background-color: none;
+
+	width:100%;
+
+}
+
+legend { font-weight: bold!important }
+
+table.grid th {
+
+	border-width: 0px;
+
+	font-size: 9pt !important;
+
+	padding: 2px;
+
+	background-color:#F0F0F0;
+
+	text-align:left;
+
+	border:1px solid gainsboro;
+
+}
+
+table.grid th.last, table.grid td.last{background:none;border:none;width:20px;}
+
+table.grid td {
+
+	border:1px solid gainsboro;
+
+	padding:2px;
+
+	margin:0px;
+
+	background:white;
+
+}
+
+table.grid td input{border:0px;width:95%;position:relative;}
+
+.right{float:right;}
+
+.left{float:left;}
+
+.addButton, .rembutton{border:none; background-color:#ccc; font-size:20px; font-weight:bold; width:20px; height:20px;margin:0px;}
+
+
+label img {
+	margin-left: 6px; 
+}
+
+
+.button-add,.button-del{background-color:#CCCCCC;font-size:11px;font-weight:bold;padding:2px;width:14px;height:14px;overflow:hidden;border:1px solid gainsboro;text-align:center;cursor:pointer;margin-left:3px;}
+
+.button-del{background:none;border:1px solid gainsboro;}
+
+.button-add:hover,.button-del:hover{background:black;color:white;}
