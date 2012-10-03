@@ -14,6 +14,7 @@ class MY_Controller extends CI_Controller
     var $_ci_models         = array();
     var $_ci_helpers        = array();
     var $_ci_varmap         = array('unit_test' => 'unit', 'user_agent' => 'agent');
+	
 	var $is_admin=TRUE;
 	
 	/**

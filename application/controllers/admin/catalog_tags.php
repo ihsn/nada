@@ -23,7 +23,7 @@ class Catalog_Tags extends MY_Controller {
 	public function add($id) {
 		$tag = array(
 			'sid'  => $id,
-			'tag' => $this->input->post('tag'),
+			'tag' => xss_clean($this->input->post('tag')),
 		);
 		if (!$this->Catalog_Tags_model->tag_exists($id, $this->input->post('tag'))) {
 			$this->Catalog_Tags_model->insert($tag);

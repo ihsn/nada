@@ -102,7 +102,12 @@ $options_section=$this->data['section_options'];
 
     <div class="field">
         <label for="section"><?php echo t('section');?><span class="required">*</span></label>
-        <?php echo form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''));?>
+        <?php //form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''));?>
+        <select name="section">
+		<?php foreach($options_section as $section) : ?>
+        	<option value="<?php echo $section['id'] ?>" ><?php echo $section['title']; ?></option>
+        <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="field">
