@@ -1509,7 +1509,10 @@ class Catalog extends MY_Controller {
 	 **/
 	function edit($id=NULL)
 	{
+<<<<<<< Updated upstream
 <<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
 		$this->template->add_js('javascript/jquery/ui/ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
@@ -1566,10 +1569,13 @@ class Catalog extends MY_Controller {
 		//formatted list of external resources
 		$survey_row['resources']=$this->catalog_admin->resources($id);
 		
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 =======
 		// get admin notes
 >>>>>>> origin
+=======
+>>>>>>> Stashed changes
 		if ($id != NULL) {
 			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
 			$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
@@ -1595,12 +1601,15 @@ class Catalog extends MY_Controller {
 			//$selected_citations=isset($survey_row['related_citations']) ? $survey_row['related_citations'] : array();
 			$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
 			$survey_row['selected_citations'] = $selected_citations;
+<<<<<<< Updated upstream
 =======
 			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
 			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
 			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
 			$survey_row['ids']=$this->load->view('catalog/admin_ids', $ids, true);
 >>>>>>> origin
+=======
+>>>>>>> Stashed changes
 		}
 		
 

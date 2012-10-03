@@ -704,6 +704,7 @@ class Repository_model extends CI_Model {
 		$result= $this->db->get('repository_sections')->result_array();
 
 	/*	$list=array();
+<<<<<<< Updated upstream
 		foreach($result as $row)
 		{
 			$list[$row['title']]=$row['title'];
@@ -721,13 +722,20 @@ class Repository_model extends CI_Model {
 		$result= $this->db->get('repository_sections')->result_array();
 
 		$list=array();
+=======
+>>>>>>> Stashed changes
 		foreach($result as $row)
 		{
 			$list[$row['title']]=$row['title'];
-		}
+		} 
+		return $list; */
 		
+<<<<<<< Updated upstream
 		return $list;
 >>>>>>> origin
+=======
+		return $result;
+>>>>>>> Stashed changes
 	}
 
 }
