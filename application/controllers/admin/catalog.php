@@ -1323,6 +1323,7 @@ class Catalog extends MY_Controller {
   		$this->template->render();*/		
 	}
 	
+<<<<<<< HEAD
 	
 	/**
 	*
@@ -1354,6 +1355,8 @@ class Catalog extends MY_Controller {
 	}
 	
 
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 	/**
 	*
 	* Publish/Unpublish studies
@@ -1376,6 +1379,7 @@ class Catalog extends MY_Controller {
 		if (!is_numeric($id))
 		{
 			$tmp_arr=explode(",",$id);
+<<<<<<< HEAD
 		
 			foreach($tmp_arr as $key=>$value)
 			{
@@ -1613,6 +1617,70 @@ class Catalog extends MY_Controller {
 					$options[$key]=$this->input->post($key);
 					$result=$this->Catalog_model->update_survey_options($options);
 
+=======
+		
+			foreach($tmp_arr as $key=>$value)
+			{
+				if (is_numeric($value))
+				{
+					$id_arr[]=$value;
+				}
+			}
+			
+			if (count($id_arr)==0)
+			{
+				//for ajax return JSON output
+				if ($ajax!='')
+				{
+					echo json_encode(array('error'=>"invalid id was provided") );
+					exit;
+				}
+				
+				$this->session->set_flashdata('error', 'Invalid id was provided.');
+				redirect('admin/catalog');
+			}	
+		}		
+		else
+		{
+			$id_arr[]=$id;
+		}
+		
+		//test user has permissions
+		$is_owner=$this->ion_auth->is_study_owner($id);
+
+		if (!$is_owner)
+		{
+			show_error("MSG_USER_ACCESS_DENIED");
+		}
+		
+		if ($this->input->post('cancel')!='')
+		{
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				redirect($destination);
+			}
+			else
+			{
+				redirect('admin/catalog');
+			}	
+		}
+		else if ($this->input->post('submit')!='')
+		{
+			foreach($id_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//if exists
+				if ($survey)
+				{
+					//publish/unpublish a study
+					$result=$this->Catalog_model->publish_study($item,$publish);
+					
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 					if ($result)
 					{
 						$this->session->set_flashdata('message', t('form_update_success'));
@@ -1621,10 +1689,64 @@ class Catalog extends MY_Controller {
 					{
 						$this->session->set_flashdata('error', t('form_update_failed'));
 					}
+<<<<<<< HEAD
 			}
 		}
 		
 		redirect('admin/catalog/edit/'.$id);
+=======
+					
+					//log
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$this->db_logger->write_log('study-published',$survey_name,'catalog',$item);
+				}	
+			}
+
+			//for ajax calls, return output as JSON						
+			if ($ajax!='')
+			{
+				echo json_encode(array('success'=>"true") );
+				exit;
+			}
+						
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				//redirect($destination);
+			}
+			else
+			{
+				
+				redirect('admin/catalog');
+			}	
+		}
+		else
+		{
+			$items=array(); //list of deleted items
+			
+			foreach($id_arr as $item)
+			{
+				//get survey info
+				$survey=$this->Catalog_model->get_survey($item);
+				
+				//exists
+				if ($survey)
+				{
+					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$items[]=$survey_name;
+				}	
+			}
+			
+			//ask for confirmation
+			$content=$this->load->view('catalog/publish_confirm', array('items'=>$items,'publish'=>$publish),true);
+			
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+		}		
+
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 	}
 
 

@@ -1,6 +1,9 @@
 .login-header{
-background-color:#f47820;
-clear: both;height:60px;overflow:hidden;}
+	clear: both;
+	height:60px;
+	overflow:hidden;
+	background: url(../../themes/opendata/sprite.png) 0px -170px repeat-x;
+}
 .login-header .title, .title a{
 	font-size:18px;color:white;padding:16px;
 }

@@ -118,6 +118,7 @@ $lang['data_remote_description']="Related documentation is made freely available
 $lang['data_da_description']="Related documentation is made freely available to users on the Bank's intranet. The datasets are however not available for these studies.";
 $lang['filter_by_data']="Filter by Data Access";
 $lang['legend_na_access']="Data not available";
+<<<<<<< HEAD
 $lang['catalog_history']="Catalog History";
 $lang['catalog_owned_by']="Catalog";
 $lang['search_no_results']="<p><strong>Your search did not match any studies held in the catalog.</strong></p>
@@ -137,5 +138,14 @@ $lang['filter_by_collection']="Filter by Collection";
 $lang['js_collections_selected']="collections selected";
 $lang['js_collection_selected']="collection selected";
 
+=======
+$lang['repositories_internal']="World Bank Contributing Repositories";
+$lang['repositories_external']="External Contributing Repositories";
+$lang['central_data_catalog']="Central Data Catalog";
+$lang['data_catalogs']="Data Catalogs";
+$lang['visit_catalog']="Visit catalog";
+$lang['catalog_owned_by']="Repository";
+$lang['legend_citations']="Citations of publications that used the study";
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

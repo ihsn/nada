@@ -186,9 +186,15 @@ class Ion_auth_model extends CI_Model
 	 * @author Mathew
 	 **/
 	public function activate($id, $code = false)
+<<<<<<< HEAD
 	{	
 		$result=FALSE;
 			    
+=======
+	{	    
+		$result=FALSE;
+		
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 	    if ($code != false) 
 	    {  
 		    $query = $this->db->select($this->identity_column)
@@ -258,7 +264,11 @@ class Ion_auth_model extends CI_Model
         
 		$this->db->where($this->ion_auth->_extra_where);
 		$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
+<<<<<<< HEAD
 		log_message('info', "delog_message('info' query: ".$this->db->last_query());
+=======
+
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		return $result;
 	}
 

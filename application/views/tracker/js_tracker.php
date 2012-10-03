@@ -29,8 +29,8 @@ var s_repo="";
 	s_repo=" > <?php echo strtoupper($active_repo);?>";
 <?php endif;?>
 var s_pageName="";
-var s_channel="DEC DDP Microdata Catalog"+s_repo;
-var s_hier1 = "DEC,DEC DDP Microdata Catalog";
+var s_channel="DEC Microdata Catalog EXT"+s_repo;
+var s_hier1 = "DEC,DEC Microdata Catalog EXT";
 var s_prop1 = "";
 var s_prop2 = "Not Available";  /* Author */
 var s_prop3 = "Not Available";  /* Date */
@@ -52,7 +52,7 @@ var omnitureCookieContent= getCookieValueByName('omniture');
 	var s_prop19 =getDutyStation(omnitureCookieContent);
 	var s_prop20 =getUserType(omnitureCookieContent);
 
-var sPageNameBase = "DDP Microdata > ";
+var sPageNameBase = "Data > Data Catalog > ";
 var sTitle = document.title;
 
 s_pageName = sPageNameBase + sTitle;

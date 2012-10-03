@@ -5,7 +5,11 @@
       <div class="wb-box">
 	<?php 
         $data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos                    
+<<<<<<< HEAD
         $this->load->view("repositories/index_public",$data);                    
+=======
+        $this->load->view("microdata.worldbank.org/home/index_public",$data);                    
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
     ?>
 	</div>
 </div>

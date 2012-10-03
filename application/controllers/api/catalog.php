@@ -89,6 +89,7 @@ class Catalog extends REST_Controller
 		}
 		
 		$this->db->select("id,refno,titl,nation,authenty,created");
+<<<<<<< HEAD
 		$this->db->where("published",1);
 		$this->db->limit($limit);
 		$this->db->order_by("created","desc");
@@ -115,8 +116,38 @@ class Catalog extends REST_Controller
 		}
 		$this->response($content, 200); 
 	}
+=======
+		$this->db->limit($limit);
+		$this->db->order_by("created","desc");
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 
+		$query=$this->db->get("surveys");
+		$content=NULL;
+		
+		if ($query)
+		{
+			$content=$query->result_array();
+		}
+				
+		if (!$content)
+		{
+    		$content=array('error'=>'NO_RECORDS_FOUND');    	
+		}
+		else
+		{
+			foreach($content as $key=>$value)
+			{
+				$content[$key]['url']=site_url().'/catalog/'.$value['id'];
+				$content[$key]['created']=date("M-d-Y",$value["created"]);
+			}		
+		}
+		$this->response($content, 200); 
+	}
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 	/**
 	*
 	* Returns all country names from db

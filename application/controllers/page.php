@@ -172,7 +172,169 @@ class Page extends MY_Controller {
 		}
 	}
 	
+
+	/**
+	*
+	* Static pages for microdata
+	*
+	*
+	* NOTE: TOBE REMOVED LATER. This method is need because nada does not support static content with php/js/css
+	**/
+	function static_page()
+	{
+		$page=$this->uri->segment(1);
+		$data=array();
+		switch($page)
+		{
+			/*
+			case 'home';
+				$this->load->library('cache');
+				$this->load->model("stats_model");
+				
+				//check if a cached copy of the page is available
+				$data= $this->cache->get( md5($page));
+				
+				//no cache found
+				if ($data===FALSE)
+				{						
+					$data['title']='Microdata Library';
+					
+					//get stats
+					$data['survey_count']=$this->stats_model->get_survey_count();
+					$data['variable_count']=$this->stats_model->get_variable_count();
+					$data['citation_count']=$this->stats_model->get_citation_count();
+					
+					//get top popular surveys
+					$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+					
+					//get top n recent acquisitions
+					$data['latest_surveys']=$this->stats_model->get_latest_surveys(6);
+					
+					//cache data
+					$this->cache->write($data, md5($page));
+				}
 	
+			break;
+			*/
+
+			/*case 'microdata-catalogs';
+				//see catalog/repositories				
+				
+				$this->load->model("stats_model");
+				$data['title']='Microdata Catalog';
+				$data['survey_count']=$this->stats_model->get_survey_count();
+			break;
+			*/
+
+			case 'using-our-catalog';
+				$data['title']='Using our catalog';
+			break;
+
+			case 'terms-of-use':
+				$data['title']='Terms of use';
+			break;
+			
+			case 'practices-and-tools';
+				$data['title']='Practices and Tools';
+			break;
+
+			case 'faqs';
+				$data['title']='Frequently Asked Questions';
+			break;
+			
+			case 'about';
+				$data['title']='About the Microdata Library';
+			break;
+			
+			case 'contributing-catalogs';
+					$this->load->model("repository_model");
+					$this->lang->load('catalog_search');
+					$this->load->library('cache');
+					$this->load->model("stats_model");
+					
+					//check if a cached copy of the page is available
+					$data= $this->cache->get( $page.'_'.md5($page));
+				
+					//no cache found
+					if ($data===FALSE)
+					{						
+						//get stats
+						$data['title']='Contributing Catalogs';
+						$data['survey_count']=$this->stats_model->get_survey_count();
+						$data['variable_count']=$this->stats_model->get_variable_count();
+						$data['citation_count']=$this->stats_model->get_citation_count();
+						
+						//get top popular surveys
+						$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+						
+						//get top n recent acquisitions
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);
+						
+						
+						//cache data
+						$this->cache->write($data, $page.'_'.md5($page));
+					}
+
+					//reset any search options selected
+					$this->session->unset_userdata('search');
+					
+					//reset repository
+					$this->session->set_userdata('active_repository','central');	
+					
+			break;
+			
+			case 'home':			
+					$data['title']='Microdata Home';
+					$this->load->model("repository_model");
+					$this->lang->load('catalog_search');
+					$this->load->library('cache');
+					$this->load->model("stats_model");
+					$this->load->model("slideshow_model");
+				
+					//check if a cached copy of the page is available
+					$data= $this->cache->get( 'home_'.md5($page));
+				
+					//no cache found
+					if ($data===FALSE)
+					{						
+						//get stats
+						$data['title']='Microdata Home';
+						$data['survey_count']=$this->stats_model->get_survey_count();
+						$data['variable_count']=$this->stats_model->get_variable_count();
+						$data['citation_count']=$this->stats_model->get_citation_count();
+						
+						//get top popular surveys
+						$data['popular_surveys']=$this->stats_model->get_popular_surveys(6);
+						
+						//get top n recent acquisitions
+						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);
+						
+						//get slideshows
+						$data['slides']=$this->slideshow_model->get_slides();
+						
+						//cache data
+						$this->cache->write($data, 'home_'.md5($page));
+					}
+
+					//reset any search options selected
+					$this->session->unset_userdata('search');
+					
+					//reset repository
+					$this->session->set_userdata('active_repository','central');	
+	
+			break;
+			
+			default:
+			return FALSE;			
+		}
+		//$data['body']=file_get_contents("static/$page.php");
+		$data['body']=$this->load->external_view($path='static', $view=$page,$data,TRUE);
+		$content=$this->load->view('page_index', $data,true);
+		
+		$this->template->write('title', $data['title'],true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
 	
 	function _error_page()
 	{
@@ -196,6 +358,7 @@ class Page extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+<<<<<<< HEAD
 	
 	
 	
@@ -273,6 +436,8 @@ class Page extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 }
 /* End of file page.php */
 /* Location: ./controllers/page.php */

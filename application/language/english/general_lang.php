@@ -117,7 +117,11 @@ $lang['home']='Home';
 $lang['regional_catalogs']='Regional catalogs';
 $lang['specialized_catalogs']='Specialized catalogs';
 $lang['central_data_catalog']='Central Data Catalog';
+<<<<<<< HEAD
 $lang['created']='Created';
 $lang['visit_catalog']='Visit Catalog';
+=======
+$lang['repositories'] = "Repositories";
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

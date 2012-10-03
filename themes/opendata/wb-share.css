@@ -1,0 +1,48 @@
+#f03v1-page-tools { float:right; /*    width:270px;  */ height: 23px;margin-right:5px; }
+/* -------------page-tools-zindex-------- */
+.page-tools-zindex { z-index:1000; }
+/* -------------page-tools-zindex-------- */
+.pagestools { float:left; padding-left:8px; width:auto; }
+.f01v2-in-page-language-sort { margin:0 !important; }
+#f03v1-page-tools .Prnt, #f03v1-page-tools .email, #f03v1-page-tools .Facebook, #f03v1-page-tools .Tweet { background: url("images/sprite.png") no-repeat scroll -75px -269px transparent; height: 20px; padding: 0 9px 0 3px; width: 21px; }
+#f03v1-page-tools a.Prt span { display: block; visibility: hidden; }
+#f03v1-page-tools a, #f03v1-page-tools a:hover { display: block; height: 20px; text-decoration: none; }
+#f03v1-page-tools .email { background-position: -108px -269px; height: 20px; padding: 0 6px 0 6px; width: 25px; }
+#f03v1-page-tools .shareicon { padding-left: 9px; width: 58px; position: relative; }
+#f03v1-page-tools .Facebook { background-position: -212px -269px; height: 20px; padding: 0 11px 0 10px; width: 46px; }
+#f03v1-page-tools .Tweet { background-position: -279px -269px; height: 22px; width: 52px; }
+.pagestools ul { list-style:none; display:block; }
+.pagestools ul li { display: inline; float: left; list-style: none outside none; text-align: center; vertical-align: middle; }
+.pagestools ul li.fbv2 { width:130px; height:50px; z-index:999999; padding-left:9px; }
+.pagestools ul li.dividerpagetools { background: url("images/sprite.png") no-repeat scroll right -75px transparent; padding: 0 12px 0 11px; }
+/* -- pages tools -- */
+
+.sharecont { margin: -6px 0 0 -10px; width: 74px; }
+.expand_all { cursor:default; }
+.toggle_container { border: 1px solid #d9dccf; border-top:none; background: url("images/share-bg.png") repeat-x scroll center bottom #F7F8F6; width: 233px; height:126px; position:absolute; right:-6px; top:23px; width:233px; z-index:99; border:1px solid #D9DCCF; }
+.sharebox .In, .sharebox .Dig, .sharebox .facebook, .sharebox .twitter, .sharebox2 .Google, .sharebox2 .Stumble, .sharebox2 .Delicious { background:url(http://www.worldbank.org/etc/designs/worldbank/images/sprite.png) -2px -340px; }
+.sharebox .Dig { background-position: -2px -370px; }
+.sharebox .facebook { background-position: -244px -313px; }
+.sharebox .twitter { background-position: -2px -311px; }
+.sharebox2 .Google { background-position: -134px -313px; }
+.sharebox2 .Stumble { background-position: -134px -341px; }
+.sharebox2 .Delicious { background-position: -134px -370px; }
+html>/**/body .toggle_container { background: url("images/share-bg.png") repeat-x scroll center bottom #F7F8F6; border: 1px solid #D9DCCF; height: 126px; overflow: visible; position: absolute; right: -6px; top: 23px; width: 233px; z-index: 99; }
+.toggle_container .box { }
+.expand_all {
+ *background-position: -4px 1px; background: url("images/extra_buttons1.png") no-repeat scroll -2px 1px transparent; cursor: pointer; height: 30px; position: relative; width: 74px; z-index: 999; }
+.expanded { background-position:-2px -28px; height:30px; }
+.sharebox { float: left; width:115px; }
+.sharebox ul { list-style-type: none; margin: 10px 0px 0px 0px; padding-left:3px; padding-right:5px; }
+.sharebox ul li { padding: 0px 0px 10px 0px; line-height:1.5em; font-size:0.6875em; color:#333333; width: 110px; text-align:left; }
+.sharebox ul li a, .sharebox ul li a:visited { color:#333333; text-decoration:none; font-family:Arial, Helvetica, sans-serif; padding-left:40px; }
+}
+.sharebox ul li a:hover { color:#333333; text-decoration:underline; }
+.sharebox img { vertical-align:middle; padding:0 6px 0 4px; }
+.sharebox2 { float: left; width:118px; }
+.sharebox2 ul { list-style-type: none; margin: 11px 0px 0px 0px; padding-left:3px; padding-right:5px; }
+.sharebox2 ul li { padding: 0px 0px 9px 23px; line-height:1.5em; font-family:Arial, Helvetica, sans-serif; font-size:0.6875em; color:#333333; }
+.sharebox2 ul li a, .sharebox2 ul li a:visited { color:#333333; text-decoration:none; font-family:Arial, Helvetica, sans-serif; }
+.sharebox2 ul li a:hover { color:#333333; text-decoration:underline; }
+.sharebox2 img { vertical-align:middle; padding:0 6px 0 4px; }
+/*----- F03V1 Page Tools Ends-----*/

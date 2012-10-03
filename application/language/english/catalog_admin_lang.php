@@ -67,9 +67,28 @@ $lang['msg_studies_to_transfer']='Studies that will be changed';
 $lang['study_owned']='Owned study';
 $lang['study_linked']='Linked study';
 $lang['is_harvested_study']='Harvested study';
+<<<<<<< HEAD
 $lang['select_publish_unpublish']='Select to publish/unpublish';
 $lang['publish']='Publish';
 $lang['series']='Series';
 $lang['data_access']='Data access';
+=======
+$lang['surveyid']='SurveyID';
+$lang['repositoryid']='Repo';
+$lang['study_owned']='Study is owned by current repository';
+$lang['publish']='Publish';
+$lang['unpublish']='Unpublish';
+$lang['published']='Published';
+$lang['unpublished']='Unpublished';
+$lang['transfer_ownership']='Transfer ownership';
+$lang['copy_studies']='Copy studies';
+$lang['copy_studies_to']='Copy studies to';
+$lang['confirm_publish'] = "Confirm publish?";
+$lang['confirm_publish_records'] = "Are you sure you want to publish the selected studies?";
+$lang['confirm_unpublish'] = "Confirm unpublish?";
+$lang['confirm_unpublish_records'] = "Are you sure you want to unpublish the selected studies?";
+$lang['select_active_repository'] = "Select a repository";
+
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

@@ -82,9 +82,10 @@ h2 {
 	font-size:22px;
 	font-family: Georgia;
 	margin-bottom:10px;
+	line-height:120%;
 }
 h3 {
-	font-size:14px;
+	font-size:16px;
 	font-weight:bold;
 	line-height:20px;
 }
@@ -166,3 +167,11 @@ ol li{list-style-type:decimal;margin-left:20px;}
 }
 em{font-style:italic;}
 strong{font-weight:bold;}
+
+#breadcrumb .breadcrumbs{margin-top:10px;margin-bottom:15px;}
+#breadcrumb a:hover{text-decoration:underline}
+
+.catalog-page-title{display:none;}
+
+ul.bullet1 {list-style:outside;}
+.bullet1 li{list-style:circle;}

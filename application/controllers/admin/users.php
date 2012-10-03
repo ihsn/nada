@@ -633,17 +633,70 @@ class Users extends MY_Controller {
 		}		
 	}
 	
-	
 	/**
 	*
-	* Print user information
+	* Batch import users using CSV
 	*
 	**/
-	function info()
-	{
-		echo '<pre>';
-		var_dump($this->session->userdata);
+	function batch_import()
+	{	
+		if ($this->input->post("csv"))
+		{
+			$this->_do_batch_import($this->input->post("csv"));
+		}
+		
+		$content=$this->load->view("users/batch_import",NULL,TRUE);		
+		$this->template->write('content', $content,true);
+		$this->template->render();		
 	}
+	
+	function _do_batch_import($csv_data,$seperator=',')
+	{
+		$this->load->library('csvreader');		
+		$this->csvreader->separator = $seperator;
+		$users_arr=$this->csvreader->parse_string($csv_data, $p_NamedFields = true);
+		
+		if (count($users_arr)>0)
+		{
+			foreach($users_arr as $user)
+			{
+				//log
+				$this->db_logger->write_log('user-batch-import',$user['email']);
+	
+				//check to see if we are creating the user
+				$username  = strtolower($user['firstname']).' '.strtolower($user['lastname']);
+				$email     = $user['email'];
+				$password  = $user['password'];
+				
+				$additional_data = array('first_name' => $user['firstname'],
+										 'last_name'  => $user['lastname'],
+										 'company'    => 'N/A',
+										 'phone'      => '0000',
+										 'country'      => $user['country'],
+										 'email'		=>	$email,
+										 'identity'		=>$username
+										);
+				
+				//register the user
+				$result=$this->ion_auth->register($username,$password,$email,$additional_data);
+				var_dump($this->ion_auth->errors()); 
+				if ($result)
+				{
+					echo '<BR>user account created successfully for: '.$email;
+				}
+				else
+				{
+					echo '<BR>failed: '.$email;
+				}
+			}
+			exit;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+<<<<<<< HEAD
 
 
 	/**
@@ -709,6 +762,8 @@ class Users extends MY_Controller {
 			return FALSE;
 		}
 	}
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 	
 	
 	
