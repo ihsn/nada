@@ -115,8 +115,6 @@ class Catalog extends REST_Controller
 		}
 		$this->response($content, 200); 
 	}
-
-
 	/**
 	*
 	* Returns all country names from db

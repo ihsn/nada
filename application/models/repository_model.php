@@ -698,8 +698,14 @@ class Repository_model extends CI_Model {
 			
 		return $count;
 	}
+<<<<<<< HEAD
 
-	function get_repository_sections(){
+	/**
+	*
+	* Returns an array of repository sections
+	**/
+	function get_repository_sections()
+	{
 		$result= $this->db->get('repository_sections')->result_array();
 
 	/*	$list=array();
@@ -712,5 +718,7 @@ class Repository_model extends CI_Model {
 		return $result;
 	}
 
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 }
 ?>

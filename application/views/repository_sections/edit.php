@@ -1,7 +1,13 @@
 <div class="content-container">
+<<<<<<< HEAD
 <?php 	$this->load->view('collections/navigation_links');  ?>
 
 <h1 class="page-title"><?php echo isset($id) ? t('collections_edit') : t('collections_add'); ?></h1>
+=======
+<?php 	$this->load->view('repository_sections/navigation_links');  ?>
+
+<h1 class="page-title"><?php echo isset($id) ? t('repository_sections_edit') : t('repository_sections_add'); ?></h1>
+>>>>>>> origin
 <?php if (validation_errors() ) : ?>
     <div class="error">
 	    <?php echo validation_errors(); ?>
@@ -28,7 +34,11 @@
 <?php
  //edit user
 	echo form_submit('submit',t('update'),'id="btnupdate"'); 
+<<<<<<< HEAD
  	echo anchor('admin/collections',t('cancel'),array('class'=>'button') );	
+=======
+ 	echo anchor('admin/repository_sections',t('cancel'),array('class'=>'button') );	
+>>>>>>> origin
 ?>
 
 <? echo form_close(); ?>    

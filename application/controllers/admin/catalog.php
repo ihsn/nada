@@ -1322,8 +1322,7 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $content,true);
   		$this->template->render();*/		
 	}
-	
-	
+		
 	/**
 	*
 	* Attach admin/reviewer note to a study
@@ -1375,8 +1374,7 @@ class Catalog extends MY_Controller {
 
 		if (!is_numeric($id))
 		{
-			$tmp_arr=explode(",",$id);
-		
+			$tmp_arr=explode(",",$id);		
 			foreach($tmp_arr as $key=>$value)
 			{
 				if (is_numeric($value))
@@ -1516,7 +1514,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Catalog_Notes_model');
        	$this->load->model('Catalog_Tags_model');
        	$this->load->model('Catalog_Ids_model');
-        $this->load->library('ion_auth');
+        //$this->load->library('ion_auth');
 		
 		if ( !is_numeric($id) )
 		{
@@ -1564,7 +1562,7 @@ class Catalog extends MY_Controller {
 			$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
 			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
 			$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
-			$tags['tags'] = $this->Catalog_Tags_model->tags_from_catelog_id($id);
+			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
 			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
 			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
 			$survey_row['ids']=$this->load->view('catalog/admin_ids', $ids, true);
@@ -1631,6 +1629,7 @@ class Catalog extends MY_Controller {
 					$options[$key]=$this->input->post($key);
 					$result=$this->Catalog_model->update_survey_options($options);
 
+
 					if ($result)
 					{
 						$this->session->set_flashdata('message', t('form_update_success'));
@@ -1643,6 +1642,7 @@ class Catalog extends MY_Controller {
 		}
 		
 		redirect('admin/catalog/edit/'.$id);
+
 	}
 
 

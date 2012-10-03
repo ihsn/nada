@@ -57,8 +57,8 @@ class StudyCollections extends MY_Controller {
 			show_404();
 		}
 		
-		$this->load->model('survey_coll_model');		
-		$this->survey_coll_model->detach($sid,$tid);		
+		$this->load->model('collections_model');		
+		$this->collections_model->detach($sid,$tid);		
 	}
 	
 	function attach($sid,$tid)
@@ -68,8 +68,8 @@ class StudyCollections extends MY_Controller {
 			show_404();
 		}
 		
-		$this->load->model('survey_coll_model');		
-		$this->survey_coll_model->attach($sid,$tid);
+		$this->load->model('collections_model');		
+		$this->collections_model->attach($sid,$tid);
 	}
 
 

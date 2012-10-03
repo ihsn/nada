@@ -48,7 +48,7 @@ if ($this->config->item("is_dime_catalog"))
             <?php if(strpos($sidebar,$key)): ?>
                 <li><?php echo $value; ?></li>     
             <?php elseif($key=='questionnaires'  && in_array('questionnaires',$resources) ):?>
-		        <li class="item"><?php echo $value; ?></li>
+		        <li><?php echo $value; ?></li>
             <?php endif;?>            
         <?php endforeach;?>
         <!--technical documents -->

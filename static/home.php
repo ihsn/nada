@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <style>
 .quick-link{background:url(files/box_wb.png) no-repeat;width:175px;height:175px; cursor:pointer;font-weight:bold;text-align:center;}
 .quick-link:hover{background:url(files/box_wb_over.png) no-repeat;}
@@ -319,6 +320,8 @@
 
 <?php return;?>
 
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 <h1>Microdata Library</h1>
 <div style="float:left;border:none;">
     
@@ -375,9 +378,12 @@
 				</div>
             </div>
             -->
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
             
              <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabsx" style="width:590px;" >
                 <div id="tabs-central-catalog" class="ui-tabs-panel ui-widget-content ui-corner-bottom central-repo" style="position:relative;">
@@ -396,8 +402,11 @@
 				</div>
             </div>
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 			<!-- tabs -->
             <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs" style="width:590px;" >
             <?php /* ?>
@@ -418,20 +427,40 @@
 </div>
 
 
+<<<<<<< HEAD
 
 
 <div class="wb-box-sidebar">
 
+=======
+<div class="wb-box-sidebar">
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
   <div class="wb-box">
     <div class="stats">
       <div class="stats-text">As of <?php echo date("F d, Y",date("U")); ?> the Library contains</div>
       <div class="stats-surveys"><?php echo number_format($survey_count);?> surveys</div>
+<<<<<<< HEAD
       <div class="stats-variables"><?php echo number_format($variable_count);?> variables</div>
       <div class="stats-citations"><?php echo number_format($citation_count);?> citations</div>      
 	  <!--<div style="margin-top:3px;"><a href="index.php/catalog" title="visit central catalog"><img src="files/catalog-button.gif" alt=""/></a></div>-->
     </div>
   </div>
 
+=======
+      <div class="stats-citations"><?php echo number_format($citation_count);?> citations</div>
+      <div class="stats-variables"><?php echo number_format($variable_count);?> variables</div>
+	  <!--<div style="margin-top:3px;"><a href="index.php/catalog" title="visit central catalog"><img src="files/catalog-button.gif" alt=""/></a></div>-->
+    </div>
+  </div>
+  <?php /*<div class="wb-box-sub">
+    <h3>Related</h3>
+    <ul>
+      <li><a href="http://go.worldbank.org/BHEH82GTT0">Democratizing Development Economics</a></li>
+      <li><a href="http://www.worldbank.org/open/">Open Development</a></li>
+    </ul>
+  </div>
+  */?>
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
   <div class="wb-box-sub">
     <h3>FAQ's</h3>
     <ul>

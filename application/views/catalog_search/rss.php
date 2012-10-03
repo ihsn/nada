@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?php //attach a stylesheet so browsers with no support for RSS can still display it?>
 <?xml-stylesheet type="text/xsl" href="<?php echo base_url();?>/xslt/rss.xslt" ?>
 <?php
 //from config

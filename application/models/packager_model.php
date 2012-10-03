@@ -20,6 +20,7 @@ class Packager_model extends CI_Model {
 			$this->db->where_in('surveyid',$surveyid_arr);
 		}
 		
+<<<<<<< HEAD
 		return $this->db->get("surveys")->result_array();		
 	}
 
@@ -32,6 +33,8 @@ class Packager_model extends CI_Model {
 				link_questionnaire, link_da';
 		$this->db->select($fields);
 		$this->db->where('repositoryid',$repoid);
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		return $this->db->get("surveys")->result_array();		
 	}
 	

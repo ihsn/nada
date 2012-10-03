@@ -63,7 +63,6 @@ class Packager extends MY_Controller {
 		echo count($output). ' studies were packaged';
 	}
 
-
 	//create package by repositoryid
 	function create_by_repo($repoid)
 	{
@@ -174,6 +173,272 @@ class Packager extends MY_Controller {
 		*/
 		
 	}
+	
+	
+	
+	//package users to json
+	function package_users()
+	{
+		$this->db->select('*');
+		$users=$this->db->get("shared_db.users")->result_array();
+
+		$this->db->select('*');
+		$users_meta=$this->db->get("shared_db.meta")->result_array();
+		
+		$output=array();
+		foreach($users as $user)
+		{
+			$output[$user['id']]=$user;
+		}
+		
+		foreach($users_meta as $meta)
+		{
+			if (isset($output[$meta['user_id']]))
+			{
+				$output[$meta['user_id']]['meta']=$meta;
+			}
+		}
+		
+		/*$output=array(
+				'users'=>$users,
+				'meta'=>$users_meta);
+		*/
+		
+		$file_name='/users-'.date("m-d-y-His").'.pkg';
+		$file_path=$this->package_folder.$file_name;
+		
+		//save package contents
+		$result=@file_put_contents($file_path, json_encode($output));
+		
+		if (!$result)
+		{
+			show_error("FAILED_TO_WRITE_TO_PACAKE_FILE");
+		}
+		
+		echo $file_name.' created successfully!<BR>';
+	}
+
+
+
+
+	//update harvester_queue table with study origin info
+	function update_harvester_queue($package_file=NULL)
+	{
+		$file_name=basename($package_file);
+		$file_path=$this->package_folder.'/'.$file_name;
+		
+		if (!file_exists($file_path))
+		{
+			show_404();
+		}
+		
+		//read file contents
+		$contents=file_get_contents($file_path);
+		
+		//decode json file		
+		$data=json_decode($contents);
+		
+		if (!$data)
+		{
+			show_error("INVALID_PACKAGE_FILE");
+		}
+
+		foreach($data as $survey)
+		{
+			$this->Packager_model->update_harvester_queue($survey);
+		}
+
+	}
+
+
+
+
+	//restore users from package file
+	function restore_users($package_file=NULL)
+	{
+		$file_name=basename($package_file);
+		$file_path=$this->package_folder.'/'.$file_name;
+		
+		if (!file_exists($file_path))
+		{
+			show_404();
+		}
+		
+		//read file contents
+		$contents=file_get_contents($file_path);
+		
+		//decode json file		
+		$data=json_decode($contents);
+		
+		if (!$data)
+		{
+			show_error("INVALID_PACKAGE_FILE");
+		}
+		
+		//import users
+		$this->Packager_model->import_users($data);
+		
+		echo 'done';
+	}	
+
+
+
+
+	/**
+	*
+	* Generate file copy script to copy the survey DDI files
+	**/
+	function generate_copy_script()
+	{
+		//check requiremnets
+		$this->_check_requirements();
+	
+		$surveys=$this->Packager_model->get_surveys();
+		$output=array();
+
+		//package file
+		$file_name='/copy-script-'.date("m-d-y-His").'.pkg';
+		$file_path=$this->package_folder.$file_name;
+		
+		$catalog_root=$this->config->item("catalog_root");
+		
+		//build an array with path to the survey ddi file
+		foreach($surveys as $row)
+		{
+			$output='';
+			$ddi_path=$catalog_root.'/'.$row['dirpath'].'/'.$row['ddifilename'];
+			$output='[COPY] '.$ddi_path.' [DESTINATION_FOLDER]'."\r";
+		
+			//write to file
+			$result=@file_put_contents($file_path, $output,FILE_APPEND);
+			
+			if (!$result)
+			{
+				show_error("FAILED_TO_WRITE_TO_PACAKE_FILE");
+			}
+
+		}
+				
+		echo $file_name.' created successfully!<BR>';
+		echo count($surveys). ' studies were packaged';
+	}
+
+
+	//Generate RDF files for each study from the packaged JSON file
+	//TODO: not completed
+	function generate_rdf_from_package($package_file=NULL)
+	{
+		$file_name=basename($package_file);
+		$file_path=$this->package_folder.'/'.$file_name;
+		
+		if (!file_exists($file_path))
+		{
+			show_404();
+		}
+		
+		//read file contents
+		$contents=file_get_contents($file_path);
+		
+		//decode json file		
+		$data=json_decode($contents);
+		
+		if (!$data)
+		{
+			show_error("INVALID_PACKAGE_FILE");
+		}
+		
+		foreach($data as $survey)
+		{
+			var_dump($survey);exit;
+		}
+		
+	}
+
+	function restore_resources($package_file=NULL)
+	{
+		$file_name=basename($package_file);
+		$file_path=$this->package_folder.'/'.$file_name;
+		
+		if (!file_exists($file_path))
+		{
+			show_404();
+		}
+		
+		//read file contents
+		$contents=file_get_contents($file_path);
+		
+		//decode json file		
+		$data=json_decode($contents);
+		
+		if (!$data)
+		{
+			show_error("INVALID_PACKAGE_FILE");
+		}
+		
+		foreach($data as $survey)
+		{
+			$this->_restore_study_resources($survey);
+		}
+	
+	}
+	
+	
+	function restore_survey_options($package_file=NULL)
+	{
+		$file_name=basename($package_file);
+		$file_path=$this->package_folder.'/'.$file_name;
+		
+		if (!file_exists($file_path))
+		{
+			show_404();
+		}
+		
+		//read file contents
+		$contents=file_get_contents($file_path);
+		
+		//decode json file		
+		$data=json_decode($contents);
+		
+		if (!$data)
+		{
+			show_error("INVALID_PACKAGE_FILE");
+		}
+		
+		foreach($data as $survey)
+		{
+			//var_dump($survey);
+			//update survey options
+			$this->Packager_model->update_study_options($survey);
+			
+		}
+	
+	}
+	
+
+	//restore resources for a single study
+	function _restore_study_resources($survey_obj)
+	{
+		//check if study already exists in the catalog by matching surveyid field
+		$exists=$this->Packager_model->study_exists($survey_obj->surveyid);
+		
+		if (!$exists)
+		{
+			//show_error("STUDY_ALREADY_EXISTS");
+			echo 'skipped >> STUDY_NOT_FOUND >> '.$survey_obj->surveyid."<BR>\r\n";
+		}
+
+		//remove any existing resources for the study
+		$this->Packager_model->delete_resources($survey_obj->surveyid);
+		
+		//import external resources for the study
+		$this->Packager_model->import_resources($survey_obj->surveyid,$survey_obj->resources);
+		
+		echo 'Imported >> STUDY_FOUND >> '.$survey_obj->surveyid."<BR>\r\n";
+		return TRUE;
+	}
+	
+	
+	
 	
 	
 	

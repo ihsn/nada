@@ -16,5 +16,6 @@ $config['omniture_s_account_prod']='wbnispdecextmdc,wbglobalext';
 //omniture page name
 $config['omniture_pagename']='Data > Data Catalog > ';
 
+
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */

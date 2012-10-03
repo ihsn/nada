@@ -19,7 +19,11 @@ class Site_configurations{
 		$settings=$this->ci->configurations_model->load();
 		
 		//list of settings stored in db in JSON format
+<<<<<<< HEAD
 		$json_formatted=array('admin_allowed_ip','admin_allowed_hosts');
+=======
+		$json_formatted=array('admin_allowed_ip');
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		
 		//update the config array with values from DB
 		if ($settings)

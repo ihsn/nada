@@ -104,50 +104,15 @@ class Catalog_Admin
 	* 
 	* supports: sorting, searching, pagination
 	*/
-	function resources($id)
+	function resources($sid)
 	{		
-		//set parent survey
-		$this->ci->resource_model->surveyid=$id;
-				
-		//records to show per page
-		$per_page = 1000;
+		//get all resoruces attached to a survey
+		$resources=$this->ci->resource_model->get_survey_resources($sid);
 		
-		//current page
-		$curr_page=$this->ci->input->get('per_page');//$this->uri->segment(4);
-
-		//records
-		$rows=$this->ci->resource_model->search($per_page, $curr_page);
-
-		//total records in the db
-		$total = $this->ci->resource_model->search_count;
-
-		if ($curr_page>$total)
-		{
-			$curr_page=$total-$per_page;
-			
-			//search again
-			$rows=$this->ci->resource_model->search($per_page, $curr_page);
-		}
+		//total resources
+		$total = count($resources);
 		
-		//set pagination options
-		$base_url = site_url("admin/catalog/{$id}/resources");
-		$config['base_url'] = $base_url;
-		$config['total_rows'] = $total;
-		$config['per_page'] = $per_page;
-		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','ps'));//pass any additional querystrings
-		$config['next_link'] = t('page_next');
-		$config['num_links'] = 5;
-		$config['prev_link'] = t('page_prev');
-		$config['first_link'] = t('page_first');
-		$config['last_link'] = t('page_last');
-		$config['full_tag_open'] = '<span class="page-nums">' ;
-		$config['full_tag_close'] = '</span>';
-		
-		//intialize pagination
-		$this->ci->pagination->initialize($config); 
-		
-		return $this->ci->load->view('catalog/study_resources', array('rows'=>$rows),TRUE);
+		return $this->ci->load->view('catalog/study_resources', array('rows'=>$resources),TRUE);
 	}
 
 

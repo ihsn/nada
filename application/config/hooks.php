@@ -55,6 +55,7 @@ function pre_system_url_check()
 {
 	//load configurations
     include APPPATH.'config/config.php';
+	//$CI =& get_instance();
 	
 	if (!$config)
 	{
@@ -64,6 +65,7 @@ function pre_system_url_check()
 	$http_port=(int)$config["http_port"];
 	$enable_ssl=(bool)$config["enable_ssl"];
 	$proxy_ssl=(bool)$config['proxy_ssl'];
+
 	$proxy_ssl_header=$config["proxy_ssl_header"];
 	$proxy_ssl_header_value=$config["proxy_ssl_header_value"];
 	
@@ -76,7 +78,8 @@ function pre_system_url_check()
 	$_SERVER[$proxy_ssl_header]=$test_port;//$proxy_ssl_header_value;
 	*/
 
-	if (!$enable_ssl && !$proxy_ssl)
+
+	if (!$enable_ssl && $proxy_ssl_header=='')
 	{
 		return FALSE;
 	}
@@ -105,6 +108,7 @@ function pre_system_url_check()
 	
 	//check if using SSL/Proxy/Headers
 	if ($proxy_ssl===TRUE && $proxy_ssl_header!='')
+
 	{		
 		//see if the variable is set
 		if (isset($_SERVER[$proxy_ssl_header]))
@@ -129,6 +133,7 @@ function pre_system_url_check()
 		}	
 	}
 	
+
 	//page is not viewed using HTTPS
 	if($is_https===FALSE)
 	{	

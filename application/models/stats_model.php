@@ -45,7 +45,11 @@ class Stats_model extends CI_Model {
 
 		if (is_numeric($start) && is_numeric($end) ) 
 		{
+<<<<<<< HEAD
+			$this->db->where('(logtime between '.$start.' and '.$end.')');
+=======
 			$this->db->where(' (logtime between '.$start.' and '.$end.')');
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		}
 		
 		$query=$this->db->get('sitelogs n');
@@ -61,7 +65,10 @@ class Stats_model extends CI_Model {
 	{
 		$this->db->select("surveys.id,surveys.titl,surveys.nation,surveys.authenty,forms.model as form_model,surveys.created");
 		$this->db->join("forms", "surveys.formid=forms.formid","inner");
+<<<<<<< HEAD
 		$this->db->where("surveys.published", 1); 
+=======
+>>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		$this->db->order_by("surveys.created", "desc"); 
 		$this->db->limit($limit);
 		$query=$this->db->get("surveys");
