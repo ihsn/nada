@@ -44,13 +44,9 @@ class Catalog_model extends CI_Model {
 					'project_id',
 					'project_name',
 					'project_uri',
-<<<<<<< HEAD
 					'published',
 					'created',
 					'changed'
-=======
-					'published'
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 					);
 	
 	//additional filters on search
@@ -98,12 +94,8 @@ class Catalog_model extends CI_Model {
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-<<<<<<< HEAD
 							link_indicator, link_questionnaire,	isshared,changed,created,published,data_coll_start');
 		
-=======
-							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin,published');
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		

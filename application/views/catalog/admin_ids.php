@@ -27,15 +27,9 @@
 		font-size:7pt;
 	}
 </style>
-<<<<<<< HEAD
 <form method="post" action="">
 <div class="field">
             <input id="survey_id" type="text" name="admin_survey_id" class="input-flex" style="width:88%;">
-=======
-<form method="post" action="" class="survey-other-ids">
-<div class="field">
-            <input id="survey_id" type="text" name="admin_survey_id" class="input-flex" >
->>>>>>> origin
             <input type="button" value="+" name="admin_survey_id_submit" style="border:1px solid gainsboro;padding:3px 5px 3px 5px;">
         </div>
 </form>

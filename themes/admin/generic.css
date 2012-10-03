@@ -7,11 +7,6 @@ a:hover{color:#CC0000}
 a:visited{}
 
 h1.heading-with-border{border-bottom:1px solid gainsboro;}
-<<<<<<< HEAD
 
 .bull-list{list-style:outside;margin-left:20px;}
 .bull-list li{list-style:disc}
-=======
-ul.bullet1 {list-style:outside;margin-left:20px;}
-.bullet1 li{list-style:disc;}
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c

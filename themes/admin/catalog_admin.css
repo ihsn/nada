@@ -28,9 +28,5 @@
 .owned{background:url("bullet-green.gif") no-repeat;}
 .linked{background:url("../../images/link.png") no-repeat;}
 
-<<<<<<< HEAD
 a.mini-button{background:white;padding:5px;display:inline-block;margin:2px;}
 a.mini-button:hover{background:black;color:white;}
-=======
-#surveys table th a.selected{background:none;border:none;color:black;}
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c

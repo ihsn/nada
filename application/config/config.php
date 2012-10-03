@@ -404,24 +404,10 @@ $config['date_format_long']='m/d/Y H:i';
 |	enable_ssl	= 	TRUE/FALSE	whether to enable SSL or not
 |	http_port	=  	port number application is using. e.g. if you are running website on a
 |					non-standard port e.g. http://localhost:81/nada, enter 81  	
-<<<<<<< HEAD
-
 |	proxy_ssl				=	TRUE/FALSE - use when the proxy server is managing SSL and SSL info is sent in an HTTP Header
 |	proxy_ssl_header		=	Name of the $_SERVER variable sent by the proxy server
 |	proxy_ssl_header_value	=	Value that indicate page is served using SSL
 |
-
-=======
-|	proxy_ssl	=	If SSL is managed by a proxy server and SSL is configured in MIXED MODE to have only fewer pages
-|					protected by SSL and proxy can't be configure to send additional headers to tell the application about the SSL,
-|					set the setting to TRUE. This is not a recommended setting and should be used only as 
-|					a workaround, the better solution is to configure proxy server to manage SSL for you.
-|
-|	proxy_ssl_header=	Name of the $_SERVER variable sent by the proxy server
-|	proxy_ssl_header_value=	Value that indicate page is served using SSL
-|
-|	NOTE: proxy_ssl and proxy_ssl_header are two different things and don't work together. and you must disable proxy_ssl setting to use proxy_ssl_header	
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 | 
 */
 $config['enable_ssl']=FALSE;

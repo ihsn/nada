@@ -39,29 +39,17 @@ if ($this->config->item("proxy_ssl")===TRUE)
             <?php if ($this->ion_auth->is_admin()): ?>
 	            <li><a href="<?php echo $site_url; ?>/admin"><?php echo t('site_administration');?></a></li>
             <?php endif;?>
-<<<<<<< HEAD:application/views/user_bar.php
             <li class="profile"><a href="<?php echo site_url(); ?>/auth/profile"><?php echo t('profile');?></a></li>
             <li class="password"><a href="<?php echo site_url(); ?>/auth/change_password"><?php echo t('password');?></a></li>                                    
             <li><a href="<?php echo site_url(); ?>/auth/logout"><?php echo t('logout');?></a></li>
-=======
-            <li><a href="<?php echo $site_url; ?>/auth/profile"><?php echo t('profile');?></a></li>
-            <li><a href="<?php echo $site_url; ?>/auth/change_password"><?php echo t('password');?></a></li>                                    
-            <li><a href="<?php echo $site_url; ?>/auth/logout"><?php echo t('logout');?></a></li>
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c:application/views/users/user_bar.php
             <?php echo $lang_ul;?>
         </ul>        
     </div>
 <?php else:?>
 <div class="user-box">
-<<<<<<< HEAD:application/views/user_bar.php
     <a href="<?php echo site_url(); ?>/auth/login"><?php echo t('login');?></a> 
     <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'):?>	
      | <a class="register" href="<?php echo site_url(); ?>/auth/register"><?php echo t('register');?></a>
-=======
-    <a href="<?php echo $site_url; ?>/auth/login"><?php echo t('login');?></a> | 
-    <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'):?>	
-    <a href="<?php echo $site_url; ?>/auth/register"><?php echo t('register');?></a>
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c:application/views/users/user_bar.php
     <?php endif;?>
     <?php echo $lang_ul;?>
 </div>

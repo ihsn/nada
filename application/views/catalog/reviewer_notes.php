@@ -26,15 +26,9 @@
 		font-size:7pt;
 	}
 </style>
-<<<<<<< HEAD
 <form method="post" action="">
 <div class="field">
             <input id="tag" type="text" name="reviewer_note" class="input-flex" style="width:89%;">
-=======
-<form method="post" action="" class="reviewer-notes-container">
-<div class="field">
-            <input id="tag" type="text" name="reviewer_note" class="input-flex" >
->>>>>>> origin
             <input type="button" value="+" name="reviewer_note_submit" style="border:1px solid gainsboro;padding:3px 5px 3px 5px;">
         </div>
 </form>

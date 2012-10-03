@@ -698,7 +698,6 @@ class Repository_model extends CI_Model {
 			
 		return $count;
 	}
-<<<<<<< HEAD
 
 	/**
 	*
@@ -718,7 +717,5 @@ class Repository_model extends CI_Model {
 		return $result;
 	}
 
-=======
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 }
 ?>

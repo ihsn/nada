@@ -56,17 +56,11 @@ class Breadcrumb
 		switch($segments[1])
 		{
 				case 'about':
-<<<<<<< HEAD
 				case 'resources':
 				case 'terms':
 				case 'contributing-catalogs':
 				case 'deposit':
 				case 'help':
-=======
-				case 'terms-of-use':
-				case 'contributing-catalogs':
-				case 'practices-and-tools':
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 				case 'faqs':
 					$breadcrumbs[$segments[1]]=t($segments[1]);
 				break;

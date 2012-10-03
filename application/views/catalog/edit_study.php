@@ -564,24 +564,12 @@ border-radius: 3px;clear:right;}
 
 <div class="box">
 <div class="box-header">Admin Notes</div>
-<<<<<<< HEAD
 	<?php echo $admin_notes; ?>
-=======
-<div class="box-body">
-	<?php echo $admin_notes; ?>
-</div>    
->>>>>>> origin
 </div>
 
 <div class="box">
 <div class="box-header">Reviewer Notes</div>
-<<<<<<< HEAD
 	<?php echo $reviewer_notes; ?>
-=======
-<div class="box-body">
-	<?php echo $reviewer_notes; ?>
-</div>    
->>>>>>> origin
 </div>
 
 

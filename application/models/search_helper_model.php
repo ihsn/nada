@@ -354,17 +354,12 @@ class Search_helper_model extends CI_Model {
 		{
 			$sql.='	inner join survey_repos sr on sr.sid=surveys.id 
 					where sr.repositoryid='.$this->db->escape($repositoryid);
-<<<<<<< HEAD
 			$sql.=' and published=1';
 		}
 		else
 		{
 			$sql.=' where published=1';
 		}
-=======
-			//$sql.=' and published=1';		
-		}		
->>>>>>> 0df80238506a3fa904ffbc982da373dfec446f9c
 		$sql.=' group by nation';
 		$sql.=' order by nation ASC';
 		return $this->db->query($sql)->result_array();		
