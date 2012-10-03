@@ -24,6 +24,12 @@ $(document).ready(function () {
 				return false;
 		});	
 
+		$(".box .box-header").click(function(e){
+			toggle_sidebar(this);
+			return false;
+		});
+
+
 		//show/hide remote da url depending on the da form selected
 		$("#formid").change(function(e){				
 			sh_remote_da_link();
@@ -67,12 +73,16 @@ function clear_all_toggle()
 	$("#survey .box-body").addClass("collapse");
 }
 
+function toggle_sidebar(e){
+	$(e).parent().toggleClass("iscollapsed");
+	$(e).parent().find(".box-body").toggleClass("collapse");
+}
+
 function toggle_box(e){	
 		//clear_all_toggle();
 		$(e).toggleClass("collapse");
 		$(e).parent().find(".box-body").toggleClass("collapse");
 		$(e).parent().parent("td").toggleClass("active");
-		console.log($(e));
 }
 
 function reset_box(e){
@@ -269,9 +279,41 @@ td.active{background:gainsboro;}
 #survey .field{margin-bottom:10px;}
 
 /*box*/
-.box{border:1px solid gainsboro;float:right;width:18%;margin-right:5px;line-height:150%;margin-bottom:10px;}
-.box-header{font-weight:bold;padding:5px;background:gainsboro;}
-.box-body{margin:5px;}
+.box{border:1px solid gainsboro;float:right;width:18%;margin-right:5px;line-height:150%;margin-bottom:10px;
+-webkit-border-radius: 3px;
+border-radius: 3px;clear:right;}
+
+.box-header{
+	font-weight:normal;
+	padding:5px;
+	font-size:14px;
+	background: #F1F1F1;
+	background-image: -webkit-gradient(linear,left bottom,left top,from(#ECECEC),to(#F9F9F9));
+	background-image: -webkit-linear-gradient(bottom,#ECECEC,#F9F9F9);
+	background-image: -moz-linear-gradient(bottom,#ECECEC,#F9F9F9);
+	background-image: -o-linear-gradient(bottom,#ECECEC,#F9F9F9);
+	background-image: linear-gradient(to top,#ECECEC,#F9F9F9);
+	border-bottom: 1px solid #DFDFDF;
+	text-shadow: white 0 1px 0;
+	-webkit-box-shadow: 0 1px 0 white;
+	box-shadow: 0 1px 0 white;
+	position:relative;
+	cursor:pointer;
+}
+
+.box-header .sh{
+	position:absolute;
+	right:3px;
+	top:5px;
+	background: url('images/blue-remove.png') no-repeat left top;
+	display:block;
+	width:16px;
+	height:16px;
+	cursor:pointer;
+}
+.iscollapsed .sh{background: url('images/blue-add.png') no-repeat left top;}
+
+.box-body{margin:5px;padding-bottom:10px;}
 .info-box{
   position: fixed;
   top: 20%;
@@ -280,6 +322,10 @@ td.active{background:gainsboro;}
 /*  margin-top: -2.5em;*/
 }
 .info-box .error{background:red;margin-left:200px;margin-right:200px;color:white;display:none;}
+.admin-notes-container .input-flex{width:85%;}
+.reviewer-notes-container .input-flex{width:85%;}
+.tags-container .input-flex{width:85%;}
+.survey-other-ids .input-flex{width:85%;}
 </style>
 <div class="body-container" style="padding:10px;">
 
@@ -483,43 +529,67 @@ td.active{background:gainsboro;}
 </div>
 
 <div class="box" >
-<div class="box-header" >Survey options</div>
-<ul class="bull-list">
-	<li><a href="<?php echo site_url();?>/admin/catalog/upload">Upload DDI</a></li>
-	<li><a href="<?php echo site_url();?>/admin/catalog/batch_import">Import DDI</a></li>
-	<li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>">Download DDI</a></li>
-	<li><a href="<?php echo site_url();?>/admin/catalog/copy_study">Copy studies from other catalogs</a></li>
-	<li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>">Transfer study ownership</a></li>
-	<li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>">Replace DDI</a></li>
-    <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>">Delete Study</a></li>
-	<li><a href="<?php echo site_url();?>/catalog/<?php echo $sid;?>">Browse Metadata</a></li>
-</ul>
+<div class="box-header">
+	<span>Survey options</span>
+    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+</div>
+<div class="box-body">
+    <ul class="bull-list">
+        <li><a href="<?php echo site_url();?>/admin/catalog/upload">Upload DDI</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/batch_import">Import DDI</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>">Download DDI</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/copy_study">Copy studies from other catalogs</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>">Transfer study ownership</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>">Replace DDI</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>">Delete Study</a></li>
+        <li><a href="<?php echo site_url();?>/catalog/<?php echo $sid;?>">Browse Metadata</a></li>
+    </ul>
+</div>
 </div>
 
 
 <div class="box">
-<div class="box-header">External Resources</div>
+<div class="box-header">
+	<span>External Resources</span>
+    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+</div>
+<div class="box-body">
 <ul class="bull-list">
-    <li><a href="<?php echo site_url();?>/admin/resources/add/new/<?php echo $sid;?>">Upload RDF</a></li>
+    <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>">Upload RDF</a></li>
     <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>">Export RDF</a></li>
 	<li><a href="<?php echo site_url();?>/admin/resources/fixlinks/<?php echo $sid;?>">Link resources</a></li>
 </ul>
 </div>
+</div>
 
 <div class="box">
 <div class="box-header">Admin Notes</div>
+<<<<<<< HEAD
 	<?php echo $admin_notes; ?>
+=======
+<div class="box-body">
+	<?php echo $admin_notes; ?>
+</div>    
+>>>>>>> origin
 </div>
 
 <div class="box">
 <div class="box-header">Reviewer Notes</div>
+<<<<<<< HEAD
 	<?php echo $reviewer_notes; ?>
+=======
+<div class="box-body">
+	<?php echo $reviewer_notes; ?>
+</div>    
+>>>>>>> origin
 </div>
 
 
 <div class="box">
 	<div class="box-header">Survey Collections</div>
+    <div class="box-body">
 	<div id="survey-collection-list"><?php echo $collections;?></div>
+    </div>
 </div>
 
 <div class="box">

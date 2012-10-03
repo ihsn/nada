@@ -699,6 +699,7 @@ class Repository_model extends CI_Model {
 		return $count;
 	}
 
+<<<<<<< HEAD
 	function get_repository_sections(){
 		$result= $this->db->get('repository_sections')->result_array();
 
@@ -710,6 +711,23 @@ class Repository_model extends CI_Model {
 		return $list; */
 		
 		return $result;
+=======
+	/**
+	*
+	* Returns an array of repository sections
+	**/
+	function get_repository_sections()
+	{
+		$result= $this->db->get('repository_sections')->result_array();
+
+		$list=array();
+		foreach($result as $row)
+		{
+			$list[$row['title']]=$row['title'];
+		}
+		
+		return $list;
+>>>>>>> origin
 	}
 
 }

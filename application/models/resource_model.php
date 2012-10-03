@@ -18,6 +18,18 @@ class Resource_model extends CI_Model {
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
+	
+	/**
+	*
+	* Return all resources attached to a survey
+	**/
+	function get_survey_resources($sid)
+	{
+		$this->db->select('*');
+		$this->db->where('survey_id',$sid);
+		$this->db->order_by('title','ASC');
+		return $this->db->get('resources')->result_array();
+	}
 		
 	/**
 	* searche database

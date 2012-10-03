@@ -1509,6 +1509,7 @@ class Catalog extends MY_Controller {
 	 **/
 	function edit($id=NULL)
 	{
+<<<<<<< HEAD
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
 		$this->template->add_js('javascript/jquery/ui/ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
@@ -1517,6 +1518,12 @@ class Catalog extends MY_Controller {
        	$this->load->model('Catalog_Tags_model');
        	$this->load->model('Catalog_Ids_model');
         $this->load->library('ion_auth');
+=======
+		$this->load->model('Catalog_Notes_model');
+       	$this->load->model('Catalog_Tags_model');
+       	$this->load->model('Catalog_Ids_model');
+        //$this->load->library('ion_auth');
+>>>>>>> origin
 		
 		if ( !is_numeric($id) )
 		{
@@ -1559,11 +1566,16 @@ class Catalog extends MY_Controller {
 		//formatted list of external resources
 		$survey_row['resources']=$this->catalog_admin->resources($id);
 		
+<<<<<<< HEAD
+=======
+		// get admin notes
+>>>>>>> origin
 		if ($id != NULL) {
 			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
 			$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
 			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
 			$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
+<<<<<<< HEAD
 			$tags['tags'] = $this->Catalog_Tags_model->tags_from_catelog_id($id);
 			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
 			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
@@ -1583,6 +1595,12 @@ class Catalog extends MY_Controller {
 			//$selected_citations=isset($survey_row['related_citations']) ? $survey_row['related_citations'] : array();
 			$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
 			$survey_row['selected_citations'] = $selected_citations;
+=======
+			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
+			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
+			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
+			$survey_row['ids']=$this->load->view('catalog/admin_ids', $ids, true);
+>>>>>>> origin
 		}
 		
 

@@ -265,14 +265,14 @@ $config['encryption_key'] = "CzYs1979";
 |
 */
 $config['sess_cookie_name']		= 'anda';
-$config['sess_expiration']		= 3600;//1 hour
+$config['sess_expiration']		= 14400;//4 hours
 $config['sess_expire_on_close']	= FALSE;
 $config['sess_encrypt_cookie']	= TRUE;
 $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'ci_sessions';
 $config['sess_match_ip']		= FALSE;
 $config['sess_match_useragent']	= TRUE;
-$config['sess_time_to_update']	= 300;
+$config['sess_time_to_update']	= 600;
 
 
 /*
@@ -466,7 +466,7 @@ $config['fb_catalog_image']='images/nada-logo.gif';
 | Enable or disable fulltext searching for Microsoft SQLSRV database
 */
 $config['sqlsrv_use_fulltext']=TRUE;
-
+$config['site_user_register']='yes';
 
 /*
 |--------------------------------------------------------------------------
@@ -480,6 +480,12 @@ $config['sqlsrv_use_fulltext']=TRUE;
 */
 $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
+$config['collection_search']='yes';
+
+
+$config['modules_locations'] = array(
+        APPPATH.'modules/' => '../modules/',
+    );
 
 
 

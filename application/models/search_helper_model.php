@@ -496,44 +496,37 @@ class Search_helper_model extends CI_Model {
 	
 	/**
 	* 
-	* Returns a list of collection terms
+	* Returns a list of collections
 	*/	
-	function get_collection_terms($repositoryid)
+	function get_collections($repositoryid)
 	{
 		//get collection vocabulary id
-		$coll_vocab=$this->config->item("collections_vocab");
+		//$coll_vocab=$this->config->item("collections_vocab");
 
-		if (is_numeric($coll_vocab) && $coll_vocab >0)
+		$this->db->select('sc.tid as tid, collections.title as title, count(collections.id) as found');
+		$this->db->join('survey_collections sc', 'sc.tid=collections.id','inner');
+		$this->db->join('surveys s', 's.id=sc.sid','inner');
+		$this->db->order_by('collections.title','ASC');
+		
+		//filter by repository
+		if (trim($repositoryid)!=='' && $repositoryid!='central')
 		{
-			$this->db->select('sc.tid as tid, terms.title as title, count(terms.tid) as found');
-			$this->db->join('survey_collections sc', 'sc.tid=terms.tid','inner');
-			$this->db->join('surveys s', 's.id=sc.sid','inner');
-			
-			if (trim($repositoryid)!=='' && $repositoryid!='central')
-			{
-				$this->db->join('survey_repos sr', 'sr.sid=sc.sid','inner');
-				$this->db->where('sr.repositoryid',$repositoryid);	
-			}
-			
-			$this->db->group_by('sc.tid, terms.title');
-			$this->db->where('vid',$coll_vocab);
-			$this->db->where('s.published',1);
-			$result=$this->db->get('terms')->result_array();
-			
-			$output=array();
-			foreach($result as $row)
-			{
-				$output[$row['tid']]=$row['title'] .' ('.$row['found'].')';
-			}
-			
-			return $output;
-		}
-		else
-		{
-			throw new Exception("COLLECTIONS_VOCAB not set");
+			$this->db->join('survey_repos sr', 'sr.sid=sc.sid','inner');
+			$this->db->where('sr.repositoryid',$repositoryid);	
 		}
 		
-		return FALSE;
+		$this->db->group_by('sc.tid, collections.title');
+		$this->db->where('s.published',1);
+		
+		$result=$this->db->get('collections')->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[$row['tid']]=$row['title'] .' ('.$row['found'].')';
+		}
+		
+		return $output;
 	}
 	
 }
