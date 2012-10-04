@@ -10,7 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='opendata';
+$template['theme_name']='wb_intranet';
 
 
 

@@ -564,12 +564,16 @@ border-radius: 3px;clear:right;}
 
 <div class="box">
 <div class="box-header">Admin Notes</div>
+    <div class="box-body">
 	<?php echo $admin_notes; ?>
+    </div>
 </div>
 
 <div class="box">
 <div class="box-header">Reviewer Notes</div>
+    <div class="box-body">
 	<?php echo $reviewer_notes; ?>
+    </div>
 </div>
 
 

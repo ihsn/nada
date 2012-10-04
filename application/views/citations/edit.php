@@ -269,6 +269,7 @@ table .input-flex{margin-bottom:5px;}
 						});
 					}
 				}).append('<iframe height="395" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+				return false;
 		});
 		
 		related_surveys_click();
