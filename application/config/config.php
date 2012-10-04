@@ -480,13 +480,6 @@ $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
 $config['collection_search']='yes';
 
-
-$config['modules_locations'] = array(
-        APPPATH.'modules/' => '../modules/',
-    );
-
-
-
 $config['modules_locations'] = array(
     APPPATH.'modules/' => '../modules/',
 );

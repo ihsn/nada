@@ -13,11 +13,8 @@ class Datadeposit extends MX_Controller {
 	public  $active_project        = false;
  
 	public function __construct($SKIP=FALSE, $is_admin=FALSE) {
-		
 		parent::__construct(true);
-
-    $this->load->library('session');
-
+    	$this->load->library('session');
 	
 		$this->load->model('Projects_model');
 		$this->lang->load('general');
