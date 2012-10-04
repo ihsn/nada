@@ -1,6 +1,6 @@
 <?php
 
-class Datadeposit extends MX_Controller {
+class Datadeposit extends MY_Controller {
 	
 	/**
 	  Hold each grid id, to prevent duplicate id's
