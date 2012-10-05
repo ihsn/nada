@@ -148,7 +148,7 @@ class Related_Surveys extends MY_Controller {
 		
 		if ($isajax==0)
 		{
-			redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
 		}	
 	}
 	
@@ -190,7 +190,7 @@ class Related_Surveys extends MY_Controller {
 		
 		if($isajax==0)
 		{
-			redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
 		}
 	}
 	

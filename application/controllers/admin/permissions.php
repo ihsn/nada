@@ -24,32 +24,54 @@ class Permissions extends MY_Controller {
 	  
 	 */
 	public function has_permission() {
-		$group_name = $this->input->get('group_name');
+		$group = $this->input->get('group');
 		$id         = (int) $this->input->get('id');
-		echo (int) $this->Permissions_model->group_has_permission($group_name, $id);
+		echo (int) $this->Permissions_model->group_has_permission($group, $id);
 	}
 	public function add_permission() {
-		$group_name = $this->input->get('group_name');
-		$id         = (int) $this->input->get('id');
-		if (!$this->Permissions_model->group_has_permission($group_name, $id)) {
-			$this->Permissions_model->group_add_permission($id);
+		$group = $this->input->get('group');
+		$id    = (int) $this->input->get('id');
+		if (!$this->Permissions_model->group_has_permission($group, $id)) {
+			$this->Permissions_model->group_add_permission($group, $id);
 		}
 	}
 	public function remove_permission() {
-		$group_name = $this->input->get('group_name');
-		$id         = (int) $this->input->get('id');
-		$this->Permissions_model->group_delete_permission($id);
+		$group = $this->input->get('group');
+		$id    = (int) $this->input->get('id');
+		$this->Permissions_model->group_delete_permission($group, $id);
 		}
 	/**
 	  EOF
 	 */
 	 
-	public function index() {
-		$data                = array(); // doinitrite.
-		$data['group_names'] = $this->Permissions_model->get_ordered_groups();
+	 public function test() {
+		 if ($this->input->post('test')) {
+			$group = (int) $this->input->post('group');
+			$url   = $this->input->post('url');
+			
+			 if ($this->Permissions_model->group_has_url_access($group, $url)) {
+	 			echo 'yes';
+			 } else {
+			    echo 'no';
+			 }
+		}
+		$content=$this->load->view('permissions/test', null ,true);
+	
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('permissions'),true);
+	  	$this->template->render();	
+	}
+	
+	public function index($usergroup_id) {
+		if (!isset($usergroup_id)) {
+			show_error('no group id');
+		}
+		$data                = array();
 		$data['permissions'] = $this->Permissions_model->get_ordered_permissions();
-		$data['enabled']     = $this->Permissions_model->get_enabled_permissions();
-		
+		$group               = $this->User_Groups_model->select_single($usergroup_id);
+		$data['group']       = ucfirst($group['name']);
+		$data['enabled']     = $this->Permissions_model->get_group_permissions($usergroup_id);
+
 		$content=$this->load->view('permissions/index', $data,true);
 	
 		$this->template->write('content', $content,true);

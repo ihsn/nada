@@ -113,5 +113,7 @@ $route['access_direct/(:num)/download/(:any)'] = "access_direct/download/$1/$2";
 $route['access_enclave/(:num)'] = "access_enclave/index/$1";
 $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2";
 
+$route['admin/permissions/(:num)'] = "admin/permissions/index/$1";
+
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */

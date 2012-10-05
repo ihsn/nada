@@ -87,8 +87,6 @@ class Related_Citations extends MY_Controller {
 		//records
 		$data['rows']=$this->Citation_model->search($per_page, $curr_page ,$filter, $this->sort_by, $this->sort_order);
 
-		$this->session->set_userdata('oldurl', $this->input->get('per_page'));
-
 		//total records in the db
 		$total = $this->Citation_model->search_count();
 
@@ -160,7 +158,7 @@ class Related_Citations extends MY_Controller {
 		$this->Citation_model->attach_related_surveys($cid, array($skey));	
 		if ($isajax==0)
 		{
-			redirect('/admin/related_citations/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+			//redirect('/admin/related_citations/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
 		}	
 	}
 	

@@ -33,6 +33,7 @@ class MY_Controller extends CI_Controller
 		//switch language
 		$this->_switch_language();
 		$this->lang->load("general");
+		$this->load->model('Permissions_model');
 			
 		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl'));	
 		$this->is_admin=$is_admin;
@@ -43,21 +44,44 @@ class MY_Controller extends CI_Controller
 		   $this->apply_ip_restrictions();
 		}
 	  
+	  
 		//skip authentication
 		if ($skip!==TRUE)
 		{
 			//perform authentication
 			$this->_auth();
-			$this->_has_access();
+			
+			
+			$user=$this->ion_auth->current_user();
+		
+			if (!$user)
+			{
+				return FALSE;
+			}
+			
+			if (!$this->Permissions_model->group_has_url_access($user->group_id, $this->uri->uri_string())) {
+				show_error(t('access_denied') . $this->uri->uri_string());
+			}
+			//$this->_has_access();
 		}
 
 		//echo $this->uri->uri_string();
 	}
 
+
+	/**
+	*
+	* Check user has access to the current page
+	**/	
+
+	
 	/**
 	*
 	* Check user has access to the current page
 	**/
+	/*
+	//TODO: Remove later
+	
 	function _has_access()
 	{	
 		$excluded_urls=array('auth','catalog');
@@ -84,11 +108,9 @@ class MY_Controller extends CI_Controller
 		}
 
 		//check study level permissions
-		$this->acl->check_study_permissions();
-		
-		
+		$this->acl->check_study_permissions();				
 	}
-
+	*/
 	
 
 

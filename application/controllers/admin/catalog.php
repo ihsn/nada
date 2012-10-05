@@ -1574,7 +1574,7 @@ class Catalog extends MY_Controller {
 			$survey_id_arr=$id;
 		
 			//get survey info from db
-			$selected_citations=$this->Citation_model->get_citations_by_survey($id);
+			$selected_citations= $this->Citation_model->get_citations_by_survey($id) ? $this->Citation_model->get_citations_by_survey($id) :array();
 //		}
 //		else
 			//see if the edited citation has citations attached, otherwise assign empty array

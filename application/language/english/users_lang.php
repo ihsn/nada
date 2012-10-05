@@ -57,6 +57,8 @@ $lang['new_password'] = "New password";
 $lang['confirm_new_password'] = "Confirm new password";
 $lang['change'] = "Change";
 
+$lang['user_groups'] = 'User Groups';
+
 //comes from db
 $lang['ADMIN'] = "ADMIN";
 $lang['USER'] = "USER";

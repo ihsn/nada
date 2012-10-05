@@ -81,6 +81,7 @@
             <th><?php echo create_sort_link($sort_by,$sort_order,'group_type',t('group_type'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'repo_access',t('repo_access'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
+            <th style="width:60px">&nbsp;</th>
         </tr>
 	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
@@ -96,6 +97,7 @@
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
                 <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a>
             </td>
+            <td  style="width:100px"><a href="<?php echo site_url('admin/permissions'), '/', $row->id ?>"><?php echo t('permissions'); ?></a>
         </tr>
     <?php endforeach;?>
     </table>

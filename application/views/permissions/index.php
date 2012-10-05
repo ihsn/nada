@@ -23,9 +23,9 @@ $(function() {
 	// turn on/off permission
 	$('.chk').click(function() {
 		if (!$(this).attr('checked')) {
-			$.get("<?php echo site_url('admin/permissions/remove_permission'), '?group_name=' ?>"+$(this).attr('name')+"&id="+$(this).val());	
+			$.get("<?php echo site_url('admin/permissions/remove_permission'), '?group=', $this->uri->segment(3); ?>"+"&id="+$(this).val());	
 		} else {
-			$.get("<?php echo site_url('admin/permissions/add_permission'), '?group_name=' ?>"+$(this).attr('name')+"&id="+$(this).val(), function(data) {
+			$.get("<?php echo site_url('admin/permissions/add_permission'), '?group=', $this->uri->segment(3); ?>"+"&id="+$(this).val(), function(data) {
 				if (data) {
 					$(this).attr('checked', 'checked');
 				}
@@ -41,14 +41,14 @@ $(function() {
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th style="font-size:10pt;width:90%"><?php echo t('permission'); ?></th>
-        	<th style="font-size:10pt;text-align:center"><?php echo t('administrator'); ?></th>
+        	<th style="font-size:10pt;text-align:center"><?php echo $group ?></th>
         </tr>
 	<?php $tr_class=""; ?>
     	<?php $current = ''; ?>
-		<?php foreach($permissions as $row): if ($row->label == null) continue; $current = ($current == $row->group_name) ? '' : $row->group_name; ?>
-    	<?php if ($current == $row->group_name): ?>
+		<?php foreach($permissions as $row): if ($row->label == null) continue; $current = ($current == $row->section) ? '' : $row->section; ?>
+    	<?php if ($current == $row->section): ?>
         	<tr>
-    			<td><label style="padding:5px 0;font-size:12pt;font-weight:bold"><?php echo t($row->group_name); ?></label></td>
+    			<td><label style="padding:5px 0;font-size:12pt;font-weight:bold"><?php echo t($row->section); ?></label></td>
         		<td>&nbsp;</td>
     		</tr>
        <?php endif; ?>
@@ -57,9 +57,9 @@ $(function() {
         	<td style="width:90%"><p style="margin-bottom:5px"><?php echo $row->label; ?></p>
              <span style="font-style:italic;color:#666;margin-left:10px"><?php echo $row->description; ?></span>
             </td>
-           	<td style="text-align:center"><input style="padding:100px" name="<?php echo $row->group_name; ?>" type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
+           	<td style="text-align:center"><input style="padding:100px" name="<?php echo $row->section; ?>" type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
 	    </tr>
-        <?php $current = $row->group_name; ?>
+        <?php $current = $row->section; ?>
    <?php endforeach; ?>
     </table>
 <br />
