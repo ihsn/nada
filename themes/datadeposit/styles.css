@@ -54,7 +54,7 @@ color: white;display:block;
 	color: #fff !important;
 	text-align:right;
 	height:50px;
-	background: url(http://localhost/nada4/themes/wb_intranet/css/header_sprite_0802.png) 0px -460px;
+	background: url(header_sprite_0802.png) 0px -460px;
 }
 
 .tab-content-body {

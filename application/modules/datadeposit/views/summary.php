@@ -409,7 +409,7 @@ fieldset{border:0px}
     <legend><?php echo t('citations');?></legend> 
 	<div class="field">
     <table>
-    <tr><td><?php echo $row[0]->citations; ?></td></tr>
+    <tr><td><?php echo nl2br($row[0]->citations); ?></td></tr>
     </table>
     </div>
 

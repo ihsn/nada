@@ -1,6 +1,5 @@
 
 <script type="text/javascript">
-/*
 $(function(){
 (function($) {
     $.fn.checkChanges = function(message, grid) {
@@ -16,10 +15,12 @@ $(function(){
         });
     };
 })(jQuery);
-
+$('div.button').click(function() {
+	$('.changedInput').removeClass('changedInput');
+});
 $('textarea')
 	.checkChanges('Your data will be unsaved.', false);
-});*/
+});
 </script>
 	<h2><?php echo t('title_citations'); ?></h2>
     <div class="instructions-box"><?php echo t('instructions_citations'); ?></div>

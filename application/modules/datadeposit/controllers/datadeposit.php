@@ -122,14 +122,14 @@ class Datadeposit extends MY_Controller {
 				$data['record'] = $this->Study_model->get_study_array($id);
 				$this->ddi_study_export->load_template(dirname(__FILE__) . '/../xslt/ddi_study_template.xml');
 				$data['data']   = $this->ddi_study_export->to_ddi($data['record']);
-				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->title}_{$data['project'][0]->id}_ddi.xml"));
+				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->id}_".date('d_m_y')."_ddi.xml"));
 				$this->_write_history_entry("Study {$data['project'][0]->title} Exported as DDI", $data['project'][0]->id, $data['project'][0]->status);
 				force_download($title, $data['data']);
 	
 			} else if ($this->input->get('format') == 'rdf') {
 				$data['files']  = $this->dd_Resource_model->get_project_resources($id);
 				$data['data']   = $this->_resources_to_RDF($data['files']);
-				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->title}_{$data['project'][0]->id}_rdf.xml"));
+				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->id}_".date('d_m_y')."_rdf.xml"));
 				$this->_write_history_entry("Study {$data['project'][0]->title} Exported as RDF", $data['project'][0]->id, $data['project'][0]->status);
 				force_download($title, $data['data']);
 			}

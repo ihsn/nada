@@ -1,3 +1,27 @@
+<script type="text/javascript">
+(function($) {
+    $.fn.checkChanges = function(message, grid) {
+        var _self  = this;
+		var events = (grid) ? 'click' : 'keyup change keydown'; 
+        $(_self).bind(events, function(e) {
+            $(this).addClass('changedInput');
+        });
+        	$(window).bind('beforeunload ', function() {
+         		if ($('.changedInput').length) {
+                	return message;
+            	}
+        	});
+    };
+})(jQuery);
+$(function() {
+$('div.button').click(function() {
+	$('.changedInput').removeClass('changedInput');
+});
+		
+$('input, textarea, select, option').checkChanges('Your data will be unsaved.', false);
+$('.button-add').checkChanges('Your data will be unsaved.', true);
+});
+</script>
 <style text="test/css">
 label img {
 	margin-left: 6px; 
