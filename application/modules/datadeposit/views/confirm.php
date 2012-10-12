@@ -6,7 +6,7 @@
 		echo form_hidden('confirm', t('submit'));
 	?>
 		   <div class="button">
-        <span>Save</span>
+        <span>Submit</span>
     </div>  
     <?php 
 		echo form_close();
