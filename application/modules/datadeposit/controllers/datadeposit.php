@@ -43,10 +43,10 @@ class Datadeposit extends MY_Controller {
 	public function update($id) {
 		$this->load->helper('url');
     	$this->template->set_template('datadeposit');	
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 			$this->template->add_css('themes/opendata/datadeposit.css');
 
-		// Get record as per ID	
+		// Get record via ID	
 		$record['project'] = $this->Projects_model->project_id($id); 
 		// This will redirect user to My Project page main page if they don't have access to project they are trying to access
 			if (!isset($record['project'][0]->id) || $record['project'][0]->uid !== $this->session->userdata('user_id')) {
@@ -74,7 +74,7 @@ class Datadeposit extends MY_Controller {
 				//Data has been updated successfully
 				$this->_write_history_entry("Project updated", $record['project'][0]->id, $record['project'][0]->status);
 				$this->session->set_flashdata('message', t('submitted'));
-				redirect('datadeposit/projects');
+				redirect('datadeposit/study/'.$id);
 			}
 		}
 		
@@ -84,8 +84,8 @@ class Datadeposit extends MY_Controller {
 
 		$title                    = $project[0]->title;
 		$record['title']          = isset($title)?$title:t('Project Title');
-		$record['option_types']   = $this->Resource_model->get_dc_types();
-		$record['option_formats'] = $this->Resource_model->get_dc_formats();
+		$record['option_types']   = $this->dd_Resource_model->get_dc_types();
+		$record['option_formats'] = $this->dd_Resource_model->get_dc_formats();
 		$record['projects'] = $this->Projects_model->projects($this->session->userdata('user_id'), 'title', 'asc');
 
 		$content = $this->load->view('datadeposit/edit', $record , true);
@@ -110,11 +110,10 @@ class Datadeposit extends MY_Controller {
 	public function export($id) {
 		$this->load->library('DDI_Study_Export');
 		$this->load->model('Study_model');
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->load->helper('download');
 		$data['project'] = $this->Projects_model->project_id($id); 
 		if ($this->session->userdata('group_id') != 1) {
-			var_dump($this->session->userdata('group_id')); exit;
 			redirect('datadeposit/projects');
 		}
 		if ($this->input->get('format')) {
@@ -128,7 +127,7 @@ class Datadeposit extends MY_Controller {
 				force_download($title, $data['data']);
 	
 			} else if ($this->input->get('format') == 'rdf') {
-				$data['files']  = $this->Resource_model->get_project_resources($id);
+				$data['files']  = $this->dd_Resource_model->get_project_resources($id);
 				$data['data']   = $this->_resources_to_RDF($data['files']);
 				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->title}_{$data['project'][0]->id}_rdf.xml"));
 				$this->_write_history_entry("Study {$data['project'][0]->title} Exported as RDF", $data['project'][0]->id, $data['project'][0]->status);
@@ -139,16 +138,16 @@ class Datadeposit extends MY_Controller {
 		}
 	}
 
-	public function process_batch_uploads()
+	public function process_batch_uploads($id)
 	{
 		$this->load->model("managefiles_model");
-		$this->load->model("resource_model");
+		$this->load->model("dd_Resource_model");
 		$this->load->model("form_model");
 		$this->load->model("catalog_model");
 		
 		$this->lang->load("general");
 		$this->lang->load("resource_manager");
-		$id=(int) end(explode('/', current_url()));
+		//$id=(int) end(explode('/', current_url()));
 		$overwrite=$this->input->post("overwrite");
 		
 		if ($overwrite!=1)
@@ -156,9 +155,11 @@ class Datadeposit extends MY_Controller {
 			$overwrite=0;
 		}
 		
+
+
 		// HTTP headers for no cache etc
 		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-		header(": " . gmdate("D, d M Y H:i:s") . " GMT");
+		//header(": " . gmdate("D, d M Y H:i:s") . " GMT");
 		header("Cache-Control: no-store, no-cache, must-revalidate");
 		header("Cache-Control: pLast-Modifiedost-check=0, pre-check=0", false);
 		header("Pragma: no-cache");
@@ -169,7 +170,6 @@ class Datadeposit extends MY_Controller {
 		
 		$targetDir = dirname(__FILE__) . '/../datafiles/datadeposit/' . $location;
 		
-
 		//$cleanupTargetDir = false; // Remove old files
 		//$maxFileAge = 60 * 60; // Temp file age in seconds
 		
@@ -223,7 +223,7 @@ class Datadeposit extends MY_Controller {
 			'author'     => $project[0]->created_by
 		);
 		
-			$this->resource_model->insert_project_resource($project_resource);
+			$this->dd_Resource_model->insert_project_resource($project_resource);
 			$this->_write_history_entry("File {$fileName} uploaded", $project[0]->id, $project[0]->status);
 		// Handle non multipart uploads older WebKit versions didn't support multipart in HTML5
 		if (strpos($contentType, "multipart") !== false) {
@@ -271,41 +271,62 @@ class Datadeposit extends MY_Controller {
 	
 	
 	public function upload($id) {
-		$this->load->model('Resource_model');
+    	$this->template->set_template('datadeposit');	
+
+		$this->load->model('dd_Resource_model');
 					$this->template->add_css('themes/opendata/datadeposit.css');
 
 		$this->template->add_css("javascript/plupload/jquery.plupload.queue/css/jquery.plupload.queue.css");
 		$this->template->add_js("javascript/plupload/plupload.full.js");
 		$this->template->add_js("javascript/plupload/jquery.plupload.queue/jquery.plupload.queue.js");
 		
-		$data['option_formats'] = $this->Resource_model->get_dc_types();
+		$data['option_formats'] = $this->dd_Resource_model->get_dc_types();
 		$data['id']             = $id;
 		$content = $this->load->view('datadeposit/upload', $data, true);
-		$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
+	//	$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
 				
-		$this->template->write('content', $tabs, true);
+		$this->template->write('content', $content, true);
 		
 		$this->template->render();
 	}
 	
+	public function batch_delete_resource($fid) {
+		$this->load->model('dd_Resource_model');
+		$this->lang->load("resource_manager");
+		$this->load->model('managefiles_model');
+		$fids = explode(',', $fid);
+		foreach($fids as $fid) {
+			$data['file'] = $this->dd_Resource_model->get_project_resource($fid);
+			$project = $this->Projects_model->project_id($data['file'][0]->project_id);
+			if (!isset($project[0]->id) || $project[0]->uid !== $this->session->userdata('user_id')) {
+				redirect('datadeposit/projects');
+			}
+			$this->dd_Resource_model->delete_project_resource($fid);
+			$dir = str_replace('\\', '/', dirname(__FILE__));
+			$this->_write_history_entry("file {$data['file'][0]->filename} deleted", $project[0]->id, $project[0]->status);
+			@unlink($dir . "/../datafiles/datadeposit/" . md5($project[0]->id . $project[0]->created_on) . "/{$data['file'][0]->filename}");
+		}
+	}
+
 	public function delete_resource($fid) {
+    	$this->template->set_template('datadeposit');	
 		$this->load->helper('form');
 					$this->template->add_css('themes/opendata/datadeposit.css');
 
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->lang->load("resource_manager");
 		$this->load->model('managefiles_model');
 				
-		$data['file'] = $this->Resource_model->get_project_resource($fid);
+		$data['file'] = $this->dd_Resource_model->get_project_resource($fid);
 		
 		// check that the user has access
 		$project = $this->Projects_model->project_id($data['file'][0]->project_id);
 		if (!isset($project[0]->id) || $project[0]->uid !== $this->session->userdata('user_id')) {
 			redirect('datadeposit/projects');
 		}
-		if ($this->input->post('submit')) {
+		if ($this->input->post('delete')) {
 			if ($this->input->post('answer') == 'Yes') {
-			$this->Resource_model->delete_project_resource($fid);
+			$this->dd_Resource_model->delete_project_resource($fid);
 			$dir = str_replace('\\', '/', dirname(__FILE__));
 			$this->_write_history_entry("file {$data['file'][0]->filename} deleted", $project[0]->id, $project[0]->status);
 			@unlink($dir . "/../datafiles/datadeposit/" . md5($project[0]->id . $project[0]->created_on) . "/{$data['file'][0]->filename}");
@@ -315,17 +336,17 @@ class Datadeposit extends MY_Controller {
 			}
 		}
 		$content    = $this->load->view('datadeposit/delete_resource', $data, true);
-		$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
+	//	$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
 
 		$this->template->write('title', 'Confirm delete', true);
-		$this->template->write('content', $tabs, true);
+		$this->template->write('content', $content, true);
 		
 		$this->template->render();
 	}
 	
 	public function summary($id) {
     	$this->template->set_template('datadeposit');	
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->load->model('Study_model');
 		$this->config->load('datadeposit');
 
@@ -336,7 +357,7 @@ class Datadeposit extends MY_Controller {
 			redirect('datadeposit/projects');
 		}
 		$data['row'] = $this->Study_model->get_study($data['project'][0]->id);
-		$data['files']          = $this->Resource_model->get_project_resources_to_array($id);
+		$data['files']          = $this->dd_Resource_model->get_project_resources_to_array($id);
 
 		$grids                         = array();
 		$grids['methods']              = array(
@@ -477,6 +498,7 @@ class Datadeposit extends MY_Controller {
 	}
 	
 	public function submit($id) {
+		$this->load->model('dd_Resource_model');
     	$this->template->set_template('datadeposit');	
 					$this->template->add_css('themes/opendata/datadeposit.css');
 
@@ -497,18 +519,26 @@ class Datadeposit extends MY_Controller {
 			);
 			if ($this->input->post('submit_project') == 'Save and submit') {
 				$update['status'] = 'submitted';
+			$this->session->set_flashdata('message', t('project_submitted'));
+			}
+			else {
+				$this->session->set_flashdata('message', t('project_saved'));
 			}
 			$this->Projects_model->update($id, $update);
-			$this->session->set_flashdata('message', t('submitted'));
 			if ($this->input->post('submit_project') == 'Save and submit') {
 				$this->_write_history_entry("Project submitted", $data['project'][0]->id, 'submitted');
-				$cc    = $this->input->post('cc') ? $this->input->post('cc') : false;
-				$email = $this->_email($id);
+				$cc    = $this->input->post('cc');
+				if ($cc) {
+					$email = $this->_email($id, $cc);
+				} else {
+					$email = $this->_email($id);
+				}
 				redirect('datadeposit/projects');
 			} else {
 				redirect('datadeposit/submit/'.$data['project'][0]->id);
 			}
 		}
+		$data['files']    = $this->dd_Resource_model->get_project_resources_to_array($id);
 		$data['projects'] = $this->Projects_model->projects($this->session->userdata('user_id'), 'title', 'asc');
 		$content     = $this->load->view('datadeposit/submit', $data, true);
 		$tabs        = $this->load->view('datadeposit/tabs2', array('content' => $content), true);
@@ -522,11 +552,11 @@ class Datadeposit extends MY_Controller {
 	public function download($fid) {
 		
 		$this->load->helper('download');
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->lang->load("resource_manager");
 		$this->load->model('managefiles_model');
 				
-		$data['file'] = $this->Resource_model->get_project_resource($fid);
+		$data['file'] = $this->dd_Resource_model->get_project_resource($fid);
 		
 		// check that the user has access
 		$project = $this->Projects_model->project_id($data['file'][0]->project_id);
@@ -542,12 +572,13 @@ class Datadeposit extends MY_Controller {
 	}
 	
 	public function managefiles($fid) {
-		$this->load->model('Resource_model');
+    	$this->template->set_template('datadeposit');	
+		$this->load->model('dd_Resource_model');
 		$this->lang->load("resource_manager");
 		$this->load->model('managefiles_model');
 							$this->template->add_css('themes/opendata/datadeposit.css');
 
-		$data['file'] = $this->Resource_model->get_project_resource($fid);
+		$data['file'] = $this->dd_Resource_model->get_project_resource($fid);
 		
 		// check that the user has access
 		$project = $this->Projects_model->project_id($data['file'][0]->project_id);
@@ -555,19 +586,19 @@ class Datadeposit extends MY_Controller {
 			redirect('datadeposit/projects');
 		}
 		$data['id']   = $project[0]->id;
-		if ($this->input->post('submit')) {
+		if ($this->input->post('update')) {
 			$record = array(
 				'title'       => ($this->input->post('title')) ? $this->input->post('title') : $data['file'][0]->title,
 				'description' => ($this->input->post('description')) ? $this->input->post('description') : $data['file'][0]->description,
 				'author'      => ($this->input->post('author')) ? $this->input->post('author') : $data['file'][0]->author,
 				'dctype'      => ($this->input->post('dctype')) ? $this->input->post('dctype') : $data['file'][0]->dctype,
 			);
-			$this->Resource_model->update_project_resource($fid, $record);
+			$this->dd_Resource_model->update_project_resource($fid, $record);
 			redirect("datadeposit/datafiles/{$data['file'][0]->project_id}");
 		}
 		$content = $this->load->view('datadeposit/managefiles', $data, true);	
-		$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
-		$this->template->write('content', $tabs, true);
+		//$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
+		$this->template->write('content', $content, true);
 		$this->template->write('title', 'Manage files', true);
 
 		$this->template->render();
@@ -575,6 +606,7 @@ class Datadeposit extends MY_Controller {
 	}
 	
 	public function request_reopen($id) {
+    	$this->template->set_template('datadeposit');	
 		$this->load->library('email');
 					$this->template->add_css('themes/opendata/datadeposit.css');
 
@@ -593,10 +625,10 @@ class Datadeposit extends MY_Controller {
 		}
 		$data['id'] = $id;
 		$content    = $this->load->view('datadeposit/request_reopen', $data, true);
-		$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
+		//$tabs    = $this->load->view('datadeposit/tabs', array('content' => $content), true);
 		$this->template->write('title', 'Request Reopen', true);
 
-		$this->template->write('content', $tabs, true);		
+		$this->template->write('content', $content, true);		
 		
 		$this->template->render();
 	}
@@ -608,7 +640,7 @@ class Datadeposit extends MY_Controller {
 
 					$this->template->add_css('themes/opendata/datadeposit.css');
 
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->load->model('managefiles_model');
 		$this->lang->load("resource_manager");
 		$this->template->add_css("javascript/plupload/jquery.plupload.queue/css/jquery.plupload.queue.css");
@@ -616,7 +648,7 @@ class Datadeposit extends MY_Controller {
 		$this->template->add_js("javascript/plupload/jquery.plupload.queue/jquery.plupload.queue.js");
 		
 		$project                = $this->Projects_model->project_id($id);
-		$data['option_formats'] = $this->Resource_model->get_dc_types();
+		$data['option_formats'] = $this->dd_Resource_model->get_dc_types();
 		$dir                    = dirname(__FILE__) . '/../datafiles/datadeposit/';
 		$dir                   .= md5($project[0]->id . $project[0]->created_on);
 		$data['records']        = $this->managefiles_model->get_files_non_recursive($dir, '');
@@ -633,7 +665,7 @@ class Datadeposit extends MY_Controller {
 			unset($data['records'][$key]);
 		}
 		$data['projects'] = $this->Projects_model->projects($this->session->userdata('user_id'), 'title', 'asc;');
-		$data['files']          = $this->Resource_model->get_project_resources_to_array($id);
+		$data['files']          = $this->dd_Resource_model->get_project_resources_to_array($id);
 		$content = $this->load->view('datadeposit/datafiles', $data, true);
 		$tabs    = $this->load->view('datadeposit/tabs2', array('content' => $content), true);
 		$this->template->write('title', 'Datafiles', true);
@@ -692,15 +724,15 @@ class Datadeposit extends MY_Controller {
 		$this->load->helper('form');
 		$this->config->load('datadeposit');
 		$this->load->model('Study_model');
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->lang->load('help');
 		$message            = '';
 		$data['fields']     = $this->config->item('datadeposit');
 		$data['project']    = $this->Projects_model->project_id($id);
-		$data['studytype']  = $this->Resource_model->get_study_types();
-		$data['kindofdata'] = $this->Resource_model->get_kind_of_data();
+		$data['studytype']  = $this->dd_Resource_model->get_study_types();
+		$data['kindofdata'] = $this->dd_Resource_model->get_kind_of_data();
 		$data['projects']   = $this->Projects_model->projects($this->session->userdata('user_id'));
-		$data['methods']    = $this->Resource_model->get_overview_methods();
+		$data['methods']    = $this->dd_Resource_model->get_overview_methods();
 		$data['row']        = $this->Study_model->get_study($data['project'][0]->id);
 		$data['merged']         = $this->config->item('datadeposit');
 
@@ -844,7 +876,7 @@ class Datadeposit extends MY_Controller {
 		//$this->form_validation->set_rules('ident_id', 'ID', 'numeric');
 
 		$study = array();
-		if($this->input->post('study')) {
+		if($this->input->post('study') || $_SERVER['REQUEST_METHOD'] == 'POST') {
 			// In this version of Codeigniter, we cannot return the entire post array (Input.php)
 			
 			// So we will conventionally load them ourselves and clean/validate each value
@@ -858,7 +890,7 @@ class Datadeposit extends MY_Controller {
 			unset($study['ident_title']);
 			$study['ident_title'] = $data['project'][0]->title; 
 			unset($study['study']); // <-- submit button
-			$study['id']         = $data['project'][0]->id;
+			$study['id']          = $data['project'][0]->id;
 			
 			// date field
 			if (isset($study['ver_prod_date_year'])) {
@@ -895,8 +927,8 @@ class Datadeposit extends MY_Controller {
 			$study['access_authority']        = $this->_grid_data_encode($this->input->post('access_authority'));
 			$study['contacts_contacts']       = $this->_grid_data_encode($this->input->post('contacts'));
 			$study['scope_keywords']          = $this->_grid_data_encode($this->input->post('scope_keywords'));
-			$study['impact_wb_lead']       = $this->_grid_data_encode($this->input->post('impact_wb_lead'));
-			$study['impact_wb_members']          = $this->_grid_data_encode($this->input->post('impact_wb_members'));
+			$study['impact_wb_lead']          = $this->_grid_data_encode($this->input->post('impact_wb_lead'));
+			$study['impact_wb_members']       = $this->_grid_data_encode($this->input->post('impact_wb_members'));
 			
 			$recommended = current($data['fields']);
 			$filled      = true;
@@ -1030,14 +1062,15 @@ class Datadeposit extends MY_Controller {
 	}
 
 	public function create() {
+		$this->load->model('Study_model');
     	$this->template->set_template('datadeposit');	
 			$this->template->add_css('themes/opendata/datadeposit.css');
 		$this->load->library( array('form_validation','pagination') );
 
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 
-		$record['option_types']   = $this->Resource_model->get_dc_types();
-		$record['option_formats'] = $this->Resource_model->get_dc_formats();
+		$record['option_types']   = $this->dd_Resource_model->get_dc_types();
+		$record['option_formats'] = $this->dd_Resource_model->get_dc_formats();
 
 		$this->form_validation->set_rules('title','Title','required');
 
@@ -1060,6 +1093,12 @@ class Datadeposit extends MY_Controller {
 				$pid = $this->Projects_model->insert($data);
 				// Data has been added successfully
 				$project = $this->Projects_model->projects($this->session->userdata('user_id'), 'id', 'desc', 1);
+				// insert blank study here.
+				$study = array(
+					'id'          => $project[0]->id,
+					'ident_title' => $this->input->post('title')
+				);
+				$d = $this->Study_model->insert_study($study);
 				$this->session->set_flashdata('message', t('submitted'));
 				$this->_write_history_entry("Project created", $project[0]->id, $project[0]->status);
 				redirect("datadeposit/update/{$project[0]->id}");
@@ -1082,6 +1121,7 @@ class Datadeposit extends MY_Controller {
 	}
 
 	public function confirm($id) {
+	    	$this->template->set_template('datadeposit');	
 			$this->template->add_css('themes/opendata/datadeposit.css');
 
 		$this->load->helper('form');
@@ -1091,7 +1131,7 @@ class Datadeposit extends MY_Controller {
 				redirect('datadeposit/projects');
 			}
 		}
-		if ($this->input->post('submit')) {
+		if ($this->input->post('confirm')) {
 			if ($this->input->post('answer') == 'Yes') {
 				$this->Projects_model->delete($id);
 				$this->_write_history_entry("Project deleted", $project[0]->id, $project[0]->status);
@@ -1102,9 +1142,9 @@ class Datadeposit extends MY_Controller {
 		}
 		$data['id'] = $id;
 		$content    = $this->load->view('datadeposit/confirm', $data, true);
-		$tabs    = $this->load->view('datadeposit/tabs', array('content'=>$content),true);
+	//	$tabs    = $this->load->view('datadeposit/tabs', array('content'=>$content),true);
 		$this->template->write('title', 'Confirm delete', true);
-		$this->template->write('content', $tabs, true);
+		$this->template->write('content', $content, true);
 		
 		$this->template->render();
 	}
@@ -1129,7 +1169,7 @@ class Datadeposit extends MY_Controller {
 
 	private function _email($id, $cc=false)
 	{			
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$this->load->model('Study_model');
 		$this->load->helper('admin_notifications');
 		//get user info
@@ -1137,7 +1177,7 @@ class Datadeposit extends MY_Controller {
 		//get request data
 		$data['project'] = $this->Projects_model->project_id($id);
 		$data['row']     = $this->Study_model->get_study($data['project'][0]->id);
-		$data['files']   = $this->Resource_model->get_project_resources_to_array($id);
+		$data['files']   = $this->dd_Resource_model->get_project_resources_to_array($id);
 
 		$grids                         = array();
 		$grids['methods']              = array(

@@ -91,8 +91,7 @@ class Permissions_model extends CI_Model {
 			// Does the RegEx match?
 			if (preg_match('#^'.$key.'$#', $url))
 			{
-				// TODO: FIX
-				return $this->group_has_permission($group_id, $result[0]->permission_id);
+				return $this->group_has_permission($group_id, $permissions->permission_id);
 			}
 		}
 		return false;

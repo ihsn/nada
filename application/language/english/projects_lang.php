@@ -109,7 +109,7 @@ $lang['msg_project_submitted'] = "A new project has been submitted by %s, visit:
 $lang['project_request_reopen'] = 'Request Project Reopen';
 $lang['intro_projects_exist'] = 'insert_message_that_projects_exist';
 $lang['intro_no_projects'] = 'insert_message_that_there_are_no_projects';
-
+$lang['study_updated'] = 'Your study description was updated successfully!';
 //Admin
 
 // Tabs

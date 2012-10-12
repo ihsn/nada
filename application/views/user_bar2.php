@@ -25,6 +25,9 @@ if ($languages!==FALSE)
 ?>
 <script type="text/javascript">
 $(function() {
+	$('div.button').click(function() {
+		$(this).parents('form').submit();
+	});
 	colors=[<?php foreach($links as $link) { echo '\'', $link, '\'', ','; }?>];
 	$.each(colors, function(index, value) {
 		uri="<?php echo $uri; ?>";
@@ -42,6 +45,10 @@ $(function() {
 				'655px',
 				'815px'
 			];
+			if ($('.navbox').length == 1) {
+				l[5] = '55px';
+				$('.navbox').children('img').css('display', 'none');
+			}
 			$('#here').css({position:"relative",left:l[index]});
 			$('.tab-header').html($('.navbox#color'+index).children('a').html());
 		}

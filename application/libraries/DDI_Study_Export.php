@@ -36,6 +36,7 @@ class DDI_Study_Export
 		'{ver_prod_date}'           => ' ',
 		'{ver_desc}'                => ' ',
 		'{overview_methods}'        => ' ',
+		'{overview_analysis}'       => ' ',
 		'{ver_notes}'               => ' ',
 		'{scope_keywords}'          => ' ',
 		'{scope_class}'             => ' ',

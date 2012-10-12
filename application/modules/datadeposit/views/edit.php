@@ -55,7 +55,7 @@ textarea{min-height:90px;}
     
     <div class="field">
          <label for="collaboration">Collaboration:</label>
-         <input type="text" name="access" id="collaboration" cols="30" rows="5" class="input-flex" value="<?php echo isset($project[0]->collaborators) ? get_form_value('collaboration',$project[0]->collaborators) : '';?>" />
+         <input type="text" name="access" id="collaboration" cols="30" rows="5" class="input-flex" value="<?php echo isset($project[0]->collaborators) ? get_form_value('access',$project[0]->collaborators) : '';?>" />
     </div>
         
     <div class="width" style="width:33%;">
@@ -88,8 +88,11 @@ textarea{min-height:90px;}
 	<br/>
 	<div style="text-align:left">
     	<input type="hidden" name="project_id" value="<?php echo $project[0]->id; ?>"/>
-		<input class="button" type="submit" name="update" value="Save" id="submit"/>
-        <a class="btn_cancel" style="font-size:14px" href="<?php echo site_url('datadeposit/projects');?>">Cancel</a>
+		<input class="button" type="hidden" name="update" value="Save" />
+	               <div class="button">
+        <span>Save</span>
+    </div>
+        <a class="btn_cancel" style="position:relative;top:10px;font-size:14px" href="<?php echo site_url('datadeposit/projects');?>">Cancel</a>
 
 	</div>
 	<?php echo form_close(); ?>

@@ -496,8 +496,13 @@ class Datadeposit extends MX_Controller {
 			$this->session->set_flashdata('message', t('submitted'));
 			if ($this->input->post('submit_project') == 'Save and submit') {
 				$this->_write_history_entry("Project submitted", $data['project'][0]->id, 'submitted');
-				$cc    = $this->input->post('cc') ? $this->input->post('cc') : false;
-				$email = $this->_email($id);
+				$cc    = $this->input->post('cc');
+				var_dump($cc); exit;
+				if ($cc) {
+					$email = $this->_email($id, $cc);
+				} else {
+					$email = $this->_email($id);
+				}
 				redirect('datadeposit/projects');
 			} else {
 				redirect('datadeposit/submit/'.$data['project'][0]->id);

@@ -87,6 +87,10 @@ color: white;display:block;
 
 }
 
+.navbox a:hover {
+	color: #fff;
+}
+
 .tab-header {
 	background: #991304;
 	color: #fff;
@@ -250,8 +254,8 @@ a:hover {
 }
 
 /*Button styles*/
-.button{padding:1px;margin-top:5px;cursor:pointer;background-color:#6699FF;color:white;border:0px;}
-.button:hover{background-color:black;color:white;}
+
+/*.button:hover{background-color:black;color:white;} */
 
 input{padding-left:3px;padding-right:3px;}
 

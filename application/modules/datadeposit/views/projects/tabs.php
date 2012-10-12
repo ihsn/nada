@@ -16,6 +16,11 @@ if(in_array($project_status,array('submitted','closed'))) {
 
 
 <?php if (in_array($project_status,array('submitted','closed'))): ?>
+    <script type="text/javascript">
+        $(function() {
+            $('.m-body:first li').css('display', 'none');
+        });
+    </script>
 <div class="info-box"><?php echo t('project_locked_message');?></div>
 <?php endif;?>
 

@@ -62,6 +62,8 @@ class Permissions extends MY_Controller {
 	  	$this->template->render();	
 	}
 	
+	
+	
 	public function index($usergroup_id) {
 		if (!isset($usergroup_id)) {
 			show_error('no group id');

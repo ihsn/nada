@@ -43,6 +43,11 @@ if (in_array($this->uri->segment(2), $links)) {
 
 
 <?php if (in_array($project_status,array('submitted','closed'))): ?>
+    <script type="text/javascript">
+        $(function() {
+            $('.m-body:first li').css('display', 'none');
+        });
+    </script>
 <div class="info-box"><?php echo t('project_locked_message');?>
 <div style="float:right"><a href="<?php echo site_url('datadeposit/request_reopen'), '/', $this->uri->segment(3);?>"><?php echo t('request_reopen'); ?></a></div>
 </div>

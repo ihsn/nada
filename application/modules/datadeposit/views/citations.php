@@ -1,3 +1,4 @@
+
 <script type="text/javascript">
 /*
 $(function(){
@@ -27,13 +28,14 @@ $('textarea')
 	<?php echo form_open("datadeposit/citations/{$project[0]->id}");?>
 	<div style="text-align:left">
     	<input type="hidden" name="project_id" value="<?php echo $project[0]->id; ?>"/>
-		<input class="button" type="submit" name="update" value="Save" id="submit"/>
         
 	</div>
 	<textarea name="citations" rows="25" id="citation" class="input-flex"><?php if (isset($study[0]->citations)) echo $study[0]->citations; ?></textarea>
 	<div style="text-align:left">
     	<input type="hidden" name="project_id" value="<?php echo $project[0]->id; ?>"/>
-		<input class="button" type="submit" name="update" value="Save" id="submit"/>
-        
+    <input class="button" type="hidden" name="update" value="Save" >
+    <div class="button">
+        <span>Save</span>
+    </div>        
 	</div>    
     <?php echo form_close(); ?>

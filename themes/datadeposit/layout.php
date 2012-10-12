@@ -31,6 +31,14 @@ if ($this->uri->segment(1)=="home") {$is_home=TRUE;}
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
 
+<!--[if IE]>
+  <style type="text/css">
+th {
+  text-align: left !important
+}
+</style>
+<![endif]-->
+
 <script type="text/javascript" src="javascript/jquery.js"></script>
 
 <?php if (isset($_styles) ){ echo $_styles;} ?>
@@ -73,15 +81,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 </head>
 <body>
 <div>
-<div id="contentareblk">	
-		<div class="width100">
-	
-	
-</div>
 
-
-	
-</div>
 
 
 <?php //if (!$is_home):?>

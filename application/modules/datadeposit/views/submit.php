@@ -129,11 +129,19 @@ label { font-size: 10pt }
 
     
 
-    <div class="field" style="flaot:left;">
+    <div class="field" style="float:left;">
 
-    <input type="submit" name="submit_project" value="Save as draft" id="submit" class="button"/>
+    <input type="hidden" name="submit_project" value="Save as draft" id="draft" class="button"/>
 
-    <input type="submit" name="submit_project" value="Save and submit" id="submit" class="button"/>
+                    <div onclick="$('input#save').remove();" style="width:100px" class="button">
+                        <span>Save as draft</span>
+                    </div>
+
+    <input type="hidden" name="submit_project" value="Save and submit" id="save" class="button"/>
+
+                    <div onclick="$('input#draft').remove();"style="width:130px" class="button">
+                        <span>Save and Submit</span>
+                    </div>
 
     <!--<a class="btn_cancel" href="http://localhost/datadeposit/datadeposit/index.php/projects/summary/1">Cancel</a>-->
 

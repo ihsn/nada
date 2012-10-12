@@ -95,26 +95,30 @@
 .page-links {
 	text-align:right;
 }
+
 .button {
-	border:1px solid gainsboro;
-	padding:2px;
-	text-decoration:none;
-	color:gray;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
-	background:white;
-	display:inline-block
+	background:   url(../../images/dd_button-right.png) top right no-repeat;
+	display:      block;
+	height:       27px;
+	float:        left;
+	min-width:        50px !important;
+	cursor:       pointer;
+	padding-right: 8px;
+	margin-top:   7px;
 }
-.button img {
-	border:0px;
-	vertical-align:bottom;
-	padding-right:5px;
+
+.button span {
+	background:   url(../../images/dd_button.png) top left no-repeat;
+	display: block;
+	line-height: 14px;
+	padding: 6px 0 5px 5px;
+	font-weight: bold;
+	color: #fff;
+	font-size: 12px;
+	text-align: center;
 }
-.button:hover {
-	border:1px solid black;
-	background-color:black;
-	color:white;
-}
+
+
 /*adim form styles*/
 .form {
 	border:0px solid red;

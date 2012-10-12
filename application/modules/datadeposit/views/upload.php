@@ -730,7 +730,7 @@ $(function() {
 
 </form>
 
-<a style="font-size:11pt;margin-top:10px;float:right" href="<?php echo site_url(), '/datadeposit/datafiles/', $id; ?>">Go Back</a>
+<a style="font-size:11pt;margin-top:10px;float:left" href="<?php echo site_url(), '/datadeposit/datafiles/', $id; ?>">Go Back</a>
 
 
 <script type='text/javascript' >

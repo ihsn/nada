@@ -88,7 +88,7 @@ fieldset{border:0px}
 <script type="text/javascript"> 
 	$(function() {
 	/* Required fields */
-	var toHighlight = [<?php /* next($fields); $fields = current($fields); foreach ($fields as $field) echo "'$field', "; */?>];
+	var toHighlight = [];
 		$.each($('.td-label'), function() {
 			var d = $.trim($(this).next().html());
 			if (d == "" || d == null || d == "&nbsp;" || d == "--" || d == '0000-00-00') {
@@ -121,7 +121,7 @@ fieldset{border:0px}
 </script>
     <?php //echo $toolbar; ?>
     <h1 class="page-title"><?php echo t('summary')?></h1>
-    <?php if ($this->uri->segment(1) == 'admin'): ?>
+    <?php //if ($this->uri->segment(1) == 'admin'): ?>
       <div style="font-size:14px;margin-top:-35px!important;float:right;">
      	Export To <a href="<?php echo site_url('datadeposit'); ?>/export/<?php echo $project[0]->id; ?>?format=ddi">DDI</a>
         |
@@ -129,13 +129,17 @@ fieldset{border:0px}
         |
         <a href="<?php echo current_url();?>?print=yes"><img src="<?php echo site_url(); ?>/../images/print.gif" alt="print" /></a>
      </div>
-    <?php endif; ?>
+    <?php // endif; ?>
     <?php $message=$this->session->flashdata('message');?>
 	<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?> 
     <?php if ($project[0]->status == 'draft' && $this->uri->segment(1) != 'admin'): ?>
 	<?php foreach($fields['merged'] as $key => $value):
 		if (!isset($row[0]->$key) || empty($row[0]->$key) || $row[0]->$key == '[]' || $row[0]->$key == ' ' || $row[0]->$key == '--' || $row[0]->$key == '0000-00-00'): ?>
-        <?php echo '<span style="color:#ff0000;margin:5px;font-size:10pt;">', $value, ' is a mandatory field that is not filled.</span><br />', PHP_EOL; ?>
+        <?php echo '<span class="mandatory" style="color:#ff0000;margin:5px;font-size:10pt;">', $value, ' is a mandatory field that is not filled.</span><br />', PHP_EOL; ?>
+        <?php else: 
+            $key = str_replace('coverage_country', 'country', $key); 
+            $key = str_replace('coll_dates', 'dates_datacollection', $key); ?> 
+        <?php echo '<script>$(function() {$("li.', strtolower($key), '").css("display", "none");});', '</script>', PHP_EOL; ?>
         <?php endif; ?>
 		<?php endforeach; ?> 
     <?php endif; ?>

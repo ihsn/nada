@@ -118,6 +118,6 @@ $lang['study_home'] = "Home";
 $lang['captcha_answer_not_matched'] = "%s answer didn't match.";
 
 $lang['study_submission_failed'] = "We are sorry, check your data and please try again. If it continues, an administrator will fix the problem shortly!";
-
+$lang['no_pending_tasks'] = 'no_pending_tasks';
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

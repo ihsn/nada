@@ -17,6 +17,18 @@
     -khtml-border-radius:  10px;
     border-radius:         10px; 
 }
+.tab-header, .m-head{
+	background-color: #9ED651;
+}
+
+.tab-content, .m-body {
+	border-color:#9ED651;
+}
+
+#here {
+	position: relative;
+	left: 170px !important;
+}
 .lightbox-text {
 	font-size:      11pt;
 	vertical-align: middle;
@@ -25,6 +37,20 @@
 #box {display: none; position: absolute; opacity: 0; top:0; width: 100%; height: 100%; background:#000 }
 </style>
 <script type="text/javascript">
+/* AJAX Submit */
+$(function() {
+	$('form#form').submit(function(e) {
+		e.preventDefault();
+		var d = $('form#form, input#submit').serialize();
+		$.post("<?php echo current_url(); ?>", d, function(data) {
+			if (data) {
+				alert("<?php echo t('study_updated'); ?>");
+			}
+		});
+		$('body,html').animate({scrollTop:0},'fast');
+		return false;
+	});
+});
 /* Lightbox Class */
 var lightbox = function(dimensions) {
 	this.speed  = 500;
@@ -319,7 +345,7 @@ label img {
         padding:3px;
         font-weight:bold;
     }
-    legend{font-weight: normal; font-size: 13px;color:#900; margin-left:14px;}
+    legend{font-weight: normal; font-size: 15px;color:#900; margin-left:14px;}
     fieldset{border:0px solid #CCC; margin-bottom:8px; width: 76%}
     input[type=submit], input[type=submit]:hover{margin-left:20px; margin-top:5px;}
     
@@ -442,7 +468,7 @@ $("#navigation").treeview({
             </li>
 			<li style="font-size:11pt"><a href="<?php echo current_url(); ?>#Coverage">Coverage</a>
             	<ul>
-<li><a href="#coverage_country">Country</a></li>                					
+					<li><a href="<?php echo current_url(); ?>#coverage_country">Country</a></li>                					
                     <li><a href="<?php echo current_url(); ?>#coverage_geo">Geographic Coverage</a></li>
                 	<li><a href="<?php echo current_url(); ?>#coverage_universe">Universe</a></li>                </ul>
             </li>
@@ -820,7 +846,7 @@ $("#navigation").treeview({
                         </div>
                         <br />
                         <select name="coll_mode">
-                        <option value="--">--</option>
+                        <?php if (isset($row[0]->coll_mode) && $row[0]->coll_mode != '--'): ?><option value="--">--</option><?php endif; ?>
                           <?php if (isset($row[0]->coll_mode) && !empty($row[0]->coll_mode)): ?>  
 													<option selected="selected" value="<?php if (isset($row[0]->coll_mode) && !empty($row[0]->coll_mode)) echo $row[0]->coll_mode;?>"> <?php if (isset($row[0]->coll_mode)) echo $row[0]->coll_mode;?></option>
                          <?php endif; ?>
@@ -1133,8 +1159,16 @@ $("#navigation").treeview({
 
                 <?php //endswitch; ?>
                 <?php // if($select): ?>
-                <div class="submit field" style="float:left;margin-left:80px">
-                    <input type="submit" name="study" value="Save" id="submit" class="button"/>
+				<!--[if IE 7]>
+				<style>
+					#ie { margin-left:100px;}
+					</style>
+				<![endif]-->
+				                <div id="ie" class="submit field">
+                	<div style="margin-left:100px;" class="button">
+                		<span>Save</span>
+                	</div>
+                  <!--  <input type="submit" name="study" value="Save" id="submit" class="button"/> -->
         
                 </div>
                 <?php //endif; ?>

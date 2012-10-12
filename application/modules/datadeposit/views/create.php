@@ -33,12 +33,16 @@ textarea{min-height:90px;}
         
         <div class="field">
             <label for="collaboration">Collaboration:</label>
-            <input type="text" name="collaborators" id="collaboration" cols="30" rows="5" class="input-flex" value="<?php echo get_form_value('acesss','');?>"/>
+            <input type="text" name="collaborators" id="collaboration" cols="30" rows="5" class="input-flex" value="<?php echo get_form_value('collaborators','');?>"/>
         </div>
         <br/>
+               <div class="button">
+        <span>Save</span>
+    </div>
         <div style="text-align:left;">
-            <input class="button" type="submit" name="create" value="Save" id="submit"/>
-        <a class="btn_cancel" style="font-size:14px" href="<?php echo site_url('datadeposit/projects');?>">Cancel</a>
+            <input class="button" type="hidden" name="create" value="Save" />
+        <a class="btn_cancel" style="position:relative;top:10px;font-size:14px" href="<?php echo site_url('datadeposit/projects');?>">Cancel</a>
         </div>
+
         <?php echo form_close(); ?>
 	</div>

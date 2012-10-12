@@ -109,7 +109,7 @@ $lang['msg_project_submitted'] = "A new project has been submitted by %s, visit:
 $lang['project_request_reopen'] = 'Request Project Reopen';
 $lang['intro_projects_exist'] = 'insert_message_that_projects_exist';
 $lang['intro_no_projects'] = 'insert_message_that_there_are_no_projects';
-
+$lang['project_submitted'] = 'Your project has been submitted, An email has been sent and you may print your data from "Summary."';
 //Admin
 
 // Tabs
@@ -119,5 +119,6 @@ $lang['files_tab']   = 'Files';
 $lang['project_information_tab'] = "Project Information";
 $lang['title_project_management'] = "Data Deposit";
 $lang['datadeposit'] = "Data Deposit";
+$lang['study_updated'] = 'Your study description was updated successfully!';
 /* End of file projects_lang.php */
 /* Location: ./system/language/english/projects_lang.php */

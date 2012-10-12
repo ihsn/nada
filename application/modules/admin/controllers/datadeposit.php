@@ -11,6 +11,7 @@ class Datadeposit extends MX_Controller {
 		$this->load->model('Study_model');
 		$this->lang->load("dashboard");
 		$this->lang->load('general');
+		$this->load->library('form_validation');
 		$this->lang->load('licensed_request');
 		$this->lang->load('projects');
 		$this->template->set_template('admin');	
@@ -26,10 +27,10 @@ class Datadeposit extends MX_Controller {
 		$this->template->add_css('javascript/jquery/themes/base/ui.all.css');
 		$this->template->add_js('javascript/jquery/ui/ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/ui.tabs.js');	
-		$this->load->model('Resource_model');
+		$this->load->model('dd_Resource_model');
 		$data['project'] = $this->Projects_model->project_id($id); 
 		$data['row']     = $this->Study_model->get_study($data['project'][0]->id);
-		$data['files']   = $this->Resource_model->get_project_resources_to_array($id);
+		$data['files']   = $this->dd_Resource_model->get_project_resources_to_array($id);
 		$data['status']  = $data['project'][0]->status;
 		$data['fields']  = $this->config->item('datadeposit');
 		$data['history'] = $this->Projects_model->history_id($data['project'][0]->id);

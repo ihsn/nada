@@ -36,6 +36,7 @@ class DDI_Study_Export
 		'{ver_prod_date}'           => ' ',
 		'{ver_desc}'                => ' ',
 		'{overview_methods}'        => ' ',
+		'{overview_analysis}'       => ' ',
 		'{ver_notes}'               => ' ',
 		'{scope_keywords}'          => ' ',
 		'{scope_class}'             => ' ',
@@ -240,6 +241,16 @@ class DDI_Study_Export
 			$i                       = $impact_wb_members;
 		}
 		
+		// access_authority
+		$i                       = &$variables['{access_authority}'];
+		if ($this->_is($i)) {
+			$i                       = json_decode($i);
+			$access_authority       = '';
+			foreach ($i as $rows) {
+				$access_authority .= "<contact affiliation=\"{$rows[1]}\" email=\"{$rows[2]}\" URI=\"{$rows[3]}\">{$rows[0]}</contact>" . PHP_EOL;
+			}
+			$i                       = $access_authority;
+		}
 	}
 	
 	/**

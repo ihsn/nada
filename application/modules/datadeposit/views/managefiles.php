@@ -79,9 +79,13 @@ input, textarea, select {
 
    <div class="field" style="flaot:left;">
 
-    <input type="submit" name="submit" value="Submit" id="submit" class="button"/>
+    <input type="hidden" name="update" value="Submit"  class="button"/>
 
-        <a class="btn_cancel" style="font-size:14px" href="<?php echo site_url('datadeposit'); ?>/datafiles/<?php echo $file[0]->project_id; ?>">Cancel</a>
+               <div class="button">
+        <span>Save</span>
+    </div>
+
+        <a class="btn_cancel" style="position:relative;top:10px;font-size:14px" href="<?php echo site_url('datadeposit'); ?>/datafiles/<?php echo $file[0]->project_id; ?>">Cancel</a>
 
     <!--<a class="btn_cancel" href="http://localhost/datadeposit/datadeposit/index.php/projects/summary/1">Cancel</a>-->
 

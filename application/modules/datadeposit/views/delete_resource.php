@@ -3,8 +3,12 @@
     <?php 
 		echo form_radio('answer', 'No'), t('no'), '<br />';
 		echo form_radio('answer', 'Yes'), t('yes'), '<br />';
-		echo form_submit('submit', t('submit'));
-	
+		echo form_hidden('delete', t('submit'));
+	?>
+	               <div class="button">
+        <span>Submit</span>
+    </div>
+    <?php 
 		echo form_close();
 	?>
 

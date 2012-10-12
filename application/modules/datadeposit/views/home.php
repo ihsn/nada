@@ -31,17 +31,17 @@
 		<tr valign="top" align="left" style="height:5px" class="header">
 
 
-						<th style="width:200px" >
+						<th style="text-align:left;width:200px" >
 
 				                <a href="<?php echo site_url('datadeposit/projects'); ?>?sort_by=title&sort_order=<?php if (isset($_GET['sort_order'])) echo ($_GET['sort_order']=='asc') ? 'desc' : 'asc';?>">Title</a>			</th>
 
 
 
-						<th >
+						<th style="text-align:left">
 
 				                <a href="<?php echo site_url('datadeposit/projects'); ?>?sort_by=status&sort_order=<?php if (isset($_GET['sort_order'])) echo ($_GET['sort_order']=='asc') ? 'desc' : 'asc';?>">Status</a>			</th>
 
-			            <th>Actions</th>
+			            <th style="text-align:left">Actions</th>
 
 		</tr>
 
