@@ -14,7 +14,7 @@ class Related_Surveys extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		$this->load->helper("catalog");
-		$this->template->set_template('blank');
+		$this->template->set_template('blank_iframe');
 		
 		//load language file
 		$this->lang->load('general');

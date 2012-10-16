@@ -51,7 +51,6 @@ class MY_Controller extends CI_Controller
 			//perform authentication
 			$this->_auth();
 			
-			
 			$user=$this->ion_auth->current_user();
 		
 			if (!$user)
@@ -61,6 +60,7 @@ class MY_Controller extends CI_Controller
 			// group_id 1 == super admin
 			if ((int)$user->group_id !== 1 && !$this->Permissions_model->group_has_url_access($user->group_id, $this->uri->uri_string())) {
 				show_error(t('access_denied') . $this->uri->uri_string());
+				
 			}
 			//$this->_has_access();
 		}
@@ -186,7 +186,8 @@ class MY_Controller extends CI_Controller
 		{
     		//redirect them to the home page because they must be an administrator to view this
 			//redirect($this->config->item('base_url'), 'refresh');
-			redirect("auth/login/?destination=$destination", 'refresh');
+			//redirect("auth/login/?destination=$destination", 'refresh');
+			show_error("access_denied");
     	}
 	}
 

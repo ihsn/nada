@@ -33,6 +33,8 @@ class Related_Citations extends MY_Controller {
 		$this->sess_id=$skey;		
 		$this->related_citations=(array)$this->session->userdata($skey);
 			
+		$this->template->set_template('blank_iframe');
+			
 		//css files
 		$this->template->add_css('themes/admin/catalog_admin.css');
 		

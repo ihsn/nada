@@ -63,6 +63,15 @@ color: white;display:block;
 	min-height:400px;
 }
 #inner-body{border:0px solid gainsboro;}
+.menu-horizontal {
+	border:1px solid gainsboro;
+	border-left:0px;
+	border-right:0px;
+	border-top:0px;
+	height:34px;
+	margin-bottom:20px;
+	margin-top:0px;
+}
 
 /* site general styles */
 h1 {
@@ -128,7 +137,7 @@ input{padding-left:3px;padding-right:3px;}
 /*ordered lists*/
 ol{ display: block;margin-bottom:20px; }
 /*ol li{list-style-type:decimal;margin-left:20px;}*/
-
+ol li{list-style-type:decimal;margin-left:20px;}
 /*lsms related styles*/
 .highlights, .highlights td {color:gray;font-family: verdana; font-size:11px; line-height:1.5em;}
 .lsms p,.lsms ul, .lsms ol{font-size:14px;margin-bottom:10px; color:#333333}

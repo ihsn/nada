@@ -8,7 +8,13 @@
 .custom-short-font{font-size:11px;}
 </style>
 <?php if ($selected_surveys): ?>
-
+<script type="text/javascript">
+	$(function() {
+		$('#related-surveys .chk').live('click', function() {
+		$(this).parent().parent().remove();
+		});
+	});
+</script>
 <table class="grid-table custom-short-font" cellpadding="0" cellspacing="0" id="related-surveys-table">
 <thead>
 	<tr class="header">        

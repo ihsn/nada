@@ -85,8 +85,11 @@ $template['installer']['theme_folder'] = 'installer';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/opendata/blank';
-$template['blank']['theme_folder'] = 'opendata';
+$template['blank']['template'] = '../../themes/wb_intranet/blank';
+$template['blank']['theme_folder'] = 'wb_intranet';
+
+$template['blank_iframe']['template'] = '../../themes/wb_intranet/blank_iframe';
+$template['blank_iframe']['theme_folder'] = 'wb_intranet';
 
 
 //box template file with only the body and no layout

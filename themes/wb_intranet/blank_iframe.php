@@ -34,13 +34,8 @@ header("Expires: -1");
 <?php if (isset($_styles) ){ echo $_styles;} ?>
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
 
-<script type="text/javascript"> 
- /* <![CDATA[ */
- if(top.frames.length > 0) top.location.href=self.location;
- /* ]]> */
-</script> 
 <style type="text/css">
-	body,html{background-color:white !important ;padding:0px;margin:10px;text-align:left;}
+	body,html{background-color:white !important ;padding:0px;margin:10px;text-align:left;font-family:Arial, Helvetica, sans-serif}
 </style>
 </head>
 <body>

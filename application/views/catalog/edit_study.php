@@ -514,7 +514,6 @@ border-radius: 3px;clear:right;}
                     $this->load->view('catalog/selected_citations', array('selected_citations'=>$selected_citations)); ?>
 					</div>
                     <a style="display:block" class="add_survey" href="javascript:void(0);">Add Citations</a>   
-    				<a style="" href="#clear" title="Clear all the selected citations" onclick="clear_studies();return false"><?php echo t('clear_selection');?></a>
     			<?php
                 break;
                 default:
@@ -563,14 +562,21 @@ border-radius: 3px;clear:right;}
 </div>
 
 <div class="box">
-<div class="box-header">Admin Notes</div>
+<div class="box-header">Admin Notes
+    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+
+</div>
+
     <div class="box-body">
 	<?php echo $admin_notes; ?>
     </div>
 </div>
 
 <div class="box">
-<div class="box-header">Reviewer Notes</div>
+<div class="box-header">Reviewer Notes
+    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+
+</div>
     <div class="box-body">
 	<?php echo $reviewer_notes; ?>
     </div>
@@ -578,21 +584,30 @@ border-radius: 3px;clear:right;}
 
 
 <div class="box">
-	<div class="box-header">Survey Collections</div>
+	<div class="box-header">Survey Collections
+        <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+
+    </div>
     <div class="box-body">
 	<div id="survey-collection-list"><?php echo $collections;?></div>
     </div>
 </div>
 
 <div class="box">
-	<div class="box-header">Tags</div>
+	<div class="box-header">Tags
+       <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+
+    </div>
     <div class="box-body">
 		<?php echo $tags; ?>
 	</div>
 </div>
 
 <div class="box">
-	<div class="box-header">Survey Ids</div>
+	<div class="box-header">Survey Ids
+      <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+
+    </div>
     <div class="box-body">
 		<?php echo $ids; ?>
 	</div>
