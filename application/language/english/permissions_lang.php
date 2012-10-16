@@ -3,6 +3,9 @@
 $lang['permission'] = 'Permission';
 $lang['permissions'] = 'Permissions';
 $lang['administrator'] = 'Administrator';
+$lang['permissions_list'] = 'Permissions List';
+$lang['edit_permission'] = 'Edit Permission';
+$lang['urls'] = 'URLs';
 
 // user groups
 $lang['catalog'] = 'Catalog';

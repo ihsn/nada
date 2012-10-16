@@ -46,6 +46,43 @@ class Permissions_model extends CI_Model {
 		return $q->get()->result();
 	}
 	
+	public function get_permission($id) {
+		$q = $this->db->select('label, description, section, weight')
+			->from('permissions')
+			->order_by('section', 'asc')
+			->order_by('weight', 'asc')
+			->where('id', $id);
+					
+		return $q->get()->result();
+	}
+	
+	public function update_permission($id, $data) {
+		$this->db->where('id', $id);
+		$this->db->update('permissions', $data);
+	}
+	
+	public function create_permission($data) {
+		$this->db->insert('permissions', $data);
+	}
+	
+	public function update_urls($url, $data) {
+		$this->db->where('url', $url);
+		$this->db->update('permission_urls', $data);
+	}
+	
+	public function delete_permission($permission_id) {
+		$this->db->where('permission_id', $permission_id);
+		$this->db->delete('permission_urls');
+
+		$this->db->where('id', $permission_id);
+		$this->db->delete('permissions');
+	}
+	
+	
+	public function add_url($data) {
+		$this->db->insert('permission_urls', $data);
+	}
+	
 	private function _get_permission_value($id) {
 		$q                       = $this->db->select('permissions')
 									->from('user_permissions')
@@ -80,6 +117,14 @@ class Permissions_model extends CI_Model {
 		return $q->get()->result();
 	}
 	
+	public function get_permissions_by_section($section) {
+		$q = $this->db->select('id')
+			->from('permissions')
+			->where('section', $section);
+					
+		return $q->get()->result();
+	}
+	
 	public function group_has_url_access($group_id, $url) {
 		$q = $this->db->select('permission_id, url')
 			->from('permission_urls');
@@ -97,6 +142,12 @@ class Permissions_model extends CI_Model {
 		return false;
 	}
 
+	public function get_urls_by_permission_id($permission_id) {
+		$q = $this->db->select('permission_id, url, id')
+			->from('permission_urls')
+			->where('permission_id', $permission_id);
+		return $q->get()->result();
+	}
 
 	public function group_has_permission($group_id, $permission_id) {
 

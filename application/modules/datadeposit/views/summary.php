@@ -123,7 +123,7 @@ fieldset{border:0px}
     <h1 class="page-title"><?php echo t('summary')?></h1>
     <?php //if ($this->uri->segment(1) == 'admin'): ?>
       <div style="font-size:14px;margin-top:-35px!important;float:right;">
-     	Export To <a href="<?php echo site_url('datadeposit'); ?>/export/<?php echo $project[0]->id; ?>?format=ddi">DDI</a>
+     	Generate <a href="<?php echo site_url('datadeposit'); ?>/export/<?php echo $project[0]->id; ?>?format=ddi">DDI</a>
         |
         <a href="<?php echo site_url('datadeposit'); ?>/export/<?php echo $project[0]->id; ?>?format=rdf">RDF</a>
         |

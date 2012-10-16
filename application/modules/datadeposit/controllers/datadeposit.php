@@ -13,7 +13,7 @@ class Datadeposit extends MY_Controller {
 	public  $active_project        = false;
  
 	public function __construct($SKIP=FALSE, $is_admin=FALSE) {
-		parent::__construct(true);
+		parent::__construct();
     	$this->load->library('session');
 	
 		$this->load->model('Projects_model');
@@ -1013,9 +1013,6 @@ class Datadeposit extends MY_Controller {
 	public function projects() {
     	$this->template->set_template('datadeposit');	
 			$this->template->add_css('themes/opendata/datadeposit.css');
-
-		// do not login until this point
-		$this->_auth();
 
 		$data['fields']   = array(
 			'title'         => 'Title',         

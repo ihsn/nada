@@ -45,12 +45,12 @@ h3{font-size:1em;font-weight:bold;}
 			</div>
         </div>    
         <div class="field">
-            <label><b><?php echo t('comments');?></b> <em><?php echo t('comments_visible_to_users');?></em></label>
+            <label><b><?php echo t('comments');?></b> <!--<em><?php echo t('comments_visible_to_users');?></em>--></label>
             <textarea name="comments" rows="4" class="input-flex"><?php echo isset($project[0]->admin_comments) ? $project[0]->admin_comments : ''; ?></textarea>
         </div>
         
         <div class="field">
-                 <label for="notify"><input type="checkbox" name="notify" id="notify" value="1"/> <?php echo t('notify_user_by_email');?></label>                
+               <!--  <label for="notify"><input type="checkbox" name="notify" id="notify" value="1"/> <?php echo t('notify_user_by_email');?></label>           -->      
          </div>
                        
         <div id="status-text" style="margin-top:10px;margin-bottom:10px;"></div>
