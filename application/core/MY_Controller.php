@@ -37,8 +37,6 @@ class MY_Controller extends CI_Controller
 			$this->_auth();
 			$this->_has_access();
 		}
-
-		//echo $this->uri->uri_string();
 	}
 
 	/**
@@ -149,7 +147,7 @@ class MY_Controller extends CI_Controller
     	}
     	elseif (!$this->ion_auth->is_admin() && $this->is_admin==TRUE ) 
 		{
-    		//redirect them to the home page because they must be an administrator to view this
+			//redirect them to the home page because they must be an administrator to view this
 			//redirect($this->config->item('base_url'), 'refresh');
 			redirect("auth/login/?destination=$destination", 'refresh');
     	}
