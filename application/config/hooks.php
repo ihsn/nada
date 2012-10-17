@@ -33,6 +33,26 @@ $hook['post_controller_constructor'][] = array(
                                 'filepath' => 'hooks',
                                 'params'   => array()
                                 );
+
+//XHPROF: To enable XHPROF stats enable hooks below
+/*
+$hook['pre_controller'] = array(
+  'class'  => 'XHProf',
+  'function' => 'XHProf_Start',
+  'filename' => 'xhprof.php',
+  'filepath' => 'hooks',
+  'params' => array()
+);
+ 
+$hook['post_controller'] = array(
+   'class'  => 'XHProf',
+   'function' => 'XHProf_End',
+   'filename' => 'xhprof.php',
+   'filepath' => 'hooks',
+   'params' => array()
+);
+*/
+
 /*
 //automatically login
 $hook['post_controller_constructor'][] = array(
@@ -242,11 +262,11 @@ function disable_admin_access($params)
 function admin_auto_login()
 {
 		$CI =& get_instance();		
-        $CI->load->helper('url'); // to be on the safe side
+        $CI->load->helper('url');
 			
 		if (!$CI->ion_auth->logged_in()) 
 		{
-			$CI->ion_auth->login('mah0001@gmail.com', 'free001');
+			$CI->ion_auth->login('', '');
 		}
 }
 
