@@ -1194,4 +1194,8 @@ class Catalog_model extends CI_Model {
 		$result=$this->db->get("survey_repos")->result_array();
 		return $result;		
 	}
+	
+	function get_reference_ids_from_internal_id($id) {
+	
+	}
 }

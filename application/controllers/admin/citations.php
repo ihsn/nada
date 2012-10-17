@@ -591,6 +591,10 @@ class Citations extends MY_Controller {
 	**/
 	function import()
 	{	
+		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
+		$this->template->add_js('javascript/jquery/ui/ui.core.js');
+		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		
 		$this->form_validation->set_rules('citation_string', t('citation_string'), 'xss_clean|trim|required');
 		
 		if ($this->form_validation->run() == TRUE) 
@@ -626,7 +630,7 @@ class Citations extends MY_Controller {
 				$format='bibtex';				
 				$published=(int)$this->input->post("published");
 				$flag=$this->input->post("flag");
-				$surveys=$this->input->post("survey");
+				$surveys=$this->input->post("sid");
 				
 				if (count($bib_array)>0)
 				{	
@@ -681,14 +685,33 @@ class Citations extends MY_Controller {
 		$data=array();
 		
 		//list of all surveys
-		$survey_list=$this->Citation_model->get_all_surveys(NULL);
+	//load list of all surveys		
+		$survey_list['surveys']=$this->Citation_model->get_all_surveys(NULL);
 		
-		//build formatted list
-		$data['surveys']['-']='--';
-		foreach($survey_list as $row)
+		//surveys attached to the citations
+		$selected_surveys=array();
+		
+		//attached survey from the postback data
+		if ($this->input->post("sid"))
 		{
-			$data['surveys'][$row['id']]=$row['nation'].' - '.$row['titl'];
+			//get the selected surveys from sid
+			$survey_id_arr=$this->input->post("sid");
+		
+			//get survey info from db
+			$selected_surveys=$this->Citation_model->get_surveys($survey_id_arr);
 		}
+		else
+		{	
+			//see if the edited citation has surveys attached, otherwise assign empty array
+			$selected_surveys=isset($data['related_surveys']) ? $data['related_surveys'] : array();
+		}
+		
+		//IDs of selected surveys
+		$data['selected_surveys_id_arr']=$this->_get_related_surveys_array($selected_surveys);
+		
+		//load list of formatted surveys list for choosing related surveys			
+		$data['survey_list']=$this->load->view('citations/selected_surveys', array('selected_surveys'=>$selected_surveys),TRUE);	
+			
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('citations/import_citation', $data,true);

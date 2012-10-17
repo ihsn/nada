@@ -203,6 +203,16 @@ class Breadcrumb
 					$breadcrumbs['access_public/'.$segments[2]]=t('Public Use Dataset');
 			break;
 
+			case 'datadeposit':
+					$breadcrumbs['datadeposit/projects']=t('datadeposit');
+					if (count($segments)>1)
+					{
+						$segments[2] = str_replace(array('create', 'update', 'delete_resource'), array('new', 'edit', 'delete'), $segments[2]);
+						$id          = isset($segments[3]) && is_numeric($segments[3]) ? $segments[3] : '';
+						$breadcrumbs['datadeposit/'.$segments[2].'/'. $id] = ucfirst($segments[2]);						
+					}
+			break;
+
 			case 'access_licensed':
 					if (is_numeric($segments[2]))
 					{

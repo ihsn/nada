@@ -61,7 +61,6 @@ $route['catalog/(:num)/(.*)'] = "ddibrowser/$1/$2";
 $route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for the data-catalog routes
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";
-$route['microdata-catalogs'] = "catalog/repositories";
 //$route['home'] = "catalog/repositories";
 $route['catalog/central/about'] = "catalog/repositories";
 
@@ -112,6 +111,8 @@ $route['access_direct/(:num)/download/(:any)'] = "access_direct/download/$1/$2";
 //data enclave
 $route['access_enclave/(:num)'] = "access_enclave/index/$1";
 $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2";
+
+$route['admin/permissions/(:num)'] = "admin/permissions/index/$1";
 
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */

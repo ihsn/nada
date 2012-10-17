@@ -1,0 +1,226 @@
+admin.php:		//redirect back to the list
+admin.php:		redirect("admin","refresh");
+admin.php:				//redirect
+admin.php:				redirect("admin","refresh");
+blocks.php:				//redirect back to the list
+blocks.php:				redirect("admin/blocks/edit/$id","refresh");
+catalog.php:			redirect('admin/repositories/select');
+catalog.php:			//redirect back to the upload page
+catalog.php:			redirect('admin/catalog/upload','refresh');
+catalog.php:			redirect('admin/catalog/replace','refresh');
+catalog.php:		//redirect
+catalog.php:		redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');
+catalog.php:			redirect('admin/catalog/upload','refresh');
+catalog.php:		redirect('admin/catalog/upload','refresh');
+catalog.php:			redirect('admin/catalog','refresh');
+catalog.php:		redirect('admin/catalog','refresh');		
+catalog.php:				redirect('admin/catalog');
+catalog.php:			//redirect page url
+catalog.php:				redirect($destination);
+catalog.php:				redirect('admin/catalog');
+catalog.php:			//redirect page url
+catalog.php:				//redirect($destination);
+catalog.php:				redirect('admin/catalog');
+catalog.php:				//redirect back to the upload page
+catalog.php:				redirect('admin/catalog/replace_ddi/'.$surveyid,'refresh');
+catalog.php:			redirect('admin/catalog');
+catalog.php:		redirect('admin/catalog');
+catalog.php:				redirect('admin/catalog');
+catalog.php:			//redirect page url
+catalog.php:				redirect($destination);
+catalog.php:				redirect('admin/catalog');
+catalog.php:			//redirect page url
+catalog.php:				//redirect($destination);
+catalog.php:				redirect('admin/catalog');
+catalog.php:		redirect('admin/catalog/edit/'.$id);
+catalog.php.bak:			redirect('admin/repositories/select');
+catalog.php.bak:			//redirect back to the upload page
+catalog.php.bak:			redirect('admin/catalog/upload','refresh');
+catalog.php.bak:			redirect('admin/catalog/replace','refresh');
+catalog.php.bak:		//redirect
+catalog.php.bak:		redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');
+catalog.php.bak:			redirect('admin/catalog/upload','refresh');
+catalog.php.bak:		redirect('admin/catalog/upload','refresh');
+catalog.php.bak:			redirect('admin/catalog','refresh');
+catalog.php.bak:		redirect('admin/catalog','refresh');		
+catalog.php.bak:				redirect('admin/catalog');
+catalog.php.bak:			//redirect page url
+catalog.php.bak:				redirect($destination);
+catalog.php.bak:				redirect('admin/catalog');
+catalog.php.bak:			//redirect page url
+catalog.php.bak:				//redirect($destination);
+catalog.php.bak:				redirect('admin/catalog');
+catalog.php.bak:				//redirect back to the upload page
+catalog.php.bak:				redirect('admin/catalog/replace_ddi/'.$surveyid,'refresh');
+catalog.php.bak:			redirect('admin/catalog');
+catalog.php.bak:		redirect('admin/catalog');
+catalog.php.bak:				redirect('admin/catalog');
+catalog.php.bak:			//redirect page url
+catalog.php.bak:				redirect($destination);
+catalog.php.bak:				redirect('admin/catalog');
+catalog.php.bak:			//redirect page url
+catalog.php.bak:				//redirect($destination);
+catalog.php.bak:				redirect('admin/catalog');
+catalog.php.bak:		redirect('admin/catalog/edit/'.$id);
+citations.php:			//redirect back to the list
+citations.php:			redirect("admin/citations","refresh");
+citations.php:				redirect('admin/citations',"refresh");
+citations.php:			//redirect page url
+citations.php:				redirect($destination);
+citations.php:				redirect('admin/citations');
+citations.php:			//redirect page url
+citations.php:				redirect($destination);
+citations.php:				redirect('admin/citations');
+citations.php:							//redirect('admin/citations/edit/'.$new_id);
+citations.php:					//redirect
+citations.php:					redirect('admin/citations/');
+collections.php:				//redirect back to the list
+collections.php:				redirect("admin/collections","refresh");
+collections.php:				redirect('admin/collections',"refresh");
+collections.php:			//redirect page url
+collections.php:				redirect($destination);
+collections.php:				redirect('admin/collections');
+collections.php:			//redirect page url
+collections.php:				redirect($destination);
+collections.php:				redirect('admin/collections');
+datafiles.php:				//redirect back to the index page after uploading the files
+datafiles.php:				redirect('admin/datafiles/'.$surveyid,'refresh');				
+datafiles.php:				redirect('admin/datafiles/'.$surveyid,"refresh");
+datafiles.php:			//redirect page url
+datafiles.php:				redirect($destination);
+datafiles.php:				redirect('admin/datafiles/'.$surveyid,"refresh");
+datafiles.php:			//redirect page url
+datafiles.php:				redirect($destination);
+datafiles.php:				redirect('admin/datafiles/'.$surveyid,"refresh");
+harvester.php:				redirect('admin/menu',"refresh");
+harvester.php:			//redirect page url
+harvester.php:				redirect($destination);
+harvester.php:				redirect('admin/harvester');
+harvester.php:			//redirect page url
+harvester.php:				redirect($destination);
+harvester.php:				redirect('admin/harvester');
+licensed_requests.php:				redirect('admin/licensed_requests',"refresh");
+licensed_requests.php:			//redirect page url
+licensed_requests.php:				redirect($destination);
+licensed_requests.php:				redirect('admin/licensed_requests');
+licensed_requests.php:			//redirect page url
+licensed_requests.php:				redirect($destination);
+licensed_requests.php:				redirect('admin/licensed_requests');
+managefiles.php:				//redirect back to the list
+managefiles.php:				redirect("admin/catalog/edit/".$surveyid,"refresh");
+managefiles.php:		//redirect
+managefiles.php:		redirect("admin/managefiles/".$surveyid,"refresh");
+menu.php:				//redirect back to the list
+menu.php:				redirect("admin/menu","refresh");
+menu.php:				//redirect back to the list
+menu.php:				redirect("admin/menu","refresh");
+menu.php:				redirect('admin/menu',"refresh");
+menu.php:			//redirect page url
+menu.php:				redirect($destination);
+menu.php:				redirect('admin/menu');
+menu.php:			//redirect page url
+menu.php:				redirect($destination);
+menu.php:				redirect('admin/menu');
+menu.php:				redirect('admin/menu','refresh');
+planned.php:				//redirect back to the list
+planned.php:				redirect("admin/menu","refresh");
+planned.php:				//redirect back to the list
+planned.php:				redirect("admin/menu","refresh");
+planned.php:				redirect('admin/menu',"refresh");
+planned.php:			//redirect page url
+planned.php:				redirect($destination);
+planned.php:				redirect('admin/menu');
+planned.php:			//redirect page url
+planned.php:				redirect($destination);
+planned.php:				redirect('admin/menu');
+planned.php:				redirect('admin/menu','refresh');
+related_citations.php:			//redirect('/admin/related_citations/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+related_citations.php:			redirect('/admin/related_citations/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+related_surveys.php:		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+related_surveys.php:		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
+repositories.php:					//redirect back to the list
+repositories.php:					redirect("admin/repositories","refresh");
+repositories.php:				redirect('admin/repositories',"refresh");
+repositories.php:			//redirect page url
+repositories.php:				redirect($destination);
+repositories.php:				redirect('admin/repositories');
+repositories.php:			//redirect page url
+repositories.php:				redirect($destination);
+repositories.php:				redirect('admin/repositories');
+repositories.php:			redirect("admin/catalog");
+repositories.php.bak:					//redirect back to the list
+repositories.php.bak:					redirect("admin/repositories","refresh");
+repositories.php.bak:				redirect('admin/repositories',"refresh");
+repositories.php.bak:			//redirect page url
+repositories.php.bak:				redirect($destination);
+repositories.php.bak:				redirect('admin/repositories');
+repositories.php.bak:			//redirect page url
+repositories.php.bak:				redirect($destination);
+repositories.php.bak:				redirect('admin/repositories');
+repositories.php.bak:			redirect("admin/catalog");
+repository_sections.php:				//redirect back to the list
+repository_sections.php:				redirect("admin/repository_sections","refresh");
+repository_sections.php:				redirect('admin/repository_sections',"refresh");
+repository_sections.php:			//redirect page url
+repository_sections.php:				redirect($destination);
+repository_sections.php:				redirect('admin/repository_sections');
+repository_sections.php:			//redirect page url
+repository_sections.php:				redirect($destination);
+repository_sections.php:				redirect('admin/repository_sections');
+resources.php:				redirect('admin/catalog');
+resources.php:			//redirect page url
+resources.php:				redirect($destination);
+resources.php:				redirect('admin/catalog');
+resources.php:			//redirect page url
+resources.php:				redirect($destination);
+resources.php:				redirect('admin/catalog');
+resources.php:			redirect('admin/catalog');			
+resources.php:			redirect("admin/catalog/$survey_id/resources");
+resources.php:		//redirect on Cancel
+resources.php:			redirect("admin/catalog/edit/$survey_id/resources");
+resources.php:				//redirect back to the list
+resources.php:				redirect("admin/catalog/edit/$survey_id/resources");
+resources.php:			//redirect back to the upload page
+resources.php:			redirect('admin/resources/import/'.$sid,'refresh');
+resources.php:			redirect('admin/catalog/edit/'.$sid.'/resources','refresh');
+resources.php:		redirect('admin/catalog/edit/'.$surveyid.'/resources',"refresh");
+terms.php:				//redirect back to the list
+terms.php:				redirect("admin/terms/".$this->vid,"refresh");
+terms.php:				redirect('admin/vocabularies',"refresh");
+terms.php:			//redirect page url
+terms.php:				redirect($destination);
+terms.php:				redirect('admin/terms/'.$this->uri->segment(3));
+terms.php:			//redirect page url
+terms.php:				redirect($destination);
+terms.php:				redirect('admin/terms/'.$this->uri->segment(3));
+user_groups.php:				//redirect back to the list
+user_groups.php:				redirect("admin/user_groups","refresh");
+user_groups.php:				redirect('admin/user_groups',"refresh");
+user_groups.php:			//redirect page url
+user_groups.php:				redirect($destination);
+user_groups.php:				redirect('admin/user_groups');
+user_groups.php:			//redirect page url
+user_groups.php:				redirect($destination);
+user_groups.php:				redirect('admin/user_groups');
+users.php:        	//redirect them back to the admin page
+users.php:       		redirect("admin/users", 'refresh');
+users.php:        	//redirect them back to the admin page
+users.php:       		redirect("admin/users", 'refresh');
+users.php:		redirect('admin/users');
+users.php:			redirect('admin/users');
+users.php:				redirect('admin/users',"refresh");
+users.php:			//redirect page url
+users.php:				redirect($destination);
+users.php:				redirect('admin/users');
+users.php:			//redirect page url
+users.php:				redirect($destination);
+users.php:				redirect('admin/users');
+vocabularies.php:				//redirect back to the list
+vocabularies.php:				redirect("admin/vocabularies","refresh");
+vocabularies.php:				redirect('admin/vocabularies',"refresh");
+vocabularies.php:			//redirect page url
+vocabularies.php:				redirect($destination);
+vocabularies.php:				redirect('admin/vocabularies');
+vocabularies.php:			//redirect page url
+vocabularies.php:				redirect($destination);
+vocabularies.php:				redirect('admin/vocabularies');

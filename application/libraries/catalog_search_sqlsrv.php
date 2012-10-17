@@ -292,7 +292,7 @@ class Catalog_search{
 			}
 			
 			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, hq.survey_url,surveys.created,surveys.data_coll_start,surveys.data_coll_end');
-			
+
 			if ($where!='') 
 			{
 				$this->ci->db->where($where);

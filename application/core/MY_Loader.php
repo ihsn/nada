@@ -26,8 +26,12 @@
  *
  * only the create_links method has been modified
  */
-class MY_Loader extends CI_Loader{
 
+/* load the MX_Loader class */
+require APPPATH."third_party/MX/Loader.php";
+class MY_Loader extends MX_Loader {} 
+
+/*class MY_Loader extends MX_Loader{
     public function __construct()
     {
         parent::__construct();
@@ -39,7 +43,7 @@ class MY_Loader extends CI_Loader{
 
         if (file_exists($full_path))
         {
-            return $this->_ci_load(array('_ci_path' => $full_path, '_ci_view' => $view, '_ci_vars' => $this->_ci_object_to_array($vars), '_ci_return' => $return));
+			return $this->_ci_load(array('_ci_path' => $full_path, '_ci_view' => $view, '_ci_vars' => $this->_ci_object_to_array($vars), '_ci_return' => $return));
         }
         else
         {
@@ -47,7 +51,8 @@ class MY_Loader extends CI_Loader{
         }
     }
 } 
-// END Upload Class
+} */
+// END Class
 
 /* End of file MY_Loader.php */
 /* Location: ./application/libraries/My_Loader.php */

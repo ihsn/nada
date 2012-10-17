@@ -197,8 +197,6 @@ class Page extends MY_Controller {
 	  	$this->template->render();
 	}
 	
-	
-	
 	function static_page()
 	{
 		$page=$this->uri->segment(1);

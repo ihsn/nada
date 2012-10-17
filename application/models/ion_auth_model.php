@@ -188,7 +188,6 @@ class Ion_auth_model extends CI_Model
 	public function activate($id, $code = false)
 	{	
 		$result=FALSE;
-
 	    if ($code != false) 
 	    {  
 		    $query = $this->db->select($this->identity_column)

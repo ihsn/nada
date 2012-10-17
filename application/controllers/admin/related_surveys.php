@@ -14,7 +14,7 @@ class Related_Surveys extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		$this->load->helper("catalog");
-		$this->template->set_template('blank');
+		$this->template->set_template('blank_iframe');
 		
 		//load language file
 		$this->lang->load('general');
@@ -30,7 +30,6 @@ class Related_Surveys extends MY_Controller {
 	* @id	session key
 	**/
 	public function index($skey){	
-
 		$this->sess_id=$skey;		
 		$this->related_surveys=(array)$this->session->userdata($skey);
 			
@@ -45,7 +44,7 @@ class Related_Surveys extends MY_Controller {
 		$this->Catalog_model->active_repo=NULL;
 		
 		//get surveys		
-		$db_rows=$this->_search();
+		$db_rows=$this->_search($skey);
 		//load the contents of the page into a variable
 		$content=$this->load->view('citations/related_surveys_index', $db_rows,true);
 	
@@ -57,7 +56,7 @@ class Related_Surveys extends MY_Controller {
 	}
 	
 	
-	private function _search()
+	private function _search($skey)
 	{
 		//records to show per page
 		$per_page = $this->input->get("ps");
@@ -76,6 +75,8 @@ class Related_Surveys extends MY_Controller {
 		//records
 		$data['rows']=$this->Catalog_model->search($per_page, $curr_page,$filter);
 
+		$this->session->set_userdata('oldurl', $this->input->get('per_page'));
+
 		//total records in the db
 		$total = $this->Catalog_model->search_count;
 
@@ -87,7 +88,7 @@ class Related_Surveys extends MY_Controller {
 			$data['rows']=$this->Catalog_model->search($per_page, $curr_page,$filter);
 		}
 		//set pagination options
-		$base_url = site_url('admin/related_surveys');
+		$base_url = site_url('admin/related_surveys/index/'.$skey);
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
@@ -147,7 +148,7 @@ class Related_Surveys extends MY_Controller {
 		
 		if ($isajax==0)
 		{
-			redirect('admin/related_surveys/index/'.$skey);
+		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
 		}	
 	}
 	
@@ -189,7 +190,7 @@ class Related_Surveys extends MY_Controller {
 		
 		if($isajax==0)
 		{
-			redirect('admin/related_surveys/index/'.$skey);
+		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
 		}
 	}
 	

@@ -125,7 +125,7 @@ $(function() {
         
             <div class="field">        
                 <label for="to"><?php echo t('to');?></label>
-                <input name="to" type="text" class="input-flex" value="<?php echo $email; ?>"/>
+                <input name="to" type="text" class="input-flex" value="<?php echo isset($email) ? $email : ''; ?>"/>
             </div>
             <div class="field">        
                 <label><?php echo t('cc');?> <?php echo t('use_comma_to_seperate_email');?></label>

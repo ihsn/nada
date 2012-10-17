@@ -192,12 +192,6 @@ class Auth extends MY_Controller {
                                               'id'      => 'password',
                                               'type'    => 'password',
                                              );
-
-			$this->data['openid_url'] = array('name'    => 'openid_url',
-                                              'id'      => 'openid_url',
-                                              'type'    => 'text',
-                                              'value'   => $this->form_validation->set_value('openid_url'),
-                                             );
 	        
 	    	$content=$this->load->view('auth/login', $this->data,TRUE);
 			

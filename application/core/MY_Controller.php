@@ -1,6 +1,19 @@
 <?php
 class MY_Controller extends CI_Controller
 {	
+    public $_ci_plugins = array();
+    var $_ci_ob_level;
+    public $_ci_view_path      = '';
+    var $_ci_library_paths  = array();
+    var $_ci_model_paths    = array();
+    var $_ci_helper_paths   = array();
+    var $_base_classes      = array(); // Set by the controller class
+    var $_ci_cached_vars    = array();
+    var $_ci_classes        = array();
+    var $_ci_loaded_files   = array();
+    var $_ci_models         = array();
+    var $_ci_helpers        = array();
+    var $_ci_varmap         = array('unit_test' => 'unit', 'user_agent' => 'agent');
 	
 	var $is_admin=TRUE;
 	
@@ -20,6 +33,7 @@ class MY_Controller extends CI_Controller
 		//switch language
 		$this->_switch_language();
 		$this->lang->load("general");
+		$this->load->model('Permissions_model');
 			
 		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl'));	
 		$this->is_admin=$is_admin;
@@ -30,19 +44,42 @@ class MY_Controller extends CI_Controller
 		   $this->apply_ip_restrictions();
 		}
 	  
+	  
 		//skip authentication
 		if ($skip!==TRUE)
 		{
 			//perform authentication
 			$this->_auth();
-			$this->_has_access();
+			
+			$user=$this->ion_auth->current_user();
+		
+			if (!$user)
+			{
+				return FALSE;
+			}
+			// group_id 1 == super admin
+			if ((int)$user->group_id !== 1 && !$this->Permissions_model->group_has_url_access($user->group_id, $this->uri->uri_string())) {
+				show_error(t('access_denied') . $this->uri->uri_string());
+				
+			}
+			//$this->_has_access();
 		}
 	}
+
 
 	/**
 	*
 	* Check user has access to the current page
+	**/	
+
+	
+	/**
+	*
+	* Check user has access to the current page
 	**/
+	/*
+	//TODO: Remove later
+	
 	function _has_access()
 	{	
 		$excluded_urls=array('auth','catalog');
@@ -69,11 +106,9 @@ class MY_Controller extends CI_Controller
 		}
 
 		//check study level permissions
-		$this->acl->check_study_permissions();
-		
-		
+		$this->acl->check_study_permissions();				
 	}
-
+	*/
 	
 
 
@@ -149,7 +184,8 @@ class MY_Controller extends CI_Controller
 		{
 			//redirect them to the home page because they must be an administrator to view this
 			//redirect($this->config->item('base_url'), 'refresh');
-			redirect("auth/login/?destination=$destination", 'refresh');
+			//redirect("auth/login/?destination=$destination", 'refresh');
+			show_error("access_denied");
     	}
 	}
 

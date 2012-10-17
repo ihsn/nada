@@ -89,13 +89,23 @@ body{margin:0px;padding:0px;font-size:12px;}
 
 <script type="text/javascript">
 $(function() {
-/*	$('.attached').click(function() {
-		id=$(this).parent().children().first().children('b').html();
+	$('a.attach').click(function(e) {
+		id=$(this).parent().parent().children().first().children('b').html();
+		e.preventDefault();
 		url=CI.base_url+'/admin/related_surveys/add/'+'<?php echo $this->sess_id;?>'+'/'+id;
-		//$(this).html("<img src='<?php echo site_url() , '/../images/tick.png'; ?>' alt='tick' />");
+		$.get(url);
+		$(this).html("<?php echo t('remove'); ?>");		
 		return false;
 	});
-*/	
+	$('a.remove').click(function(e) {
+		id=$(this).parent().parent().children().first().children('b').html();
+		e.preventDefault();
+		url=CI.base_url+'/admin/related_surveys/remove/'+'<?php echo $this->sess_id;?>'+'/'+id;
+		$.get(url);
+		$(this).html("<?php echo t('attach'); ?>");		
+		return false;
+	});
+	
 });
 </script>
 

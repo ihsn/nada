@@ -667,7 +667,38 @@ class Repository_model extends CI_Model {
 		return FALSE;
 	}
 	
+	function group_add_repo($group_id, $repo_id) {
+		$data = array(
+			'group_id' => $group_id,
+			'repo_id'  => $repo_id
+		);
+		$this->db->insert('repo_permissions', $data);
+	}
 	
+	function group_repos($group_id) {
+		$q = $this->db->select('*')
+			->from('repo_permissions')
+			->where('group_id', $group_id);
+			
+		$result = $q->get()->result();
+		
+		return $result;
+	}
+	function group_has_repo($group_id, $repo_id) {
+		$q = $this->db->select('id')
+			->from('repo_permissions')
+			->where('repo_id', $repo_id)
+			->where('group_id', $group_id);
+		$result = $q->get()->result();
+		
+		return isset($result[0]->id);
+	}
+	
+	function group_remove_repo($group_id, $repo_id) {
+		$this->db->where('group_id', $group_id);
+		$this->db->where('repo_id', $repo_id);
+		$this->db->delete('repo_permissions');
+	}
 	/**
 	*
 	* Checks if studies in the repository has citations
@@ -707,13 +738,14 @@ class Repository_model extends CI_Model {
 	{
 		$result= $this->db->get('repository_sections')->result_array();
 
-		$list=array();
+	/*	$list=array();
 		foreach($result as $row)
 		{
 			$list[$row['title']]=$row['title'];
-		}
+		} 
+		return $list; */
 		
-		return $list;
+		return $result;
 	}
 
 }

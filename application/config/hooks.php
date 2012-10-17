@@ -33,7 +33,6 @@ $hook['post_controller_constructor'][] = array(
                                 'filepath' => 'hooks',
                                 'params'   => array()
                                 );
-
 //XHPROF: To enable XHPROF stats enable hooks below
 /*
 $hook['pre_controller'] = array(
@@ -75,7 +74,6 @@ function pre_system_url_check()
 {
 	//load configurations
     include APPPATH.'config/config.php';
-	//$CI =& get_instance();
 	
 	if (!$config)
 	{
@@ -149,6 +147,7 @@ function pre_system_url_check()
 			$is_https=TRUE;
 		}	
 	}
+	
 	//page is not viewed using HTTPS
 	if($is_https===FALSE)
 	{	
@@ -262,7 +261,7 @@ function disable_admin_access($params)
 function admin_auto_login()
 {
 		$CI =& get_instance();		
-        $CI->load->helper('url');
+        $CI->load->helper('url'); // to be on the safe side
 			
 		if (!$CI->ion_auth->logged_in()) 
 		{

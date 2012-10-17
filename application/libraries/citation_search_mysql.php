@@ -97,6 +97,7 @@ class Citation_search_mysql{
 	
 		//allowed_fields
 		$db_fields=array(
+					'id'=>'citations.id',
 					'title'=>'citations.title',
 					'subtitle'=>'citations.subtitle',
 					'alt_title'=>'citations.alt_title',

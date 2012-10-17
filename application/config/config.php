@@ -408,7 +408,6 @@ $config['date_format_long']='m/d/Y H:i';
 |	proxy_ssl_header		=	Name of the $_SERVER variable sent by the proxy server
 |	proxy_ssl_header_value	=	Value that indicate page is served using SSL
 |
-
 | 
 */
 $config['enable_ssl']=FALSE;
@@ -481,10 +480,9 @@ $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
 $config['collection_search']='yes';
 
-
 $config['modules_locations'] = array(
-        APPPATH.'modules/' => '../modules/',
-    );
+    APPPATH.'modules/' => '../modules/',
+);
 
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */

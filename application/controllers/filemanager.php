@@ -11,10 +11,7 @@ class Filemanager extends MY_Controller {
 	
 	//allowed paths
     var $roots = array(
-        //'app' => 'application',
-		//'datasets' => '../nada2.1_data',
-		'files'=>'files',
-		'cache'=>'cache'
+		'files'=>'files'
         );
 
 	var $allowed_extensions=array('jpg','jpeg','gif','png');

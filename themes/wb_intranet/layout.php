@@ -169,7 +169,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 
     <!--login information bar-->
     <span id="user-container">
-    <?php $this->load->view('user_bar');?>
+    <?php $this->load->view('users/user_bar');?>
     </span>
 
     <!--share-bar -->

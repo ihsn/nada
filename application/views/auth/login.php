@@ -40,12 +40,13 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
         
             <div class="field">
                 <label for="email"><?php echo t('email');?>:</label>
-                <?php echo form_input(get_form_value('email',isset($email) ? $email : ''),NULL,'class="input-flex"' );?>
+                <?php //echo form_input(get_form_value('email',isset($email) ? $email : ''),NULL,'class="input-flex"' );?>
+                <input class="input-flex"  name="email" type="text" id="email"  value=""/>
             </div>
         
             <div class="field">
                 <label for="password"><?php echo t('password');?>:</label>
-                <?php echo form_input(get_form_value('password',isset($password) ? $password : ''),NULL, 'class="input-flex" autocomplete="off"');?>
+                <input class="input-flex"  name="password" type="password" id="password"  value=""/>
             </div>    
         
             <div class="field-inline">            

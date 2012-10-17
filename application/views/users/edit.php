@@ -4,7 +4,7 @@
 	$user_group_options=array();
 	foreach($user_groups as $group)
 	{
-		$user_group_options[$group['id']]=$group['description'];
+		$user_group_options[$group['id']]=$group['name'];
 	}
 	//countries			
 	$options_country=$this->ion_auth_model->get_all_countries();

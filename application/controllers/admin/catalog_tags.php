@@ -30,13 +30,6 @@ class Catalog_Tags extends MY_Controller {
 			return FALSE;
 		}
 	
-		$tag=trim($tag);
-			
-		if ($tag=="")
-		{
-			return FALSE;
-		}
-	
 		if (!$this->Catalog_Tags_model->tag_exists($id, $tag)) 
 		{
 			$this->Catalog_Tags_model->insert($id,$tag);
@@ -68,7 +61,4 @@ class Catalog_Tags extends MY_Controller {
 		}
 		$this->Catalog_Tags_model->delete($id);
 	}
-
 }
-/* End of file catalog_tags.php */
-/* Location: ./controllers/admin/catalog_tags.php */
