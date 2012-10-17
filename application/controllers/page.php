@@ -253,12 +253,20 @@ class Page extends MY_Controller {
 					$this->session->set_userdata('active_repository','central');	
 					
 			break;
+			case 'collections';
+					$this->lang->load('collections');
+					$this->load->model("collections_model");
+					$data['title']=t('collections');
+					
+			break;
+			
+			
 			
 			default:
 			return FALSE;			
 		}
-		//$data['body']=file_get_contents("static/$page.php");
-		$data['body']=$this->load->external_view($path='static', $view=$page,$data,TRUE);
+		//$data['body']=file_get_contents("static/$page.php");	
+		$data['body']=$this->load->view('static/'.$page,$data,TRUE);
 		$content=$this->load->view('page_index', $data,true);
 		
 		$this->template->write('title', $data['title'],true);
