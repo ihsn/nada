@@ -423,5 +423,142 @@ class Reports_model extends CI_Model {
 		return FALSE;
 	}
 	
+	
+	
+	/**
+	*
+	* Find all the Public/Licensed studies that have no microdata attached
+	*
+	**/
+	function study_data_access()
+	{
+		//get a list of all surveys having the DA type of Public use or Licensed
+		$this->db->select("id");
+		$this->db->where_in("formid",array(2,3));
+		$surveys=$this->db->get("surveys")->result_array();
+		//echo $this->db->last_query();
+		
+		//surveys with no data
+		$output=array();
+		
+		//test each survey if they have got atleast one microdata file attached
+		foreach($surveys as $survey)
+		{
+			$result=NULL;
+			/*$this->db->select("count(survey_id) as rows_found");
+			$this->db->where("survey_id",$survey["id"]);
+			$this->db->like("dctype","dat]");
+			$this->db->like("dctype","dat/micro]");*/
+			//$result=$this->db->get("resources")->row_array();
+			
+			//checks if a survey has microdata attached
+			$sql=sprintf('select count(survey_id) as rows_found from resources 
+							where survey_id=%s
+							AND (dctype like %s OR dctype like %s)',
+							$this->db->escape($survey['id']),
+							"'%dat]%'",
+							"'%dat/micro]%'");
+			$result=$this->db->query($sql)->row_array();
+						
+			//no data attached
+			if ($result['rows_found'] ==0)
+			{
+				$output[$survey['id']]=$result['rows_found'];
+			}
+			
+		}
+
+		//return survey details with no data attached
+		if (count($output)>0)
+		{
+			$this->db->select("id,titl,repositoryid,nation");
+			$this->db->where_in("id",array_keys($output));
+			return $this->db->get("surveys")->result_array();
+		}
+		
+		return FALSE;
+	}
+	
+	
+	/**
+	*
+	* Find external resources with broken links e.g. files missing
+	*
+	* $dctypes	array
+	* $da_types array	data access types e.g. array(2,3)
+	**/
+	function broken_resources($dctypes,$da_types=array(2,3))
+	{
+		$this->load->model("Catalog_model");
+		$this->load->helper("file_helper");
+		
+		$sql='select surveys.dirpath,resources.* from resources 	
+			inner join surveys on surveys.id=resources.survey_id';
+		
+		$types=array();
+		
+		foreach($dctypes as $dctype)
+		{	
+			$types[]='dctype like '.$this->db->escape($dctype);
+		}	
+
+		$custom_where='('.implode(" OR ",$types).')';
+		//$custom_where.=' AND surveys.form_id in '.implode(',',$da_types);
+		
+		
+		$this->db->select("surveys.id,resources.resource_id,filename");
+		$this->db->join('resources', 'surveys.id= resources.survey_id','inner');		
+		$this->db->where($custom_where);
+		$this->db->where_in("surveys.formid",$da_types);
+		$resources=$this->db->get("surveys")->result_array();
+		//echo $this->db->last_query();
+		
+		
+		//build an array of broken resources
+		$broken_links=array();
+		$broken_links_found=0;
+		foreach($resources as $resource)
+		{
+			//skip row if URL
+			if (is_url($resource['filename']))
+			{
+				continue;
+			}
+			
+			$path=NULL;
+			$path=$this->Catalog_model->get_survey_path_full($resource['id']);
+			
+			if (!$path)
+			{
+				$broken_links[]=$resource['resource_id'];
+				$broken_links_found++;
+			}
+			else if (!file_exists($path.'/'.$resource['filename']))
+			{
+				$broken_links[]=$resource['resource_id'];
+				$broken_links_found++;
+			}
+		
+			//limit number of broken resources
+			if ($broken_links_found>100)
+			{
+				break;
+			}
+		}
+		
+		
+		if (count($broken_links)==0)
+		{
+			return FALSE;
+		}		
+		
+		//return broken resources details
+		$this->db->select("survey_id,resource_id,filename,title");
+		$this->db->where_in("resource_id",$broken_links);
+		$broken_rows=$this->db->get("resources")->result_array();
+		//echo $this->db->last_query();
+		
+		return $broken_rows;
+	}
 }
 ?>

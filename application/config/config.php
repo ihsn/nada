@@ -265,14 +265,14 @@ $config['encryption_key'] = "CzYs1979";
 |
 */
 $config['sess_cookie_name']		= 'anda';
-$config['sess_expiration']		= 7200;//2 hours
+$config['sess_expiration']		= 14400;//4 hours
 $config['sess_expire_on_close']	= FALSE;
 $config['sess_encrypt_cookie']	= TRUE;
 $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'ci_sessions';
 $config['sess_match_ip']		= FALSE;
 $config['sess_match_useragent']	= TRUE;
-$config['sess_time_to_update']	= 300;
+$config['sess_time_to_update']	= 600;
 
 
 /*
@@ -404,15 +404,11 @@ $config['date_format_long']='m/d/Y H:i';
 |	enable_ssl	= 	TRUE/FALSE	whether to enable SSL or not
 |	http_port	=  	port number application is using. e.g. if you are running website on a
 |					non-standard port e.g. http://localhost:81/nada, enter 81  	
-|	proxy_ssl	=	If SSL is managed by a proxy server and SSL is configured in MIXED MODE to have only fewer pages
-|					protected by SSL and proxy can't be configure to send additional headers to tell the application about the SSL,
-|					set the setting to TRUE. This is not a recommended setting and should be used only as 
-|					a workaround, the better solution is to configure proxy server to manage SSL for you.
+|	proxy_ssl				=	TRUE/FALSE - use when the proxy server is managing SSL and SSL info is sent in an HTTP Header
+|	proxy_ssl_header		=	Name of the $_SERVER variable sent by the proxy server
+|	proxy_ssl_header_value	=	Value that indicate page is served using SSL
 |
-|	proxy_ssl_header=	Name of the $_SERVER variable sent by the proxy server
-|	proxy_ssl_header_value=	Value that indicate page is served using SSL
-|
-|	NOTE: proxy_ssl and proxy_ssl_header are two different things and don't work together. and you must disable proxy_ssl setting to use proxy_ssl_header	
+
 | 
 */
 $config['enable_ssl']=FALSE;
@@ -469,7 +465,7 @@ $config['fb_catalog_image']='images/nada-logo.gif';
 | Enable or disable fulltext searching for Microsoft SQLSRV database
 */
 $config['sqlsrv_use_fulltext']=TRUE;
-
+$config['site_user_register']='yes';
 
 /*
 |--------------------------------------------------------------------------
@@ -483,6 +479,12 @@ $config['sqlsrv_use_fulltext']=TRUE;
 */
 $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
+$config['collection_search']='yes';
+
+
+$config['modules_locations'] = array(
+        APPPATH.'modules/' => '../modules/',
+    );
 
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */

@@ -186,20 +186,21 @@ class Ion_auth_model extends CI_Model
 	 * @author Mathew
 	 **/
 	public function activate($id, $code = false)
-	{	    
+	{	
 		$result=FALSE;
-		
+
 	    if ($code != false) 
 	    {  
 		    $query = $this->db->select($this->identity_column)
 	        	->where('activation_code', $code)
 	        	->limit(1)
 	        	->get($this->tables['users']);
-	                	      
+
 			$result = $query->row();
-	        
+
 			if ($query->num_rows() !== 1)
 			{
+				log_message('error', "account activate failed: id=$id, code=$code");
 				return FALSE;
 			}
 		    
@@ -209,7 +210,7 @@ class Ion_auth_model extends CI_Model
 				'activation_code' => '',
 				'active'          => 1
 			);
-	        
+
 			$this->db->where($this->ion_auth->_extra_where);
 			$result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
 	    }
@@ -217,6 +218,7 @@ class Ion_auth_model extends CI_Model
 	    {
 			if (!$this->ion_auth->is_admin()) 
 			{
+				log_message('error', "account activation failed using is_admin: $id");
 				return false;
 			}
 
@@ -256,7 +258,7 @@ class Ion_auth_model extends CI_Model
         
 		$this->db->where($this->ion_auth->_extra_where);
 		$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
-
+		log_message('info', "delog_message('info' query: ".$this->db->last_query());
 		return $result;
 	}
 
@@ -617,54 +619,6 @@ class Ion_auth_model extends CI_Model
 		return FALSE;		
 	}
 	
-	/**
-	* openid_login
-	*
-	* return bool
-	**/
-	
-/*	public function openid_login($identity, $remember=FALSE)
-	{
-	    if (empty($identity) )
-	    {
-	        return FALSE;
-	    }
-	    
-	    $query = $this->db->select('username,email, id, password, group_id')
-						  ->where('username', $identity)
-						  
-						  ->where('active', 1)
-						  //->limit(1)
-						  ->get('users');
-	    
-        $result = $query->row();
-
-        if ($query->num_rows() == 1)
-        {
-
-        		$this->update_last_login($result->id);
-    		    $this->session->set_userdata('email',  $result->email);
-				$this->session->set_userdata('username',  $result->username);
-    		    $this->session->set_userdata('id',  $result->id); //kept for backwards compatibility
-    		    $this->session->set_userdata('user_id',  $result->id); //everyone likes to overwrite id so we'll use user_id
-    		    $this->session->set_userdata('group_id',  $result->group_id);
-    		    
-    		    $group_row = $this->db->select('name')->where('id', $result->group_id)->get($this->tables['groups'])->row();
-
-    		    $this->session->set_userdata('group',  $group_row->name);
-    		    
-    		    if ($remember && $this->config->item('remember_users'))
-    		    {
-    		    	$this->remember_user($result->id);
-    		    }
-    		    
-    		    return TRUE;
-
-        }
-        
-		return FALSE;		
-	}
-*/
 	
 	/**
 	 * get_users
@@ -1001,15 +955,16 @@ class Ion_auth_model extends CI_Model
 	 **/
 	private function remember_user($id)
 	{
-		if (!$id) {
+		if (!$id) 
+		{			
 			return FALSE;
 		}
 		
 		$salt = sha1(md5(microtime()));
 		
-		$this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
+		$is_updated=$this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
 		
-		if ($this->db->affected_rows() == 1) 
+		if ($is_updated !== FALSE) 
 		{
 			$user = $this->get_user($id)->row();
 			
@@ -1195,7 +1150,7 @@ class Ion_auth_model extends CI_Model
 		    	where users.id='.$this->db->escape($userid);
 		
 		$query=$this->db->query($sql);
-	
+
 		if (!$query)
 		{
 			return FALSE;
@@ -1213,10 +1168,10 @@ class Ion_auth_model extends CI_Model
 		{
 			return TRUE;
 		}
-		else if ($repo_access!='LIMITED')
+		/*else if ($repo_access!='LIMITED')
 		{
 			return FALSE;
-		}
+		}*/
 
 		//For LIMITED access, check permission at the repo level
 		
@@ -1232,7 +1187,7 @@ class Ion_auth_model extends CI_Model
 		{
 			show_error("No Repository info was found");
 		}
-		
+
 		//get a list of repos user has access to
 		$user_repos=$this->get_user_repositories($userid);
 		
@@ -1240,11 +1195,11 @@ class Ion_auth_model extends CI_Model
 		{
 			show_error("User has access to no repositories");
 		}
-		
+				
 		//check if user has access to current study's repo
 		foreach($user_repos as $repo)
 		{
-			if ($repo['repositoryid']==$user_repos)
+			if ($repo['repositoryid']==$repositoryid)
 			{
 				return TRUE;
 			}
@@ -1274,7 +1229,7 @@ class Ion_auth_model extends CI_Model
 
 		//get user repositories
 		$this->db->select("repositories.repositoryid as repositoryid,repositories.title as title");
-		$this->db->join('user_repositories', 'repositories.repositoryid = user_repositories.repositoryid','left');
+		$this->db->join('user_repositories', 'repositories.id= user_repositories.repositoryid','left');
 		$this->db->order_by('title'); 
 
 		if ($repo_access!=='UNLIMITED')

@@ -26,9 +26,11 @@
     <input  type="file" name="userfile" id="userfile" size="60"/>
 </div>
 
+<?php /* no longer needed
 <div class="field">
     <label for="folder_structure" class="desc"><input  type="checkbox" name="folder_structure" id="folder_structure" checked="checked"  value="yes"/> <?php echo t('create_folder_structure'); ?></label>
 </div>
+*/?>
     
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />

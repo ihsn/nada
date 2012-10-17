@@ -244,6 +244,7 @@ class Search_helper_model extends CI_Model {
 	{
 		$this->db->select_min('data_coll_start','min_year');
 		$this->db->where('data_coll_start > 0'); 
+		$this->db->where('published',1); 
 		$result=$this->db->get('surveys')->row_array();
 		
 		if ($result)
@@ -262,6 +263,7 @@ class Search_helper_model extends CI_Model {
 	{
 		$this->db->select_max('data_coll_end','max_year');
 		$this->db->where('data_coll_end > 0'); 
+		$this->db->where('published',1); 
 		$result=$this->db->get('surveys')->row_array();
 		if ($result)
 		{
@@ -279,7 +281,7 @@ class Search_helper_model extends CI_Model {
 	{
 		//get start years
 		$sql='select data_coll_start from surveys
-				where data_coll_start>0
+				where data_coll_start>0 and published=1
 				group by data_coll_start;';
 		$result=$this->db->query($sql)->result_array();
 		
@@ -295,7 +297,7 @@ class Search_helper_model extends CI_Model {
 
 		//get end years
 		$sql='select data_coll_end from surveys
-				where data_coll_end>0
+				where data_coll_end>0 and published=1
 				group by data_coll_end;';
 				
 		$result=$this->db->query($sql)->result_array();
@@ -352,8 +354,12 @@ class Search_helper_model extends CI_Model {
 		{
 			$sql.='	inner join survey_repos sr on sr.sid=surveys.id 
 					where sr.repositoryid='.$this->db->escape($repositoryid);
-			//$sql.=' and published=1';		
-		}		
+			$sql.=' and published=1';
+		}
+		else
+		{
+			$sql.=' where published=1';
+		}
 		$sql.=' group by nation';
 		$sql.=' order by nation ASC';
 		return $this->db->query($sql)->result_array();		
@@ -446,5 +452,82 @@ class Search_helper_model extends CI_Model {
 		
 		return $types;
 	}
+	
+	
+	/**
+	* Returns a list of Centers 
+	*
+	**/
+	function get_active_centers($repositoryid)
+	{
+		if ($repositoryid=='central' || trim($repositoryid)=='')
+		{
+			$sql='select survey_centers.id,center_name from surveys
+					inner join survey_centers on survey_centers.sid=surveys.id
+					where surveys.published=1
+				group by survey_centers.id, survey_centers.center_name;';
+		}
+		else
+		{
+			$sql='select survey_centers.id,center_name from surveys
+					inner join survey_centers on survey_centers.sid=surveys.id
+					inner join survey_repos on surveys.id=survey_repos.sid
+					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
+					and surveys.published=1
+				group by survey_centers.id, survey_centers.center_name;';
+		}
+
+		$result=$this->db->query($sql)->result_array();
+
+		if (!$result)
+		{
+			return FALSE;
+		}
+		
+		$centers=array();
+		foreach($result as $row)
+		{
+			$centers[(string)$row['id']]=$row['center_name'];
+		}
+		
+		return $centers;
+	}
+	
+	
+	/**
+	* 
+	* Returns a list of collections
+	*/	
+	function get_collections($repositoryid)
+	{
+		//get collection vocabulary id
+		//$coll_vocab=$this->config->item("collections_vocab");
+
+		$this->db->select('sc.tid as tid, collections.title as title, count(collections.id) as found');
+		$this->db->join('survey_collections sc', 'sc.tid=collections.id','inner');
+		$this->db->join('surveys s', 's.id=sc.sid','inner');
+		$this->db->order_by('collections.title','ASC');
+		
+		//filter by repository
+		if (trim($repositoryid)!=='' && $repositoryid!='central')
+		{
+			$this->db->join('survey_repos sr', 'sr.sid=sc.sid','inner');
+			$this->db->where('sr.repositoryid',$repositoryid);	
+		}
+		
+		$this->db->group_by('sc.tid, collections.title');
+		$this->db->where('s.published',1);
+		
+		$result=$this->db->get('collections')->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[$row['tid']]=$row['title'] .' ('.$row['found'].')';
+		}
+		
+		return $output;
+	}
+	
 }
 ?>

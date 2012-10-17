@@ -32,7 +32,8 @@ class RDF_Parser{
 				'toc'=>9,
 				'filename'=>10,
 				'format'=>11,
-				'type'=>12
+				'type'=>12,
+				'subtitle'=>13
 			);
 	
     //constructor

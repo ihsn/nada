@@ -10,7 +10,7 @@ class Catalog_model extends CI_Model {
 	
 	//fields for the study description
 	var $study_fields=array(
-					'id',
+					'surveys.id',
 					'repositoryid',
 					'surveyid',
 					'titl',
@@ -44,7 +44,9 @@ class Catalog_model extends CI_Model {
 					'project_id',
 					'project_name',
 					'project_uri',
-					'published'
+					'published',
+					'created',
+					'changed'
 					);
 	
 	//additional filters on search
@@ -54,7 +56,6 @@ class Catalog_model extends CI_Model {
 	
     public function __construct()
     {
-        // model constructor
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
@@ -88,17 +89,22 @@ class Catalog_model extends CI_Model {
 		$sort_order=$this->input->get('sort_order');
 		$sort_by=$this->input->get('sort_by');
 		
-		$this->db->start_cache();		
+		//$this->db->start_cache();		
 		
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,changed,sr.repositoryid as repo_link, sr.isadmin as repo_isadmin,published');
+							link_indicator, link_questionnaire,	isshared,changed,created,published,data_coll_start');
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
-		$this->db->join('forms', 'forms.formid= surveys.formid','left');		
-		$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		if ($this->active_repo!=NULL) 
+		{
+			$this->db->select("sr.repositoryid as repo_link, sr.isadmin as repo_isadmin");
+			$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		}	
+		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 
 		//build search using the parameters passed to the GET/POST variables
 		$where=$this->_build_search_query();
@@ -123,7 +129,7 @@ class Catalog_model extends CI_Model {
 				
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('surveys');
-		$this->db->stop_cache();
+		//$this->db->stop_cache();
 
         $result= $this->db->get()->result_array();		
 		return $result;
@@ -138,7 +144,12 @@ class Catalog_model extends CI_Model {
 		$fields=$this->input->get("field");
 		$keywords=trim($this->input->get("keywords"));
 		
-		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'repositoryid'=>'sr.repositoryid','nation');
+		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'proddate','nation');
+		
+		if ($this->active_repo!=NULL)
+		{
+			$allowed_fields['repositoryid']='sr.repositoryid';
+		}	
 		
 		$where=NULL;
 		
@@ -255,17 +266,22 @@ class Catalog_model extends CI_Model {
 		$fields=$this->study_fields;
 		
 		//form fields
-		$fields[]='forms.model as model';
+		$fields[]='surveys.formid, forms.model as model';
+		
+		//notes
+		$fields[]='notes.admin_notes as admin_notes';
+		$fields[]='notes.reviewer_notes as reviewer_notes';
 		
 		//implode
 		$fields=implode(",",$fields);	
 		
 		$this->db->select($fields);
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 		
 		if (is_numeric($id))
 		{
-			$this->db->where('id', $id); 
+			$this->db->where('surveys.id', $id); 
 		}
 		else 
 		{	
@@ -595,7 +611,7 @@ class Catalog_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array('link_technical', 'link_study', 'link_report', 
 							'link_indicator','link_questionnaire',
-							'isshared','formid','changed','isdeleted','link_da');
+							'isshared','formid','changed','isdeleted','link_da','published');
 		
 		//pk field name
 		$key_field='id';
@@ -657,7 +673,12 @@ class Catalog_model extends CI_Model {
 
 			//remove collection dates
 			$this->db->where('sid', $id); 
-			$this->db->delete('survey_years');					
+			$this->db->delete('survey_years');
+			
+			//remove collections
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_collections');					
+
 		}		
 	}
 
@@ -942,130 +963,7 @@ class Catalog_model extends CI_Model {
 	}
 
 
-	/*
-====================================================================================================
-TO BE REMOVED
-*/
 
-	/**
-	* Replace a study with another study
-	*
-	* Replace target survey with source survey
-	*
-	* @source	Source survey ID
-	* @target	Target survey ID
-	*/
-/*
-	function replace($source, $target)
-	{
-		$debug=array();
-		$debug['source'][]=$source;
-		$debug['target'][]=$target;		
-		
-		//get source and target survey info from db	
-		$source_survey=(object)$this->select_single($source);
-		$target_survey=(object)$this->select_single($target);
-		
-		//get datasets folder path
-		$catalog_root=$this->config->item("catalog_root");
-
-		//get ddi file paths
-		$source_ddi_file=$catalog_root.'/'.$source_survey->dirpath.'/'.$source_survey->ddifilename;
-		$target_ddi_file=$catalog_root.'/'.$target_survey->dirpath.'/'.$source_survey->ddifilename;
-		
-		if (!file_exists($source_ddi_file))
-		{
-			$debug['source-ddi-not-found'][]=$source_ddi_file;
-			return $debug;
-		}
-		
-		//get source and target folder paths
-		$source_folder=$catalog_root.'/'.$source_survey->dirpath;
-		$target_folder=$catalog_root.'/'.$target_survey->dirpath;
-
-		//get a list of all files and folders from the source study
-		$files=get_dir_recursive($source_folder,$source_folder);
-		
-		//modify repositoryid to DUPLICATE FOR source survey, so we can rename the target with the same surveyid
-		$this->db->query(sprintf("update surveys set repositoryid='%s' where id=%s",'DUPLICATE',$source));
-		//echo '<BR>'.$this->db->last_query();
-		$debug['update-surveys']=$this->db->last_query();
-		
-		//replace target DDI
-		$ddi_copied=copy($source_ddi_file,$target_ddi_file);
-		$debug['ddi-copied']=$ddi_copied;
-
-		//Copy all folders/files to the target folder overwriting existing files
-		
-		//copy files/directories to target survey folder
-		foreach ($files['folders'] as $folder)
-		{
-			$folder_path=$target_folder.'/'.$folder;
-			if (!file_exists($folder_path))
-			{
-				$dir_created=@mkdir($folder_path);
-				$debug['dir-created'][]=($dir_created===FALSE ? 'FAILED ' : 'COPIED'). ' - '. $folder_path;
-			}
-		}
-		
-		//copy files - it will overwrite any existing files
-		foreach($files['files'] as $file)
-		{
-			$file_copied=@copy($source_folder.'/'.$file, $target_folder.'/'.$file);
-			$debug['file-copied'][]=($file_copied===FALSE ? 'FAILED ' : 'COPIED'). ' - '. $file;
-		}
-
-		//list of study fields
-		$db_fields=$this->study_fields;
-		
-		//update target db info
-		$update_options=array();
-		
-		//fill with source info
-		foreach($db_fields as $field)
-		{
-			$update_options[$field]=$source_survey->{$field};
-		}
-		unset($update_options['id']);
-		
-		//update db
-		$this->db->where('id',$target);
-		$this->db->update('surveys',$update_options);
-		//echo $this->db->last_query();	
-	
-		//delete variables from target
-		$this->db->query(sprintf('delete from variables where surveyid_FK=%d',$target));
-		$debug['query'][]=$this->db->last_query();
-		
-		//replace variables
-		$this->db->query(sprintf('update variables set surveyid_FK=%d where surveyid_FK=%d',$source,$target));
-		$debug['query'][]=$this->db->last_query();
-		
-		//replace external resources reference
-		$this->db->query(sprintf('update resources set survey_id=%d where survey_id=%d',$source,$target));
-		$debug['query'][]=$this->db->last_query();
-		
-		//update topics
-		$this->db->query(sprintf('update survey_topics set sid=%d where sid=%d',$source,$target));
-		$debug['query'][]=$this->db->last_query();
-		
-		//update citations
-		$this->db->query(sprintf('update survey_citations set sid=%d where sid=%d',$source,$target));
-		$debug['query'][]=$this->db->last_query();
-
-		//update collection dates
-		$this->db->query(sprintf('update survey_years set sid=%d where sid=%d',$source,$target));
-		$debug['query'][]=$this->db->last_query();
-		
-		return $debug;		
-	}
-*/
-/*
-====================================================================================================
-END TO BE REMOVED
-*/
-
-	
 	/**
 	*
 	* Check if a study has citations
@@ -1232,5 +1130,68 @@ END TO BE REMOVED
 		return FALSE;
 	}
 	
+	/**
+	*
+	* Attach an admin/reviewer note to a study
+	**/
+	function attach_note($sid,$note, $note_type="admin")
+	{
+		$options=array();
+		if ($note_type=="reviewer")
+		{
+			$options['reviewer_notes']=$note;
+		}
+		else
+		{
+			$options['admin_notes']=$note;
+		}
+
+		if ($this->note_exists($sid))
+		{
+			$this->db->where("sid",$sid);
+			return $this->db->update("survey_notes",$options);
+		}
+		else
+		{
+			$options['sid']=$sid;	
+			return $this->db->insert("survey_notes",$options);	
+		}
+		
+	}
+	
+	
+	/**
+	*
+	* Check if survey has a note attached
+	**/
+	function note_exists($sid)
+	{
+		$this->db->select("sid");
+		$this->db->where("sid",$sid);
+		$result=$this->db->get("survey_notes")->result_array();
+		
+		if ($result)
+		{
+			if (count($result)>0)
+			{
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
+	
+	
+	/**
+	*
+	* Get Repository owners info
+	*
+	**/
+	function get_repo_ownership($sid)
+	{
+		$this->db->select("repositoryid");
+		$this->db->where("sid",$sid);
+		$this->db->where("isadmin",1);
+		$result=$this->db->get("survey_repos")->result_array();
+		return $result;		
+	}
 }
-?>

@@ -1437,7 +1437,6 @@ body a:hover{text-decoration:underline}
 .tab-h-m{background-position: 0 -108px;background-repeat:repeat-x;height:35px;margin:0 9px}
 .tab-f-l{background-position:0 -284px}
 .tab-f-r{background:#F3F6FB url(img_sprite_latest.gif) no-repeat right -308px;margin:0;height:10px;margin-left:10px;line-height:12px;* height:7px}
-.tab-panel{margin-top:18px;}
 .tab-panel-l{margin-top:12px;}
 .tab-panel H3 {
 PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-WEIGHT: 400; PADDING-BOTTOM: 0px; MARGIN: 0px; /*COLOR: #e67821;*/color:#333; PADDING-TOP: 7px

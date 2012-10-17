@@ -1,14 +1,15 @@
+<?php //if (!$is_home):?>
 <div class="sidebar" style="width:220px;">
 <!--side-bar -->
 <div class="left-nav-gray" >
 	<div class="left-nav-h-gray_blank">
 		<h4>&nbsp;</h4>
 	</div>
-	<div class="left-nav-g">
-<?php echo $sidebar;?>	</div>
+	<div class="left-nav-g"><?php echo $sidebar;?></div>
 	<div class="left-gray-f"><span>&nbsp;</span></div>
 </div>
 <!--end-sidebar-->
+<?php //endif;?>
 
 <!--sidebar-reference-owner-->
 <div class="grey-module" id="stpModule">

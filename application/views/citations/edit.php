@@ -21,6 +21,9 @@ table .input-flex{margin-bottom:5px;}
 .header span{width:12px;display:inline-block}
 .headerSortUp span {background:url("<?php echo js_base_url();?>images/arrow-asc.png") no-repeat right center;}
 .headerSortDown span {background:url("<?php echo js_base_url();?>images/arrow-desc.png") no-repeat right center;}
+
+.ui-dialog .ui-dialog-content {background:white;}
+.ui-widget-header{background:black;border:none;}
 </style>
 
 <div class="page-links">
@@ -79,6 +82,7 @@ table .input-flex{margin-bottom:5px;}
 
 <?php echo form_open_multipart($this->html_form_url, array('class'=>'form') ); ?>
 <input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
+<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: 'cit-'.date("U")); ?>"/>
 
 <div id="citation-preview" class="field">
     <span class="citation-author"><?php echo isset($authors) ? $authors : ''; ?></span>
@@ -138,7 +142,8 @@ table .input-flex{margin-bottom:5px;}
 <div class="field">
     <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
 			<?php echo $survey_list; ?>
-    </div>    
+    </div> 
+	<a style="display:block" class="add_survey" href="javascript:void(0);">Add Surveys</a>   
     <a style="" href="#clear" title="Clear all the selected studies" onclick="clear_studies();return false"><?php echo t('clear_selection');?></a>
 </div>
 </fieldset>
@@ -218,12 +223,8 @@ table .input-flex{margin-bottom:5px;}
 		//change citation type
 		$("#citation_type").change(function(){
 			$("#change_type").click();
-		});
-		
-		//table sorter
-		$("#related-surveys-table").tablesorter(); 
-	});
-	
+		});		
+	});	
 		
 	//add a new author/translator/editor row
 	function add_author_row(id,name)
@@ -241,6 +242,58 @@ table .input-flex{margin-bottom:5px;}
 	{
 		$(el).parent().parent().remove();
 	}
+	
+
+	//attach related surveys
+	$(function() {
+		
+		//temp session id
+		var tmp_id=$("#tmp_id").val();
+		
+		//add attached surveys to session, needed when editing a citations with survey attached
+		var url_add=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+'<?php echo implode(",",$selected_surveys_id_arr);?>/1';
+		$.get(url_add);
+		
+		//attach survey dialog
+		$('.add_survey').click(function() {
+				var iframe_url=CI.base_url+'/admin/related_surveys/index/'+tmp_id;
+				$('<div id="dialog-modal" title="Select Related Surveys"></div>').dialog({ 
+					height: 540,
+					width: 700,
+					resizable: false,
+					draggable: false,
+					modal: true,
+					close: function() {
+						$.get(CI.base_url+'/admin/citations/selected_surveys/'+tmp_id, function(data) {
+							$('#related-surveys').html(data);
+							related_surveys_click();
+						});
+					}
+				}).append('<iframe height="485" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+		});
+		
+		related_surveys_click();
+	});
+
+	//attach click event handler for survey select/unselect
+	function related_surveys_click()
+	{
+			$('.chk').unbind('click').click(function(e) {
+			
+			var tmp_id=$("#tmp_id").val();
+			
+			if($(this).is(':checked')) {
+            	url=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+$(this).val()+'/1';
+         	}
+			else{
+				url=CI.base_url+'/admin/related_surveys/remove/'+tmp_id+'/'+$(this).val()+'/1';
+			}
+			
+			$.get(url);
+		});
+	}
+	
+
 </script>
 
 <?php 

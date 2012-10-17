@@ -51,5 +51,9 @@ $lang['public_requests'] = "Public Requests";
 $lang['dated'] = "Dated";
 $lang['intended_use'] = "Intended use";
 $lang['details'] = "Details";
-/* End of file vocabularies_lang.php */
-/* Location: ./system/language/english/vocabularies_lang.php */
+$lang['missing_data'] = "Studies missing data files";
+$lang['studies_data_access'] = "Studies missing data files";
+$lang['repositoryid'] = "Repository";
+$lang['titl'] = "Study title";
+/* End of file reports_lang.php */
+/* Location: ./system/language/english/reports_lang.php */

@@ -119,13 +119,13 @@ class Access_licensed extends MY_Controller {
 
 		//validation rules
 		$this->form_validation->set_rules('org_rec', t('receiving_organization_name'), 'trim|required|xss_clean|max_length[255]');
-		$this->form_validation->set_rules('address', t('postal_address'), 'trim|required|xss_clean|max_length[255]');
+		//$this->form_validation->set_rules('address', t('postal_address'), 'trim|required|xss_clean|max_length[255]');
 		$this->form_validation->set_rules('tel', t('telephone'), 'trim|required|xss_clean|max_length[14]');
 		$this->form_validation->set_rules('datause', t('intended_use_of_data'), 'trim|required|xss_clean|max_length[1000]');
 		$this->form_validation->set_rules('dataset_access', t('dataset_access'), 'trim|required|xss_clean|max_length[15]');
 		
 		//optional fields
-		$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
+		//$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
 		$this->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_length[45]');
 		$this->form_validation->set_rules('datamatching', t('data_matching'), 'trim|xss_clean|max_length[1]');
 		$this->form_validation->set_rules('fax', t('fax'), 'trim|xss_clean|max_lengh[14]');		

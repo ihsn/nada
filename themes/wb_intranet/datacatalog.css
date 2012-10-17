@@ -153,3 +153,17 @@ display: inline-block;}
 .filter-da .da-desc{margin-left:23px;display:block;}
 .filter-da label {margin-bottom:10px;display:block;}
 .filter-da .title{font-weight:bold;}
+
+/*center filter*/
+.center {
+float: left;
+width: 200px;
+font-size: 11px;
+}
+
+/*center filter*/
+.filter-collection .collection{
+float: left;
+width: 400px;
+font-size: 11px;
+}

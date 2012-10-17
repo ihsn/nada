@@ -5,7 +5,7 @@ class Resources extends MY_Controller {
     {
         parent::__construct();
 		
-		$this->template->set_template('blank');		
+		$this->template->set_template('admin');		
        	
 		$this->load->model('Resource_model');
 		$this->load->model('Catalog_model');
@@ -228,7 +228,7 @@ class Resources extends MY_Controller {
 	function edit($id='add')
 	{
 		//check survey id 
-		$survey_id=$this->uri->segment(3);
+		$survey_id=$this->uri->segment(5);
 		
 		if (!is_numeric($survey_id) && $survey_id<1)
 		{
@@ -259,7 +259,7 @@ class Resources extends MY_Controller {
 		//redirect on Cancel
 		if ( $this->input->post("cancel")!="" )
 		{
-			redirect("admin/catalog/$survey_id/resources");
+			redirect("admin/catalog/edit/$survey_id/resources");
 		}	
 		
 		$this->load->library('form_validation');
@@ -322,7 +322,7 @@ class Resources extends MY_Controller {
 				$this->session->set_flashdata('message', t('form_update_success') );
 				
 				//redirect back to the list
-				redirect("admin/catalog/$survey_id/resources");
+				redirect("admin/catalog/edit/$survey_id/resources");
 			}
 			else
 			{
@@ -437,13 +437,19 @@ class Resources extends MY_Controller {
 		$this->edit("add");
 	}
 	
-	function import()
+	function import($sid)
 	{
+	
+		if (!is_numeric($sid))
+		{
+			show_error("invalid_id");
+		}
+		
 		$this->load->library('form_validation');
 		
 		if ($this->input->post('submit'))
 		{
-			$this->do_import();
+			$this->do_import($sid);
 			//echo 'importing';
 		}
 		else
@@ -456,7 +462,7 @@ class Resources extends MY_Controller {
 		}
 	}
 	
-	function do_import()
+	function do_import($sid)
 	{
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
@@ -479,7 +485,7 @@ class Resources extends MY_Controller {
 			$this->session->set_flashdata('error', $error);
 			
 			//redirect back to the upload page
-			redirect('admin/catalog/'.$this->uri->segment(3).'/resources/import','refresh');
+			redirect('admin/resources/import/'.$sid,'refresh');
 		}	
 		else //successful upload
 		{			
@@ -506,7 +512,7 @@ class Resources extends MY_Controller {
 				//success
 				foreach($rdf_array as $rdf_rec)
 				{
-					$insert_data['survey_id']=$this->uri->segment(3);
+					$insert_data['survey_id']=$sid;
 					
 					foreach($rdf_fields as $key=>$value)
 					{
@@ -563,7 +569,7 @@ class Resources extends MY_Controller {
 				$this->session->set_flashdata('message', sprintf(t('n_resources_imported'),count($rdf_array)) );	
 			}
 			
-			redirect('admin/catalog/'.$this->uri->segment(3).'/resources','refresh');
+			redirect('admin/catalog/edit/'.$sid.'/resources','refresh');
 		}
 	}	
 
@@ -624,7 +630,7 @@ class Resources extends MY_Controller {
 	* files exists in the survey folder
 	*
 	*/
-	function fixlinks($surveyid=NULL)
+	function __fixlinks($surveyid=NULL)
 	{
 		if ($this->input->post("submit"))
 		{
@@ -636,19 +642,17 @@ class Resources extends MY_Controller {
 		}
 		
 		$this->template->write('content', $content,true);
-		$this->template->render();	
-			
-		return;
-		echo '<pre>';
-		var_dump($files['files']);
-		var_dump($broken_links);
-		return;
-		
+		$this->template->render();				
 	}
 	
-	function _fix_links($surveyid)
+	function fixlinks($surveyid)
 	{
-	//get survey folder path
+		if (!is_numeric($surveyid))
+		{
+			show_error("invalid_id");
+		}
+	
+		//get survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
 		
 		//get survey resources
@@ -703,8 +707,11 @@ class Resources extends MY_Controller {
 			$broken_links[$key]['match']=$match;
 		}
 		
-		$content=$this->load->view('managefiles/fixlinks',array('links'=>$broken_links),TRUE);	
-		return $content;
+		
+		
+		//$msg=$this->load->view('managefiles/fixlinks',array('links'=>$broken_links),TRUE);
+		$this->session->set_flashdata('message', sprintf (t('n_resources_fixed'),$this->fixed_count));
+		redirect('admin/catalog/edit/'.$surveyid.'/resources',"refresh");
 	}
 	
 	/**

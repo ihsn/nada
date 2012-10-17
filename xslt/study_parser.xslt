@@ -202,6 +202,11 @@ License:
 	    <xsl:apply-templates select="//ddi:codeBook/ddi:docDscr/ddi:docSrc/ddi:distStmt/ddi:depositr"/>
     </xsl:element>
 
+	<!--origArch - center -->
+    <xsl:element name="center">
+	    <xsl:value-of select="normalize-space(//ddi:codeBook/ddi:stdyDscr/ddi:dataAccs/ddi:setAvail/ddi:origArch)"/>
+    </xsl:element>
+
 </xsl:template>
 
 

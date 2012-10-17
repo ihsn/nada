@@ -407,7 +407,7 @@ class DDI_Browser{
 		//read the xml file
 	    if(!$reader->open($ddi_file))
 		{ 
-			print "can't open file";
+			log_message('error', "FILE_OPEN_FAILED: $ddi_file");
 			return false;
 		}
 		

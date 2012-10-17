@@ -154,7 +154,29 @@ class Reports extends MY_Controller {
 				}					
 				$this->load->view("reports/user_activity",$data);
 			break;
-
+			
+			case 'study-data-access':
+				$data['rows']=$this->Reports_model->study_data_access();
+				if ($format=='excel')
+				{
+					$output=$this->load->view("reports/study_data_access",$data,TRUE);
+					$this->_export_to_excel($output,'study-data-'.date("m-d-y").'.xls');
+					return;
+				}
+				$this->load->view("reports/study_data_access",$data);
+				break;
+				
+			case 'broken-resources':
+				//find broken links for microdata types only
+				$data['rows']=$this->Reports_model->broken_resources(array('%dat/micro]%', '%dat]%'));
+				if ($format=='excel')
+				{
+					$output=$this->load->view("reports/broken_resources",$data,TRUE);
+					$this->_export_to_excel($output,'broken-resources-'.date("m-d-y").'.xls');
+					return;
+				}
+				$this->load->view("reports/broken_resources",$data);
+				break;	
 			default:
 				$this->index();
 			break;
@@ -194,6 +216,7 @@ class Reports extends MY_Controller {
 			$this->load->view('reports/excel',array('rows'=>$rows));
 		}	
 	}
+	
 	
 	
 	/**

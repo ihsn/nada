@@ -382,7 +382,9 @@ class Repository_model extends CI_Model {
 			'long_text',
 			'thumbnail',
 			'type',
-			'weight'
+			'weight',
+			'ispublished',
+			'section'
 			);
 
 		//add date modified
@@ -427,8 +429,15 @@ class Repository_model extends CI_Model {
 			'country',
 			'status',
 			'changed',
+			'scan_interval',
+			'scan_lastrun',
+			'short_text',
+			'long_text',
+			'thumbnail',
 			'type',
-			'weight'
+			'weight',
+			'ispublished',
+			'section'
 			);
 
 		//add date modified
@@ -448,7 +457,7 @@ class Repository_model extends CI_Model {
 		//insert record into db
 		$result=$this->db->insert('repositories', $data); 
 		
-		return $result;		
+		return $result;	
 	}
 
 
@@ -689,5 +698,23 @@ class Repository_model extends CI_Model {
 			
 		return $count;
 	}
+
+	/**
+	*
+	* Returns an array of repository sections
+	**/
+	function get_repository_sections()
+	{
+		$result= $this->db->get('repository_sections')->result_array();
+
+		$list=array();
+		foreach($result as $row)
+		{
+			$list[$row['title']]=$row['title'];
+		}
+		
+		return $list;
+	}
+
 }
 ?>

@@ -82,6 +82,9 @@ $lang['confirm_publish_records'] = "Are you sure you want to publish the selecte
 $lang['confirm_unpublish'] = "Confirm unpublish?";
 $lang['confirm_unpublish_records'] = "Are you sure you want to unpublish the selected studies?";
 $lang['select_active_repository'] = "Select a repository";
-
+$lang['select_publish_unpublish']='Select to publish/unpublish';
+$lang['publish']='Publish';
+$lang['series']='Series';
+$lang['data_access']='Data access';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

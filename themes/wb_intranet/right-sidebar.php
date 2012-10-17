@@ -22,8 +22,20 @@ $this->load->view("blocks/catalog_status",$data);
             <?php if ($block['block_format']=='php'):?>            
                     <?php
                     $filepath='cache/block-'.$block['block_name'].'.php';	
-                    file_put_contents($filepath,$block['body']);				
-                    include $filepath;
+                    if (file_exists($filepath))
+					{
+						include $filepath;
+					}
+					else if (!file_exists($filepath))
+					{
+						if (@file_put_contents($filepath,$block['body']))
+						{
+                    		include $filepath;
+						}
+						{
+							log_message('ERROR', "Failed to create block file - ".$filepath);
+						}							
+					}	
                     ?>
             <?php else:?>
                 <?php echo $block['body'];?>

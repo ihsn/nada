@@ -504,10 +504,17 @@ class Licensed_model extends CI_Model {
     	$this->db->start_cache();
 
 		//select columns for output
-		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title');
+		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title, surveys.repositoryid, surveys.nation, surveys.data_coll_start, surveys.data_coll_end');
 		
 		//allowed_fields
-		$db_fields=array('status'=>'status','username'=>'username','title'=>'surveys.titl','survey_title'=>'survey_title','lic_requests.created'=>'created');
+		$db_fields=array(
+					'status'=>'status',
+					'username'=>'username',
+					'title'=>'surveys.titl',
+					'survey_title'=>'surveys.titl',
+					'created'=>'lic_requests.created',
+					'repositoryid'=>'surveys.repositoryid'
+					);
 		
 		//set where
 		if ($filter)
@@ -539,20 +546,20 @@ class Licensed_model extends CI_Model {
 		//set default sort order, if invalid fields are set
 		if (!array_key_exists($sort_by,$db_fields))
 		{
-			$sort_by='surveys.titl';
+			$sort_by='title';
 			$sort_order='ASC';
 		}
 		
 		//must be set outside the start_cache...stop_cache to produce correct count_all_results query
 		if ($sort_by!='' && $sort_order!='')
 		{
-			$this->db->order_by($sort_by, $sort_order); 
+			$this->db->order_by($db_fields[$sort_by], $sort_order); 
 		}
-		
-		
+				
         $result= $this->db->get()->result_array();
 		return $result;
     }
+	
 
 	//returns the search result count  	
     function search_requests_count()

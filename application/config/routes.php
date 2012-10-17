@@ -62,6 +62,7 @@ $route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";
 $route['microdata-catalogs'] = "catalog/repositories";
+//$route['home'] = "catalog/repositories";
 $route['catalog/central/about'] = "catalog/repositories";
 
 //forms {pubic,direct, etc}

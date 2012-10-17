@@ -15,6 +15,10 @@ $repositories_sidebar=$this->load->view("repositories/public_sidebar",array('row
 
 //load blocks for the current page
 $this->blocks=$this->Menu_model->get_blocks($this->uri->segment(1));
+
+//is home page
+$is_home=FALSE;
+if ($this->uri->segment(1)=="home") {$is_home=TRUE;}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -82,82 +86,49 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
         </div>
     </div>
 	
-    <div class="headerLinksblock">    	
-        
-        <a href="http://mint.worldbank.org/" class="headerLinks mbllinkbg">Mobile Intranet</a>
-         |
-         
-        <a class="headerLinks" href="http://www.worldbank.org/">WB External Site</a>
-         | 
-        
-        <a class="headerLinks" href="http://community.worldbank.org/">Scoop</a>
-         | 
-        
-        <a class="headerLinks" href="http://directory.worldbank.org/">WBG Directory</a>
-         | 
-        
-        <a class="headerLinks" href="http://travel.worldbank.org/">Travel</a>
-         | 
-        
-        <a class="headerLinks" href="http://trs/">TRS</a>
-         | 
-        
-        <a class="headerLinks" href="http://lars/">LARS</a>
-         | 
-        
-        <a class="headerLinks" href="http://intranet.worldbank.org/servlet/main?menuPK=51286489&pagePK=64260944&piPK=64260838&theSitePK=328635">Jobs</a>
-		
+    <div class="headerLinksblock">    	        
+        <a href="http://mint.worldbank.org/" class="headerLinks mbllinkbg">Mobile Intranet</a> |         
+        <a class="headerLinks" href="http://www.worldbank.org/">WB External Site</a> |         
+        <a class="headerLinks" href="http://community.worldbank.org/">Scoop</a> |         
+        <a class="headerLinks" href="http://directory.worldbank.org/">WBG Directory</a> |         
+        <a class="headerLinks" href="http://travel.worldbank.org/">Travel</a>   |         
+        <a class="headerLinks" href="http://trs/">TRS</a> |         
+        <a class="headerLinks" href="http://lars/">LARS</a> |         
+        <a class="headerLinks" href="http://intranet.worldbank.org/servlet/main?menuPK=51286489&pagePK=64260944&piPK=64260838&theSitePK=328635">Jobs</a>		
     </div>
 	
 </div>
 
 <div class="headermenu clrboth" >
     <div class="fltL">
-        <ul id="headernav">
-            
+        <ul id="headernav">            
             <li>
-                <a class="tab-sel" href="http://intranet.worldbank.org">Home</a>
-                | 
-            </li>
-            
+                <a class="tab-sel" href="http://intranet.worldbank.org">Home</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/countries/Home.html">Countries</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/countries/Home.html">Countries</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/topics/Home.html">Topics</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/topics/Home.html">Topics</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/units/Home.html">Units</a>
-                | 
+                <a href="http://intranet.worldbank.org/units/Home.html">Units</a>  | 
             </li>
             <li>
-                <a href="http://myhr.worldbank.org/">myHR</a>
-                | 
+                <a href="http://myhr.worldbank.org/">myHR</a>  | 
             </li>
             <li>
-                <a href="http://intranet.worldbank.org/operations/Home.html">Operations</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/operations/Home.html">Operations</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/services/Home.html">Services &amp; References</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/services/Home.html">Services &amp; References</a>  | 
+            </li>            
             <li>
-                <a href="http://intranet.worldbank.org/people/Home.html">People</a>
-                | 
-            </li>
-            
+                <a href="http://intranet.worldbank.org/people/Home.html">People</a>  | 
+            </li>            
             <li class="tab-sel">
-                <a class="tab-sel" href="http://intranet.worldbank.org/documents/Home.html">Documents &amp; Data</a>
-                | 
-            </li>
-            
+                <a class="tab-sel" href="http://intranet.worldbank.org/documents/Home.html">Documents &amp; Data</a>  | 
+            </li>            
         </ul>
     </div>
 </div>
@@ -165,7 +136,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 	
 </div>
 
-	  			
+
 <!-- SearchBar code comes here -->
 <form name="srchForm" id="srchForm" action="<?php echo site_url();?>/catalog" style="margin: 0px; padding: 0px;" autocomplete="off" >
 
@@ -194,32 +165,27 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 </div>
 </form>
 
-
+<?php //if (!$is_home):?>
 
     <!--login information bar-->
     <span id="user-container">
     <?php $this->load->view('user_bar');?>
     </span>
-    
-        <!--share-bar -->
-        <div id="page-tools">
-        <?php include 'share.php';?>
-        </div>
-    
-        <!--breadcrumbs -->
-       <!-- <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
-        <?php if ($breadcrumbs_str!=''):?>
-            <div id="breadcrumb">
-            <?php echo $breadcrumbs_str;?>
-            </div>
-        <?php endif;?>-->
 
+    <!--share-bar -->
+    <!--
+    <div id="page-tools">
+    <?php //include 'share.php';?>
+    </div>
+    -->
+<?php //endif;?>
 
 <div id="doc3" class="yui-t2" >
 
 <?php
 	//pages with two columns
 	$two_col_urls=array('catalog','citations');
+	$sub_notab_segments=array('history');
 	$yui_class="";
 	//if (in_array($this->uri->segment(1),$two_col_urls))
 	if (isset($this->blocks['rightsidebar']))
@@ -237,17 +203,18 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
                     <!-- main content area-->
                    <!--page-contents-->
                     <div class="page-contents">
-                    <?php if ($this->uri->segment(1)=='catalog'):?>
+                    <?php if ($this->uri->segment(1)=='catalog' && !in_array($this->uri->segment(2),$sub_notab_segments)):?>
                         <?php @include 'tabbed_content.php';?>
                     <?php else:?>            
-                            <!--breadcrumbs -->
-                            <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
-                            <?php if ($breadcrumbs_str!=''):?>
-                                <div id="breadcrumb" class="notabs">
-                                <?php echo $breadcrumbs_str;?>
-                                </div>
-                            <?php endif;?>
-                                
+                            <?php if (!$is_home):?>
+                                <!--breadcrumbs -->
+                                <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
+                                <?php if ($breadcrumbs_str!=''):?>
+                                    <div id="breadcrumb" class="notabs">
+                                    <?php echo $breadcrumbs_str;?>
+                                    </div>
+                                <?php endif;?>
+                            <?php endif;?>    
                         <?php echo isset($content) ? $content : '';?>
                     <?php endif;?>
                     </div>                    
@@ -255,7 +222,7 @@ x.sidebar{float:left;position:absolute;top:0px;left:0px}
 			  
               <?php if (isset($this->blocks['rightsidebar'])):?>
               <!-- right sidebar -->	
-              <div class="yui-u">					
+              <div class="yui-u right-col">
                <?php @include 'right-sidebar.php';?>
 			  </div>
               <!--end right sidebar -->

@@ -13,6 +13,8 @@ $config['omniture_s_account_dev']='DEVWBTSTSAMP3';
 //omniture prod account
 $config['omniture_s_account_prod']='wbnispdecextmdc,wbglobalext';
 
+//omniture page name
+$config['omniture_pagename']='Data > Data Catalog > ';
 
-/* End of file config.php */
-/* Location: ./system/application/config/config.php */
+/* End of file omniture.php */
+/* Location: ./system/application/config/omniture.php */

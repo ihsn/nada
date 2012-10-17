@@ -55,13 +55,13 @@ class DDI_Import{
 		
 		$this->ddi_array=$data;
 		
+		//check if survey already exists
+		$id=$this->survey_exists($surveyid=$this->ddi_array['study']['id'],$repositoryid=$this->repository_identifier);
+
 		//check if the survey already exists
 		if ($overwrite!==TRUE)
-		{
-			//check if survey already exists
-			$survey_exists=$this->survey_exists($surveyid=$this->ddi_array['study']['id'],$repositoryid=$this->repository_identifier);
-			
-			if($survey_exists!==FALSE)
+		{			
+			if($id!==FALSE)
 			{
 				$this->errors[]=t('study_already_exists');
 				return FALSE;
@@ -79,20 +79,24 @@ class DDI_Import{
 		else
 		{	
 			//copy survey file to the repository
-			$survey_path=$this->_copy_survey_file(
-						$ddi_file_path,
-						$surveyid=$data['study']['id'],
-						$repositoryid=$this->repository_identifier
-						);
+			$survey_ddi_path=$this->_copy_survey_file(
+									$ddi_file_path,
+									$surveyid=$data['study']['id'],
+									$repositoryid=$this->repository_identifier);
 
-			if ($survey_path===false)
+			if ($survey_ddi_path===false)
 			{
 				//$this->ci->db->trans_rollback();
 				return false;
 			}
 			
+			//get survey folder path
+			$survey_folder=$this->_get_survey_folder($this->ddi_array['study']['id'],$this->repository_identifier);
+			
+			log_message("error", "survye-folder-path::::".$survey_folder);
+			
 			//update survey path in database
-			$this->update_survey_pathinfo();
+			$this->update_survey_pathinfo($survey_folder);
 
 			//import variables		
 			if (!$this->import_variables())
@@ -103,6 +107,55 @@ class DDI_Import{
 		}
 		
 		return FALSE;
+	}
+
+
+	/**
+	*
+	* replace DDI file - study + variable information
+	*
+	* @data
+	* @ddi_file_path	newly uploaded ddi file path
+	* @target_survey_id	ID of the DDI that will be replaced with the new ddi
+	*
+	* @return boolean
+	*/
+	function replace($data,$ddi_file_path,$target_survey_id)
+	{	
+		if ( !is_array($data) )
+		{
+			$this->errors[]='DDI_Import:: No data was provided for replace';
+			log_message('ERROR', 'DDI_Import:: No data was provided for replace');
+			return false;
+		}
+		
+		$this->ddi_array=$data;
+		
+		//check if the survey already exists
+		$id=$this->survey_exists($surveyid=$this->ddi_array['study']['id']);
+		
+		// check if survey already exists in the catalog and ID is not same as the target
+		// replace will not replace if duplicate survey exists	
+		if ($id!==FALSE && $id!==$target_survey_id)
+		{
+			$this->errors[]=t('study_already_exists')."{$this->ci->db->last_query()} ddi: {$this->ddi_array['study']['id']} source{$id} target {$target_survey_id} ";
+			$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');			
+			log_message('ERROR', 'ddi replace aborted: study already exists '.$id);
+			return FALSE;
+		}
+				
+		//change old study info with new info
+		$options=array(
+			'surveyid'=>$this->ddi_array['study']['id']
+		);						
+		$this->ci->db->where("id",$target_survey_id);
+		$this->ci->db->update("surveys",$options);
+		
+		//$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');
+		log_message('INFO', 'DDI_Import: updated study file to new file');
+		
+		//import will replace the DDI with new metadata
+		return $this->import($data,$ddi_file_path,$overwrite=TRUE);
 	}
 
 	/**
@@ -119,6 +172,7 @@ class DDI_Import{
 		
 		//clean up authenty
 		$authenty_arr=explode("{BR}",substr($data->authenty,0,200));
+		
 		foreach($authenty_arr as $key=>$pi)
 		{
 			if	($pi=='')
@@ -163,10 +217,7 @@ class DDI_Import{
 			'formid'=>6
 		);
 	
-		/*echo '<pre>';
-		var_dump($row['ie_team_leaders']);
-		var_dump($row);
-		exit;*/
+
 		//production date, use the max date
 		// todo:fix this is a workaround, catalog search MUST use the data_coll_start or end 
 		// dates for sorting and searching instead of using proddate
@@ -180,7 +231,7 @@ class DDI_Import{
 		}	
 	
 		//check if survey already exists
-		$id=$this->survey_exists($surveyid=$data->id,$repositoryid=$this->repository_identifier);
+		$id=$this->survey_exists($surveyid=$data->id);
 
 		//new survey
 		if(!$id)
@@ -196,12 +247,18 @@ class DDI_Import{
 			else
 			{
 				$this->errors[]='DB_ERROR: '.$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
+				log_message('ERROR', 'DDI_Import-DB_ERROR:: '.$this->ci->db->last_query());
 				return FALSE;
 			}
 		}
 		else //existing survey
 		{
 			$where=sprintf('id=%d',$id);
+			
+			//unset fields
+			unset($row['published']);
+			unset($row['formid']);
+			
 			$sql= $this->ci->db->update_string('surveys', $row,$where);			
 			$this->ci->db->query($sql);
 		}
@@ -214,7 +271,7 @@ class DDI_Import{
 				$error.="\r\n".$this->ci->db->last_query();				
 						
 				//add to error log file	
-				log_message('error', $error);				
+				log_message('error', $error);
 				return FALSE;			
 		}
 
@@ -224,44 +281,60 @@ class DDI_Import{
 		//update data collection dates
 		$this->update_data_collection_dates($id, $row);
 		
+		//update survey centers
+		if (isset($data->center) && trim($data->center)!="")
+		{
+			$this->update_orig_arch($id,$data->center);
+		}
+		
 		//remove old topic mappings
 		$this->ci->db->delete('survey_topics',array('sid' => $id));
 
 		//import topics
 		if ($data->topics)
-		{			
-			foreach($data->topics['topic'] as $topic)
+		{	
+			//topics array structure is different for single and multiple topics
+			if (isset($data->topics['topic']) && isset($data->topics['topic']['name']))
 			{
-				$pos=strrpos($topic['name'],' ');//position of the last space
-				/*if (substr($topic['name'],$pos+1,1)=='[')
-				{				
-					//remove the toolkit numbers e.g. xxxx xxxx [1.2] will become xxxx xxxxx
-					$topic_title=substr($topic['name'],0,strrpos($topic['name'],' '));
-				}
-				else
-				{
-					$topic_title=$topic['name'];
-				}*/
-				$topic_title=trim($topic['name']);
-				
-				//get topic id
-				$topic_id=$this->get_topic_by_title($topic_title);
-				
-				//add topic to db
-				if ($topic_id!==FALSE)
-				{				
-					$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
-					$this->ci->db->insert('survey_topics', $topic_row);
-					//var_dump($topic_row);
-				}	
+						$topic_title=trim($data->topics['topic']['name']);
+						
+						//get topic id
+						$topic_id=$this->get_topic_by_title($topic_title);
+						
+						//add topic to db
+						if ($topic_id!==FALSE)
+						{				
+							$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
+							$this->ci->db->insert('survey_topics', $topic_row);
+						}	
 			}
+			else //multiple topics
+			{
+					foreach($data->topics['topic'] as $topic)
+					{
+						$topic_title=trim($topic['name']);
+						
+						//get topic id
+						$topic_id=$this->get_topic_by_title($topic_title);
+						
+						//add topic to db
+						if ($topic_id!==FALSE)
+						{				
+							$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
+							$this->ci->db->insert('survey_topics', $topic_row);
+						}	
+						
+					}//end-foreach
+				}//end-else			
 		}
 		
 		//collections
+		/*
+		//TODO:Remove
 		if ($data->collections)
 		{
 			$this->update_collections($id,$data->collections);
-		}
+		}*/
 		
 		$this->id=$id;
 		
@@ -420,6 +493,40 @@ class DDI_Import{
 			}
 		}
 	}
+	
+	
+	/**
+	*
+	* add/update center info using the element (origArch)
+	*
+	* Note: Expects element to be a comma separated list 
+	*/
+	function update_orig_arch($surveyid, $el)
+	{
+		//remove existing dates if any
+		$this->ci->db->delete('survey_centers',array('sid' => $surveyid));
+		
+		//split centers
+		$centers=explode(",",$el);
+
+		//insert dates into database
+		foreach($centers as $center)
+		{
+			$options=array(
+						'sid' => $surveyid,
+						'center_name' => trim($center));
+			//insert			
+			$result=$this->ci->db->insert('survey_centers',$options);
+			
+			if(!$result)
+			{
+				$this->errors[]=$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
+				return FALSE;
+			}
+		}
+	}
+
+
 
 	/**
 	*
@@ -487,7 +594,7 @@ class DDI_Import{
 	* Update database with survey folder path
 	*
 	*/
-	function update_survey_pathinfo()
+	function update_survey_pathinfo($survey_path=NULL)
 	{		
 		$surveyid=$this->ddi_array['study']['id'];
 		$id=$this->survey_exists($surveyid,	$this->repository_identifier);
@@ -496,7 +603,17 @@ class DDI_Import{
 				'ddifilename'=>"$surveyid.xml",
 				'dirpath'=>$this->repository_identifier.'/'.md5($this->repository_identifier.':'.$surveyid)
 				);
-			
+		
+		if ($id)
+		{
+			unset($row['dirpath']);//don't update path if survey exists in db
+		}
+		
+		if ($survey_path!==NULL && trim($survey_path)!=='')
+		{
+			$row['dirpath']=$survey_path;
+		}
+		
 		$where=sprintf('id=%d',$id);
 		$sql= $this->ci->db->update_string('surveys', $row,$where);
 		$this->ci->db->query($sql);
@@ -508,22 +625,38 @@ class DDI_Import{
 	*/
 	function _copy_survey_file($ddi_source_path,$surveyid,$repositoryid)
 	{
-		$survey_folder=$this->_get_survey_folder($surveyid,$repositoryid);
+		$survey_folder=$this->_get_survey_folder($surveyid,$repositoryid);	
+		$catalog_root=$this->ci->config->item('catalog_root');
+
+		//check if folder exists
+		if (trim($catalog_root)=='' || !file_exists($catalog_root))
+		{
+				$error= t("error_catalog_root_not_set"). " " . $catalog_root;
+				$this->errors[]=$error;
+				log_message('error', $error);
+				return FALSE;
+		}
+		
+		$survey_folder=$catalog_root.'/'.$survey_folder;
 		
 		if ($survey_folder!==false)
 		{
-			$survey_file_path=$survey_folder."/$surveyid.xml";
-			
+			$survey_file_path=unix_path($survey_folder."/$surveyid.xml");
+
+			log_message('error', "survey_folder:".$survey_folder);
+			log_message('error', "ddi_source_path:".$ddi_source_path);
+			log_message('error', "survey_file_path:".$survey_file_path);
+						
 			//if source and target are same, don't copy
-			if (unix_path($ddi_source_path)==unix_path($survey_file_path))
+			if (unix_path($ddi_source_path)==($survey_file_path))
 			{
 				return $survey_file_path;
 			}
 			
 			//copy the ddi file 			
-			if ( !copy($ddi_source_path,$survey_file_path) ) 
+			if (!@copy($ddi_source_path,$survey_file_path) ) 
 			{
-				$this->errors[]= "File was not copied ". $survey_file_path;
+				$this->errors[]= "File was not copied source:$ddi_source_path, target:$survey_file_path";
 				return false;
 			}
 			else
@@ -555,6 +688,19 @@ class DDI_Import{
 				return FALSE;
 		}
 		
+		//check if survey folder is already set in db
+		$survey_row=$this->get_survey_by_surveyid($surveyid);
+		
+		if (count($survey_row)>0)
+		{
+			if ($survey_row["dirpath"]!==NULL && $survey_row["dirpath"]!="")
+			{
+				//$path=$catalog_root.'/'.$survey_row['dirpath'];
+				return $survey_row['dirpath'];
+				//return $path;
+			}	
+		}
+		
 		//repository folder path
 		$repository_folder=$catalog_root."/$repositoryid";
 				
@@ -584,15 +730,22 @@ class DDI_Import{
 				return false;
 			}
 		}
+		log_message('error', "path-normal:".$survey_folder);
+		log_message("error", "survey-relative-path:::".$repositoryid.'/'.md5("$repositoryid:$surveyid"));
 		
-		return $survey_folder;
+		//return relative survey path
+		return $repositoryid.'/'.md5("$repositoryid:$surveyid");
 	}	
 	
 	/**
 	*
 	* check if the survey already exists?
+	*
+	* note: repositoryid param is no longer used
+	*
+	* TODO// remove second param
 	**/
-	function survey_exists($surveyid,$repositoryid)
+	function survey_exists($surveyid,$repositoryid=NULL)
 	{
 		$this->ci->db->select('id');
 		$this->ci->db->from('surveys');
@@ -615,6 +768,27 @@ class DDI_Import{
 	}
 	
 	
+	/**
+	*
+	* Return survey info by survey id
+	**/	
+	function get_survey($id)
+	{
+		$this->ci->db->select('id,surveyid');
+		$this->ci->db->where("id",$id);
+		return $this->ci->db->get('surveys')->row_array();		
+	}
+	
+	/**
+	*
+	* Return survey info by surveyid
+	**/	
+	function get_survey_by_surveyid($surveyid)
+	{
+		$this->ci->db->select('id,surveyid,dirpath');
+		$this->ci->db->where("surveyid",$surveyid);
+		return $this->ci->db->get('surveys')->row_array();		
+	}
 	
 	/**
 	* Returns Topic ID by topic name

@@ -129,6 +129,11 @@ class Citations extends MY_Controller {
 
 	function edit($id=NULL)
 	{
+		//for related surveys dialog box
+		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
+		$this->template->add_js('javascript/jquery/ui/ui.core.js');
+		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+
 		$this->citation_id=$id;//needed for the citation edit/add view
 		
 		//form action url
@@ -155,7 +160,6 @@ class Citations extends MY_Controller {
 			$this->html_form_url.='/edit/'.$id;
 		}
 		
-		$this->template->add_js('javascript/jquery.tablesorter.min.js');
 		
        //validate form input
 		$this->form_validation->set_rules('title', 'Title', 'xss_clean|trim|max_length[255]|required');
@@ -203,18 +207,29 @@ class Citations extends MY_Controller {
 		//load list of all surveys		
 		$survey_list['surveys']=$this->Citation_model->get_all_surveys(NULL);
 		
+		//surveys attached to the citations
+		$selected_surveys=array();
+		
 		//attached survey from the postback data
 		if ($this->input->post("sid"))
 		{
-			$survey_list['related_surveys']=$this->input->post("sid");
+			//get the selected surveys from sid
+			$survey_id_arr=$this->input->post("sid");
+		
+			//get survey info from db
+			$selected_surveys=$this->Citation_model->get_surveys($survey_id_arr);
 		}
 		else
-		{	//attached surveys from database		
-			$survey_list['related_surveys']=isset($data['related_surveys']) ? $this->_get_related_surveys_array($data['related_surveys']) : array();
+		{	
+			//see if the edited citation has surveys attached, otherwise assign empty array
+			$selected_surveys=isset($data['related_surveys']) ? $data['related_surveys'] : array();
 		}
 		
+		//IDs of selected surveys
+		$data['selected_surveys_id_arr']=$this->_get_related_surveys_array($selected_surveys);
+		
 		//load list of formatted surveys list for choosing related surveys			
-		$data['survey_list']=$this->load->view('citations/surveys', $survey_list,TRUE);	
+		$data['survey_list']=$this->load->view('citations/selected_surveys', array('selected_surveys'=>$selected_surveys),TRUE);	
 			
 		//load form			
 		$content=$this->load->view('citations/edit', $data,TRUE);
@@ -225,6 +240,33 @@ class Citations extends MY_Controller {
 		$this->template->render();				
 	}
 
+
+
+	/**
+	*
+	* Returns formatted selected survey list from session
+	**/
+	function selected_surveys($skey,$isajax=1)
+	{
+		//get survey id array from session
+		$survey_id_arr=(array)$this->session->userdata($skey);
+		
+		//get survey info from db
+		$data['selected_surveys']=$this->Citation_model->get_surveys($survey_id_arr);
+		
+		//load formatted list
+		$output=$this->load->view("citations/selected_surveys",$data,TRUE);
+		
+		if ($isajax==1)
+		{
+			echo $output;
+		}
+		else
+		{
+			return $output;
+		}
+		
+	}
 
 	/**
 	*

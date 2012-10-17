@@ -34,6 +34,27 @@ $hook['post_controller_constructor'][] = array(
                                 'params'   => array()
                                 );
 
+//XHPROF: To enable XHPROF stats enable hooks below
+/*
+$hook['pre_controller'] = array(
+  'class'  => 'XHProf',
+  'function' => 'XHProf_Start',
+  'filename' => 'xhprof.php',
+  'filepath' => 'hooks',
+  'params' => array()
+);
+ 
+$hook['post_controller'] = array(
+   'class'  => 'XHProf',
+   'function' => 'XHProf_End',
+   'filename' => 'xhprof.php',
+   'filepath' => 'hooks',
+   'params' => array()
+);
+*/
+
+/*
+//automatically login
 $hook['post_controller_constructor'][] = array(
                                 'class'    => '',
                                 'function' => 'admin_auto_login',
@@ -41,7 +62,8 @@ $hook['post_controller_constructor'][] = array(
                                 'filepath' => 'hooks',
                                 'params'   => array()
                                 );
-								
+*/
+
 /**
 *
 * Force SSL for urls under /auth if Server has 
@@ -62,6 +84,7 @@ function pre_system_url_check()
 	
 	$http_port=(int)$config["http_port"];
 	$enable_ssl=(bool)$config["enable_ssl"];
+	$proxy_ssl=(bool)$config['proxy_ssl'];
 	$proxy_ssl_header=$config["proxy_ssl_header"];
 	$proxy_ssl_header_value=$config["proxy_ssl_header_value"];
 	
@@ -74,11 +97,11 @@ function pre_system_url_check()
 	$_SERVER[$proxy_ssl_header]=$test_port;//$proxy_ssl_header_value;
 	*/
 
-	if (!$enable_ssl && $proxy_ssl_header=='')
+	if (!$enable_ssl && !$proxy_ssl)
 	{
 		return FALSE;
 	}
-	
+
 	$path_info='';
 	if(isset($_SERVER["PATH_INFO"]))
 	{
@@ -102,7 +125,7 @@ function pre_system_url_check()
 	$is_https=FALSE;
 	
 	//check if using SSL/Proxy/Headers
-	if ($proxy_ssl_header!='' && $proxy_ssl_header_value!='')
+	if ($proxy_ssl===TRUE && $proxy_ssl_header!='')
 	{		
 		//see if the variable is set
 		if (isset($_SERVER[$proxy_ssl_header]))
@@ -126,8 +149,6 @@ function pre_system_url_check()
 			$is_https=TRUE;
 		}	
 	}
-
-	//var_dump($is_https);exit;
 	//page is not viewed using HTTPS
 	if($is_https===FALSE)
 	{	
@@ -241,11 +262,11 @@ function disable_admin_access($params)
 function admin_auto_login()
 {
 		$CI =& get_instance();		
-        $CI->load->helper('url'); // to be on the safe side
+        $CI->load->helper('url');
 			
 		if (!$CI->ion_auth->logged_in()) 
 		{
-			$CI->ion_auth->login('mah0001@gmail.com', 'free001');
+			$CI->ion_auth->login('', '');
 		}
 }
 

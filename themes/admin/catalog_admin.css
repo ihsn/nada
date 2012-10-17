@@ -21,9 +21,12 @@
 #surveys .action-bar ul li a:hover{color:maroon}
 
 .tbl-survey-info{width:100%;}
+.tbl-survey-info .inline-edit{background-color:#DAE8E6}
+.tbl-survey-info .alternate{background-color:#E6F0EF}
 
 .icon {width:16px;height:16px;display:inline-block}
 .owned{background:url("bullet-green.gif") no-repeat;}
 .linked{background:url("../../images/link.png") no-repeat;}
 
-#surveys table th a.selected{background:none;border:none;color:black;}
+a.mini-button{background:white;padding:5px;display:inline-block;margin:2px;}
+a.mini-button:hover{background:black;color:white;}

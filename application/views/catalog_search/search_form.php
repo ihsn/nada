@@ -70,6 +70,16 @@ $this->template->add_js($script, $type = 'embed');
     <?php endif;?>    
     <!-- end da filter -->
 
+	<?php if ($this->center_search=='yes'):?>
+        <!-- center filter-->
+        <?php  $this->load->view("catalog_search/filter_centers"); ?>
+	<?php endif;?>    
+    
+    <?php if ($this->collection_search=='yes'):?>
+        <!-- center filter-->
+        <?php  $this->load->view("catalog_search/filter_collections"); ?>
+	<?php endif;?>    
+    
 
     <?php if ($this->topic_search=='yes'):?>
     	<!-- topics -->
@@ -87,19 +97,6 @@ $this->template->add_js($script, $type = 'embed');
             <br style="clear:both;">
         </div>
         <!-- end topics -->    
-    <?php endif;?>
-    <?php if (isset($this->collection_search) && $this->collection_search=='yes'):?>
-    	<!-- collections -->
-        <h3><a href="#"><?php echo t('filter_by_collection');?> <span id="selected-collections" style="font-size:11px;padding-left:10px;"></span></a></h3> 
-        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" id="collection-list" style="height:150px;font-size:11px;"> 
-            <div style="text-align:right;">
-            	<a  href="#" onclick="select_collection('all');return false;"><?php echo t('link_select_all');?></a> | 
-                <a  href="#" onclick="select_collection('none');return false;"><?php echo t('link_clear');?></a>
-            </div>
-            <?php echo $collections_formatted;?>
-            <br style="clear:both;">
-        </div>
-        <!-- end collections -->    
     <?php endif;?>
 </div>
 	<div class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all" style="padding:5px;">
@@ -164,6 +161,10 @@ var i18n=
 'collections_selected':"<?php echo t('js_collections_selected');?>",
 'country_selected':"<?php echo t('js_country_selected');?>",
 'countries_selected':"<?php echo t('js_countries_selected');?>",
+'center_selected':"<?php echo t('js_center_selected');?>",
+'centers_selected':"<?php echo t('js_centers_selected');?>",
+'collection_selected':"<?php echo t('js_collection_selected');?>",
+'collections_selected':"<?php echo t('js_collections_selected');?>",
 'cancel':"<?php echo t('cancel');?>"
 };
 

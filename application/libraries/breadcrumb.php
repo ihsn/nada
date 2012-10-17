@@ -56,9 +56,11 @@ class Breadcrumb
 		switch($segments[1])
 		{
 				case 'about':
-				case 'terms-of-use':
+				case 'resources':
+				case 'terms':
 				case 'contributing-catalogs':
-				case 'practices-and-tools':
+				case 'deposit':
+				case 'help':
 				case 'faqs':
 					$breadcrumbs[$segments[1]]=t($segments[1]);
 				break;
@@ -83,6 +85,11 @@ class Breadcrumb
 						if (is_numeric($segments[2]))
 						{							
 							$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
+						}
+						
+						if ($segments[2]=='history')
+						{
+							$breadcrumbs['catalog/history/']=t('catalog_history');
 						}
 						
 						if ($segments[2]=='access_policy')
@@ -255,6 +262,10 @@ class Breadcrumb
 				{
 					$breadcrumbs['auth/forgot_password']=t('forgot_password');
 				}
+			break;
+			
+			case 'collections';	
+				$breadcrumbs['collections']=t('collections');
 			break;			
 		}
 		

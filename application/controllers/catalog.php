@@ -22,6 +22,8 @@ class Catalog extends MY_Controller {
 		$this->limit= $this->get_page_size();
 		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
 		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
+		$this->center_search=($this->config->item("center_search")===FALSE) ? 'no' : $this->config->item("center_search");
+		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		
 		//session id for search options
 		$this->session_id="search";
@@ -117,19 +119,35 @@ class Catalog extends MY_Controller {
 		
 		//get list of DA types available for current repository
 		$this->da_types=$this->Search_helper_model->get_active_data_types($this->filter->repo);
+		
+		if ($this->center_search=='yes')
+		{
+			//get list of centers
+			$this->center_list=$this->Search_helper_model->get_active_centers($this->filter->repo);
+		}	
 
+		if ($this->collection_search=='yes')
+		{
+			//get list of collections
+			$this->collection_list=$this->Search_helper_model->get_collections($this->filter->repo);
+		}	
+
+		
+		$this->load->helper('security');
 		//page parameters
-		$this->sk=form_prep(get_post_sess('search',"sk"));
-		$this->vk=form_prep(get_post_sess('search',"vk"));
-		$this->vf=form_prep(get_post_sess('search',"vf"));
-		$this->country=form_prep(get_post_sess('search',"country"));
-		$this->view=form_prep(get_post_sess('search',"view"));		
-		$this->topic=form_prep(get_post_sess('search',"topic"));
-		$this->from=form_prep(get_post_sess('search',"from"));
-		$this->to=form_prep(get_post_sess('search',"to"));		
-		$this->sort_by=form_prep(get_post_sess('search',"sort_by"));
-		$this->sort_order=form_prep(get_post_sess('search',"sort_order"));
-		$this->page=(int)form_prep(get_post_sess('search',"page"));
+		$this->center=xss_clean(get_post_sess('search',"center"));
+		$this->collection=xss_clean(get_post_sess('search',"collection"));
+		$this->sk=xss_clean(get_post_sess('search',"sk"));
+		$this->vk=xss_clean(get_post_sess('search',"vk"));
+		$this->vf=xss_clean(get_post_sess('search',"vf"));
+		$this->country=xss_clean(get_post_sess('search',"country"));
+		$this->view=xss_clean(get_post_sess('search',"view"));		
+		$this->topic=xss_clean(get_post_sess('search',"topic"));
+		$this->from=xss_clean(get_post_sess('search',"from"));
+		$this->to=xss_clean(get_post_sess('search',"to"));		
+		$this->sort_by=xss_clean(get_post_sess('search',"sort_by"));
+		$this->sort_order=xss_clean(get_post_sess('search',"sort_order"));
+		$this->page=(int)xss_clean(get_post_sess('search',"page"));
 		$this->page=($this->page >0) ? $this->page : 1;
 				
 		$offset=($this->page-1)*$this->limit;
@@ -161,6 +179,8 @@ class Catalog extends MY_Controller {
 		{
 			//variable search
 			$params=array(
+				'center'=>$this->center,
+				'collections'=>$this->collection,
 				'study_keywords'=>$this->sk,
 				'variable_keywords'=>$this->vk,
 				'variable_fields'=>$this->vf,
@@ -182,6 +202,8 @@ class Catalog extends MY_Controller {
 		{	
 			//study search view
 			$params=array(
+				'center'=>$this->center,
+				'collections'=>$this->collection,
 				'study_keywords'=>$this->sk,
 				'variable_keywords'=>$this->vk,
 				'variable_fields'=>$this->vf,
@@ -223,18 +245,6 @@ class Catalog extends MY_Controller {
 					array('topics'=>$topics_array,'filter'=>$survey_topics ),
 					TRUE);
 					
-			//formatted collections
-			$this->collection_search='no';
-			if($this->collection_search=='yes')
-			{
-				$survey_collections=$this->term_model->get_survey_collections_array();
-				$collections_array=$this->term_model->get_terms_tree_array(9,$tid=0);
-				
-				$data['collections_formatted']=$this->load->view(
-						'catalog_search/formatted_collection_list',
-						array('collections'=>$collections_array,'filter'=>$survey_collections ),
-						TRUE);
-			}			
 		}
 		else
 		{
@@ -274,7 +284,7 @@ class Catalog extends MY_Controller {
 	function search()
 	{
 		//all keys that needs to be persisted
-		$get_keys_array=array('sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo');
+		$get_keys_array=array('sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','center','collection');
 				
 		//session array
 		$sess_data=array();
@@ -293,22 +303,26 @@ class Catalog extends MY_Controller {
 		
 		//store values to session
 		$this->session->set_userdata(array($this->session_id=>$sess_data));
-
+		
+		$this->load->helper('security');
+		
 		//page parameters
-		$this->sk=form_prep(get_post_sess('search',"sk"));
-		$this->vk=form_prep(get_post_sess('search',"vk"));
-		$this->vf=form_prep(get_post_sess('search',"vf"));
-		$this->country=form_prep(get_post_sess('search',"country"));
-		$this->view=form_prep(get_post_sess('search',"view"));		
-		$this->topic=form_prep(get_post_sess('search',"topic"));
-		$this->from=form_prep(get_post_sess('search',"from"));
-		$this->to=form_prep(get_post_sess('search',"to"));		
-		$this->sort_by=form_prep(get_post_sess('search',"sort_by"));
-		$this->sort_order=form_prep(get_post_sess('search',"sort_order"));
-		$this->page=form_prep(get_post_sess('search',"page"));
+		$this->center=xss_clean(get_post_sess('search',"center"));
+		$this->collection=xss_clean(get_post_sess('search',"collection"));
+		$this->sk=xss_clean(get_post_sess('search',"sk"));
+		$this->vk=xss_clean(get_post_sess('search',"vk"));
+		$this->vf=xss_clean(get_post_sess('search',"vf"));
+		$this->country=xss_clean(get_post_sess('search',"country"));
+		$this->view=xss_clean(get_post_sess('search',"view"));		
+		$this->topic=xss_clean(get_post_sess('search',"topic"));
+		$this->from=xss_clean(get_post_sess('search',"from"));
+		$this->to=xss_clean(get_post_sess('search',"to"));		
+		$this->sort_by=xss_clean(get_post_sess('search',"sort_by"));
+		$this->sort_order=xss_clean(get_post_sess('search',"sort_order"));
+		$this->page=xss_clean(get_post_sess('search',"page"));
 		$this->page= ($this->page >0) ? $this->page : 1;
-		$this->filter->repo=form_prep(get_post_sess('search',"repo"));
-		$this->dtype=form_prep($this->input->get("dtype"));
+		$this->filter->repo=xss_clean(get_post_sess('search',"repo"));
+		$this->dtype=xss_clean($this->input->get("dtype"));
 
 		$offset=($this->page-1)*$this->limit;
 
@@ -340,6 +354,8 @@ class Catalog extends MY_Controller {
 		{
 			//variable search
 			$params=array(
+				'center'=>$this->center,
+				'collections'=>$this->collection,
 				'study_keywords'=>$this->sk,
 				'variable_keywords'=>$this->vk,
 				'variable_fields'=>$this->vf,
@@ -362,6 +378,8 @@ class Catalog extends MY_Controller {
 		
 		//$surveys=$this->Advanced_search_model->search($this->limit,$offset);		
 		$params=array(
+			'center'=>$this->center,
+			'collections'=>$this->collection,
 			'study_keywords'=>$this->sk,
 			'variable_keywords'=>$this->vk,
 			'variable_fields'=>$this->vf,
@@ -372,9 +390,9 @@ class Catalog extends MY_Controller {
 			'sort_by'=>$this->sort_by,
 			'sort_order'=>$this->sort_order,
 			'repo'=>$this->filter->repo,
-			'dtype'=>$this->dtype
-			
+			'dtype'=>$this->dtype			
 		);		
+		
 		$this->load->library('catalog_search',$params);
 		$surveys=$this->catalog_search->search($this->limit,$offset);
 		//$surveys=$this->cache->model('advanced_search_model', 'search', array($limit, $offset), 30);
@@ -1333,8 +1351,73 @@ class Catalog extends MY_Controller {
 		$this->template->write('title', $repo->title,true);
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
-
 	}	
+	
+	
+	/**
+	*
+	* A table showing when new studies were added
+	**/
+	function history()
+	{
+		$this->load->model("Catalog_history_model");
+		
+		//records to show per page
+		$per_page = $this->input->get("ps");
+		
+		if($per_page===FALSE || !is_numeric($per_page))
+		{
+			$per_page=100;
+		}
+				
+		//current page
+		$curr_page=$this->input->get('per_page');
+
+		//filter to further limit search
+		$filter=array();
+		
+		//records
+		$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+
+		//total records in the db
+		$total = $this->Catalog_history_model->search_count;
+
+		if ($curr_page>$total)
+		{
+			$curr_page=$total-$per_page;
+			
+			//search again
+			$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+		}
+		
+		//set pagination options
+		$base_url = site_url('catalog/history');
+		$config['base_url'] = $base_url;
+		$config['total_rows'] = $total;
+		$config['per_page'] = $per_page;
+		$config['page_query_string'] = TRUE;
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['next_link'] = t('page_next');
+		$config['num_links'] = 5;
+		$config['prev_link'] = t('page_prev');
+		$config['first_link'] = t('page_first');
+		$config['last_link'] = t('last');
+		$config['full_tag_open'] = '<span class="page-nums">' ;
+		$config['full_tag_close'] = '</span>';
+		
+		//intialize pagination
+		$this->pagination->initialize($config); 
+		
+		//load the contents of the page into a variable
+		$content=$this->load->view('catalog_search/history', $data,true);
+	
+		//pass data to the site's template
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('catalog_history'),true);
+		
+		//render final output
+	  	$this->template->render();
+	}
 }
 /* End of file catalog.php */
 /* Location: ./controllers/catalog.php */

@@ -293,7 +293,7 @@
 		<?php echo sprintf(t('showing_studies'),
             (($limit*$current_page)-$limit+1),
             ($limit*($current_page-1))+ count($rows),
-            $total);
+            $found);
 		?>
    </td>
     <td align="right">

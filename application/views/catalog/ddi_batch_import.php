@@ -6,7 +6,17 @@ foreach($user_repositories as $repo)
 {
 	$repositories_list[$repo["repositoryid"]]=$repo['title'];
 }
+
+//active repository
+$active_repository='';
+
+//get active repo
+if (isset($this->active_repo) && $this->active_repo!=NULL)
+{
+	$active_repository=$this->active_repo->repositoryid;
+}
 ?>
+
 <div class="content-container">
 
 <?php $error=$this->session->flashdata('error');?>
@@ -30,7 +40,7 @@ foreach($user_repositories as $repo)
     
     <div class="field" style="margin-bottom:5px;">
     	<label for="repositoryid"><?php echo t('msg_select_repository');?></label>
-		<?php echo form_dropdown('repositoryid', $repositories_list,false,'id="repositoryid"'); ?>
+        <?php echo form_dropdown('repositoryid', $repositories_list,$active_repository,'id="repositoryid"'); ?>
         
         <label for="overwrite" class="desc" style="padding-left:20px;"><input type="checkbox" name="overwrite" id="overwrite" checked="checked"  value="yes"/> <?php echo t('ddi_overwrite_exist');?></label>
     </div>  

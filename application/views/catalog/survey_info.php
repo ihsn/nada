@@ -53,6 +53,23 @@ foreach($repo as $repo_row)
     	<td><?php echo t('folder');?></td>
         <td><?php echo $dirpath;?></td>
     </tr>
+    
+    <!--
+	<tr valign="top" class="inline-edit">
+    	<td><?php echo t('admin_notes');?></td>
+        <td>
+        	<textarea rows="3" id="admin_note_<?php echo $id; ?>" style="width:100%;"><?php echo $admin_notes;?></textarea>
+            <a class="mini-button" href="#" onclick="attach_note(<?php echo $id;?>,'admin');return false;">Update</a>
+        </td>
+    </tr>
+	<tr valign="top" class="inline-edit alternate">
+    	<td><?php echo t('reviewer_notes');?></td>
+        <td>
+        	<textarea rows="3" id="reviewer_note_<?php echo $id; ?>" style="width:100%;"><?php echo isset($reviewer_notes) ? $reviewer_notes : '';?></textarea>
+            <a class="mini-button" href="#" onclick="attach_note(<?php echo $id;?>,'reviewer');return false;">Update</a>
+        </td>
+    </tr>
+    -->
 </table>
 <div class="action-bar" >
 <span style="float:right;padding-right:10px;">
@@ -86,6 +103,12 @@ foreach($repo as $repo_row)
         </a>                            
 </span>
     <ul>
+        <li>                    
+            <a target="_blank" title="<?php echo t('edit');?> - <?php echo $nation.' - ' .$titl;?>" href="<?php echo site_url()."/admin/catalog/edit/$id/"; ?>" id="<?php echo 'survey-'.$id;?>">
+                <img border="0" align="absbottom" src="images/page_attach.png"/> <?php echo t('edit');?>
+            </a>
+        </li>
+
         <li>                	
         	<a target="_blank" title="<?php echo t('resource_manager');?> - <?php echo $nation.' - ' .$titl;?>" href="<?php echo site_url()."/admin/managefiles/$id/"; ?>" onclick="popup_dialog(this);return false;" id="<?php echo 'survey-'.$id;?>">
         		<img border="0" align="absbottom" src="images/page_attach.png"/> <?php echo t('resource_manager');?>
@@ -110,5 +133,6 @@ foreach($repo as $repo_row)
         <li class="unlink-study"><span class="icon linked"><a href="<?php echo site_url();?>/admin/catalog/unlink/<?php echo $this->active_repo->repositoryid;?>/<?php echo $id;?>">Unlink</a></span></li>
     	<?php endif;?>
         <li class="transfer-study"><span class="icon transfer"></span><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $id;?>"><?php echo t('transfer_study_ownership');?></a></li>
+        <li class="replace-ddi"><span class="icon replace_ddi"></span><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $id;?>"><?php echo t('replace_ddi');?></a></li>
     </ul> 
 </div>

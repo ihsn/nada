@@ -44,7 +44,7 @@
 			<?php foreach($authors_array as $author): ?>
 				<div><?php 
 						$author_full=trim($author['fname']. ' '.$author['initial']). ' '.$author['lname'];
-						echo anchor('citations/?keywords='.$author_full.'&field=authors',$author_full, 'class="author" target="_blank"');
+						echo anchor('citations/?keywords='.$author_full.'&field=authors',$author_full, 'class="author" ');
 					?>
                 </div>
             <?php endforeach;?>
@@ -148,7 +148,18 @@
             <tr valign="top">
             <td>&raquo;</td>
             <td class="related-study"><?php echo anchor('catalog/'.$survey['id'],$survey['nation'].' - '.$survey['titl']);?>,
-                <span><?php echo $survey['authenty'];?></span>
+                <span><?php 
+						$authenty= json_decode($survey['authenty']); 
+						if (is_array($authenty)) 
+						{ 
+							echo implode(",", $authenty);
+						}
+						else 
+						{
+							echo $authenty;
+						}
+					  ?>
+                </span>
                 </td>
             </tr>    
         <?php endforeach;?>

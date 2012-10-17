@@ -26,6 +26,7 @@ class Catalog_search{
 	var $to=0;
 	var $repo='';
 	var $dtype=array();//data access type
+	var $collections=array();
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -98,13 +99,14 @@ class Catalog_search{
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
+		$collections=$this->_build_collections_query();
 		
 		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
+		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections);
 		
 		if ($repository!='')
 		{
@@ -132,7 +134,7 @@ class Catalog_search{
 		}
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id,refno,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid';
+		$study_fields='surveys.id,refno,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,created,data_coll_start,data_coll_end';
 
 		//build final search sql query
 		$sql='';
@@ -220,6 +222,7 @@ class Catalog_search{
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
+		$collections=$this->_build_collections_query();
 		
 		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
@@ -244,7 +247,7 @@ class Catalog_search{
 		}
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
 		
 		//create combined where clause
 		$where='';
@@ -266,7 +269,7 @@ class Catalog_search{
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,hq.survey_url as study_remote_url';
+		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,hq.survey_url as study_remote_url,surveys.created,surveys.data_coll_start,surveys.data_coll_end';
 
 		//build final search sql query
 		$sql='';
@@ -288,7 +291,7 @@ class Catalog_search{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 			
-			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, hq.survey_url');
+			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, hq.survey_url,surveys.created,surveys.data_coll_start,surveys.data_coll_end');
 			
 			if ($where!='') 
 			{
@@ -890,6 +893,40 @@ class Catalog_search{
 		return FALSE;
 	}
 
+
+	function _build_collections_query()
+	{	
+		$params=$this->collections;//must always be an array
+
+		if (!is_array($params))
+		{
+			return FALSE;
+		}
+		
+		$param_list=array();
+
+		foreach($params  as $param)
+		{
+			//escape country names for db
+			$param_list[]=$this->ci->db->escape($param);
+		}
+
+		if ( count($param_list)>0)
+		{
+			$params= implode(',',$param_list);
+		}
+		else
+		{
+			return FALSE;
+		}
+
+		if ($param!='')
+		{
+			return sprintf('surveys.id in (select sid from survey_collections where tid in (%s) )',$params);
+		}
+		
+		return FALSE;	
+	}
 }// END Search class
 
 /* End of file Catalog_search.php */

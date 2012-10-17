@@ -48,7 +48,7 @@ class Tracker //extends OmnitureMeasurement
 		
 		//$s->mobile = false;
 		
-		$s->pageName='DDP Microdata > ';
+		$s->pageName=$this->ci->config->item("omniture_pagename");
 		
 		$uri=strip_tags($_SERVER["REQUEST_URI"]);
 		$q_pos=strpos($uri,"?");

@@ -22,6 +22,18 @@ class Packager_model extends CI_Model {
 		
 		return $this->db->get("surveys")->result_array();		
 	}
+
+
+	//returns all surveys by repositoryid
+	public function get_surveys_by_repo($repoid)
+	{
+		$fields='id,repositoryid,surveyid,titl,varcount,ddifilename,dirpath,link_technical, 
+				link_study, link_report, link_indicator, ddi_sh, formid, isshared, isdeleted, 
+				link_questionnaire, link_da';
+		$this->db->select($fields);
+		$this->db->where('repositoryid',$repoid);
+		return $this->db->get("surveys")->result_array();		
+	}
 	
 	//get external resources by survey id	
 	public function get_resources($id)
@@ -244,4 +256,3 @@ class Packager_model extends CI_Model {
 	}
 		
 }
-?>

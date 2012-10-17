@@ -27,5 +27,7 @@ $lang['msg_select_active_repo'] = "Click the repository you like to manage for y
 $lang['select_active_repository'] = "Select Repository to Manage";
 $lang['msg_no_repo_access']='You don\'t have permissions to access any catalogs.';
 $lang['repositories_management'] = "Manage repositories";
+$lang['repositories_regional'] = "Regional Repositories";
+$lang['repositories_specialized'] = "Specialized Repositories";
 /* End of file harvester_lang.php */
 /* Location: ./system/language/english/harvester_lang.php */

@@ -38,6 +38,7 @@ License:
 			<xsl:variable name="line-brk">{LN}</xsl:variable>
 			<xsl:variable name="record-brk">{RCRD}</xsl:variable>
 			<xsl:variable name="title" select="dc:title"/>
+            <xsl:variable name="subtitle" select="dcterms:alternative"/>
 							<xsl:variable name="author">
 									<xsl:for-each select="dc:creator">
 											<xsl:if test="position() = 1"><xsl:value-of select="."/></xsl:if>											
@@ -100,6 +101,7 @@ License:
 								filename
 								format
 								type
+                                subtitle
 						-->						
 		<xsl:value-of select="normalize-space($title)"/><xsl:value-of select="$line-brk"/>
 		<xsl:value-of select="substring(normalize-space($author),0,254)"/><xsl:value-of select="$line-brk"/>
@@ -114,6 +116,7 @@ License:
 		<xsl:value-of select="substring(normalize-space($filename),0,255)"/><xsl:value-of select="$line-brk"/>
 		<xsl:value-of select="substring(normalize-space($format),0,255)"/><xsl:value-of select="$line-brk"/>
 		<xsl:value-of select="substring(normalize-space($type),0,255)"/><xsl:value-of select="$line-brk"/>
+        <xsl:value-of select="normalize-space($subtitle)"/><xsl:value-of select="$line-brk"/>
 		<xsl:value-of select="$record-brk"/>
 </xsl:template>
 

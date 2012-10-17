@@ -146,7 +146,9 @@ class Repositories extends MY_Controller {
 						'short_text'=>'',
 						'thumbnail'=>'',
 						'long_text'=>'',
-						'weight'=>0
+						'weight'=>0,
+						'ispublished'=>0,
+						'section'=>'internal'//default
 						);
 												
 		//process form
@@ -218,7 +220,8 @@ class Repositories extends MY_Controller {
 		$this->data['type']=$this->form_validation->set_value('type',$this->row_data['type']);
 		$this->data['short_text']=$this->form_validation->set_value('short_text',$this->row_data['short_text']);
 		$this->data['long_text']=$this->form_validation->set_value('long_text',$this->row_data['long_text']);
-		
+		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
+		$this->data['section_options']=$this->Repository_model->get_repository_sections();
 		//show form
 		$content=$this->load->view('repositories/edit',NULL,true);									
 				

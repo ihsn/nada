@@ -148,7 +148,15 @@ class Citation_search_sql{
 
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {
-					
+		//count search results
+		$this->search_found_rows=$this->search_count($filter);
+		
+		//no results found
+		if (!$this->search_found_rows>0)
+		{
+			return FALSE;
+		}
+		
 		//select columns for output
 		$this->ci->db->select($this->select_fields, FALSE);
 		$this->ci->db->from('citations');
@@ -206,10 +214,6 @@ class Citation_search_sql{
 		{
 			$result=$query->result_array();
 			
-			//get total search result count
-			$query_found_rows=$this->ci->db->query('SELECT count(*) as rows_count',FALSE)->row_array();
-			$this->search_found_rows=$query_found_rows['rows_count'];
-			
 			//find authors for citations
 			foreach($result as $key=>$row)
 			{
@@ -237,39 +241,70 @@ class Citation_search_sql{
 		return FALSE;
 	}
 	
-    function search_count()
+	/*    
+	function search_count()
     {
 		return $this->search_found_rows;
     }
+	*/
+	
 
-	function _where($filter)
-	{
-		foreach($filter as $f)
-		{
-			//split keyword by space
-			$keywords_array=explode(" ", trim($f['keywords']));
-			
-			foreach($keywords_array as $keyword)
+	/**
+	*
+	* Return number of records found by search
+	*
+	**/
+    function search_count($filter=NULL)
+    {
+		//select columns for output
+		$this->ci->db->select('count(citations.id) as rows_found');
+		$this->ci->db->from('citations');
+		$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
+		$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+		
+		//group by to remove duplicates
+		$this->ci->db->group_by('citations.id');
+		
+		//set where
+		if ($filter)
+		{			
+			foreach($filter as $f)
 			{
-				if (trim($keyword)!="" && strlen($keyword)>2)
+				//split keyword by space
+				$keywords_array=explode(" ", trim($f['keywords']));
+				
+				foreach($keywords_array as $keyword)
 				{
-					//search only in the allowed fields
-					if (array_key_exists($f['field'],$db_fields))
+					if (trim($keyword)!="" && strlen($keyword)>2)
 					{
-						$this->ci->db->like($db_fields[$f['field']], trim($keyword)); 
-					}
-					else if ($f['field']=='all')
-					{
-						foreach($all_fields as $field)
+						//search only in the allowed fields
+						if (array_key_exists($f['field'],$this->db_fields))
 						{
-							$this->ci->db->or_like($field, trim($keyword)); 
+							$this->ci->db->like($this->db_fields[$f['field']], trim($keyword)); 
+						}
+						else if ($f['field']=='all')
+						{
+							foreach($this->all_fields as $field)
+							{
+								$this->ci->db->or_like($field, trim($keyword)); 
+							}
 						}
 					}
 				}
 			}
-		}		
-	}
-	
+		}
+		
+		//get SQL for the count query
+		$sql=$this->ci->db->_compile_select();
+		
+		//reset the AR select statement built for counting search results above
+		$this->ci->db->_reset_select();
+		
+		$query_found_rows=$this->ci->db->query('select count(*) as rows_found from ('.$sql.') as X')->row_array();
+		return $query_found_rows['rows_found'];		
+    }
+
+
 }// END Search class
 
 /* End of file Catalog_search.php */

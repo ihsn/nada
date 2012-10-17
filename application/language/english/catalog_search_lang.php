@@ -125,5 +125,23 @@ $lang['data_catalogs']="Data Catalogs";
 $lang['visit_catalog']="Visit catalog";
 $lang['catalog_owned_by']="Repository";
 $lang['legend_citations']="Citations of publications that used the study";
+$lang['catalog_history']="Catalog History";
+$lang['catalog_owned_by']="Catalog";
+$lang['search_no_results']="<p><strong>Your search did not match any studies held in the catalog.</strong></p>
+<p>Suggestions:</p>
+<ul>
+<li>Make sure all words are spelled correctly.</li>
+<li>Try different keywords.</li>
+<li>Try more general keywords.</li>
+<li>Try searching in the variable description field if you searched in the study description field.</li>
+</ul>
+";
+
+$lang['filter_by_center']="Filter by Center";
+$lang['js_centers_selected']="centers selected";
+$lang['js_center_selected']="center selected";
+$lang['filter_by_collection']="Filter by Collection";
+$lang['js_collections_selected']="collections selected";
+$lang['js_collection_selected']="collection selected";
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
