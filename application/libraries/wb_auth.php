@@ -17,8 +17,9 @@ class WB_auth
 	{
 		log_message('debug', "WB-AUTH class initialized");
 		$this->ci =& get_instance();
-		$this->ci->conig->load("ion_auth");
+		$this->ci->config->load("ion_auth");
 		$this->tables  = $this->ci->config->item('tables');
+		$this->ci->load->model("Ion_auth_model");
 	}
 
 	public function passkey_login($email,$upi)
@@ -29,8 +30,8 @@ class WB_auth
 	    }
 
 	    $query = $this->ci->db->select('username,email, id, password, group_id')
-						  ->where($this->identity_column, $email)
-						  ->where($this->ion_auth->_extra_where)
+						  ->where("email", $email)
+						  ->where($this->ci->ion_auth->_extra_where)
 						  ->where('active', 1)
 						  //->limit(1)
 						  ->get($this->tables['users']);
@@ -49,10 +50,31 @@ class WB_auth
     		    $group_row = $this->ci->db->select('name')->where('id', $result->group_id)->get($this->tables['groups'])->row();
 
     		    $this->ci->session->set_userdata('group',  $group_row->name);
-   		    	$this->remember_user($result->id);
+   		    	$this->ci->Ion_auth_model->remember_user($result->id);
     		    return TRUE;
         }
         
 		return FALSE;		
 	}
+	
+	
+		/**
+	 * update_last_login
+	 *
+	 * @return bool
+	 * @author Ben Edmunds
+	 **/
+	public function update_last_login($id)
+	{
+		$this->ci->load->helper('date');
+
+		if (isset($this->ci->ion_auth) && isset($this->ci->ion_auth->_extra_where))
+		{
+			$this->ci->db->where($this->ci->ion_auth->_extra_where);
+		}		
+		$this->ci->db->update($this->tables['users'], array('last_login' => now()), array('id' => $id));
+		
+		return $this->ci->db->affected_rows() == 1;
+	}
+
 }
