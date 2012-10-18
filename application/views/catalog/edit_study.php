@@ -2,8 +2,6 @@
 //survey id
 $sid=$this->uri->segment(4);
 
-//vocabulary id for survey collections
-$vid=$this->config->item("collections_vocab");
 ?>
 
 <script type="text/javascript">
