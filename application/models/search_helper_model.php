@@ -500,9 +500,6 @@ class Search_helper_model extends CI_Model {
 	*/	
 	function get_collections($repositoryid)
 	{
-		//get collection vocabulary id
-		//$coll_vocab=$this->config->item("collections_vocab");
-
 		$this->db->select('sc.tid as tid, collections.title as title, count(collections.id) as found');
 		$this->db->join('survey_collections sc', 'sc.tid=collections.id','inner');
 		$this->db->join('surveys s', 's.id=sc.sid','inner');
