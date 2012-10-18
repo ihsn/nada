@@ -121,12 +121,6 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	</div>
 
 	<div class="field">
-        <label for="collections"><?php echo t('select_vocabulary_for_collections'); ?></label>
-        <?php echo form_dropdown('collections_vocab', $this->configurations_model->get_vocabularies_array(), get_form_value("collections_vocab",isset($collections_vocab) ? $collections_vocab : '')); ?>
-        <span class="field-note"><?php echo t('instruction_select_vocabulary'); ?></span>
-	</div>
-
-	<div class="field">
         <label style="height:50px;" for="<?php echo 'regional_search'; ?>"><?php echo t('regional_search');?></label>
         <div>
         <input type="radio" name="regional_search" value="yes" <?php echo ($regional_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('regional_search_enable');?> <br/>
