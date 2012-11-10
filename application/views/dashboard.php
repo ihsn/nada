@@ -6,6 +6,7 @@
 	.dashboard-box-spacer{height:10px;}
 	.dashboard-box a{color:#000066;text-decoration:none; font-weight:normal;}
 	.dashboard-box a:hover{color:maroon;}
+	.users .user{font-style:italic;}
 </style>
 <div class="content-container">
 <h1><?php echo t('dashboard');?></h1>
@@ -48,9 +49,16 @@
                     <div class="dashboard-box-title"><?php echo t('users');?></div>
                     <div class="dashboard-box-body">
                     <?php if (isset($user_stats)):?>
+                    	<div>
                     	<div><?php echo $user_stats['active']; ?> <?php echo t('user_active');?> </div>
                         <div><?php echo $user_stats['disabled']; ?> <?php echo t('user_disabled');?> </div>
                         <div><?php echo $user_stats['inactive']; ?> <?php echo t('user_inactive');?></div>
+                        <div><?php echo $user_stats['anonymous_users']; ?> <?php echo t('anonymous_users');?></div>
+                        </div>
+                        <div class="users">
+	                        	<?php echo count($user_stats['loggedin_users']);?> <?php echo t('logged_in_users');?>:
+                            	<span class="user"><?php echo implode(', ',$user_stats['loggedin_users'])?></span>
+                        </div>
                     <?php endif;?>
                     </div>
                 </div>
