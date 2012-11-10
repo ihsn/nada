@@ -881,7 +881,7 @@ class OmnitureMeasurement
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 		}
-		
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_URL, $requestString);
 		curl_setopt($ch, CURLOPT_USERAGENT, $s->userAgent);
 		if ($s->isSetString($s->userAgent)) {
@@ -1124,7 +1124,7 @@ class OmnitureMeasurement
 		$xff_ips = array();
 	
 		$headers = $s->getHTTPHeaders();	
-		if ($headers['X-Forwarded-For']) {
+		if (isset($headers['X-Forwarded-For'])) {
 			$xff_ips[] = $headers['X-Forwarded-For'];
 		}
 		
