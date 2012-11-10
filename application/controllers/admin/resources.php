@@ -31,11 +31,14 @@ class Resources extends MY_Controller {
 			show_error('Invalid or missing parameters');
 		}
 		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($surveyid);
+		
 		//get survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
 
 		//set parent survey
-		$this->Resource_model->surveyid=$this->uri->segment(3);
+		$this->Resource_model->surveyid=$surveyid;
 				
 		//get records		
 		$result['rows']=$this->_search();
@@ -229,6 +232,9 @@ class Resources extends MY_Controller {
 	{
 		//check survey id 
 		$survey_id=$this->uri->segment(5);
+		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($survey_id);
 		
 		if (!is_numeric($survey_id) && $survey_id<1)
 		{
@@ -445,6 +451,9 @@ class Resources extends MY_Controller {
 			show_error("invalid_id");
 		}
 		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($sid);
+		
 		$this->load->library('form_validation');
 		
 		if ($this->input->post('submit'))
@@ -464,6 +473,9 @@ class Resources extends MY_Controller {
 	
 	function do_import($sid)
 	{
+		//test user study permissiosn
+		$this->acl->user_has_study_access($sid);
+		
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
 		
@@ -651,6 +663,9 @@ class Resources extends MY_Controller {
 		{
 			show_error("invalid_id");
 		}
+		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($surveyid);
 	
 		//get survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
