@@ -294,12 +294,9 @@ class Citation_search_sql{
 			}
 		}
 		
-		//get SQL for the count query
-		$sql=$this->ci->db->_compile_select();
-		
-		//reset the AR select statement built for counting search results above
-		$this->ci->db->_reset_select();
-		
+		//get SQL from the above AR
+		$sql=$this->ci->db->get_compiled_select('',TRUE);
+				
 		$query_found_rows=$this->ci->db->query('select count(*) as rows_found from ('.$sql.') as X')->row_array();
 		return $query_found_rows['rows_found'];		
     }
