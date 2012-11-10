@@ -104,7 +104,7 @@ class Catalog_Admin
 	* 
 	* supports: sorting, searching, pagination
 	*/
-	function resources($sid)
+	function get_formatted_resources($sid)
 	{		
 		//get all resoruces attached to a survey
 		$resources=$this->ci->resource_model->get_survey_resources($sid);
