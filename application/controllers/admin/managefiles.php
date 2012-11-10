@@ -33,6 +33,9 @@ class Managefiles extends MY_Controller {
 			show_error('INVALID_ID');
 		}
 		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($surveyid);
+		
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
 
@@ -528,6 +531,9 @@ class Managefiles extends MY_Controller {
 			show_error('Invalid parameters supplied');
 		}
 
+		//isajax?
+		$ajax=$this->input->get_post('ajax');
+
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
 		
@@ -548,16 +554,26 @@ class Managefiles extends MY_Controller {
 			
 			if($isdeleted===FALSE)
 			{
+				if ($ajax==1)
+				{
+					die ('file_delete_failed');
+				}
+
 				$this->session->set_flashdata('error', t('file_delete_failed'));
 			}
 			else
 			{
+				if ($ajax==1)
+				{
+					die ('file_delete_success');
+				}
+
 				$this->session->set_flashdata('message', t('file_delete_success'));
 			}
 		}
-		
+				
 		//redirect
-		redirect("admin/managefiles/".$surveyid,"refresh");
+		redirect("admin/catalog/edit/".$surveyid,"refresh");
 	}
 	
 	function _delete_files($absolute_path)
@@ -660,12 +676,15 @@ class Managefiles extends MY_Controller {
 			show_404();
 		}
 		
-		$resource_folder=$this->input->post("upload_folder");
-		$resource_folder=unix_path($survey_path.'/'.$resource_folder);
+		//test user study permissiosn
+		$this->acl->user_has_study_access($surveyid);
+		
+		//$resource_folder=$this->input->post("upload_folder");
+		$resource_folder=unix_path($survey_path);
 		
 		if (!file_exists($resource_folder))
 		{
-			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Resource folder does not exist"}, "id" : "id"}');
+			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Resource folder does not exist"}, "id" : "'.$resource_folder.'"}');
 		}
 		
 		// HTTP headers for no cache etc
@@ -679,10 +698,6 @@ class Managefiles extends MY_Controller {
 		//$targetDir = ini_get("upload_tmp_dir") . DIRECTORY_SEPARATOR . "plupload";
 		$targetDir = $resource_folder;
 		//$targetDir=APPPATH.'../plupload/'.$this->input->post("upload_folder");
-		
-		//echo $targetDir;
-		//var_dump($_FILES);
-		//exit;
 		
 		//$cleanupTargetDir = false; // Remove old files
 		//$maxFileAge = 60 * 60; // Temp file age in seconds
