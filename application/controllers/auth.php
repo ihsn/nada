@@ -596,6 +596,20 @@ class Auth extends MY_Controller {
 		return $content;
 	}
 	
-	
+
+	function _remap($method) 
+	{
+        if (in_array(strtolower($method), array_map('strtolower', get_class_methods($this)))) 
+		{
+            $uri = $this->uri->segment_array();
+            unset($uri[1]);
+            unset($uri[2]);
+     
+            call_user_func_array(array($this, $method), $uri);
+        }
+        else {
+			show_404();
+		}    
+	}	
 
 }//end-class
