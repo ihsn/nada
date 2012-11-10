@@ -112,7 +112,7 @@ class Repositories extends MY_Controller {
 	*/
 	function edit($id=NULL)	
 	{
-		if (!is_numeric($id)  && $id!=NULL)
+		if (!is_numeric($id)  && $id==NULL)
 		{
 			show_error('Invalid id provided');exit;		
 		}
@@ -541,8 +541,11 @@ class Repositories extends MY_Controller {
 	{
 		$this->lang->load('harvester');
 		$this->page_title=t('select_active_repository');
-		$data['repos']=$this->acl->user_repositories();
+		
+		//get array of repos user has access to
+		$data['repos']=$this->acl->get_user_repositories();
 		$content=$this->load->view('repositories/active_repo',$data,TRUE);
+		
 		$this->template->write('content', $content,true);
 		$this->template->render();
 	}
