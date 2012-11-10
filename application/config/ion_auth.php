@@ -20,15 +20,16 @@
 	/**
 	 * Tables.
 	 **/
-	$config['tables']['groups']  = 'user_groups';
-	$config['tables']['users']   = 'users';
-	$config['tables']['meta']    = 'meta';
+	$config['tables']['groups']  		= 'groups';
+	$config['tables']['users']   		= 'users';
+	$config['tables']['meta']    		= 'meta';
 	$config['tables']['permissions']    = 'user_permissions';
+	$config['tables']['user_groups']  	= 'users_groups';
 	
 	/**
 	 * Site Title, example.com
 	 */
-	$config['site_title']		   = "NADA 3.0";
+	$config['site_title']		   = "NADA";
 	
 	/**
 	 * Admin Email, admin@example.com
