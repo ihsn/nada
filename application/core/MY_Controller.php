@@ -37,42 +37,41 @@ class MY_Controller extends CI_Controller
 			
 		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl'));	
 		$this->is_admin=$is_admin;
-			
+		
+		//require authentication for protected pages e.g. admin	
 		if ($skip===FALSE)
 		{
 		   //apply IP restrictions for site administration
 		   $this->apply_ip_restrictions();
-		}
-	  
-	  
-		//skip authentication
-		if ($skip!==TRUE)
-		{
-			//perform authentication
+		   
+			//check user is logged in or not
 			$this->_auth();
 			
+			//get user object with all user info
 			$user=$this->ion_auth->current_user();
 		
 			if (!$user)
 			{
 				return FALSE;
 			}
+			
+			/*
 			// group_id 1 == super admin
 			if ((int)$user->group_id !== 1 && !$this->Permissions_model->group_has_url_access($user->group_id, $this->uri->uri_string())) {
 				show_error(t('access_denied') . $this->uri->uri_string());
 				
-			}
+			}*/
 			//$this->_has_access();
+			
+			//check user has access to the url
+			if (!$this->acl->user_has_url_access() )
+			{
+				show_error(t('access_denied'));
+			}
 		}
 	}
 
 
-	/**
-	*
-	* Check user has access to the current page
-	**/	
-
-	
 	/**
 	*
 	* Check user has access to the current page
@@ -182,9 +181,7 @@ class MY_Controller extends CI_Controller
     	}
     	elseif (!$this->ion_auth->is_admin() && $this->is_admin==TRUE ) 
 		{
-			//redirect them to the home page because they must be an administrator to view this
-			//redirect($this->config->item('base_url'), 'refresh');
-			//redirect("auth/login/?destination=$destination", 'refresh');
+			log_message('error', 'MY_CONTROLLER::_auth::access denied for user: '.$this->ion_auth->current_user_identity());
 			show_error("access_denied");
     	}
 	}
