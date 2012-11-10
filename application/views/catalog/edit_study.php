@@ -312,6 +312,7 @@ border-radius: 3px;clear:right;}
 .iscollapsed .sh{background: url('images/blue-add.png') no-repeat left top;}
 
 .box-body{margin:5px;padding-bottom:10px;}
+.box-body .input-flex{width:85%;}
 .info-box{
   position: fixed;
   top: 20%;
@@ -364,16 +365,25 @@ border-radius: 3px;clear:right;}
         </tr>
         <tr>
             <td><?php echo t('authenty');?></td>
-            <td><?php echo $authenty; ?></td>
+            <td><?php echo implode(",",json_decode($authenty)); ?></td>
         </tr>
         <tr>
             <td><?php echo t('sponsor');?></td>
             <td><?php echo $sponsor; ?></td>
         </tr>
         <tr>
-            <td><?php echo t('series');?></td>
-            <td><?php echo $sername; ?></td>
+            <td><?php echo t('folder');?></td>
+            <td><?php echo $dirpath;?></td>
         </tr>
+        <tr>
+            <td><?php echo t('repository');?></td>
+            <td>
+				<?php foreach($repo as $r):?>
+                	<?php $repos_arr[]=$r['repositoryid'];?>
+                <?php endforeach;?>
+                <?php echo implode(", ",$repos_arr);?>
+            </td>
+        </tr>        
         <tr>
             <td><?php echo t('data_access');?></td>
             <td>
@@ -440,13 +450,13 @@ border-radius: 3px;clear:right;}
             <td>
 				
 				<div class="collapsible">
-				<div class="box-caption">	
-							<?php if ($link_indicator):?>
-										<?php echo $link_indicator;?>
-							<?php else:?>
-										...
-							<?php endif;?>
-					</div>
+                    <div class="box-caption">	
+                                <?php if ($link_indicator):?>
+                                            <?php echo $link_indicator;?>
+                                <?php else:?>
+                                            ...
+                                <?php endif;?>
+                    </div>
 				
 					<div class="box-body study-publish-box collapse">
 								<form method="post" action="<?php echo site_url();?>/admin/catalog/update">
@@ -455,7 +465,7 @@ border-radius: 3px;clear:right;}
 									<input type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>" />
 									<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle"/>
 								<?php echo form_close(); ?>    
-					</div>
+					</div>                    
 				</div>
 			
             </td>
@@ -484,20 +494,10 @@ border-radius: 3px;clear:right;}
 					</div>
 				</div>
             </td>
-        </tr>
-       
- <tr>
-            <td>Admin notes</td>
-            <td>notes here...</td>
-        </tr>
-      
-        
-        <tr>
-            <td>Reviewer notes</td>
-            <td>notes here...</td>
-        </tr>       
+        </tr>      
         </table>
-<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
+
+	<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
 
 	<div style="margin-top:50px;margin-bottom:100px;">
 		<?php $this->load->view("catalog/study_tabs");?>
@@ -508,15 +508,14 @@ border-radius: 3px;clear:right;}
                     echo $resources;
                 break;
                 case 'citations':
-				?> <div id="related-citations" class="field"> <?php
-                    $this->load->view('catalog/selected_citations', array('selected_citations'=>$selected_citations)); ?>
-					</div>
-                    <a style="display:block" class="add_survey" href="javascript:void(0);">Add Citations</a>   
-    			<?php
+					echo '<div id="related-citations" class="field related-citations">';
+                    $this->load->view('catalog/selected_citations', array('selected_citations'=>$selected_citations));
+					echo '</div>';
+                    echo '<a style="display:block" class="add_survey" href="javascript:void(0);">Add Citations</a>';   
                 break;
                 default:
                     echo $files;
-            }
+            }//end-switch
         ?>
     	</div>	
     </div>
@@ -559,54 +558,55 @@ border-radius: 3px;clear:right;}
 </div>
 </div>
 
-<div class="box">
-<div class="box-header">Admin Notes
-    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+<div class="box iscollapsed">
+    <div class="box-header">
+    	Admin Notes<span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+    </div>
 
-</div>
-
-    <div class="box-body">
+    <div class="box-body collapse">
 	<?php echo $admin_notes; ?>
     </div>
 </div>
 
-<div class="box">
-<div class="box-header">Reviewer Notes
-    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+<div class="box iscollapsed">
+    <div class="box-header">
+        Reviewer Notes
+        <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+    </div>
 
-</div>
-    <div class="box-body">
+    <div class="box-body collapse">
 	<?php echo $reviewer_notes; ?>
     </div>
 </div>
 
 
 <div class="box">
-	<div class="box-header">Survey Collections
+	<div class="box-header">
+    	Survey Collections
         <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
-
     </div>
+    
     <div class="box-body">
 	<div id="survey-collection-list"><?php echo $collections;?></div>
     </div>
 </div>
 
-<div class="box">
+<div class="box iscollapsed">
 	<div class="box-header">Tags
        <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
 
     </div>
-    <div class="box-body">
+    <div class="box-body collapse">
 		<?php echo $tags; ?>
 	</div>
 </div>
 
-<div class="box">
-	<div class="box-header">Survey Ids
+<div class="box iscollapsed">
+	<div class="box-header">Survey Other IDs
       <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
 
     </div>
-    <div class="box-body">
+    <div class="box-body collapse">
 		<?php echo $ids; ?>
 	</div>
 </div>
