@@ -5,6 +5,7 @@ $lang['permissions'] = 'Permissions';
 $lang['administrator'] = 'Administrator';
 $lang['permissions_list'] = 'Permissions List';
 $lang['edit_permission'] = 'Edit Permission';
+$lang['add_permission'] = 'Add Permission';
 $lang['urls'] = 'URLs';
 
 // user groups
@@ -15,3 +16,4 @@ $lang['user_admin'] = 'User';
 $lang['ddibrowser'] = 'DDI Browser';
 $lang['menu_admin'] = 'Menu';
 $lang['general_site'] = 'General Site';
+$lang['manage_repo_permissions']= 'Manage repository access';
