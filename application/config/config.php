@@ -272,7 +272,7 @@ $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'ci_sessions';
 $config['sess_match_ip']		= FALSE;
 $config['sess_match_useragent']	= TRUE;
-$config['sess_time_to_update']	= 600;
+$config['sess_time_to_update']	= 300;
 
 
 /*
@@ -458,13 +458,24 @@ $config['fb_catalog_image']='images/nada-logo.gif';
 
 /*
 |--------------------------------------------------------------------------
-| Enable Fulltext search for SQLSQL drivers
+| Enable Fulltext search for SQLSRV drivers
 |--------------------------------------------------------------------------
 |
 | Enable or disable fulltext searching for Microsoft SQLSRV database
 */
 $config['sqlsrv_use_fulltext']=TRUE;
 $config['site_user_register']='yes';
+
+/*
+|--------------------------------------------------------------------------
+| Allowed file extension types for uploading
+|--------------------------------------------------------------------------
+|
+| allowed_resource_types	comma seperated list of file extensions that are allowed for uploading external resources
+*/
+$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt';
+
+
 
 /*
 |--------------------------------------------------------------------------
