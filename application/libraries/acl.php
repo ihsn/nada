@@ -21,7 +21,8 @@ class ACL
 	function __construct()
 	{
 		log_message('debug', "ACL Class Initialized.");
-		$this->ci =& get_instance();		
+		$this->ci =& get_instance();
+		$this->ci->load->model('Permissions_model');
 	}
 
 	/**
@@ -30,46 +31,134 @@ class ACL
 	**/
 	function current_user()
 	{
-		$userid=$this->ci->session->userdata('user_id');
-		return $userid;
+		return $this->ci->ion_auth->current_user();
 	}
 
-	/**
-	* Returns an array repositories accessible to the user
-	**/
-	function user_repositories($userid=NULL)
+	function user_has_url_access()
 	{
-		if ($userid==NULL)
+		//get current user
+		$user=$this->current_user();
+		
+		//get url path
+		$url=$this->ci->uri->uri_string();
+		
+		//check user has access
+		return $this->check_url_access($user->id,$url);
+	}
+	
+	function check_url_access($user_id,$url)
+	{
+		//return TRUE;
+		//get user groups
+		$groups=$this->ci->ion_auth->get_groups_by_user($user_id);
+		
+		if (!is_array($groups))
 		{
-			$userid=$this->ci->session->userdata('user_id');
+			return FALSE;
 		}
+
+		//check if user is ADMIN and has UNLIMITED permissions
+		$unlimited=$this->has_unlimited_access($groups);
 		
-		//get user global role
-		$user_role=$this->get_user_global_role($userid);
-		
-		if ($user_role=='admin')
+		//user has unlimited access, skip url checks
+		if ($unlimited===TRUE)
 		{
-			//return all repositories;
-			$this->ci->db->select("id,title,id as repositoryid");
-			$this->ci->db->order_by("title", "ASC");
-			$query=$this->ci->db->get("repositories");
-		}
-		else
-		{	//non-admin account
-			$this->ci->db->select("rg.*,r.title");
-			$this->ci->db->where("userid",$userid);
-			$this->ci->db->join('repositories r', 'r.id = rg.repositoryid');			
-    		$this->ci->db->order_by("r.title", "ASC");
-			$query=$this->ci->db->get("user_repositories rg");
+			return TRUE;
 		}
 		
-		if (!$query)
+		//get URLs allowed to the groups
+		$allowed_urls=$this->url_access_by_group($groups);
+		
+		//see if it matches with a url without using regex
+		if (in_array($url,$allowed_urls))
+		{
+			return TRUE;
+		}
+				
+		//try finding url using regex/other expressions
+		foreach ($allowed_urls as $page_url)
+		{
+			// Convert wild-cards to RegEx
+			$key = str_replace('*', '.+', $page_url);
+
+			// Does the RegEx match?
+			if (preg_match('#^'.$key.'$#', $url))
+			{
+				return TRUE;
+			}
+		}
+		
+		var_dump($allowed_urls);
+		return FALSE;
+	}
+	
+	/**
+	*
+	* Returns an array of URLs for which group(s) have access
+	*
+	* @groups 	array
+	**/
+	function url_access_by_group($groups)
+	{
+		if (!is_array($groups))
+		{
+			throw new Exception("url_access_by_group::invalid_groups");
+		}
+		
+		$this->ci->db->select('pu.url');
+		$this->ci->db->distinct();
+		$this->ci->db->from('group_permissions gp');
+		$this->ci->db->join('permission_urls pu','gp.permission_id=pu.permission_id','inner');
+		$this->ci->db->where_in('gp.group_id',$groups);
+		$query=$this->ci->db->get()->result_array();
+		
+		$urls=array();
+		foreach($query as $row)
+		{
+			$urls[]=$row['url'];
+		}
+		
+		return $urls;
+	}
+	
+	
+	/**
+	*
+	* Check if group(s) have unlimited access type set
+	* @groups	array()
+	**/
+	function has_unlimited_access($groups)
+	{
+		$this->ci->db->select('access_type');
+		$this->ci->db->from('groups');
+		$this->ci->db->where_in('id',$groups);
+		$this->ci->db->where('access_type','UNLIMITED');
+		$count=$this->ci->db->count_all_results();
+		
+		if ($count>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
+	}
+	
+	/**
+	*
+	* Check if user has UNLIMITED access
+	**/
+	function user_has_unlimited_access($user_id)
+	{
+		$groups=$this->get_user_groups($user_id);
+		
+		if (!$groups)
 		{
 			return FALSE;
 		}
 		
-		return $query->result_array();
+		return $this->has_unlimited_access($groups);
 	}
+	
 	
 	/**
 	* Returns the active repo for the current logged in user
@@ -86,6 +175,7 @@ class ACL
 
 		return $repoid;		
 	}
+	
 	
 	/**
 	* set active repo for the session
@@ -130,196 +220,141 @@ class ACL
 		return FALSE;
 	}
 	
-	/**
-	* Return the owner repository id for the study
-	**/
-	function get_study_repository($id)
-	{
-		$this->ci->db->select("repositoryid");
-		$this->ci->db->where("id",$id);
-		$query=$this->ci->db->get("surveys");
-		//echo $this->ci->db->last_query();
-		if (!$query)
-		{
-			return FALSE;
-		}
-		
-		$result=$query->row_array();
-		
-		if ($result)
-		{
-			return $result['repositoryid'];
-		}
-		return FALSE;
-	}
-	
-	
-	//get the user global role
-	function get_user_global_role($userid)
-	{
-		$this->ci->db->select("name as role");
-		$this->ci->db->join('user_groups', 'user_groups.id = users.group_id');
-		$this->ci->db->where('users.id',$userid);
-		$query=$this->ci->db->get("users");
-
-		if (!$query)
-		{
-			return FALSE;
-		}
-		
-		$result=$query->row_array();
-		
-		if ($result)
-		{
-			return $result['role'];
-		}
-		
-		return FALSE;		
-	}
 	
 	/**
-	* Return user role object by repository id
+	* Returns an array of repositories accessible to the user
 	**/
-	function get_user_roles_by_repository($userid,$repositoryid)
+	function get_user_repositories($user_id=NULL)
 	{
-		$this->ci->db->select("rg.*,r.title");
-		$this->ci->db->join('repositories r', 'r.id = rg.repositoryid');
-		$this->ci->db->where("userid",$userid);
-		$this->ci->db->where("r.repositoryid",$repositoryid);
+		if ($user_id==NULL)
+		{
+			$user_id=$this->ci->session->userdata('user_id');
+		}
 		
-		$query=$this->ci->db->get("user_repositories rg");
-		//echo $this->ci->db->last_query();
+		//check user has UNLIMITED access
+		$is_unlimited=$this->user_has_unlimited_access($user_id);
+		
+		//get user groups
+		$groups=$this->get_user_groups($user_id);
+				
+		if ($is_unlimited===TRUE)
+		{
+			//return all repositories;
+			$this->ci->db->select("id,title,id as repo_id,repositoryid");
+			$this->ci->db->order_by("title", "ASC");
+			$query=$this->ci->db->get("repositories");
+		}
+		else
+		{	//limited admin account
+			$this->ci->db->select("gr.*,r.title");
+			$this->ci->db->from("group_repo_access gr");
+			$this->ci->db->join('repositories r', 'r.id = gr.repo_id');			
+			$this->ci->db->where_in("group_id",$groups);
+    		$this->ci->db->order_by("r.title", "ASC");
+			$query=$this->ci->db->get();
+		}
+		
 		if (!$query)
 		{
 			return FALSE;
 		}
 		
-		$result=$query->row_array();
-		
-		if ($result)
-		{
-			return (object)$result;
-		}
-		
-		return FALSE;
+		return $query->result_array();
 	}
-	
-	
 	
 	
 	/**
 	*
-	* Test user permissions for a given study
+	* Return user groups
 	**/
-	function check_study_permissions()
+	function get_user_groups($user_id)
 	{
-		//test urls under /admin/*
-		if ($this->ci->uri->segment(1)!=='admin')
+		return $this->ci->ion_auth->get_groups_by_user($user_id);		
+	}
+
+
+	/**
+	*
+	* Check if user has access to a study
+	**/
+	function user_has_study_access($survey_id,$user_id=NULL)
+	{
+		if($user_id==NULL)
+		{
+			//get user
+			$user=$this->current_user();
+			
+			//set user id
+			$user_id=$user->id;
+		}
+		
+		//check user has UNLIMITED access
+		$unlimited=$this->user_has_unlimited_access($user_id);
+		
+		if ($unlimited)
 		{
 			return TRUE;
 		}
 		
-		$studyid=NULL; //study id to test permissions
-		$repositoyid=NULL; //repository id
-		$userid=$this->current_user();
-		$section=''; //catalog,reports,license_requests
+		//get user groups
+		$user_groups=$this->get_user_groups($user_id);
+
+		//get survey owner repositories [survey can be owned by multiple repositories]
+		$owner_repos=$this->get_survey_owner_repos($survey_id);
 		
-		if (!$userid)
+		//check if user(group) has access to repository
+		$access= $this->group_has_repo_access($user_groups,$owner_repos);
+		
+		if (!$access)
 		{
-			show_error("ERROR_USERID_NOT_SET");
+			show_error(t("study_access_denied"));
+		}
+	}
+	
+	/**
+	*
+	* Get survey owner repositories
+	*
+	**/
+	function get_survey_owner_repos($survey_id)
+	{
+		$this->ci->db->select('r.id');
+		$this->ci->db->from('repositories r');
+		$this->ci->db->join('survey_repos sr','sr.repositoryid=r.repositoryid','inner');
+		$this->ci->db->where('sr.sid',$survey_id);
+		$this->ci->db->where('sr.isadmin',1);
+		$repositories=$this->ci->db->get()->result_array();
+		
+		$repos=array();
+		foreach($repositories as $repo)
+		{
+			$repos[]=$repo['id'];
 		}
 		
-		//get user global role
-		$user_role=$this->get_user_global_role($userid);
-
-		//if ADMIN, grant all permissions
-		if ($user_role=='admin')
+		return $repos;
+	}
+	
+	/**
+	*
+	* Check if a user group has access to repository 
+	*	
+	* groups	array(int)
+	* repos		array(int)
+	**/
+	function group_has_repo_access($groups,$repos)
+	{
+		$this->ci->db->select('count(id) as total');
+		$this->ci->db->where_in('group_id',$groups);
+		$this->ci->db->where_in('repo_id',$repos);
+		$query=$this->ci->db->get('group_repo_access')->row_array();
+		
+		if (isset($query['total']) && $query['total']>0)
 		{
 			return TRUE;
-		}		
-		
-		$catalog_urls[]='admin/managefiles/(:num)';
-		$catalog_urls[]='admin/managefiles/(:num)/access';
-		$catalog_urls[]='admin/catalog/26/edit';
-		$catalog_urls[]='admin/catalog/(:num)/resources';
-		
-		
-		//find study id from URL
-		switch($this->ci->uri->segment(2))
-		{
-			case 'managefiles':
-				$studyid=$this->ci->uri->segment(3);
-				$section='catalog';
-			break;
-			
-			case 'catalog':
-				if (is_numeric($this->ci->uri->segment(3)))
-				{
-					if (in_array($this->ci->uri->segment(4),array('edit','resources'))) //apply restriction on edit and resources
-					{
-						$studyid=$this->ci->uri->segment(3);
-						$section='catalog';
-					}	
-				}
-			
-			break;
-			
-		}
-
-		if (!$studyid)
-		{
-			return;
-			//show_error("ERROR_STUDY_NOT_SET");
 		}
 		
-		//get owner repositoryid for the study
-		$repositoryid=$this->get_study_repository($studyid); 
-		
-		if (!$repositoryid)
-		{
-			show_error(t("ERROR_REPOSITORYID_NOT_SET"));
-		}
-		
-		//find the user roles for the study repository
-		$obj_roles=$this->get_user_roles_by_repository($userid,$repositoryid);				
-		
-
-		//user roles found
-		if ($obj_roles)
-		{
-			$access_allowed=FALSE;
-			//check if user has access to the site section
-			switch($section)
-			{
-				case 'catalog':
-					if ((int)$obj_roles->allow_catalog==1)
-					{
-						$access_allowed=TRUE;
-					}
-				break;
-				
-				case 'reports':
-					if ((int)$obj_roles->allow_reports==1)
-					{
-						$access_allowed=TRUE;
-					}				
-				break;
-				
-				case 'licensed_requests':
-					if ((int)$obj_roles->allow_lic_request===1)
-					{
-						$access_allowed=TRUE;
-					}
-				break;
-			}
-
-			if ($access_allowed===TRUE)
-			{
-				return TRUE;
-			}
-		}
-		show_error(t('ACCESS_DENIED_USER_HAS_NO_ACCESS'));
-		//show_error("You don't have permissions to access content");
-	}	
+		return FALSE;
+	}
+	
 }
 
