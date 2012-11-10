@@ -71,5 +71,6 @@ $lang['select_publish_unpublish']='Select to publish/unpublish';
 $lang['publish']='Publish';
 $lang['series']='Series';
 $lang['data_access']='Data access';
+$lang['overwrite_if_exists']='Overwrite if already exists?';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
