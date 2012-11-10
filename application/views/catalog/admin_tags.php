@@ -29,7 +29,7 @@
 </style>
 <form method="post" action="">
 <div class="field">
-            <input id="tag" type="text" name="admin_tag" class="input-flex" style="width:88%;">
+            <input id="tag" type="text" name="admin_tag" class="input-flex" >
             <input type="button" value="+" name="admin_tag_submit" style="border:1px solid gainsboro;padding:3px 5px 3px 5px;">
         </div>
 </form>

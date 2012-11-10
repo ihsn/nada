@@ -29,6 +29,7 @@ class Catalog extends MY_Controller {
 		$this->lang->load('resource_manager');
 
 		//$this->output->enable_profiler(TRUE);	
+		//$this->acl->clear_active_repo();
 		
 		//test if active repo is set
 		if (!$this->acl->user_active_repo())
@@ -1135,18 +1136,19 @@ class Catalog extends MY_Controller {
 		}
 
 		
-		//get a compact list of citations
-		$citations=$this->Catalog_model->select_all_compact();
+		//get a compact list of surveys
+		$surveys=$this->Catalog_model->select_all_compact();
 		
+		//build concatenated survey titles
 		$output=array('"0"'=>'--SELECT--');
-		foreach($citations as $row)
+		foreach($surveys as $row)
 		{
 			$output[(string)$row['id']]=$row['nation']. ' - '. substr($row['titl'],0,150). '['.$row['surveyid'].']';
 		}
 
-		$data['citations']=$output;
+		$data['surveys']=$output;
 		$data['id']=$surveyid;
-						
+
 		$content=$this->load->view('catalog/replace_ddi',$data,TRUE);
 		$this->template->write('content', $content,true);
 		$this->template->render();
@@ -1358,6 +1360,7 @@ class Catalog extends MY_Controller {
 	* Publish/Unpublish studies
 	*
 	* $id single numeric value or a comma seperated list of IDs
+	* TODO: remove - has been replaced by udpate function
 	**/
 	function publish($id,$publish=1)
 	{	
@@ -1401,13 +1404,8 @@ class Catalog extends MY_Controller {
 			$id_arr[]=$id;
 		}
 		
-		//test user has permissions
-		$is_owner=$this->ion_auth->is_study_owner($id);
-
-		if (!$is_owner)
-		{
-			show_error("MSG_USER_ACCESS_DENIED");
-		}
+		//test user study permissiosn
+		$this->acl->user_has_study_access($id);
 		
 		if ($this->input->post('cancel')!='')
 		{
@@ -1507,6 +1505,14 @@ class Catalog extends MY_Controller {
 	 **/
 	function edit($id=NULL)
 	{
+		if ( !is_numeric($id) )
+		{
+			show_error('Invalid parameters were passed');
+		}
+		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($id);
+	
 		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
 		$this->template->add_js('javascript/jquery/ui/ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
@@ -1516,11 +1522,6 @@ class Catalog extends MY_Controller {
        	$this->load->model('Catalog_Ids_model');
         //$this->load->library('ion_auth');
 		
-		if ( !is_numeric($id) )
-		{
-			show_error('Invalid parameters were passed');
-		}
-
 		$this->load->library("catalog_admin");
 		
 		$active_repository=FALSE;
@@ -1555,28 +1556,32 @@ class Catalog extends MY_Controller {
 		$survey_row['collections']=$this->catalog_admin->get_formatted_collections($id);
 		
 		//formatted list of external resources
-		$survey_row['resources']=$this->catalog_admin->resources($id);
+		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 		
-		if ($id != NULL) {
+		if ($id != NULL) 
+		{
+			//admin notes
 			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
 			$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
+			
+			//reviewer notes
 			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
 			$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
+			
+			//survey tags
 			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
 			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
+			
+			//other survey IDs
 			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
 			$survey_row['ids']=$this->load->view('catalog/admin_ids', $ids, true);
 			
-//attached survey from the postback data
-	//	if ($this->input->post("sid"))
-	//	{
 			//get the selected citations from sid
 			$survey_id_arr=$id;
 		
 			//get survey info from db
 			$selected_citations= $this->Citation_model->get_citations_by_survey($id) ? $this->Citation_model->get_citations_by_survey($id) :array();
-//		}
-//		else
+			
 			//see if the edited citation has citations attached, otherwise assign empty array
 			//$selected_citations=isset($survey_row['related_citations']) ? $survey_row['related_citations'] : array();
 			$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
@@ -1613,6 +1618,9 @@ class Catalog extends MY_Controller {
 		{
 			show_404();
 		}
+		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($id);
 		
 		//is ajax call
 		$ajax=$this->input->get_post('ajax');

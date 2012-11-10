@@ -1,3 +1,9 @@
+<?php
+/**
+*
+* Survey Other IDs
+**/
+?>
 <style type="text/css">
 	div#survey_ids {
 		width: 100%;
@@ -29,7 +35,7 @@
 </style>
 <form method="post" action="">
 <div class="field">
-            <input id="survey_id" type="text" name="admin_survey_id" class="input-flex" style="width:88%;">
+            <input id="survey_id" type="text" name="admin_survey_id" class="input-flex">
             <input type="button" value="+" name="admin_survey_id_submit" style="border:1px solid gainsboro;padding:3px 5px 3px 5px;">
         </div>
 </form>
@@ -55,8 +61,8 @@ $(function() {
 });
 </script>
 <ul id="survey_ids">
-	<?php foreach($ids as $survey_id) {
-		echo "	<li id='{$survey_id['id']}'>{$survey_id['survey_id']}&nbsp;&nbsp;<a href='javascript:void(0);' style='text-decoration:none'>-</a></li>", PHP_EOL;
-	} ?>
+	<?php foreach($ids as $survey_id):?>
+		<li id="<?php echo $survey_id['id'];?>"><?php echo $survey_id['survey_id'];?>&nbsp;&nbsp;<a href='javascript:void(0);' style='text-decoration:none'>-</a></li>
+	<?php endforeach;?>
 </ul>
 </div>

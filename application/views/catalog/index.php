@@ -38,7 +38,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 
 <h1 class="page-title">
 	<?php echo t('catalog_maintenance');?>
-    <?php if (isset($this->active_repo) && $this->active_repo!=NULL):?>
+    <?php if ( isset($this->active_repo->id)):?>
     	<span class="active-repo">[<?php echo $this->active_repo->title;?>]</span><span class="link-change"><?php echo anchor('admin/repositories/select',t('change_repo'));?></span>
     <?php endif;?>
 </h1>

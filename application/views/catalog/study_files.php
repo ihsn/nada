@@ -1,13 +1,4 @@
 <?php
-$folder_options['']='--ROOT--';
-if (!empty($dirs))
-{	
-	foreach( $dirs as $dir )
-	{
-		$folder_options[$dir]=$dir;
-	}    
-}
-
 //survey id
 $survey_id=$this->uri->segment(4);
 ?>
@@ -30,9 +21,11 @@ form{margin:10px;padding:0px;}
 .micro-file-tr td,.micro-file-tr a{color:#6633CC}
 .resource-file-tr td,.resource-file-tr a{color:#339933}
 .inline label{display:inline;}
+.actions a{color:navy;}
+.actions a:hover{color:red;}
 </style>
 
-<form method="post" enctype="multipart/form-data" class="form">
+<form method="post" enctype="multipart/form-data" class="form manage-files">
 <div class="actions">
 	<div style="float:left;color:gainsboro;">		
     	<input type="image"  src="images/bin_closed.png" class="" title="<?php echo t('delete_selection');?>" name="delete" value="<?php echo t('delete_selection');?>" onclick="return batch_delete();"/> |
@@ -47,23 +40,11 @@ form{margin:10px;padding:0px;}
 
 <div id="file-uploads">
 
-	<table>
-    <tr>
-    <td>
-    <div class="field-inline">
-        <label for="upload_folder"><?php echo t('select_upload_folder');?></label>
-        <?php echo form_dropdown('upload_folder', $folder_options,'','id="upload_folder"'); ?>
-    </div>
-	</td>
-    <td style="width:30px;">&nbsp;</td>
-    <td>
     <div class="field-inline">
         <input type="checkbox" name="overwrite" id="overwrite" value="1"/>
         <label for="overwrite"><?php echo t('overwrite_if_exists');?></label>        
+        
     </div>
-    </td>
-    </tr>
-    </table>
     
 	<?php $this->load->view("catalog/plupload");?>
 
@@ -90,7 +71,6 @@ form{margin:10px;padding:0px;}
 <tr valign="top" align="left" class="header">
 	<th><input type="checkbox" id="chk_toggle"></th>
     <th><?php echo t('name');?></th>
-    <th><?php echo t('folder');?></th>	
     <th><?php echo t('size');?></th>
     <th><?php echo t('permissions');?></th>
     <th><?php echo t('modified');?></th>
@@ -121,7 +101,6 @@ form{margin:10px;padding:0px;}
 	        <?php if ($file['name'] ==$ddi_file_name):?>
     		<td><input type="checkbox" disabled="disabled"/></td>
             <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file locked-file '.$resource_type ));?></td>
-			<td><?php echo ($file["relative"])=='' ? '-' : $file["relative"];?></td>            
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
@@ -130,9 +109,8 @@ form{margin:10px;padding:0px;}
                 <?php echo anchor('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
             </td>
             <?php else:?>
-        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo $file["relative"].'/'.$file["name"];?>"/></td>            
+        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>            
             <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
-			<td><?php echo ($file["relative"])=='' ? '-' : $file["relative"];?></td>            
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
@@ -156,25 +134,26 @@ form{margin:10px;padding:0px;}
 <script type='text/javascript' >
 //checkbox select/deselect
 jQuery(document).ready(function(){
-	$("#chk_toggle").click(
+	$(".manage-files #chk_toggle").click(
 			function (e) 
 			{
-				$('.chk').each(function(){ 
+				$('.manage-files .chk').each(function(){ 
                     this.checked = (e.target).checked; 
                 }); 
 			}
 	);
-	$(".chk").click(
+	$(".manage-files .chk").click(
 			function (e) 
 			{
 			   if (this.checked==false){
-				$("#chk_toggle").attr('checked', false);
+				$(".manage-files #chk_toggle").attr('checked', false);
 			   }			   
 			}
 	);			
 });
+
 function batch_delete(){
-	if ($('.chk:checked').length==0){
+	if ($('.manage-files .chk:checked').length==0){
 		alert("<?php echo t('js_no_item_selected');?>");
 		return false;
 	}
@@ -182,7 +161,24 @@ function batch_delete(){
 	{
 		return false;
 	}
+	
+	$('.manage-files .chk:checked').each(function(){ 
+			this.value; 			
+			$.ajax({
+				timeout:1000*120,
+				type:'GET', 
+				url: CI.base_url+'/admin/managefiles/<?php echo $survey_id;?>/delete/'+this.value+'?ajax=1',
+				error: function(XHR, textStatus, thrownError) {
+					alert("Error occured " + XHR.status);
+					return false;
+				}
+			});
+     });
+	 
+	 return false;
 }
+
+
 function delete_confirm(){
 	if (!confirm("<?php echo t('js_confirm_delete');?>")) {return false;}
 }

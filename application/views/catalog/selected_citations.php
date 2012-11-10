@@ -1,6 +1,6 @@
 <?php
 /*
-* A list of surveys attached to a citation
+* A list of citations attached to a survey
 *
 */
 ?>
