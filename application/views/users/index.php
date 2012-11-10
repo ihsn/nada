@@ -70,7 +70,7 @@
         	<th><input type="checkbox" value="-1"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('username'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'email',t('email'),$page_url); ?></th>  
-            <th><?php echo create_sort_link($sort_by,$sort_order,'group_name',t('group'),$page_url); ?></th>          
+            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'group_name',t('group'),$page_url); ?></th>-->
 			<th><?php echo create_sort_link($sort_by,$sort_order,'active',t('status'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'country',t('country'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'company',t('company'),$page_url); ?></th>
@@ -86,7 +86,7 @@
         	<td><input type="checkbox" value="<?php echo $row->id; ?>"/></td>
             <td><a href="<?php echo current_url().'/edit/'.$row->id; ?>"><?php echo $row->username; ?></a></td>
             <td><?php echo $row->email; ?>&nbsp;</td>
-       		<td><?php echo strtoupper($row->group_name); ?></td>			
+       		<!--<td><?php //echo strtoupper($row->group_name); ?></td>-->
 			<td><?php echo ((int)$row->active)==1 ? t('ACTIVE') : t('DISABLED'); ?></td>
             <td><?php echo $row->country; ?></td>
             <td><?php echo substr($row->company,0,60); ?></td>
