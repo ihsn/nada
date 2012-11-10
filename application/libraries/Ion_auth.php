@@ -366,21 +366,7 @@ class Ion_auth
 		}
 	}
 	
-	
-	public function openid_login($identity, $remember=false)
-	{
-		if ($this->ci->ion_auth_model->openid_login($identity, $remember))
-		{
-			$this->set_message('login_successful');
-			return TRUE;
-		}
-		else
-		{
-			$this->set_error('login_unsuccessful');
-			return FALSE;
-		}
-	}
-	
+		
 	/**
 	 * logout
 	 *
@@ -431,17 +417,10 @@ class Ion_auth
 	 *
 	 * @return bool
 	 * @author Ben Edmunds
+	 * @modified Mehmood Asghar
 	 **/
 	public function is_admin()
 	{	    
-		/*
-		$admin_group = $this->ci->config->item('admin_group');
-	    $user_group  = $this->ci->session->userdata('group');
-	    return $user_group == $admin_group;
-		*/
-		
-		
-		//check if user is admin by checking group_id==1
 		return $this->ci->ion_auth_model->is_admin($this->ci->session->userdata("user_id"));
 	}
 	
@@ -453,6 +432,7 @@ class Ion_auth
 	 **/
 	public function is_group($check_group)
 	{
+		echo "TODO";exit;
 	    $user_group = $this->ci->session->userdata('group');
 	    
 	    if(is_array($check_group))
@@ -619,10 +599,19 @@ class Ion_auth
 	 * @author Mehmood Asghar
 	 **/
 	public function current_user()
-		{
-			return $this->get_user($this->ci->session->userdata('user_id'));
-		}
+	{
+		return $this->get_user($this->ci->session->userdata('user_id'));
+	}
 
+	/**
+	*
+	* Get current user's identity (email)
+	**/
+	public function current_user_identity()
+	{
+		$user=$this->current_user();
+		return $user->email;
+	}
 
 	
 	/**
@@ -841,7 +830,7 @@ class Ion_auth
 	*
 	* TODO: //disabled for now as there is no UI to create admins for different sites
 	*/
-	function is_site_admin()
+	/*function is_site_admin()
 	{
 		
 		return TRUE;
@@ -862,9 +851,9 @@ class Ion_auth
 			}
 		}
 		return FALSE;
-	}
+	}*/
 	
-	function has_access($userid,$url)
+	/*function has_access($userid,$url)
 	{
 		return $this->ci->ion_auth_model->has_access($userid,$url);
 	}
@@ -873,21 +862,28 @@ class Ion_auth
 	{
 		$userid=$this->get_current_user_id();
 		return $this->ci->ion_auth_model->is_study_owner($surveyid,$userid);
-	}
+	}*/
 	
 	/**
 	*
 	* Returns an array of repositories where current user has access
+	* todo: remove - no longer used
 	**/
-	function get_user_repositories()
+	/*function get_user_repositories()
 	{
 		$userid=$this->get_current_user_id();
 		return $this->ci->ion_auth_model->get_user_repositories($userid);
-	}
+	}*/
 	
 	function get_current_user_id()
 	{
 		$user=$this->current_user();
 		return $user->id;
 	}
+	
+	
+	 function get_groups_by_user($id=FALSE)
+	 {
+	 	return $this->ci->ion_auth_model->get_groups_by_user($id);
+	 }
 }
