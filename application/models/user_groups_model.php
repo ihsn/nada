@@ -58,19 +58,19 @@ class User_Groups_model extends CI_Model {
 		
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
-		$this->db->from('user_groups');
+		$this->db->from('groups');
 		
         $result= $this->db->get()->result_array();				
 		
 		//get count
-		$this->search_count=$this->db->count_all_results('user_groups');
+		$this->search_count=$this->db->count_all_results('groups');
 	
 		return $result;
     }
 
  	public function search_count()
     {
-        return $this->db->count_all_results('user_groups');
+        return $this->db->count_all_results('groups');
     }
 	
 	public function update($id,$options)
@@ -94,7 +94,7 @@ class User_Groups_model extends CI_Model {
 		
 		//update db
 		$this->db->where($key_field, $id);
-		$result=$this->db->update('user_groups', $data); 
+		$result=$this->db->update('groups', $data); 
 
 		return $result;		
 	}
@@ -118,7 +118,7 @@ class User_Groups_model extends CI_Model {
 			}
 		}
 		
-		$result=$this->db->insert('user_groups', $data); 
+		$result=$this->db->insert('groups', $data); 
 
 		return $result;		
 	}
@@ -126,21 +126,21 @@ class User_Groups_model extends CI_Model {
 	public function delete($id)
 	{
 		$this->db->where('id', $id); 
-		return $this->db->delete('user_groups');
+		return $this->db->delete('groups');
 	}
 	
 	public function select_single($id)
 	{		
 		$this->db->select("*");
 		$this->db->where('id', (integer)$id); 
-		return $this->db->get('user_groups')->row_array();
+		return $this->db->get('groups')->row_array();
 	}
 	
 	public function select_all($sort_by='weight', $sort_order='ASC')
 	{
 		$this->db->select('*');	
 		$this->db->order_by($sort_by, $sort_order);
-		$query=$this->db->get('user_groups');
+		$query=$this->db->get('groups');
 		
 		return $query->result_array();
 	}
