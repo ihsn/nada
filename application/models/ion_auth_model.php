@@ -571,6 +571,7 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * @return bool
 	 * @author Mathew
+	 * @modified	Mehmood Asghar
 	 **/
 	public function login($identity, $password, $remember=FALSE)
 	{
@@ -579,13 +580,13 @@ class Ion_auth_model extends CI_Model
 	        return FALSE;
 	    }
 
-	    $query = $this->db->select('username,email, id, password, group_id')
+	    $query = $this->db->select('username,email, id, password')
 						  ->where($this->identity_column, $identity)
 						  ->where($this->ion_auth->_extra_where)
 						  ->where('active', 1)
 						  //->limit(1)
 						  ->get($this->tables['users']);
-						  
+
         $result = $query->row();
 
         if ($query->num_rows() == 1)
@@ -597,14 +598,11 @@ class Ion_auth_model extends CI_Model
         		$this->update_last_login($result->id);
     		    $this->session->set_userdata('email',  $result->email);
 				$this->session->set_userdata('username',  $result->username);
-    		    //$this->session->set_userdata('id',  $result->id); //kept for backwards compatibility
     		    $this->session->set_userdata('user_id',  $result->id); //everyone likes to overwrite id so we'll use user_id
-    		    $this->session->set_userdata('group_id',  $result->group_id);
-				$this->session->set_userdata('site_user_roles', $this->get_user_site_roles($result->id));//array of user roles per site
     		    
-    		    $group_row = $this->db->select('name')->where('id', $result->group_id)->get($this->tables['groups'])->row();
+    		    //$group_row = $this->db->select('name')->where('id', $result->group_id)->get($this->tables['groups'])->row();
 
-    		    $this->session->set_userdata('group',  $group_row->name);
+    		    //$this->session->set_userdata('group',  $group_row->name);
     		    
     		    if ($remember && $this->config->item('remember_users'))
     		    {
@@ -629,7 +627,7 @@ class Ion_auth_model extends CI_Model
 	{
 		$this->db->select(array(
 	    	$this->tables['users'].'.id',
-			$this->tables['users'].'.group_id',
+			//$this->tables['users'].'.group_id',
 	    	$this->tables['users'].'.username',
 	    	$this->tables['users'].'.password',
 	    	$this->tables['users'].'.email',
@@ -637,8 +635,8 @@ class Ion_auth_model extends CI_Model
 	    	$this->tables['users'].'.forgotten_password_code',
 	    	$this->tables['users'].'.ip_address',
 	    	$this->tables['users'].'.active',
-	    	$this->tables['groups'].'.name AS user_group',
-	    	$this->tables['groups'].'.description AS group_description'
+	    	//$this->tables['groups'].'.name AS user_group',
+	    	//$this->tables['groups'].'.description AS group_description'
 	    ));
 	    
 		if (!empty($this->columns))
@@ -650,7 +648,7 @@ class Ion_auth_model extends CI_Model
         }
         
 		$this->db->join($this->tables['meta'], $this->tables['users'].'.id = '.$this->tables['meta'].'.'.$this->meta_join, 'left');
-		$this->db->join($this->tables['groups'], $this->tables['users'].'.group_id = '.$this->tables['groups'].'.id', 'left');
+		//$this->db->join($this->tables['groups'], $this->tables['users'].'.group_id = '.$this->tables['groups'].'.id', 'left');
 		
 		if(!empty($group_name))
 		{
@@ -690,8 +688,9 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * get_user
 	 *
-	 * @return object
-	 * @author Phil Sturgeon
+	 * @return 		object
+	 * @author 		Phil Sturgeon
+	 * @modified	Mehmood Asghar
 	 **/
 	public function get_user($id = false)
 	{
@@ -1038,44 +1037,28 @@ class Ion_auth_model extends CI_Model
 		return FALSE;
 	}
 	
-	/**
-	*
-	* Return user roles for all or single site
-	*
-	* TODO: not implemented yet
-	*/
-	function get_user_site_roles($userid,$siteid=NULL)
-	{
-		return true;
-		
-		if ($siteid!=NULL)
-		{
-			$this->db->where('siteid',$siteid);
-		}
-		$this->db->where('userid',$userid);
-		$query=$this->db->get($this->tables['user_site_roles']);				
-		$rows=$query->result_array();
-		return $rows;
-	}
 	
 	/**
 	*
-	* Checks if a usr is admin or not
+	* Checks if a user is admin or not
 	*/
 	function is_admin($userid)
 	{	
-		$this->db->select("group_type");
-		$this->db->join('user_groups', 'user_groups.id = '.$this->tables['users'].'.group_id', 'left');
+		$this->db->select("count(*) as admin_groups_count");
+		$this->db->join($this->tables['user_groups'], $this->tables['users'].'.id = '.$this->tables['user_groups'].'.user_id', 'inner');
+		$this->db->join($this->tables['groups'], $this->tables['groups'].'.id = '.$this->tables['user_groups'].'.group_id', 'inner');		
 		$this->db->where($this->tables['users'].".id",$userid);
+		$this->db->where($this->tables['groups'].".group_type",'admin');
+		
 		$query=$this->db->get($this->tables['users']);
 		
 		if ($query)
 		{
-			$user_arr=$query->row_array();
+			$groups=$query->row_array();
 			
-			if ($user_arr)
+			if ($groups)
 			{
-				if ($user_arr['group_type']=='admin')
+				if ($groups['admin_groups_count']>0)
 				{
 					return TRUE;
 				}	
@@ -1087,6 +1070,7 @@ class Ion_auth_model extends CI_Model
 	/**
 	*
 	* Checks if user has access to a URL
+	* TODO:REMOVE. moved to acl class
 	**/	
 	function has_access($userid,$url)
 	{
@@ -1333,4 +1317,34 @@ class Ion_auth_model extends CI_Model
 		
 		return FALSE;	
 	}
+
+	/**
+	 * get group memberships for a user
+	 *
+	 * @return object
+	 * @author Ben Edmunds
+	 **/
+	public function get_groups_by_user($id=FALSE)
+	{
+		//if no id was passed use the current users id
+		if (!$id)  
+		{
+			$id = $this->session->userdata('user_id');
+		}
+		
+	    $query = $this->db->select('group_id')
+						  ->where('user_id', $id)
+						  ->get($this->tables['user_groups']);
+
+		//all user groups
+		$rows = $query->result_array();
+		$groups=array();
+		foreach($rows as $group)
+		{
+			$groups[]=$group['group_id'];
+		}
+		
+		return $groups;
+	}
+
 }
