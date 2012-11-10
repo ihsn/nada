@@ -18,9 +18,10 @@ class User_model extends CI_Model {
 		$this->db->start_cache();
 
 		//columns
-		$columns=sprintf('%s.id,group_id,username,email,active,created_on,last_login,country,company',
+		$columns=sprintf('%s.id,username,email,active,created_on,last_login,country,company',
 							$this->tables['users']);
-		$columns.=','.$this->tables['groups'].'.name as group_name';
+		//$columns.=','.$this->tables['groups'].'.name as group_name';
+		
 		//select columns for output
 		$this->db->select($columns);
 		
@@ -32,7 +33,7 @@ class User_model extends CI_Model {
 					'email'=>'email',
 					'country'=>'country',
 					'company'=>'company',
-					'group_name'=>'user_groups.name',
+					//'group_name'=>'user_groups.name',
 					'active'=>'active',
 					'created_on'=>'created_on',
 					'last_login'=>'last_login'
@@ -59,7 +60,7 @@ class User_model extends CI_Model {
 		}
 		
 		$this->db->join($this->tables['meta'], sprintf('%s.user_id = %s.id',$this->tables['meta'],$this->tables['users']));
-		$this->db->join($this->tables['groups'], sprintf('%s.id = %s.group_id',$this->tables['groups'],$this->tables['users']),'left');
+		//$this->db->join($this->tables['groups'], sprintf('%s.id = %s.group_id',$this->tables['groups'],$this->tables['users']),'left');
 		$this->db->stop_cache();
 
 		//set order by
