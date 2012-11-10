@@ -35,7 +35,7 @@ p.msg{font-size:14px;margin-bottom:10px;}
 <?php endif;?>
 <ul>
 <?php foreach($repos as $repo):?>
-	<li><a class="repo" href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['repositoryid']; ?>"><?php echo $repo['title']; ?></a></li>
+	<li><a class="repo" href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['repo_id']; ?>"><?php echo $repo['title']; ?></a></li>
 <?php endforeach;?>
 </ul>
 </div>
