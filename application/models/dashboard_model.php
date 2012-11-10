@@ -50,6 +50,34 @@ select * from users where active=0 and created_on = last_login;
 		$this->db->from($this->tables['users']);
 		$result['inactive']=$this->db->count_all_results();
 
+		//calc date - n minutes
+		$date_obj = new DateTime();
+		$date_obj=$date_obj->modify ("-50 minutes");
+		
+		//timestamp
+		$start_date=$date_obj->format("U");
+
+		//get anonymous user sessions from db
+		$this->db->where('last_activity > ',$start_date,FALSE);
+		$this->db->from('ci_sessions');
+		$result['anonymous_users']=$this->db->count_all_results();
+
+		//get logged in users within last 30 minutes
+		$this->db->select("username");
+		$this->db->where('last_login >= ',$start_date,FALSE);
+		$active_users=$this->db->get("users")->result_array();
+		
+		$users=array();
+		foreach($active_users as $user)
+		{
+			$users[]=$user['username'];
+		}
+		
+		$result['loggedin_users']=$users;
+
+		//remove loggedin users from anonymous users count		
+		$result['anonymous_users']=$result['anonymous_users'] - count($result['loggedin_users']);
+
 		return $result;
 	}
 	
