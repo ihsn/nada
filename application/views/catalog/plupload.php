@@ -207,8 +207,7 @@ $(function() {
 
 		// Specify what files to browse for
 		filters : [
-			{title : "Resources", extensions : "jpg,gif,png,zip,doc,docx,pdf,sav,dta,do,smcl,log,ado,txt,rar,xls,xlsx,rtf,csv"},
-			{title : "Others", extensions : "*.*"}
+			{title : "External Resources", extensions : "<?php echo $this->config->item("allowed_resource_types");?>"}
 		],
 
 		// Flash settings
@@ -226,7 +225,7 @@ $(function() {
 			
 			BeforeUpload: function(up,file) {
 							
-				 up.settings.multipart_params.upload_folder = $("#upload_folder").val();
+				 //up.settings.multipart_params.upload_folder = $("#upload_folder").val();
 				 if ($("#overwrite").is(':checked')) {
 				 	up.settings.multipart_params.overwrite = 1;
 				 }
@@ -277,6 +276,7 @@ $(function() {
 			
 			UploadComplete: function (up, file) {
 				//called when all files are uploaded
+				//window.location.reload();
 			},
 			
 			Error: function(up, args) {
