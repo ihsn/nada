@@ -2,7 +2,7 @@
 /**
  * Catalog Tags
  *
- * handles all Catalog Maintenance pages
+ * manage survey tags
  *
  * @package		NADA 4
  * @author		IHSN
@@ -38,6 +38,9 @@ class Catalog_Tags extends MY_Controller {
 		//remove any tags
 		$tag=strip_tags($tag);
 		
+		//convert spaces and accents
+		$tag=url_title($tag);
+		
 		if (!$this->Catalog_Tags_model->tag_exists($id, $tag)) 
 		{
 			$options=array(
@@ -51,7 +54,7 @@ class Catalog_Tags extends MY_Controller {
 		$survey_tags = $this->Catalog_Tags_model->survey_tags($id);		
 		
 		//return new tag list for the survey
-		$this->load->view("views/survey_tags_list",array('tags'=>$survey_tags));
+		$this->load->view("catalog/survey_tags_list",array('tags'=>$survey_tags));
 	}
 
 
