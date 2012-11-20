@@ -290,6 +290,7 @@ License:
 			<xsl:call-template name="escape-apos" >
 				<xsl:with-param name="string" select="normalize-space(.)"/>
 			</xsl:call-template>
+            {BR}
 </xsl:template>
 
 <xsl:template match="ddi:topcClas"><!--
