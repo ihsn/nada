@@ -1,7 +1,6 @@
 <?php
 //survey id
 $sid=$this->uri->segment(4);
-
 ?>
 
 <script type="text/javascript">
@@ -27,7 +26,6 @@ $(document).ready(function () {
 			return false;
 		});
 
-
 		//show/hide remote da url depending on the da form selected
 		$("#formid").change(function(e){				
 			sh_remote_da_link();
@@ -42,9 +40,10 @@ $(document).ready(function () {
 			return false;
 		});
 		
-		$("#tag").keyup(function(event){
+		$("#tag").live('keyup',function(event){		
 			if(event.keyCode==13){
 				add_tag();
+				return false;
 			}
 		});
 		
@@ -96,7 +95,6 @@ function bind_behaviours() {
 }
 
 function bind_survey_collection_events(){
-
 	//click events for checkboxes
 	$("#survey-collection-list .chk").click(function(e){
 		update_survey_collection(this);
@@ -172,65 +170,6 @@ function update_survey_collection(e) {
 			$.get(url);
 		});
 	}
-/*tags*/
-function add_tag() {
-	
-	var tag=$("#tag").val();
-
-	if (tag==""){
-		return false;
-	}
-	
-	url=CI.base_url+'/admin/catalog_tags/add/<?php echo $sid;?>/'+tag+'/';
-
-	$.ajax({
-        type: "GET",
-        url: url,
-        cache: false,
-		timeout:30000,
-		dataType:'json',
-		success: function(data) {
-			if (data.success){
-				//add tag to the list
-				$("#tag-list").append("<li>"+tag+"</li>");
-				$("#tag").val("");				
-			}
-			else{
-				show_error(data.error);
-			}
-        },
-		error: function(XMLHttpRequest, textStatus, errorThrow) {
-			show_error(XMLHttpRequest.responseText);
-        }		
-    });
-}
-
-function load_tags(){
-	url=CI.base_url+'/admin/catalog_tags/get_tags/<?php echo $sid;?>';
-	
-	$.ajax({
-        type: "GET",
-        url: url,
-        cache: false,
-		timeout:30000,
-		success: function(data) {
-			$("#tag-list").html(data);
-        },
-		error: function(XMLHttpRequest, textStatus, errorThrow) {
-			alert(XMLHttpRequest.responseText);
-        }		
-    });
-}
-
-function show_error(error_msg){
-	$("#page-error").html(error_msg);
-	$(".info-box .error").show();
-}
-
-function hide_msgbox(){
-	$(".info-box .error").hide();
-	$(".info-box .msg").hide();
-}
 
 </script>
 
@@ -325,6 +264,10 @@ border-radius: 3px;clear:right;}
 .reviewer-notes-container .input-flex{width:85%;}
 .tags-container .input-flex{width:85%;}
 .survey-other-ids .input-flex{width:85%;}
+.remove{padding:5px;cursor:pointer;}
+.remove:hover{font-weight:bold}
+.tag{font-size:11px;}
+.vscroll{overflow:auto;overflow-x:hidden;}
 </style>
 <div class="body-container" style="padding:10px;">
 
@@ -594,9 +537,8 @@ border-radius: 3px;clear:right;}
 <div class="box iscollapsed">
 	<div class="box-header">Tags
        <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
-
     </div>
-    <div class="box-body collapse">
+    <div class="box-body collapse survey-tags">
 		<?php echo $tags; ?>
 	</div>
 </div>
