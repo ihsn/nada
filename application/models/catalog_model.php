@@ -104,7 +104,7 @@ class Catalog_model extends CI_Model {
 			$this->db->select("sr.repositoryid as repo_link, sr.isadmin as repo_isadmin");
 			$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
 		}	
-		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
+		//$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 
 		//build search using the parameters passed to the GET/POST variables
 		$where=$this->_build_search_query();
@@ -587,18 +587,18 @@ class Catalog_model extends CI_Model {
 		
 		//get datasets folder path
 		$catalog_root=$this->config->item("catalog_root");
-
+		
 		//join to create full path
 		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->ddifilename;
 
 		$ddi_file=unix_path($ddi_file);
 		
-		if (!file_exists($ddi_file))
+		if (file_exists($ddi_file) && is_file($ddi_file))
 		{
-			return FALSE;
+			return $ddi_file;
 		}
 		
-		return $ddi_file;
+		return FALSE;
 	}
 	
 	/**
@@ -1195,7 +1195,35 @@ class Catalog_model extends CI_Model {
 		return $result;		
 	}
 	
-	function get_reference_ids_from_internal_id($id) {
 	
+	/**
+	*
+	* Returns a unique list of all tags
+	**/
+	function get_all_survey_tags()
+	{
+		$this->db->select('tag,count(tag) as total');
+		$this->db->group_by('tag');
+		return $this->db->get('survey_tags')->result_array();
 	}
+
+
+	/**
+	* returns internal survey id by SURVEYID
+	*
+	**/
+	function get_survey_uid($survey_id)
+	{
+		$this->db->select('id');
+		$this->db->where('surveyid', $survey_id); 
+		$query=$this->db->get('surveys')->row_array();
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query['id'];
+	}
+
 }
