@@ -1,6 +1,6 @@
 <?php
 //get repositories list by user access
-$user_repositories=$this->ion_auth->get_user_repositories();	
+$user_repositories=$this->acl->get_user_repositories();
 $repositories_list=array();
 foreach($user_repositories as $repo)
 {
