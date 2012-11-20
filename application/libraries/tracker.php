@@ -17,7 +17,8 @@ require_once(APPPATH."../modules/omniture/OmnitureMeasurement.php");
 class Tracker //extends OmnitureMeasurement
 {
 	private $ci;
-
+	
+	
 	/**
 	 * Constructor - Initializes and references CI
 	 */
@@ -26,11 +27,12 @@ class Tracker //extends OmnitureMeasurement
 		log_message('debug', "Tracker Class Initialized.");
 		$this->ci =& get_instance();
 		$this->ci->load->config('omniture');
+		
 		//parent::__construct();
 	}
 
 	//track page
-	function track()
+	function track($url='',$page_title='')
 	{
 		//Instantiate instance
 		$s = new OmnitureMeasurement();
@@ -50,7 +52,16 @@ class Tracker //extends OmnitureMeasurement
 		
 		$s->pageName=$this->ci->config->item("omniture_pagename");
 		
-		$uri=strip_tags($_SERVER["REQUEST_URI"]);
+		//set URL
+		if ($url=='')
+		{
+			$uri=strip_tags($_SERVER["REQUEST_URI"]);
+		}
+		else
+		{
+			$uri=$url;
+		}
+		
 		$q_pos=strpos($uri,"?");
 		
 		if ($q_pos!=FALSE)
@@ -60,11 +71,14 @@ class Tracker //extends OmnitureMeasurement
 		}
 		
 		$uri=explode('/',$uri);
-		if (in_array('ddibrowser',$uri))
+		
+		//var_dump($uri);exit;
+		
+		if ($url!='' && $page_title!='')
 		{
-			$s->pageName.='DDI Browser';
+			$s->pageName.=$page_title;
 			
-			$pos = array_search('ddibrowser', $uri);
+			/*$pos = array_search('variable', $uri);
 			$k=0;
 			foreach($uri as $str)
 			{
@@ -73,11 +87,12 @@ class Tracker //extends OmnitureMeasurement
 					$s->pageName.=' > '.$str;
 				}
 				$k++;
-			}
+			}*/
 			
-			$s->prop1 = 'DDI Browser';//clears any previously set value for prop1	
+			$s->prop1 = '';//reset prop1
 		}
-		else if (in_array('search',$uri))
+		//catalog search
+		else if (in_array('catalog',$uri) && in_array('search',$uri))
 		{
 			$allowed=array('sk','vk','view','dtype','from','to','page','nation');
 			
@@ -103,10 +118,35 @@ class Tracker //extends OmnitureMeasurement
 		}
 		
 		//echo $s->pageName;exit;
-		$s->channel = 'DEC DDP Microdata Catalog';//clears any previously set value for channel
-		
+		$s->channel = 'DEC Microdata Catalog EXT';//clears any previously set value for channel
 		$s->track();
-
+	}
+	
+	function track_download($url,$title)
+	{
+	//Instantiate instance
+		$s = new OmnitureMeasurement();
+				
+		if (defined('ENVIRONMENT') && ENVIRONMENT=='production')
+		{		
+			//set s_account
+			$s->account = $this->ci->config->item("omniture_s_account_prod");
+		}
+		else
+		{
+			//dev account
+			$s->account = $this->ci->config->item("omniture_s_account_dev");
+		}	
+		
+		$s->pageName=$this->ci->config->item("omniture_pagename");
+		//Set Variables
+		$s->channel = 'DEC Microdata Catalog EXT';
+		$s->prop1 = 'download-prop1 '.$title;
+		$s->debugTracking=1;
+		//$s->trackLink('http://www.somedownloadURL.com', 'd', 'Some Action Name');
+		$s->sendFromServer = true; 
+		$s->trackLink($linkURL=$url, $linkType="d", $linkName=basename($url));
+			//  $s->sendFromServer = true; 
 	}
 		
 }
