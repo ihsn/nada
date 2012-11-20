@@ -71,8 +71,11 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 		
-		//get citations		
+		//get surveys
 		$db_rows=$this->_search();
+		
+		//get survey tags
+		$this->catalog_tags=$this->Catalog_model->get_all_survey_tags();
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/index', $db_rows,true);
@@ -539,7 +542,7 @@ class Catalog extends MY_Controller {
 		$repositoryid=$this->input->post("repositoryid");
 		
 		//validate if user has access to the selected repository
-		$user_repositories=$this->ion_auth->get_user_repositories();
+		$user_repositories=$this->acl->get_user_repositories();
 		
 		$user_repo_access=FALSE;
 		foreach($user_repositories as $repo)
@@ -576,6 +579,14 @@ class Catalog extends MY_Controller {
 			
 			//delete uploaded file
 			unlink($ddi_file);
+			
+			//redirect to study edit page
+			if (isset($data['study']['id']))
+			{
+				$uid=$this->Catalog_model->get_survey_uid($data['study']['id']);
+				$this->session->unset_userdata('ddi_progress');
+				redirect('admin/catalog/edit/'.$uid,'refresh');						
+			}	
 		}
 		else
 		{
@@ -595,6 +606,16 @@ class Catalog extends MY_Controller {
 	}
 	
 	
+	function batch_refresh()
+	{
+		//list of all surveys
+		$data['surveys']=$this->Catalog_model->select_all_compact();
+		//show
+		$contents=$this->load->view('catalog/ddi_batch_refresh',$data,TRUE);
+		$this->template->write('content', $contents,true);
+	  	$this->template->render();
+	}
+	
 	/**
 	*
 	* Refresh DDI Information in the database
@@ -608,6 +629,8 @@ class Catalog extends MY_Controller {
 			show_404();
 		}
 		
+		$is_ajax=$this->input->get("ajax");
+		
 		//load DDI Parser Library
 		$this->load->library('DDI_Parser');
 		$this->load->library('DDI_Import','','DDI_Import');
@@ -617,15 +640,21 @@ class Catalog extends MY_Controller {
 		
 		if ($ddi_file===FALSE)
 		{
-			show_error('DDI_NOT_FOUND');
+			if($is_ajax==FALSE)
+			{
+				show_error('DDI_NOT_FOUND');
+			}
+			else
+			{
+				die (json_encode(array('error'=>'DDI_NOT_FOUND' )));
+			}
 		}
-		
 		//load DDI Parser Library
 		$this->load->library('DDI_Parser');
 		$this->load->library('DDI_Import','','DDI_Import');
 
 		//set file for parsing
-		$this->ddi_parser->ddi_file=$ddi_file;
+		$this->ddi_parser->set_ddi_file($ddi_file);
 		
 		//only available for xml_reader
 		$this->ddi_parser->use_xml_reader=TRUE;
@@ -637,6 +666,11 @@ class Catalog extends MY_Controller {
 			log_message('error', $error);
 			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
 
+			if ($is_ajax)
+			{
+				die (json_encode(array('error'=>$error) ));
+			}
+			
 			$this->session->set_flashdata('error', $error);
 			redirect('admin/catalog','refresh');
 		}
@@ -661,6 +695,11 @@ class Catalog extends MY_Controller {
 		//display import success 
 		$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
 		log_message('DEBUG', 'Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables');
+		
+		if ($is_ajax)
+		{
+			die (json_encode(array('success'=>'UPDATED: '.$data['study']['id']) ));
+		}
 			
 		$this->session->set_flashdata('message', $success);			
 		redirect('admin/catalog','refresh');		
@@ -735,7 +774,8 @@ class Catalog extends MY_Controller {
 		$repositoryid=$this->input->post("repositoryid");
 		
 		//validate if user has access to the selected repository
-		$user_repositories=$this->ion_auth->get_user_repositories();	
+		$user_repositories=$this->acl->get_user_repositories();
+
 		$user_repo_access=FALSE;
 		foreach($user_repositories as $repo)
 		{
@@ -1570,7 +1610,13 @@ class Catalog extends MY_Controller {
 			
 			//survey tags
 			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
+			
+			//all tags
+			$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
+			
 			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
+			
+			
 			
 			//other survey IDs
 			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
