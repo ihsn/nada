@@ -41,7 +41,7 @@
  */
 class DDI_Parser{
     
-	var $ddi_file;
+	private $ddi_file;
 	var $use_xml_reader=TRUE;
 	
 	//List of study fields in the order returned by the XSLT
@@ -67,6 +67,18 @@ class DDI_Parser{
 		$CI =& get_instance();
 		$CI->load->helper('xslt_helper');
     }
+	
+	function set_ddi_file($ddi_file)
+	{
+		if (is_file($ddi_file) && file_exists($ddi_file))
+		{
+			$this->ddi_file=$ddi_file;
+		}
+		else
+		{
+			throw new Exception("INVALID_DDI_FILE");
+		}	
+	}
 
 	/**
 	* validate DDI file
