@@ -172,12 +172,27 @@ class DDI_Import{
 		
 		//clean up authenty
 		$authenty_arr=explode("{BR}",substr($data->authenty,0,200));
-		
+				
 		foreach($authenty_arr as $key=>$pi)
 		{
 			if	($pi=='')
 			{
 				unset($authenty_arr[$key]);
+			}
+		}
+		
+		//countries array
+		$nation_arr=explode("{BR}",$data->nation);
+		
+		foreach($nation_arr as $key=>$value)
+		{
+			if	(trim($value)=='')
+			{
+				unset($nation_arr[$key]);
+			}
+			else
+			{
+				$nation_arr[$key]=trim($value);
 			}
 		}
 
@@ -191,7 +206,7 @@ class DDI_Import{
 			'titlstmt'=>$data->titlstmt,
 			'authenty'=>json_encode($authenty_arr),//substr($data->authenty,0,254),
 			'geogcover'=>substr($data->geogcover,0,254),
-			'nation'=>substr($data->nation,0,99),
+			'nation'=>substr(implode(", ",$nation_arr),0,255),
 			'topic'=>serialize($data->topics),
 			'scope'=>$data->scope,
 			'keywords'=>trim($data->keywords),
@@ -281,6 +296,9 @@ class DDI_Import{
 		//update data collection dates
 		$this->update_data_collection_dates($id, $row);
 		
+		//update survey countries
+		$this->update_survey_countries($id,$nation_arr);
+		
 		//update survey centers
 		if (isset($data->center) && trim($data->center)!="")
 		{
@@ -328,21 +346,67 @@ class DDI_Import{
 				}//end-else			
 		}
 		
-		//collections
-		/*
-		//TODO:Remove
-		if ($data->collections)
-		{
-			$this->update_collections($id,$data->collections);
-		}*/
-		
 		$this->id=$id;
 		
 		//success, return the survey row id
 		return $id;
 	}
 	
+
+	/**
+	*
+	* Add/edit survey countries
+	**/
+	function update_survey_countries($surveyid, $countries)
+	{
+		//remove existing survey countries
+		$this->ci->db->where('sid',$surveyid);
+		$this->ci->db->delete('survey_countries');
+		
+		$data=array();
+		foreach ($countries as $country)
+		{
+			//get country ISO code
+			$iso=$this->get_country_iso($country);
+			
+			//add to survey_countries
+			$this->add_survey_country($surveyid, $country, $iso);
+		}		
+	}
 	
+	/**
+	*
+	* Add a single country to survey
+	**/
+	function add_survey_country($surveyid,$country_name,$iso)
+	{
+		$options=array(
+					'sid'			=>$surveyid,
+					'country_name'	=>$country_name,
+					'iso'			=>$iso
+				);
+		$this->ci->db->insert('survey_countries',$options);
+	}
+	
+	
+	/**
+	*
+	* Return country ISO code by country name
+	**/
+	function get_country_iso($country_name)
+	{
+		$this->ci->db->select('iso');
+		$this->ci->db->where('name',trim($country_name));
+		$query=$this->ci->db->get('countries')->row_array();
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query['iso'];
+	}
+		
 	
 	/**
 	*
