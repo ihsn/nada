@@ -247,7 +247,15 @@ class DDI_Import{
 	
 		//check if survey already exists
 		$id=$this->survey_exists($surveyid=$data->id);
-
+		
+		$survey_aliases=array();
+		
+		if ($id)
+		{
+			//get survey aliases
+			$survey_aliases=$this->get_survey_alaises($id);
+		}
+		
 		//new survey
 		if(!$id)
 		{
@@ -257,7 +265,7 @@ class DDI_Import{
 			if ($insert_result)
 			{
 				//get the ID for newly added survey
-				$id=$this->survey_exists($surveyid=$data->id,$repositoryid=$this->repository_identifier);
+				$id=$this->survey_exists($data->id);
 			}	
 			else
 			{
@@ -289,10 +297,13 @@ class DDI_Import{
 				log_message('error', $error);
 				return FALSE;			
 		}
-
+		
 		//update survey repository info
 		$this->update_survey_repos($id,$this->repository_identifier);
 
+		//update survey aliases
+		$this->update_survey_aliases($id, $survey_aliases);
+		
 		//update data collection dates
 		$this->update_data_collection_dates($id, $row);
 		
@@ -352,6 +363,52 @@ class DDI_Import{
 		return $id;
 	}
 	
+	
+	/**
+	*
+	* Update survey aliases info
+	**/
+	function update_survey_aliases($id, $survey_aliases)
+	{
+		//get survey row
+		$survey_row=$this->get_survey($id);
+		
+		$survey_id=$survey_row['surveyid'];
+		
+		$new_aliases=array();
+		
+		foreach($survey_aliases as $alias)
+		{
+			//don't include the surveyid from survey
+			if (trim($alias)!==trim($survey_id))			
+			{
+				$new_aliases[$alias]=$alias;
+			}	
+		}
+		
+		//remove existing aliases
+		$this->ci->db->where('sid',$id);
+		$this->ci->db->delete('survey_aliases');
+		
+		//survey has no aliases
+		if (count($new_aliases)==0)
+		{
+			return FALSE;
+		}
+		
+		//add aliases
+		foreach($new_aliases as $alias)
+		{
+			$options=array(
+						'sid'=>$id,
+						'alternate_id'=>$alias
+						);
+						
+			$this->ci->db->insert('survey_aliases',$options);
+		}		
+	}
+	
+
 
 	/**
 	*
@@ -362,7 +419,7 @@ class DDI_Import{
 		//remove existing survey countries
 		$this->ci->db->where('sid',$surveyid);
 		$this->ci->db->delete('survey_countries');
-		
+
 		$data=array();
 		foreach ($countries as $country)
 		{
@@ -805,21 +862,12 @@ class DDI_Import{
 	*
 	* check if the survey already exists?
 	*
-	* note: repositoryid param is no longer used
-	*
-	* TODO// remove second param
 	**/
-	function survey_exists($surveyid,$repositoryid=NULL)
+	function survey_exists($surveyid)
 	{
 		$this->ci->db->select('id');
-		$this->ci->db->from('surveys');
-		
-		//$this->ci->db->where(array('surveyid' => $surveyid,'repositoryid' => $repositoryid) );		
-		
-		//check surveyid in all repositories
 		$this->ci->db->where(array('surveyid' => $surveyid) );
-		
-		$query=$this->ci->db->get();
+		$query=$this->ci->db->get('surveys');
 
 		if ($query->num_rows() > 0)
 		{
@@ -828,9 +876,68 @@ class DDI_Import{
 				return $row->id;
 		   }
 		}
+		
+		//check if survey has an alias
+		$survey_alias=$this->survey_alias_exists($surveyid);
+		
+		if($survey_alias)
+		{
+			return $survey_alias;
+		}
+				
 		return false;		
 	}
 	
+	function survey_alias_exists($surveyid)
+	{
+		$this->ci->db->select('sid');
+		$this->ci->db->where(array('alternate_id' => $surveyid) );
+		$query=$this->ci->db->get('survey_aliases')->result_array();
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query[0]['sid'];		
+	}
+	
+	
+	/**
+	*
+	* Return survey aliases + surveyid by internal id
+	* 
+	* note: duplicated from catalog_model
+	**/
+	function get_survey_alaises($sid)
+	{		
+		//from aliases table
+		$this->ci->db->select('alternate_id');
+		$this->ci->db->where(array('sid' => $sid) );
+		$query=$this->ci->db->get('survey_aliases')->result_array();
+
+		$aliases=array();
+		
+		if ($query)
+		{
+			foreach($query as $row)
+			{
+				$aliases[]=$row['alternate_id'];
+			}
+		}
+		
+		//from survey table
+		$this->ci->db->select('surveyid');
+		$this->ci->db->where(array('id' => $sid) );
+		$query=$this->ci->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			$aliases[]=$query['surveyid'];
+		}
+		
+		return $aliases;
+	}
 	
 	/**
 	*
