@@ -14,31 +14,28 @@ class Catalog_Notes extends MY_Controller {
 		$t=$this->Catalog_Notes_model->delete($id);
 	}
 	
-	private function _reload_notes($notes) {
-		$x=1; foreach($notes as $note) {
-			$user = $this->ion_auth->get_user($note['uid']);
-			$note['date'] = current(explode(' ', $note['date']));
-			$note['note'] = str_split($note['note'], 70);
-			$note['note'] = implode(PHP_EOL, $note['note']);
-			echo "		<li id='{$note['id']}'>".nl2br($note['note']), "<br /><small style='margin-left:7px'>{$note['date']}&nbsp;by: {$user->username}</small>&nbsp;&nbsp;<a href='javascript:void(0);' style='text-decoration:none'>-</a></li>", PHP_EOL;
-			$x++;
-		}	 
-    }
-	
-	public function add($id) {
-		$note = array(
-			'id'   => NULL,
-			'sid'  => $id,
-			'note' => $this->input->post('note'),
-			'type' => $this->input->post('type'),
-			'uid'  => $this->session->userdata('user_id'),
-			'date' => date("Y:m:d H:i:s")
-		);			
-		$this->Catalog_Notes_model->insert($note);
-			
-		$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, $note['type']);
+	public function add($id) 
+	{
+		if (is_numeric($id))
+		{
+			$note = array(
+				'id'   => NULL,
+				'sid'  => $id,
+				'note' => $this->security->xss_clean($this->input->post('note')),
+				'type' => $this->security->xss_clean($this->input->post('type')),
+				'userid'  => $this->session->userdata('user_id'),
+				'created' => date("U")
+			);
 		
-		// a separate ajax call could probably be done instead of doing this, but whatever.
-		$this->_reload_notes($notes['notes']);	
+			//add note
+			$this->Catalog_Notes_model->insert($note);
+		}
+				
+		//get a list of notes from db
+		$notes= $this->Catalog_Notes_model->notes_from_catelog_id($id, $note['type']);
+		
+		//return formatted list of notes
+		echo $this->load->view('catalog/notes_by_type',array('notes'=>$notes));
 	}
+	
 }
