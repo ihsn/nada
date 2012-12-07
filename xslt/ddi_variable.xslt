@@ -28,6 +28,7 @@ License:
     <xsl:param name="survey.base" select="'s'"/>	
     <xsl:param name="outline.base" select="'y'"/>
     <xsl:param name="search_varID" select="'V37'"/>
+	<xsl:param name="show_summary_stats" select="'0'"/>
 	
 <xsl:template match="/">
 
@@ -156,20 +157,22 @@ License:
 							<tr>
 								<th  align="left"><xsl:call-template name="gettext"><xsl:with-param name="msg">Value</xsl:with-param></xsl:call-template></th>
 								<th  align="left"><xsl:call-template name="gettext"><xsl:with-param name="msg">Category</xsl:with-param></xsl:call-template></th>
-								<xsl:if test="count(./ddi:catgry/ddi:catStat[@type='freq'])>0">
+								<xsl:if test="count(./ddi:catgry/ddi:catStat[@type='freq'])>0 and $show_summary_stats='1'">
 									<th  align="left"><xsl:call-template name="gettext"><xsl:with-param name="msg">Cases</xsl:with-param></xsl:call-template></th>
 								</xsl:if>
 								<xsl:if test="count(./ddi:catgry/ddi:catStat[@wgtd='wgtd'])>0">
 									<th  align="left"><xsl:call-template name="gettext"><xsl:with-param name="msg">Weighted</xsl:with-param></xsl:call-template></th>
 								</xsl:if>
-								<xsl:if test="count(./ddi:catgry/ddi:catStat[@type='freq'])>0">
+								<xsl:if test="count(./ddi:catgry/ddi:catStat[@type='freq'])>0 and $show_summary_stats='1'">
 									<th  align="left"/>
 								</xsl:if>
 							</tr>
 							<xsl:apply-templates select="ddi:catgry"/>
 					</table>
 				</div>
+				<xsl:if test="$show_summary_stats='1'">
        			<div style="color:gray;margin:5px;font-size:11px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">warning_figures_indicate_number_of_cases_found</xsl:with-param></xsl:call-template></div>
+				</xsl:if>
             </div>
 		</xsl:if>        
 
@@ -365,7 +368,7 @@ License:
 			<!-- Label -->
 			<td><xsl:value-of select="ddi:labl"/></td>
 			<!-- Frequency -->
-			<xsl:if test="count(ddi:catStat[@type='freq'])>0">
+			<xsl:if test="count(ddi:catStat[@type='freq'])>0 and $show_summary_stats='1'">
 				<td><xsl:value-of select="ddi:catStat[@type='freq' and not(@wgtd)]"/></td>
 			</xsl:if>
 			<!-- Wieghted Frequency -->
@@ -375,7 +378,7 @@ License:
 				</td>
 			</xsl:if>
 			<!-- Graph -->
-			<xsl:if test="count(ddi:catStat[@type='freq'])>0">
+			<xsl:if test="count(ddi:catStat[@type='freq'])>0  and $show_summary_stats='1' ">
 				<td nowrap="nowrap">
 					<!-- exclude missing values -->
 					<xsl:if test="not (@missing='Y')">
