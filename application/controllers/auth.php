@@ -19,7 +19,7 @@ class Auth extends MY_Controller {
 		$this->lang->load('users');
 		
 		$this->load->model('token_model');		
-    	$this->load->library('math_captcha'); //simple math captcha library    		
+    	$this->load->library('image_captcha'); //simple math captcha library    		
     	
 		
       	//$this->output->enable_profiler(TRUE);
@@ -412,10 +412,15 @@ class Auth extends MY_Controller {
 	function _create_user() 
 	{  
         $this->data['title'] = t("register");
-        $content=NULL; 
+        $content=NULL;
+		$this->captcha=NULL;
+		$this->captcha_str='s';
 
-		//add the captcha for display on the view 
-		$this->captcha = $this->math_captcha->create_question();
+		if ($this->image_captcha->is_enabled())
+		{
+			//add the captcha for display on the view 
+			$this->captcha = $this->image_captcha->create_question();
+		}
 		
 		//create a form token
 		if ($this->input->post("form_token"))
@@ -437,10 +442,13 @@ class Auth extends MY_Controller {
     	$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
 		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
     	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
-    	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
-		$this->form_validation->set_rules('math_question', t('captcha'), 'trim|required|max_length[3]|callback_validate_captcha');
+    	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');		
 		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
 		
+		if (isset($this->captcha))
+		{
+			$this->form_validation->set_rules('captcha_question', t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
+		}
 		
         if ($this->form_validation->run() === TRUE) 
 		{ 
@@ -526,12 +534,12 @@ class Auth extends MY_Controller {
 	
 	/**
 	*
-	* validate math captcha
+	* validate captcha
 	*
 	*/
 	function validate_captcha()
 	{
-		return $this->math_captcha->validate_captcha();		
+		return $this->image_captcha->validate_captcha();		
 	}
 
 	/**
