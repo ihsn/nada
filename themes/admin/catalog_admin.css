@@ -1,6 +1,6 @@
 @charset "utf-8";
 
-#surveys .selected{background:black;border:2px solid black;color:white;}
+/*#surveys .selected{background:black;border:2px solid black;color:white;}*/
 #surveys .hide{display:none;}
 #surveys .study-info td.study-info-box{border:2px solid black;border-top:none;}
 
