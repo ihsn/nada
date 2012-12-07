@@ -61,11 +61,13 @@ $options_country=$this->ion_auth_model->get_all_countries();
 	      <?php echo form_input($password_confirm,'','class="input-flex" autocomplete="off"');?>
       </div>
 
+	 <?php if ($this->image_captcha->is_enabled()):?>
       <div class="field">
-        <label for="math_question"><?php echo t('math_question');?> <span class="required">*</span></label>
+        <label for="cap_question"><?php echo t('captcha_question');?> <span class="required">*</span></label>
         <?php echo $this->captcha; ?>
-        <label for="math_question" class="small"><?php echo t('captcha_provide_answer');?></label>
-      </div>  
+        <label for="cap_question" class="small"><?php echo t('captcha_provide_answer');?></label>
+      </div>
+     <?php endif;?>   
       
       <?php echo form_submit('submit', t('register'));?>
       <?php echo anchor('',t('cancel'), array('class'=>'')); ?>
