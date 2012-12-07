@@ -2,10 +2,6 @@
 
 class Related_Citations extends MY_Controller {
 
-	var $active_repo=NULL;
-	var $sess_id=NULL;
-	var $selected_citations=array();
- 
     public function __construct()
     {
         parent::__construct();
@@ -15,7 +11,8 @@ class Related_Citations extends MY_Controller {
 		$this->load->helper('form');
 		$this->load->helper("catalog");
 		$this->template->set_template('blank');
-		
+		$this->load->library('chicago_citation');
+        
 		//load language file
 		$this->lang->load('general');
     	$this->lang->load('catalog_search');
@@ -27,23 +24,26 @@ class Related_Citations extends MY_Controller {
 	
 	/**
 	*
-	* @id	session key
+	* @id	survey id
 	**/
-	public function index($skey){	
-		$this->sess_id=$skey;		
-		$this->related_citations=(array)$this->session->userdata($skey);
-			
+	public function index($skey)
+	{	
+		if (!is_numeric($skey))
+		{
+			return FALSE;
+		}
+	
 		$this->template->set_template('blank_iframe');
 			
-		//css files
-		$this->template->add_css('themes/admin/catalog_admin.css');
-		
-		//js & css for jquery window 
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
-				
 		//get citations		
 		$db_rows=$this->_search($skey);
+		
+		//survey id
+		$db_rows['survey_id']=$skey;
+		
+		//list of attached citations to survey
+		$db_rows['selected_citations']=$this->Citation_model->get_citations_id_array_by_survey($skey);
+		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/related_citations_index', $db_rows,true);
 	
@@ -57,8 +57,6 @@ class Related_Citations extends MY_Controller {
 	
 	private function _search($skey)
 	{
-		$session_id="citations";
-
 		//records to show per page
 		$per_page = $this->input->get("ps");
 		
@@ -81,7 +79,8 @@ class Related_Citations extends MY_Controller {
 		$filter=NULL;
 
 		//simple search
-		if ($this->keywords){
+		if ($this->keywords)
+		{
 			$filter[0]['field']=$this->field;
 			$filter[0]['keywords']=$this->keywords;
 		}	
@@ -122,99 +121,36 @@ class Related_Citations extends MY_Controller {
 	
 	/**
 	*
-	* Add citations to session by key
-	**/	
-	public function add($skey,$cid,$isajax=0)
-	{
-		$id_list=explode(",",$cid);
-		
-		foreach($id_list as $key=>$value)
-		{
-			if (!is_numeric($value))
-			{
-				unset($id_list[$key]);
-			}
-		}
-		
-		//get session data by key
-		$sess_data=$this->session->userdata($skey);
-		
-		//create empty error if not an array
-		if (!is_array($sess_data))
-		{
-			$sess_data=array();
-		}
-				
-		//add survey to array 
-		foreach($id_list as $key=>$value)
-		{
-			if (!in_array($value,$sess_data))
-			{
-				$sess_data[]=(int)$value;
-			}
-		}
-				
-		//update session
-		$related_citations[$skey] = $sess_data;
-		$this->session->set_userdata($related_citations);
-		$this->Citation_model->attach_related_surveys($cid, array($skey));	
-		if ($isajax==0)
-		{
-			//redirect('/admin/related_citations/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
-		}	
-	}
-	
-	
-	/**
+	* Add a single citation to a single survey
 	*
-	* Remove citations from session using key
-	**/
-	public function remove($skey,$cid,$isajax=0)
+	* @sid survey id
+	* @cid	citation id
+	**/	
+	public function add($sid=NULL,$cid=NULL)
 	{
-		if (!is_numeric($cid))
+		if (!is_numeric($cid) || !is_numeric($sid))
 		{
 			show_error("INVALID_ID");
 		}
-	
-		//get session data by key
-		$sess_data=$this->session->userdata($skey);
-		
-		//create empty error if not an array
-		if (!is_array($sess_data))
-		{
-			$sess_data=array();
-		}
-		
-		//remove survey from array 
-		foreach($sess_data as $key=>$value)
-		{
-			if ($value==$cid)
-			{
-				unset($sess_data[$key]);
-				break;
-			}
-		}
-		
-
-		//update session
-		$related_citations[$skey] = $sess_data;
-		$this->session->set_userdata($related_citations);
-		$this->Citation_model->delete_related_survey($cid, array($skey));	
-		if($isajax==0)
-		{
-			redirect('/admin/related_citations/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
-		}
+								
+		//update database
+		$this->Citation_model->attach_related_surveys($cid, array($sid));	
 	}
+	
 	
 	/**
 	*
-	* Remove all session data for a key
+	* Remove related citations from survey
 	**/
-	function clear_all($skey)
+	public function remove($sid,$cid,$isajax=0)
 	{
-		$this->session->unset_userdata($skey);
+		if (!is_numeric($cid) || !is_numeric($sid))
+		{
+			show_error("INVALID_ID");
+		}
+
+		$this->Citation_model->delete_related_survey($cid, array($sid));
 	}
 	
-}
 	
- 
+}//end-class
