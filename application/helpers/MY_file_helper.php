@@ -26,7 +26,7 @@ if ( ! function_exists('unix_path'))
 	{
 		$is_network_share=FALSE;
 		
-		if (substr($file_path,0,2)=='//')
+		if (substr($file_path,0,2)=='//' || substr($file_path,0,2)=='\\')
 		{
 			$is_network_share=TRUE;
 		}
