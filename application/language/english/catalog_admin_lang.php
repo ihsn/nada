@@ -72,5 +72,8 @@ $lang['publish']='Publish';
 $lang['series']='Series';
 $lang['data_access']='Data access';
 $lang['overwrite_if_exists']='Overwrite if already exists?';
+$lang['sort_by']='Sort results by:';
+$lang['surveyid']='SurveyID';
+$lang['no_related_citations_click_here_to_add']='There are no citations attached to this survey, to add related citations, click here.';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
