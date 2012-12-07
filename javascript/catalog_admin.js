@@ -93,22 +93,17 @@ function popup_dialog(obj) {
 
 jQuery(document).ready(function(){
 	//checkbox select/deselect
-	$("#chk_toggle").click(
-			function (e) 
-			{
-				$('.chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
-			}
-	);
-	$(".chk").click(
-			function (e) 
-			{
-			   if (this.checked==false){
-				$("#chk_toggle").attr('checked', false);
-			   }			   
-			}
-	);			
+	$("#chk_toggle").live("click",function(e){
+		$('.chk').each(function(){ 
+			this.checked = (e.target).checked; 
+		}); 
+	});
+	$(".chk").live("click",function(e){
+	   if (this.checked==false){
+		$("#chk_toggle").attr('checked', false);
+	   }			   
+	});			
+
 	$("#batch_actions_apply").click(
 		function (e){
 			if( $("#batch_actions").val()=="delete"){
