@@ -30,7 +30,7 @@ class Catalog_Notes_model extends CI_Model {
 		$this->db->select("*");
 		$this->db->where('type', $type);
 		$this->db->where('sid', $sid);
-		$this->db->order_by('date', 'DESC');
+		$this->db->order_by('created', 'DESC');
 		return $this->db->get('survey_notes')->result_array();
 	}
 }
