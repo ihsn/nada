@@ -48,7 +48,6 @@ class ACL
 	
 	function check_url_access($user_id,$url)
 	{
-		//return TRUE;
 		//get user groups
 		$groups=$this->ci->ion_auth->get_groups_by_user($user_id);
 		
