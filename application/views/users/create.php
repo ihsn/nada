@@ -91,11 +91,20 @@
            <span><?php echo form_radio('active', '0', $active!=1);?> <?php echo t('user_blocked');?> </span>
       </div>
 
-    <div class="field">
-        <label for="password_confirm"><?php echo t('select_user_group');?></label>
-        <?php	echo form_dropdown('group_id', $user_group_options, get_form_value("group_id",isset($group_id) ? $group_id : ''));?>
+	<div class="field">
+        <label for="user_groups"><?php echo t('select_user_group');?></label>
+        <div class="user_groups">
+        <?php foreach($user_groups as $group):?>
+        	<?php $checked=(in_array($group['id'],$groups)) ? 'checked="checked"' : '';?>
+        	<div class="group">
+	            <label for="group_id-<?php echo $group['id'];?>" style="font-weight:normal;">
+				<input <?php echo $checked;?> type="checkbox" id="group_id-<?php echo $group['id'];?>" name="group_id[]" value="<?php echo $group['id'];?>"/> <?php echo $group['name'];?> <span class="description">[<?php echo $group['description'];?>]</span>
+                </label>
+            </div>    
+		<?php endforeach;?>
+        </div>        
     </div>
-     
+    
      <?php echo form_submit('submit', t('create'));?>
      <?php echo anchor('admin/users', t('cancel'));?>
       
