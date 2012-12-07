@@ -4,7 +4,7 @@
 */
 ?>
 <style>
-.label{
+.caption{
 font-weight:bold;padding-left:20px;
 }
 .description{
@@ -51,7 +51,7 @@ font-weight:bold;padding-left:20px;
 		?>	
     	<tr class="<?php echo ($x++%2==1) ? '' : 'alternate' ?>">
     	<td>
-			<div class="label"><?php echo $perm['label'];?></div>
+			<div class="caption"><?php echo $perm['label'];?></div>
             <div class="description"><?php echo $perm['description'];?></div>
         </td>
         <td style="width:200px;text-align:center" >
