@@ -55,18 +55,10 @@ class MY_Controller extends CI_Controller
 				return FALSE;
 			}
 			
-			/*
-			// group_id 1 == super admin
-			if ((int)$user->group_id !== 1 && !$this->Permissions_model->group_has_url_access($user->group_id, $this->uri->uri_string())) {
-				show_error(t('access_denied') . $this->uri->uri_string());
-				
-			}*/
-			//$this->_has_access();
-			
 			//check user has access to the url
 			if (!$this->acl->user_has_url_access() )
 			{
-				show_error(t('access_denied'));
+				show_error(t('ACCESS_DENIED'));
 			}
 		}
 	}
