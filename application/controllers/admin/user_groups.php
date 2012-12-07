@@ -62,10 +62,10 @@ class User_groups extends MY_Controller {
 		}
 
 		//validation rules
-		$this->form_validation->set_rules('name', t('name'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('description', t('description'), 'xss_clean|trim');
-		$this->form_validation->set_rules('group_type', t('group_type'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('repo_access', t('repo_access'), 'xss_clean|trim|required|max_length[255]');
+		$this->form_validation->set_rules('name', t('name'), 'xss_clean|trim|required|max_length[100]');
+		$this->form_validation->set_rules('description', t('description'), 'xss_clean|trim||max_length[255]');
+		$this->form_validation->set_rules('group_type', t('group_type'), 'xss_clean|trim|required|max_length[45]');
+		$this->form_validation->set_rules('access_type', t('access_type'), 'xss_clean|trim|required|max_length[45]');
 				
 		//process form				
 		if ($this->form_validation->run() == TRUE)
@@ -77,7 +77,13 @@ class User_groups extends MY_Controller {
 			foreach($post_arr as $key=>$value)
 			{
 				$options[$key]=$this->input->post($key);
-			}					
+			}
+			
+			//for non-admin accounts force access_type to NONE
+			if ($options['group_type']!='admin')
+			{
+				$options['access_type']='none';
+			}
 
 			//set pid
 			if (!is_numeric($options['pid']))
