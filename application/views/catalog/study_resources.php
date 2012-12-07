@@ -1,78 +1,27 @@
-<?php
-//set default page size, if none selected
-if(!$this->input->get("ps"))
-{
-	$ps=15;
-}
-
-$survey_id=$this->uri->segment(4);
-?>
+<?php $survey_id=$this->uri->segment(4); ?>
 <style>
 .resource-found{background:url(images/tick.png) no-repeat; padding-left:25px;}
 .resource-notfound{background:url(images/close.gif) no-repeat; padding-left:25px;}
 </style>
 <div class="body-container" >
-<?php if (!isset($hide_form)):?>
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/resources/add/new/<?php echo $survey_id;?>" ><?php echo t('link_add_new_resource'); ?></a>  | 
-    <a href="<?php echo site_url(); ?>/admin/resources/import/<?php echo $survey_id;?>" ><?php echo t('link_import_rdf'); ?></a>  |
-    <a href="<?php echo site_url(); ?>/admin/resources/fixlinks/<?php echo $survey_id;?>" ><?php echo t('link_fix_broken'); ?></a>  |
-	<a href="<?php echo site_url(); ?>/admin/catalog/export_rdf/<?php echo $survey_id;?>" ><?php echo t('rdf_export'); ?></a> 
-</div>
+    <div class="page-links">
+        <a href="<?php echo site_url(); ?>/admin/resources/add/new/<?php echo $survey_id;?>" ><?php echo t('link_add_new_resource'); ?></a>  | 
+        <a href="<?php echo site_url(); ?>/admin/resources/import/<?php echo $survey_id;?>" ><?php echo t('link_import_rdf'); ?></a>  |
+        <a href="<?php echo site_url(); ?>/admin/resources/fixlinks/<?php echo $survey_id;?>" ><?php echo t('link_fix_broken'); ?></a>  |
+        <a href="<?php echo site_url(); ?>/admin/catalog/export_rdf/<?php echo $survey_id;?>" ><?php echo t('rdf_export'); ?></a> 
+    </div>
 
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="search-form">
-  <input type="text" size="40" name="keywords" id="keywords" value="<?php echo $this->input->get('keywords'); ?>"/>
-  <select name="field" id="field">
-    <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields'); ?></option>
-    <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title'); ?></option>
-    <option value="author"	<?php echo ($this->input->get('field')=='author') ? 'selected="selected"' : '' ; ?> ><?php echo t('authors'); ?></option>
-  </select>
-  <input type="submit" value="<?php echo t('search'); ?>" name="search"/>
-  <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo current_url();?>">Reset</a>
-  <?php endif; ?>
-
-<?php endif; ?>
 <?php if ($rows): ?>
 <?php		
-		$sort_by=$this->input->get("sort_by");
-		$sort_order=$this->input->get("sort_order");			
-?>
-<?php 
-	//pagination 
-	$page_nums=$this->pagination->create_links();
-	$current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
-	
 	//sort
 	$sort_by=$this->input->get("sort_by");
 	$sort_order=$this->input->get("sort_order");
 	
 	//current page url
-	$page_url=site_url().$this->uri->uri_string();
+	$page_url=site_url().'/'.$this->uri->uri_string();
 ?>
 
-<?php
-	if ($this->pagination->cur_page>0) {
-		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
-
-		if ($to_page> $this->pagination->total_rows) 
-		{
-			$to_page=$this->pagination->total_rows;
-		}
-
-		$pager=sprintf(t('showing %d-%d of %d')
-						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
-						,$to_page
-						,$this->pagination->total_rows);
-	}
-	else
-	{
-		$pager=sprintf(t('showing %d-%d of %d')
-				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
-	}
-?>
 
 	<!-- batch operations -->
     <table width="100%">
@@ -85,7 +34,7 @@ $survey_id=$this->uri->segment(4);
                 <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply'); ?>"/>                
             </td>
             <td align="right">
-                <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+                &nbsp;
             </td>
         </tr>
     </table>
@@ -141,7 +90,6 @@ $survey_id=$this->uri->segment(4);
         	<div style="display:inline;"><img src="images/tick.png"/> <?php echo t('legend_file_exist'); ?></div>
             <div style="display:inline;margin-left:10px;"><img src="images/close.gif"/> <?php echo t('legend_file_no_exist'); ?></div>
         </div>
-		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
 
 <?php else: ?>

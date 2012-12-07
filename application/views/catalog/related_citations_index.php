@@ -17,6 +17,16 @@ margin-bottom:10px;
 	background: gainsboro;
 }
 body{margin:0px;padding:0px;font-size:12px;}
+a.attach,a.remove{
+	background:green;
+	padding:3px;
+	color:white;
+	display:inline-block;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;}
+a.remove{background:red;}
+a.attach:hover, a.remove:hover{color:white;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -44,7 +54,7 @@ body{margin:0px;padding:0px;font-size:12px;}
   </select>
   <input type="submit" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo site_url();?>/admin/related_citations"><?php echo t('reset');?></a>
+    <a href="<?php echo site_url('/admin/related_citations/index/'.$survey_id);?>"><?php echo t('reset');?></a>
   <?php endif; ?>
 <br/><br/>
 
@@ -85,20 +95,20 @@ body{margin:0px;padding:0px;font-size:12px;}
 
 <script type="text/javascript">
 $(function() {
-	$('a.attach').click(function(e) {
+	$('a.attach').live('click', function() {
 		id=$(this).parent().parent().children().first().children('b').html();
-		e.preventDefault();
-		url=CI.base_url+'/admin/related_citations/add/'+'<?php echo $this->sess_id;?>'+'/'+id;
+		url='<?php echo site_url('/admin/related_citations/add/'.$survey_id);?>/'+$(this).attr("item");
 		$.get(url);
-		$(this).html("<?php echo t('remove'); ?>");		
+		$(this).html("<?php echo t('remove'); ?>");
+		$(this).removeClass("attach").addClass("remove");
 		return false;
 	});
-	$('a.remove').click(function(e) {
+	$('a.remove').live('click', function() {	
 		id=$(this).parent().parent().children().first().children('b').html();
-		e.preventDefault();
-		url=CI.base_url+'/admin/related_citations/remove/'+'<?php echo $this->sess_id;?>'+'/'+id;
+		url='<?php echo site_url('/admin/related_citations/remove/'.$survey_id);?>/'+$(this).attr("item");
 		$.get(url);
-		$(this).html("<?php echo t('attach'); ?>");		
+		$(this).html("<?php echo t('attach'); ?>");
+		$(this).removeClass("remove").addClass("attach");
 		return false;
 	});
 	
@@ -109,7 +119,6 @@ $(function() {
 
 <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
-             <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('id'),$page_url,array('keywords','field','ps')); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></th>
 			<th>&nbsp;</th>
         </tr>
@@ -117,21 +126,13 @@ $(function() {
     <?php foreach($rows as $row): ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="row <?php echo $tr_class; ?>" id="s_<?php echo $row['id']; ?>" >
-            <td><b><?php echo $row['id'];?></b></td>
-            <td><?php echo $row['title']; ?></td>
-            <?php
-				$data=t('attach');
-				if ($this->session->userdata($this->input->get('id'))) {
-					$id   = $this->session->userdata[$this->input->get('id')];
-					$img  = site_url() . '/../images/tick.png';
-					$data = (in_array($row['id'], $id)) ? "<img src='{$img}' alt='tick' />" : t('attach'); 
-				}
-			?>
+            <td><?php echo $this->chicago_citation->format($row,'journal',false);?></td>
+            <?php $data=t('attach');?>
             <td class="<?php echo ($data == t('attach')) ? 'attached' : 'published'; ?>">
-            	<?php if (!in_array($row['id'],$this->related_citations)):?>
-            	<a class="attach" href="<?php echo site_url();?>/admin/related_citations/add/<?php echo $this->sess_id;?>/<?php echo $row['id'];?>"><?php echo t('attach'); ?></a>
+            	<?php if (!in_array($row['id'],$selected_citations)):?>
+	            	<a class="attach" item="<?php echo $row['id'];?>" href="#"><?php echo t('attach'); ?></a>
                 <?php else:?>
-                <a class="remove" href="<?php echo site_url();?>/admin/related_citations/remove/<?php echo $this->sess_id;?>/<?php echo $row['id'];?>"><?php echo t('remove') ?></a>
+    	            <a class="remove" item="<?php echo $row['id'];?>" href="#"><?php echo t('remove') ?></a>
 				<?php endif?>                
             </td>
         </tr>

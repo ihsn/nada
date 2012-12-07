@@ -49,13 +49,30 @@
 	background:black;
 }
 
- 
+.page-links{font-size:smaller;}
 </style>
 
 <?php $selected_page=$this->uri->segment(5); ?>
 <?php $edit_page=$this->uri->segment(2).'/'.$this->uri->segment(3);?>
-<ul id="tabs"> 
-  <li <?php echo ($selected_page=='') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $this->uri->segment(4);?>"><?php echo t('manage_files');?></a></li> 
-  <li <?php echo ($selected_page=='resources') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/<?php echo $this->uri->segment(3);?>/<?php echo $this->uri->segment(4);?>/resources"><?php echo t('external_resources');?></a></li>  
-  <li <?php echo ($selected_page=='citations') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/<?php echo $this->uri->segment(3);?>/<?php echo $this->uri->segment(4);?>/citations"><?php echo t('citations');?></a></li>  
+<ul id="tabs" class="survey-tabs"> 
+  <li <?php echo ($selected_page=='') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $this->uri->segment(4);?>"><?php echo t('manage_files');?> <span class="count">(<?php echo count($files);?>)</span></a></li> 
+  <li <?php echo ($selected_page=='resources') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/<?php echo $this->uri->segment(3);?>/<?php echo $this->uri->segment(4);?>/resources"><?php echo t('external_resources');?> <span class="count">(<?php echo $resources['total'];?>)</span></a></li>
+  <li <?php echo ($selected_page=='citations') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/<?php echo $this->uri->segment(3);?>/<?php echo $this->uri->segment(4);?>/citations"><?php echo t('citations');?> <span class="count">(<?php echo is_array($selected_citations) ? count($selected_citations) : 0;?>)</span></a></li>  
 </ul>
+
+<div style="border:1px solid gainsboro;padding:10px;overflow:auto;">
+<?php 
+	switch($this->uri->segment(5)) {
+		case 'resources':
+			echo $resources['formatted'];
+		break;
+		case 'citations':
+			echo '<div id="related-citations" class="field related-citations">';
+			$this->load->view('catalog/related_citations', array('related_citations'=>$selected_citations));
+			echo '</div>';			
+		break;
+		default:
+			echo $files;
+	}//end-switch
+?>
+</div>	

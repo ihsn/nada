@@ -122,19 +122,14 @@ function update_survey_collection(e) {
     });
 }
 
-	//attach related surveys
+	//attach related citations
 	$(function() {
 		
-		//temp session id
-		var tmp_id=$("#tmp_id").val();
-		
-		//add attached surveys to session, needed when editing a citations with survey attached
-		var url_add=CI.base_url+'/admin/related_citations/add/'+tmp_id+'/'+'<?php echo implode(",",$selected_citations_id_arr);?>/1';
-		$.get(url_add);
+		var survey_id=<?php echo $survey_id;?>;
 		
 		//attach survey dialog
-		$('.add_survey').click(function() {
-				var iframe_url=CI.base_url+'/admin/related_citations/index/'+tmp_id;
+		$('.add_survey').live('click', function() {
+				var iframe_url=CI.base_url+'/admin/related_citations/index/'+survey_id;
 				$('<div id="dialog-modal" title="Select Related Citations"></div>').dialog({ 
 					height: 450,
 					width: 700,
@@ -142,17 +137,18 @@ function update_survey_collection(e) {
 					draggable: false,
 					modal: true,
 					close: function() {
-						$.get(CI.base_url+'/admin/catalog/selected_citations/'+tmp_id, function(data) {
+						$.get(CI.base_url+'/admin/catalog/related_citations/'+survey_id, function(data) {
 							$('#related-citations').html(data);
 							related_citations_click();
 						});
 					}
-				}).append('<iframe height="404" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+				}).append('<iframe height="404" width="700" src="'+iframe_url+'" frameborder="0"></iframe>');
 		});
 		
-		related_citations_click();
+		//related_citations_click();
 	});
 
+	/*
 	//attach click event handler for survey select/unselect
 	function related_citations_click()
 	{
@@ -170,6 +166,16 @@ function update_survey_collection(e) {
 			$.get(url);
 		});
 	}
+	*/
+
+	//remove related citations
+	$(function() {
+		$('#related-citations .remove').live('click', function() {
+			$.get($(this).attr("href")+'/1');
+			$(this).parent().parent().remove();
+			return false;
+		});
+	});
 
 </script>
 
@@ -202,7 +208,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 
 /*survey collections*/
 #terms input {float:left;width:15px;margin-right:4px;}
-#terms label {float:left;width:90%;fonts-size:11px;}
+#terms label {float:left;width:80%;font-size:smaller}
 #terms {clear:both;}
 #terms .term{clear:both;overflow:auto;margin-bottom:5px;}
 #survey-collection-list{padding:5px;}
@@ -268,6 +274,12 @@ border-radius: 3px;clear:right;}
 .remove:hover{font-weight:bold}
 .tag{font-size:11px;}
 .vscroll{overflow:auto;overflow-x:hidden;}
+.survey-tabs .count{font-size:smaller;}
+
+/*model dialog*/
+.ui-widget-header{background:black;border:black;}
+.ui-dialog .ui-dialog-content{overflow:hidden;padding:0px;background:white;}
+
 </style>
 <div class="body-container" style="padding:10px;">
 
@@ -408,7 +420,7 @@ border-radius: 3px;clear:right;}
 									<input type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>" />
 									<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle"/>
 								<?php echo form_close(); ?>    
-					</div>                    
+					</div>                
 				</div>
 			
             </td>
@@ -442,31 +454,16 @@ border-radius: 3px;clear:right;}
 
 	<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
 
-	<div style="margin-top:50px;margin-bottom:100px;">
-		<?php $this->load->view("catalog/study_tabs");?>
-        <div style="border:1px solid gainsboro;padding:10px;overflow:auto;">
-        <?php 
-            switch($this->uri->segment(5)) {
-                case 'resources':
-                    echo $resources;
-                break;
-                case 'citations':
-					echo '<div id="related-citations" class="field related-citations">';
-                    $this->load->view('catalog/selected_citations', array('selected_citations'=>$selected_citations));
-					echo '</div>';
-                    echo '<a style="display:block" class="add_survey" href="javascript:void(0);">Add Citations</a>';   
-                break;
-                default:
-                    echo $files;
-            }//end-switch
-        ?>
-    	</div>	
+	<!-- survey tabs -->
+    <div style="margin-top:50px;margin-bottom:100px;">
+		<?php $this->load->view("catalog/study_tabs"); ?>        
     </div>
 
 </div>
 
 </div>
 
+<!--Side Bars-->
 <div class="box" >
 <div class="box-header">
 	<span>Survey options</span>
@@ -487,12 +484,12 @@ border-radius: 3px;clear:right;}
 </div>
 
 
-<div class="box">
+<div class="box iscollapsed">
 <div class="box-header">
 	<span>External Resources</span>
     <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
 </div>
-<div class="box-body">
+<div class="box-body collapse">
 <ul class="bull-list">
     <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>">Upload RDF</a></li>
     <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>">Export RDF</a></li>
@@ -500,6 +497,17 @@ border-radius: 3px;clear:right;}
 </ul>
 </div>
 </div>
+
+
+<div class="box ">
+	<div class="box-header">Tags
+       <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+    </div>
+    <div class="box-body survey-tags">
+		<?php echo $tags; ?>
+	</div>
+</div>
+
 
 <div class="box iscollapsed">
     <div class="box-header">
@@ -523,32 +531,23 @@ border-radius: 3px;clear:right;}
 </div>
 
 
-<div class="box">
+<div class="box iscollapsed">
 	<div class="box-header">
     	Survey Collections
         <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
     </div>
     
-    <div class="box-body">
+    <div class="box-body collapse">
 	<div id="survey-collection-list"><?php echo $collections;?></div>
     </div>
 </div>
 
 <div class="box iscollapsed">
-	<div class="box-header">Tags
-       <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
-    </div>
-    <div class="box-body collapse survey-tags">
-		<?php echo $tags; ?>
-	</div>
-</div>
-
-<div class="box iscollapsed">
-	<div class="box-header">Survey Other IDs
+	<div class="box-header">Survey Aliases
       <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
 
     </div>
     <div class="box-body collapse">
-		<?php echo $ids; ?>
+		<?php echo $survey_aliases; ?>
 	</div>
 </div>
