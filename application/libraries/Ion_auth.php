@@ -313,7 +313,7 @@ class Ion_auth
 
 			$activation_code = $this->ci->ion_auth_model->activation_code;
 			$identity        = $this->ci->config->item('identity');
-	    	$user            = $this->ci->ion_auth_model->get_user($id)->row();
+	    	$user            = $this->ci->ion_auth_model->get_user($id);
 
 			$data = array('identity'   	=> $user->{$identity},
 						  'id'         	=> $user->id,
@@ -554,7 +554,7 @@ class Ion_auth
 	 **/
 	public function get_user($id=false)
 	{
-	    return $this->ci->ion_auth_model->get_user($id)->row();
+	    return $this->ci->ion_auth_model->get_user($id);
 	}
 	
 	/**
