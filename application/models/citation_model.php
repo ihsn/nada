@@ -658,5 +658,37 @@ class Citation_model extends CI_Model {
 		$this->db->where_in('id', $id_list); 
 		return $this->db->get('surveys')->result_array();
 	}
+	
+	
+	
+	/**
+	*
+	* Get citations ID array by Survey
+	*
+	**/	
+	function get_citations_id_array_by_survey($surveyid)
+	{
+		//get citations by the surveyid
+		$this->db->select('citations.id');
+		$this->db->from('citations');
+		$this->db->join('survey_citations', 'survey_citations.citationid = citations.id');
+		$this->db->where('survey_citations.sid',$surveyid);
+		$query=$this->db->get();
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$rows= $query->result_array();
+		
+		$output=array();
+		foreach($rows as $row)
+		{
+			$output[]=$row['id'];
+		}
+		
+		return $output;
+	}
 }
 ?>
