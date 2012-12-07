@@ -102,7 +102,6 @@ class Catalog_Admin
 	/**
 	* returns survey related external resources
 	* 
-	* supports: sorting, searching, pagination
 	*/
 	function get_formatted_resources($sid)
 	{		
@@ -110,9 +109,12 @@ class Catalog_Admin
 		$resources=$this->ci->resource_model->get_survey_resources($sid);
 		
 		//total resources
-		$total = count($resources);
+		$output['total'] = count($resources);
+
+		//formatted resources list
+		$output['formatted']=$this->ci->load->view('catalog/study_resources', array('rows'=>$resources),TRUE);
 		
-		return $this->ci->load->view('catalog/study_resources', array('rows'=>$resources),TRUE);
+		return $output;
 	}
 
 
