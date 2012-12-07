@@ -45,7 +45,7 @@ class Catalog_model extends CI_Model {
 					'project_name',
 					'project_uri',
 					'published',
-					'created',
+					'surveys.created',
 					'changed'
 					);
 	
@@ -144,13 +144,21 @@ class Catalog_model extends CI_Model {
 		$fields=$this->input->get("field");
 		$keywords=trim($this->input->get("keywords"));
 		
-		$allowed_fields=array('titl', 'surveyid', 'producer', 'sponsor', 'proddate','nation');
+		$allowed_fields=array(
+						'titl', 
+						'surveyid', 
+						'producer', 
+						'sponsor', 
+						'proddate',
+						'nation'
+						);
 		
 		if ($this->active_repo!=NULL)
 		{
 			$allowed_fields['repositoryid']='sr.repositoryid';
 		}	
 		
+		/*
 		$where=NULL;
 		
 		if ($fields=='all')
@@ -163,16 +171,16 @@ class Catalog_model extends CI_Model {
 			$where['field']=array($fields);
 			$where['keywords']=$keywords;			
 		}
-
+		*/
 		$where_clause='';
-
+		/*
 		if ($where!=NULL)
 		{
 			foreach($where['field'] as $field)
 			{
 				if ( trim($where_clause)!='')
 				{	
-					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+					$where_clause.= ' AND '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
 				}
 				else
 				{
@@ -180,6 +188,7 @@ class Catalog_model extends CI_Model {
 				}	
 			}	
 		}
+		*/
 			
 		$filter='';
 
@@ -206,7 +215,7 @@ class Catalog_model extends CI_Model {
 		}
 
 		//additional search options
-		$additional_filters=array('nation','repositoryid');
+		$additional_filters=array('repositoryid');
 		foreach($additional_filters as $afilter)
 		{
 			$value=$this->input->get($afilter);
@@ -223,6 +232,37 @@ class Catalog_model extends CI_Model {
 			}			
 		}
 		
+		//search TAGS
+		$tags=$this->input->get('tag');
+		
+		$tags_sql=NULL;
+		
+		if (is_array($tags))
+		{
+			foreach($tags as $key=>$value)
+			{
+				if (trim($value)!='')
+				{
+					$tags_sql[$key]=sprintf('tag=%s',$this->db->escape($value));
+				}	
+			}
+			
+			if ( is_array($tags_sql) && count($tags_sql)>0)
+			{
+				$tags_sub_query='select sid from survey_tags where '.implode(' AND ',$tags_sql);
+			}	
+		
+			if ( trim($where_clause)!='')
+			{	
+				$where_clause.= sprintf(' AND surveys.id in (%s)',$tags_sub_query);
+			}
+			else
+			{
+				$where_clause.= sprintf('  surveys.id in (%s)',$tags_sub_query);
+			}
+		}		
+		
+		
 		//active repo
 		if ($this->active_repo!=NULL)
 		{
@@ -236,7 +276,65 @@ class Catalog_model extends CI_Model {
 				$where_clause.=' and surveys.repositoryid!='.$this->db->escape($this->active_repo).' and surveys.id not in (select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
 			}	
 		}
+		
+		//search on FIELDS [country, surveyid, titl, producer]
+		$search_fields=array('nation','surveyid','titl','published');
+		$search_options=NULL;
+		
+		foreach($search_fields as $name)
+		{
+			$value=$this->input->get($name);
+			
+			//for repeatable fields eg. nation[]=xyz&nation[]=abc
+			if (is_array($value))
+			{
+				$tmp=NULL;
+				foreach($value as $val)
+				{
+					if(trim($val)!=='') 
+					{
+						$tmp[]=sprintf("%s like %s",$name,$this->db->escape('%'.$val.'%'));
+					}	
+				}
 				
+				if (is_array($tmp)&& count($tmp)>0)
+				{
+					$search_options[]='('.implode(' OR ', $tmp).')';
+				}
+			}
+			else
+			{
+				//single value fields
+				if(trim($value)!=='') 
+				{
+					$search_options[]=sprintf("%s like %s",$name,$this->db->escape('%'.$value.'%'));
+				}	
+			}			
+		}//end-foreach
+		
+		
+		$search_options_str=NULL;
+		if (is_array($search_options) && count($search_options)>0)
+		{
+			$search_options_str='('.implode(' AND ', $search_options).')';
+			
+			if ( trim($where_clause)!='')
+			{	
+				$where_clause.= ' AND ' . $search_options_str;
+			}
+			else
+			{
+				$where_clause=$search_options_str;
+			}
+		}
+		 
+		
+		/*
+		echo '<pre>';
+		var_dump($search_options);
+		var_dump($where_clause);
+		echo '</pre>';
+		*/
 		return $where_clause;
 	}
 
@@ -269,15 +367,15 @@ class Catalog_model extends CI_Model {
 		$fields[]='surveys.formid, forms.model as model';
 		
 		//notes
-		$fields[]='notes.admin_notes as admin_notes';
-		$fields[]='notes.reviewer_notes as reviewer_notes';
+		//$fields[]='notes.admin_notes as admin_notes';
+		//$fields[]='notes.reviewer_notes as reviewer_notes';
 		
 		//implode
 		$fields=implode(",",$fields);	
 		
 		$this->db->select($fields);
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
-		$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
+		//$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 		
 		if (is_numeric($id))
 		{
@@ -679,6 +777,13 @@ class Catalog_model extends CI_Model {
 			$this->db->where('sid', $id); 
 			$this->db->delete('survey_collections');					
 
+			//remove alias
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_aliases');
+			
+			//remove countries
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_countries');
 		}		
 	}
 
@@ -1210,7 +1315,7 @@ class Catalog_model extends CI_Model {
 
 	/**
 	* returns internal survey id by SURVEYID
-	*
+	* checks for ID in both surveys and aliases table
 	**/
 	function get_survey_uid($survey_id)
 	{
@@ -1218,12 +1323,97 @@ class Catalog_model extends CI_Model {
 		$this->db->where('surveyid', $survey_id); 
 		$query=$this->db->get('surveys')->row_array();
 		
+		if ($query)
+		{
+			return $query['id'];
+		}
+		
+		//check surveyid in survey aliases
+		$this->db->select('sid');
+		$this->db->where(array('alternate_id' => $surveyid) );
+		$query=$this->db->get('survey_aliases')->result_array();
+
 		if (!$query)
 		{
 			return FALSE;
 		}
 		
-		return $query['id'];
+		return $query[0]['sid'];
+	}
+	
+	
+	
+
+	/**
+	*
+	* Returns a unique list of countries with survey counts
+	**/
+	function get_all_survey_countries()
+	{
+		$this->db->select('country_name, count(country_name) as total');
+		$this->db->group_by('country_name');
+		return $this->db->get('survey_countries')->result_array();
+	}
+
+	/**
+	*
+	* Get tags by surveyid
+	*
+	* @surveys array
+	**/
+	function get_tags_by_survey($surveys)
+	{
+		if (!count($surveys)>0)
+		{
+			return FALSE;
+		}
+		
+		$this->db->select('tag,sid');
+		$this->db->where_in('sid',$surveys);
+		$query=$this->db->get('survey_tags')->result_array();
+		
+		$output=array();
+		foreach($query as $row)
+		{
+			$output[$row['sid']][]=$row['tag'];
+		}
+		
+		return $output;
+	}
+
+
+	/**
+	*
+	* Return survey aliases + surveyid by internal id
+	**/
+	function get_survey_alaises($sid)
+	{		
+		//from aliases table
+		$this->ci->db->select('alternate_id');
+		$this->ci->db->where(array('sid' => $sid) );
+		$query=$this->ci->db->get('survey_aliases')->result_array();
+
+		$aliases=array();
+		
+		if ($query)
+		{
+			foreach($query as $row)
+			{
+				$aliases[]=$row['alternate_id'];
+			}
+		}
+		
+		//from survey table
+		$this->ci->db->select('surveyid');
+		$this->ci->db->where(array('id' => $sid) );
+		$query=$this->ci->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			$aliases[]=$query['surveyid'];
+		}
+		
+		return $aliases;
 	}
 
 }
