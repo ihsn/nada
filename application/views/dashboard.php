@@ -10,10 +10,10 @@
 </style>
 <div class="content-container">
 <h1><?php echo t('dashboard');?></h1>
-<div class="yui-g">
+<div class="yui-g row-fluid">
 	
     <?php if (isset($news)):?>
-    <div class="yui-u first" style="border-right:1px solid gainsboro;">		
+    <div class="yui-u first span8" style="border-right:1px solid gainsboro;">		
         	<div class="dashboard-box">
             	<div class="dashboard-box-title"><?php echo t('nada_news_updates');?></div>
                 <div class="dashboard-box-body"><?php echo $news;?></div>
@@ -23,7 +23,7 @@
     <?php endif;?>
     
     <?php if (isset($recent_studies)):?>
-    <div class="yui-u first" >		
+    <div class="yui-u first span6" >		
         	<div class="dashboard-box">
             	<div class="dashboard-box-title"><?php echo t('recent_studies');?></div>
                 <div class="dashboard-box-body">
@@ -44,7 +44,7 @@
 	</div>
     <?php endif;?>
     
-	<div class="yui-u">
+	<div class="yui-u span6">
                 <div class="dashboard-box">
                     <div class="dashboard-box-title"><?php echo t('users');?></div>
                     <div class="dashboard-box-body">
