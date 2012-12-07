@@ -4,7 +4,7 @@
  *
  * handles all Catalog Maintenance pages
  *
- * @package		NADA 3.1
+ * @package		NADA 4
  * @author		Mehmood Asghar
  * @link		http://ihsn.org/nada/
  */
@@ -59,10 +59,6 @@ class Catalog extends MY_Controller {
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 		$this->template->add_js('javascript/catalog_admin.js');
 		
-		//js & css for jquery window 
-		//$this->template->add_css('javascript/ceebox/css/ceebox.css');
-		//$this->template->add_js('javascript/ceebox/js/jquery.ceebox.js');
-		
 		//set filter on active repo
 		if (isset($this->active_repo) && $this->active_repo!=null)
 		{
@@ -77,6 +73,9 @@ class Catalog extends MY_Controller {
 		//get survey tags
 		$this->catalog_tags=$this->Catalog_model->get_all_survey_tags();
 		
+		//get country list for filter
+		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries();
+		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/index', $db_rows,true);
 	
@@ -85,6 +84,18 @@ class Catalog extends MY_Controller {
 		
 		//render final output
 	  	$this->template->render();
+	}
+	
+	
+	function search()
+	{
+		if (isset($this->active_repo) && $this->active_repo!=null)
+		{
+			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
+		}
+
+		$db_rows= $this->_search();
+		$this->load->view('catalog/search', $db_rows);
 	}
 	
 	
@@ -146,6 +157,32 @@ class Catalog extends MY_Controller {
 		
 		//intialize pagination
 		$this->pagination->initialize($config); 
+		
+		//survey id array
+		$surveys=array();
+		if (isset($data['rows']))
+		{
+			foreach($data['rows'] as $row)
+			{
+				$surveys[]=$row['id'];
+			}
+				
+			//load additional data for surveys
+
+			//survey tags
+			$survey_tags=$this->Catalog_model->get_tags_by_survey($surveys);
+		
+			//attach to surveys
+			foreach($data['rows'] as $key=>$row)
+			{
+				if (array_key_exists($row['id'],$survey_tags))
+				{
+					$data['rows'][$key]['tags']=$survey_tags[$row['id']];
+				}	
+			}
+		}//endif		
+		
+		
 		return $data;		
 	}
 	
@@ -951,12 +988,7 @@ class Catalog extends MY_Controller {
 		}
 		
 		//test user has permission to delete study or not
-		$is_owner=$this->ion_auth->is_study_owner($id);
-
-		if (!$is_owner)
-		{
-			show_error("MSG_USER_ACCESS_DENIED");
-		}
+		$this->acl->user_has_study_access($id);
 		
 		if ($this->input->post('cancel')!='')
 		{
@@ -1233,7 +1265,7 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo_negate=TRUE;
 		}
 		
-		//get citations		
+		//get surveys		
 		$db_rows=$this->_search();
 		
 		//load the contents of the page into a variable
@@ -1282,24 +1314,24 @@ class Catalog extends MY_Controller {
 
 		if ($this->input->post("sid"))
 		{
-			$citations_arr=$this->input->post("sid");
+			$surveys_arr=$this->input->post("sid");
 		}
 		else
 		{	
-			$citations_arr=explode(",",$surveyid);
+			$surveys_arr=explode(",",$surveyid);
 		}		
 		
-		$citations=array();
+		$surveys=array();
 		
 		//get survey info by id
-		foreach($citations_arr as $id)
+		foreach($surveys_arr as $id)
 		{
 			if (is_numeric($id))
 			{
 				$survey_row=$this->Catalog_model->get_survey($id);
 				if ($survey_row)
 				{
-					$citations[$id]=$this->Catalog_model->get_survey($id);
+					$surveys[$id]=$this->Catalog_model->get_survey($id);
 				}	
 			}	
 		}
@@ -1317,7 +1349,7 @@ class Catalog extends MY_Controller {
 				$this->form_validation->set_error(t('error_invalid_repositoryid'));
 			}
 			
-			foreach($citations as $key=>$value)
+			foreach($surveys as $key=>$value)
 			{
 				//transfer ownership
 				$this->Catalog_model->transfer_ownership($repositoryid,$key);				
@@ -1326,7 +1358,7 @@ class Catalog extends MY_Controller {
 			redirect('admin/catalog');
 		}
 				
-		$content=$this->load->view('catalog/transfer_ownership',array('citations'=>$citations),TRUE);
+		$content=$this->load->view('catalog/transfer_ownership',array('surveys'=>$surveys),TRUE);
 		$this->template->write('content', $content,true);
   		$this->template->render();
 	}
@@ -1559,7 +1591,7 @@ class Catalog extends MY_Controller {
        	$this->load->model('Citation_model');
 		$this->load->model('Catalog_Notes_model');
        	$this->load->model('Catalog_Tags_model');
-       	$this->load->model('Catalog_Ids_model');
+       	$this->load->model('Survey_alias_model');
         //$this->load->library('ion_auth');
 		
 		$this->load->library("catalog_admin");
@@ -1579,8 +1611,8 @@ class Catalog extends MY_Controller {
 		{
 			show_error('Survey was not found');
 		}
-
-		//var_dump($survey_row);
+		
+		$survey_row['survey_id']=$id;
 		
 		//check if survey has citations
 		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
@@ -1598,42 +1630,33 @@ class Catalog extends MY_Controller {
 		//formatted list of external resources
 		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 		
-		if ($id != NULL) 
-		{
-			//admin notes
-			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
-			$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
-			
-			//reviewer notes
-			$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
-			$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
-			
-			//survey tags
-			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
-			
-			//all tags
-			$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
-			
-			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
-			
-			
-			
-			//other survey IDs
-			$ids['ids'] = $this->Catalog_Ids_model->ids_from_catelog_id($id);
-			$survey_row['ids']=$this->load->view('catalog/admin_ids', $ids, true);
-			
-			//get the selected citations from sid
-			$survey_id_arr=$id;
+		//admin notes
+		$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
+		$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
+				
+		//reviewer notes
+		$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
+		$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
 		
-			//get survey info from db
-			$selected_citations= $this->Citation_model->get_citations_by_survey($id) ? $this->Citation_model->get_citations_by_survey($id) :array();
-			
-			//see if the edited citation has citations attached, otherwise assign empty array
-			//$selected_citations=isset($survey_row['related_citations']) ? $survey_row['related_citations'] : array();
-			$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
-			$survey_row['selected_citations'] = $selected_citations;
-		}
+		//survey tags
+		$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
 		
+		//all tags
+		$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
+		
+		$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
+								
+		//other survey IDs
+		$survey_aliases = $this->Survey_alias_model->get_aliases($id);
+		$survey_row['survey_aliases']=$this->load->view('catalog/survey_aliases', array('rows'=>$survey_aliases), true);
+		
+		//get citations for the current survey
+		$selected_citations= $this->Citation_model->get_citations_by_survey($id);
+		
+		//TODO: recheck
+		//see if the edited citation has citations attached, otherwise assign empty array
+		$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
+		$survey_row['selected_citations'] = $selected_citations;	
 
 		//data access form list
 		$this->load->model('Form_model');
@@ -1702,17 +1725,25 @@ class Catalog extends MY_Controller {
 	/**
 	*
 	* Returns formatted selected survey list from session
+	*
+	* @skey= survey id (internal)
 	**/
-	function selected_citations($skey,$isajax=1)
+	function related_citations($skey,$isajax=1)
 	{
-       	$this->load->model('Citation_model');
-		//get survey id array from session
-		$survey_id_arr=(array)$this->session->userdata($skey);
+       	if (!is_numeric($skey))
+		{
+			return FALSE;
+		}		
+		
+		$this->load->model('Citation_model');
+		
 		//get survey info from db
-		$data['selected_citations']=$this->Citation_model->get_citations_by_survey($skey);
+		$data['related_citations']=$this->Citation_model->get_citations_by_survey($skey);
+
+		$data['survey_id']=$skey;
 		
 		//load formatted list
-		$output=$this->load->view("catalog/selected_citations",$data,TRUE);
+		$output=$this->load->view("catalog/related_citations",$data,TRUE);
 		
 		if ($isajax==1)
 		{
@@ -1721,21 +1752,28 @@ class Catalog extends MY_Controller {
 		else
 		{
 			return $output;
-		}
-		
+		}		
 	}
+	
+	
+	
 
 	/**
 	*
-	* Returns an array of survey IDs
+	* Returns an array of Citation IDs
 	*
 	**/
 	function _get_related_citations_array($citations)
 	{
-		$result=array();
-		foreach($citations as $survey)
+		if (!is_array($citations))
 		{
-			$result[]=$survey['id'];
+			return FALSE;
+		}
+		
+		$result=array();
+		foreach($citations as $citation)
+		{
+			$result[]=$citation['id'];
 		}
 		return $result;
 	}
