@@ -76,7 +76,7 @@ class User_Groups_model extends CI_Model {
 	public function update($id,$options)
 	{
 		//allowed fields
-		$valid_fields=array('name', 'description', 'group_type', 'repo_access');
+		$valid_fields=array('name', 'description', 'group_type', 'access_type');
 
 		//pk field name
 		$key_field='id';
@@ -102,7 +102,7 @@ class User_Groups_model extends CI_Model {
 	public function insert($options)
 	{
 		//allowed fields
-		$valid_fields=array('name', 'description', 'group_type', 'repo_access');
+		$valid_fields=array('name', 'description', 'group_type', 'access_type');
 
 		//pk field name
 		$key_field='id';
