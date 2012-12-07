@@ -120,10 +120,12 @@ class Users extends MY_Controller {
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 
 		//phone is required for administrators
+		/*
 		if ($this->input->post("group_id")==1)
 		{
 	    	$this->form_validation->set_rules('phone1', t('phone'), 'xss_clean|trim|required|max_length[20]');
 		}
+		*/
 		
         if ($this->form_validation->run() == true) 
 		{ 
@@ -219,6 +221,13 @@ class Users extends MY_Controller {
 													  'class'=>'input-fixed200'
                                                      );
             $this->data['active']=$this->form_validation->set_value('active',1);
+			$this->data['groups']=array();
+			
+			//load user group selection from POST
+			if ($this->input->post('group_id'))
+			{
+				$this->data['groups']=$this->input->post('group_id');
+			}
 			
             $content=$this->load->view('users/create', $this->data,TRUE);
 			
@@ -251,13 +260,7 @@ class Users extends MY_Controller {
 	    	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
     		$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 		}
-		
-		//phone is required for administrators
-		if ($this->input->post("group_id")==1)
-		{
-	    	$this->form_validation->set_rules('phone1', t('phone'), 'xss_clean|trim|required|max_length[20]');
-		}
-		
+				
         if ($this->form_validation->run() == true) 
 		{ 
         	$data = array(
@@ -290,11 +293,18 @@ class Users extends MY_Controller {
 			//displaying the form for the first time
 	        
 			//get user id
-			$db_data=$this->ion_auth->get_user($id);		
+			$db_data=$this->ion_auth->get_user($id);
 			
 			if (!$db_data)
 			{
 				show_404();
+			}
+			
+			//load data from post-back. need this for loading user group selection, 
+			//other values are populated on postback
+			if($this->input->post('id'))
+			{
+				$db_data->groups=$this->input->post('group_id');
 			}
 			
 			//set the flash data error message if there is one
@@ -348,8 +358,9 @@ class Users extends MY_Controller {
                                                       'value'   => $this->form_validation->set_value('password_confirm'),
                                                      );
 			$this->data['country']=$db_data->country;										 
-            $this->data['group_id']	=$this->form_validation->set_value('group_id',$db_data->group_id);
+            //$this->data['group_id']	=$this->form_validation->set_value('group_id',$db_data->group_id);
             $this->data['active']	=$this->form_validation->set_value('active',$db_data->active);
+			$this->data['groups']=$db_data->groups;
 													 
             $content=$this->load->view('users/edit', $this->data,TRUE);
 			
@@ -697,70 +708,6 @@ class Users extends MY_Controller {
 		}
 	}
 
-
-	/**
-	*
-	* Batch import users using CSV
-	*
-	**/
-	function batch_import()
-	{	
-		if ($this->input->post("csv"))
-		{
-			$this->_do_batch_import($this->input->post("csv"));
-		}
-		
-		$content=$this->load->view("users/batch_import",NULL,TRUE);		
-		$this->template->write('content', $content,true);
-		$this->template->render();		
-	}
-	
-	function _do_batch_import($csv_data,$seperator=',')
-	{
-		$this->load->library('csvreader');		
-		$this->csvreader->separator = $seperator;
-		$users_arr=$this->csvreader->parse_string($csv_data, $p_NamedFields = true);
-		
-		if (count($users_arr)>0)
-		{
-			foreach($users_arr as $user)
-			{
-				//log
-				$this->db_logger->write_log('user-batch-import',$user['email']);
-	
-				//check to see if we are creating the user
-				$username  = strtolower($user['firstname']).' '.strtolower($user['lastname']);
-				$email     = $user['email'];
-				$password  = $user['password'];
-				
-				$additional_data = array('first_name' => $user['firstname'],
-										 'last_name'  => $user['lastname'],
-										 'company'    => 'N/A',
-										 'phone'      => '0000',
-										 'country'      => $user['country'],
-										 'email'		=>	$email,
-										 'identity'		=>$username
-										);
-				
-				//register the user
-				$result=$this->ion_auth->register($username,$password,$email,$additional_data);
-				var_dump($this->ion_auth->errors()); 
-				if ($result)
-				{
-					echo '<BR>user account created successfully for: '.$email;
-				}
-				else
-				{
-					echo '<BR>failed: '.$email;
-				}
-			}
-			exit;
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
 	
 }
 
