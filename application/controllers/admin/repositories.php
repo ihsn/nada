@@ -112,7 +112,7 @@ class Repositories extends MY_Controller {
 	*/
 	function edit($id=NULL)	
 	{
-		if (!is_numeric($id)  && $id==NULL)
+		if (!is_numeric($id)  && $id!==NULL)
 		{
 			show_error('Invalid id provided');exit;		
 		}
