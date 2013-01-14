@@ -34,10 +34,12 @@
         </tr>
     </table>
 
+	<?php /* ?>
     <div class="field" style="margin-top:10px;">        
     <label style="font-weight:bold;"><?php echo t('restrict_data_access_by_id');?></label>
     <input name="ip_limit" type="text" size="30" value="<?php echo isset($ip_limit) ? $ip_limit : ''; ?>"/> <em style="font-style:italic"><?php echo t('use_comma_for_multiple_ip');?></em>
     </div>
+	<?php */ ?>
                 
 <?php else: ?>
 	<?php echo t('not_attached_any_licensed_files');?>
