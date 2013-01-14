@@ -55,6 +55,11 @@ class Licensed_requests extends MY_Controller {
 		//licensed files by request and surveyid
 		$result['files']=$this->Licensed_model->get_request_files($result['surveyid'], $requestid=$id);
 		
+		//history
+		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
+		$result['email_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='email');
+		$result['forward_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='forward');
+		
 		//monitoring information
 		$result['download_log']=$this->monitor($id,TRUE);
 		
@@ -181,13 +186,23 @@ class Licensed_requests extends MY_Controller {
 		else
 		{
 			//get current user info
-			$user=$this->ion_auth->get_users_array();
+			$user=$this->ion_auth->get_user();
 			
 			//check for request ip limits, if any
 			$ip_limit=isset($post['ip_limit']) ? $post['ip_limit'] : '';
 		
 			//update request status and comments
-			$this->Licensed_model->update_request_status($requestid,$user[0]['username'],$post['status'],$post['comments'],$ip_limit);
+			$this->Licensed_model->update_request_status($requestid,$user->username,$post['status'],$post['comments'],$ip_limit);
+			
+			//update history
+			$options=array(
+				'user_id'			=> $user->email,
+				'logtype'			=> 'comment',
+				'request_status'	=> $post['status'],
+				'description'		=> $post['comments']
+			);
+			
+			$this->Licensed_model->add_request_history($requestid,$options);
 			
 			if ($file_options!=NULL)
 			{
@@ -321,8 +336,28 @@ class Licensed_requests extends MY_Controller {
 		$this->email->subject($this->input->post("subject") );
 		$this->email->message($this->input->post("body"));
 		
+		
+		//track history
+		$user=$this->ion_auth->get_user();
+		$request=$this->Licensed_model->get_request_by_id($requestid);
+		$email=array(
+			'to'		=> $this->input->post("to"),
+			'cc'		=> $this->input->post("cc"),
+			'subject'	=> $this->input->post("subject"),
+			'body'		=> $this->input->post("body")
+		);
+		
+		$options=array(
+			'user_id'			=> $user->email,
+			'logtype'			=> 'email',
+			'request_status'	=> $request['status'],
+			'description'		=> serialize($email)
+		);
+					
 		if ($this->email->send())
 		{
+			//add to request history if email was sent
+			$this->Licensed_model->add_request_history($requestid,$options);
 			echo '<div class="success">'.sprintf(t('email_sent'),$this->email->protocol).'</div>';
 		}
 		else
@@ -386,6 +421,27 @@ class Licensed_requests extends MY_Controller {
 		{
 			echo '<div class="error">'.t('email_not_sent').'</div>';
 		}
+		
+		
+		//track history
+		$user=$this->ion_auth->get_user();
+		$request=$this->Licensed_model->get_request_by_id($requestid);
+		$email=array(
+			'to'		=> $this->input->post("to"),
+			'cc'		=> $this->input->post("cc"),
+			'subject'	=> $this->input->post("subject"),
+			'body'		=> $this->input->post("body")
+		);
+		
+		$options=array(
+			'user_id'			=> $user->email,
+			'logtype'			=> 'forward',
+			'request_status'	=> $request['status'],
+			'description'		=> serialize($email)
+		);
+					
+		$this->Licensed_model->add_request_history($requestid,$options);
+		
 	}
 
 	/**
