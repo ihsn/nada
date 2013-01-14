@@ -16,17 +16,25 @@ class Licensed_model extends CI_Model {
      * 
      * @param $user_id
      * @param $survey_id
-     * @return unknown_type
+     * @return request id or false
      */
 	function check_user_request($user_id,$survey_id)
 	{
-		$this->db->select('id');		
-		$this->db->from('lic_requests');		
+		$this->db->select('id');
+		$this->db->limit(1);
+		$this->db->from('lic_requests');
+		$this->db->order_by('updated','DESC');
 		$this->db->where('surveyid',$survey_id);		
 		$this->db->where('userid',$user_id);		
 				
-        $result= $this->db->count_all_results();
-		return $result;
+        $result= $this->db->get()->row_array();
+		
+		if ($result)
+		{
+			return $result['id'];
+		}
+		
+		return FALSE;
 	}
 
 	/**
@@ -597,6 +605,38 @@ class Licensed_model extends CI_Model {
 			}
 			
 			return $query->result_array();
+	}
+	
+	
+	
+	/**
+	 * Get pending requests count per survey
+	 *	
+	 * @param $sid_arr	array
+	 * @return array of request row
+	 */
+	function get_pending_requests_count($sid_arr)
+	{
+		$sid_arr=(array)$sid_arr;
+		$this->db->select('surveyid as sid, count(surveyid) as total');
+		$this->db->from('lic_requests');
+		$this->db->group_by('surveyid');
+		$this->db->where_in('surveyid',$sid_arr);		
+
+		$query= $this->db->get()->result_array();
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=array();
+		foreach($query as $row)
+		{
+			$result[$row['sid']]=$row['total'];
+		}
+		
+		return $result;
 	}
 }
 ?>
