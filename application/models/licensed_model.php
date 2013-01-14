@@ -638,5 +638,73 @@ class Licensed_model extends CI_Model {
 		
 		return $result;
 	}
+
+	
+	 /**
+     * Add request history
+     * 
+     * 
+     * @param $request_id
+     * @param $options	array
+     * @return integer - insert id
+     */
+    function add_request_history($request_id,$options)
+	{
+		$db_fields=array(
+			'user_id', 
+			'logtype', 
+			'request_status', 
+			'description', 
+			'created'
+		);
+
+		$data= array(
+			   'created' 	=> date("U"),
+			   'lic_req_id'	=> $request_id
+        );
+
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$db_fields))
+			{
+				$data[$key]=$value;
+			}
+		}		
+		
+		$result=$this->db->insert('lic_requests_history', $data); 
+		log_message('info',"Request received for [Licensed dataset]");
+		
+		if ($result)
+		{
+			return $this->db->insert_id();
+		}	
+		
+		return FALSE;
+	}
+	
+	/**
+	*
+	* Get request history by request ID
+	**/
+	function get_request_history($request_id,$logtype=NULL)
+	{
+		$this->db->where('lic_req_id',$request_id);
+		if ($logtype!=NULL)
+		{
+			$this->db->where('logtype',$logtype);
+		}
+		$this->db->order_by('created','DESC');
+		return $this->db->get('lic_requests_history')->result_array();
+	}
+	
+	/**
+	*
+	* Delete request history
+	**/
+	function remove_request_history($request_id)
+	{
+		$this->db->where('lic_req_id',$request_id);
+		$this->db->delete('lic_requests_history');
+	}
+	
 }
-?>
