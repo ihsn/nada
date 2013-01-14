@@ -14,6 +14,7 @@ class Packager_model extends CI_Model {
 				link_study, link_report, link_indicator, ddi_sh, formid, isshared, isdeleted, 
 				link_questionnaire, link_da';
 		$this->db->select($fields);
+		$this->db->where('published',1); //get only published surveys
 		
 		if (is_array($surveyid_arr))
 		{
@@ -23,6 +24,21 @@ class Packager_model extends CI_Model {
 		return $this->db->get("surveys")->result_array();		
 	}
 
+	//returns surveys by tags
+	public function get_surveys_by_tags($tags)
+	{
+		$fields='surveys.id,repositoryid,surveyid,titl,varcount,ddifilename,dirpath,link_technical, 
+				link_study, link_report, link_indicator, ddi_sh, formid, isshared, isdeleted, 
+				link_questionnaire, link_da';
+		$this->db->select($fields);
+		$this->db->join('survey_tags', 'surveys.id= survey_tags.sid','inner');		
+		$this->db->where('surveys.published',1); //get only published surveys
+		$this->db->where_in('survey_tags.tag',(array)$tags); //get only published surveys
+		
+		$query=$this->db->get("surveys");
+		return $query->result_array();	
+	}
+	
 
 	//returns all surveys by repositoryid
 	public function get_surveys_by_repo($repoid)
@@ -254,5 +270,166 @@ class Packager_model extends CI_Model {
 		
 		return FALSE;
 	}
+	
+	
+	/*
+	*
+	* Get survey info
+	*
+	*/
+	public function get_survey($id)
+	{
+		$this->db->select('id,surveyid,repositoryid,titl,nation,data_coll_start,data_coll_end,ddifilename,dirpath,link_technical,link_study,link_report,link_indicator,formid,changed,created,link_questionnaire,published,link_da');
+		$this->db->where('id',$id);
+		$query=$this->db->get('surveys');
 		
+		if ($query)
+		{
+			return $query->row_array();
+		}
+		
+		return FALSE;
+	}
+	
+	public function set_survey_options($surveyid,$options)
+	{
+		$this->db->where('surveyid',$surveyid);
+		$this->db->update('surveys',$options);
+	}
+	
+	/**
+	*
+	* return all citation IDs
+	**/
+	public function get_citations_ID_array()
+	{
+		$this->db->select('id');
+		return $this->db->get('citations')->result_array();
+	}
+	
+	/**
+	*
+	* Return survey internal id by codebookid/alias
+	**/
+	function get_survey_uid($survey_id)
+	{		
+		//from aliases table
+		$this->db->select('sid');
+		$this->db->where(array('alternate_id' => $survey_id) );
+		$query=$this->db->get('survey_aliases')->result_array();
+
+		if ($query)
+		{
+			return $query[0]['sid'];
+		}
+		
+		//from survey table
+		$this->db->select('id');
+		$this->db->where(array('surveyid' => $survey_id) );
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query)
+		{
+			return $query['id'];
+		}
+		
+		return FALSE;
+	}
+
+
+	/**
+	*
+	* Update/Insert citation in the database
+	*
+	* Note: if citation already exists, update other insert a new one
+	**/
+	function update_citation($citation,$related_surveys)
+	{
+		//check if citation already exists				
+		$citation_id=$this->citation_exists($citation['ihsn_id']);
+		
+		//remove elements from citation object that are not needed for update/insert
+		unset($citation['related_surveys']);
+		unset($citation['id']);
+
+		if ($citation_id)
+		{
+			//update existing
+			$this->Citation_model->update($citation_id,$citation);
+		}
+		else
+		{
+			//insert new
+			$citation_id=$this->Citation_model->insert($citation);
+		}
+		
+		//remove existing attachments
+		//$this->Citation_model->delete_related_survey($citation_id);
+		
+		//update related surveys		
+		$this->Citation_model->attach_related_surveys($citation_id,$related_surveys);		
+		
+		return $citation_id;
+	}
+	
+	/**
+	*
+	* Check if citation already exists
+	*
+	**/
+	function citation_exists($ihsn_id)
+	{
+		$this->db->select('id');
+		$this->db->where('ihsn_id',$ihsn_id);
+		$query=$this->db->get('citations')->row_array();
+		
+		if ($query)
+		{
+			return $query['id'];
+		}
+		
+		return FALSE;
+	}
+	
+	
+	/*
+	*
+	* Get survey aliases
+	*/
+	function get_survey_alias($sid)
+	{
+		$this->db->select('alternate_id');
+		$this->db->where(array('sid' => sid) );
+		$query=$this->db->get('survey_aliases')->result_array();
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$output=array();
+		foreach($query as $row)
+		{
+			$output[]=$row['alternate_id'];
+		}
+		return $output;
+	}
+	
+	/*
+	*
+	* Return all survey aliases for all surveys
+	*/
+	function get_all_survey_aliases()
+	{
+		$this->db->select('sid,alternate_id');
+		$rows=$this->db->get('survey_aliases')->result_array();
+		
+		$output=array();
+		foreach($rows as $row)
+		{
+			$output[$row['sid']]=$row;
+		}
+		
+		return $output;
+	}
 }
