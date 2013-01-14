@@ -111,5 +111,13 @@ $lang['CANCELLED'] = "Cancelled";
 
 $lang['reason_login_licensed_access'] = "To request access to licensed datasets, please login to the website to continue.";
 $lang['forward_lic_request'] = "Forward request";
+$lang['comments_history'] = "Comments history";
+$lang['view_comments_history'] = "View history";
+$lang['comment_by'] = "Comment by";
+$lang['show_hide'] = "Show/Hide";
+$lang['comment'] = "Comment";
+$lang['communicate_history'] = "History";
+$lang['sent_by'] = "Sent by";
+$lang['forward_history'] = "History";
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
