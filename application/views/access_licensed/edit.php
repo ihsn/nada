@@ -28,16 +28,42 @@ x.email-fieldset .field{margin-bottom:10px;font-size:11px;}
   border-style:solid;
   background:#eee url(images/up.gif) no-repeat 99.5% 50%
 }
-.collapse{border:1px solid gainsboro;margin-bottom:10px;padding:5px;}
+.collapse{border:1px solid gainsboro;margin-bottom:10px;padding:5px;overflow:auto;height:auto;}
 h3{font-size:1em;font-weight:bold;}
 .box-wrapper{margin-bottom:10px;margin-top:10px;}
 /* end styles for expand/collapse */
+
+.comments_history{font-size:smaller;width:99%;margin-bottom:30px;}
+.collapse_div{display:none;}
+a.view_comments{color:#08C;font-size:10px;margin-right:5px;cursor:pointer;}
+
+.message-body{display:none;font-size:smaller;}
+.open .subject{display:none;}
+.email-field {display:inline-block;width:100px;}
+.view-email, .view-email-forward{cursor:pointer;}
+.view-email .email_body, .view-email-forward .email_body{margin-top:15px;}
+.view-email a.subject, .view-email-forward a.subject{color:#08C;}
 </style>
 
 <script type="text/javascript">
 $(function() {
     $("h3.expand").toggler({speed: "fast"});
 	$('.collapsed').toggle();
+	
+	$('.view_comments').click(function(){
+		$(".comments_history").toggleClass("collapse_div");
+	});
+
+	$('.view-email').click(function(e){
+		$(this).toggleClass("open");
+		$(this).parent().find(".message-body").toggle();
+	});
+	
+	$('.view-email-forward').click(function(e){
+		$(this).toggleClass("open");
+		$(this).parent().find(".message-body").toggle();
+	});
+
 });
 </script>
 
@@ -97,8 +123,14 @@ $(function() {
 			</div>
         </div>    
         <div class="field">
-            <label><b><?php echo t('comments');?></b> <em><?php echo t('comments_visible_to_users');?></em></label>
-            <textarea name="comments" rows="4" class="input-flex"><?php echo isset($comments) ? $comments : ''; ?></textarea>
+            <label><b><?php echo t('comments');?></b> <em><?php echo t('comments_visible_to_users');?></em> 
+            	<a title="<?php echo t("show_hide");?>: <?php echo t("comments_history");?>" class="view_comments" style="float:right;display:block;"><?php echo t('view_comments_history');?></a>
+            </label>
+            <textarea name="comments" rows="4" class="input-flex"><?php echo isset($comments) ? $comments : ''; ?></textarea>            
+            <div class="comments_history collapse_div">
+            	<h3><?php echo t('comments_history');?></h3>
+            	<div class="" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>            
+        	</div>
         </div>
 
         <div class="box-wrapper">
@@ -147,6 +179,13 @@ $(function() {
             	<input type="button" name="send" id="send" value="<?php echo t('send');?>" onclick="send_mail(<?php echo $this->uri->segment(4); ?>);"/>
             </div>            
         </form>
+        
+        <div>
+        	<h3><?php echo t('communicate_history');?></h3>
+        	<div><?php $this->load->view('access_licensed/email_history');?></div>
+        </div>
+
+        
 	</div>
 
 	<div id="tabs-4">
@@ -155,6 +194,11 @@ $(function() {
     
 	<div id="tabs-5">
 		<?php $this->load->view("access_licensed/forward_request");?>
+        
+        <div>
+        	<h3><?php echo t('forward_history');?></h3>
+        	<div><?php $this->load->view('access_licensed/forward_history');?></div>
+        </div>
 	</div>
     
 </div>
