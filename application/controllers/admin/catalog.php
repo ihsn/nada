@@ -16,6 +16,8 @@ class Catalog extends MY_Controller {
     {
         parent::__construct();
        	$this->load->model('Catalog_model');
+		$this->load->model('Licensed_model');
+		$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
@@ -50,8 +52,10 @@ class Catalog extends MY_Controller {
 	 * Default page
 	 *
 	 */
-	function index(){	
-
+	function index()
+	{	
+		$this->_persist_search();
+		
 		//css files
 		$this->template->add_css('themes/admin/catalog_admin.css');
 		
@@ -62,8 +66,6 @@ class Catalog extends MY_Controller {
 		//set filter on active repo
 		if (isset($this->active_repo) && $this->active_repo!=null)
 		{
-			//$filter=$this->Catalog_model->filter;
-//			$this->Catalog_model->filter['repositoryid=']=$this->active_repo->repositoryid;
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 		
@@ -74,7 +76,7 @@ class Catalog extends MY_Controller {
 		$this->catalog_tags=$this->Catalog_model->get_all_survey_tags();
 		
 		//get country list for filter
-		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries();
+		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/index', $db_rows,true);
@@ -86,9 +88,49 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 	
+	//remember search via cookies
+	function _persist_search()
+	{		
+		if ($this->input->get('reset'))
+		{
+			//reset cookie
+			$cookie = array(
+			'name'   => 'catalog_search',
+			'value'  => '',
+			'expire' => '86500'
+			);
+			
+			$this->input->set_cookie($cookie);
+			return;
+		}
+		
+		if ($this->input->server('QUERY_STRING'))
+		{
+			$cookie = array(
+			'name'   => 'catalog_search',
+			'value'  => $this->input->server('QUERY_STRING'),
+			'expire' => '86500'
+			);
+		
+			$this->input->set_cookie($cookie);
+			return;
+		}
+		
+		//check for search querystring in cookie
+		$search_qs=$this->input->cookie('catalog_search');
+		if ($search_qs!='')
+		{
+			//echo $search_qs;exit;
+			redirect('admin/catalog/?'.$search_qs);exit;
+		}
+	}
+	
+	
 	
 	function search()
 	{
+		$this->_persist_search();
+
 		if (isset($this->active_repo) && $this->active_repo!=null)
 		{
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
@@ -126,18 +168,61 @@ class Catalog extends MY_Controller {
 			$filter=array('repositoryid'=>$this->active_repo->repositoryid);
 		}*/
 		
-		//records
-		$data['rows']=$this->Catalog_model->search($per_page, $curr_page,$filter);
-
+		$search_options=array();
+		
+		foreach($_GET as $key=>$value)
+		{
+			$search_options[$key]=$this->input->get($key);
+		}
+		
+		$this->Catalog_admin_search_model->set_active_repo($this->active_repo->repositoryid);
+		
+		//survey rows
+		$surveys=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
+				
+		$survey_id_array=array();
+		
+		if(is_array($surveys))
+		{
+			foreach($surveys as $row)
+			{
+				$survey_id_array[]=$row['id'];
+			}
+		
+			//survey repository owners/links
+			$survey_repos=$this->Repository_model->get_survey_repositories($survey_id_array);
+		
+			$survey_lic_pending=$this->Licensed_model->get_pending_requests_count($survey_id_array);
+		
+			//attach survey repositories
+			foreach($surveys as $key=>$row)
+			{
+				$surveys[$key]['repositories']=FALSE;
+				
+				if (array_key_exists($row['id'],$survey_repos))
+				{
+					$surveys[$key]['repositories']=$survey_repos[$row['id']];
+				}
+				
+				if (array_key_exists($row['id'],$survey_lic_pending))
+				{
+					$surveys[$key]['pending_lic_requests']=$survey_lic_pending[$row['id']];
+				}
+			}
+		}
+		
+		
+		$data['rows']=$surveys;
+		
 		//total records in the db
-		$total = $this->Catalog_model->search_count;
+		$total = $this->Catalog_admin_search_model->search_count;
 
 		if ($curr_page>$total)
 		{
 			$curr_page=$total-$per_page;
 			
 			//search again
-			$data['rows']=$this->Catalog_model->search($per_page, $curr_page,$filter);
+			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
 		}
 		
 		//set pagination options
@@ -1613,7 +1698,7 @@ class Catalog extends MY_Controller {
 		}
 		
 		$survey_row['survey_id']=$id;
-		
+				
 		//check if survey has citations
 		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
 		
@@ -1649,6 +1734,7 @@ class Catalog extends MY_Controller {
 		//other survey IDs
 		$survey_aliases = $this->Survey_alias_model->get_aliases($id);
 		$survey_row['survey_aliases']=$this->load->view('catalog/survey_aliases', array('rows'=>$survey_aliases), true);
+		$survey_row['survey_alias_array']=$survey_aliases;
 		
 		//get citations for the current survey
 		$selected_citations= $this->Citation_model->get_citations_by_survey($id);
