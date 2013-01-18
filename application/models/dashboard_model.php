@@ -17,21 +17,21 @@ class Dashboard_model extends CI_Model {
 	*
 	**/
 	function get_user_stats(){
-		/*
-			0	ACTIVE
-			9	DISABLED
-			3	PENDING
-			4	Currently Logged in
+	/*
+		0	ACTIVE
+		9	DISABLED
+		3	PENDING
+		4	Currently Logged in
 
-#active
-select * from users where active=1;
-
-#disabled
-select * from users where active=0 and created_on != last_login;
-
-#inactive
-select * from users where active=0 and created_on = last_login;
-		*/
+		#active
+		select * from users where active=1;
+		
+		#disabled
+		select * from users where active=0 and created_on != last_login;
+		
+		#inactive
+		select * from users where active=0 and created_on = last_login;
+	*/
 		
 		//active users
 		$this->db->where('active', 1);
@@ -52,7 +52,7 @@ select * from users where active=0 and created_on = last_login;
 
 		//calc date - n minutes
 		$date_obj = new DateTime();
-		$date_obj=$date_obj->modify ("-50 minutes");
+		$date_obj=$date_obj->modify ("-300 minutes");
 		
 		//timestamp
 		$start_date=$date_obj->format("U");
