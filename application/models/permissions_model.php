@@ -340,5 +340,37 @@ class Permissions_model extends CI_Model {
 		$this->db->where('permission_id',$perm_id);
 		$this->db->delete('permission_urls');
 	}
+	
+	
+	
+	/**
+	*
+	* Set group access for repositories
+	**/
+	public function update_repo_permissions($repo_id,$groups_array)
+	{	
+		//remove existing permissions for the repo
+		$this->db->where('repo_id',$repo_id);
+		$this->db->delete('group_repo_access');
+
+		if (!is_array($groups_array))
+		{
+			return;
+		}
+	
+		//assign new permissions
+		foreach($groups_array as $group_id)
+		{
+			if (is_numeric($group_id))
+			{
+				$options=array(
+							'group_id'	=>$group_id,
+							'repo_id'	=>$repo_id
+							);
+				
+				$this->db->insert('group_repo_access',$options);			
+			}
+		}		
+	}
 		
 }//end class
