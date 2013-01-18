@@ -1,22 +1,4 @@
 <?php if($resources):?>
-<style>
-	.resources h3{font-weight:bold;padding-top:10px;font-size:12px;}
-	.abstract{display:none;margin-bottom:10px;background-color:none;}
-	.resources .alternate, .resources .resource{border-bottom:1px solid #C1DAD7;padding:5px;width:98%;}
-	.resources .alternate{background-color:#FBFBFB;}
-	.resources .alternate:hover, .resources .resource:hover{background-color:#EAEAEA}
-	.resources fieldset {border:0px;border-top:4px solid gainsboro;margin:0px;padding:0px;margin-top:20px;margin-bottom:10px;padding-top:5px;color:#333333;font-size:12px;}
-	.resources fieldset legend{font-weight:bold;;padding:5px;text-transform:capitalize;margin-left:10px;}	
-	.resource-info{cursor:pointer;}
-	.resource-right-col{float:right;font-size:11px;width:15%;}
-	.resource-left-col{float:left;width:85%;}
-	.resource-file-size{display:inline-block;width:100px;text-align:left;color:#999999;}
-	.tbl-resource-info{padding:0px;margin:0px; border-collapse:collapse}
-	.resource-info{padding-left:20px;background:url('images/blue-add.png') no-repeat left top;}
-	.active .resource-info{font-weight:bold;margin-bottom:10px;background:url('images/blue-remove.png') no-repeat left top;}
-	.resources .active{border:1px solid gainsboro;margin-bottom:20px;}
-	.resource .caption{font-weight:bold;}
-</style>
 <div style="padding-top:20px;">
 <h2><?php echo t('study_resources');?></h2>
 <div class="resources">
@@ -148,26 +130,3 @@
 </div>
 </div>
 <?php endif;?>
-
-<script type="text/javascript">
-	function toggle_resource(element_id){
-		$("#"+element_id).parent(".resource").toggleClass("active");
-		$("#"+element_id).toggle();
-	}
-	
-	$(document).ready(function () { 
-		bind_behaviours();
-	});	
-	
-	function bind_behaviours() {
-		//show variable info by id
-		$(".resource-info").unbind('click');
-		$(".resource-info").click(function(){
-			if($(this).attr("id")!=''){
-				toggle_resource('info_'+$(this).attr("id"));
-			}
-			return false;
-		});	
-	}
-
-</script>
