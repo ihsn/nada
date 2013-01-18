@@ -3,6 +3,10 @@
 *
 * Show repos by section
 */
+if (!isset($show_unpublished))
+{
+	$show_unpublished=FALSE;
+}
 ?>
 <div>
 <h2 class="page-title"><?php echo $section_title;?></h2>
@@ -12,7 +16,8 @@
 	<?php foreach($rows as $key=>$row): ?>
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=" "; } ?>
-        <?php if (!$row->ispublished || $row->section!==$section){continue;} //skip unpublished?>
+        <?php if ($row->section!=$section){continue;}?>
+        <?php if (!$row->ispublished && $show_unpublished==FALSE){continue;}?>
     	<tr class="<?php echo $tr_class; ?>" valign="top">
             <td class="thumb"><a href="<?php echo site_url();?>/catalog/<?php echo $row->repositoryid;?>/about"><img src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></td>
             <td class="text">
