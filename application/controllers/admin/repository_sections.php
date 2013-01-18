@@ -11,7 +11,7 @@ class Repository_Sections extends MY_Controller {
 		
 		//menu language file
 		$this->lang->load('general');
-		$this->lang->load('repository_sections');
+		$this->lang->load('harvester');
 		
 		//set default template
 		$this->template->set_template('admin');
