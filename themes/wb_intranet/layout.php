@@ -26,6 +26,7 @@ if ($this->uri->segment(1)=="home") {$is_home=TRUE;}
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title><?php echo $title;?></title>
 <base href="<?php echo js_base_url(); ?>">
+<?php if (isset($_meta) ){ echo $_meta;} ?>
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/css/ihpv3_intranet_20110418.css">
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
