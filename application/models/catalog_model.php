@@ -390,18 +390,18 @@ class Catalog_model extends CI_Model {
 		//execute query
 		$survey=$this->db->get('surveys')->row_array();
 		
-		if ($repositoryid!==FALSE)
+		//get study ownership/link info
+		$this->db->select("*");
+		$this->db->where('sid', $id); 
+		$additional=$this->db->get('survey_repos')->result_array();
+		
+		$survey['repo']=array();
+		
+		if ($additional)
 		{
-			//get study ownership/link info
-			$this->db->select("*");
-			$this->db->where('sid', $id); 
-			$this->db->where('repositoryid', $repositoryid); 
-			$additional=$this->db->get('survey_repos')->result_array();
-			if ($additional)
-			{
-				$survey['repo']=$additional;
-			}
+			$survey['repo']=$additional;
 		}
+
 		return $survey;
 	}
 	
@@ -1348,11 +1348,16 @@ class Catalog_model extends CI_Model {
 	*
 	* Returns a unique list of countries with survey counts
 	**/
-	function get_all_survey_countries()
+	function get_all_survey_countries($repositoryid=NULL)
 	{
 		$this->db->select('country_name, count(country_name) as total');
+		if ($repositoryid)
+		{
+			$this->db->where(sprintf("sid in (select sid from survey_repos where repositoryid=%s)",$this->db->escape($repositoryid)),NULL,FALSE);
+		}
 		$this->db->group_by('country_name');
-		return $this->db->get('survey_countries')->result_array();
+		$result=$this->db->get('survey_countries')->result_array();
+		return $result;
 	}
 
 	/**
@@ -1389,9 +1394,9 @@ class Catalog_model extends CI_Model {
 	function get_survey_alaises($sid)
 	{		
 		//from aliases table
-		$this->ci->db->select('alternate_id');
-		$this->ci->db->where(array('sid' => $sid) );
-		$query=$this->ci->db->get('survey_aliases')->result_array();
+		$this->db->select('alternate_id');
+		$this->db->where(array('sid' => $sid) );
+		$query=$this->db->get('survey_aliases')->result_array();
 
 		$aliases=array();
 		
@@ -1404,9 +1409,9 @@ class Catalog_model extends CI_Model {
 		}
 		
 		//from survey table
-		$this->ci->db->select('surveyid');
-		$this->ci->db->where(array('id' => $sid) );
-		$query=$this->ci->db->get('surveys')->row_array();
+		$this->db->select('surveyid');
+		$this->db->where(array('id' => $sid) );
+		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query)
 		{
