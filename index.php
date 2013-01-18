@@ -1,4 +1,15 @@
 <?php
+//include 'c:/wb/workspace/xhprof/header.php';
+
+/*
+ *---------------------------------------------------------------
+ * APPLICATION ENVIRONMENT
+ *---------------------------------------------------------------
+ *
+ *
+ */
+	define('APP_VERSION', '4.0-alpha');
+
 
 /*
  *---------------------------------------------------------------
@@ -199,6 +210,6 @@ if (defined('ENVIRONMENT'))
  *
  */
 require_once BASEPATH.'core/CodeIgniter'.EXT;
-
+//include 'c:/wb/workspace/xhprof/footer.php';
 /* End of file index.php */
 /* Location: ./index.php */
