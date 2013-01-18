@@ -10,6 +10,7 @@ class Access_public extends MY_Controller {
        	
         $this->load->model('Form_model');
 		$this->load->model('Catalog_model');
+		$this->load->model('Repository_model');
 		$this->load->model('managefiles_model');
        	$this->template->set_template('default');		
 		//$this->output->enable_profiler(TRUE);
@@ -25,7 +26,19 @@ class Access_public extends MY_Controller {
 		
 		$this->lang->load('direct_access_terms');
 		$this->lang->load('public_access_terms');
-		$this->lang->load('public_request');		
+		$this->lang->load('public_request');
+		
+		
+		//check if user is logged in
+		if (!$this->ion_auth->logged_in()) 
+		{
+			$this->session->set_flashdata('reason', t('reason_login_public_access'));
+			$destination=$this->uri->uri_string();
+			$this->session->set_userdata("destination",$destination);
+
+			//redirect them to the login page
+			redirect("auth/login/?destination=$destination", 'refresh');
+		}
     }
  
  
@@ -45,16 +58,14 @@ class Access_public extends MY_Controller {
 			show_404();
 			return;
 		}
+		
+		//check if survey da is set by collection
+		$da_by_collection=$this->Repository_model->survey_has_da_by_collection($survey_id);
 
-		//check if user is logged in
-		if (!$this->ion_auth->logged_in()) 
+		if ($da_by_collection)
 		{
-			$this->session->set_flashdata('reason', t('reason_login_public_access'));
-			$destination=$this->uri->uri_string();
-			$this->session->set_userdata("destination",$destination);
-
-			//redirect them to the login page
-			redirect("auth/login/?destination=$destination", 'refresh');    	}
+			redirect('access_public_collection/'.$survey_id);exit;
+		}	
 			
 		//get user info
 		$user=$this->ion_auth->current_user();
@@ -213,6 +224,17 @@ class Access_public extends MY_Controller {
 		{
 			show_404();
 			return;
+		}
+		
+		//get current user
+		$user=$this->ion_auth->current_user();
+		
+		//check if user has accepted the terms and conditions
+		$request_exists=$this->Form_model->check_user_public_request($user->id,$survey_id);
+		
+		if (!$request_exists)
+		{
+			$this->index($survey_id);return;
 		}
 				
 		//get file information
