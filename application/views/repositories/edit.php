@@ -12,6 +12,8 @@ $options_published=array(
 $options_section=$this->data['section_options'];
 
 ?>
+
+<?php $this->load->view('repositories/page_links'); ?>
 <h1><?php echo $this->page_title;?></h1>
 	
 <?php if (validation_errors() ) : ?>
@@ -44,11 +46,6 @@ $options_section=$this->data['section_options'];
 	<input type="hidden" name="id" value="<?php echo get_form_value('id',isset($id) ? $id : ''); ?>"/>
 
     <div class="field">
-        <label for="pid"><?php echo t('select_repo_type');?></label>
-        <?php echo form_dropdown('type', $repo_types,get_form_value('type',isset($this->data['type']) ? $this->data['type'] : ''));?>
-    </div>  
-
-    <div class="field">
         <label for="repositoryid"><?php echo t('repositoryid');?><span class="required">*</span></label>
         <?php echo form_input($this->data['repositoryid']);?>        
     </div>
@@ -56,21 +53,6 @@ $options_section=$this->data['section_options'];
     <div class="field">
         <label for="title"><?php echo t('title');?><span class="required">*</span></label>
         <?php echo form_input($this->data['title']);?>        
-    </div>
-    
-    <div class="field">
-        <label for="url"><?php echo t('url');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['url']);?>        
-    </div>
-
-    <div class="field">
-        <label for="organization"><?php echo t('organization');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['organization']);?>        
-    </div>
-
-    <div class="field">
-        <label for="country"><?php echo t('country');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['country']);?>        
     </div>
     
     <div class="field">
@@ -101,6 +83,16 @@ $options_section=$this->data['section_options'];
 	-->    
 
     <div class="field">
+        <label for="ispublished"><?php echo t('published');?></label>
+        <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''));?>
+    </div>  
+
+    <div class="field">
+        <label for="pid"><?php echo t('select_repo_type');?></label>
+        <?php echo form_dropdown('type', $repo_types,get_form_value('type',isset($this->data['type']) ? $this->data['type'] : ''));?>
+    </div>  
+
+    <div class="field">
         <label for="section"><?php echo t('section');?><span class="required">*</span></label>
         <?php //form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''));?>
         <select name="section">
@@ -111,8 +103,12 @@ $options_section=$this->data['section_options'];
     </div>
 
     <div class="field">
-        <label for="ispublished"><?php echo t('published');?></label>
-        <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''));?>
+        <label for="group_da">
+        <?php echo form_checkbox('group_da', '1', get_form_value('group_da',isset($this->data['group_da']) ? $this->data['group_da'] : FALSE),'id="group_da"');?>
+		<?php echo t('da_by_collection');?>
+        </label>
+        <div class="description"><?php echo t('da_by_collection_description');?></div>
+		<?php //echo form_checkbox('group_da', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''));?>
     </div>  
 
     <p>
