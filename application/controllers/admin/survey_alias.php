@@ -35,7 +35,7 @@ class Survey_alias extends MY_Controller {
 			'alternate_id' => $alternate_id,
 		);
 		
-		if (!$this->Survey_alias_model->id_exists($id, $alternate_id)) 
+		if (!$this->Survey_alias_model->id_exists($alternate_id)) 
 		{
 			$this->Survey_alias_model->insert($options);
 		}
