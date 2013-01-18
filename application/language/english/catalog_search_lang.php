@@ -143,5 +143,9 @@ $lang['js_center_selected']="center selected";
 $lang['filter_by_collection']="Filter by Collection";
 $lang['js_collections_selected']="collections selected";
 $lang['js_collection_selected']="collection selected";
+
+$lang['study_data_files']="Data Files";
+$lang['show_all_files']="Show all files...";
+
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
