@@ -367,6 +367,10 @@ class Managefiles extends MY_Controller {
 				$this->delete($this->uri->segment(3),$this->uri->segment(5));
 			break;
 
+			case 'batch_delete':
+				$this->batch_delete($this->uri->segment(3));
+			break;
+
 			case 'access':
 				$this->data_access($this->uri->segment(3));
 			break;	
@@ -519,6 +523,19 @@ class Managefiles extends MY_Controller {
 			force_download2($fullpath);
 		}
 	}
+	
+	function batch_delete($surveyid)
+	{
+		$files=(array)$this->input->post("filename");
+		foreach($files as $file)
+		{
+			$this->delete($surveyid,$file);
+		}
+		
+		//redirect
+		redirect("admin/catalog/edit/".$surveyid,"refresh");
+	}
+	
 
 	/*
 	* Delete a single file
@@ -542,7 +559,7 @@ class Managefiles extends MY_Controller {
 		$fullpath=unix_path($folderpath.'/'.$filepath);
 		
 		//log deletion
-		$this->db_logger->write_log('delete',$fullpath,'external-resource');
+		$this->db_logger->write_log('resource-delete',$fullpath,'external-resource',$surveyid);
 		
 		if (is_dir($fullpath))
 		{
@@ -556,7 +573,7 @@ class Managefiles extends MY_Controller {
 			{
 				if ($ajax==1)
 				{
-					die ('file_delete_failed');
+					echo ('file_delete_failed');return;
 				}
 
 				$this->session->set_flashdata('error', t('file_delete_failed'));
@@ -565,7 +582,7 @@ class Managefiles extends MY_Controller {
 			{
 				if ($ajax==1)
 				{
-					die ('file_delete_success');
+					echo ('file_delete_success');return;
 				}
 
 				$this->session->set_flashdata('message', t('file_delete_success'));
@@ -631,6 +648,7 @@ class Managefiles extends MY_Controller {
 	*/
 	function delete_folder($dir) 
 	{ 
+		$this->db_logger->write_log('delete-folder',$dir,'external-resource');
 		if (!file_exists($dir)) return true; 
 		if (!is_dir($dir) || is_link($dir)) return unlink($dir); 
 			foreach (scandir($dir) as $item) { 
