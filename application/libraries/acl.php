@@ -276,7 +276,7 @@ class ACL
 	*
 	* Check if user has access to a study
 	**/
-	function user_has_study_access($survey_id,$user_id=NULL)
+	function user_has_study_access($survey_id,$user_id=NULL,$die=TRUE)
 	{
 		if($user_id==NULL)
 		{
@@ -304,10 +304,16 @@ class ACL
 		//check if user(group) has access to repository
 		$access= $this->group_has_repo_access($user_groups,$owner_repos);
 		
-		if (!$access)
+		if (!$access && $die==TRUE )
 		{
 			show_error(t("study_access_denied"));
 		}
+		else if(!$access)
+		{
+			return FALSE;
+		}
+		
+		return TRUE;
 	}
 	
 	/**
@@ -354,6 +360,7 @@ class ACL
 		
 		return FALSE;
 	}
-	
+
+
 }
 
