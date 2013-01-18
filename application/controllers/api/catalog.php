@@ -21,6 +21,7 @@ class Catalog extends REST_Controller
 				//'topics'			=>	array('1','2'),
 				'from'				=>	$this->security->xss_clean($this->input->get("from")),
 				'to'				=>	$this->security->xss_clean($this->input->get("to")),
+				'collection'		=>	$this->security->xss_clean($this->input->get("collection"))
 		);
 		
 		$limit=5;
