@@ -384,7 +384,8 @@ class Repository_model extends CI_Model {
 			'type',
 			'weight',
 			'ispublished',
-			'section'
+			'section',
+			'group_da'
 			);
 
 		//add date modified
@@ -437,7 +438,8 @@ class Repository_model extends CI_Model {
 			'type',
 			'weight',
 			'ispublished',
-			'section'
+			'section',
+			'group_da'
 			);
 
 		//add date modified
@@ -482,60 +484,23 @@ class Repository_model extends CI_Model {
 	/**
 	*
 	* Delete a repository
-	* 	- removes entries from surveys 
-	*	- removes entries from harvester_queue
+	*
 	**/
 	function delete($id=NULL)
 	{
-		show_error("FEATURE_DISABLED");
-		
 		if (!is_numeric($id))
 		{
 			return FALSE;
 		}
 		
-		//get repository info
 		$repo=$this->select_single($id);
 		
-		if (!$repo)
-		{
-			return FALSE;
-		}
+		$this->db->where('id',$id);
+		$this->db->delete('repositories');
 		
-		//get repositoryid
-		$repositoryid=$repo['repositoryid'];
-		
-		//variables
-		$sql[]=sprintf('delete from %s where surveyid_fk in (select id from %s where repositoryid=%s);',
-					$this->db->dbprefix('variables'),
-					$this->db->dbprefix('surveys'),					
-					$this->db->escape($repositoryid) );
-		
-		//surveys
-		$sql[]=sprintf('delete from %s where repositoryid=%s',
-					$this->db->dbprefix('surveys'),
-					$this->db->escape($repositoryid) );
-					
-		//harvester_queue
-		$sql[]=sprintf('delete from %s where repositoryid=%s',
-					$this->db->dbprefix('harvester_queue'),
-					$this->db->escape($repositoryid));
-		
-		//repositories
-		$sql[]=sprintf('delete from %s where id=%d',$this->db->dbprefix('repositories'),$id);
-		
-		//execute
-		foreach($sql as $s)
-		{
-			$result=$this->db->query($s);
-			
-			if (!$result)
-			{
-				return FALSE;
-			}
-		}
-		
-		return TRUE;	
+		//remove from survey_repos
+		$this->db->where('repositoryid',$repo['repositoryid']);
+		$this->db->delete('survey_repos');
 	}
 	
 	
@@ -736,6 +701,7 @@ class Repository_model extends CI_Model {
 	**/
 	function get_repository_sections()
 	{
+		$this->db->order_by('weight','ASC');
 		$result= $this->db->get('repository_sections')->result_array();
 
 	/*	$list=array();
@@ -748,5 +714,85 @@ class Repository_model extends CI_Model {
 		return $result;
 	}
 
+
+	/**
+	*
+	* Check if survey's data access is set by collection
+	*
+	* Returns collection id or false
+	**/
+	function survey_has_da_by_collection($sid)
+	{
+		$this->db->select('repositories.repositoryid,group_da,repositories.title');
+		$this->db->from('repositories');
+		$this->db->join('survey_repos sr', 'sr.repositoryid = repositories.repositoryid','left');		
+		$this->db->where('sid',$sid);
+		$this->db->where('group_da',1);
+		$result=$this->db->get()->result_array();
+
+		if (!$result)
+		{
+			return FALSE;
+		}
+		//only return the first repo
+		return $result[0];
+	}
+	
+	
+	/**
+	* 
+	* Get survey repository info by survey id
+	**/
+	function get_survey_repositories($survey_id_array)
+	{
+		$survey_id_array=(array)$survey_id_array;
+		
+		if (count($survey_id_array)==0)
+		{
+			return FALSE;
+		}
+		
+		$this->db->select('*');
+		$this->db->where_in('sid',$survey_id_array);
+		$query=$this->db->get('survey_repos')->result_array();
+		
+		$output=NULL;
+		foreach($query as $row)
+		{
+			//survey can belong to one or more repos
+			$output[$row['sid']][]=$row;
+		}
+		
+		return $output;
+	}
+
+
+	/**
+	* checks if a repositoryid exists
+	*
+	*/
+	function repository_exists($repositoryid,$id=NULL)
+	{
+		$this->db->select('id');
+		$this->db->from('repositories');		
+		$this->db->where('repositoryid',$repositoryid);		
+		if ($id!=NULL)
+		{
+			$this->db->where('id !=', $id);
+		}
+        $result= $this->db->count_all_results();
+		return $result;
+	}
+
+
+	/**
+	*
+	* Return survey counts per repository
+	**/
+	function survey_stats_by_repo()
+	{
+		$result=$this->db->query('select repositoryid,count(sid) as total from survey_repos group by repositoryid')->result_array();
+		return $result;
+	}
 }
 ?>
