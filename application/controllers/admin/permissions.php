@@ -14,7 +14,7 @@ class Permissions extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('user_groups');
 		$this->lang->load('permissions');
-		$this->output->enable_profiler(TRUE);
+		//$this->output->enable_profiler(TRUE);
 
 		//set default template
 		$this->template->set_template('admin');		
