@@ -25,47 +25,18 @@ form{margin:10px;padding:0px;}
 .actions a:hover{color:red;}
 </style>
 
-<form method="post" enctype="multipart/form-data" class="form manage-files">
+<form method="post" enctype="multipart/form-data" class="form manage-files" action="<?php echo site_url('admin/managefiles/'.$survey_id.'/batch_delete');?>">
+<input type="hidden" name="ajax" value="1"/>
 <div class="actions">
 	<div style="float:left;color:gainsboro;">		
     	<input type="image"  src="images/bin_closed.png" class="" title="<?php echo t('delete_selection');?>" name="delete" value="<?php echo t('delete_selection');?>" onclick="return batch_delete();"/> |
-        <a style="cursor:pointer;" title="<?php echo t('upload_files_hover');?>" onClick="$('#file-uploads').toggle();return false;"><img src="images/upload.png"/> <?php echo t('upload_files');?></a>
+        <a href="<?php echo site_url('/admin/resources/upload/'.$survey_id);?>" style="cursor:pointer;" title="<?php echo t('upload_files_hover');?>" ><img src="images/upload.png"/> <?php echo t('upload_files');?></a>
     </div>
 
 	<div style="float:right"> 
     </div>
     <br style="clear:both;"/>
 </div>
-
-
-<div id="file-uploads">
-
-    <div class="field-inline">
-        <input type="checkbox" name="overwrite" id="overwrite" value="1"/>
-        <label for="overwrite"><?php echo t('overwrite_if_exists');?></label>        
-        
-    </div>
-    
-	<?php $this->load->view("catalog/plupload");?>
-
-	<div id="uploader">
-		<p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
-
-    <div class="field">
-        <label for="upload_folder"><?php echo t('select_upload_files');?></label>
-		<?php for($i=0;$i<5;$i++):?>    	
-            <input class="input-flex" type="file" name="file[]" /><br/>
-        <?php endfor;?>    
-	</div>
-
-    <div style="margin-top:5px;">
-    <input type="submit" name="upload" value="<?php echo t('upload');?>"/>
-    <input type="button" name="cancel" value="<?php echo t('cancel');?>" onClick="$('#file-uploads').toggle();return false;"/>
-    </div>
-
-	</div>
-</div>
-
 
 <table width="100%" class="grid-table" style="margin-top:5px;">
 <tr valign="top" align="left" class="header">
@@ -162,8 +133,14 @@ function batch_delete(){
 		return false;
 	}
 	
+	$(".manage-files").submit();return false;
+	
+	/*
+	$k=0;
 	$('.manage-files .chk:checked').each(function(){ 
-			this.value; 			
+		//console.log(CI.base_url+'/admin/managefiles/<?php echo $survey_id;?>/delete/'+this.value+'?ajax=1');return;
+	
+		$k++;
 			$.ajax({
 				timeout:1000*120,
 				type:'GET', 
@@ -175,7 +152,10 @@ function batch_delete(){
 			});
      });
 	 
+	 alert($k + " files were removed");
+	 //window.location.reload();
 	 return false;
+	 */
 }
 
 

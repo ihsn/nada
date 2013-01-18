@@ -148,26 +148,6 @@ function update_survey_collection(e) {
 		//related_citations_click();
 	});
 
-	/*
-	//attach click event handler for survey select/unselect
-	function related_citations_click()
-	{
-			$('.chk').unbind('click').click(function(e) {
-			
-			var tmp_id=$("#tmp_id").val();
-			
-			if($(this).is(':checked')) {
-            	url=CI.base_url+'/admin/related_citations/add/'+tmp_id+'/'+$(this).val()+'/1';
-         	}
-			else{
-				url=CI.base_url+'/admin/related_citations/remove/'+tmp_id+'/'+$(this).val()+'/1';
-			}
-			
-			$.get(url);
-		});
-	}
-	*/
-
 	//remove related citations
 	$(function() {
 		$('#related-citations .remove').live('click', function() {
@@ -273,7 +253,7 @@ border-radius: 3px;clear:right;}
 .remove{padding:5px;cursor:pointer;}
 .remove:hover{font-weight:bold}
 .tag{font-size:11px;}
-.vscroll{overflow:auto;overflow-x:hidden;}
+.vscroll{overflow:auto;overflow-x:hidden;height:150px;}
 .survey-tabs .count{font-size:smaller;}
 
 /*model dialog*/
@@ -310,6 +290,20 @@ border-radius: 3px;clear:right;}
             <td nowrap="nowrap"><?php echo t('ref_no');?></td>
             <td><?php echo $surveyid; ?></td>
         </tr>
+        
+		<?php if(isset($survey_alias_array) && count($survey_alias_array)>0):?>
+        <tr>
+            <td>Other IDs</td>
+            <td>
+            	<span class="survey-alias">
+					<?php foreach($survey_alias_array as $alias):?>
+					<span class="alias"><?php echo $alias['alternate_id'];?></span>
+                    <?php endforeach;?>
+                </span>    
+            </td>
+        </tr>
+        <?php endif;?>
+        
         <tr>
             <td><?php echo t('year');?></td>
             <td><?php echo $data_coll_start; ?></td>
@@ -333,10 +327,13 @@ border-radius: 3px;clear:right;}
         <tr>
             <td><?php echo t('repository');?></td>
             <td>
+            	<?php if ($repo):?>
 				<?php foreach($repo as $r):?>
-                	<?php $repos_arr[]=$r['repositoryid'];?>
+                	<span class="label"><?php echo strtoupper($r['repositoryid']);?></span>
                 <?php endforeach;?>
-                <?php echo implode(", ",$repos_arr);?>
+                <?php else:?>
+                	N/A
+                <?php endif;?>                
             </td>
         </tr>        
         <tr>

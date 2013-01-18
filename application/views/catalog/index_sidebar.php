@@ -5,7 +5,7 @@
 */?>
 <form id="form_filter">
 	<div style="font-size:smaller;text-align:right;">
-    <a href="<?php echo site_url();?>/admin/catalog">Clear filter</a>
+    <a href="<?php echo site_url();?>/admin/catalog/?reset=reset">Clear filter</a>
 	</div>
     <div class="box">
 		<div class="box-header">Filter
@@ -20,9 +20,9 @@
 		<?php foreach($search_fields as $field): $c++?>
 			<div class="field">
 			<label for="field-<?php echo $field;?>"><?php echo $field;?></label><br/>
-			<input class="mini" type="textbox" id="field-<?php echo $field;?>" name="<?php echo $field;?>" value=""/>
+			<input class="mini" type="textbox" id="field-<?php echo $field;?>" name="<?php echo $field;?>" value="<?php echo get_form_value($field,'') ; ?>"/>
 			<!--<input type="button" value="Apply" class="btn-tiny"/>-->
-			<span class="icon icon-search"></span>
+			<span class="icon icon-search apply-filter"></span>
 			</div>
 		<?php endforeach;?>
         
@@ -51,7 +51,7 @@
 		   <span class="sh" title="toggle_box">&nbsp;</span>
 		</div>
 		<div class="box-body">
-		<div class="vscroll" >
+		<div class="scrollable" >
 		<?php $c=0;?>
 		<?php foreach($this->catalog_countries as $country): $c++?>
 			<div>
@@ -71,7 +71,7 @@
 		   <span class="sh" title="toggle_box">&nbsp;</span>
 		</div>
 		<div class="survey-tags-body box-body">
-		<div class="pad5">
+		<div class="pad5 scrollable">
 		<?php $c=0;?>
 		<?php foreach($this->catalog_tags as $tag): $c++?>
 			<div>
