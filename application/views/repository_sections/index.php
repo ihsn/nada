@@ -58,7 +58,7 @@
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
-        	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
+        	<td style="width:20px;"><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <td><?php echo $row->weight; ?>&nbsp;</td>
 			<td>
