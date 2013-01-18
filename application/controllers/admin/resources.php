@@ -31,7 +31,7 @@ class Resources extends MY_Controller {
 			show_error('Invalid or missing parameters');
 		}
 		
-		//test user study permissiosn
+		//test user study permissions
 		$this->acl->user_has_study_access($surveyid);
 		
 		//get survey folder path
@@ -551,7 +551,7 @@ class Resources extends MY_Controller {
 					}
 					
 					//check if the resource file already exists
-					$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($insert_data['survey_id'],$insert_data['filename']);
+					$resource_exists=FALSE;//$this->Resource_model->get_survey_resources_by_filepath($insert_data['survey_id'],$insert_data['filename']);
 					
 					if (!$resource_exists)
 					{										
@@ -722,8 +722,6 @@ class Resources extends MY_Controller {
 			$broken_links[$key]['match']=$match;
 		}
 		
-		
-		
 		//$msg=$this->load->view('managefiles/fixlinks',array('links'=>$broken_links),TRUE);
 		$this->session->set_flashdata('message', sprintf (t('n_resources_fixed'),$this->fixed_count));
 		redirect('admin/catalog/edit/'.$surveyid.'/resources',"refresh");
@@ -760,7 +758,244 @@ class Resources extends MY_Controller {
 			}
 		}		
 		return $files;
-	}	
+	}
+	
+	/**
+	*
+	* Upload external resource files for survey
+	**/
+	function upload($sid=NULL)
+	{
+		if (!is_numeric($sid))
+		{
+			show_error("INVALID");
+		}
+		
+		$this->acl->user_has_study_access($sid);
+		
+		if($_FILES)
+		{
+			$this->_process_upload($sid);
+		}		
+		
+		$data['breadcrumbs']=array(
+			'admin/catalog'					=> 	'Catalog',
+			'admin/catalog/edit/'.$sid		=>	'Edit Survey',
+			''								=>	'Upload Resources'
+		);
+		
+		$data['survey']=$this->Catalog_model->select_single($sid);
+		$content=$this->load->view('resources/plupload',$data,TRUE);
+		
+		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);		
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
+	
+	
+	private function _process_upload($sid)
+	{
+		$this->load->helper('text');
+		$files=$_FILES;
+		
+		if (!$files)
+		{
+			return;
+		}
+		
+		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
+		
+		foreach ($files["file"]["error"] as $key => $error) 
+		{
+		    if ($error == UPLOAD_ERR_OK) 
+			{
+		        $tmp_name = $_FILES["file"]["tmp_name"][$key];
+        		$name = $_FILES["file"]["name"][$key];
+								
+				$name=convert_accented_characters($name);
+		
+				//log
+				$this->db_logger->write_log('resource-upload',$name,'resources',$sid);
+		
+				//check if allowed file type
+				$file_info=pathinfo($name);
+				$allowed_types=explode(",",$this->config->item("allowed_resource_types"));
+				
+				if (!in_array($file_info['extension'],$allowed_types))
+				{	
+					$this->db_logger->write_log('resource-upload-failed','blocked - '.$name,'resources',$sid);
+				}
+				else
+				{				
+		        	move_uploaded_file($tmp_name, "$survey_folder/$name");
+				}	
+    		}
+		}
+		
+		redirect('admin/catalog/edit/'.$sid);
+	}
+	
+	
+	/**
+	 * Upload multiple files using plupload
+	 *
+	 * Based on the code by Moxiecode Systems AB
+	 * Released under GPL License.
+	 *
+	 * License: http://www.plupload.com/license
+	 * Contributing: http://www.plupload.com/contributing
+	 */
+	function pl_uploads($surveyid,$overwrite=1)
+	{
+		if ($overwrite!=1)
+		{
+			$overwrite=0;
+		}
+		
+		if (!is_numeric($surveyid))
+		{
+			return FALSE;
+		}
+				
+		$survey_path=$this->managefiles_model->get_survey_path($surveyid);
+		
+		if ($survey_path=='' || !file_exists($survey_path))
+		{
+			show_404();
+		}
+		
+		//test user study permissiosn
+		$this->acl->user_has_study_access($surveyid);
+		
+		$resource_folder=unix_path($survey_path);
+		
+		if (!file_exists($resource_folder))
+		{
+			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Resource folder does not exist"}, "id" : "'.$resource_folder.'"}');
+		}
+				
+		// HTTP headers for no cache etc
+		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+		header("Cache-Control: no-store, no-cache, must-revalidate");
+		header("Cache-Control: post-check=0, pre-check=0", false);
+		header("Pragma: no-cache");
+		
+		// Settings
+		//$targetDir = ini_get("upload_tmp_dir") . DIRECTORY_SEPARATOR . "plupload";
+		$targetDir = $resource_folder;
+		
+		//$targetDir=APPPATH.'../plupload/'.$this->input->post("upload_folder");
+		
+		//$cleanupTargetDir = false; // Remove old files
+		//$maxFileAge = 60 * 60; // Temp file age in seconds
+		
+		// 5 minutes execution time
+		@set_time_limit(15 * 60);
+		
+		// Uncomment this one to fake upload time
+		// usleep(5000);
+		
+		// Get parameters
+		$chunk = isset($_REQUEST["chunk"]) ? $_REQUEST["chunk"] : 0;
+		$chunks = isset($_REQUEST["chunks"]) ? $_REQUEST["chunks"] : 0;
+		$fileName = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
+
+		if (!$fileName)
+		{
+			return;
+		}
+		
+		$this->load->helper('text');
+		$fileName=convert_accented_characters($fileName);
+
+		//log
+		$this->db_logger->write_log('resource-upload',$fileName,'resources',$surveyid);
+
+		//check if allowed file type
+		$file_info=pathinfo($fileName);
+		$allowed_types=explode(",",$this->config->item("allowed_resource_types"));
+		
+		if (!in_array($file_info['extension'],$allowed_types))
+		{	
+			$this->db_logger->write_log('resource-upload-failed','blocked - '.$fileName,'resources',$surveyid);
+			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "invalid-file-type"}, "type" : "{$file_info["extension"]}"}');				
+		}
+				
+		// Clean the fileName for security reasons
+		//$fileName = preg_replace('/[^\w\._]+/', '', $fileName);
+		
+		// Make sure the fileName is unique but only if chunking is disabled
+		if ($chunks < 2 && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName)) {
+			$ext = strrpos($fileName, '.');
+			$fileName_a = substr($fileName, 0, $ext);
+			$fileName_b = substr($fileName, $ext);
+		
+			$count = 1;
+			while (file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName_a . '_' . $count . $fileName_b))
+				$count++;
+		
+			$fileName = $fileName_a . '_' . $count . $fileName_b;
+		}
+		
+		// Create target dir
+		if (!file_exists($targetDir))
+		{
+			@mkdir($targetDir);
+			log_message('info', 'create folder: '.$targetDir);
+		}
+		
+		// Look for the content type header
+		if (isset($_SERVER["HTTP_CONTENT_TYPE"]))
+			$contentType = $_SERVER["HTTP_CONTENT_TYPE"];
+		
+		if (isset($_SERVER["CONTENT_TYPE"]))
+			$contentType = $_SERVER["CONTENT_TYPE"];
+		
+		// Handle non multipart uploads older WebKit versions didn't support multipart in HTML5
+		if (strpos($contentType, "multipart") !== false) {
+			if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
+				// Open temp file
+				$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk == 0 ? "wb" : "ab");
+				if ($out) {
+					// Read binary input stream and append it to temp file
+					$in = fopen($_FILES['file']['tmp_name'], "rb");
+		
+					if ($in) {
+						while ($buff = fread($in, 4096))
+							fwrite($out, $buff);
+					} else
+						die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
+					fclose($in);
+					fclose($out);
+					@unlink($_FILES['file']['tmp_name']);
+				} else
+					die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
+			} else
+				die('{"jsonrpc" : "2.0", "error" : {"code": 103, "message": "Failed to move uploaded file."}, "id" : "id"}');
+		} else {
+			// Open temp file
+			$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk == 0 ? "wb" : "ab");
+			if ($out) {
+				// Read binary input stream and append it to temp file
+				$in = fopen("php://input", "rb");
+		
+				if ($in) {
+					while ($buff = fread($in, 4096))
+						fwrite($out, $buff);
+				} else
+					die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
+		
+				fclose($in);
+				fclose($out);
+			} else
+				die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
+		}
+		
+		// Return JSON-RPC response
+		die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');	
+	}
+	
 }
 /* End of file resources.php */
-/* Location: ./controllers/resources.php */
+/* Location: ./controllers/admin/resources.php */
