@@ -495,6 +495,121 @@ class Resource_model extends CI_Model {
 		$this->db->where('filename', $filepath); 		
 		return $this->db->get('resources')->result_array();
 	}
+	
+	
+	
+	
+	/**
+	*
+	* Get a list of all resources by survey id
+	*
+	*/
+	function get_resources_by_survey($surveyid)
+	{
+		$this->db->select('*');
+		$this->db->where('survey_id', $surveyid); 
+		return $this->db->get('resources')->result_array();
+	}
+
+	/**
+	*
+	* List of resources grouped by resource-type
+	*
+	*
+	*/
+	function get_grouped_resources_by_survey($surveyid)
+	{
+		$output=FALSE;
 		
+		//questionnaires
+		$result=$this->get_resources_by_type($surveyid,'doc/qst]');
+		if ($result)
+		{
+			$output['questionnaires']=$result;
+		}	
+
+		//reports
+		$result=$this->get_resources_by_type($surveyid,'doc/rep]');
+		if ($result)
+		{
+			$output['reports']=$result;
+		}			
+			
+		//technical documents
+		$result=$this->get_resources_by_type($surveyid,'doc/tec]');
+		if ($result)
+		{
+			$output['technical']=$result;
+		}					
+		
+		//other materials
+		$result=$this->get_resources_by_type($surveyid,'other');
+		if ($result)
+		{
+			$output['other']=$result;
+		}			
+
+		return $output;	
+	}
+
+
+	/**
+	*
+	* Return resource by survey and resource type
+	*
+	*/
+	function get_resources_by_type($surveyid,$dctype)
+	{
+		$this->db->select('*');
+		$this->db->where('survey_id',$surveyid);
+		
+		if ($dctype=='other')
+		{
+			//other materials
+			$this->db->not_like('dctype','doc/tec]');
+			$this->db->not_like('dctype','doc/rep]');
+			$this->db->not_like('dctype','doc/qst]');
+			$this->db->not_like('dctype','dat]');
+			$this->db->not_like('dctype','dat/micro]');
+		}
+		else
+		{
+			$this->db->like('dctype',$dctype);
+		}	
+		return $this->db->get('resources')->result_array();
+	}
+	
+	
+	/**
+	*
+	* Return resources of microdata type
+	**/
+	function get_microdata_resources($surveyid)
+	{
+		$this->db->select('*');
+		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%')",NULL,FALSE);
+		return $this->db->get('resources')->result_array();
+	}
+	
+	/**
+	*
+	* Returns Data Access type set for the Resource
+	**/
+	function get_resource_da_type($resource_id)
+	{
+		$this->db->select('forms.model');
+		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
+		$this->db->join('forms', 'forms.formid= surveys.formid','inner');
+		$this->db->where('resources.resource_id',$resource_id);
+		$query=$this->db->get('resources')->row_array();
+		
+		if ($query)
+		{
+			return $query['model'];
+		}
+		
+		return FALSE;
+	}
+	
 }
 ?>
