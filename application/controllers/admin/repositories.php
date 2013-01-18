@@ -27,11 +27,19 @@ class Repositories extends MY_Controller {
 	//list repositories
 	function index()
 	{			
-		//get array of db rows		
+		//get array of db rows
 		$result['rows']=$this->_search();
 		
+		/*$result['rows']=$this->repository_model->get_repositories($published=FALSE, $system=FALSE);//
+		$repo_sections=$this->repository_model->get_repository_sections();
+		
+		foreach($repo_sections as $section)
+		{
+			$result['sections'][$section['id']]=$section['title'];
+		}*/
+		
 		//load the contents of the page into a variable
-		$content=$this->load->view('repositories/index', $result,true);
+		$content=$this->load->view('repositories/index-default', $result,true);
 	
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('repositories_management'),true);
@@ -118,12 +126,12 @@ class Repositories extends MY_Controller {
 		}
 
 		//set validation rules
-		$this->form_validation->set_rules('repositoryid', t('repositoryid'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('url', t('url'), 'xss_clean|trim|required|callback__url_check|max_length[255]');
+		$this->form_validation->set_rules('repositoryid', t('repositoryid'), 'xss_clean|trim|required|max_length[255]|callback__repository_identity_check|alpha_dash');
+		//$this->form_validation->set_rules('url', t('url'), 'xss_clean|trim|required|callback__url_check|max_length[255]');
 		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('organization', t('organization'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('country', t('country'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('scan_interval', t('scan_interval'), 'xss_clean|trim|max_length[3]|is_numeric');
+		//$this->form_validation->set_rules('organization', t('organization'), 'xss_clean|trim|required|max_length[255]');
+		//$this->form_validation->set_rules('country', t('country'), 'xss_clean|trim|required|max_length[255]');
+		//$this->form_validation->set_rules('scan_interval', t('scan_interval'), 'xss_clean|trim|max_length[3]|is_numeric');
 		
 		if (is_numeric($id))
 		{
@@ -144,11 +152,12 @@ class Repositories extends MY_Controller {
 						'scan_interval'=>7,
 						'type'=>0,
 						'short_text'=>'',
-						'thumbnail'=>'',
+						'thumbnail'=>'files/icon-blank.png',
 						'long_text'=>'',
 						'weight'=>0,
 						'ispublished'=>0,
-						'section'=>'internal'//default
+						'section'=>'internal',//default
+						'group_da'=>0
 						);
 												
 		//process form
@@ -222,6 +231,8 @@ class Repositories extends MY_Controller {
 		$this->data['long_text']=$this->form_validation->set_value('long_text',$this->row_data['long_text']);
 		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
+		$this->data['group_da']=$this->form_validation->set_value('group_da',$this->row_data['group_da']);
+		
 		//show form
 		$content=$this->load->view('repositories/edit',NULL,true);									
 				
@@ -234,10 +245,10 @@ class Repositories extends MY_Controller {
 	
 	
 	/**
-	* check if URL already exists in the database
+	* check repositoryID
 	*
 	*/
-	function _url_check($url)
+	function _repository_identity_check($repositoryid)
 	{
 		$id=$this->uri->segment(4);
 
@@ -246,18 +257,11 @@ class Repositories extends MY_Controller {
 			$id=NULL;
 		}
 		
-		//only apply to page links, ignore the static pages
-		if ($this->input->post("linktype")==0)
-		{
-			//replaces spaces with dashes
-			$url=url_title($url, 'dash', TRUE);
-		}
-				
-		$exists=$this->Menu_model->url_exists($url,$id);
+		$exists=$this->Repository_model->repository_exists($repositoryid,$id);
 				
 		if ($exists >0)
 		{
-			$this->form_validation->set_message('_url_check', t('callback_error_url_exists'));
+			$this->form_validation->set_message('_repository_identity_check', t('callback_error_repositoryid_exists'));
 			return FALSE;
 		}
 			return TRUE;
@@ -577,6 +581,49 @@ class Repositories extends MY_Controller {
 	function reset_repo()
 	{
 		$this->acl->clear_active_repo();
+	}
+	
+	
+	/**
+	*
+	* Manage group permissions for the repository
+	**/
+	function permissions($id=NULL)
+	{
+		if (!is_numeric($id))
+		{
+			show_error("INVALID_ID");
+		}
+		
+		$data['repo']=$this->Repository_model->select_single($id);
+		
+		if (!$data['repo'])
+		{
+			show_error("INVALID-ID");
+		}
+		
+		if ($this->input->post("group_id"))
+		{
+			$this->Permissions_model->update_repo_permissions($id,$this->input->post("group_id"));			
+			$this->session->set_flashdata('message', t('form_update_success'));			
+		}
+
+		
+		//get all user groups
+		$data['user_groups']=$this->ion_auth_model->get_user_groups();
+		
+		//get existing group permissions assigned to the current repository
+		$repo_user_groups=$this->ion_auth_model->get_user_groups_by_repo($id);
+		
+		foreach($repo_user_groups as $group)
+		{
+			$data['repo_user_groups'][]=$group['group_id'];
+		}
+		
+		$content=$this->load->view('repositories/permissions',$data,TRUE);
+		$this->template->write('content', $content,true);
+		$this->template->render();
+
 	}
 }
 
