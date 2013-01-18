@@ -295,7 +295,8 @@ class Citation_model extends CI_Model {
 				'keywords',
 				'doi',
 				'flag',
-				'owner'
+				'owner',
+				'ihsn_id'
 			);
 		
 		$authors=array();
@@ -467,7 +468,8 @@ class Citation_model extends CI_Model {
 				'keywords',
 				'doi',
 				'flag',
-				'owner'
+				'owner',
+				'ihsn_id'
 			);
 
 		$authors=array();
