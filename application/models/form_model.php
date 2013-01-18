@@ -80,7 +80,7 @@ class Form_model extends CI_Model {
 	/**
 	* Check if user has already posted a request for public use
 	*
-	*
+	* TODO: remove duplicate from public_model
 	**/	
 	function check_user_public_request($user_id,$survey_id)
 	{
