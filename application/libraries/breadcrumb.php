@@ -276,7 +276,11 @@ class Breadcrumb
 			
 			case 'collections';	
 				$breadcrumbs['collections']=t('collections');
-			break;			
+			break;	
+			
+			case 'admin':
+				$this->generate_admin_breadcrumbs($breadcrumbs);
+			break;
 		}
 		
 		/*
@@ -288,6 +292,93 @@ class Breadcrumb
 		*/
 		return $breadcrumbs;		
 	}
+
+	function generate_admin_breadcrumbs(&$breadcrumbs)
+	{	
+		$breadcrumbs=array();
+		$breadcrumbs['admin']=t('Dashboard');
+		
+		$segments=$this->ci->uri->segment_array();
+		
+		if (!isset($segments[2]))
+		{
+			return;
+		}
+				
+		switch ($segments[2])
+		{
+			case 'catalog':
+				$breadcrumbs['admin/catalog']=t('Catalog');
+			break;
+			
+			case 'repositories':
+				$breadcrumbs['admin/repositories']=t('Repositories');
+			break;
+			
+			case 'licensed_requests':
+				$breadcrumbs['admin/licensed_requests']=t('Licensed Survey Requests');
+			break;
+
+		}
+		
+		if (!isset($segments[3]))
+		{
+			return;
+		}
+		
+		if ($segments[2]=='catalog')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/catalog/edit']=t('Edit Survey');
+				break;
+				
+				case 'upload':
+					$breadcrumbs['admin/catalog/upload']=t('Upload DDI');
+				break;
+
+				case 'batch_import':
+					$breadcrumbs['admin/catalog/batch_import']=t('Batch Import');
+				break;
+				
+				case 'transfer':
+					$breadcrumbs['admin/catalog/transfer']=t('Transfer Study Ownership');
+				break;
+				
+				case 'delete':
+					$breadcrumbs['admin/catalog/delete']=t('Delete Survey');
+				break;				
+			}
+		}
+		
+		
+		if ($segments[2]=='licensed_requests')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/licensed_requests/edit/'.$segments[4]]=t('Edit Licensed Request');
+				break;
+			}
+		}
+		
+		if ($segments[2]=='repositories')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/repositories/edit/'.$segments[4]]=t('Edit Repository');
+				break;
+
+				case 'add':
+					$breadcrumbs['admin/repositories/add/']=t('Create Repository');
+				break;
+
+			}
+		}	
+	}
+
 	
 	function to_string($seperator=" / ")
 	{
