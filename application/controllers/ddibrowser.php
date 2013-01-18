@@ -5,7 +5,9 @@ class DDIbrowser extends MY_Controller {
     {
         	parent::__construct($skip_auth=TRUE);
     		
-			$this->load->library('cache');
+			//$this->load->library('cache');
+			$this->load->driver('cache', array('adapter' => 'db', 'backup' => 'file'));
+
     		$this->lang->load('general');
     		$this->lang->load('ddibrowser');
     		$this->template->set_template('default');
@@ -193,7 +195,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);					
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}
 				
 				//check if it is a harvested survey
@@ -232,7 +234,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_overview_ie_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}
 		        $section_url=$current_url.'/impact_evaluation';	
 			break;
@@ -244,7 +246,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_overview_related_op_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}
 		        $section_url=$current_url.'/related_operations';	
 			break;
@@ -259,7 +261,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_access_policy_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}	
 			break;
 
@@ -270,7 +272,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_sampling_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}
 		        $section_url=$current_url.'/sampling';	
 			break;
@@ -283,7 +285,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_questionnaires_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}	
 				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/qst]');
 				$data['title']=t('title_forms');
@@ -298,7 +300,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_dataprocessing_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}	
         		$section_url=$current_url.'/dataprocessing';
 			break;
@@ -310,7 +312,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_datacollection_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}        
 			break;
 
@@ -321,7 +323,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_dataappraisal_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}				
 			break;
 
@@ -377,7 +379,7 @@ class DDIbrowser extends MY_Controller {
 					{	
 						$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 						$html=html_entity_decode(url_filter($html));
-						$this->cache->write($html, md5($section.$ddi_file.$variable_id.$language['lang']));
+						$this->cache->save(md5($section.$ddi_file.$variable_id.$language['lang']), $html);
 					}								
 					$section_url=$current_url.'/variable/'.$variable_id;					
 				}
@@ -405,7 +407,7 @@ class DDIbrowser extends MY_Controller {
 					if ($html===FALSE)
 					{	
 						$html=$this->DDI_Browser->get_datafile_html($ddi_file,$fileid,$language);
-						$this->cache->write($html, md5($section.$ddi_file.$fileid.$language['lang'].$offset.'.'.$limit));
+						$this->cache->save(md5($section.$ddi_file.$fileid.$language['lang'].$offset.'.'.$limit),$html);
 					}
 					$section_url=$current_url.'/datafile/'.$fileid;
 				}	
@@ -417,7 +419,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_datafiles_html($ddi_file,$language);
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}				
 			break;
 
@@ -427,7 +429,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_variable_groups_array($ddi_file);
-					$this->cache->write($html, md5($section.$ddi_file.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
 				}								
 			break;
 
@@ -438,7 +440,7 @@ class DDIbrowser extends MY_Controller {
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_variables_by_group($ddi_file,$groupid,$language);
-					$this->cache->write($html, md5($section.$ddi_file.$groupid.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$groupid.$language['lang']),$html);
 				}        
         		$section_url=$current_url.'/vargrp/'.$groupid;
 			break;
@@ -451,7 +453,7 @@ class DDIbrowser extends MY_Controller {
 				{	
 					$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->write($html, md5($section.$ddi_file.$variable_id.$language['lang']));
+					$this->cache->save(md5($section.$ddi_file.$variable_id.$language['lang']),$html);
 				}								
         		$section_url=$current_url.'/variable/'.$variable_id;
 			break;			
@@ -465,7 +467,7 @@ class DDIbrowser extends MY_Controller {
 			break;
 			
 			case 'download':
-				$this->download($this->uri->segment(4));exit;
+				$this->download($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
 						
 			case 'export':
@@ -514,7 +516,7 @@ class DDIbrowser extends MY_Controller {
 		else
 		{	
 
-			$options= $this->cache->get( md5($section.$ddi_file.'sidebar'.$language['lang']));
+			$options= $this->cache->get( $id.'_'.md5($section.$ddi_file.'sidebar'.$language['lang']));
 			if ($options===FALSE)
 			{	
 				//get side bar sections with data
@@ -522,7 +524,7 @@ class DDIbrowser extends MY_Controller {
 				$options['vargrp']=$this->DDI_Browser->get_variable_groups_array($ddi_file);
 				$options['resources']=$this->DDI_Browser->get_available_resources($id);
 				$options['data_files']=$this->DDI_Browser->get_datafiles_array($ddi_file);
-				$this->cache->write($options, md5($section.$ddi_file.'sidebar'.$language['lang']),200);
+				$this->cache->save($id.'_'.md5($section.$ddi_file.'sidebar'.$language['lang']),$options,200);
 			}
 			
 			//check if survey is harvested
@@ -769,23 +771,87 @@ class DDIbrowser extends MY_Controller {
 	}
 	
 
+	/**
+	*
+	* Checks if user can download a file
+	*
+	* redirects to form if no access
+	* 	
+	**/
+	function _user_has_resource_access($resource_id,$survey_id)
+	{
+		$this->load->model('Resource_model');
+		$this->load->model('Licensed_model');
+		$this->load->model('Public_model');
+		
+		//get current user
+		$user=$this->ion_auth->current_user();
+
+		//check user has admin/reviewer rights on the study
+		$access=$this->acl->user_has_study_access($survey_id,$user_id=$user->id,FALSE);
+		
+		//user has admin/reviewer rights for the study
+		if ($access)
+		{
+			return TRUE;
+		}
+		
+		//get resource record
+		$resource=$this->Resource_model->select_single($resource_id);
+		
+		//get survey model
+		$da_model=$this->Resource_model->get_resource_da_type($resource_id);
+				
+		if ($da_model=='public')
+		{
+			//check if user has access
+			$request_exists=$this->Public_model->check_user_public_request($user->id,$survey_id);
+			$puf_by_collection=$this->Repository_model->survey_has_da_by_collection($survey_id);
+
+			//user has no access
+			if (!$request_exists && !$puf_by_collection)
+			{
+				//redirect to PUF download page
+				redirect('/access_public/download/'.$survey_id.'/'.$resource_id);
+			}					
+		}
+		else if ($da_model=='licensed')
+		{
+			//check if user has requested access to survey
+			$lic_request_id=$this->Licensed_model->check_user_request($user->id,$survey_id);
+		
+			//redirect to licensed request page
+			if(!$lic_request_id)
+			{
+				//redirect to LIC form
+				redirect('/access_licensed/'.$survey_id,"refresh");
+			}
+			else
+			{
+				//user has already requested access
+				redirect('/access_licensed/download/'.$lic_request_id.'/'.$resource_id,'refresh');
+			}
+		}
+		
+		return TRUE;	
+	}
+
 
 	/**
 	* Download external resources by resource_id
 	*
 	*/
-	function download($resource_id)
+	function download($resource_id=NULL,$survey_id=NULL)
 	{		
 		
-		if (!is_numeric($resource_id))
+		if (!is_numeric($resource_id) || !is_numeric($survey_id))
 		{
 			show_404();
 		}
 				
-		$this->load->model('Resource_model');
+		//check if user has acess to the resource
+		$this->_user_has_resource_access($resource_id, $survey_id);
 		
-		//get resource record
-		$resource=$this->Resource_model->select_single($resource_id);
 		
 		if ($resource===FALSE)
 		{
@@ -884,6 +950,10 @@ class DDIbrowser extends MY_Controller {
 													,$survey['nation'].' - '.$survey['titl'],
 													$survey['producer'],
 													$this->config->item("site_title")));
+													
+		$this->template->add_meta('<link rel="meta" type="application/rdf+xml" title="RDF" href="'.site_url('catalog/rdf/'.$id).'" />'
+									,NULL,'inline');
+											
 
 		//check if study is harvested by checking surveyid in the harvester queue
 		$this->harvested=$this->Repository_model->get_row($survey['repositoryid'],$survey['surveyid']);
@@ -891,9 +961,14 @@ class DDIbrowser extends MY_Controller {
 		//get list of collections
 		$this->collections=$this->Catalog_model->get_collections($id);
 		
-		//get external resources
-		$survey['resources']=$this->Catalog_model->get_grouped_resources_by_survey($id);
+		$this->load->model('Resource_model');
 		
+		//get external resources
+		$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
+
+		//get survey microdata
+		$survey['resources_microdata']=$this->Resource_model->get_microdata_resources($id);
+				
 		//get survey related citations
 		$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
 				
