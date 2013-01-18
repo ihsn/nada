@@ -212,7 +212,7 @@ class Access_licensed extends MY_Controller {
 		$this->email->set_newline("\r\n");
 		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_title'));
 		$this->email->to($data->email);
-		$this->email->subject($subject );
+		$this->email->subject($subject);
 		$this->email->message($message);
 		
 		if ($this->email->send())
