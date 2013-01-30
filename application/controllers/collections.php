@@ -65,10 +65,7 @@ class Collections extends MY_Controller {
 		
 		//surveys for the repo
 		$data['surveys']= $this->repository_model->repo_survey_list($repositoryid);
-		
-		//data access by collection
-		$data['allow_group_data_access']=$this->repository_model->repo_has_group_data_access($repositoryid);
-				
+					
 		$contents=$this->load->view("repositories/about",$data,TRUE);
 		$this->template->write('title', $repo['title'],true);
 		$this->template->write('content', $contents,true);
