@@ -68,12 +68,10 @@ class Public_model extends CI_Model {
 	function check_user_public_request_by_collection($user_id,$repositoryid)
 	{
 		//get
-		$this->db->select('s.id');		
+		$this->db->select('id');		
 		$this->db->from('public_requests pr');
-		$this->db->join('surveys s', 's.id= pr.surveyid','inner');
-		$this->db->join('survey_repos sr', 'sr.sid = s.id','inner');		
-		$this->db->where('sr.repositoryid',$repositoryid);
-		$this->db->where('pr.userid',$user_id);
+		$this->db->where('collectionid',$repositoryid);
+		$this->db->where('userid',$user_id);
 		
         $result= $this->db->count_all_results();
 		
@@ -93,6 +91,57 @@ class Public_model extends CI_Model {
 		$this->db->where('userid',$user_id);		
 		
         $result= $this->db->count_all_results();
+		return $result;
+	}
+	
+	/**
+	*
+	* Check if user has access to the study or collection to download files
+	**/
+	function check_user_has_data_access($user_id,$survey_id)
+	{
+		//single study public requests
+		$request_exists=$this->check_user_public_request($user_id,$survey_id);
+		
+		//get survey collections with GROUP DA option
+		$survey_collections=$this->Repository_model->survey_has_da_by_collection($survey_id);
+
+		if ($request_exists)
+		{
+			return TRUE;
+		}
+				
+		foreach($survey_collections as $collection)
+		{
+			//check if user has access to collection's data
+			$collection_access=$this->check_user_public_request_by_collection($user_id,$collection['repositoryid']);
+			
+			if($collection_access)
+			{
+				return TRUE;
+			}
+		}
+
+		return FALSE;
+	}
+	
+	
+	/**
+	* Insert public request in DB
+	*/
+	function insert_collection_request($collection_id,$user_id,$data_use)
+	{
+		$data = array(
+               'collectionid' => $collection_id,
+               'userid' => $user_id ,
+               'abstract' => $data_use,
+			   'request_type'=>'collection',
+			   'posted' => date("U")
+            );
+		
+		$result=$this->db->insert('public_requests', $data); 
+		log_message('info',"Request received for [Public Use Files]");	
+		
 		return $result;
 	}
 	
