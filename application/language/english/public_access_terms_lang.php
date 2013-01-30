@@ -46,5 +46,10 @@ $lang['terms_text'] = "
 ";
 
 $lang['public_use_files'] = "Public Use Files";
+$lang['surveys_in_collection']='The collection [%s] contains the following surveys:';
+$lang['collection_data_files']='Public Use Files by Collection';
+$lang['collection_requested']='Collection access requested';
+$lang['public_use_data_access_by_collection_message']='You have been granted access to all public use studies in the collection. Please visit each study page to download the data files and other documentation.';
+$lang['public_use_data_access_by_collection']='Download data files';
 /* End of file public_access_terms_lang.php */
 /* Location: ./system/language/english/public_access_terms_lang.php */
