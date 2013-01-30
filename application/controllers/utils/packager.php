@@ -493,7 +493,7 @@ class Packager extends MY_Controller {
 		{
 			$count++;
 			$k++;
-			
+			set_time_limit(0);
 			//get citation info
 			$citation=$this->Citation_model->select_single($row['id']);
 
@@ -508,6 +508,8 @@ class Packager extends MY_Controller {
 				//reset
 				$k=0;
 				$output='';
+				
+				echo 'exported '. $count."\r\n";
 			}	
 		}
 		
