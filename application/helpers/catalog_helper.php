@@ -1,6 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
- * Catalog Filter Helper
+ * Catalog Helpers
  *
  * @package		CodeIgniter
  * @subpackage	Helpers
