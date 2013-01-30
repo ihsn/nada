@@ -9,6 +9,7 @@ class Access_public extends MY_Controller {
         parent::__construct($skip=TRUE,$is_admin=FALSE);
        	
         $this->load->model('Form_model');
+		$this->load->model('Public_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Repository_model');
 		$this->load->model('managefiles_model');
@@ -59,6 +60,7 @@ class Access_public extends MY_Controller {
 			return;
 		}
 		
+		/*
 		//check if survey da is set by collection
 		$da_by_collection=$this->Repository_model->survey_has_da_by_collection($survey_id);
 
@@ -66,6 +68,9 @@ class Access_public extends MY_Controller {
 		{
 			redirect('access_public_collection/'.$survey_id);exit;
 		}	
+		*/	
+		
+		
 			
 		//get user info
 		$user=$this->ion_auth->current_user();
@@ -288,6 +293,88 @@ class Access_public extends MY_Controller {
 		return $survey_folder;
 	}	
 
+
+	/**
+	*
+	* PUF access by collection
+	*
+	**/
+	function by_collection($repositoryid=NULL)
+	{
+		if ($repositoryid==NULL)
+		{
+			show_404();
+		}
+		
+		
+		$repo=$this->Repository_model->get_repository_by_repositoryid($repositoryid);
+		
+		if(!isset($repo['group_da']) && $repo['group_da']!=='1')
+		{
+			show_404();
+		}
+		
+		
+		$user=$this->ion_auth->current_user();
+		
+		//set data to be passed to the view
+		$data->user_id=$user->id;
+		$data->username=$user->username;
+		$data->fname=$user->first_name;
+		$data->lname=$user->last_name;
+		$data->organization=$user->company;
+		$data->email=$user->email;
+		$data->collection=$repo;
+		$data->surveys=$this->Repository_model->repo_survey_list($repositoryid,array('public'));
+		$data->abstract=$this->input->post("abstract");
+				
+		$has_access=$this->Public_model->check_user_public_request_by_collection($user->id,$repositoryid);
+		
+		if (!$has_access)
+		{
+			//show terms and conditions
+			$this->collection_terms($data);
+		}
+		else
+		{
+			//show surveys from collection
+			$content=$this->load->view('access_public/collection_surveys',$data,TRUE);
+			$this->template->write('title', t('survey_data_files'),true);
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+		}
+	}
+	
+	private function collection_terms($data=NULL)
+	{
+		//validation rules
+		$this->form_validation->set_rules('abstract', t('intended_use_of_data'), 'trim|required');
+		
+		//process form				
+		if ($this->form_validation->run() == TRUE)
+		{
+			//insert
+			$db_result=$this->Public_model->insert_collection_request($data->collection['repositoryid'],$data->user_id,$data->abstract);
+			
+			//log
+			$this->db_logger->write_log('public-request','request submitted for public use','public-request-coll',NULL);
+
+			if ($db_result===TRUE)
+			{
+				redirect(current_url(),"refresh");
+			}
+			else
+			{
+				//update failed
+				$this->form_validation->set_error(t('form_update_failed'));
+			}
+		}
+		
+		$content=$this->load->view('access_public/collection_request_form',$data,TRUE);
+		$this->template->write('title', t('public_use_files'),true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
 
 }
 /* End of file access_public.php */
