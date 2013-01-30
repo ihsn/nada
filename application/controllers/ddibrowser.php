@@ -783,7 +783,17 @@ class DDIbrowser extends MY_Controller {
 		$this->load->model('Resource_model');
 		$this->load->model('Licensed_model');
 		$this->load->model('Public_model');
-		
+
+		if (!$this->ion_auth->logged_in()) 
+		{
+			$this->session->set_flashdata('reason', t('reason_login_data_access'));
+			$destination=$this->uri->uri_string();
+			$this->session->set_userdata("destination",$destination);
+
+			//redirect them to the login page
+			redirect("auth/login/?destination=$destination", 'refresh');
+		}		
+
 		//get current user
 		$user=$this->ion_auth->current_user();
 
@@ -804,16 +814,14 @@ class DDIbrowser extends MY_Controller {
 				
 		if ($da_model=='public')
 		{
-			//check if user has access
-			$request_exists=$this->Public_model->check_user_public_request($user->id,$survey_id);
-			$puf_by_collection=$this->Repository_model->survey_has_da_by_collection($survey_id);
-
-			//user has no access
-			if (!$request_exists && !$puf_by_collection)
+			//check if user has access to the study or the collection the survey belongs to
+			$public_access=$this->Public_model->check_user_has_data_access($user->id,$survey_id);
+			
+			if (!$public_access)
 			{
 				//redirect to PUF download page
 				redirect('/access_public/download/'.$survey_id.'/'.$resource_id);
-			}					
+			}
 		}
 		else if ($da_model=='licensed')
 		{
@@ -832,7 +840,6 @@ class DDIbrowser extends MY_Controller {
 				redirect('/access_licensed/download/'.$lic_request_id.'/'.$resource_id,'refresh');
 			}
 		}
-		
 		return TRUE;	
 	}
 
@@ -852,6 +859,10 @@ class DDIbrowser extends MY_Controller {
 		//check if user has acess to the resource
 		$this->_user_has_resource_access($resource_id, $survey_id);
 		
+		$this->load->model('Resource_model');
+		
+		//get resource record
+		$resource=$this->Resource_model->select_single($resource_id);
 		
 		if ($resource===FALSE)
 		{
@@ -903,6 +914,7 @@ class DDIbrowser extends MY_Controller {
 		$this->load->library('chicago_citation');
 		$this->lang->load("resource_manager");
 		$this->load->helper("resource_helper");
+		$this->load->model('Resource_model');
 						
 		//get survey
 		$survey=$this->Catalog_model->select_single($id);
@@ -955,13 +967,8 @@ class DDIbrowser extends MY_Controller {
 									,NULL,'inline');
 											
 
-		//check if study is harvested by checking surveyid in the harvester queue
-		$this->harvested=$this->Repository_model->get_row($survey['repositoryid'],$survey['surveyid']);
-		
-		//get list of collections
-		$this->collections=$this->Catalog_model->get_collections($id);
-		
-		$this->load->model('Resource_model');
+		//get list of collections/repositories
+		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);
 		
 		//get external resources
 		$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
