@@ -308,12 +308,11 @@ class Access_public extends MY_Controller {
 		
 		
 		$repo=$this->Repository_model->get_repository_by_repositoryid($repositoryid);
-		
-		if(!isset($repo['group_da']) && $repo['group_da']!=='1')
+
+		if($repo['group_da_public']!=='1')
 		{
 			show_404();
 		}
-		
 		
 		$user=$this->ion_auth->current_user();
 		
