@@ -1,6 +1,5 @@
 <?php 
 $lang['Home']="الصفحة الرئيسية";
-$lang['Data catalog']="قائمة المسوح";
 $lang['Citations']="اقتباسات";
 
 
