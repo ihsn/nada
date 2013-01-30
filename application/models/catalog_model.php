@@ -1420,5 +1420,25 @@ class Catalog_model extends CI_Model {
 		
 		return $aliases;
 	}
+	
+	
+	/**
+	*
+	* Return an array of survey repos
+	*	
+	**/
+	function get_survey_repositories($sid=NULL)
+	{
+		if (!is_numeric($sid))
+		{
+			return FALSE;
+		}
+		
+		$this->db->select('repositoryid');
+		$this->db->where('sid',$sid);
+		$query=$this->db->get('survey_repos')->result_array();
+		
+		return $query;
+	}
 
 }
