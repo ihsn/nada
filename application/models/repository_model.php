@@ -385,7 +385,8 @@ class Repository_model extends CI_Model {
 			'weight',
 			'ispublished',
 			'section',
-			'group_da'
+			'group_da_public',
+			'group_da_licensed'
 			);
 
 		//add date modified
@@ -404,7 +405,7 @@ class Repository_model extends CI_Model {
 				$data[$key]=$value;
 			}
 		}
-		
+
 		//update db
 		$this->db->where($key_field, $id);
 		$result=$this->db->update('repositories', $data); 
@@ -439,7 +440,8 @@ class Repository_model extends CI_Model {
 			'weight',
 			'ispublished',
 			'section',
-			'group_da'
+			'group_da_public',
+			'group_da_licensed'
 			);
 
 		//add date modified
@@ -723,11 +725,11 @@ class Repository_model extends CI_Model {
 	**/
 	function survey_has_da_by_collection($sid)
 	{
-		$this->db->select('repositories.repositoryid,group_da,repositories.title');
+		$this->db->select('repositories.repositoryid,group_da_public,group_da_licensed,repositories.title');
 		$this->db->from('repositories');
 		$this->db->join('survey_repos sr', 'sr.repositoryid = repositories.repositoryid','left');		
 		$this->db->where('sid',$sid);
-		$this->db->where('group_da',1);
+		$this->db->where('(group_da_public=1 OR group_da_licensed=1)',NULL,FALSE);
 		$result=$this->db->get()->result_array();
 
 		if (!$result)
@@ -841,18 +843,26 @@ class Repository_model extends CI_Model {
 	*
 	* check if the repo/collection has Data Access by Collection enabled
 	**/
-	public function repo_has_group_data_access($repositoryid)
+	/*
+	public function repo_has_group_data_access($repositoryid,$data_access_type)
 	{
-		$this->db->select('group_da');		
+		$this->db->select('group_da_public,group_da_licensed');		
 		$this->db->where('repositoryid',$repositoryid);		
 		$row=$this->db->get('repositories')->row_array();
 		
 		if ($row)
 		{
-			return (bool)$row['group_da'];
+			if ($data_access_type=='public')
+			{
+				return (bool)$row['group_da_public'];
+			}
+			else if($data_access_type=='licensed')
+			{
+				return (bool)$row['group_da_licensed'];
+			}	
 		}
 		
 		return FALSE;
-	}
+	}*/
 }
 ?>
