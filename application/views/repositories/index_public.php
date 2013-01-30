@@ -9,50 +9,26 @@
 
 </style>
 <div class="contributing-repos" >
-<?php /*?>
-<div>
-<a title="Microdata Library" href="<?php echo site_url();?>/catalog/central"><img style="float: left; display: block; margin-right: 10px;" src="files/logo-central.gif" alt="Microdata Library"></a>
-<h3 style="font-size:larger;font-weight:bold;"><a href="<?php echo site_url();?>/catalog/central"><?php echo t('central_data_catalog');?></a></h3>
-<p>
-<a href="<?php echo site_url();?>/catalog/central">The <?php echo t('central_data_catalog');?> is a portal for all datasets held in repositories maintained by the World Bank and a number of contributing external repositories. Click here to search all repositories.</a></p>
-</div>
-<br style="clear:both;"/>
-<?php */?>
-<?php if ($rows):?>
-	<?php foreach($rows as $row): ?>
+<?php if ($sections):?>
+	<?php foreach($sections as $section_id=>$section): ?>    
     	<?php 
-			$row=(object)$row;
-			$repo_sections[$row->section]=$row->section;
-		?>        
+			$data=array(
+						'rows'=>$rows,
+						'section'=>$section_id,
+						'section_title'=>$section,
+						'show_unpublished'=>$show_unpublished
+						);
+			$output=$this->load->view("repositories/repos_by_section",$data,TRUE);
+			
+		?>
+		<?php if (trim($output)!=''):?>
+        <div>
+            <h2 class="page-title"><?php echo $section;?></h2>
+            <?php echo $output;?>
+        </div>
+		<?php endif;?>
+        
     <?php endforeach;?>
-
-	<?php //show repositories divided by sections
-		
-		//internal catalogs
-		if (in_array('regional',$repo_sections))
-		{
-			$data=array(
-						'rows'=>$rows,
-						'section'=>'regional',
-						'section_title'=>t('repositories_regional') 
-						);
-			$this->load->view("repositories/repos_by_section",$data);
-		}	
-	?>
-    <div style="height:20px;">&nbsp;</div>	
-	<?php	
-		//external catalogs
-		if (in_array('specialized',$repo_sections))
-		{
-			$data=array(
-						'rows'=>$rows,
-						'section'=>'specialized',
-						'section_title'=>t('repositories_specialized') 
-						);
-
-			$this->load->view("repositories/repos_by_section",$data);
-		}
-    ?>
 
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
