@@ -8,8 +8,6 @@ if (!isset($show_unpublished))
 	$show_unpublished=FALSE;
 }
 ?>
-<div>
-<h2 class="page-title"><?php echo $section_title;?></h2>
 <?php if ($rows):?>
     <table class="repo-table" width="100%" cellspacing="0" cellpadding="4">
 	<?php $tr_class=""; ?>
@@ -19,10 +17,10 @@ if (!isset($show_unpublished))
         <?php if ($row->section!=$section){continue;}?>
         <?php if (!$row->ispublished && $show_unpublished==FALSE){continue;}?>
     	<tr class="<?php echo $tr_class; ?>" valign="top">
-            <td class="thumb"><a href="<?php echo site_url();?>/catalog/<?php echo $row->repositoryid;?>/about"><img src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></td>
+            <td class="thumb"><a href="<?php echo site_url('collections');?>/<?php echo $row->repositoryid;?>/about"><img src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></td>
             <td class="text">
-			<h3><a href="<?php echo site_url();?>/catalog/<?php echo $row->repositoryid;?>/about"><?php echo $row->title; ?></a></h3>
-			<p><a href="<?php echo site_url();?>/catalog/<?php echo $row->repositoryid;?>/about"><?php echo $row->short_text; ?></a></p>
+			<h3><a href="<?php echo site_url('collections');?>/<?php echo $row->repositoryid;?>/about"><?php echo $row->title; ?></a></h3>
+			<p><a href="<?php echo site_url('collections');?>/<?php echo $row->repositoryid;?>/about"><?php echo $row->short_text; ?></a></p>
             </td>
         </tr>
     <?php endforeach;?>
@@ -30,4 +28,3 @@ if (!isset($show_unpublished))
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
 <?php endif; ?>
-</div>
