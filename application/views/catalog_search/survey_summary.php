@@ -17,7 +17,7 @@
 .link-col-2{float:left;display:block;}
 .es td{background-color:#EAEAEA}
 .grid-table td {vertical-align:top;}
-.box-harvested{background-color:#D0E6F4;border:1px solid #99CCFF; padding:10px;margin-top:10px;margin-bottom:20px;font-size:14px;}
+
 
 /*survey resources summary*/
 .resources h3{font-weight:bold;padding-top:10px;font-size:12px;}
@@ -44,11 +44,6 @@
 <h1><?php echo $nation;?> - <?php echo $titl;?></h1></div>
 <?php endif;?>
 
-<?php if($this->harvested):?>    
-<div class="box-harvested">
-<?php echo sprintf(t('harvested_study_access_complete_metadata'),$this->harvested['repo_title'], $this->harvested['survey_url']);?>
-</div>
-<?php endif?>
 
 <table class="grid-table" cellspacing="0">
 	<tr>
@@ -109,21 +104,13 @@
 			require_once('survey_summary_ie.php');
 		}
 	?>
-    
-    <?php /*if($this->harvested):?>
-	<tr class="es">
-    	<td><?php echo t('source');?></td>
-        <td>Metadata provided by the <?php echo $this->harvested['repo_title']; ?>. <?php echo anchor($this->harvested['survey_url'],'Click here','target="_blank"'); ?> to access the data and related materials for this study.
-        </td>
-    </tr>
-	<?php endif;*/?>
 
-	<?php if (isset($this->collections) && is_array($this->collections)):?>
+	<?php if (isset($repositories) && is_array($repositories)):?>
 	<tr valign="top">
     	<td><?php echo t('collections');?></td>
         <td>
-		<?php foreach($this->collections as $collection):?>
-		<?php echo $collection;?> <br />
+		<?php foreach($repositories as $repository):?>
+		<?php echo $repository['repositoryid'];?> <br />
         <?php endforeach;?>
         </td>
     </tr>
@@ -136,7 +123,7 @@
         <td class="links">                                
             <span class="link-col">
                 <a href="<?php echo site_url()."/ddibrowser/$id/export/?format=pdf&generate=yes";?>" title="<?php echo t('pdf');?>" rel="nofollow">
-                <img border="0" title="<?php echo t('link_pdf');?>" alt="PDF" src="images/pdf.gif" /> Documentation in PDF
+                <img border="0" title="<?php echo t('link_pdf');?>" alt="PDF" src="images/pdf.gif" /> <?php echo t('Documentation in PDF');?>
                 </a>
             </span>    
         </td>
@@ -153,23 +140,6 @@
             </a>
             </span>
             			
-            <?php if ($this->harvested):?>
-				<?php $obj_harvest=(object)$this->harvested;?>
-                <!--data access -->
-                <span class="link-col-2">
-                <?php if($obj_harvest->accesspolicy=='direct'): ?>
-                    <span><img src="images/form_direct.gif" /> <?php echo t('link_data_direct_hover');?></span>
-                <?php elseif($obj_harvest->accesspolicy=='public'): ?>                    
-                    <span><img src="images/form_public.gif" /> <?php echo t('link_data_public_hover');?></span>
-                <?php elseif($obj_harvest->accesspolicy=='licensed'): ?>
-                    <span><img src="images/form_licensed.gif" /> <?php echo t('link_data_licensed_hover');?></span>
-                <?php elseif($obj_harvest->accesspolicy=='data_enclave'): ?>
-                    <span><img src="images/form_enclave.gif" /> <?php echo t('link_data_enclave_hover');?></span>
-                <?php elseif($obj_harvest->accesspolicy=='remote'): ?>
-                        <span><img src="images/form_remote.gif" /> <?php echo t('link_data_remote_hover');?></span>
-                <?php endif; ?>
-                </span>            
-			<?php else:?>
                 <!--data access -->
                 <?php if ($model!=''):?>
                 <span class="link-col-2">
@@ -198,8 +168,7 @@
                 <?php endif; ?>
                 </span>
                 <?php endif;?>
-            <?php endif;?>
-                        
+                 
 		</td>	            
 	</tr>
     
