@@ -512,22 +512,22 @@ class Repository_model extends CI_Model {
 	**/
 	function get_repositories($published=FALSE, $system=TRUE)
 	{
-		$this->db->select('*');
-		
-		//show published repositories
+		$this->db->select('repositories.*,repository_sections.title as section_title, repository_sections.weight as section_weight');
+
 		if ($published==TRUE)
 		{
-			$this->db->where("ispublished",1);
+			$this->db->where("repositories.ispublished",1);
 		}
-		//show system repositories
+
 		if ($system==FALSE)
 		{
-			$this->db->where("type !=",2);
+			//show system repositories
+			$this->db->where("repositories.type !=",2);
 		}
 		
-		$this->db->order_by('title'); 
+		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title'); 
+		$this->db->join('repository_sections', 'repository_sections.id= repositories.section','inner');
 		$query=$this->db->get('repositories');
-		
 
 		if (!$query)
 		{
@@ -734,8 +734,8 @@ class Repository_model extends CI_Model {
 		{
 			return FALSE;
 		}
-		//only return the first repo
-		return $result[0];
+
+		return $result;
 	}
 	
 	
@@ -793,6 +793,66 @@ class Repository_model extends CI_Model {
 	{
 		$result=$this->db->query('select repositoryid,count(sid) as total from survey_repos group by repositoryid')->result_array();
 		return $result;
+	}
+	
+	
+	/**
+	*
+	* Survey counts per data access in the repository e.g. PUF, LIC, Direct Downloads, Remote
+	**/
+	public function repo_survey_counts_by_data_access($repositoryid,$da_types=NULL)
+	{
+		$this->db->select('count(surveys.formid) as total,surveys.formid,forms.model as da_type');		
+		$this->db->join('forms', 'forms.formid = surveys.formid','inner');
+		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+		$this->db->group_by('surveys.formid, forms.model');
+		$this->db->where('survey_repos.repositoryid',$repositoryid);
+		$this->db->where('surveys.published',1);
+		
+		if(is_array($da_types))
+		{
+			$this->db->where_in('forms.model',$da_types);
+		}
+		
+		return $this->db->get('surveys')->result_array();
+	}
+	
+	/**
+	*
+	* Get surveys by repository
+	*
+	*	@data_access_types	array	public, licensed, etc.
+	**/
+	public function repo_survey_list($repositoryid,$data_access_types=NULL)
+	{
+		$this->db->select('surveys.id,surveys.titl,surveys.nation,surveys.data_coll_start,surveys.data_coll_end,forms.model as da_model');		
+		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+		$this->db->join('forms', 'surveys.formid = forms.formid','left');
+		$this->db->where('survey_repos.repositoryid',$repositoryid);
+		if ($data_access_types)
+		{
+			$this->db->where_in('forms.model',$data_access_types);
+		}
+		$this->db->where('surveys.published',1);		
+		return $this->db->get('surveys')->result_array();
+	}
+	
+	/**
+	*
+	* check if the repo/collection has Data Access by Collection enabled
+	**/
+	public function repo_has_group_data_access($repositoryid)
+	{
+		$this->db->select('group_da');		
+		$this->db->where('repositoryid',$repositoryid);		
+		$row=$this->db->get('repositories')->row_array();
+		
+		if ($row)
+		{
+			return (bool)$row['group_da'];
+		}
+		
+		return FALSE;
 	}
 }
 ?>
