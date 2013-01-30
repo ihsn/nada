@@ -33,7 +33,7 @@ $lang['callback_error_repositoryid_exists'] = "Choose a unique name [Characters 
 $lang['manage_repo_sections'] = "Repository Sections";
 $lang['repository_admins'] = "Manage Users";
 $lang['da_by_collection'] = "Data Access by Collection";
-$lang['da_by_collection_description'] = "This allows users to download all Public Use Data from all surveys belonging to this repository.";
+$lang['da_by_collection_description'] = "This allows users to download data from all surveys belonging to this repository.";
 
 $lang['repository_sections'] = 'Repository Sections';
 $lang['repository_sections_management'] = 'Repository Sections';
