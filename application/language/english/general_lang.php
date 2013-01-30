@@ -120,5 +120,11 @@ $lang['central_data_catalog']='Central Data Catalog';
 $lang['repositories'] = "Repositories";
 $lang['created']='Created';
 $lang['visit_catalog']='Visit Catalog';
+$lang['reason_login_data_access']='Please login to download data';
+$lang['public_title']='Public use files';
+$lang['licensed_title']='Licensed data files';
+$lang['direct_title']='Direct access files';
+$lang['data_na_title']='Studies with no data available';
+$lang['remote_title']='Data available from external repository';
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */
