@@ -34,7 +34,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <div id="custom-doc" class="yui-t7" > 
 	<!--login information bar-->
     <span id="user-container">
-    <?php $this->load->view('user_bar');?>
+    <?php $this->load->view('users/user_bar');?>
     </span>
     
     <!-- header -->
