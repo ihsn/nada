@@ -151,7 +151,7 @@ class Catalog extends MY_Controller {
 		$this->page=($this->page >0) ? $this->page : 1;
 				
 		$offset=($this->page-1)*$this->limit;
-				
+		
 		// allowed fields for sort_by and sort_order 
 		$allowed_fields = array('proddate','titl','labl','nation');
 		$allowed_order=array('asc','desc');
@@ -815,6 +815,7 @@ class Catalog extends MY_Controller {
 	*	- checksum - returns survey ddi checksum
 	*
 	**/
+	/*
 	function survey($id=NULL)
 	{				
 		if (!is_numeric($id))
@@ -897,6 +898,7 @@ class Catalog extends MY_Controller {
 		//render final output
 	  	$this->template->render();
 	}
+	*/
 
 	/**
 	*
