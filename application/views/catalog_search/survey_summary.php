@@ -110,8 +110,8 @@
     	<td><?php echo t('collections');?></td>
         <td>
 		<?php foreach($repositories as $repository):?>
-		<?php echo $repository['repositoryid'];?> <br />
-        <?php endforeach;?>
+		<?php echo anchor('collections/'.$repository['repositoryid'],$repository['title']);?> <br />
+		<?php endforeach;?>
         </td>
     </tr>
 	<?php endif;?>
@@ -197,10 +197,21 @@
     <?php endif;?>
 </table>
 
-<?php if ($resources_microdata):?>
+<?php if ($data_access):?>
+	<?php if ($resources_microdata):?>
+        <div style="margin-top:20px">&nbsp;</div>
+        <?php $this->load->view('catalog_search/survey_summary_microdata',$resources_microdata);?>
+    <?php endif;?>
+<?php else:?>
 	<div style="margin-top:20px">&nbsp;</div>
-	<?php $this->load->view('catalog_search/survey_summary_microdata',$resources_microdata);?>
+	<h2><?php echo t('Data Files');?></h2>
+    <?php if($model=='licensed'):?>
+    	<p class="notice">The study data files are available under licensed access terms and conditions. To download data files, please fill in the <a href="<?php echo site_url('access_licensed/'.$id);?>"><b>online microdata request form (Licensed)</b></a>.</p>
+    <?php elseif($model=='public'):?>
+    	<p class="notice">The study data files are available under public use access terms and conditions. To download data files, please fill in the online application request form.</p>
+    <?php endif;?>
 <?php endif;?>
+
 
 <?php $this->load->view('catalog_search/survey_summary_resources',$resources);?>
 <?php if ($citations):?>
