@@ -65,7 +65,7 @@ $this->template->add_js($script, $type = 'embed');
 
 
 	<!-- da filter -->
-    <?php if (isset($this->da_types) && is_array($this->da_types) && count($this->da_types)>0):?>
+    <?php if (is_array($this->da_types) && count($this->da_types)>0):?>
     	<?php  $this->load->view("catalog_search/filter_da"); ?>
     <?php endif;?>    
     <!-- end da filter -->
