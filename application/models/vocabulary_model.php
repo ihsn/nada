@@ -107,4 +107,48 @@ class Vocabulary_model extends CI_Model {
 		return $output;
 	}
 	
+	private function build_tree($items) 
+	{	
+		$children = array();
+	
+		foreach($items as &$item) 
+		{	
+			$children[$item['pid']][] = &$item;
+			unset($item);
+		}
+		
+		foreach($items as &$item)
+		{ 
+			if (isset($children[$item['tid']]))
+			{
+				$item['children'] = $children[$item['tid']];
+			}
+		}	
+		return $children[0];
+	}
+	
+	//returns a tree of vocabulary terms
+	function get_tree($vid,$active_only=FALSE)
+	{
+		$items= $this->get_terms_array($vid,$active_only);
+		return $this->build_tree($items);
+	}
+	
+	function get_terms_array($vid,$active_only=FALSE)
+	{
+		$this->db->select('terms.tid,terms.pid,terms.title,count(terms.tid) as surveys_found');
+		$this->db->from('terms');
+		$this->db->order_by('title');
+		$this->db->where('vid',$vid);
+		$this->db->group_by('terms.tid,terms.pid,terms.title');
+		
+		if($active_only==TRUE)
+		{
+			$this->db->join('survey_topics st','st.tid=terms.tid','inner');			
+		}
+		
+		return $this->db->get()->result_array();	
+	}
+	
+	
 }
