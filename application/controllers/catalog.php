@@ -11,7 +11,8 @@ class Catalog extends MY_Controller {
 		$this->template->write('sidebar', $this->_menu(),true);	
 		$this->load->model('Search_helper_model');
 		$this->load->model('Catalog_model');
-		$this->load->library('pagination');
+		$this->load->model('Vocabulary_model');
+		$this->load->model('Form_model');
 	 	//$this->output->enable_profiler(TRUE);
     		
 		//language files
@@ -36,6 +37,7 @@ class Catalog extends MY_Controller {
 
 		//set default repository filter to none
 		$this->filter->repo='';
+		$this->active_repo='';
 	}
 
 	/**
@@ -100,15 +102,26 @@ class Catalog extends MY_Controller {
 			redirect('catalog/'.$repoid);
 		}
 
+		$this->template->add_js('javascript/jquery.ba-bbq.js');
 		$this->template->add_js('javascript/datacatalog.js');
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.core.css');
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.base.css');
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.accordion.css');
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.theme.css');
-
+		
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.core.css');
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.base.css');
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.accordion.css');
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.theme.css');
+		
+		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
+		$this->template->add_js('javascript/jquery.scrollTo-min.js');
+		
 		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');	
-		$this->template->add_js('javascript/ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/ui.accordion.js');
+		//$this->template->add_js('javascript/ui.core.js');
+		//$this->template->add_js('javascript/jquery/ui/ui.accordion.js');
 		$this->template->add_js('javascript/jquery.blockui.js');		
 		
 		//page description metatags
@@ -117,140 +130,156 @@ class Catalog extends MY_Controller {
 		//get list of all repositories
 		$this->repositories=$this->Catalog_model->get_repositories();
 		
-		//get list of DA types available for current repository
-		$this->da_types=$this->Search_helper_model->get_active_data_types($this->filter->repo);
+		$search_options=new StdClass;
+		$data=array();
 		
+		//get list of DA types available for current repository
+		$data['da_types']=$this->Search_helper_model->get_active_data_types($this->filter->repo);
+		
+		//TODO: review
+		/*
 		if ($this->center_search=='yes')
 		{
 			//get list of centers
-			$this->center_list=$this->Search_helper_model->get_active_centers($this->filter->repo);
-		}	
+			$data['center_list']=$this->Search_helper_model->get_active_centers($this->filter->repo);
+		}
+		*/	
 
+		/*
+		//tobe removed
 		if ($this->collection_search=='yes')
 		{
 			//get list of collections
 			$this->collection_list=$this->Search_helper_model->get_collections($this->filter->repo);
-		}	
+		}
+		*/	
 
 		
 		$this->load->helper('security');
 		//page parameters
-		$this->center=xss_clean(get_post_sess('search',"center"));
-		$this->collection=xss_clean(get_post_sess('search',"collection"));
-		$this->sk=xss_clean(get_post_sess('search',"sk"));
-		$this->vk=xss_clean(get_post_sess('search',"vk"));
-		$this->vf=xss_clean(get_post_sess('search',"vf"));
-		$this->country=xss_clean(get_post_sess('search',"country"));
-		$this->view=xss_clean(get_post_sess('search',"view"));		
-		$this->topic=xss_clean(get_post_sess('search',"topic"));
-		$this->from=xss_clean(get_post_sess('search',"from"));
-		$this->to=xss_clean(get_post_sess('search',"to"));		
-		$this->sort_by=xss_clean(get_post_sess('search',"sort_by"));
-		$this->sort_order=xss_clean(get_post_sess('search',"sort_order"));
-		$this->page=(int)xss_clean(get_post_sess('search',"page"));
-		$this->page=($this->page >0) ? $this->page : 1;
-				
-		$offset=($this->page-1)*$this->limit;
+		$search_options->center=		xss_clean(get_post_sess('search',"center"));
+		$search_options->collection=	xss_clean(get_post_sess('search',"collection"));
+		$search_options->sk=			xss_clean(get_post_sess('search',"sk"));
+		$search_options->vk=			xss_clean(get_post_sess('search',"vk"));
+		$search_options->vf=			xss_clean(get_post_sess('search',"vf"));
+		$search_options->country=		xss_clean(get_post_sess('search',"country"));
+		$search_options->view=			xss_clean(get_post_sess('search',"view"));		
+		$search_options->topic=			xss_clean(get_post_sess('search',"topic"));
+		$search_options->from=			xss_clean(get_post_sess('search',"from"));
+		$search_options->to=			xss_clean(get_post_sess('search',"to"));		
+		$search_options->sort_by=		xss_clean(get_post_sess('search',"sort_by"));
+		$search_options->sort_order=	xss_clean(get_post_sess('search',"sort_order"));
+		$search_options->page=			(int)xss_clean(get_post_sess('search',"page"));
+		$search_options->page=			($search_options->page >0) ? $search_options->page : 1;
+		$search_options->dtype=			xss_clean($this->input->get("dtype"));
+		
+		$offset=($search_options->page-1)*$this->limit;
 		
 		// allowed fields for sort_by and sort_order 
 		$allowed_fields = array('proddate','titl','labl','nation');
 		$allowed_order=array('asc','desc');
 		
 		//set default sort options, if passed values are not valid
-		if (!in_array(trim($this->sort_by),$allowed_fields))
+		if (!in_array(trim($search_options->sort_by),$allowed_fields))
 		{
 			if($this->regional_search)
 			{
-				$this->sort_by='nation';
+				$search_options->sort_by='nation';
 			}
 			else
 			{
-				$this->sort_by='titl';
+				$search_options->sort_by='titl';
 			}				
 		}
 		
-		//default for sort order if no valid values found
-		if (!in_array($this->sort_order,$allowed_order))
+		if ($this->regional_search)
 		{
-			$this->sort_order='';
+			//get list of active countries
+			$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
 		}
 		
-		if ($this->vk!='' && $this->view=='v')
+		
+		
+		//default for sort order if no valid values found
+		if (!in_array($search_options->sort_order,$allowed_order))
+		{
+			$search_options->sort_order='';
+		}
+		
+		if ($search_options->vk!='' && $search_options->view=='v')
 		{
 			//variable search
 			$params=array(
-				'center'=>$this->center,
-				'collections'=>$this->collection,
-				'study_keywords'=>$this->sk,
-				'variable_keywords'=>$this->vk,
-				'variable_fields'=>$this->vf,
-				'countries'=>$this->country,
-				'topics'=>$this->topic,
-				'from'=>$this->from,
-				'to'=>$this->to,
-				'sort_by'=>$this->sort_by,
-				'sort_order'=>$this->sort_order,
+				'center'=>$search_options->center,
+				'collections'=>$search_options->collection,
+				'study_keywords'=>$search_options->sk,
+				'variable_keywords'=>$search_options->vk,
+				'variable_fields'=>$search_options->vf,
+				'countries'=>$search_options->country,
+				'topics'=>$search_options->topic,
+				'from'=>$search_options->from,
+				'to'=>$search_options->to,
+				'sort_by'=>$search_options->sort_by,
+				'sort_order'=>$search_options->sort_order,
 				'repo'=>$this->filter->repo
 			);		
 
 			$this->load->library('catalog_search',$params);
 			$surveys=$this->catalog_search->vsearch($this->limit,$offset);
-			$surveys['current_page']=$this->page;
+			$surveys['current_page']=$search_options->page;
 			$data['search_result']=	$this->load->view('catalog_search/variable_list', $surveys,true);
 		}
 		else
 		{	
 			//study search view
 			$params=array(
-				'center'=>$this->center,
-				'collections'=>$this->collection,
-				'study_keywords'=>$this->sk,
-				'variable_keywords'=>$this->vk,
-				'variable_fields'=>$this->vf,
-				'countries'=>$this->country,
-				'topics'=>$this->topic,
-				'from'=>$this->from,
-				'to'=>$this->to,
-				'sort_by'=>$this->sort_by,
-				'sort_order'=>$this->sort_order,
+				'center'=>$search_options->center,
+				'collections'=>$search_options->collection,
+				'study_keywords'=>$search_options->sk,
+				'variable_keywords'=>$search_options->vk,
+				'variable_fields'=>$search_options->vf,
+				'countries'=>$search_options->country,
+				'topics'=>$search_options->topic,
+				'from'=>$search_options->from,
+				'to'=>$search_options->to,
+				'sort_by'=>$search_options->sort_by,
+				'sort_order'=>$search_options->sort_order,
 				'repo'=>$this->filter->repo
 			);
 				
 			//intialize search class
-			$this->load->library('catalog_search',$params);			
-			$surveys=$this->catalog_search->search($this->limit,$offset);
-			$surveys['current_page']=$this->page;
-			$data['search_result']=$this->load->view('catalog_search/survey_list', $surveys,true);
+			$this->load->library('catalog_search',$params);	
+			$data['search_options']=$search_options;
+			$data['surveys']=$this->catalog_search->search($this->limit,$offset);
+			$data['current_page']=$search_options->page;
+			$data['search_result']=$this->load->view('catalog_search/survey_list', $data,true);
 		}
 		
-		//get list of active countries
-		$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
-		
-		$this->load->model('term_model');
-		
-		//list of topics attached to a survey
-		$survey_topics=$this->term_model->get_survey_topics_array();
-		
-		//get vocabulary id from config
-		$vid=$this->config->item("topics_vocab");
-		
-		if ($vid!==FALSE && is_numeric($vid))
-		{				
-			//get all terms/topics
-			$topics_array=$this->term_model->get_terms_tree_array($vid,$tid=0);
-			
-			//format terms
-			$data['topics_formatted']=$this->load->view(
-					'catalog_search/formatted_topics_list',
-					array('topics'=>$topics_array,'filter'=>$survey_topics ),
-					TRUE);
-					
-		}
-		else
+
+		if($this->topic_search=='yes')
 		{
-			//hide the topics box
-			$this->topic_search=FALSE;
-		}
+			//get vocabulary id from config
+			$vid=$this->config->item("topics_vocab");
+		
+			if ($vid!==FALSE && is_numeric($vid))
+			{				
+				//$this->load->model('Vocabulary_model');
+				$this->load->model('term_model');
+				
+				//get topics by vid
+				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE);//$this->Vocabulary_model->get_tree($vid);
+				$data['topic_search']=TRUE;				
+			}
+			else
+			{
+				//hide the topics box
+				$data['topic_search']='no';
+			}
+		}	
+		
+		//collection/repo filter
+		$this->load->model('Repository_model');		
+		$data['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
 		
 		//get years
 		$min_year=$this->Search_helper_model->get_min_year();
@@ -262,7 +291,7 @@ class Catalog extends MY_Controller {
         }
 
 		//set page title
-		if (isset($this->active_repo) && $this->active_repo!==FALSE)
+		if (isset($this->active_repo) && $this->active_repo!=='')
 		{
 			$this->page_title=t($this->active_repo['title']);
 		}
@@ -272,14 +301,15 @@ class Catalog extends MY_Controller {
 		}
 		
 		//show search form
-		$content=$this->load->view('catalog_search/search_form', $data,true);
+		$this->template->write('search_filters', $this->load->view('catalog_search/catalog_facets', $data,true),true);
+		$content=$this->load->view('catalog_search/catalog_search_result', $data,true);
 
 		//render final output
-		$this->template->write('title', $this->page_title,true);		
+		$this->template->write('title', $this->page_title,true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
-	
+		
 	
 	function search()
 	{
@@ -306,40 +336,41 @@ class Catalog extends MY_Controller {
 		
 		$this->load->helper('security');
 		
+		$search_options=new StdClass;
+		
 		//page parameters
-		$this->center=xss_clean(get_post_sess('search',"center"));
-		$this->collection=xss_clean(get_post_sess('search',"collection"));
-		$this->sk=xss_clean(get_post_sess('search',"sk"));
-		$this->vk=xss_clean(get_post_sess('search',"vk"));
-		$this->vf=xss_clean(get_post_sess('search',"vf"));
-		$this->country=xss_clean(get_post_sess('search',"country"));
-		$this->view=xss_clean(get_post_sess('search',"view"));		
-		$this->topic=xss_clean(get_post_sess('search',"topic"));
-		$this->from=xss_clean(get_post_sess('search',"from"));
-		$this->to=xss_clean(get_post_sess('search',"to"));		
-		$this->sort_by=xss_clean(get_post_sess('search',"sort_by"));
-		$this->sort_order=xss_clean(get_post_sess('search',"sort_order"));
-		$this->page=xss_clean(get_post_sess('search',"page"));
-		$this->page= ($this->page >0) ? $this->page : 1;
-		$this->filter->repo=xss_clean(get_post_sess('search',"repo"));
-		$this->dtype=xss_clean($this->input->get("dtype"));
-
-		$offset=($this->page-1)*$this->limit;
+		$search_options->center=xss_clean(get_post_sess('search',"center"));
+		$search_options->collection=xss_clean(get_post_sess('search',"collection"));
+		$search_options->sk=xss_clean(get_post_sess('search',"sk"));
+		$search_options->vk=xss_clean(get_post_sess('search',"vk"));
+		$search_options->vf=xss_clean(get_post_sess('search',"vf"));
+		$search_options->country=xss_clean(get_post_sess('search',"country"));
+		$search_options->view=xss_clean(get_post_sess('search',"view"));		
+		$search_options->topic=xss_clean(get_post_sess('search',"topic"));
+		$search_options->from=xss_clean(get_post_sess('search',"from"));
+		$search_options->to=xss_clean(get_post_sess('search',"to"));		
+		$search_options->sort_by=xss_clean(get_post_sess('search',"sort_by"));
+		$search_options->sort_order=xss_clean(get_post_sess('search',"sort_order"));
+		$search_options->page=xss_clean(get_post_sess('search',"page"));
+		$search_options->page= ($search_options->page >0) ? $search_options->page : 1;
+		$search_options->filter->repo=xss_clean(get_post_sess('search',"repo"));
+		$search_options->dtype=xss_clean($this->input->get("dtype"));		
+		$offset=($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order 
 		$allowed_fields = array('proddate','titl','labl','nation');
 		$allowed_order=array('asc','desc');
 		
 		//set default sort options, if passed values are not valid
-		if (!in_array(trim($this->sort_by),$allowed_fields))
+		if (!in_array(trim($search_options->sort_by),$allowed_fields))
 		{
-			$this->sort_by='';
+			$search_options->sort_by='';
 		}
 		
 		//default for sort order if no valid values found
-		if (!in_array($this->sort_order,$allowed_order))
+		if (!in_array($search_options->sort_order,$allowed_order))
 		{
-			$this->sort_order='';
+			$search_options->sort_order='';
 		}
 
 		//log
@@ -347,58 +378,63 @@ class Catalog extends MY_Controller {
 		$this->db_logger->write_log('search',$this->input->get("vk"),'question');
 
 		//get list of all repositories
-		$this->repositories=$this->Catalog_model->get_repositories();
+		$data['repositories']=$this->Catalog_model->get_repositories();
+
+		if ($this->regional_search)
+		{
+			$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
+		}
 
 		//which view to use for display	
-		if ($this->vk!='' && $this->view=='v')
+		if ($search_options->vk!='' && $search_options->view=='v')
 		{
 			//variable search
 			$params=array(
-				'center'=>$this->center,
-				'collections'=>$this->collection,
-				'study_keywords'=>$this->sk,
-				'variable_keywords'=>$this->vk,
-				'variable_fields'=>$this->vf,
-				'countries'=>$this->country,
-				'topics'=>$this->topic,
-				'from'=>$this->from,
-				'to'=>$this->to,
-				'sort_by'=>$this->sort_by,
-				'sort_order'=>$this->sort_order,
-				'repo'=>$this->filter->repo
+				'center'=>$search_options->center,
+				'collections'=>$search_options->collection,
+				'study_keywords'=>$search_options->sk,
+				'variable_keywords'=>$search_options->vk,
+				'variable_fields'=>$search_options->vf,
+				'countries'=>$search_options->country,
+				'topics'=>$search_options->topic,
+				'from'=>$search_options->from,
+				'to'=>$search_options->to,
+				'sort_by'=>$search_options->sort_by,
+				'sort_order'=>$search_options->sort_order,
+				'repo'=>$search_options->filter->repo
 			);		
 
 			$this->load->library('catalog_search',$params);
 			$data=$this->catalog_search->vsearch($this->limit,$offset);
 
-			$data['current_page']=$this->page;
+			$data['current_page']=$search_options->page;
 			$this->load->view('catalog_search/variable_list', $data);
 			return;
 		}
 		
 		//$surveys=$this->Advanced_search_model->search($this->limit,$offset);		
 		$params=array(
-			'center'=>$this->center,
-			'collections'=>$this->collection,
-			'study_keywords'=>$this->sk,
-			'variable_keywords'=>$this->vk,
-			'variable_fields'=>$this->vf,
-			'countries'=>$this->country,
-			'topics'=>$this->topic,
-			'from'=>$this->from,
-			'to'=>$this->to,
-			'sort_by'=>$this->sort_by,
-			'sort_order'=>$this->sort_order,
-			'repo'=>$this->filter->repo,
-			'dtype'=>$this->dtype			
+			'center'=>$search_options->center,
+			'collections'=>$search_options->collection,
+			'study_keywords'=>$search_options->sk,
+			'variable_keywords'=>$search_options->vk,
+			'variable_fields'=>$search_options->vf,
+			'countries'=>$search_options->country,
+			'topics'=>$search_options->topic,
+			'from'=>$search_options->from,
+			'to'=>$search_options->to,
+			'sort_by'=>$search_options->sort_by,
+			'sort_order'=>$search_options->sort_order,
+			'repo'=>$search_options->filter->repo,
+			'dtype'=>$search_options->dtype			
 		);		
 		
 		$this->load->library('catalog_search',$params);
-		$surveys=$this->catalog_search->search($this->limit,$offset);
-		//$surveys=$this->cache->model('advanced_search_model', 'search', array($limit, $offset), 30);
-
-		$surveys['current_page']=$this->page;				
-		$this->load->view('catalog_search/survey_list', $surveys);
+		$data['surveys']=$this->catalog_search->search($this->limit,$offset);
+		$data['current_page']=$search_options->page;
+		$data['search_options']=$search_options;		
+		$data['data_access_types']=$this->Form_model->get_form_list();
+		$this->load->view('catalog_search/survey_list', $data);
 		
 		$this->load->library("tracker");
 		$this->tracker->track();
@@ -1419,6 +1455,35 @@ class Catalog extends MY_Controller {
 		
 		//render final output
 	  	$this->template->render();
+	}
+	
+	/**
+	*
+	* Country selection dialog
+	**/
+	function country_selection()
+	{
+		$this->load->model("country_region_model");
+		//regions+countries tree
+		$data['regions']=$this->country_region_model->get_tree_region_countries();
+		//array of countries
+		$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
+		$this->load->view('catalog_search/country_selection',$data);
+	}
+	
+	//topic selection dialog
+	function topic_selection()
+	{
+		$this->load->model("vocabulary_model");
+		$data['topics']=$this->vocabulary_model->get_tree($vid=1,$active_only=FALSE);
+		$this->load->view('catalog_search/topic_selection',$data);
+	}
+	
+	function collection_selection()
+	{
+		$this->load->model('Repository_model');		
+		$data['repositories']=$this->Repository_model->get_repositories_tree();
+		$this->load->view('catalog_search/collection_selection',$data);
 	}
 }
 /* End of file catalog.php */
