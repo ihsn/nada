@@ -71,19 +71,25 @@ class Breadcrumb
 					//for microdata.worldbank.org only
 					//$breadcrumbs['microdata-catalogs']=t('Microdata catalogs');
 					
-					if ($repository_title)
-					{
-						$breadcrumbs['catalog/'.$active_repo]=t($repository_title);
+					$breadcrumbs['catalog']=t('central_data_catalog');
+					$repo_owner=false;
+					
+					if (isset($segments[2]) && is_numeric($segments[2]))
+					{	
+						//get owner of the study
+						$repo_owner=$this->get_survey_owner_repo($segments[2]);
 					}
-					else
+
+					if ($repo_owner && !in_array(strtolower($repo_owner['repositoryid']),array('central','default')))
 					{
-						$breadcrumbs['catalog']=t('central_data_catalog');
+						$breadcrumbs['catalog/'.$repo_owner['repositoryid']]=strtoupper($repo_owner['repositoryid']);
 					}
 					
 					if (count($segments)>1)
 					{
 						if (is_numeric($segments[2]))
-						{							
+						{								
+							//get study reference id
 							$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
 						}
 						
@@ -204,13 +210,31 @@ class Breadcrumb
 			break;
 
 			case 'datadeposit':
-					$breadcrumbs['datadeposit/projects']=t('datadeposit');
+					$breadcrumbs['data-deposit']=t('datadeposit');
+					$breadcrumbs['datadeposit/projects']=t('my_projects');
+					$dd_array=array('summary', 'update', 'submit_review','study','datafiles','citations');
+					if(in_array($segments[2], $dd_array) && isset($segments[3]))
+					{
+							$title = $this->get_data_deposit_project_title($segments[3]);
+							if (strlen($title) > 100) {
+								$title = substr($title, 0, 100) . '...';
+							}
+							// always to project information
+							$breadcrumbs['datadeposit/update/'. $segments[3]] = $title;
+					}
+
 					if (count($segments)>1)
 					{
-						$segments[2] = str_replace(array('create', 'update', 'delete_resource'), array('new', 'edit', 'delete'), $segments[2]);
+						$segments[2] = str_replace(
+							array('datafiles', 'submit_review', 'edit_citation', 'add_citations', 'create', 'request_reopen', 'update', 'delete_resource'), 
+							array('data files', 'Review and Submit', 'edit citation', 'new citation', 'new',    'reopen',         'edit',   'delete'), 
+						$segments[2]);
 						$id          = isset($segments[3]) && is_numeric($segments[3]) ? $segments[3] : '';
-						$breadcrumbs['datadeposit/'.$segments[2].'/'. $id] = ucfirst($segments[2]);						
+						if ($segments[2] != 'projects') {
+							$breadcrumbs[] = ucfirst($segments[2]);					
+						}
 					}
+					
 			break;
 
 			case 'access_licensed':
@@ -219,6 +243,12 @@ class Breadcrumb
 						$breadcrumbs['catalog']=$repository_title;
 						$breadcrumbs['catalog/'.$segments[2]]=$this->get_study_info($segments[2]);
 						$breadcrumbs['access_licensed/'.$segments[2]]=t('Access to a Licensed Dataset');
+					}
+					else if ($segments[2]=='by_collection')
+					{
+						$breadcrumbs['collections']=t('collections');
+						$breadcrumbs['collections/'.$segments[3]]=$segments[3];
+						$breadcrumbs['access_licensed/by_collection/'.$segments[3]]=t('Access to a Licensed Dataset');
 					}
 					
 					if (isset($segments[3]))
@@ -479,4 +509,76 @@ class Breadcrumb
 		
 		return FALSE;
 	}
+	
+	
+	/**
+	*
+	* Returns the repository title by repositoryid
+	**/
+	function get_data_deposit_project_title($projectid)
+	{
+		$this->ci->db->select('title');
+		$this->ci->db->where('id',$projectid);
+		$query=$this->ci->db->get('dd_projects');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$row=$query->row_array();
+		
+		if($row)
+		{
+			return $row['title'];
+		}
+		
+		return FALSE;
+	}
+	
+	/**
+	*
+	* Return repository owning the survey
+	**/
+	public function get_survey_owner_repo($sid)
+	{
+		$this->ci->db->select('r.repositoryid,r.title');
+		$this->ci->db->join('survey_repos', 'survey_repos.repositoryid= r.repositoryid','inner');		
+		$this->ci->db->where('survey_repos.sid',$sid);
+		$this->ci->db->where('survey_repos.isadmin',1);
+		$query=$this->ci->db->get('repositories r');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->row_array();
+	}
+
+	/**
+	*
+	* Returns the survey country name
+	**/
+	function get_survey_country($sid)
+	{
+		$this->ci->db->select('nation');
+		$this->ci->db->where('id',$sid);
+		$query=$this->ci->db->get('surveys');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$country=$query->row_array();
+		
+		if($country)
+		{
+			return $country['nation'];
+		}
+		
+		return FALSE;
+	}
+	
 }
