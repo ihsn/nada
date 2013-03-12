@@ -579,6 +579,7 @@ class Catalog_model extends CI_Model {
 		{
 			$row=(object)$row;	
 			$rdf.=sprintf('<rdf:Description rdf:about="%s">',htmlentities($row->filename,ENT_QUOTES,'UTF-8'));
+			$rdf.='<rdf:label><![CDATA['.$row->title.']]></rdf:label>';
 			$rdf.='<dc:title><![CDATA['.$row->title.']]></dc:title>';
 			
 			if ($row->author)
@@ -1434,11 +1435,30 @@ class Catalog_model extends CI_Model {
 			return FALSE;
 		}
 		
-		$this->db->select('repositoryid');
+		$this->db->select('repositories.repositoryid,title,ispublished,group_da_public,group_da_licensed');
+		$this->db->join('repositories', 'survey_repos.repositoryid= repositories.repositoryid','INNER');
 		$this->db->where('sid',$sid);
 		$query=$this->db->get('survey_repos')->result_array();
 		
 		return $query;
 	}
 
+	/**
+	*
+	* Return an array of survey related countries
+	*	
+	**/
+	function get_survey_countries($sid=NULL)
+	{
+		if (!is_numeric($sid))
+		{
+			return FALSE;
+		}
+		
+		$this->db->select('*');
+		$this->db->where('sid',$sid);
+		$query=$this->db->get('survey_countries')->result_array();
+		
+		return $query;
+	}
 }
