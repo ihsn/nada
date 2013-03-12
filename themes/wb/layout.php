@@ -14,23 +14,42 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title><?php echo t($title);?></title>
-<base href="<?php echo js_base_url(); ?>">
+<base href="<?php echo js_base_url(); ?>" />
 
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
 
-<script type="text/javascript" src="javascript/jquery.js"></script>
+<script type="text/javascript" src="javascript/jquery/jquery.js"></script>
 
 <?php if (isset($_styles) ){ echo $_styles;} ?>
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles-ie.css" />
+<![endif]-->
 
 <script type="text/javascript"> 
    var CI = {'base_url': '<?php echo site_url(); ?>'}; 
 </script> 
 
+<style>
+.yui-t7 .yui-b {
+float: left;
+width: 16.8461em;
+}
+.yui-t7 #yui-main .yui-b {
+margin-left: 17.8461em;
+}
+.yui-t7 #yui-main {
+float: right;
+margin-left: -25em;
+}
+</style>
+
 </head>
 <body>
+
 <div id="custom-doc" class="yui-t7" > 
 	<!--login information bar-->
     <span id="user-container">
@@ -61,7 +80,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
             <?php endif;?>
         
             <?php if ($menu_horizontal===TRUE):?>
-                <div id="content" class="yui-b" >
+                <div id="content"  >
                 
                 	<!--share-bar -->
                     <div id="page-tools">
@@ -76,7 +95,17 @@ $sidebar=$this->load->view('default_menu', $data,true);
                         </div>
                     <?php endif;?>
                     
-					<?php echo isset($content) ? $content : '';?>
+					<?php if (isset($search_filters) && $search_filters!==false):?>						
+                        <div id="yui-main">
+                            <div  class="yui-b"><?php echo isset($content) ? $content : '';?></div>
+                        </div>
+                                                
+                        <div id="facets" class="yui-b">
+						<?php echo $search_filters;?>
+                        </div>
+                    <?php else:?>
+                    	<?php echo isset($content) ? $content : '';?>
+					<?php endif;?>
                 </div>
             <?php else:?>
             <div id="yui-main">
@@ -88,14 +117,12 @@ $sidebar=$this->load->view('default_menu', $data,true);
           </div>
           <?php endif; ?>
 		</div>
-
+</div>
     <!-- footer -->
     <div id="ft"><?php echo $this->config->item("website_footer");?> </div>
 	<!--end bd-->
     </div>
 
-</div>
-</div>
 <div style="padding-bottom:100px;">&nbsp;</div>
 <?php $this->load->view('tracker/js_tracker');?>
 </body>
