@@ -839,6 +839,59 @@ class Repository_model extends CI_Model {
 		return $this->db->get('surveys')->result_array();
 	}
 	
+	
+	/**
+	*
+	* Get tree structure for repos/sections
+	**/
+	public function get_repositories_tree()
+	{
+		//get repository sections
+		$this->db->select('*');
+		$this->db->order_by('weight');
+		$sections=$this->db->get('repository_sections')->result_array();
+		
+		//find repos by section
+		foreach($sections as $key=>$section)
+		{
+			$children=$this->get_repositories_by_section($section['id']);
+			if($children)
+			{
+			$sections[$key]['children']=$children;
+			}
+		}
+		
+		return $sections;
+	}
+	
+	
+	/**
+	*
+	* Get repositories by section id
+	**/
+	public function get_repositories_by_section($section_id)
+	{
+		$this->db->select('r.title,r.repositoryid,count(sr.sid) as surveys_found');
+		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
+		$this->db->where('r.ispublished',1);
+		$this->db->where('r.pid >',0);
+		$this->db->where('r.section',$section_id);
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
+		$this->db->order_by('r.weight');		
+		return $this->db->get('repositories r')->result_array();	
+	}
+	
+	public function get_repositories_with_survey_counts()
+	{
+		$this->db->select('r.id,r.pid,r.title,r.repositoryid,count(sr.sid) as surveys_found');
+		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
+		$this->db->where('r.ispublished',1);
+		$this->db->where('r.pid >',0);
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
+		$this->db->order_by('r.weight');		
+		return $this->db->get('repositories r')->result_array();	
+	}
+	
 	/**
 	*
 	* check if the repo/collection has Data Access by Collection enabled
