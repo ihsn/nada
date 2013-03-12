@@ -28,6 +28,7 @@ class Catalog_search{
 	var $repo='';
 	var $center=array();
 	var $collections=array();
+	var $dtype=array();//data access type
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -92,7 +93,7 @@ class Catalog_search{
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
-		
+		$dtype=$this->_build_dtype_query();
 
 		$sort_by='titl';
 		if (in_array($this->sort_by,$this->sort_allowed_fields))
@@ -129,7 +130,7 @@ class Catalog_search{
 		}
 				
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$centers,$collections);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$centers,$collections,$dtype);
 		
 		//create combined where clause
 		$where='';
@@ -149,9 +150,9 @@ class Catalog_search{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, forms.model as form_model,link_report';
+		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, forms.model as form_model,link_report,surveys.data_coll_start,surveys.data_coll_end';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,hq.survey_url as study_remote_url';
+		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title';
 
 		//build final search sql query
 		$sql='';
@@ -163,7 +164,7 @@ class Catalog_search{
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
-			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
+			//$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 	
@@ -194,7 +195,7 @@ class Catalog_search{
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
+			//$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -386,7 +387,7 @@ class Catalog_search{
 		foreach($countries  as $country)
 		{
 			//escape country names for db
-			$countries_list[]=$this->ci->db->escape($country);
+			$countries_list[]=(int)$country;
 		}
 
 		if ( count($countries_list)>0)
@@ -398,10 +399,9 @@ class Catalog_search{
 			return FALSE;
 		}
 
-		//topics
 		if ($countries!='')
 		{
-			return sprintf('surveys.nation in (%s)',$countries);
+			return sprintf('surveys.id in (select sid from survey_countries where cid in (%s))',$countries);
 		}
 		
 		return FALSE;
@@ -751,6 +751,33 @@ class Catalog_search{
 		}
 		
 		return FALSE;
+	}
+
+	function _build_dtype_query()
+	{
+		$dtypes=$this->dtype;
+
+		if (!is_array($dtypes) || count($dtypes)<1)
+		{
+			return FALSE;
+		}
+
+		foreach($dtypes as $key=>$value)
+		{
+			if (!is_numeric($value))
+			{
+				unset($dtypes[$key]);
+			}
+		}
+		
+		$types_str=implode(",",$dtypes);
+
+		if ($types_str!='')
+		{
+			return sprintf(' forms.formid in (%s)',$types_str);
+		}
+		
+		return FALSE;	
 	}
 
 }// END Search class
