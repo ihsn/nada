@@ -1,14 +1,138 @@
-<?php if (isset($rows) && count($rows)>0): ?>
+<style>
+.pager{padding:5px;}
+.pager .page{padding:2px 5px 2px 5px;margin:5px;border:1px solid gray;background:white;}
+#surveys .pager a.active{border:2px solid black;background:gray;color:white;}
+#surveys .survey-stats{margin-top:10px;font-size:11px;color:#666666}
+#surveys .survey-stats span{margin-right:15px;}
+
+</style>
+<?php
+
+function pager($total_records, $limit = null, $current_page = null, $adjacents = null)
+{
+  	$total_pages=ceil($total_records / $limit);
+	
+	if ($total_pages<2)
+	{
+		return false;
+	}
+	
+	$result = range(1, ceil($total_records / $limit));	
+	$search_qs='?'.get_sess_querystring( array('ps','sk', 'vk', 'vf','view','topic','country','from','to'),'search');
+	
+	if (($adjacents = floor($adjacents / 2) * 2 + 1) >= 1)
+	{
+		$result = array_slice($result, max(0, min(count($result) - $adjacents, intval($current_page) - ceil($adjacents / 2))), $adjacents);
+	}
+	
+	$output=array();
+	if ($current_page>1 && $total_pages>1)
+	{
+		$output[]=sprintf('<a href="%s" class="page" data-page="%s">Prev</a>',
+					site_url('catalog/').$search_qs.'&page='.($current_page-1),
+					$current_page-1
+					);
+	}	
+	
+	foreach($result as $page)
+	{
+		$css='';
+		if($page==$current_page)
+		{
+			$css='active';
+		}
+		
+		$output[]=sprintf('<a href="%s" class="page %s" data-page="%s">%s</a>',
+					site_url('catalog/').$search_qs.'&page='.$page,
+					$css,
+					$page,
+					$page);
+	}
+	
+	if ($current_page<$total_pages)
+	{
+		$output[]=sprintf('<a href="%s" class="page" data-page="%s">Next</a>',
+				site_url('catalog/').$search_qs.'&page='.($current_page+1),
+				$current_page+1
+				);
+	}
+
+	$pager='<div class="pager">';
+    $pager.=implode('',$output);
+	$pager.='</div>';
+	
+	return $pager;
+}
+
+
+//var_dump($countries);
+//var_dump($search_options);
+//var_dump($surveys['limit']);
+//exit;
+?>
+
+<?php 
+	//current page url
+	$page_url=site_url().$this->uri->uri_string();
+	
+	//total pages
+	$pages=ceil($surveys['found']/$surveys['limit']);	
+?>
+
+
+<div class="active-filters-container">
+
+<div class="search-count">
+<?php if ($surveys['found']==1):?>
+	<?php echo sprintf(t('found_study'),$surveys['found'],$surveys['total']);?>
+<?php else:?>
+	<?php echo sprintf(t('found_studies'),$surveys['found'],$surveys['total']);?>
+<?php endif;?>
+</div>
+
+<div class="active-filters">
+	<?php if (is_array($search_options->country)):?>
+		<?php foreach($search_options->country as $country):?>
+        	<?php if (array_key_exists($country,$countries)):?>
+            <span class="remove-filter country" data-type="country" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?></span>
+            <?php endif;?>
+        <?php endforeach;?>
+    <?php endif;?>
+    <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
+		<?php foreach($search_options->dtype as $dtype):?>
+            <span class="remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?></span>
+        <?php endforeach;?>
+    <?php endif;?>
+    
+    <?php if ($search_options->from!='' && $search_options->to!=''):?>
+    	<span class="remove-filter years" data-type="years" data-value="0">between <?php echo $search_options->from;?>-<?php echo $search_options->to;?></span>
+    <?php endif;?>
+    
+    <?php if (isset($search_options->sk) && $search_options->sk!=''):?>
+    <span class="remove-filter sk" data-type="sk" data-value=""><?php echo $search_options->sk;?></span>
+    <?php endif;?>
+    
+	<?php if (isset($search_options->vk) && $search_options->vk!=''):?>
+    <span class="remove-filter vk" data-type="vk" data-value=""><?php echo $search_options->vk;?></span>
+    <?php endif;?>
+</div>
+<div class="filter-action-bar">
+	<a href="#save-search" class="save-search">Save this search</a>
+    <a href="#share-search" class="share-search">Share this search</a>
+    <a href="#print-search" class="print-search">Print list</a>
+</div>
+</div>
+<?php if (isset($surveys['rows']) && count($surveys['rows'])>0): ?>
 <?php		
 	//citations
-	if ($citations===FALSE)
+	if ($surveys['citations']===FALSE)
 	{
 		$citations=array();
 	}
 		
 	//sorting
-	$sort_by=$this->sort_by;
-	$sort_order=$this->sort_order;
+	$sort_by=$search_options->sort_by;
+	$sort_order=$search_options->sort_order;
 
 	//set default sort
 	if(!$sort_by)
@@ -59,36 +183,39 @@
 </div>
 </td>
 <td align="right">
-	<?php if (isset($this->vk) && $this->vk!=''):?>
+	<?php if (isset($search_options->vk) && $search_options->vk!=''):?>
      <a href="#" onclick="change_view('v');return false;"><?php echo t('switch_to_variable_view');?></a> |
      <a class="dlg" title="<?php echo t('compare_hover_text');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
     <?php endif;?>
 </td>
 </tr>
 </table>
-<?php 
-	//current page url
-	$page_url=site_url().$this->uri->uri_string();
-	
-	//total pages
-	$pages=ceil($found/$limit);	
-?>
 
 <div class="pagination">
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 <tr valign="middle">
-	<td><?php 			
-			if ($found==1)
+	<td>
+		<?php /*
+			if ($surveys['found']==1)
 			{
-				echo sprintf(t('found_study'),$found,$total);
+				echo sprintf(t('found_study'),$surveys['found'],$surveys['total']);
 			}
 			else
 			{
-				echo sprintf(t('found_studies'),$found,$total);
-			}	
+				echo sprintf(t('found_studies'),$surveys['found'],$surveys['total']);
+			}*/	
 		?>
+        <?php echo sprintf(t('showing_studies'),
+            (($surveys['limit']*$current_page)-$surveys['limit']+1),
+            ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
+            $surveys['found']);
+		
+			$pager_bar=(pager($surveys['found'],$surveys['limit'],$current_page,5));
+		?>
+        
    </td>
     <td align="right">
+    	<?php /* ?>
         <span class="page-link">
         <?php if ($current_page>1):?>
         	<a title="Prev page" href="<?php echo site_url().'/catalog/'.$search_querystring.'&page='.($current_page-1); ?>" 
@@ -97,30 +224,37 @@
 	        <?php //&laquo;?>
         <?php endif; ?>
         </span>  
+		<?php */ ?>
         
 		<?php 
+			/*
 			$page_dropdown='<select name="page" id="page" onchange="advanced_search()">';
 			for($i=1;$i<=$pages;$i++)
 			{
                 $page_dropdown.='<option '. (($current_page==$i) ? 'selected="selected"' : '').'>'.$i.'</option>';
             }
         	$page_dropdown.='</select>';
+			*/
 		?>        
-		<?php echo sprintf(t('showing_pages'),$page_dropdown,$pages);?>
+		<?php //echo sprintf(t('showing_pages'),$page_dropdown,$pages);?>
+        
+        <?php echo $pager_bar;?>
                                     
-		<span class="page-link">
+		<?php /* ?>
+        <span class="page-link">
         <?php if ($current_page<$pages):?>
         	<a title="Next page" href="<?php echo site_url().'/catalog/'.$search_querystring.'&page='.($current_page+1); ?>" onclick="search_page(<?php echo $current_page+1; ?>);return false;">&raquo;</a>
         <?php else:?>
 	        <?php //&raquo;?>
         <?php endif; ?>
         </span>
+		<?php */ ?>
     </td>
 </tr>
 </table>
 </div>
 
-<?php foreach($rows as $row): ?>
+<?php foreach($surveys['rows'] as $row): ?>
 	<?php
 		/*
 		//harvested study source 
@@ -133,39 +267,48 @@
 	?>
 	<div class="survey-row">
         <div class="left">
-            <div class="title">
-            <?php if(isset($row['study_remote_url']) &&  $row['study_remote_url']!=''):?>
+        
+        	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>"></div>
+            <h2 class="title">
                 <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
-					<?php if ($this->regional_search=='yes'):?>
-                        <?php echo $row['nation']. ' - ';?>
-                    <?php endif;?>
-                	<?php echo $row['titl'];?>
-                </a>            	
-            <?php else:?>            
-                <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
-					<?php if ($this->regional_search=='yes'):?>
-                        <?php echo $row['nation']. ' - ';?>
-                    <?php endif;?>
                 	<?php echo $row['titl'];?>
                 </a>
-			<?php endif;?>
-            </div>
-            <div class="sub-title"><?php echo t('by');?> 
-				<?php $authenty=json_decode($row['authenty']);?>
+            </h2>
+            <div class="study-country">
+				<?php if ($this->regional_search=='yes'):?>
+                        <?php echo $row['nation']. ',';?>
+                <?php endif;?>
+                <?php 
+					$survey_year=NULL;
+					$survey_year[$row['data_coll_start']]=$row['data_coll_start'];
+					$survey_year[$row['data_coll_end']]=$row['data_coll_end'];
+					$survey_year=implode('-',$survey_year);
+				?>
+                <?php echo $survey_year!=0 ? $survey_year : '';?>
+			</div>
+            <div class="sub-title">
+            	<div>
+				<?php echo t('by');?> <?php $authenty=json_decode($row['authenty']);?>
                 <?php if (is_array($authenty)):?>
                 	<?php echo implode(", ",$authenty);?>
                 <?php else:?>
                 	<?php echo $row['authenty'];?>
                 <?php endif;?>
+            	</div>
+				<?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
+                    <div><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
+                <?php endif;?>
             </div>
-            <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                <div class="sub-title"><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
-            <?php endif;?>
-                            
+			<div class="survey-stats">
+            	<span>Created on: <?php echo date('m/d/Y',date("U"));?></span>
+                <span>Last modified: <?php echo date('m/d/Y',date("U"));?></span>
+                <span class="last">Views: <?php echo date("U");?></span>
+            </div>
+		
 		</div>
 		<div class="right">
         
-	        <?php if (in_array($row['id'],$citations)): ?>
+	        <?php if (in_array($row['id'],$surveys['citations'])): ?>
                 <a href="<?php echo site_url().'/catalog/citations/'.$row['id'];?>" title="<?php echo t('link_citations_hover');?>" >
                 <img src="images/book_open.png" />
                 </a>                    
@@ -291,9 +434,9 @@
 <tr valign="middle">
 	<td>
 		<?php echo sprintf(t('showing_studies'),
-            (($limit*$current_page)-$limit+1),
-            ($limit*($current_page-1))+ count($rows),
-            $found);
+            (($surveys['limit']*$current_page)-$surveys['limit']+1),
+            ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
+            $surveys['found']);
 		?>
    </td>
     <td align="right">

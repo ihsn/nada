@@ -1,0 +1,43 @@
+<?php 
+	$item_limit=7;
+?>
+
+<div class="filter-box">
+<h3><?php echo t('filter_by_topic');?></h3> 
+
+<a class="clear-filter" href="#"><?php echo t('reset');?></a>
+
+<div id="topics-container">
+    <div class="any">    	
+        <input type="checkbox" class="chk-any" id="topic-any"  <?php echo $search_options->topic!="" ? '' : 'checked="checked"';?> />
+        <label for="topic-any">Any</label>
+    </div>
+    <div class="select-specific">Or select specific:</div>
+	<div class="items-container <?php echo (count($topics)>10) ? 'scrollable' : ''; ?>">
+	<?php $k=0;foreach($topics as $topic):$k++; ?>
+    	<?php if($topic['pid']==0){continue;}?>
+        <div class="topic item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">
+            <input class="chk chk-topic" type="checkbox" name="topic[]" 
+                value="<?php echo form_prep($topic['tid']); ?>" 
+                id="tpc-<?php echo form_prep($topic['tid']); ?>"
+                <?php if($search_options->topic!='' && in_array($topic['tid'],$search_options->topic)):?>
+                checked="checked"
+                <?php endif;?>
+             />
+            <label for="tpc-<?php echo form_prep($topic['tid']); ?>">
+                <?php echo substr($topic['title'],0,strpos($topic['title'],'[',0)); ?> <span class="count">(<?php echo $topic['surveys_found']; ?>)</span>
+            </label>
+        </div>
+    <?php endforeach;?>
+    </div>
+    
+    <?php if($k>$item_limit):?>
+    <div>+<?php echo $k-$item_limit; ?> more...</div>
+    <?php endif;?>
+    
+    <div class="filter-footer">
+    <input type="button" class="btn-select" value="View / Select More" id="btn-topic-selection" data-dialog-id="dialog-topics" data-dialog-title="Select Topics" data-url="index.php/catalog/topic_selection"/>
+    </div>
+    
+</div>
+</div>

@@ -1,91 +1,34 @@
-<style>
-	.topic-container {
-	border: 1px solid gainsboro;
-	overflow: hidden;
-	width: 100%;
-	margin-bottom:10px;
-	background-color:#EBEBEB;
-	padding-top:10px;
-	padding-bottom:10px;
-	font-size:12px;
-}
+<div class="container topics-container" >
 
-xdiv.left {
-	width: 45%;
-	float: left;
-}
-
-div.right {
-	width: 45%;
-	float: right;
-}
-
-/* tabs start */
-#tabmenu {
-		color: gray;
-		border-bottom: 1px solid gainsboro;
-		margin: 12px 0px 0px 0px;
-		padding: 0px;
-		z-index: 1;
-		padding-left: 10px }
-
-	#tabmenu li {
-		display: inline;
-		overflow: hidden;
-		list-style-type: none; }
-
-	#tabmenu a, a.active {
-		color: red;
-		background: gainsboro;
-		font: normal 1em "Trebuchet MS", Arial, sans-serif;
-		border: 1px solid gainsboro;
-		padding: 2px 5px 0px 5px;
-		margin: 0;
-		text-decoration: none; }
-
-	#tabmenu a.active {
-		background: #EBEBEB;
-		color:green;
-		border-bottom: 3px solid #F3F3F3; }
-
-	#tabmenu a:hover {
-		color: #fff;
-		background: #ADC09F; }
-
-	#tabmenu a:visited {
-		color:#666666 }
-
-	#tabmenu a.active:hover {
-		background: #ABAD85;
-		color: orange; }
-
-	#tab-contents {font: 0.9em/1.3em "bitstream vera sans", verdana, sans-serif;
-		text-align: justify;
-		background: #F3F3F3;
-		padding: 20px;
-		border: 1px solid gainsboro;
-		border-top: none;
-		z-index: 2;	}
-
-	#tab-contents a {
-		text-decoration: none;
-		color: #E8E9BE; }
-
-	#tab-contents a:hover { background-color:#F3F3F3 }
-/* tabs end */
-</style>
-
-
-<ul id="tabmenu">
-	<li><a href="#">Project</a></li>
-    <li class="selected"><a href="#">studies</a></li>
-    <li><a href="#">variables</a></li>
-    <li><a class="active" href="#">topics</a></li>
-</ul>
-<div class="topic-container">
-<?php foreach($topics as $item): ?>
-		<div class="left"><input type="checkbox"/><?php echo $item['title'] .' ('.$item['surveys_found'].')';?></div>
-<?php endforeach;?>
+    	<div class="rows-container">
+			<?php foreach($topics as $sub):if(!isset($sub['children'])){continue;};?>
+            <div class="row" id="sub-topic-row-<?php echo $sub['tid'];?>">
+                <div class="col-1">
+                         <input class="chk-sub-topic parent" type="checkbox"                             
+                            id="region-sub-<?php echo $sub['tid'];?>"
+                            data-type="parent"
+                         />
+						<label for="region-sub-<?php echo $sub['tid'];?>">
+                            <?php echo substr($sub['title'],0,strpos($sub['title'],'[',0)); ?>
+                        </label>
+                </div>
+                <div class="col-2 cnt">
+                <?php foreach($sub['children'] as $topic):?>
+                    <div class="country item" >
+                        <input class="chk-item" type="checkbox" 
+                            value="<?php echo form_prep($topic['tid']); ?>" 
+                            id="cr-<?php echo $sub['tid']?>-<?php echo form_prep($topic['tid']); ?>"
+                            data-type="child"
+                            data-name="c-<?php echo form_prep($topic['tid']); ?>"
+                         />
+                        <label for="cr-<?php echo $sub['tid']?>-<?php echo form_prep($topic['tid']); ?>">
+                            <?php echo substr($topic['title'],0,strpos($topic['title'],'[',0)); ?> <span class="count">(<?php echo $topic['surveys_found']; ?>)</span>
+                        </label>
+                    </div>
+                <?php endforeach;?>
+                </div>
+            </div>    
+            <?php endforeach;?>
+		</div>
+    
 </div>
-
-

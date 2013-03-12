@@ -134,7 +134,7 @@ $this->template->add_js($script, $type = 'embed');
             <input class="btn-cancel" type="button" id="reset" name="reset" onclick="window.location.href='<?php echo site_url();?>/catalog/<?php echo $repoid;?>?reset=reset'"  value="<?php echo t('reset');?>"/>
 		</div>
     </div>
-	<div id="surveys" ><?php echo $search_result; ?></div>    
+	<div id="surveys" ><?php echo $search_result; ?></div>
 </form>
 
 <div class="da-legend">

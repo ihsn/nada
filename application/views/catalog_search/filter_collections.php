@@ -1,23 +1,42 @@
-<h3 class="ui-accordion-header ui-helper-reset ui-state-active ui-corner-top">
-    <a href="#"><?php echo t('filter_by_collection');?><span id="selected-collections" style="font-size:11px;padding-left:10px;"></span></a>
-</h3> 
-<div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" id="center-list" style="font-size:11px;">
-    <div class="flash">
-        <div style="text-align:right;">
-            <a  href="#" onclick="select_collections('all');return false;"><?php echo t('link_select_all');?></a> | 
-            <a  href="#" onclick="select_collections('none');return false;"><?php echo t('link_clear');?></a> | 
-            <a  href="#" onclick="select_collections('toggle');return false;"><?php echo t('link_toggle');?></a>
-        </div>
+<?php 
+	$item_limit=5;
+?>
 
-        <div class="filter-collection">            	
-                <?php foreach($this->collection_list as $key=>$value):?>
-                    <div class="collection">
-                        <label title="<?php echo $value;?>" for="coll-<?php echo $key;?>">
-                            <input class="chk-collection" type="checkbox"  value="<?php echo $key;?>" name="collection[]" id="coll-<?php echo $key;?>"/><span class="title"><?php echo $value;?></span><br/>
-                        </label>
-                    </div>    
-                <?php endforeach;?>
-        </div>
-        
+<div class="filter-box">
+	<h3><?php echo t('filter_by_collection');?></h3> 
+	<a class="clear-filter" href="#"><?php echo t('reset');?></a>
+
+<div id="collections-container">
+    <div class="any">    	
+        <input type="checkbox" class="chk-any" id="collection-any"  <?php echo $search_options->collection!="" ? '' : 'checked="checked"';?> />
+        <label for="collection-any">Any</label>
     </div>
+    <div class="select-specific">Or select specific:</div>
+	<div class="items-container <?php echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
+	<?php $k=0;foreach($repositories as $repo):$k++; ?>
+        <div class="collection <?php echo $k;?> item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">
+            <input class="chk chk-collection" type="checkbox" name="collection[]" 
+                value="<?php echo form_prep($repo['repositoryid']); ?>" 
+                id="repo-<?php echo form_prep($repo['id']); ?>"
+                <?php if($search_options->collection!='' && in_array($repo['repositoryid'],$search_options->collection)):?>
+                checked="checked"
+                <?php endif;?>
+             />
+            <label for="repo-<?php echo form_prep($repo['id']); ?>">
+                <?php echo $repo['title']; ?> <span class="count">(<?php echo $repo['surveys_found']; ?>)</span>
+            </label>
+        </div>
+    <?php endforeach;?>
+    </div>
+    
+    <?php if($k>$item_limit):?>
+    <div>+<?php echo $k-$item_limit; ?> more...</div>
+    <?php endif;?>
+
+<?php if(count($repositories)>$item_limit):?>    
+    <div class="filter-footer">
+    <input type="button" class="btn-select" value="View / Select More" id="btn-collection-selection" data-dialog-id="dialog-collections" data-dialog-title="Select Collections" data-url="index.php/catalog/collection_selection"/>
+    </div>
+<?php endif;?>    
+</div>
 </div>
