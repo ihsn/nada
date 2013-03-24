@@ -147,7 +147,14 @@ class Vocabulary_model extends CI_Model {
 			$this->db->join('survey_topics st','st.tid=terms.tid','inner');			
 		}
 		
-		return $this->db->get()->result_array();	
+		$items=$this->db->get()->result_array();
+		$output=array();
+		foreach($items as $row)
+		{
+			$output[$row['tid']]=$row;
+		}
+
+		return $output;
 	}
 	
 	
