@@ -150,11 +150,11 @@ if ( ! function_exists('create_sort_link'))
 			}			
 			
 			//column with the asc/desc image
-			return '<a class="selected" href="'.$page_url.'?sort_by='.$field.'&sort_order='.$sort_order_alter.$additional_querystring.'">'.$label.' '.$img_sort_order.'</a>';
+			return '<a class="selected" data-sort_by="'.$field.'" data-sort_order="'.$sort_order_alter.'" href="'.$page_url.'?sort_by='.$field.'&sort_order='.$sort_order_alter.$additional_querystring.'">'.$label.' '.$img_sort_order.'</a>';
 		}
 		else{
 			//column without the asc/desc image
-			return '<a href="'.$page_url.'?sort_by='.$field.'&sort_order=asc'.$additional_querystring.'">'.$label.'</a>';
+			return '<a data-sort_by="'.$field.'" data-sort_order="asc" href="'.$page_url.'?sort_by='.$field.'&sort_order=asc'.$additional_querystring.'">'.$label.'</a>';
 		}
 	}
 
