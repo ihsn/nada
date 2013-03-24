@@ -130,9 +130,11 @@ class Citations extends MY_Controller {
 	function edit($id=NULL)
 	{
 		//for related surveys dialog box
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-		$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
+		//$this->template->add_js('javascript/jquery/ui/ui.core.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
 
 		$this->citation_id=$id;//needed for the citation edit/add view
 		
