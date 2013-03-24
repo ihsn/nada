@@ -41,19 +41,39 @@ class Licensed_requests extends MY_Controller {
 	
 	function edit($id)
 	{	
-		$this->template->add_css('javascript/jquery/themes/base/ui.all.css');
-		$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/ui.tabs.js');	
-		$this->template->add_js('javascript/jquery/ui/ui.datepicker.js');	
+		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.datepicker.js');	
 		$this->template->add_js('javascript/expand.js');
 		
 		//get licensed request information		
 		$result=$this->Licensed_model->get_request_by_id($id);
-		$result['survey_title']=$result['titl'];
-		$result['survey_id']=$result['surveyid'];
-
-		//licensed files by request and surveyid
-		$result['files']=$this->Licensed_model->get_request_files($result['surveyid'], $requestid=$id);
+		$result['files']=array();
+		$result['survey_list']=array();
+		
+		if ($result['request_type']=='study')
+		{
+				$this->load->model('Catalog_model');
+				$survey=$this->Catalog_model->select_single($result['surveyid']);
+				$result['files'][$result['surveyid']]=$this->Licensed_model->get_request_files($result['surveyid'], $requestid=$id);
+				$result['survey_list'][$result['surveyid']]=$survey['titl'].' - '. $survey['titl'];
+		}
+		else if ($result['request_type']=='collection')
+		{
+			foreach($result['surveys'] as $survey)
+			{
+				$files=$this->Licensed_model->get_request_files($survey['id'], $requestid=$id);
+				if ($files)
+				{
+					$result['files'][$survey['id']]=$files;
+					$result['survey_list'][$survey['id']]=$survey['nation'].' - '.$survey['titl'];
+				}
+			}
+		}
 		
 		//history
 		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
@@ -251,8 +271,16 @@ class Licensed_requests extends MY_Controller {
 		$data->fname=$user->first_name;
 		$data->lname=$user->last_name;
 		$data->email=$user->email;
-		$data->survey_title=$data->titl;
-		$data->survey_id=$data->surveyid;
+		
+		if ($data->request_type=='study')
+		{
+			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
+		}	
+		else
+		{
+			$data->title='collection ['.$data->collection['title'].']';
+		}
+		
 		$data->requestid=$requestid;
 					
 		$message=$this->load->view('access_licensed/user_notification_email', $data,true);	
@@ -265,7 +293,7 @@ class Licensed_requests extends MY_Controller {
 		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
 		$this->email->to($user->email);
 		$this->email->bcc($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
-		$this->email->subject('[#'.$requestid.'] - Request status updated for '.$data->survey_title );
+		$this->email->subject('[#'.$requestid.'] - Request status updated for '.$data->title );
 		$this->email->message($message);
 		
 		if ($this->email->send())
