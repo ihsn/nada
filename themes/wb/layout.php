@@ -21,6 +21,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
 
 <script type="text/javascript" src="javascript/jquery/jquery.js"></script>
+<script type="text/javascript" src="javascript/jquery.ba-bbq.js"></script>
 
 <?php if (isset($_styles) ){ echo $_styles;} ?>
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
@@ -95,13 +96,15 @@ margin-left: -25em;
                         </div>
                     <?php endif;?>
                     
-					<?php if (isset($search_filters) && $search_filters!==false):?>						
+					<?php if (isset($search_filters) && $search_filters!==false):?>
+                    	<div class="main-body-container">
                         <div id="yui-main">
                             <div  class="yui-b"><?php echo isset($content) ? $content : '';?></div>
                         </div>
                                                 
                         <div id="facets" class="yui-b">
 						<?php echo $search_filters;?>
+                        </div>
                         </div>
                     <?php else:?>
                     	<?php echo isset($content) ? $content : '';?>

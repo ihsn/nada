@@ -1,5 +1,5 @@
 <style>
-.share-bar-container{position:relative;text-align:right;border:0px solid blue;margin-left:auto;margin-right:0px;z-index:899;height:35px;}
+.share-bar-container{position:relative;text-align:right;border:0px solid blue;margin-left:auto;margin-right:0px;z-index:100;height:35px;}
 ul.share-bar{position:absolute;border:0px solid red;height:30px;width:auto;text-align:left;right:0px;z-index:999}
 ul.share-bar li{float:left;margin-left:3px;border:0px solid blue;padding:5px;position:relative;height:24px;vertical-align:baseline}
 ul.share-bar .item-body{position:absolute;height:100px;width:100px;background:white;border:2px solid #CCCCCC;right:0px;z-index:100}

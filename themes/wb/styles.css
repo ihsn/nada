@@ -17,7 +17,6 @@ body, html {
 	padding-top:5px;
 	background:url("bleed_page.png") repeat-y scroll 50% 0 transparent;
 }
-#hd{}
 #bd{border:0px;margint-top:10px;clear:both;margin-top:10px;}
 #banner {
 background-color: #036;
@@ -87,7 +86,7 @@ h4 {
 }
 p {
 	margin-bottom:15px;
-	font-size:13px;
+	font-size:1em;
 	line-height:20px;
 	color:#333333;
 }
@@ -129,39 +128,8 @@ input{padding-left:3px;padding-right:3px;}
 ol{ display: block;margin-bottom:20px; }
 ol li{list-style-type:decimal;margin-left:20px;}
 
-/*lsms related styles*/
-.highlights, .highlights td {color:gray;font-family: verdana; font-size:11px; line-height:1.5em;}
-.lsms p,.lsms ul, .lsms ol{font-size:14px;margin-bottom:10px; color:#333333}
-.lsms li li {font-size:14px;}
-.lsms li, .lsms ul{margin-left:15px;list-style:disc outside;}
-.lsms h1{margin-bottom:15px;}
-.lsms ul{display:block;}
-.highlights h3{padding:5px;margin:0px;background-color:#CCCCCC;color:#333333;height:32px; overflow:hidden; margin-bottom:5px;}
-
-.button-light {
-	border:1px solid gainsboro;
-	padding:2px;
-	text-decoration:none;
-	color:gray;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
-	background:white;
-	display:inline-block
-}
-.button-light img {
-	border:0px;
-	vertical-align:bottom;
-	padding-right:5px;
-}
-.button-light:hover {
-	border:1px solid black;
-	background-color:black;
-	color:white;
-}
 em{font-style:italic;}
 strong{font-weight:bold;}
-
-
 
 .menu-horizontal {
 border: 1px solid gainsboro;
@@ -185,3 +153,29 @@ font-weight: bold;
 .breadcrumbs{padding:5px;font-size:14px;margin-bottom:20px;}
 .breadcrumbs a,.breadcrumbs span{color:#003399;}
 .breadcrumbs .active{color:gray;}
+
+/*----------------------------------------------------------------------------*/
+
+/*licensed request - select_request */
+.lic-requests-container {position:relative;}
+.lic-requests-container .inline {display:inline;font-size:small;margin-right:15px;}
+.lic-requests-container .btn-download-microdata a{padding:5px;background:#048;color:white;display:block;float:left;font-size:small;}
+.lic-requests-container .btn-download-microdata a:hover{background:black;color:white;}
+.lic-requests-container a.btn-new-request{padding:5px;background:black;color:white;position:absolute;top:5px;right:5px;font-size:smaller;}
+
+
+/*licensed request application form*/
+.data-request-form-container .grid-table td{font-size:1em}
+.data-request-form-container .note{background-color:#C1DAD7;}
+.data-request-form-container .grid-table .no-wrap{white-space:nowrap}
+.data-request-form-container .bull-list{margin-left:10px;}
+.data-request-form-container .bull-list li{font-size:small;margin-bottom:8px;line-height:140%;}
+/*.public-use td{border:1px solid gainsboro;padding:5px;}*/
+.data-request-form-container td .required{color:red;}
+.data-request-form-container td .field-caption{font-weight:bold;}
+
+/*remote data access*/
+.remote-data-access .remote-access-link{background-color:#F3F3F3;border:1px solid gainsboro;padding:5px;}
+.remote-data-access a:link{color:navy;}
+.remote-data-access a:link:hover{color:maroon;}
+
