@@ -46,7 +46,8 @@ class Catalog_model extends CI_Model {
 					'project_uri',
 					'published',
 					'surveys.created',
-					'changed'
+					'changed',
+					'varcount'
 					);
 	
 	//additional filters on search
@@ -1087,6 +1088,24 @@ class Catalog_model extends CI_Model {
 		}
 		return FALSE;
 	}
+
+	
+	/**
+	*
+	* Return resource count by survey and resource type
+	*
+	*/
+	function has_external_resources($surveyid)
+	{
+		$this->db->select('count(*) as total');
+		$this->db->where('survey_id',$surveyid);
+		$this->db->not_like('dctype','dat]');
+		$this->db->not_like('dctype','dat/micro]');
+		$result=$this->db->get('resources')->row_array();
+		
+		return $result['total'];
+	}
+
 	
 	
 	/**
@@ -1461,4 +1480,23 @@ class Catalog_model extends CI_Model {
 		
 		return $query;
 	}
+	
+	/**
+	*
+	* Increment view by one
+	**/
+	function increment_study_view_count($id)
+	{
+		$this->db->query('update surveys set total_views=total_views+1 where id='.$this->db->escape((int)$id) );
+	}
+
+	/**
+	*
+	* Increment download by one
+	**/
+	function increment_study_download_count($id)
+	{
+		$this->db->query('update surveys set total_downloads=total_downloads+1 where id='.$this->db->escape((int)$id) );
+	}
+
 }
