@@ -348,21 +348,27 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_active_countries($repositoryid=NULL)
 	{
-		$sql='select nation,count(nation) as surveys_found 
-				from '.$this->db->dbprefix.'surveys';
-		if ($repositoryid!==NULL && trim($repositoryid)!='' && $repositoryid!='central')
+		$this->db->select('cid,country_name as nation, count(cid) as surveys_found');
+		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
+		$this->db->order_by('survey_countries.country_name','ASC');
+		$this->db->group_by('cid,country_name','ASC');
+		$this->db->where('surveys.published',1);
+		if($repositoryid!=NULL)
 		{
-			$sql.='	inner join survey_repos sr on sr.sid=surveys.id 
-					where sr.repositoryid='.$this->db->escape($repositoryid);
-			$sql.=' and published=1';
+			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
-		else
+		
+		$rows=$this->db->get('survey_countries')->result_array();
+		
+		$countries=array();
+		foreach($rows as $country)
 		{
-			$sql.=' where published=1';
+			$countries[$country['cid']]=$country;
 		}
-		$sql.=' group by nation';
-		$sql.=' order by nation ASC';
-		return $this->db->query($sql)->result_array();		
+		
+		//echo $this->db->last_query();
+		return $countries;
 	}
 	
 	
