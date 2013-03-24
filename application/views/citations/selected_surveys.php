@@ -4,9 +4,6 @@
 *
 */
 ?>
-<style>
-.custom-short-font{font-size:11px;}
-</style>
 <?php if ($selected_surveys): ?>
 <script type="text/javascript">
 	$(function() {
@@ -15,7 +12,7 @@
 		});
 	});
 </script>
-<table class="grid-table custom-short-font" cellpadding="0" cellspacing="0" id="related-surveys-table">
+<table class="grid-table custom-short-font" cellpadding="0" cellspacing="0" id="related-surveys-table" style="background:white;">
 <thead>
 	<tr class="header">        
 	    <th>&nbsp;</th>
