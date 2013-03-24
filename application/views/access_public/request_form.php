@@ -73,13 +73,13 @@
     <tr class="border">
       <td colspan="2" class="note" align="right"><input type="checkbox" title="I Agree" id="chk_agree" name="chk_agree" onClick="isagree()"/>
         <label for="chk_agree"><?php echo t('i_agree');?>&nbsp;&nbsp;</label>
-        <input type="submit" value="<?php echo t('submit');?>" id="submit" name="submit"  onClick="submitform()">
+        <input type="submit" disabled="disabled" value="<?php echo t('submit');?>" id="submit" name="submit"  onClick="submitform()" />
       </td>
     </tr>
   </table>
 </form>
 <script type="text/javascript">
 	function isagree(){
-		$("#submit").attr('disabled', !$("#chk_agree").attr("checked"))	
+		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))	
 	}
 </script>
