@@ -36,7 +36,7 @@ License:
 		
 <xsl:template match="/">	
 	<div id="variable-list">					
-    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data File</xsl:with-param></xsl:call-template></div>
+    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Dictionary</xsl:with-param></xsl:call-template></div>
 	<xsl:apply-templates select="//ddi:codeBook/ddi:fileDscr[@ID=$file]"/>
 
 	<xsl:variable name="offset">
@@ -83,21 +83,23 @@ License:
 	<h2 class="xsl-subtitle" id="variables"><xsl:call-template name="gettext"><xsl:with-param name="msg">Variables</xsl:with-param></xsl:call-template></h2>
 	<table border="1" style="border-collapse:collapse;" cellpadding="4" class="table-variable-list" width="100%">
 		<tr class="var-th">
-		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">ID</xsl:with-param></xsl:call-template></td>
 		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></td>
 		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Label</xsl:with-param></xsl:call-template></td>
 		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Question</xsl:with-param></xsl:call-template></td>
 		</tr>
 		<xsl:apply-templates select="//ddi:codeBook/ddi:dataDscr/ddi:var[@files=$file]"/>
-		<tr>
-			<td colspan="2">
+		</table>
+        
+        <table style="border-collapse:collapse;width:100%;" cellpadding="4" class="ddi-var-pager">
+        <tr>
+			<td>
 			<div class="count">
 			<xsl:call-template name="gettext">
 				<xsl:with-param name="msg">Total variable(s):</xsl:with-param></xsl:call-template>
 			<xsl:text> </xsl:text> <xsl:value-of select="$total"/>
 			</div>
 			</td>
-			<td colspan="2">
+			<td>
 					<!-- pager bar -->
 					<div class="variable-pager-container">
 						<xsl:call-template name="tplPaging">
@@ -151,8 +153,7 @@ License:
 	            <xsl:call-template name="gettext"><xsl:with-param name="msg">Click to view variable information</xsl:with-param></xsl:call-template>
             </xsl:variable>
     <tr valign="top" class="{$class}" id="{$id}" title="{$hover}">			
-        <td class="var-td"><a href="{$link}" ><xsl:value-of select="@ID"/></a><!--  - <xsl:value-of select="position()"/>--></td>
-        <td class="var-td"><xsl:value-of select="@name"/></td>
+        <td class="var-td"><a href="{$link}" ><xsl:value-of select="@name"/></a></td>
         <td class="var-td"><xsl:value-of select="ddi:labl"/></td>
         <td class="var-td"><xsl:call-template name="lf2br"><xsl:with-param name="text" select="ddi:qstn/ddi:qstnLit"/></xsl:call-template></td>
     </tr>
