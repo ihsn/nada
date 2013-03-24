@@ -103,12 +103,19 @@ $options_section=$this->data['section_options'];
     </div>
 
     <div class="field">
-        <label for="group_da">
-        <?php echo form_checkbox('group_da', '1', get_form_value('group_da',isset($this->data['group_da']) ? $this->data['group_da'] : FALSE),'id="group_da"');?>
-		<?php echo t('da_by_collection');?>
+        <label for="group_da_public">
+			<?php echo form_checkbox('group_da_public', '1', get_form_value('group_da_public',isset($this->data['group_da_public']) ? $this->data['group_da_public'] : FALSE),'id="group_da_public"');?>
+            <?php echo t('Public data access by collection');?>
         </label>
         <div class="description"><?php echo t('da_by_collection_description');?></div>
-		<?php //echo form_checkbox('group_da', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''));?>
+    </div>  
+
+    <div class="field">
+        <label for="group_da_licensed">
+			<?php echo form_checkbox('group_da_licensed', '1', get_form_value('group_da_licensed',isset($this->data['group_da_licensed']) ? $this->data['group_da_licensed'] : FALSE),'id="group_da_licensed"');?>
+            <?php echo t('Licensed data access by collection');?>
+        </label>
+        <div class="description"><?php echo t('da_by_collection_description');?></div>
     </div>  
 
     <p>
