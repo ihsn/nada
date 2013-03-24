@@ -128,7 +128,7 @@ function update_survey_collection(e) {
 		var survey_id=<?php echo $survey_id;?>;
 		
 		//attach survey dialog
-		$('.add_survey').live('click', function() {
+		$('.attach_citations').live('click', function() {
 				var iframe_url=CI.base_url+'/admin/related_citations/index/'+survey_id;
 				$('<div id="dialog-modal" title="Select Related Citations"></div>').dialog({ 
 					height: 450,
@@ -145,16 +145,92 @@ function update_survey_collection(e) {
 				}).append('<iframe height="404" width="700" src="'+iframe_url+'" frameborder="0"></iframe>');
 		});
 		
-		//related_citations_click();
-	});
-
-	//remove related citations
-	$(function() {
+		//remove related citations
 		$('#related-citations .remove').live('click', function() {
 			$.get($(this).attr("href")+'/1');
 			$(this).parent().parent().remove();
 			return false;
 		});
+		
+		
+		//attach related studies
+		$(document.body).on("click",".related_studies_attach_studies", function(){
+			dialog_select_related_studies();return false;
+		});
+
+		
+	});
+	
+	
+	
+	//related_studies_attach_studies selection dialog
+	function dialog_select_related_studies()
+	{
+		var dialog_id='dialog-related-studies';
+		var title="Select Studies";
+		var survey_id=<?php echo $survey_id;?>;
+				
+		var tmp_id='sess-'+survey_id;//for saving dialog selection to cookies
+		var url=CI.base_url+'/admin/dialog_select_studies/index/'+tmp_id;
+		var get_selection_url=CI.base_url+"/admin/dialog_select_studies/get_list/"+tmp_id;
+		var tab_id="#related-studies-tab";
+		
+		//add attached surveys to session, needed when editing a citations with survey attached
+		//var url_add=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+'<?php //echo implode(",",$selected_surveys_id_arr);?>/1';
+		//$.get(url_add);	//update session
+		if ($('#'+dialog_id).length==0){
+			$("body").append('<div id="'+dialog_id+'" title="'+title+'"></div>');		
+		}
+		
+		var dialog=$( "#"+dialog_id ).dialog({
+			height: 500,
+			position:"center",
+			width:750,
+			modal: true,
+			autoOpen: true,
+			buttons: {
+				"Cancel": function() {
+					$( this ).dialog( "close" );
+				},
+				"Apply filter": function() {
+					//var dialog=$(this).closest(".ui-dialog");
+					$.getJSON(get_selection_url, function( json ) {
+					   var items=json.items.split(",");
+					   $.get(CI.base_url+'/admin/catalog/attach_related_study/'+survey_id+'/'+json.items+'/'+0);
+						/*$.each( items, function( index, value ) {
+							console.log( index + ": " + value );
+						});*/
+					 });
+					$( this ).dialog( "close" );
+				}
+			}//end-buttons
+		});//end-dialog
+
+		//load dialog content
+		$('#'+dialog_id).load(url, function() {
+			console.log("loaded");			
+		});
+	
+		$(document.body).on("click","#related-surveys th a,#related-surveys .pagination a", function(){
+			$("#dialog-related-studies").load( $(this).attr("href") );
+			return false;
+		});
+		
+		 $(document.body).on("click","#dialog-related-studies .btn-search-submit", function(){
+			data=$("#dialog-related-studies form").serialize();
+			$("#dialog-related-studies").load( url+"?"+data );
+			return false;
+		});
+	}//end-function	
+	
+	//relationship type change event
+	$(document.body).on("change",".table-related-studies .rel-type", function(){
+		var tr=$(this).closest("tr");
+		var sid_1=tr.attr("data-sid_1");
+		var sid_2=tr.attr("data-sid_2");
+		var url=CI.base_url+'/admin/catalog/update_related_study/'+sid_1+'/'+sid_2+'/'+$(this).val();
+		$.get(url);
+		return false;
 	});
 
 </script>
@@ -251,14 +327,71 @@ border-radius: 3px;clear:right;}
 .tags-container .input-flex{width:85%;}
 .survey-other-ids .input-flex{width:85%;}
 .remove{padding:5px;cursor:pointer;}
-.remove:hover{font-weight:bold}
 .tag{font-size:11px;}
 .vscroll{overflow:auto;overflow-x:hidden;height:150px;}
 .survey-tabs .count{font-size:smaller;}
 
 /*model dialog*/
-.ui-widget-header{background:black;border:black;}
+.ui-widget-header{background:black;border:black;color:white;}
 .ui-dialog .ui-dialog-content{overflow:hidden;padding:0px;background:white;}
+
+/*related studies tab*/
+.dialog-container .table-container {
+	height: 246px;
+	overflow: auto;
+	font-size: 12px;
+}
+
+.dialog-container .pagination em{float:left;}
+.dialog-container .pagination .page-nums{float:right;}
+
+.dialog-container a.attach, 
+.dialog-container a.remove {
+background: green;
+padding: 3px;
+color: white;
+display: block;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px;
+border-radius: 3px;
+float:left;
+width:60px;
+text-align:center;
+text-transform:capitalize
+}
+.dialog-container a.remove{background:red;}
+
+.dialog-container a.attach:hover, 
+.dialog-container a.remove:hover {background:black;}
+
+
+.ui-dialog .ui-dialog-titlebar-close {top:22%;}
+
+.ui-widget-header {
+background: white;
+border: 0px;
+color: black;
+height: 56px;
+}
+
+/*dialog header*/
+.ui-dialog .ui-dialog-titlebar {
+	border-radius: 0px;
+	border: 0px;
+	text-align: left;
+	margin-bottom: 10px;
+	height: 35px;
+	height: 1;
+	padding-top: 31px;
+	background:#F3F3F3
+}
+
+/*dialog footer*/
+.ui-dialog .ui-dialog-buttonpane {
+	font-size: 12px;	
+}
+
+.grid-table .header{font-weight:bold;}
 
 </style>
 <div class="body-container" style="padding:10px;">
@@ -310,7 +443,15 @@ border-radius: 3px;clear:right;}
         </tr>
         <tr>
             <td><?php echo t('country');?></td>
-            <td><?php echo $nation; ?></td>
+            <td><div class="survey-countries">
+				<?php foreach($countries as $country):?>
+                	<?php $country_class=(int)$country['cid']<1 ? 'error' : ''; ?>
+                    <span class="country <?php echo $country_class;?>" id="country-<?php echo $country['id'];?>">
+                        <?php echo $country['country_name'];?>
+                    </span>
+            	<?php endforeach;?>
+                </div>
+            </td>
         </tr>
         <tr>
             <td><?php echo t('authenty');?></td>
