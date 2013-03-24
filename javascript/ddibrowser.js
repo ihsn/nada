@@ -1,5 +1,13 @@
 $(document).ready(function () { 
-		bind_behaviours();
+	
+	//show/hide variable info
+	$(document.body).on("click",".table-variable-list .row-color1, .table-variable-list .row-color2, .table-variable-list .row", function(){ 
+		if($(this).attr("id")!=''){
+			get_variable($(this).attr("id"));
+		}
+		return false;
+	});
+
 });	
 
 function get_variable(id)
@@ -39,17 +47,6 @@ function get_variable(id)
 function toggle_resource(element_id){
 	$("#"+element_id).toggle();
 }
-	
-function bind_behaviours() {
-	//show variable info by id
-	$(".table-variable-list .row-color1, .table-variable-list .row-color2, .table-variable-list .row").click(function(){
-		if($(this).attr("id")!=''){
-			get_variable($(this).attr("id"));
-		}
-		return false;
-	});	
-}
-
 
 function ajax_error_handler(id)	
 {
