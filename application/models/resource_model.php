@@ -611,5 +611,44 @@ class Resource_model extends CI_Model {
 		return FALSE;
 	}
 	
+	/**
+	*
+	* Check user has access to resource file
+	*
+	* checks PUF, LIC, and by collection
+	**/
+	function user_has_download_access($user_id,$survey_id,$resource_id)
+	{
+		//get survey data access
+		$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+		
+		if ($data_access_type=='licensed')
+		{
+			//get files request info with requests status
+			$req_entries=$this->Licensed_model->get_requests_by_file($resource_id,$user_id);
+			
+			if (!$req_entries)
+			{
+				return FALSE;
+			}
+			
+			foreach($req_entries as $req)
+			{
+				if($req['req_status']=='APPROVED' && $req['expiry']> date("U") && $req['downloads'] < $req['download_limit'])
+				{
+					//allow download
+					var_dump($req);exit;
+					return TRUE;
+				}
+			}
+		}
+		else if ($data_access_type=='public')
+		{
+		
+		}
+		
+		//http://localhost/nada4/index.php/catalog/26/download/236
+	}
+	
 }
 ?>
