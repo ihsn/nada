@@ -39,6 +39,18 @@ class Packager_model extends CI_Model {
 		return $query->result_array();	
 	}
 	
+	/**
+	*
+	* use the package_tmp_list table
+	**/
+	public function get_surveys_custom()
+	{
+		$this->db->select('*');
+		$query=$this->db->get("package_tmp_list");
+		return $query->result_array();	
+	}
+	
+	
 
 	//returns all surveys by repositoryid
 	public function get_surveys_by_repo($repoid)
