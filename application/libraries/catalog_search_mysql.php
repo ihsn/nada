@@ -26,7 +26,7 @@ class Catalog_search{
 	var $from=0;
 	var $to=0;
 	var $repo='';
-	var $center=array();
+	//var $center=array();
 	var $collections=array();
 	var $dtype=array();//data access type
 
@@ -89,7 +89,7 @@ class Catalog_search{
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
-		$centers=$this->_build_centers_query();
+		//$centers=$this->_build_centers_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
@@ -130,7 +130,7 @@ class Catalog_search{
 		}
 				
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$centers,$collections,$dtype);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype);
 		
 		//create combined where clause
 		$where='';
@@ -152,7 +152,7 @@ class Catalog_search{
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, forms.model as form_model,link_report,surveys.data_coll_start,surveys.data_coll_end';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title';
+		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query
 		$sql='';
@@ -485,7 +485,7 @@ class Catalog_search{
 
 		if ($param!='')
 		{
-			return sprintf('surveys.id in (select sid from survey_collections where tid in (%s) )',$params);
+			return sprintf('surveys.id in (select sid from survey_repos where survey_repos.repositoryid in (%s) )',$params);
 		}
 		
 		return FALSE;	
@@ -595,7 +595,7 @@ class Catalog_search{
 		}
 						
 		$surveys=implode(',',$survey_id_list);
-		$this->ci->db->select('sid');	
+		$this->ci->db->select('sid,count(sid) as total');	
 		$this->ci->db->where("sid in ($surveys)");
 		$this->ci->db->group_by('sid');	
 		$query=$this->ci->db->get('survey_citations');
@@ -608,7 +608,7 @@ class Catalog_search{
 			
 			foreach($citation_rows as $row)
 			{
-				$result[]=$row['sid'];
+				$result[$row['sid']]=$row['total'];
 			}
 			return $result;
 		}
@@ -633,9 +633,10 @@ class Catalog_search{
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
-				
+		$dtype=$this->_build_dtype_query();
+		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years);
+		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
 		
 		//create combined where clause
 		$where='';
@@ -664,6 +665,7 @@ class Catalog_search{
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.varID,  surveys.titl as titl,surveys.nation as nation, v.surveyid_FK",FALSE);
 		$this->ci->db->join('surveys', 'v.surveyid_fk = surveys.id','inner');	
+		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		
