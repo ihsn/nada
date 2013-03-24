@@ -157,7 +157,32 @@ class Citations extends MY_Controller {
 		//echo $this->bibtex->export($citation);
 	}
 	
-	
+	function export_all($format='html')
+	{
+		$this->db->select('*');
+		$citations=$this->db->get('citations')->result_array();
+		//$this->load->view('citations/export_to_html',$data);				
+		
+		$filename='citations-'.date("m-d-y-his").'.csv';
+		header('Content-Encoding: UTF-8');
+		header( 'Content-Type: text/csv' );
+        header( 'Content-Disposition: attachment;filename='.$filename);
+        $fp = fopen('php://output', 'w');
+		
+		echo "\xEF\xBB\xBF"; // UTF-8 BOM
+
+		//add column names
+		fputcsv($fp, array_keys($citations[0]));
+		
+		foreach($citations as $citation)
+		{
+			$citation['changed']=date("M-d-y",$citation['changed']);
+			$citation['created']=date("M-d-y",$citation['created']);
+			fputcsv($fp, $citation);
+		}
+		
+		fclose($fp);
+	}
 	
 	
 	function _remap()
@@ -187,7 +212,10 @@ class Citations extends MY_Controller {
 				}
 					
 			break;
-			
+						case 'export_all':
+				$this->export_all();
+			break;
+
 			default:
 				$this->index();	
 		}
