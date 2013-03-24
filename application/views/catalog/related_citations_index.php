@@ -27,6 +27,10 @@ a.attach,a.remove{
 	border-radius: 3px;}
 a.remove{background:red;}
 a.attach:hover, a.remove:hover{color:white;}
+.table-container{height: 300px;
+overflow: scroll;
+overflow-x: auto;}
+.ui-dialog .ui-dialog-titlebar{color:white;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -117,6 +121,7 @@ $(function() {
 
 <div id="related-citations">
 
+<div class="table-container">
 <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></th>
@@ -138,7 +143,7 @@ $(function() {
         </tr>
     <?php endforeach;?>
 </table>    
-
+</div>
 
 <table width="100%">
     <tr>
