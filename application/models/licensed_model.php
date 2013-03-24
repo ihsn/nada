@@ -1,13 +1,30 @@
 <?php
 class Licensed_model extends CI_Model {
 
+	//form fields
+	var $db_fields=array(
+					'org_rec',
+					'org_type', 
+					'address', 
+					'tel', 
+					'fax', 
+					'datause', 
+					'outputs',
+					'compdate', 
+					'datamatching', 
+					'mergedatasets', 
+					'team', 
+					'dataset_access'
+					);
+	
     public function __construct()
     {
         parent::__construct();
 		$this->load->config('ion_auth');
-		$this->tables  = $this->config->item('tables');				
+		$this->tables  = $this->config->item('tables');
 		//$this->output->enable_profiler(TRUE);
     }
+	
 	
     /**
      * Check if user has already submitted a request
@@ -18,6 +35,8 @@ class Licensed_model extends CI_Model {
      * @param $survey_id
      * @return request id or false
      */
+	/*
+	*TOBE REMOVED
 	function check_user_request($user_id,$survey_id)
 	{
 		$this->db->select('id');
@@ -36,6 +55,7 @@ class Licensed_model extends CI_Model {
 		
 		return FALSE;
 	}
+	*/
 
 	/**
      * Returns request by user
@@ -44,14 +64,82 @@ class Licensed_model extends CI_Model {
      * @param $user_id
      * @return array
      */
-	function get_user_requests($user_id)
+	function get_user_requests($user_id,$active_only=FALSE)
 	{
-		$this->db->select('lic_requests.id,surveys.titl,lic_requests.created,lic_requests.status');		
+		$this->db->select('lic_requests.id,surveys.titl,lic_requests.created,lic_requests.status,lic_requests.expiry_date');
 		$this->db->from('lic_requests');	
-		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');	
-		$this->db->where('userid',$user_id);						
+		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');
+		$this->db->where('userid',$user_id);
+		$result=$this->db->get()->result_array();
+		
+		if($active_only===TRUE)
+		{
+			//remove expired requests
+			foreach($result as $key=>$row)
+			{
+				if ((int)$row['expiry_date']>0 && $row['expiry_date']<=date("U"))
+				{
+					unset($result[$key]);
+				}
+			}
+		}
+		
+		return $result;		
+	}
+
+	/**
+	*
+	*Find request for a user by study
+	**/
+	function get_requests_by_study($sid,$user_id,$active_only=FALSE)
+	{
+		$this->db->select('lic_requests.id,surveys.titl,lic_requests.created,lic_requests.status,lic_requests.expiry_date');
+		$this->db->from('lic_requests');	
+		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');
+		$this->db->where('userid',$user_id);
+		$this->db->where('surveys.id',$sid);
+		$result=$this->db->get()->result_array();
+		
+		if($active_only===TRUE)
+		{
+			//remove expired requests
+			foreach($result as $key=>$row)
+			{
+				if ((int)$row['expiry_date']>0 && $row['expiry_date']<=date("U"))
+				{
+					unset($result[$key]);
+				}
+			}
+		}
+		
+		return $result;		
+	}
+
+
+	/**
+     * Returns request for access to a collection by user
+     * 
+     * 
+     * @param $user_id
+     * @return array
+     */
+	function get_user_collection_requests($user_id,$repository_id=NULL,$request_status=NULL)
+	{
+		$this->db->select('lic_requests.id,repositories.title,lic_requests.created,lic_requests.status');		
+		$this->db->from('lic_requests');	
+		$this->db->join('repositories', 'repositories.repositoryid = lic_requests.collection_id','inner');
+		$this->db->where('userid',$user_id);
+		if($repository_id)
+		{
+			$this->db->where('repositories.repositoryid',$repository_id);
+		}
+		if($request_status)
+		{
+			$this->db->where_in('status',$request_status);
+		}	
 		return $this->db->get()->result_array();
 	}
+
     
 	/**
 	 * 
@@ -82,8 +170,6 @@ class Licensed_model extends CI_Model {
      */
     function insert_request($survey_id,$user_id,$options)
 	{
-		$db_fields=array('org_rec','org_type', 'address', 'tel', 'fax', 'datause', 'outputs','compdate', 'datamatching', 'mergedatasets', 'team', 'dataset_access');
-
 		$data= array(
                'surveyid' => $survey_id ,
                'userid' => $user_id ,
@@ -95,7 +181,46 @@ class Licensed_model extends CI_Model {
 
 		foreach($options as $key=>$value)
 		{
-			if (in_array($key,$db_fields))
+			if (in_array($key,$this->db_fields))
+			{
+				$data[$key]=$value;
+			}
+		}		
+		$result=$this->db->insert('lic_requests', $data); 
+		log_message('info',"Request received for [Licensed dataset]");
+		
+		if ($result)
+		{
+			return $this->db->insert_id();
+		}	
+		else
+		{
+			//failed
+			log_message('info',"FAILED to save request for [Licensed dataset=$survey_id] by user $user_id ");
+		}
+		
+		return FALSE;
+	}
+
+	/**
+	*
+	* Insert request by collection
+	**/
+    function insert_collection_request($collection_id,$user_id,$options)
+	{
+		$data= array(
+               'collection_id' 	=> $collection_id,
+			   'request_type'	=>'collection',
+               'userid' 		=> $user_id ,
+			   'created' 		=> date("U"),
+			   'updated' 		=> date("U"),
+				'status'		=>'PENDING',
+				'locked'		=>1
+        );
+
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$this->db_fields))
 			{
 				$data[$key]=$value;
 			}
@@ -143,6 +268,36 @@ class Licensed_model extends CI_Model {
 	}
 
 
+	/**
+	*
+	* Get the max expiry date from licensed files 
+	**/
+	function get_files_max_expiry($request_id)
+	{
+		$this->db->select('max(expiry) as max_expiry',FALSE);
+		$this->db->where('requestid',$request_id);
+		$result=$this->db->get('lic_file_downloads')->row_array();
+		
+		return (int)$result['max_expiry'];
+	}
+
+	/**
+	*
+	* Update request expiry
+	**/
+	function update_request_expiry($request_id)
+	{
+		$max_expiry=$this->get_files_max_expiry($request_id);
+		
+		//update request
+		$options=array(
+			'expiry_date'=>$max_expiry
+		);
+		
+		$this->db->where('id',$request_id);
+		$this->db->update('lic_requests',$options);
+	}
+
 	function update_request_files($request_id,$file_options)
 	{		
 		foreach($file_options as $key=>$option)
@@ -173,11 +328,15 @@ class Licensed_model extends CI_Model {
 			if (!$result)
 			{
 				log_message('info',"FAILED to attach file ". $data['fileid']);
-				return FALSE;
 			}					
 		}
+		
+		//update request expiry date
+		$this->update_request_expiry($request_id);
 		return TRUE;
 	}
+	
+	
 	
 	function delete_request_files($requestid,$excluded=NULL)
 	{		
@@ -236,26 +395,35 @@ class Licensed_model extends CI_Model {
 	 */
 	function get_request_by_id($request_id)
 	{	
-		$this->db->select('lic_requests.*, titl,surveys.id as survey_uid, proddate,nation');		
-		$this->db->from('lic_requests');		
-		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');
-		$this->db->where('lic_requests.id',$request_id);		
-
+		//get request info
+		$this->db->select('*');
+		$this->db->from('lic_requests');
+		$this->db->where('lic_requests.id',$request_id);
 		$result = $this->db->get()->row_array();
-		
+
 		if ($result)
 		{
+			if ($result['request_type']=='study')
+			{
+				//get study info
+				$this->db->select('id,titl,proddate,nation');
+				$this->db->where('id',$result['surveyid']);
+				$result['surveys'][] = $this->db->get('surveys')->row_array();
+			}
+			elseif ($result['request_type']=='collection')
+			{
+				//get studies from collection
+				$this->load->model('Repository_model');
+				$result['collection']=$this->Repository_model->get_repository_by_repositoryid($result['collection_id']);
+				$result['surveys']= $this->Repository_model->repo_survey_list($result['collection_id'],array('licensed'));
+			}
+			
 			//get user info
-			$this->db->select('first_name as fname, last_name as lname, company as organization, email');
+			$this->db->select('users.id,first_name as fname, last_name as lname, company as organization, email');
 			$this->db->from($this->tables['meta']);
 			$this->db->join($this->tables['users'], sprintf('%s.id = %s.user_id',$this->tables['users'],$this->tables['meta']),'inner');
 			$this->db->where($this->tables['meta'].'.user_id',$result['userid']);			
-			$user=$this->db->get()->row_array();
-			
-			if ($user)
-			{
-				$result=array_merge($result,$user);
-			}
+			$result['user']=$this->db->get()->row_array();
 		}
 			
 		return $result;
@@ -512,11 +680,11 @@ class Licensed_model extends CI_Model {
     	$this->db->start_cache();
 
 		//select columns for output
-		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title, surveys.repositoryid, surveys.nation, surveys.data_coll_start, surveys.data_coll_end');
+		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title, surveys.repositoryid, surveys.nation, surveys.data_coll_start, surveys.data_coll_end, repositories.title as repo_title');
 		
 		//allowed_fields
 		$db_fields=array(
-					'status'=>'status',
+					'status'=>'lic_requests.status',
 					'username'=>'username',
 					'title'=>'surveys.titl',
 					'survey_title'=>'surveys.titl',
@@ -548,7 +716,8 @@ class Licensed_model extends CI_Model {
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('lic_requests');		
 		$this->db->join($this->tables['users'], $this->tables['users'].'.id = lic_requests.userid');
-		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid');
+		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','LEFT');
+		$this->db->join('repositories', 'repositories.repositoryid = lic_requests.collection_id','LEFT');
 		$this->db->stop_cache();
 
 		//set default sort order, if invalid fields are set
@@ -707,4 +876,132 @@ class Licensed_model extends CI_Model {
 		$this->db->delete('lic_requests_history');
 	}
 	
+	
+	/**
+	* Get Requests by File-ID
+	*
+	*	@file_id		int		resource id
+	*	@user_id 		int		user id
+	*/
+	function get_requests_by_file($file_id,$user_id)
+	{	
+	/*
+		$this->db->select('lic_file_downloads.*,lic_requests.userid,lic_requests.status as request_status');
+		$this->db->from('lic_file_downloads');
+		$this->db->join('lic_requests', 'lic_requests.id = lic_file_downloads.requestid','INNER');
+		if($user_id)
+		{
+			$this->db->where('userid',$user_id);
+		}
+		$this->db->where('fileid',$file_id);
+		return $this->db->get()->result_array();
+		*/
+		$sql=sprintf('select * from lic_requests 
+						inner join lic_file_downloads on lic_requests.id=lic_file_downloads.requestid
+						where lic_requests.id in (select requestid from lic_file_downloads where fileid=%d)
+						and userid=%d and lic_file_downloads.fileid=%d;',
+					$this->db->escape((int)$file_id),
+					$this->db->escape((int)$user_id),
+					$this->db->escape((int)$file_id)
+					);
+	
+		$result=$this->db->query($sql)->result_array();
+		return $result;
+	}
+	
+	
+	/**
+	*
+	* Return user requests by study
+	*
+	**/
+	function get_user_study_requests($survey_id, $user_id,$request_status=NULL)
+	{
+		$this->db->select('id,request_type,status');
+		$this->db->where('userid',$user_id);
+		$this->db->where('surveyid',$survey_id);
+		if($request_status)
+		{
+			$this->db->where_in('status',$request_status);
+		}
+		return $this->db->get('lic_requests')->result_array();
+	}
+	
+		
+	/*
+	*
+	* return requests for studies/collections
+	**/
+	function get_user_study_n_collection_requests($survey_id,$user_id,$request_status=NULL)
+	{
+		$requests=array();
+		
+		//collections that study belong to with DA access enabled
+		$collections=$this->get_study_collections($survey_id);
+		
+		if($collections)
+		{
+			//find requests by collection
+			foreach($collections as $collection)
+			{
+				$result=$this->get_user_collection_requests($user_id,$collection['repositoryid'],$request_status);
+				
+				if($result)
+				{
+					foreach($result as $row)
+					{
+						$requests[]=$row;
+					}
+				}
+			}
+		}
+				
+		//find requests by study
+		$result=$this->get_user_study_requests($survey_id,$user_id);
+		
+		if ($result)
+		{
+			foreach($result as $row)
+			{
+				$requests[]=$row;
+			}
+		}
+		
+		return $requests;
+	}
+	
+	/**
+	*
+	* return survey collections with LICENSED DA enabled
+	**/
+	function get_study_collections($survey_id)
+	{
+		$this->db->select('survey_repos.repositoryid');
+		$this->db->join('repositories', 'repositories.repositoryid = survey_repos.repositoryid','INNER');
+		$this->db->where('survey_repos.sid',$survey_id);
+		$this->db->where('repositories.group_da_licensed',1);
+		return $this->db->get('survey_repos')->result_array();	
+	}
+	
+	
+	/**
+	*
+	* Check if user has active access to survey
+	*
+	* Note: checks access by checking if user has an APPROVED request for the study
+	**/
+	function check_user_has_data_access($survey_id,$user_id)
+	{
+		$requests=$this->get_user_study_n_collection_requests($survey_id,$user_id);
+			
+			foreach($requests as $request)
+			{
+				if ($request['status']=='APPROVED')
+				{
+					return TRUE;
+				}
+			}
+	
+		return FALSE;
+	}
 }
