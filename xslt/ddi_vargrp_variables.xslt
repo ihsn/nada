@@ -84,7 +84,6 @@ License:
 						<h2 class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Variables</xsl:with-param></xsl:call-template></h2>
 						<table border="1" style="border-collapse:collapse;width:100%;border:1px solid silver;" cellpadding="2" class="table-variable-list">
 							<tr class="var-th">
-								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">ID</xsl:with-param></xsl:call-template></td>
 								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></td>
 								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Label</xsl:with-param></xsl:call-template></td>
 								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Type</xsl:with-param></xsl:call-template></td>
@@ -111,11 +110,6 @@ License:
         <xsl:variable name="link"><xsl:value-of select="$browser_url"/>/variable/<xsl:value-of select="$id"/></xsl:variable>
 
 		<tr valign="top" class="{$class}" style="cursor:pointer" id="{$id}" title="Click to view variable info">
-			<td class="var-td">
-				<a class="var-link" href="{$link}">
-					<xsl:value-of select="@ID"/>
-				</a>
-			</td>
 			<td  class="var-td">
 				<a class="var-link"  href="{$link}">
 					<xsl:value-of select="@name"/>
