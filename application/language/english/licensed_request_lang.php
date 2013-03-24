@@ -119,5 +119,7 @@ $lang['comment'] = "Comment";
 $lang['communicate_history'] = "History";
 $lang['sent_by'] = "Sent by";
 $lang['forward_history'] = "History";
+$lang['data_restricted_use'] = "The data is provided only for the purpose described in the request form, to be able to use the data for any other purpose make a new access request.";
+
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */

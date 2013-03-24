@@ -126,5 +126,7 @@ $lang['licensed_title']='Licensed data files';
 $lang['direct_title']='Direct access files';
 $lang['data_na_title']='Studies with no data available';
 $lang['remote_title']='Data available from external repository';
+$lang['data_is_available_from_external_repository']='Data for the study is available from an external site, please use the link below:';
+
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */
