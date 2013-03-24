@@ -193,7 +193,7 @@ class Catalog extends MY_Controller {
 			$survey_repos=$this->Repository_model->get_survey_repositories($survey_id_array);
 		
 			$survey_lic_pending=$this->Licensed_model->get_pending_requests_count($survey_id_array);
-		
+			
 			//attach survey repositories
 			foreach($surveys as $key=>$row)
 			{
@@ -204,7 +204,7 @@ class Catalog extends MY_Controller {
 					$surveys[$key]['repositories']=$survey_repos[$row['id']];
 				}
 				
-				if (array_key_exists($row['id'],$survey_lic_pending))
+				if (is_array($survey_lic_pending) && array_key_exists($row['id'],$survey_lic_pending))
 				{
 					$surveys[$key]['pending_lic_requests']=$survey_lic_pending[$row['id']];
 				}
@@ -1670,9 +1670,11 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		$this->acl->user_has_study_access($id);
 	
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-		$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
+		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
+		//$this->template->add_js('javascript/jquery/ui/ui.core.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
        	$this->load->model('Citation_model');
 		$this->load->model('Catalog_Notes_model');
        	$this->load->model('Catalog_Tags_model');
@@ -1698,7 +1700,10 @@ class Catalog extends MY_Controller {
 		}
 		
 		$survey_row['survey_id']=$id;
-				
+		
+		//get survey countries
+		$survey_row['countries']=$this->Catalog_model->get_survey_countries($id);
+		
 		//check if survey has citations
 		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
 		
@@ -1742,7 +1747,14 @@ class Catalog extends MY_Controller {
 		//TODO: recheck
 		//see if the edited citation has citations attached, otherwise assign empty array
 		$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
-		$survey_row['selected_citations'] = $selected_citations;	
+		$survey_row['selected_citations'] = $selected_citations;
+		
+		//get study relationships
+		$this->load->model("Related_study_model");
+		$survey_row['related_studies']=$this->Related_study_model->get_relationships($id);
+		
+		//array of all relationship types
+		$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
 
 		//data access form list
 		$this->load->model('Form_model');
@@ -1760,7 +1772,7 @@ class Catalog extends MY_Controller {
 	}
 
 
-/*
+	/*
 	*
 	* Update various study options
 	*/
@@ -1864,6 +1876,37 @@ class Catalog extends MY_Controller {
 		return $result;
 	}
 
+
+	/**
+	*
+	* add/update related study 
+	*
+	*	@p_sid			parent study id
+	*	@c_sid			child studies comma separated list e.g 1,2,3,4
+	*	@relation_id	relationship id
+	**/
+	function update_related_study($p_sid,$c_sid,$relation_id)
+	{
+		if(!is_numeric($p_sid))
+		{
+			show_error("INVALID_PARAMS");
+		}
+		
+		$c_sid_arr=explode(",",$c_sid);
+		
+		foreach($c_sid_arr as $value)
+		{
+			if(!is_numeric($value))
+			{
+				show_error("INVALID_PARAM");
+			}
+		}
+		
+		//attach related studies
+		$this->load->model("Related_study_model");
+		$this->Related_study_model->update($p_sid,$c_sid_arr,$relation_id);
+		
+	}
 
 }
 /* End of file catalog.php */
