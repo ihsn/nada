@@ -139,12 +139,10 @@ table .input-flex{margin-bottom:5px;}
 
 <fieldset class="field-expanded">
 	<legend><?php echo t('related_studies');?></legend>
-<div class="field">
-    <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
-			<?php echo $survey_list; ?>
-    </div> 
-	<a style="display:block" class="add_survey" href="javascript:void(0);">Add Surveys</a>   
-</div>
+    <div class="field">
+	    <a style="text-align:right;float:right;display:block;" class="attach_studies" href="javascript:void(0);">Attach Studies</a>   
+        <div id="related-surveys" ><?php echo $survey_list; ?></div>         
+    </div>
 </fieldset>
 
 <fieldset class="field-expanded">
@@ -254,10 +252,10 @@ table .input-flex{margin-bottom:5px;}
 		$.get(url_add);
 		
 		//attach survey dialog
-		$('.add_survey').click(function() {
+		$('.attach_studies').click(function() {
 				var iframe_url=CI.base_url+'/admin/related_surveys/index/'+tmp_id;
 				$('<div id="dialog-modal" title="Select Related Surveys"></div>').dialog({ 
-					height: 440,
+					height: 500,
 					width: 700,
 					resizable: false,
 					draggable: false,
@@ -268,7 +266,7 @@ table .input-flex{margin-bottom:5px;}
 							related_surveys_click();
 						});
 					}
-				}).append('<iframe height="395" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
+				}).append('<iframe height="495" width="654" src="'+iframe_url+'" frameborder="0"></iframe>');
 				return false;
 		});
 		
