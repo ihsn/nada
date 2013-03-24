@@ -1,10 +1,54 @@
+<div class="active-filters-container">
+
+<div class="search-count">
+<?php if ($found==1):?>
+	<?php echo sprintf(t('found_variable'),$found,$total);?>
+<?php else:?>
+	<?php echo sprintf(t('found_variables'),$found,$total);?>
+<?php endif;?>
+</div>
+
+<div class="active-filters">
+	<?php if (is_array($search_options->country)):?>
+		<?php foreach($search_options->country as $country):?>
+        	<?php if (array_key_exists($country,$countries)):?>
+            <span class="remove-filter country" data-type="country" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?></span>
+            <?php endif;?>
+        <?php endforeach;?>
+    <?php endif;?>
+    <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
+		<?php foreach($search_options->dtype as $dtype):?>
+            <span class="remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?></span>
+        <?php endforeach;?>
+    <?php endif;?>
+    <?php if ($search_options->from!='' && $search_options->to!=''):?>
+		<?php if ( $search_options->from!=$min_year || $search_options->to!=$max_year ):?>
+            <span class="remove-filter years" data-type="years" data-value="0">between <?php echo $search_options->from;?>-<?php echo $search_options->to;?></span>
+        <?php endif;?>
+    <?php endif;?>
+    
+    <?php if (isset($search_options->sk) && $search_options->sk!=''):?>
+    <span class="remove-filter sk" data-type="sk" data-value=""><?php echo $search_options->sk;?></span>
+    <?php endif;?>
+    
+	<?php if (isset($search_options->vk) && $search_options->vk!=''):?>
+    <span class="remove-filter vk" data-type="vk" data-value=""><?php echo $search_options->vk;?></span>
+    <?php endif;?>
+</div>
+<div class="filter-action-bar">
+	<a href="#save-search" class="save-search">Save this search</a>
+    <a href="#share-search" class="share-search">Share this search</a>
+    <a href="#print-search" class="print-search">Print list</a>
+</div>
+</div>
+
 <?php if (isset($rows)): ?>
 <?php if ($rows): ?>
 
 <?php		
 	//sort
-	$sort_by=$this->sort_by;
-	$sort_order=$this->sort_order;
+	$sort_by=$search_options->sort_by;
+	$sort_order=$search_options->sort_order;
 
 	//set default sort
 	if(!$sort_by)
@@ -20,6 +64,10 @@
 	
 	$compare_items=$this->session->userdata('compare');
 ?>
+
+<input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
+<input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
+
 <table style="width:100%;" border="0" cellpadding="0" cellspacing="0">
 <tr>
 <td>
@@ -27,19 +75,19 @@
 <?php echo t('sort_results_by');?>:
 <?php 
 	//name
-	echo create_sess_sort_link('search',$sort_by,$sort_order,'name',t('name'),$page_url,array('sk','vk','vf','view') );
+	echo create_sort_link($sort_by,$sort_order,'name',t('name'),$page_url,array('sk','vk','vf','view') );
   echo "| "; 	
 	//label	
-	echo create_sess_sort_link('search',$sort_by,$sort_order,'labl',t('label'),$page_url,array('sk','vk','vf', 'view') );
+	echo create_sort_link($sort_by,$sort_order,'labl',t('label'),$page_url,array('sk','vk','vf', 'view') );
   echo "| ";  
 	//titl
-	echo create_sess_sort_link('search',$sort_by,$sort_order,'titl',t('field_survey_title'),$page_url,array('sk','vk','vf','view') );
+	echo create_sort_link($sort_by,$sort_order,'titl',t('field_survey_title'),$page_url,array('sk','vk','vf','view') );
     	
 	//nation	
 	if ($this->config->item("regional_search")=='yes')
 	{
 		echo "| ";  
-		echo create_sess_sort_link('search',$sort_by,$sort_order,'nation',t('country'),$page_url,array('sk','vk','vf','view') ); 
+		echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('sk','vk','vf','view') ); 
 	}	
 ?>
 </div>
@@ -67,33 +115,7 @@
 							($limit*($current_page-1))+ count($rows),
 							$found);?>
      </td>
-    <td align="right">
-        <span class="page-link">
-        <?php if ($current_page>1):?>
-        	<a title="Prev page" href="#" onclick="search_page(<?php echo $current_page-1; ?>);return false;">&laquo;</a>
-        <?php else:?>
-	       <?php //&laquo;?>
-        <?php endif; ?>
-        </span>  
-
-		<?php 
-			$page_dropdown='<select name="page" id="page" onchange="advanced_search()">';
-			for($i=1;$i<=$pages;$i++)
-			{
-                $page_dropdown.='<option '. (($current_page==$i) ? 'selected="selected"' : '').'>'.$i.'</option>';
-            }
-        	$page_dropdown.='</select>';
-		?>        
-		<?php echo sprintf(t('showing_pages'),$page_dropdown,$pages);?>
-
-		<span class="page-link">
-        <?php if ($current_page<$pages):?>
-        	<a title="Next page" href="#" onclick="search_page(<?php echo $current_page+1; ?>);return false;">&raquo;</a>
-        <?php else:?>
-	        <?php //&raquo;?>
-        <?php endif; ?>
-        </span>
-    </td>
+    <td align="right"><?php $pager_bar=(pager($found,$limit,$current_page,5));echo $pager_bar;?></td>
 </tr>
 </table>
 </div>
@@ -121,7 +143,7 @@
 	        <td style="color:gray;" title="<?php echo t('mark_for_variable_comparison');?>"><input type="checkbox" class="compare" value="<?php echo $row['surveyid_FK'].'/'.$row['varID'] ?>" <?php echo $compare; ?>/></td>
             <td><?php echo anchor('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID'],$row['name'],array('target'=>'blank_','class'=>'dlg','title'=>t('variable_info')));?></td>
             <td>
-				<div class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></div>
+				<h3 class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></h3>
 				<div style="color:#666666"><?php echo $row['nation']. ' - '.$row['titl']; ?></div>
             </td>
             <td><?php echo anchor('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID'],'<img src="images/icon_question.gif" border="0"/>',array('target'=>'blank_','class'=>'dlg','title'=>$row['labl']));?></td>
