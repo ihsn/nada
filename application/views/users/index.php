@@ -84,12 +84,12 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>"/></td>
-            <td><a href="<?php echo current_url().'/edit/'.$row->id; ?>"><?php echo $row->username; ?></a></td>
-            <td><?php echo $row->email; ?>&nbsp;</td>
+            <td><a href="<?php echo current_url().'/edit/'.$row->id; ?>"><?php echo form_prep($row->username); ?></a></td>
+            <td><?php echo form_prep($row->email); ?>&nbsp;</td>
        		<!--<td><?php //echo strtoupper($row->group_name); ?></td>-->
 			<td><?php echo ((int)$row->active)==1 ? t('ACTIVE') : t('DISABLED'); ?></td>
-            <td><?php echo $row->country; ?></td>
-            <td><?php echo substr($row->company,0,60); ?></td>
+            <td><?php echo form_prep($row->country); ?></td>
+            <td><?php echo form_prep(substr($row->company,0,60)); ?></td>
             <td><?php echo date("m-d-Y",$row->created_on); ?></td>
             <?php if ($row->last_login>$row->created_on): ?>
 				<td><?php echo date("m-d-Y",$row->last_login); ?></td>
