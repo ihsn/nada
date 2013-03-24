@@ -7,6 +7,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 	<link type="text/css" rel="stylesheet" href="themes/ddibrowser/ddi.css" />
 <?php endif; ?>
 
+<div style="overflow:hidden;">
+
 <div style="float:right">    
     <a target="blank_" href="<?php echo $section_url.'?print=yes';?>"><img alt="<?php echo t('print');?>" src="images/print.gif" border="0"/></a>
     <a target="blank_" href="<?php echo $section_url.'?pdf=yes';?>"><img alt="<?php echo t('pdf');?>" src="images/pdf.gif" border="0"/></a>
@@ -20,6 +22,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
 <?php endif;?>
 <br style="clear:both;"/>
+</div>
 <?php echo $html;?>
 <?php $this->load->view('tracker/tracker');?>
 <?php //exit;?>

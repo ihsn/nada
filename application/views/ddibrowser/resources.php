@@ -1,7 +1,7 @@
 <style>
 	.resources h3{font-weight:bold;padding-top:10px;font-size:12px;}
 	.abstract{display:none;margin-bottom:10px;background-color:none;}
-	.resources .alternate, .resources .resource{border-bottom:1px solid #C1DAD7;padding:5px;width:98%;}
+	.resources .alternate, .resources .resource{border-bottom:1px solid #C1DAD7;padding:5px;width:98%;overflow:auto;}
 	.resources .alternate{background-color:#FBFBFB;}
 	.resources .alternate:hover, .resources .resource:hover{background-color:#EAEAEA}
 	.resources fieldset {border:0px;border-top:4px solid gainsboro;margin:0px;padding:0px;margin-top:20px;margin-bottom:10px;padding-top:5px;color:#333333;font-size:12px;}
