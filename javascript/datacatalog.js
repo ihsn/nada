@@ -7,7 +7,7 @@ function block_search_form(block){
 	if (block==false){$('#search_form').unblock();return false;}
 	if ($(".blockUI").is(':visible')){return;}
 	$('#search_form').block({ 
-		message: '<img src="images/loading.gif" border="0"/> ' + i18n.searching + ' <input type="button" value="'+i18n.cancel+'" onclick="block_search_form(false);"/>', 
+		message: '',//'<img src="images/loading.gif" border="0"/> ' + i18n.searching + ' <input type="button" value="'+i18n.cancel+'" onclick="block_search_form(false);"/>', 
 		css: { padding:'10px',top:'30px',width:'300px', background:'#F9F9F9', border: '1px solid white' } ,	
 		centerX: true, centerY: false,
 		overlayCSS:  {backgroundColor: '#fff', opacity:0.7}
@@ -24,46 +24,38 @@ function hash_changed()
 
 function get_search_state(){
 	
-	var output=[];
-	var country=[];
-	var da=[];
-	
-	var result=[];
-
-	//keywords
-	output.push('sk='+$("#sk").val());
-	output.push('vk='+$("#vk").val());
+	if($("#vk").val()==''){
+		$("#view").val('s');
+	}
 		
-	//years
-	output.push('from='+$("#from").val());
-	output.push('to='+$("#to").val());
-	
-	//countries
-	if(!$("#search_form .chk-country-any").is(":checked")) {
-		$("#search_form .chk-country:checked").each(function() { 
-				country.push($(this).val());
-		});		
-		output.push('country='+country.join(','));
-	}
-	
-	//data access
-	if(!$("#search_form .chk-da-any").is(":checked")) {
-		$("#search_form .chk-da:checked").each(function() { 
-				da.push($(this).val());
-		});	
-		output.push('dtype='+da.join(','));
-	}
-	
 	var result={
 			view:$("#view").val(),
 			sk:$("#sk").val(),
 			vk:$("#vk").val(),
 			from:$("#from").val(),
 			to:$("#to").val(),
-			country: country.join(','),
-			dtype:da.join(','),
-			page:$("#page").val()
-			}
+			page:$("#page").val(),
+			ps:$("#ps").val(),
+			sort_order:$("#sort_order").val(),
+			sort_by:$("#sort_by").val(),
+			_r:$("#_r").val() //needed only for search button
+			};
+
+	//countries,data access, topics, collections
+	filters=new Object();
+	filters.countries={items:$(".filter-by-country input.chk:checked"),name:'country'};
+	filters.dtypes={items:$(".filter-by-dtype input.chk:checked"),name:'dtype'};
+	filters.topics={items:$(".filter-by-topic input.chk:checked"),name:'topic'};
+	filters.collections={items:$(".filter-by-collection input.chk:checked"),name:'collection'};
+
+	for(var filter in filters){
+		var matches=[];
+		filters[filter].items.each(function() {
+			matches.push($(this).val()); 
+		});
+		result[filters[filter].name]=matches.join(',');
+	}
+
 	return result;
 }
 
@@ -102,6 +94,8 @@ function advanced_search()
 
 
 	block_search_form(true);
+	$("#surveys").html('<img src="images/loading.gif" border="0"/> ' + i18n.searching );
+	
 	$.ajax({
         type: "GET",
         url: CI.base_url+"/catalog/search",
@@ -188,15 +182,7 @@ function bindBehaviors(e)
 		}	
 		return false;
 	})
-	//sort links
-	$(".catalog-sort-links a").unbind('click').click(function(event) {
-		formdata=$(this).prop("href")+'&ajax=1&'+$("#search_form").serialize();
-		$('#surveys')
-			.html('<img src="images/loading.gif" align="bottom" border="0"/> '+ i18n.searching)
-			.load(formdata, function (data){
-				bindBehaviors(this);
-				});return false;
-	});	
+	
 	
 	//data forms dialog
 	$('.accessform').unbind('click').click(function(event) {
@@ -216,14 +202,15 @@ function bindBehaviors(e)
 	//on page size change
 	$(".switch-page-size .button, .switch-page-size .btn").unbind('click').click(function(event) {
 		$("#ps").val($(this).html());
+		console.log($("#ps").val());
 		$("#page").val(1);
 		alert("page-size-pre-search");
-		advanced_search();
+		hash_changed();
 	});
 	
 	//page navigation
 	$(".pager a.page").unbind("click").click(function(event){
-		$("#page").val( $(this).prop("data-page") );
+		$("#page").val( $(this).attr("data-page") );
 		hash_changed();
 		return false;
 	});
@@ -245,7 +232,12 @@ function variable_compare_handlers(){
 function change_view(value){
 	if ($("#view").val()==value){return false;}
 	$("#view").val(value);$("#page").val(1);
-	advanced_search();
+	
+	//reset sort
+	$("#sort_order").val("");
+	$("#sort_by").val("");
+
+	hash_changed();
 }
 
 
@@ -292,6 +284,7 @@ $(document).ready(function()
 	//search button
 	$("#btnsearch").click(function() {
     	$("#page").val(1);
+		$("#_r").val($.now());
 		hash_changed();return false;
 	});		
 
@@ -384,10 +377,20 @@ $(window).bind( 'hashchange', function(e) {
 	if(typeof fragments.vk != 'undefined'){
 		$("#vk").val(fragments.vk);
 	}
-
+	//page
 	if(typeof fragments.page != 'undefined'){
 		$("#page").val(fragments.page);
 	}
+	
+	//view
+	if(typeof fragments.view != 'undefined'){
+		$("#view").val(fragments.view);
+	}
+	//page size
+	if(typeof fragments.view != 'undefined'){
+		$("#ps").val(fragments.ps);
+	}
+	
 	
 	var fragment_str = $.param.fragment();
 	if ( window.search_cache[ fragment_str ] ) {
@@ -401,6 +404,7 @@ $(window).bind( 'hashchange', function(e) {
 		}
 	}
 })
+
 
 $(document).ready(function()  {
 	//global search cache
@@ -416,7 +420,7 @@ $(document).ready(function()  {
 		$("body").append('<div id="'+dialog_id+'" title="'+title+'"></div>');
 		
 	 var dialog=$( "#"+dialog_id ).dialog({
-      height: 470,
+      height: 520,
 	  position:"center",
 	  width:730,
       modal: true,
@@ -532,6 +536,15 @@ $(document).ready(function()  {
 		dialog_update_stats(dialog);
 	});
 	
+	
+	//sort links
+	$(document.body).on("click",".catalog-sort-links a", function(){ 	
+		$("#sort_by").val($(this).attr("data-sort_by"));
+		$("#sort_order").val($(this).attr("data-sort_order"));
+		hash_changed();	return false;
+	});	
+	
+	
 	//update dialog selection
 	//@cnt count items only with the class=cnt
 	function dialog_update_stats(dialog){
@@ -551,7 +564,7 @@ $(document).ready(function()  {
 		dialog_update_stats(dialog);
 	});
 	
-	
+	//remove search token
 	$(document.body).on("click",".active-filters-container .remove-filter", function(){ 
 		console.log($(this));
 		var type=$(this).attr("data-type");
@@ -559,8 +572,17 @@ $(document).ready(function()  {
 		switch(type)
 		{
 			case 'country':
-				$(".filter-box .items-container :checkbox[value="+value+"]").trigger("click");	
+				$(".filter-box .country-items :checkbox[value="+value+"]").trigger("click");	
 				break;
+			case 'topic':
+				$(".filter-box .topic-items :checkbox[value="+value+"]").trigger("click");	
+				break;								
+			case 'dtype':
+				$(".filter-box .filter-da :checkbox[value="+value+"]").trigger("click");	
+				break;				
+			case 'collection':
+				$(".filter-box .collection-items :checkbox[value="+value+"]").trigger("click");	
+				break;				
 			case 'years':
 				$("#from").val($("#from option:last").val());
 				$("#to").val($("#to option:first").val());
