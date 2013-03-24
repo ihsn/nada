@@ -17,6 +17,7 @@ margin-bottom:10px;
 	background: gainsboro;
 }
 body{margin:0px;padding:0px;font-size:12px;}
+.table-container{height:300px;overflow:auto;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -46,7 +47,7 @@ body{margin:0px;padding:0px;font-size:12px;}
     <option value="surveyid"><?php echo t('survey_id');?></option>
     <option value="authenty"><?php echo t('producer');?></option>
   </select>
-  <input type="submit" value="<?php echo t('search');?>" name="search"/>
+  <input type="submit" value="<?php echo t('search');?>" name="search" class="btn-search-submit"/>
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo site_url();?>/admin/related_surveys"><?php echo t('reset');?></a>
   <?php endif; ?>
@@ -110,7 +111,7 @@ $(function() {
 </script>
 
 <div id="related-surveys">
-
+<div class="table-container">
 <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
              <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('id'),$page_url,array('keywords','field','ps')); ?></th>
@@ -145,7 +146,7 @@ $(function() {
         </tr>
     <?php endforeach;?>
 </table>    
-
+</div>
 
 <table width="100%">
     <tr>
