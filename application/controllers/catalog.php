@@ -1,7 +1,7 @@
 <?php
 class Catalog extends MY_Controller {
 
-	var $filter;//stores all search options
+	var $filter;	//stores all search options
 	
     public function __construct()
     {
@@ -9,6 +9,8 @@ class Catalog extends MY_Controller {
 		
        	$this->template->set_template('default');
 		$this->template->write('sidebar', $this->_menu(),true);	
+		
+		$this->load->helper('pagination_helper');
 		$this->load->model('Search_helper_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Vocabulary_model');
@@ -82,7 +84,7 @@ class Catalog extends MY_Controller {
 	*
 	*/
 	function index()
-	{	
+	{		
 		if ($this->input->get('ajax') )
 		{
 			$this->search();return;
@@ -102,7 +104,7 @@ class Catalog extends MY_Controller {
 			redirect('catalog/'.$repoid);
 		}
 
-		$this->template->add_js('javascript/jquery.ba-bbq.js');
+		//$this->template->add_js('javascript/jquery.ba-bbq.js');
 		$this->template->add_js('javascript/datacatalog.js');
 		
 		//$this->template->add_css('javascript/jquery/themes/ui-lightness/ui.core.css');
@@ -153,7 +155,10 @@ class Catalog extends MY_Controller {
 			$this->collection_list=$this->Search_helper_model->get_collections($this->filter->repo);
 		}
 		*/	
-
+		
+		//get year min/max
+		$data['min_year']=$this->Search_helper_model->get_min_year();
+		$data['max_year']=$this->Search_helper_model->get_max_year();
 		
 		$this->load->helper('security');
 		//page parameters
@@ -336,10 +341,14 @@ class Catalog extends MY_Controller {
 		
 		$this->load->helper('security');
 		
+		//get year min/max
+		$data['min_year']=$this->Search_helper_model->get_min_year();
+		$data['max_year']=$this->Search_helper_model->get_max_year();
+		
 		$search_options=new StdClass;
 		
 		//page parameters
-		$search_options->center=xss_clean(get_post_sess('search',"center"));
+		//$search_options->center=xss_clean(get_post_sess('search',"center"));
 		$search_options->collection=xss_clean(get_post_sess('search',"collection"));
 		$search_options->sk=xss_clean(get_post_sess('search',"sk"));
 		$search_options->vk=xss_clean(get_post_sess('search',"vk"));
@@ -374,8 +383,9 @@ class Catalog extends MY_Controller {
 		}
 
 		//log
-		$this->db_logger->write_log('search',$this->input->get("sk"),'study');
-		$this->db_logger->write_log('search',$this->input->get("vk"),'question');
+		//$this->db_logger->write_log('search',$this->input->get("sk"),'study');
+		//$this->db_logger->write_log('search',$this->input->get("vk"),'question');
+		$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
 
 		//get list of all repositories
 		$data['repositories']=$this->Catalog_model->get_repositories();
@@ -384,13 +394,35 @@ class Catalog extends MY_Controller {
 		{
 			$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
 		}
+		
+		if($this->topic_search=='yes')
+		{
+			//get vocabulary id from config
+			$vid=$this->config->item("topics_vocab");
+		
+			if ($vid!==FALSE && is_numeric($vid))
+			{				
+				//$this->load->model('Vocabulary_model');
+				$this->load->model('term_model');
+				
+				//get topics by vid
+				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE);//$this->Vocabulary_model->get_tree($vid);
+				$data['topic_search']=TRUE;				
+			}
+			else
+			{
+				//hide the topics box
+				$data['topic_search']='no';
+			}
+		}
+		
 
 		//which view to use for display	
 		if ($search_options->vk!='' && $search_options->view=='v')
 		{
 			//variable search
 			$params=array(
-				'center'=>$search_options->center,
+				//'center'=>$search_options->center,
 				'collections'=>$search_options->collection,
 				'study_keywords'=>$search_options->sk,
 				'variable_keywords'=>$search_options->vk,
@@ -401,20 +433,24 @@ class Catalog extends MY_Controller {
 				'to'=>$search_options->to,
 				'sort_by'=>$search_options->sort_by,
 				'sort_order'=>$search_options->sort_order,
-				'repo'=>$search_options->filter->repo
+				'repo'=>$search_options->filter->repo,
+				'dtype'=>$search_options->dtype
 			);		
 
 			$this->load->library('catalog_search',$params);
-			$data=$this->catalog_search->vsearch($this->limit,$offset);
+			$search_result=$this->catalog_search->vsearch($this->limit,$offset);
 
+			$data=array_merge($search_result,$data);
 			$data['current_page']=$search_options->page;
+			$data['search_options']=$search_options;
+			$data['data_access_types']=$this->Form_model->get_form_list();
 			$this->load->view('catalog_search/variable_list', $data);
 			return;
 		}
 		
 		//$surveys=$this->Advanced_search_model->search($this->limit,$offset);		
 		$params=array(
-			'center'=>$search_options->center,
+			//'center'=>$search_options->center,
 			'collections'=>$search_options->collection,
 			'study_keywords'=>$search_options->sk,
 			'variable_keywords'=>$search_options->vk,
@@ -426,13 +462,13 @@ class Catalog extends MY_Controller {
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
 			'repo'=>$search_options->filter->repo,
-			'dtype'=>$search_options->dtype			
+			'dtype'=>$search_options->dtype
 		);		
 		
 		$this->load->library('catalog_search',$params);
 		$data['surveys']=$this->catalog_search->search($this->limit,$offset);
 		$data['current_page']=$search_options->page;
-		$data['search_options']=$search_options;		
+		$data['search_options']=$search_options;
 		$data['data_access_types']=$this->Form_model->get_form_list();
 		$this->load->view('catalog_search/survey_list', $data);
 		
