@@ -12,7 +12,7 @@
 <tbody>
 	<tr align="left" valign="top">
     	<td colspan="2"><span class="info">Click on <i class="icon-remove-sign"></i> to remove citations</span>
-        <div class="page-links" style="float:right"><a class="add_survey" href="javascript:void(0);">Add Citations</a></div></td>
+        <div class="page-links" style="float:right"><a class="attach_citations" href="javascript:void(0);">Attach Citations</a></div></td>
     </tr>    
 
 <?php foreach ($related_citations as $citation):?>
