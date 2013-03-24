@@ -424,10 +424,10 @@ class DDI_Import{
 		foreach ($countries as $country)
 		{
 			//get country ISO code
-			$iso=$this->get_country_iso($country);
+			$countryid=$this->get_country_id($country);
 			
 			//add to survey_countries
-			$this->add_survey_country($surveyid, $country, $iso);
+			$this->add_survey_country($surveyid, $country, $countryid);
 		}		
 	}
 	
@@ -435,12 +435,12 @@ class DDI_Import{
 	*
 	* Add a single country to survey
 	**/
-	function add_survey_country($surveyid,$country_name,$iso)
+	function add_survey_country($surveyid,$country_name,$countryid)
 	{
 		$options=array(
 					'sid'			=>$surveyid,
 					'country_name'	=>$country_name,
-					'iso'			=>$iso
+					'cid'			=>$countryid
 				);
 		$this->ci->db->insert('survey_countries',$options);
 	}
@@ -448,20 +448,20 @@ class DDI_Import{
 	
 	/**
 	*
-	* Return country ISO code by country name
+	* Return country id by country name
 	**/
-	function get_country_iso($country_name)
+	function get_country_id($country_name)
 	{
-		$this->ci->db->select('iso');
+		$this->ci->db->select('countryid');
 		$this->ci->db->where('name',trim($country_name));
-		$query=$this->ci->db->get('countries')->row_array();
+		$country=$this->ci->db->get('countries')->row_array();
 		
-		if (!$query)
+		if (!$country)
 		{
 			return FALSE;
 		}
 		
-		return $query['iso'];
+		return $country['countryid'];
 	}
 		
 	
