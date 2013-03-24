@@ -2,7 +2,7 @@
 	$item_limit=7;
 ?>
 
-<div class="filter-box">
+<div class="filter-box filter-by-topic">
 <h3><?php echo t('filter_by_topic');?></h3> 
 
 <a class="clear-filter" href="#"><?php echo t('reset');?></a>
@@ -13,7 +13,7 @@
         <label for="topic-any">Any</label>
     </div>
     <div class="select-specific">Or select specific:</div>
-	<div class="items-container <?php echo (count($topics)>10) ? 'scrollable' : ''; ?>">
+	<div class="items-container topic-items <?php echo (count($topics)>10) ? 'scrollable' : ''; ?>">
 	<?php $k=0;foreach($topics as $topic):$k++; ?>
     	<?php if($topic['pid']==0){continue;}?>
         <div class="topic item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">

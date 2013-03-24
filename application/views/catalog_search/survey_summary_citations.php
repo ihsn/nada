@@ -17,11 +17,12 @@
 	<h2><?php echo t('citations_of_publications');?></h2>
     <table class="grid-table">
 	<?php $tr_class=""; ?>
-	<?php foreach($citations as $row): ?>
+	<?php $k=0;foreach($citations as $row):$k++; ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">    	      
+        	<td><span class="row-num"><?php echo $k;?></span></td>
             <td><div class="citation-row">
-                &raquo; <?php echo $this->chicago_citation->format($row,$row['ctype']);?>
+                <?php echo $this->chicago_citation->format($row,$row['ctype']);?>
               </div>
             </td>
         </tr>

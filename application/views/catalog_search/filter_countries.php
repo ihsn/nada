@@ -1,7 +1,7 @@
 <?php 
 	$item_limit=4;	
 ?>
-<div class="filter-box">
+<div class="filter-box filter-by-country">
 <h3><?php echo t('filter_by_country');?></h3> 
 
 <a class="clear-filter" href="#"><?php echo t('reset');?></a>

@@ -5,9 +5,6 @@ if (isset($this->active_repo) && $this->active_repo!==FALSE)
 {
 	$repoid=$this->active_repo['repositoryid'].'/';
 }
-
-//$this->template->add_css($css, $type = 'embed');
-//$this->template->add_js($script, $type = 'embed');
 ?>
 
 <table style="display:none;" width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
@@ -27,6 +24,7 @@ if (isset($this->active_repo) && $this->active_repo!==FALSE)
 <input type="hidden" id="ps" name="ps" value="<?php echo $this->limit; ?>"/>
 <input type="hidden" id="page" name="page" value="<?php echo $current_page; ?>"/>
 <input type="hidden" id="repo" name="repo" value="<?php echo $this->filter->repo; ?>"/>
+<input type="hidden" id="_r" name="_r" value=""/>
 <div id="accordion" > 
 
 	<?php  $this->load->view("catalog_search/filter_keywords",array('repoid'=>$repoid)); ?>

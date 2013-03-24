@@ -2,7 +2,7 @@
 	$item_limit=5;
 ?>
 
-<div class="filter-box">
+<div class="filter-box filter-by-collection">
 	<h3><?php echo t('filter_by_collection');?></h3> 
 	<a class="clear-filter" href="#"><?php echo t('reset');?></a>
 
@@ -12,7 +12,7 @@
         <label for="collection-any">Any</label>
     </div>
     <div class="select-specific">Or select specific:</div>
-	<div class="items-container <?php echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
+	<div class="items-container  collection-items <?php echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
 	<?php $k=0;foreach($repositories as $repo):$k++; ?>
         <div class="collection <?php echo $k;?> item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">
             <input class="chk chk-collection" type="checkbox" name="collection[]" 

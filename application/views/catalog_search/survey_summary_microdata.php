@@ -1,8 +1,8 @@
 <?php if(!$resources_microdata){return false;}?>
-<div style="padding-top:20px;">
+<div style="padding-top:20px;overflow:hidden;">
 <h2><?php echo t('study_data_files');?></h2>
 <div class="resources data-files">
-    <?php $class="data-file";$count=0;$show_rows=5; ?>
+    <?php $class="data-file";$count=0;$show_rows=150; ?>
 	<?php foreach($resources_microdata as $row):?>
                 <?php 
 						$count++;
