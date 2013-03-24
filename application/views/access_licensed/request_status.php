@@ -16,7 +16,7 @@
 <a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?> href="<?php echo site_url();?>/auth/profile" class="button-light"><?php echo t('view_all_requests');?></a>
 </div>
 
-<h1><?php echo t('licensed_dataset_request_status');?></h1>
+<h2><?php echo t('licensed_dataset_request_status');?></h2>
 <?php 
     $css_class='class="success"';
     
@@ -31,10 +31,17 @@
 ?>
 
 <table border="0" class="info" cellspacing="0" cellpadding="5" width="100%">
+	<?php if ($request_type=='study'):?>
 	<tr>
 		<td style="width:150px;"><?php echo t('survey_title');?></td>
-		<td><?php echo $titl;?></td>
+		<td><?php echo $survey['titl'];?></td>
 	</tr>
+    <?php else:?>
+	<tr>
+		<td style="width:150px;"><?php echo t('Collection');?></td>
+		<td><?php echo $collection['title'];?></td>
+	</tr>    
+    <?php endif;?>
 	<tr>
 		<td nowrap="nowrap"><?php echo t('date_requested');?></td>
 		<td><?php echo date($this->config->item('date_format'),$created);?></td>

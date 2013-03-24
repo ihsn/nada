@@ -41,23 +41,32 @@ $options_datamatching=array(
 
     <tr class="border">
       <td width="200px"><?php echo t('first_name');?></td>
-      <td><span class="ures"><?php echo get_form_value('fname',isset($fname) ? $fname : ''); ?></span></td>
+      <td><span class="ures"><?php echo $user['fname']; ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('last_name');?></td>
-      <td><span class="ures"><?php echo get_form_value('lname',isset($lname) ? $lname: ''); ?></span></td>
+      <td><span class="ures"><?php echo $user['lname']; ?></span></td>
     </tr>
     <tr  class="border">
       <td><?php echo t('organization');?></td>
-      <td><span class="ures"><?php echo get_form_value('organization',isset($organization) ? $organization : ''); ?></span></td>
+      <td><span class="ures"><?php echo $user['organization']; ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('email');?></td>
-      <td><span class="ures"><?php echo get_form_value('email',isset($email) ? $email : ''); ?></span></td>
+      <td><span class="ures"><?php echo $user['email']; ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('dataset_requested');?></td>
-      <td><span class="ures"><?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?> - <?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?> <br/><?php echo get_form_value('proddate',isset($proddate) ? $proddate : ''); ?></span></td>
+      <td>
+      <table class="grid-table">
+                <?php $k=1;foreach($surveys as $survey):?>
+                <tr class="row">
+                    <td><?php echo $k++;?></td>
+                    <td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+                </tr>
+                <?php endforeach;?>
+                </table>
+      </td>
     </tr>
     <tr class="border">
 		<td><?php echo t('receiving_organization_name');?></td>

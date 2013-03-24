@@ -16,8 +16,13 @@
             <th><?php echo t('expiry');?></th>            
         </tr>
 	<?php $tr_class=""; ?>
-	<?php foreach($files as $row): ?>
-    	<?php $row=(object)$row; ?>
+	<?php foreach($files as $key=>$survey_data): ?>
+    	<tr>
+        <td></td>
+        <td colspan="3"><h3><?php echo $survey_list[$key];?></h3></td>
+        </tr>
+    <?php foreach($survey_data as $row): ?>
+    	<?php $row=(object)$row;//echo '<pre>';var_dump($row); ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
 	        <td><input class="chk" type="checkbox" value="<?php echo $row->resource_id;?>" name="fileid-<?php echo $row->resource_id;?>" <?php  echo isset($row->download['download_limit']) ? 'checked="checked"' : ''; ?>/></td>
@@ -25,6 +30,7 @@
             <td><input type="text" class="download-limit" name="download-limit-<?php echo $row->resource_id;?>" maxlength="2" size="2" value="<?php echo isset($row->download['download_limit']) ? $row->download['download_limit'] : 3; ?>"/></td>
 			<td><input maxlength="10" class="expiry" name="expiry-<?php echo $row->resource_id;?>" type="text" size="10" value="<?php echo isset($row->download['expiry']) ? date("m/d/Y",$row->download['expiry']) : date("m/d/Y",date("U")+(60*60*24*5)); ?>"/></td>
         </tr>
+    <?php endforeach;?>
     <?php endforeach;?>
     	<tr class="<?php echo $tr_class; ?>" style="background-color:#FFFFCC">
 	        <td>&nbsp;</td>

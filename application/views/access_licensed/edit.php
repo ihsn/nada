@@ -43,6 +43,7 @@ a.view_comments{color:#08C;font-size:10px;margin-right:5px;cursor:pointer;}
 .view-email, .view-email-forward{cursor:pointer;}
 .view-email .email_body, .view-email-forward .email_body{margin-top:15px;}
 .view-email a.subject, .view-email-forward a.subject{color:#08C;}
+.ui-widget{font-size:14px;font-family:"Helvetica Neue", Helvetica, Arial, sans-serif}
 </style>
 
 <script type="text/javascript">
@@ -100,11 +101,11 @@ $(function() {
 </script>
 <div id="tabs">
 	<ul>
-		<li><a href="#tabs-1"><?php echo t('request_information');?></a></li>
-		<li><a href="#tabs-2"><?php echo t('tab_process');?></a></li>
-		<li><a href="#tabs-3"><?php echo t('tab_communicate');?></a></li>
-        <li><a href="#tabs-4"><?php echo t('tab_monitor');?></a></li>
-        <li><a href="#tabs-5"><?php echo t('forward_lic_request');?></a></li>
+		<li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-1"><?php echo t('request_information');?></a></li>
+		<li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-2"><?php echo t('tab_process');?></a></li>
+		<li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-3"><?php echo t('tab_communicate');?></a></li>
+        <li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-4"><?php echo t('tab_monitor');?></a></li>
+        <li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-5"><?php echo t('forward_lic_request');?></a></li>
 	</ul>
 	<div id="tabs-1">
 		<?php $this->load->view('access_licensed/edit_request_view');?>	

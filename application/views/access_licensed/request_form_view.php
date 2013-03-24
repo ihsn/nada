@@ -64,10 +64,26 @@ $options_datamatching=array(
       <td><?php echo t('email');?></td>
       <td><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
     </tr>
-    <tr class="border">
-      <td><?php echo t('dataset_requested');?>:</td>
-      <td><div style="color:maroon;font-size:12px;"><?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?> - <?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?> <br/><?php echo get_form_value('proddate',isset($proddate) ? $proddate : ''); ?></div></td>
-    </tr>
+   <?php if ($request_type=='study'):?>
+        <tr class="border" >
+          <td valign="top"><?php echo t('dataset_requested');?></td>
+          <td><div style="color:maroon;font-size:12px;"><?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?> - <?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?> <br/><?php echo get_form_value('proddate',isset($proddate) ? $proddate : ''); ?></div></td>
+        </tr>
+    <?php elseif ($request_type='collection'):?>
+        <tr class="border" valign="top">
+          <td><?php echo t('dataset_requested');?></td>
+          <td>
+                <table class="grid-table">
+                <?php $k=1;foreach($surveys as $survey):?>
+                <tr class="row">
+                    <td><?php echo $k++;?></td>
+                    <td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+                </tr>
+                <?php endforeach;?>
+                </table>
+          </td>
+        </tr>    
+    <?php endif;?>
     <tr class="border">
       <td colspan="2">
 				<?php echo t('filled_lead_research');?><br /><br />

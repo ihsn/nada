@@ -4,6 +4,14 @@
 *
 */
 ?>
+<style>
+.public-use td{border:1px solid gainsboro;padding:5px;}
+.required{color:red;}
+.field-caption{font-weight:bold;}
+.public-use .grid-table{border-collapse:collapse;border:0;}
+.public-use .grid-table td{border:0;}
+
+</style>
 
 <?php
 //options for the org_type
@@ -24,8 +32,6 @@ $options_datamatching=array(
 	);
 ?>
 
-<div class="data-request-form-container">
-
 <div style="text-align:right">
 	<a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?>href="<?php echo site_url();?>/auth/profile/" class="button-light"><?php echo t('view_all_requests');?></a> 
     <?php if ($this->input->get("ajax")):?>
@@ -34,7 +40,7 @@ $options_datamatching=array(
 </div>
 
 
-<h2 class="page-title"><?php echo t('application_access_licensed_dataset');?></h2>
+<h1 class="page-title"><?php echo t('application_access_licensed_dataset');?></h1>
 <div style="font-style:italic;color:red;"><?php echo t('required_fields');?></div>
 
 <?php if (validation_errors() ) : ?>
@@ -58,7 +64,7 @@ $options_datamatching=array(
     <?php if (isset($this->ajax)):?>
     	<input type="hidden" name="ajax" value="1" />
     <?php endif;?>
-  <table class="grid-table" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
+  <table class="public-use" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
   	<tr>
     	<td colspan="2" class="note">
         <div><?php echo t('info_kept_confidential');?> </div>
@@ -80,36 +86,24 @@ $options_datamatching=array(
       <td><?php echo t('email');?></td>
       <td><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
     </tr>
-    <?php if ($request_type=='study'):?>
-        <tr class="border" >
-          <td valign="top"><?php echo t('dataset_requested');?></td>
-          <td><div style="color:maroon;font-size:12px;">
-		  		<?php foreach($surveys as $survey):?>
-                	<a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>">[#<?php echo $survey['id'];?>] <?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a>
-                <?php endforeach;?>
-              </div>
-          </td>
-        </tr>
-    <?php elseif ($request_type='collection'):?>
-        <tr class="border" valign="top">
-          <td><?php echo t('dataset_requested');?></td>
-          <td>
-                <table class="grid-table">
-                <?php $k=1;foreach($surveys as $survey):?>
-                <tr class="row">
-                    <td><?php echo $k++;?></td>
-                    <td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
-                </tr>
-                <?php endforeach;?>
-                </table>
-          </td>
-        </tr>    
-    <?php endif;?>
+    <tr class="border">
+      <td><?php echo t('dataset_requested');?></td>
+      <td>
+      <table class="grid-table">
+<?php $k=1;foreach($surveys as $survey):?>
+<tr class="row">
+	<td><?php echo $k++;?></td>
+	<td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+</tr>
+<?php endforeach;?>
+</table>
+      </td>
+    </tr>
     <tr>
     <td class="border" colspan="2"><?php echo t('filled_lead_research');?></td>
     </tr>
     <tr class="border">
-      <td class="no-wrap">
+      <td>
       <span class="field-caption">
       	<span class="required">*</span> <?php echo t('receiving_organization_name');?>
       </span>
@@ -133,8 +127,8 @@ $options_datamatching=array(
     <td><input type="text" id="address" name="address"  value="<?php echo get_form_value('address',isset($address) ? $address : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
 	<?php */ ?>
-  <tr class="border" >
-    <td  class="no-wrap"><span class="field-caption"><span class="required">*</span> <?php print t('telephone');?></span></td>
+  <tr class="border">
+    <td><span class="field-caption"><span class="required">*</span> <?php print t('telephone');?></span></td>
     <td><input type="text" id="tel" name="tel"   value="<?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
   <?php /*?>
@@ -178,23 +172,16 @@ $options_datamatching=array(
     <textarea id="team" name="team" style="width:98%" rows="10"><?php echo get_form_value('team',isset($team) ? $team : ''); ?></textarea></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><div class="field-caption"><?php print t('ident_needed');?></div>
-	<p><?php print t('da_website');?></p>
+    <td colspan="2"><span class="field-caption"><?php print t('ident_needed');?></span><br />
+      <br/>
+	<?php print t('da_website');?>
+    <br/><br/>
 
-	<span class="field-caption"><?php echo t('this_request');?>
-    	<span class="required">*</span>
-    </span> <br/>
-	
-    <p>
-    <input type="radio" name="dataset_access" id="access_whole" value="whole" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='whole' ? 'checked="checked"' : ''; ?> />		
-    <label for="access_whole"><?php print t('whole_dataset');?></label><br/>
-    
-    <input type="radio" name="dataset_access" id="access_subset" value="subset" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='subset' ? 'checked="checked"' : ''; ?>/>
-    <label for="access_subset"><?php print t('subset_data');?></label>
-    </p>
-    
-    </td>
-    
+	<span class="field-caption"><?php echo t('this_request');?><span class="required">*</span></span> <br/>
+<input type="radio" name="dataset_access" id="access_whole" value="whole" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='whole' ? 'checked="checked"' : ''; ?> />
+<label for="access_whole"><?php print t('whole_dataset');?></label><br/>
+<input type="radio" name="dataset_access" id="access_subset" value="subset" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='subset' ? 'checked="checked"' : ''; ?>/>
+<label for="access_subset"><?php print t('subset_data');?></label></td>
   </tr>
   <tr class="border">
     <td colspan="2">
@@ -211,11 +198,8 @@ $options_datamatching=array(
     </tr>
   </table>
 </form>
-
-</div>
-
 <script type="text/javascript">
 	function isagree(){
-		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))	
+		$("#submit").attr('disabled', !$("#chk_agree").attr("checked"))	
 	}
 </script>

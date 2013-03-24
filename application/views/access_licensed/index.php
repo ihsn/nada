@@ -12,9 +12,7 @@
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
   <select name="field" id="field">
-    <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
-    <option value="body"	<?php echo ($this->input->get('field')=='body') ? 'selected="selected"' : '' ; ?> ><?php echo t('body');?></option>
   </select>
   <input type="submit" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
@@ -81,7 +79,7 @@
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('Repository'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'survey_title',t('title'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('requested_by'),$page_url); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'status',t('status'),$page_url); ?></th>
@@ -94,8 +92,15 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <td><?php echo $row->repositoryid;?></td>
-            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->nation .' - '. $row->survey_title.' - '.$row->data_coll_start; ?></a></td>
+            <td><?php echo $row->repositoryid;?><?php echo $row->collection_id;?></td>
+            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>">
+					<?php if($row->repo_title):?>
+                    	<?php echo t('Collection');?>: <?php echo $row->repo_title ?>
+                    <?php else:?>
+						<?php echo $row->nation .' - '. $row->survey_title.' - '.$row->data_coll_start; ?>
+                    <?php endif;?>
+                </a>
+            </td>
             <td><?php echo $row->username; ?>&nbsp;</td>
 			<td><?php echo t($row->status); ?></td>
 			<td nowrap="nowrap"><?php echo date("m-d-Y",$row->created); ?></td>
