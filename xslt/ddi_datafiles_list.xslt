@@ -29,7 +29,7 @@ License:
 		
 <xsl:template match="/">	
 	<div id="variable-list">
-    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Files</xsl:with-param></xsl:call-template></div>
+    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Dictionary</xsl:with-param></xsl:call-template></div>
     <table  cellpadding="4" class="ddi-table" width="100%">	
 	<tr>
 		<th>ID</th>
