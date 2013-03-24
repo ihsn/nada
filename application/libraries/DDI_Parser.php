@@ -41,7 +41,7 @@
  */
 class DDI_Parser{
     
-	private $ddi_file;
+	var $ddi_file;//TODO make it private
 	var $use_xml_reader=TRUE;
 	
 	//List of study fields in the order returned by the XSLT
