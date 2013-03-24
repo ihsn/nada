@@ -70,12 +70,15 @@
     <tr class="survey-row-section">
 	    <td colspan="2">
         	<h3 class="da-access"><?php echo t($form_model['da_type'].'_title');?></h3>
-            <?php if(isset($allow_group_data_access)& $allow_group_data_access===TRUE) :?>
+            
 			<?php if ($form_model['da_type']=='public'): ?>
-            	<a class="request-button" href="<?php echo site_url('access_public/by_collection/'.$this->uri->segment(2));?>"><?php echo t('Request data access');?></a>
+            	<?php if(isset($repository->group_da_public) && $repository->group_da_public==='1') :?>
+            		<a class="request-button" href="<?php echo site_url('access_public/by_collection/'.$this->uri->segment(2));?>"><?php echo t('Request data access');?></a>
+                <?php endif;?>
 			<?php elseif ($form_model['da_type']=='licensed'):?>
-            	<a class="request-button" href="<?php echo site_url('access_licensed/by_collection/'.$this->uri->segment(2));?>"><?php echo t('Request data access');?></a>
-            <?php endif;?>
+            	<?php if(isset($repository->group_da_licensed) && $repository->group_da_licensed==='1') :?>
+	            	<a class="request-button" href="<?php echo site_url('access_licensed/by_collection/'.$this->uri->segment(2));?>"><?php echo t('Request data access');?></a>
+    			<?php endif;?>        
             <?php endif;?>
         </td>
     </tr>
