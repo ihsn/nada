@@ -1,0 +1,48 @@
+@charset "utf-8";
+
+/*#surveys .selected{background:black;border:2px solid black;color:white;}*/
+#surveys .hide{display:none;}
+#surveys .study-info td.study-info-box{border:2px solid black;border-top:none;}
+
+#surveys .row:hover
+{background:black;color:white;cursor:pointer}
+
+
+/*action bar*/
+#surveys .action-bar{
+	background-color:none;
+	margin-top:15px;
+}
+
+/*reset ul,li*/
+#surveys .action-bar ul{display:inline;list-style:none;padding:0px;margin:0px;}
+#surveys .action-bar ul li{display:inline;font-size:11px;color:black;padding:5px;font-weight:bold}
+#surveys .action-bar ul li a{margin-right:5px;font-weight:bold;color:black;}
+#surveys .action-bar ul li a:hover{color:maroon}
+
+.tbl-survey-info{width:100%;}
+.tbl-survey-info .inline-edit{background-color:#DAE8E6}
+.tbl-survey-info .alternate{background-color:#E6F0EF}
+
+.icon {width:16px;height:16px;display:inline-block}
+.owned{background:url("bullet-green.gif") no-repeat;}
+.linked{background:url("../../images/link.png") no-repeat;}
+
+a.mini-button{background:white;padding:5px;display:inline-block;margin:2px;}
+a.mini-button:hover{background:black;color:white;}
+
+
+/*bootstrap overrides*/
+.pagination{margin:0}
+.row{margin:-left:0;}
+
+h1{font-size:26px;}
+h1,h2,h3{line-height:120%;}
+.breadcrumb{background:none;font-size:smaller;}
+.mini select, .mini .btn{font-size:12px;}
+
+.breadcrumb {
+	padding: 8px 0px;
+}
+
+.breadcrumbs .active{color:#666666}
