@@ -1,20 +1,25 @@
 <?php
 class DDIbrowser extends MY_Controller {
  
+	private $user=FALSE;
+
     public function __construct()
     {
         	parent::__construct($skip_auth=TRUE);
-    		
-			//$this->load->library('cache');
-			$this->load->driver('cache', array('adapter' => 'db', 'backup' => 'file'));
-
-    		$this->lang->load('general');
-    		$this->lang->load('ddibrowser');
-    		$this->template->set_template('default');
-    				
-		    $this->lang->load("general");
-			$this->lang->load("catalog_search");
-			//$this->output->enable_profiler(TRUE);
+		
+		$this->load->driver('cache', array('adapter' => 'db', 'backup' => 'file'));
+		$this->lang->load('general');
+		$this->lang->load('ddibrowser');
+		$this->template->set_template('default');
+				
+		$this->lang->load("general");
+		$this->lang->load("catalog_search");
+		//$this->output->enable_profiler(TRUE);
+			
+		if ($this->ion_auth->logged_in())
+		{
+			$this->user=$this->ion_auth->current_user();
+		}
     }
  
  	//TODO remove, not in use
@@ -22,12 +27,8 @@ class DDIbrowser extends MY_Controller {
 	{	
 		$page_contents='content not set';
 		$this->template->write('title', t('title_ddi_browser'),true);
-		
-		//pass data to the site's template
 		$this->template->write('content', $page_contents,true);
 		$this->template->write('sidebar', 'sidebar',true);
-		
-		//render final output
 		$this->template->render();
 	}
 
@@ -39,7 +40,6 @@ class DDIbrowser extends MY_Controller {
 	**/
 	function search($id)
 	{
-		//search
 		$this->load->helper('form');
 		$params=array(
 			'study_keywords'=>$this->input->get_post('sk'),
@@ -63,10 +63,8 @@ class DDIbrowser extends MY_Controller {
 				
 		if ($this->input->get('vk')!='')
 		{
-			//search
+			//show search result
 			$data['variables']=$this->catalog_search->v_quick_search($id,$limit=50);
-
-			//show the search result
 			$html.=$this->load->view('ddibrowser/variable_list',$data,TRUE);
 		}
 		
@@ -123,8 +121,6 @@ class DDIbrowser extends MY_Controller {
 	**/
 	function _section($id,$section)
 	{
-		//$section=$this->input->get("section");
-		
 		$this->load->model('Catalog_model');
 		$this->load->model('Repository_model');
 		$this->load->library('DDI_Browser','','DDI_Browser');
@@ -132,10 +128,9 @@ class DDIbrowser extends MY_Controller {
 		$this->lang->load("resource_manager");
 		$this->load->helper("resource_helper");
 
-		
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
-		
+
 		//survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
 		
@@ -147,6 +142,7 @@ class DDIbrowser extends MY_Controller {
 
 		//log
 		$this->db_logger->write_log('survey',$this->uri->segment(4),$section,$id);
+		$this->Catalog_model->increment_study_view_count($id);
 
 		//get survey info
 		$survey=$this->Catalog_model->select_single($id);
@@ -154,22 +150,10 @@ class DDIbrowser extends MY_Controller {
 		$this->ddi_file=$ddi_file;
 
 		//language
-		$language=array('lang'=>$this->config->item("language"));
+		$language=$this->get_language();
 		
-		if(!$language)
-		{
-			//default language
-			$language=array('lang'=>"english");
-		}
-
-		//get the xml translation file path
-		$language_file=$this->DDI_Browser->get_language_path($language['lang']);
-		
-		if ($language_file)
-		{
-			//change to the language file (without .xml) in cache
-			$language['lang']=unix_path(FCPATH.$language_file);
-		}		
+		//get study data access type
+		$data_access_type=$this->Catalog_model->get_survey_form_model($id);
 			
 		//page URLs
 		$current_url=site_url().'/catalog/'.$id;
@@ -178,75 +162,59 @@ class DDIbrowser extends MY_Controller {
 		$section_url=$current_url.'/'.$section;
 		//page title
 		$this->page_title=$this->survey['nation']. ' - '.$this->survey['titl'];
-    		
+    	
+		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
+		$this->template->add_css('themes/wb/datacatalog.css');
+
 		$html=NULL;
+		$show_data_menu=FALSE;
+		$show_study_menu=TRUE;
+		$cache_key=$id.'-'.$section.'-'.$language['lang_name'];
 		switch($section)
 		{
 			case '':
 			case 'home':
-			case 'info':				
-				$html=$this->survey($this->uri->segment(2));
-			break;
+			case 'info':
+				//$html=$this->get_survey_info($this->uri->segment(2));//survey($this->uri->segment(2));
+			//break;
 			
-			case 'overview':			
+			case 'overview':
+			case 'study-description':
 				$this->page_title.=' - '.t('overview');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get($cache_key);
 				if ($html===FALSE)
-				{	
+				{
 					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);					
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
-				}
-				
-				//check if it is a harvested survey
-				$is_harvested=$this->Catalog_model->is_harvested($id);
-
-				if ($is_harvested===TRUE)
-				{
-					//get repository data
-					$repo=$this->Catalog_model->get_repository_by_survey($id);
-					$repo['surveyid']=$id;
-					
-					if ($repo!==FALSE)
-					{
-						//load repository model
-						$this->load->model('Repository_model');
-						
-						//get harvested study information						
-						$harvested_survey=$this->Repository_model->get_row($survey['repositoryid'],$survey['surveyid']);
-						
-						if ($harvested_survey)
-						{
-							//create box
-							$repo_box=$this->load->view('ddibrowser/repository',array('harvested_survey'=>$harvested_survey),TRUE);
-							
-							//add info to page output
-							$html=$repo_box.$html;
-						}	
-					}	
-				}
+					$this->cache->save($cache_key,$html,10);
+				}				
 			break;
-			
+
 			case 'impact_evaluation':
 				$this->page_title.=' - '.t('impact_evaluation');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get( $cache_key );
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_overview_ie_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save($cache_key,$html);
 				}
 		        $section_url=$current_url.'/impact_evaluation';	
 			break;
 			
 			case 'related_operations':
 				$this->page_title.=' - '.t('related_operations');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get(  $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_overview_related_op_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save( $cache_key,$html);
 				}
 		        $section_url=$current_url.'/related_operations';	
 			break;
@@ -256,23 +224,23 @@ class DDIbrowser extends MY_Controller {
 
 			case 'accesspolicy':
 				$this->page_title.=' - '.t('access_policy');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get(  $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_access_policy_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save( $cache_key,$html);
 				}	
 			break;
 
 			case 'sampling':
 				$this->page_title.=' - '.t('sampling');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get(  $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_sampling_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save( $cache_key,$html);
 				}
 		        $section_url=$current_url.'/sampling';	
 			break;
@@ -280,12 +248,12 @@ class DDIbrowser extends MY_Controller {
 			case 'questionnaires':
 			case 'questionnaire':
 				$this->page_title.=' - '.t('questionnaires');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get(  $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_questionnaires_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save( $cache_key,$html);
 				}	
 				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/qst]');
 				$data['title']=t('title_forms');
@@ -295,35 +263,35 @@ class DDIbrowser extends MY_Controller {
 
 			case 'dataprocessing':
 				$this->page_title.=' - '.t('data_processing');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get(  $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_dataprocessing_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save( $cache_key,$html);
 				}	
         		$section_url=$current_url.'/dataprocessing';
 			break;
 
 			case 'datacollection':
 				$this->page_title.=' - '.t('data_collection');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get(  $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_datacollection_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save( $cache_key,$html);
 				}        
 			break;
 
 			case 'dataappraisal':
 				$this->page_title.=' - '.t('data_appraisal');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get( $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_dataappraisal_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
+					$this->cache->save($cache_key,$html);
 				}				
 			break;
 
@@ -365,21 +333,24 @@ class DDIbrowser extends MY_Controller {
 			case 'search':
 				$this->page_title.=' - '.t('search');
 				$html=$this->search($id);
+				$show_data_menu=TRUE;
+				$show_study_menu=FALSE;
 			break;
 
-			case 'datafile':				
+			case 'datafile':
 				
 				//Show variable info
 				if ($this->uri->segment(5)!='')
 				{
 					$variable_id=$this->uri->segment(5);
 					$this->page_title.=' - '.t('variable')." - $variable_id";
-					$html= $this->cache->get( md5($section.$ddi_file.$variable_id.$language['lang']));
+					$html= $this->cache->get( $cache_key.'-'.$variable_id);
+					
 					if ($html===FALSE)
 					{	
 						$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 						$html=html_entity_decode(url_filter($html));
-						$this->cache->save(md5($section.$ddi_file.$variable_id.$language['lang']), $html);
+						$this->cache->save($cache_key.'-'.$variable_id, $html);
 					}								
 					$section_url=$current_url.'/variable/'.$variable_id;					
 				}
@@ -402,64 +373,81 @@ class DDIbrowser extends MY_Controller {
 					
 					$fileid=$this->uri->segment(4);
 					$this->page_title.=' - '.t('data_file').' - '.$fileid;
-					$html= $this->cache->get( md5($section.$ddi_file.$fileid.$language['lang'].$offset.'.'.$limit));
+					$html= $this->cache->get( $cache_key.'-'.$file_id.$offset.'.'.$limit );
 					
 					if ($html===FALSE)
 					{	
 						$html=$this->DDI_Browser->get_datafile_html($ddi_file,$fileid,$language);
-						$this->cache->save(md5($section.$ddi_file.$fileid.$language['lang'].$offset.'.'.$limit),$html);
+						$this->cache->save($cache_key.'-'.$file_id.$offset.'.'.$limit,$html);
 					}
 					$section_url=$current_url.'/datafile/'.$fileid;
-				}	
+				}
+				$show_data_menu=TRUE;
+				$show_study_menu=FALSE;
 			break;
 			
+			case 'data_dictionary':
+			case 'data-dictionary':
 			case 'datafiles':
-				$this->page_title.=' - '.t('data_files');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$this->page_title.=' - '.t('Data Dictionary');
+				$html= $this->cache->get( $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_datafiles_html($ddi_file,$language);
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
-				}				
+					$this->cache->save($cache_key,$html);
+				}
+				$show_data_menu=TRUE;
+				$show_study_menu=FALSE;
 			break;
 
 			case 'vargrp_list':
 				$this->page_title.=' - '.t('variable_group_list');
-				$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
+				$html= $this->cache->get( $cache_key);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_variable_groups_array($ddi_file);
-					$this->cache->save(md5($section.$ddi_file.$language['lang']),$html);
-				}								
+					$this->cache->save($cache_key,$html);
+				}
+				$show_data_menu=TRUE;
+				$show_study_menu=FALSE;
 			break;
 
 			case 'vargrp':
 				$groupid=$this->uri->segment(4);
 				$this->page_title.=' - '.t('variable_group')." - $groupid";				
-				$html= $this->cache->get( md5($section.$ddi_file.$groupid.$language['lang']));
+				$html= $this->cache->get($cache_key.'-grp-'.$groupid);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_variables_by_group($ddi_file,$groupid,$language);
-					$this->cache->save(md5($section.$ddi_file.$groupid.$language['lang']),$html);
+					$this->cache->save($cache_key.'-grp-'.$groupid,$html);
 				}        
         		$section_url=$current_url.'/vargrp/'.$groupid;
+				$show_data_menu=TRUE;
+				$show_study_menu=FALSE;
 			break;
 
 			case 'variable':				
 				$variable_id=$this->uri->segment(4);
 				$this->page_title.=' - '.t('variable')." - $variable_id";
-				$html= $this->cache->get( md5($section.$ddi_file.$variable_id.$language['lang']));
+				$html= $this->cache->get( $cache_key.'-var-'.$variable_id);
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save(md5($section.$ddi_file.$variable_id.$language['lang']),$html);
+					$this->cache->save($cache_key.'-var-'.$variable_id,$html);
 				}								
         		$section_url=$current_url.'/variable/'.$variable_id;
+				$show_data_menu=TRUE;
+				$show_study_menu=FALSE;
 			break;			
 		
 			case 'get_sidebar_options':
-				$html=$this->DDI_Browser->get_sidebar_options($ddi_file);
+				$html= $this->cache->get( $cache_key);
+				if ($html===FALSE)
+				{	
+					$html=$this->DDI_Browser->get_sidebar_options($ddi_file);
+					$this->cache->save($cache_key,$html);
+				}								
 			break;
 			
 			case 'ddi':
@@ -469,6 +457,11 @@ class DDIbrowser extends MY_Controller {
 			case 'download':
 				$this->download($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
+			
+			case 'download-microdata':
+			case 'download_microdata':
+				$this->download_microdata($this->uri->segment(4),$this->uri->segment(2));exit;
+			break;
 						
 			case 'export':
 				$html=$this->export();
@@ -476,7 +469,45 @@ class DDIbrowser extends MY_Controller {
 			
 			case 'print'://export any page to PDF
 				$this->generate_pdf($ddi_file);exit;
-			break;			
+			break;
+			
+			case 'related_materials':
+				$this->load->model('Resource_model');
+				$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
+				$html=$this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
+				$show_data_menu=FALSE;
+				$show_study_menu=FALSE;
+			break;
+						
+			case 'related_citations':
+				$this->load->model('Citation_model');				
+				$this->load->model('Repository_model');
+				$this->load->library('chicago_citation');
+				$this->lang->load("resource_manager");
+				$this->load->helper("resource_helper");
+				$this->load->model('Resource_model');//get survey related citations
+				$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
+				$html=$this->load->view('catalog_search/survey_summary_citations',$survey,TRUE);
+				$show_data_menu=FALSE;
+				$show_study_menu=FALSE;
+			break;
+			
+			case 'get_microdata':
+			case 'get-microdata':				
+				$this->load->driver('data_access',array('adapter'=>$data_access_type));
+				
+				if ($this->data_access->is_supported($data_access_type))
+				{
+					$html=$this->data_access->process_form($id,$user=$this->ion_auth->current_user());
+				}
+				else
+				{
+					$html="Data Access Not Available";
+				}
+					
+				$show_data_menu=FALSE;
+				$show_study_menu=FALSE;
+			break;
 		}
 		
 		
@@ -515,35 +546,34 @@ class DDIbrowser extends MY_Controller {
 		}
 		else
 		{	
-
-			$options= $this->cache->get( $id.'_'.md5($section.$ddi_file.'sidebar'.$language['lang']));
-			if ($options===FALSE)
-			{	
-				//get side bar sections with data
-				$options['sidebar']=$this->DDI_Browser->get_sidebar_options($ddi_file);
-				$options['vargrp']=$this->DDI_Browser->get_variable_groups_array($ddi_file);
-				$options['resources']=$this->DDI_Browser->get_available_resources($id);
-				$options['data_files']=$this->DDI_Browser->get_datafiles_array($ddi_file);
-				$this->cache->save($id.'_'.md5($section.$ddi_file.'sidebar'.$language['lang']),$options,200);
-			}
-			
-			//check if survey is harvested
-			$this->harvested=$this->Repository_model->get_row($this->survey['repositoryid'],$this->survey['surveyid']);
-
-			//$this->template->set_template('ddibrowser');
-			//$this->template->write_view('sidebar', 'ddibrowser/sidebar', $options, TRUE);
-			
-			
 			$this->template->add_css('javascript/tree/jquery.treeview.css');
 			$this->template->add_css('themes/ddibrowser/ddi.css');
 			$this->template->add_js('javascript/tree/jquery.treeview.pack.js');
 			$this->template->add_js('javascript/ddibrowser.js');
+
+			//array('sidebar'=>$sidebar, 'body'=>$html,'survey_title'=>$survey_title);			
+			$data['sidebar']='';
+			if($show_data_menu==TRUE || $show_study_menu==TRUE)
+			{
+				$data['sidebar']=$this->get_sidebar_html($id,$show_study_menu,$show_data_menu);//$this->load->view('ddibrowser/sidebar_flat',$options,TRUE);
+			}
+
+			$data['body']=$html;
+
+			//which tabs to show
+			$data['page_tabs']=array(
+				'study_description'=>1,
+				'data_dictionary'=>$survey['varcount'],
+				'get_microdata'=> ($data_access_type!='data_na' ? 1 : 0),
+				'related_materials'=>$this->Catalog_model->has_external_resources($id),
+				'related_citations'=>$this->Catalog_model->has_citations($id)
+			);
 			
-			//ddi sidebar
-			$sidebar=$this->load->view('ddibrowser/sidebar',$options,TRUE);
-			$survey_title=$survey['nation']. ' - '. $survey['titl'];
-			$output=$this->load->view('ddibrowser/layout',array('sidebar'=>$sidebar, 'body'=>$html,'survey_title'=>$survey_title),TRUE);
-			$this->template->write('survey_title', $survey_title,true);
+			$data['survey_title']=$survey['nation']. ' - '. $survey['titl'];
+			$data['survey_info']=$this->get_survey_info($this->uri->segment(2));
+			$output=$this->load->view('ddibrowser/layout',$data,TRUE);
+			
+			$this->template->write('survey_title', $data['survey_title'],true);
 			$this->template->write('section_url', $section_url,true);
 			$this->template->write('content', $output,true);
 			$this->template->render();	
@@ -778,7 +808,7 @@ class DDIbrowser extends MY_Controller {
 	* redirects to form if no access
 	* 	
 	**/
-	function _user_has_resource_access($resource_id,$survey_id)
+	private function can_download_data_file($resource_id,$survey_id)
 	{
 		$this->load->model('Resource_model');
 		$this->load->model('Licensed_model');
@@ -789,8 +819,6 @@ class DDIbrowser extends MY_Controller {
 			$this->session->set_flashdata('reason', t('reason_login_data_access'));
 			$destination=$this->uri->uri_string();
 			$this->session->set_userdata("destination",$destination);
-
-			//redirect them to the login page
 			redirect("auth/login/?destination=$destination", 'refresh');
 		}		
 
@@ -825,56 +853,60 @@ class DDIbrowser extends MY_Controller {
 		}
 		else if ($da_model=='licensed')
 		{
-			//check if user has requested access to survey
-			$lic_request_id=$this->Licensed_model->check_user_request($user->id,$survey_id);
-		
-			//redirect to licensed request page
-			if(!$lic_request_id)
+			$lic_requests=$this->Licensed_model->get_requests_by_file($resource_id,$user->id);
+			
+			if (!$lic_requests)
 			{
-				//redirect to LIC form
-				redirect('/access_licensed/'.$survey_id,"refresh");
+				return FALSE;
 			}
-			else
+			
+			foreach($lic_requests as $req)
 			{
-				//user has already requested access
-				redirect('/access_licensed/download/'.$lic_request_id.'/'.$resource_id,'refresh');
+				if($req['status']=='APPROVED' && $req['expiry']> date("U") && (int)$req['downloads'] < $req['download_limit'])
+				{
+					//increment the download tick
+					$this->Licensed_model->update_download_stats($resource_id,$req['requestid'],$user->email);
+					return TRUE;
+				}			
 			}
+			
+			//links expired
+			redirect('/access_licensed/expired/'.$lic_requests[0]['requestid'],"refresh");			
 		}
-		return TRUE;	
+		
+		return FALSE;
 	}
 
-
+	
 	/**
-	* Download external resources by resource_id
 	*
-	*/
-	function download($resource_id=NULL,$survey_id=NULL)
-	{		
-		
+	* Download DATA/MICRODATA files for public use and direct only
+	**/
+	function download($resource_id,$survey_id)
+	{
 		if (!is_numeric($resource_id) || !is_numeric($survey_id))
 		{
 			show_404();
 		}
 				
-		//check if user has acess to the resource
-		$this->_user_has_resource_access($resource_id, $survey_id);
-		
 		$this->load->model('Resource_model');
+		$this->load->model('Catalog_model');
+		$this->load->model('Public_model');
 		
-		//get resource record
 		$resource=$this->Resource_model->select_single($resource_id);
-		
+		$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+
 		if ($resource===FALSE)
 		{
-			show_error(t('file_not_found'));exit;
+			show_error(t('RESOURCE_NOT_FOUND'));
 		}
-		
+
 		//resource file name
 		$file_name=trim($resource['filename']);
 		
 		if ($file_name=='')
 		{
-			show_error('Resource not available');exit;
+			show_error('RESOURCE_NOT_AVAILABLE!');
 		}
 		
 		//full path to the resource
@@ -883,15 +915,179 @@ class DDIbrowser extends MY_Controller {
 		//check if file actually exists
 		if (!file_exists($resource_path))
 		{
-			show_error('Resource not available');exit;
+			show_error('RESOURCE_NOT_FOUND');
 		}
 		
-		//finally start the file download		
-		$this->load->helper('download');		
-		log_message('info','Downloading file <em>'.$resource_path.'</em>');
-		ob_clean();
-		force_download2($resource_path);
+		$allow_download=FALSE;			//allow download or not
+		$resource_is_microdata=FALSE; //whether a resource is a microdata fiel
+		
+		//apply checks before download MICRODATA files
+		$microdata_types=array('[dat/micro]','[dat]');
+		foreach($microdata_types as $type)
+		{
+			if (stripos($resource['dctype'],$type)!==FALSE)
+			{
+				$resource_is_microdata=TRUE;
+			}
+		}
+		
+		if($data_access_type=='public' && $resource_is_microdata===TRUE)
+		{
+			if(!$this->user)
+			{
+				redirect('catalog/'.$survey_id.'/get_microdata','refresh');exit;
+			}
+			
+			//check if user has filled the PUF form for a study
+			$request_exists=$this->Public_model->check_user_has_data_access($this->user->id,$survey_id);
+		
+			if ($request_exists===FALSE)
+			{
+				redirect('catalog/'.$survey_id.'/get_microdata','refresh');
+			}
+			
+			$allow_download=TRUE;
+		}
+		else if($data_access_type=='licensed')
+		{
+			//non-microdata requests
+			if($resource_is_microdata===FALSE)
+			{
+				$allow_download=TRUE;
+			}
+			else
+			{
+				//Deny licensed requests
+				show_error("RESOURCE_NOT_AVAILABLE.");
+			}	
+		}
+		else if($data_access_type=='direct' )
+		{
+			$allow_download=TRUE;
+		}
+		else{
+			if ($resource_is_microdata===TRUE)
+			{
+				//for any other data access type, disable downloads of microdata resources
+				show_error("INVALID_REQUEST");
+			}	
+		}
+		
+		if ($allow_download)
+		{
+			$this->load->helper('download');		
+			log_message('info','Downloading file <em>'.$resource_path.'</em>');
+			$this->db_logger->write_log('download',$survey_id,'resource='.$resource_id);
+			$this->Catalog_model->increment_study_download_count($survey_id);
+			force_download2($resource_path);	
+		}
+		else
+		{
+			$this->db_logger->write_log('download-denied',$survey_id,'resource='.$resource_id);
+			show_error("RESOURCE_NOT_AVAILABLE");
+		}
+
 	}
+	
+	
+	
+	/**
+	*
+	* Get survey basic informatoin
+	**/
+	private function get_survey_info($id)
+	{	
+		$survey=$this->Catalog_model->select_single($id);
+
+		if ($survey===FALSE || count($survey)==0)
+		{
+			show_error('STUDY_NOT_FOUND');
+		}
+
+		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
+		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+
+		if (!file_exists($ddi_file))
+		{
+			show_error('FILE_NOT_FOUND');
+		}
+		
+		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);		
+		$content_body=$this->load->view('catalog_search/survey_info',$survey,TRUE);		
+		return $content_body;	
+	}
+	
+	
+	
+	/**
+	*
+	* Return Language info with language file (.xml) path
+	**/
+	private function get_language()
+	{
+		//language
+		$language=array('lang_name'=>$this->config->item("language"));
+
+		if(!$language)
+		{
+			$language=array('lang_name'=>"english");
+		}
+
+		//get the xml translation file path
+		$language_file=$this->DDI_Browser->get_language_path($language['lang_name']);
+		
+		if ($language_file)
+		{
+			//change to the language file (without .xml) in cache
+			$language['lang']=unix_path(FCPATH.$language_file);
+		}		
+		
+		return $language;	
+	}
+	
+	/**
+	*
+	* Returns the DDI sidebar
+	**/	
+	function get_sidebar_html($sid,$include_study_desc=TRUE,$include_data=TRUE)
+	{
+		$section='sidebar_'.($include_study_desc ? 'study' : '');
+		$section.=($include_data) ? 'data' : '';
+		$ddi_file=$this->Catalog_model->get_survey_ddi_path($sid);
+		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
+		$language=$this->get_language();
+		
+		if ($ddi_file===FALSE)
+		{
+			return FALSE;
+		}
+	
+		$cache_key=$sid.'-'.$section.'-sidebar-'.$language['lang_name'];
+		$data= $this->cache->get($cache_key);
+		
+		if ($data===FALSE)
+		{	
+			$data['sidebar_items']='';
+			$data['show_study_items']=$include_study_desc;
+			$data['show_data_items']=$include_data;
+			
+			if($include_study_desc===TRUE)
+			{
+				$data['sidebar_items']=$this->DDI_Browser->get_sidebar_options($ddi_file);
+			}
+			
+			if($include_data===TRUE)
+			{
+				$data['vargrp']=$this->DDI_Browser->get_variable_groups_array($ddi_file);
+				$data['data_files']=$this->DDI_Browser->get_datafiles_array($ddi_file);
+			}	
+			$this->cache->save($cache_key,$data,200);
+		}
+		
+		return $this->load->view('ddibrowser/sidebar',$data,TRUE);
+	}
+	
+	
 	
 	/**
 	* 
@@ -915,7 +1111,7 @@ class DDIbrowser extends MY_Controller {
 		$this->lang->load("resource_manager");
 		$this->load->helper("resource_helper");
 		$this->load->model('Resource_model');
-						
+		
 		//get survey
 		$survey=$this->Catalog_model->select_single($id);
 
@@ -965,7 +1161,6 @@ class DDIbrowser extends MY_Controller {
 													
 		$this->template->add_meta('<link rel="meta" type="application/rdf+xml" title="RDF" href="'.site_url('catalog/rdf/'.$id).'" />'
 									,NULL,'inline');
-											
 
 		//get list of collections/repositories
 		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);
@@ -978,14 +1173,32 @@ class DDIbrowser extends MY_Controller {
 				
 		//get survey related citations
 		$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
-				
+		
+		//by default no data files are downloadable
+		$survey['data_access']=FALSE;
+		
+		//check if user has access to data
+		if (in_array($survey['model'],array('licensed','public')))
+		{
+			//user must be logged in
+			if ($this->user)
+			{
+				//check user has access to the data
+				if ($survey['model']=='licensed')
+				{
+					$this->load->model('Licensed_model');
+					$survey['data_access']=$this->Licensed_model->check_user_has_data_access($id,$this->user->id);
+				}	
+			}
+			else
+			{
+				$survey['data_access']=FALSE;
+			}
+		}
+						
 		$content_body=$this->load->view('catalog_search/survey_summary',$survey,TRUE);		
 		$this->template->write('title', $survey['titl'].' - '.$survey['nation'],true);
-		
-		//return page contents
-		return $content_body;		
-		//$this->template->write('content', $content_body,true);
-	  	//$this->template->render();
+		return $content_body;
 	}
 }
 /* End of file ddibrowser.php */
