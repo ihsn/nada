@@ -50,18 +50,32 @@
 }
 
 .page-links{font-size:smaller;}
+
 </style>
 
-<?php $selected_page=$this->uri->segment(5); ?>
-<?php $edit_page=$this->uri->segment(2).'/'.$this->uri->segment(3);?>
+<?php 
+	$selected_page=$this->uri->segment(5); 
+	$survey_id=(int)$this->uri->segment(4);
+?>
+<?php $edit_page=$this->uri->segment(2).'/'.$survey_id;?>
 <ul id="tabs" class="survey-tabs"> 
-  <li <?php echo ($selected_page=='') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $this->uri->segment(4);?>"><?php echo t('manage_files');?> <span class="count">(<?php echo count($files);?>)</span></a></li> 
-  <li <?php echo ($selected_page=='resources') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/<?php echo $this->uri->segment(3);?>/<?php echo $this->uri->segment(4);?>/resources"><?php echo t('external_resources');?> <span class="count">(<?php echo $resources['total'];?>)</span></a></li>
-  <li <?php echo ($selected_page=='citations') ? 'class="active"' : ''; ?>><a href="<?php echo site_url();?>/admin/catalog/<?php echo $this->uri->segment(3);?>/<?php echo $this->uri->segment(4);?>/citations"><?php echo t('citations');?> <span class="count">(<?php echo is_array($selected_citations) ? count($selected_citations) : 0;?>)</span></a></li>  
+  <li <?php echo ($selected_page=='') ? 'class="active"' : ''; ?>>
+  	<a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $this->uri->segment(4);?>"><?php echo t('manage_files');?> <span class="count">(<?php echo count($files);?>)</span></a>
+  </li> 
+  <li <?php echo ($selected_page=='resources') ? 'class="active"' : ''; ?>>
+  	<a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $survey_id;?>/resources"><?php echo t('external_resources');?> <span class="count">(<?php echo $resources['total'];?>)</span></a>
+  </li>
+  <li <?php echo ($selected_page=='citations') ? 'class="active"' : ''; ?>>
+  	<a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $survey_id;?>/citations"><?php echo t('citations');?> <span class="count">(<?php echo is_array($selected_citations) ? count($selected_citations) : 0;?>)</span></a>
+  </li>  
+  <li <?php echo ($selected_page=='related_studies') ? 'class="active"' : ''; ?>>
+  	<a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $survey_id;?>/related_studies"><?php echo t('related_studies');?></a>
+  </li>
 </ul>
 
 <div style="border:1px solid gainsboro;padding:10px;overflow:auto;">
 <?php 
+	//load tab content
 	switch($this->uri->segment(5)) {
 		case 'resources':
 			echo $resources['formatted'];
@@ -69,6 +83,11 @@
 		case 'citations':
 			echo '<div id="related-citations" class="field related-citations">';
 			$this->load->view('catalog/related_citations', array('related_citations'=>$selected_citations));
+			echo '</div>';			
+		break;
+		case 'related_studies':
+			echo '<div id="related-studies-tab" class="field related-studies-tab">';
+			$this->load->view('catalog/related_studies_tab', array('related_studies'=>$related_studies));
 			echo '</div>';			
 		break;
 		default:
