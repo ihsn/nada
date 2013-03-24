@@ -157,19 +157,23 @@ class Repositories extends MY_Controller {
 						'weight'=>0,
 						'ispublished'=>0,
 						'section'=>'internal',//default
-						'group_da'=>0
+						'group_da_public'=>0,
+						'group_da_licensed'=>0
 						);
 												
 		//process form
 		if ($this->form_validation->run() == TRUE)
 		{		
-				$options=array();
+				$options=array(
+					'group_da_public'=>0,
+					'group_da_licensed'=>0
+				);
 				$post_arr=$_POST;
 							
 				//read post values to pass to db
 				foreach($post_arr as $key=>$value)
 				{
-					$options[$key]=$this->security->xss_clean($this->input->post($key));
+					$options[$key]=$this->input->post($key);//$this->security->xss_clean($this->input->post($key));
 				}
 												
 				if ($id==NULL)
@@ -231,7 +235,8 @@ class Repositories extends MY_Controller {
 		$this->data['long_text']=$this->form_validation->set_value('long_text',$this->row_data['long_text']);
 		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
-		$this->data['group_da']=$this->form_validation->set_value('group_da',$this->row_data['group_da']);
+		$this->data['group_da_public']=$this->form_validation->set_value('group_da_public',$this->row_data['group_da_public']);
+		$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
 		
 		//show form
 		$content=$this->load->view('repositories/edit',NULL,true);									
