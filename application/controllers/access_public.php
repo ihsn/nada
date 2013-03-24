@@ -304,8 +304,7 @@ class Access_public extends MY_Controller {
 		if ($repositoryid==NULL)
 		{
 			show_404();
-		}
-		
+		}		
 		
 		$repo=$this->Repository_model->get_repository_by_repositoryid($repositoryid);
 
