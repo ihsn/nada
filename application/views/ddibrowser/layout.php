@@ -2,7 +2,7 @@
 .tab-heading {
 text-align: left;
 padding: 10px;
-padding-bottom: 60px;
+padding-bottom: 40px;
 z-index: -1;
 background-color:#F3F3F3;
 background: transparent url(http://localhost/nada4/themes/wb/tab-bg.png) repeat-x scroll bottom;
