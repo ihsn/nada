@@ -8,12 +8,26 @@ class Country_model extends CI_Model {
     }
 	
 	/**
-	* Returns a list of all vocabularies
+	* Returns a list of all countries
 	*
 	*/
 	function select_all()
 	{		
 		$this->db->select('*');
+		$this->db->from('countries');
+		$this->db->order_by('name');
+		$query = $this->db->get()->result_array();		
+		return $query;
+	}
+	
+	
+	/**
+	* Returns a list of all countries
+	*
+	*/
+	function select_all_compact()
+	{		
+		$this->db->select('countryid,name');
 		$this->db->from('countries');
 		$this->db->order_by('name');
 		$query = $this->db->get()->result_array();		
@@ -176,16 +190,26 @@ class Country_model extends CI_Model {
 	}
 
 
+
 	//delete all country aliases
 	function delete_aliases($countryid)
 	{
 		$this->db->where('countryid', $countryid);
 		return $this->db->delete('country_aliases');
 	}
+
+
+
 	
 	//add country alias
 	function add_alias($countryid,$alias)
 	{
+		
+		if ($this->alias_exists($alias))
+		{
+			return;
+		}
+	
 		$options=array(
 				'alias'=>$alias,
 				'countryid'=>$countryid
@@ -194,6 +218,26 @@ class Country_model extends CI_Model {
 		$this->db->insert("country_aliases",$options);
 	
 	}
+
+	/**
+	*
+	* Check if alias exists
+	**/
+	function alias_exists($alias)
+	{		
+		$this->db->select('count(*) as total');
+		$this->db->from('country_aliases');
+		$this->db->where('alias', $alias);
+		$row = $this->db->get()->row_array();
+		if ($row['total']>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;	
+	}
+
+
 
 	//delete a country
 	function delete($countryid)
@@ -204,6 +248,33 @@ class Country_model extends CI_Model {
 		//delete aliases
 		$this->delete_aliases($countryid);
 	}
+	
 
+
+	
+	//return a list of study related countries that are not using an ISO code
+	function get_broken_study_countries()
+	{
+		$this->db->select('country_name, count(country_name) as total');
+		$this->db->from('survey_countries');
+		$this->db->group_by('country_name');
+		$this->db->where('cid',0);
+		$this->db->order_by('country_name');
+		return $this->db->get()->result_array();		
+	}
+	
+	/**
+	*
+	* Update study related countries to use the country code
+	**/
+	function update_survey_country_code($name,$cid)
+	{
+		$options=array(
+			'cid'=>$cid			
+		);
+		$this->db->where('country_name',$name);
+		$this->db->where('cid',0);
+		$this->db->update('survey_countries',$options);
+	}
 	
 }
