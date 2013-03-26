@@ -38,6 +38,28 @@ table.survey-info{width:550px;float:left;}
 .resources .active{border:1px solid gainsboro;margin-bottom:20px;}
 .resource .caption{font-weight:bold;}
 
+/*study info - stats */
+.study-statistics-box{
+background: white;
+height: 200px;
+width: 218px;
+float: right;
+padding: 10px;
+color: #666;
+font-size: 11px;
+border: 3px solid gainsboro;
+}
+
+.study-statistics-box .btn-download-ddi{background:url(images/ddi.gif) no-repeat left center; display:block;padding:4px;padding-left:32px;}
+.study-statistics-box .btn-download-rdf{background:url(images/rdf.gif) no-repeat left center; display:block;padding:4px;padding-left:32px;}
+
+.btn-container{background:url(themes/wb/btn-bg-sprites.png) 100% 100%; padding:5px 10px;background:#F0F0F0;border:1px solid gainsboro;margin-top:5px;}
+.btn-container a{display:block;}
+.btn-container a:hover{color:maroon;}
+.btn-container:hover{border:1px solid black;}
+
+.grid-table .no-border td{border:none;}
+
 </style>
 
 <div class="content-container" style="overflow:auto;">
@@ -196,7 +218,7 @@ table.survey-info{width:550px;float:left;}
     
 </table>
 
-<div style="background:white;height:200px;width:230px;float:right;border-left:1px solid gainsboro; padding-left:10px;color:#666666;font-size:11px;">
+<div class="study-statistics-box">
 <table class="grid-table">
  <tr>
     <td>Created On</td>
@@ -208,22 +230,19 @@ table.survey-info{width:550px;float:left;}
     </tr>
 <tr>
 	<td>Page Views</td>
-    <td><span>3394583</span></td>
+    <td><?php echo $total_views;?></td>
 </tr>
 <tr>
 	<td>Downloads</td>
-    <td>343436</td>
+    <td><?php echo $total_downloads;?></td>
 </tr>
-
-
-<tr>
-	<td colspan="2"><span class="btn">Download DDI</span></td>
+<tr class="no-border">
+	<td colspan="2">
+    <div style="margin-top:5px;"/>
+<div class="btn-container"><span class="btn btn-download-ddi"><a href="<?php echo site_url('catalog/ddi').'/'.$id;?>">Download DDI</a></span></div>
+<div class="btn-container"><span class="btn btn-download-rdf"><a href="<?php echo site_url('catalog/rdf').'/'.$id;?>">Download RDF</a></span></div>
+    </td>
 </tr>
-
-<tr>
-	<td colspan="2">Download RDF</td>
-</tr>
-
 </table>
 
 
