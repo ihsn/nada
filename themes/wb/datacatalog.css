@@ -336,6 +336,11 @@ font-size: smaller;
 	left:10px;
 }
 
+#surveys .data-access-direct {
+	background: url(data-access.gif) no-repeat 0% 0%;
+}
+
+
 #surveys .data-access-public {
 	background: url(data-access.gif) no-repeat 0% 25%;
 }
@@ -358,6 +363,7 @@ font-size: smaller;
 
 /*filter by data access*/
 .filter-da .da .chk-da{padding-right:16px;}
+.filter-da table .da-direct{background: url(data-access-small.gif) no-repeat 0% 3%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
 .filter-da table .da-public{background: url(data-access-small.gif) no-repeat 0% 27%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
 .filter-da table .da-licensed{background: url(data-access-small.gif) no-repeat 0% 51%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
 .filter-da table .da-remote{background: url(data-access-small.gif) no-repeat 0% 78%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
