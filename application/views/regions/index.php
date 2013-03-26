@@ -5,7 +5,7 @@
 <div class="body-container" style="padding:10px;">
 
 <div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/vocabularies/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('add_vocabulary');?></a> 
+	<a href="<?php echo site_url(); ?>/admin/regions/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('create_region');?></a> 
 </div>
         
 <?php $message=$this->session->flashdata('message');?>
@@ -49,13 +49,13 @@
     	<tr class="<?php echo $tr_class; ?>">
 	        <td><?php echo $row->id;?></td>
             <td><?php echo $row->pid;?></td>
-            <td><a class="parent" href="<?php echo site_url();?>/admin/regins/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>            
+            <td><a class="parent" href="<?php echo site_url();?>/admin/regions/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>            
 			<td>
                 <a href="<?php echo site_url();?>/admin/regions/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
                 <a href="<?php echo site_url();?>/admin/regions/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a>
             </td>
         </tr>
-        <?php if ($row->children):?>
+        <?php if (isset($row->children)):?>
         	<?php $this->load->view('regions/region_children',array('children'=>$row->children, 'tr_class'=>$tr_class));?>
         <?php endif;?>
     <?php endforeach;?>
