@@ -20,16 +20,51 @@ class Country_region_model extends CI_Model {
 		return $query;
 	}
 
+
+	function get_countries_compact()
+	{
+		$this->db->select('countryid,name');
+		$this->db->from('countries');
+		$this->db->order_by('name');
+		return $this->db->get()->result_array();		
+	}
+	
+
 	/**
 	*
-	* Return a single vocabulary
+	* Return a single row
 	*/
 	function select_single($id)
 	{		
 		$this->db->select('*');
 		$this->db->from('regions');
 		$this->db->where('id', $id);
-		$query = $this->db->get()->row_array();		
+		$row = $this->db->get()->row_array();
+		$row['countries']=$this->get_country_array_by_region($id);
+		return $row;
+	}
+	
+	
+	function get_country_array_by_region($region_id)
+	{
+		$this->db->select('country_id');
+		$this->db->from('region_countries');
+		$this->db->where('region_id', $region_id);
+		$rows = $this->db->get()->result_array();
+		$output=array();
+		foreach($rows as $row)
+		{
+			$output[]=$row['country_id'];
+		}
+		return $output;
+	}
+	
+	function get_parents()
+	{
+		$this->db->select('*');
+		$this->db->from('regions');
+		$this->db->where('pid', 0);
+		$query = $this->db->get()->result_array();		
 		return $query;
 	}
 	
@@ -94,4 +129,80 @@ class Country_region_model extends CI_Model {
 		$query = $this->db->get()->result_array();
 		return $query;		
 	}
+	
+	
+	/**
+	* update country
+	*
+	*	id			int
+	* 	options		array
+	**/
+	function update($id,$options)
+	{
+		//allowed fields
+		$valid_fields=array(
+			'pid',
+			'title',
+			'weight'
+			);
+
+		
+		$data=array();
+		
+		//build update statement
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$valid_fields) )
+			{
+				$data[$key]=$value;
+			}
+		}
+		
+		//update db
+		$this->db->where('id', $id);
+		$result=$this->db->update('regions', $data); 
+
+		//delete all existing region related countries
+		$this->delete_region_related_countries($id);
+
+		$countries=array();
+		
+		//remove duplicates
+		foreach($options['country'] as $country)
+		{		
+			$countries[$country]=$country;
+		}
+		
+		//update related countries
+		foreach($countries as $country)
+		{
+			if( is_numeric($country) && $country>0)
+			{
+				$this->add_region_related_country($id,$country);
+			}	
+		}
+
+		return $result;		
+	}
+	
+	
+	//delete all related countries by region id
+	function delete_region_related_countries($region_id)
+	{
+		$this->db->where('region_id', $region_id);
+		return $this->db->delete('region_countries');
+	}
+	
+	//add country to a region
+	function add_region_related_country($region_id,$country_id)
+	{	
+		$options=array(
+				'region_id'=>$region_id,
+				'country_id'=>$country_id
+		);
+		
+		$this->db->insert("region_countries",$options);
+	}
+	
+	
 }
