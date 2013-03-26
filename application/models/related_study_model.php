@@ -12,38 +12,84 @@ class Related_study_model extends CI_Model {
 	* add/update relationship
 	*
 	*/
-	public function update($p_sid,$c_sid_arr,$relation_id)
+	public function update_relationship($p_sid,$c_sid_arr,$relation_id)
 	{	
 		foreach($c_sid_arr as $sid_2)
 		{
-			$options=array(
-				'sid_1'				=>	$p_sid,
-				'sid_2'				=>	$sid_2,
-				'relationship_id'	=>	$relation_id
-			);
+			//delete existing relationship pair
+			$this->delete_relationship($p_sid,$sid_2);
 			
-			$result=$this->db->insert('survey_relationships', $options); 
-					
-			if ($result===false)
+			//get relationship pair by relation_id
+			$rel_pairs=$this->get_relationship_pairs($relation_id);
+			$pair_key=date("U");
+			
+			foreach($rel_pairs as $key=>$value)
 			{
-				throw new MY_Exception($this->db->_error_message());
-			}			
+				if($key==$relation_id)
+				{
+					$options=array(
+						'sid_1'				=>	$p_sid,
+						'sid_2'				=>	$sid_2,
+						'relationship_id'	=>	$key,
+						'pair_id'			=>	$pair_key
+					);
+				}
+				else
+				{
+					$options=array(
+						'sid_2'				=>	$p_sid,
+						'sid_1'				=>	$sid_2,
+						'relationship_id'	=>	$key,
+						'pair_id'			=>	$pair_key
+					);
+				}
+				
+									
+				//add new relationship
+				$result=$this->db->insert('survey_relationships', $options); 
+						
+				if ($result===false)
+				{
+					throw new MY_Exception($this->db->_error_message());
+				}			
+			}
 		}
 		return TRUE;
 	}
 	
 	/**
 	*
-	* remove study relationship from both sides
+	* returns the relationship type pair by id
 	**/
-	public function delete($sid)
+	public function get_relationship_pairs($relation_id)
 	{
-	
-	
+		$this->db->select("id,rel_name");
+		$this->db->where( sprintf('rel_group_id in (select rel_group_id from survey_relationship_types where id=%d)',(int)$relation_id),NULL,FALSE);
+		$rows=$this->db->get("survey_relationship_types")->result_array();
+		
+		$output=array();
+		foreach($rows as $row)
+		{
+			$output[$row['id']]=$row['rel_name'];
+		}
+		
+		return $output;
 	}
 	
 	
 	
+	public function delete_relationship($sid_1,$sid_2)
+	{
+		$where=sprintf("(sid_1=%d and sid_2=%d) or (sid_1=%d and sid_2=%d)",
+				(integer)$sid_1,
+				(integer)$sid_2,
+				(integer)$sid_2,
+				(integer)$sid_1
+			);		
+		$this->db->where($where,NULL,FALSE);
+		$this->db->delete('survey_relationships');
+	}
+		
 	
 	public function get_relationships($sid)
 	{
