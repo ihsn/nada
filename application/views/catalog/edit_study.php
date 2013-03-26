@@ -443,12 +443,17 @@ height: 56px;
         </tr>
         <tr>
             <td><?php echo t('country');?></td>
-            <td><div class="survey-countries">
-				<?php foreach($countries as $country):?>
-                	<?php $country_class=(int)$country['cid']<1 ? 'error' : ''; ?>
-                    <span class="country <?php echo $country_class;?>" id="country-<?php echo $country['id'];?>">
-                        <?php echo $country['country_name'];?>
-                    </span>
+            <td><div class="survey-countries">            
+				<?php foreach($countries as $country):?>                	
+                	<?php if((int)$country['cid']<1):?>
+                        <span class="country error" id="country-<?php echo $country['id'];?>" title="<?php echo t('Fix country code');?>">
+                            <a href="<?php echo site_url('admin/countries/mappings');?>"><?php echo $country['country_name'];?></a>
+                        </span>
+                    <?php else:?>
+                    	<span class="country" id="country-<?php echo $country['id'];?>">
+                            <?php echo $country['country_name'];?>
+                        </span>
+                    <?php endif;?>
             	<?php endforeach;?>
                 </div>
             </td>
