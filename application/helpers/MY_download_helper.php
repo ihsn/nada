@@ -66,12 +66,18 @@ function force_download2($filename = '', $data = false, $enable_partial = true, 
         // Set a default mime if we can't find it
         if ( ! isset($mimes[$extension]))
         {
-            if (ereg('Opera(/| )([0-9].[0-9]{1,2})', $_SERVER['HTTP_USER_AGENT']))
-                $UserBrowser = "Opera";
-            elseif (ereg('MSIE ([0-9].[0-9]{1,2})', $_SERVER['HTTP_USER_AGENT']))
-                $UserBrowser = "IE";
-            else
-                $UserBrowser = '';
+			if (strpos($_SERVER['HTTP_USER_AGENT'],'Opera')!==FALSE) 
+			{
+				$UserBrowser = "Opera"; 
+			}
+			elseif (strpos($_SERVER['HTTP_USER_AGENT'],'MSIE')!==FALSE)
+			{
+				$UserBrowser = "IE";
+			}	
+			else
+			{
+				$UserBrowser = 'not matched';
+			}	
             
             $mime = ($UserBrowser == 'IE' || $UserBrowser == 'Opera') ? 'application/octetstream' : 'application/octet-stream';
         }
