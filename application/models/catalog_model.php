@@ -47,7 +47,9 @@ class Catalog_model extends CI_Model {
 					'published',
 					'surveys.created',
 					'changed',
-					'varcount'
+					'varcount',
+					'total_views',
+					'total_downloads'
 					);
 	
 	//additional filters on search
