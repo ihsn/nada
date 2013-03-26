@@ -262,25 +262,32 @@ $(document).ready(function()
 		$(this).closest(".filter-box").find(".chk-any").prop("checked",false);
 		hash_changed();
 	});	
+	
 	//ANY checkbox click handler. unset all other options
 	$("#search_form .filter-box .any :checkbox").click(function(event) {
+																	console.log("any clicked");
 		$(this).closest(".filter-box").find(".items-container").find(".chk").prop("checked",false);
 		hash_changed();
 	});
 	
 	//data access
-	$("#search_form .chk-da").click(function(event) {
-		//block_search_form(true);
+	/*$("#search_form .chk-da").click(function(event) {
 		$(this).parent().parent().find('.chk-da').prop('checked',$(this).prop('checked') );
 		$("#search_form .chk-da-any").prop("checked",false);
 		hash_changed();
-	});
-	$("#search_form .chk-da-any").click(function(event) {
+	});*/
+
+	/*$("#search_form .chk-da-any").click(function(event) {
 		$("#search_form .chk-da").prop("checked",false);
 		hash_changed();
-	});
+	});*/
 	
-	
+	/*$("#search_form .chk-da").click(function(event) {
+		$(this).parent().parent().find('.chk-da').prop('checked',$(this).prop('checked') );
+		$("#search_form .chk-da-any").prop("checked",false);
+		hash_changed();
+	});*/
+
 	//search button
 	$("#btnsearch").click(function() {
     	$("#page").val(1);
@@ -316,7 +323,60 @@ $(window).bind( 'hashchange', function(e) {
 	fragments=$.deparam.fragment();
 	var found=false;
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	filters=new Object();
+	
+	if(typeof fragments.country != 'undefined'){
+		filters.country={
+			items:		fragments.country,
+			container:	'#search_form .filter-by-country'
+		};
+	}
+
+	if(typeof fragments.dtype != 'undefined'){
+		filters.dtype={
+			items: 		fragments.dtype,
+			container: 	'#search_form .filter-by-dtype'
+		};
+	}
+	
+	if(typeof fragments.collection != 'undefined'){
+		filters.collection={
+			items: 		fragments.collection,
+			container: 	'#search_form .filter-by-collection'
+		};
+	}
+
+	if(typeof fragments.topic != 'undefined'){
+		filters.topic={
+			items: 		fragments.topic,
+			container: 	'#search_form .filter-by-topic'
+		};
+	}
+
+	for(var filter in filters){
+		found=false;
+		var selected_items=filters[filter].items.split(",");
+		
+		//iterate each checkbox and compare if it is one of the selected
+		$(filters[filter].container).find(".items-container .chk").each(function() { 
+			if ($.inArray($(this).prop('value'), selected_items)!==-1 ){
+				$(this).prop('checked',true);
+				found=true;
+			}
+			else{
+				$(this).prop('checked',false);
+			}
+		});	
+		
+		//uncheck/check ANY option
+		$(filters[filter].container).find(".any :checkbox").prop("checked",!found);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	//country
+	/*
 	if(typeof fragments.country != 'undefined'){		
 		var countries=fragments.country.split(",");		
 		$("#search_form .chk-country").each(function() { 
@@ -336,10 +396,11 @@ $(window).bind( 'hashchange', function(e) {
 	{
 		//default country filter options
 		$("#search_form .chk-country-any").prop("checked",true);
-	}
+	}*/
 
 
 	//dtype
+	/*
 	if(typeof fragments.dtype != 'undefined'){
 		var value_arr=fragments.dtype.split(",");
 		var found=false;
@@ -361,6 +422,7 @@ $(window).bind( 'hashchange', function(e) {
 		//default country filter options
 		$("#search_form .chk-da-any").prop("checked",true);
 	}
+	*/
 
 	//years
 	if(typeof fragments.from != 'undefined'){
@@ -566,7 +628,6 @@ $(document).ready(function()  {
 	
 	//remove search token
 	$(document.body).on("click",".active-filters-container .remove-filter", function(){ 
-		console.log($(this));
 		var type=$(this).attr("data-type");
 		var value=$(this).attr("data-value");
 		switch(type)
