@@ -9,7 +9,7 @@ class Countries extends MY_Controller {
     	
 		$this->lang->load('general');
 		//$this->lang->load('country');	
-		$this->output->enable_profiler(TRUE);	
+		//$this->output->enable_profiler(TRUE);	
 	}
  
  
@@ -24,6 +24,46 @@ class Countries extends MY_Controller {
 		$this->template->write('title', t('countries'),true);
 	  	$this->template->render();
 	}
+
+	/**
+	*
+	* Fix study/country mappings that dont use an ISO CODE
+	**/
+	function mappings()
+	{
+		$data['rows']=$this->country_model->get_broken_study_countries();		
+		$countries=$this->country_model->select_all_compact();
+		$data['country_list'][0]=t('--SELECT--');
+		foreach($countries as $country)
+		{
+			$data['country_list'][$country['countryid']]=$country['name'];
+		}	
+		$content=$this->load->view('countries/mappings', $data,TRUE);
+		
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('countries'),true);
+	  	$this->template->render();
+	}
+
+	function fix_mappings()
+	{	//?name=Africa&cid=3&Submit=Update
+		$name=$this->input->get("name");
+		$cid=$this->input->get("cid");
+	
+		if(!is_numeric($cid))
+		{
+			show_error("INVALID");
+		}
+		
+		//1: create a new country alias
+		$this->country_model->add_alias($cid,$name);
+		
+		//2: update survey_countries table and update all instances for the country name to use CID
+		$this->country_model->update_survey_country_code($name,$cid);
+		
+		redirect("admin/countries/mappings");
+	}	
+
 
 	function add()
 	{
@@ -45,7 +85,7 @@ class Countries extends MY_Controller {
 		
 		//validation rules
 		$this->form_validation->set_rules('name', t('name'), 'xss_clean|trim|required|max_length[100]');
-		//$this->form_validation->set_rules('url', t('url'), 'xss_clean|trim|required|callback__url_check|max_length[255]');
+		$this->form_validation->set_rules('iso', t('ISO'), 'xss_clean|trim|required|max_length[3]');
 		
 		$country=NULL;
 				
@@ -61,8 +101,6 @@ class Countries extends MY_Controller {
 				$options[$key]=$this->input->post($key);
 			}					
 			
-			var_dump($options);
-
 			if ($id==NULL)
 			{
 				$db_result=$this->country_model->insert($options);
@@ -71,8 +109,7 @@ class Countries extends MY_Controller {
 			{
 				$db_result=$this->country_model->update($id,$options);
 			}
-			
-			/*			
+									
 			if ($db_result===TRUE)
 			{
 				$this->session->set_flashdata('message', t('form_update_success'));
@@ -83,7 +120,7 @@ class Countries extends MY_Controller {
 				//update failed
 				$this->form_validation->set_error(t('form_update_fail'));
 			}
-			*/
+			
 		}
 		else //loading form the first time
 		{
@@ -116,6 +153,8 @@ class Countries extends MY_Controller {
 		$this->country_model->delete($id);
 		redirect("admin/countries");
 	}
+	
+	
 	
 	
 }    
