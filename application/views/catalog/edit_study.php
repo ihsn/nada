@@ -152,12 +152,10 @@ function update_survey_collection(e) {
 			return false;
 		});
 		
-		
 		//attach related studies
 		$(document.body).on("click",".related_studies_attach_studies", function(){
 			dialog_select_related_studies();return false;
 		});
-
 		
 	});
 	
@@ -175,11 +173,14 @@ function update_survey_collection(e) {
 		var get_selection_url=CI.base_url+"/admin/dialog_select_studies/get_list/"+tmp_id;
 		var tab_id="#related-studies-tab";
 		
+		//already attached related studies
+		var source_selected=get_selected_related_studies();
+		
 		//add attached surveys to session, needed when editing a citations with survey attached
 		//var url_add=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+'<?php //echo implode(",",$selected_surveys_id_arr);?>/1';
 		//$.get(url_add);	//update session
 		if ($('#'+dialog_id).length==0){
-			$("body").append('<div id="'+dialog_id+'" title="'+title+'"></div>');		
+			$("body").append('<div id="'+dialog_id+'" title="'+title+'"></div>');
 		}
 		
 		var dialog=$( "#"+dialog_id ).dialog({
@@ -193,35 +194,86 @@ function update_survey_collection(e) {
 					$( this ).dialog( "close" );
 				},
 				"Apply filter": function() {
-					//var dialog=$(this).closest(".ui-dialog");
 					$.getJSON(get_selection_url, function( json ) {
-					   var items=json.items.split(",");
-					   $.get(CI.base_url+'/admin/catalog/attach_related_study/'+survey_id+'/'+json.items+'/'+0);
-						/*$.each( items, function( index, value ) {
+					   var selected=json.selected;
+					   console.log(tmp_id);
+					   
+					   //clear session selection
+					   $.get(CI.base_url+'/admin/dialog_select_studies/clear_all/'+tmp_id);
+					   
+					   //attach selected
+					   $.get(CI.base_url+'/admin/catalog/update_related_study/'+survey_id + '/'+selected + '/0');
+					   
+					   //attach selected items to study
+						/*$.each( selected, function( index, value ) {
 							console.log( index + ": " + value );
-						});*/
+							//$.get(CI.base_url+'/admin/catalog/update_related_study/'+survey_id + '/' + '/'+value + '/0');
+						});
+						*/
 					 });
+					 
 					$( this ).dialog( "close" );
 				}
 			}//end-buttons
 		});//end-dialog
 
+		//reset selected items each time dialog is loaded
+		dialog.data("selected","");
+		
 		//load dialog content
 		$('#'+dialog_id).load(url, function() {
 			console.log("loaded");			
 		});
 	
+		//dialog pagination link clicks
 		$(document.body).on("click","#related-surveys th a,#related-surveys .pagination a", function(){
 			$("#dialog-related-studies").load( $(this).attr("href") );
 			return false;
 		});
 		
+		//dialog search button click
 		 $(document.body).on("click","#dialog-related-studies .btn-search-submit", function(){
 			data=$("#dialog-related-studies form").serialize();
 			$("#dialog-related-studies").load( url+"?"+data );
 			return false;
 		});
+				
+		//dialog show selected only checkbox
+		 $(document.body).on("click","#dialog-related-studies #show-only-selected", function(){
+		 	if($(this).prop("checked")){
+				data='show_selected_only=1';
+			}
+			else{data="";}	
+			$("#dialog-related-studies").load( url+"?"+data );
+			return false;
+		});
+		
+		//dialog attach/select study link
+		$(document.body).on("click",".table-container a.attach", function(e){ 
+			$.get($(this).attr("href"));
+			$(this).html("<?php echo t('deselect'); ?>");
+			$(this).removeClass("attach").addClass("remove");
+			return false;
+		});
+	
+		//dialog delest study link	
+		$(document.body).on("click","#related-surveys .table-container a.remove", function(){ 
+			$.get($(this).attr("href"));
+			$(this).html("<?php echo t('select'); ?>");	
+			$(this).removeClass("remove").addClass("attach");
+			return false;
+		});
+	
 	}//end-function	
+	
+	//return array of selected items on the related study tab
+	function get_selected_related_studies(){
+		var items_selected=[];
+		$("#related-studies-tab .table-related-studies .item").each(function(){
+			items_selected.push($(this).attr("data-sid_2")); 
+		});
+		return items_selected;
+	}
 	
 	//relationship type change event
 	$(document.body).on("change",".table-related-studies .rel-type", function(){
@@ -232,7 +284,7 @@ function update_survey_collection(e) {
 		$.get(url);
 		return false;
 	});
-
+	
 </script>
 
 <style>
@@ -392,6 +444,8 @@ height: 56px;
 }
 
 .grid-table .header{font-weight:bold;}
+.sub-text{font-size:smaller;color:gray;}
+
 
 </style>
 <div class="body-container" style="padding:10px;">
