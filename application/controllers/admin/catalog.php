@@ -1881,20 +1881,20 @@ class Catalog extends MY_Controller {
 	*
 	* add/update related study 
 	*
-	*	@p_sid			parent study id
-	*	@c_sid			child studies comma separated list e.g 1,2,3,4
-	*	@relation_id	relationship id
+	*	@sid_1			parent study id
+	*	@sid_2			child studies comma separated list e.g 1,2,3,4
+	*	@rel_id			relationship id
 	**/
-	function update_related_study($p_sid,$c_sid,$relation_id)
+	function update_related_study($sid_1,$sid_2,$rel_id)
 	{
-		if(!is_numeric($p_sid))
+		if(!is_numeric($sid_1))
 		{
 			show_error("INVALID_PARAMS");
 		}
 		
-		$c_sid_arr=explode(",",$c_sid);
+		$sid_2_arr=explode(",",$sid_2);
 		
-		foreach($c_sid_arr as $value)
+		foreach($sid_2_arr as $value)
 		{
 			if(!is_numeric($value))
 			{
@@ -1904,7 +1904,7 @@ class Catalog extends MY_Controller {
 		
 		//attach related studies
 		$this->load->model("Related_study_model");
-		$this->Related_study_model->update($p_sid,$c_sid_arr,$relation_id);
+		$this->Related_study_model->update_relationship($sid_1,$sid_2_arr,$rel_id);
 		
 	}
 
