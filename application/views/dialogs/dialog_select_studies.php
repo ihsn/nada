@@ -1,3 +1,6 @@
+<style>
+.hide-overflow{overflow:hidden;width:100%;height:23px;}
+</style>
 <?php
 	//set default page size, if none selected
 	if(!$this->input->get("ps"))
@@ -5,7 +8,10 @@
 		$ps=15;
 	}
 ?>
-<div><?php var_dump($attached_studies);?></div>
+<!--
+<div>attached: <?php var_dump($attached_studies);?></div>
+<div>excluded: <?php var_dump($excluded_studies);?></div>
+-->
 <div class="body-container dialog-container">
 
 <!-- search form-->
@@ -59,33 +65,20 @@
 	}
 ?>
 
-<script type="text/javascript">
-$(function() {
-	$(document.body).on("click",".table-container a.attach", function(e){ 
-		$.get($(this).attr("href"));
-		$(this).html("<?php echo t('deselect'); ?>");
-		$(this).removeClass("attach").addClass("remove");
-		return false;
-	});
-	$(document.body).on("click","#related-surveys .table-container a.remove", function(){ 
-		$.get($(this).attr("href"));
-		$(this).html("<?php echo t('select'); ?>");	
-		$(this).removeClass("remove").addClass("attach");
-		return false;
-	});
-	
-});
-</script>
-
 <div id="related-surveys">
-<div style="text-align:right;font-size:11px;"><input type="checkbox" name="show" value="selected"/> show selected only</div>
+<div style="text-align:right;font-size:11px;">
+	<label for="show-only-selected">
+    <input type="checkbox" name="show_selected_only" value="1" id="show-only-selected" <?php echo $this->input->get("show_selected_only") ? 'checked="checked"' : ''; ?>/>Show selected only
+    </label>
+    </div>
 <div class="table-container">
 <table class="grid-table" cellspacing="0" cellpadding="0">
     	<tr class="header">
-             <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('id'),$page_url,array('keywords','field','ps')); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,array('keywords','field','ps')); ?></th>
-             <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('keywords','field','ps')); ?></th>                
-            <th><?php echo create_sort_link($sort_by,$sort_order,'proddate',t('year'),$page_url,array('keywords','field','ps')); ?></th>
+        	<?php $params_persist=array('keywords','field','ps','show_selected_only');?>
+             <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('id'),$page_url,$params_persist); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,$params_persist); ?></th>
+             <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$params_persist); ?></th>                
+            <th><?php echo create_sort_link($sort_by,$sort_order,'proddate',t('year'),$page_url,$params_persist); ?></th>
 			<th>&nbsp;</th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -94,21 +87,21 @@ $(function() {
     	<tr class="table-row <?php echo $tr_class; ?>" id="s_<?php echo $row['id']; ?>" >
             <td><b><?php echo $row['id'];?></b></td>
             <td><?php echo $row['titl']; ?></td>
-            <td style="width:80px"><?php echo $row['nation'];?></td>
+            <td style="width:80px"><div class="hide-overflow"><?php echo $row['nation'];?></div></td>
             <td><?php echo $row['proddate']; ?></td>
             <?php
 				$data=t('attach');
 				if ($this->session->userdata($this->input->get('id'))) {
-					$id   = $this->session->userdata[$this->input->get('id')];
+					//$id   = $this->session->userdata[$this->input->get('id')];
 					$img  = site_url() . '/../images/tick.png';
-					$data = (in_array($row['id'], $id)) ? "<img src='{$img}' alt='tick' />" : t('attach'); 
+					$data = (in_array($row['id'], $attached_studies)) ? "<img src='{$img}' alt='tick' />" : t('attach'); 
 				}
 			?>
             <td class="<?php echo ($data == t('attach')) ? 'attached' : 'published'; ?>">
             	<?php if (!in_array($row['id'],$attached_studies)):?>
-            	<a class="attach" href="<?php echo site_url();?>/admin/related_surveys/add/<?php echo $this->sess_id;?>/<?php echo $row['id'];?>"><?php echo t('select'); ?></a>
+            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url();?>/admin/dialog_select_studies/add/<?php echo $sess_id;?>/<?php echo $row['id'];?>"><?php echo t('select'); ?></a>
                 <?php else:?>
-                <a class="remove" href="<?php echo site_url();?>/admin/related_surveys/remove/<?php echo $this->sess_id;?>/<?php echo $row['id'];?>"><?php echo t('deselect') ?></a>
+                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url();?>/admin/dialog_select_studies/remove/<?php echo $sess_id;?>/<?php echo $row['id'];?>"><?php echo t('deselect') ?></a>
 				<?php endif?>                
             </td>
         </tr>
