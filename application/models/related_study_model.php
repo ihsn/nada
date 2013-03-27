@@ -21,8 +21,10 @@ class Related_study_model extends CI_Model {
 			
 			//get relationship pair by relation_id
 			$rel_pairs=$this->get_relationship_pairs($relation_id);
-			$pair_key=date("U");
 			
+			//unique key for the pair		
+			$pair_key=date("U");
+
 			foreach($rel_pairs as $key=>$value)
 			{
 				if($key==$relation_id)
@@ -47,7 +49,7 @@ class Related_study_model extends CI_Model {
 									
 				//add new relationship
 				$result=$this->db->insert('survey_relationships', $options); 
-						
+
 				if ($result===false)
 				{
 					throw new MY_Exception($this->db->_error_message());
@@ -93,7 +95,7 @@ class Related_study_model extends CI_Model {
 	
 	public function get_relationships($sid)
 	{
-		$this->db->select('surveys.titl, survey_relationships.*');
+		$this->db->select('surveys.id as sid,surveys.titl, surveys.nation,surveys.data_coll_start, survey_relationships.*');
 		$this->db->where('sid_1',$sid);
 		$this->db->join('surveys','surveys.id=survey_relationships.sid_2','INNER');
 		return $this->db->get('survey_relationships')->result_array();
@@ -134,9 +136,11 @@ class Related_study_model extends CI_Model {
 		
 		$output=array();
 		
+		$no_duplicates=array();
+		
 		foreach($types as $type)
 		{
-			$output[$type['id']]=$type['rel_name'].' <---> '.$type['rel_name2'];
+			$output[$type['id']]=$type['rel_name'].' ---> ('.$type['rel_name2'].')';
 		}
 		
 		return $output;
