@@ -77,10 +77,7 @@ class Catalog_admin_search_model extends CI_Model {
 		
 		if ($filter!=NULL)
 		{
-			foreach($filter as $key=>$value)
-			{
-				$this->filter["$key"]=$value;
-			}	
+			$this->filter=$filter;
 		}
 			
 		$this->search_count=$this->search_count();
@@ -130,7 +127,7 @@ class Catalog_admin_search_model extends CI_Model {
 		{
 			$this->db->order_by('changed', 'desc'); 
 		}
-				
+
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('surveys');
         $result= $this->db->get()->result_array();
@@ -149,15 +146,18 @@ class Catalog_admin_search_model extends CI_Model {
 		$where_clause='';
 		
 		//build where clause for FILTERS
-		foreach($this->filter as $key=>$value)
+
+		foreach($this->filter as $f)
 		{
+			if($f==''){break;}//skip blanks
+			
 			if ($filter!='')
 			{
-				$filter.=' AND ' . $key . $this->db->escape($value);
+				$filter.=' AND (' . $f. ')';
 			}
 			else
 			{
-				$filter=$key . $this->db->escape($value);
+				$filter=' (' . $f. ')';
 			}		
 		}
 			
@@ -169,6 +169,7 @@ class Catalog_admin_search_model extends CI_Model {
 		{
 			$where_clause=$filter;
 		}
+
 
 		//additional search options
 		$additional_filters=array();
