@@ -33,31 +33,70 @@ class Dialog_select_studies extends MY_Controller {
 	* @id	session key
 	**/
 	public function index($skey){
-		$this->sess_id=$skey;		
-		$this->related_surveys=(array)$this->session->userdata($skey);
-					
 		//$this->Catalog_model->active_repo=NULL;
+		
+		//add/remove excluded items in the session
+		$this->update_excluded_items($skey);		
+		
 		$db_rows=$this->_search($skey);	
-		$db_rows['attached_studies']=$this->related_surveys;
+		$db_rows['attached_studies']=$this->get_items($skey,'selected');
+		$db_rows['excluded_studies']=$this->get_items($skey,'excluded');
+		$db_rows['sess_id']=$skey;
 		$this->load->view('dialogs/dialog_select_studies', $db_rows);
 	}
+	
+	
+	private function get_items($skey,$section='selected')
+	{
+		$sess_data=(array)$this->session->userdata($skey);
+		if (isset($sess_data[$section]))
+		{
+			return $sess_data[$section];
+		}
+		
+		return array();	
+	}
+
+	
 	
 	
 	private function _search($skey)
 	{
 		//records to show per page
-		$per_page = $this->input->get("ps");
+		$limit = $this->input->get("ps");
 		
-		if($per_page===FALSE || !is_numeric($per_page))
+		if($limit===FALSE || !is_numeric($limit))
 		{
-			$per_page=10;
+			$limit=10;
 		}
+		
+		//comma seperated list of excluded studies
+		$excluded= $this->get_items($skey,'excluded');		
 				
 		//current page
-		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
+		$offset=$this->input->get('per_page');//$this->uri->segment(4);
 
 		//filter to further limit search
 		$filter=array();
+		
+		//exclude studies
+		if(count($excluded)>0)
+		{
+			$filter=array(	
+						sprintf('surveys.id not in (%s)',implode(",",$excluded))
+						);
+		}
+
+		
+		if($this->input->get("show_selected_only")==1)
+		{
+			$selected_items=$this->get_items($skey,'selected');
+			if(count($selected_items)>0)
+			{
+				array_push($filter, sprintf('surveys.id in (%s)',implode(",", $selected_items) ));
+			}	
+		}
+		
 		
 		$allowed_fields=array('titl','nation','surveyid','proddate','authenty');
 		
@@ -73,26 +112,28 @@ class Dialog_select_studies extends MY_Controller {
 		$this->Catalog_admin_search_model->set_active_repo('');
 		
 		//survey rows
-		$data['rows']=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
+		$data['rows']=$this->Catalog_admin_search_model->search($search_options,$limit,$offset, $filter);
 
 		//total records in the db
 		$total = $this->Catalog_admin_search_model->search_count;
 
-		if ($curr_page>$total)
+		if ($offset>$total)
 		{
-			$curr_page=$total-$per_page;
-			
+			$offset=0;//$total-$limit;
+			$limit=15;
 			//search again
-			$data['rows']=$this->Catalog_admin_search_model->search($per_page, $curr_page,$filter);
+			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$limit, $offset,$filter);
 		}
+		
+		
 
 		//set pagination options
 		$base_url = site_url('admin/dialog_select_studies/index/'.$skey);
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
-		$config['per_page'] = $per_page;
+		$config['per_page'] = $limit;
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('id', 'sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('id', 'sort_by','sort_order','keywords', 'field','ps','show_selected_only'));//pass any additional querystrings
 		$config['next_link'] = t('page_next');
 		$config['num_links'] = 5;
 		$config['prev_link'] = t('page_prev');
@@ -106,6 +147,44 @@ class Dialog_select_studies extends MY_Controller {
 		return $data;		
 	}
 	
+	
+	private function update_excluded_items($skey)
+	{
+		$excluded= $this->input->get("excluded");
+		$excluded= explode(",",$excluded);
+		foreach($excluded as $key=>$value)
+		{
+			if(!is_numeric($value)) 
+			{
+				$excluded=array();break;
+			}
+			
+			$excluded[$key]=(int)($value);
+		}
+		
+		if (count($excluded)>0)
+		{
+			$sess_data=$this->get_session($skey);
+			$sess_data['excluded']=$excluded;			
+			$this->session->set_userdata(array($skey=>$sess_data));
+		}
+		
+		
+	}
+	
+	
+	private function get_session($skey)
+	{
+		$sess_data=$this->session->userdata($skey);
+		
+		//create empty error if not an array
+		if (!is_array($sess_data))
+		{
+			$sess_data=array('selected'=>array(),'excluded'=>array());
+		}
+		
+		return $sess_data;
+	}
 	
 	/**
 	*
@@ -129,15 +208,15 @@ class Dialog_select_studies extends MY_Controller {
 		//create empty error if not an array
 		if (!is_array($sess_data))
 		{
-			$sess_data=array();
+			$sess_data=array('selected'=>array(),'excluded'=>array());
 		}
-				
+
 		//add survey to array 
 		foreach($id_list as $key=>$value)
 		{
 			if (!in_array($value,$sess_data))
 			{
-				$sess_data[]=(int)$value;
+				$sess_data['selected'][]=(int)$value;
 			}
 		}
 				
@@ -169,15 +248,15 @@ class Dialog_select_studies extends MY_Controller {
 		//create empty error if not an array
 		if (!is_array($sess_data))
 		{
-			$sess_data=array();
+			$sess_data=array('selected'=>array(),'excluded'=>array());
 		}
 		
 		//remove survey from array 
-		foreach($sess_data as $key=>$value)
+		foreach($sess_data['selected'] as $key=>$value)
 		{
 			if ($value==$sid)
 			{
-				unset($sess_data[$key]);
+				unset($sess_data['selected'][$key]);
 				break;
 			}
 		}
@@ -205,8 +284,14 @@ class Dialog_select_studies extends MY_Controller {
 	function get_list($skey)
 	{
 		header('Content-type: application/json');
-		$sess_data['items']=implode(",",$this->session->userdata($skey));
-		echo json_encode($sess_data);
+		$sess_data=$this->session->userdata($skey);
+		$output=array();
+		if(!is_array($sess_data['selected']))
+		{
+			$sess_data['selected']=array();
+		}
+		$output['selected']=implode(",",$sess_data['selected']);
+		echo json_encode($output);
 	}
 	
 	
