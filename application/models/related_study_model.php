@@ -1,4 +1,30 @@
 <?php
+
+/**
+* Relationship types
+*
+* 	Type 1: require double entries in the db and both end have different names
+*
+*	Examples: 
+*		parent -> child
+*		child -> parent
+*
+*
+*	Type 2: require double entries and there is no need to define both ends of the relationships
+*		
+*	Examples:
+*		isWaveOf -> isWaveOf
+*		or 
+*		isRelatedTo	->	isRelatedTo
+*
+*
+*	Type 3: Relationship not set
+*
+*	uses the relationship-id=0 and only one entry is required
+*
+**/
+
+
 class Related_study_model extends CI_Model {
 
     public function __construct()
@@ -16,34 +42,40 @@ class Related_study_model extends CI_Model {
 	{	
 		foreach($c_sid_arr as $sid_2)
 		{
-			//delete existing relationship pair
-			$this->delete_relationship($p_sid,$sid_2);
-			
 			//get relationship pair by relation_id
 			$rel_pairs=$this->get_relationship_pairs($relation_id);
-			
-			//unique key for the pair		
+
+			//delete existing relationship pair
+			$this->delete_relationship($p_sid,$sid_2,$relation_id);
+
+			//rules
+			//1:	0	no relationship type set - dont insert double records
+			//2:	if rel_pairs row count =1 then use the same relationshipid for both sides
+
+			//unique key for the pair
 			$pair_key=date("U");
 
-			foreach($rel_pairs as $key=>$value)
+			foreach($rel_pairs as $key=>$relation)
 			{
 				if($key==$relation_id)
 				{
 					$options=array(
 						'sid_1'				=>	$p_sid,
 						'sid_2'				=>	$sid_2,
-						'relationship_id'	=>	$key,
+						'relationship_id'	=>	$relation['id'],
 						'pair_id'			=>	$pair_key
 					);
+					
 				}
 				else
 				{
 					$options=array(
 						'sid_2'				=>	$p_sid,
 						'sid_1'				=>	$sid_2,
-						'relationship_id'	=>	$key,
+						'relationship_id'	=>	$relation['id'],
 						'pair_id'			=>	$pair_key
 					);
+					
 				}
 				
 									
@@ -72,7 +104,14 @@ class Related_study_model extends CI_Model {
 		$output=array();
 		foreach($rows as $row)
 		{
-			$output[$row['id']]=$row['rel_name'];
+			$output[$row['id']]=$row;
+		}
+				
+		//for relationships like isWaveOf <---> isWaveOf
+		if(count($rows)==1 && $rows[0]["id"]!=0)
+		{
+			//duplicate the row
+			$output[]=$rows[0];
 		}
 		
 		return $output;
@@ -80,16 +119,36 @@ class Related_study_model extends CI_Model {
 	
 	
 	
-	public function delete_relationship($sid_1,$sid_2)
+	public function delete_relationship($sid_1,$sid_2,$relation_id)
 	{
-		$where=sprintf("(sid_1=%d and sid_2=%d) or (sid_1=%d and sid_2=%d)",
-				(integer)$sid_1,
-				(integer)$sid_2,
-				(integer)$sid_2,
-				(integer)$sid_1
-			);		
-		$this->db->where($where,NULL,FALSE);
-		$this->db->delete('survey_relationships');
+		//get pairs
+		$rel_pairs=$this->get_relationship_pairs($relation_id);
+		
+		//delete both relationship entries
+		foreach($rel_pairs as $key=>$relation)
+		{
+			if($key==$relation_id)
+			{
+				$p_sid=$sid_1;
+				$c_sid=$sid_2;
+				
+				$this->db->where('sid_1',$p_sid);
+				$this->db->where('sid_2',$c_sid);
+				$this->db->where('relationship_id',$relation['id']);
+				$this->db->delete('survey_relationships');				
+			}
+			else
+			{
+				$p_sid=$sid_2;
+				$c_sid=$sid_1;
+				
+				$this->db->where('sid_1',$p_sid);
+				$this->db->where('sid_2',$c_sid);
+				$this->db->where('relationship_id',$relation['id']);
+				$this->db->delete('survey_relationships');				
+			}
+		}
+		
 	}
 		
 	
@@ -102,11 +161,12 @@ class Related_study_model extends CI_Model {
 	}
 	
 	
+	/**
+	*
+	* Return an array of relationship types as pairs
+	**/	
 	public function get_relationship_types_array()
 	{
-		//$this->db->select('*');
-		//$types=$this->db->get('survey_relationship_types')->result_array();
-		
 		$sql='select * from (
 			select 
 				srt1.id,
@@ -129,6 +189,16 @@ class Related_study_model extends CI_Model {
 			from survey_relationship_types srt1
 				inner join survey_relationship_types srt2 on srt1.rel_group_id=srt2.rel_group_id
 				where srt1.rel_dir=1 and srt2.rel_dir=0
+			UNION ALL
+			select 
+				id, 
+				rel_group_id, 
+				rel_name, 
+				rel_dir, 
+				rel_name as rel_name2, 
+				rel_dir as rel_dir2
+			from survey_relationship_types
+				where rel_dir=2
 			)
 			relationship_types order by id;';
 		
