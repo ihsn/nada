@@ -1887,7 +1887,7 @@ class Catalog extends MY_Controller {
 	**/
 	function update_related_study($sid_1,$sid_2,$rel_id)
 	{
-		if(!is_numeric($sid_1))
+		if(!is_numeric($sid_1) || !is_numeric($rel_id))
 		{
 			show_error("INVALID_PARAMS");
 		}
@@ -1901,11 +1901,43 @@ class Catalog extends MY_Controller {
 				show_error("INVALID_PARAM");
 			}
 		}
-		
-		//attach related studies
+
 		$this->load->model("Related_study_model");
-		$this->Related_study_model->update_relationship($sid_1,$sid_2_arr,$rel_id);
+		$this->Related_study_model->update_relationship($sid_1,$sid_2_arr,$rel_id);		
+	}
+
+
+	/**
+	*
+	*	Remove a single study relationship
+	**/
+	function remove_related_study($sid_1,$sid_2,$rel_id)
+	{
+		if(!is_numeric($sid_1) || !is_numeric($rel_id) || !is_numeric($sid_2) )
+		{
+			show_error("INVALID_PARAMS");
+		}
 		
+		$sid_2_arr=explode(",",$sid_2);
+		
+		$this->load->model("Related_study_model");
+		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id);		
+	}
+
+	function get_related_studies($sid)
+	{
+		if(!is_numeric($sid))
+		{
+			show_error("INVALID-PARAMS");
+		}
+		
+		$this->load->model("Related_study_model");
+		$survey_row['related_studies']=$this->Related_study_model->get_relationships($sid);
+		
+		//array of all relationship types
+		$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
+		$survey_row['survey_id']=$sid;
+		$this->load->view('catalog/related_studies_tab',$survey_row);
 	}
 
 }
