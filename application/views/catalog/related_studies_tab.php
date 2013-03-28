@@ -9,7 +9,7 @@ array_unshift($relationship_types, '-- Select Relationship Type --');
 //$relationship_types=array_unique($relationship_types);
 ?>
 
-<?php if (isset($related_studies) && ($related_studies!==FALSE)): ?>
+<?php if (isset($related_studies) && count($related_studies)>0 ): ?>
 
 <table class="grid-table table-related-studies" cellpadding="0" cellspacing="0" id="tab-content-related-studies">
 <tbody>
@@ -31,7 +31,7 @@ array_unshift($relationship_types, '-- Select Relationship Type --');
             <div class="sub-text"><?php echo $study['nation'];?>, <?php echo $study['data_coll_start'];?> </div> 
             </td>
     	<td nowrap="nowrap">
-        	<a href="<?php echo site_url('admin/catalog/remove_related_study/'.$survey_id.'/'.$study['sid_2']);?>" class="icon-remove-sign link remove" title="Remove">&nbsp;</a>
+        	<a href="<?php echo site_url('admin/catalog/remove_related_study/'.$survey_id.'/'.$study['sid_2'].'/'.$study['relationship_id']);?>" class="icon-remove-sign link remove remove-related-study " title="Remove">&nbsp;</a>
         </td>
 	</tr>
 <?php endforeach; ?>
