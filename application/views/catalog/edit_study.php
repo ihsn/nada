@@ -202,14 +202,13 @@ function update_survey_collection(e) {
 					   $.get(CI.base_url+'/admin/dialog_select_studies/clear_all/'+tmp_id);
 					   
 					   //attach selected
-					   $.get(CI.base_url+'/admin/catalog/update_related_study/'+survey_id + '/'+selected + '/0');
+					   var xhr=$.get(CI.base_url+'/admin/catalog/update_related_study/'+survey_id + '/'+selected + '/0');
 					   
-					   //attach selected items to study
-						/*$.each( selected, function( index, value ) {
-							console.log( index + ": " + value );
-							//$.get(CI.base_url+'/admin/catalog/update_related_study/'+survey_id + '/' + '/'+value + '/0');
-						});
-						*/
+					   //refresh the tab contents
+					   $("#related-studies-tab").html("loading...");
+					   xhr.done(function() { 
+					   		$("#related-studies-tab").load(CI.base_url+'/admin/catalog/get_related_studies/'+survey_id);
+					   });
 					 });
 					 
 					$( this ).dialog( "close" );
@@ -281,7 +280,19 @@ function update_survey_collection(e) {
 		var sid_1=tr.attr("data-sid_1");
 		var sid_2=tr.attr("data-sid_2");
 		var url=CI.base_url+'/admin/catalog/update_related_study/'+sid_1+'/'+sid_2+'/'+$(this).val();
+		var url_remove_study=CI.base_url+'/admin/catalog/remove_related_study/'+sid_1+'/'+sid_2+'/'+$(this).val();
+		tr.find(".remove-related-study").attr("href",url_remove_study);
 		$.get(url);
+		return false;
+	});
+
+	//remove related study link
+	$(document.body).on("click","#related-studies-tab .table-related-studies .remove-related-study", function(){
+		var survey_id=$(this).closest("tr").attr("data-sid_1");
+		$.get($(this).attr("href")).done(function() { 
+			$("#related-studies-tab").load(CI.base_url+'/admin/catalog/get_related_studies/'+survey_id);
+	   	});
+		
 		return false;
 	});
 	
