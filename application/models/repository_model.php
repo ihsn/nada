@@ -892,6 +892,39 @@ class Repository_model extends CI_Model {
 		return $this->db->get('repositories r')->result_array();	
 	}
 	
+	
+		/**
+	*
+	* Returns an array of all repository names
+	*	
+	**/
+	function get_repository_array()
+	{
+		$this->db->select('repositoryid');
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		if (!$result)
+		{
+			return array();
+		}
+
+		//create an array, making the repositoryid array key
+		$repos=array();
+		foreach($result as $row)
+		{
+			$repos[]=$row['repositoryid'];
+		}
+	
+		return $repos;
+	}
+
 	/**
 	*
 	* check if the repo/collection has Data Access by Collection enabled
