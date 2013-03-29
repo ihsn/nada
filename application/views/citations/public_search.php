@@ -4,15 +4,26 @@
 .sort-links a{border-left:1px solid gainsboro;padding:0px 5px 0px 5px;display:inline-block;text-decoration:none;}
 .pagination{background-color:gainsboro;padding:5px;}
 .search-box{padding:4px;background-color:gainsboro;}
-.citation-row{padding:5px;margin-bottom:5px;border-bottom:1px dashed gainsboro;color:#333333; list-style-position:outside;margin-left:35px;}
+.citation-row{padding:10px;border-bottom:1px dashed gainsboro;color:#333333; list-style-position:outside;}
 em{font-style:italic}
 
 .title {}
 .sub-title{font-style:italic;}
-.citation-rows{list-style-position:inside;}
-.citation-rows ul li{}
+.citation-rows .alternate{background:#F5F5F5}
+.citation-row:hover{background:#DBDBDB;cursor:pointer;}
 
 </style>
+
+<script type="text/javascript">
+$(document).ready(function () { 
+		$(".citation-row").click(function(){
+			window.location=$(this).attr("data-url");
+			return false;
+		});
+
+	});
+</script>
+
 <div class="body-container" style="padding:10px;">
 <?php if (!isset($hide_form)):?>
 <?php $message=$this->session->flashdata('message');?>
@@ -21,6 +32,7 @@ em{font-style:italic}
 <h1 class="page-title"><?php echo t('citations');?></h1>
 <form class="search-box" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
+  <input type="hidden" name="collection" value="<?php echo $active_repo;?>"/>
   <select name="field" id="field">
     <option value="all"	<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields')?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title')?></option>
@@ -30,7 +42,7 @@ em{font-style:italic}
   </select>
   <input type="submit" value="<?php echo t('search')?>" name="search" class="button"//>
   <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo site_url();?>/citations/"><?php echo t('reset')?></a>
+    <a href="<?php echo site_url();?>/citations/?collection=<?php echo $active_repo;?>"><?php echo t('reset')?></a>
   <?php endif; ?>
 </form>
 <?php endif; ?>
@@ -88,15 +100,18 @@ em{font-style:italic}
 
 	<div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
     
-	<?php $tr_class=""; ?>
-    <ol type="1" start="<?php echo $from_page;?>" class="citation-rows">
+	<?php $tr_class="alternate"; ?>    
+    <div  class="citation-rows">
 	<?php foreach($rows as $row): ?>
-		<li class="citation-row">
+	    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
+    	<div class="citation-row <?php echo $tr_class;?>" data-url="<?php echo site_url('/citations/'.$row['id']);?>">
+		<span>
 		<?php //$this->load->view('citations/view_chicago',$row);?>
         <?php echo $this->chicago_citation->format($row,'journal');?>
-        </li>
+        </span>
+        </div>
     <?php endforeach;?>
-    </ol>
+    </div>
     <div class="pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
@@ -106,70 +121,6 @@ em{font-style:italic}
 <?php endif; ?>
 </form>
 </div>
-<script type='text/javascript' >
-//checkbox select/deselect
-jQuery(document).ready(function(){
-	$("#chk_toggle").click(
-			function (e) 
-			{
-				$('.chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
-			}
-	);
-	$(".chk").click(
-			function (e) 
-			{
-			   if (this.checked==false){
-				$("#chk_toggle").attr('checked', false);
-			   }			   
-			}
-	);			
-	$("#batch_actions_apply").click(
-		function (e){
-			if( $("#batch_actions").val()=="delete"){
-				batch_delete();
-			}
-		}
-	);
-});
-
-function batch_delete(){
-	if ($('.chk:checked').length==0){
-		alert("You have not selected any items");
-		return false;
-	}
-	if (!confirm("Are you sure you want to delete the selected item(s)?"))
-	{
-		return false;
-	}
-	selected='';
-	$('.chk:checked').each(function(){ 
-		if (selected!=''){selected+=',';}
-        selected+= this.value; 
-     });
-	
-	$.ajax({
-		timeout:1000*120,
-		dataType: "json",
-		data:{ submit: "submit"},
-		type:'POST', 
-		url: CI.base_url+'/admin/resources/delete/'+selected+'/?ajax=true',
-		success: function(data) {
-			if (data.success){
-				location.reload();
-			}
-			else{
-				alert(data.error);
-			}
-		},
-		error: function(XHR, textStatus, thrownError) {
-			alert("Error occured " + XHR.status);
-		}
-	});	
-}
-
-</script>
 
 <?php
 /**
