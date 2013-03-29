@@ -1,13 +1,22 @@
+<?php 
+//fix for UI tabs
+$referer=$this->input->get("referer");
+if (strpos($referer,site_url())===false)
+{
+	$referer=site_url('catalog');
+}
+?>
+
 <script>
 $(document).ready(function()  {
-$( "#tabs" ).tabs();
+	$( "#tabs" ).tabs();
 });
 </script>
 <div id="tabs">
   <ul>
-    <li class="first"><a href="<?php echo site_url();?>/catalog#tabs-1">In Alphabatic order</a></li>
+    <li class="first"><a href="<?php echo $referer;?>#tabs-1">In Alphabatic order</a></li>
     <?php foreach($regions as $region):?>
-    	<li><a href="<?php echo site_url();?>/catalog#tabs-region-<?php echo $region['id'];?>"><?php echo $region['title'];?></a></li>
+    	<li><a href="<?php echo $referer;?>#tabs-region-<?php echo $region['id'];?>"><?php echo $region['title'];?></a></li>
   	<?php endforeach;?>  
   </ul>
   <div id="tabs-1">
