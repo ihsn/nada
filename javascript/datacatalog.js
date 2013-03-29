@@ -202,9 +202,7 @@ function bindBehaviors(e)
 	//on page size change
 	$(".switch-page-size .button, .switch-page-size .btn").unbind('click').click(function(event) {
 		$("#ps").val($(this).html());
-		console.log($("#ps").val());
 		$("#page").val(1);
-		alert("page-size-pre-search");
 		hash_changed();
 	});
 	
@@ -265,7 +263,6 @@ $(document).ready(function()
 	
 	//ANY checkbox click handler. unset all other options
 	$("#search_form .filter-box .any :checkbox").click(function(event) {
-																	console.log("any clicked");
 		$(this).closest(".filter-box").find(".items-container").find(".chk").prop("checked",false);
 		hash_changed();
 	});
@@ -303,7 +300,7 @@ function search_page(num){
 }
 
 
-
+/*
 (function() {
 escape_re = /[#;&,\.\+\*~':"!\^\$\[\]\(\)=>|\/\\]/;
 jQuery.escape = function jQuery$escape(s) {
@@ -314,7 +311,7 @@ jQuery.escape = function jQuery$escape(s) {
     jQuery.escape(s.substr(left.length+1));
 }
 })();
-
+*/
 
 
 //hashchange event handler
@@ -322,9 +319,6 @@ $(window).bind( 'hashchange', function(e) {
 
 	fragments=$.deparam.fragment();
 	var found=false;
-	
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	
 	filters=new Object();
 	
 	if(typeof fragments.country != 'undefined'){
@@ -373,56 +367,6 @@ $(window).bind( 'hashchange', function(e) {
 		//uncheck/check ANY option
 		$(filters[filter].container).find(".any :checkbox").prop("checked",!found);
 	}
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	//country
-	/*
-	if(typeof fragments.country != 'undefined'){		
-		var countries=fragments.country.split(",");		
-		$("#search_form .chk-country").each(function() { 
-			if ($.inArray($(this).prop('value'), countries)!==-1 ){
-				$(this).prop('checked',true);
-				found=true;
-			}
-			else{
-				$(this).prop('checked',false);
-			}
-		});	
-		
-		//uncheck/check ANY option
-		$("#search_form .chk-country-any").prop("checked",!found);
-	}
-	else
-	{
-		//default country filter options
-		$("#search_form .chk-country-any").prop("checked",true);
-	}*/
-
-
-	//dtype
-	/*
-	if(typeof fragments.dtype != 'undefined'){
-		var value_arr=fragments.dtype.split(",");
-		var found=false;
-		$("#search_form .chk-da").each(function() { 
-			if ($.inArray($(this).prop('value'), value_arr)!==-1 ){
-				$(this).prop('checked',true);
-				found=true;
-			}
-			else
-			{
-				$(this).prop('checked',false);
-			}
-		});	
-		//uncheck/check ANY option
-		$("#search_form .chk-da-any").prop("checked",!found);
-	}
-	else
-	{
-		//default country filter options
-		$("#search_form .chk-da-any").prop("checked",true);
-	}
-	*/
 
 	//years
 	if(typeof fragments.from != 'undefined'){
@@ -478,57 +422,57 @@ $(document).ready(function()  {
 	// selection dialog
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	window.init_dialog=function init_dialog(dialog_id,title,data_url)
-	{		
+	{
 		$("body").append('<div id="'+dialog_id+'" title="'+title+'"></div>');
 		
-	 var dialog=$( "#"+dialog_id ).dialog({
-      height: 520,
-	  position:"center",
-	  width:730,
-      modal: true,
-	  autoOpen: false,
-	  buttons: {
-        "Apply filter": function() {
-			var dialog=$(this).closest(".ui-dialog");
-			var source_list=dialog.data('source-list');			
-			var dialog_selection=dialog.find(".container").find(".cnt :checked");
-			var values=[];
-
-			dialog_selection.each(function() { 
-				values.push($(this).val()); 
-			});
-			
-			var found=false;
-			
-			source_list.find(".chk").each(function() { 
-				if ($.inArray($(this).prop('value'), values)!==-1 ){
-					$(this).prop('checked',true);
-					found=true;
+		 var dialog=$( "#"+dialog_id ).dialog({
+		  height: 520,
+		  position:"center",
+		  width:730,
+		  modal: true,
+		  autoOpen: false,
+		  buttons: {
+			"Apply filter": function() {
+				var dialog=$(this).closest(".ui-dialog");
+				var source_list=dialog.data('source-list');			
+				var dialog_selection=dialog.find(".container").find(".cnt :checked");
+				var values=[];
+	
+				dialog_selection.each(function() { 
+					values.push($(this).val()); 
+				});
+				
+				var found=false;
+				
+				source_list.find(".chk").each(function() { 
+					if ($.inArray($(this).prop('value'), values)!==-1 ){
+						$(this).prop('checked',true);
+						found=true;
+					}
+					else{
+						$(this).prop('checked',false);
+					}			
+				});	
+				
+				$( this ).dialog( "close" );
+				
+				if (found) { 
+					//uncheck ANY option
+					source_list.find(".chk-any").prop("checked",false);
+					hash_changed();
 				}
 				else{
-					$(this).prop('checked',false);
-				}			
-			});	
-			
-			$( this ).dialog( "close" );
-			
-			if (found) { 
-				//uncheck ANY option
-				source_list.find(".chk-any").prop("checked",false);
-				hash_changed();
-			}
-			else{
-				//check ANY option if nothing selected from the dialog
-				source_list.find(".chk-any").prop("checked",true);
-				hash_changed();
-			}
-
-        }//end apply filter
-      }//end-buttons
-    });//end-dialog
+					//check ANY option if nothing selected from the dialog
+					source_list.find(".chk-any").prop("checked",true);
+					hash_changed();
+				}
+	
+			}//end apply filter
+		  }//end-buttons
+		});//end-dialog
 
 	//load dialog content
-	$('#'+dialog_id).load(data_url, function() {		
+	$('#'+dialog_id).load(data_url+'?referer='+window.location.href, function() {		
 		dialog.closest(".ui-dialog").find(".ui-dialog-title").append('<div class="ui-dialog-subtitle"><span class="ui-dialog-stats"></span> | <span class="clear-selection link">Clear</span></div>');
 	});
 	
