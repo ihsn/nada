@@ -1,7 +1,8 @@
 <?php
 class Catalog extends MY_Controller {
 
-	var $filter;	//stores all search options
+	//active repository object
+	var $active_repo=NULL;
 	
     public function __construct()
     {
@@ -36,10 +37,6 @@ class Catalog extends MY_Controller {
 		{
 			$this->template->set_template('blank');
 		}
-
-		//set default repository filter to none
-		$this->filter->repo='';
-		$this->active_repo='';
 	}
 
 	/**
@@ -96,7 +93,7 @@ class Catalog extends MY_Controller {
 			$this->session->unset_userdata('search');
 			$repoid='';
 			
-			if (isset($this->active_repo) && $this->active_repo!==FALSE)
+			if (isset($this->active_repo) && $this->active_repo!==NULL)
 			{
 				$repoid=$this->active_repo['repositoryid'];
 			}
@@ -136,26 +133,8 @@ class Catalog extends MY_Controller {
 		$data=array();
 		
 		//get list of DA types available for current repository
-		$data['da_types']=$this->Search_helper_model->get_active_data_types($this->filter->repo);
-		
-		//TODO: review
-		/*
-		if ($this->center_search=='yes')
-		{
-			//get list of centers
-			$data['center_list']=$this->Search_helper_model->get_active_centers($this->filter->repo);
-		}
-		*/	
-
-		/*
-		//tobe removed
-		if ($this->collection_search=='yes')
-		{
-			//get list of collections
-			$this->collection_list=$this->Search_helper_model->get_collections($this->filter->repo);
-		}
-		*/	
-		
+		$data['da_types']=$this->Search_helper_model->get_active_data_types($this->active_repo['repositoryid']);
+				
 		//get year min/max
 		$data['min_year']=$this->Search_helper_model->get_min_year();
 		$data['max_year']=$this->Search_helper_model->get_max_year();
@@ -200,10 +179,8 @@ class Catalog extends MY_Controller {
 		if ($this->regional_search)
 		{
 			//get list of active countries
-			$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
+			$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
 		}
-		
-		
 		
 		//default for sort order if no valid values found
 		if (!in_array($search_options->sort_order,$allowed_order))
@@ -226,7 +203,7 @@ class Catalog extends MY_Controller {
 				'to'=>$search_options->to,
 				'sort_by'=>$search_options->sort_by,
 				'sort_order'=>$search_options->sort_order,
-				'repo'=>$this->filter->repo
+				'repo'=>$this->active_repo['repositoryid']
 			);		
 
 			$this->load->library('catalog_search',$params);
@@ -249,13 +226,13 @@ class Catalog extends MY_Controller {
 				'to'=>$search_options->to,
 				'sort_by'=>$search_options->sort_by,
 				'sort_order'=>$search_options->sort_order,
-				'repo'=>$this->filter->repo
+				'repo'=>$this->active_repo['repositoryid']
 			);
-				
+
 			//intialize search class
 			$this->load->library('catalog_search',$params);	
-			$data['search_options']=$search_options;
-			$data['surveys']=$this->catalog_search->search($this->limit,$offset);
+			$data['surveys']=$this->catalog_search->search($this->limit,$offset);			
+			$data['search_options']=$search_options;			
 			$data['current_page']=$search_options->page;
 			$data['search_result']=$this->load->view('catalog_search/survey_list', $data,true);
 		}
@@ -304,6 +281,8 @@ class Catalog extends MY_Controller {
 		{
 			$this->page_title=t('central_data_catalog');
 		}
+		
+		$data['active_repo']=$this->active_repo['repositoryid'];
 		
 		//show search form
 		$this->template->write('search_filters', $this->load->view('catalog_search/catalog_facets', $data,true),true);
@@ -392,7 +371,7 @@ class Catalog extends MY_Controller {
 
 		if ($this->regional_search)
 		{
-			$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
+			$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
 		}
 		
 		if($this->topic_search=='yes')
@@ -472,8 +451,8 @@ class Catalog extends MY_Controller {
 		$data['data_access_types']=$this->Form_model->get_form_list();
 		$this->load->view('catalog_search/survey_list', $data);
 		
-		$this->load->library("tracker");
-		$this->tracker->track();
+		//$this->load->library("tracker");
+		//$this->tracker->track();
 	}
 	
 	/**
@@ -878,99 +857,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 
-	/**
-	* 
-	* display survey information by survey id
-	*
-	* @format={json,checksum}
-	*	- json - returns the survey as JSON array
-	*	- checksum - returns survey ddi checksum
-	*
-	**/
-	/*
-	function survey($id=NULL)
-	{				
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-
-		$this->load->model('Citation_model');
-		$this->load->model('Repository_model');
-		$this->load->library('chicago_citation');
-						
-		//get survey
-		$survey=$this->Catalog_model->select_single($id);
-
-		if ($survey===FALSE || count($survey)==0)
-		{
-			$this->db_logger->write_log('survey-not-found',$id,'NOT FOUND');
-			
-			//show_error('STUDY_NOT_FOUND');			
-			$content='<h1>NOT FOUND</h1>';
-			$content.='Sorry, the page you are looking for does not exist.';
-			$this->template->write('content',$content,TRUE);
-			$this->template->render();
-			return;
-		}
-
-		if ($this->input->get('ajax') || $this->input->get('print') )
-		{
-			$this->template->set_template('blank');	
-		}
-		
-		//get survey folder path - NEEDED BY THE VIEW
-		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
-
-		//DDI file path
-		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
-
-		if (!file_exists($ddi_file))
-		{
-			show_error('FILE_NOT_FOUND');
-		}
-		
-		//output to JSON
-		if ($this->input->get('format')=='json')
-		{
-			$this->_survey_json($id);
-			return;
-		}
-		else if ($this->input->get('format')=='checksum')
-		{
-			echo md5_file($ddi_file);
-			return;
-		}
-						
-		//get list of repositories
-		//$this->repositories=$this->Catalog_model->get_repositories();
-		
-		//page description metatags		
-		$this->template->add_meta("description",sprintf(t('study_meta_description')
-													,$survey['nation'].' - '.$survey['titl'],
-													$survey['producer'],
-													$this->config->item("site_title")));
-
-		//get harvested info
-		$this->harvested=$this->Repository_model->get_row($survey['repositoryid'],$survey['surveyid']);
-		
-		//get list of collections
-		$this->collections=$this->Catalog_model->get_collections($id);
-		
-		//get external resources
-		$survey['resources']=$this->Catalog_model->get_grouped_resources_by_survey($id);
-		
-		//get survey related citations
-		$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
-				
-		$content_body=$this->load->view('catalog_search/survey_summary',$survey,TRUE);		
-		$this->template->write('title', $survey['titl'].' - '.$survey['nation'],true);
-		$this->template->write('content', $content_body,true);
-		
-		//render final output
-	  	$this->template->render();
-	}
-	*/
+	
 
 	/**
 	*
@@ -1039,6 +926,7 @@ class Catalog extends MY_Controller {
 	* Download survey related files e.g. questionnaire, reports, etc
 	*
 	*/
+	/* todo: remove
 	function download($id=NULL)
 	{
 		if (!is_numeric($id))
@@ -1079,7 +967,7 @@ class Catalog extends MY_Controller {
 			echo js_redirect($file_name,0);
 		}
 	}
-	
+	*/
 	
 	function export($format='doc')
 	{
@@ -1347,22 +1235,17 @@ class Catalog extends MY_Controller {
 				{
 					//reset any search options selected
 					$this->session->unset_userdata('search');
-				}	
+				}
 				
 				//repository options
 				if ($method=='central')
 				{
-					//add repo filter
-					$this->filter->repo='';
-					$this->active_repo=FALSE;
-					
-					//save active repository name in session
+					$this->active_repo=NULL;
 					$this->session->set_userdata('active_repository',$method);							
 				}
 				else
 				{
 					//add repo filter
-					$this->filter->repo=$method;
 					$this->active_repo=$this->repository_model->get_repository_by_repositoryid($method);
 					
 					//save active repository name in session
@@ -1383,6 +1266,8 @@ class Catalog extends MY_Controller {
 			}		
         }
     }
+	
+	
 	
 	function repositories()
 	{
@@ -1434,6 +1319,7 @@ class Catalog extends MY_Controller {
 	**/
 	function history()
 	{
+		$this->load->library("pagination");
 		$this->load->model("Catalog_history_model");
 		
 		//records to show per page
@@ -1503,7 +1389,7 @@ class Catalog extends MY_Controller {
 		//regions+countries tree
 		$data['regions']=$this->country_region_model->get_tree_region_countries();
 		//array of countries
-		$data['countries']=$this->Search_helper_model->get_active_countries($this->filter->repo);
+		$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
 		$this->load->view('catalog_search/country_selection',$data);
 	}
 	
