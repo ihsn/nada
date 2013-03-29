@@ -220,32 +220,7 @@
 		?>
    </td>
     <td align="right">
-        <span class="page-link">
-        <?php if ($current_page>1):?>
-        	<a title="Prev page" href="<?php echo site_url().'/catalog/'.$search_querystring.'&page='.($current_page-1); ?>" 
-            		onclick="search_page(<?php echo $current_page-1; ?>);return false;">&laquo;</a>
-        <?php else:?>
-	        <?php //&laquo;?>
-        <?php endif; ?>
-        </span>  
-        
-		<?php 
-			$page_dropdown='<select name="page2" id="page2" onchange="navigate_page()">';
-			for($i=1;$i<=$pages;$i++)
-			{
-                $page_dropdown.='<option '. (($current_page==$i) ? 'selected="selected"' : '').'>'.$i.'</option>';
-            }
-        	$page_dropdown.='</select>';
-		?>        
-		<?php echo sprintf(t('showing_pages'),$page_dropdown,$pages);?>
-                                    
-		<span class="page-link">
-        <?php if ($current_page<$pages):?>
-        	<a title="Next page" href="<?php echo site_url().'/catalog/'.$search_querystring.'&page='.($current_page+1); ?>" onclick="search_page(<?php echo $current_page+1; ?>);return false;">&raquo;</a>
-        <?php else:?>
-	        <?php //&raquo;?>
-        <?php endif; ?>
-        </span>
+         <?php echo $pager_bar;?>
     </td>
 </tr>
 </table>
