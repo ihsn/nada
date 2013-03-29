@@ -89,7 +89,6 @@ class Catalog_search{
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
-		//$centers=$this->_build_centers_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
@@ -164,7 +163,6 @@ class Catalog_search{
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
-			//$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 	
@@ -195,7 +193,6 @@ class Catalog_search{
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-			//$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -231,11 +228,18 @@ class Catalog_search{
 		}
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();
+		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();		
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
-		$query_total_surveys=$this->ci->db->query(sprintf('SELECT count(*) as rowcount from %ssurveys where published=1',$this->ci->db->dbprefix))->row_array();
+		$this->ci->db->select('count(*) as rowcount');
+		$this->ci->db->where('published',1);
+		if($repository!='')
+		{
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','inner');
+			$this->ci->db->where($repository);
+		}
+		$query_total_surveys=$this->ci->db->get('surveys')->row_array();
 		$this->total_surveys=$query_total_surveys['rowcount'];		
 
 		//combine into one array
@@ -749,9 +753,8 @@ class Catalog_search{
 
 		if ($repo!='')
 		{
-			return sprintf('survey_repos.repositoryid =%s',$this->ci->db->escape($repo));
+			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
 		}
-		
 		return FALSE;
 	}
 
