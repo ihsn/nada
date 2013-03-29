@@ -1,14 +1,13 @@
 <?php
 class Citations extends MY_Controller {
+
+	var $active_repo=NULL;
  
     public function __construct()
     {
         parent::__construct($SKIP=TRUE);
 		
-		$this->template->set_template('default');	
-		//$this->template->write('sidebar', $this->_menu(),true);	
-		//$this->template->add_css('css/admin.css');		
-       	
+		$this->template->set_template('default');
 		$this->load->model('Citation_model');
 		$this->load->model('Resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );		
@@ -28,20 +27,26 @@ class Citations extends MY_Controller {
  
 	function index()
 	{	
-		//$this->Citation_model->move_citation_authors();
-		//$this->Citation_model->update_citation_author_array_tostring();
-		
-		//get records		
-		$data['rows']=$this->_search();
-		
+		$collection=$this->input->get("collection");
+		$data['rows']=$this->_search();	
+		$data['active_repo']=$collection;
 		$content=$this->load->view('citations/public_search', $data,true);
-	
-		$this->template->write('title', t('citations'),true);
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
 		
-		//render final output
+		if ($collection!=='')
+		{			
+			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->get_repo_by_id($collection),'active_tab'=>'citations'),TRUE);
+		}
+		
+		
+		$this->template->write('title', t('citations'),true);
+		$this->template->write('content', $content,true);
 	  	$this->template->render();
+	}
+	
+	private function get_repo_by_id($repoid)
+	{
+		$this->load->model("repository_model");
+		return $this->repository_model->get_repository_by_repositoryid($repoid);
 	}
 	
 	
@@ -53,10 +58,11 @@ class Citations extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 30;
+		$per_page = 15;
 				
 		//current page
 		$offset=(int)$this->input->get('offset');//$this->uri->segment(4);
+		$collection=$this->input->get('collection');
 
 		//sort order
 		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
@@ -72,7 +78,7 @@ class Citations extends MY_Controller {
 		}		
 		
 		//records
-		$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1);
+		$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1,$repository=$collection);
 
 		//total records found
 		$total = $this->Citation_model->search_count();
@@ -82,7 +88,7 @@ class Citations extends MY_Controller {
 			$offset=$total-$per_page;
 			
 			//search again
-			$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1);
+			$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1,$repository=$collection);
 		}
 		
 		//set pagination options
@@ -92,7 +98,7 @@ class Citations extends MY_Controller {
 		$config['per_page'] = $per_page;
 		$config['query_string_segment']="offset"; 
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','sort_by','sort_order'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('keywords', 'field','sort_by','sort_order','collection'));//pass any additional querystrings
 		$config['num_links'] = 1;
 		$config['full_tag_open'] = '<span class="page-nums">' ;
 		$config['full_tag_close'] = '</span>';
@@ -185,6 +191,49 @@ class Citations extends MY_Controller {
 	}
 	
 	
+	function _show_citations_by_collection($repository_id)
+	{
+		$this->load->model("repository_model");
+
+		$repository_id=strtolower($repository_id);
+
+		//get an array of all valid repository names from db
+		$repositories=$this->repository_model->get_repository_array();
+		$repositories[]='central';
+		
+		//repo names to lower case
+		foreach($repositories as $key=>$value)
+		{
+			$repositories[$key]=strtolower($value);
+		}
+		
+		//check if URI matches to a repository name 
+		if (in_array($repository_id,$repositories))
+		{
+			//repository options
+			if ($repository_id=='central')
+			{
+				$this->active_repo=NULL;
+				$this->session->set_userdata('active_repository','');							
+			}
+			else
+			{
+				//add repo filter
+				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repository_id);
+				
+				//save active repository name in session
+				$this->session->set_userdata('active_repository',$repository_id);		
+			}				
+
+			//load the default listing page
+			$this->index();
+		}
+		else
+		{
+			show_404();
+		}	
+	}
+	
 	function _remap()
 	{
 		$method=$this->uri->segment(2);
@@ -197,6 +246,10 @@ class Citations extends MY_Controller {
 
 		switch($method)
 		{
+			case 'by-collection':
+				$this->_show_citations_by_collection($this->uri->segment(3));
+			break;
+			
 			//show citations by id
 			case is_numeric($method):
 				$action=$this->uri->segment(3);
@@ -218,8 +271,7 @@ class Citations extends MY_Controller {
 
 			default:
 				$this->index();	
-		}
-		
+		}		
 	}
 }
 /* End of file citations.php */
