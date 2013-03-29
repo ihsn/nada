@@ -8,9 +8,8 @@
 
 <?php $this->load->view("catalog_search/active_filter_tokens");?>
 
-
-
 <?php if (isset($surveys['rows']) && count($surveys['rows'])>0): ?>
+
 <?php		
 	//citations
 	if ($surveys['citations']===FALSE)
@@ -83,16 +82,6 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 <tr valign="middle">
 	<td>
-		<?php /*
-			if ($surveys['found']==1)
-			{
-				echo sprintf(t('found_study'),$surveys['found'],$surveys['total']);
-			}
-			else
-			{
-				echo sprintf(t('found_studies'),$surveys['found'],$surveys['total']);
-			}*/	
-		?>
         <?php echo sprintf(t('showing_studies'),
             (($surveys['limit']*$current_page)-$surveys['limit']+1),
             ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
@@ -102,57 +91,12 @@
 		?>
         
    </td>
-    <td align="right">
-    	<?php /* ?>
-        <span class="page-link">
-        <?php if ($current_page>1):?>
-        	<a title="Prev page" href="<?php echo site_url().'/catalog/'.$search_querystring.'&page='.($current_page-1); ?>" 
-            		onclick="search_page(<?php echo $current_page-1; ?>);return false;">&laquo;</a>
-        <?php else:?>
-	        <?php //&laquo;?>
-        <?php endif; ?>
-        </span>  
-		<?php */ ?>
-        
-		<?php 
-			/*
-			$page_dropdown='<select name="page" id="page" onchange="advanced_search()">';
-			for($i=1;$i<=$pages;$i++)
-			{
-                $page_dropdown.='<option '. (($current_page==$i) ? 'selected="selected"' : '').'>'.$i.'</option>';
-            }
-        	$page_dropdown.='</select>';
-			*/
-		?>        
-		<?php //echo sprintf(t('showing_pages'),$page_dropdown,$pages);?>
-        
-        <?php echo $pager_bar;?>
-                                    
-		<?php /* ?>
-        <span class="page-link">
-        <?php if ($current_page<$pages):?>
-        	<a title="Next page" href="<?php echo site_url().'/catalog/'.$search_querystring.'&page='.($current_page+1); ?>" onclick="search_page(<?php echo $current_page+1; ?>);return false;">&raquo;</a>
-        <?php else:?>
-	        <?php //&raquo;?>
-        <?php endif; ?>
-        </span>
-		<?php */ ?>
-    </td>
+    <td align="right"><?php echo $pager_bar;?></td>
 </tr>
 </table>
 </div>
 
 <?php foreach($surveys['rows'] as $row): ?>
-	<?php
-		/*
-		//harvested study source 
-		$repo_source=FALSE;
-		if (array_key_exists($row['repositoryid'],$this->repositories))
-		{
-			$repo_link=sprintf('<a target="_blank" href="%s">%s</a>',$this->repositories[$row['repositoryid']]['url'],$this->repositories[$row['repositoryid']]['title']);
-			$repo_source=sprintf(t('source_catalog'),$repo_link);
-		}*/
-	?>
 	<div class="survey-row">
         	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>"></div>
             <h2 class="title">
