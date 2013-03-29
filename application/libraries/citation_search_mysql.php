@@ -53,7 +53,7 @@ class Citation_search_mysql{
 
 
     //search
-    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL)
+    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
 		//fields returned by select
 		$select_fields='SQL_CALC_FOUND_ROWS 
@@ -138,6 +138,14 @@ class Citation_search_mysql{
 		$this->ci->db->from('citations');
 		$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
 		$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+		
+		//filter by repository if set
+		if($repositoryid!=NULL)
+		{
+			$this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+			$this->ci->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+		
 		$this->ci->db->group_by('citations.id');
 		
 		$fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords';
@@ -152,7 +160,7 @@ class Citation_search_mysql{
 		if ($filter)
 		{			
 			foreach($filter as $f)
-			{				
+			{	
 				$keywords=trim($f['keywords']);
 				if (trim($keywords)!="" && strlen($keywords)>=3)
 				{
