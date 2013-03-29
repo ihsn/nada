@@ -288,6 +288,12 @@ class Catalog extends MY_Controller {
 		$this->template->write('search_filters', $this->load->view('catalog_search/catalog_facets', $data,true),true);
 		$content=$this->load->view('catalog_search/catalog_search_result', $data,true);
 
+		//collections are shown in tab
+		if (isset($this->active_repo) && $this->active_repo!=='')
+		{
+			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->active_repo,'active_tab'=>'catalog'),TRUE);
+		}	
+
 		//render final output
 		$this->template->write('title', $this->page_title,true);
 		$this->template->write('content', $content,true);
@@ -1209,7 +1215,8 @@ class Catalog extends MY_Controller {
 
 	function _remap($method) 
 	{
-        if (in_array(strtolower($method), array_map('strtolower', get_class_methods($this)))) 
+		$method=strtolower($method);
+        if (in_array(($method), array_map('strtolower', get_class_methods($this)))) 
 		{
             $uri = $this->uri->segment_array();
             unset($uri[1]);
@@ -1224,6 +1231,12 @@ class Catalog extends MY_Controller {
 			//get an array of all valid repository names from db
 			$repositories=$this->Catalog_model->get_repository_array();
 			$repositories[]='central';
+			
+			//repo names to lower case
+			foreach($repositories as $key=>$value)
+			{
+				$repositories[$key]=strtolower($value);
+			}
 			
 			//check if URI matches to a repository name 
 			if (in_array($method,$repositories))
@@ -1302,12 +1315,12 @@ class Catalog extends MY_Controller {
 		{
 			show_404();
 		}
-		$repo=(object)$repo;
 		
-		$contents=$this->load->view("repositories/about",array('row'=>$repo),TRUE);
+		$contents=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo),TRUE);		
+		$contents=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$contents,'repo'=>$repo,'active_tab'=>'about'),TRUE);
 		
 		//set page title
-		$this->template->write('title', $repo->title,true);
+		$this->template->write('title', $repo['title'],true);
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
 	}	
