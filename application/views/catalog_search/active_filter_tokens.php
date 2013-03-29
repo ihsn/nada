@@ -1,12 +1,32 @@
+<?php 
+if ($this->input->get("view")=="v"){
+	if($found==1) {
+		$items_found=t('found_variable');
+	}
+	else{
+		$items_found=t('found_variables');
+	}
+}	
+else{
+
+	$found=$surveys['found'];
+	$total=$surveys['total'];
+	if($found==1) {
+		$items_found=t('found_study');
+	}
+	else{
+		$items_found=t('found_studies');
+	}
+}
+?>
+
 <div class="active-filters-container">
 
-<div class="search-count">
-<?php if ($surveys['found']==1):?>
-	<?php echo sprintf(t('found_study'),$surveys['found'],$surveys['total']);?>
-<?php else:?>
-	<?php echo sprintf(t('found_studies'),$surveys['found'],$surveys['total']);?>
+<div class="search-count"><?php echo sprintf($items_found,$found,$total);?></div>
+
+<?php if($found!=$total):?>
+<div class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('Reset search');?></a></div>
 <?php endif;?>
-</div>
 
 <div class="active-filters">
 	<?php if (is_array($search_options->country)):?>
@@ -53,7 +73,9 @@
 </div>
 <div class="filter-action-bar">
 	<a href="#save-search" class="save-search">Save this search</a>
-    <a href="#share-search" class="share-search">Share this search</a>
-    <a href="#print-search" class="print-search">Print list</a>
+    <span class="right">
+    <a href="#print-search" class="print-search"><img src="images/print.gif" alt="Print" title="Print"/></a>
+    <a href="#print-search" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download CSV"/></a>
+    </span>
 </div>
 </div>
