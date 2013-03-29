@@ -11,7 +11,7 @@ class Citation_model extends CI_Model {
     }
 	
 	//search
-    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL)
+    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid)
     {
 		$driver=$this->db->dbdriver;
 
@@ -21,7 +21,7 @@ class Citation_model extends CI_Model {
 				//include dirname(__FILE__).'/catalog_search_sqlsrv.php';
 				//return;
 				$this->load->library('citation_search_mysql');
-				$result=$this->citation_search_mysql->search($limit, $offset,$filter,$sort_by,$sort_order,$published);
+				$result=$this->citation_search_mysql->search($limit, $offset,$filter,$sort_by,$sort_order,$published,$repositoryid);
 				$this->search_found_rows=$this->citation_search_mysql->search_found_rows;
 				return $result;
 				break;
