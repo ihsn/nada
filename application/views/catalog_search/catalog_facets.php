@@ -1,12 +1,3 @@
-<?php
-//active repositoryid
-$repoid='';
-if (isset($this->active_repo) && $this->active_repo!==FALSE)
-{
-	$repoid=$this->active_repo['repositoryid'].'/';
-}
-?>
-
 <table style="display:none;" width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
 <tr valign="baseline">
 <td><h2><?php echo $this->page_title;?></h2></td>
@@ -23,13 +14,13 @@ if (isset($this->active_repo) && $this->active_repo!==FALSE)
 <input type="hidden" id="view" name="view" value="<?php echo (isset($this->view) && $this->view=='v') ? 'v': 's'; ?>"/>
 <input type="hidden" id="ps" name="ps" value="<?php echo $this->limit; ?>"/>
 <input type="hidden" id="page" name="page" value="<?php echo $current_page; ?>"/>
-<input type="hidden" id="repo" name="repo" value="<?php echo $this->filter->repo; ?>"/>
+<input type="hidden" id="repo" name="repo" value="<?php echo $active_repo; ?>"/>
 <input type="hidden" id="_r" name="_r" value=""/>
 <div id="accordion" > 
 
-	<?php  $this->load->view("catalog_search/filter_keywords",array('repoid'=>$repoid)); ?>
+	<?php  $this->load->view("catalog_search/filter_keywords",array('repoid'=>$active_repo)); ?>
     <?php if ($this->config->item("year_search")=='yes'):?>
-		<?php  $this->load->view("catalog_search/filter_years",array('repoid'=>$repoid)); ?>
+		<?php  $this->load->view("catalog_search/filter_years",array('repoid'=>$active_repo)); ?>
     <?php endif;?>
     
 	<!-- country filter-->
