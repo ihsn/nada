@@ -237,7 +237,8 @@ class Catalog extends MY_Controller {
 			$data['search_result']=$this->load->view('catalog_search/survey_list', $data,true);
 		}
 		
-
+		$data['active_repo']=$this->active_repo['repositoryid'];
+		
 		if($this->topic_search=='yes')
 		{
 			//get vocabulary id from config
@@ -249,7 +250,7 @@ class Catalog extends MY_Controller {
 				$this->load->model('term_model');
 				
 				//get topics by vid
-				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE);//$this->Vocabulary_model->get_tree($vid);
+				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE,$data['active_repo']);//$this->Vocabulary_model->get_tree($vid);
 				$data['topic_search']=TRUE;				
 			}
 			else
@@ -281,8 +282,6 @@ class Catalog extends MY_Controller {
 		{
 			$this->page_title=t('central_data_catalog');
 		}
-		
-		$data['active_repo']=$this->active_repo['repositoryid'];
 		
 		//show search form
 		$this->template->write('search_filters', $this->load->view('catalog_search/catalog_facets', $data,true),true);
@@ -352,7 +351,7 @@ class Catalog extends MY_Controller {
 		$offset=($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order 
-		$allowed_fields = array('proddate','titl','labl','nation');
+		$allowed_fields = array('proddate','titl','labl','nation','popularity');
 		$allowed_order=array('asc','desc');
 		
 		//set default sort options, if passed values are not valid
@@ -1396,21 +1395,43 @@ class Catalog extends MY_Controller {
 	*
 	* Country selection dialog
 	**/
-	function country_selection()
+	function country_selection($repo=NULL)
 	{
+		if($repo==NULL)
+		{
+			$repo=$this->active_repo['repositoryid'];
+		}
+
+		//check if a valid repo name
+		if($this->Repository_model->repository_exists($repo)==0)
+		{
+			$repo=NULL;
+		}
+	
 		$this->load->model("country_region_model");
 		//regions+countries tree
-		$data['regions']=$this->country_region_model->get_tree_region_countries();
+		$data['regions']=$this->country_region_model->get_tree_region_countries($repo);
 		//array of countries
-		$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
+		$data['countries']=$this->Search_helper_model->get_active_countries($repo);
 		$this->load->view('catalog_search/country_selection',$data);
 	}
 	
 	//topic selection dialog
-	function topic_selection()
+	function topic_selection($repo=NULL)
 	{
+		if($repo==NULL)
+		{
+			$repo=$this->active_repo['repositoryid'];
+		}
+
+		//check if a valid repo name
+		if($this->Repository_model->repository_exists($repo)==0)
+		{
+			$repo=NULL;
+		}
+	
 		$this->load->model("vocabulary_model");
-		$data['topics']=$this->vocabulary_model->get_tree($vid=1,$active_only=FALSE);
+		$data['topics']=$this->vocabulary_model->get_tree($vid=1,$active_only=TRUE,$repo);
 		$this->load->view('catalog_search/topic_selection',$data);
 	}
 	
