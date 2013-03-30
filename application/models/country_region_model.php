@@ -101,7 +101,7 @@ class Country_region_model extends CI_Model {
 	*
 	* Build an tree array with regions and countries
 	**/
-	function get_tree_region_countries()
+	function get_tree_region_countries($repositoryid=NULL)
 	{
 		$region_tree=$this->get_tree();
 		$count=count($region_tree);
@@ -111,7 +111,7 @@ class Country_region_model extends CI_Model {
 			{
 				foreach($region_tree[$i]['children'] as $key=>$child)
 				{
-					$region_tree[$i]['children'][$key]['countries']=$this->get_countries_by_region($child['id']);
+					$region_tree[$i]['children'][$key]['countries']=$this->get_countries_by_region($child['id'],$repositoryid);
 				}	
 			}	
 		}
@@ -119,12 +119,23 @@ class Country_region_model extends CI_Model {
 		return $region_tree;
 	}
 	
-	function get_countries_by_region($region_id)
+	function get_countries_by_region($region_id,$repositoryid=NULL)
 	{
-		$this->db->select('c.countryid,c.name');
+		$this->db->select('c.countryid,c.name,count(c.countryid) as total');
 		$this->db->from('region_countries rc');
 		$this->db->join('countries c','c.countryid=rc.country_id','inner');
+		$this->db->join('survey_countries sc','sc.cid=rc.country_id','inner');
+		$this->db->join('surveys s','s.id=sc.sid','inner');
+		
+		if($repositoryid!=NULL)
+		{
+			$this->db->join('survey_repos', 's.id=survey_repos.sid','inner');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+		
 		$this->db->where('rc.region_id',$region_id);
+		$this->db->where('s.published',1);
+		$this->db->group_by('c.countryid,c.name');
 		$this->db->order_by('c.name');
 		$query = $this->db->get()->result_array();
 		return $query;		
