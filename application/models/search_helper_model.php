@@ -353,6 +353,7 @@ class Search_helper_model extends CI_Model {
 		$this->db->order_by('survey_countries.country_name','ASC');
 		$this->db->group_by('cid,country_name','ASC');
 		$this->db->where('surveys.published',1);
+		$this->db->where('survey_countries.cid>',0,FALSE);
 		if($repositoryid!=NULL)
 		{
 			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
