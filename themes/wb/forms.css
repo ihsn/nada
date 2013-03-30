@@ -16,7 +16,7 @@
 	padding:3px;
 	text-decoration:none;
 	color:#666666;
-	border:1px solid gainsboro;
+	border:1px solid gray;
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
 }
@@ -220,3 +220,26 @@
 .light{font-size:11px;color:gray;}
 .light .button{background-color:none;}
 .light .button:hover{background-color:black}
+
+
+
+/*button style 1*/
+.btn-style-1:hover {
+border: 1px solid navy;
+color: white;
+padding: 2px 5px;
+font-size: small;
+background: url(btn-bg-sprites.png) 100% 66%;
+background: url(btn-bg-sprites.png) 100% 66%;
+cursor: pointer;
+}
+
+.btn-style-1 {
+border: 1px solid navy;
+color: white;
+padding: 2px 5px;
+font-size: small;
+background: url(btn-bg-sprites.png) 100% 0%;
+background: url(btn-bg-sprites.png) 100% 0%;
+cursor: pointer;
+}
