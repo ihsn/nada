@@ -8,6 +8,15 @@
 	padding-left:5px;
 	padding-right:5px;
 }
+
+#surveys .survey-row:hover {
+	cursor:pointer;	
+	-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	background: white;
+}
+
 #surveys .survey-row .title {
 	font-size:16px;
 	color:#993300;
@@ -295,8 +304,9 @@ font-size: smaller;
 .filter-box .btn-select:hover{color:red;text-decoration:underline}
 
 /*styles for the active filter tags*/
-.active-filters-container{border:1px solid gainsboro;overflow:auto;clear:both;margin-bottom:30px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}
+.active-filters-container{border:1px solid gainsboro;overflow:auto;clear:both;margin-bottom:30px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;position:relative;}
 .active-filters-container .active-filters{overflow:auto;clear:both;padding:0px 10px;}
+.active-filters-container .clear-search{position:absolute;right:10px;top:5px;}
 .active-filters .remove-filter{
 	display:block;
 	float:left;
@@ -314,9 +324,16 @@ font-size: smaller;
 
 .active-filters .remove-filter:hover{background-color:#FFFFFF;cursor:pointer}
 .active-filters-container .filter-action-bar{padding:5px;background:#F8F8F8;overflow:auto;border-top:1px solid gainsboro;}
-.active-filters-container .filter-action-bar a{display:block;float:left;margin-right:10px;}
-.active-filters-container .filter-action-bar a.print-search{float:right;}
+.active-filters-container .filter-action-bar a{display:block;float:left;margin-right:5px;}
+.active-filters-container .filter-action-bar .right{float:right;}
 .active-filters-container .search-count{padding:10px;font-size:16px;}
+
+.active-filters .sk,.active-filters .vk{background-color:#F3F0EB}
+.active-filters .dtype{background-color:#ECF3E3}
+.active-filters .years{background-color:#DCE2EA}
+.active-filters .collection{background-color:BEC3BC}
+.active-filters .country{background-color:#E7E7E7}
+.active-filters .topic{background-color:#EAF3F9}
 
 .filter-box .more{display:none;}
 /*.filter-box .scrollable{height:150px;overflow:auto;}*/
@@ -374,7 +391,7 @@ font-size: smaller;
 
 /*faceted search box styles*/
 #facets .select-specific{margin-top:10px;margin-bottom:10px;font-size:12px; }
-#facets .any{font-weight:bold;}
+#facets .any{font-weight:bold;margin-bottom:10px}
 
 .items-container .item{margin:0px;padding:0px;margin-bottom:3px;}
 .items-container .item input{float:left;}
@@ -383,8 +400,9 @@ font-size: smaller;
 /*selection dialog box*/
 .container{text-align:left;font-size:12px;}
 .container .index{margin:5px;text-align:center;line-height:150%;}
-.container .index span{margin-right:5px;padding:3px;font-size:smaller;white-space: nowrap;cursor:pointer;color:navy;}
-.container .index span:hover{color:red;}
+.container .index span.active{margin-right:5px;padding:3px;font-size:smaller;white-space: nowrap;cursor:pointer;color:navy;}
+.container .index span.in-active{margin-right:5px;padding:3px;font-size:smaller;white-space: nowrap;cursor:pointer;color:gainsboro;}
+.container .index span.active:hover{color:red;}
 .container .rows-container{height:280px;overflow:scroll;overflow-x:hidden;border:1px solid gainsboro;}
 
 .container .row{margin:5px;clear:both;overflow:auto;padding:5px;border-bottom:1px solid gainsboro;}
@@ -430,3 +448,5 @@ font-size: smaller;
 #surveys .pager a.active{border:2px solid black;background:gray;color:white;}
 #surveys .survey-stats{margin-top:10px;font-size:11px;color:#666666}
 #surveys .survey-stats span{margin-right:15px;}
+
+
