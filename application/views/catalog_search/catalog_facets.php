@@ -16,21 +16,29 @@
 <input type="hidden" id="page" name="page" value="<?php echo $current_page; ?>"/>
 <input type="hidden" id="repo" name="repo" value="<?php echo $active_repo; ?>"/>
 <input type="hidden" id="_r" name="_r" value=""/>
-<div id="accordion" > 
+<div> 
 
+
+<?php
+$fac_filters=array();
+?>
+
+	<!--keywords filter-->
 	<?php  $this->load->view("catalog_search/filter_keywords",array('repoid'=>$active_repo)); ?>
+    
+    <!--year filter-->
     <?php if ($this->config->item("year_search")=='yes'):?>
-		<?php  $this->load->view("catalog_search/filter_years",array('repoid'=>$active_repo)); ?>
+		<?php $fac_filters[(int)$this->config->item("year_search_weight")]['year']= $this->load->view("catalog_search/filter_years",array('repoid'=>$active_repo),TRUE); ?>
     <?php endif;?>
     
 	<!-- country filter-->
 	<?php if ($this->regional_search=='yes'):?>
-    	<?php  $this->load->view("catalog_search/filter_countries"); ?>
+    	<?php  $fac_filters[(int)$this->config->item("regional_search_weight")]['country']=$this->load->view("catalog_search/filter_countries",array('active_repo',$active_repo),TRUE); ?>
 	<?php endif;?>
 
 	<!-- da filter -->
-    <?php if (is_array($da_types) && count($da_types)>0):?>
-    	<?php  $this->load->view("catalog_search/filter_da"); ?>
+    <?php if ($this->config->item("da_search")=='yes' && is_array($da_types) && count($da_types)>0):?>
+    	<?php  $fac_filters[(int)$this->config->item("da_search_weight")]['da']=$this->load->view("catalog_search/filter_da",NULL,TRUE); ?>
     <?php endif;?>    
     <!-- end da filter -->
 
@@ -39,14 +47,23 @@
         <?php  $this->load->view("catalog_search/filter_centers"); ?>
 	<?php endif;?>    
     
-    <?php if ($this->collection_search=='yes'):?>
-        <?php  $this->load->view("catalog_search/filter_collections"); ?>
-	<?php endif;?>    
-    
+    <?php if ($this->collection_search=='yes' && $active_repo==''):?>
+        <?php  $fac_filters[(int)$this->config->item("collection_search_weight")]['collection']=$this->load->view("catalog_search/filter_collections",NULL,TRUE); ?>
+	<?php endif;?>
 
     <?php if($this->topic_search==='yes'):?>
-	    <?php  $this->load->view("catalog_search/filter_topics"); ?>
+	    <?php  $fac_filters[(int)$this->config->item("topic_search_weight")]['topic']=$this->load->view("catalog_search/filter_topics",NULL,TRUE); ?>
     <?php endif;?>
+    
+    <?php ksort($fac_filters);?>
+    <?php foreach($fac_filters as $key=>$filter):?>
+    	<?php if(is_array($filter)):?>
+        	<?php echo implode("",$filter);?>
+        <?php else:?>
+    	<?php echo $filter;?>
+        <?php endif;?>
+    <?php endforeach;?>    
+    
 </div>
 </form>
 
