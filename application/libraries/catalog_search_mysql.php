@@ -34,7 +34,11 @@ class Catalog_search{
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
 	
 	//allowed sort options
-	var $sort_allowed_fields=array('titl','nation','proddate');
+	var $sort_allowed_fields=array(
+						'titl'=>'titl',
+						'nation'=>'nation',
+						'proddate'=>'proddate',
+						'popularity'=>'total_views');
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
@@ -94,10 +98,12 @@ class Catalog_search{
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
 
+		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
+		
 		$sort_by='titl';
-		if (in_array($this->sort_by,$this->sort_allowed_fields))
+		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
 		{
-			$sort_by=$this->sort_by;
+			$sort_by=$this->sort_allowed_fields[$this->sort_by];
 		} 
 		else
 		{
@@ -107,8 +113,6 @@ class Catalog_search{
 			}		
 		}
 
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
@@ -210,7 +214,7 @@ class Catalog_search{
 			$this->ci->db->limit($limit,$offset);
 			
 			if ($where!='') {
-				$this->ci->db->where($where);
+				$this->ci->db->where($where,FALSE,FALSE);
 			}
 		
 			$query=$this->ci->db->get();
