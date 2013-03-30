@@ -20,6 +20,10 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
 
+<!--jquery ui-->
+<link rel="stylesheet" type="text/css" href="javascript/jquery/themes/base/jquery-ui.css" />
+
+
 <script type="text/javascript" src="javascript/jquery/jquery.js"></script>
 <script type="text/javascript" src="javascript/jquery.ba-bbq.js"></script>
 
