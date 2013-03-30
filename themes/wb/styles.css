@@ -179,3 +179,58 @@ font-weight: bold;
 .remote-data-access a:link{color:navy;}
 .remote-data-access a:link:hover{color:maroon;}
 
+
+/*tab style 1 - collections, study-info*/
+.tab-style-1 .ui-widget{font:13px/1.231 arial,helvetica,clean,sans-serif}
+.tab-style-1 .ui-tabs {border:0px;}
+.tab-style-1 .tab-heading {
+text-align: left;
+padding: 10px;
+padding-bottom: 40px;
+z-index: -1;
+background-color:#F3F3F3;
+background: transparent url(tab-bg.png) repeat-x scroll bottom;
+padding-left: 20px;
+border:1px solid gainsboro;
+font-size:small;
+}
+.tab-style-1 .ui-tabs .ui-tabs-nav{border:0px;margin-left:20px;}
+
+.tab-style-1 .ui-tabs .ui-tabs-panel{
+background:white;border:1px solid gainsboro;overflow:auto;border-top:0px;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li.ui-state-active {
+position: relative;
+background:gray;
+background: url(tab-active-arrow.png) bottom center no-repeat;
+}
+
+/*active tab*/
+.tab-style-1 .ui-tabs .ui-tabs-nav li.ui-state-active a {
+	background: url(active-tab-bg.png);
+	color: white;
+	margin-bottom:0px;
+}
+
+/*set tab borders*/
+.tab-style-1 .ui-tabs .ui-tabs-nav li a, 
+.tab-style-1 .ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-active a{
+	border: 1px solid gainsboro;
+	border-bottom: 0px;
+	background:white;
+	padding:5px 10px;
+	line-height:140%;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li {
+	border: 0px;
+	font-size:13px;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li.ui-tabs-active{margin-bottom:-4px;padding-bottom:4px;}
+.tab-style-1 .tab-body{font-size:small;margin-left:170px;border-left:1px solid gainsboro;padding-left:20px;}
+.tab-style-1 .ui-widget-content a:link{color:navy;}
+
+
+.pagination .page-nums a {border:1px soild black;}
