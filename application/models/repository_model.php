@@ -927,6 +927,20 @@ class Repository_model extends CI_Model {
 
 	/**
 	*
+	* Return collection that owns the study
+	**/
+	function get_survey_owner_repository($id)
+	{
+		$this->db->select('repositories.*');
+		$this->db->join('survey_repos','survey_repos.repositoryid=repositories.repositoryid','INNER');
+		$this->db->where('survey_repos.sid',$id);
+		$this->db->where('survey_repos.isadmin',1);
+		$row=$this->db->get('repositories')->row_array();
+		return $row;
+	}
+	
+	/**
+	*
 	* check if the repo/collection has Data Access by Collection enabled
 	**/
 	/*
