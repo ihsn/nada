@@ -28,7 +28,7 @@ $(document).ready(function()  {
 		foreach (range('a', 'z') as $alphabet)
 		{
 			$letters[strtoupper($alphabet)]='';
-		}
+		}		
     ?>
     <?php foreach($countries as $country):?>
         <?php 
@@ -37,10 +37,14 @@ $(document).ready(function()  {
             $letters[$letter]=$letter;
         ?>
     <?php endforeach;?>
-    
+
     <div class="index">
-    <?php foreach($letters as $i):?>
-        <span data-id="country-<?php echo $i;?>"><?php echo $i;?> </span>
+    <?php foreach($letters as $key=>$value):?>
+    	<?php if($value==''):?>
+        <span class="in-active" data-id="country-<?php echo $key;?>"><?php echo $key;?> </span>
+        <?php else:?>
+        <span class="active" data-id="country-<?php echo $key;?>"><?php echo $key;?> </span>
+        <?php endif;?>
     <?php endforeach;?>
     </div>
     
