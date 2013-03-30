@@ -4,14 +4,13 @@
 
 <div class="filter-box filter-by-collection">
 	<h3><?php echo t('filter_by_collection');?></h3> 
-	<a class="clear-filter" href="#"><?php echo t('reset');?></a>
 
 <div id="collections-container">
     <div class="any">    	
         <input type="checkbox" class="chk-any" id="collection-any"  <?php echo $search_options->collection!="" ? '' : 'checked="checked"';?> />
         <label for="collection-any">Any</label>
     </div>
-    <div class="select-specific">Or select specific:</div>
+
 	<div class="items-container  collection-items <?php echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
 	<?php $k=0;foreach($repositories as $repo):$k++; ?>
         <div class="collection <?php echo $k;?> item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">
