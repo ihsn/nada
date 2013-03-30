@@ -5,14 +5,11 @@
 <div class="filter-box filter-by-topic">
 <h3><?php echo t('filter_by_topic');?></h3> 
 
-<a class="clear-filter" href="#"><?php echo t('reset');?></a>
-
 <div id="topics-container">
     <div class="any">    	
         <input type="checkbox" class="chk-any" id="topic-any"  <?php echo $search_options->topic!="" ? '' : 'checked="checked"';?> />
         <label for="topic-any">Any</label>
     </div>
-    <div class="select-specific">Or select specific:</div>
 	<div class="items-container topic-items <?php echo (count($topics)>10) ? 'scrollable' : ''; ?>">
 	<?php $k=0;foreach($topics as $topic):$k++; ?>
     	<?php if($topic['pid']==0){continue;}?>
@@ -36,7 +33,7 @@
     <?php endif;?>
     
     <div class="filter-footer">
-    <input type="button" class="btn-select" value="View / Select More" id="btn-topic-selection" data-dialog-id="dialog-topics" data-dialog-title="Select Topics" data-url="index.php/catalog/topic_selection"/>
+    <input type="button" class="btn-select" value="View / Select More" id="btn-topic-selection" data-dialog-id="dialog-topics" data-dialog-title="Select Topics" data-url="index.php/catalog/topic_selection/<?php echo $active_repo;?>"/>
     </div>
     
 </div>

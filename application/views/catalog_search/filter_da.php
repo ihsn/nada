@@ -1,17 +1,13 @@
 <div class="filter-box filter-by-dtype">
 <h3><?php echo t('filter_by_data');?></h3>
 
-<a class="clear-filter" href="#"><?php echo t('reset');?></a>
-     
 <div id="datatype-list" >
 
-    <div class="filter-da any">
+    <div class="filter-da any" >
         <input type="checkbox" class="chk-da-any" id="chk-da-any"  <?php echo $search_options->dtype!="" ? '' : 'checked="checked"';?> />
         <label for="chk-da-any">Any</label>
     </div>
     
-    <div class="select-specific">Or select specific:</div>
-
     <div class="filter-da items-container">
     	<table>
             <?php if (in_array('direct',$da_types)):?>
