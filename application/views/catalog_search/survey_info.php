@@ -59,6 +59,7 @@ border: 3px solid gainsboro;
 .btn-container:hover{border:1px solid black;}
 
 .grid-table .no-border td{border:none;}
+.content-container .collection-thumb-container{margin-top:5px;height:150px;width:100px;float:left;margin-right:20px;overflow:hidden;}
 
 </style>
 
@@ -69,7 +70,13 @@ border: 3px solid gainsboro;
     </div>
     <?php endif;?>
 
-<div style="background:gainsboro;height:150px;width:100px;float:left;margin-right:20px;"></div>
+<?php if ($owner_repo['thumbnail']!=''):?>
+<div class="collection-thumb-container">
+	<a href="<?php echo site_url('catalog/'.$owner_repo['repositoryid']);?>">
+    <img src="<?php echo $owner_repo['thumbnail'];?>" width="100%;" alt="<?php echo $owner_repo['repositoryid'];?>" title="<?php echo $owner_repo['title'];?>"/>
+    </a>
+</div>
+<?php endif;?>
 
 <table class="grid-table survey-info" cellspacing="0">
 	<tr>
@@ -128,7 +135,7 @@ border: 3px solid gainsboro;
     	<td><?php echo t('collections');?></td>
         <td>
 		<?php foreach($repositories as $repository):?>
-		<?php echo anchor('collections/'.$repository['repositoryid'],$repository['title']);?> <br />
+			<div><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
 		<?php endforeach;?>
         </td>
     </tr>
