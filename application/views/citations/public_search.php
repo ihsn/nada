@@ -4,13 +4,26 @@
 .sort-links a{border-left:1px solid gainsboro;padding:0px 5px 0px 5px;display:inline-block;text-decoration:none;}
 .pagination{background-color:gainsboro;padding:5px;}
 .search-box{padding:4px;background-color:gainsboro;}
-.citation-row{padding:10px;border-bottom:1px dashed gainsboro;color:#333333; list-style-position:outside;}
+.citation-row{padding:10px;color:#333333; }
 em{font-style:italic}
 
 .title {}
 .sub-title{font-style:italic;}
 .citation-rows .alternate{background:#F5F5F5}
-.citation-row:hover{background:#DBDBDB;cursor:pointer;}
+.citation-row:hover {
+	cursor:pointer;	
+	-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	background: white;
+	border:1px solid gainsboro;
+}
+
+.citation-row{position:relative;clear:both;overflow:hidden;}
+.citation-row .page-num{width:40px;float:left;display:block;height:20px;color:grainsboro;}
+.citation-row .row-body{float:left;width:90%;overflow:hidden;}
+.pagination{padding:10px;}
+
 
 </style>
 
@@ -40,7 +53,7 @@ $(document).ready(function () {
     <option value="pub_year"	<?php echo ($this->input->get('field')=='pub_year') ? 'selected="selected"' : '' ; ?> ><?php echo t('date')?></option>
     <option value="country"	<?php echo ($this->input->get('field')=='country') ? 'selected="selected"' : '' ; ?> ><?php echo t('country')?></option>
   </select>
-  <input type="submit" value="<?php echo t('search')?>" name="search" class="button"//>
+  <input type="submit" value="<?php echo t('search')?>" name="search" class="btn-search btn-style-1"//>
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo site_url();?>/citations/?collection=<?php echo $active_repo;?>"><?php echo t('reset')?></a>
   <?php endif; ?>
@@ -93,24 +106,24 @@ $(document).ready(function () {
 <form autocomplete="off" class="citations-listing">
     <div class="sort-links">
     <?php echo t('sort_results_by');?>    
-    <?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,array('keywords','field') ); ?>
-    <?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field') ); ?>
-    <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field') ); ?>
+    <?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,array('keywords','field','collection') ); ?>
+    <?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field','collection') ); ?>
+    <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','collection') ); ?>
     </div>
 
 	<div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
     
 	<?php $tr_class="alternate"; ?>    
     <div  class="citation-rows">
-	<?php foreach($rows as $row): ?>
+	<?php $k=0;foreach($rows as $row): ?>
 	    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<div class="citation-row <?php echo $tr_class;?>" data-url="<?php echo site_url('/citations/'.$row['id']);?>">
-		<span>
-		<?php //$this->load->view('citations/view_chicago',$row);?>
+        <span class="page-num"><?php echo $from_page+$k;?></span>
+		<span class="row-body">
         <?php echo $this->chicago_citation->format($row,'journal');?>
         </span>
         </div>
-    <?php endforeach;?>
+    <?php $k++;endforeach;?>
     </div>
     <div class="pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
