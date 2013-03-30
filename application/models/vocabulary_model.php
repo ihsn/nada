@@ -124,17 +124,19 @@ class Vocabulary_model extends CI_Model {
 				$item['children'] = $children[$item['tid']];
 			}
 		}	
+		
 		return $children[0];
 	}
 	
+	
 	//returns a tree of vocabulary terms
-	function get_tree($vid,$active_only=FALSE)
+	function get_tree($vid,$active_only=FALSE,$repositoryid=NULL)
 	{
-		$items= $this->get_terms_array($vid,$active_only);
+		$items= $this->get_terms_array($vid,$active_only,$repositoryid);
 		return $this->build_tree($items);
 	}
 	
-	function get_terms_array($vid,$active_only=FALSE)
+	function get_terms_array($vid,$active_only=FALSE,$repositoryid=NULL)
 	{
 		$this->db->select('terms.tid,terms.pid,terms.title,count(terms.tid) as surveys_found');
 		$this->db->from('terms');
@@ -144,10 +146,17 @@ class Vocabulary_model extends CI_Model {
 		
 		if($active_only==TRUE)
 		{
-			$this->db->join('survey_topics st','st.tid=terms.tid','inner');			
+			$this->db->join('survey_topics st','st.tid=terms.tid','left');			
+		}
+		
+		if($repositoryid!=NULL && $active_only==TRUE)
+		{
+			$this->db->join('survey_repos', 'st.sid=survey_repos.sid','inner');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 		
 		$items=$this->db->get()->result_array();
+
 		$output=array();
 		foreach($items as $row)
 		{
