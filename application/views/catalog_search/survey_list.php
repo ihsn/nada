@@ -65,6 +65,11 @@
    
 	//titl
 	echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,array('sk','vk','vf') );
+
+  echo "| ";
+   
+	//popularity
+	echo create_sort_link($sort_by,$sort_order,'popularity',t('Popularity'),$page_url,array('sk','vk','vf') );
 	
 ?>
 </div>
@@ -97,7 +102,7 @@
 </div>
 
 <?php foreach($surveys['rows'] as $row): ?>
-	<div class="survey-row">
+	<div class="survey-row" data-url="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>">
         	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>"></div>
             <h2 class="title">
                 <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
@@ -126,7 +131,7 @@
                 <?php endif;?>
             	</div>
 				<?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                    <div><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
+                    <div><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid'].'/about');?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
             </div>
 			<div class="survey-stats">
