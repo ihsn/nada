@@ -72,10 +72,9 @@ else{
     <?php endif;?>
 </div>
 <div class="filter-action-bar">
-	<a href="#save-search" class="save-search">Save this search</a>
     <span class="right">
-    <a href="#print-search" class="print-search"><img src="images/print.gif" alt="Print" title="Print"/></a>
-    <a href="#print-search" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download CSV"/></a>
+    <a href="#print-search" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
+    <a href="#print-search" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
     </span>
 </div>
 </div>
