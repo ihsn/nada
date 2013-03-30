@@ -163,12 +163,6 @@ class DDIbrowser extends MY_Controller {
 		//page title
 		$this->page_title=$this->survey['nation']. ' - '.$this->survey['titl'];
     	
-		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
 		$this->template->add_css('themes/wb/datacatalog.css');
 
 		$html=NULL;
@@ -180,9 +174,6 @@ class DDIbrowser extends MY_Controller {
 			case '':
 			case 'home':
 			case 'info':
-				//$html=$this->get_survey_info($this->uri->segment(2));//survey($this->uri->segment(2));
-			//break;
-			
 			case 'overview':
 			case 'study-description':
 				$this->page_title.=' - '.t('overview');
@@ -1012,7 +1003,9 @@ class DDIbrowser extends MY_Controller {
 			show_error('FILE_NOT_FOUND');
 		}
 		
-		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);		
+		$this->load->model("Repository_model");
+		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);
+		$survey['owner_repo']=$this->Repository_model->get_survey_owner_repository($id);
 		$content_body=$this->load->view('catalog_search/survey_info',$survey,TRUE);		
 		return $content_body;	
 	}
