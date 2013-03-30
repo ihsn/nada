@@ -5,12 +5,14 @@
 
         <div class="index">
 			<?php foreach($region['children'] as $sub):?>
-                <span data-id="region-sub-row-<?php echo $sub['id'];?>"><?php echo $sub['title'];?></span>&nbsp;
+            	<?php if (isset($sub['countries']) && count($sub['countries'])==0){continue;}?>
+                <span class="active" data-id="region-sub-row-<?php echo $sub['id'];?>"><?php echo $sub['title'];?></span>&nbsp;
             <?php endforeach;?>
         </div>
 
     	<div class="rows-container">
 			<?php foreach($region['children'] as $sub):?>
+            <?php if (isset($sub['countries']) && count($sub['countries'])==0){continue;}?>
             <div class="row" id="region-sub-row-<?php echo $sub['id'];?>">
                 <div class="col-1">
                          <input class="chk-section parent" type="checkbox"                             
@@ -31,7 +33,7 @@
                             data-name="c-<?php echo form_prep($country['countryid']); ?>"
                          />
                         <label for="cr-<?php echo $sub['id']?>-<?php echo form_prep($country['countryid']); ?>">
-                            <?php echo $country['name']; ?> <span class="count">(<?php //echo $country['surveys_found']; ?>)</span>
+                            <?php echo $country['name']; ?> <span class="count">(<?php echo $country['total']; ?>)</span>
                         </label>
                     </div>
                 <?php endforeach;?>
