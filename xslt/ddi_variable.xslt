@@ -45,8 +45,8 @@ License:
 	<xsl:template match="ddi:var">
 		<!-- OVERVIEW -->
 		<div class="content">
-	        <div class="xsl-title" style="padding:0px;margin:0px;"><xsl:value-of select="ddi:labl"/>(<xsl:value-of select="@name"/>)
-            <br/><span style="font-weight:normal;color:black;"><xsl:call-template name="gettext"><xsl:with-param name="msg">File</xsl:with-param></xsl:call-template>: <xsl:call-template name="fileRef">
+	        <div class="xsl-title" ><span class="variable-name"><xsl:value-of select="ddi:labl"/>(<xsl:value-of select="@name"/>)</span>
+            <br/><span class="var-file"><xsl:call-template name="gettext"><xsl:with-param name="msg">File</xsl:with-param></xsl:call-template>: <xsl:call-template name="fileRef">
     		       <xsl:with-param name="fileId" select="@files"/>
             </xsl:call-template></span>
             </div>
