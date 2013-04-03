@@ -364,12 +364,12 @@ class DDIbrowser extends MY_Controller {
 					
 					$fileid=$this->uri->segment(4);
 					$this->page_title.=' - '.t('data_file').' - '.$fileid;
-					$html= $this->cache->get( $cache_key.'-'.$file_id.$offset.'.'.$limit );
+					$html= $this->cache->get( $cache_key.'-'.$fileid.$offset.'.'.$limit );
 					
 					if ($html===FALSE)
 					{	
 						$html=$this->DDI_Browser->get_datafile_html($ddi_file,$fileid,$language);
-						$this->cache->save($cache_key.'-'.$file_id.$offset.'.'.$limit,$html);
+						$this->cache->save($cache_key.'-'.$fileid.$offset.'.'.$limit,$html);
 					}
 					$section_url=$current_url.'/datafile/'.$fileid;
 				}
