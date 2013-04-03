@@ -491,10 +491,11 @@ class Breadcrumb
 	**/
 	function get_repository_title($repositoryid)
 	{
+		$this->ci->db->flush_cache();
 		$this->ci->db->select('title');
 		$this->ci->db->where('repositoryid',$repositoryid);
 		$query=$this->ci->db->get('repositories');
-		
+	
 		if (!$query)
 		{
 			return FALSE;
