@@ -69,10 +69,17 @@
 	background:gainsboro;
 }
 #surveys .variables-found {
-	margin-top:3px;
-	padding-bottom:5px;
+	margin-top:10px;
+	padding:0px;
 	outline:none;
+	border:1px solid gainsboro;
 }
+#surveys .variables-found .vsearch:hover{background:black;color:white;}
+#surveys .variables-found .vsearch{	background:#666666;color:white;display:block;padding:5px;}
+#surveys .variable-footer{display:none;}
+#surveys .expand .variable-footer{display:block;margin-top:5px;padding:5px;background:gainsboro;}
+
+
 .catalog-sort-links {
 	font-weight:normal;
 	color:#666666;
@@ -359,19 +366,19 @@ font-size: smaller;
 
 
 #surveys .data-access-public {
-	background: url(data-access.gif) no-repeat 0% 25%;
+	background: url(data-access.gif) no-repeat 0% 20%;
 }
 
 #surveys .data-access-licensed {
-	background: url(data-access.gif) no-repeat 0% 50%;
+	background: url(data-access.gif) no-repeat 0% 40%;
 }
 
 #surveys .data-access-remote {
-	background: url(data-access.gif) no-repeat 0% 75%;
+	background: url(data-access.gif) no-repeat 0% 60%;
 }
 
 #surveys .data-access-data_na {
-	background: url(data-access.gif) no-repeat 0% 100%;
+	background: url(data-access.gif) no-repeat 0% 80%;
 }
 
 #surveys .survey-row h2.title{margin-bottom:0px;font-size:20px;}
@@ -380,12 +387,13 @@ font-size: smaller;
 
 /*filter by data access*/
 .filter-da .da .chk-da{padding-right:16px;}
-.filter-da table .da-direct{background: url(data-access-small.gif) no-repeat 0% 3%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
-.filter-da table .da-public{background: url(data-access-small.gif) no-repeat 0% 27%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
-.filter-da table .da-licensed{background: url(data-access-small.gif) no-repeat 0% 51%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
-.filter-da table .da-remote{background: url(data-access-small.gif) no-repeat 0% 78%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
-.filter-da table .da-no_access{background: url(data-access-small.gif) no-repeat 0% 100%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
-.filter-da table.da-enclave{background: url(data-access-small.gif) no-repeat 0% 78%;width:16px;height:16px;display:block;margin-left:5px;margin-right:5px;}
+.filter-da table .da-icon-small{width:20px;height:20px;display:block;margin-left:5px;margin-right:5px;}
+.filter-da table .da-direct{background: url(data-access-small.gif) no-repeat 0% 2%;}
+.filter-da table .da-public{background: url(data-access-small.gif) no-repeat 0% 21%;}
+.filter-da table .da-licensed{background: url(data-access-small.gif) no-repeat 0% 42%;}
+.filter-da table .da-remote{background: url(data-access-small.gif) no-repeat 0% 62%;}
+.filter-da table .da-no_access{background: url(data-access-small.gif) no-repeat 0% 82%;}
+.filter-da table.da-enclave{background: url(data-access-small.gif) no-repeat 0% 102%;}
 .filter-da table tr{vertical-align:top}
 .da-public{background: url(data-access-small.gif) no-repeat 0% 78%;display:block;width:16px;height:16px;}
 
@@ -450,3 +458,47 @@ font-size: smaller;
 #surveys .survey-stats span{margin-right:15px;}
 
 
+/*variable row hover*/
+.variable-list .vrow:hover {
+	cursor:pointer;	
+	-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	background:#EEEEEE;
+	color:navy;
+}
+
+.var-quick-list-scroll{height:190px;overflow:auto;}
+
+/*variable formatting in jquery ui dialogs*/
+.ui-dialog-content{text-align:left;}
+.ui-dialog-content .xsl-title{font-size:18px;font-weight:bold;margin-bottom:15px;}
+.ui-dialog-content .variable-name{display:none;}
+.ui-dialog-content .xsl-subtitle{font-size:14px;font-weight:bold;border-bottom: 2px solid gray;}
+.ui-dialog-content .var-category-container {
+margin-top: 10px;
+border: 1px solid #EEEFE9;
+}
+.ui-dialog-content .varCatgry {
+width: 100%;
+}
+.ui-dialog-content .varCatgry td, 
+.ui-dialog-content .varCatgry th {
+font-size: 11px;
+padding: 0px;
+padding-left: 5px;
+}
+
+.ui-dialog-content .var-category-title{background:gainsboro;padding:5px;}
+.ui-dialog-content .xsl-caption {
+font-size: 12px;
+line-height: 16px;
+font-weight: bold;
+color: black;
+white-space: nowrap;
+margin-top: 10px;
+text-transform: uppercase;
+}
+.ui-dialog-content td .content{line-height:160%;margin-bottom:20px;}
+
+.survey-row a:visited{color:#357EC7;}
