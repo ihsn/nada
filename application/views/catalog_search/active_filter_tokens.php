@@ -73,8 +73,8 @@ else{
 </div>
 <div class="filter-action-bar">
     <span class="right">
-    <a href="#print-search" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
-    <a href="#print-search" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
+    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=500&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view'));?>" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
+    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=500&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view'));?>" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
     </span>
 </div>
 </div>
