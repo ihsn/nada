@@ -230,7 +230,6 @@ color: white;
 padding: 2px 5px;
 font-size: small;
 background: url(btn-bg-sprites.png) 100% 66%;
-background: url(btn-bg-sprites.png) 100% 66%;
 cursor: pointer;
 }
 
@@ -240,6 +239,7 @@ color: white;
 padding: 2px 5px;
 font-size: small;
 background: url(btn-bg-sprites.png) 100% 0%;
-background: url(btn-bg-sprites.png) 100% 0%;
 cursor: pointer;
 }
+
+
