@@ -11,7 +11,7 @@ class Citation_model extends CI_Model {
     }
 	
 	//search
-    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid)
+    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
 		$driver=$this->db->dbdriver;
 
