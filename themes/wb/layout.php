@@ -62,7 +62,7 @@ margin-left: -25em;
     </span>
     
     <!-- header -->
-    <div id="hd">
+<?php /*    <div id="hd">
        	<!-- logo -->
         <div class="site-logo">
         	<a title="<?php echo $this->config->item("website_title");?> - Home Page"  href="<?php echo site_url();?>">
@@ -70,7 +70,7 @@ margin-left: -25em;
             </a>
         </div>
     </div>
-    
+*/?>    
     <div id="bd" >
     	<!-- banner-->
         <div id="banner"><?php echo $this->config->item("website_title");?></div>
