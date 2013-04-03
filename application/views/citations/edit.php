@@ -22,8 +22,70 @@ table .input-flex{margin-bottom:5px;}
 .headerSortUp span {background:url("<?php echo js_base_url();?>images/arrow-asc.png") no-repeat right center;}
 .headerSortDown span {background:url("<?php echo js_base_url();?>images/arrow-desc.png") no-repeat right center;}
 
-.ui-dialog .ui-dialog-content {background:white;}
-.ui-widget-header{background:black;border:none;}
+
+/*model dialog*/
+.ui-widget-header{background:black;border:black;color:white;}
+.ui-dialog .ui-dialog-content{overflow:hidden;padding:0px;background:white;}
+
+/*related studies tab*/
+.dialog-container .table-container {
+	height: 246px;
+	overflow: auto;
+	font-size: 12px;
+}
+
+.dialog-container .pagination em{float:left;}
+.dialog-container .pagination .page-nums{float:right;}
+
+.dialog-container a.attach, 
+.dialog-container a.remove {
+background: green;
+padding: 3px;
+color: white;
+display: block;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px;
+border-radius: 3px;
+float:left;
+width:60px;
+text-align:center;
+text-transform:capitalize
+}
+.dialog-container a.remove{background:red;}
+
+.dialog-container a.attach:hover, 
+.dialog-container a.remove:hover {background:black;}
+
+
+.ui-dialog .ui-dialog-titlebar-close {top:22%;}
+
+.ui-widget-header {
+background: white;
+border: 0px;
+color: black;
+height: 56px;
+}
+
+/*dialog header*/
+.ui-dialog .ui-dialog-titlebar {
+	border-radius: 0px;
+	border: 0px;
+	text-align: left;
+	margin-bottom: 10px;
+	height: 35px;
+	height: 1;
+	padding-top: 31px;
+	background:#F3F3F3
+}
+
+/*dialog footer*/
+.ui-dialog .ui-dialog-buttonpane {
+	font-size: 12px;	
+}
+
+.grid-table .header{font-weight:bold;}
+.sub-text{font-size:smaller;color:gray;}
+
 </style>
 
 <div class="page-links">
@@ -166,12 +228,6 @@ table .input-flex{margin-bottom:5px;}
 <?php echo form_close();?>
 </div>
 <script type="text/javascript">
-	function clear_studies()
-	{
-		$('.chk').each(function(){ 
-            this.checked = false; 
-         });
-	}
 	
 	$(".input-flex").keyup(function() {
 		$("#citation-preview .citation-title").html($("#title").val()+'.');
@@ -240,6 +296,14 @@ table .input-flex{margin-bottom:5px;}
 		$(el).parent().parent().remove();
 	}
 	
+	
+	
+	$(function(){
+	
+	$('.attach_studies').click(function() {
+		dialog_select_related_studies();return false;});
+	});
+/*
 
 	//attach related surveys
 	$(function() {
@@ -248,12 +312,12 @@ table .input-flex{margin-bottom:5px;}
 		var tmp_id=$("#tmp_id").val();
 		
 		//add attached surveys to session, needed when editing a citations with survey attached
-		var url_add=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+'<?php echo implode(",",$selected_surveys_id_arr);?>/1';
+		var url_add=CI.base_url+'/admin/dialog_select_studies/add/'+tmp_id+'/'+'<?php echo implode(",",$selected_surveys_id_arr);?>/1';
 		$.get(url_add);
 		
 		//attach survey dialog
 		$('.attach_studies').click(function() {
-				var iframe_url=CI.base_url+'/admin/related_surveys/index/'+tmp_id;
+				var iframe_url=CI.base_url+'/admin/dialog_select_studies/index/'+tmp_id;
 				$('<div id="dialog-modal" title="Select Related Surveys"></div>').dialog({ 
 					height: 500,
 					width: 700,
@@ -261,7 +325,7 @@ table .input-flex{margin-bottom:5px;}
 					draggable: false,
 					modal: true,
 					close: function() {
-						$.get(CI.base_url+'/admin/citations/selected_surveys/'+tmp_id, function(data) {
+						$.get(CI.base_url+'/admin/citations/dialog_select_studies/'+tmp_id, function(data) {
 							$('#related-surveys').html(data);
 							related_surveys_click();
 						});
@@ -281,16 +345,138 @@ table .input-flex{margin-bottom:5px;}
 			var tmp_id=$("#tmp_id").val();
 			
 			if($(this).is(':checked')) {
-            	url=CI.base_url+'/admin/related_surveys/add/'+tmp_id+'/'+$(this).val()+'/1';
+            	url=CI.base_url+'/admin/dialog_select_studies/add/'+tmp_id+'/'+$(this).val()+'/1';
          	}
 			else{
-				url=CI.base_url+'/admin/related_surveys/remove/'+tmp_id+'/'+$(this).val()+'/1';
+				url=CI.base_url+'/admin/dialog_select_studies/remove/'+tmp_id+'/'+$(this).val()+'/1';
 			}
 			
 			$.get(url);
 		});
 	}
+*/
+
+
+	//return array of selected items on the related study tab
+	function get_selected_related_studies(){
+		var items_selected=[];
+		$("#related-surveys :checkbox").each(function(){
+			items_selected.push($(this).val()); 
+		});
+		return items_selected;
+	}
+
+
+//related_studies_attach_studies selection dialog
+	function dialog_select_related_studies()
+	{
+		var dialog_id='dialog-related-studies';
+		var title="Select Studies";
+		var item_id=$("#tmp_id").val();
+				
+		var tmp_id='sess-cit-'+item_id;//for saving dialog selection to cookies
+		var url=CI.base_url+'/admin/dialog_select_studies/index/'+tmp_id;
+		var get_selection_url=CI.base_url+"/admin/dialog_select_studies/get_list/"+tmp_id;
+		var tab_id="#related-studies-tab";
+		var attach_url=CI.base_url+'/admin/dialog_select_studies/add/'+tmp_id+'/';
+		var detach_url=CI.base_url+'/admin/dialog_select_studies/remove/'+tmp_id+'/';
+		
+		//already attached related studies
+		var source_selected=get_selected_related_studies();
+		
+		if(source_selected.length>0){
+			//add attached surveys to session, needed when editing a citations with survey attached
+			$.get(CI.base_url+'/admin/dialog_select_studies/add/'+tmp_id+'/'+source_selected+'/1');
+		}
+		
+		if ($('#'+dialog_id).length==0){
+			$("body").append('<div id="'+dialog_id+'" title="'+title+'"></div>');
+		}
+		
+		var dialog=$( "#"+dialog_id ).dialog({
+			height: 500,
+			position:"center",
+			width:750,
+			modal: true,
+			autoOpen: true,
+			buttons: {
+				"Cancel": function() {
+					$( this ).dialog( "close" );
+				},
+				"Apply filter": function() {
+					$.getJSON(get_selection_url, function( json ) {
+					   var selected=json.selected;
+
+					   //clear session selection
+					   //$.get(CI.base_url+'/admin/dialog_select_studies/clear_all/'+tmp_id);
+					   
+					   $("#related-surveys").html("loading...");
+					   $("#related-surveys").load(CI.base_url+'/admin/citations/selected_surveys/'+tmp_id+'/1');
+					   
+					 });
+					 
+					$( this ).dialog( "close" );
+				}
+			}//end-buttons
+		});//end-dialog
+
+		//reset selected items each time dialog is loaded
+		dialog.data("selected","");
+		
+		//load dialog content
+		$('#'+dialog_id).load(url, function() {
+			//console.log("loaded");			
+		});
 	
+		//dialog pagination link clicks
+		$(document.body).off("click","#related-surveys th a,#related-surveys .pagination a");
+		$(document.body).on("click","#related-surveys th a,#related-surveys .pagination a", function(){
+			$("#dialog-related-studies").load( $(this).attr("href") );
+			return false;
+		});
+		
+		//dialog search button click
+		 $(document.body).off("click","#dialog-related-studies .btn-search-submit");
+		 $(document.body).on("click","#dialog-related-studies .btn-search-submit", function(){
+			data=$("#dialog-related-studies form").serialize();
+			$("#dialog-related-studies").load( url+"?"+data );
+			return false;
+		});
+				
+		//dialog show selected only checkbox
+		 $(document.body).off("click","#dialog-related-studies #show-only-selected");
+		 $(document.body).on("click","#dialog-related-studies #show-only-selected", function(){
+		 	if($(this).prop("checked")){
+				data='show_selected_only=1';
+			}
+			else{data="";}	
+			$("#dialog-related-studies").load( url+"?"+data );
+			return false;
+		});
+		
+		//dialog attach/select study link
+		$(document.body).off("click",".table-container a.attach");
+		$(document.body).on("click",".table-container a.attach", function(event){ 
+			$.get($(this).attr("href"));
+			$(this).html("<?php echo t('deselect'); ?>");
+			$(this).removeClass("attach").addClass("remove");
+			var sid=$(this).attr("data-value");
+			$(this).attr("href",detach_url+sid);			
+			return false;
+		});
+	
+		//dialog delest study link	
+		$(document.body).off("click","#related-surveys .table-container a.remove");
+		$(document.body).on("click","#related-surveys .table-container a.remove", function(event){ 
+			$.get($(this).attr("href"));
+			$(this).html("<?php echo t('select'); ?>");	
+			$(this).removeClass("remove").addClass("attach");
+			var sid=$(this).attr("data-value");
+			$(this).attr("href",detach_url+sid);
+			return false;
+		});
+	
+	}//end-function		
 
 </script>
 
