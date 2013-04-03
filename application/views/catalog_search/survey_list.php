@@ -102,8 +102,8 @@
 </div>
 
 <?php foreach($surveys['rows'] as $row): ?>
-	<div class="survey-row" data-url="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>">
-        	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>"></div>
+	<div class="survey-row" data-url="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>" title="<?php echo t('View study');?>">
+        	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></div>
             <h2 class="title">
                 <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
                 	<?php echo $row['titl'];?>
@@ -148,11 +148,15 @@
 		
         <?php if ( isset($row['var_found']) ): ?>
             <div class="variables-found" style="clear:both;">
-                    <a class="vsearch" style="outline:none;" href="<?php echo site_url(); ?>/catalog/vsearch/<?php echo $row['id']; ?>/?<?php echo $variable_querystring; ?>">
+                    <a class="vsearch" style="outline:none;display:block;" href="<?php echo site_url(); ?>/catalog/vsearch/<?php echo $row['id']; ?>/?<?php echo $variable_querystring; ?>">
                         <?php echo sprintf(t('variables_keywords_found'),$row['var_found'],$row['varcount']);?>
-                        <img class="open-close" src="images/next.gif"/>
+                        <img class="open-close" src="images/next.gif" alt="Expand"/>
                     </a>
                     <span class="vsearch-result"></span>
+                   <div class="variable-footer">
+                       <input class="btn-style-1 btn-compare-var" type="button" name="compare-variable" value="Compare variables"/> 
+                       <span class="var-compare-summary"><?php echo t('To compare, select two or more variables');?></span>
+                   </div>
             </div>
             <?php endif; ?>
     </div>    
@@ -182,9 +186,6 @@
     <span class="btn">100</span>
 </div>
 
-<!--<script type="text/javascript">
-	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
-</script>-->
 <?php else: ?>
 	<div style="padding:10px;background:white;border:1px solid gainboro;margin-bottom:20px;"><?php echo t('search_no_results');?></div>
 <?php endif; ?>
