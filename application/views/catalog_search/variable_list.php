@@ -20,7 +20,8 @@
 	//page querystring for variable sub-search
 	$variable_querystring=get_sess_querystring( array('sk', 'vk', 'vf','view'),'search');
 	
-	$compare_items=$this->session->userdata('compare');
+	//variables selected for compare
+	$compare_items=explode(",",$this->input->cookie('variable-compare', TRUE));
 ?>
 
 <input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
@@ -52,7 +53,7 @@
 </td>
 <td align="right">
 	<a class="" href="#" onclick="change_view('s');return false;"><?php echo t('switch_to_study_view');?></a> | 
-	<a class="dlg" title="<?php echo t('compare_hover');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
+	<a class="btn-compare-var" target="_blank" title="<?php echo t('compare_hover');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
     </td>
 </tr>
 </table>
@@ -79,12 +80,11 @@
 </div>
 
 <?php $tr_class=""; ?>
-	<table class="grid-table" cellpadding="0" cellspacing="0" width="100%">
+	<table class="grid-table variable-list" cellpadding="0" cellspacing="0" width="100%">
         	<tr class="header">
-        	<td><?php echo anchor('catalog/compare',t('compare'), array('class'=>'dlg','title'=>t('compare_selected_variables')));?></td>
+        	<td><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></td>
             <td><?php echo t('name');?></td>
             <td><?php echo t('label');?></td>
-            <td>&nbsp;</td>
         </tr>	
 
 	<?php foreach($rows as $row):?>
@@ -92,19 +92,18 @@
         <?php 
 			$compare='';	
 			//compare items selected
-			if (isset($compare_items[$row['surveyid_FK'].':'.$row['varID']]) )
+			if (in_array($row['surveyid_FK'].'/'.$row['varID'], $compare_items) )
 			{  
 				$compare=' checked="checked" ';
 			} 
 		?>
-    	<tr  class="<?php echo $tr_class; ?>" valign="top">
+    	<tr  class="vrow <?php echo $tr_class; ?>" valign="top" data-url="<?php echo site_url('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
 	        <td style="color:gray;" title="<?php echo t('mark_for_variable_comparison');?>"><input type="checkbox" class="compare" value="<?php echo $row['surveyid_FK'].'/'.$row['varID'] ?>" <?php echo $compare; ?>/></td>
             <td><?php echo anchor('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID'],$row['name'],array('target'=>'blank_','class'=>'dlg','title'=>t('variable_info')));?></td>
             <td>
 				<h3 class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></h3>
 				<div style="color:#666666"><?php echo $row['nation']. ' - '.$row['titl']; ?></div>
             </td>
-            <td><?php echo anchor('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID'],'<img src="images/icon_question.gif" border="0"/>',array('target'=>'blank_','class'=>'dlg','title'=>$row['labl']));?></td>
         </tr>
     <?php endforeach;?>
 	</table>
@@ -119,30 +118,8 @@
 							$found);?>
      </td>
     <td align="right">
-        <span class="page-link">
-        <?php if ($current_page>1):?>
-        	<a title="Prev page" href="#" onclick="search_page(<?php echo $current_page-1; ?>);return false;">&laquo;</a>
-        <?php else:?>
-	       <?php //&laquo;?>
-        <?php endif; ?>
-        </span>  
-
-		<?php 
-			$page_dropdown='<select name="page2" id="page2" onchange="navigate_page()">';
-			for($i=1;$i<=$pages;$i++)
-			{
-                $page_dropdown.='<option '. (($current_page==$i) ? 'selected="selected"' : '').'>'.$i.'</option>';
-            }
-        	$page_dropdown.='</select>';
-		?>        
-		<?php echo sprintf(t('showing_pages'),$page_dropdown,$pages);?>
-
-		<span class="page-link">
-        <?php if ($current_page<$pages):?>
-        	<a title="Next page" href="#" onclick="search_page(<?php echo $current_page+1; ?>);return false;">&raquo;</a>
-        <?php else:?>
-	        <?php //&raquo;?>
-        <?php endif; ?>
+        <span>
+        <?php echo $pager_bar;?>
         </span>
     </td>
 </tr>

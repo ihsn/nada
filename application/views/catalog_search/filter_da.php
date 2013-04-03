@@ -13,7 +13,7 @@
             <?php if (in_array('direct',$da_types)):?>
             <tr class="item">
                 <td><input class="chk chk-da" type="checkbox"  <?php if($search_options->dtype!='' && in_array($dtype[1],$da_types) ){ echo 'checked="checked"'; }?> value="1" name="dtype[]" id="da_direct"/></td>
-                <td><span class="da-direct"></span></td>
+                <td><span class="da-icon-small da-direct"></span></td>
                 <td class="nopad"> <label title="<?php echo t('link_data_direct_hover');?>" for="da_direct"> <span class="title"><?php echo t('legend_direct_access');?></span> </label></td>
             </tr>
             <?php endif;?>
@@ -21,7 +21,7 @@
             <?php if (in_array('public',$da_types)):?>
             <tr class="item">
             <td><input class="chk chk-da public" type="checkbox"   <?php if($search_options->dtype!='' && in_array($dtype[2],$da_types) ){ echo 'checked="checked"'; }?> value="2" name="dtype[]" id="da_public"/></td>
-            <td><span class="da-public"></span></td>
+            <td><span class="da-icon-small da-public"></span></td>
             <td class="nopad"> <label title="<?php echo t('link_data_public_hover');?>" for="da_public"><span class="title"> <?php echo t('legend_data_public');?></span></label></td>
             </tr>
             <?php endif;?>
@@ -30,7 +30,7 @@
 			<?php if (in_array('licensed',$da_types)):?>
             <tr class="item">
             <td><input class="chk chk-da licensed" type="checkbox"   <?php if($search_options->dtype!='' && in_array($dtype[3],$da_types) ){ echo 'checked="checked"'; }?> value="3" name="dtype[]" id="da_licensed"/></td>
-            <td><span class="da-licensed"></span></td>
+            <td><span class="da-icon-small da-licensed"></span></td>
             <td class="nopad">
                <label title="<?php echo t('link_data_licensed_hover');?>" for="da_licensed">
             		<span class="title"> <?php echo t('legend_data_licensed');?></span>
@@ -42,7 +42,7 @@
             <?php if (in_array('enclave',$da_types)):?>
             <tr class="item">
             <td><input class="chk chk-da enclave" type="checkbox"   <?php if($search_options->dtype!='' && in_array($dtype[4],$da_types) ){ echo 'checked="checked"'; }?> value="4" name="dtype[]" id="da_enclave"/></td>
-            <td><span class="da-enclave"></span></td>
+            <td><span class="da-icon-small da-enclave"></span></td>
             <td class="nopad"><label title="<?php echo t('link_data_enclave_hover');?>" for="da_enclave"><span class="title"> <?php echo t('legend_data_enclave');?></span></label></td>
             </tr>
             <?php endif;?>
@@ -50,7 +50,7 @@
             <?php if (in_array('remote',$da_types)):?>
             <tr class="item">
             <td><input class="chk chk-da remote" type="checkbox"  <?php if($search_options->dtype!='' && in_array($dtype[5],$da_types) ){ echo 'checked="checked"'; }?> value="5" name="dtype[]" id="da_remote"/></td>
-            <td><span class="da-remote"></span></td>
+            <td><span class="da-icon-small da-remote"></span></td>
             <td class="nopad"><label title="<?php echo t('link_data_remote_hover');?>" for="da_remote"><span class="title"><?php echo t('legend_data_remote');?></span></label></td>
             </tr>
             <?php endif;?>
@@ -58,7 +58,7 @@
             <?php if (in_array('data_na',$da_types)):?>
             <tr class="item">
             <td><input class="chk chk-da no_access" type="checkbox" <?php if($search_options->dtype!='' && in_array($dtype[6],$da_types) ){ echo 'checked="checked"'; }?> value="6" name="dtype[]" id="da_na"/></td>
-            <td><span class="da-no_access"></span></td>
+            <td><span class="da-icon-small da-no_access"></span></td>
             <td class="nopad"><label title="<?php echo t('link_data_na');?>" for="da_na"><span class="title"> <?php echo t('legend_na_access');?></span></label></td>
             </tr>
             <?php endif;?>
