@@ -1,7 +1,3 @@
-function iframe_dialog(href,unload_func){
-	popup_dialog($(href).prop("href")+'?ajax=1&css=true&title=true','variable');
-}
-
 //overlay to block/unblock search form
 function block_search_form(block){
 	if (block==false){$('#search_form').unblock();return false;}
@@ -16,10 +12,8 @@ function block_search_form(block){
 
 
 //create history state
-function hash_changed()
-{
+function hash_changed(){
 	$.bbq.pushState(get_search_state());
-	console.log($.param.fragment());
 }
 
 function get_search_state(){
@@ -116,49 +110,13 @@ function advanced_search()
     return false;        
 }
 
-function popup_dialog(item_link,name) {
-	var settings = {
-			centerBrowser:1,
-			centerScreen:1,
-			height:500,
-			left:0,
-			location:0,
-			menubar:0,
-			resizable:1,
-			scrollbars:1,
-			status:0,
-			width:600,
-			windowName:name,
-			windowURL:item_link,
-			top:0,
-			toolbar:0
-		};
-		var windowFeatures =    'height=' + settings.height +
-								',width=' + settings.width +
-								',toolbar=' + settings.toolbar +
-								',scrollbars=' + settings.scrollbars +
-								',status=' + settings.status + 
-								',resizable=' + settings.resizable +
-								',location=' + settings.location +
-								',menuBar=' + settings.menubar;
-		
-		if ($.browser.msie) {//IE hack
-			centeredY = (window.screenTop - 120) + ((((document.documentElement.clientHeight + 120)/2) - (settings.height/2)));
-			centeredX = window.screenLeft + ((((document.body.offsetWidth + 20)/2) - (settings.width/2)));
-		}else{
-			centeredY = window.screenY + (((window.outerHeight/2) - (settings.height/2)));
-			centeredX = window.screenX + (((window.outerWidth/2) - (settings.width/2)));
-		}
-
-		window.open(settings.windowURL, settings.windowName, windowFeatures+",left="+centeredX+",top="+centeredY).focus();
-		//window.open(settings.windowURL, "Window3", "resizable=1,width=600,height=500,scrollbars=yes,left="+centeredX+",top="+centeredY);
-}
 
 //TODO: may be use .ON for binding instead
 function bindBehaviors(e)
 {
-	//show/hide variable search
-	$(".vsearch").unbind('click').click(function(event) {		
+	//show/hide study sub-variable search
+	$(".vsearch").unbind('click').click(function(event) {
+		$(this).parent().toggleClass("expand");
 		var result=$(this).parent().find(".vsearch-result");
 		if (result.html()!='' ){
 			result.empty().hide();
@@ -168,10 +126,10 @@ function bindBehaviors(e)
 			result.show().html(i18n.loading).load($(this).prop("href"), function(data){
 				//attach click event handler to the variable list links
 				
-				$(".variables-found .vsearch-result a").click(function(e){
-					item_link=$(this).clone().prop("href",$(this).prop("href")+'?ajax=1&css=true&title=true');
-					//iframe_dialog(item_link);
-					popup_dialog($(this).prop("href")+'?ajax=1&css=true&title=true','variable');
+				$(".variables-found .vsearch-result .link").click(function(e){
+					var row=$(this).closest("tr");
+					window.simple_dialog("dialog_id",row.attr("data-title"),$(this).attr("href"));
+					event.stopPropagation();
 					return false;
 				});
 				
@@ -179,23 +137,11 @@ function bindBehaviors(e)
 				variable_compare_handlers();
 			});
 			result.parent().find(".open-close").prop("src",'images/arrow_down.gif');
-		}	
+		}
+		compare_var_summary();
 		return false;
 	})
-	
-	
-	//data forms dialog
-	$('.accessform').unbind('click').click(function(event) {
-			item_link=$(this).clone().prop("href",$(this).prop("href")+'?ajax=true');;
-			iframe_dialog(item_link,on_lightbox_unload);return false;
-	});
-
-	//compare dialog link
-	$(".dlg").unbind('click').click(function(event) {
-		item_link=$(this).clone().prop("href",$(this).prop("href")+'?ajax=true&css=true');;
-		iframe_dialog(item_link);return false;	
-	});
-	
+			
 	//attach variable compare handlers
 	variable_compare_handlers();
 	
@@ -214,15 +160,117 @@ function bindBehaviors(e)
 	});
 }
 
-//compare checkbox click
-function variable_compare_handlers(){
-	$('.compare').unbind('click').click(function(event) {
-		if ($(this).prop("checked")){
-			$.get(CI.base_url+'/catalog/compare_add/'+ $(this).val());
+
+function compare_var_summary(){
+		var sel_items=readCookie("variable-compare");
+		
+		if(sel_items==null || sel_items==''){
+			sel_items=Array();
 		}
 		else{
-			$.get(CI.base_url+'/catalog/compare_remove/'+ $(this).val());
-		}	
+			sel_items=sel_items.split(",");
+		}
+								
+		//get unique study count
+		var studies=[];
+		for (var i = 0; i < sel_items.length; i++) {
+			if(sel_items[i].indexOf("/") !== -1){
+				var item=sel_items[i].split("/");
+				if($.inArray(item[0], studies)==-1){
+					studies.push(item[0]);
+				}
+			}
+		}//end-for
+		
+		if(sel_items.length==0){
+			$(".variables-found .var-compare-summary").html( i18n.js_compare_variable_select_atleast_2);
+		}
+		else{				
+			$(".variables-found .var-compare-summary").html( sel_items.length + " " + i18n.js_compare_variables_selected + " " + studies.length + " " + i18n.js_compare_studies_selected);
+		}
+}
+
+function update_compare_variable_list(action,value){
+	var sel_items=readCookie("variable-compare");
+	
+	if(sel_items==null || sel_items==''){
+		sel_items=Array();
+	}
+	else{
+		sel_items=sel_items.split(",");
+	}
+
+	switch(action)
+	{
+		case 'add':
+			if($.inArray(value, sel_items)==-1){
+				sel_items.push(value);
+			}
+			break;
+		
+		case 'remove':
+			var index_matched=$.inArray(value, sel_items);
+			if(index_matched>-1){
+				sel_items.splice(index_matched,1);
+			}			
+			break;
+		
+		case 'remove-all':
+			eraseCookie("variable-compare");return;
+		break;
+	}
+	
+	//update cookie
+	createCookie("variable-compare",sel_items,1);
+}
+
+//compare checkbox click
+function variable_compare_handlers(){
+	
+	//compare button
+	$('.btn-compare-var').unbind('click').click(function(event) {
+	 	event.stopPropagation();
+		var sel_items=readCookie("variable-compare");
+		
+		if(sel_items==null){
+			sel_items=Array();
+		}
+		else{
+			sel_items=sel_items.split(",");
+		}
+		if(sel_items.length>1){
+			window.open(CI.base_url+'/catalog/compare','_blank');
+		}
+		else{
+			alert(i18n.js_compare_variable_select_atleast_2);return false;
+		}
+		return false;
+	});
+	
+	
+	$('.compare').unbind('click').click(function(event) {
+		var sel_items=readCookie("variable-compare");
+		
+		if(sel_items==null){
+			sel_items=Array();
+		}
+		else{
+			sel_items=sel_items.split(",");
+		}
+
+		if ($(this).prop("checked")){
+			update_compare_variable_list('add',$(this).val());
+		}
+		else{
+			update_compare_variable_list('remove',$(this).val());
+		}
+		
+		compare_var_summary();
+	});
+	
+	//disable even propogations for compare link
+	$(".var-quick-list .compare-variable").unbind('click').click(function(event) {		
+			event.stopPropagation();
 	});
 }
 
@@ -267,24 +315,6 @@ $(document).ready(function()
 		hash_changed();
 	});
 	
-	//data access
-	/*$("#search_form .chk-da").click(function(event) {
-		$(this).parent().parent().find('.chk-da').prop('checked',$(this).prop('checked') );
-		$("#search_form .chk-da-any").prop("checked",false);
-		hash_changed();
-	});*/
-
-	/*$("#search_form .chk-da-any").click(function(event) {
-		$("#search_form .chk-da").prop("checked",false);
-		hash_changed();
-	});*/
-	
-	/*$("#search_form .chk-da").click(function(event) {
-		$(this).parent().parent().find('.chk-da').prop('checked',$(this).prop('checked') );
-		$("#search_form .chk-da-any").prop("checked",false);
-		hash_changed();
-	});*/
-
 	//search button
 	$("#btnsearch").click(function() {
     	$("#page").val(1);
@@ -396,11 +426,9 @@ $(window).bind( 'hashchange', function(e) {
 	if(typeof fragments.view != 'undefined'){
 		$("#ps").val(fragments.ps);
 	}
-	
-	
+		
 	var fragment_str = $.param.fragment();
 	if ( window.search_cache[ fragment_str ] ) {
-		console.log("found in cache");
 		$("#surveys").html(window.search_cache[ fragment_str ]);
 		bindBehaviors();
 	}
@@ -418,8 +446,37 @@ $(document).ready(function()  {
 	//trigger hashchange event on page load
 	$(window).trigger( 'hashchange' );	
 	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// simple dialog
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	window.simple_dialog=function simple_dialog(dialog_id,title,data_url)
+	{
+		if($("#"+dialog_id).length ==0) {
+			$("body").append('<div id="'+dialog_id+'" title="'+title+'">loading...</div>');
+
+			var dialog=$( "#"+dialog_id ).dialog({
+			  height: 520,
+			  position:"center",
+			  width:730,
+			  modal: true,
+			  autoOpen: false
+			});//end-dialog
+		}
+		else
+		{	
+			dialog=	$("#"+dialog_id);
+			dialog.html("loading...");
+			dialog.dialog({ title: title});			
+		}
+		
+		dialog.dialog( "open" );
+		$('#'+dialog_id).load(data_url+'?ajax=1');//load content
+	}//end function
+	
+	
+	
   	/////////////////////////////////////////////////////////////////////////////////////////////
-	// selection dialog
+	// selection filter dialog
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	window.init_dialog=function init_dialog(dialog_id,title,data_url)
 	{
@@ -603,4 +660,52 @@ $(document).ready(function()  {
 		
 	});
 	
+	//disable propogation of events from children elements on the container
+	$(document.body).on("click","#surveys .survey-row a, .variable-list .vrow,.variable-list .vrow .compare,.variable-list", function(event){
+			event.stopPropagation();
+	});
+
+	//on survey,variable row click
+	$(document.body).on("click","#surveys .survey-row, .variable-list .vrow", function(){
+			var target='';
+			if(typeof $(this).attr("data-url-target") != 'undefined'){
+				target=$(this).attr("data-url-target");
+			}
+			if(target==''){
+				window.location=$(this).attr("data-url");
+			}
+			else{
+				window.simple_dialog("dialog_id",$(this).attr("data-title"),$(this).attr("data-url"));return false;
+			}			
+	});
+	
+	
   });//end-document-ready
+
+
+//cookie helper functions
+//source: http://www.quirksmode.org/js/cookies.html
+function createCookie(name,value,days) {
+	if (days) {
+		var date = new Date();
+		date.setTime(date.getTime()+(days*24*60*60*1000));
+		var expires = "; expires="+date.toGMTString();
+	}
+	else var expires = "";
+	document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function readCookie(name) {
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0;i < ca.length;i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+	}
+	return null;
+}
+
+function eraseCookie(name) {
+	createCookie(name,"",-1);
+}
