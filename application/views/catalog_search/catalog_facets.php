@@ -86,7 +86,10 @@ var i18n=
 'centers_selected':"<?php echo t('js_centers_selected');?>",
 'collection_selected':"<?php echo t('js_collection_selected');?>",
 'collections_selected':"<?php echo t('js_collections_selected');?>",
-'cancel':"<?php echo t('cancel');?>"
+'cancel':"<?php echo t('cancel');?>",
+'js_compare_variables_selected':"<?php echo t('variables selected from');?>",
+'js_compare_studies_selected':"<?php echo t('studies');?>",
+'js_compare_variable_select_atleast_2':"<?php echo t('Select two or more variables to compare');?>"
 };
 
 //min/max years
