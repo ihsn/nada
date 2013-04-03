@@ -9,8 +9,8 @@
 	}
 ?>
 <!--
-<div>attached: <?php var_dump($attached_studies);?></div>
-<div>excluded: <?php var_dump($excluded_studies);?></div>
+<div>attached: <?php //var_dump($attached_studies);?></div>
+<div>excluded: <?php //var_dump($excluded_studies);?></div>
 -->
 <div class="body-container dialog-container">
 
@@ -87,7 +87,7 @@
     	<tr class="table-row <?php echo $tr_class; ?>" id="s_<?php echo $row['id']; ?>" >
             <td><b><?php echo $row['id'];?></b></td>
             <td><?php echo $row['titl']; ?></td>
-            <td style="width:80px"><div class="hide-overflow"><?php echo $row['nation'];?></div></td>
+            <td style="width:80px"><div class="hide-overflow" title="<?php echo $row['nation'];?>"><?php echo $row['nation'];?></div></td>
             <td><?php echo $row['proddate']; ?></td>
             <?php
 				$data=t('attach');
