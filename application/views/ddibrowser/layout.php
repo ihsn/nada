@@ -5,7 +5,7 @@ padding: 10px;
 padding-bottom: 40px;
 z-index: -1;
 background-color:#F3F3F3;
-background: transparent url(http://localhost/nada4/themes/wb/tab-bg.png) repeat-x scroll bottom;
+background: transparent url(<?php echo js_base_url();?>/themes/wb/tab-bg.png) repeat-x scroll bottom;
 padding-left: 20px;
 border:1px solid gainsboro;
 font-size:small;
@@ -18,12 +18,12 @@ background:white;border:1px solid gainsboro;overflow:auto;border-top:0px;
 .ui-tabs .ui-tabs-nav li.ui-state-active {
 position: relative;
 background:gray;
-background: url(http://localhost/nada4/themes/wb/tab-active-arrow.png) bottom center no-repeat;
+background: url(<?php echo js_base_url();?>/themes/wb/tab-active-arrow.png) bottom center no-repeat;
 }
 
 /*active tab*/
 .ui-tabs .ui-tabs-nav li.ui-state-active a {
-	background: url(http://localhost/nada4/themes/wb/active-tab-bg.png);
+	background: url(<?php echo js_base_url();?>/themes/wb/active-tab-bg.png);
 	color: white;
 	margin-bottom:0px;
 }
@@ -49,7 +49,7 @@ background: url(http://localhost/nada4/themes/wb/tab-active-arrow.png) bottom ce
 
 .page-body h1{margin-bottom:15px;}
 
-.ui-tabs li a .get-microdata{display:block;background:url(http://localhost/nada4/themes/wb/data-access-small.gif) no-repeat 0% -2%;width:16px;height:16px;float:left;margin-right:5px;}
+.ui-tabs li a .get-microdata{display:block;background:url(<?php echo js_base_url();?>/themes/wb/data-access-small.gif) no-repeat 0% 2%;width:20px;height:16px;float:left;margin-right:5px;}
 .tab-body{font-size:small;margin-left:170px;border-left:1px solid gainsboro;padding-left:20px;}
 .tab-sidebar .study-items{text-align:right;}
 .tab-sidebar .filetree li a{font-size:11px;}
