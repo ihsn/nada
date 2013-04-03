@@ -155,48 +155,6 @@ border: 3px solid gainsboro;
     </tr>
 	<?php endif;?>
     
-    <tr>
-    	<td><?php echo t('data');?></td>
-        <td>
-            <!--access policy -->
-            <span class="link-col">
-            <a id="ap-<?php echo $id;?>" class="accesspolicy"  title="<?php echo t('link_access_policy_hover');?>" href="<?php echo site_url().'/catalog/'.$id.'/accesspolicy/';?>">
-                <span><img src="images/page_white_key.png" /> <?php echo t('link_access_policy');?></span>
-            </a>
-            </span>
-            			
-                <!--data access -->
-                <?php if ($model!=''):?>
-                <span class="link-col-2">
-                <?php if($model=='direct'): ?>
-                    <a href="<?php echo site_url().'/access_direct/'.$id;?>" class="accessform" title="<?php echo t('link_data_direct_hover');?>">
-                    <span><img src="images/form_direct.gif" /> <?php echo t('link_data_direct_hover');?></span>
-                    </a>                    
-                <?php elseif($model=='public'): ?>                    
-                    <a href="<?php echo site_url().'/access_public/'.$id;?>" class="accessform"  title="<?php echo t('link_data_public_hover');?>">
-                    <span><img src="images/form_public.gif" /> <?php echo t('link_data_public_hover');?></span>
-                    </a>                    
-                <?php elseif($model=='licensed'): ?>
-                    <a href="<?php echo site_url().'/access_licensed/'.$id;?>" class="accessform"  title="<?php echo t('link_data_licensed_hover');?>">
-                    <span><img src="images/form_licensed.gif" /> <?php echo t('link_data_licensed_hover');?></span>
-                    </a>                    
-                <?php elseif($model=='data_enclave'): ?>
-                    <a href="<?php echo site_url().'/access_enclave/'.$id;?>" class="accessform"  title="<?php echo t('link_data_enclave_hover');?>">
-                    <span><img src="images/form_enclave.gif" /> <?php echo t('link_data_enclave_hover');?></span>
-                    </a>                    
-                <?php elseif($model=='remote'): ?>
-                    <?php if (isset($link_da) && strlen($link_da)>1):?>
-                        <a target="_blank" href="<?php echo $link_da;?>"  title="<?php echo t('link_data_remote_hover');?>">
-                        <span><img src="images/form_remote.gif" /> <?php echo t('link_data_remote_hover');?></span>
-                        </a>                    
-                    <?php endif; ?>
-                <?php endif; ?>
-                </span>
-                <?php endif;?>
-                 
-		</td>	            
-	</tr>
-    
     <?php if($link_indicator!='' || $link_study!=''): ?>
     <tr>
     <td></td>
