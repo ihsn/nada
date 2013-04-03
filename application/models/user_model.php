@@ -14,7 +14,7 @@ class User_model extends CI_Model {
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {
 		//$this->output->enable_profiler(TRUE);
-
+		$this->db->flush_cache();
 		$this->db->start_cache();
 
 		//columns
@@ -75,7 +75,7 @@ class User_model extends CI_Model {
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
 		$this->db->from($this->tables['users']);
-		
+
         $result= $this->db->get()->result_array();
 		return $result;
     }
