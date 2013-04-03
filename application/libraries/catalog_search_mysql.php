@@ -85,7 +85,6 @@ class Catalog_search{
 		}
 	}
 
-
 	//perform the search
 	function search($limit=15, $offset=0)
 	{
