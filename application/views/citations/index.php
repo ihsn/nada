@@ -1,5 +1,5 @@
 <style>
-.icon-legend{margin-top:20px;}
+.icon-legend{margin-top:20px;width:100%;}
 .icon-legend span{padding-right:5px;color:gray;}
 .published{background:url(images/tick.png) no-repeat center;cursor:pointer; }
 .unpublished{background:url(images/cross.png) no-repeat center; cursor:pointer;}

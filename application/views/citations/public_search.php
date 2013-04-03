@@ -16,7 +16,7 @@ em{font-style:italic}
 	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 	background: white;
-	border:1px solid gainsboro;
+	z-index:100;
 }
 
 .citation-row{position:relative;clear:both;overflow:hidden;}
