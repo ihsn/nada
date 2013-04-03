@@ -1,53 +1,91 @@
-<?php
-header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-header('Cache-Control: no-store, no-cache, must-revalidate');
-header("Pragma: no-cache");
-?>
-<html>
-<head>
-	<title><?php echo t('title_compare_variables');?></title>
-    <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-    <base href="<?php echo js_base_url(); ?>"/>
-   	<link type="text/css" rel="stylesheet" href="themes/ddibrowser/ddi.css" />
-    <script type="text/javascript" src="javascript/jquery-1.5.1.min.js"></script>
-    <script type="text/javascript" src="javascript/dragtable.js"></script>
-    <style>
-		body,html,td{font-family:Arial, Helvetica, sans-serif;font-size:.8em;}
-		.survey-info{font-size:.7em;margin-bottom:10px;}
-		.compare-header{padding:5px;}
-		.compare-header div {float:left;}
-		.remove {color:white;}
-		.error{font-size:16px;color:red;padding:10px;margin:10px;}
-	</style>
-	<script type="text/javascript"> 
-       var CI = {'base_url': '<?php echo site_url(); ?>'}; 	   
-    </script> 
+<style type="text/css">
+body{font-family:Verdana, Arial, Helvetica, sans-serif}
+.survey-info{font-size:.7em;margin-bottom:10px;}
+.compare-header{padding:5px;}
+.compare-header div {float:left;}
+.remove {color:white;}
+.error{font-size:16px;color:red;padding:10px;margin:10px;}
+</style>
 
 <script type="text/javascript">
 $(function() {
 	//compare variables
 	$('.remove').click(function(event) {
-			
 			var id=$(this).attr("id");
-
-			//remove from the parent page
-			$(".compare:[value='"+id+"']",opener.document).attr("checked",false);
-			//$("#surveys",window.parent.document).(".compare:[value="+id+"]").attr("checked",false);
-			//parent.$("#surveys .compare").attr("checked",false);			
-			
-			$.get($(this).attr("href"));
+			update_compare_variable_list('remove',id);
 			$(this).parents("td").remove();
+			if(opener.document!=null){
+				//$(".compare[value='"+id+"']",opener.document).attr("checked",false);
+				$(".compare[value='"+id+"']",opener.document).trigger("click");
+			}
 			return false;
 	});
-});	
+});
+
 function remove_all(){
-	$.get(CI.base_url+'/catalog/compare_remove_all', function(data){window.location.reload();});
+	update_compare_variable_list('remove-all',0);
 	
 	//remove form the parent/search page
 	$("#surveys .compare",opener.document).attr("checked",false);
+	window.location.reload();
+}
+
+function update_compare_variable_list(action,value){
+	var sel_items=readCookie("variable-compare");
 	
-	//close the popup
-	window.close();return false;	
+	if(sel_items==null){
+		sel_items=Array();
+	}
+	else{
+		sel_items=sel_items.split(",");
+	}
+
+	switch(action)
+	{
+		case 'add':
+			if($.inArray(value, sel_items)==-1){
+				sel_items.push(value);
+			}
+			break;
+		
+		case 'remove':
+			var index_matched=$.inArray(value, sel_items);
+			if(index_matched>0){
+				sel_items.splice(index_matched,1);
+			}			
+			break;
+		
+		case 'remove-all':
+			eraseCookie("variable-compare");return;
+		break;
+	}
+
+	//update cookie
+	createCookie("variable-compare",sel_items,1);
+}
+function createCookie(name,value,days) {
+	if (days) {
+		var date = new Date();
+		date.setTime(date.getTime()+(days*24*60*60*1000));
+		var expires = "; expires="+date.toGMTString();
+	}
+	else var expires = "";
+	document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function readCookie(name) {
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0;i < ca.length;i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1,c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+	}
+	return null;
+}
+
+function eraseCookie(name) {
+	createCookie(name,"",-1);
 }
 </script>
 </head>
@@ -59,8 +97,6 @@ function remove_all(){
     <div style="padding-top:5px;padding-left:20px;">
     	<a href="<?php echo current_url(); ?>" onClick="window.location.reload();return false;"><img src="images/arrow_reorder.png" border="0"/> <?php echo t('refresh');?></a> | 
         <a href="<?php echo current_url(); ?>#clear" onClick="remove_all();return false;" title="Clear selection of variables to be compared"><img src="images/bin_closed.png" border="0"/> <?php echo t('clear');?></a> | 
-		<?php echo anchor('catalog/compare',t('open_in_new_window'), array('target'=>'_blank'));?> | 
-		<?php echo anchor('catalog/compare/print','<img src="images/print.gif" border="0" /> '. t('print'), array('target'=>'_blank'));?> | 
 		<?php echo anchor('catalog/compare/print/pdf','<img src="images/acrobat.png" border="0"/> '. t('download_pdf'), array('target'=>'_blank'));?>
     </div>
     <br style="clear:both" />
@@ -77,7 +113,7 @@ function remove_all(){
 	            	<div style="background-color:gray;color:white;padding:5px;cursor:move" title="<?php echo t('click_drag_move');?>">
 						<div style="float:left;font-weight:bold;"><?php echo $variable_name;?></div>
                         <div style="float:right;font-size:11px;">
-							<?php echo anchor('catalog/compare_remove/'.$item['surveyid'].'/'.$item['varid'],t('remove'),array('class'=>'remove','title'=>t('remove'),'id'=>$item['surveyid'].'/'.$item['varid']));?>
+							<?php echo anchor('catalog/compare/#remove='.$item['surveyid'].'/'.$item['varid'],t('remove'),array('class'=>'remove','title'=>t('remove'),'id'=>$item['surveyid'].'/'.$item['varid']));?>
                             </div>
                         <br style="clear:both"/>
                      </div>
