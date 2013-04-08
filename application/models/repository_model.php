@@ -64,7 +64,9 @@ class Repository_model extends CI_Model {
   	
     function search_count()
     {
-          return $this->db->count_all_results('repositories');
+          $count= $this->db->count_all_results('repositories');
+		  $this->db->flush_cache();
+		  return $count;
     }
 	
 	/**
@@ -964,5 +966,118 @@ class Repository_model extends CI_Model {
 		
 		return FALSE;
 	}*/
+
+	
+	
+	/**
+	*
+	* Returns all sort of stats for the repository
+	**/
+	function get_summary_stats($repositoryid)
+	{
+		$output=array(
+				'owned'			=>	$this->get_stats_by_ownership($repositoryid,1),
+				'linked'		=>	$this->get_stats_by_ownership($repositoryid,0),
+				'published'		=>	$this->get_stats_by_published($repositoryid,1),
+				'unpublished'	=>	$this->get_stats_by_published($repositoryid,0),
+				'lic_requests'	=>	$this->get_stats_pending_requests($repositoryid),
+				'microdata'		=>	$this->get_stats_by_study_resources($repositoryid,$resource_type='microdata'),
+				'questionnaires'	=>	$this->get_stats_by_study_resources($repositoryid,$resource_type='questionnaire'),
+				'total_puf'		=>	$this->get_stats_total_PUF_studies($repositoryid)
+			);
+		
+		return $output;	
+	}
+	
+	
+	/**
+	* Return study counts by owned or linked
+	* @ownership	1=owned, 0=linked
+	**/
+	function get_stats_total_PUF_studies($repositoryid)
+	{
+		$this->db->select('count(surveys.id) as total');
+		$this->db->join('surveys','surveys.id=survey_repos.sid');
+		$this->db->join('forms','surveys.formid=forms.formid');
+		$this->db->where('survey_repos.repositoryid',$repositoryid);
+		$this->db->where('survey_repos.isadmin',1);
+		$this->db->where_in('forms.model',array('public','direct','licensed'));
+
+		$row=$this->db->get('survey_repos')->row_array();
+		return $row['total'];
+	}
+	
+	/**
+	* Return study counts by owned or linked
+	* @ownership	1=owned, 0=linked
+	**/
+	function get_stats_by_ownership($repositoryid,$ownership=1)
+	{
+		$this->db->select('count(sid) as total');
+		$this->db->where('repositoryid',$repositoryid);
+		$this->db->where('isadmin',$ownership);
+		$row=$this->db->get('survey_repos')->row_array();
+		return $row['total'];
+	}
+
+
+	/**
+	* Return study counts by published or unpublished
+	* @status	1=published, 0=unpublished
+	**/
+	function get_stats_by_published($repositoryid,$status=1)
+	{
+		$this->db->select('count(sid) as total');
+		$this->db->join('surveys','surveys.id=survey_repos.sid');
+		$this->db->where('survey_repos.repositoryid',$repositoryid);		
+		$this->db->where('surveys.published',$status);
+		$row=$this->db->get('survey_repos')->row_array();
+		return $row['total'];
+	}
+	
+	
+	
+	/**
+	* Return study counts by published or unpublished
+	* @status	1=published, 0=unpublished
+	**/
+	function get_stats_pending_requests($repositoryid)
+	{
+		$this->db->select('count(lic_requests.surveyid) as total');
+		$this->db->join('lic_requests','lic_requests.surveyid=survey_repos.sid');
+		$this->db->where('repositoryid',$repositoryid);
+		$this->db->where('lic_requests.status','PENDING');
+		$row=$this->db->get('survey_repos')->row_array();
+		return $row['total'];
+	}
+	
+	/**
+	* Return study resource stats by repositoryid
+	*
+	* $resource_type	microdata or questionnaire
+	**/
+	function get_stats_by_study_resources($repositoryid,$resource_type='microdata')
+	{
+		$this->db->select('count(distinct survey_repos.sid) as total');
+		$this->db->join('survey_repos','survey_repos.sid=resources.survey_id');
+		$this->db->join('surveys','surveys.id=resources.survey_id');
+		$this->db->join('forms','surveys.formid=forms.formid');
+		$this->db->where("survey_repos.repositoryid",$repositoryid);
+		$this->db->where('survey_repos.isadmin',1);
+		$this->db->where_in('forms.model',array('public','direct','licensed'));
+
+		if($resource_type=='microdata')
+		{
+			$this->db->where(" (dctype like '%dat/micro]%' OR dctype like '%dat]%') ",NULL,FALSE);
+		}
+		else //if ($resource_type=='questionnaire')
+		{
+			$this->db->like('dctype','doc/qst]');
+		}
+	
+		$row=$this->db->get('resources')->row_array();
+		//echo $this->db->last_query();exit;
+		return $row['total'];
+	}
+
 }
-?>
