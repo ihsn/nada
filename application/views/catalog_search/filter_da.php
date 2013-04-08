@@ -14,7 +14,7 @@
             <tr class="item">
                 <td><input class="chk chk-da" type="checkbox"  <?php if($search_options->dtype!='' && in_array($dtype[1],$da_types) ){ echo 'checked="checked"'; }?> value="1" name="dtype[]" id="da_direct"/></td>
                 <td><span class="da-icon-small da-direct"></span></td>
-                <td class="nopad"> <label title="<?php echo t('link_data_direct_hover');?>" for="da_direct"> <span class="title"><?php echo t('legend_direct_access');?></span> </label></td>
+                <td class="nopad"> <label title="<?php echo t('link_data_direct_hover');?>" for="da_direct"> <span class="title"><?php echo t('legend_data_direct');?></span> </label></td>
             </tr>
             <?php endif;?>
             
