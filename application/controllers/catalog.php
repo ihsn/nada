@@ -30,10 +30,7 @@ class Catalog extends MY_Controller {
 		$this->center_search=($this->config->item("center_search")===FALSE) ? 'no' : $this->config->item("center_search");
 		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
-		
-		//session id for search options
-		$this->session_id="search";
-		
+				
 		//set template for print
 		if ($this->input->get("print")==='yes')
 		{
@@ -50,14 +47,6 @@ class Catalog extends MY_Controller {
 	{
 		//default from the config
 		$limit=($this->config->item("catalog_records_per_page")===FALSE) ? 15 : $this->config->item("catalog_records_per_page");
-		
-		//check session
-		$sess_ps=$this->session->userdata('catalog_page_size');
-		
-		if(is_numeric($sess_ps))
-		{
-			$limit=$sess_ps;
-		}
 		
 		//check from querystring
 		$ps=(int)$this->input->get_post("ps");
@@ -78,9 +67,6 @@ class Catalog extends MY_Controller {
 			return 500;
 		}		
 		
-		//save in the session
-		$this->session->set_userdata('catalog_page_size',$limit);		
-
 		return $limit;
 	}
  
@@ -96,7 +82,6 @@ class Catalog extends MY_Controller {
 		//reset search
 		if ($this->input->get_post('reset')=='reset')
 		{
-			$this->session->unset_userdata('search');
 			$repoid='';
 			
 			if (isset($this->active_repo) && $this->active_repo!==NULL)
@@ -107,7 +92,7 @@ class Catalog extends MY_Controller {
 			redirect('catalog/'.$repoid);
 		}
 
-		$this->template->add_js('javascript/datacatalog.js');		
+		$this->template->add_js('javascript/datacatalog.js?v=1');		
 		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
@@ -117,7 +102,7 @@ class Catalog extends MY_Controller {
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
 		$this->template->add_js('javascript/jquery.scrollTo-min.js');
 		$this->template->add_js('javascript/jquery.blockui.js');
-		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');		
+		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css?v=1');		
 		
 		//page description metatags
 		$this->template->add_meta("description",t('meta_description_catalog'));
@@ -232,22 +217,6 @@ class Catalog extends MY_Controller {
 	{
 		//all keys that needs to be persisted
 		$get_keys_array=array('sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','center','collection');
-				
-		//session array
-		$sess_data=array();
-		
-		//add GET values to session array
-		foreach($get_keys_array as $key)
-		{
-			$value=get_post_sess($this->session_id,$key);
-			if ($value)
-			{
-				$sess_data[$key]=$value;
-			}	
-		}
-
-		//store values to session
-		$this->session->set_userdata(array($this->session_id=>$sess_data));
 		
 		$this->load->helper('security');
 		
@@ -258,23 +227,22 @@ class Catalog extends MY_Controller {
 		$search_options=new StdClass;
 		
 		//page parameters
-		//$search_options->center=xss_clean(get_post_sess('search',"center"));
-		$search_options->collection=xss_clean(get_post_sess('search',"collection"));
-		$search_options->sk=xss_clean(get_post_sess('search',"sk"));
-		$search_options->vk=xss_clean(get_post_sess('search',"vk"));
-		$search_options->vf=xss_clean(get_post_sess('search',"vf"));
-		$search_options->country=xss_clean(get_post_sess('search',"country"));
-		$search_options->view=xss_clean(get_post_sess('search',"view"));		
-		$search_options->topic=xss_clean(get_post_sess('search',"topic"));
-		$search_options->from=xss_clean(get_post_sess('search',"from"));
-		$search_options->to=xss_clean(get_post_sess('search',"to"));		
-		$search_options->sort_by=xss_clean(get_post_sess('search',"sort_by"));
-		$search_options->sort_order=xss_clean(get_post_sess('search',"sort_order"));
-		$search_options->page=xss_clean(get_post_sess('search',"page"));
-		$search_options->page= ($search_options->page >0) ? $search_options->page : 1;
-		$search_options->filter->repo=xss_clean(get_post_sess('search',"repo"));
-		$search_options->dtype=xss_clean($this->input->get("dtype"));		
-		$offset=($search_options->page-1)*$this->limit;
+		$search_options->collection		=xss_clean($this->input->get("collection"));
+		$search_options->sk				=xss_clean($this->input->get("sk"));
+		$search_options->vk				=xss_clean($this->input->get("vk"));
+		$search_options->vf				=xss_clean($this->input->get("vf"));
+		$search_options->country		=xss_clean($this->input->get("country"));
+		$search_options->view			=xss_clean($this->input->get("view"));		
+		$search_options->topic			=xss_clean($this->input->get("topic"));
+		$search_options->from			=xss_clean($this->input->get("from"));
+		$search_options->to				=xss_clean($this->input->get("to"));		
+		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
+		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
+		$search_options->page			=xss_clean($this->input->get("page"));
+		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
+		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
+		$search_options->dtype			=xss_clean($this->input->get("dtype"));		
+		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order 
 		$allowed_fields = array('proddate','titl','labl','nation','popularity');
@@ -1160,7 +1128,13 @@ class Catalog extends MY_Controller {
 	function _remap($method) 
 	{
 		$method=strtolower($method);
-        if (in_array(($method), array_map('strtolower', get_class_methods($this)))) 
+        
+		if ($method=='search')
+		{
+			$this->_set_active_repo($this->input->get("repo"));
+			$this->search();
+		}
+		else if (in_array(($method), array_map('strtolower', get_class_methods($this))) ) 
 		{
             $uri = $this->uri->segment_array();
             unset($uri[1]);
@@ -1170,50 +1144,15 @@ class Catalog extends MY_Controller {
         }
         else 
 		{
-			$this->load->model("repository_model");
-
-			//get an array of all valid repository names from db
-			$repositories=$this->Catalog_model->get_repository_array();
-			$repositories[]='central';
-			
-			//repo names to lower case
-			foreach($repositories as $key=>$value)
+			//valid repo?
+			if ($this->_set_active_repo($method)!==false)
 			{
-				$repositories[$key]=strtolower($value);
-			}
-			
-			//check if URI matches to a repository name 
-			if (in_array($method,$repositories))
-			{
-				//reset search options if visiting a different catalog
-				$sess_repo=get_post_sess('search',"repo");
-				
-				if ((string)$sess_repo!=='' && $sess_repo!==$method)
-				{
-					//reset any search options selected
-					$this->session->unset_userdata('search');
-				}
-				
-				//repository options
-				if ($method=='central')
-				{
-					$this->active_repo=NULL;
-					$this->session->set_userdata('active_repository',$method);							
-				}
-				else
-				{
-					//add repo filter
-					$this->active_repo=$this->repository_model->get_repository_by_repositoryid($method);
-					
-					//save active repository name in session
-					$this->session->set_userdata('active_repository',$method);		
-				}				
-
+				//about?
 				if ($this->uri->segment(3)=='about')
 				{
 					$this->about_repository();return;
 				}
-				
+
 				//load the default listing page
 				$this->index();
 			}
@@ -1224,6 +1163,36 @@ class Catalog extends MY_Controller {
         }
     }
 	
+	private function _set_active_repo($repo)
+	{
+		$this->load->model("repository_model");
+
+		$repo=trim(strtolower($repo));
+		//get an array of all valid repository names from db
+		$repositories=$this->Catalog_model->get_repository_array();
+		$repositories[]='central';
+		
+		//repo names to lower case
+		foreach($repositories as $key=>$value)
+		{
+			$repositories[$key]=strtolower($value);
+		}
+		
+		//check if URI matches to a repository name 
+		if (in_array($repo,$repositories))
+		{				
+			//repository options
+			if ($repo=='central')
+			{
+				$this->active_repo=NULL;
+			}
+			else
+			{
+				//set active repo
+				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repo);
+			}
+		}
+	}
 	
 	
 	function repositories()
@@ -1231,11 +1200,6 @@ class Catalog extends MY_Controller {
 		$this->load->model("repository_model");
 		$this->lang->load('catalog_search');
 		
-		//reset any search options selected
-		$this->session->unset_userdata('search');
-		
-		//reset repository
-		$this->session->set_userdata('active_repository','central');	
 		
 		$data["survey_count"]=$this->Stats_model->get_survey_count();   
 		//$data["variable_count"]=$this->Stats_model->get_variable_count();  
