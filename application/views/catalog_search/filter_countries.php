@@ -4,14 +4,16 @@
 <div class="filter-box filter-by-country">
 <h3><?php echo t('filter_by_country');?></h3> 
 
+<span class="selected-items-count" ><?php echo count($countries);?></span>
+
 <div id="countries-container" >
-    <div class="country any">    	
+    <div class="country any country-any">    	
         <input type="checkbox" class="chk-country-any chk-any" id="country-any"  <?php echo $search_options->country!="" ? '' : 'checked="checked"';?> />
         <label for="country-any">Any</label>
     </div>
-	<div class="country-items items-container <?php echo (count($countries)>10) ? 'scrollable' : ''; ?>">
+	<div class="country-items items-container <?php //echo (count($countries)>10) ? 'scrollable' : ''; ?>">
 	<?php $k=0;foreach($countries as $country):$k++; ?>
-        <div class="country item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">
+        <div class="country item inactive <?php echo ($k>$item_limit) ? 'less' : 'less'; ?>">
             <input class="chk-country chk" type="checkbox" name="country[]" 
                 value="<?php echo form_prep($country['cid']); ?>" 
                 id="c-<?php echo form_prep($country['cid']); ?>"
@@ -26,9 +28,9 @@
     <?php endforeach;?>
     </div>
     
-    <?php if($k>$item_limit):?>
+    <?php /* if($k>$item_limit):?>
     <div>+<?php echo $k-$item_limit; ?> more...</div>
-    <?php endif;?>
+    <?php endif; */ ?>
     
     <div class="filter-footer">
     <input type="button" class="btn-select" value="View / Select More" id="btn-country-selection" data-dialog-id="dialog-countries" data-dialog-title="Select Countries" data-url="index.php/catalog/country_selection/<?php echo $active_repo;?>"/>

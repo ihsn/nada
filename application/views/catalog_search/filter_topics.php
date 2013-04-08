@@ -4,16 +4,17 @@
 
 <div class="filter-box filter-by-topic">
 <h3><?php echo t('filter_by_topic');?></h3> 
+<span class="selected-items-count" ><?php echo count($topics);?></span>
 
 <div id="topics-container">
     <div class="any">    	
         <input type="checkbox" class="chk-any" id="topic-any"  <?php echo $search_options->topic!="" ? '' : 'checked="checked"';?> />
         <label for="topic-any">Any</label>
     </div>
-	<div class="items-container topic-items <?php echo (count($topics)>10) ? 'scrollable' : ''; ?>">
+	<div class="items-container topic-items <?php //echo (count($topics)>10) ? 'scrollable' : ''; ?>">
 	<?php $k=0;foreach($topics as $topic):$k++; ?>
     	<?php if($topic['pid']==0){continue;}?>
-        <div class="topic item <?php echo ($k>$item_limit) ? 'more' : 'less'; ?>">
+        <div class="topic item inactive">
             <input class="chk chk-topic" type="checkbox" name="topic[]" 
                 value="<?php echo form_prep($topic['tid']); ?>" 
                 id="tpc-<?php echo form_prep($topic['tid']); ?>"
@@ -27,11 +28,7 @@
         </div>
     <?php endforeach;?>
     </div>
-    
-    <?php if($k>$item_limit):?>
-    <div>+<?php echo $k-$item_limit; ?> more...</div>
-    <?php endif;?>
-    
+        
     <div class="filter-footer">
     <input type="button" class="btn-select" value="View / Select More" id="btn-topic-selection" data-dialog-id="dialog-topics" data-dialog-title="Select Topics" data-url="index.php/catalog/topic_selection/<?php echo $active_repo;?>"/>
     </div>
