@@ -138,6 +138,26 @@ jQuery(document).ready(function(){
 		};
 	});
 	
+	
+	//publish/unpublish
+	$(document.body).on("click",".survey-row .publish", function(){ 
+		console.log( $(this).attr("data-value") );
+		var studyid=$(this).attr("data-sid");
+		if ($(this).attr("data-value")==0){
+			$(this).attr("data-value",1);
+			$(this).html("Published");
+			$(this).addClass("label-success");
+			$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1',{submit:"submit"});
+		}
+		else{
+			$(this).html("Unpublished");
+			$(this).attr("data-value",0);
+			$(this).removeClass("label-success");
+			$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1',{submit:"submit"});
+		}
+	
+	});
+	
 });
 
 </script>
