@@ -741,7 +741,9 @@ class Licensed_model extends CI_Model {
 	//returns the search result count  	
     function search_requests_count()
     {
-        return $this->db->count_all_results('lic_requests');
+        $count=$this->db->count_all_results('lic_requests');
+		$this->db->flush_cache();
+		return $count;
     }
 	
 	/**
