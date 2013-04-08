@@ -585,7 +585,6 @@ class DDIbrowser extends MY_Controller {
 		{
 			show_404();
 		}
-		
 		$html=$this->load->view('ddibrowser/export',NULL,TRUE);
 
 		$report_link='';
@@ -661,8 +660,20 @@ class DDIbrowser extends MY_Controller {
 			$this->config->set_item("log_threshold",0);
 
 			$start_time=date("H:i:s",date("U"));
+			
+			$options=array(
+				'publisher'			=>$this->survey['authenty'],
+				'website_title'		=>$this->config->item("website_title"),
+				'study_title'		=>$survey['nation']. ' - ' . $survey['titl'],
+				'website_url'		=>site_url(),
+				'study_id'			=>$surveyid,
+				'toc_variable'		=>1,
+				'data_dic_desc'		=>1,
+				'ext_resources'		=>1,
+			);
+			
 			//write PDF report to a file			
-			$this->pdf_report->generate($report_file,$ddi_file,$this->survey);			
+			$this->pdf_report->generate($report_file,$ddi_file,$options);			
 			$end_time=date("H:i:s",date("U"));
 			
 			//log
