@@ -692,5 +692,23 @@ class Citation_model extends CI_Model {
 		
 		return $output;
 	}
+	
+	function get_citations_count_by_survey($sid_list)
+	{
+		$surveys=implode(',',$sid_list);
+		$this->db->select('sid,count(sid) as total');	
+		$this->db->where("sid in ($surveys)");
+		$this->db->group_by('sid');	
+		$result=$this->db->get('survey_citations')->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[$row['sid']]=$row['total'];
+		}
+		
+		return $output;
+
+	}
 }
 ?>
