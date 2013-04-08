@@ -160,7 +160,7 @@ class Catalog_admin_search_model extends CI_Model {
 				$filter=' (' . $f. ')';
 			}		
 		}
-			
+
 		if ( trim($where_clause)!='')
 		{
 			$where_clause='('.$where_clause.') AND '.$filter;
@@ -226,6 +226,7 @@ class Catalog_admin_search_model extends CI_Model {
 			}
 		}		
 		
+		$active_repo_filter='';
 		
 		//active repo
 		if ($this->active_repo!=NULL && $this->active_repo!='central')
@@ -233,13 +234,23 @@ class Catalog_admin_search_model extends CI_Model {
 			if (!$this->active_repo_negate)
 			{
 				//$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).' AND surveys.repositoryid='.$this->db->escape($this->active_repo).')';
-				$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).')';
+				$active_repo_filter=' (sr.repositoryid='.$this->db->escape($this->active_repo).')';
 			}
 			else
 			{	//show studies not part of the active repository
-				$where_clause.=' and surveys.repositoryid!='.$this->db->escape($this->active_repo).' and surveys.id not in (select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
+				$active_repo_filter=' surveys.repositoryid!='.$this->db->escape($this->active_repo).' and surveys.id not in (select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
 			}	
 		}
+		
+		if ( trim($where_clause)!='')
+		{	
+			$where_clause.= ' AND ' .$active_repo_filter;
+		}
+		else
+		{
+			$where_clause.= $active_repo_filter;
+		}
+		
 		
 		//search on FIELDS [country, surveyid, titl, producer]
 		$search_fields=array('nation','surveyid','titl','published');
