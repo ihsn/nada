@@ -166,5 +166,17 @@ $lang['impact_evaluation']="Impact Evaluation";
 $lang['related_operations']="Related Operations";
 $lang['request_microdata'] = "Request Microdata";
 $lang['download_metadata'] = "Metadata in XML";
+
+
+$lang['website_title'] = "Website title";
+$lang['study_title'] = "Study title";
+$lang['publisher'] = "Publisher";
+$lang['website_url'] = "Website URL";
+$lang['study_contains_too_many_variables'] = "The study contains over <strong>%s</strong> variables, if the system can't generate the PDF, try excluding the 'Data Dictionary Description' option.";
+$lang['include_variable_toc'] = "Variable list";
+$lang['include_variable_desc'] = "Variable description";
+$lang['include_external_resources'] = "External resource";
+$lang['Report options'] = "Report options:";
+
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
