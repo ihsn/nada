@@ -1376,10 +1376,10 @@ class Ion_auth_model extends CI_Model
 		{
 			$id = $this->session->userdata('user_id');
 		}
-		
-	    $query = $this->db->select('group_id')
-						  ->where('user_id', $id)
-						  ->get($this->tables['user_groups']);
+		$this->db->flush_cache();
+	    $this->db->select('group_id');
+		$this->db->where('user_id', $id);
+		$query = $this->db->get($this->tables['user_groups']);
 
 		//all user groups
 		$rows = $query->result_array();
