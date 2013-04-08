@@ -21,7 +21,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 .unlink-study .linked{padding-left:20px;}
 .row{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid gainsboro;}
 .survey-row .links{text-align:left;margin-right:10px;font-size:smaller;margin-top:10px;}
-h3{font-size:16px;margin-top:0px;margin-bottom:5px;}
+.survey-row h3{font-size:16px;margin-top:0px;margin-bottom:5px;width:80%;}
 .filter{font-size:smaller;}
 .result-count{color:gray;font-size:smaller}
 
@@ -82,7 +82,6 @@ h3{font-size:16px;margin-top:0px;margin-bottom:5px;}
 .table-row{font-size:smaller;color:#333333;line-height:150%;clear:both;overflow:auto;}
 .table-row .cell-label{display:block;width:100px;float:left;}
 .table-row .cell-value{display:block;float:left}
-.table-row .label{background:white;text-shadow:none;color:#666666;font-weight:normal;border:1px solid gainsboro;}
 .filter-info{display:inline;padding:5px;}
 .filter-container{overflow:hidden;background-color:green;padding:5px;margin-bottom:10px;display:block;font-weight:normal;color:white;}
 .filter-container .filter{background:white;color:#666666;text-shadow:none;}
@@ -91,5 +90,17 @@ h3{font-size:16px;margin-top:0px;margin-bottom:5px;}
 .table-row .repo-owner{font-weight:bold;margin-right:5px;}
 .table-row .repo-link{font-weight:normal;color:#666666;margin-right:5px;}
 .survey-options .notice{font-weight:bold;font-size:8px;color:red;}
-
+.survey-row .actions{position:absolute;top:10px;right:10px;width:150px;}
+.survey-row{position:relative;padding-left:100px;}
+.survey-row .actions .label:hover{background:black;cursor:pointer;}
+.survey-row .actions .info{padding-bottom:5px;margin-bottom:5px;}
+.survey-row .data-access-icon{width:82px;height:82px;position:absolute;left:0px;border:0px solid gainsboro;}
+.survey-row .data-access-public{background: url(themes/admin20/data-access.gif) no-repeat 0% 20%;}
+.survey-row .data-access-data_na{background: url(themes/admin20/data-access.gif) no-repeat 0% 80%;}
+.survey-row .data-access-licensed{background: url(themes/admin20/data-access.gif) no-repeat 0% 40%;}
+.survey-row .data-access-remote{background: url(themes/admin20/data-access.gif) no-repeat 0% 60%;}
+.survey-row .data-access-direct{background: url(themes/admin20/data-access.gif) no-repeat 0% 0%;}
+.survey-row .label-tag{background-color:white;border:1px solid gainsboro;color:black;font-weight:normal;text-shadow:none;}
+.survey-row .actions .label{display:block;margin-bottom:15px;padding:7px;text-align:center;}
+.survey-row .sub-title{font-weight:bold;margin-bottom:10px;font-size:16px;}
 </style>
