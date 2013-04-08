@@ -251,10 +251,20 @@ class Citations extends MY_Controller {
 	function selected_surveys($skey,$isajax=1)
 	{
 		//get survey id array from session
-		$survey_id_arr=(array)$this->session->userdata($skey);
+		$sess=(array)$this->session->userdata($skey);
 		
+		if(!isset($sess['selected']))
+		{
+			return false;
+		}
+		
+		if(!count($sess['selected'])>0)
+		{
+			return false;
+		}
+				
 		//get survey info from db
-		$data['selected_surveys']=$this->Citation_model->get_surveys($survey_id_arr);
+		$data['selected_surveys']=$this->Citation_model->get_surveys($sess['selected']);
 		
 		//load formatted list
 		$output=$this->load->view("citations/selected_surveys",$data,TRUE);
