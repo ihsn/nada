@@ -22,6 +22,7 @@ if ($languages!==FALSE)
 
 $this->load->library('site_menu');
 $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -57,6 +58,17 @@ $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
       .sidebar-nav {
         padding: 9px 0;
       }
+	  .sub-header{
+	  	background: #F1F1F1;
+		background: -webkit-gradient(radial,100 36,0,100 -40,120,from(#FAFAFA),to(#F1F1F1)),#F1F1F1;
+		border-bottom: 1px solid #666;
+		border-color: #E5E5E5;
+		height: 85px;
+		width: 100%;
+		margin-top: -20px;
+		margin-bottom: 20px;
+	  }
+	  
     </style>
     
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -90,74 +102,6 @@ $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
           <a class="brand" href="<?php echo site_url();?>/admin">NADA 4.0-alpha</a>
           <div class="nav-collapse subnav-collapse">
           <?php echo $site_navigation_menu;?>
-          <?php /*
-          <!--
-            <ul class="nav">
-              <li class="active"><a href="<?php echo site_url();?>/admin">Dashboard</a></li>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Catalog<b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="<?php echo site_url();?>/admin/catalog">All Surveys</a></li>
-                  <li><a href="<?php echo site_url();?>/admin/catalog/upload_ddi">Add Survey (upload ddi)</a></li>
-                  <li><a href="<?php echo site_url();?>/admin/catalog/import_ddi">Batch import DDIs</a></li>
-                  <li class="divider"></li>
-                  <li><a href="<?php echo site_url();?>/admin/licensed_requests">Licensed survey requests</a></li>
-                  <li class="divider"></li>
-                  <li><a href="<?php echo site_url();?>/admin/repositories">Repositories</a></li>
-                  <li><a href="<?php echo site_url();?>/admin/repositories/add">Add new repository</a></li>
-                </ul>
-              </li>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Vocabularies <b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="#">Survey collections</a></li>
-                  <li><a href="#">Countries</a></li>
-                  <li><a href="#">Topics</a></li>
-                </ul>
-              </li>
-
-              <li class="dropdown">
-                <a href="<?php echo site_url();?>/admin/citations" class="dropdown-toggle" data-toggle="dropdown">Citations<b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="<?php echo site_url();?>/admin/citations">All Citations</a></li>
-                  <li><a href="#">Import citations</a></li>
-                  <li><a href="#">Export citations</a></li>
-                </ul>
-              </li>
-
-			<li class="dropdown">
-                <a href="<?php echo site_url();?>/admin/users" class="dropdown-toggle" data-toggle="dropdown">Users<b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="<?php echo site_url();?>/admin/users">All Users</a></li>
-                  <li><a href="#">Add User</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">User Groups</a></li>
-                  <li><a href="#">Add User Group</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">User Permissions</a></li>
-                </ul>
-              </li>
-              
-              <li><a href="#">Menu</a></li>
-              <li><a href="#">Reports</a></li>
-              <li><a href="#">Site Configurations</a></li>
-
-            </ul>
-           
-            <ul class="nav pull-right">
-              <li class="divider-vertical"></li>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">User <b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li><a href="#">Profile</a></li>
-                  <li><a href="#">Logout</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#">Data Catalog</a></li>
-                </ul>
-              </li>
-            </ul>
-          </div><!-- /.nav-collapse -->
-		  */?>
           
           <ul class="nav pull-right">
               <li class="divider-vertical"></li>
@@ -179,7 +123,12 @@ $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
         </div>
       </div>  
 </div>
+
 </div>
+
+<?php if(isset($collection)):?>
+<div class="sub-header" > <?php echo $collection;?></div>
+<?php endif;?>
     
     <div class="container-fluid">
         <div class="row-fluid">
