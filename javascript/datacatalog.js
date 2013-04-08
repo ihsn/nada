@@ -381,6 +381,7 @@ $(window).bind( 'hashchange', function(e) {
 
 	for(var filter in filters){
 		found=false;
+		console.log("items",filters[filter].items);
 		var selected_items=filters[filter].items.split(",");
 		
 		//iterate each checkbox and compare if it is one of the selected
@@ -396,8 +397,44 @@ $(window).bind( 'hashchange', function(e) {
 		
 		//uncheck/check ANY option
 		$(filters[filter].container).find(".any :checkbox").prop("checked",!found);
-	}
+		
+		//show/hide checked/unchecked items
+		if(filter=='country' || filter=='collection' || filter=='topic'){
 
+			//show only active checkboxes
+			$(filters[filter].container).find(".items-container .chk").each(function() { 
+				if($(this).prop("checked")==false){
+					$(this).closest(".item").addClass("inactive");
+				}
+				else{
+					$(this).closest(".item").removeClass("inactive");
+				}
+			});
+			
+			var selected_chk=$(filters[filter].container).find(".items-container .chk:checked").length;
+			var total_chk=$(filters[filter].container).find(".items-container .chk").length;
+			
+			//scrollbar for country list
+			if(selected_chk>10){
+				$(filters[filter].container).find(".items-container").addClass("scrollable");
+			}
+			//else if(selected_items==0){}
+			else{
+				$(filters[filter].container).find(".items-container").removeClass("scrollable");	
+			}
+			
+			//update summary stats
+			if(selected_chk==total_chk || selected_chk==0){
+				$(filters[filter].container).find(".selected-items-count").html(total_chk);
+			}
+			else if (selected_chk<total_chk){
+				$(filters[filter].container).find(".selected-items-count").html(selected_chk + ' / ' + total_chk);
+			}
+
+		}//end-if
+		
+	}//end-for
+	
 	//years
 	if(typeof fragments.from != 'undefined'){
 		$("#from option[value='"+fragments.from+"']").prop('selected', 'selected');
@@ -494,13 +531,19 @@ $(document).ready(function()  {
 				var source_list=dialog.data('source-list');			
 				var dialog_selection=dialog.find(".container").find(".cnt :checked");
 				var values=[];
+				//var total_items=source_list.find(".chk").length;//total items available for selection
 	
 				dialog_selection.each(function() { 
 					values.push($(this).val()); 
 				});
 				
-				var found=false;
+				/*if(total_items==values.length){
+					source_list.find(".chk-any").trigger("click");
+					//hash_changed();return;
+					console.log("everything selected");return;
+				}*/
 				
+				var found=false;
 				source_list.find(".chk").each(function() { 
 					if ($.inArray($(this).prop('value'), values)!==-1 ){
 						$(this).prop('checked',true);
