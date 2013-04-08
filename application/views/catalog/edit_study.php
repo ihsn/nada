@@ -687,6 +687,7 @@ height: 56px;
         <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>">Replace DDI</a></li>
         <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>">Delete Study</a></li>
         <li><a href="<?php echo site_url();?>/catalog/<?php echo $sid;?>">Browse Metadata</a></li>
+        <li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>">Generate PDF</a></li>
     </ul>
 </div>
 </div>
