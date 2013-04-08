@@ -17,6 +17,8 @@ class Catalog extends MY_Controller {
         parent::__construct();
        	$this->load->model('Catalog_model');
 		$this->load->model('Licensed_model');
+		$this->load->model('Repository_model');
+		$this->load->model('Citation_model');
 		$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
@@ -45,6 +47,10 @@ class Catalog extends MY_Controller {
 			
 			//set active repo
 			$this->active_repo=$repo_obj;
+			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
+			$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
+			//set collection header
+			$this->template->add_variable($name='collection',$value=$collection);
 		}
 	}
  
@@ -77,6 +83,23 @@ class Catalog extends MY_Controller {
 		
 		//get country list for filter
 		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
+		
+		$sid_list=array();
+		foreach($db_rows['rows'] as $row)
+		{
+			$sid_list[]=$row['id'];
+		}
+		
+		//get citations per study
+		$citations=$this->Citation_model->get_citations_count_by_survey($sid_list);
+		
+		foreach($db_rows['rows'] as $key=>$row)
+		{
+			if (array_key_exists($row['id'],$citations))
+			{
+				$db_rows['rows'][$key]['citations']=$citations[$row['id']];
+			}
+		}
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/index', $db_rows,true);
@@ -538,31 +561,6 @@ class Catalog extends MY_Controller {
 		//repository
 		$repositoryid="central";;
 		$repositoryid=$survey["repositoryid"];
-
-		/*if (count($survey_repo_arr)>0)
-		{
-			$repositoryid=$survey["repositoryid"];
-		}*/		
-		
-		/*		
-		//validate if user has access to the selected repository
-		$user_repositories=$this->ion_auth->get_user_repositories();
-				
-		$user_repo_access=FALSE;
-		foreach($user_repositories as $repo)
-		{
-			if ($repo["repositoryid"]==$repositoryid)
-			{
-				$user_repo_access=TRUE;
-				break;
-			}
-		}
-		
-		if ($user_repo_access===FALSE)
-		{
-			show_error(t("REPO_ACCESS_DENIED"));
-		}
-		*/
 		
 		//set the repository where the ddi will be uploaded to	
 		$this->DDI_Import->repository_identifier=$repositoryid;
@@ -1172,10 +1170,11 @@ class Catalog extends MY_Controller {
 	*
 	* TODO://REMOVE
 	*/
+	/*
 	function update_years()
 	{
 		$this->Catalog_model->batch_update_collection_dates();		
-	}
+	}*/
 	
 	
 	
@@ -1475,11 +1474,6 @@ class Catalog extends MY_Controller {
 		$this->session->set_flashdata('message', $content);
 		
 		redirect('admin/catalog');
-		return;
-		/*
-		$content=$this->load->view('catalog/study_unlink_confirm',array('result'=>$result),TRUE);
-		$this->template->write('content', $content,true);
-  		$this->template->render();*/		
 	}
 		
 	/**
@@ -1500,15 +1494,13 @@ class Catalog extends MY_Controller {
 		
 		if ($result)
 		{
-			$this->output
-    			->set_content_type('application/json')
-			    ->set_output(json_encode(array('success'=>"updated")));
+			$this->output->set_content_type('application/json');
+			$this->set_output(json_encode(array('success'=>"updated")));
 			return TRUE;	
 		}
 		
-			$this->output
-    			->set_content_type('application/json')
-			    ->set_output(json_encode(array('error'=>"failed")));
+			$this->output->set_content_type('application/json');
+			$this->output->set_output(json_encode(array('error'=>"failed")));
 	}
 	
 
@@ -1531,7 +1523,7 @@ class Catalog extends MY_Controller {
 	
 		//is ajax call
 		$ajax=$this->input->get_post('ajax');
-
+		
 		if (!is_numeric($id))
 		{
 			$tmp_arr=explode(",",$id);		
@@ -1591,14 +1583,14 @@ class Catalog extends MY_Controller {
 					//publish/unpublish a study
 					$result=$this->Catalog_model->publish_study($item,$publish);
 					
-					if ($result)
+					/*if ($result)
 					{
 						$this->session->set_flashdata('message', t('form_update_success'));
 					}
 					else
 					{
 						$this->session->set_flashdata('error', t('form_update_failed'));
-					}
+					}*/
 					
 					//log
 					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
