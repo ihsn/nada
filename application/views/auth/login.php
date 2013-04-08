@@ -57,12 +57,12 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
             <div>
                 <input type="submit" name="submit" value="<?php echo t('login');?>" class="button"/>
                 <input type="button" name="cancel" id="cancel" value="<?php echo t('cancel');?>" class="button jx" onclick="history.back();"/>
-                <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'):?>	
+                <?php if ($this->config->item("site_user_register")!=='no' && $this->config->item("site_password_protect")!=='yes'):?>	
                     <?php echo anchor('auth/register',t('register'),'class="jx"'); ?>
                 <?php endif;?>
                 <?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx"'); ?>
             </div>
-        <?php echo form_close();?>
+        </form>
         
         <div class="privacy-info"><?php echo t('site_login_privacy_terms');?></div>
         </div>    
