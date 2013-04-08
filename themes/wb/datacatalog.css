@@ -405,6 +405,15 @@ font-size: smaller;
 .items-container .item input{float:left;}
 .items-container .item label { display: block; margin-left: 16px; }
 
+
+#facets .inactive{display:none;}
+#facets .scrollable{height:180px;overflow:auto;}
+#facets .selected-items-count{background:gainsboro;padding:2px 5px;position:absolute;top:5px;right:5px;font-size:11px;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px;
+border-radius: 3px;
+}
+
 /*selection dialog box*/
 .container{text-align:left;font-size:12px;}
 .container .index{margin:5px;text-align:center;line-height:150%;}
@@ -502,3 +511,4 @@ text-transform: uppercase;
 .ui-dialog-content td .content{line-height:160%;margin-bottom:20px;}
 
 .survey-row a:visited{color:#357EC7;}
+
