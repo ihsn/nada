@@ -108,17 +108,22 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
             <td><input type="checkbox" value="<?php echo $row['id']; ?>" class="chk"/></td>
             <td>
                     <div class="survey-row">
+                    	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></div>
                         <h3>
-                            <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>">
-                            <?php if ($this->config->item("regional_search")=='yes'):?> 
-                                <?php echo $row['nation'];?> -
-                            <?php endif;?>
-                            <?php echo $row['titl'];?>
-                            <?php if (!$row['published']):?>
-                            	<span class="label" title="<?php echo t('unpublished');?>">Draft</span>
-                        	<?php endif;?>
-                            </a>
+                            <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo $row['titl'];?></a>
                         </h3>
+                        <?php 
+							$study_years=array_unique(array($row['data_coll_start'],$row['data_coll_end']));
+							$study_years=implode(" - ",$study_years);
+						?>
+                        <div class="sub-title">
+							<?php echo $row['nation'];?>, 
+							 <?php if ($study_years==0):?>
+                            	<span class="badge badge-warning"><?php echo t('Year Missing');?></span>
+                            <?php else:?>
+	                            <?php echo $study_years;?>
+							<?php endif;?>							
+                        </div>
                         <!--
                         <table>
                         	<tr>
@@ -128,7 +133,7 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                         </table>
                         -->
                         <div class="table-row">
-                        	<span class="cell-label">SurveyID:</span>
+                        	<span class="cell-label">ID:</span>
 							<span class="cell-value"><?php echo $row['surveyid'];?></span>
                         </div>						
 
@@ -139,19 +144,19 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                         </div>
                         <?php */?>
                         <div class="table-row">
-                        	<span class="cell-label"><?php echo t('Repository');?>:</span>
+                        	<span class="cell-label"><?php echo t('Collection');?>:</span>
                             <span class="cell-value">
                                 <!-- repository ownership -->
                                 <?php if ($row['repositories']):?>
                                     <?php foreach($row['repositories'] as $repo):?>
                                     	<?php if ($repo['isadmin']==1):?>
-											<span class="repo-owner"><?php echo strtoupper($repo['repositoryid']);?></span>
+											<span class="label label-info" title="<?php echo t('Owner');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
                                         <?php else:?>
-                                            <span class="repo-link" ><?php echo strtoupper($repo['repositoryid']);?></span>
+                                            <span class="label" title="<?php echo t('Linked');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
                                         <?php endif;?>
                                     <?php endforeach;?>
                                 <?php else:?>
-                                	<span class="repo-owner"><?php echo strtoupper($row['repositoryid']);?></span>
+                                	<span class="label label-info"><?php echo strtoupper($row['repositoryid']);?></span>
                               <?php endif;?>  
                             </span>
                         </div>
@@ -166,11 +171,32 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                         	<span class="cell-label">Tags:</span>
 							<span class="cell-value">
 								<?php foreach($row['tags'] as $tag):?>
-                                    <span class="label"><?php echo $tag;?></span>
+                                    <span class="label label-tag"><?php echo $tag;?></span>
                                 <?php endforeach;?>
                             </span>
                         </div>                                                            
                         <?php endif;?>
+                        
+                        <div class="actions">
+                        	<div class="status">
+	                        <?php if (!$row['published']):?>
+                                <span class="label publish" data-value="0" data-sid="<?php echo $row['id'];?>"><?php echo t('Unpublished');?></span>
+                        	<?php else:?>
+                            	<span class="label publish label-success" data-value="1"  data-sid="<?php echo $row['id'];?>"><?php echo t('Published');?></span>
+							<?php endif;?>
+                            </div>
+                            
+                            <?php if (isset($row['citations'])):?>
+                            <div class="info"><span class="badge badge-info"><?php echo $row['citations'];?></span> citations</div>
+                            <?php endif;?>
+                            <?php if (isset($row['pending_lic_requests'])):?>
+                            	<div class="info"><span class="badge badge-warning"><?php echo $row['pending_lic_requests'];?></span> pending requests</div>
+                            <?php endif;?>
+                            
+                            <?php if ($study_years==0):?>
+                            	<div class="info"><span class="badge badge-warning"><?php echo t('Year Missing');?></span></div>
+                            <?php endif;?>
+                        </div>
                         
                         <div class="links">
                         
@@ -181,32 +207,6 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                         
                         <span class="survey-options">
                         
-                        <!-- survey data access type -->
-						<?php if ($row['form_model']!=''):?>                            
-                            <?php if($row['form_model']=='direct'): ?>
-                                <span title="<?php echo t('link_data_direct_hover');?>"><img src="images/form_direct.gif" /></span>                    
-                            <?php elseif($row['form_model']=='public'): ?>
-                                <span  title="<?php echo t('link_data_public_hover');?>"><img src="images/form_public.gif" /></span>
-                            <?php elseif($row['form_model']=='data_na'): ?>                            	
-                                <span  title="<?php echo t('link_data_na_hover');?>" class="" ><img src="images/form_na.png" /></span>                    
-                            <?php elseif($row['form_model']=='licensed'): ?>
-                            		<a href="<?php echo site_url('admin/licensed_requests');?>">
-                            		<?php if (isset($row['pending_lic_requests'])):?>
-											<span class="da-icon" title="<?php echo t('link_data_licensed_hover');?>"><img src="images/form_licensed.gif" /> (<?php echo $row['pending_lic_requests'];?>) </span>
-                                    <?php else:?>
-                                            <span class="da-icon" title="<?php echo t('link_data_licensed_hover');?>"><img src="images/form_licensed.gif" /></span>
-                                    <?php endif;?>
-                                    </a>
-                            <?php elseif($row['form_model']=='data_enclave'): ?>
-                                <span title="<?php echo t('link_data_enclave_hover');?>"><img src="images/form_enclave.gif" /></span>
-                            <?php elseif($row['form_model']=='remote'): ?>
-                                <?php //if (isset($row['link_da']) && strlen($row['link_da'])>1):?>
-                                <a class="data-access" target="_blank" href="<?php echo $row['link_da']; ?>"  title="<?php echo $row['link_da']; ?>" >
-                                <span title="<?php echo $row['link_da']; ?>"><img src="images/form_remote.gif" /></span>
-                                </a>
-                                <?php //endif; ?>
-                            <?php endif; ?>
-                        <?php endif;?>
 						</span>                                                
                         
                         </div>
