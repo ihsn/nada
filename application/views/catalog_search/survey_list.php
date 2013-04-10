@@ -38,10 +38,10 @@
 	$page_url=site_url().'/catalog/';		
 	
 	//page querystring for variable sub-search
-	$variable_querystring=get_sess_querystring( array('sk', 'vk', 'vf'),'search');
+	$variable_querystring=get_querystring( array('sk', 'vk', 'vf'));
 	
 	//page querystring for variable sub-search
-	$search_querystring='?'.get_sess_querystring( array('sk', 'vk', 'vf','view','topic','country'),'search');
+	$search_querystring='?'.get_querystring( array('sk', 'vk', 'vf','view','topic','country'));
 ?>
 <input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
 <input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
@@ -131,7 +131,7 @@
                 <?php endif;?>
             	</div>
 				<?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                    <div><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid'].'/about');?>"><?php echo $row['repo_title'];?></a></div>
+                    <div><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
             </div>
 			<div class="survey-stats">
@@ -141,7 +141,7 @@
                 <span>Downloads: <?php echo (int)$row['total_downloads'];?></span>
                 <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
                     <span>
-                    Citations: <?php echo $surveys['citations'][$row['id']];?>
+                    <a title="<?php echo t('Related citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('Citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
                     </span>                    
             	<?php endif;?> 
             </div>
