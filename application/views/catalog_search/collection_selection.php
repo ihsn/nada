@@ -22,7 +22,8 @@
                             data-name="repo-<?php echo form_prep($collection['repositoryid']); ?>"
                          />
                         <label for="repo-<?php echo $section['id']?>-<?php echo form_prep($collection['repositoryid']); ?>">
-                            <?php echo $collection['title']; ?> <span class="count">(<?php echo $collection['surveys_found']; ?>)</span>
+                            <div class="repo-title"><?php echo $collection['title']; ?> <span class="count">(<?php echo $collection['surveys_found']; ?>)</span> </div>
+                            <div class="repo-short-text"><?php echo $collection['short_text'];?></div>
                         </label>
                     </div>
                 <?php endforeach;?>
