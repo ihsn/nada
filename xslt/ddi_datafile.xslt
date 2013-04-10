@@ -166,7 +166,7 @@ License:
 	<!-- 4.3 FILE -->
 	<xsl:template match="ddi:fileDscr">
 		<xsl:variable name="file" select="@ID"/>
-		<h2 class="xsl-subtitle"><xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></h2>
+		<h2 class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data File:</xsl:with-param></xsl:call-template> <xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></h2>
 		<table style="width:100%;" class="data-file-bg1" cellpadding="4" >
 			<xsl:if test="normalize-space(ddi:fileTxt/ddi:fileCont)">
 			<tr valign="top">
