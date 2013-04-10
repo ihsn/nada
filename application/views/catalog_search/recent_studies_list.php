@@ -1,5 +1,4 @@
 <div class="recent-studies">
-<h3>Latest Additions</h3>
 <?php if (isset($rows) && count($rows)>0): ?>
 <ul class="bl">
 	<?php 
@@ -8,7 +7,7 @@
 	?>
 	<?php foreach($rows as $row): ?>
     <?php $counter++; ?>
-    <li>
+    <li class="item">
             <div class="title">
                 <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
                         <?php echo $row['nation']. ' - '. $row['titl'];?>
