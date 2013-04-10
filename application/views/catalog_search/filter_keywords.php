@@ -1,6 +1,7 @@
 <div class="filter-box">
 
     <h3><?php echo t('Search by keyword');?></h3> 
+	<span class="search-help keyword-help"><img src="images/icon_question.gif" alt="help" title="<?php echo t('Help');?>" data-url="<?php echo site_url('catalog/help');?>"/></span>
 
     <div class="study-search">
         <?php echo t('in_study_description');?> <br/>
