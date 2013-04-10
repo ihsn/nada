@@ -477,7 +477,7 @@ class DDIbrowser extends MY_Controller {
 				$this->lang->load("resource_manager");
 				$this->load->helper("resource_helper");
 				$this->load->model('Resource_model');//get survey related citations
-				$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
+				$survey['citations']=$this->Citation_model->get_citations_by_survey($id,$this->input->get('sort_by'),$this->input->get('sort_order'));
 				$html=$this->load->view('catalog_search/survey_summary_citations',$survey,TRUE);
 				$show_data_menu=FALSE;
 				$show_study_menu=FALSE;
