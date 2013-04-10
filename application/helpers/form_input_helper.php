@@ -58,18 +58,21 @@ if ( ! function_exists('get_post_sess'))
 		$CI =& get_instance();
 		
 		//check query strings
-		if ($CI->input->get_post($field)!==FALSE)
+		if ($CI->input->get($field)!==FALSE)
 		{
-			return $CI->input->get_post($field);
+			return $CI->input->get($field);
 		}
 		
 		//this is needed when a value is unset, otherwise we can't unset a key
 		//view param is required in the querystring
-		if ($CI->input->get_post('view')!==FALSE)
+		if ($CI->input->get('view')!==FALSE)
 		{
 			return FALSE;
 		}
 
+		return FALSE;
+		
+		
 		//check session
 		$sess_data=	$CI->session->userdata($session_id);
 		
