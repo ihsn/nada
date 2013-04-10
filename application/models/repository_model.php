@@ -514,7 +514,7 @@ class Repository_model extends CI_Model {
 	*	
 	* Note: duplicate function see catalog_model.php
 	**/
-	function get_repositories($published=FALSE, $system=TRUE)
+	function get_repositories($published=FALSE, $system=TRUE,$exclude_central=TRUE)
 	{
 		$this->db->select('repositories.*,repository_sections.title as section_title, repository_sections.weight as section_weight');
 
@@ -528,6 +528,13 @@ class Repository_model extends CI_Model {
 			//show system repositories
 			$this->db->where("repositories.type !=",2);
 		}
+		
+		if ($exclude_central==TRUE)
+		{
+			//show system repositories
+			$this->db->where("repositories.pid!=",0,FALSE);
+		}
+		
 		
 		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title'); 
 		$this->db->join('repository_sections', 'repository_sections.id= repositories.section','inner');
@@ -873,7 +880,7 @@ class Repository_model extends CI_Model {
 	**/
 	public function get_repositories_by_section($section_id)
 	{
-		$this->db->select('r.title,r.repositoryid,count(sr.sid) as surveys_found');
+		$this->db->select('r.title,r.repositoryid,r.short_text,count(sr.sid) as surveys_found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
 		$this->db->where('r.ispublished',1);
 		$this->db->where('r.pid >',0);
