@@ -56,16 +56,22 @@ class Catalog extends MY_Controller {
 			$limit=$ps;
 		}
 		
+		//check cookie
+		if(is_numeric($cookie_ps=$this->input->cookie('ps',TRUE)))
+		{
+			$limit= $cookie_ps;
+		}
+
 		if (!is_numeric($limit) || $limit<=0)
 		{
-			return 15;
+			return 15;			
 		}
 		
 		//set max size limit
 		if($limit>500)
 		{
 			return 500;
-		}		
+		}
 		
 		return $limit;
 	}
@@ -549,6 +555,8 @@ class Catalog extends MY_Controller {
         show_404();
       }  
       	
+		echo $this->load->view('catalog_search/search_help', NULL,true);return;
+		
 		$this->template->set_template('blank');	
 		$this->template->write('title', t('catalog_search_help'),true);
 		$contents=$this->load->view('catalog_search/search_help', NULL,true);
