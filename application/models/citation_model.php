@@ -132,14 +132,24 @@ class Citation_model extends CI_Model {
 	* Get citations by Survey
 	*
 	**/	
-	function get_citations_by_survey($surveyid)
+	function get_citations_by_survey($surveyid,$sort_by=NULL,$sort_order=NULL)
 	{
+		$valid_sort=array('title','pub_year','authors');
+		$valid_sort_order=array('asc','desc');		
+	
 		//get citations by the surveyid
 		$this->db->select('citations.*');
 		$this->db->from('citations');
 		$this->db->join('survey_citations', 'survey_citations.citationid = citations.id');
 		$this->db->where('survey_citations.sid',$surveyid);
-    	$this->db->order_by("authors, title", "ASC");
+		if(in_array($sort_by,$valid_sort) && in_array($sort_order,$valid_sort_order))
+		{
+			$this->db->order_by($sort_by, $sort_order);
+		}
+		else
+		{
+    		$this->db->order_by("authors, title", "ASC");
+		}	
 		$query=$this->db->get();
 
 		if (!$query)
