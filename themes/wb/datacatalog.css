@@ -345,6 +345,10 @@ font-size: smaller;
 .filter-box .more{display:none;}
 /*.filter-box .scrollable{height:150px;overflow:auto;}*/
 
+.ui-dialog .collections-container .collection .repo-title{font-weight:bold;}
+.ui-dialog .collections-container .collection .repo-short-text{color:#999999;margin-bottom:10px;}
+
+
 /*data catalog survey list style*/
 #surveys {margin-top:0px;}
 #surveys .survey-row{
@@ -413,6 +417,9 @@ font-size: smaller;
 -moz-border-radius: 3px;
 border-radius: 3px;
 }
+#facets .search-help{
+	padding:2px 5px;position:absolute;top:5px;right:5px;font-size:11px;cursor:pointer;
+}
 
 /*selection dialog box*/
 .container{text-align:left;font-size:12px;}
@@ -441,6 +448,10 @@ border-radius: 3px;
 .container .row .col-2 .item label { display: block; margin-left: 16px; }
 .items-container .nopad label{margin-left:0px;}
 
+.container .rows-container .chk-item{margin-right:5px;line-height:140x;}
+.container .rows-container .item{line-height:150%;}
+
+
 /*topics dialog*/
 .topics-container .row .col-1{width:250px;font-size:inherit}
 .topics-container .row .col-2{margin-left:260px;}
@@ -461,11 +472,13 @@ border-radius: 3px;
 
 /*data catalog pager*/
 #surveys  .pager{padding:5px;}
-#surveys .pager .page{padding:2px 5px 2px 5px;margin:5px;border:1px solid gray;background:white;}
+#surveys .pager .page{padding:2px 5px 2px 5px;margin:3px;border:1px solid gray;background:white;}
 #surveys .pager a.active{border:2px solid black;background:gray;color:white;}
 #surveys .survey-stats{margin-top:10px;font-size:11px;color:#666666}
 #surveys .survey-stats span{margin-right:15px;}
-
+#surveys .pager .page:hover{text-decoration:none;}
+#surveys .pager .last,
+#surveys .pager .first{}
 
 /*variable row hover*/
 .variable-list .vrow:hover {
@@ -509,6 +522,26 @@ margin-top: 10px;
 text-transform: uppercase;
 }
 .ui-dialog-content td .content{line-height:160%;margin-bottom:20px;}
+.ui-widget-content a{color:maroon}
+.ui-widget-content a:hover{color:black}
 
 .survey-row a:visited{color:#357EC7;}
 
+/*study info -related ciations*/
+.related-citations .sub-title{font-style:italic;}
+.related-citations .citation-rows .alternate{background:#F5F5F5}
+.related-citations .citation-row:hover {
+	cursor:pointer;	
+	-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	background: white;
+	z-index:100;
+}
+.related-citations .citation-row{position:relative;clear:both;overflow:hidden;padding:10px;}
+.related-citations .citation-row .page-num{width:40px;float:left;display:block;height:20px;color:grainsboro;}
+.related-citations .citation-row .row-body{float:left;width:90%;overflow:hidden;}
+.related-citations .sort-links {float:left;width:65%;text-align:left;}
+.related-citations .sort-links a{font-size:small;margin-right:6px;}
+
+.btn-central-catalog{background:url(back.gif) no-repeat;padding-left:40px;padding-top:5px;padding-bottom:5px;font-size:18px;display:block;}
