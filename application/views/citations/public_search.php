@@ -29,12 +29,11 @@ em{font-style:italic}
 
 <script type="text/javascript">
 $(document).ready(function () { 
-		$(".citation-row").click(function(){
-			window.location=$(this).attr("data-url");
-			return false;
-		});
-
+	$(".citation-row").click(function(){
+		window.location=$(this).attr("data-url");
+		return false;
 	});
+});
 </script>
 
 <div class="body-container" style="padding:10px;">
@@ -60,10 +59,6 @@ $(document).ready(function () {
 </form>
 <?php endif; ?>
 <?php if ($rows): ?>
-<?php		
-		$sort_by=$this->input->get("sort_by");
-		$sort_order=$this->input->get("sort_order");			
-?>
 <?php 
 	//pagination 
 	$page_nums=$this->pagination->create_links();
