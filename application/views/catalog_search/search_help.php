@@ -1,19 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-
-  
-  <style>
-h3{margin:0px;padding:0px;margin-top:15px;font-size:14px;}
-h4{margin:0px;padding:0px;margin-top:25px;font-size:14px;}
-p{ margin-top:0px;padding-top:0px;}
-td{font-size:12px;}
-body{background:white;margin:10px;}
-body, td {font-family:Arial, Helvetica, sans-serif;font-size:12px}
-.box1{margin-top:10px;background-color:#D3EEF8;padding:5px;margin-bottom:10px;font-weight:bold;font-size:12px}
-table{border-collapse:collapse;}
-  </style></head><body>
-<div style="text-align: right;"> <a target="_blank" href="<?php echo site_url();?>/catalog/help/print"><img src="images/print.gif" border="0"> Print</a></div>
-
 <h1> Data Catalog Search Help </h1>
 
 <p>The data catalog window displays a list of all studies available in
@@ -287,4 +271,3 @@ reports, and others) </td>
   </tbody>
 </table>
 
-</body></html>
