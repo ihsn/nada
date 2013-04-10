@@ -31,7 +31,7 @@ License:
 		<div id="variable-list">
 			<!-- find the variable group -->
 			<xsl:variable name="variable" select="//ddi:codeBook/ddi:dataDscr/ddi:varGrp[@ID=$VarGroupID]"/>
-			<h1 class="xsl-title"><xsl:value-of select="$variable/ddi:labl"/></h1>
+			<h1 class="xsl-title">Variable Group: <xsl:value-of select="$variable/ddi:labl"/></h1>
             
             <!-- group txt -->
             <xsl:if test="normalize-space($variable/ddi:txt | $variable/ddi:defntn | $variable/ddi:universe | $variable/ddi:notes  )">
@@ -86,8 +86,8 @@ License:
 							<tr class="var-th">
 								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></td>
 								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Label</xsl:with-param></xsl:call-template></td>
-								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Type</xsl:with-param></xsl:call-template></td>
-								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Format</xsl:with-param></xsl:call-template></td>
+								<!--<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Type</xsl:with-param></xsl:call-template></td>
+								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Format</xsl:with-param></xsl:call-template></td>-->
 								<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Question</xsl:with-param></xsl:call-template></td>
 							</tr>                           
 								<!-- print all var elements found -->
@@ -118,12 +118,12 @@ License:
 			<td  class="var-td">
 				<xsl:value-of select="ddi:labl"/>
 			</td>
-			<td  class="var-td">
+			<!--<td  class="var-td">
 				<xsl:value-of select="@intrvl"/>
 			</td>
 			<td  class="var-td">
 				<xsl:value-of select="ddi:varFormat/@type"/>
-			</td>
+			</td>-->
 			<td  class="var-td">
 				<xsl:value-of select="ddi:qstn/ddi:qstnLit"/>
 			</td>
