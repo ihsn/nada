@@ -9,25 +9,39 @@
 */
 ?>
 <?php if ($citations): ?>
-<div>
+
+<?php 
+	//sort
+	$sort_by=$this->input->get("sort_by");
+	$sort_order=$this->input->get("sort_order");
+	$page_url=site_url().'/catalog/'.(int)$this->uri->segment(2).'/related_citations';
+?>
+
+<div class="related-citations">
     <?php if (isset($survey)):?>
 		<h1><?php echo $survey['nation'] . ' - ' . $survey['titl']; ?></h1>
     <?php endif;?>
 
-	<h2><?php echo t('citations_of_publications');?></h2>
-    <table class="grid-table">
+	<h2 style="margin-bottom:20px;"><?php echo t('citations_of_publications');?></h2>
+    
+    <div style="float:right;width:30%;text-align:right"><?php echo t('Found: '),count($citations);?></div>
+    <div class="sort-links" >
+		<?php echo t('Sort by:');?>    
+        <?php echo create_sort_link($sort_by,$sort_order,'authors',t('Author'),$page_url,array('keywords','field','collection') ); ?>
+        <?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field','collection') ); ?>
+        <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','collection') ); ?>
+    
+    </div>
+    <div class="citation-rows">
 	<?php $tr_class=""; ?>
 	<?php $k=0;foreach($citations as $row):$k++; ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-    	<tr class="<?php echo $tr_class; ?>">    	      
-        	<td><span class="row-num"><?php echo $k;?></span></td>
-            <td><div class="citation-row">
-                <?php echo $this->chicago_citation->format($row,$row['ctype']);?>
-              </div>
-            </td>
-        </tr>
+        <div class="citation-row <?php echo $tr_class; ?>" data-url="<?php echo site_url('citations/'.$row['id']);?>" title="<?php echo t('View citation');?>">
+            <span class="page-num"><?php echo $k;?></span>
+            <span class="row-body"><?php echo $this->chicago_citation->format($row,$row['ctype']);?></span>
+        </div>
     <?php endforeach;?>
-    </table>	
+    </div>	
 <?php endif; ?>
 </div>
 <?php 
@@ -41,3 +55,12 @@ $(function() {
 });
 </script>
 <?php endif; ?>
+
+<script type="text/javascript">
+$(document).ready(function () { 
+	$(".citation-row").click(function(){
+		window.location=$(this).attr("data-url");
+		return false;
+	});
+});
+</script>
