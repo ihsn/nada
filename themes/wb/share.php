@@ -49,7 +49,7 @@ if (isset($parts[1]))
 
 <div class="share-bar-container">
 <ul class="share-bar">
-    <li><a target="_blank" rel="nofollow" href="<?php echo $page_url;?>?print=yes"><img src="images/print.gif" alt="Print"/></a></li>
+    <?php /*<li><a target="_blank" rel="nofollow" href="<?php echo $page_url;?>?print=yes"><img src="images/print.gif" alt="Print"/></a></li>*/?>
     <li><a rel="nofollow" href="mailto:?subject=<?php echo $title;?>&amp;body=<?php echo $page_url;?>"><img src="images/email.png" alt="Email"/></a></li>
     <li>
     	<a href="#" class="share"><?php echo t('share');?></a>
