@@ -149,6 +149,7 @@ function bindBehaviors(e)
 	$(".switch-page-size .button, .switch-page-size .btn").unbind('click').click(function(event) {
 		$("#ps").val($(this).html());
 		$("#page").val(1);
+		createCookie('ps',$("#ps").val(),1);
 		hash_changed();
 	});
 	
@@ -320,7 +321,18 @@ $(document).ready(function()
     	$("#page").val(1);
 		$("#_r").val($.now());
 		hash_changed();return false;
-	});		
+	});
+	
+	//search help icon
+	$(".filter-box .keyword-help img").click(function() {
+		window.simple_dialog("dialog_id",$(this).attr("title"),$(this).attr("data-url"));
+	});
+	
+	var page_size=readCookie('ps');
+	if(page_size==null || page_size=='' ){
+		$("#ps").val(page_size);
+	}
+
 
 	bindBehaviors();
 });
@@ -381,7 +393,6 @@ $(window).bind( 'hashchange', function(e) {
 
 	for(var filter in filters){
 		found=false;
-		console.log("items",filters[filter].items);
 		var selected_items=filters[filter].items.split(",");
 		
 		//iterate each checkbox and compare if it is one of the selected
@@ -526,6 +537,7 @@ $(document).ready(function()  {
 		  modal: true,
 		  autoOpen: false,
 		  buttons: {
+			"Cancel": function() {$( this ).dialog( "close" );},
 			"Apply filter": function() {
 				var dialog=$(this).closest(".ui-dialog");
 				var source_list=dialog.data('source-list');			
@@ -536,12 +548,6 @@ $(document).ready(function()  {
 				dialog_selection.each(function() { 
 					values.push($(this).val()); 
 				});
-				
-				/*if(total_items==values.length){
-					source_list.find(".chk-any").trigger("click");
-					//hash_changed();return;
-					console.log("everything selected");return;
-				}*/
 				
 				var found=false;
 				source_list.find(".chk").each(function() { 
