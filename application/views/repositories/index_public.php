@@ -3,7 +3,7 @@
 .thumb{padding-right:10px;padding-bottom:5px;}
 .thumb img{padding-bottom:10px;}
 .page-title{border-bottom:1px solid gainsboro;}
-.contributing-repos h2 {border-bottom:0px solid gainsboro;font-size:12px; font-family:Arial, Helvetica, sans-serif; text-transform:uppercase; font-weight:bold; word-spacing:110%;}
+.contributing-repos h2 {border-bottom:0px solid gainsboro;font-size:18px; font-family:Arial, Helvetica, sans-serif; text-transform:uppercase; font-weight:bold; word-spacing:110%;margin-top:20px;}
 .contributing-repos p a, .central-repo p a{color:black;}
 .contributing-repos p a:hover, .central-repo p a:hover{text-decoration:underline}
 
