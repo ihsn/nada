@@ -22,7 +22,7 @@ if ( ! function_exists('pager'))
 		}
 		
 		$result = range(1, ceil($total_records / $limit));	
-		$search_qs='?'.get_sess_querystring( array('ps','sk', 'vk', 'vf','view','topic','country','from','to'),'search');
+		$search_qs='?'.get_querystring( array('ps','sk', 'vk', 'vf','view','topic','country','from','to'));
 		
 		if (($adjacents = floor($adjacents / 2) * 2 + 1) >= 1)
 		{
@@ -32,7 +32,11 @@ if ( ! function_exists('pager'))
 		$output=array();
 		if ($current_page>1 && $total_pages>1)
 		{
-			$output[]=sprintf('<a href="%s" class="page" data-page="%s">Prev</a>',
+			$output[]=sprintf('<a href="%s" class="page first" data-page="%s"> &laquo; </a>',
+						site_url('catalog/').$search_qs.'&page=1',1
+						);
+
+			$output[]=sprintf('<a href="%s" class="page" data-page="%s"> Prev </a>',
 						site_url('catalog/').$search_qs.'&page='.($current_page-1),
 						$current_page-1
 						);
@@ -55,10 +59,16 @@ if ( ! function_exists('pager'))
 		
 		if ($current_page<$total_pages)
 		{
-			$output[]=sprintf('<a href="%s" class="page" data-page="%s">Next</a>',
+			$output[]=sprintf('<a href="%s" class="page" data-page="%s"> Next </a>',
 					site_url('catalog/').$search_qs.'&page='.($current_page+1),
 					$current_page+1
 					);
+			
+			$output[]=sprintf('<a href="%s" class="page last" data-page="%s" title="%s">&raquo;</a>',
+					site_url('catalog/').$search_qs.'&page='.($total_pages),
+					$total_pages,t('Last')
+					);
+
 		}
 	
 		$pager='<div class="pager">';
