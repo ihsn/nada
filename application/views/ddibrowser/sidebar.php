@@ -16,10 +16,6 @@ $overview_items = array();
     	<?php if(isset($show_study_items) && $show_study_items==TRUE):?>
         <!--overview-->
     	<li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/overview',t('overview'),array('class'=>'ajax','data-id'=>'overview')); ?></li>
-        
-         <!--access policy-->
-        <li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/accesspolicy',t('access_policy'),array('class'=>'ajax','data-id'=>'accesspolicy')); ?></li>
-        
         <?php endif;?>
 
 		<!--show enabled menu items-->		
@@ -53,7 +49,13 @@ $overview_items = array();
                 <?php endif; ?>        
         <?php endif; ?>
         <?php endif; ?>
+    
+        <?php if(isset($show_study_items) && $show_study_items==TRUE):?>
+        <!--access policy-->
+        <li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/accesspolicy',t('access_policy'),array('class'=>'ajax','data-id'=>'accesspolicy')); ?></li>
+        <?php endif;?>
     </ul>
+
     
     <ul class="data-items">	
 	<?php if(isset($show_data_items) && $show_data_items==TRUE):?>
