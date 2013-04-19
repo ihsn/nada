@@ -425,8 +425,8 @@ class Ion_auth_model extends CI_Model
 	    	$this->tables['users'].'.forgotten_password_code',
 	    	$this->tables['users'].'.ip_address',
 	    	$this->tables['users'].'.active',
-	    	$this->tables['groups'].'.name AS group_name',
-	    	$this->tables['groups'].'.description AS group_description'
+	    	//$this->tables['groups'].'.name AS group_name',
+	    	//$this->tables['groups'].'.description AS group_description'
 	    ));
 
 		if (!empty($this->columns))
@@ -438,7 +438,7 @@ class Ion_auth_model extends CI_Model
         }
 
 		$this->db->join($this->tables['meta'], $this->tables['users'].'.id = '.$this->tables['meta'].'.'.$this->meta_join, 'left');
-		$this->db->join($this->tables['groups'], $this->tables['users'].'.group_id = '.$this->tables['groups'].'.id', 'left');
+		//$this->db->join($this->tables['groups'], $this->tables['users'].'.group_id = '.$this->tables['groups'].'.id', 'left');
 		
 		if (strlen($identity) === 32)
 	    {
