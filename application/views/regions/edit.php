@@ -22,9 +22,12 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
 ?>
 
 
-<style>
+<style type="text/css">
+.selected-container{font-weight:normal;font-size:12px;}
 .input-fixed-1{width:300px;}
 .country-selection{height:200px;overflow:auto;width:300px;border:1px solid gainsboro;}
+.form .normal label{margin:0px;padding:0px;display:inline;font-weight:normal;}
+.clear-all{color:navy;font-weight:normal;cursor:pointer;margin-left:10px;}
 </style>
 <div class='content-container'>
     <div class="page-links">
@@ -66,13 +69,21 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
         <input class="input-fixed-1" name="weight" type="text" id="weight"  value="<?php echo get_form_value('weight',isset($row['weight']) ? $row['weight'] : ''); ?>"/>
     </div>
 
-    <div class="field">
-        <label for="pid"><?php echo t('Select Countries');?><span class="required">*</span></label>
+    <div class="field" id="country-selection">
+        <label for="pid"><?php echo t('Select Countries');?><span class="required">*</span> 
+        	<span class"selected-container">
+				<?php echo t('selected');?>: <span class="selected"><?php echo count($countries);?></span>
+                <span class="clear-all"><?php echo t('clear');?></span>
+            </span>
+        </label>
         <div class="country-selection">
         <?php foreach($country_list as $country):?>
         <?php $is_checked=in_array($country['countryid'],$countries) ? 'checked="checked"' : '';?>
-        <div class="country-row">
-        <input type="checkbox" name="country[]" value="<?php echo $country['countryid'];?>" <?php echo $is_checked;?> /><?php echo $country['name'];?><br/>
+        <div class="country-row normal">
+            <label for="c-<?php echo $country['countryid'];?>">
+            <input class="chk-country" type="checkbox" name="country[]" id="c-<?php echo $country['countryid'];?>"  value="<?php echo $country['countryid'];?>" <?php echo $is_checked;?> /><?php echo $country['name'];?>
+            </label>
+            <br/>
         </div>
         <?php endforeach;?>
         </div>
@@ -92,6 +103,21 @@ $(document).ready(function()
 	$("#pid").change(function() {
 		set_country_selection();
 	});
+	
+	$(".country-selection .chk-country").click(function() {
+		show_selected_stats();
+	});
+	
+	$(".clear-all").click(function() {
+		$(".country-selection .chk-country").prop("checked",false);
+		show_selected_stats();
+	});
+	
+	function show_selected_stats(){
+		$("#country-selection .selected").html($(".country-selection .chk-country:checked").length);
+	}
+	
+	
 	
 	function set_country_selection()
 	{
