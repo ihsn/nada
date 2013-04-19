@@ -131,14 +131,14 @@
                 <?php endif;?>
             	</div>
 				<?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                    <div><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
+                    <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
             </div>
 			<div class="survey-stats">
-            	<span>Created on: <?php echo date('M d, Y',$row['created']);?></span>
-                <span>Last modified: <?php echo date('M d, Y',$row['changed']);?></span>
-                <span>Views: <?php echo (int)$row['total_views'];?></span>
-                <span>Downloads: <?php echo (int)$row['total_downloads'];?></span>
+            	<span><?php echo t('Created on');?>: <?php echo date('M d, Y',$row['created']);?></span>
+                <span><?php echo t('Last modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
+                <span><?php echo t('Views');?>: <?php echo (int)$row['total_views'];?></span>
+                <span><?php echo t('Downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
                 <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
                     <span>
                     <a title="<?php echo t('Related citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('Citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
