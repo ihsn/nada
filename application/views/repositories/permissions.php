@@ -38,7 +38,7 @@
     <div style="margin-top:20px;">    	
     	<?php 
 			echo form_submit('submit',t('save_permissions'),'id="btnupdate"'); 
- 			echo anchor('admin/repositories',t('cancel'),array('class'=>'button') );
+ 			echo anchor('admin/repositories',t('cancel'));
 		?>        
     </div>
 </form>    
