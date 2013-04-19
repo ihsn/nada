@@ -17,161 +17,40 @@ class Access_licensed extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
 		$this->lang->load('licensed_access_form');
-    		
-    	//$this->load->library(array('site_configurations'));
-    	//$this->output->enable_profiler(TRUE);
-    }
- 
-    /**
-     * Show the request form
-     * 
-     * @param $survey_id
-     */
-	function index($survey_id=NULL)
-	{	
-		//change template for ajax
-		$ajax_params='';
-		if ($this->input->get_post("ajax") || $this->input->get_post("print"))
-		{
-			$this->ajax=1;
-			$this->template->set_template('blank');
-			$ajax_params='/?ajax=1';
-		}
-				
-		if ( !is_numeric($survey_id))
-		{
-			show_404();return;
-		}
-			
+    	
+		
 		//check if user is logged in
 		if (!$this->ion_auth->logged_in()) 
 		{
-		    $this->session->set_flashdata('reason', t('reason_login_licensed_access'));
+			$this->session->set_flashdata('reason', t('reason_login_licensed_access'));
 			$destination=$this->uri->uri_string();
 			$this->session->set_userdata("destination",$destination);
 
 			//redirect them to the login page
 			redirect("auth/login/?destination=$destination", 'refresh');
-    	}
+		}	
 
-		$this->load->library( array('form_validation') );
-			
-		//get user info
-		$user=$this->ion_auth->current_user();
-		
-		//get survey row
-		$survey=$this->Catalog_model->select_single($survey_id);
-		
-		if ($survey==FALSE)
-		{
-			show_404();return;
-		}
-
-		//check if the survey has the correct form type
-		if ($this->Catalog_model->get_survey_form_model($survey_id)!=$this->form_model)
+    	//$this->output->enable_profiler(TRUE);
+    }
+ 
+    
+	/**
+     * Show the request form
+     * 
+     * @param $survey_id
+     */
+	function index($survey_id=NULL)
+	{
+		if ($survey_id==NULL)
 		{
 			show_404();
 		}
-
-		//check if user has already submitted this form. if the request is PENDING or was APPROVED
-		// 	and the approved expiry period is still valid then redirect them to the previous request 
-		//	information page
-		$this->requests=$this->Licensed_model->get_survey_requests_by_user($user->id,$survey_id);
-
-		if ($this->requests)
-		{
-			foreach($this->requests as $request)
-			{
-				if ($request['status']=='PENDING')
-				{
-					//redirect to PENDING request page
-					//redirect('access_licensed/track/'.$request['id'].$ajax_params);
-					///$this->track($request['id']);
-		   			//return;
-				}	 
-    			elseif ($request['status']=='APPROVED')
-				{
-					if ($request['expiry']>=date("U") || (int)$request['expiry']==0)
-					{
-						//redirect to APPROVED request page
-						//redirect('access_licensed/track/'.$request['id'].$ajax_params);
-						//$this->track($request['id']);
-						//return;
-        			}
-    			}
-			}
-		}		
-
-		$content=NULL;
-			
-		//set data to be passed to the view
-		$data->user_id=$user->id;
-		$data->username=$user->username;
-		$data->fname=$user->first_name;
-		$data->lname=$user->last_name;
-		$data->organization=$user->company;
-		$data->email=$user->email;
-		$data->survey_title=$survey["titl"];
-		$data->survey_id=$survey["surveyid"];
-		$data->survey_uid=$survey_id;
-		$data->proddate=$survey["proddate"];
-		$data->abstract=$this->input->post("abstract");
-
-		//validation rules
-		$this->form_validation->set_rules('org_rec', t('receiving_organization_name'), 'trim|required|xss_clean|max_length[255]');
-		//$this->form_validation->set_rules('address', t('postal_address'), 'trim|required|xss_clean|max_length[255]');
-		$this->form_validation->set_rules('tel', t('telephone'), 'trim|required|xss_clean|max_length[14]');
-		$this->form_validation->set_rules('datause', t('intended_use_of_data'), 'trim|required|xss_clean|max_length[1000]');
-		$this->form_validation->set_rules('dataset_access', t('dataset_access'), 'trim|required|xss_clean|max_length[15]');
 		
-		//optional fields
-		//$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
-		$this->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_length[45]');
-		$this->form_validation->set_rules('datamatching', t('data_matching'), 'trim|xss_clean|max_length[1]');
-		$this->form_validation->set_rules('fax', t('fax'), 'trim|xss_clean|max_lengh[14]');		
-	
-		//process form				
-		if ($this->form_validation->run() == TRUE)
-		{			
-			$post=$_POST;
-			$options=array();
-			
-			foreach($post as $key=>$value)
-			{
-				$options[$key]=$this->security->xss_clean($value);
-			}
-		
-			//insert
-			$new_requestid=$this->Licensed_model->insert_request($data->survey_uid,$data->user_id,$options);
-			
-			if ($new_requestid!==FALSE)
-			{
-				//update successful
-				$this->session->set_flashdata('message', t('form_update_success'));
-				
-				//send confirmation email to the user and the site admin
-				$this->_confirmation_email($new_requestid);
-								
-				//redirect to the confirmation page
-				redirect('access_licensed/confirm/'.$new_requestid.$ajax_params,"refresh");
-			}
-			else
-			{
-				//update failed
-				$this->form_validation->set_error(t('form_update_fail'));
-			}
-		}
-			
-		//load the contents of the page into a variable
-		$content.=$this->load->view('access_licensed/request_form', $data,true);			
-			
-		//set page title
-		$this->template->write('title', t('application_access_licensed_dataset'),true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		$this->request_form('study',$survey_id);
 	}
 	
-	//does nothing, except to show a confirmation message
+	
+	//shows a confirmation message
 	function confirm()
 	{
 		//change template for ajax
@@ -192,7 +71,8 @@ class Access_licensed extends MY_Controller {
 
 		//get request data
 		$data=$this->Licensed_model->get_request_by_id($requestid);
-		$data=(object)$data;	
+		$data=(object)$data;
+			
 		//set data to be passed to the view
 		$data->user_id=$user->id;
 		$data->username=$user->username;
@@ -200,10 +80,16 @@ class Access_licensed extends MY_Controller {
 		$data->lname=$user->last_name;
 		$data->organization=$user->company;
 		$data->email=$user->email;
-		$data->survey_title=$data->nation. ' - '.$data->titl;
-		$data->survey_id=$data->surveyid;
-		
-		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->survey_title;			
+		if ($data->request_type=='study')
+		{
+			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
+		}	
+		else
+		{
+			$data->title='collection ['.$data->collection['title'].']';
+		}
+
+		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->title;
 		$message=$this->load->view('access_licensed/request_form_view', $data,true);
 
 		$this->load->library('email');
@@ -244,16 +130,6 @@ class Access_licensed extends MY_Controller {
 			show_404();
 		}
 		
-		//check if user is logged in
-		if (!$this->ion_auth->logged_in()) 
-		{
-			$destination=$this->uri->uri_string();
-			$this->session->set_userdata("destination",$destination);
-
-			//redirect to the login page
-			redirect("auth/login/?destination=$destination", 'refresh');
-    	}
-
 		//get user info
 		$user=$this->ion_auth->current_user();
 		
@@ -264,6 +140,11 @@ class Access_licensed extends MY_Controller {
 		{
 			echo show_message(t('invalid_id'));return;
 			show_404();
+		}
+		
+		if($data['request_type']=='study')
+		{
+			$data['survey']=$this->Catalog_model->select_single($data['surveyid']);
 		}
 		
 		//user can only view his requests
@@ -297,27 +178,37 @@ class Access_licensed extends MY_Controller {
 	function _get_licensed_files($request_id)
 	{				
 		$this->load->helper('file');
-				
-		//get the surveyid by requestid
-		$survey_id=$this->Licensed_model->get_surveyid_by_request($request_id);
-
-		//check if the survey form is set to LICENSED
-		if ($this->Catalog_model->get_survey_form_model($survey_id)!='licensed')
-		{
-			show_error('form_not_available');
-			return;
-		}
 		
+		$request=$this->Licensed_model->get_request_by_id($request_id);
+		
+		if ($request['request_type']=='study')
+		{
+			//get the surveyid by requestid
+			$survey_id=$this->Licensed_model->get_surveyid_by_request($request_id);
+	
+			//check if the survey form is set to LICENSED
+			$model=$this->Catalog_model->get_survey_form_model($survey_id);
+	
+			if ($model!='licensed')
+			{
+				show_error('form_not_available');
+				return;
+			}		
+
 		//get files by request id
-		$files['rows']=$this->Licensed_model->get_request_downloads($request_id);		
+		$data['rows']=$this->Licensed_model->get_request_downloads($request_id);		
 		
 		//get survey folder path, this is needed for the view(downloads_licensed)
 		$this->survey_folder=$this->_get_survey_folder($survey_id);
 		
 		//show files
-		$content=$this->load->view('managefiles/downloads_licensed', $files,true);
-
-		return $content;
+		$content=$this->load->view('managefiles/downloads_licensed', $data,true);
+		return $content;		
+		}
+		else if ($request['request_type']=='collection')
+		{
+			return $this->load->view('access_licensed/downloads_by_collection',$request,TRUE);
+		}
 	}
 	
 	/**
@@ -336,7 +227,7 @@ class Access_licensed extends MY_Controller {
 		$this->load->model('managefiles_model');
 		
 		if (!is_numeric($request_id) )
-		{			
+		{	
 			show_404();return;
 		}
 
@@ -363,7 +254,13 @@ class Access_licensed extends MY_Controller {
 				
 		//get request info from db
 		$request=$this->Licensed_model->get_request_by_id($request_id);
-			
+		
+		//disable downloads for requests not approved
+		if($request['status']!=='APPROVED')
+		{
+			show_error("RESOURCE_NOT_FOUND");
+		}
+		
 		//download stats data
 		$download_stats=$this->Licensed_model->get_download_stats($request_id, $file_id);		
 		
@@ -381,17 +278,8 @@ class Access_licensed extends MY_Controller {
 		$download_times=$download_stats['downloads'];
 				
 		if ($download_times>=$download_limit)
-		{
-			$data['limit']=$download_limit;
-			$data['email']=$this->config->item("website_webmaster_email");
-			$contents=$this->load->view('access_licensed/download_limit_reached',$data,TRUE);
-			//echo 'file download limit was reached. cannto be downloaded any more.';
-			//exit();
-		
-			$this->template->set_template('blank');	
-			$this->template->write('content', $contents,true);
-		  	$this->template->render();
-			return;
+		{			
+			redirect('/access_licensed/expired/'.$request_id.'/'.$download_limit,"refresh");exit;
 		}				
 		
 		//increment the download tick
@@ -440,7 +328,186 @@ class Access_licensed extends MY_Controller {
 		$survey_folder=unix_path($catalog_root.'/'.$survey_folder);
 		
 		return $survey_folder;
+	}
+	
+	
+	/**
+	*
+	* LIC access by collection
+	*
+	**/
+	function by_collection($repositoryid=NULL)
+	{
+		if ($repositoryid==NULL)
+		{
+			show_404();
+		}
+		
+		if ($this->input->get("request")=="new")
+		{
+			$this->request_form('collection',null,$repositoryid);return;
+		}
+		
+		$user=$this->ion_auth->current_user();
+		
+		//check if user has a pending or approved request
+		$collection_requests=$this->Licensed_model->get_user_collection_requests($user->id,$repositoryid);
+		
+		if ($collection_requests)
+		{
+			$content=$this->load->view('access_licensed/request_list_by_collection',array('lic_coll_requests'=>$collection_requests),TRUE);
+			$this->template->write('title', t('profile'),true);
+			$this->template->write('content', $content,true);
+			$this->template->render();return;
+			echo '<pre>';
+			var_dump($collection_requests);exit;
+			//echo $collection_requests[0]['id'];exit;
+			redirect('access_licensed/track/'.$collection_requests[0]['id'],"refresh");
+		}
+		else
+		{
+			$this->request_form('collection',null,$repositoryid);
+		}	
+	}
+	
+	
+	private function request_form($request_type='study',$survey_id=NULL,$collection_id=NULL)
+	{	
+		if ( !is_numeric($survey_id) && !$collection_id)
+		{
+			show_404();return;
+		}
+		
+		$repo=NULL;
+		$surveys=NULL;
+		
+		if ($request_type=='collection')
+		{
+			$repo=$this->Repository_model->get_repository_by_repositoryid($collection_id);
+
+			if($repo['group_da_licensed']!=='1')
+			{
+				show_404();
+			}
+			
+			$surveys=$this->Repository_model->repo_survey_list($collection_id,array('licensed'));
+		}
+		else if ($request_type=='study')
+		{
+			$model=$this->Catalog_model->get_survey_form_model($survey_id);
+			if ($model!=$this->form_model)
+			{
+				show_404();
+			}
+
+			$surveys[]=$this->Catalog_model->select_single($survey_id);
+			
+			if ($surveys==FALSE)
+			{
+				show_404();return;
+			}
+			
+		}
+				
+		$user=$this->ion_auth->current_user();
+		
+		$content=NULL;
+			
+		//set data to be passed to the view
+		$data->user_id=$user->id;
+		$data->username=$user->username;
+		$data->fname=$user->first_name;
+		$data->lname=$user->last_name;
+		$data->organization=$user->company;
+		$data->email=$user->email;
+		$data->surveys=$surveys;
+		$data->collection=$repo;
+		$data->request_type=$request_type;
+		/*
+		$data->survey_title=$survey["titl"];
+		$data->survey_id=$survey["surveyid"];
+		$data->survey_uid=$survey_id;
+		$data->proddate=$survey["proddate"];
+		*/
+		$data->abstract=$this->input->post("abstract");
+
+		$this->load->library('form_validation');
+		
+		//validation rules
+		$this->form_validation->set_rules('org_rec', t('receiving_organization_name'), 'trim|required|xss_clean|max_length[255]');
+		//$this->form_validation->set_rules('address', t('postal_address'), 'trim|required|xss_clean|max_length[255]');
+		$this->form_validation->set_rules('tel', t('telephone'), 'trim|required|xss_clean|max_length[14]');
+		$this->form_validation->set_rules('datause', t('intended_use_of_data'), 'trim|required|xss_clean|max_length[1000]');
+		$this->form_validation->set_rules('dataset_access', t('dataset_access'), 'trim|required|xss_clean|max_length[15]');
+		
+		//optional fields
+		//$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
+		$this->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_length[45]');
+		$this->form_validation->set_rules('datamatching', t('data_matching'), 'trim|xss_clean|max_length[1]');
+		$this->form_validation->set_rules('fax', t('fax'), 'trim|xss_clean|max_lengh[14]');		
+	
+		//process form				
+		if ($this->form_validation->run() == TRUE)
+		{			
+			$post=$_POST;
+			$options=array();
+			
+			foreach($post as $key=>$value)
+			{
+				$options[$key]=$this->security->xss_clean($value);
+			}
+		
+			if ($request_type=='study')
+			{
+				$new_requestid=$this->Licensed_model->insert_request($survey_id,$data->user_id,$options);
+			}
+			else
+			{
+				$new_requestid=$this->Licensed_model->insert_collection_request($collection_id,$data->user_id,$options);
+			}	
+			
+			if ($new_requestid!==FALSE)
+			{
+				//update successful
+				$this->session->set_flashdata('message', t('form_update_success'));
+				
+				//send confirmation email to the user and the site admin
+				$this->_confirmation_email($new_requestid);
+								
+				//redirect to the confirmation page
+				redirect('access_licensed/confirm/'.$new_requestid,"refresh");
+			}
+			else
+			{
+				//update failed
+				$this->form_validation->set_error(t('form_update_fail'));
+			}
+		}
+			
+		//load the contents of the page into a variable
+		$content.=$this->load->view('access_licensed/request_form', $data,true);			
+			
+		//set page title
+		$this->template->write('title', t('application_access_licensed_dataset'),true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
+	
+	/**
+	*
+	* Expired Download Links
+	**/
+	function expired($requestid=NULL,$download_limit=0)
+	{
+		$data['limit']=$download_limit;
+		$data['email']=$this->config->item("website_webmaster_email");
+		$contents=$this->load->view('access_licensed/download_limit_reached',$data,TRUE);
+	
+		$this->template->set_template('default');	
+		$this->template->write('content', $contents,true);
+		$this->template->render();
 	}	
+		
 }
 /* End of file access_licensed.php */
 /* Location: ./controllers/access_licensed.php */
