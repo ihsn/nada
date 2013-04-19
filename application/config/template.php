@@ -10,7 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='wb_intranet';
+$template['theme_name']='wb';
 
 
 
@@ -85,8 +85,8 @@ $template['installer']['theme_folder'] = 'installer';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/wb_intranet/blank';
-$template['blank']['theme_folder'] = 'wb_intranet';
+$template['blank']['template'] = '../../themes/wb/blank';
+$template['blank']['theme_folder'] = 'wb';
 
 $template['blank_iframe']['template'] = '../../themes/wb_intranet/blank_iframe';
 $template['blank_iframe']['theme_folder'] = 'wb_intranet';
@@ -98,8 +98,8 @@ $template['box']['theme_folder'] = 'opendata';
 
 
 //admin template file
-$template['admin']['template'] = '../../themes/admin/blue';
-$template['admin']['theme_folder'] = 'admin';
+$template['admin']['template'] = '../../themes/admin20/index';
+$template['admin']['theme_folder'] = 'admin20';
 
 //ddi browser template file
 $template['ddibrowser']['template'] = '../../themes/ddibrowser/layout';
@@ -155,6 +155,7 @@ $template['default']['regions'] = array(
   'title',
   'content'=>array('content' => array('<div>content not set</div>')),
   'sidebar',
+  'search_filters',
   'footer',
   'breadcrumb',
   'survey_title',
