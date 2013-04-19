@@ -276,153 +276,6 @@ class EndNote_RIS{
 	}
 	
 	
-	/**
-	*
-	* Parse a single EndNote string to Array
-	**/
-	function toberemove_parse_single($string)
-	{
-		$lines=explode(PHP_EOL,$string);
-		$entry=array();
-
-		foreach($lines as $line)
-		{
-			$line=trim($line);
-			
-			//find position of first dash
-			$pos=strpos($line,"-");
-			
-			//skip parsing if no dash found
-			if (!$pos)
-			{
-				continue;
-			}
-			
-			$tag=trim(substr($line,0,$pos));
-			$value=trim(substr($line,$pos+1));
-
-			switch ($tag)
-			{
-				case ('TY'):  //  - Type of reference (must be the first tag)
-					if (array_key_exists(strtolower($value),$this->entry_types))
-					{
-						$entry['ctype']=$this->entry_types[strtolower($value)];
-					}
-					else
-					{
-						//default
-						$entry['ctype']='book';
-					}	
-					break;				
-				//case ('ID'):  //  - Reference ID (not imported to reference software)
-				case ('T1'):
-				$entry['title']=$value;
-					echo "===================";
-					break;
-				case ('TI'):  //  - Primary title
-					$entry['title']=$value;
-					echo "===================";
-					break;
-				case ('CT'):  //  - Title of unpublished reference
-					$entry['title']=$value;
-					break;
-				case ('A1'):  //  - Primary author
-				case ('A2'):  //  - Secondary author (each name on separate line)
-				case ('AU'):  //  - Author (syntax. Last name, First name, Suffix)
-					$author_array=$this->parse_author($value);
-					if ($author_array)
-					{
-						$entry['authors'][]=$author_array;
-					}	
-					break;
-				
-				case ('Y1'):  //  - Primary date
-				case ('PY'):  //  - Publication year (YYYY/MM/DD)
-					$date=explode("/",$value);
-					if (isset($date[0]))
-					{
-						$entry['pub_year']=(int)$date[0];
-					}
-					if (isset($date[1]))
-					{
-						$entry['pub_month']=(int)$date[1];
-					}
-					if (isset($date[2]))
-					{
-						$entry['pub_day']=(int)$date[2];
-					}
-					break;				
-				case ('N1'):  //  - Notes 
-					$entry['notes']=$value;
-					break;
-				case ('KW'):  //  - Keywords (each keyword must be on separate line preceded KW -)
-					$entry['keywords']=$value;
-					break;				
-				//case ('RP'):  //  - Reprint status (IN FILE, NOT IN FILE, ON REQUEST (MM/DD/YY))
-				
-				case ('SP'):  //  - Start page number
-					if (is_numeric($value))
-					{
-						$entry['page_from']=$value;
-					}
-
-					break;
-				case ('EP'):  //  - Ending page number
-					$entry['page_to']=$value;
-					break;				
-				case ('JF'):  //  - Periodical full name
-				case ('JO'):  //  - Periodical standard abbreviation
-				case ('JA'):  //  - Periodical in which article was published
-				case ('J1'):  //  - Periodical name - User abbreviation 1
-				case ('J2'):  //  - Periodical name - User abbreviation 2
-					$entry['subtitle']=$value;
-					break;								
-				case ('VL'):  //  - Volume number
-					$entry['volume']=$value;
-					break;								
-				case ('IS'):  //  - Issue number
-					$entry['issue']=$value;
-					break;				
-				//case ('T2'):  //  - Title secondary
-				case ('CY'):  //  - City of Publication
-					$entry['place_publication']=$value;
-					break;				
-				case ('PB'):  //  - Publisher
-					$entry['publisher']=$value;
-					break;								
-				//case ('U1'):  //  - User definable 1
-				//case ('U5'):  //  - User definable 5
-				//case ('T3'):  //  - Title series
-				case ('N2'):  //  - Abstract
-					$entry['abstract']=$value;
-					break;								
-				case ('SN'):  //  - ISSN/ISBN (e.g. ISSN XXXX-XXXX)
-					$entry['idnumber']=$value;
-					break;								
-				//case ('AV'):  //  - Availability
-				//case ('M1'):  //  - Misc. 1
-				case ('M3'):  //  - Misc. 3
-					$entry['doi']=$value;
-					break;
-				//case ('AD'):  //  - Address
-				case ('UR'):  //  - Web/URL
-					$entry['url']=$value;
-					break;								
-				case ('L1'):  //  - Link to PDF
-					$entry['url']=$value;
-					break;								
-				//case ('L2'):  //  - Link to Full-text
-				//case ('L3'):  //  - Related records
-				//case ('L4'):  //  - Images
-				case ('ER'):  //  - End of Reference (must be the last tag)
-					break;
-								
-			}//end-switch
-		}//end-lines
-		
-
-		return $entry;		
-	}
 	
 	/**
 	*
@@ -480,6 +333,67 @@ class EndNote_RIS{
 		}
 		return $pages;
 	}
+
+
+	/**
+	*
+	* Convert an Array to ENDNOTE/RIS format
+	**/
+	function export($entry)
+	{
+		$mappings=array(
+				'ctype'				=>'TY',
+				'title'				=>'T1',	//title
+				'subtitle'			=>'T2',	//Secondary title
+				'alt_title'			=>'J2',	//alternate title
+				'authors'			=>'AU',	//authors
+				//'editors'			=>'',	//editors
+				//'translators'		=>'',	//translators
+				//'changed'			=>'',
+				//'created'			=>'',
+				//'published'			=>'',
+				'volume'			=>'VL',
+				'issue'				=>'IS',
+				'idnumber'			=>'SN',
+				'edition'			=>'ET',
+				'place_publication'	=>'CY',
+				//'place_state'		=>'',
+				'publisher'			=>'PB',
+				'publication_medium'=>'',
+				'url'				=>'UR',
+				'page_from'			=>'SP',
+				'page_to'			=>'EP',
+				'data_accessed'		=>'Y2',
+				//'organization'		=>'',				
+				//'pub_day'			=>'',
+				//'pub_month'			=>'',
+				'pub_year'			=>'PY',
+				'abstract'			=>'AB',
+				'keywords'			=>'KW',
+				'notes'				=>'N1',
+				'doi'				=>'DO',
+				//'flag'				=>'',
+				//'owner'				=>'',
+				'country'			=>'C2',
+				'ihsn_id'			=>'C1',
+				'id'				=>'C3'		
+		);
+		
+		$output=array();
+		foreach($entry as $key=>$value)
+		{
+			if (is_array($value))
+			{
+			}			
+			else if($value!='' && $value!==0)
+			{
+				$output[$mappings[$key]]=$value;
+			}
+		
+		
+		}
+	}	
+
 }
 // END endnote Class
 
