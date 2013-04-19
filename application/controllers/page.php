@@ -203,12 +203,15 @@ class Page extends MY_Controller {
 		$data=array();
 		switch($page)
 		{
-			case 'home':			
+			case 'home':
 					$data['title']='Microdata Library Home';
 					$this->load->model("repository_model");
 					$this->lang->load('catalog_search');
 					$this->load->library('cache');
 					$this->load->model("stats_model");
+					//$this->template->add_css('themes/admin20/css/bootstrap.min.css');
+					$this->template->add_js('themes/admin20/js/bootstrap.min.js');
+					//$this->template->add_js('javascript/slidesjs/slides.min.jquery.js');
 
 					//check if a cached copy of the page is available
 					$data= $this->cache->get( 'home_'.md5($page));
@@ -240,7 +243,8 @@ class Page extends MY_Controller {
 	
 			break;
 			case 'contributing-catalogs';
-					$this->lang->load('harvester');
+					$this->lang->load('collection');
+					$this->lang->load('catalog_search');
 					$this->load->model("repository_model");
 					$data['title']='Contributing Catalogs';
 					
