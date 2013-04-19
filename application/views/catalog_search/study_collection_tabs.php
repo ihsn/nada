@@ -6,7 +6,14 @@ if(!isset($active_tab))
 	$active_tab='catalog';
 }
 
-if ($repo['repositoryid']=='central'){echo $content;return;}
+if (isset($repo) && isset($repo['repositoryid'])){
+}
+else{
+	$repo=array(
+			'repositoryid'	=>'central',
+			'title'			=>t('central_data_catalog')
+			);			
+}
 ?>
 <h2><?php echo $repo['title'];?></h2>
 <div class="tab-style-1">
