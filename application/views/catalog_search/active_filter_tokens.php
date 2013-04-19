@@ -24,10 +24,6 @@ else{
 
 <div class="search-count"><?php echo sprintf($items_found,$found,$total);?></div>
 
-<?php if($found!=$total):?>
-<div class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('Reset search');?></a></div>
-<?php endif;?>
-
 <div class="active-filters">
 	<?php if (is_array($search_options->country)):?>
 		<?php foreach($search_options->country as $country):?>
@@ -69,6 +65,10 @@ else{
     
 	<?php if (isset($search_options->vk) && $search_options->vk!=''):?>
     <span class="remove-filter vk" data-type="vk" data-value=""><?php echo $search_options->vk;?></span>
+    <?php endif;?>
+
+	<?php if($found!=$total):?>
+        <span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('Reset search');?></a></span>
     <?php endif;?>
 </div>
 <div class="filter-action-bar">
