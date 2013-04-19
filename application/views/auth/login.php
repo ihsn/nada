@@ -1,6 +1,7 @@
 <style>
 body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
 </style>
+<div class="nada-login">
 
 <div class="login-header">
 	<div class="title"><?php echo anchor ("",$this->config->item('website_title'),'class="jx"'); ?></div>
@@ -49,18 +50,21 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
                 <input class="input-flex"  name="password" type="password" id="password"  value=""/>
             </div>    
         
+        	<?php /*
             <div class="field-inline">            
                 <?php echo form_checkbox('remember', '1', FALSE,'id="remember"');?>
                 <label for="remember"><?php echo t('remember_me');?></label>
-            </div>
+            </div> */ ?>
         
-            <div>
-                <input type="submit" name="submit" value="<?php echo t('login');?>" class="button"/>
-                <input type="button" name="cancel" id="cancel" value="<?php echo t('cancel');?>" class="button jx" onclick="history.back();"/>
+            <div class="login-footer">
+                <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn-style-2"/>
+                <?php /* <input type="button" name="cancel" id="cancel" value="<?php echo t('cancel');?>" class="button jx" onclick="history.back();"/> */?>
+                <span class="ot">
                 <?php if ($this->config->item("site_user_register")!=='no' && $this->config->item("site_password_protect")!=='yes'):?>	
-                    <?php echo anchor('auth/register',t('register'),'class="jx"'); ?>
+                    <span class="lnk first"><?php echo anchor('auth/register',t('register'),'class="jx"'); ?></span>
                 <?php endif;?>
-                <?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx"'); ?>
+                <span class="lnk"><?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx"'); ?></span>
+                </span>
             </div>
         </form>
         
@@ -69,7 +73,7 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
     </td>	
 </table>
 
-    
+</div>
 </div>
 <script type="text/javascript">
 
