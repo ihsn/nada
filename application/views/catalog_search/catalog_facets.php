@@ -18,8 +18,7 @@
 <input type="hidden" id="_r" name="_r" value=""/>
 <div> 
 
-
-<?php if($active_repo!='' || $active_repo!='central'):?>
+<?php if((string)$active_repo!='' && $active_repo!='central'):?>
 <div class="filter-box">
 <div><a class="btn-central-catalog" href="<?php echo site_url('catalog/central');?>" title="<?php echo t('Return to central catalog');?>"><?php echo t('Central Catalog');?></a></div>
 </div>
