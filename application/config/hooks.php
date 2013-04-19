@@ -210,7 +210,7 @@ function disable_annonymous_access($params)
 		}
 
         $CI->load->helper('url'); // to be on the safe side
-			
+
 		//disable rules for the auth/ url, otherwise user will never see the login page
         if($CI->uri->segment(1) !== 'auth')
         {
@@ -220,6 +220,13 @@ function disable_annonymous_access($params)
 
 			if (!$CI->ion_auth->logged_in()) 
 			{
+				//check ajax requests
+				if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') 
+				{
+					header('HTTP/1.0 401 Unauthorized');
+					exit;
+				}			
+				
 				//redirect to the login page
 				redirect("auth/login/?destination=$destination", 'refresh');
 			}
