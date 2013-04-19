@@ -181,7 +181,7 @@ class Catalog_admin_search_model extends CI_Model {
 		
 		foreach($additional_filters as $afilter)
 		{
-			$value=$this->input->get($afilter);
+			$value=$this->input->get($afilter,TRUE);
 			if ($value)
 			{
 				if ( trim($where_clause)!='')
@@ -249,6 +249,33 @@ class Catalog_admin_search_model extends CI_Model {
 		else
 		{
 			$where_clause.= $active_repo_filter;
+		}
+		
+		
+		//apply DA filters
+		$da_filters=$this->get_param('dtype');
+		
+		if($da_filters)
+		{
+			$da_arr=array();
+			foreach($da_filters as $dtype){
+				if(is_numeric($dtype))
+				{
+				$da_arr[]=$dtype;
+				}
+			}
+			
+			if( count($da_arr)>0)
+			{
+				if ( trim($where_clause)!='')
+				{	
+					$where_clause.= ' AND ' . '(surveys.formid in ('.implode(",",$da_arr).') )';
+				}
+				else
+				{
+					$where_clause.= '(surveys.formid in ('.implode(",",$da_arr).') )';
+				}			
+			}
 		}
 		
 		
