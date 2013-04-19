@@ -133,10 +133,17 @@ class Auth extends MY_Controller {
     function login() 
     {
 		$this->template->set_template('blank');
-		$this->template->add_css(js_base_url().'themes/nada3/login.css','import');
+		//$this->template->add_css(js_base_url().'themes/nada3/login.css','import');
         $this->data['title'] = t("login");
 
-        $destination=$this->session->userdata("destination");
+		if($this->input->get('destination'))
+		{
+			$destination=$this->input->get('destination');
+			$this->session->unset_userdata('destination');
+		}
+		else {
+        	$destination=$this->session->userdata("destination");
+		}	
 		
         //validate form input
     	$this->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]');
