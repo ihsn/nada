@@ -30,12 +30,11 @@ License:
 <xsl:template match="/">	
 	<div id="variable-list">
     <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Dictionary</xsl:with-param></xsl:call-template></div>
-    <table  cellpadding="4" class="ddi-table" width="100%">	
+    <table  cellpadding="4" class="ddi-table data-dictionary" width="100%">	
 	<tr>
 		<th>Filename</th>
 		<th>Description</th>
 		<th>Cases</th>
-		<th>Type</th>
 		<th>Variables</th>		
 	</tr>	
 	<xsl:apply-templates select="//ddi:codeBook/ddi:fileDscr"/>
@@ -58,11 +57,10 @@ License:
 		
 		<xsl:variable name="file" select="@ID"/>
 		<xsl:variable name="link"><xsl:value-of select="$browser_url"/>/datafile/<xsl:value-of select="$file"/></xsl:variable>
-		<tr class="{$class}">
+		<tr class="data-file-row {$class}" data-url="{$link}">
 				<td><a href="{$link}"><xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></a></td>
 				<td><xsl:value-of select="ddi:fileTxt/ddi:fileCont"/></td>
 				<td><xsl:value-of select="ddi:fileTxt/ddi:dimensns/ddi:caseQnty"/></td>
-				<td><xsl:value-of select="ddi:fileTxt/ddi:fileStrc/@type"/></td>
 				<td><xsl:value-of select="count(//ddi:dataDscr/ddi:var[@files=$file])"/></td>
 		</tr>	
 		<!--
