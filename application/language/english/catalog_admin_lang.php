@@ -1,6 +1,6 @@
 <?php
-$lang['catalog_maintenance'] = "Catalog Maintenance";
-$lang['upload_ddi'] = "Upload DDI";
+$lang['catalog_maintenance'] = "Manage Collection";
+$lang['upload_ddi'] = "Add Study";
 $lang['upload_ddi_hover'] = "Upload a DDI file";
 $lang['import_ddi'] = "Import DDI";
 $lang['import_ddi_hover'] = "Import multiple DDI files";
@@ -9,7 +9,7 @@ $lang['import_ddi_hover'] = "Import multiple DDI files";
 $lang['survey_id'] = "Survey ID";
 $lang['producer'] = "Producer";
 $lang['sponsor'] = "Sponsor";
-$lang['repository'] = "Repository";
+$lang['repository'] = "Collection";
 $lang['ref_no'] = "Reference No.";
 $lang['country'] = "Country";
 $lang['primary_investigator'] = "Primary Investigator";
@@ -22,8 +22,9 @@ $lang['browse_metadata'] = "Browse Metadata";
 $lang['share_ddi_w_harvester'] = "Share DDI with Harvester?";
 
 //upload ddi
-$lang['msg_select_ddi'] = "Select a DDI xml file:";
+$lang['msg_select_ddi'] = "Select a DDI file(.xml):";
 $lang['ddi_overwrite_exist'] = "Overwrite if the study already exists?";
+$lang['msg_select_rdf'] = "Select study RDF file(.rdf):";
 
 //import ddi
 $lang['ddi_import_processing'] = "Please wait while the file is being imported...";
@@ -38,7 +39,7 @@ $lang['import_completed'] = "Import completed!";
 //links/edit
 $lang['indicator_database'] = "Indicator database";
 $lang['study_website'] = "Study website";
-$lang['catalog_home'] = "Catalog Home";
+$lang['catalog_home'] = "Manage studies";
 
 
 $lang['ddi_import_success'] = "The DDI was imported successfully!";
@@ -52,14 +53,14 @@ $lang['study_already_exists'] = "The study already exists. Please select the ove
 $lang['invalid_ddi_file']="Invalid DDI file: ";
 $lang['nothing_to_process']="nothing_to_process";
 $lang['export_study_citations']="Export citations to NADA format";
-$lang['msg_select_repository']='Select repository';
-$lang['repositories']='Repositories';
+$lang['msg_select_repository']='Select collection';
+$lang['repositories']='Collections';
 
 
-$lang['msg_copy_studies']='Click on the study copy icon %s to copy studies to your repository.';
+$lang['msg_copy_studies']='Click on the study copy icon %s to copy studies to your collection.';
 $lang['copy_studies_to']='Copy studies to ';
 $lang['change_repo']='Switch';
-$lang['repositoryid']='Repository';
+$lang['repositoryid']='Collection';
 $lang['copy_studies']='Copy study';
 $lang['transfer_study_ownership']='Transfer study owner';
 $lang['transfer_ownership']='Transfer owner';
@@ -75,5 +76,6 @@ $lang['overwrite_if_exists']='Overwrite if already exists?';
 $lang['sort_by']='Sort results by:';
 $lang['surveyid']='SurveyID';
 $lang['no_related_citations_click_here_to_add']='There are no citations attached to this survey, to add related citations, click here.';
+$lang['max_upload_limit']='Max upload file size:';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

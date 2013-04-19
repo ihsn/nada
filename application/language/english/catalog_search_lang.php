@@ -118,7 +118,7 @@ $lang['data_public_description']="Related documentation is made freely available
 $lang['data_licensed_description']="Related documentation is made freely available to users on the Bank's intranet. Access to the datasets requires the user to apply for approval to access these datasets. Users must be logged into the application and fill out an application form when applying for access.";
 $lang['data_enclave_description']="Related documentation is made freely available to users on the Bank's intranet. Access to the datasets requires the user to apply for approval to access these datasets at a secure onsite facility.";
 $lang['data_remote_description']="Related documentation is made freely available to users on the Bank's intranet. The datasets are held in catalogs outside the DDP Microdata or at other institutions.";
-$lang['data_da_description']="Related documentation is made freely available to users on the Bank's intranet. The datasets are however not available for these studies.";
+$lang['data_na_description']="Related documentation is made freely available to users on the Bank's intranet. The datasets are however not available for these studies.";
 $lang['filter_by_data']="Filter by Data Access";
 $lang['legend_na_access']="Data not available";
 $lang['repositories_internal']="World Bank Contributing Repositories";
@@ -126,10 +126,9 @@ $lang['repositories_external']="External Contributing Repositories";
 $lang['central_data_catalog']="Central Data Catalog";
 $lang['data_catalogs']="Data Catalogs";
 $lang['visit_catalog']="Visit catalog";
-$lang['catalog_owned_by']="Repository";
+$lang['catalog_owned_by']="Collection";
 $lang['legend_citations']="Citations of publications that used the study";
 $lang['catalog_history']="Catalog History";
-$lang['catalog_owned_by']="Catalog";
 $lang['search_no_results']="<p><strong>Your search did not match any studies held in the catalog.</strong></p>
 <p>Suggestions:</p>
 <ul>
@@ -139,19 +138,16 @@ $lang['search_no_results']="<p><strong>Your search did not match any studies hel
 <li>Try searching in the variable description field if you searched in the study description field.</li>
 </ul>
 ";
-
 $lang['filter_by_center']="Filter by Center";
 $lang['js_centers_selected']="centers selected";
 $lang['js_center_selected']="center selected";
 $lang['filter_by_collection']="Filter by Collection";
 $lang['js_collections_selected']="collections selected";
 $lang['js_collection_selected']="collection selected";
-
 $lang['contributing_catalogs']="Contributing Catalogs";
 $lang['study_data_files']="Data Files";
 $lang['show_all_files']="Show all files...";
 $lang['msg_about_contributing_catalogs']="Our %s operates as a portal for datasets originating from the World Bank and other international, regional and national organizations. These datasets and  the related metadata are provided by various contributing catalogs.";
-
 
 
 /* End of file catalog_search_lang.php */

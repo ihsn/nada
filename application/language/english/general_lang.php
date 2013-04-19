@@ -74,7 +74,6 @@ $lang['js_confirm_delete'] = "Are you sure you want to delete the selected item(
 $lang['searching_please_wait'] = "Searching, please wait...";
 
 $lang['dashboard'] = "Dashboard";
-$lang['catalog_maintenance'] = "Catalog Maintenance";
 $lang['menu'] = "Menu";
 $lang['licensed_survey_requests'] = "Licensed Survey Requests";
 $lang['users'] = "Users";
@@ -111,13 +110,13 @@ $lang['share_with_stumpleupon']="Share with Stumbleupon";
 
 $lang['study_home'] = "Home";
 $lang['captcha_answer_not_matched'] = "%s answer didn't match.";
-$lang['repositories'] = "Repositories";
-$lang['contributing_repositories'] = "Contributing repositories";
+$lang['repositories'] = "Collections";
+$lang['contributing_repositories'] = "Contributing collections";
 $lang['home']='Home';
 $lang['regional_catalogs']='Regional catalogs';
 $lang['specialized_catalogs']='Specialized catalogs';
 $lang['central_data_catalog']='Central Data Catalog';
-$lang['repositories'] = "Repositories";
+$lang['repositories'] = "Collections";
 $lang['created']='Created';
 $lang['visit_catalog']='Visit Catalog';
 $lang['reason_login_data_access']='Please login to download data';
