@@ -218,3 +218,17 @@
 .form .field label.desc{font-weight:normal;font-style:italic}
 .form .required{color:Red;padding:2px;}
 .form label.small{font-size:10px;color:#666666;font-weight:normal;}
+
+
+.status .publish{cursor:pointer;}
+.status .publish:hover{background:black;color:white;}
+
+/*ddi upload*/
+.ddi-upload .max-file-size{font-weight:normal;color:#666666}
+.ddi-upload .ddi-upload{border: 1px solid gainsboro;}
+.ddi-upload fieldset{border:0px;margin:0px;padding:0px;margin-bottom:15px;margin-top:20px;}
+.ddi-upload fieldset legend{font-weight:bold;}
+.ddi-upload fieldset .file{border:1px solid #C9C2C2;width:100%;background:#F7F5F5;}
+.ddi-upload fieldset .field{margin-bottom:0px;}
+
+.breadcrumbs{margin-bottom:25px;}

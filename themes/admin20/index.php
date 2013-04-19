@@ -88,6 +88,17 @@ $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
 	<?php if (isset($_styles) ){ echo $_styles;} ?>
     <?php if (isset($_scripts) ){ echo $_scripts;} ?>
 
+	<script type="text/javascript">
+	$(document).ready(function()  {
+		/*global ajax error handler */
+		$( document ).ajaxError(function(event, jqxhr, settings, exception) {
+			if(jqxhr.status==401){
+				window.location=CI.base_url+'/auth/login/?destination=admin/';
+			}
+		});
+	});
+	</script>
+
   </head>
   <body>
   
