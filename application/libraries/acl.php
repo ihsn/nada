@@ -239,13 +239,13 @@ class ACL
 		if ($is_unlimited===TRUE)
 		{
 			//return all repositories;
-			$this->ci->db->select("id,title,id as repo_id,repositoryid");
+			$this->ci->db->select("id,title,id as repo_id,repositoryid,thumbnail,short_text");
 			$this->ci->db->order_by("title", "ASC");
 			$query=$this->ci->db->get("repositories");
 		}
 		else
 		{	//limited admin account
-			$this->ci->db->select("gr.*,r.title");
+			$this->ci->db->select("gr.*,r.title,r.thumbnail,r.short_text");
 			$this->ci->db->from("group_repo_access gr");
 			$this->ci->db->join('repositories r', 'r.id = gr.repo_id');			
 			$this->ci->db->where_in("group_id",$groups);
