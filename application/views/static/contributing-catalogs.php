@@ -17,7 +17,7 @@ foreach($collections as $key=>$collection)
 
 $data['sections']=$sections;		
 $data['rows']=$collections;
-$data['show_unpublished']=TRUE;
+$data['show_unpublished']=FALSE;
 $content=$this->load->view("repositories/index_public",$data);
 ?>
 
