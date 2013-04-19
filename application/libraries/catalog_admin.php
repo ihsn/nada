@@ -125,17 +125,16 @@ class Catalog_Admin
 	**/
 	function get_formatted_collections($sid=NULL)
 	{
-		$this->ci->load->model('collections_model');
+		$this->ci->load->model('repository_model');
 		
 		//get a list of all survey collections
-		$data['collections']=$this->ci->collections_model->select_all();
-
+		$data['collections']=$this->ci->repository_model->get_repositories();
 		$data['selected']=array();
 		
 		if (is_numeric($sid))
 		{
 			//get collections attached to a study
-			$data['selected']=$this->ci->collections_model->get_survey_collection_id_list($sid);
+			$data['selected']=$this->ci->repository_model->get_repo_list_by_survey($sid);
 		}	
 
 		return $this->ci->load->view("catalog/study_collections",$data,TRUE);
