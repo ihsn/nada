@@ -62,7 +62,7 @@ $route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";
 //$route['home'] = "catalog/repositories";
-$route['catalog/central/about'] = "catalog/repositories";
+/*$route['catalog/central/about'] = "catalog/repositories";*/
 
 //forms {pubic,direct, etc}
 $route['forms/(.*)'] = "forms";
@@ -99,6 +99,9 @@ $route['survey/(:num)/request'] = "catalog/access_request_form/$1";
 //public use files
 $route['access_public/(:num)'] = "access_public/index/$1";
 $route['access_public/(:num)/download/(:any)'] = "access_public/download/$1/$2";
+
+//public use files by collection
+$route['access_public_collection/(:num)'] = "access_public_collection/index/$1";
 
 //licensed
 $route['access_licensed/(:num)'] = "access_licensed/index/$1";
