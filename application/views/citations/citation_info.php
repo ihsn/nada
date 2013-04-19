@@ -1,5 +1,4 @@
 <style>
-.title {}
 .sub-title{color:#333333}
 .citation-box{margin-top:20px;margin-bottom:20px;padding:10px; background-color:#FEF9ED;border:1px solid gainsboro;}
 <?php if (!$this->input->get("print")) :?>
@@ -14,7 +13,7 @@
 <?php endif;?>
 <?php */?>
 
-<h1><?php echo t('citation_information'); ?></h1>
+<h2><?php echo t('citation_information'); ?></h2>
 <table class="grid-table">
 <?php if ($ctype!=''):?>
 <tr>
@@ -142,7 +141,7 @@
 
 <?php if( isset($related_surveys) ):?>
 	<?php if( count($related_surveys) >0):?>
-        <h2 style="margin-top:20px;"><?php echo t('related_studies'); ?></h2>
+        <h3 style="margin-top:20px;"><?php echo t('related_studies'); ?></h3>
 		<table class="grid-table">
         <?php foreach($related_surveys as $survey):?>
             <tr valign="top">
