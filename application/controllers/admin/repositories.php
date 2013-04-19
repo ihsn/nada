@@ -13,8 +13,12 @@ class Repositories extends MY_Controller {
 		$this->load->library( array('form_validation','pagination') );
        	$this->load->model('repository_model');
 		
+		//collection settings
+		$this->config->load('collections', TRUE);		
+		//var_dump($this->config->item('collection_image_path', 'collections'));
+		
 		//language file
-		$this->lang->load('harvester');
+		$this->lang->load('collection');
 		
 		//set default template
 		$this->template->set_template('admin');
@@ -113,6 +117,39 @@ class Repositories extends MY_Controller {
 			$this->edit();
 	}
 		
+	//process thumbnail uploads
+	private function process_file_uploads($file_name)
+	{
+		$config['upload_path'] = $this->config->item('collection_image_path', 'collections');
+		$config['allowed_types'] = 'gif|jpg|png';
+		$config['max_size']	= '300';
+		//$config['max_width']  = '300';
+		//$config['max_height']  = '300';
+
+		$this->load->library('upload', $config);
+		
+		$output=array();		
+		if ( ! $this->upload->do_upload($file_name))
+		{
+			$error = array('error' => $this->upload->display_errors());
+			$output=array(
+				'status'=>'error',
+				'data'=>$error
+			);
+		}
+		else
+		{
+			$data = array('upload_data' => $this->upload->data());
+			$output=array(
+				'status'	=>'success',
+				'data'		=>$data,
+				'file_name'	=>$config['upload_path'].'/'.$data['upload_data']['file_name']
+			);
+		}
+		return $output;
+	}	
+		
+		
 	/**
 	* Edit repo
 	*
@@ -149,14 +186,13 @@ class Repositories extends MY_Controller {
 						'url'=>'',
 						'organization'=>'',
 						'country'=>'',
-						'scan_interval'=>7,
 						'type'=>0,
 						'short_text'=>'',
-						'thumbnail'=>'files/icon-blank.png',
+						'thumbnail'=>$this->config->item('collection_default_thumb', 'collections'),
 						'long_text'=>'',
 						'weight'=>0,
 						'ispublished'=>0,
-						'section'=>'internal',//default
+						'section'=>0,//default
 						'group_da_public'=>0,
 						'group_da_licensed'=>0
 						);
@@ -175,7 +211,19 @@ class Repositories extends MY_Controller {
 				{
 					$options[$key]=$this->input->post($key);//$this->security->xss_clean($this->input->post($key));
 				}
-												
+				
+				//process thumbnail flie uploads
+				if(!empty($_FILES['thumbnail_file']['name'])) 
+				{
+					$fileupload_output=$this->process_file_uploads('thumbnail_file');
+					
+					if($fileupload_output['status']=='success')
+					{
+						//update thumbnail path
+						$options['thumbnail']=$fileupload_output['file_name'];
+					}
+				}
+								
 				if ($id==NULL)
 				{
 					$db_result=$this->repository_model->insert($options);
@@ -213,12 +261,22 @@ class Repositories extends MY_Controller {
 						show_error('ID was not found');
 					} 	
 					
-					$this->row_data=$row;	
+					$this->row_data=$row;
+					
+					//valiate and clean up thumbnails
+					$default_thumb=$this->config->item('collection_default_thumb', 'collections');					
+					$thumb_ext=explode(".",basename($this->row_data['thumbnail']));
+					
+					$thumb_ext=$thumb_ext[count($thumb_ext)-1];
+					
+					if (!in_array($thumb_ext,array('png','gif','jpg'))){
+						$this->row_data['thumbnail']=$default_thumb;
+					}
 				}
 		}			
 
 		//textboxes
-		$fields=array('repositoryid','title','url','organization','country','scan_interval','thumbnail','weight');
+		$fields=array('repositoryid','title','url','organization','country','thumbnail','weight');
 		
 		foreach($fields as $field)
 		{
@@ -237,6 +295,7 @@ class Repositories extends MY_Controller {
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
 		$this->data['group_da_public']=$this->form_validation->set_value('group_da_public',$this->row_data['group_da_public']);
 		$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
+		$this->data['section']=$this->form_validation->set_value('section',$this->row_data['section']);
 		
 		//show form
 		$content=$this->load->view('repositories/edit',NULL,true);									
@@ -369,120 +428,6 @@ class Repositories extends MY_Controller {
 	}
 	
 	
-	/**
-	*
-	* Scan a repository URL and test the catalog
-	*
-	*/
-	function scan($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			$this->db_logger->write_log('harvester','404','scan',$id);
-			show_404();
-		}
-		
-		//data repository info
-		$repo=$this->repository_model->select_single($id);
-		
-		if (!$repo)
-		{
-			$this->db_logger->write_log('harvester','404','ID-NOT-FOUND',$id);
-			show_error('Repository ID not found');
-		}
-		
-		$repo=(object)$repo;
-		$url=$repo->url.'/index.php/catalog/rss?limit=5000';
-		$url=str_replace("//index.php","/index.php",$url);
-		
-		//log
-		$this->db_logger->write_log('harvester',$url,'url-to-scan',$id);
-		
-		$this->load->library('simplepie');
-		//set cache path from the CI config
-		$this->simplepie->cache_location=$this->config->item("cache_path");
-		
-		//get feed
-		$this->simplepie->set_feed_url($url);
-		$this->simplepie->set_timeout(20);//time to wait for the feed
-		$this->simplepie->enable_cache(false);//disable caching
-		//$this->simplepie->cache_max_minutes(5);//max cache time
-		$success=$this->simplepie->init();
-		$feed= $this->simplepie;
-		
-		$total=$feed->get_item_quantity();
-
-		//log
-		$this->db_logger->write_log('harvester',$total,'scan-result',$id);
-
-		//add surveys to queue for later download
-		foreach($feed->get_items() as $item)
-		{
-			$item=(object)$item;
-			
-			//get country name
-			$country='';
-			$country_tag=$item->get_item_tags('http://ihsn.org/nada/', 'country');
-			if (isset($country_tag[0]['data']))
-			{
-				$country=trim($country_tag[0]['data']);
-			}
-
-			//get survey data collection date
-			$colldate='';
-			$colldate_tag=$item->get_item_tags('http://ihsn.org/nada/', 'colldate');
-			if (isset($colldate_tag[0]['data']))
-			{
-				$colldate=trim($colldate_tag[0]['data']);
-			}
-			
-			//get survey accesspolicy
-			$accesspolicy='';
-			$accesspolicy_tag=$item->get_item_tags('http://ihsn.org/nada/', 'accesspolicy');
-			if (isset($accesspolicy_tag[0]['data']))
-			{
-				$accesspolicy=trim($accesspolicy_tag[0]['data']);
-			}
-			
-			//get surveyid
-			$surveyid='';
-			$surveyid_tag=$item->get_item_tags('http://ihsn.org/nada/', 'surveyid');
-			if (isset($surveyid_tag[0]['data']))
-			{
-				$surveyid=trim($surveyid_tag[0]['data']);
-			}
-			
-			$options=array(
-						'title'=>$item->get_title(),
-						'survey_url'=>$item->get_permalink(),
-						'survey_timestamp'=>$item->get_date("U"),
-						'status'=>'new',
-						'country'=>$country,
-						'survey_year'=>$colldate,
-						'accesspolicy'=>$accesspolicy,
-						'surveyid'=>$surveyid
-							);
-							
-			//update queueu entries											
-			$this->repository_model->update_queue($repo->repositoryid, $options);
-		}
-		
-		//update repository stats
-		$repo_options=array(
-					'scan_lastrun'=>date("U"),
-					'status'=>$total);
-				
-		$this->repository_model->update($id,$repo_options);
-		
-		//get newly fetched survey list
-		$surveys_array['rows']=$this->repository_model->get_surveys_by_repository($repo->repositoryid);
-		
-		//formatted list of entries
-		$content=$this->load->view('harvester/scan',$surveys_array,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->render();
-	}
 
 	
 	/**
@@ -548,12 +493,12 @@ class Repositories extends MY_Controller {
 	**/
 	function select()
 	{
-		$this->lang->load('harvester');
+		$this->lang->load('collection');
 		$this->page_title=t('select_active_repository');
 		
 		//get array of repos user has access to
 		$data['repos']=$this->acl->get_user_repositories();
-		$content=$this->load->view('repositories/active_repo',$data,TRUE);
+		$content=$this->load->view('repositories/select_active_repo',$data,TRUE);
 		
 		$this->template->write('content', $content,true);
 		$this->template->render();
@@ -574,6 +519,11 @@ class Repositories extends MY_Controller {
 		
 		if ($result)
 		{
+			if ($this->input->get('destination'))
+			{
+				redirect($this->input->get('destination',true));return;
+			}
+		
 			redirect("admin/catalog");
 		}
 		
@@ -620,16 +570,55 @@ class Repositories extends MY_Controller {
 		//get existing group permissions assigned to the current repository
 		$repo_user_groups=$this->ion_auth_model->get_user_groups_by_repo($id);
 		
-		foreach($repo_user_groups as $group)
+		if(!$repo_user_groups)
 		{
-			$data['repo_user_groups'][]=$group['group_id'];
+			//no user groups assigned to repo
+			$data['repo_user_groups']=array();
 		}
-		
+		else
+		{		
+			foreach($repo_user_groups as $group)
+			{
+				$data['repo_user_groups'][]=$group['group_id'];
+			}
+		}
+				
 		$content=$this->load->view('repositories/permissions',$data,TRUE);
 		$this->template->write('content', $content,true);
 		$this->template->render();
-
 	}
+	
+	//publish/unpublish repository
+	function publish($id,$status)
+	{
+		if(!is_numeric($id) || !is_numeric($status))
+		{
+			show_error('INVALID-PARAMS');
+		}
+		
+		$options=array(
+			'ispublished'=>$status
+		);
+		
+		$this->Repository_model->update($id,$options);
+	}
+
+	//change repo weight
+	function weight($id,$weight)
+	{
+		if(!is_numeric($id) || !is_numeric($weight))
+		{
+			show_error('INVALID-PARAMS');
+		}
+		
+		$options=array(
+			'weight'=>$weight
+		);
+		
+		$this->Repository_model->update($id,$options);
+	}
+	
+	
 }
 
 /* End of file repositories.php */
