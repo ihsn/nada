@@ -187,22 +187,19 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                             </div>
                             
                             <?php if (isset($row['citations'])):?>
-                            <div class="info"><span class="badge badge-info"><?php echo $row['citations'];?></span> citations</div>
+                            <div class="info"><span class="badge badge-info"><?php echo $row['citations'];?></span> <?php echo t('citations');?></div>
                             <?php endif;?>
                             <?php if (isset($row['pending_lic_requests'])):?>
-                            	<div class="info"><span class="badge badge-warning"><?php echo $row['pending_lic_requests'];?></span> pending requests</div>
+                            	<div class="info"><span class="badge badge-warning"><?php echo $row['pending_lic_requests'];?></span> <?php echo t('pending requests');?></div>
                             <?php endif;?>
                             
-                            <?php if ($study_years==0):?>
-                            	<div class="info"><span class="badge badge-warning"><?php echo t('Year Missing');?></span></div>
-                            <?php endif;?>
                         </div>
                         
                         <div class="links">
                         
                         <span style="float:left;">
-                            <span><a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $row['id'];?>">Edit</a></span> | 
-                            <span><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $row['id'];?>">Delete</a></span>
+                            <span><a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $row['id'];?>"><?php echo t('edit');?></a></span> | 
+                            <span><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $row['id'];?>"><?php echo t('delete');?></a></span>
                         </span>
                         
                         <span class="survey-options">
