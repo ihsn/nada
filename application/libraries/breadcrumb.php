@@ -41,7 +41,8 @@ class Breadcrumb
 			return FALSE;
 		}
 		
-		//find active repository
+		//set active repository
+		/*
 		$active_repo=$this->ci->session->userdata('active_repository');
 		if ($active_repo=='' || $active_repo=='central')
 		{
@@ -51,6 +52,27 @@ class Breadcrumb
 		else
 		{
 			$repository_title=$this->get_repository_title($active_repo);
+		}*/
+		
+		//by default set CENTRAL as active repository
+		$active_repo='CENTRAL';
+		$repository_title=t('central_data_catalog');
+		
+		
+		if($segments[1]=='catalog' && isset($segments[2]))
+		{
+		
+			if(!is_numeric($segments[2]) )
+			{
+				//check if a valid repo
+				$repo_title=$this->get_repository_title($segments[2]);
+				
+				if($repo_title!==false)
+				{
+					$active_repo=$segments[2];
+					$repository_title=$repo_title;
+				}
+			}
 		}
 		
 		switch($segments[1])
@@ -68,12 +90,17 @@ class Breadcrumb
 				
 				case 'catalog':
 					
-					//for microdata.worldbank.org only
-					//$breadcrumbs['microdata-catalogs']=t('Microdata catalogs');
-					
 					$breadcrumbs['catalog']=t('central_data_catalog');
+					
+					//set sub collection breadcrumb
+					if(strtolower($active_repo)!='central' && $repository_title!==false)
+					{
+						$breadcrumbs['catalog/'.$active_repo]=$repository_title;
+					}
+						
 					$repo_owner=false;
 					
+					//study page e.g. catalog/123
 					if (isset($segments[2]) && is_numeric($segments[2]))
 					{	
 						//get owner of the study
@@ -161,9 +188,9 @@ class Breadcrumb
 							}
 						}						
 						
-						if (isset($segments[3]) && ($segments[3]=='datafile' || $segments[3]=='datafiles'))
+						if (isset($segments[3]) && ( in_array($segments[3],array('datafiles','data_dictionary','datafile')) ))
 						{
-							$breadcrumbs['catalog/'.$segments[2].'/datafiles']=t('Datafiles');
+							$breadcrumbs['catalog/'.$segments[2].'/data_dictionary']=t('Data Dictionary');
 							
 							if (isset($segments[4]))
 							{
@@ -276,8 +303,23 @@ class Breadcrumb
 					
 			break;
 			
-			case 'citations';	
+			case 'citations':
+			
 				$breadcrumbs['citations']=t('Citations');
+				
+				//citations by collection
+				$collection=$this->ci->input->get('collection',true);
+				
+				if ($collection)
+				{
+					$repo_title=$this->get_repository_title($collection);
+					
+					if($repo_title)
+					{
+						$breadcrumbs['citations/?collection='.$collection]=$repo_title;
+					}				
+				}
+				
 				if (count($segments)>1)
 				{
 					if (is_numeric($segments[2]))
