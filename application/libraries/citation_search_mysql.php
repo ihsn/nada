@@ -140,7 +140,7 @@ class Citation_search_mysql{
 		$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
 		
 		//filter by repository if set
-		if($repositoryid!=NULL)
+		if($repositoryid!=NULL && strtolower($repositoryid)!='central')
 		{
 			$this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
 			$this->ci->db->where('survey_repos.repositoryid',$repositoryid);
