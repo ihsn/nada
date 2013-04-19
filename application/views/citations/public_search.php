@@ -112,7 +112,7 @@ $(document).ready(function () {
     <div  class="citation-rows">
 	<?php $k=0;foreach($rows as $row): ?>
 	    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-    	<div class="citation-row <?php echo $tr_class;?>" data-url="<?php echo site_url('/citations/'.$row['id']);?>">
+    	<div class="citation-row <?php echo $tr_class;?>" data-url="<?php echo site_url('/citations/'.$row['id'].'?collection='.$active_repo);?>">
         <span class="page-num"><?php echo $from_page+$k;?></span>
 		<span class="row-body">
         <?php echo $this->chicago_citation->format($row,'journal');?>
