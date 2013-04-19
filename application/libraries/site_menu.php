@@ -114,7 +114,7 @@ class Site_Menu
 		
 		foreach($repos as $repo)
 		{
-			$output.=sprintf('<li><a tabindex="-1" href="%s">%s</a></li>',site_url('admin/catalog/select_repo/'.$repo['repositoryid']),$repo['title']);
+			$output.=sprintf('<li><a tabindex="-1" href="%s">%s</a></li>',site_url('admin/repositories/active/'.$repo['id'].'?destination=admin/catalog'),$repo['title']);
 		}
 		
 		$output.='</ul>';
