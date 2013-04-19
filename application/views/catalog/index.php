@@ -1,6 +1,3 @@
-<!--<pre>
-<?php //var_dump($rows);?>
-</pre>-->
 <?php  $this->template->add_css($this->load->view('catalog/catalog_style'),'embed'); ?>
 <?php
 	//set default page size, if none selected
@@ -12,7 +9,7 @@
 
 
 <div class="body-container" style="padding:10px;">
-<?php $this->load->view('catalog/catalog_page_links');?>
+<?php //$this->load->view('catalog/catalog_page_links');?>
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
