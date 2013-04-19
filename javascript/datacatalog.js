@@ -322,12 +322,26 @@ $(document).ready(function()
 		$("#_r").val($.now());
 		hash_changed();return false;
 	});
-	
-	//search help icon
+
+	//sk/vk reset button
+	$("#reset").click(function() {
+    	$("#page").val(1);
+		$("#sk").val("");
+		$("#vk").val("");
+		hash_changed();return false;
+	});
+
+	//search general help icon
 	$(".filter-box .keyword-help img").click(function() {
 		window.simple_dialog("dialog_id",$(this).attr("title"),$(this).attr("data-url"));
 	});
-	
+
+	//DA help icon
+	$(".filter-box .da-help img").click(function() {
+		window.simple_dialog("dialog_id",$(this).attr("title"),$(this).attr("data-url"));
+	});
+
+
 	var page_size=readCookie('ps');
 	if(page_size==null || page_size=='' ){
 		$("#ps").val(page_size);
@@ -728,7 +742,13 @@ $(document).ready(function()  {
 			}			
 	});
 	
-	
+	/*global ajax error handler */
+	$( document ).ajaxError(function(event, jqxhr, settings, exception) {
+		if(jqxhr.status==401){
+			window.location=CI.base_url+'/auth/login/?destination=catalog/';
+		}
+	});
+
   });//end-document-ready
 
 
