@@ -50,26 +50,26 @@ class StudyCollections extends MY_Controller {
 	}
 		
 	
-	function detach($sid,$tid)
+	function detach($sid,$collection_id)
 	{
-		if (!is_numeric($sid) && !is_numeric($tid))
+		if (!is_numeric($sid) && $collection_id!='')
 		{
 			show_404();
 		}
 		
-		$this->load->model('collections_model');		
-		$this->collections_model->detach($sid,$tid);		
+		$this->load->model('repository_model');
+		$this->repository_model->unlink_study($collection_id,$sid,0);
 	}
 	
-	function attach($sid,$tid)
+	function attach($sid,$collection_id)
 	{
-		if (!is_numeric($sid) && !is_numeric($tid))
+		if (!is_numeric($sid) && $collection_id!='')
 		{
 			show_404();
 		}
 		
-		$this->load->model('collections_model');		
-		$this->collections_model->attach($sid,$tid);
+		$this->load->model('repository_model');		
+		$this->repository_model->link_study($collection_id,$sid,0);
 	}
 
 
