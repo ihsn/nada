@@ -776,7 +776,21 @@ class Repository_model extends CI_Model {
 		
 		return $output;
 	}
-
+	
+	//get repository list by survey id
+	function get_repo_list_by_survey($sid)
+	{
+		$this->db->select('repositoryid');
+		$this->db->where('sid',$sid);
+		$rows=$this->db->get('survey_repos')->result_array();
+		
+		$output=array();
+		foreach($rows as $row)
+		{
+			$output[]=$row['repositoryid'];
+		}
+		return $output;
+	}
 
 	/**
 	* checks if a repositoryid exists
@@ -1053,6 +1067,7 @@ class Repository_model extends CI_Model {
 		$this->db->select('count(lic_requests.surveyid) as total');
 		$this->db->join('lic_requests','lic_requests.surveyid=survey_repos.sid');
 		$this->db->where('repositoryid',$repositoryid);
+		$this->db->where('survey_repos.isadmin',1);
 		$this->db->where('lic_requests.status','PENDING');
 		$row=$this->db->get('survey_repos')->row_array();
 		return $row['total'];
@@ -1085,6 +1100,40 @@ class Repository_model extends CI_Model {
 		$row=$this->db->get('resources')->row_array();
 		//echo $this->db->last_query();exit;
 		return $row['total'];
+	}
+
+
+
+	/**
+	*
+	* Link to a study from another repo
+	**/
+	function link_study($repositoryid,$sid,$isadmin=0)
+	{
+		$options=array(
+				'repositoryid'=>$repositoryid,
+				'sid'=>$sid,
+				'isadmin'=>0
+			);
+		
+		//first unlink incaase it is already set
+		$this->unlink_study($repositoryid,$sid,$isadmin);
+		return $this->db->insert("survey_repos",$options);
+	}
+
+	/**
+	*
+	* unlink a study to a repository
+	**/
+	function unlink_study($repositoryid,$sid,$isadmin=0)
+	{
+		$options=array(
+				'repositoryid'=>$repositoryid,
+				'sid'=>$sid,
+				'isadmin'=>$isadmin
+		);
+			
+		return $this->db->delete("survey_repos",$options);
 	}
 
 }
