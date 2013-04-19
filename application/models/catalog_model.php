@@ -778,8 +778,8 @@ class Catalog_model extends CI_Model {
 			$this->db->delete('survey_years');
 			
 			//remove collections
-			$this->db->where('sid', $id); 
-			$this->db->delete('survey_collections');					
+			//$this->db->where('sid', $id); 
+			//$this->db->delete('survey_collections');					
 
 			//remove alias
 			$this->db->where('sid', $id); 
@@ -1139,12 +1139,12 @@ class Catalog_model extends CI_Model {
 	*
 	* Link to a study from another repo
 	**/
-	function copy_study($repositoryid,$sid)
+	function copy_study($repositoryid,$sid,$isadmin=0)
 	{
 		$options=array(
 				'repositoryid'=>$repositoryid,
 				'sid'=>$sid,
-				'isadmin'=>0
+				'isadmin'=>$isadmin
 			);
 		
 		//first unlink incaase it is already set
@@ -1168,6 +1168,21 @@ class Catalog_model extends CI_Model {
 			
 		return $this->db->delete("survey_repos",$options);
 	}
+
+	/**
+	*
+	* Remove all owners from the study
+	**/
+	function remove_all_study_owners($sid)
+	{
+		$options=array(
+				'sid'=>$sid,
+				'isadmin'=>1
+		);
+			
+		return $this->db->delete("survey_repos",$options);
+	}
+
 
 	/**
 	*
@@ -1215,23 +1230,16 @@ class Catalog_model extends CI_Model {
 		$this->db->where('id',$sid);
 		$this->db->update("surveys",$options);
 		
-		//remove old ownership info from survey_repos
-		$this->unlink_study($survey['repositoryid'],$sid,1);
+		//a repository can have only one owner, remove all owners 
+		//and assign a single owner
+		$this->remove_all_study_owners($sid);
 		
-		//remove study link from the target repository
+		//make the target_repository owner of the study
+		$this->copy_study($target_repositoryid,$sid,1);
+		
+		//remove study link from the target repository if any exists
 		$this->unlink_study($target_repositoryid,$sid);
-				
-		//add new ownership info to survey_repos
-		$options=array(
-				'repositoryid'=>$target_repositoryid,
-				'sid'=>$sid,
-				'isadmin'=>1 
-		);
-
-		$this->db->where('repositoryid',$target_repositoryid);
-		$this->db->where('sid',$sid);
-		$this->db->insert("survey_repos",$options);
-		
+						
 		//log
 		$this->db_logger->write_log('transfer-ownership','transfered study ['.$survey['titl'].'] from '.$survey['repositoryid'].' '.$target_repositoryid,'transfer-ownership',$sid);
 	}
