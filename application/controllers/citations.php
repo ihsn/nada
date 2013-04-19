@@ -58,7 +58,7 @@ class Citations extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 15;
+		$per_page = 50;
 				
 		//current page
 		$offset=(int)$this->input->get('offset');//$this->uri->segment(4);
@@ -131,6 +131,14 @@ class Citations extends MY_Controller {
 		
 		$content=$this->load->view('citations/citation_info',$citation,TRUE);
 		$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
+		
+		$collection=$this->input->get("collection");
+		
+		if ($collection!=='')
+		{			
+			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->get_repo_by_id($collection),'active_tab'=>'citations'),TRUE);
+		}
+		
 
 		//change template if ajax request
 		if ($this->input->get_post("ajax")!==false || $this->input->get_post("print")!==false)
