@@ -78,29 +78,32 @@ class Catalog extends MY_Controller {
 		//get surveys
 		$db_rows=$this->_search();
 		
-		//get survey tags
-		$this->catalog_tags=$this->Catalog_model->get_all_survey_tags();
-		
-		//get country list for filter
-		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
-		
-		$sid_list=array();
-		foreach($db_rows['rows'] as $row)
-		{
-			$sid_list[]=$row['id'];
-		}
-		
-		//get citations per study
-		$citations=$this->Citation_model->get_citations_count_by_survey($sid_list);
-		
-		foreach($db_rows['rows'] as $key=>$row)
-		{
-			if (array_key_exists($row['id'],$citations))
+		if ($db_rows['rows'])
+		{		
+			//get survey tags
+			$this->catalog_tags=$this->Catalog_model->get_all_survey_tags();
+			
+			//get country list for filter
+			$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
+			
+			$sid_list=array();
+			foreach($db_rows['rows'] as $row)
 			{
-				$db_rows['rows'][$key]['citations']=$citations[$row['id']];
+				$sid_list[]=$row['id'];
+			}
+			
+			//get citations per study
+			$citations=$this->Citation_model->get_citations_count_by_survey($sid_list);
+			
+			foreach($db_rows['rows'] as $key=>$row)
+			{
+				if (array_key_exists($row['id'],$citations))
+				{
+					$db_rows['rows'][$key]['citations']=$citations[$row['id']];
+				}
 			}
 		}
-		
+				
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/index', $db_rows,true);
 	
@@ -195,7 +198,7 @@ class Catalog extends MY_Controller {
 		
 		foreach($_GET as $key=>$value)
 		{
-			$search_options[$key]=$this->input->get($key);
+			$search_options[$key]=$this->input->get($key,TRUE);
 		}
 		
 		$this->Catalog_admin_search_model->set_active_repo($this->active_repo->repositoryid);
@@ -428,7 +431,7 @@ class Catalog extends MY_Controller {
 		$this->load->library('upload');
 	
 		 //load the upload form
-		$content=$this->load->view('catalog/ddi_upload_form', NULL,true);
+		$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
 	
 		//pass data to the site's template
 		$this->template->write('content', $content,true);
