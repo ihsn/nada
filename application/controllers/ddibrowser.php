@@ -183,7 +183,7 @@ class DDIbrowser extends MY_Controller {
 					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);					
 					$html=html_entity_decode(url_filter($html));
 					$this->cache->save($cache_key,$html,10);
-				}				
+				}
 			break;
 
 			case 'impact_evaluation':
@@ -562,6 +562,7 @@ class DDIbrowser extends MY_Controller {
 			
 			$data['survey_title']=$survey['nation']. ' - '. $survey['titl'];
 			$data['survey_info']=$this->get_survey_info($this->uri->segment(2));
+			$data['data_access_type']=$data_access_type;
 			$output=$this->load->view('ddibrowser/layout',$data,TRUE);
 			
 			$this->template->write('survey_title', $data['survey_title'],true);
