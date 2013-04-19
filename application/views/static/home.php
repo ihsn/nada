@@ -179,6 +179,22 @@ position: relative;
 .box-style-1 .stats-surveys{margin-top:10px;font-size:18px;font-weight:bold}
 .box-style-1 .item .sub{font-size:12px;color:#999999}
 
+.btn-central-catalog {
+margin-top: 10px;
+padding: 10px;
+background: #039;
+display: block;
+text-align: center;
+font-size: 14px;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px;
+border-radius: 3px;
+color:white;
+}
+.btn-central-catalog:hover {
+background:black;color:white;
+}
+
 <?php /*
 //todo removed
 .slide-show .slides_container{height:200px;overflow:auto;padding:10px; background:gainsboro;width:600px;}
@@ -308,11 +324,16 @@ position: relative;
         <div class="content stats" >
         	<div class="bg-star">
                   <div class="stats-text" >As of <?php echo date("F d, Y",date("U")); ?><br /> the Library contains</div>
-                  <div class="stats-surveys" ><?php echo number_format($survey_count);?> surveys<br/> 
+                  <div class="stats-surveys" ><span class="numb"><?php echo number_format($survey_count);?></span> surveys<br/> 
                   <?php echo number_format($variable_count);?> variables<br/>
                   <?php echo number_format($citation_count);?> citations
             </div>      
           </div>
+          
+          <div>
+<div><a class="btn-central-catalog" href="<?php echo site_url('catalog/central');?>" title="Return to central catalog">Central Catalog</a></div>
+</div>
+          
     	</div>
     </div>
   </div>
