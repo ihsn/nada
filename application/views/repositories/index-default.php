@@ -47,7 +47,7 @@ $repository_types=array(
 	$sort_order=$this->input->get("sort_order");
 	
 	//current page url
-	$page_url=site_url().$this->uri->uri_string();
+	$page_url=site_url().'/'.$this->uri->uri_string().'/';
 ?>
 
 <?php
@@ -99,26 +99,28 @@ $repository_types=array(
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
             <!--<th><?php echo create_sort_link($sort_by,$sort_order,'url',t('url'),$page_url); ?></th>-->
             <th><?php echo create_sort_link($sort_by,$sort_order,'linktype',t('organization'),$page_url); ?></th>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'published',t('country'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('published'),$page_url); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-    	<tr class="<?php echo $tr_class; ?>">
+    	<tr class="repo-row <?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><?php echo strtoupper($row->repositoryid);?></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <!--<td><?php echo $row->url; ?></td>-->
             <td><?php echo $row->organization; ?></td>
-			<td><?php echo $row->country; ?></td>
             <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
-            <td><?php echo $row->weight; ?></td>
-            <td><?php echo ($row->ispublished==1) ? t('yes') : t('no'); ?></td>
+            <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
+            <td>
+                <div class="status">
+                <span class="label publish <?php echo ($row->ispublished==1) ? "label-success" :''; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('unpublished'); ?></span>
+                </div>			
+			</td>
 			<td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
                 <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a> |
@@ -163,6 +165,31 @@ jQuery(document).ready(function(){
 			}
 		}
 	);
+	
+	//publish/unpublish
+	$(document.body).on("click",".repo-row .publish", function(){ 
+		var id=$(this).attr("data-id");
+		if ($(this).attr("data-value")==0){
+			$(this).attr("data-value",1);
+			$(this).html("Published");
+			$(this).addClass("label-success");
+			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/1?ajax=1',{submit:"submit"});
+		}
+		else{
+			$(this).html("Unpublished");
+			$(this).attr("data-value",0);
+			$(this).removeClass("label-success");
+			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/0?ajax=1',{submit:"submit"});
+		}
+	
+	});	
+	
+	//weight
+	$(document.body).on("change",".repo-row .weight", function(){ 
+		var id=$(this).attr("data-id");
+		var value=$(this).attr("value");
+		$.post(CI.base_url+'/admin/repositories/weight/'+id+'/'+value+'?ajax=1',{submit:"submit"});
+	});	
 
 });
 
