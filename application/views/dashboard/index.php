@@ -8,24 +8,24 @@
 		box-shadow: inset 0 3px 7px rgba(0, 0, 0, .2), inset 0 -3px 7px rgba(0, 0, 0, .2);
 	}
 	.dashboard-box{border:1px solid gainsboro; -moz-border-radius: 5px;	-webkit-border-radius: 5px; color:#333333;margin-bottom:5px;}
-	.dashboard-box-title{text-transform: uppercase;
-padding: 5px;
-background: #F1F1F1;
-color: black;
-font-weight: normal;
-padding: 5px;
-font-size: 14px;
-background: #F1F1F1;
-background-image: -webkit-gradient(linear,left bottom,left top,from(#ECECEC),to(#F9F9F9));
-background-image: -webkit-linear-gradient(bottom,#ECECEC,#F9F9F9);
-background-image: -moz-linear-gradient(bottom,#ECECEC,#F9F9F9);
-background-image: -o-linear-gradient(bottom,#ECECEC,#F9F9F9);
-background-image: linear-gradient(to top,#ECECEC,#F9F9F9);
-border-bottom: 1px solid #DFDFDF;
--webkit-box-shadow: 0 1px 0 white;
-box-shadow: 0 1px 0 white;}
+	.dashboard-box-title{
+		text-transform: uppercase;
+		padding: 5px;
+		background: #F1F1F1;
+		color: black;
+		font-weight: normal;
+		padding: 5px;
+		font-size: 14px;
+		background: #F1F1F1;
+		background-image: -webkit-gradient(linear,left bottom,left top,from(#ECECEC),to(#F9F9F9));
+		background-image: -webkit-linear-gradient(bottom,#ECECEC,#F9F9F9);
+		background-image: -moz-linear-gradient(bottom,#ECECEC,#F9F9F9);
+		background-image: -o-linear-gradient(bottom,#ECECEC,#F9F9F9);
+		background-image: linear-gradient(to top,#ECECEC,#F9F9F9);
+		border-bottom: 1px solid #DFDFDF;
+		-webkit-box-shadow: 0 1px 0 white;
+		box-shadow: 0 1px 0 white;}
 	.dashboard-box-body{padding:5px;}
-	.dashboard-box-footer{padding:0px;font-size:12px;background:#F1F1F1;}
 	.dashboard-box-spacer{height:10px;}
 	.dashboard-box a{color:#000066;text-decoration:none; font-weight:normal;}
 	.dashboard-box a:hover{color:maroon;}
@@ -44,6 +44,9 @@ box-shadow: 0 1px 0 white;}
 	.dashboard-box .info{color:green;font-size:large;}
 	.warning-box{text-align:left;}
 	.important{color:maroon;}
+	.dashboard-box-footer{padding:0px;font-size:12px;background:#F1F1F1;}
+	.dashboard-box-footer .actions .btn a{color:white;}
+
 </style>
 <div class="content-container">
 
@@ -94,7 +97,11 @@ box-shadow: 0 1px 0 white;}
                         <?php endif;?>
                        
                        <?php if( (int)$collection['stats']['lic_requests'] > 0 ):?>
-                       	<div class="important"><span class="badge badge-important"><?php echo (int)$collection['stats']['lic_requests']; ?></span> pending requests</div>
+                       	<div class="important">
+                        	<a href="<?php echo site_url('admin/licensed_requests?collection='.$collection['repositoryid'].'&status=PENDING');?>">
+                            <span class="badge badge-important"><?php echo (int)$collection['stats']['lic_requests']; ?></span> <?php echo t('pending requests');?>
+                            </a>
+                        </div>
                        <?php endif;?> 
                        </div>
                     </div>
@@ -103,10 +110,10 @@ box-shadow: 0 1px 0 white;}
                 </div>
                 <div class="dashboard-box-footer">
                 	<div class="actions">
-                	<span class="btn btn-mini btn-success">maintenance</span> 
-                	<span class="btn btn-mini btn-success">Administrators</span>
-                    <span class="btn btn-mini btn-success">History</span>
-                    <span class="btn btn-mini btn-success">Edit</span>
+                	<span class="btn btn-mini btn-success"><a href="<?php echo site_url('admin/repositories/active/'.$collection['id'].'?destination=admin/catalog');?>"><?php echo t('Maintenance');?></a></span> 
+                	<span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/permissions/'.$collection['id'], t('Administrators'));?></span>
+                    <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/history/'.$collection['id'], t('History'));?></span>
+                    <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/edit/'.$collection['id'], t('Edit'));?></span>
                     </div>
                 </div>
             </div>        	        
