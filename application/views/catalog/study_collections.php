@@ -1,15 +1,20 @@
-<div id="terms">
+<pre>
+<?php var_dump($selected);?>
+</pre>
+<div class="study-attached-collections">
+<table>
 <?php foreach($collections as $coll):?>
 	<?php 
 		$checked='';
-		if (in_array($coll['id'],$selected))
+		if (in_array($coll['repositoryid'],$selected))
 		{
 			$checked='checked="checked"';
 		}
 	?>
-	<div class="term">	
-	<input class="chk" type="checkbox" id="t-<?php echo $coll['id'];?>" value="<?php echo $coll['id'];?>" <?php echo $checked;?>/>
-	<label for="t-<?php echo $coll['id'];?>"><?php echo $coll['title'];?></label>
-	</div>
+	<tr valign="top">
+    <td><input class="chk" type="checkbox" id="t-<?php echo $coll['repositoryid'];?>" value="<?php echo $coll['repositoryid'];?>" <?php echo $checked;?>/></td>
+	<td><label for="t-<?php echo $coll['repositoryid'];?>"><?php echo $coll['title'];?></label></td>
+	</tr>
 <?php endforeach;?>
+</table>
 </div>
