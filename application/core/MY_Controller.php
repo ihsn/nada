@@ -168,6 +168,13 @@ class MY_Controller extends CI_Controller
 		//not logged in
     	if (!$this->ion_auth->logged_in()) 
 		{
+			//check ajax requests
+			if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') 
+			{
+				header('HTTP/1.0 401 Unauthorized');
+				exit;
+			}			
+		
 			//redirect them to the login page
 			redirect("auth/login/?destination=$destination", 'refresh');
     	}
