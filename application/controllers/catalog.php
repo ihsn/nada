@@ -85,19 +85,6 @@ class Catalog extends MY_Controller {
 			$this->search();return;
 		}
 
-		//reset search
-		if ($this->input->get_post('reset')=='reset')
-		{
-			$repoid='';
-			
-			if (isset($this->active_repo) && $this->active_repo!==NULL)
-			{
-				$repoid=$this->active_repo['repositoryid'];
-			}
-
-			redirect('catalog/'.$repoid);
-		}
-
 		$this->template->add_js('javascript/datacatalog.js?v=1');		
 		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
@@ -192,10 +179,9 @@ class Catalog extends MY_Controller {
 		$content=$this->load->view('catalog_search/catalog_search_result', $data,true);
 
 		//collections are shown in tab
-		if (isset($this->active_repo) && $this->active_repo!=='')
-		{
+		//if (isset($this->active_repo) && $this->active_repo!==''){
 			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->active_repo,'active_tab'=>'catalog'),TRUE);
-		}	
+		//}	
 
 		//render final output
 		$this->template->write('title', $this->page_title,true);
@@ -1147,7 +1133,6 @@ class Catalog extends MY_Controller {
             $uri = $this->uri->segment_array();
             unset($uri[1]);
             unset($uri[2]);
-     
             call_user_func_array(array($this, $method), $uri);
         }
         else 
@@ -1203,24 +1188,6 @@ class Catalog extends MY_Controller {
 	}
 	
 	
-	function repositories()
-	{
-		$this->load->model("repository_model");
-		$this->lang->load('catalog_search');
-		
-		
-		$data["survey_count"]=$this->Stats_model->get_survey_count();   
-		//$data["variable_count"]=$this->Stats_model->get_variable_count();  
-		//$data["citation_count"]=$this->Stats_model->get_citation_count();  
-		$data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);//list of repos
-
-		$content=$this->load->view("repositories/index_public",$data,TRUE);		
-
-		$this->template->write('title', t('data_catalogs'),true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
-	}
-
 	function about_repository()
 	{
 		$repositoryid=$this->uri->segment(2);
@@ -1232,7 +1199,28 @@ class Catalog extends MY_Controller {
 			show_404();
 		}
 		
-		$contents=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo),TRUE);		
+		$additional_data=NULL;
+		
+		/*
+		if ($repositoryid=='central')
+		{
+			$this->load->model("repository_model");
+			$this->load->model("repository_sections_model");
+			$collections=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
+			$sections=array();
+			
+			foreach($collections as $key=>$collection)
+			{
+				$sections[$collection['section']]=$collection['section_title'];
+			}
+			
+			$data['sections']=$sections;		
+			$data['rows']=$collections;
+			$data['show_unpublished']=FALSE;
+			$additional_data=$this->load->view("repositories/index_public",$data,TRUE);
+		}*/
+		
+		$contents=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
 		$contents=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$contents,'repo'=>$repo,'active_tab'=>'about'),TRUE);
 		
 		//set page title
@@ -1357,6 +1345,11 @@ class Catalog extends MY_Controller {
 		$this->load->model('Repository_model');		
 		$data['repositories']=$this->Repository_model->get_repositories_tree();
 		$this->load->view('catalog_search/collection_selection',$data);
+	}
+	
+	function help_da()
+	{
+		$this->load->view("catalog_search/help_da");
 	}
 }
 /* End of file catalog.php */
