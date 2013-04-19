@@ -61,16 +61,6 @@ margin-left: -25em;
     <?php $this->load->view('users/user_bar');?>
     </span>
     
-    <!-- header -->
-<?php /*    <div id="hd">
-       	<!-- logo -->
-        <div class="site-logo">
-        	<a title="<?php echo $this->config->item("website_title");?> - Home Page"  href="<?php echo site_url();?>">
-            <img src="themes/<?php echo $this->template->theme();?>/logo.gif"  border="0" alt="Logo"/>
-            </a>
-        </div>
-    </div>
-*/?>    
     <div id="bd" >
     	<!-- banner-->
         <div id="banner"><?php echo $this->config->item("website_title");?></div>

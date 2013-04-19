@@ -313,11 +313,17 @@ font-size: smaller;
 /*styles for the active filter tags*/
 .active-filters-container{border:1px solid gainsboro;overflow:auto;clear:both;margin-bottom:30px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;position:relative;}
 .active-filters-container .active-filters{overflow:auto;clear:both;padding:0px 10px;}
-.active-filters-container .clear-search{position:absolute;right:10px;top:5px;}
+.active-filters-container .clear-search {
+	position: absolute;
+	left: 250px;
+	top: 5px;
+	font-weight: normal;
+	padding: 5px;
+}
 .active-filters .remove-filter{
 	display:block;
 	float:left;
-	border:1px solid gainsboro;
+	border:0px;
 	padding:3px;
 	margin-right:5px;
 	padding-right:20px;
@@ -326,21 +332,28 @@ font-size: smaller;
 	-moz-border-radius:3px;
 	border-radius:3px;
 	margin-bottom:5px;
-	background-color:#F8F8F8
+	background-color:#F8F8F8;
+	color:white;
 }
 
-.active-filters .remove-filter:hover{background-color:#FFFFFF;cursor:pointer}
-.active-filters-container .filter-action-bar{padding:5px;background:#F8F8F8;overflow:auto;border-top:1px solid gainsboro;}
+.active-filters .remove-filter:hover{background-color:#000000;cursor:pointer}
+.active-filters-container .filter-action-bar {
+padding: 5px;
+overflow: auto;
+position: absolute;
+top: 0px;
+right: 0px;
+}
 .active-filters-container .filter-action-bar a{display:block;float:left;margin-right:5px;}
 .active-filters-container .filter-action-bar .right{float:right;}
 .active-filters-container .search-count{padding:10px;font-size:16px;}
 
-.active-filters .sk,.active-filters .vk{background-color:#F3F0EB}
-.active-filters .dtype{background-color:#ECF3E3}
-.active-filters .years{background-color:#DCE2EA}
-.active-filters .collection{background-color:BEC3BC}
-.active-filters .country{background-color:#E7E7E7}
-.active-filters .topic{background-color:#EAF3F9}
+.active-filters .sk,.active-filters .vk{background-color:#438F2B;}
+.active-filters .dtype{background-color:#7ACA1A}
+.active-filters .years{background-color:#78808A}
+.active-filters .collection{background-color:#606FBE}
+.active-filters .country{background-color:#F1A646}
+.active-filters .topic{background-color:#7ACA1A}
 
 .filter-box .more{display:none;}
 /*.filter-box .scrollable{height:150px;overflow:auto;}*/
@@ -397,7 +410,7 @@ font-size: smaller;
 .filter-da table .da-licensed{background: url(data-access-small.gif) no-repeat 0% 42%;}
 .filter-da table .da-remote{background: url(data-access-small.gif) no-repeat 0% 62%;}
 .filter-da table .da-no_access{background: url(data-access-small.gif) no-repeat 0% 82%;}
-.filter-da table.da-enclave{background: url(data-access-small.gif) no-repeat 0% 102%;}
+.filter-da table .da-enclave{background: url(data-access-small.gif) no-repeat 0% 102%;}
 .filter-da table tr{vertical-align:top}
 .da-public{background: url(data-access-small.gif) no-repeat 0% 78%;display:block;width:16px;height:16px;}
 
@@ -466,7 +479,7 @@ border-radius: 3px;
 
 
 /*show as link*/
-.link{color:navy;cursor:pointer;}
+.link{color:#0A2F8F;cursor:pointer;}
 .link:hover{color:red;}
 
 
@@ -487,7 +500,7 @@ border-radius: 3px;
 	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 	background:#EEEEEE;
-	color:navy;
+	color:#0A2F8F;
 }
 
 .var-quick-list-scroll{height:190px;overflow:auto;}
@@ -522,7 +535,9 @@ margin-top: 10px;
 text-transform: uppercase;
 }
 .ui-dialog-content td .content{line-height:160%;margin-bottom:20px;}
-.ui-widget-content a{color:maroon}
+.ui-widget-content a,
+.ui-widget-content .data-file-row a,
+.ui-widget-content .data-file-row td a {color:#0A2F8F}
 .ui-widget-content a:hover{color:black}
 
 .survey-row a:visited{color:#357EC7;}
@@ -545,3 +560,136 @@ text-transform: uppercase;
 .related-citations .sort-links a{font-size:small;margin-right:6px;}
 
 .btn-central-catalog{background:url(back.gif) no-repeat;padding-left:40px;padding-top:5px;padding-bottom:5px;font-size:18px;display:block;}
+
+/*data access help page*/
+.da-help label{font-weight:bold;}
+.da-help .description{color:#333333;margin-bottom:10px;}
+
+/* -- study info page -- */
+
+/*ui tabs data access - study info */
+.ui-tabs li a .get-microdata{display:block;width:20px;height:16px;float:left;margin-right:5px;}
+.ui-tabs .da-icon-small{width:20px;height:20px;display:block;margin-left:0px;margin-right:5px;}
+.ui-tabs .da-direct{background: url(data-access-small.gif) no-repeat 0% 2%;}
+.ui-tabs .da-public{background: url(data-access-small.gif) no-repeat 0% 21%;}
+.ui-tabs .da-licensed{background: url(data-access-small.gif) no-repeat 0% 40%;}
+.ui-tabs .da-remote{background: url(data-access-small.gif) no-repeat 0% 60%;}
+
+/*grid/table listing format*/
+.study-metadata   table.survey-info{width:550px;float:left;}
+.study-metadata  .grid-table tr td{padding:5px;border-bottom:1px solid #C1DAD7;}
+.study-metadata  .grid-table .alternate{background-color:#FBFBFB}
+.study-metadata  .grid-table a{color:#00679C;text-decoration:none;}
+.study-metadata  .grid-table a:hover{color:maroon;}
+.study-metadata  .table-heading-cell{font-weight:bold;font-size:12px;border-bottom:2px solid #CFD9FE;}
+.study-metadata  .table-row-alternate{background:#F7F7F7}
+.study-metadata  .table-cell,.table-cell-alternate{padding:5px;border-bottom:1px solid #F7F7F7;}
+.study-metadata  .table a{text-decoration:none;color:#003366}
+.study-metadata  .table a:hover{text-decoration:underline;color:black}
+.study-metadata  .links img ,.content-container img {vertical-align:bottom;}
+.study-metadata  .link-col {float:left;display:block;margin-right:10px;}
+.study-metadata  .link-col-2{float:left;display:block;}
+.study-metadata  .es td{background-color:#EAEAEA}
+.study-metadata  .grid-table td {vertical-align:top;}
+
+/*survey resources summary*/
+.study-metadata  .resources h3{font-weight:bold;padding-top:10px;font-size:12px;}
+.study-metadata  .abstract{display:none;margin-bottom:10px;background-color:none;}
+.study-metadata  .resources .alternate, .resources .resource{border-bottom:1px solid #C1DAD7;padding:5px;width:98%;}
+.study-metadata  .resources .alternate{background-color:#FBFBFB;}
+.study-metadata  .resources .alternate:hover, .resources .resource:hover{background-color:#EAEAEA}
+.study-metadata  .resources fieldset {border:0px;border-top:4px solid gainsboro;margin:0px;padding:0px;margin-top:20px;margin-bottom:10px;padding-top:5px;color:#333333;font-size:12px;}
+.study-metadata  .resources fieldset legend{font-weight:bold;;padding:5px;text-transform:capitalize;margin-left:10px;}	
+.study-metadata  .resource-info{cursor:pointer;}
+.study-metadata  .resource-right-col{float:right;font-size:11px;width:15%;}
+.study-metadata  .resource-left-col{float:left;width:85%;}
+.study-metadata  .resource-file-size{display:inline-block;width:100px;text-align:left;color:#999999;}
+.study-metadata  .tbl-resource-info{padding:0px;margin:0px; border-collapse:collapse}
+.study-metadata  .resource-info{padding-left:20px;background:url("../../images/blue-add.png") no-repeat left top;}
+.study-metadata  .active .resource-info{font-weight:bold;margin-bottom:10px;background:url('../../images/blue-remove.png') no-repeat left top;}
+.study-metadata  .resources .active{border:1px solid gainsboro;margin-bottom:20px;}
+.study-metadata  .resource .caption{font-weight:bold;}
+
+/*study info - stats */
+.study-metadata .study-statistics-box{
+	height: 200px;
+	width: 218px;
+	float: right;
+	padding: 2px;
+	color: #666;
+	font-size: 11px;
+}
+
+.study-metadata .study-statistics-box table td{padding:4px;padding-top:7px;}
+.study-metadata .grid-table .no-border td{border:none;}
+.study-metadata .collection-thumb-container{margin-top:5px;height:100px;width:100px;float:left;margin-right:20px;overflow:hidden;border:1px solid gainsboro;background-color:#999999}
+.study-metadata .sep{padding-right:10px;border-right:1px solid gainsboro;}
+.study-metadata .collection{padding-bottom:3px;}
+
+/* --study-info-tab-pages-- */
+.study-metadata .tab-heading {
+	text-align: left;
+	padding: 10px;
+	padding-bottom: 40px;
+	z-index: -1;
+	background-color:#F3F3F3;
+	/*background: transparent url(tab-bg.png) repeat-x scroll bottom;*/
+	padding-left: 20px;
+	border:1px solid gainsboro;
+	font-size:small;
+}
+
+.study-metadata .ui-tabs-panel{
+background:white;border:1px solid gainsboro;overflow:auto;border-top:0px;
+}
+
+.study-metadata .ui-tabs-nav li.ui-state-active {
+position: relative;
+background:gray;
+background: url(tab-active-arrow.png) bottom center no-repeat;
+}
+
+/*active tab*/
+.study-metadata .ui-tabs-nav li.ui-state-active a {
+	background: url(active-tab-bg.png);
+	color: white;
+	margin-bottom:0px;
+}
+
+/*set tab borders*/
+.study-metadata .ui-tabs-nav li a, 
+.study-metadata .ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-active a{
+	border: 1px solid gainsboro;
+	border-bottom: 0px;
+	background:white;
+	xfont-size:12px;
+	padding:5px 10px;
+	line-height:140%;
+}
+
+.study-metadata .ui-tabs-nav li {border: 0px;}
+.study-metadata .ui-tabs-nav li.ui-tabs-active{margin-bottom:-4px;padding-bottom:4px;}
+.study-metadata .tab-sidebar{float:left;width:160px;font-size:smaller;border-right:1px solid gainsboro;margin-right:10px;padding-right:10px;}
+.study-metadata .page-body h1{margin-bottom:15px;}
+.study-metadata .tab-body{font-size:small;margin-left:170px;border-left:1px solid gainsboro;padding-left:20px;}
+.study-metadata .tab-sidebar .study-items{text-align:right;}
+.study-metadata .tab-sidebar .filetree li a{font-size:11px;}
+.study-metadata .tab-sidebar li.item{padding:0px;line-height:150%;background:none;margin-bottom:10px;}
+.study-metadata .tab-sidebar li.item a,
+.study-metadata .tab-sidebar .filetree li a{color:#0A2F8F;}
+.study-metadata .tab-sidebar li.item a:hover,
+.study-metadata .tab-sidebar .filetree li a:hover{color:black;}
+.study-metadata .tab-sidebar li.sub-item a{font-size:small;}
+.study-metadata .tab-sidebar li.sub-item a:hover{color:black;}
+.study-metadata .filetree{padding:0px;}
+.study-metadata .filetree li{overflow:hidden;}
+.study-metadata .dictionary-search{margin-bottom:15px;border:1px solid gainsboro;padding:5px;overflow:auto;}
+.study-metadata .dictionary-search .search-keywords{width:105px;border:1px solid gainsboro;margin-right:2px;padding:2px;font-size:11px;margin:0px;float:left;display:block;height:15px;}
+.study-metadata .dictionary-search .btn-search{border:0px solid gainsboro;background:gainsboro;float:left;display:block;height:21px;outline:0;margin-left:2px;}
+.study-metadata .selected{font-weight:bold;}
+.study-metadata .var-info-panel{border:2px solid gray;}
+
+/*citations row number*/
+.study-metadata .grid-table .row-num{color:gray;font-size:smaller;}
+.study-metadata .ddi-table .data-file-row{cursor:pointer;}
+.study-metadata .ddi-table .data-file-row:hover{background:gainsboro;}

@@ -234,3 +234,21 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 
 
 .pagination .page-nums a {border:1px soild black;}
+
+/*login page*/
+.login-header{
+	clear: both;
+	height:60px;
+	overflow:hidden;
+	background:#000066;
+}
+.nada-login .login-header .title, 
+.nada-login .login-header .title a{
+	font-size:18px;color:white;padding:16px;
+}
+.nada-login .login-box{margin-right:30px;}
+.nada-login h1{font-size:16px;font-weight:bold;border-bottom:1px dotted gainsboro;margin-bottom:20px;padding-bottom:5px;}
+.reason{font-size:16px;padding:10px;background-color:#FFFFCC;border:1px solid #FFCC66;margin-bottom:40px;}
+.privacy-info{font-size:11px; color:#666666;padding:5px;margin-top:20px;}
+.login-footer .ot{margin-left:25px;font-size:smaller;}
+.login-footer .first{border-right:1px solid gainsboro;padding-right:10px;margin-right:5px;}

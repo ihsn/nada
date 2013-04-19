@@ -224,22 +224,39 @@
 
 
 /*button style 1*/
-.btn-style-1:hover {
-border: 1px solid navy;
-color: white;
-padding: 2px 5px;
-font-size: small;
-background: url(btn-bg-sprites.png) 100% 66%;
-cursor: pointer;
+.btn-style-1 {
+	border: 1px solid navy;
+	color: white;
+	padding: 2px 5px;
+	font-size: small;
+	background: url(btn-bg-sprites.png) 100% 0%;
+	cursor: pointer;
 }
 
-.btn-style-1 {
-border: 1px solid navy;
-color: white;
-padding: 2px 5px;
-font-size: small;
-background: url(btn-bg-sprites.png) 100% 0%;
-cursor: pointer;
+.btn-style-1:hover {
+	border: 1px solid navy;
+	color: white;
+	padding: 2px 5px;
+	font-size: small;
+	background: url(btn-bg-sprites.png) 100% 66%;
+	cursor: pointer;
 }
+
+.btn-style-2 {
+	border: 0px solid navy;
+	color: white;
+	padding: 5px 14px;
+	font-size: small;
+	background: #19196D;
+	cursor: pointer;
+	font-weight:bold
+}
+
+.btn-style-2:hover { 
+	color: white;
+	background-color:#666666;
+	cursor: pointer;
+}
+
 
 
