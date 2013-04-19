@@ -705,6 +705,11 @@ class Citation_model extends CI_Model {
 	
 	function get_citations_count_by_survey($sid_list)
 	{
+		if(count($sid_list)==0)
+		{
+			return false;
+		}
+	
 		$surveys=implode(',',$sid_list);
 		$this->db->select('sid,count(sid) as total');	
 		$this->db->where("sid in ($surveys)");
