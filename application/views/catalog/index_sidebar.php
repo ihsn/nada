@@ -85,6 +85,15 @@
 		</div>    
 	</div>
 
-	[Data Access types]
+	<!-- data access filter-->
+    <div class="box da-filter">
+		<div class="box-header">Data Access
+		   <span class="sh" title="toggle_box">&nbsp;</span>
+		</div>
+		<div class="filter-da-body box-body">
+		<div class="pad5"><?php $this->load->view('catalog/filter_da');?></div>
+		</div>    
+	</div>
+
 
 </form>
