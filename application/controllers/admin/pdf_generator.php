@@ -152,6 +152,20 @@ class Pdf_generator extends MY_Controller {
 		redirect('admin/catalog/edit/'.$surveyid);
 	}
 	
+	
+	//delete pdf file
+	function delete($sid=NULL)
+	{
+		if(!is_numeric($sid))
+		{
+			show_error("INVALID ID");
+		}
+		
+		$this->load->library("catalog_admin");
+		$this->catalog_admin->delete_study_pdf($sid);
+		
+		redirect('admin/catalog/edit/'.$sid);
+	}
 }
 /* End of file pdf_generator.php */
 /* Location: ./controllers/admin/pdf_generator.php */
