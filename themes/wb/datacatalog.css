@@ -398,6 +398,11 @@ right: 0px;
 	background: url(data-access.gif) no-repeat 0% 80%;
 }
 
+#surveys .data-access-data_enclave {
+	background: url(data-access.gif) no-repeat 0% 100%;
+}
+
+
 #surveys .survey-row h2.title{margin-bottom:0px;font-size:20px;}
 #surveys .survey-row .sub-title{margin-top:10px;}
 #surveys .study-country{font-size:16px;}
@@ -574,6 +579,7 @@ text-transform: uppercase;
 .ui-tabs .da-public{background: url(data-access-small.gif) no-repeat 0% 21%;}
 .ui-tabs .da-licensed{background: url(data-access-small.gif) no-repeat 0% 40%;}
 .ui-tabs .da-remote{background: url(data-access-small.gif) no-repeat 0% 60%;}
+.ui-tabs .da-data_enclave{background: url(data-access-small.gif) no-repeat 0% 98%;}
 
 /*grid/table listing format*/
 .study-metadata   table.survey-info{width:550px;float:left;}
