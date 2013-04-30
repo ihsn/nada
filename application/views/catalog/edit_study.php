@@ -48,6 +48,24 @@ $(document).ready(function () {
 		});
 		
 
+		//study publish/unpublish
+		$(document.body).on("click","#survey .publish", function(){ 
+			var studyid=$(this).attr("data-sid");
+			if ($(this).attr("data-value")==0){
+				$(this).attr("data-value",1);
+				$(this).html("Published");
+				$(this).addClass("label-success");
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1',{submit:"submit"});
+			}
+			else{
+				$(this).html("Unpublished");
+				$(this).attr("data-value",0);
+				$(this).removeClass("label-success");
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1',{submit:"submit"});
+			}		
+		});
+
+
 		bind_behaviours();
 });	
 
@@ -340,6 +358,11 @@ td.active{background:gainsboro;}
 #survey .field label{font-weight:bold;display:block;}
 #survey .field{margin-bottom:10px;}
 
+/*hyperlinks*/
+#survey a{font-size:small;}
+
+#survey .actions{margin-left:10px;}
+
 /*box*/
 .box{border:1px solid gainsboro;float:right;width:18%;margin-right:5px;line-height:150%;margin-bottom:10px;
 -webkit-border-radius: 3px;
@@ -491,7 +514,7 @@ height: 56px;
         
 		<?php if(isset($survey_alias_array) && count($survey_alias_array)>0):?>
         <tr>
-            <td>Other IDs</td>
+            <td><?php echo t('study_other_IDs');?></td>
             <td>
             	<span class="survey-alias">
 					<?php foreach($survey_alias_array as $alias):?>
@@ -504,7 +527,12 @@ height: 56px;
         
         <tr>
             <td><?php echo t('year');?></td>
-            <td><?php echo $data_coll_start; ?></td>
+            <td><?php 
+				$years=array($data_coll_start,$data_coll_end);
+				$years=array_unique($years);				
+				?>			
+				<?php echo implode(" - ",$years); ?>
+            </td>
         </tr>
         <tr>
             <td><?php echo t('country');?></td>
@@ -582,32 +610,41 @@ height: 56px;
         </tr>
 
         <tr>
-            <td><?php echo t('publish');?></td>
+            <td><?php echo t('Status');?></td>
             <td>
-				<div class="collapsible">
-					<div class="box-caption">
-							<?php if ($published):?>
-										<?php echo t('published');?>
-							<?php else:?>
-										<?php echo t('unpublished');?>
-							<?php endif;?>							
-					</div>
-				
-					<div class="box-body study-publish-box collapse">
-						<form  method="post" action="<?php echo site_url();?>/admin/catalog/update">
-                            <input type="hidden" name="sid" value="<?php echo $id;?>"/>	
-                            <div class="field">
-                            	<label><?php echo t("select_publish_unpublish");?></label>
-                            	<?php echo form_dropdown('published', array('1'=>'Publish','0'=>'Unpublish'), get_form_value("pubilshed",isset($published) ? $published : '')); ?>
-                            </div>
-                            <input type="submit" value="<?php echo t('update');?>"/>
-                            <input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle"/>
-						</form>
-					</div>
-				</div>
+                <div class="status" title="<?php echo t('Click to publish or unpublish');?>">
+                <?php if (!$published):?>
+                    <span class="label publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('Unpublished');?></span>
+                <?php else:?>
+                    <span class="label publish label-success" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('Published');?></span>
+                <?php endif;?>
+                </div>                        
             </td>
         </tr>
-        
+
+        <tr>
+            <td><?php echo t('Metadata in PDF');?></td>
+            <td>
+            	<?php if ($pdf_documentation['status']=='na'):?>
+            		<span class="label label-important"  title="<?php echo t('PDF not generated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
+                <?php else:?>
+                	<?php if ($pdf_documentation['status']=='uptodate'):?>
+                		<span class="label label-success" title="<?php echo t('PDF is up-to-date');?>"><i class="icon-ok icon-white"></i></span>
+                    <?php else:?>
+                    	<span class="label label-warning" title="<?php echo t('PDF is outdated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
+                    <?php endif;?>
+                <?php endif;?>
+                <span class="actions">
+                	<?php if ($pdf_documentation['status']=='na' || $pdf_documentation['status']=='outdated' ):?>
+                    	<a href="<?php echo site_url("admin/pdf_generator/setup/$sid");?>"><?php echo t('Generate PDF');?></a>
+                    <?php endif;?>
+                    <span class="sep">  </span>
+                    <?php if($pdf_documentation['status']!=='na'):?>
+                    <a href="<?php echo site_url("admin/pdf_generator/delete/$sid");?>"><?php echo t('delete');?></a>
+                    <?php endif;?>
+                </span>
+            </td>
+		</td>        
         <tr>
             <td><?php echo t('indicator_database');?></td>
             <td>
