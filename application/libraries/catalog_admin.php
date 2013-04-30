@@ -139,7 +139,59 @@ class Catalog_Admin
 
 		return $this->ci->load->view("catalog/study_collections",$data,TRUE);
 	}
+
+
+	/**
+	*
+	* Returns PDF document or false
+	**/
+	function get_study_pdf($id)
+	{
+		//get survey folder path
+		$survey_folder=$this->ci->Catalog_model->get_survey_path_full($id);
+		
+		//get ddi file path
+		$ddi_file=$this->ci->Catalog_model->get_survey_ddi_path($id);
+		
+		//pdf file path
+		$pdf_file=unix_path($survey_folder.'/ddi-documentation-'.$this->ci->config->item("language").'-'.$id.'.pdf');
+		
+		$output=array();
+		
+		if(file_exists($pdf_file))
+		{
+			$output['path']=$pdf_file;
+			
+			//check if PDF is up-to-date
+			if(filemtime($pdf_file) > filemtime($ddi_file) )
+			{
+				$output['status']='uptodate';
+			}
+			else
+			{
+				$output['status']='outdated';
+			}
+		
+			return $output;
+		}
+		
+		$output['status']='na';
+		return $output;
+	}
 	
+	
+	function delete_study_pdf($id)
+	{
+		//get survey folder path
+		$survey_folder=$this->ci->Catalog_model->get_survey_path_full($id);
+		
+		//pdf file path
+		$pdf_file=unix_path($survey_folder.'/ddi-documentation-'.$this->ci->config->item("language").'-'.$id.'.pdf');
+
+		return @unlink($pdf_file);	
+	}
+
+
 	
 }//end class
 
