@@ -65,7 +65,7 @@
     
     <?php if (isset($collections)):?>
     
-    <div class="yui-u first span6" >		
+    <div class="yui-u first span6" style="height:400px;">		
     <?php foreach($collections as $collection):?>
         	<div class="dashboard-box collection">
             	<div class="dashboard-box-title text-shadow"><?php echo t('Collection');?>: <?php echo $collection['title'];?></div>
@@ -85,15 +85,16 @@
                     <div class="right">
                     	<div class="warning-box">
                     	<?php 
+							$total_owned=(int)$collection['stats']['owned'];
 							$total_puf=(int)$collection['stats']['total_puf'];
 							$no_microdata=$total_puf -(int)$collection['stats']['microdata'];
-							$no_questionnaires=$total_puf - (int)$collection['stats']['questionnaires'];
+							$no_questionnaires=$total_owned - (int)$collection['stats']['questionnaires'];
 						?>
                         <?php if($no_microdata>0):?>
-	                    	<div class="warning"><span class="badge badge-warning"><?php echo (int)$collection['stats']['total_puf'] -(int)$collection['stats']['microdata'];?></span> PUF with no datafiles</div>
+	                    	<div class="warning"><span class="badge badge-warning"><?php echo $no_microdata;?></span> PUF with no datafiles</div>
                         <?php endif;?>
 						<?php if($no_questionnaires>0):?>
-                        	<div class="warning"><span class="badge badge-warning"><?php echo (int)$collection['stats']['total_puf'] - (int)$collection['stats']['questionnaires'];?></span> with no questionnaires</div>
+                        	<div class="warning"><span class="badge badge-warning"><?php echo $no_questionnaires;?></span> with no questionnaires</div>
                         <?php endif;?>
                        
                        <?php if( (int)$collection['stats']['lic_requests'] > 0 ):?>
@@ -112,7 +113,7 @@
                 	<div class="actions">
                 	<span class="btn btn-mini btn-success"><a href="<?php echo site_url('admin/repositories/active/'.$collection['id'].'?destination=admin/catalog');?>"><?php echo t('Maintenance');?></a></span> 
                 	<span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/permissions/'.$collection['id'], t('Administrators'));?></span>
-                    <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/history/'.$collection['id'], t('History'));?></span>
+                    <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/history/'.$collection['repositoryid'], t('History'));?></span>
                     <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/edit/'.$collection['id'], t('Edit'));?></span>
                     </div>
                 </div>
