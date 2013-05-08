@@ -11,9 +11,9 @@ foreach($user_repositories as $repo)
 $active_repository='';
 
 //get active repo
-if (isset($this->active_repo) && $this->active_repo!=NULL)
+if (isset($active_repo) && $active_repo!=NULL)
 {
-	$active_repository=$this->active_repo->repositoryid;
+	$active_repository=$active_repo->repositoryid;
 }
 ?>
 
@@ -21,7 +21,6 @@ if (isset($this->active_repo) && $this->active_repo!=NULL)
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
-<?php include 'catalog_page_links.php';?>
 
 <h1 class="page-title"><?php echo t('batch_import_title');?></h1>
 <div>
