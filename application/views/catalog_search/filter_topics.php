@@ -12,6 +12,7 @@
         <label for="topic-any">Any</label>
     </div>
 	<div class="items-container topic-items <?php //echo (count($topics)>10) ? 'scrollable' : ''; ?>">
+	<?php if($topics):?>
 	<?php $k=0;foreach($topics as $topic):$k++; ?>
     	<?php if($topic['pid']==0){continue;}?>
         <div class="topic item inactive">
@@ -27,6 +28,7 @@
             </label>
         </div>
     <?php endforeach;?>
+    <?php endif;?>
     </div>
         
     <div class="filter-footer">
