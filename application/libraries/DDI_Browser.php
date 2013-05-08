@@ -195,6 +195,25 @@ class DDI_Browser{
 		$output=$this->_clean_xml($output);
 		return $output;
 	}
+	
+	
+	/**
+	*
+	* Download DDI file
+	**/
+	function download_ddi($ddi_file)
+	{
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename='.basename($ddi_file));
+		header('Content-Transfer-Encoding: binary');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+		header('Content-Length: ' . filesize($ddi_file));
+		ob_clean();
+		flush();
+		return readfile($ddi_file);
+	}
 
 	/**
 	*
