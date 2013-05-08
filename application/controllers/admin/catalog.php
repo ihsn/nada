@@ -44,7 +44,7 @@ class Catalog extends MY_Controller {
 		{
 			//get repository basic info
 			$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
-			
+
 			//set active repo
 			$this->active_repo=$repo_obj;
 			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
@@ -60,7 +60,8 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{	
-		$this->_persist_search();
+		//TODO:need more testing.
+		//$this->_persist_search();
 		
 		//css files
 		$this->template->add_css('themes/admin/catalog_admin.css');
@@ -424,9 +425,13 @@ class Catalog extends MY_Controller {
 	 * Upload form for DDI (xml) file
 	 *
 	 * @return void
+	 *
+	 * TODO: Remove
 	 **/
 	function upload()
 	{		
+		redirect("admin/catalog/add_study");return;
+		
 		$this->template->set_template('admin');			
 		$this->load->library('upload');
 	
@@ -438,6 +443,134 @@ class Catalog extends MY_Controller {
 		
 		//render final output
 	  	$this->template->render();
+	}
+	
+	/**
+	 * Upload form for DDI (xml) file
+	 *
+	 * @return void
+	 **/
+	function add_study()
+	{		
+		$this->template->set_template('admin');			
+	
+		//show upload form when no DDI is uploaded
+		if(!$this->input->post("submit"))
+		{
+			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+			return;
+		}
+		
+		$overwrite=$this->input->post("overwrite");
+		$repositoryid=$this->input->post("repositoryid");
+
+		//user has permissions on the repo
+		$this->acl->user_has_repository_access($repositoryid);
+		
+		if($overwrite=='yes')
+		{
+			$overwrite=TRUE;
+		}
+		else
+		{
+			$overwrite=FALSE;
+		}
+		
+		//process form
+		
+		//catalog folder path
+		$catalog_root=$this->config->item("catalog_root");
+		
+		//if not fixed path, use a relative path
+		if (!file_exists($catalog_root) )
+		{
+			$catalog_root=FCPATH.$catalog_root;
+		}		
+		
+		//create .htaccess if not already exists
+		@file_put_contents($catalog_root.'/.htaccess','deny from all');
+		@chmod($catalog_root.'/.htaccess',0444);
+		
+		$temp_upload_folder=$catalog_root.'/tmp';
+		
+		@mkdir($temp_upload_folder);
+		
+		if (!file_exists($temp_upload_folder))
+		{
+			show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
+		}
+		
+		//upload class configurations for DDI
+		$config['upload_path'] 	 = $temp_upload_folder;
+		$config['overwrite'] 	 = FALSE;
+		$config['encrypt_name']	 = TRUE; 
+		$config['allowed_types'] = 'xml';
+
+		$this->load->library('upload', $config);
+		
+		//process uploaded ddi file
+		$ddi_upload_result=$this->upload->do_upload();
+		
+		$uploaded_ddi_path=NULL;
+
+		//ddi upload failed
+		if (!$ddi_upload_result)
+		{
+			$error = $this->upload->display_errors();
+			$this->db_logger->write_log('ddi-upload',$error,'catalog');
+			$this->session->set_flashdata('error', $error);
+			redirect('admin/catalog/add_study','refresh');
+		}	
+		else //successful upload
+		{			
+			//get uploaded file information
+			$uploaded_ddi_path = $this->upload->data();
+			$uploaded_ddi_path=$uploaded_ddi_path['full_path'];
+			$this->db_logger->write_log('ddi-upload','success','catalog');
+		}
+
+		//import DDI file
+		$this->load->library('catalog_admin');
+		$result=$this->catalog_admin->import_ddi($uploaded_ddi_path,$overwrite,$repositoryid, $delete_after_import=TRUE);
+		
+		if ($result['status']=='error')
+		{
+			$this->session->set_flashdata('error', $result['message']);
+			redirect('admin/catalog/add_study','refresh');return;
+		}
+
+		//upload class configurations for RDF
+		$config['upload_path'] = $temp_upload_folder;
+		$config['overwrite'] = FALSE;
+		$config['encrypt_name']=TRUE; 
+		$config['allowed_types'] = 'rdf';
+		
+		$this->upload->initialize($config);
+				
+		//process uploaded rdf file
+		$rdf_upload_result=$this->upload->do_upload('rdf');
+		
+		$uploaded_rdf_path='';
+		
+		if ($rdf_upload_result)
+		{
+			$uploaded_rdf_path = $this->upload->data();
+			$uploaded_rdf_path=$uploaded_rdf_path['full_path'];
+		}
+		
+		if (isset($result['sid']) && $uploaded_rdf_path!="")
+		{
+			//import rdf
+			$this->catalog_admin->import_rdf($result['sid'],$uploaded_rdf_path);
+			
+			//delete rdf
+			@unlink($uploaded_rdf_path);
+		}
+		
+		$this->session->set_flashdata('message', $result['message']);
+		redirect('admin/catalog/edit/'.$result['sid'],'refresh');		
 	}
 	
 
@@ -458,18 +591,41 @@ class Catalog extends MY_Controller {
 			$catalog_root=FCPATH.$catalog_root;
 		}		
 		
+		$temp_upload_folder=$catalog_root.'/tmp';
+		
+		@mkdir($temp_upload_folder);
+		
+		if (!file_exists($temp_upload_folder))
+		{
+			show_error('DATAFILES/TEMP-FOLDER-NOT-SET');
+		}
+		
 		//upload class configurations
-		$config['upload_path'] = $catalog_root;
-		$config['overwrite'] = TRUE; //overwrite the file, if already exists
-		$config['allowed_types'] = '*'; //format: xml|zip
+		$config['upload_path'] 	 = $temp_upload_folder;
+		$config['overwrite'] 	 = FALSE; //overwrite the file, if already exists
+		$config['encrypt_name']	 = TRUE; 
+		$config['allowed_types'] = 'xml';
 		
 		//load upload library
 		$this->load->library('upload', $config);
 		
-		//process uploaded file
-		$upload_result=$this->upload->do_upload();
+		//process uploaded ddi file
+		$ddi_upload_result=$this->upload->do_upload();
+
+		//upload class configurations
+		$config['upload_path'] = $temp_upload_folder;
+		$config['overwrite'] = FALSE; //overwrite the file, if already exists
+		$config['encrypt_name']=TRUE; 
+		$config['allowed_types'] = 'rdf';
 		
-		if (!$upload_result)
+		$this->upload->initialize($config);
+				
+		//process uploaded ddi file
+		$rdf_upload_result=$this->upload->do_upload('rdf');
+
+exit;
+		
+		if (!$ddi_upload_result)
 		{
 			//get errors while uploading
 			$error = $this->upload->display_errors();
@@ -546,7 +702,7 @@ class Catalog extends MY_Controller {
 			$error= t('invalid_ddi_file').' '.$ddi_file;
 			log_message('error', $error);
 			$this->db_logger->write_log('ddi-import',$error,'catalog');
-			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);
+			//$error.=$this->load->view('catalog/upload_file_info', $session_data, true);
 			$this->session->set_flashdata('error', $error);
 			
 			redirect('admin/catalog/replace','refresh');
@@ -649,7 +805,7 @@ class Catalog extends MY_Controller {
 			//log to database
 			$this->db_logger->write_log('ddi-import',$error,'catalog');
 
-			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
+			//$error.=$this->load->view('catalog/upload_file_info', $session_data, true);			
 
 			$this->session->set_flashdata('error', $error);
 			redirect('admin/catalog/upload','refresh');
@@ -861,6 +1017,8 @@ class Catalog extends MY_Controller {
 				}
 			}
 		}	
+		
+		$files['active_repo']=$this->active_repo;
 
 		$content=$this->load->view('catalog/ddi_batch_import', $files, true);	
 
@@ -1352,8 +1510,45 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo_negate=TRUE;
 		}
 		
-		//get surveys		
-		$db_rows=$this->_search();
+		$ps=(int)$this->input->get("ps");
+		if($ps==0 || $ps>500)
+		{
+			$ps=15;
+		}
+
+		$per_page=(int)$this->input->get("per_page");		
+		$total=$this->Catalog_model->search_count();
+		$db_rows['rows']=$this->Catalog_model->search($limit = $ps, $offset = $per_page);
+		$db_rows['active_repo']=$this->active_repo;
+		/*if ($curr_page>$total)
+		{
+			$curr_page=$total-$per_page;
+			
+			//search again
+			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
+		}*/
+		
+		//set pagination options
+		$base_url = site_url('admin/catalog/copy_study');
+		$config['base_url'] = $base_url;
+		$config['total_rows'] = $total;
+		$config['per_page'] = $ps;
+		$config['page_query_string'] = TRUE;
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['next_link'] = t('page_next');
+		$config['num_links'] = 5;
+		$config['prev_link'] = t('page_prev');
+		$config['first_link'] = t('page_first');
+		$config['last_link'] = t('last');
+		$config['full_tag_open'] = '<span class="page-nums">' ;
+		$config['full_tag_close'] = '</span>';
+		
+		//intialize pagination
+		$this->pagination->initialize($config); 
+
+		
+		//get surveys
+		//$db_rows=$this->_search();
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/copy_studies', $db_rows,true);
@@ -1364,6 +1559,7 @@ class Catalog extends MY_Controller {
 		//render final output
 	  	$this->template->render();
 	}
+	
 	
 	function do_copy_study($repositoryid=NULL,$sid=NULL)
 	{
@@ -1674,6 +1870,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Catalog_Notes_model');
        	$this->load->model('Catalog_Tags_model');
        	$this->load->model('Survey_alias_model');
+		$this->load->library('catalog_admin');
         //$this->load->library('ion_auth');
 		
 		$this->load->library("catalog_admin");
@@ -1695,6 +1892,9 @@ class Catalog extends MY_Controller {
 		}
 		
 		$survey_row['survey_id']=$id;
+		
+		//study warnings
+		$survey_row['warnings']=$this->catalog_admin->get_study_warnings($id);
 		
 		//get survey countries
 		$survey_row['countries']=$this->Catalog_model->get_survey_countries($id);
@@ -1750,6 +1950,9 @@ class Catalog extends MY_Controller {
 		
 		//array of all relationship types
 		$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
+
+		//pdf documentation for study
+		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
 		//data access form list
 		$this->load->model('Form_model');
