@@ -647,8 +647,37 @@ class Resource_model extends CI_Model {
 		
 		}
 		
-		//http://localhost/nada4/index.php/catalog/26/download/236
 	}
+	
+	
+	/**
+	*
+	* Check if any resources are attached to the study
+	*
+	*/
+	function has_external_resources($surveyid)
+	{
+		$this->db->select('count(*) as total');
+		$this->db->where('survey_id',$surveyid);
+		//$this->db->not_like('dctype','dat]');
+		//$this->db->not_like('dctype','dat/micro]');
+		$result=$this->db->get('resources')->row_array();		
+		return $result['total'];
+	}
+
+	/**
+	*
+	* Returns resource counts group by dctype
+	**/
+	function get_grouped_resources_count($surveyid)
+	{
+		$this->db->select('dctype,count(*) as total');
+		$this->db->where('survey_id',$surveyid);
+		$this->db->group_by('dctype');
+		$result=$this->db->get('resources')->result_array();
+		return $result;
+	}
+
 	
 }
 ?>
