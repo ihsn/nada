@@ -60,10 +60,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
             
 		</div>
 	</div>
-    <!-- highlights -->
-    <?php if (isset($this->blocks['highlights'])):?>
-			<?php echo $this->blocks['highlights'];?>
-    <?php endif;?>
 
 
     <!-- footer -->
