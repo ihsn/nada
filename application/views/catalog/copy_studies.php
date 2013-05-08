@@ -1,6 +1,6 @@
 <style>
 .box1{padding:10px; background-color:#FFFFCC;border:1px solid gainsboro;margin-top:10px;margin-bottom:15px;}
-span.active-repo{font-size:smaller;color:gray;}
+span.active-repo{background:gainsboro;padding:5px;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -10,7 +10,6 @@ span.active-repo{font-size:smaller;color:gray;}
 	}
 ?>
 <div class="body-container" style="padding:10px;">
-<?php include 'catalog_page_links.php';?>
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
@@ -20,13 +19,13 @@ span.active-repo{font-size:smaller;color:gray;}
 
 <h1 class="page-title">
 	<?php echo t('copy_studies_to');?>
-    <?php if (isset($this->active_repo) && $this->active_repo!=NULL):?>
-    	<span class="active-repo">[<?php echo $this->active_repo->title;?>]</span>
+    <?php if (isset($active_repo) && $active_repo!=NULL):?>
+    	<span class="active-repo"><?php echo $active_repo->title;?></span>
     <?php endif;?>
 </h1>
 
-<div class="box1"><?php echo t('msg_copy_studies');?></div>
-
+<p><?php echo sprintf(t('msg_copy_studies'),'<img src="themes/admin/bullet-gray.gif" />');?> </p>
+<p>&nbsp;</p>
 <!-- search form-->
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="catalog-search">	
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
@@ -108,12 +107,12 @@ span.active-repo{font-size:smaller;color:gray;}
         <tr class="<?php echo $tr_class;?>">
         	<td><input type="checkbox" id="chk_toggle"/></td>
          	<?php if ($this->config->item("regional_search")=='yes'):?>
-            	<td><?php echo $row['repositoryid'];?></td>
+            	<td><?php echo strtoupper($row['repositoryid']);?></td>
 			  	<td><?php echo $row['nation'];?></td>
             <?php endif;?>
             <td><?php echo $row['titl']; ?></td>
             <td><?php echo date($this->config->item('date_format_long'), $row['changed']); ?></td>
-            <td><a class="repo-link" href="<?php echo site_url();?>/admin/catalog/do_copy_study/<?php echo $this->active_repo->repositoryid;?>/<?php echo $row['id'];?>"><img class="copy-study" src="themes/admin/bullet-gray.gif" alt="COPY" title="<?php echo t('alt_copy_study')?>"/></a></td>
+            <td><a class="repo-link" href="<?php echo site_url();?>/admin/catalog/do_copy_study/<?php echo $active_repo->repositoryid;?>/<?php echo $row['id'];?>"><img class="copy-study" src="themes/admin/bullet-gray.gif" alt="COPY" title="<?php echo t('alt_copy_study')?>"/></a></td>
         </tr>        
     <?php endforeach;?>
 	</table>
