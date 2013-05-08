@@ -217,6 +217,7 @@ class Catalog extends MY_Controller {
 		$data['max_year']=$this->Search_helper_model->get_max_year();
 		
 		$search_options=new StdClass;
+		$search_options->filter= new StdClass;
 		
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
