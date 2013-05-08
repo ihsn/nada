@@ -25,12 +25,12 @@ table .input-flex{margin-bottom:5px;}
 
 /*model dialog*/
 .ui-widget-header{background:black;border:black;color:white;}
-.ui-dialog .ui-dialog-content{overflow:hidden;padding:0px;background:white;}
+.ui-dialog .ui-dialog-content{overflow:auto;padding:0px;background:white;}
 
 /*related studies tab*/
 .dialog-container .table-container {
-	height: 246px;
-	overflow: auto;
+/*	height: 246px;
+	overflow: auto;*/
 	font-size: 12px;
 }
 
@@ -82,6 +82,7 @@ height: 56px;
 .ui-dialog .ui-dialog-buttonpane {
 	font-size: 12px;	
 }
+.ui-widget-overlay {opacity:0.8}
 
 .grid-table .header{font-weight:bold;}
 .sub-text{font-size:smaller;color:gray;}
@@ -192,17 +193,15 @@ height: 56px;
     <input name="owner" type="text" id="owner" size="50" class="input-flex"  value="<?php echo get_form_value('owner',isset($owner) ? $owner : $this->ion_auth->current_user()->username); ?>"/>
 </div>
         
-<fieldset class="field-expanded">
-	<legend><?php echo t('abstract');?></legend>
-	<div class="field">
-        <textarea name="abstract" id="abstract" rows="5" class="input-flex"><?php echo get_form_value('abstract',isset($abstract) ? $abstract : ''); ?></textarea>
-	</div>
-</fieldset>
+<div class="field">
+	<label for="abstract"><?php echo t('abstract');?></label>
+        <textarea name="abstract" id="abstract" rows="10" class="input-flex"><?php echo get_form_value('abstract',isset($abstract) ? $abstract : ''); ?></textarea>
+</div>
 
 <fieldset class="field-expanded">
 	<legend><?php echo t('related_studies');?></legend>
     <div class="field">
-	    <a style="text-align:right;float:right;display:block;" class="attach_studies" href="javascript:void(0);">Attach Studies</a>   
+	    <a style="text-align:right;float:right;display:block;" class="attach_studies" href="javascript:void(0);"><?php echo t('Attach Studies');?></a>   
         <div id="related-surveys" ><?php echo $survey_list; ?></div>         
     </div>
 </fieldset>
@@ -223,13 +222,13 @@ height: 56px;
 
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
-	<?php echo anchor('admin/citations/', t('cancel'), array('class'=>'button'));?>
+	<?php echo anchor('admin/citations/', t('cancel'));?>
 </div>
 <?php echo form_close();?>
 </div>
 <script type="text/javascript">
 	
-	$(".input-flex").keyup(function() {
+	/*$(".input-flex").keyup(function() {
 		$("#citation-preview .citation-title").html($("#title").val()+'.');
 		var authors_arr=$("#authors").val().split("\n");
 		var authors='';
@@ -263,14 +262,17 @@ height: 56px;
 		$("#citation-preview .citation-pages").html($("#pages").val()+'.');
 		$("#citation-preview").show();
     });
-	
-	$('.field-expanded > legend').click(function(e) {
-			e.preventDefault();
-			$(this).parent('fieldset').toggleClass("field-collapsed");
-			return false;
-	});
+	*/
 	
 	$(document).ready(function() {
+
+		$('.field-expanded > legend').click(function(e) {
+				e.preventDefault();
+				$(this).parent('fieldset').toggleClass("field-collapsed");
+				return false;
+		});
+	
+
   		$('.field-expanded > legend').parent('fieldset').toggleClass('field-collapsed');
 		
 		//change citation type
@@ -394,9 +396,9 @@ height: 56px;
 		}
 		
 		var dialog=$( "#"+dialog_id ).dialog({
-			height: 500,
+			height: $(window).height()-100,
 			position:"center",
-			width:750,
+			width:$(window).width()-100,
 			modal: true,
 			autoOpen: true,
 			buttons: {
@@ -424,6 +426,7 @@ height: 56px;
 		dialog.data("selected","");
 		
 		//load dialog content
+		$('#'+dialog_id).html("<?php echo t("js_loading");?>");
 		$('#'+dialog_id).load(url, function() {
 			//console.log("loaded");			
 		});
