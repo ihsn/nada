@@ -137,8 +137,14 @@ class Country_region_model extends CI_Model {
 		$this->db->where('s.published',1);
 		$this->db->group_by('c.countryid,c.name');
 		$this->db->order_by('c.name');
-		$query = $this->db->get()->result_array();
-		return $query;		
+		$query = $this->db->get();
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
 	}
 	
 	
