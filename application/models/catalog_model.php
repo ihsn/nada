@@ -95,7 +95,7 @@ class Catalog_model extends CI_Model {
 		//$this->db->start_cache();		
 		
 		//select survey fields
-		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
+		$this->db->select('surveys.id,sr.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
 							link_indicator, link_questionnaire,	isshared,changed,created,published,data_coll_start');
 		
@@ -161,38 +161,7 @@ class Catalog_model extends CI_Model {
 			$allowed_fields['repositoryid']='sr.repositoryid';
 		}	
 		
-		/*
-		$where=NULL;
-		
-		if ($fields=='all')
-		{			
-			$where['field']=$allowed_fields;
-			$where['keywords']=$keywords;			
-		}
-		else if (in_array($fields, $allowed_fields) )
-		{
-			$where['field']=array($fields);
-			$where['keywords']=$keywords;			
-		}
-		*/
-		$where_clause='';
-		/*
-		if ($where!=NULL)
-		{
-			foreach($where['field'] as $field)
-			{
-				if ( trim($where_clause)!='')
-				{	
-					$where_clause.= ' AND '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
-				}
-				else
-				{
-					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
-				}	
-			}	
-		}
-		*/
-			
+		$where_clause='';			
 		$filter='';
 
 		//build where clause for FILTERS
@@ -276,7 +245,7 @@ class Catalog_model extends CI_Model {
 			}
 			else
 			{	//show studies not part of the active repository
-				$where_clause.=' and surveys.repositoryid!='.$this->db->escape($this->active_repo).' and surveys.id not in (select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
+				$where_clause.=' and isadmin=1 and sr.repositoryid!='.$this->db->escape($this->active_repo). ' AND sr.sid not in(select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
 			}	
 		}
 		
@@ -330,16 +299,9 @@ class Catalog_model extends CI_Model {
 				$where_clause=$search_options_str;
 			}
 		}
-		 
-		
-		/*
-		echo '<pre>';
-		var_dump($search_options);
-		var_dump($where_clause);
-		echo '</pre>';
-		*/
 		return $where_clause;
 	}
+
 
 	//returns the search result count  	
     function search_count()
@@ -392,6 +354,11 @@ class Catalog_model extends CI_Model {
 		
 		//execute query
 		$survey=$this->db->get('surveys')->row_array();
+		
+		if(!$survey)
+		{
+			return FALSE;
+		}
 		
 		//get study ownership/link info
 		$this->db->select("*");
@@ -679,7 +646,7 @@ class Catalog_model extends CI_Model {
 	{
 		//get survey folder path
 		$data=$this->select_single($id);
-				
+		
 		if ($data===FALSE || count($data)<1)
 		{
 			return FALSE;
@@ -777,9 +744,9 @@ class Catalog_model extends CI_Model {
 			$this->db->where('sid', $id); 
 			$this->db->delete('survey_years');
 			
-			//remove collections
-			//$this->db->where('sid', $id); 
-			//$this->db->delete('survey_collections');					
+			//remove repos
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_repos');
 
 			//remove alias
 			$this->db->where('sid', $id); 
@@ -788,6 +755,15 @@ class Catalog_model extends CI_Model {
 			//remove countries
 			$this->db->where('sid', $id); 
 			$this->db->delete('survey_countries');
+
+			//remove tags
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_tags');
+			
+			//remove notes
+			$this->db->where('sid', $id); 
+			$this->db->delete('survey_notes');
+
 		}		
 	}
 
@@ -1028,7 +1004,7 @@ class Catalog_model extends CI_Model {
 	* 
 	* Returns collection rows for the survey
 	*/
-	function get_collections($id)
+	/*function get_collections($id)
 	{
 		$sql='select t.title as title
 				FROM vocabularies v
@@ -1058,7 +1034,7 @@ class Catalog_model extends CI_Model {
 	
 		return $items;
 	}
-	
+	*/
 	
 	/**
 	* returns a compact list of all surveys
