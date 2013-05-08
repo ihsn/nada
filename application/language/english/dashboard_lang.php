@@ -25,6 +25,10 @@ $lang['clear_cache_files'] = "You have <b>%d</b> cached files, <a href=\"%s\">cl
 $lang['recent_studies'] = "Recently updated studies";
 $lang['logged_in_users'] = "Logged in";
 $lang['anonymous_users'] = "Anonymous users viewing the site";
-
+$lang['Maintenance'] = "Maintenance";
+$lang['Administrators'] = "Administrators";
+$lang['History'] = "History";
+$lang['Edit'] = "Edit";
+$lang['Collection'] = "Collection";
 /* End of file dashboard_lang.php */
 /* Location: ./system/language/english/dashboard_lang.php */
