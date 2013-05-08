@@ -1,5 +1,5 @@
 <?php 
-	$item_limit=3;
+	$item_limit=0;
 ?>
 
 <div class="filter-box filter-by-collection">
@@ -13,6 +13,7 @@
     </div>
 
 	<div class="items-container  collection-items <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
+	<?php if($repositories):?>
 	<?php $k=0;foreach($repositories as $repo):$k++; ?>
         <div class="collection <?php echo $k;?> item inactive">
             <input class="chk chk-collection" type="checkbox" name="collection[]" 
@@ -27,6 +28,7 @@
             </label>
         </div>
     <?php endforeach;?>
+    <?php endif;?>
     </div>
     
 <?php if(count($repositories)>$item_limit):?>    
