@@ -81,12 +81,12 @@ class Repository_model extends CI_Model {
 	
 	/**
 	* Select surveys by repositoryid
-	*
+	* todo:remove
 	**/
-	function get_surveys_by_repository($repositoryid){
+	/*function get_surveys_by_repository($repositoryid){
 		$this->db->where('repositoryid', $repositoryid); 
 		return $this->db->get('harvester_queue')->result_array();
-	}
+	}*/
 	
 
 	/**
@@ -97,7 +97,11 @@ class Repository_model extends CI_Model {
 	*	- new	- not in the catalog
 	*	- changed	- checksum is different
 	* 	- deleted	- 
+	*
+	*
+	* TODO:remove
 	*/
+	/*
 	function update_queue($repositoryid, $options)
 	{
 		$allowed_fields=array('retries','repositoryid','survey_url',
@@ -125,15 +129,6 @@ class Repository_model extends CI_Model {
 		if ($queued_item)
 		{			
 			$data['status']=$queued_item['status'];
-			/*if (!$isharvested)
-			{
-				$data['status']="new";
-			}
-			else
-			{
-				$data['status']="harvested";
-			}*/
-
 			$this->db->where('survey_url',$options['survey_url']);
 			$this->db->where('repositoryid',$repositoryid);
 			$this->db->update('harvester_queue', $data); 
@@ -153,11 +148,13 @@ class Repository_model extends CI_Model {
 			$result=$this->db->insert('harvester_queue', $data); 
 		}	
 	}
+	*/
 
 	/**
 	*
 	* Checks if a survey exists in the queue
 	**/
+	/*
 	function check_queue_item_exists($repositoryid,$survey_url)
 	{
 		$this->db->where('repositoryid', $repositoryid); 
@@ -170,11 +167,13 @@ class Repository_model extends CI_Model {
 		}
 		return FALSE;
 	}
+	*/
 	
 	/**
 	* Return queue item array
 	*
 	**/
+	/*
 	function get_queue_item($repositoryid,$survey_url)
 	{
 		$this->db->where('repositoryid', $repositoryid); 
@@ -183,6 +182,7 @@ class Repository_model extends CI_Model {
 		
 		return $row;
 	}
+	*/
 
 
 	function update_survey_data_access($repositoryid,$surveyid,$data_access_type)
@@ -247,13 +247,13 @@ class Repository_model extends CI_Model {
 	}
 	*/
 	
-	
+	/*
 	function update_status_code($id,$status)
 	{
 		$data=array('status'=>$status);
 		$this->db->where('id', $id); 
 		$this->db->update("harvester_queue",$data);
-	}
+	}*/
 	
 	
 
@@ -315,6 +315,7 @@ class Repository_model extends CI_Model {
 	}*/
 
 	//get a single item from the queue for processing
+	/*
 	function queue_pop($id=NULL)
 	{
 		//$this->db->where('status!=', "'completed'",FALSE);
@@ -329,11 +330,13 @@ class Repository_model extends CI_Model {
 		//echo $this->db->last_query();
 		return $query->row_array();
 	}
+	*/
 
 	/**
 	*
 	* update survey info in queue
 	**/
+	/*
 	function update_queued_survey($survey_url,$options)
 	{
 		$fields=array('retries','repositoryid','survey_url',
@@ -357,7 +360,7 @@ class Repository_model extends CI_Model {
 		//echo $this->db->last_query();
 		return $query;
 	}
-
+	*/
 
 
 
@@ -378,8 +381,6 @@ class Repository_model extends CI_Model {
 			'country',
 			'status',
 			'changed',
-			'scan_interval',
-			'scan_lastrun',
 			'short_text',
 			'long_text',
 			'thumbnail',
@@ -387,8 +388,6 @@ class Repository_model extends CI_Model {
 			'weight',
 			'ispublished',
 			'section',
-			'group_da_public',
-			'group_da_licensed'
 			);
 
 		//add date modified
@@ -417,7 +416,7 @@ class Repository_model extends CI_Model {
 
 
 
-/**
+	/**
 	* add 
 	*
 	* 	options			array
@@ -433,8 +432,6 @@ class Repository_model extends CI_Model {
 			'country',
 			'status',
 			'changed',
-			'scan_interval',
-			'scan_lastrun',
 			'short_text',
 			'long_text',
 			'thumbnail',
@@ -442,8 +439,6 @@ class Repository_model extends CI_Model {
 			'weight',
 			'ispublished',
 			'section',
-			'group_da_public',
-			'group_da_licensed'
 			);
 
 		//add date modified
@@ -850,7 +845,7 @@ class Repository_model extends CI_Model {
 	**/
 	public function repo_survey_list($repositoryid,$data_access_types=NULL)
 	{
-		$this->db->select('surveys.id,surveys.titl,surveys.nation,surveys.data_coll_start,surveys.data_coll_end,forms.model as da_model');		
+		$this->db->select('surveys.id,surveys.titl,surveys.nation,surveys.data_coll_start,surveys.data_coll_end,forms.model as da_model,surveys.created,surveys.changed');
 		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
 		$this->db->join('forms', 'surveys.formid = forms.formid','left');
 		$this->db->where('survey_repos.repositoryid',$repositoryid);
@@ -912,7 +907,14 @@ class Repository_model extends CI_Model {
 		$this->db->where('r.pid >',0);
 		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
 		$this->db->order_by('r.weight');		
-		return $this->db->get('repositories r')->result_array();	
+		$query=$this->db->get('repositories r');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
 	}
 	
 	
@@ -988,14 +990,22 @@ class Repository_model extends CI_Model {
 		return FALSE;
 	}*/
 
-	
-	
+	/**
+	* Delete orphan rows from the survey_repos table
+	**/
+	private function remove_orphan_entries()
+	{
+		$this->db->query('delete from survey_repos where sid not in(select id from surveys);');
+	}
+
 	/**
 	*
 	* Returns all sort of stats for the repository
 	**/
 	function get_summary_stats($repositoryid)
 	{
+		$this->remove_orphan_entries();
+		
 		$output=array(
 				'owned'			=>	$this->get_stats_by_ownership($repositoryid,1),
 				'linked'		=>	$this->get_stats_by_ownership($repositoryid,0),
