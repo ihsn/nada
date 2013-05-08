@@ -75,7 +75,7 @@
 <table class="grid-table" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<?php $params_persist=array('keywords','field','ps','show_selected_only');?>
-             <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('id'),$page_url,$params_persist); ?></th>
+             <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('ID'),$page_url,$params_persist); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,$params_persist); ?></th>
              <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$params_persist); ?></th>                
             <th><?php echo create_sort_link($sort_by,$sort_order,'proddate',t('year'),$page_url,$params_persist); ?></th>
