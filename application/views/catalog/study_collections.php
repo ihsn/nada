@@ -1,9 +1,6 @@
-<pre>
-<?php var_dump($selected);?>
-</pre>
 <div class="study-attached-collections">
 <table>
-<?php foreach($collections as $coll):?>
+<?php foreach($collections as $coll):?>	
 	<?php 
 		$checked='';
 		if (in_array($coll['repositoryid'],$selected))
