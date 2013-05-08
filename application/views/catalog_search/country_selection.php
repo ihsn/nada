@@ -30,13 +30,15 @@ $(document).ready(function()  {
 			$letters[strtoupper($alphabet)]='';
 		}		
     ?>
-    <?php foreach($countries as $country):?>
+    <?php if($countries):?>
+	<?php foreach($countries as $country):?>
         <?php 
             $letter=strtoupper(substr($country['nation'],0,1));
             $index[$letter][]=$country;
             $letters[$letter]=$letter;
         ?>
     <?php endforeach;?>
+    <?php endif;?>
 
     <div class="index">
     <?php foreach($letters as $key=>$value):?>
