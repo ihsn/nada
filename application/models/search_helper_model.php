@@ -360,7 +360,14 @@ class Search_helper_model extends CI_Model {
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 		
-		$rows=$this->db->get('survey_countries')->result_array();
+		$query=$this->db->get('survey_countries');
+		
+		if(!$query)
+		{
+			return FALSE;
+		}
+		
+		$rows=$query->result_array();
 		
 		$countries=array();
 		foreach($rows as $country)
@@ -444,7 +451,14 @@ class Search_helper_model extends CI_Model {
 				group by surveys.formid, forms.model;';
 		}
 
-		$result=$this->db->query($sql)->result_array();
+		$query=$this->db->query($sql);
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=$query->result_array();
 
 		if (!$result)
 		{
