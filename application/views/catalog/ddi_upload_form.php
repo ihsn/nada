@@ -1,3 +1,6 @@
+<style type="text/css">
+.active-repo{background:gainsboro;padding:5px;}
+</style>
 <?php
 //get repositories list by user access
 $user_repositories=$this->acl->get_user_repositories();	
@@ -36,13 +39,10 @@ if ($max_upload>$max_post){
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
-<h1 class="page-title"><?php echo t('upload_ddi');?></h1>
+<h1 class="page-title"><?php echo t('add_study_to_collection');?> <span class="active-repo"><?php echo $repositories_list[$active_repository];?></span></h1>
 <div style="width:500px;">
-	<?php echo form_open_multipart('admin/catalog/do_upload', array('class'=>'form')	 );?>
-    <div class="field">
-    	<label for="repositoryid"><?php echo t('msg_select_repository');?></label>
-		<?php echo form_dropdown('repositoryid', $repositories_list,$active_repository); ?>
-    </div>    
+	<?php echo form_open_multipart("", array('class'=>'form')	 );?>
+    <input type="hidden" name="repositoryid" value="<?php echo $active_repository;?>"/>
 
 <fieldset>
 <legend><?php echo t('msg_select_ddi');?> <span class="max-file-size">(<?php echo t('max_upload_limit') ." ".$max_limit;?>MB)</span></legend>
