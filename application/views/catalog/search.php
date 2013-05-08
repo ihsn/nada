@@ -45,6 +45,7 @@
 	$filters=filter();
 ?>
 
+<!--search tokens-->
 <?php if ($filters):?>
 	<div class="filter-container label">
     	<div class="filter-info">Filter: 
@@ -66,8 +67,7 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
 	<span><?php echo t('sort_by');?></span>
   <ul class="sort_by">
         <?php if ($this->config->item("regional_search")=='yes'):?>            
-        <li><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repositoryid'),$page_url,$qs_sort); ?></li>
-        <li><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$qs_sort); ?>          </li>
+        <li><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$qs_sort); ?></li>
     <?php endif;?> 
     <li><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,$qs_sort); ?></li>
     <li><?php echo create_sort_link($sort_by,$sort_order,'surveyid',t('surveyid'),$page_url,$qs_sort); ?></li>
@@ -124,27 +124,15 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
 	                            <?php echo $study_years;?>
 							<?php endif;?>							
                         </div>
-                        <!--
-                        <table>
-                        	<tr>
-                            <td></td>
-                            <td></td>
-                            </tr>
-                        </table>
-                        -->
+
                         <div class="table-row">
-                        	<span class="cell-label">ID:</span>
+                        	<span class="cell-label"><?php echo t('ID');?>:</span>
 							<span class="cell-value"><?php echo $row['surveyid'];?></span>
                         </div>						
 
-                        <?php /* ?>
-						<div class="table-row">
-                        	<span class="cell-label">Producers:</span>
-							<span class="cell-value"><?php echo $row['authenty'];?></span>
-                        </div>
-                        <?php */?>
+
                         <div class="table-row">
-                        	<span class="cell-label"><?php echo t('Collection');?>:</span>
+                        	<span class="cell-label"><?php echo t('collection');?>:</span>
                             <span class="cell-value">
                                 <!-- repository ownership -->
                                 <?php if ($row['repositories']):?>
@@ -162,13 +150,13 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                         </div>
                         
                         <div class="table-row">
-                        	<span class="cell-label"><?php echo t('Modified on')?>:</span>
+                        	<span class="cell-label"><?php echo t('modified_on')?>:</span>
 							<span class="cell-value"><?php echo date($this->config->item('date_format'), $row['changed']); ?></span>
                         </div>
                         
                         <?php if (isset($row['tags'])):?>
                         <div class="table-row">
-                        	<span class="cell-label">Tags:</span>
+                        	<span class="cell-label"><?php echo t('tags');?>:</span>
 							<span class="cell-value">
 								<?php foreach($row['tags'] as $tag):?>
                                     <span class="label label-tag"><?php echo $tag;?></span>
