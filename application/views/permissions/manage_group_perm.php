@@ -3,7 +3,7 @@
 * Manage permissions for a user group
 */
 ?>
-<style>
+<style type="text/css">
 .caption{
 font-weight:bold;padding-left:20px;
 }
@@ -13,10 +13,9 @@ font-weight:bold;padding-left:20px;
 .header{background:#C1DAD7}
 .grid-table .br td{border:0px;}
 .h1{margin-top:20px;}
+.active-group{background:gainsboro;padding:5px;}
+.group-name{font-weight:bold;}
 </style>
-
-<?php $this->load->view('permissions/links');?>
-<h1>Manage Group Permissions - <?php echo $group['name'];?></h1>
 
 <?php if (validation_errors() ) : ?>
     <div class="error">
@@ -30,17 +29,16 @@ font-weight:bold;padding-left:20px;
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
+<?php $this->load->view('permissions/links');?>
+<h1><?php echo t('manage_group_permissions_for');?> <span class="active-group"><?php echo $group['name'];?></span></h1>
+
 <form method="post">
 <input type="hidden" name="group_id" value="<?php echo $group_id;?>"/>
 <table class="grid-table">
-<tr>
-<th><h3>Permission</h3></th>
-<th style="text-align:center"><h3><?php echo $group['name'];?></h3></th>
-</tr>
 <?php foreach ($permissions as $group_name=>$perm_group):?>
 	<tr>
         <td colspan="2" class="header">
-            <h3><?php echo $group_name;?></h3>
+            <div class="group-name"><?php echo t($group_name);?></div>
         </td>
     </tr>
     <?php $x = 0; ?>    
@@ -51,8 +49,8 @@ font-weight:bold;padding-left:20px;
 		?>	
     	<tr class="<?php echo ($x++%2==1) ? '' : 'alternate' ?>">
     	<td>
-			<div class="caption"><?php echo $perm['label'];?></div>
-            <div class="description"><?php echo $perm['description'];?></div>
+			<div class="caption"><?php echo t($perm['label']);?></div>
+            <div class="description"><?php echo t($perm['description']);?></div>
         </td>
         <td style="width:200px;text-align:center" >
         	<input type="checkbox" name="pid[]" value="<?php echo $perm['id'];?>" <?php echo $perm_selected;?>/>
@@ -64,7 +62,7 @@ font-weight:bold;padding-left:20px;
 
 	<?php //list repositories ?>
     <tr class="header">
-    <td><h3><?php echo t('manage_repo_permissions');?></h3></td>
+    <td><div class="group-name"><?php echo t('manage_repo_permissions');?></div></td>
     <td style="text-align:center"></td>
     </tr>
 
@@ -78,6 +76,6 @@ font-weight:bold;padding-left:20px;
 </table>
 
 <div style="text-align:right;">
-<input type="submit" value="Apply changes" name="submit"/>
+<input type="submit" value="<?php echo t('apply_changes');?>" name="submit"/>
 </div>
 </form>
