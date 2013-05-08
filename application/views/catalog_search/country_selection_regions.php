@@ -24,7 +24,8 @@
                         </label>
                 </div>
                 <div class="col-2">
-                <?php foreach($sub['countries'] as $country):?>
+                <?php if($sub['countries']):?>
+				<?php foreach($sub['countries'] as $country):?>
                     <div class="country item" >
                         <input class="chk-item" type="checkbox" 
                             value="<?php echo form_prep($country['countryid']); ?>" 
@@ -37,6 +38,7 @@
                         </label>
                     </div>
                 <?php endforeach;?>
+                <?php endif;?>
                 </div>
             </div>    
             <?php endforeach;?>
