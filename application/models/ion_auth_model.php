@@ -707,7 +707,7 @@ class Ion_auth_model extends CI_Model
 		{
 			return FALSE;
 		}
-		
+		$this->db->flush_cache();
 		$this->db->select('users.*,first_name,last_name,company,phone,country');
 		$this->db->join($this->tables['meta']. ' meta', 'users.id = meta.user_id', 'inner');		
 		$this->db->where($this->tables['users'].'.id', $id);
@@ -805,9 +805,17 @@ class Ion_auth_model extends CI_Model
 		//user group IDs
 		if (isset($data['group_id']))
 		{
-			$groups=$data['group_id'];
+			if(is_array($data['group_id']))
+			{
+				$groups=$data['group_id'];
+			}
+			else
+			{
+				$groups[]=$data['group_id'];
+			}	
 			unset($data['group_id']);
 		}
+		
 		
 	    if (!empty($this->columns))
 	    {						
@@ -996,6 +1004,8 @@ class Ion_auth_model extends CI_Model
 	 **/
 	private function remember_user($id)
 	{
+		return FALSE;
+		
 		if (!$id) 
 		{			
 			return FALSE;
@@ -1376,6 +1386,7 @@ class Ion_auth_model extends CI_Model
 		{
 			$id = $this->session->userdata('user_id');
 		}
+		
 		$this->db->flush_cache();
 	    $this->db->select('group_id');
 		$this->db->where('user_id', $id);
@@ -1392,7 +1403,7 @@ class Ion_auth_model extends CI_Model
 		return $groups;
 	}
 
-/**
+	/**
 	*
 	* Returns user groups by repo id
 	**/
@@ -1409,4 +1420,51 @@ class Ion_auth_model extends CI_Model
 		
 		return $query->result_array();
 	}
+	
+	/**
+	*
+	* Returns LIMITED user accounts list
+	**/
+	function get_limited_admins()
+	{
+		$sql='select users.id,users.email,meta.first_name,meta.last_name from users
+				inner join users_groups ug on users.id=ug.user_id
+				inner join meta on meta.user_id=users.id
+				where ug.group_id in (select id from groups where access_type=\'LIMITED\');';
+	
+		return $this->db->query($sql)->result_array();
+	}
+	
+	function impersonate($user_id,$current_user)
+	{
+		if (!is_numeric($user_id))
+		{
+			return FALSE;
+		}
+		
+		$user_obj=$this->get_user($user_id);
+		
+		//$this->update_last_login($result->id);
+		$this->session->set_userdata('email',  $user_obj->email);
+		$this->session->set_userdata('username',  $user_obj->username);
+		$this->session->set_userdata('user_id',  $user_obj->id);
+		$this->session->set_userdata('impersonate_user',  $current_user->id);		
+	}
+	
+	function exit_impersonate()
+	{
+		if (!$this->session->userdata('impersonate_user'))
+		{
+			return FALSE;
+		}
+		
+		$user_id=(int)$this->session->userdata('impersonate_user');
+		$user_obj=$this->get_user($user_id);
+		$this->session->set_userdata('email',  $user_obj->email);
+		$this->session->set_userdata('username',  $user_obj->username);
+		$this->session->set_userdata('user_id',  $user_obj->id);
+		$this->session->unset_userdata('impersonate_user');		
+	}
+	
+	
 }
