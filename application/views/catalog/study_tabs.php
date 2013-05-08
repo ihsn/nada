@@ -50,7 +50,7 @@
 }
 
 .page-links{font-size:smaller;}
-
+.study-tab-container{border:1px solid gainsboro;border-top:0px;padding:10px;overflow:auto;}
 </style>
 
 <?php 
@@ -68,12 +68,14 @@
   <li <?php echo ($selected_page=='citations') ? 'class="active"' : ''; ?>>
   	<a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $survey_id;?>/citations"><?php echo t('citations');?> <span class="count">(<?php echo is_array($selected_citations) ? count($selected_citations) : 0;?>)</span></a>
   </li>  
+<?php /* ?>
   <li <?php echo ($selected_page=='related_studies') ? 'class="active"' : ''; ?>>
   	<a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $survey_id;?>/related_studies"><?php echo t('related_studies');?></a>
   </li>
+<?php */?>  
 </ul>
 
-<div style="border:1px solid gainsboro;padding:10px;overflow:auto;">
+<div class="study-tab-container">
 <?php 
 	//load tab content
 	switch($this->uri->segment(5)) {
