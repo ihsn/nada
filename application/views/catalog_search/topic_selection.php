@@ -1,6 +1,7 @@
 <div class="container topics-container" >
 
     	<div class="rows-container">
+			<?php if($topics):?>
 			<?php foreach($topics as $sub):if(!isset($sub['children'])){continue;};?>
             <div class="row" id="sub-topic-row-<?php echo $sub['tid'];?>">
                 <div class="col-1">
@@ -29,6 +30,9 @@
                 </div>
             </div>    
             <?php endforeach;?>
+            <?php else:?>
+            <?php echo t('n/a');?>
+            <?php endif;?>
 		</div>
     
 </div>
