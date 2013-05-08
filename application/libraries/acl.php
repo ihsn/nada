@@ -34,13 +34,20 @@ class ACL
 		return $this->ci->ion_auth->current_user();
 	}
 
-	function user_has_url_access()
+	function user_has_url_access($user_id=NULL,$url=NULL)
 	{
-		//get current user
-		$user=$this->current_user();
+		if($user_id==NULL)
+		{
+			//get current user
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
 		
-		//get url path
-		$url=$this->ci->uri->uri_string();
+		if($url==NULL)
+		{			
+			//get url path
+			$url=$this->ci->uri->uri_string();
+		}
 		
 		//check user has access
 		return $this->check_url_access($user->id,$url);
@@ -87,7 +94,7 @@ class ACL
 			}
 		}
 		
-		var_dump($allowed_urls);
+		//var_dump($allowed_urls);
 		return FALSE;
 	}
 	
@@ -119,7 +126,30 @@ class ACL
 		
 		return $urls;
 	}
-	
+
+	/**
+	*
+	* Returns an array of allowed URLs by User
+	*
+	**/
+	function url_access_by_user($user_id=NULL)
+	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+		
+		//get user groups
+		$groups=$this->ci->ion_auth->get_groups_by_user($user_id);
+		
+		if (!is_array($groups))
+		{
+			return FALSE;
+		}
+
+		return $this->url_access_by_group($groups);	
+	}	
 	
 	/**
 	*
@@ -146,8 +176,15 @@ class ACL
 	*
 	* Check if user has UNLIMITED access
 	**/
-	function user_has_unlimited_access($user_id)
+	function user_has_unlimited_access($user_id=NULL)
 	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+
+	
 		$groups=$this->get_user_groups($user_id);
 		
 		if (!$groups)
@@ -245,7 +282,7 @@ class ACL
 		}
 		else
 		{	//limited admin account
-			$this->ci->db->select("gr.*,r.title,r.thumbnail,r.short_text");
+			$this->ci->db->select("r.id,r.title,r.thumbnail,r.short_text,r.repositoryid");
 			$this->ci->db->from("group_repo_access gr");
 			$this->ci->db->join('repositories r', 'r.id = gr.repo_id');			
 			$this->ci->db->where_in("group_id",$groups);
@@ -361,6 +398,41 @@ class ACL
 		return FALSE;
 	}
 
+
+	function user_has_repository_access($repositoryid,$user_id=NULL)
+	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+
+		$unlimited=$this->user_has_unlimited_access();
+		
+		if ($unlimited)
+		{
+			return TRUE;
+		}
+		
+		//validate if user has access to the selected repository
+		$user_repositories=$this->get_user_repositories();
+		
+		$user_repo_access=FALSE;
+		foreach($user_repositories as $repo)
+		{
+			if ($repo["repositoryid"]==$repositoryid)
+			{
+				$user_repo_access=TRUE;
+				return TRUE;
+			}
+		}
+		
+		if ($user_repo_access===FALSE)
+		{
+			show_error(t("REPO_ACCESS_DENIED"));
+		}
+	
+	}
 
 }
 
