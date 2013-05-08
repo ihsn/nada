@@ -12,6 +12,7 @@
         <label for="country-any">Any</label>
     </div>
 	<div class="country-items items-container <?php //echo (count($countries)>10) ? 'scrollable' : ''; ?>">
+	<?php if($countries):?>
 	<?php $k=0;foreach($countries as $country):$k++; ?>
         <div class="country item inactive <?php echo ($k>$item_limit) ? 'less' : 'less'; ?>">
             <input class="chk-country chk" type="checkbox" name="country[]" 
@@ -26,6 +27,7 @@
             </label>
         </div>
     <?php endforeach;?>
+    <?php endif;?>
     </div>
     
     <?php /* if($k>$item_limit):?>
