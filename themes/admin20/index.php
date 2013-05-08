@@ -20,9 +20,35 @@ if ($languages!==FALSE)
 	}
 }
 
+$this->load->helper('site_menu');
+$site_navigation_menu=get_site_menu();
+/*
+exit;
 $this->load->library('site_menu');
 $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
+$menu_array=$this->site_menu->get_menu_items_array();
 
+//get user allowed URLs
+$allowed_urls=$this->acl->url_access_by_user();
+
+foreach($menu_array['parents'] as $item)
+{
+	if ($this->acl->user_has_url_access($user_id=NULL,$url=$item['url']))
+	{
+		echo "has-access",$item['title'],"---",$item['url'].'<BR>';
+	}
+	else
+	{
+		echo "no-access",$item['title'],"---",$item['url'].'<BR>';
+	}
+}
+
+echo '<pre>';
+var_dump($allowed_urls);
+
+//echo $site_navigation_menu;
+exit;
+*/
 ?>
 <!DOCTYPE html>
 <html>
@@ -121,6 +147,9 @@ $site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
 			  <?php if ($user):?>
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo $user;?> <b class="caret"></b></a>
                 <ul class="dropdown-menu">
+                	<?php if ($this->session->userdata('impersonate_user')):?>
+                  		<li><?php echo anchor('admin/users/exit_impersonate',t('exit_impersonate'));?></li>  
+                    <?php endif;?>
                   <li><?php echo anchor('auth/change_password',t('change_password'));?></li>
                   <li><?php echo anchor('auth/logout',t('logout'));?></li>
                   <li class="divider"></li>
