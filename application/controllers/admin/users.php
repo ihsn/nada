@@ -690,7 +690,7 @@ class Users extends MY_Controller {
 				
 				//register the user
 				$result=$this->ion_auth->register($username,$password,$email,$additional_data);
-				var_dump($this->ion_auth->errors()); 
+
 				if ($result)
 				{
 					echo '<BR>user account created successfully for: '.$email;
@@ -708,7 +708,31 @@ class Users extends MY_Controller {
 		}
 	}
 
+	/**
+	*
+	*Impersonate as other users
+	*/
+	function impersonate()
+	{
+		//get admin accounts with limited access
+		$data['users']=$this->ion_auth_model->get_limited_admins();		
+		
+		if($this->input->post("user"))
+		{
+			$this->ion_auth_model->impersonate((int)$this->input->post("user"),$this->acl->current_user());
+			redirect('admin');return;
+		}
+		
+		$content=$this->load->view('users/impersonate',$data,TRUE);
+		$this->template->write('content', $content,true);
+		$this->template->render();	
+	}
 	
+	function exit_impersonate()
+	{
+		$this->ion_auth_model->exit_impersonate();
+		redirect("admin");	
+	}
 }
 
 /* End of file users.php */
