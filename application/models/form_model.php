@@ -27,7 +27,14 @@ class Form_model extends CI_Model {
 	function get_form_list(){
 		$this->db->select('forms.*');
 		$this->db->order_by("formid", "asc"); 
-		$query=$this->db->get('forms')->result_array();
+		$query=$this->db->get('forms');
+		
+		if(!$query)
+		{
+			return FALSE;
+		}
+		
+		$query=$query->result_array();
 		
 		if($query)
 		{
