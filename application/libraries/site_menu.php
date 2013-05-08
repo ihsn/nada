@@ -26,10 +26,10 @@ class Site_Menu
 	}
 
 	/**
-	* Returns a formatted menu true for site navigation
 	*
+	* return an array of all menu items
 	**/
-	function get_formatted_menu_tree()
+	function get_menu_items_array()
 	{
 		//get parent items
 		$parents=$this->ci->db->query('select * from site_menu where pid=0')->result_array();
@@ -37,6 +37,31 @@ class Site_Menu
 		//get child items
 		$children_rows=$this->ci->db->query('select * from site_menu where pid >0 order by weight DESC')->result_array();
 		
+		return $output=array(
+			'parents'	=>$parents,
+			'children'	=>$children_rows
+		);
+	}
+
+	/**
+	* Returns a formatted menu true for site navigation
+	*
+	**/
+	function get_formatted_menu_tree($items=NULL)
+	{
+		if($items==NULL)
+		{
+			//get parent items
+			$parents=$this->ci->db->query('select * from site_menu where pid=0')->result_array();
+			
+			//get child items
+			$children_rows=$this->ci->db->query('select * from site_menu where pid >0 order by weight DESC')->result_array();
+		}
+		else{
+			$parents=$items['parents'];
+			$children_rows=$items['children'];
+		}		
+
 		$children=array();
 		foreach($children_rows as $item)
 		{
