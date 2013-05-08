@@ -2,10 +2,10 @@
 /*
 * List all permissions
 */
-//var_dump($permissions);?>
+?>
 
 
-<style>
+<style type="text/css">
 .caption{
 font-weight:bold;padding-left:20px;
 }
@@ -15,10 +15,11 @@ font-weight:bold;padding-left:20px;
 .header{background:#C1DAD7}
 .grid-table .br td{border:0px;}
 .h1{margin-top:20px;}
+.group-name{font-weight:bold;}
 </style>
 
 <?php $this->load->view('permissions/links');?>
-<h1>Manage Permissions </h1>
+<h1>Manage Permissions</h1>
 
 <?php if (validation_errors() ) : ?>
     <div class="error">
@@ -35,15 +36,10 @@ font-weight:bold;padding-left:20px;
 <form method="post">
 
 <table class="grid-table">
-<tr>
-<th><h3>Permission</h3></th>
-<th><h3>URL(s)</h3></th>
-<th>&nbsp;</th>
-</tr>
 <?php foreach ($permissions as $group_name=>$perm_group):?>
 	<tr>
         <td colspan="3" class="header">
-            <h3><?php echo $group_name;?></h3>
+            <div class="group-name"><?php echo t($group_name);?></div>
         </td>
     </tr>
     <?php $x = 0; ?>    
