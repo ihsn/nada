@@ -1,3 +1,5 @@
+<?php if (isset($surveys['rows']) && count($surveys['rows'])>0): ?>
+
 <?php 
 	//current page url
 	$page_url=site_url().$this->uri->uri_string();
@@ -8,7 +10,6 @@
 
 <?php $this->load->view("catalog_search/active_filter_tokens");?>
 
-<?php if (isset($surveys['rows']) && count($surveys['rows'])>0): ?>
 
 <?php		
 	//citations
