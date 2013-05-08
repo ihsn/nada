@@ -98,6 +98,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 .survey-row .data-access-public{background: url(themes/admin20/data-access.gif) no-repeat 0% 20%;}
 .survey-row .data-access-data_na{background: url(themes/admin20/data-access.gif) no-repeat 0% 80%;}
 .survey-row .data-access-licensed{background: url(themes/admin20/data-access.gif) no-repeat 0% 40%;}
+.survey-row .data-access-data_enclave{background: url(themes/admin20/data-access.gif) no-repeat 0% 100%;}
 .survey-row .data-access-remote{background: url(themes/admin20/data-access.gif) no-repeat 0% 60%;}
 .survey-row .data-access-direct{background: url(themes/admin20/data-access.gif) no-repeat 0% 0%;}
 .survey-row .label-tag{background-color:white;border:1px solid gainsboro;color:black;font-weight:normal;text-shadow:none;}
