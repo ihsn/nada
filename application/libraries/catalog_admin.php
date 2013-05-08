@@ -191,7 +191,233 @@ class Catalog_Admin
 		return @unlink($pdf_file);	
 	}
 
+	
+	/**
+	* import a ddi file
+	* 
+	*/
+	public function import_ddi($ddi_file,$overwrite=FALSE,$repositoryid, $delete_after_import=FALSE)
+	{
+		//load DDI Parser Library
+		$this->ci->load->library('DDI_Parser');
+		$this->ci->load->library('DDI_Import','','DDI_Import');
 
+		//check file exists
+		if (!file_exists($ddi_file))
+		{
+			return array(
+				'status'=>'error',
+				'message'=>'file_not_found'
+			);
+		}
+
+		//set the repository where the ddi will be uploaded to	
+		$this->ci->DDI_Import->repository_identifier=$repositoryid;
+		
+		//set file for parsing
+		$this->ci->ddi_parser->ddi_file=$ddi_file;
+		
+		//only available for xml_reader
+		$this->ci->ddi_parser->use_xml_reader=TRUE;
+		
+		//validate DDI file
+		if ($this->ci->ddi_parser->validate()===false)
+		{
+			return array(
+				'status'=>'error',
+				'message'=>'invalid_ddi_file'
+			);
+		}
+						
+		//parse ddi to array	
+		$data=$this->ci->ddi_parser->parse();		
+				
+		//import to db
+		$result=$this->ci->DDI_Import->import($data,$ddi_file,$overwrite);
+		
+		$output=NULL;
+		
+		if ($result===TRUE)
+		{
+			//display import success 
+			//$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']));
+			$msg='<strong>'. $data['study']['titl']. '</strong> - <em>'.$this->ci->DDI_Import->variables_imported.' '.t('variables').'</em>';
+			//log_message('info', $msg);
+		
+			$output= array(
+				'status'	=>'success',
+				'message'	=>$msg,
+				'sid'		=>$this->ci->DDI_Import->id
+			);		
+		}
+		else
+		{
+			$error=$this->ci->load->view('catalog/ddi_import_fail', array('errors'=>$this->ci->DDI_Import->errors),true);			
+			$output= array(
+				'status'=>'error',
+				'message'=>$error
+			);
+		}
+		
+		if($delete_after_import===TRUE)
+		{
+			@unlink($ddi_file);
+		}
+		
+		return $output;
+	}
+
+	/**
+	*
+	* Import RDF file
+	**/
+	public function import_rdf($surveyid,$filepath)
+	{
+		//check file exists
+		if (!file_exists($filepath))
+		{
+			return FALSE;
+		}
+		
+		//read rdf file contents
+		$rdf_contents=file_get_contents($filepath);
+			
+		//load RDF parser class
+		$this->ci->load->library('RDF_Parser');
+		$this->ci->load->model('Resource_model');
+			
+		//parse RDF to array
+		$rdf_array=$this->ci->rdf_parser->parse($rdf_contents);
+
+		if ($rdf_array===FALSE || $rdf_array==NULL)
+		{
+			return FALSE;
+		}
+
+		//Import
+		$rdf_fields=$this->ci->rdf_parser->fields;
+			
+		//success
+		foreach($rdf_array as $rdf_rec)
+		{
+			$insert_data['survey_id']=$surveyid;
+			
+			foreach($rdf_fields as $key=>$value)
+			{
+				if ( isset($rdf_rec[$rdf_fields[$key]]))
+				{
+					$insert_data[$key]=trim($rdf_rec[$rdf_fields[$key]]);
+				}	
+			}										
+			
+			//check filenam is URL?
+			if (!is_url($insert_data['filename']))
+			{
+				//clean file paths
+				$insert_data['filename']=unix_path($insert_data['filename']);
+
+				//remove slash before the file path otherwise can't link the path to the file
+				if (substr($insert_data['filename'],1,1)=='/')
+				{
+					$insert_data['filename']=substr($insert_data['filename'],2,255);
+				}												
+			}
+			
+			//check if the resource file already exists
+			$resource_exists=$this->ci->Resource_model->get_resources_by_filepath($insert_data['filename']);
+			
+			if (!$resource_exists)
+			{										
+				//insert into db
+				$this->ci->Resource_model->insert($insert_data);				
+			}
+		}
+	}
+	
+	
+	/**
+	*
+	* Returns array of warnings for a single study
+	**/
+	function get_study_warnings($sid)
+	{	
+		$this->ci->load->model('resource_model');
+		$this->ci->load->model('Catalog_model');
+		$warnings=array();
+		
+		//published
+		//collection dates are missing?
+		$this->ci->db->select('published,data_coll_start,data_coll_end');
+		$this->ci->db->where('id',$sid);
+		$study_row=$this->ci->db->get('surveys')->row_array();
+		
+		if($study_row['published']==0)
+		{
+			$warnings[]='warning_study_not_published';
+		}
+		
+		if ((int)$study_row['data_coll_start']===0 && (int)$study_row['data_coll_end']===0)
+		{
+			$warnings[]='warning_study_years_not_set';
+		}
+		
+		//study data access model
+		$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
+		
+		//get study resources count  grouped by resource type
+		$resources=$this->ci->resource_model->get_grouped_resources_count($sid);
+		
+		if (!$resources)
+		{
+			$warnings[]='warning_study_has_no_external_resources';
+		}
+		
+		if(in_array($study_da_model,array('public','licensed','direct')))
+		{			
+			//has microdata assigned for puf/lic/direct?
+			$has_microdata=FALSE;
+			$has_questionnaire=FALSE;
+			foreach($resources as $res)
+			{
+				if ( strpos($res['dctype'],'[dat/micro]') || strpos($res['dctype'],'[dat]'))
+				{
+					$has_microdata=TRUE;
+				}
+				if ( strpos($res['dctype'],'[doc/qst]') )
+				{
+					$has_questionnaire=TRUE;
+				}				
+			}
+			
+			if(!$has_microdata)
+			{
+				$warnings[]='warning_study_has_no_microdata';
+			}
+			if(!$has_questionnaire)	
+			{
+				$warnings[]='warning_study_has_no_questionnaire';
+			}	
+		}
+		
+		//pdf documentation?
+		$has_pdf=$this->get_study_pdf($sid);		
+		if($has_pdf['status']=='na')
+		{
+			$warnings[]='warning_study_has_no_pdf_documentation';
+		}
+		
+		//pending requests
+		$this->ci->load->model("licensed_model");
+		
+		$pending_requests=$this->ci->licensed_model->get_pending_requests_count($sid);
+		
+		if ($pending_requests>0)
+		{
+			$warnings[]='warning_study_has_pending_licensed_requests';
+		}
+
+		return $warnings;
+	}
 	
 }//end class
 
