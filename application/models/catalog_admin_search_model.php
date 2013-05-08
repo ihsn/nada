@@ -146,7 +146,6 @@ class Catalog_admin_search_model extends CI_Model {
 		$where_clause='';
 		
 		//build where clause for FILTERS
-
 		foreach($this->filter as $f)
 		{
 			if($f==''){break;}//skip blanks
@@ -276,6 +275,38 @@ class Catalog_admin_search_model extends CI_Model {
 					$where_clause.= '(surveys.formid in ('.implode(",",$da_arr).') )';
 				}			
 			}
+		}
+		
+		//studies with no questions
+		$no_question=$this->input->get('no_question');
+		
+		if($no_question)
+		{
+			//get an array of surveys with no questions
+			if ( trim($where_clause)!='')
+			{	
+				$where_clause.= ' AND ' . 'surveys.id not in (select survey_id from resources where dctype like \'%doc/qst]%\')';
+			}
+			else
+			{
+				$where_clause.= 'surveys.id not in (select survey_id from resources where dctype like \'%doc/qst]%\')';
+			}		
+		}
+
+		//studies with no datafile
+		$no_datafile=$this->input->get('no_datafile');
+		
+		if($no_datafile)
+		{
+			//get an array of surveys with no questions
+			if ( trim($where_clause)!='')
+			{	
+				$where_clause.= ' AND ' . 'surveys.id not in (select survey_id from resources where dctype like \'%dat/micro]%\' OR dctype like \'%dat]%\' )';
+			}
+			else
+			{
+				$where_clause.= 'surveys.id not in (select survey_id from resources where dctype like \'%dat/micro]%\' OR dctype like \'%dat]%\' )';
+			}		
 		}
 		
 		
