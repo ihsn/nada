@@ -618,6 +618,19 @@ class Repositories extends MY_Controller {
 		$this->Repository_model->update($id,$options);
 	}
 	
+	/**
+	*
+	*Show collection history
+	**/
+	function history($repositoryid)
+	{
+		$data['rows']=$this->repository_model->repo_survey_list($repositoryid);		
+		$content=$this->load->view('repositories/history', $data,true);	
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('collection_history'),true);
+	  	$this->template->render();
+	}
+	
 	
 }
 
