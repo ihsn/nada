@@ -111,6 +111,12 @@ class Vocabulary_model extends CI_Model {
 	{	
 		$children = array();
 	
+	
+		if (!$items)
+		{
+			return;
+		}
+		
 		foreach($items as &$item) 
 		{	
 			$children[$item['pid']][] = &$item;
@@ -155,7 +161,14 @@ class Vocabulary_model extends CI_Model {
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 		
-		$items=$this->db->get()->result_array();
+		$query=$this->db->get();
+		
+		if(!$query)
+		{
+			return FALSE;
+		}		
+		
+		$items=$query->result_array();
 
 		$output=array();
 		foreach($items as $row)
