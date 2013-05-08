@@ -1,6 +1,6 @@
 <?php
 $lang['catalog_maintenance'] = "Manage Collection";
-$lang['upload_ddi'] = "Add Study";
+$lang['add_study_to_collection'] = "Add study to collection:";
 $lang['upload_ddi_hover'] = "Upload a DDI file";
 $lang['import_ddi'] = "Import DDI";
 $lang['import_ddi_hover'] = "Import multiple DDI files";
@@ -22,9 +22,9 @@ $lang['browse_metadata'] = "Browse Metadata";
 $lang['share_ddi_w_harvester'] = "Share DDI with Harvester?";
 
 //upload ddi
-$lang['msg_select_ddi'] = "Select a DDI file(.xml):";
+$lang['msg_select_ddi'] = "Select a DDI file (.xml):";
 $lang['ddi_overwrite_exist'] = "Overwrite if the study already exists?";
-$lang['msg_select_rdf'] = "Select study RDF file(.rdf):";
+$lang['msg_select_rdf'] = "Select RDF file (.rdf):";
 
 //import ddi
 $lang['ddi_import_processing'] = "Please wait while the file is being imported...";
@@ -61,7 +61,7 @@ $lang['msg_copy_studies']='Click on the study copy icon %s to copy studies to yo
 $lang['copy_studies_to']='Copy studies to ';
 $lang['change_repo']='Switch';
 $lang['repositoryid']='Collection';
-$lang['copy_studies']='Copy study';
+$lang['copy_studies']='Copy studies';
 $lang['transfer_study_ownership']='Transfer study owner';
 $lang['transfer_ownership']='Transfer owner';
 $lang['msg_studies_to_transfer']='Studies that will be changed';
@@ -77,5 +77,58 @@ $lang['sort_by']='Sort results by:';
 $lang['surveyid']='SurveyID';
 $lang['no_related_citations_click_here_to_add']='There are no citations attached to this survey, to add related citations, click here.';
 $lang['max_upload_limit']='Max upload file size:';
+$lang['upload_ddi']='Add study';
+$lang['clear_filter']='Clear filter';
+$lang['countries']='Countries';
+$lang['titl']='Title';
+$lang['study_status']='Study status';
+$lang['all']='All';
+$lang['published']='Published';
+$lang['unpublished']='Unpublished';
+$lang['tags']='Tags';
+$lang['click_to_publish_unpublish']='Click to publish or unpublish';
+
+$lang['pdf_not_generated']='PDF not generated';
+$lang['pdf_uptodate']='PDF is up-to-date';
+$lang['pdf_outdated']='PDF is outdated';
+$lang['metadata_in_pdf']='Metadata in PDF';
+$lang['replace_ddi']='Replace DDI';
+$lang['delete_study']='Delete study';
+$lang['browse_metadata']='Browse metadata';
+$lang['generate_pdf']='Generate PDF';
+$lang['upload_rdf']='Upload RDF';
+$lang['link_resources']='Link resources';
+$lang['export_ddi']='Export DDI';
+$lang['export_rdf']='Export RDF';
+$lang['admin_notes']='Admin notes';
+$lang['reviewer_notes']='Reviewer notes';
+$lang['study_collections']='Study collections';
+$lang['study_aliases']='Study Aliases';
+
+$lang['study_warnings']='Warnings! please fix the following issues:';
+$lang['warning_study_has_no_external_resources']='Study has no external resources attached';
+$lang['warning_study_has_no_microdata']='Study has no microdata attached';
+$lang['warning_study_has_no_questionnaire']='Study has no questionnaires attached';
+$lang['warning_study_has_pending_licensed_requests']='Study has pending licensed requests';
+$lang['warning_study_not_published']='Study is not published';
+$lang['warning_study_years_not_set']='Study data collection years are not set';
+$lang['warning_study_has_no_pdf_documentation']='Study metadata documentation in PDF is not generated';
+
+
+$lang['study_no_questionnaire']='Studies with no questionnaire';
+$lang['study_no_datafile']='Studies with no data';
+$lang['filter']='Filter';
+$lang['ID']='ID';
+$lang['collection']='Collection';
+$lang['modified_on']='Modified on';
+$lang['Published']='Published';
+$lang['Survey options']='Survey options';
+$lang['Tags']='Tags';
+$lang['Generate PDF']='Generate PDF';
+$lang['Status']='Status';
+
+
+
+
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

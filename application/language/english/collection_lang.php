@@ -44,6 +44,12 @@ $lang['group_name'] = 'Group name';
 $lang['group_description'] = 'Description';
 $lang['group_type'] = 'Account type';
 $lang['group_access'] = 'Access';
+$lang['collection_history'] = 'Collection History';
+$lang['study_title'] = 'Study title';
+$lang['total_studies_in_collection'] = 'Total studies in the collection';
+$lang['year'] = 'Year';
+$lang['changed'] = 'Changed';
+
 
 /* End of file collection_lang.php */
 /* Location: ./system/language/english/collection_lang.php */
