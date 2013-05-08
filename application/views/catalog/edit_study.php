@@ -480,9 +480,27 @@ height: 56px;
 .grid-table .header{font-weight:bold;}
 .sub-text{font-size:smaller;color:gray;}
 
+.alert-warning{
+border:2px solid #FF0000;
+color:red;
+}
 
+.warnings{margin-top:5px;}
 </style>
 <div class="body-container" style="padding:10px;">
+
+<?php if($warnings):?>
+<div class="alert alert-warning">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  <h4><?php echo t('study_warnings');?></h4>
+  <ul class="warnings">
+  <?php foreach($warnings as $warning):?>
+  <li><?php echo t($warning);?></li>
+  <?php endforeach;?>
+  </ul>
+</div>
+<?php endif;?>
+
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
@@ -568,7 +586,7 @@ height: 56px;
             <td>
             	<?php if ($repo):?>
 				<?php foreach($repo as $r):?>
-                	<span class="label"><?php echo strtoupper($r['repositoryid']);?></span>
+                	<span class="label <?php echo ($r['isadmin']==1) ? 'label-info' : ''; ?>" title="<?php //echo $r['title'];?>"><?php echo strtoupper($r['repositoryid']);?></span>
                 <?php endforeach;?>
                 <?php else:?>
                 	N/A
@@ -612,26 +630,26 @@ height: 56px;
         <tr>
             <td><?php echo t('Status');?></td>
             <td>
-                <div class="status" title="<?php echo t('Click to publish or unpublish');?>">
+                <div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
                 <?php if (!$published):?>
-                    <span class="label publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('Unpublished');?></span>
+                    <span class="label publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('unpublished');?></span>
                 <?php else:?>
-                    <span class="label publish label-success" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('Published');?></span>
+                    <span class="label publish label-success" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></span>
                 <?php endif;?>
                 </div>                        
             </td>
         </tr>
 
         <tr>
-            <td><?php echo t('Metadata in PDF');?></td>
+            <td><?php echo t('metadata_in_pdf');?></td>
             <td>
             	<?php if ($pdf_documentation['status']=='na'):?>
-            		<span class="label label-important"  title="<?php echo t('PDF not generated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
+            		<span class="label label-important"  title="<?php echo t('pdf_not_generated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
                 <?php else:?>
                 	<?php if ($pdf_documentation['status']=='uptodate'):?>
-                		<span class="label label-success" title="<?php echo t('PDF is up-to-date');?>"><i class="icon-ok icon-white"></i></span>
+                		<span class="label label-success" title="<?php echo t('pdf_uptodate');?>"><i class="icon-ok icon-white"></i></span>
                     <?php else:?>
-                    	<span class="label label-warning" title="<?php echo t('PDF is outdated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
+                    	<span class="label label-warning" title="<?php echo t('pdf_outdated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
                     <?php endif;?>
                 <?php endif;?>
                 <span class="actions">
@@ -644,7 +662,7 @@ height: 56px;
                     <?php endif;?>
                 </span>
             </td>
-		</td>        
+		</tr>
         <tr>
             <td><?php echo t('indicator_database');?></td>
             <td>
@@ -657,8 +675,8 @@ height: 56px;
                                             ...
                                 <?php endif;?>
                     </div>
-				
-					<div class="box-body study-publish-box collapse">
+					
+                    <div class="box-body study-publish-box collapse">
 								<form method="post" action="<?php echo site_url();?>/admin/catalog/update">
 									<input type="hidden" name="sid" value="<?php echo $id;?>"/>	
 									<input class="input-flex width-80" name="link_indicator" type="text" id="link_indicator" value="<?php echo get_form_value('link_indicator',isset($link_indicator) ? $link_indicator : '') ; ?>"/>
@@ -711,42 +729,27 @@ height: 56px;
 <!--Side Bars-->
 <div class="box" >
 <div class="box-header">
-	<span>Survey options</span>
+	<span><?php echo t('Survey options');?></span>
     <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
 </div>
 <div class="box-body">
     <ul class="bull-list">
-        <li><a href="<?php echo site_url();?>/admin/catalog/upload">Upload DDI</a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/batch_import">Import DDI</a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>">Download DDI</a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/copy_study">Copy studies from other catalogs</a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>">Transfer study ownership</a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>">Replace DDI</a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>">Delete Study</a></li>
-        <li><a href="<?php echo site_url();?>/catalog/<?php echo $sid;?>">Browse Metadata</a></li>
-        <li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>">Generate PDF</a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>"><?php echo t('transfer_study_ownership');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>"><?php echo t('replace_ddi');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"><?php echo t('delete_study');?></a></li>
+        <li><a href="<?php echo site_url();?>/catalog/<?php echo $sid;?>"><?php echo t('browse_metadata');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>"><?php echo t('generate_pdf');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>"><?php echo t('upload_rdf');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/resources/fixlinks/<?php echo $sid;?>"><?php echo t('link_resources');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>"><?php echo t('export_ddi');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>"><?php echo t('export_rdf');?></a></li>        
     </ul>
 </div>
 </div>
 
 
-<div class="box iscollapsed">
-<div class="box-header">
-	<span>External Resources</span>
-    <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
-</div>
-<div class="box-body collapse">
-<ul class="bull-list">
-    <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>">Upload RDF</a></li>
-    <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>">Export RDF</a></li>
-	<li><a href="<?php echo site_url();?>/admin/resources/fixlinks/<?php echo $sid;?>">Link resources</a></li>
-</ul>
-</div>
-</div>
-
-
 <div class="box ">
-	<div class="box-header">Tags
+	<div class="box-header"><?php echo t('Tags');?>
        <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
     </div>
     <div class="box-body survey-tags">
@@ -757,7 +760,7 @@ height: 56px;
 
 <div class="box iscollapsed">
     <div class="box-header">
-    	Admin Notes<span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
+    	<?php echo t('admin_notes');?><span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
     </div>
 
     <div class="box-body collapse">
@@ -767,7 +770,7 @@ height: 56px;
 
 <div class="box iscollapsed">
     <div class="box-header">
-        Reviewer Notes
+        <?php echo t('reviewer_notes');?>
         <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
     </div>
 
@@ -779,7 +782,7 @@ height: 56px;
 
 <div class="box iscollapsed">
 	<div class="box-header">
-    	Survey Collections
+    	<?php echo t('study_collections');?>
         <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
     </div>
     
@@ -789,7 +792,7 @@ height: 56px;
 </div>
 
 <div class="box iscollapsed">
-	<div class="box-header">Survey Aliases
+	<div class="box-header"><?php echo t('study_aliases');?>
       <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
 
     </div>
