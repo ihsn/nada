@@ -29,28 +29,6 @@
 <?php endif;?>
 
 
-<!--
-<div class="">  
-  <select name="field" id="field" class="" style="margin-right:5px;">
-    <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
-    <option value="titl"	<?php echo ($this->input->get('field')=='titl') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
-    <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
-    <option value="surveyid"><?php echo t('survey_id');?></option>
-    <option value="authenty"><?php echo t('producer');?></option>
-    <option value="sponsor"><?php echo t('sponsor');?></option>
-    <option value="repositoryid"><?php echo t('repository');?></option>
-  </select>
-  
-  <input  type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-   <input class="" type="submit" value="<?php echo t('search');?>" name="search"/>
-  <?php if ($this->input->get("keywords")!=''): ?>
-    <a  class="btn-link" href="<?php echo site_url();?>/admin/catalog"><?php echo t('reset');?></a>
-  <?php endif; ?>
-
-</div>
--->
-
-
 <div class="row-fluid">
 	<form class="left-pad span10" style="margin-bottom:10px;" method="GET" id="catalog-search">
     <div id="surveys">
@@ -73,7 +51,9 @@
 var i18n={
 		'no_item_selected':"<?php echo t('js_no_item_selected');?>",
 		'confirm_delete':"<?php echo t('js_confirm_delete');?>",
-		'js_loading':"<?php echo t('js_loading');?>"
+		'js_loading':"<?php echo t('js_loading');?>",
+		'published':"<?php echo t('published');?>",
+		'unpublished':"<?php echo t('unpublished');?>",
 		};
 		
 $(".box .box-header").click(function(e){
@@ -135,24 +115,38 @@ jQuery(document).ready(function(){
 		};
 	});
 	
+	//toggle study publish/unpublish status
+	function toggle_study_status(elem){
+		if (elem.attr("data-value")==0){
+			elem.attr("data-value",1);
+			elem.html(i18n.published);
+			elem.addClass("label-success");
+		}
+		else{
+			elem.html(i18n.unpublished);
+			elem.attr("data-value",0);
+			elem.removeClass("label-success");
+		}
+	}
 	
 	//publish/unpublish
 	$(document.body).on("click",".survey-row .publish", function(){ 
-		console.log( $(this).attr("data-value") );
 		var studyid=$(this).attr("data-sid");
-		if ($(this).attr("data-value")==0){
-			$(this).attr("data-value",1);
-			$(this).html("Published");
-			$(this).addClass("label-success");
-			$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1',{submit:"submit"});
+		var status=$(this).attr("data-value");
+		var elem=$(this);			
+		
+		if(status==0){
+			status=1;
 		}
 		else{
-			$(this).html("Unpublished");
-			$(this).attr("data-value",0);
-			$(this).removeClass("label-success");
-			$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1',{submit:"submit"});
+			status=0;
 		}
-	
+		
+		$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/'+status+'?ajax=1',{submit:"submit"},
+			  function(data){
+				toggle_study_status( elem );
+			  }, "json")
+			  .fail(function() { alert(i18n.update_failed);});			  			
 	});
 	
 });
