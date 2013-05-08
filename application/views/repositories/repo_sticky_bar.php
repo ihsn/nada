@@ -19,7 +19,11 @@ box-shadow: 1px 1px 1px #888;
 .collection-content-container .page-links .button:hover{background:black;color:white;border:1px solid black;}
 </style>
 <div class="collection-content-container">
-	<div class="thumb"><img src="<?php echo $thumbnail;?>" alt="Repository" width="60px"/></div>
+	<div class="thumb">
+    	<a href="<?php echo site_url(); ?>/admin/catalog" title="<?php echo t('catalog_home');?>">
+    	<img src="<?php echo $thumbnail;?>" alt="Collection" width="60px"/>
+    	</a>
+    </div>
     <div class="collection-body">
         <div class="collection-title"><?php echo $title;?></div>
         <div class="collection-id"><?php echo $repositoryid;?></div>
