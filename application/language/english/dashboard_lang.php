@@ -30,5 +30,14 @@ $lang['Administrators'] = "Administrators";
 $lang['History'] = "History";
 $lang['Edit'] = "Edit";
 $lang['Collection'] = "Collection";
+$lang['collection_contains_n_studies'] = "Collection contains %d studies";
+$lang['catalog_contains_n_studies'] = "Catalog contains %d studies";
+$lang['studies_with_no_data_files'] = "PUF with no data files";
+$lang['studies_with_no_questionnaires'] = "with no questionnaires";
+$lang['owned'] = "Owned";
+$lang['linked'] = "Linked";
+$lang['published'] = "Published";
+$lang['unpublished'] = "Unpublished";
+
 /* End of file dashboard_lang.php */
 /* Location: ./system/language/english/dashboard_lang.php */
