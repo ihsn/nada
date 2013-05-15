@@ -524,11 +524,11 @@ class Repository_model extends CI_Model {
 			$this->db->where("repositories.type !=",2);
 		}
 		
-		if ($exclude_central==TRUE)
+		/*if ($exclude_central==TRUE)
 		{
 			//show system repositories
 			$this->db->where("repositories.pid!=",0,FALSE);
-		}
+		}*/
 		
 		
 		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title'); 
@@ -873,6 +873,7 @@ class Repository_model extends CI_Model {
 		foreach($sections as $key=>$section)
 		{
 			$children=$this->get_repositories_by_section($section['id']);
+			echo $this->db->last_query().'<HR>';
 			if($children)
 			{
 			$sections[$key]['children']=$children;
@@ -892,7 +893,7 @@ class Repository_model extends CI_Model {
 		$this->db->select('r.title,r.repositoryid,r.short_text,count(sr.sid) as surveys_found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
 		$this->db->where('r.ispublished',1);
-		$this->db->where('r.pid >',0);
+		//$this->db->where('r.pid >',0);
 		$this->db->where('r.section',$section_id);
 		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
 		$this->db->order_by('r.weight');		
@@ -904,7 +905,7 @@ class Repository_model extends CI_Model {
 		$this->db->select('r.id,r.pid,r.title,r.repositoryid,count(sr.sid) as surveys_found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
 		$this->db->where('r.ispublished',1);
-		$this->db->where('r.pid >',0);
+		//$this->db->where('r.pid >',0);
 		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
 		$this->db->order_by('r.weight');		
 		$query=$this->db->get('repositories r');
@@ -1044,6 +1045,15 @@ class Repository_model extends CI_Model {
 	**/
 	function get_stats_by_ownership($repositoryid,$ownership=1)
 	{
+		if($ownership==0 && $repositoryid=='central')
+		{
+			$this->db->select('count(surveys.id) as total');
+			$row=$this->db->get('surveys')->row_array();
+			$total_studies=$row['total'];
+			
+			return $total_studies - $this->get_stats_by_ownership($repositoryid,$ownership=1);
+		}
+				
 		$this->db->select('count(sid) as total');
 		$this->db->where('repositoryid',$repositoryid);
 		$this->db->where('isadmin',$ownership);
@@ -1146,4 +1156,19 @@ class Repository_model extends CI_Model {
 		return $this->db->delete("survey_repos",$options);
 	}
 
+	/**
+	*
+	* Return array describing central catalog
+	**/
+	function get_central_catalog_array()
+	{
+		return 	array(
+			'id'			=> 0,
+			'repo_id'			=> 0,
+			'repositoryid'	=> 'central',
+			'title'			=> t('central_data_catalog'),
+			'thumbnail'		=> 'files/icon-blank.png',
+			'short_text'	=>	t('central_catalog_short_text')
+		);
+	}
 }
