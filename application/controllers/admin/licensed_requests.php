@@ -58,9 +58,9 @@ class Licensed_requests extends MY_Controller {
 		if ($result['request_type']=='study')
 		{
 				$this->load->model('Catalog_model');
-				$survey=$this->Catalog_model->select_single($result['surveyid']);
+				$survey=$this->Catalog_model->select_single($result['surveyid']);				
 				$result['files'][$result['surveyid']]=$this->Licensed_model->get_request_files($result['surveyid'], $requestid=$id);
-				$result['survey_list'][$result['surveyid']]=$survey['titl'].' - '. $survey['titl'];
+				$result['survey_list'][$result['surveyid']]=$survey['nation'].' - '. $survey['titl'];
 		}
 		else if ($result['request_type']=='collection')
 		{
