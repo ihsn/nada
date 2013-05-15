@@ -1,4 +1,7 @@
-<?php $search_options->dtype=0;?>
+<?php 
+$search_options= new stdclass;
+$search_options->dtype=0;
+?>
 <div id="datatype-list" >
 
     <div class="filter-da items-container">
