@@ -97,8 +97,6 @@ $repository_types=array(
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th>ID</th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'url',t('url'),$page_url); ?></th>-->
-            <th><?php echo create_sort_link($sort_by,$sort_order,'linktype',t('organization'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
@@ -112,8 +110,6 @@ $repository_types=array(
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><?php echo strtoupper($row->repositoryid);?></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
-            <!--<td><?php echo $row->url; ?></td>-->
-            <td><?php echo $row->organization; ?></td>
             <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
@@ -124,7 +120,8 @@ $repository_types=array(
 			<td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
                 <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a> |
-                <a href="<?php echo current_url();?>/permissions/<?php echo $row->id;?>"><?php echo t('permissions');?></a>
+                <a href="<?php echo current_url();?>/permissions/<?php echo $row->id;?>"><?php echo t('permissions');?></a> |
+                <a target="_blank" href="<?php echo site_url('catalog/'.$row->repositoryid);?>/about"><?php echo t('preview');?></a>
             </td>
         </tr>
     <?php endforeach;?>
