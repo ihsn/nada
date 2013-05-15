@@ -406,7 +406,7 @@ class Licensed_model extends CI_Model {
 			if ($result['request_type']=='study')
 			{
 				//get study info
-				$this->db->select('id,titl,proddate,nation');
+				$this->db->select('id,surveyid,titl,proddate,nation');
 				$this->db->where('id',$result['surveyid']);
 				$result['surveys'][] = $this->db->get('surveys')->row_array();
 			}
