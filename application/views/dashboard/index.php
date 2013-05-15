@@ -46,7 +46,7 @@
 	.important{color:maroon;}
 	.dashboard-box-footer{padding:0px;font-size:12px;background:#F1F1F1;}
 	.dashboard-box-footer .actions .btn a{color:white;}
-
+	.collection-central .btn-edit{display:none;}
 </style>
 <div class="content-container">
 
@@ -67,19 +67,28 @@
     
     <div class="yui-u first span6" style="height:400px;">		
     <?php foreach($collections as $collection):?>
-        	<div class="dashboard-box collection">
-            	<div class="dashboard-box-title text-shadow"><?php echo t('Collection');?>: <?php echo $collection['title'];?></div>
+        	<div class="dashboard-box collection collection-<?php echo $collection['repositoryid'];?>">
+            	<div class="dashboard-box-title text-shadow">
+					<?php if($collection['repositoryid']!=='central'):?>
+					<?php echo t('Collection');?>: 
+					<?php endif;?>
+					<?php echo $collection['title'];?>
+                </div>
                 <div class="dashboard-box-body">
 					<div class="body-row">
                     <div class="left main">
-                        <div class="strong">Collection contains <?php echo $collection['stats']['owned']+$collection['stats']['linked'];?> studies</div>
+                    	<?php if($collection['repositoryid']=='central'):?>
+	                        <div class="strong"><?php echo sprintf(t('catalog_contains_n_studies'),$collection['stats']['owned']+$collection['stats']['linked']);?></div>
+                        <?php else:?>
+                        	<div class="strong"><?php echo sprintf(t('collection_contains_n_studies'),$collection['stats']['owned']+$collection['stats']['linked']);?></div>
+                        <?php endif;?>
                         <div class="left">
-                        	<div>Owned: <span class="strong"><?php echo $collection['stats']['owned'];?></span></div>
-                        	<div>Linked: <span class="strong"><?php echo $collection['stats']['linked'];?></span></div>
+                        	<div><?php echo t('owned');?>: <span class="strong"><?php echo $collection['stats']['owned'];?></span></div>
+                        	<div><?php echo t('linked');?>: <span class="strong"><?php echo $collection['stats']['linked'];?></span></div>
                         </div>    
                         <div class="right">    
-                        <div>Published: <span class="strong"><?php echo $collection['stats']['published'];?></span></div>
-                        <div>Unpublished: <span class="strong"><?php echo $collection['stats']['unpublished'];?></span></div>
+                        <div><?php echo t('published');?>: <span class="strong"><?php echo $collection['stats']['published'];?></span></div>
+                        <div><?php echo t('unpublished');?>: <span class="strong"><?php echo $collection['stats']['unpublished'];?></span></div>
                         </div>
                     </div>
                     <div class="right">
@@ -91,10 +100,10 @@
 							$no_questionnaires=$total_owned - (int)$collection['stats']['questionnaires'];
 						?>
                         <?php if($no_microdata>0):?>
-	                    	<div class="warning"><span class="badge badge-warning"><?php echo $no_microdata;?></span> PUF with no datafiles</div>
+	                    	<div class="warning"><span class="badge badge-warning"><?php echo $no_microdata;?></span> <?php echo t('studies_with_no_data_files');?></div>
                         <?php endif;?>
 						<?php if($no_questionnaires>0):?>
-                        	<div class="warning"><span class="badge badge-warning"><?php echo $no_questionnaires;?></span> with no questionnaires</div>
+                        	<div class="warning"><span class="badge badge-warning"><?php echo $no_questionnaires;?></span> <?php echo t('studies_with_no_questionnaires');?></div>
                         <?php endif;?>
                        
                        <?php if( (int)$collection['stats']['lic_requests'] > 0 ):?>
@@ -114,7 +123,7 @@
                 	<span class="btn btn-mini btn-success"><a href="<?php echo site_url('admin/repositories/active/'.$collection['id'].'?destination=admin/catalog');?>"><?php echo t('Maintenance');?></a></span> 
                 	<span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/permissions/'.$collection['id'], t('Administrators'));?></span>
                     <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/history/'.$collection['repositoryid'], t('History'));?></span>
-                    <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/edit/'.$collection['id'], t('Edit'));?></span>
+                    <span class="btn btn-mini btn-success btn-edit"><?php echo anchor('admin/repositories/edit/'.$collection['id'], t('Edit'));?></span>
                     </div>
                 </div>
             </div>        	        
@@ -178,6 +187,4 @@
             </div>        	        
 	</div>
     <?php endif;?>
-    
-	
 </div>
