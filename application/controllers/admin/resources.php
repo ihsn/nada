@@ -479,10 +479,30 @@ class Resources extends MY_Controller {
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
 		
+		//if not fixed path, use a relative path
+		if (!file_exists($catalog_root) )
+		{
+			$catalog_root=FCPATH.$catalog_root;
+		}		
+		
+		//create .htaccess if not already exists
+		@file_put_contents($catalog_root.'/.htaccess','deny from all');
+		@chmod($catalog_root.'/.htaccess',0444);
+		
+		$temp_upload_folder=$catalog_root.'/tmp';
+		
+		@mkdir($temp_upload_folder);
+		
+		if (!file_exists($temp_upload_folder))
+		{
+			show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
+		}
+
 		//upload class configurations
-		$config['upload_path'] = $catalog_root;
-		//$config['allowed_types'] = 'xml|rdf'; //format: xml|zip
-		$config['overwrite'] = TRUE; //overwrite the file, if already exists
+		$config['upload_path'] 	 = $temp_upload_folder;
+		$config['overwrite'] 	 = FALSE;
+		$config['encrypt_name']	 = TRUE; 
+		$config['allowed_types'] = 'rdf';
 		
 		//load upload library
 		$this->load->library('upload', $config);
@@ -581,6 +601,11 @@ class Resources extends MY_Controller {
 				$this->session->set_flashdata('message', sprintf(t('n_resources_imported'),count($rdf_array)) );	
 			}
 			
+			//fix resources file paths
+			$this->load->library('catalog_admin');
+			$this->catalog_admin->fix_resource_links($sid);
+			
+			//redirect
 			redirect('admin/catalog/edit/'.$sid.'/resources','refresh');
 		}
 	}	
@@ -667,63 +692,10 @@ class Resources extends MY_Controller {
 		//test user study permissiosn
 		$this->acl->user_has_study_access($surveyid);
 	
-		//get survey folder path
-		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
+		$this->load->library('catalog_admin');		
+		$fixed_count=$this->catalog_admin->fix_resource_links($surveyid);		
 		
-		//get survey resources
-		$resources=$this->Resource_model->get_survey_resource_files($surveyid);
-		
-		//hold broken resources
-		$broken_links=array();
-		
-		//build an array of broken resources, ignore the resources with correct paths
-		foreach($resources as $resource)
-		{
-			//check if the resource file found on disk
-			if(!is_url($resource['filename']))
-			{
-				if(!file_exists( unix_path($this->survey_folder.'/'.$resource['filename'])))
-				{
-					$broken_links[]=$resource;
-				}
-			}
-		}
-		
-		//get a list of all files in the survey folder
-		$files=$this->managefiles_model->get_files_recursive($this->survey_folder,$this->survey_folder);
-
-		//number of links fixed
-		$this->fixed_count=0;
-		
-		//find matching files in the filesystem for the broken links
-		foreach($broken_links as $key=>$resource)
-		{			
-			$match=FALSE;
-			
-			//search files array and return the relative path to the file if found 
-			foreach($files['files'] as $file)
-			{
-				//match found
-				if(strtolower($file['name'])==strtolower(basename($resource['filename'])) )
-				{					
-					$match=$file['relative'];
-					
-					//update path in database
-					$this->Resource_model->update($resource['resource_id'],array('filename'=>$file['relative'].'/'.$file['name']));
-					
-					//update the count
-					$this->fixed_count++;
-					
-					break;
-				}
-			}
-			
-			//add path for the resources
-			$broken_links[$key]['match']=$match;
-		}
-		
-		//$msg=$this->load->view('managefiles/fixlinks',array('links'=>$broken_links),TRUE);
-		$this->session->set_flashdata('message', sprintf (t('n_resources_fixed'),$this->fixed_count));
+		$this->session->set_flashdata('message', sprintf (t('n_resources_fixed'),$fixed_count));
 		redirect('admin/catalog/edit/'.$surveyid.'/resources',"refresh");
 	}
 	
