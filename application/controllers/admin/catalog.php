@@ -35,23 +35,25 @@ class Catalog extends MY_Controller {
 		//$this->output->enable_profiler(TRUE);	
 		//$this->acl->clear_active_repo();
 		
-		//test if active repo is set
-		if (!$this->acl->user_active_repo())
+		//set active repo
+		$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+
+		if (!$repo_obj)
 		{
-			redirect('admin/repositories/select');
+			//set active repo to CENTRAL
+			$data=$this->Repository_model->get_central_catalog_array();
+			$this->active_repo=(object)$data;
 		}
 		else
 		{
-			//get repository basic info
-			$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
-
 			//set active repo
 			$this->active_repo=$repo_obj;
-			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
-			$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
-			//set collection header
-			$this->template->add_variable($name='collection',$value=$collection);
+			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);			
 		}
+		
+		//set collection sticky bar options
+		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
+		$this->template->add_variable($name='collection',$value=$collection);
 	}
  
 	/**
@@ -524,13 +526,39 @@ class Catalog extends MY_Controller {
 			redirect('admin/catalog/add_study','refresh');
 		}	
 		else //successful upload
-		{			
+		{
 			//get uploaded file information
 			$uploaded_ddi_path = $this->upload->data();
 			$uploaded_ddi_path=$uploaded_ddi_path['full_path'];
 			$this->db_logger->write_log('ddi-upload','success','catalog');
 		}
 
+		//get study codebook ID from the DDI file
+		$this->load->library('ddi_parser');
+		$codebook_id=$this->ddi_parser->get_ddi_codebook_id($uploaded_ddi_path);
+		
+		if (!$codebook_id)
+		{
+			$this->session->set_flashdata('error', 'NOT-A-VALID-DDI');
+			redirect('admin/catalog/add_study','refresh');return;
+		}
+		
+		//get study internal ID
+		$study_id=$this->Catalog_model->get_survey_uid($codebook_id);
+		
+		//study found
+		if ($study_id)
+		{
+			//check if study is owned by the active repository
+			$owner_repository=$this->Catalog_model->get_study_owner($study_id);
+			
+			if($owner_repository!==$repositoryid)
+			{
+				$this->session->set_flashdata('error', sprintf(t('study_exists_in_other_collection'),$owner_repository));
+				redirect('admin/catalog/add_study','refresh');return;
+			}
+		}
+				
 		//import DDI file
 		$this->load->library('catalog_admin');
 		$result=$this->catalog_admin->import_ddi($uploaded_ddi_path,$overwrite,$repositoryid, $delete_after_import=TRUE);
@@ -580,7 +608,7 @@ class Catalog extends MY_Controller {
 	 *
 	 * @return void
 	 **/	
-	function do_upload()
+/*	function do_upload()
 	{	
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
@@ -654,6 +682,8 @@ exit;
 			$this->import();
 		}
 	}
+*/
+
 
 	/**
 	* Imports an uploaded DDI file or batch import
@@ -986,6 +1016,88 @@ exit;
 	
 
 	/**
+	*
+	* Clear files from the imports folder
+	**/
+	function clear_import_folder()
+	{
+		$this->load->helper('file');
+		$import_folder=$this->config->item('ddi_import_folder');
+		
+		if (!file_exists($import_folder) )
+		{
+			show_error('IMPORT-FOLDER-NOT-SET');
+		}
+		
+		//read files
+		$files['files']=get_dir_file_info($import_folder);
+
+		if ( $files['files'])
+		{
+			foreach($files['files'] as $key=>$value)
+			{
+				if (in_array(substr($value['name'],-4),array('.xml','.rdf')) ) 
+				{
+					unlink($value['server_path']);
+				}
+			}
+		}
+		
+		redirect('admin/catalog/batch_import');	
+	}
+	
+	
+	/**
+	*
+	* Upload files to the IMPORTS folder
+	**/
+	function process_batch_uploads()
+	{
+		//import folder path
+		$import_folder=$this->config->item('ddi_import_folder');
+		
+		if (!file_exists($import_folder))
+		{
+			show_error('FOLDER-NOT-SET');
+		}
+		
+		$config = array(
+				'max_tmp_file_age' 		=> 900,
+				'max_execution_time' 	=> 300,
+				'target_dir' 			=> $import_folder,
+				'allowed_extensions'	=>'xml|rdf',
+				'overwrite_file'		=>TRUE
+				);
+				
+		$this->load->library('Chunked_uploader', $config, 'uploader');
+	
+		try
+		{
+			$this->uploader->upload();
+			
+			if ($this->uploader->is_completed())
+			{
+				$output=array(
+					'status'=>'success',
+					//'file'=>$this->uploader->get_file_path()
+				);
+				die ( json_encode($output));
+			}
+			else
+			{
+				//echo "still uploading";
+			}			
+		}
+		catch (Exception $ex)
+		{
+			$response = array('error'>$ex->getMessage());
+			echo json_encode($response);exit;
+		}
+	}
+	
+	
+
+	/**
 	 * Imports multiple ddi files from the server folder
 	 *
 	 * 
@@ -1054,6 +1166,7 @@ exit;
 		//repository
 		$repositoryid=$this->input->post("repositoryid");
 		
+		
 		//validate if user has access to the selected repository
 		$user_repositories=$this->acl->get_user_repositories();
 
@@ -1077,6 +1190,30 @@ exit;
 		//set the repository where the ddi will be uploaded to	
 		$this->DDI_Import->repository_identifier=$repositoryid;
 
+
+		//get study codebook ID from the DDI file
+		$codebook_id=$this->ddi_parser->get_ddi_codebook_id($ddi_file);
+		
+		if (!$codebook_id)
+		{
+			echo json_encode(array('error'=>'NOT-A-VALID-DDI') );exit;
+		}
+		
+		//get study internal ID
+		$study_id=$this->Catalog_model->get_survey_uid($codebook_id);
+		
+		//study found
+		if ($study_id)
+		{
+			//check if study is owned by the active repository
+			$owner_repository=$this->Catalog_model->get_study_owner($study_id);
+			
+			if($owner_repository!==$repositoryid)
+			{
+				echo json_encode(array('error'=>sprintf(t('study_exists_in_other_collection'),$owner_repository)) );exit;
+			}
+		}
+
 		
 		//set file for parsing
 		$this->ddi_parser->ddi_file=$ddi_file;
@@ -1089,8 +1226,6 @@ exit;
 		{
 			$error= t('invalid_ddi_file').$ddi_file;
 			log_message('error', $error);
-			$this->session->set_flashdata('error', $error);
-			
 			echo json_encode(array('error'=>$error) );
 			exit;
 		}
@@ -1496,11 +1631,13 @@ exit;
 	
 	function copy_study()
 	{	
-		//css files
 		$this->template->add_css('themes/admin/catalog_admin.css');
-		
-		//js files
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
+		
+		if (isset($this->active_repo) && $this->active_repo->repositoryid=='central')
+		{
+			show_error('ACTION_NOT_ALLOWED');
+		}
 		
 		//set filter on active repo
 		if (isset($this->active_repo) && $this->active_repo!=null)
