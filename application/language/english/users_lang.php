@@ -34,6 +34,7 @@ $lang['forgot_password'] = "Forgot password?";
 $lang['user_registration'] = "User Registration";
 $lang['captcha_question'] = "Question";
 $lang['captcha_provide_answer'] = "Type the text in the box";
+$lang['invalid_captcha'] = "The Captcha answer didn't match.";
 
 //after the user has registered
 $lang['account_created_email_confirmation'] = "You account has been created but before you can login, we need to confirm your email address. We have emailed you the instructions to activate your user account.";
