@@ -2,7 +2,7 @@
 $lang['catalog_maintenance'] = "Manage Collection";
 $lang['add_study_to_collection'] = "Add study to collection:";
 $lang['upload_ddi_hover'] = "Upload a DDI file";
-$lang['import_ddi'] = "Import DDI";
+$lang['import_ddi'] = "Bulk import DDI";
 $lang['import_ddi_hover'] = "Import multiple DDI files";
 
 //fields
@@ -28,9 +28,9 @@ $lang['msg_select_rdf'] = "Select RDF file (.rdf):";
 
 //import ddi
 $lang['ddi_import_processing'] = "Please wait while the file is being imported...";
-$lang['batch_import_title'] = "Batch Import DDIs";
-$lang['import_ddi_no_files_found'] = "No DDI files were found in the import folder [%s]. To import files, first copy them to a folder that is accessible to the application.";
-$lang['import_ddi_files_found'] ="%s files were found in the import folder. Select the files you want to import and click on the Import button to proceed.";
+$lang['batch_import_title'] = "Bulk Import DDIs to: ";
+$lang['import_ddi_no_files_found'] = "No DDI files were found in the import folder [%s]. To batch import studies, upload them using the batch upload below or use FTP.";
+$lang['import_ddi_files_found'] ="%s files were found in the imports folder. Select the files you want to import and click on the Import button to proceed.";
 $lang['btn_import'] = "Import";
 $lang['cancel_import_process'] = "Click here to cancel the import process";
 $lang['import_cancelled'] = "Import cancelled!";
@@ -105,7 +105,7 @@ $lang['reviewer_notes']='Reviewer notes';
 $lang['study_collections']='Study collections';
 $lang['study_aliases']='Study Aliases';
 
-$lang['study_warnings']='Warnings! please fix the following issues:';
+$lang['study_warnings']='Warnings!';
 $lang['warning_study_has_no_external_resources']='Study has no external resources attached';
 $lang['warning_study_has_no_microdata']='Study has no microdata attached';
 $lang['warning_study_has_no_questionnaire']='Study has no questionnaires attached';
@@ -127,8 +127,9 @@ $lang['Tags']='Tags';
 $lang['Generate PDF']='Generate PDF';
 $lang['Status']='Status';
 
-
-
-
+$lang['batch_upload_files']='Upload files';
+$lang['clear_import_folder']='Clear import files';
+$lang['central_catalog_short_text']='a para describing central catalog';
+$lang['study_exists_in_other_collection']='Study already exists in collection [%s]. To update the study, you must switch to the collection and upload DDI.';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
