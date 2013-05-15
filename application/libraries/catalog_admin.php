@@ -419,5 +419,74 @@ class Catalog_Admin
 		return $warnings;
 	}
 	
+	
+	/**
+	*
+	* Fix file paths for external resources 
+	**/
+	function fix_resource_links($surveyid)
+	{		
+		$this->ci->load->model('Catalog_model');
+		$this->ci->load->model('Resource_model');
+		$this->ci->load->model('Managefiles_model');
+
+		//get survey folder path
+		$survey_folder=$this->ci->Catalog_model->get_survey_path_full($surveyid);
+		
+		//get survey resources
+		$resources=$this->ci->Resource_model->get_survey_resource_files($surveyid);
+		
+		//hold broken resources
+		$broken_links=array();
+		
+		//build an array of broken resources, ignore the resources with correct paths
+		foreach($resources as $resource)
+		{
+			//check if the resource file found on disk
+			if(!is_url($resource['filename']))
+			{
+				if(!file_exists( unix_path($survey_folder.'/'.$resource['filename'])))
+				{
+					$broken_links[]=$resource;
+				}
+			}
+		}
+		
+		//get a list of all files in the survey folder
+		$files=$this->ci->Managefiles_model->get_files_recursive($survey_folder,$survey_folder);
+
+		//number of links fixed
+		$fixed_count=0;
+		
+		//find matching files in the filesystem for the broken links
+		foreach($broken_links as $key=>$resource)
+		{			
+			$match=FALSE;
+			
+			//search files array and return the relative path to the file if found 
+			foreach($files['files'] as $file)
+			{
+				//match found
+				if(strtolower($file['name'])==strtolower(basename($resource['filename'])) )
+				{					
+					$match=$file['relative'];
+					
+					//update path in database
+					$this->ci->Resource_model->update($resource['resource_id'],array('filename'=>$file['relative'].'/'.$file['name']));
+					
+					//update the count
+					$fixed_count++;
+					
+					break;
+				}
+			}
+			
+			//add path for the resources
+			$broken_links[$key]['match']=$match;
+		}
+		
+		return $fixed_count;
+	}
+	
 }//end class
 
