@@ -368,27 +368,64 @@ class Breadcrumb
 	function generate_admin_breadcrumbs(&$breadcrumbs)
 	{	
 		$breadcrumbs=array();
-		$breadcrumbs['admin']=t('Dashboard');
-		
+		$breadcrumbs['admin']=t('Dashboard');		
 		$segments=$this->ci->uri->segment_array();
 		
 		if (!isset($segments[2]))
 		{
 			return;
 		}
-				
+		
+		$active_repo=$this->ci->acl->get_repo($this->ci->acl->user_active_repo());
+		
+		if (!$active_repo)
+		{
+			//set active repo to CENTRAL
+			$active_repo=(object)$this->ci->Repository_model->get_central_catalog_array();
+		}
+		
+		$breadcrumbs['admin/repositories/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
+		
 		switch ($segments[2])
 		{
 			case 'catalog':
-				$breadcrumbs['admin/catalog']=t('Catalog');
+				$breadcrumbs['admin/catalog']=t('manage_studies');
 			break;
 			
 			case 'repositories':
-				$breadcrumbs['admin/repositories']=t('Repositories');
+				$breadcrumbs['admin/repositories']=t('repositories');
 			break;
 			
 			case 'licensed_requests':
-				$breadcrumbs['admin/licensed_requests']=t('Licensed Survey Requests');
+				$breadcrumbs['admin/licensed_requests']=t('licensed_survey_requests');
+			break;
+
+			case 'citations':
+				$breadcrumbs['admin/citations']=t('citations');
+			break;
+			
+			case 'users':
+				$breadcrumbs['admin/users']=t('users');
+			break;
+			
+			case 'user_groups':
+				$breadcrumbs['admin/user_groups']=t('user_groups');
+			break;
+
+			case 'permissions':
+				$breadcrumbs['admin/permissions/manage_group_perm/'.$segments[4]]=t('user_group_permissions');
+			break;
+
+			case 'menu':
+				$breadcrumbs['admin/menu']=t('menu');
+			break;
+			
+			case 'reports':
+				$breadcrumbs['admin/reports']=t('reports');
+			break;
+
+			case 'configurations':
+				$breadcrumbs['admin/configurations']=t('settings');
 			break;
 
 		}
@@ -403,34 +440,101 @@ class Breadcrumb
 			switch ($segments[3])
 			{
 				case 'edit':
-					$breadcrumbs['admin/catalog/edit']=t('Edit Survey');
+					$breadcrumbs['admin/catalog/edit']=t('edit_study');
 				break;
 				
-				case 'upload':
-					$breadcrumbs['admin/catalog/upload']=t('Upload DDI');
+				case 'add_study':
+					$breadcrumbs['admin/catalog/upload']=t('add_study');
+				break;
+
+				case 'copy_study':
+					$breadcrumbs['admin/catalog/upload']=t('copy_studies_to');
 				break;
 
 				case 'batch_import':
-					$breadcrumbs['admin/catalog/batch_import']=t('Batch Import');
+					$breadcrumbs['admin/catalog/batch_import']=t('bulk_import');
 				break;
 				
 				case 'transfer':
-					$breadcrumbs['admin/catalog/transfer']=t('Transfer Study Ownership');
+					$breadcrumbs['admin/catalog/transfer']=t('transfer_study_ownership');
 				break;
 				
 				case 'delete':
-					$breadcrumbs['admin/catalog/delete']=t('Delete Survey');
+					$breadcrumbs['admin/catalog/delete']=t('delete');
 				break;				
 			}
 		}
 		
+		
+		if ($segments[2]=='citations')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/citations/edit'.$segments[4]]=t('edit');
+				break;
+				
+				case 'add':
+					$breadcrumbs['admin/citations/add']=t('add');
+				break;
+
+				case 'import':
+					$breadcrumbs['admin/citations/import']=t('import_citations');
+				break;
+
+				case 'export':
+					$breadcrumbs['admin/citations/export']=t('export_citations');
+				break;
+				
+				case 'delete':
+					$breadcrumbs['admin/citations/delete'.$segments[4]]=t('delete');
+				break;				
+			}
+		}
+		
+		
+		if ($segments[2]=='users')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/users/edit/'.$segments[4]]=t('edit');
+				break;
+				
+				case 'add':
+					$breadcrumbs['admin/users/add']=t('add');
+				break;
+
+				case 'delete':
+					$breadcrumbs['admin/users/delete'.$segments[4]]=t('delete');
+				break;				
+			}
+		}
+		
+		if ($segments[2]=='user_groups')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/user_groups/edit/'.$segments[4]]=t('edit');
+				break;
+				
+				case 'add':
+					$breadcrumbs['admin/user_groups/add']=t('add');
+				break;
+
+				case 'delete':
+					$breadcrumbs['admin/user_groups/delete'.$segments[4]]=t('delete');
+				break;				
+			}
+		}
 		
 		if ($segments[2]=='licensed_requests')
 		{
 			switch ($segments[3])
 			{
 				case 'edit':
-					$breadcrumbs['admin/licensed_requests/edit/'.$segments[4]]=t('Edit Licensed Request');
+					$breadcrumbs['admin/licensed_requests/edit/'.$segments[4]]=t('edit');
 				break;
 			}
 		}
@@ -440,15 +544,61 @@ class Breadcrumb
 			switch ($segments[3])
 			{
 				case 'edit':
-					$breadcrumbs['admin/repositories/edit/'.$segments[4]]=t('Edit Repository');
+					$breadcrumbs['admin/repositories/edit/'.$segments[4]]=t('edit');
 				break;
 
 				case 'add':
-					$breadcrumbs['admin/repositories/add/']=t('Create Repository');
+					$breadcrumbs['admin/repositories/add/']=t('add');
 				break;
 
 			}
-		}	
+		}
+		
+		
+		if ($segments[2]=='menu')
+		{
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/menu/edit/'.$segments[4]]=t('edit');
+				break;
+
+				case 'add':
+				case 'add_link':
+					$breadcrumbs['admin/menu/add/']=t('add');
+				break;
+
+				case 'menu_sort':
+					$breadcrumbs['admin/menu/menu_sort/']=t('reorder_menu');
+				break;
+
+			}
+		}
+		
+		if ($segments[2]=='resources')
+		{
+			$breadcrumbs['admin/catalog']=t('manage_studies');			
+
+			switch ($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/catalog/edit/'.$segments[5]]=$this->get_study_title($segments[5]);
+					$breadcrumbs['admin/resources/edit/'.$segments[4].'/'.$segments[5]]=t('edit_resource');
+				break;
+
+				case 'add':
+					$breadcrumbs['admin/catalog/edit/'.$segments[5]]=$this->get_study_title($segments[5]);
+					$breadcrumbs['admin/menu/add/']=t('add_new_resource');
+				break;
+
+				case 'upload':
+					$breadcrumbs['admin/resources/upload/'.$segments[4]]=t('upload_resources');
+				break;
+
+			}
+		}
+		
+			
 	}
 
 	
@@ -482,6 +632,25 @@ class Breadcrumb
 		}
 		
 		return strtoupper($survey['surveyid']);
+	}
+	
+	
+	/**
+	*
+	*Get Study Refno by ID
+	*
+	**/
+	function get_study_title($id)
+	{		
+		$this->ci->load->model('catalog_model');
+		$survey=$this->ci->catalog_model->get_survey($id);
+		
+		if($survey)
+		{
+			return strtoupper($survey['titl']);
+		}
+		
+		return FALSE;
 	}
 	
 	/**
