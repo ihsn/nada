@@ -1,3 +1,7 @@
+<style type="text/css">
+.active-repo{background:gainsboro;padding:5px;}
+</style>
+
 <?php
 //get repositories list by user access
 $user_repositories=$this->acl->get_user_repositories();
@@ -17,31 +21,42 @@ if (isset($active_repo) && $active_repo!=NULL)
 }
 ?>
 
+<?php 
+//batch uploader using PLUPLOAD
+$batch_upload_options=array(
+	'allowed_extensions'	=>'xml,rdf',
+	'destination_url'		=>'admin/catalog/batch_import',
+	'upload_url'			=>'admin/catalog/process_batch_uploads'
+);
+$batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_options,TRUE);
+?>
+
 <div class="content-container">
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
 
-<h1 class="page-title"><?php echo t('batch_import_title');?></h1>
+<h1 class="page-title"><?php echo t('batch_import_title');?> <span class="active-repo"><?php echo $repositories_list[$active_repository];?></span></h1>
 <div>
 
 <?php if ( count($files)==0 || $files===false) :?>
-    <div class="error">
+    <div class="alert alert-block">
 		<?php echo sprintf(t('import_ddi_no_files_found'),$this->config->item('ddi_import_folder'));?>
-    </div>    
+    </div>
+    
+    <?php echo $batch_uploader;?>
     <?php return; ?>
 <?php endif; ?>
 
-<div class="note">
-	<?php echo sprintf(t('import_ddi_files_found'),count($files));?>
+<div>
+	<?php echo sprintf(t('import_ddi_files_found'),count($files));?> <input type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
     
     <div style="margin-top:20px;">
     
     <div class="field" style="margin-bottom:5px;">
-    	<label for="repositoryid"><?php echo t('msg_select_repository');?></label>
-        <?php echo form_dropdown('repositoryid', $repositories_list,$active_repository,'id="repositoryid"'); ?>
-        
-        <label for="overwrite" class="desc" style="padding-left:20px;"><input type="checkbox" name="overwrite" id="overwrite" checked="checked"  value="yes"/> <?php echo t('ddi_overwrite_exist');?></label>
+        <label for="overwrite" class="desc" >
+        	<input type="checkbox" name="overwrite" id="overwrite" checked="checked"  value="yes"/> <?php echo t('ddi_overwrite_exist');?> 
+        </label>
     </div>  
     
     </div>
@@ -52,8 +67,16 @@ if (isset($active_repo) && $active_repo!=NULL)
     <div id="batch-import-log" ></div>
 </div>
 
+
 <?php echo form_open_multipart('admin/catalog/batch_import', array('class'=>'form')	 );?>
-<input type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
+<input type="hidden" name="repositoryid" id="repositoryid" value="<?php echo $active_repository;?>"/>
+
+<div class="batch-links">
+<a class="batch-uploader" href="#" onclick="javascript:return false;"><?php echo t('batch_upload_files');?></a> | 
+<a href="<?php echo site_url('admin/catalog/clear_import_folder');?>"><?php echo t('clear_import_folder');?></a>
+</div>
+
+<div class="uploader-body state-hidden"><?php echo $batch_uploader;?></div>
 
 <table class="grid-table" width="100%" cellspacing="0" cellpadding="0"> 
 <tr align="left" class="header">
@@ -71,7 +94,6 @@ if (isset($active_repo) && $active_repo!=NULL)
     </tr>
 <?php endforeach;?>
 </table>
-<input type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
 <?php echo form_close();?>
 </div>
 
@@ -184,6 +206,10 @@ jQuery(document).ready(function(){
                 }); 
 			}
 	);
+	
+	$(".batch-uploader").click(function(e){
+		$(".uploader-body").toggleClass("state-hidden");
+	});
 	
 });
 
