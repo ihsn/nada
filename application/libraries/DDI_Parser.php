@@ -81,6 +81,35 @@ class DDI_Parser{
 	}
 
 	/**
+	*
+	* Get DDI file's codebook ID attribute value
+	**/
+	public function get_ddi_codebook_id($ddi_file)
+	{
+		$reader = new XMLReader();
+	    if(!$reader->open($ddi_file))
+		{ 
+			return false;
+		}
+
+		$codebook_id=NULL;
+		
+		while ($reader->read() ) 
+		{
+			if ($reader->nodeType == XMLReader::ELEMENT && $reader->localName == "codeBook") 
+			{
+				//get the ID attribute
+				$codebook_id= $reader->getAttribute ('ID');
+				break;
+			}
+		}				
+		$reader->close();
+		
+		return $codebook_id;
+	}
+	
+
+	/**
 	* validate DDI file
 	*
 	* @return boolean
@@ -140,12 +169,11 @@ class DDI_Parser{
 		$reader = new XMLReader();
 
 		//read the xml file
-	    if(!$reader->open($this->ddi_file))
+	    if(!$reader->open($this->ddi_file,null,LIBXML_NOERROR | LIBXML_NOWARNING))
 		{ 
-			print "can't open file";
-			return false;
+			return false;//can't open the file
 		}
-		
+
 		$output=array();
 		
 		$codebook_name='codeBook';
