@@ -204,7 +204,7 @@ class ACL
 		//$repoid=$this->ci->session->userdata('active_repo');
 		$repoid=$this->ci->input->cookie('active_repo',TRUE);
 		
-		if (!$repoid)
+		if (!is_numeric($repoid))
 		{
 			return FALSE;
 		}
@@ -237,7 +237,7 @@ class ACL
 	**/
 	function get_repo($id)
 	{
-			//get repo info
+		//get repo info
 		$this->ci->db->select("repositoryid,id,title");
 		$this->ci->db->where("id",$id);
 		$query=$this->ci->db->get("repositories");
@@ -295,7 +295,9 @@ class ACL
 			return FALSE;
 		}
 		
-		return $query->result_array();
+		$collections= $query->result_array();
+		array_unshift($collections, $this->ci->Repository_model->get_central_catalog_array()	);
+		return $collections;
 	}
 	
 	
