@@ -263,7 +263,7 @@ class Repositories extends MY_Controller {
 					
 					$this->row_data=$row;
 					
-					//valiate and clean up thumbnails
+					//validate and clean up thumbnails
 					$default_thumb=$this->config->item('collection_default_thumb', 'collections');					
 					$thumb_ext=explode(".",basename($this->row_data['thumbnail']));
 					
