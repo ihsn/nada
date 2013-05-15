@@ -146,6 +146,8 @@ $lang['contributing_catalogs']="Contributing Catalogs";
 $lang['study_data_files']="Data Files";
 $lang['show_all_files']="Show all files...";
 $lang['msg_about_contributing_catalogs']="Our %s operates as a portal for datasets originating from the World Bank and other international, regional and national organizations. These datasets and  the related metadata are provided by various contributing catalogs.";
+$lang['about_central_catalog']="a para describing central data catalog....";
+
 
 
 /* End of file catalog_search_lang.php */
