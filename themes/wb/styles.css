@@ -252,3 +252,7 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 .privacy-info{font-size:11px; color:#666666;padding:5px;margin-top:20px;}
 .login-footer .ot{margin-left:25px;font-size:smaller;}
 .login-footer .first{border-right:1px solid gainsboro;padding-right:10px;margin-right:5px;}
+
+.captcha_container .image_captcha{margin-top:15px;}
+.captcha_container .image_captcha label{margin-top:15px;}
+.captcha_container{margin-bottom:15px;}
