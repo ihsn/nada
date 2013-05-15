@@ -35,6 +35,8 @@ box-shadow: 1px 1px 1px #888;
     <?php endif;?>
 	<a href="<?php echo site_url(); ?>/admin/catalog/upload" class="button" title="<?php echo t('upload_ddi_hover');?>"><?php echo t('upload_ddi');?></a> 
     <a href="<?php echo site_url(); ?>/admin/catalog/batch_import" class="button" title="<?php echo t('import_ddi_hover');?>"><?php echo t('import_ddi');?></a>
+    <?php if(strtolower($repositoryid)!=='central'):?>
 	<a href="<?php echo site_url(); ?>/admin/catalog/copy_study" class="button" title="<?php echo t('copy_studies');?>"><?php echo t('copy_studies');?></a>
+    <?php endif;?>
 </div>    
 </div>
