@@ -22,33 +22,6 @@ if ($languages!==FALSE)
 
 $this->load->helper('site_menu');
 $site_navigation_menu=get_site_menu();
-/*
-exit;
-$this->load->library('site_menu');
-$site_navigation_menu=$this->site_menu->get_formatted_menu_tree();
-$menu_array=$this->site_menu->get_menu_items_array();
-
-//get user allowed URLs
-$allowed_urls=$this->acl->url_access_by_user();
-
-foreach($menu_array['parents'] as $item)
-{
-	if ($this->acl->user_has_url_access($user_id=NULL,$url=$item['url']))
-	{
-		echo "has-access",$item['title'],"---",$item['url'].'<BR>';
-	}
-	else
-	{
-		echo "no-access",$item['title'],"---",$item['url'].'<BR>';
-	}
-}
-
-echo '<pre>';
-var_dump($allowed_urls);
-
-//echo $site_navigation_menu;
-exit;
-*/
 ?>
 <!DOCTYPE html>
 <html>
@@ -105,8 +78,7 @@ exit;
 	<script src="themes/<?php echo $this->template->theme();?>/js/jquery-1.9.0.js"></script>
     <script src="themes/<?php echo $this->template->theme();?>/js/bootstrap.min.js"></script>
     <script src="javascript/jquery-migrate-1.0.0.min.js"></script>
-    
-    
+        
     <script type="text/javascript"> 
    		var CI = {'base_url': '<?php echo site_url(); ?>'}; 
 	</script> 
@@ -136,7 +108,7 @@ exit;
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="<?php echo site_url();?>/admin">NADA 4.0-alpha</a>
+          <a class="brand" href="<?php echo site_url();?>/admin">NADA <?php echo APP_VERSION;?></a>
           <div class="nav-collapse subnav-collapse">
           <?php echo $site_navigation_menu;?>
           
@@ -153,9 +125,9 @@ exit;
                   <li><?php echo anchor('auth/change_password',t('change_password'));?></li>
                   <li><?php echo anchor('auth/logout',t('logout'));?></li>
                   <li class="divider"></li>
-                  <li><a href="<?php echo site_url();?>"/>Home</a></li>
-                  <li><a href="<?php echo site_url();?>/catalog"/>Data Catalog</a></li>
-                  <li><a href="<?php echo site_url();?>/citations"/>Citations</a></li>
+                  <li><a target="_blank" href="<?php echo site_url();?>"/><?php echo t('home');?></a></li>
+                  <li><a  target="_blank" href="<?php echo site_url();?>/catalog"/><?php echo t('data_catalog');?></a></li>
+                  <li><a  target="_blank" href="<?php echo site_url();?>/citations"/><?php echo t('citations');?></a></li>
                 </ul>
                 <?php endif;?>
               </li>
