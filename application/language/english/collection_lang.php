@@ -49,7 +49,7 @@ $lang['study_title'] = 'Study title';
 $lang['total_studies_in_collection'] = 'Total studies in the collection';
 $lang['year'] = 'Year';
 $lang['changed'] = 'Changed';
-
+$lang['preview'] = 'Preview';
 
 /* End of file collection_lang.php */
 /* Location: ./system/language/english/collection_lang.php */
