@@ -856,6 +856,28 @@ CREATE TABLE `dctypes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
+--
+-- Dumping data for table `dctypes`
+--
+
+INSERT INTO dctypes (id, title) VALUES (1, 'Document, Administrative [doc/adm]');
+INSERT INTO dctypes (id, title) VALUES (2, 'Document, Analytical [doc/anl]');
+INSERT INTO dctypes (id, title) VALUES (3, 'Document, Other [doc/oth]');
+INSERT INTO dctypes (id, title) VALUES (4, 'Document, Questionnaire [doc/qst]');
+INSERT INTO dctypes (id, title) VALUES (5, 'Document, Reference [doc/ref]');
+INSERT INTO dctypes (id, title) VALUES (6, 'Document, Report [doc/rep]');
+INSERT INTO dctypes (id, title) VALUES (7, 'Document, Technical [doc/tec]');
+INSERT INTO dctypes (id, title) VALUES (8, 'Audio [aud]');
+INSERT INTO dctypes (id, title) VALUES (9, 'Database [dat]');
+INSERT INTO dctypes (id, title) VALUES (10, 'Map [map]');
+INSERT INTO dctypes (id, title) VALUES (11, 'Microdata File [dat/micro]');
+INSERT INTO dctypes (id, title) VALUES (12, 'Photo [pic]');
+INSERT INTO dctypes (id, title) VALUES (13, 'Program [prg]');
+INSERT INTO dctypes (id, title) VALUES (14, 'Table [tbl]');
+INSERT INTO dctypes (id, title) VALUES (15, 'Video [vid]');
+INSERT INTO dctypes (id, title) VALUES (16, 'Web Site [web]');
+
+
 #forms
 
 CREATE TABLE `forms` (
@@ -987,3 +1009,14 @@ INSERT INTO `terms` VALUES (1,1,0,'Economics[1]'),(2,1,1,'consumption/consumer b
 
 
 
+#
+# TABLE STRUCTURE FOR: login_attempts
+#
+
+CREATE TABLE login_attempts (
+  id mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  ip_address varbinary(16) NOT NULL,
+  login varchar(100) NOT NULL,
+  time int(11) unsigned DEFAULT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
