@@ -36,6 +36,7 @@ $options_country=$this->ion_auth_model->get_all_countries();
 	      <?php echo form_input($email,'','class="input-flex"');?>
       </div>
 
+	<?php /* ?>	
       <div class="field">
 	      <label for="company"><?php echo t('company');?></label>
 	      <?php echo form_input($company,'','class="input-flex"');?>
@@ -50,6 +51,7 @@ $options_country=$this->ion_auth_model->get_all_countries();
             <label for="country"><?php echo t('country');?><span class="required">*</span></label>
             <?php echo form_dropdown('country', $options_country, get_form_value("country",isset($country) ? $country : '')); ?>
         </div>
+	<?php */ ?>	
 
       <div class="field">
 	      <label for="password"><?php echo t('password');?><span class="required">*</span></label>
@@ -61,13 +63,9 @@ $options_country=$this->ion_auth_model->get_all_countries();
 	      <?php echo form_input($password_confirm,'','class="input-flex" autocomplete="off"');?>
       </div>
 
-	 <?php if ($this->image_captcha->is_enabled()):?>
-      <div class="field">
-        <label for="cap_question"><?php echo t('captcha_question');?> <span class="required">*</span></label>
-        <?php echo $this->captcha; ?>
-        <label for="cap_question" class="small"><?php echo t('captcha_provide_answer');?></label>
-      </div>
-     <?php endif;?>   
+     <div class="captcha_container">
+	     <?php echo $captcha_question;?>
+     </div>
       
       <?php echo form_submit('submit', t('register'));?>
       <?php echo anchor('',t('cancel'), array('class'=>'')); ?>
