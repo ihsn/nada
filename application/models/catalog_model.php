@@ -1485,4 +1485,26 @@ class Catalog_model extends CI_Model {
 		$this->db->query('update surveys set total_downloads=total_downloads+1 where id='.$this->db->escape((int)$id) );
 	}
 
+
+	/**
+	*
+	* Returns repositoryid that owns the study
+	*
+	**/
+	function get_study_owner($sid)
+	{
+		$this->db->select("repositoryid");
+		$this->db->where("sid",$sid);
+		$this->db->where("isadmin",1);
+		$result=$this->db->get("survey_repos");
+		
+		if (!$result)
+		{
+			return FALSE;
+		}
+		
+		$result=$result->row_array();
+		return $result['repositoryid'];
+	}
+
 }
