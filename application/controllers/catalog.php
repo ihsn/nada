@@ -1193,16 +1193,9 @@ class Catalog extends MY_Controller {
 	{
 		$repositoryid=$this->uri->segment(2);
 		$this->load->model("repository_model");
-		$repo=$this->repository_model->get_repository_by_repositoryid($repositoryid);
-		
-		if (!$repo)
-		{
-			show_404();
-		}
-		
 		$additional_data=NULL;
+		$repo=NULL;
 		
-		/*
 		if ($repositoryid=='central')
 		{
 			$this->load->model("repository_model");
@@ -1219,8 +1212,21 @@ class Catalog extends MY_Controller {
 			$data['rows']=$collections;
 			$data['show_unpublished']=FALSE;
 			$additional_data=$this->load->view("repositories/index_public",$data,TRUE);
-		}*/
-		
+			$repo=array(
+					'repositoryid'	=>'central',
+					'title'			=>'Central Data Catalog'
+			);
+		}
+		else
+		{
+			$repo=$this->repository_model->get_repository_by_repositoryid($repositoryid);
+			
+			if (!$repo)
+			{
+				show_404();
+			}		
+		}
+				
 		$contents=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
 		$contents=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$contents,'repo'=>$repo,'active_tab'=>'about'),TRUE);
 		
