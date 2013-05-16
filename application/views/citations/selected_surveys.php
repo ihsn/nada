@@ -9,9 +9,9 @@
 <thead>
 	<tr class="header">        
 	    <th>&nbsp;</th>
-		<th>Title <span>&nbsp;</span></th>
-		<th>Country <span>&nbsp;</span></th>
-        <th>Year <span>&nbsp;</span></th>
+		<th><?php echo t('title');?> <span>&nbsp;</span></th>
+		<th><?php echo t('country');?> <span>&nbsp;</span></th>
+        <th><?php echo t('year');?> <span>&nbsp;</span></th>
 	</tr>
 </thead>
 <tbody>    
