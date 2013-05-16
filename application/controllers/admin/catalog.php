@@ -2042,6 +2042,9 @@ exit;
 		//get survey files
 		$survey_row['files']=$this->catalog_admin->managefiles($id);
 		
+		//get microdata attached to the study
+		$survey_row['microdata_files']=$this->resource_model->get_microdata_resources($id);
+		
 		//get resources
 		//$resources['rows']=$this->catalog_admin->resources($id);		
 		//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
@@ -2052,13 +2055,8 @@ exit;
 		//formatted list of external resources
 		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 		
-		//admin notes
-		$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'admin');
-		$survey_row['admin_notes']=$this->load->view('catalog/admin_notes', $notes, true);
-				
-		//reviewer notes
-		$notes['notes'] = $this->Catalog_Notes_model->notes_from_catelog_id($id, 'reviewer');
-		$survey_row['reviewer_notes']=$this->load->view('catalog/reviewer_notes', $notes, true);
+		//get all study notes
+		$survey_row['study_notes']=$this->Catalog_Notes_model->get_notes_by_study($id);
 		
 		//survey tags
 		$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
