@@ -384,7 +384,10 @@ class Breadcrumb
 			$active_repo=(object)$this->ci->Repository_model->get_central_catalog_array();
 		}
 		
-		$breadcrumbs['admin/repositories/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
+		if ($segments[2]!=='repositories')
+		{
+			$breadcrumbs['admin/repositories/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
+		}	
 		
 		switch ($segments[2])
 		{
@@ -427,6 +430,12 @@ class Breadcrumb
 			case 'configurations':
 				$breadcrumbs['admin/configurations']=t('settings');
 			break;
+			
+			case 'pdf_generator':
+				$breadcrumbs['admin/catalog/edit/'.$segments[4]]=t('edit_study');
+				$breadcrumbs['admin/pdf_generator/'.$segments[3].'/'.$segments[4] ]=t('generate_study_pdf');
+			break;
+			
 
 		}
 		
@@ -577,7 +586,7 @@ class Breadcrumb
 		
 		if ($segments[2]=='resources')
 		{
-			$breadcrumbs['admin/catalog']=t('manage_studies');			
+			//$breadcrumbs['admin/catalog']=t('manage_studies');			
 
 			switch ($segments[3])
 			{
