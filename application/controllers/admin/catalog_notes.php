@@ -8,6 +8,7 @@ class Catalog_Notes extends MY_Controller {
 		
        	$this->load->model('Catalog_Notes_model');
 		$this->lang->load('general');
+		$this->lang->load('catalog_admin');
 	}
 	
 	public function delete($id) {
@@ -16,26 +17,83 @@ class Catalog_Notes extends MY_Controller {
 	
 	public function add($id) 
 	{
-		if (is_numeric($id))
+		if (!is_numeric($id))
 		{
-			$note = array(
-				'id'   => NULL,
-				'sid'  => $id,
-				'note' => $this->security->xss_clean($this->input->post('note')),
-				'type' => $this->security->xss_clean($this->input->post('type')),
-				'userid'  => $this->session->userdata('user_id'),
-				'created' => date("U")
-			);
-		
-			//add note
-			$this->Catalog_Notes_model->insert($note);
+			show_error('INVALID');
 		}
-				
+		
+		//show the add/edit form
+		if (!$this->input->post('note'))
+		{
+			$data=array(
+				'note'			=>'',
+				'type'			=>'',
+				'action_url'	=>site_url('admin/catalog_notes/add/'.$id)
+			);
+			$this->load->view('catalog/study_notes_edit',$data);
+			return;
+		}
+		
+		$note = array(
+			'id'   => NULL,
+			'sid'  => $id,
+			'note' => $this->security->xss_clean($this->input->post('note')),
+			'type' => $this->security->xss_clean($this->input->post('type')),
+			'userid'  => $this->session->userdata('user_id'),
+			'created' => date("U")
+		);
+	
+		if (!$note['note'] || !$note['type'])
+		{
+			return FALSE;
+		}
+	
+		//add note
+		$this->Catalog_Notes_model->insert($note);
+	}
+	
+	public function get_notes($sid)
+	{
 		//get a list of notes from db
-		$notes= $this->Catalog_Notes_model->notes_from_catelog_id($id, $note['type']);
+		$notes= $this->Catalog_Notes_model->get_notes_by_study($sid);
 		
 		//return formatted list of notes
-		echo $this->load->view('catalog/notes_by_type',array('notes'=>$notes));
+		echo $this->load->view('catalog/study_notes_list',array('study_notes'=>$notes));
+
+	}
+	
+	public function edit($id)
+	{
+		if (!is_numeric($id))
+		{
+			show_error('INVALID');
+		}
+		
+		//show the edit form
+		if (!$this->input->post('note'))
+		{
+			$note=$this->Catalog_Notes_model->single($id);
+			$note['action_url']=site_url('admin/catalog_notes/edit/'.$id);
+			$this->load->view('catalog/study_notes_edit',$note);
+			return;
+		}
+		
+		//process
+		$note = array(
+			'note' => $this->security->xss_clean($this->input->post('note')),
+			'type' => $this->security->xss_clean($this->input->post('type')),
+			'userid'  => $this->session->userdata('user_id'),
+			'changed' => date("U")
+		);
+		
+		if (!$note['note'] || !$note['type'])
+		{
+			return FALSE;
+		}
+	
+		//add note
+		$this->Catalog_Notes_model->update($id,$note);
+	
 	}
 	
 }
