@@ -10,7 +10,7 @@ $lang['delete'] = "Delete";
 $lang['edit'] = "Edit";
 $lang['add'] = "Add";
 $lang['manage_studies'] = "Manage studies";
-
+$lang['generate_study_pdf'] = "Generate study PDF";
 
 
 
