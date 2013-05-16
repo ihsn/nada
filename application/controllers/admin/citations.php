@@ -603,9 +603,8 @@ class Citations extends MY_Controller {
 	**/
 	function import()
 	{	
-		$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-		$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');		
 		
 		$this->form_validation->set_rules('citation_string', t('citation_string'), 'xss_clean|trim|required');
 		
