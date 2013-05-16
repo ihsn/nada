@@ -11,6 +11,7 @@
 	    <th>&nbsp;</th>
 		<th>Title <span>&nbsp;</span></th>
 		<th>Country <span>&nbsp;</span></th>
+        <th>Year <span>&nbsp;</span></th>
 	</tr>
 </thead>
 <tbody>    
@@ -19,6 +20,11 @@
     	<td><input class="chk" type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" checked="checked" /></td>
 		<td><?php echo $survey['titl'];?></td>
 		<td><?php echo $survey['nation'];?></td>
+        <td><?php 
+				$years=array_unique(array($survey['data_coll_start'],$survey['data_coll_end']));
+				echo implode(" - ",$years);
+		 	?>
+        </td>
 	</tr>
 <?php endforeach; ?>
 </tbody>
