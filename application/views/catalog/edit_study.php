@@ -149,11 +149,16 @@ function update_survey_collection(e) {
 		$('.attach_citations').live('click', function() {
 				var iframe_url=CI.base_url+'/admin/related_citations/index/'+survey_id;
 				$('<div id="dialog-modal" title="Select Related Citations"></div>').dialog({ 
-					height: 450,
+					height: 530,
 					width: 700,
 					resizable: false,
 					draggable: false,
 					modal: true,
+					buttons: {
+						"close": function() {
+						$( this ).dialog( "close" );
+						},
+					},
 					close: function() {
 						$.get(CI.base_url+'/admin/catalog/related_citations/'+survey_id, function(data) {
 							$('#related-citations').html(data);
@@ -214,7 +219,6 @@ function update_survey_collection(e) {
 				"Apply filter": function() {
 					$.getJSON(get_selection_url, function( json ) {
 					   var selected=json.selected;
-					   console.log(tmp_id);
 					   
 					   //clear session selection
 					   $.get(CI.base_url+'/admin/dialog_select_studies/clear_all/'+tmp_id);
@@ -312,6 +316,29 @@ function update_survey_collection(e) {
 	   	});
 		
 		return false;
+	});
+
+	function set_data_access_display(el)
+	{
+		if ($("#formid").val() >=1 && $("#formid").val() <=3) {
+			$("#formid").closest("form").addClass("microdata").removeClass("no-microdata");
+		}
+		else{
+			$("#formid").closest("form").removeClass("microdata").addClass("no-microdata");
+		}		
+	
+	}
+
+	//data access type change
+	$(document.body).on("change","#formid", function(){
+		set_data_access_display();
+		return false;
+	});
+	
+	
+	$(function() {
+		//set data access display on page load
+		set_data_access_display();
 	});
 	
 </script>
@@ -486,7 +513,18 @@ color:red;
 }
 
 .warnings{margin-top:5px;}
+
+.no-microdata .study-microdata{display:none;}
+.no-microdata-assigned{color: red;
+border: 1px solid red;
+padding: 5px;
+margin-bottom: 10px;
+background: white;
+}
+
+.microdata-applies-to{font-weight:bold;}
 </style>
+
 <div class="body-container" style="padding:10px;">
 
 <?php if($warnings):?>
@@ -526,7 +564,7 @@ color:red;
         <h1><?php echo $titl; ?></h1>
 		<table class="grid-table" cellspacing="0">
         <tr>
-            <td nowrap="nowrap"><?php echo t('ref_no');?></td>
+            <td nowrap="nowrap" style="width:150px;"><?php echo t('ref_no');?></td>
             <td><?php echo $surveyid; ?></td>
         </tr>
         
@@ -616,6 +654,19 @@ color:red;
                                         <input name="link_da" type="text" id="link_da" class="input-flex" value="<?php echo get_form_value('link_da',isset($link_da) ? $link_da : ''); ?>"/>
                                     </div>
                                     
+                                    <div class="study-microdata model-<?php echo $model;?>">
+                                    <?php if (count($microdata_files)>0):?>                                    
+										<div class="microdata-applies-to"><?php echo t('data_selection_apply_to_files');?></div>
+                                        <ul>
+                                        <?php foreach($microdata_files as $mf):?>
+                                        <li><?php echo $mf['title'];?></li>
+                                        <?php endforeach;?>
+                                        </ul>
+                                    <?php else:?>
+                                    <div class="no-microdata-assigned"><?php echo sprintf(t('study_no_data_files_assigned'),'');?></div>
+									<?php endif;?>
+                                    </div>
+                                    
                                     <div class="field">
                                     <input type="submit" value="<?php echo t('update');?>" name="submit"/>
                                     <input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle"/>
@@ -644,12 +695,12 @@ color:red;
             <td><?php echo t('metadata_in_pdf');?></td>
             <td>
             	<?php if ($pdf_documentation['status']=='na'):?>
-            		<span class="label label-important"  title="<?php echo t('pdf_not_generated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
+            		<span class="label label-important"  title="<?php echo t('pdf_not_generated');?>"><i class="icon-exclamation-sign icon-white"></i> <?php echo t('pdf_not_generated');?></span>
                 <?php else:?>
                 	<?php if ($pdf_documentation['status']=='uptodate'):?>
-                		<span class="label label-success" title="<?php echo t('pdf_uptodate');?>"><i class="icon-ok icon-white"></i></span>
+                		<span class="label label-success" title="<?php echo t('pdf_uptodate');?>"><i class="icon-ok icon-white"></i> <?php echo t('pdf_uptodate');?></span>
                     <?php else:?>
-                    	<span class="label label-warning" title="<?php echo t('pdf_outdated');?>"><i class="icon-exclamation-sign icon-white"></i></span>
+                    	<span class="label label-warning" title="<?php echo t('pdf_outdated');?>"><i class="icon-exclamation-sign icon-white"></i> <?php echo t('pdf_outdated');?></span>
                     <?php endif;?>
                 <?php endif;?>
                 <span class="actions">
@@ -755,28 +806,6 @@ color:red;
     <div class="box-body survey-tags">
 		<?php echo $tags; ?>
 	</div>
-</div>
-
-
-<div class="box iscollapsed">
-    <div class="box-header">
-    	<?php echo t('admin_notes');?><span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
-    </div>
-
-    <div class="box-body collapse">
-	<?php echo $admin_notes; ?>
-    </div>
-</div>
-
-<div class="box iscollapsed">
-    <div class="box-header">
-        <?php echo t('reviewer_notes');?>
-        <span class="sh" title="<?php echo t('toggle_box');?>">&nbsp;</span>
-    </div>
-
-    <div class="box-body collapse">
-	<?php echo $reviewer_notes; ?>
-    </div>
 </div>
 
 
