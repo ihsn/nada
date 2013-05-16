@@ -131,5 +131,20 @@ $lang['batch_upload_files']='Upload files';
 $lang['clear_import_folder']='Clear import files';
 $lang['central_catalog_short_text']='a para describing central catalog';
 $lang['study_exists_in_other_collection']='Study already exists in collection [%s]. To update the study, you must switch to the collection and upload DDI.';
+
+$lang['type_admin']='Admin notes';
+$lang['type_reviewer']='Reviewer notes';
+$lang['type_public']='Public notes';
+$lang['select_note_type']='Select note type';
+$lang['admin_note']='Admin note';
+$lang['reviewer_note']='Reviewer note';
+$lang['public_note']='Public note';
+
+$lang['add_note']='Add Note';
+$lang['click_on_icon_to_remove_citation']='Click on the icon %s to remove citation';
+$lang['attach_citation']='Attach Citation';
+$lang['js_refreshing_page']='Refreshing page, please wait...';
+
+
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
