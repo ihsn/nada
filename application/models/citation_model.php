@@ -182,7 +182,7 @@ class Citation_model extends CI_Model {
 	*/
 	function get_related_surveys($citationid)
 	{
-		$this->db->select('surveys.id,surveys.surveyid,surveys.titl, surveys.proddate, surveys.nation,surveys.authenty,, surveys.refno, citationid');
+		$this->db->select('surveys.id,surveys.surveyid,surveys.titl, surveys.proddate, surveys.nation,surveys.authenty,, surveys.refno, citationid, surveys.data_coll_start,surveys.data_coll_end');
 		$this->db->join('surveys', 'surveys.id= survey_citations.sid','inner');		
 		$this->db->where('citationid', $citationid);
 		$this->db->order_by('surveys.nation');
@@ -198,7 +198,7 @@ class Citation_model extends CI_Model {
 	{
 		//$remove_list=$this->get_related_surveys($citationid);
 		
-		$this->db->select('surveys.id,surveys.surveyid,surveys.titl, surveys.proddate, surveys.nation');
+		$this->db->select('surveys.id,surveys.surveyid,surveys.titl, surveys.proddate, surveys.nation,data_coll_start,data_coll_end');
 		//$this->db->where('citationid!=', $citationid); 		
 		return $this->db->get('surveys')->result_array();
 	}
@@ -666,7 +666,7 @@ class Citation_model extends CI_Model {
 	**/
 	function get_surveys($id_list)
 	{
-		$this->db->select('id,titl,surveyid,proddate,nation,repositoryid');
+		$this->db->select('id,titl,surveyid,proddate,nation,repositoryid,data_coll_start,data_coll_end');
 		$this->db->where_in('id', $id_list); 
 		return $this->db->get('surveys')->result_array();
 	}
