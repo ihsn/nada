@@ -1,5 +1,14 @@
+<script>
+$(document).ready(function () { 
+		$("#submit").click(function(e){
+			$(".action-submit").hide();
+			$(".processing").show();
+		});
+});		
+</script>
 <style>
 .form .field-inline label{font-weight:normal;}
+.processing{display:none;background:gainsboro;padding:15px;border:1px solid gainsboro;font-size:18px;}
 </style>
 
 <div class="content-container">
@@ -62,15 +71,18 @@
     <label for="ext_resources"><?php echo t('include_external_resources');?></label>    
 </div>
 
-<div class="field-inline">
+<div class="field-inline action-submit">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('Generate PDF'); ?>" />
 	<?php echo anchor('admin/catalog/edit/'.$id, t('cancel'));?>
+</div>
+
+<div class="processing">
+	<img src="images/loading.gif" alt="loading" /> <?php echo t('processing_pdf_report');?>
 </div>
 
 </div>
 
 </form>
 
-
-
 </div>
+
