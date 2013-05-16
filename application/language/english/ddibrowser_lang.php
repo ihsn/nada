@@ -177,6 +177,7 @@ $lang['include_variable_toc'] = "Variable list";
 $lang['include_variable_desc'] = "Variable description";
 $lang['include_external_resources'] = "External resource";
 $lang['Report options'] = "Report options:";
+$lang['processing_pdf_report'] = "Generating PDF report, it may take few minutes or longer...";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
