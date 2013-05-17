@@ -18,10 +18,9 @@ class Auth extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('users');
 		
-		$this->load->model('token_model');		
-    	$this->load->library('image_captcha'); //simple math captcha library    		
-    	
-		
+		$this->load->model('token_model');	
+		$this->load->driver('captcha_lib');
+	 
       	//$this->output->enable_profiler(TRUE);
     }
  
@@ -133,7 +132,6 @@ class Auth extends MY_Controller {
     function login() 
     {
 		$this->template->set_template('blank');
-		//$this->template->add_css(js_base_url().'themes/nada3/login.css','import');
         $this->data['title'] = t("login");
 
 		if($this->input->get('destination'))
@@ -160,11 +158,24 @@ class Auth extends MY_Controller {
         		$remember = false;
         	}
         	
+			
+			//track login attempts?
+			if ($this->config->item("track_login_attempts")===TRUE)
+			{
+				//check if max login attempts limit reached
+				$max_login_limit=$this->ion_auth->is_max_login_attempts_exceeded($this->input->post('email'));
+				
+				if ($max_login_limit)
+				{
+					$this->session->set_flashdata('error', t("max_login_attempted"));
+					sleep(3);
+					redirect("auth/login");
+				}
+			}
+			
+			
         	if ($this->ion_auth->login($this->input->post('email'), $this->input->post('password'), $remember)) //if the login is successful
 			{ 
-	        	//redirect them back to the home page
-	        	//$this->session->set_flashdata('message', "Logged In Successfully");
-
 				//log
 				$this->db_logger->write_log('login',$this->input->post('email'));
 				        		
@@ -202,8 +213,8 @@ class Auth extends MY_Controller {
                                               'id'      => 'password',
                                               'type'    => 'password',
                                              );
-	        
-	    	$content=$this->load->view('auth/login', $this->data,TRUE);
+	    	
+			$content=$this->load->view('auth/login', $this->data,TRUE);
 			
 			//pass data to the site's template
 			$this->template->write('content', $content,true);
@@ -423,15 +434,7 @@ class Auth extends MY_Controller {
 	{  
         $this->data['title'] = t("register");
         $content=NULL;
-		$this->captcha=NULL;
-		$this->captcha_str='s';
 
-		if ($this->image_captcha->is_enabled())
-		{
-			//add the captcha for display on the view 
-			$this->captcha = $this->image_captcha->create_question();
-		}
-		
 		//create a form token
 		if ($this->input->post("form_token"))
 		{
@@ -448,17 +451,13 @@ class Auth extends MY_Controller {
     	$this->form_validation->set_rules('first_name', t('first_name'), 'trim|required|xss_clean|max_length[50]');
     	$this->form_validation->set_rules('last_name', t('last_name'), 'trim|required|xss_clean|max_length[50]');
     	$this->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]|callback_email_exists');
-    	$this->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
-    	$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
+    	//$this->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
+    	//$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
 		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
     	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');		
-		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
-		
-		if (isset($this->captcha))
-		{
-			$this->form_validation->set_rules('captcha_question', t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
-		}
+		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');		
+		$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
 		
         if ($this->form_validation->run() === TRUE) 
 		{ 
@@ -472,8 +471,8 @@ class Auth extends MY_Controller {
         	
         	$additional_data = array('first_name' => $this->input->post('first_name'),
         							 'last_name'  => $this->input->post('last_name'),
-        							 'company'    => $this->input->post('company'),
-        							 'phone'      => $this->input->post('phone1'),// .'-'. $this->input->post('phone2') .'-'. $this->input->post('phone3'),
+        							 //'company'    => $this->input->post('company'),
+        							 //'phone'      => $this->input->post('phone1'),// .'-'. $this->input->post('phone2') .'-'. $this->input->post('phone3'),
 									 'country'      => $this->input->post('country'),
 									 'email'=>$email,
 									 'identity'=>$username
@@ -498,6 +497,8 @@ class Auth extends MY_Controller {
 			//set the flash data error message if there is one
 	        $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
 			
+			$this->data['captcha_question']=$this->captcha_lib->get_html();
+			
 			$this->data['first_name']          = array('name'   => 'first_name',
 		                                              'id'      => 'first_name',
 		                                              'type'    => 'text',
@@ -513,7 +514,7 @@ class Auth extends MY_Controller {
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('email'),
 		                                             );
-            $this->data['company']            = array('name'    => 'company',
+            /*$this->data['company']            = array('name'    => 'company',
 		                                              'id'      => 'company',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('company'),
@@ -522,7 +523,7 @@ class Auth extends MY_Controller {
 		                                              'id'      => 'phone1',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('phone1'),
-		                                             );
+		                                             );*/
 		    $this->data['password']           = array('name'    => 'password',
 		                                              'id'      => 'password',
 		                                              'type'    => 'password',
@@ -549,7 +550,14 @@ class Auth extends MY_Controller {
 	*/
 	function validate_captcha()
 	{
-		return $this->image_captcha->validate_captcha();		
+		$output=$this->captcha_lib->check_answer();
+		
+		if ($output===FALSE)
+		{
+			$this->form_validation->set_message('validate_captcha', t('invalid_captcha'));		
+		}
+		
+		return $output;
 	}
 
 	/**
