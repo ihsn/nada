@@ -1,10 +1,13 @@
 <style>
+.process-request .form .field{margin-bottom:20px;}
 .fieldset{padding:10px;width:99%;}
 h2{font-weight:bold; font-size:14px;}
 .email-fieldset{padding:10px;}
-x.email-fieldset .field{margin-bottom:10px;font-size:11px;}
-.action{background-color:#EAEAEA;padding:10px; border:1px solid gainsboro;padding-bottom:10px;}
-.action label.inline{margin-right:10px;font-weight:bold;display:inline}
+.action{padding: 10px;
+border: 1px solid #C1DAD7;
+padding-bottom: 10px;
+background: #ECF5F4;}
+.action label.inline{margin-right:10px;font-weight:normal;display:inline}
 
 
 /* styles for expand/collapse */
@@ -33,7 +36,9 @@ h3{font-size:1em;font-weight:bold;}
 .box-wrapper{margin-bottom:10px;margin-top:10px;}
 /* end styles for expand/collapse */
 
-.comments_history{font-size:smaller;width:99%;margin-bottom:30px;}
+.comments_history table {font-size:smaller;}
+
+.comments_history legend{font-weight:bold;}
 .collapse_div{display:none;}
 a.view_comments{color:#08C;font-size:10px;margin-right:5px;cursor:pointer;}
 
@@ -44,13 +49,27 @@ a.view_comments{color:#08C;font-size:10px;margin-right:5px;cursor:pointer;}
 .view-email .email_body, .view-email-forward .email_body{margin-top:15px;}
 .view-email a.subject, .view-email-forward a.subject{color:#08C;}
 .ui-widget{font-size:14px;font-family:"Helvetica Neue", Helvetica, Arial, sans-serif}
+.microdata-files .grid-table .header th{font-weight:normal;}
+.microdata-files .file-settings{
+	font-size: smaller;
+	background-color: #F5F5F2;
+	color: #575252;
+}
+
+
+.field-expanded,.always-visible{background-color:#F8F8F8;border:1px solid gainsboro;margin-top:5px;margin-bottom:10px;margin-right:8px;}
+.always-visible{padding:10px;}
+.field-expanded .field, .always-visible .field {padding:5px;}
+.field-expanded legend, .field-collapsed legend, .always-visible legend{background:white;padding-left:5px;padding-right:5px;font-weight:bold; cursor:pointer}
+.field-collapsed{background:none; border:0px;border-top:1px solid gainsboro;margin-top:5px;margin-bottom:5px;}
+.field-collapsed legend {background-position:left top; background-repeat:no-repeat;}
+.field-collapsed .field{display:none;}
+.field-expanded .field label, .always-visible label{font-weight:normal;}
+
 </style>
 
 <script type="text/javascript">
 $(function() {
-    $("h3.expand").toggler({speed: "fast"});
-	$('.collapsed').toggle();
-	
 	$('.view_comments').click(function(){
 		$(".comments_history").toggleClass("collapse_div");
 	});
@@ -65,6 +84,15 @@ $(function() {
 		$(this).parent().find(".message-body").toggle();
 	});
 
+	$('.field-expanded > legend').click(function(e) {
+			e.preventDefault();
+			$(this).parent('fieldset').toggleClass("field-collapsed");
+			return false;
+	});
+	
+
+	$('.field-expanded > legend').parent('fieldset').toggleClass('field-collapsed');
+		
 });
 </script>
 
@@ -112,42 +140,56 @@ $(function() {
 	</div>
     
 	<div id="tabs-2">
+    	<div class="process-request">
     	<div style="margin-bottom:10px;font-weight:bold"><?php echo t('request_status');?>: <em><?php echo t($status); ?></em></div>
-		<form id="form_request_review" name="form_request_review" method="post" autocomplete="off" class="form">        
+		<form id="form_request_review" name="form_request_review" method="post" autocomplete="off" class="form">
+        
         <div class="field action">
             <div>
-                <b style="padding-right:15px;"><?php echo t('select_action');?></b>
+           		<span style="font-weight:bold;"><?php echo t('select_action');?></span>
                 <label class="inline"><input type="radio" name="status" value="APPROVED" <?php echo ($status=='APPROVED') ? 'checked="checked"' : ''; ?>/><?php echo t('approve');?></label>
                 <label class="inline"><input type="radio" name="status" value="DENIED"	<?php echo ($status=='DENIED') ? 'checked="checked"' : ''; ?>/><?php echo t('deny');?></label>
                 <label class="inline"><input type="radio"  name="status" value="MOREINFO" <?php echo ($status=='MOREINFO') ? 'checked="checked"' : ''; ?>/><?php echo t('request_more_info');?></label>
                 <label class="inline"><input type="radio"  name="status" value="CANCELLED" <?php echo ($status=='CANCELLED') ? 'checked="checked"' : ''; ?>/><?php echo t('cancel_authorization');?></label>
 			</div>
         </div>    
-        <div class="field">
-            <label><b><?php echo t('comments');?></b> <em><?php echo t('comments_visible_to_users');?></em> 
-            	<a title="<?php echo t("show_hide");?>: <?php echo t("comments_history");?>" class="view_comments" style="float:right;display:block;"><?php echo t('view_comments_history');?></a>
-            </label>
-            <textarea name="comments" rows="4" class="input-flex"><?php echo isset($comments) ? $comments : ''; ?></textarea>            
-            <div class="comments_history collapse_div">
-            	<h3><?php echo t('comments_history');?></h3>
-            	<div class="" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>            
-        	</div>
-        </div>
-
-        <div class="box-wrapper">
+        
+        <div class="box-wrapper microdata-files field">
                 <h3 class="expand"><?php echo t('grant_access_to_files');?></h3>
                 <div class="collapse">
 			        <?php $this->load->view('access_licensed/edit_request_files',array('files'=>$files));?>
             	</div>
         </div>
-        
+
         <div class="field">
-                 <label for="notify"><input type="checkbox" name="notify" id="notify" value="1"/> <?php echo t('notify_user_by_email');?></label>                
+            <label><b><?php echo t('comments');?></b> <em style="font-weight:normal"><?php echo t('comments_visible_to_users');?></em></label>
+            <textarea name="comments" rows="9" class="input-flex"><?php //echo isset($comments) ? $comments : ''; ?></textarea>
+        </div>
+
+        
+        <fieldset class="comments_history field-expanded">
+            <legend><?php echo t('request_history');?></legend>
+            <div class="field" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>
+        </fieldset>   
+
+        <fieldset class="study_notes field-expanded">
+            <legend><?php echo t('study_notes');?></legend>
+            <div class="field" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>
+        </fieldset>   
+
+		<div id="status-text" style="margin-bottom:10px;"></div>
+
+        <div class="field" style="margin-top:20px;background:#F5F2F2;padding:5px;">
+                 <label for="notify" style="display:inline;margin-right:20px;"><input type="checkbox" name="notify" id="notify" value="1" checked="checked"/> <?php echo t('notify_user_by_email');?></label>
+                 <input type="button" name="update" id="update" value="<?php echo t('update');?>" onclick="process_request(<?php echo $this->uri->segment(4); ?>);"/>
+                  
          </div>
-                       
-        <div id="status-text" style="margin-top:10px;margin-bottom:10px;"></div>
-		<input type="button" name="update" id="update" value="<?php echo t('update');?>" onclick="process_request(<?php echo $this->uri->segment(4); ?>);"/>        
+
+        
 		</form>
+        
+        
+        </div>
     </div>
     
 	<div id="tabs-3">
