@@ -25,6 +25,22 @@
 	$config['tables']['meta']    		= 'meta';
 	$config['tables']['permissions']    = 'user_permissions';
 	$config['tables']['user_groups']  	= 'users_groups';
+	$config['tables']['login_attempts']  = 'login_attempts';
+
+	/**
+   	* Track the number of failed login attempts for each user or ip. 
+   	**/
+	$config['track_login_attempts'] = TRUE;
+	
+	/**
+	* Set the maximum number of failed login attempts.
+	* This maximum is not enforced by the library, but is 
+	* used by $this->ion_auth->is_max_login_attempts_exceeded().
+	* The controller should check this function and act
+	* appropriately. If this variable set to 0, there is no maximum.
+	**/
+	$config['maximum_login_attempts'] = 3;	
+	$config['login_lockout_period'] = 60*15;//5 minutes
 	
 	/**
 	 * Site Title, example.com
