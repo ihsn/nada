@@ -490,7 +490,7 @@ class Auth extends MY_Controller {
 			//notify admins
 			$subject=sprintf('[%s] - %s',t('notification'), t('new_user_registration')).' - '.$username;
 			$message=$this->load->view('auth/email/admin_notice_new_registration', $additional_data,true);
-			notify_admin($subject,$message);			
+			notify_admin($subject,$message);
 		} 
 		else 
 		{ 
