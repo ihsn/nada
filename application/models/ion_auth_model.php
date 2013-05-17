@@ -615,7 +615,7 @@ class Ion_auth_model extends CI_Model
     		    return TRUE;
     		}
         }
-        
+        $this->increase_login_attempts($identity);
 		return FALSE;		
 	}
 	
@@ -1465,6 +1465,89 @@ class Ion_auth_model extends CI_Model
 		$this->session->set_userdata('user_id',  $user_obj->id);
 		$this->session->unset_userdata('impersonate_user');		
 	}
+
+
+	
+	/**
+	 * clear_login_attempts
+	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
+	 * 
+	 * @param string $identity
+	 **/
+	public function clear_login_attempts($identity, $expire_period = 86400) 
+	{
+		if ($this->config->item('track_login_attempts')) 
+		{
+			$ip_address = $this->input->ip_address();
+
+			$this->db->where(array('ip_address' => $ip_address, 'login' => $identity));
+			// Purge obsolete login attempts
+			$this->db->where('time <', time() - $expire_period);
+
+			$this->db->delete($this->tables['login_attempts']);
+			//echo date("H:i:s",time()- $expire_period);
+			//echo $this->db->last_query();exit;
+		}
+	}
 	
 	
+	/**
+	 * increase_login_attempts
+	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
+	 * 
+	 * @param string $identity
+	 **/
+	public function increase_login_attempts($identity) 
+	{
+		if ($this->config->item('track_login_attempts')) 
+		{
+			$ip_address = $this->input->ip_address();
+			$this->db->insert($this->tables['login_attempts'], array('ip_address' => $ip_address, 'login' => $identity, 'time' => time()));
+		}
+	}
+	
+	
+	/**
+	 * is_max_login_attempts_exceeded
+	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
+	 * 
+	 * @param string $identity
+	 * @return boolean
+	 **/
+	public function is_max_login_attempts_exceeded($identity) 
+	{
+		//lockout time
+		$login_lockout_period=$this->config->item("login_lockout_period");
+		
+		//clear limits after lock time period
+		$this->clear_login_attempts($identity,$login_lockout_period);
+	
+		if ($this->config->item('track_login_attempts')) {
+			$max_attempts = $this->config->item('maximum_login_attempts');
+			if ($max_attempts > 0) {
+				$attempts = $this->get_attempts_num($identity);
+				return $attempts >= $max_attempts;
+			}
+		}
+		return FALSE;
+	}
+
+	/**
+	 * Get number of attempts to login occured from given IP-address or identity
+	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
+	 * 
+	 * @param	string $identity
+	 * @return	int
+	 */
+	function get_attempts_num($identity)
+	{
+		$ip_address = $this->input->ip_address();
+
+		$this->db->select('1', FALSE);
+		//$this->db->where('ip_address', $ip_address);
+		if (strlen($identity) > 0) $this->db->where('login', $identity);
+
+		$qres = $this->db->get($this->tables['login_attempts']);
+		return $qres->num_rows();
+	}
 }
