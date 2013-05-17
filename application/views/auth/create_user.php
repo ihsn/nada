@@ -46,12 +46,13 @@ $options_country=$this->ion_auth_model->get_all_countries();
 	      <label for="phone1"><?php echo t('phone');?></label>
 	      <?php echo form_input($phone1,'','class="input-flex"');?>
       </div>
+    <?php */ ?>	
       
         <div class="field">
             <label for="country"><?php echo t('country');?><span class="required">*</span></label>
             <?php echo form_dropdown('country', $options_country, get_form_value("country",isset($country) ? $country : '')); ?>
         </div>
-	<?php */ ?>	
+	
 
       <div class="field">
 	      <label for="password"><?php echo t('password');?><span class="required">*</span></label>
