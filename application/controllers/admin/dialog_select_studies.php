@@ -67,7 +67,7 @@ class Dialog_select_studies extends MY_Controller {
 		
 		if($limit===FALSE || !is_numeric($limit))
 		{
-			$limit=10;
+			$limit=100;
 		}
 		
 		//comma seperated list of excluded studies
@@ -224,10 +224,6 @@ class Dialog_select_studies extends MY_Controller {
 		$related_surveys[$skey] = $sess_data;
 		$this->session->set_userdata($related_surveys);
 		
-		if ($isajax==0)
-		{
-		//	redirect('/admin/related_surveys/index/'.$skey.'/?per_page='.$this->session->userdata('oldurl'));
-		}	
 	}
 	
 	
