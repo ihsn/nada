@@ -859,6 +859,9 @@ class Licensed_model extends CI_Model {
 	**/
 	function get_request_history($request_id,$logtype=NULL)
 	{
+		$this->db->select("lic_requests_history.*,meta.first_name,meta.last_name");
+		$this->db->join("users","lic_requests_history.user_id=users.email","inner");
+		$this->db->join("meta","meta.user_id=users.id","inner");
 		$this->db->where('lic_req_id',$request_id);
 		if ($logtype!=NULL)
 		{
