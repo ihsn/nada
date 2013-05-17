@@ -113,7 +113,7 @@ $lang['reason_login_licensed_access'] = "To request access to licensed datasets,
 $lang['forward_lic_request'] = "Forward request";
 $lang['comments_history'] = "Comments history";
 $lang['view_comments_history'] = "View history";
-$lang['comment_by'] = "Comment by";
+$lang['comment_by'] = "By";
 $lang['show_hide'] = "Show/Hide";
 $lang['comment'] = "Comment";
 $lang['communicate_history'] = "History";
@@ -121,5 +121,9 @@ $lang['sent_by'] = "Sent by";
 $lang['forward_history'] = "History";
 $lang['data_restricted_use'] = "The data is provided only for the purpose described in the request form, to be able to use the data for any other purpose make a new access request.";
 $lang['data_request_for'] = "Data request";
+
+$lang['request_history'] = "View request history";
+$lang['study_notes'] = "View study notes";
+
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
