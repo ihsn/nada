@@ -886,4 +886,16 @@ class Ion_auth
 	 {
 	 	return $this->ci->ion_auth_model->get_groups_by_user($id);
 	 }
+
+
+	/**
+	*
+	* Check if maximum login attempts limit has exceeded
+	*
+	**/
+	function is_max_login_attempts_exceeded($identity)
+	{
+		return 	$this->ci->ion_auth_model->is_max_login_attempts_exceeded($identity);
+	}
+
 }
