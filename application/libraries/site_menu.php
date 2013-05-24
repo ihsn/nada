@@ -59,7 +59,7 @@ class Site_Menu
 		}
 		else{
 			$parents=$items['parents'];
-			$children_rows=$items['children'];
+			$children_rows=isset($items['children']) ? $items['children'] : array() ;
 		}		
 
 		$children=array();
