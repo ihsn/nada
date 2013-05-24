@@ -200,6 +200,29 @@ class User_model extends CI_Model {
         $result= $this->db->get()->result_array();
 		return $result;
     }
+	
+	
+	/**
+	 * Return user groups by user
+	 *
+	 **/
+	public function get_user_groups($id_arr=array())
+	{
+	    $this->db->flush_cache();
+		$this->db->select('group_id,user_id,name');
+		$this->db->where_in('user_id', $id_arr);
+		$this->db->join($this->tables['groups'], sprintf('%s.id= %s.group_id',$this->tables['groups'],$this->tables['user_groups']));
+		$query = $this->db->get($this->tables['user_groups']);
+
+		//all user groups
+		$rows = $query->result_array();
+		$output=array();
+		foreach($rows as $row)
+		{
+			$output[$row['user_id']][]=$row;
+		}
 		
+		return $output;
+	}	
 }
 ?>
