@@ -149,4 +149,12 @@ $options_datamatching=array(
         <?php endif;?>    			    
 </td>
   </tr>
+  
+<?php if(isset($additional_info) && $additional_info !==''):?>
+  <tr class="border">
+    <td><?php print t('additional_info');?></td>
+    <td><span class="ures"><?php echo $additional_info; ?></span></td>
+  </tr>
+<?php endif;?>  
+  
   </table>
