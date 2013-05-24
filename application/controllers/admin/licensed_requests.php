@@ -17,30 +17,44 @@ class Licensed_requests extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
 		//$this->output->enable_profiler(TRUE);
+		
+		//set active repo
+		$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+
+		if (!$repo_obj)
+		{
+			//set active repo to CENTRAL
+			$data=$this->Repository_model->get_central_catalog_array();
+			$this->active_repo=(object)$data;
+		}
+		else
+		{
+			//set active repo
+			$this->active_repo=$repo_obj;
+			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);			
+		}
+		
+		//set collection sticky bar options
+		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
+		$this->template->add_variable($name='collection',$value=$collection);
     }
     
     public function index()
     {    	
+		$this->acl->user_has_lic_request_view_access($this->active_repo->id);
+		
     	$content=NULL;
-
-    	//get array of db rows		
 		$result['rows']=$this->_search();
-		
-    	//show listing
 		$content=$this->load->view('access_licensed/index', $result,true);
-		    	
-    	//set page title
 		$this->template->write('title', t('title_licensed_request'),true);				
-		
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-		
-		//render final output
 	  	$this->template->render();
     }
 	
 	function edit($id)
-	{	
+	{			
+		$this->acl->user_has_lic_request_access($id);
+		
 		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
@@ -51,6 +65,9 @@ class Licensed_requests extends MY_Controller {
 		
 		//get licensed request information		
 		$result=$this->Licensed_model->get_request_by_id($id);
+		
+		$this->load->model('Catalog_notes_model');
+		
 		$result['files']=array();
 		$result['survey_list']=array();
 		
@@ -60,6 +77,9 @@ class Licensed_requests extends MY_Controller {
 				$survey=$this->Catalog_model->select_single($result['surveyid']);				
 				$result['files'][$result['surveyid']]=$this->Licensed_model->get_request_files($result['surveyid'], $requestid=$id);
 				$result['survey_list'][$result['surveyid']]=$survey['nation'].' - '. $survey['titl'];
+				
+				//study notes
+				$result['study_notes']=$this->Catalog_notes_model->get_notes_by_study($result['surveyid']);
 		}
 		else if ($result['request_type']=='collection')
 		{
@@ -78,6 +98,7 @@ class Licensed_requests extends MY_Controller {
 		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
 		$result['email_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='email');
 		$result['forward_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='forward');
+		
 		
 		//monitoring information
 		$result['download_log']=$this->monitor($id,TRUE);
@@ -160,7 +181,9 @@ class Licensed_requests extends MY_Controller {
 	* returns JSON object
 	*/
 	function update($requestid)
-	{	
+	{			
+		$this->acl->user_has_lic_request_access($requestid);
+
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|xss_clean|callback__status_check');
 		$this->form_validation->set_rules('comments', 'Comments', 'trim|xss_clean');		
 		$this->form_validation->set_rules('ip_limit', 'IP address', 'trim|xss_clean|callback__valid_ip');		
@@ -310,6 +333,8 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function monitor($requestid,$output=FALSE)
 	{	
+		$this->acl->user_has_lic_request_access($requestid);
+
 		//get request summary statistics
 		$data['summary_rows']=$this->Licensed_model->get_request_summary($requestid);
 
@@ -339,6 +364,8 @@ class Licensed_requests extends MY_Controller {
 		{
 			show_404();
 		}
+		
+		$this->acl->user_has_lic_request_access($requestid);
 		
 		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
 		$this->form_validation->set_rules('cc', t('cc'), 'trim|xss_clean');
@@ -385,7 +412,7 @@ class Licensed_requests extends MY_Controller {
 		{
 			//add to request history if email was sent
 			$this->Licensed_model->add_request_history($requestid,$options);
-			echo '<div class="success">'.sprintf(t('email_sent'),$this->email->protocol).'</div>';
+			echo '<div class="success">'.sprintf(t('email_sent')).'</div>';
 		}
 		else
 		{
@@ -405,6 +432,8 @@ class Licensed_requests extends MY_Controller {
 		{
 			show_404();
 		}
+		
+		$this->acl->user_has_lic_request_access($requestid);
 		
 		//get request from db
 		$request_data=$this->Licensed_model->get_request_by_id($requestid);
@@ -442,7 +471,7 @@ class Licensed_requests extends MY_Controller {
 		
 		if ($this->email->send())
 		{
-			echo '<div class="success">'.sprintf(t('email_sent'),$this->email->protocol).'</div>';
+			echo '<div class="success">'.t('email_sent').'</div>';
 		}
 		else
 		{
@@ -499,7 +528,7 @@ class Licensed_requests extends MY_Controller {
 		}		
 		
 		//records
-		$rows=$this->Licensed_model->search_requests($per_page, $offset,$filter, $sort_by, $sort_order);
+		$rows=$this->Licensed_model->search_requests($per_page, $offset,$filter, $sort_by, $sort_order,$this->active_repo->repositoryid);
 
 		//total records in the db
 		$total = $this->Licensed_model->search_requests_count();
@@ -592,6 +621,8 @@ class Licensed_requests extends MY_Controller {
 		{
 			foreach($delete_arr as $item)
 			{
+				$this->acl->user_has_lic_request_access($item);
+				
 				//confirm delete	
 				$this->Licensed_model->delete($item);
 			}
