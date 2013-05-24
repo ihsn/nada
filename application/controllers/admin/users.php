@@ -26,7 +26,16 @@ class Users extends MY_Controller {
 	{			
 		//get array of db rows		
 		$result['rows']=$this->_search();
-
+		
+		$user_id_arr=array();
+		foreach($result['rows'] as $row)
+		{
+			$user_id_arr[]=$row['id'];
+		}
+				
+		//get user groups 
+		$result['user_groups']=$this->User_model->get_user_groups($user_id_arr);
+		
 		//load the contents of the page into a variable
 		$content=$this->load->view('users/index', $result,true);
 
@@ -115,7 +124,7 @@ class Users extends MY_Controller {
     	$this->form_validation->set_rules('first_name', t('first_name'), 'max_length[20]|required|xss_clean');
     	$this->form_validation->set_rules('last_name', t('last_name'), 'max_length[20]|required|xss_clean');
     	$this->form_validation->set_rules('phone1', t('phone'), 'max_length[20]|xss_clean|trim');
-    	$this->form_validation->set_rules('company', t('company'), 'max_length[255]|required|xss_clean');
+    	$this->form_validation->set_rules('company', t('company'), 'max_length[255]|xss_clean');
     	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 
@@ -271,7 +280,7 @@ class Users extends MY_Controller {
 						'company'    => $this->input->post('company'),
 						'phone'      => $this->input->post('phone1'),
 						'active'     => $this->input->post('active'),
-						'group_id'     => $this->input->post('group_id'),
+						//'group_id'     => $this->input->post('group_id'),
 						'country'     => $this->input->post('country'),
         				);
 						
@@ -732,6 +741,95 @@ class Users extends MY_Controller {
 	{
 		$this->ion_auth_model->exit_impersonate();
 		redirect("admin");	
+	}
+	
+	
+	function permissions($user_id)
+	{
+		if(!is_numeric($user_id))
+		{
+			show_404();
+		}
+		
+		$data=array();
+		
+		if ($this->input->post("submit"))
+		{
+			//update user global roles
+			$this->ion_auth_model->update_user_global_roles($user_id,$this->input->post("global_role"));
+			
+			//update user per collection roles	
+			$collection_roles=$this->input->post("collection_role");
+			
+			//remove all existing user roles for all collections
+			$this->ion_auth_model->delete_user_collection_roles_all($user_id);
+			
+			//add roles per collection
+			foreach($collection_roles as $collection_id=>$collection_roles)
+			{		
+				$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
+			}
+			
+			$data['message']=t('form_update_success');
+			if($this->input->get('destination'))
+			{
+				redirect($this->input->get('destination'));return;
+			}
+			redirect('admin/users');
+		}
+		
+		$this->load->model('repository_model');
+	
+		$user_group_access_types=(array)$this->ion_auth_model->get_user_account_type($user_id);
+		
+		//we can have only one type of user group access
+		if (in_array('unlimited',$user_group_access_types))
+		{
+			$user_group_access_type='unlimited';
+		}
+		else if (in_array('limited',$user_group_access_types))
+		{
+			$user_group_access_type='limited';
+		}
+		else
+		{
+			$user_group_access_type='none';
+		}
+	
+		
+		//$data['global_roles']=$this->ion_auth_model->get_limited_global_roles();
+		$data['global_roles']['user']=$this->ion_auth_model->get_user_groups(NULL,'user');
+		$data['global_roles']['limited']=$this->ion_auth_model->get_user_groups('limited');
+		$data['global_roles']['unlimited']=$this->ion_auth_model->get_user_groups('unlimited');
+		//$data['global_roles']=array_merge($data['global_roles'],$this->ion_auth_model->get_user_groups('unlimited'));
+		//$data['global_roles']=array_merge($data['global_roles'],$this->ion_auth_model->get_user_groups('limited'));
+		
+		$data['collections']=$this->repository_model->select_all();
+		$data['collection_roles']=$this->repository_model->get_repo_permission_groups();
+		$data['assigned_roles']['collections']=$this->ion_auth_model->get_user_repo_groups($user_id);
+		$data['assigned_roles']['global']=$this->ion_auth_model->get_groups_by_user($user_id);;
+		$data['user_id']=$user_id;
+		$data['user_group_access_type']=$user_group_access_type;
+		$data['user']=$this->ion_auth_model->get_user($user_id);
+		$data['destination']=$this->input->get('destination');
+				
+		if(!$data['destination'])
+		{
+			$data['destination']='admin/users';
+		}
+		
+		//assign empty arrays for collections with no user groups assigned
+		foreach($data['collections'] as $collection)
+		{
+			if (!array_key_exists($collection['id'],$data['assigned_roles']['collections']))
+			{
+				$data['assigned_roles']['collections'][$collection['id']]=array();
+			}
+		}
+		
+		$content=$this->load->view('users/permissions',$data,TRUE);
+		$this->template->write('content', $content,true);
+		$this->template->render();	
 	}
 }
 
