@@ -62,12 +62,12 @@
       </div>
 
       <div class="field">
-	      <label for="company"><?php echo t('company');?><span class="required">*</span></label>
+	      <label for="company"><?php echo t('company');?></label>
 	      <?php echo form_input($company);?>
       </div>
             
        <div class="field">
-	      <label for="phone1"><?php echo t('phone');?><span class="required">*</span></label>
+	      <label for="phone1"><?php echo t('phone');?></label>
 	      <?php echo form_input($phone1);?>
       </div>
       <div class="field">
