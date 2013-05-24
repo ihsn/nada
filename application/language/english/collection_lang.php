@@ -40,16 +40,14 @@ $lang['repository_section_add'] = 'Add Collection Group';
 $lang['save_permissions'] = 'Save permissions';
 $lang['repository_permissions'] = 'Manage Collection Permissions';
 
-$lang['group_name'] = 'Group name';
-$lang['group_description'] = 'Description';
-$lang['group_type'] = 'Account type';
-$lang['group_access'] = 'Access';
 $lang['collection_history'] = 'Collection History';
 $lang['study_title'] = 'Study title';
 $lang['total_studies_in_collection'] = 'Total studies in the collection';
 $lang['year'] = 'Year';
 $lang['changed'] = 'Changed';
 $lang['preview'] = 'Preview';
+$lang['user'] = 'User';
+$lang['none'] = 'None';
 
 /* End of file collection_lang.php */
 /* Location: ./system/language/english/collection_lang.php */
