@@ -106,6 +106,22 @@ $lang['log_in'] = "Log in";
 $lang['site_login_privacy_terms'] = "Information you provide by registering or login to our catalog will be used in compliance with the terms of the World Bank <a href=\"http://go.worldbank.org/FIKABS7U10\" target=\"_blank\">Privacy Policy</a>.";
 $lang['impersonate_user'] = "Impersonate as another user";
 $lang['impersonate_msg'] = "Select the account below to impersonate as";
+$lang['general_user_accounts'] = "General user accounts (no admin access)";
+$lang['general_user_accounts_description'] = "Limit user access to the site administration and control permissions per collection for the user.";
+$lang['edit_user_permissions'] = "Edit user permissions";
+
+$lang['site_admin_accounts'] = "Site administrators (full access)";
+$lang['site_admin_accounts_description'] = "Provides full access to any site section";
+
+$lang['site_admin_limited_accounts'] = "Site administrators (limited access)";
+$lang['site_admin_limited_accounts_description'] = "Limit user access to the site administration and control permissions per collection for the user";
+
+$lang['user_site_level_permissions'] = "Site level permissions";
+
+$lang['assigned_user_groups'] = "Global user roles";
+$lang['manage_permissions'] = "Manage permissions";
+$lang['permissions_per_collection'] = "Permissions per collection";
+
 
 /* End of file users_lang.php */
 /* Location: ./system/language/english/users_lang.php */
