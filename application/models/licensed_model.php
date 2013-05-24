@@ -14,7 +14,8 @@ class Licensed_model extends CI_Model {
 					'datamatching', 
 					'mergedatasets', 
 					'team', 
-					'dataset_access'
+					'dataset_access',
+					'additional_info'
 					);
 	
     public function __construct()
@@ -68,6 +69,7 @@ class Licensed_model extends CI_Model {
 	{
 		$this->db->select('lic_requests.id,surveys.titl,lic_requests.created,lic_requests.status,lic_requests.expiry_date');
 		$this->db->from('lic_requests');	
+		$this->db->order_by('lic_requests.created','DESC');
 		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');
 		$this->db->where('userid',$user_id);
 		$result=$this->db->get()->result_array();
@@ -674,13 +676,13 @@ class Licensed_model extends CI_Model {
 	* 	NOTE: search parameters such as keywords are accessed directly from 
 	*	POST/GET variables
 	**/
-    function search_requests($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
+    function search_requests($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$repositoryid='central')
     {
 		//start caching, without this total count will be incorrect
     	$this->db->start_cache();
 
 		//select columns for output
-		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title, surveys.repositoryid, surveys.nation, surveys.data_coll_start, surveys.data_coll_end, repositories.title as repo_title');
+		$this->db->select('lic_requests.*, users.username, surveys.titl as survey_title, surveys.nation, surveys.data_coll_start, surveys.data_coll_end, repositories.title as repo_title');		
 		
 		//allowed_fields
 		$db_fields=array(
@@ -689,8 +691,13 @@ class Licensed_model extends CI_Model {
 					'title'=>'surveys.titl',
 					'survey_title'=>'surveys.titl',
 					'created'=>'lic_requests.created',
-					'repositoryid'=>'surveys.repositoryid'
+					//'repositoryid'=>'surveys.repositoryid'
 					);
+		
+		$where=array(
+				'and'=>array(),
+				'or'=>array()
+		);
 		
 		//set where
 		if ($filter)
@@ -700,17 +707,25 @@ class Licensed_model extends CI_Model {
 				//search only in the allowed fields
 				if (array_key_exists($f['field'],$db_fields))
 				{
-					$this->db->like( $db_fields[$f['field']], $f['keywords']); 
+					//$this->db->like( $db_fields[$f['field']], $f['keywords']); 
+					$where['and'][]=sprintf('%s like %s',$db_fields[$f['field']], $this->db->escape('%'.$f['keywords'].'%') );
 				}
 				else if ($f['field']=='all')
 				{
 					foreach($db_fields as $field)
 					{
-						$this->db->or_like($field, $f['keywords']); 
+						//$this->db->or_like($field, $f['keywords']); 
+						$where['or'][]=sprintf('%s like %s',$field, $this->db->escape('%'.$f['keywords'].'%'));
 					}
 				}
 			}
 		}
+		
+		/*
+		echo '<pre>';
+		print_r($where);
+		echo '</pre>';
+		*/
 
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
@@ -718,6 +733,37 @@ class Licensed_model extends CI_Model {
 		$this->db->join($this->tables['users'], $this->tables['users'].'.id = lic_requests.userid');
 		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','LEFT');
 		$this->db->join('repositories', 'repositories.repositoryid = lic_requests.collection_id','LEFT');
+		if($repositoryid=='central')
+		{
+			$this->db->select('survey_repos.repositoryid');
+			$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','INNER');
+			$where['and'][]=sprintf('(survey_repos.isadmin=1)',$this->db->escape($repositoryid));
+		}
+		else if ($repositoryid)
+		{
+			$this->db->select('survey_repos.repositoryid');
+			$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','INNER');
+			$where['and'][]=sprintf('(survey_repos.repositoryid = %s AND survey_repos.isadmin=1)',$this->db->escape($repositoryid));		
+		}
+		else
+		{
+			$this->db->select('surveys.repositoryid');
+		}
+		
+		//build final where
+		$where_='';
+		if ( count($where['or'])>0)
+		{
+			$where_[]=implode(" OR ",$where['or']);
+		}
+		if ( count($where['and'])>0)
+		{
+			$where_[]='('.implode(" AND ",$where['and']).')';
+		}
+		
+		$where_=implode(" AND ",$where_);		
+		$this->db->where($where_,NULL,FALSE);
+		
 		$this->db->stop_cache();
 
 		//set default sort order, if invalid fields are set
@@ -734,6 +780,8 @@ class Licensed_model extends CI_Model {
 		}
 				
         $result= $this->db->get()->result_array();
+		
+		//echo $this->db->last_query();
 		return $result;
     }
 	
@@ -1009,4 +1057,81 @@ class Licensed_model extends CI_Model {
 	
 		return FALSE;
 	}
+	
+	
+	
+	 /**
+     * update request options
+     * 
+     * 
+     * @param $survey_id
+     * @param $user_id
+     * @param $options	array
+     * @return integer - insert id
+     */
+    function update_request($request_id,$user_id,$options)
+	{
+		$data= array(
+			'userid' 	=>  $user_id ,
+			'updated' 	=>  date("U"),
+			'status'	=>  'PENDING',
+			'locked'	=>  1
+        );
+
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$this->db_fields))
+			{
+				$data[$key]=$value;
+			}
+		}
+		
+		$this->db->where('id',$request_id);
+		$result=$this->db->update('lic_requests', $data); 
+		
+		if ($result)
+		{
+			return $this->db->insert_id();
+		}	
+		else
+		{
+			//failed
+			log_message('info',"FAILED to save request for [Licensed dataset=$request_id] by user $user_id ");
+		}
+		
+		return FALSE;
+	}
+	
+	
+	/*
+	*
+	* Return study bulk data access requests
+	*/
+	public function get_study_bulk_requests($sid)
+	{
+		
+	}
+	
+	/**
+	*
+	* Returns the DA collection ID array if study is part of bulk data access collections
+	**/
+	public function study_has_bulk_access($sid)
+	{
+		$this->db->select('*');
+		$this->db->from('da_collections c');	
+		$this->db->join('da_collection_surveys cs', 'c.id = cs.cid','INNER');
+		$this->db->where('cs.sid',$sid);
+		$result=$this->db->get()->result_array();
+
+		return $result;
+	}
+	
+	
+	public function get_request_owner_repo($request_id)
+	{
+		$this->get_request_by_id		($request_id);
+	
+	}
+	
 }
