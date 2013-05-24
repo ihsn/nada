@@ -1336,7 +1336,7 @@ class Catalog_model extends CI_Model {
 		
 		//check surveyid in survey aliases
 		$this->db->select('sid');
-		$this->db->where(array('alternate_id' => $surveyid) );
+		$this->db->where(array('alternate_id' => $survey_id) );
 		$query=$this->db->get('survey_aliases')->result_array();
 
 		if (!$query)
