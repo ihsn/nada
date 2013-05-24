@@ -45,7 +45,7 @@ class Data_access_public extends CI_Driver {
 			show_ERROR("INVALID_STUDY_ID");
 		}
 		
-		
+		$data= new stdclass;
 		$data->user_id=$user->id;
 		$data->username=$user->username;
 		$data->fname=$user->first_name;
