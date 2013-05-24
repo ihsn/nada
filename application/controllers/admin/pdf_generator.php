@@ -29,6 +29,8 @@ class Pdf_generator extends MY_Controller {
 			show_error("INVALID ID");
 		}
 		
+		$this->acl->user_has_study_access($sid);
+		
 		$this->form_validation->set_rules('website_title', t('website_title'), 'xss_clean|trim|required|max_length[255]');
 		$this->form_validation->set_rules('study_title', t('study_title'), 'xss_clean|trim|required|max_length[400]');
 		$this->form_validation->set_rules('publisher', t('publisher'), 'xss_clean|trim|required|max_length[255]');
@@ -160,6 +162,8 @@ class Pdf_generator extends MY_Controller {
 		{
 			show_error("INVALID ID");
 		}
+		
+		$this->acl->user_has_study_access($sid);
 		
 		$this->load->library("catalog_admin");
 		$this->catalog_admin->delete_study_pdf($sid);
