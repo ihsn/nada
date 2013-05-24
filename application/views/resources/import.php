@@ -34,7 +34,7 @@
     
 <div class="field">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
-	<?php echo anchor('admin/catalog/'.$this->uri->segment(3).'/resources',t('cancel'),array('class'=>'button') );	?>
+	<?php echo anchor('admin/catalog/edit/'.$this->uri->segment(4).'/resources',t('cancel') );	?>
 </div>
 <?php echo form_close();?>
 </div>
