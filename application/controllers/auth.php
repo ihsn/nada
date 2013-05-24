@@ -83,7 +83,7 @@ class Auth extends MY_Controller {
 		
     	$this->form_validation->set_rules('first_name', t('first_name'), 'trim|required|xss_clean|max_length[50]');
     	$this->form_validation->set_rules('last_name', t('last_name'), 'trim|required|xss_clean|max_length[50]');
-    	$this->form_validation->set_rules('phone', t('phone'), 'trim|xss_clean|max_length[50]');
+    	$this->form_validation->set_rules('phone', t('phone'), 'trim|xss_clean|max_length[20]');
     	$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
 		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[100]');
 		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
