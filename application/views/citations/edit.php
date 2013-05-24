@@ -201,7 +201,7 @@ height: 56px;
 <fieldset class="field-expanded">
 	<legend><?php echo t('related_studies');?></legend>
     <div class="field">
-	    <a style="text-align:right;float:right;display:block;" class="attach_studies" href="javascript:void(0);"><?php echo t('Attach Studies');?></a>   
+	    <a style="text-align:right;float:right;display:block;" class="attach_studies" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
         <div id="related-surveys" ><?php echo $survey_list; ?></div>         
     </div>
 </fieldset>
