@@ -57,7 +57,6 @@ class Repository_model extends CI_Model {
 		}
 		else
 		{
-			echo $this->db->last_query();
 			return FALSE;
 		}	
     }
@@ -502,6 +501,37 @@ class Repository_model extends CI_Model {
 		$this->db->delete('survey_repos');
 	}
 	
+	/**
+	*
+	* Returns an array of all repositories
+	*	
+	**/
+	function select_all()
+	{
+		$this->db->select('*');
+		$this->db->order_by('title', 'ASC'); 
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		if (!$result)
+		{
+			return array();
+		}
+
+		$repos=array();
+		foreach($result as $row)
+		{
+			$repos[$row['repositoryid']]=$row;
+		}
+	
+		return $repos;
+	}
 	
 	/**
 	*
@@ -873,7 +903,6 @@ class Repository_model extends CI_Model {
 		foreach($sections as $key=>$section)
 		{
 			$children=$this->get_repositories_by_section($section['id']);
-			echo $this->db->last_query().'<HR>';
 			if($children)
 			{
 			$sections[$key]['children']=$children;
@@ -1171,4 +1200,19 @@ class Repository_model extends CI_Model {
 			'short_text'	=>	t('central_catalog_short_text')
 		);
 	}
+	
+	/**
+	*
+	* Return array of all roles names for collections
+	**/
+	function get_repo_permission_groups()
+	{
+		$this->db->select('*');
+		$this->db->order_by('weight');
+		$output=$this->db->get('repo_perms_groups')->result_array();
+		
+		return $output;
+	
+	}
+	
 }
