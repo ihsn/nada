@@ -109,6 +109,7 @@ $lang['citation_owner'] = "Owner";
 $lang['created'] = "Created";
 $lang['citation_string_invalid'] = "Unexpected or incorrect Citation format";
 $lang['attach_to_survey'] = "Attach citation(s) to the following studies (use CTRL/SHIFT to select multiple studies)";
+$lang['attach_studies'] = "Attach studies";
 
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */
