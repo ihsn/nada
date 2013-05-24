@@ -11,9 +11,12 @@
 <h1 class="page-title"><?php echo t('title_licensed_request');?></h1>
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
+  <input type="hidden" name="field" value="title"/>
+<?php /*
   <select name="field" id="field">
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
   </select>
+  */ ?>
   <input type="submit" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
@@ -92,7 +95,7 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <td><?php echo $row->repositoryid;?><?php echo $row->collection_id;?></td>
+            <td><?php echo strtoupper($row->repositoryid);?></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>">
 					<?php if($row->repo_title):?>
                     	<?php echo t('Collection');?>: <?php echo $row->repo_title ?>
