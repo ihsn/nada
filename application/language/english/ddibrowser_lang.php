@@ -179,5 +179,12 @@ $lang['include_external_resources'] = "External resource";
 $lang['Report options'] = "Report options:";
 $lang['processing_pdf_report'] = "Generating PDF report, it may take few minutes or longer...";
 
+$lang['get_microdata'] = "Get Microdata";
+$lang['study_description'] = "Study Description";
+$lang['data_dictionary'] = "Data Dictionary";
+$lang['related_materials'] = "Related Materials";
+$lang['citations'] = "Citations";
+
+
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
