@@ -49,7 +49,9 @@ class Data_access_licensed extends CI_Driver {
 			return $this->request_form('study',$sid,NULL,$user);
 		}
 
-
+		//check study bulk access
+		//$bulk_access=$this->CI->Licensed_model->study_has_bulk_access($sid);
+		
 		//find existing requests by the user
 		$requests=$this->CI->Licensed_model->get_requests_by_study($sid,$user->id,$active_only=FALSE);
 		
@@ -141,7 +143,8 @@ class Data_access_licensed extends CI_Driver {
 		}
 				
 		$content=NULL;
-			
+		$data= new stdClass;			
+
 		//set data to be passed to the view
 		$data->user_id=$user->id;
 		$data->username=$user->username;
