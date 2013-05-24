@@ -849,6 +849,7 @@ class Ion_auth_model extends CI_Model
 			$this->db->update($this->tables['users'], $data, array('id' => $id));
         }
 
+		/*
 		//user group membership
 
 		//remove any existing group memberships
@@ -868,7 +869,7 @@ class Ion_auth_model extends CI_Model
 				$this->db->insert($this->tables['user_groups'],$options);
 			}
 		}
-		
+		*/
 		    
 		if ($this->db->trans_status() === FALSE)
 		{
@@ -1310,10 +1311,18 @@ class Ion_auth_model extends CI_Model
 	*
 	* Returns all user groups
 	**/
-	function get_user_groups()
+	function get_user_groups($access_type=NULL,$group_type=NULL)
 	{
 		$this->db->select("*");
 		$this->db->order_by("weight");
+		if($access_type)
+		{
+			$this->db->where('access_type',$access_type);
+		}
+		if($group_type)
+		{
+			$this->db->where('group_type',$group_type);
+		}
 		$query=$this->db->get($this->tables['groups']);
 	
 		if (!$query)
@@ -1407,7 +1416,8 @@ class Ion_auth_model extends CI_Model
 	*
 	* Returns user groups by repo id
 	**/
-	function get_user_groups_by_repo($id)
+	/*
+	function xget_user_groups_by_repo($id)
 	{
 		$this->db->select("*");
 		$this->db->where("repo_id",$id);
@@ -1419,7 +1429,7 @@ class Ion_auth_model extends CI_Model
 		}
 		
 		return $query->result_array();
-	}
+	}*/
 	
 	/**
 	*
@@ -1429,11 +1439,26 @@ class Ion_auth_model extends CI_Model
 	{
 		$sql='select users.id,users.email,meta.first_name,meta.last_name from users
 				inner join users_groups ug on users.id=ug.user_id
-				inner join meta on meta.user_id=users.id
-				where ug.group_id in (select id from groups where access_type=\'LIMITED\');';
+				inner join meta on meta.user_id=users.id				
+				where ug.group_id in (select id from groups where access_type=\'LIMITED\')
+				group by users.id,users.email,meta.first_name,meta.last_name;';
 	
 		return $this->db->query($sql)->result_array();
 	}
+	
+	
+	/**
+	*
+	* Returns LIMITED group role names
+	**/
+	function get_limited_global_roles()
+	{
+		$this->db->select('*');
+		$this->db->where('access_type','limited');		
+		return $this->db->get('groups')->result_array();
+	}
+	
+	
 	
 	function impersonate($user_id,$current_user)
 	{
@@ -1467,6 +1492,204 @@ class Ion_auth_model extends CI_Model
 	}
 
 
+	/**
+	*
+	* Returns user permissions on all collections
+	**/
+	function get_user_repo_permissions($id)
+	{
+		$this->db->select("*");
+		$this->db->where("user_id",$id);
+		$query=$this->db->get('user_repo_permissions');
+	
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
+	}
+	
+	/**
+	*
+	* Returns user permissions by collection
+	**/
+	function get_user_perms_by_repo($repo_id,$user_id)
+	{
+		$this->db->select("user_repo_permissions.*,repo_perms_groups.title as group_title");
+		$this->db->where("user_repo_permissions.repo_id",$repo_id);
+		$this->db->where("user_repo_permissions.user_id",$user_id);
+		$this->db->join('users','users.id=user_repo_permissions.user_id','INNER');
+		$this->db->join('meta','users.id=meta.user_id','INNER');
+		$this->db->join('repo_perms_groups','repo_perms_groups.repo_pg_id=user_repo_permissions.repo_pg_id','INNER');
+		$query=$this->db->get('user_repo_permissions');
+	
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
+	}
+	
+	/**
+	*
+	* Return users assigned to a collection
+	**/
+	function get_repo_users($repo_id)
+	{
+		$this->db->select("user_repo_permissions.user_id,users.email,meta.first_name,meta.last_name");
+		$this->db->where("repo_id",$repo_id);
+		$this->db->join('user_repo_permissions','users.id=user_repo_permissions.user_id','INNER');
+		$this->db->join('meta','users.id=meta.user_id','INNER');
+		$this->db->group_by("user_repo_permissions.user_id,users.email,meta.first_name,meta.last_name");
+		$query=$this->db->get('users');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
+	}
+	
+
+	
+	/**
+	*
+	* Returns an array of repo group IDs
+	**/
+	function get_user_repo_groups($user_id)
+	{
+		$user_permissions=$this->get_user_repo_permissions($user_id);
+		
+		$user_perms_groups=array();
+		foreach($user_permissions as $row)
+		{
+			$user_perms_groups[$row['repo_id']][]=$row['repo_pg_id'];
+		}
+		
+		return $user_perms_groups;
+	}
+	
+	
+	/**
+	*
+	* Update user global roles
+	*
+	* @group_roles	array of group role IDs
+	**/
+	function update_user_global_roles($user_id,$group_roles)
+	{
+		//remove all existing roles
+		$this->delete_user_global_roles($user_id);
+		
+		$group_roles=(array)$group_roles;
+		
+		//add new roles
+		foreach($group_roles as $role)
+		{
+			$options=array(
+				'group_id'	=> (int)$role,
+				'user_id'	=> (int)$user_id
+			);
+			
+			$result=$this->db->insert('users_groups',$options);				
+		}
+		
+		return TRUE;
+	}
+	
+	/**
+	* Delete all user roles
+	**/
+	function delete_user_global_roles($user_id)
+	{
+		$this->db->where('user_id',$user_id);
+		return $this->db->delete('users_groups');
+	}
+	
+
+
+	/**
+	*
+	* Update user collection roles
+	*
+	* @repo_group_roles	array of group role IDs
+	**/
+	function insert_user_collection_roles($user_id,$repo_id,$repo_group_roles)
+	{
+		//add new roles
+		foreach($repo_group_roles as $role)
+		{
+			$options=array(
+				'repo_pg_id'	=>(int)$role,
+				'user_id'		=>(int)$user_id,
+				'repo_id'		=>(int)$repo_id,
+			);
+			
+			$result=$this->db->insert('user_repo_permissions',$options);
+		}
+		
+		return TRUE;
+	}
+	
+	/**
+	* Delete all user roles for a collection
+	**/
+	function delete_user_collection_roles($user_id,$repo_id)
+	{
+		$this->db->where('user_id',$user_id);
+		$this->db->where('repo_id',$repo_id);
+		return $this->db->delete('user_repo_permissions');
+	}
+
+	/**
+	* Delete all user roles for all collections
+	**/
+	function delete_user_collection_roles_all($user_id)
+	{
+		$this->db->where('user_id',$user_id);
+		return $this->db->delete('user_repo_permissions');
+	}
+	
+	
+	//check if user belongs to the limited type account
+	function get_user_account_type($user_id)
+	{
+		//get user groups
+		$user_groups=$this->get_groups_by_user($user_id);
+		
+		if (count($user_groups)==0)
+		{
+			return array('none');
+		}
+		
+		$this->db->select('access_type');
+		$this->db->where_in('id',$user_groups);
+		$query=$this->db->get('groups');
+		
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$result=$query->result_array();
+		
+		if(!$result)
+		{
+			return FALSE;
+		}
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[]=$row['access_type'];
+		}
+		
+		return $output;
+	}
+	
 	
 	/**
 	 * clear_login_attempts
