@@ -168,7 +168,7 @@ CREATE TABLE `survey_tags` (
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_tag` (`sid`,`tag`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 --
@@ -400,7 +400,7 @@ CREATE TABLE `url_mappings` (
   `source` varchar(255) DEFAULT NULL,
   `target` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
@@ -434,7 +434,7 @@ CREATE TABLE `survey_relationship_types` (
   `rel_dir` tinyint(4) DEFAULT NULL,
   `rel_cordinality` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
 
 
 --
@@ -487,7 +487,7 @@ CREATE TABLE `lic_requests_history` (
   `description` text,
   `created` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
 
 
 --
@@ -500,7 +500,7 @@ CREATE TABLE `da_collection_surveys` (
   `sid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unq_coll_sid` (`cid`,`sid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `tags`
@@ -511,7 +511,7 @@ CREATE TABLE `tags` (
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `tag_UNIQUE` (`tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
@@ -525,7 +525,7 @@ CREATE TABLE `permissions` (
   `section` varchar(45) DEFAULT NULL,
   `weight` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `permissions`
@@ -556,7 +556,7 @@ CREATE TABLE `region_countries` (
   `region_id` int(11) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=753 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=753 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `survey_notes`
@@ -647,7 +647,7 @@ CREATE TABLE `regions` (
   `title` varchar(45) DEFAULT NULL,
   `weight` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `regions`
@@ -1020,3 +1020,46 @@ CREATE TABLE login_attempts (
   time int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+#
+# TABLE STRUCTURE FOR: user_repo_permissions
+#
+
+
+CREATE TABLE `user_repo_permissions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `repo_id` int(11) DEFAULT NULL,
+  `repo_pg_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='set user permission for a collection';
+
+
+#
+# TABLE STRUCTURE FOR: repo_perms_groups
+#
+
+
+CREATE TABLE `repo_perms_groups` (
+  `repo_pg_id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(45) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `weight` int(11) DEFAULT '0',
+  PRIMARY KEY (`repo_pg_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='Permission group names';
+
+
+
+#
+# TABLE STRUCTURE FOR: repo_perms_urls
+#
+
+CREATE TABLE `repo_perms_urls` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `repo_pg_id` int(11) DEFAULT NULL COMMENT 'repo permission group id',
+  `url` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8 COMMENT='list of URLs defining a permission group for collections';
+
