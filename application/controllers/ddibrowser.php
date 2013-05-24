@@ -1018,6 +1018,12 @@ class DDIbrowser extends MY_Controller {
 		$this->load->model("Repository_model");
 		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);
 		$survey['owner_repo']=$this->Repository_model->get_survey_owner_repository($id);
+		
+		if (!$survey['owner_repo'])
+		{
+			$survey['owner_repo']=$this->Repository_model->get_central_catalog_array();
+		}
+		
 		$content_body=$this->load->view('catalog_search/survey_info',$survey,TRUE);		
 		return $content_body;	
 	}
