@@ -65,7 +65,7 @@
     </tr>
     <?php endif;?>
 
-	<?php if (isset($repositories) && is_array($repositories)):?>
+	<?php if (isset($repositories) && is_array($repositories) && count($repositories)>0): ?>
 	<tr valign="top">
     	<td><?php echo t('collections');?></td>
         <td>
