@@ -1549,6 +1549,8 @@ exit;
 			show_error("ID_INVALID");
 		}
 		
+		$this->acl->user_has_study_access($surveyid);
+		
 		//atleast one rule require for validation class to work
 		$this->form_validation->set_rules('target', t('study_to_replace'), 'trim|required|isnumeric');
 		
@@ -1849,6 +1851,8 @@ exit;
 	**/
 	function publish($id,$publish=1)
 	{	
+		$this->acl->user_has_study_access($id);
+		
 		if (!in_array($publish,array(0,1)))
 		{
 			$publish=1;
