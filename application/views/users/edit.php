@@ -67,12 +67,12 @@
       </div>
 
       <div class="field">
-	      <label for="company"><?php echo t('company');?><span class="required">*</span></label>
+	      <label for="company"><?php echo t('company');?></label>
 	      <?php echo form_input($company);?>
       </div>
       
       <div class="field">
-	      <label for="phone1"><?php echo t('phone');?><span class="required">*</span></label>
+	      <label for="phone1"><?php echo t('phone');?></label>
 	      <?php echo form_input($phone1);?>
       </div>
       <div class="field">
@@ -97,18 +97,25 @@
            <span><?php echo form_radio('active', '0', $active!=1);?> <?php echo t('user_blocked');?> </span>
       </div>
 
+    
     <div class="field">
-        <label for="user_groups"><?php echo t('select_user_group');?></label>
-        <?php	//echo form_dropdown('user_group', $user_group_options, get_form_value("group_id",isset($group_id) ? $group_id : ''));?>
+        <label for="user_groups"><?php echo t('assigned_user_groups');?> (<a href="<?php echo site_url('admin/users/permissions/'.$this->uri->segment(4));?>"><?php echo t('manage_permissions');?></a>)</label>
         <div class="user_groups">
+        <ul>
         <?php foreach($user_groups as $group):?>
-        	<?php $checked=(in_array($group['id'],$groups)) ? 'checked="checked"' : '';?>
+        	<?php if (in_array($group['id'],$groups)):?>
+            <li class="role"><?php echo $group['name'];?></li>
+            <?php endif;?>
+        	<?php /* ?>
+			<?php $checked=(in_array($group['id'],$groups)) ? 'checked="checked"' : '';?>
         	<div class="group">
 	            <label for="group_id-<?php echo $group['id'];?>" style="font-weight:normal;">
 				<input <?php echo $checked;?> type="checkbox" id="group_id-<?php echo $group['id'];?>" name="group_id[]" value="<?php echo $group['id'];?>"/> <?php echo $group['name'];?> <span class="description">[<?php echo $group['description'];?>]</span>
                 </label>
-            </div>    
+            </div>
+			<?php */ ?>    
 		<?php endforeach;?>
+        </ul>
         </div>        
     </div>
 
