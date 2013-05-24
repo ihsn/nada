@@ -1,0 +1,193 @@
+<?php
+
+$selected_collection=(int)$this->input->get('collection',true);?>
+
+<style>
+.description{color:gray;margin-left:25px;}
+.hide{display:none;}
+.field{margin-bottom:10px;}
+.collection-title{font-weight:bold;font-size:16px;margin-top:10px;margin-bottom:10px;}
+.collection-roles-container{margin-left:50px;}
+fieldset {border:0px; border-top:1px solid gray;padding-top:15px;margin-top:20px;}
+legend{font-weight:bold;font-size:20px;padding:10px;}
+.collection-container{border-bottom:1px solid gainsboro;}
+
+.limited-access,.roles-list{margin-left:50px;margin-top:10px;}
+.access-type-container .caption{font-weight:bold;}
+.access-type-container{margin-bottom:10px;}
+.disabled{color:#999999}
+.selected{background:gainsboro;padding:5px;}
+</style>
+
+<div class="content-container">
+<div class="page-links">
+	<a href="<?php echo site_url();?>/admin/users" class="button"><img src="images/icon_plus.gif"/><?php echo t('users');?></a> 
+    <a href="<?php echo site_url();?>/admin/users/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('create_user_account');?></a> 
+</div>
+
+<?php if (validation_errors() ) : ?>
+    <div class="error">
+	    <?php echo validation_errors(); ?>
+    </div>
+<?php endif; ?>
+
+<?php $error=$this->session->flashdata('error');?>
+<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+
+<?php if (isset($message)):?>
+<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php endif;?>
+
+<h1 class="page-title"><?php echo t('edit_user_permissions'); ?> - <span class="selected"><?php echo $user->first_name. ' '. $user->last_name;?> </span></h1>
+
+<form method="post">
+
+<fieldset>
+<legend><?php echo t('user_site_level_permissions');?></legend>
+
+<div class="access-type-container">
+	<label for="access_type_none">
+    	<input type="radio" class="access_type" name="access_type" id="access_type_none" value="none"  <?php echo $user_group_access_type=='none' ? 'checked="checked"' : '';?>/> 
+    	<span class="caption"><?php echo t('general_user_accounts');?></span>
+    	<div class="description"><?php echo t('general_user_accounts_description');?></div>
+    </label>
+    
+    <div class="roles-list">
+    <?php foreach($global_roles['user'] as $role):?>
+        <div class="field">	
+            <label for="global-role-">
+                <input type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> />
+                <?php echo t($role['name']);?>
+            </label>
+            <div class="description"><?php echo t($role['description']);?></div>
+        </div>
+    <?php endforeach;?>
+    </div>
+</div>
+
+
+<div class="access-type-container">
+	<label for="access_type_unlimited">
+    	<input type="radio" class="access_type" name="access_type" id="access_type_unlimited" value="unlimited"  <?php echo $user_group_access_type=='unlimited' ? 'checked="checked"' : '';?>/> 
+    	<span class="caption"><?php echo t('site_admin_accounts');?></span>
+    	<div class="description"><?php echo t('site_admin_accounts_description');?></div>
+    </label>
+    
+    <div class="roles-list">
+    <?php foreach($global_roles['unlimited'] as $role):?>
+        <div class="field">	
+            <label for="global-role-">
+                <input type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> />
+                <?php echo t($role['name']);?>
+            </label>
+            <div class="description"><?php echo t($role['description']);?></div>
+        </div>
+    <?php endforeach;?>
+    </div>
+</div>
+
+
+
+<div class="access-type-container">
+	<label for="access_type_limited">
+    	<input type="radio" class="access_type" name="access_type" id="access_type_limited" value="limited"  <?php echo $user_group_access_type=='limited' ? 'checked="checked"' : '';?>/> 
+    	<span class="caption"><?php echo t('site_admin_limited_accounts');?></span>
+    	<div class="description"><?php echo t('site_admin_limited_accounts_description');?></div>
+    </label>
+    
+    <div class="roles-list">
+    <?php foreach($global_roles['limited'] as $role):?>
+        <div class="field">	
+            <label for="global-role-">
+                <input class="user_role" type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> data-is_collection_group="<?php echo $role['is_collection_group'];?>" />
+                <?php echo t($role['name']);?>
+            </label>
+            <div class="description"><?php echo t($role['description']);?></div>
+        </div>
+    <?php endforeach;?>
+    </div>
+</div>
+
+
+</fieldset>
+
+<fieldset class="collection-perms-container">
+<legend><?php echo t('permissions_per_collection');?></legend>
+<div>
+<?php foreach($collections as $collection):?>
+<div class="collection-container collection-container-<?php echo $collection['id'];?>">
+	<div class="collection-title"><?php echo $collection['title'];?></div>
+    <div class="collection-roles-container">
+    <?php foreach($collection_roles as $role):?>
+	<div class="field">	
+    	<label for="global-role-">
+			<input type="checkbox" name="collection_role[<?php echo $collection['id'];?>][]" value="<?php echo $role['repo_pg_id'];?>"  <?php echo in_array($role['repo_pg_id'],$assigned_roles['collections'][$collection['id']]) ? 'checked="checked"' : '';?>/>
+			<?php echo t($role['title']);?>
+        </label>
+        <div class="description"><?php echo t($role['description']);?></div>
+	</div>
+    <?php endforeach;?>
+    </div>
+</div>    
+<?php endforeach;?>
+</div>
+</fieldset>
+
+<input type="submit" name="submit" value="<?php echo t('update');?>"/>
+<a href="<?php echo site_url($destination);?>"><?php echo t('cancel');?></a>
+</form>
+</div>
+
+
+<script type="text/javascript">
+$(function() {
+
+		$(".access_type,.user_role").click(function(e){
+			show_hide_sub_roles();
+		});
+		
+		function show_hide_sub_roles()
+		{
+			$(".access_type").each(function(){
+			
+				var parent_=$(this).closest(".access-type-container");
+				
+				if ($(this).attr("checked")){
+					parent_.find(".roles-list").show();
+					parent_.find(".roles-list input").removeAttr('disabled');
+				}
+				else{
+					parent_.find(".roles-list").hide();
+					parent_.find(".roles-list input").attr('disabled','disabled');
+				}
+			});
+			
+			var checked_option=$(".access_type:checked");			
+			var found=false;
+			checked_option.closest(".access-type-container").find(".user_role:checked").each(function(){			
+				var is_collection_group=$(this).attr("data-is_collection_group");
+				if ( checked_option.val()=='limited' && is_collection_group==1){
+					found=true;
+				}
+			});
+			
+			if (found==true){
+				$(".collection-perms-container").show();
+			}
+			else{
+					$(".collection-perms-container").hide();
+			}
+
+		}
+		
+		function show_hide_collection(id)
+		{
+			$(".collection-container").hide();
+			$(".collection-container-"+id).show();
+		}
+		
+		show_hide_sub_roles();
+		show_hide_collection(<?php echo $selected_collection;?>);
+		
+});
+</script>
