@@ -125,5 +125,14 @@ $lang['data_request_for'] = "Data request";
 $lang['request_history'] = "View request history";
 $lang['study_notes'] = "View study notes";
 
+$lang['note_type'] = "Type";
+$lang['note'] = "Note";
+$lang['additional_info'] = "Additional information requested";
+$lang['request_additional_info_submitted'] = "Thank you for updating request. We will notify you via email once your application has been reviewed.";
+$lang['email_sent'] = "Your message has been sent!";
+$lang['provide_additonal_info_for_your_request'] = "Please use this box to provide additional information needed to process your data request.";
+
+
+
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
