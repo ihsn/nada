@@ -65,7 +65,7 @@ a.view_comments{color:#08C;font-size:10px;margin-right:5px;cursor:pointer;}
 .field-collapsed legend {background-position:left top; background-repeat:no-repeat;}
 .field-collapsed .field{display:none;}
 .field-expanded .field label, .always-visible label{font-weight:normal;}
-
+.study-notes {font-size:small;}
 </style>
 
 <script type="text/javascript">
@@ -174,7 +174,7 @@ $(function() {
 
         <fieldset class="study_notes field-expanded">
             <legend><?php echo t('study_notes');?></legend>
-            <div class="field" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>
+            <div class="field" ><?php $this->load->view('access_licensed/study_notes',array('study_notes'=>$study_notes));?></div>
         </fieldset>   
 
 		<div id="status-text" style="margin-bottom:10px;"></div>
@@ -182,7 +182,7 @@ $(function() {
         <div class="field" style="margin-top:20px;background:#F5F2F2;padding:5px;">
                  <label for="notify" style="display:inline;margin-right:20px;"><input type="checkbox" name="notify" id="notify" value="1" checked="checked"/> <?php echo t('notify_user_by_email');?></label>
                  <input type="button" name="update" id="update" value="<?php echo t('update');?>" onclick="process_request(<?php echo $this->uri->segment(4); ?>);"/>
-                  
+                 <a href="<?php echo site_url('admin/licensed_requests');?>"><?php echo t('cancel');?></a>
          </div>
 
         
