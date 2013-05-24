@@ -261,7 +261,7 @@ $flag_options=array(
     <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
 			<?php echo $survey_list; ?>
     </div> 
-	<a style="display:block" class="add_survey" href="javascript:void(0);">Add Surveys</a>   
+	<a style="display:block" class="add_survey" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
 </div>
 </fieldset>
 <?php
