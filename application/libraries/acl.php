@@ -53,6 +53,40 @@ class ACL
 		return $this->check_url_access($user->id,$url);
 	}
 	
+	
+	/**
+	*
+	* Returns an array of all urls for which user has access by collection
+	**/
+	function get_repo_urls_by_user($user_id=NULL,$repo_id=NULL)
+	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+		
+		$this->ci->db->select('u.url');
+		$this->ci->db->from('user_repo_permissions p');
+		$this->ci->db->join('repo_perms_urls u','p.repo_pg_id=u.repo_pg_id','INNER');
+		$this->ci->db->where('p.user_id',$user_id);
+		if($repo_id)
+		{
+			$this->ci->db->where('p.repo_id',$repo_id);
+		}	
+		$query=$this->ci->db->get()->result_array();
+		
+		$urls=array();
+		foreach($query as $row)
+		{
+			$urls[]=$row['url'];
+		}
+		
+		return $urls;
+	}
+	
+	
+	
 	function check_url_access($user_id,$url)
 	{
 		//get user groups
@@ -72,8 +106,19 @@ class ACL
 			return TRUE;
 		}
 		
-		//get URLs allowed to the groups
+		//get URLs allowed to the global groups
 		$allowed_urls=$this->url_access_by_group($groups);
+		
+		//permissions are tested at the page level by per collection
+		$excluded_urls=array(
+						'admin/catalog/*',
+						'admin/licensed_requests/*',
+						'admin/resources/*',
+						'admin/pdf_generator/*',
+						'admin/catalog_notes/*'
+		);
+		
+		$allowed_urls=array_merge($allowed_urls,$excluded_urls);
 		
 		//see if it matches with a url without using regex
 		if (in_array($url,$allowed_urls))
@@ -93,10 +138,60 @@ class ACL
 				return TRUE;
 			}
 		}
+
 		
-		//var_dump($allowed_urls);
+		/*
+		echo '<pre>';
+		var_dump($allowed_urls);
+		echo '</pre>';
+		*/
+		return FALSE;		
+
+/*		
+		//test user access by collection
+		//get study repository
+		$active_repo_id=$this->user_active_repo();
+		
+		if(!$active_repo_id)
+		{
+			return FALSE;
+		}
+		
+		//test user access by active repo
+		$has_repo_access=$this->check_user_access_by_repo($user_id,$active_repo_id,$url); 		
+		return $has_repo_access;;
+*/		
+	}
+	
+	
+	function check_user_access_by_repo($user_id,$repo_id=NULL,$url)
+	{		
+		$allowed_urls=$this->get_repo_urls_by_user($user_id,$repo_id); 
+		
+		//see if it matches with a url without using regex
+		if (in_array($url,$allowed_urls))
+		{
+			return TRUE;
+		}
+				
+		//try finding url using regex/other expressions
+		foreach ($allowed_urls as $page_url)
+		{
+			// Convert wild-cards to RegEx
+			$key = str_replace('*', '.+', $page_url);
+
+			// Does the RegEx match?
+			if (preg_match('#^'.$key.'$#', $url))
+			{
+				return TRUE;
+			}
+		}
+
 		return FALSE;
 	}
+	
+	
+	
 	
 	/**
 	*
@@ -270,7 +365,7 @@ class ACL
 		//check user has UNLIMITED access
 		$is_unlimited=$this->user_has_unlimited_access($user_id);
 		
-		//get user groups
+		//get global user groups
 		$groups=$this->get_user_groups($user_id);
 				
 		if ($is_unlimited===TRUE)
@@ -283,10 +378,11 @@ class ACL
 		else
 		{	//limited admin account
 			$this->ci->db->select("r.id,r.title,r.thumbnail,r.short_text,r.repositoryid");
-			$this->ci->db->from("group_repo_access gr");
+			$this->ci->db->from("user_repo_permissions gr");
 			$this->ci->db->join('repositories r', 'r.id = gr.repo_id');			
-			$this->ci->db->where_in("group_id",$groups);
+			$this->ci->db->where_in("user_id",$user_id);
     		$this->ci->db->order_by("r.title", "ASC");
+			$this->ci->db->group_by('r.id,r.title,r.thumbnail,r.short_text,r.repositoryid');
 			$query=$this->ci->db->get();
 		}
 		
@@ -311,11 +407,94 @@ class ACL
 	}
 
 
+	function user_has_lic_request_access($request_id,$user_id=NULL,$die=TRUE)
+	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+		
+		//check user has UNLIMITED access
+		$unlimited=$this->user_has_unlimited_access($user_id);
+		
+		if ($unlimited)
+		{
+			return TRUE;
+		}
+
+		//get licensed request information		
+		$request=$this->ci->Licensed_model->get_request_by_id($request_id);
+		$request_repo='';
+		
+		if ($request['request_type']=='study')
+		{
+			$request_repo=$this->get_survey_owner_repos($request['surveyid']);
+		}
+		else
+		{
+			//$request_repo=$this->get_survey_owner_repos($request['surveyid']);
+			show_error("NOT IMPLEMENTED");
+		}
+
+		$url=$this->ci->uri->uri_string();
+
+		foreach($request_repo as $repo_id)
+		{
+			$has_repo_access=$this->check_user_access_by_repo($user_id,$repo_id,$url);
+			
+			if($has_repo_access===TRUE)
+			{
+				return TRUE;
+			}
+		}	
+		
+		if ($die==TRUE )
+		{
+			show_error(t("lic_data_request_access_denied"));
+		}
+
+		return FALSE;
+	}
+
+
+	function user_has_lic_request_view_access($repo_id,$user_id=NULL,$die=TRUE)
+	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+		
+		//check user has UNLIMITED access
+		$unlimited=$this->user_has_unlimited_access($user_id);
+		
+		if ($unlimited)
+		{
+			return TRUE;
+		}
+
+		$url=$this->ci->uri->uri_string();
+		$has_repo_access=$this->check_user_access_by_repo($user_id,$repo_id,$url);			
+		if($has_repo_access===TRUE)
+		{
+			return TRUE;
+		}
+		
+		if ($die==TRUE )
+		{
+			show_error(t("lic_data_request_access_denied"));
+		}
+
+		return FALSE;
+	}
+
+
 	/**
 	*
 	* Check if user has access to a study
 	**/
-	function user_has_study_access($survey_id,$user_id=NULL,$die=TRUE)
+	function user_has_study_access($survey_id,$user_id=NULL,$die=TRUE,$check_url=TRUE)
 	{
 		if($user_id==NULL)
 		{
@@ -334,6 +513,37 @@ class ACL
 			return TRUE;
 		}
 		
+		//for everybody else, they must have the permissions assigned per collection
+		
+		//check if user has access to the repository owning the study
+		
+		//get repository that owns the study [could be more than one repo owning the same study]
+		$owner_repos=$this->get_survey_owner_repos($survey_id);
+		
+		var_dump($owner_repos);
+		
+		$url=$this->ci->uri->uri_string();
+		
+		foreach($owner_repos as $repo_id)
+		{
+			$has_repo_access=$this->check_user_access_by_repo($user_id,$repo_id,$url);
+			
+			if($has_repo_access===TRUE)
+			{
+				return TRUE;
+			}
+		}	
+		
+		if ($die==TRUE )
+		{
+			show_error(t("study_access_denied"));
+		}
+
+		return FALSE;
+		
+		
+		/*
+		
 		//get user groups
 		$user_groups=$this->get_user_groups($user_id);
 
@@ -342,7 +552,7 @@ class ACL
 		
 		//check if user(group) has access to repository
 		$access= $this->group_has_repo_access($user_groups,$owner_repos);
-		
+
 		if (!$access && $die==TRUE )
 		{
 			show_error(t("study_access_denied"));
@@ -353,6 +563,8 @@ class ACL
 		}
 		
 		return TRUE;
+		
+		*/
 	}
 	
 	/**
@@ -401,8 +613,8 @@ class ACL
 	}
 
 
-	function user_has_repository_access($repositoryid,$user_id=NULL)
-	{
+	function user_has_repository_access($repositoryid,$user_id=NULL,$die=FALSE)
+	{	
 		if($user_id==NULL)
 		{
 			$user=$this->current_user();
@@ -422,18 +634,19 @@ class ACL
 		$user_repo_access=FALSE;
 		foreach($user_repositories as $repo)
 		{
-			if ($repo["repositoryid"]==$repositoryid)
+			if ($repo["id"]==$repositoryid)
 			{
 				$user_repo_access=TRUE;
 				return TRUE;
 			}
 		}
 		
-		if ($user_repo_access===FALSE)
+		if ($user_repo_access===FALSE && $die===TRUE)
 		{
 			show_error(t("REPO_ACCESS_DENIED"));
 		}
 	
+		return FALSE;
 	}
 
 }
