@@ -16,6 +16,13 @@
 <a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?> href="<?php echo site_url();?>/auth/profile" class="button-light"><?php echo t('view_all_requests');?></a>
 </div>
 
+<?php $error=$this->session->flashdata('error');?>
+<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+
+<?php $message=$this->session->flashdata('message');?>
+<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+
+
 <h2><?php echo t('licensed_dataset_request_status');?></h2>
 <?php 
     $css_class='class="success"';
@@ -58,5 +65,20 @@
 	</tr>	
 <?php endif; ?>	
 <?php endif; ?>	
+
+<?php if (strtolower($status)=='moreinfo'):?>
+	<tr>
+		<td nowrap="nowrap"></td>
+		<td style="font-weight:bold;">
+        <form method="post" action="<?php echo site_url('access_licensed/additional_info/'.$id);?>" style="margin-top:10px;">
+        	<label><?php echo t('provide_additonal_info_for_your_request');?></label>
+			<textarea style="width:100%;height:200px;" name="moreinfo"></textarea>        
+            <div style="margin-top:10px;"><input type="submit" name="submit" value="Submit"/></div>
+        </form>
+        </td>
+	</tr>	
+<?php endif;?>
+
 </table>
 <p>&nbsp;</p>
+
