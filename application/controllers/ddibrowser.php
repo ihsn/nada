@@ -146,6 +146,10 @@ class DDIbrowser extends MY_Controller {
 
 		//get survey info
 		$survey=$this->Catalog_model->select_single($id);
+		
+		//check if study is published or the current user has permissions to view the study or not
+		
+				
 		$this->survey=$survey;
 		$this->ddi_file=$ddi_file;
 
@@ -184,6 +188,11 @@ class DDIbrowser extends MY_Controller {
 					$html=html_entity_decode(url_filter($html));
 					$this->cache->save($cache_key,$html,10);
 				}
+			break;
+			
+			case 'review':
+				$show_study_menu=FALSE;
+				$html=$this->review_study($id);
 			break;
 
 			case 'impact_evaluation':
@@ -1211,6 +1220,129 @@ class DDIbrowser extends MY_Controller {
 		$this->template->write('title', $survey['titl'].' - '.$survey['nation'],true);
 		return $content_body;
 	}
+	
+	private function review_study($id)
+	{		
+		$this->template->add_css('themes/base/css/font-awesome.min.css');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
+		$this->load->library('review_study');
+	
+		$data=array();
+		$data['study_id']=$id;
+		$section=$this->uri->segment(4);
+		
+		switch($section)
+		{
+			case 'get-notes':
+				$data['study_notes']=$this->review_study->get_study_notes($id,$note_type='reviewer');
+				$data['study_id']=$id;
+				echo $this->load->view('ddibrowser/study_notes_list',$data,TRUE);exit;
+			break;
+			
+			case 'add-note':				
+				$note_options = array(
+					'id'   => NULL,
+					'sid'  => $id,
+					'note' => $this->security->xss_clean($this->input->post('note')),
+					'type' => 'reviewer',
+					'userid'  => $this->session->userdata('user_id'),
+					'created' => date("U")
+				);
+				
+				if (!$note_options['note'] || !$note_options['type'] || !$note_options['userid'])
+				{
+					show_error("INVALID-INPUT");
+				}
+				
+				$this->review_study->add_study_note($note_options);exit;
+			break;
+			
+			case 'get-add-form':
+				$action_url=site_url('catalog/'.$id.'/review/add-note/');
+				echo $this->review_study->get_study_add_form($action_url,$show_note_types=FALSE);exit;
+			break;
+			
+			case 'get-edit-form':
+				$note_id=$this->uri->segment(5);
+				$action_url=site_url('catalog/'.$id.'/review/update-note/'.$note_id);
+				echo $this->review_study->get_study_edit_form($note_id,$action_url,$show_note_types=FALSE);exit;
+			break;
+			
+			case 'update-note':
+				$note_id=$this->uri->segment(5);
+				$note_options = array(
+					'note' => $this->security->xss_clean($this->input->post('note')),
+					'type' => 'reviewer',
+					'userid'  => $this->session->userdata('user_id'),
+					'changed' => date("U")
+				);
+				
+				if (!$note_options['note'] || !$note_options['type'])
+				{
+					show_error("NO-DATA");
+				}
+				
+				$this->review_study->edit_study_note($note_id,$note_options);exit;
+			break;
+			
+			case 'delete-note':
+				$note_id=(int)$this->uri->segment(5);
+				$result=$this->review_study->delete_study_note($note_id);
+				if (!$result)
+				{
+					show_error('delete-failed');
+				}
+				exit;
+			
+			break;
+			
+			case 'resources':
+				$this->load->model('Resource_model');
+				$result['resources_microdata']=$this->Resource_model->get_microdata_resources($id);
+				$data['tab_content']= $this->load->view('ddibrowser/study_review_microdata', $result,TRUE);
+				
+				$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
+				$data['tab_content'].= $this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
+			break;
+			
+			case 'download':
+				$resource_id=$this->uri->segment(5);
+				$this->load->model('Resource_model');
+				$resource_path= $this->Resource_model->get_resource_download_path($resource_id);
+				
+				if(!$resource_path)
+				{
+					show_404();
+				}
+				
+				$this->load->helper('download');
+				log_message('info','Downloading file <em>'.$resource_path.'</em>');
+				force_download2($resource_path);
+				exit;
+			break;			
+			
+			case '':
+			case 'reviewer-notes':
+			default:
+				//get reviewer study notes
+				$options['study_notes']=$this->review_study->get_study_notes($id,'reviewer');
+				$options['study_id']=$id;
+				$data['tab_content']=$this->load->view('ddibrowser/study_notes',$options,TRUE);
+				//$tab_content= $this->load->view('ddibrowser/review_study',$data,TRUE);	
+			
+			break;
+		}
+		
+		$output=$this->load->view('ddibrowser/review_study',$data,TRUE);
+		return $output;
+		
+	}
+	
+	private function show_study_error($error_type)
+	{
+		show_error('Content for the page is not available.');
+	}
+	
 }
 /* End of file ddibrowser.php */
 /* Location: ./controllers/ddibrowser.php */
