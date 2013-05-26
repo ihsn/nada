@@ -79,7 +79,7 @@ class Licensed_requests extends MY_Controller {
 				$result['survey_list'][$result['surveyid']]=$survey['nation'].' - '. $survey['titl'];
 				
 				//study notes
-				$result['study_notes']=$this->Catalog_notes_model->get_notes_by_study($result['surveyid']);
+				$result['study_notes']=$this->Catalog_notes_model->get_notes_by_study($result['surveyid'],'admin');
 		}
 		else if ($result['request_type']=='collection')
 		{
