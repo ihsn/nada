@@ -172,10 +172,12 @@ $(function() {
             <div class="field" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>
         </fieldset>   
 
+		<?php if (count($study_notes)>0):?>
         <fieldset class="study_notes field-expanded">
             <legend><?php echo t('study_notes');?></legend>
             <div class="field" ><?php $this->load->view('access_licensed/study_notes',array('study_notes'=>$study_notes));?></div>
-        </fieldset>   
+        </fieldset>
+        <?php endif;?>   
 
 		<div id="status-text" style="margin-bottom:10px;"></div>
 
