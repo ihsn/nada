@@ -679,5 +679,26 @@ class Resource_model extends CI_Model {
 	}
 
 	
+	
+	function get_resource_download_path($resource_id)
+	{
+		$this->load->model('catalog_model');
+		
+		//resource info
+		$resource=$this->select_single($resource_id);
+		
+		if (!$resource)
+		{
+			return FALSE;
+		}
+		
+		//get survey folder path
+		$survey_folder=$this->catalog_model->get_survey_path_full($resource['survey_id']);
+						
+		//build complete filepath to be downloaded
+		$file_path=unix_path($survey_folder.'/'.$resource['filename']);
+
+		return $file_path;		
+	}
 }
 ?>
