@@ -11,8 +11,9 @@ class Catalog_Notes extends MY_Controller {
 		$this->lang->load('catalog_admin');
 	}
 	
-	public function delete($id) {
-		$t=$this->Catalog_Notes_model->delete($id);
+	public function delete($id) 
+	{
+		return $this->Catalog_Notes_model->delete($id);
 	}
 	
 	public function add($id) 
