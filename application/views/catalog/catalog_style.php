@@ -104,4 +104,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 .survey-row .label-tag{background-color:white;border:1px solid gainsboro;color:black;font-weight:normal;text-shadow:none;}
 .survey-row .actions .label{display:block;margin-bottom:15px;padding:7px;text-align:center;}
 .survey-row .sub-title{font-weight:bold;margin-bottom:10px;font-size:16px;}
+.study-linked {}
+.study-linked .status{display:none;}
+
 </style>
