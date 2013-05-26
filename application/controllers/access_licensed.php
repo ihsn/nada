@@ -90,7 +90,7 @@ class Access_licensed extends MY_Controller {
 		}
 
 		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->title;
-		$message=$this->load->view('access_licensed/request_form_view', $data,true);
+		$message=$this->load->view('access_licensed/request_form_printable', $data,true);
 
 		$this->load->library('email');
 		$this->email->clear();		
@@ -506,7 +506,102 @@ class Access_licensed extends MY_Controller {
 		$this->template->set_template('default');	
 		$this->template->write('content', $contents,true);
 		$this->template->render();
+	}
+	
+	
+	function additional_info($request_id=NULL)
+	{
+		if(!is_numeric($request_id))
+		{
+			show_404();
+		}
+		
+		//get request info
+		$data=$this->Licensed_model->get_request_by_id($request_id);
+		
+		//logged in user
+		$user=$this->ion_auth->current_user();
+		
+		if ($data===FALSE)
+		{
+			show_error('INVALID-REQUEST');
+		}
+		
+		//user can only view his requests
+		if ($data['userid']!=$user->id)
+		{
+			show_error('INVALID-REQUEST!');
+		}
+		
+		//only process MOREINFO requests
+		if (strtoupper($data['status'])!=='MOREINFO')
+		{
+			show_error('INVALID-REQUEST!');
+		}
+
+		$options=array(
+				'additional_info'	=> $this->input->post("moreinfo",true)
+		);
+		
+		//update request
+		$this->Licensed_model->update_request($request_id,$user->id,$options);
+		
+		//update history
+		$options=array(
+			'user_id'			=> $user->email,
+			'logtype'			=> 'comment',
+			'request_status'	=> $data['status'],
+			'description'		=> $options['additional_info']
+		);
+		
+		$this->Licensed_model->add_request_history($request_id,$options);
+		$this->_confirmation_email($request_id);
+		$this->session->set_flashdata('message', t('request_additional_info_submitted'));
+		redirect('access_licensed/track/'.$request_id);
+	
 	}	
+	
+	/*
+	function preview($requestid)
+	{
+		//get user info
+		$user=$this->ion_auth->current_user();
+
+		//get request data
+		$data=$this->Licensed_model->get_request_by_id($requestid);
+		$data=(object)$data;
+		
+		//set data to be passed to the view
+		$data->user_id=$user->id;
+		$data->username=$user->username;
+		$data->fname=$user->first_name;
+		$data->lname=$user->last_name;
+		$data->organization=$user->company;
+		$data->email=$user->email;
+		if ($data->request_type=='study')
+		{
+			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
+		}	
+		else
+		{
+			$data->title='collection ['.$data->collection['title'].']';
+		}
+
+		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->title;
+		$message=$this->load->view('access_licensed/request_form_printable', $data,true);
+	
+		echo $message;
+	}
+	*/
+	
+	function bulk_request($cid)
+	{
+		if(!is_numeric($cid))
+		{
+			show_404();
+		}
+	
+	}
 		
 }
 /* End of file access_licensed.php */
