@@ -106,16 +106,15 @@ class Catalog extends MY_Controller {
 				}
 			}
 		}
-				
-		//load the contents of the page into a variable
-		$content=$this->load->view('catalog/index', $db_rows,true);
-	
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
 		
-		//render final output
+		$db_rows['active_repo_obj']=$this->active_repo;
+				
+		$content=$this->load->view('catalog/index', $db_rows,true);
+		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+
+
 	
 	//remember search via cookies
 	function _persist_search()
@@ -165,8 +164,10 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 
-		$db_rows= $this->_search();
-		$this->load->view('catalog/search', $db_rows);
+		$data= $this->_search();
+		$data['active_repo_obj']=$this->active_repo;
+		
+		$this->load->view('catalog/search', $data);
 	}
 	
 	
@@ -1649,6 +1650,7 @@ exit;
 			$this->Catalog_model->active_repo_negate=TRUE;
 		}
 		
+		
 		$ps=(int)$this->input->get("ps");
 		if($ps==0 || $ps>500)
 		{
@@ -1685,9 +1687,8 @@ exit;
 		//intialize pagination
 		$this->pagination->initialize($config); 
 
-		
-		//get surveys
-		//$db_rows=$this->_search();
+		//get an array of survey ID that are already linked in the active collection
+		$db_rows['linked_studies']=$this->Repository_model->get_repo_linked_studies($this->active_repo->repositoryid);
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/copy_studies', $db_rows,true);
