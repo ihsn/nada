@@ -1214,5 +1214,35 @@ class Repository_model extends CI_Model {
 		return $output;
 	
 	}
-	
+
+
+	/**
+	*
+	* Return an array of linked studies for the collection
+	**/
+	function get_repo_linked_studies($repositoryid)
+	{
+		$this->db->select('sid');
+		$this->db->where('isadmin',0);
+		$this->db->where('repositoryid',$repositoryid);
+		$query=$this->db->get('survey_repos');
+		
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[]=$row['sid'];
+		}
+		
+		return $output;
+		
+		
+	}
+		
 }
