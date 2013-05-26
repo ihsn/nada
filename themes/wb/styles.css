@@ -256,3 +256,5 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 .captcha_container .image_captcha{margin-top:15px;}
 .captcha_container .image_captcha label{margin-top:15px;}
 .captcha_container{margin-bottom:15px;}
+
+.content-unpublished{background:red;padding:15px;color:white;font-size:16px;margin-bottom:15px;}
