@@ -53,7 +53,7 @@
         	<span class="label filter"><?php echo $f;?></span>
         <?php endforeach;?>
         </div>
-        <a class="clear-filter" href="<?php echo site_url('admin/catalog/');?>/?reset=reset">Clear filter</a>
+        <a class="clear-filter" href="<?php echo site_url('admin/catalog/');?>/?reset=reset"><?php echo t('clear_filter');?></a>
     </div>
 <?php endif;?>
 
@@ -103,8 +103,12 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
     <?php $tr_class=""; ?>
     <?php foreach($rows as $row): ?>
     	<?php //var_dump($row);?>
+        <?php 
+			//is_owned by collection
+			$study_ownership=($active_repo_obj->repositoryid==$row['repositoryid']) ? 'owned' : 'linked';
+		?>
         <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-        <tr class="<?php echo $tr_class; ?>" id="s_<?php echo $row['id']; ?>"  valign="top">
+        <tr class="<?php echo $tr_class; ?> study-<?php echo $study_ownership;?>" id="s_<?php echo $row['id']; ?>"  valign="top">
             <td><input type="checkbox" value="<?php echo $row['id']; ?>" class="chk"/></td>
             <td>
                     <div class="survey-row">
@@ -187,7 +191,11 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
                         
                         <span style="float:left;">
                             <span><a href="<?php echo site_url();?>/admin/catalog/edit/<?php echo $row['id'];?>"><?php echo t('edit');?></a></span> | 
-                            <span><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $row['id'];?>"><?php echo t('delete');?></a></span>
+                            <?php if($study_ownership=='owned'):?>
+                            	<span><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $row['id'];?>"><?php echo t('delete');?></a></span>
+                            <?php elseif($study_ownership=='linked'):?>
+                            	<span><a title="<?php echo t('remove_from_collection_description');?>" href="<?php echo site_url('/admin/catalog/unlink/'.$active_repo_obj->repositoryid.'/'.$row['id']);?>"><?php echo t('remove_from_collection');?></a></span>
+                            <?php endif;?>                                
                         </span>
                         
                         <span class="survey-options">
