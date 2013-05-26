@@ -1,6 +1,24 @@
 <style>
 .box1{padding:10px; background-color:#FFFFCC;border:1px solid gainsboro;margin-top:10px;margin-bottom:15px;}
 span.active-repo{background:gainsboro;padding:5px;}
+
+.copy-studies a.attach, .copy-studies a.remove {
+background: green;
+padding: 3px;
+color: white;
+display: block;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px;
+border-radius: 3px;
+float: left;
+width: 60px;
+text-align: center;
+text-transform: capitalize;
+}
+.copy-studies a.remove {
+	background: red;
+}
+.linked-studies-count{font-weight:bold;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -9,7 +27,7 @@ span.active-repo{background:gainsboro;padding:5px;}
 		$ps=15;
 	}
 ?>
-<div class="body-container" style="padding:10px;">
+<div class="body-container copy-studies" style="padding:10px;">
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
@@ -81,8 +99,7 @@ span.active-repo{background:gainsboro;padding:5px;}
 
 <table width="100%">
     <tr>
-        <td>
-        </td>
+        <td><div class="linked-studies-count"><?php echo t('studies_linked_count');?>: <?php echo count($linked_studies);?></div></td>
         <td align="right">
             <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
         </td>
@@ -93,10 +110,9 @@ span.active-repo{background:gainsboro;padding:5px;}
 	<?php $tr_class=""; ?>
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
-    		<th><input type="checkbox" id="chk_toggle"/></th>
          	<?php if ($this->config->item("regional_search")=='yes'):?>
-            	<th><?php echo t('repository');?></th>
-			  	<th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url); ?></th>
+			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url); ?></th>
+                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url); ?></th>
             <?php endif;?>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url); ?></th>
@@ -105,14 +121,20 @@ span.active-repo{background:gainsboro;padding:5px;}
 	<?php foreach($rows as $row): ?>
 	    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
         <tr class="<?php echo $tr_class;?>">
-        	<td><input type="checkbox" id="chk_toggle"/></td>
          	<?php if ($this->config->item("regional_search")=='yes'):?>
             	<td><?php echo strtoupper($row['repositoryid']);?></td>
 			  	<td><?php echo $row['nation'];?></td>
             <?php endif;?>
-            <td><?php echo $row['titl']; ?></td>
-            <td><?php echo date($this->config->item('date_format_long'), $row['changed']); ?></td>
-            <td><a class="repo-link" href="<?php echo site_url();?>/admin/catalog/do_copy_study/<?php echo $active_repo->repositoryid;?>/<?php echo $row['id'];?>"><img class="copy-study" src="themes/admin/bullet-gray.gif" alt="COPY" title="<?php echo t('alt_copy_study')?>"/></a></td>
+            <td><?php echo $row['titl']; ?> - <?php echo $row['proddate']; ?></td>
+            <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>
+            <td class="">
+            	<?php if (!in_array($row['id'],$linked_studies)):?>
+            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/do_copy_study/'.$active_repo->repositoryid.'/'.$row['id']);?>"><?php echo t('select'); ?></a>
+                <?php else:?>
+                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/unlink/'.$active_repo->repositoryid.'/'.$row['id']);?>"><?php echo t('deselect') ?></a>
+				<?php endif?>                
+            </td>
+            
         </tr>        
     <?php endforeach;?>
 	</table>
@@ -140,36 +162,30 @@ span.active-repo{background:gainsboro;padding:5px;}
 
 <script type='text/javascript'>
 
-//checkbox select/deselect
 jQuery(document).ready(function(){
 
-	$(".repo-link").click(
-		function (e) 
-		{
-			var obj=$(this);
-			obj.html('<img class="loading" src="images/loading.gif"/>');
-			$.ajax({
-				timeout:1000*120,
-				cache:false,
-				dataType: "json",
-				data:{ submit: "submit"},
-				type:'POST', 
-				url: $(this).attr("href"),
-				success: function(data) {
-					if (data.success){
-						obj.html('<img class="loading" src="themes/admin/bullet-green.gif"/>');
-					}
-					else{
-						alert(data.error);
-					}
-				},
-				error: function(XHR, textStatus, thrownError) {
-					alert("Error occured " + XHR.status);
-				}
-			});	
+		//link/unlink studies
+		var attach_url="<?php echo site_url('admin/catalog/do_copy_study/'.$active_repo->repositoryid.'/');?>";
+		var detach_url="<?php echo site_url('admin/catalog/unlink/'.$active_repo->repositoryid.'/');?>";
+	
+		$(document.body).on("click","#surveys a.attach", function(event){ 
+			$.get($(this).attr("href"));
+			$(this).html("<?php echo t('deselect'); ?>");
+			$(this).removeClass("attach").addClass("remove");
+			var sid=$(this).attr("data-value");
+			$(this).attr("href",detach_url+sid);
 			return false;
-		}
-	);
+		});
+	
+		$(document.body).on("click","#surveys a.remove", function(event){ 
+			$.get($(this).attr("href"));
+			$(this).html("<?php echo t('select'); ?>");	
+			$(this).removeClass("remove").addClass("attach");
+			var sid=$(this).attr("data-value");
+			$(this).attr("href",detach_url+sid);
+			return false;
+		});
+	
 });
 
 //page change
