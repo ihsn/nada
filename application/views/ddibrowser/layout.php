@@ -113,6 +113,9 @@ $(function(){
 </script>
 
 <div class="page-body-full study-metadata-page" >
+<?php if(intval($published)===0):?>
+	<div class="content-unpublished"><?php echo t('content_is_not_published');?></div>
+<?php endif;?>
 
 <?php if (isset($survey_title)):?>
 	<h1><?php echo $survey_title;?></h1>
@@ -148,19 +151,23 @@ $tab_urls['get_microdata']=array(
 	<div class="tab-heading"><?php echo $survey_info;?><a name="tab"></a></div>
 
   <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist" style="background:none;margin-top:-35px;border-bottom:1px solid gainsboro;">
-    <li class="ui-state-default ui-corner-top  <?php echo ($tab=='' || $tab=='study-description') ? $active_tab_class : '';?>" role="tab" tabindex="0" aria-controls="tabs-1" aria-labelledby="ui-id-1" aria-selected="true"><a href="<?php echo site_url('catalog/'.$survey_id.'/study-description');?>#tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-1" data-id="study-desc">Study Description</a></li>
+    <li class="ui-state-default ui-corner-top  <?php echo ($tab=='' || $tab=='study-description') ? $active_tab_class : '';?>" role="tab" tabindex="0" aria-controls="tabs-1" aria-labelledby="ui-id-1" aria-selected="true"><a href="<?php echo site_url('catalog/'.$survey_id.'/study-description');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-1" data-id="study-desc"><?php echo t('study_description');?></a></li>
     <?php if($page_tabs['data_dictionary']>0):?>
-	<li class="ui-state-default ui-corner-top <?php echo (in_array($tab,$tab_urls['data_dictionary'])) ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-2" aria-labelledby="ui-id-2" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/data_dictionary');?>#tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-2" data-id="data-dictionary">Data Dictionary</a></li>
+	<li class="ui-state-default ui-corner-top <?php echo (in_array($tab,$tab_urls['data_dictionary'])) ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-2" aria-labelledby="ui-id-2" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/data_dictionary');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-2" data-id="data-dictionary"><?php echo t('data_dictionary');?></a></li>
     <?php endif;?>
     <?php if($page_tabs['get_microdata']>0):?>
-	<li class="ui-state-default ui-corner-top <?php echo ($tab=='get_microdata') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-23" aria-labelledby="ui-id-23" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/get_microdata');?>#tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-23" data-id="get-microdata"><span class="get-microdata da-icon-small da-<?php echo $data_access_type;?>"></span>Get Microdata</a></li>
+	<li class="ui-state-default ui-corner-top <?php echo ($tab=='get_microdata') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-23" aria-labelledby="ui-id-23" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/get_microdata');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-23" data-id="get-microdata"><span class="get-microdata da-icon-small da-<?php echo $data_access_type;?>"></span><?php echo t('get_microdata');?></a></li>
     <?php endif;?>
     <?php if($page_tabs['related_materials']>0):?>
-    <li class="ui-state-default ui-corner-top <?php echo ($tab=='related_materials') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-4" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/related_materials');?>#tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3" data-id="related-materials">Related Materials</a></li>
+    <li class="ui-state-default ui-corner-top <?php echo ($tab=='related_materials') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-4" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/related_materials');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3" data-id="related-materials"><?php echo t('related_materials');?></a></li>
     <?php endif;?>
     <?php if($page_tabs['related_citations']>0):?>
-    <li class="ui-state-default ui-corner-top <?php echo ($tab=='related_citations') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-4" aria-labelledby="ui-id-5" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/related_citations');?>#tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-35" data-id="related-citations">Citations</a></li>
+    <li class="ui-state-default ui-corner-top <?php echo ($tab=='related_citations') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-4" aria-labelledby="ui-id-5" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/related_citations');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-35" data-id="related-citations"><?php echo t('citations');?></a></li>
     <?php endif;?>
+    
+    <!--review-->
+    <li class="ui-state-default ui-corner-top <?php echo ($tab=='review') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-4" aria-labelledby="ui-id-5" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/review');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-review" data-id="review"><?php echo t('review_study');?></a></li>
+    
   </ul>
   <div id="tabs-1" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" style="" aria-expanded="true" aria-hidden="false">
   	
