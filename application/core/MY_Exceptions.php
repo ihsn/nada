@@ -17,7 +17,7 @@
  * @link - http://codeigniter.com/forums/viewthread/69407/
  * @Author Beren - http://codeigniter.com/forums/member/58252/
  */
-define('DEBUG_BACKTRACE', TRUE);
+define('DEBUG_BACKTRACE', TRUE); 
 class MY_Exceptions extends CI_Exceptions {
   
   /**
@@ -64,6 +64,10 @@ class MY_Exceptions extends CI_Exceptions {
               
               foreach($entry['args'] as $argument)
               {
+			  	if(is_array($argument)) 
+				{
+					continue;
+				}
                 $html .= $seperator . strval($argument);
                 $seperator = ', ';
               }
@@ -99,22 +103,47 @@ class MY_Exceptions extends CI_Exceptions {
      * @param    string    the template name
      * @return    string
      */
-    function show_error($heading, $message, $template = 'error_general')
+    function show_error($heading, $message, $template = 'error_general', $status_code=500)
     {
-        $message = '<p>'.implode('</p><p>', ( ! is_array($message)) ? array($message) : $message).'</p>';
+		set_status_header($status_code);
+		$is_ajax_request=FALSE;
+		
+		if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') 
+		{
+			$is_ajax_request=TRUE;
+		}
+		
+		if ($is_ajax_request)
+		{
+			$message = implode("\r", ( ! is_array($message)) ? array($message) : $message);
+		}
+		else
+		{
+			$message = '<p>'.implode('</p><p>', ( ! is_array($message)) ? array($message) : $message).'</p>';
+		}	
 
-        if (ob_get_level() > $this->ob_level + 1)
-        {
-            ob_end_flush();    
-        }
-        ob_start();
-        include(APPPATH.'errors/'.$template.EXT);
-        
-        if (DEBUG_BACKTRACE)
-        {
-          echo $this->generate_backtrace();
-        }
-    
+		if (ob_get_level() > $this->ob_level + 1)
+		{
+			ob_end_flush();
+		}
+		
+		ob_start();
+		
+		//check ajax requests
+		if ($is_ajax_request)
+		{
+			echo $message;
+		}			
+		else
+		{					
+			include(APPPATH.'errors/'.$template.'.php');
+							
+			if (DEBUG_BACKTRACE)
+			{
+			  echo $this->generate_backtrace();
+			}
+		}
+		
         $buffer = ob_get_contents();
         ob_end_clean();
         return $buffer;
