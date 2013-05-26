@@ -37,7 +37,6 @@ class Catalog_Notes_model extends CI_Model {
 	public function update($id,$data) 
 	{
 		$options=array();
-		
 		foreach($data as $key=>$value)
 		{
 			if(in_array($key,$this->fields))
@@ -62,6 +61,7 @@ class Catalog_Notes_model extends CI_Model {
 		return $this->db->get('survey_notes')->row_array();
 	}
 	
+	//todo: remove
 	public function notes_from_catelog_id($sid, $type='admin') {
 		$this->db->select("*");
 		$this->db->where('type', $type);
@@ -70,9 +70,13 @@ class Catalog_Notes_model extends CI_Model {
 		return $this->db->get('survey_notes')->result_array();
 	}
 	
-	public function get_notes_by_study($sid) {
+	public function get_notes_by_study($sid,$type=NULL) {
 		$this->db->select("*");
 		$this->db->where('sid', $sid);
+		if ($type)
+		{
+			$this->db->where('type', $type);
+		}	
 		$this->db->order_by('type', 'ASC');
 		$this->db->order_by('created', 'DESC');
 		return $this->db->get('survey_notes')->result_array();
