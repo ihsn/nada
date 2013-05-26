@@ -19,6 +19,7 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/reset-fonts-grids.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/styles.css" />
 <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
+<link rel="stylesheet" type="text/css" href="themes/base/css/bootstrap.buttons.min.css" />
 
 <!--jquery ui-->
 <link rel="stylesheet" type="text/css" href="javascript/jquery/themes/base/jquery-ui.css" />
@@ -36,6 +37,20 @@ $sidebar=$this->load->view('default_menu', $data,true);
 
 <script type="text/javascript"> 
    var CI = {'base_url': '<?php echo site_url(); ?>'}; 
+   
+$(document).ready(function()  {
+   	/*global ajax error handler */
+	$( document ).ajaxError(function(event, jqxhr, settings, exception) {
+		if(jqxhr.status==401){
+			window.location=CI.base_url+'/auth/login/?destination=catalog/';
+		}
+		else if (jqxhr.status>=500){
+			alert(jqxhr.responseText);
+		}
+	});	
+
+  });//end-document-ready
+
 </script> 
 
 <style>
