@@ -567,8 +567,29 @@ class Repositories extends MY_Controller {
 		//get all user groups
 		$data['user_groups']=$this->ion_auth_model->get_user_groups();
 		
+		//get all users accounts of type ADMIN with LIMITED access
+		$data['limited_users']=$this->ion_auth_model->get_limited_admins();
+		
+		//echo '<pre>';
+		//var_dump($data['limited_users']);exit;
+		
+		foreach($data['limited_users'] as $key=>$user)
+		{
+			//get user permissions for the current repository
+			$data['limited_users'][$key]['permissions']=$this->ion_auth_model->get_user_perms_by_repo($id,$user['id']);
+		}
+		
+		$data['users_by_repo']=$this->ion_auth_model->get_repo_users($id);
+		
+		foreach($data['users_by_repo'] as $key=>$user)
+		{
+			//get user permissions for the current repository
+			$data['users_by_repo'][$key]['permissions']=$this->ion_auth_model->get_user_perms_by_repo($id,$user['user_id']);
+		}
+		
+		
 		//get existing group permissions assigned to the current repository
-		$repo_user_groups=$this->ion_auth_model->get_user_groups_by_repo($id);
+		$repo_user_groups=array();//$this->ion_auth_model->get_user_groups_by_repo($id);
 		
 		if(!$repo_user_groups)
 		{
