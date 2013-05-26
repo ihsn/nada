@@ -57,7 +57,7 @@ $lang['msg_select_repository']='Select collection';
 $lang['repositories']='Collections';
 
 
-$lang['msg_copy_studies']='Click on the study copy icon %s to copy studies to your collection.';
+$lang['msg_copy_studies']='Click on the <b>Select</b> or <b>Deselect</b> buttons to link or unlink studies to your collection.';
 $lang['copy_studies_to']='Copy studies to ';
 $lang['change_repo']='Switch';
 $lang['repositoryid']='Collection';
@@ -145,6 +145,9 @@ $lang['click_on_icon_to_remove_citation']='Click on the icon %s to remove citati
 $lang['attach_citation']='Attach Citation';
 $lang['js_refreshing_page']='Refreshing page, please wait...';
 
+$lang['remove_from_collection']='Remove';
+$lang['remove_from_collection_description']='Remove this study from this collection.';
+$lang['studies_linked_count']='Studies linked from other collections';
 
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

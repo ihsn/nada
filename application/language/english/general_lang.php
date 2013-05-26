@@ -128,5 +128,7 @@ $lang['data_na_title']='Studies with no data available';
 $lang['remote_title']='Data available from external repository';
 $lang['data_is_available_from_external_repository']='Data for the study is available from an external site, please use the link below:';
 $lang['exit_impersonate'] = "Exit impersonate mode";
+$lang['content_is_not_published']='The content for the current page is not published yet and is only available for reviewing.';
+
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

@@ -184,7 +184,8 @@ $lang['study_description'] = "Study Description";
 $lang['data_dictionary'] = "Data Dictionary";
 $lang['related_materials'] = "Related Materials";
 $lang['citations'] = "Citations";
-
-
+$lang['review_study'] = "Review";
+$lang['add_note'] = "Add note";
+$lang['no_reviewer_notes_found'] = "The study has no reviewer notes attached. To add a new note, use the 'Add note' link.";
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */
