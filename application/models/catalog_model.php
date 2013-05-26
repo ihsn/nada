@@ -95,13 +95,15 @@ class Catalog_model extends CI_Model {
 		//$this->db->start_cache();		
 		
 		//select survey fields
-		$this->db->select('surveys.id,sr.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
+		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,changed,created,published,data_coll_start');
+							link_indicator, link_questionnaire,	isshared,surveys.changed,surveys.created,surveys.published,surveys.data_coll_start');
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		$this->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
+		
 		if ($this->active_repo!=NULL) 
 		{
 			$this->db->select("sr.repositoryid as repo_link, sr.isadmin as repo_isadmin");
@@ -127,6 +129,7 @@ class Catalog_model extends CI_Model {
 		}
 		else
 		{
+			$this->db->order_by('surveys.repositoryid'); 
 			$this->db->order_by('changed', 'desc'); 
 		}
 				
@@ -135,6 +138,7 @@ class Catalog_model extends CI_Model {
 		//$this->db->stop_cache();
 
         $result= $this->db->get()->result_array();		
+
 		return $result;
     }
 	
@@ -245,7 +249,7 @@ class Catalog_model extends CI_Model {
 			}
 			else
 			{	//show studies not part of the active repository
-				$where_clause.=' and isadmin=1 and sr.repositoryid!='.$this->db->escape($this->active_repo). ' AND sr.sid not in(select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).')';
+				$where_clause.=' and isadmin=1 and sr.repositoryid!='.$this->db->escape($this->active_repo);//. ' AND sr.sid not in(select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).') and isadmin=1';
 			}	
 		}
 		
@@ -314,7 +318,13 @@ class Catalog_model extends CI_Model {
 			$this->db->where($where,NULL,FALSE);
 		}
 		
-		$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		$this->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
+		
+		if ($this->active_repo!=NULL) 
+		{
+			$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
+		}
+		
 		return $this->db->count_all_results('surveys');
     }
 
