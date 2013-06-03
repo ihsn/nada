@@ -132,7 +132,7 @@ $lang['request_additional_info_submitted'] = "Thank you for updating request. We
 $lang['email_sent'] = "Your message has been sent!";
 $lang['provide_additonal_info_for_your_request'] = "Please use this box to provide additional information needed to process your data request.";
 
-
-
+$lang['click_on_a_lic_request_to_see_status_or_download_data'] = "Click on a request to view status or download data for approved requests.";
+$lang['make_new_lic_request'] = "Make new request";
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
