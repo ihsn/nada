@@ -15,9 +15,9 @@ class MY_Router extends CI_Router {
 	var $error_controller = 'page'; //controller name to be used as a 404 page handler
 	var $error_method_404 = 'index';//controller method to be called
  
-    function My_Router()
+    function __construct()
     {
-        parent::CI_Router();
+        //parent::__construct();
     }
  
 	// this is just the same method as in Router.php, with show_404() replaced by $this->error_404();
@@ -37,6 +37,15 @@ class MY_Router extends CI_Router {
 			// Set the directory and remove it from the segment array
 			$this->set_directory($segments[0]);
 			$segments = array_slice($segments, 1);
+ 
+ 			//search multi-level deep folders
+			while(count($segments) > 0 && is_dir(APPPATH.'controllers/'.$this->directory.$segments[0]))
+            {
+				echo "X";
+				// Set the directory and remove it from the segment array
+				$this->set_directory($this->directory . $segments[0]);
+				$segments = array_slice($segments, 1);
+            }
  
 			if (count($segments) > 0)
 			{
