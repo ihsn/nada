@@ -140,15 +140,24 @@ class DDIbrowser extends MY_Controller {
 			return;
 		}
 
+		//get survey info
+		$survey=$this->Catalog_model->select_single($id);
+		
+		//logged in user
+		$user=$this->ion_auth->current_user();
+		
 		//log
 		$this->db_logger->write_log('survey',$this->uri->segment(4),$section,$id);
 		$this->Catalog_model->increment_study_view_count($id);
 
-		//get survey info
-		$survey=$this->Catalog_model->select_single($id);
+		//check user has review permissions
+		$review_study_enabled=$this->acl->user_can_review($id);
 		
-		//check if study is published or the current user has permissions to view the study or not
-		
+		//study is unpublished
+		if (!$user && intval($survey['published'])===0)
+		{
+			show_error('CONTENT_NOT_AVAILABLE');
+		}		
 				
 		$this->survey=$survey;
 		$this->ddi_file=$ddi_file;
@@ -164,6 +173,7 @@ class DDIbrowser extends MY_Controller {
 		
 		//section shown
 		$section_url=$current_url.'/'.$section;
+		
 		//page title
 		$this->page_title=$this->survey['nation']. ' - '.$this->survey['titl'];
     	
@@ -171,7 +181,8 @@ class DDIbrowser extends MY_Controller {
 
 		$html=NULL;
 		$show_data_menu=FALSE;
-		$show_study_menu=TRUE;
+		$show_study_menu=TRUE;		
+		
 		$cache_key=$id.'-'.$section.'-'.$language['lang_name'];
 		switch($section)
 		{
@@ -190,7 +201,42 @@ class DDIbrowser extends MY_Controller {
 				}
 			break;
 			
+			case 'link':
+				$link_type=$this->uri->segment(4);
+				
+				if (!in_array($link_type,array('interactive','study-website')) )
+				{
+					show_404();
+				}
+				
+				$link=NULL;
+				
+				switch ($link_type)
+				{
+					case 'interactive':
+						$link=$survey['link_indicator'];
+					break;
+					
+					case 'study-website':
+						$link=$survey['link_study'];
+					break;				
+				}
+				
+				if (trim($link)!="")
+				{
+							redirect($link);exit;
+				}	
+				show_404();				
+				
+			break;
+			
 			case 'review':
+				//user has no review access
+				if(!$review_study_enabled)
+				{
+					show_404();
+				}				
+				
 				$show_study_menu=FALSE;
 				$html=$this->review_study($id);
 			break;
@@ -451,15 +497,18 @@ class DDIbrowser extends MY_Controller {
 			break;
 			
 			case 'ddi':
+				$this->Catalog_model->increment_study_download_count($id);
 				$this->_download_ddi($ddi_file);exit;
 			break;
 			
 			case 'download':
+				$this->Catalog_model->increment_study_download_count($id);
 				$this->download($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
 			
 			case 'download-microdata':
 			case 'download_microdata':
+				$this->Catalog_model->increment_study_download_count($id);
 				$this->download_microdata($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
 						
@@ -493,7 +542,13 @@ class DDIbrowser extends MY_Controller {
 			break;
 			
 			case 'get_microdata':
-			case 'get-microdata':				
+			case 'get-microdata':
+				
+				if($data_access_type=='data_enclave')
+				{
+					$data_access_type='enclave';
+				}
+			
 				$this->load->driver('data_access',array('adapter'=>$data_access_type));
 				
 				if ($this->data_access->is_supported($data_access_type))
@@ -566,7 +621,8 @@ class DDIbrowser extends MY_Controller {
 				'data_dictionary'=>$survey['varcount'],
 				'get_microdata'=> ($data_access_type!='data_na' ? 1 : 0),
 				'related_materials'=>$this->Catalog_model->has_external_resources($id),
-				'related_citations'=>$this->Catalog_model->has_citations($id)
+				'related_citations'=>$this->Catalog_model->has_citations($id),
+				'review_study'=>$review_study_enabled
 			);
 			
 			$data['survey_title']=$survey['nation']. ' - '. $survey['titl'];
@@ -1025,8 +1081,10 @@ class DDIbrowser extends MY_Controller {
 		}
 		
 		$this->load->model("Repository_model");
+		$this->load->model("Resource_model");
 		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);
 		$survey['owner_repo']=$this->Repository_model->get_survey_owner_repository($id);
+		$survey['has_resources']=$this->Resource_model->has_external_resources($id);
 		
 		if (!$survey['owner_repo'])
 		{
@@ -1236,6 +1294,7 @@ class DDIbrowser extends MY_Controller {
 			case 'get-notes':
 				$data['study_notes']=$this->review_study->get_study_notes($id,$note_type='reviewer');
 				$data['study_id']=$id;
+				$data['user_obj']=$this->user;
 				echo $this->load->view('ddibrowser/study_notes_list',$data,TRUE);exit;
 			break;
 			
@@ -1302,7 +1361,7 @@ class DDIbrowser extends MY_Controller {
 				$data['tab_content']= $this->load->view('ddibrowser/study_review_microdata', $result,TRUE);
 				
 				$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
-				$data['tab_content'].= $this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
+				$data['tab_content'].= $this->load->view('ddibrowser/study_review_resources',$survey,TRUE);
 			break;
 			
 			case 'download':
@@ -1327,7 +1386,9 @@ class DDIbrowser extends MY_Controller {
 				//get reviewer study notes
 				$options['study_notes']=$this->review_study->get_study_notes($id,'reviewer');
 				$options['study_id']=$id;
+				$options['user_obj']=$this->user;
 				$data['tab_content']=$this->load->view('ddibrowser/study_notes',$options,TRUE);
+
 				//$tab_content= $this->load->view('ddibrowser/review_study',$data,TRUE);	
 			
 			break;
