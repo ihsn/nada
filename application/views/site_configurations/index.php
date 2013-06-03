@@ -1,5 +1,6 @@
 <style>
 .input-flex{width:200px;display:inline;}
+.input-fixed-3{width:50px;display:inline;}
 .field{margin-bottom:15px;clear:both;}
 label{display:block;float:left;width:200px;}
 .field-note{font-style:italic;padding-left:5px;color:gray;}
@@ -12,6 +13,7 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 .field-collapsed legend {background-image:url(images/next.gif); background-position:left top; padding-left:20px;background-repeat:no-repeat;}
 .field-collapsed .field{display:none;}
 .field-expanded .field label, .always-visible label{font-weight:normal;}
+.instructions{font-weight:bold;}
 
 </style>
 <div class="content-container">
@@ -145,8 +147,52 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	</div>
 
 	<div class="field">
+        <label style="height:50px;" for="<?php echo 'collection_search'; ?>"><?php echo t('collection_search');?></label>
+        <div>
+        <input type="radio" name="collection_search" value="yes" <?php echo ($collection_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('collection_search_enable');?> <br/>
+        <input type="radio" name="collection_search" value="no" <?php echo ($collection_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('collection_search_disable');?>
+        </div>
+	</div>
+
+	<div class="field">
+        <label style="height:50px;" for="<?php echo 'da_search'; ?>"><?php echo t('da_search');?></label>
+        <div>
+        <input type="radio" name="da_search" value="yes" <?php echo ($da_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('da_search_enable');?> <br/>
+        <input type="radio" name="da_search" value="no" <?php echo ($da_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('da_search_disable');?>
+        </div>
+	</div>
+    
+    <div class="field">
+    	<div class="instructions"><?php echo t('instruction_weight'); ?></div>
+    	<div>
+        <label for="<?php echo 'da_search_weight'; ?>"><?php echo t('da_search_weight');?></label>
+        <input class="input-fixed-3" name="da_search_weight" type="text" id="da_search_weight"  value="<?php echo get_form_value('da_search_weight',isset($da_search_weight) ? $da_search_weight : ''); ?>"/>
+        
+        </div>
+        
+        <label for="<?php echo 'regional_search_weight'; ?>"><?php echo t('regional_search_weight');?></label>
+        <input class="input-fixed-3" name="regional_search_weight" type="text" id="regional_search_weight"  value="<?php echo get_form_value('regional_search_weight',isset($regional_search_weight) ? $regional_search_weight : ''); ?>"/>
+        <br/>
+    
+    <div>
+        <label for="<?php echo 'topic_search_weight'; ?>"><?php echo t('topic_search_weight');?></label>
+        <input class="input-fixed-3" name="topic_search_weight" type="text" id="topic_search_weight"  value="<?php echo get_form_value('topic_search_weight',isset($topic_search_weight) ? $topic_search_weight : ''); ?>"/>
+  </div>
+    <div>
+        <label for="<?php echo 'year_search_weight'; ?>"><?php echo t('year_search_weight');?></label>
+        <input class="input-fixed-3" name="year_search_weight" type="text" id="year_search_weight"  value="<?php echo get_form_value('year_search_weight',isset($year_search_weight) ? $year_search_weight : ''); ?>"/>  
+	</div>
+
+    <div>
+        <label for="<?php echo 'collection_search_weight'; ?>"><?php echo t('collection_search_weight');?></label>
+        <input class="input-fixed-3" name="collection_search_weight" type="text" id="collection_search_weight"  value="<?php echo get_form_value('collection_search_weight',isset($collection_search_weight) ? $collection_search_weight : ''); ?>"/>
+	</div>
+        
+	</div>
+
+	<div class="field">
         <label for="<?php echo 'catalog_records_per_page'; ?>"><?php echo t('data_catalog_page_size');?></label>
-        <input class="input-flex" name="catalog_records_per_page" type="text" id="catalog_records_per_page"  value="<?php echo get_form_value('catalog_records_per_page',isset($catalog_records_per_page) ? $catalog_records_per_page : ''); ?>"/>
+        <input class="input-fixed-3" name="catalog_records_per_page" type="text" id="catalog_records_per_page"  value="<?php echo get_form_value('catalog_records_per_page',isset($catalog_records_per_page) ? $catalog_records_per_page : ''); ?>"/>
         <span class="field-note"><?php echo t('instruction_catalog_records_per_page'); ?></span>        
 	</div>
 </fieldset>
