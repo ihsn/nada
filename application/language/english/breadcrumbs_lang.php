@@ -11,7 +11,7 @@ $lang['edit'] = "Edit";
 $lang['add'] = "Add";
 $lang['manage_studies'] = "Manage studies";
 $lang['generate_study_pdf'] = "Generate study PDF";
-
+$lang['add_new_resource'] = "Add new resource";
 
 
 /* End of file breadcrumbs_lang.php */
