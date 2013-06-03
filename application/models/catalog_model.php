@@ -381,8 +381,20 @@ class Catalog_model extends CI_Model {
 		{
 			$survey['repo']=$additional;
 		}
+		
+		//get study countries
+		$survey['country']=$this->get_survey_iso_countries($id);
 
 		return $survey;
+	}
+	
+	
+	function get_survey_iso_countries($id)
+	{
+		$this->db->select('survey_countries.cid,countries.iso,countries.name');
+		$this->db->join('countries','countries.countryid=survey_countries.cid','INNER');
+		$this->db->where('survey_countries.sid',$id);
+		return $this->db->get('survey_countries')->result_array();
 	}
 	
 	/**
@@ -1450,7 +1462,7 @@ class Catalog_model extends CI_Model {
 			return FALSE;
 		}
 		
-		$this->db->select('repositories.repositoryid,title,ispublished,group_da_public,group_da_licensed');
+		$this->db->select('repositories.repositoryid,title,ispublished');
 		$this->db->join('repositories', 'survey_repos.repositoryid= repositories.repositoryid','INNER');
 		$this->db->where('sid',$sid);
 		$query=$this->db->get('survey_repos')->result_array();
