@@ -1,61 +1,65 @@
 <?php 
-$lang['Line ministry/public administration']="De los ministerios / administración pública";
+$lang['Line ministry/public administration']="Administración pública / Ministerios";
 $lang['University']="Universidad";
-$lang['Research centre']="Centros de Investigación";
-$lang['Private company']="Empresas Privadas";
-$lang['International organization']="Organización Internacional";
-$lang['Non-governmental agency (national)']="Organismo (nacional) no gubernamental";
-$lang['Non-governmental agency (international)']="Organismo (internacional) no gubernamental";
+$lang['Research centre']="Centro de Investigación";
+$lang['Private company']="Empresa Privada";
+$lang['International organization']="Organismo Internacional";
+$lang['Non-governmental agency (national)']="Agencia/Organización no gubernamental (nacional) ";
+$lang['Non-governmental agency (international)']="Agencia/Organización no gubernamental (internacional)";
 $lang['Other']="Otros";
-$lang['application_access_licensed_dataset']="Solicitud de acceso al archivo de datos con licencia";
+$lang['application_access_licensed_dataset']="Solicitud de acceso a microdatos";
 $lang['required_fields']="Los campos marcados con * son obligatorios.";
 $lang['info_kept_confidential']="La información proporcionada en esta página se mantendrá confidencial y será utilizada sólo para propósitos internos.";
 $lang['dataset_requested']="Archivo de datos solicitados:";
-$lang['filled_lead_research']="<p>Este formulario debe ser llenado y enviado por el Investigador Principal. El Investigador Principal es la persona designada como el contacto principal para todas las comunicaciones que involucran éste acuerdo. El acceso a los datos con licencia serán sólo otorgados al Investigador Principal quien debe ser un empleado legalmente registrado de la organización que recibe (universidad, empresa, centro de investigación, organización nacional o internacional, etc.) a través del cual el acceso a los datos es solicitado. El Investigador Principal asume toda responsabilidad del cumplimiento de todos los términos de éste Acuerdo de Acceso a Datos por los empleados de la organización beneficiaria.</p>
+$lang['filled_lead_research']="<p>Este formulario debe ser llenado y enviado por el Investigador Responsable. Es decir, la persona quien se desempeña como el punto de contacto principal para todas las comunicaciones relacionadas al acuerdo. Este acceso a los microdatos sólo será otorgado en caso que el Investigador Responsable sea un funcionario de una institución legalmente registrada (universidad, empresa, centro de investigación, organización nacional e internacional, etc.) en cuya representación está solicitando los datos. El Investigador Responsable asume todas las responsabilidades de cumplimiento con los términos del acuerdo en relación al acceso a los datos por parte de los funcionarios de las organizaciones que reciben los mismos.</p>
 
-<p>Esta solicitud será revisada por un comité de publicación de los datos, que podrá decidir la aprobación de la solicitud, el rechazo, o solicitar información adicional al investigador principal. Una copia firmada de éste formulario de solicitud también puede ser solicitado.</p>
+<p>Esta solicitud será revisada por la Dirección del INE, quien decide si se aprueba el pedido, o rechaza la solicitud de acceso a los datos, o si debe solicitar información adicional al Investigador Responsable. Una copia firmada de esta solicitud también puede ser solicitada. Si se aprueba, tanto los datos como la documentación le serán suministrados por el medio que se considere más apropiado según el caso.</p>
 
-<p>Esta solicitud se presenta en nombre de:</p>";
-$lang['receiving_org']="Nombre de la organización receptora:";
-$lang['rec_org_refers']="Organización receptora se refiere a la organización, universidad, centro de investigación que emplea al Investigador Principal.";
+<p>Esta solicitud es enviada en representación de:</p>";
+$lang['receiving_org']="Nombre de la organización que recibe los datos:";
+$lang['rec_org_refers']="Organización que recibe los datos, se refiere a la organización/universidad/empresa que emplea al Investigador Responsable.";
 $lang['org_type']="Tipo de Organización";
 $lang['other']="Otros, especificar:";
 $lang['post_add']="Dirección Postal";
 $lang['telephone']="Teléfono (con código de país)";
 $lang['fax']="Fax (con código de país)";
-$lang['intended_use']="Intención de uso del dato:";
-$lang['provide_short_desc']="Por favor provea una breve descripción de su proyecto de investigación (pregunta del proyecto, objetivos, métodos, resultados previstos, socios)";
-$lang['expected_output']="Lista de los resultados esperados y la política de difusión de datos";
-$lang['expected_completion']="Fecha prevista de terminación (DD-MM-AAAA) del proyecto de investigación:";
-$lang['data_matching']="Datos coincidentes";
-$lang['merge_dataset']="¿Necesitará integrar los datos proveídos con otros archivos de datos?";
-$lang['other_data_merge']="En caso afirmativo, especificar todos los otros archivos de datos que serán necesarios para fusionar";
-$lang['research_team']="Los miembros del equipo de investigación (que no sea el Investigador Principal)";
-$lang['provide_names']="Provea los nombres, títulos y afiliaciones de cualquier otro miembro del equipo de investigación que tendrán acceso a la información restringida.";
-$lang['ident_needed']="Identificación de los archivos de datos y variables necesarias";
-$lang['da_website']="El Archivo de Datos provee detalles del metadato en su sitio web, incluyendo una descripción de archivos de datos y variables para cada conjunto de datos. Los investigadores que no necesitan tener acceso a todo el conjunto de datos puede indicar qué subconjunto de variables o casos le interesa. Proveyéndonos dicha información, lo cual reduce el riesgo de divulgación, y puede incrementar la probabilidad que los datos sean proporcionados.";
+$lang['intended_use']="Intención de uso de los datos:";
+$lang['provide_short_desc']="Por favor, ingrese una descripción corta del proyecto de investigación (objetivos, métodos, resultados esperados, organizaciones asociadas)";
+$lang['expected_output']="Lista de los resultados esperados y política de divulgación de los datos";
+$lang['expected_completion']="Fecha prevista de terminación del proyecto de investigación (DD-MM-AAAA):";
+$lang['data_matching']="Unión de los microdatos (matching)";
+$lang['merge_dataset']="¿Necesitará unir estos archivos de microdatos con otros datos?";
+$lang['other_data_merge']="En caso afirmativo, especificar todos los otros archivos de datos que serán necesarios para la unión";
+$lang['research_team']="Miembros del grupo de Investigación (además del Investigador Responsable)";
+$lang['provide_names']="Ingrese el nombre, título, y afiliaciones de cualquier otro miembro del grupo de investigación que accederá a los datos solicitados.";
+$lang['ident_needed']="Identificación de los archivos de datos y variables que se necesitan";
+$lang['da_website']="El Catálogo de Metadatos y microdatos provee detalle de metadatos en este sitio Web, incluyendo una descripción de los archivos de datos y variables para cada conjunto de datos. Los investigadores que no necesitan acceso a todo el conjunto de datos pueden indicar qué subconjunto de variables o casos en los que están interesados, considerando que ésto reduce el riesgo de divulgación de información confidencial.";
 $lang['this_request']="Esta solicitud se presenta para acceder a:";
-$lang['whole_dataset']="A la base de datos (todos los archivos, todos los registros)";
-$lang['subset_data']="Un subconjunto de variables y / o registros que se describen a continuación (tenga en cuenta que las variables como los coeficientes de ponderación de la muestra y los identificadores de los registros se incluirán siempre en subconjuntos:";
-$lang['data_access_agreement']="Acuerdo de acceso al Dato";
+$lang['whole_dataset']="Todo el conjunto de datos (todos los archivos, todos los casos)";
+$lang['subset_data']="Un subconjunto de variables y/o casos (note que las variables tales como los coeficientes de expansión de la muestra e identificadores de registros serán siempre incluidos en los subconjuntos)";
+$lang['data_access_agreement']="Acuerdo de acceso a los Datos";
 $lang['i_read_and_agree']="He leído y estoy de acuerdo con las condiciones";
-$lang['agreement_text']="<p>El representante de la organización beneficiaria se compromete a cumplir con las siguientes condiciones:</p>
-<ul class=&quot;bl&quot;>
-<li>Los datos y otro material proporcionado por la Biblioteca de Microdatos deberán ser utilizados exclusivamente por el usuario y no podrán ser redistribuidas o vendidas a otras personas, instituciones u organizaciones sin el consentimiento previo por escrito de la Biblioteca de Microdatos y en caso de hacerlo, deberá estar sujeta a las condiciones que acompañan a dicho consentimiento.</li>
-<li>Los datos deberán ser utilizados solamente con fines de investigación científica y estadística. Deberán ser utilizados exclusivamente para la generación, y tal vez la presentación de informes, con información agregada y no para las investigaciones sobre personas u organizaciones específicas. En otras palabras, los datos deberán ser tratados como un producto terminado - pueden ser utilizado como una base para seguir trabajando, pero no para la ingeniería inversa o &quot;investigación preliminar&quot; sobre las fuentes de los datos en sí.</li>
-<li>No se deberá intentar identificar a los encuestados o proveedores de microdatos, y no se hará uso de la identidad de ninguna persona, institución o establecimiento descubierto accidentalmente. Cualquier descubrimiento debe inmediatamente ser comunicado a la Biblioteca de microdatos, con el fin de evaluar su uso posterior, aplicar más métodos estadísticos de control de acceso, imponer nuevas restricciones en el acceso, o volver a clasificar adecuadamente los datos.</li>
-<li>No deberá intentarse crear vínculos entre los conjuntos de datos proporcionados por la Biblioteca de Microdatos, o entre Microdatos de  Biblioteca de datos y otros conjuntos de datos que pudieran identificar a los individuos u organizaciones. </li>
-<li>Cualquier libros, artículos, ponencias, tesis, disertaciones, informes u otras publicaciones que utilizan datos obtenidos de la Biblioteca de Microdatos debe citar la fuente, en línea con el requisito de citación proveído con el conjunto de datos. </li>
-<li> La Biblioteca de Microdatos y los organismos de financiación pertinentes no tienen ninguna responsabilidad por el uso de los datos o de interpretación o inferencias basadas en él. </li>
-<li>Como condición para acceder a los Archivos con licencia, la organización del usuario debe ser identificado, al igual que el director y otros investigadores que participarán en la utilización de los datos de esa organización. Al Investigador Principal se le puede pedir que firme la licencia en nombre de la organización. Si el Investigador Principal no está autorizado para firmar en nombre de la organización beneficiaria, un representante adecuado debe ser identificado. Cualquier violación de las Condiciones de uso de los Microdatos se considera que se han producido en nombre de la organización del usuario, y tomaremos las medidas adecuadas para sancionar la mala conducta, que podrá incluir denegar cualquier acceso presente o futuro a cualquiera de los usuario de esa organización. </li>
-<li>El uso previsto de los datos, incluyendo una lista de los resultados previstos y la política de la organización para la difusión deben ser identificados y no se permitirá  un uso diferente sin el consentimiento previo y por escrito del Banco Mundial. </li>
-<li>El Banco Mundial tendrá el derecho, pero no la obligación, de monitorear el uso de los microdatos obtenidos de la Biblioteca de Microdatos, y podrá decidir, a su discreción, si un abuso ha tenido lugar. El Banco Mundial tendrá absoluta discreción para determinar si se debe sancionar a los usuarios por violaciones y las sanciones podrán incluir la limitación o negación de acceso a la Biblioteca de Microdatos, o cualquier otro recursos del Grupo del Banco Mundial . </li>
-<li>Cuando se descargan los conjuntos de datos publicados  bajo la política de archivos con licencia, los usuarios deberán hacer constar su compromiso de cumplir con los términos y condiciones antes indicados y aceptar que el uso de los datos estadísticos obtenidos de la Biblioteca de Microdatos deben ajustarse a estas normas ampliamente aceptadas de la práctica y las restricciones legales de proteger la confidencialidad de los encuestados. </li>
-</ul> ";
-$lang['success_request_submitted']="Ha enviado correctamente su solicitud de acceso a Datos. Un correo electrónico de confirmación le ha sido enviado a su dirección de correo electrónico";
+$lang['agreement_text']='<p>El representante de la Organización que recibe los datos acuerda en cumplir con las siguientes condiciones:</p>
+<ol>
+<li>El acceso a los datos restringidos está limitado al Investigador Responsable y a otros miembros de grupo de investigadores listados en esta solicitud.</li>
+<li>Las copias de los datos aquí solicitados o cualquier dato creado sobre la base del dato original no deben ser distribuídos a ninguna otra persona fuera de la lista mencionada en este acuerdo de acceso a microdatos, a no ser por una autorización formal de parte del productor de los datos. </li>
+<li>Los datos solicitados sólo serán procesados con fines estadísticos y con el propósito de la investigación mencionada. Los mismos deberán ser usados solamente para reportes de información agregada y no para investigaciones específicas de individuos u organizaciones. Los datos no deben, bajo ninguna circunstancia, ser utilizados para ningún propósito fiscal, administrativo o de cumplimiento legal o regulatorio. </li>
+<li>El Investigador Responsable debe expresar si tiene la intención de armonizar los microdatos solicitados con cualquier otro conjunto de datos. Si se se realizara cualquier unión con otros datos (matching), se debe enviar, al productor de los datos solicitados, el conjunto de datos a ser armonizados, así como también las razones para hacerlo. Cualquier conjunto de datos creado como resultado de la unión de archivos será considerado restringuido y debe cumplir con los términos de este Acuerdo de Acceso a Microdatos. </li>
+<li>El Investigador Responsable se compromete en no intentar individualizar los registros (casos) de los microdatos solicitados, para identificar a ninguna persona, familia, negocio, empresa u organización. Si tal revelación ocurriese involuntariamente, no debe usarse la identidad de ninguna persona u organización descubierta e inmediatamente debe reportarse al productor de los datos un detalle completo de tal situación. La identificación no debe ser revelada a ninguna otra persona que no esté incluída en este Acuerdo de Acceso a Microdatos. </li>
+<li>El Investigador Responsable debe implementar los mecanismos de seguridad para prevenir el acceso no autorizado a los microdatos solicitados. Los microdatos deben ser destruídos luego de realizar la investigación, a no ser que el productor de los datos obtenga una garantía satisfactoria de que los datos van a estar almacenados en forma segura y que se haya enviado una autorización por escrito a la Organización que recibe los datos para retener los mismos. La destrucción de los microdatos será confirmada por escrito por el Investigador Responsable al productor de los datos solicitados. </li>
+<li>Cualquier libro, artículo, artículo presentado en conferencias o congresos, tésis, disertaciones, reportes u otras publicaciones que utilicen los datos obtenidos del productor de los datos deben citar la fuente de dicha información de acuerdo con el requerimiento de cita de autor indicado en la sección Política de Acceso de los metadatos. </li>
+<li>Una copia electrónica de todos los reportes y publicaciones basados en los datos solicitados debe ser enviada al productor de los mismos. </li>
+<li>El recolector original de los datos y las agencias patrocinantes o colaboradoras no son responsables por el uso de los datos o por las interpretaciones o inferencias basadas en tales usos. </li>
+<li>Este Acuerdo entrará en vigencia en la fecha en que se apruebe el acceso a los microdatos solicitados y permanece vigente hasta la fecha de finalización del proyecto o antes, dependiendo si el proyecto haya terminado antes del tiempo fijado. </li>
+<li>Si existiese algún cambio en el proyecto de investigación, de cualquier índole, con respecto al formulario de solicitud original, es responsabilidad del Investigador Responsable actualizar la información del Acuerdo de Acceso a Microdatos con relación a los cambios. Si los cambios afectan a la organización del Investigador Responsable, deberá realizarse una nueva solicitud, implicando una terminación del acuerdo original. </li>
+<li>Las infracciones de este Acuerdo deben considerarse seriamente. El productor de los datos solicitados tomará acciones contra los responsables sean éstas voluntarias o accidentales. El incumplimiento de las condiciones de este acuerdo puede implicar tomar acciones judiciales. El productor de los datos solicitados informará a las organizaciones asociadas o co-productoras de los microdatos solicitados sobre cualquier violación a este acuerdo. </li>
+</ol> 
+';
+
+$lang['success_request_submitted']="Ha enviado correctamente su solicitud de acceso a microdatos. Un correo electrónico de confirmación le ha sido enviado a su dirección.";
 $lang['track_status_request']="Para realizar el seguimiento del estado de su solicitud, visite";
 $lang['thank_you']="¡Gracias!";
-$lang['confirmation_application_for_licensed_dataset']="[confirmación] Solicitud de Acceso a un archivo de Datos con Licencia";
+$lang['confirmation_application_for_licensed_dataset']="[confirmación] Solicitud de Acceso a un archivo de microdatos";
 $lang['view_all_requests']="Ver todos las solicitudes";
 $lang['open_in_new_window']="Abrir en una nueva ventana";
 

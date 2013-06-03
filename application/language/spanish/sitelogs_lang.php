@@ -1,5 +1,5 @@
 <?php 
-$lang['site_logs']="Registros del Sitio";
+$lang['site_logs']="Registros de acceso al sitio";
 $lang['logtype']="Tipo";
 $lang['section']="Sección";
 $lang['url']="URL";

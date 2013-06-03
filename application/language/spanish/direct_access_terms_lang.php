@@ -1,17 +1,21 @@
 <?php 
 $lang['title_terms_and_conditions']="Términos y condiciones";
-$lang['terms_text']="<ul class=&quot;bl&quot;>
-<li>Los datos y otro materiales provistos por la Biblioteca de Microdatos deberán ser utilizados exclusivamente por el usuario y no podrán ser redistribuidas o vendidas a otras personas, instituciones u organizaciones sin el consentimiento previo por escrito de la Biblioteca de Microdatos o del repositorio que lo origina y en caso de hacerlo, deberá estar sujeta a las condiciones que acompañan a dicho consentimiento.</li>
-<li>Los datos deberán ser utilizados solamente con fines de investigación científica y estadística. Deberán ser utilizados exclusivamente para la generación, y tal vez la presentación de informes, con información agregada y no para las investigaciones sobre personas u organizaciones específicas. En otras palabras, los datos deberán ser tratados como un producto terminado - puede ser utilizado como una base para seguir trabajando, pero no para la ingeniería inversa o &quot;investigación preliminar&quot; sobre las fuentes de los datos en sí</li>
-<li>No se deberá intentar identificar a los encuestados o proveedores de microdatos, y no se hará uso de la identidad de ninguna persona, institución o establecimiento descubierto accidentalmente. Cualquier descubrimiento debe inmediatamente ser comunicado a la Biblioteca de microdatos, con el fin de evaluar su uso posterior, aplicar más métodos estadísticos de control de acceso, imponer nuevas restricciones en el acceso, o volver a clasificar adecuadamente los datos. </li>
-<li>No se deberá intentar crear vínculos entre los conjuntos de datos proporcionados por la Biblioteca de Microdatos, o entre Microdatos de  Biblioteca de datos y otros conjuntos de datos que pudieran identificar a los individuos u organizaciones. </li>
-<li>Cualquier libro, artículos, ponencias, tesis, disertaciones, informes u otras publicaciones que utilizan datos obtenidos de la Biblioteca de Microdatos debe citar la fuente, en línea con el requisito de citación provisto con el conjunto de datos. </li>
-<li>El recolector original de los datos, la Biblioteca de Microdatos y los organismos de financiación pertinentes no tienen ninguna responsabilidad por el uso de los datos o de interpretación o inferencias basadas en él.</li>
-</ul>
+$lang['terms_text']='<ol class=&quot;bl&quot;>
+  <li>Los datos y otros materiales proporcionados por la institución productora no serán redistribuidos o vendidos a otras personas, instituciones u organizaciones sin el consentimiento escrito del Instituto Nacional de Estadística.</li>
+  <li>Los datos serán utilizados para fines de investigación científica y estadística solamente. Se utilizarán exclusivamente para la presentación de información agregada, y no para la investigación de determinados individuos u organizaciones.</li>
+  <li>No se intentará volver a identificar a los encuestados, y no se hará uso de la identidad de cualquier persona o establecimiento descubierto de forma involuntaria. Cualquier descubrimiento será informado de inmediato al productor de los datos.</li>
+  <li>No se harán intentos para producir los vínculos entre los conjuntos de datos proporcionados por el productor, o entre los datos del productor y otros conjuntos de datos que pudieran identificar a los individuos u organizaciones.</li>
+  <li>Los libros, artículos, ponencias, tesis, disertaciones, informes, u otras publicaciones que empleen datos obtenidos del productor deben citar la fuente de datos de conformidad con la exigencia de citas que acompañan a cada conjunto de datos. </li>
+  <li>Una copia electrónica de todos los informes y publicaciones basados en los datos solicitados serán enviados al productor de los mismos.</li>
+  <li>El recolector original de los datos y los organismos pertinentes de financiación, no tienen ninguna responsabilidad por el uso de los datos o las interpretaciones o inferencias basadas en dichos usos. </li>
+</ol>
+<p>Al ir más allá de este punto en el proceso de recuperación de datos, usted expresa su acuerdo para cumplir con los términos y condiciones arriba indicados y 
+dar su garantía de que el uso de los datos estadísticos obtenidos del productor de los mismos se ajustarán a las normas de amplia aceptación de la práctica y las restricciones legales 
+que tienen por objeto proteger la confidencialidad de los encuestados, de acuerdo a la normativa vigente. </p>
+';
 
-<p>Al ir más allá de este punto con el proceso de recuperación de datos, usted expresa su acuerdo para cumplir con los términos y condiciones antes mencionados y da su garantía de que el uso de los datos estadísticos obtenidos a partir del Archivo Nacional de Datos se ajuste a los estandares de las prácticas y restricciones legales ampliamente-aceptadas que tienen por objeto proteger la confidencialidad de los encuestados.</p>";
 $lang['form_removed_and_not_available']="El formulario ha sido eliminado y ya no esta disponible.";
-$lang['survey_data_files']="Archivo de Datos de la Encuesta";
+$lang['survey_data_files']="Archivos de Datos de la Operación Estadística";
 
 
 /* End of file direct_access_terms_lang.php */

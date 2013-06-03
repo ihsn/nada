@@ -1,8 +1,8 @@
 <?php 
-$lang['menu_management']="Administración de Menú";
+$lang['menu_management']="Administración del Menú del sistema";
 $lang['menu_add_page']="Agregar nueva página";
 $lang['menu_add_link']="Agregar nuevo vínculo";
-$lang['menu_home']="Página del Menú";
+$lang['menu_home']="Página principal";
 $lang['menus']="Menú";
 $lang['menu_edit']="Editar Menú";
 $lang['menu_add']="Crear nuevo Menú";
@@ -22,23 +22,23 @@ $lang['modified']="Modificado";
 $lang['actions']="Acciones";
 $lang['edit']="Editar";
 $lang['delete']="Borrar";
-$lang['search']="Búscar";
-$lang['reset']="Reinicializar";
+$lang['search']="Buscar";
+$lang['reset']="Reiniciar";
 $lang['no_records_found']="No se han encontrado registros";
 $lang['showing %d-%d of %d']="Mostrando %d-%d de %d";
 $lang['publish']="Publicar";
 $lang['yes']="Si";
 $lang['no']="No";
 $lang['open_in']="Abrir en";
-$lang['same_window']="La misma Ventana";
-$lang['new_window']="Nueva Ventana";
+$lang['same_window']="La misma ventana";
+$lang['new_window']="Nueva ventana";
 $lang['update']="Actualizar";
 $lang['cancel']="Cancelar";
 $lang['confirm_delete']="Confirmar Borrado";
 $lang['confirm_delete_records']="¿Está seguro que quiere borrar los registros seleccionados?";
 $lang['form_update_success']="¡El formulario ha sido actualizado satisfactoriamente!";
 $lang['form_update_fail']="La actualización de la base de datos ha fallado";
-$lang['callback_error_url_exists']="El %s ya existe. Elija un URL diferente.";
+$lang['callback_error_url_exists']="El %s ya existe. Elija una URL diferente.";
 $lang['weight']="Peso";
 
 
