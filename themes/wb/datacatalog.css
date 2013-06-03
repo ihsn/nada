@@ -314,11 +314,11 @@ font-size: smaller;
 .active-filters-container{border:1px solid gainsboro;overflow:auto;clear:both;margin-bottom:30px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;position:relative;}
 .active-filters-container .active-filters{overflow:auto;clear:both;padding:0px 10px;}
 .active-filters-container .clear-search {
-	position: absolute;
-	left: 250px;
-	top: 5px;
-	font-weight: normal;
-	padding: 5px;
+position: absolute;
+right: 77px;
+top: 1px;
+font-weight: normal;
+padding: 5px;
 }
 .active-filters .remove-filter{
 	display:block;
@@ -560,7 +560,7 @@ text-transform: uppercase;
 }
 .related-citations .citation-row{position:relative;clear:both;overflow:hidden;padding:10px;}
 .related-citations .citation-row .page-num{width:40px;float:left;display:block;height:20px;color:grainsboro;}
-.related-citations .citation-row .row-body{float:left;width:90%;overflow:hidden;}
+.related-citations .citation-row .row-body{float:left;width:90%;overflow:hidden;font-size:12px;}
 .related-citations .sort-links {float:left;width:65%;text-align:left;}
 .related-citations .sort-links a{font-size:small;margin-right:6px;}
 
@@ -699,3 +699,5 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 .study-metadata .grid-table .row-num{color:gray;font-size:smaller;}
 .study-metadata .ddi-table .data-file-row{cursor:pointer;}
 .study-metadata .ddi-table .data-file-row:hover{background:gainsboro;}
+
+.switch-page-size {margin-top:10px;}
