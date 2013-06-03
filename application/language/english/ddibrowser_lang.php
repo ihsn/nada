@@ -187,5 +187,21 @@ $lang['citations'] = "Citations";
 $lang['review_study'] = "Review";
 $lang['add_note'] = "Add note";
 $lang['no_reviewer_notes_found'] = "The study has no reviewer notes attached. To add a new note, use the 'Add note' link.";
+
+$lang['no_resources_attached'] = "Study has no external resources.";
+$lang['no_microdata_attached'] = "Study has no microdata available.";
+
+
+
+$lang['created_on'] = "Created on";
+$lang['last_modified'] = "Last modified";
+$lang['page_views'] = "Page views";
+$lang['downloads'] = "Downloads";
+$lang['documentation_in_pdf'] = "Documentation in PDF";
+$lang['download_rdf'] = "Download RDF";
+
+$lang['reviewer_notes'] = "Reviewer notes";
+$lang['js_refreshing_page'] = "Reloading page, please wait...";
+
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */

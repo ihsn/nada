@@ -14,11 +14,11 @@ $lang['survey_catalog_settings'] = "Survey catalog settings";
 $lang['catalog_folder'] = "Catalog folder";
 $lang['local_repository_id'] = "Local repository identifier";
 $lang['ddi_import_folder'] = "DDI import folder";
-$lang['regional_search'] = "Regional search";
-$lang['regional_search_enable'] = "Enable - will show an additional dropdown for selecting a country name";
+$lang['regional_search'] = "Regional filter";
+$lang['regional_search_enable'] = "Enable";
 $lang['regional_search_disable'] = "Disable";
-$lang['topic_search'] = "Topic search";
-$lang['year_search'] = "Year search";
+$lang['topic_search'] = "Topic filter";
+$lang['year_search'] = "Year filter";
 $lang['website_theme_name'] = "Website theme name";
 $lang['data_catalog_page_size'] = "Catalog search page size";
 $lang['site_login'] = "Site login";
@@ -51,13 +51,13 @@ $lang['instruction_ddi_import_folder'] = "Folder to look for DDI files for impor
 $lang['instruction_select_vocabulary'] = "Select the vocabulary to use for Topics classification";
 $lang['instruction_catalog_records_per_page'] = "Number of records to show on the catalog search page";
 
-$lang['regional_search_enable'] = "Enable - will show an additional drop down for country filter on the catalog search page";
+$lang['regional_search_enable'] = "Enable";
 $lang['regional_search_disable'] = "Disable";
 
-$lang['topic_search_enable'] = "Enable - will show an additional drop down for topic filter on the catalog search page";
+$lang['topic_search_enable'] = "Enable";
 $lang['topic_search_disable'] = "Disable";
 
-$lang['year_search_enable'] = "Enable - will show an additional drop down for year filter on the catalog search page";
+$lang['year_search_enable'] = "Enable";
 $lang['year_search_disable'] = "Disable";
 
 $lang['smtp_debug_enable'] = "Enable - prints debugging messages to troubleshoot mail issues";
@@ -72,6 +72,28 @@ $lang['cache_default_expires_msg'] = "Provide time in mili seconds for expiring 
 $lang['cache_disabled_msg'] = "Caching speeds up page load but uses additional disk space";
 $lang['cache_disabled'] = "Disable caching";
 $lang['select_vocabulary_for_collections'] = "Select collection vocabulary";
+
+
+$lang['collection_search_enable'] = "Enable";
+$lang['collection_search_disable'] = "Disable";
+$lang['da_search_enable'] = "Enable";
+$lang['da_search_disable'] = "Disable";
+$lang['da_search'] = "Data access filter";
+$lang['collection_search'] = "Collection filter";
+
+
+$lang['da_search_weight'] = "Data access filter";
+$lang['regional_search_weight'] = "Regional filter";
+$lang['topic_search_weight'] = "Topic filter";
+$lang['year_search_weight'] = "Year filter";
+$lang['collection_search_weight'] = "Collection filter";
+
+$lang['instruction_weight'] = "Weights control the order of the filters. Filters are sorted by weights in ascending order.";
+
+
+
+
+
 
 /* End of file vocabularies_lang.php */
 /* Location: ./system/language/english/vocabularies_lang.php */

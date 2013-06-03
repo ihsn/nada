@@ -148,7 +148,30 @@ $lang['show_all_files']="Show all files...";
 $lang['msg_about_contributing_catalogs']="Our %s operates as a portal for datasets originating from the World Bank and other international, regional and national organizations. These datasets and  the related metadata are provided by various contributing catalogs.";
 $lang['about_central_catalog']="a para describing central data catalog....";
 
+$lang['view_select_more']="View / Select More";
+$lang['created_on'] = "Created on";
+$lang['last_modified'] = "Last modified";
+$lang['page_views'] = "Page views";
+$lang['downloads'] = "Downloads";
 
+$lang['select_countries'] = "Select Countries";
+$lang['in_alphabatic_order'] = "In alphabatic order";
+$lang['By Income'] = "By income";
+$lang['By Region'] = "By region";
 
+$lang['cancel'] = "Cancel";
+$lang['apply_filter'] = "Apply filter";
+$lang['selected_itesm'] = "selected";
+$lang['clear'] = "Clear";
+
+$lang['select_collections'] = "Select Collections";
+$lang['select_topics'] = "Select Topics";
+$lang['reset_search'] = "Reset search";
+
+$lang['prev'] = "Prev";
+$lang['next'] = "Next";
+
+$lang['search_by_keyword'] = "Search by Keyword";
+$lang['filter_by_year'] = "Filter by Year";
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

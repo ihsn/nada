@@ -49,7 +49,7 @@ $lang['update'] = "Update";
 $lang['cancel'] = "Cancel";
 $lang['confirm_delete'] = "Confirm Delete";
 $lang['confirm_delete_records'] = "Are you sure you want to delete the selected record(s)?";
-$lang['form_update_success'] = "Form has been updated successfully!";
+$lang['form_update_success'] = "Your changes have been saved!";
 $lang['form_update_fail'] = "Failed to update database";
 $lang['callback_error_url_exists']='The %s already exists. Choose a different URL.';
 $lang['callback_email_exists']='%s already in use, use a different email.';
@@ -129,6 +129,7 @@ $lang['remote_title']='Data available from external repository';
 $lang['data_is_available_from_external_repository']='Data for the study is available from an external site, please use the link below:';
 $lang['exit_impersonate'] = "Exit impersonate mode";
 $lang['content_is_not_published']='The content for the current page is not published yet and is only available for reviewing.';
-
+$lang['licensed_requests'] = 'Licensed requests';
+$lang['create_region'] = 'Create region';
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

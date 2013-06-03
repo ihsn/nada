@@ -25,10 +25,10 @@ $lang['clear_cache_files'] = "You have <b>%d</b> cached files, <a href=\"%s\">cl
 $lang['recent_studies'] = "Recently updated studies";
 $lang['logged_in_users'] = "Logged in";
 $lang['anonymous_users'] = "Anonymous users viewing the site";
-$lang['Maintenance'] = "Maintenance";
+$lang['Maintenance'] = "Manage studies";
 $lang['Administrators'] = "Administrators";
 $lang['History'] = "History";
-$lang['Edit'] = "Edit";
+$lang['Edit'] = "Edit collection";
 $lang['Collection'] = "Collection";
 $lang['collection_contains_n_studies'] = "Collection contains %d studies";
 $lang['catalog_contains_n_studies'] = "Catalog contains %d studies";

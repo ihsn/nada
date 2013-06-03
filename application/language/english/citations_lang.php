@@ -29,7 +29,6 @@ $lang['citation_type'] = "Type";
 $lang['authors'] = "Author(s)";
 
 $lang['citation_information'] = "Citation Information";
-$lang['related_studies'] = "Related Studies";
 
 //comes from db
 $lang['Book'] = "Book";

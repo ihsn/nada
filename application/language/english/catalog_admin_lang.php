@@ -1,5 +1,5 @@
 <?php
-$lang['catalog_maintenance'] = "Manage Collection";
+$lang['catalog_maintenance'] = "Manage Studies";
 $lang['add_study_to_collection'] = "Add study to collection:";
 $lang['upload_ddi_hover'] = "Upload a DDI file";
 $lang['import_ddi'] = "Bulk import DDI";
@@ -57,14 +57,14 @@ $lang['msg_select_repository']='Select collection';
 $lang['repositories']='Collections';
 
 
-$lang['msg_copy_studies']='Click on the <b>Select</b> or <b>Deselect</b> buttons to link or unlink studies to your collection.';
+$lang['msg_copy_studies']='Click on the <b>Link</b> or <b>Unlink</b> buttons to link or unlink studies.';
 $lang['copy_studies_to']='Copy studies to ';
 $lang['change_repo']='Switch';
 $lang['repositoryid']='Collection';
 $lang['copy_studies']='Copy studies';
 $lang['transfer_study_ownership']='Transfer study owner';
 $lang['transfer_ownership']='Transfer owner';
-$lang['msg_studies_to_transfer']='Studies that will be changed';
+$lang['msg_studies_to_transfer']='Studies that will be transferred';
 $lang['study_owned']='Owned study';
 $lang['study_linked']='Linked study';
 $lang['is_harvested_study']='Harvested study';
@@ -102,8 +102,8 @@ $lang['export_ddi']='Export DDI';
 $lang['export_rdf']='Export RDF';
 $lang['admin_notes']='Admin notes';
 $lang['reviewer_notes']='Reviewer notes';
-$lang['study_collections']='Study collections';
-$lang['study_aliases']='Study Aliases';
+$lang['study_collections']='Display in other collections';
+$lang['study_aliases']='Study aliases';
 
 $lang['study_warnings']='Warnings!';
 $lang['warning_study_has_no_external_resources']='Study has no external resources attached';
@@ -148,6 +148,17 @@ $lang['js_refreshing_page']='Refreshing page, please wait...';
 $lang['remove_from_collection']='Remove';
 $lang['remove_from_collection_description']='Remove this study from this collection.';
 $lang['studies_linked_count']='Studies linked from other collections';
-
+$lang['notes']='Notes';
+$lang['link_study']='Link';
+$lang['unlink_study']='Unlink';
+$lang['transfer']='Transfer';
+$lang['select_the_repository_from_the_list_below']='Select the collection from the list below to transfer ownership to another collection.';
+$lang['study_metadata_updated']='Study metadata has been refreshed!';
+$lang['refresh_ddi']='Refresh DDI';
+$lang['batch_refresh_ddi']='Batch refresh DDI';
+$lang['ddi_batch_refresh_title']='Batch refresh DDI';
+$lang['btn_refresh']='Refresh DDI';
+$lang['refresh_ddi_description']='Refresh DDI updates the database with the metadata from the DDI.';
+$lang['total_studies_found']='Total studies found';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
