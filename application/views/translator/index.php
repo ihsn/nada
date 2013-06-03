@@ -39,12 +39,12 @@ s.flex-textarea{height:35px;}
 <tr valign="top">
 <td class="left-menu">
 <div id="master-language">
-	<label>Master Language</label>
-    <div><?php echo form_dropdown('master', $this->languages, $this->master);?></div>	
+	<label>Template language</label>
+    <div><?php echo form_dropdown('master', $this->languages, "english");?></div>	
 </div>
 
 <div id="slave-language">
-	<label>Slave Language</label>
+	<label>Select the language to edit</label>
     <div><?php echo form_dropdown('slave', $this->languages, $this->slave);?></div>
 </div>
 
