@@ -36,11 +36,6 @@
     </div>
 
     <div class="field">
-        <label for="js_inline"><?php echo t('js_inline');?></label>
-        <textarea id="js_inline" class="input-flex"  name="js_inline" rows="10"><?php echo get_form_value('js_inline',isset($js_inline) ? $js_inline : ''); ?></textarea>
-    </div>
-
-    <div class="field">
         <label for="published"><?php echo t('publish');?><span class="required">*</span></label>
         <?php echo form_dropdown('published', array(1=>t('yes'),0=>t('no')), get_form_value("published",isset($published) ? $published : '')); ?>
     </div>
