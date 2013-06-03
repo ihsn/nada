@@ -10,7 +10,6 @@
     	<tr>
             <th><?php echo t('username'); ?></th>
             <th><?php echo t('email'); ?></th>
-            <th><?php echo t('group'); ?></th>
             <th><?php echo t('status'); ?></th>
             <th><?php echo t('organization'); ?></th>
             <th><?php echo t('country'); ?></th>
@@ -22,7 +21,6 @@
         <tr>
             <td><?php echo $row['username'];?></td>
             <td><?php echo $row['email'];?></td>
-            <td><?php echo ((int)$row['group_id'])==1 ? t('ADMIN') : t('USER'); ?></td>			
 			<td><?php echo ((int)$row['active'])==1 ? t('ACTIVE') : t('DISABLED'); ?></td>
             <td><?php echo $row['company'];?></td>
             <td><?php echo $row['country'];?></td>
