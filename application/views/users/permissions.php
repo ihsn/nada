@@ -55,6 +55,28 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
     <div class="roles-list">
     <?php foreach($global_roles['user'] as $role):?>
         <div class="field">	
+            <label for="user-role-<?php echo $role['id'];?>">
+                <input type="checkbox" id="user-role-<?php echo $role['id'];?>" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> />
+                <?php echo t($role['name']);?>
+            </label>
+            <div class="description"><?php echo t($role['description']);?></div>
+        </div>
+    <?php endforeach;?>
+    </div>
+</div>
+
+<?php /* ?>
+<!--reviewers-->
+<div class="access-type-container">
+	<label for="access_type_review">
+    	<input type="radio" class="access_type" name="access_type" id="access_type_review" value="review"  <?php echo $user_group_access_type=='review' ? 'checked="checked"' : '';?>/> 
+    	<span class="caption"><?php echo t('site_reviewer_accounts');?></span>
+    	<div class="description"><?php echo t('site_reviewer_accounts_description');?></div>
+    </label>
+    
+    <div class="roles-list">
+    <?php foreach($global_roles['reviewer'] as $role):?>
+        <div class="field">	
             <label for="global-role-">
                 <input type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> />
                 <?php echo t($role['name']);?>
@@ -64,8 +86,9 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
     <?php endforeach;?>
     </div>
 </div>
+<?php */?>
 
-
+<!--admins-->
 <div class="access-type-container">
 	<label for="access_type_unlimited">
     	<input type="radio" class="access_type" name="access_type" id="access_type_unlimited" value="unlimited"  <?php echo $user_group_access_type=='unlimited' ? 'checked="checked"' : '';?>/> 
@@ -76,8 +99,8 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
     <div class="roles-list">
     <?php foreach($global_roles['unlimited'] as $role):?>
         <div class="field">	
-            <label for="global-role-">
-                <input type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> />
+            <label for="unlimited-role-<?php echo $role['id'];?>">
+                <input type="checkbox" id="unlimited-role-<?php echo $role['id'];?>" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> />
                 <?php echo t($role['name']);?>
             </label>
             <div class="description"><?php echo t($role['description']);?></div>
@@ -87,7 +110,7 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
 </div>
 
 
-
+<!-- limited -->
 <div class="access-type-container">
 	<label for="access_type_limited">
     	<input type="radio" class="access_type" name="access_type" id="access_type_limited" value="limited"  <?php echo $user_group_access_type=='limited' ? 'checked="checked"' : '';?>/> 
@@ -98,8 +121,8 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
     <div class="roles-list">
     <?php foreach($global_roles['limited'] as $role):?>
         <div class="field">	
-            <label for="global-role-">
-                <input class="user_role" type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> data-is_collection_group="<?php echo $role['is_collection_group'];?>" />
+            <label for="limited-role-<?php echo $role['id'];?>">
+                <input class="user_role" id="limited-role-<?php echo $role['id'];?>" type="checkbox" name="global_role[]" value="<?php echo $role['id'];?>" <?php echo in_array($role['id'],$assigned_roles['global']) ? 'checked="checked"' : '';?> data-is_collection_group="<?php echo $role['is_collection_group'];?>" />
                 <?php echo t($role['name']);?>
             </label>
             <div class="description"><?php echo t($role['description']);?></div>
@@ -173,15 +196,18 @@ $(function() {
 			
 			if (found==true){
 				$(".collection-perms-container").show();
+				$(".collection-perms-container input").removeAttr("disabled");
 			}
 			else{
-					$(".collection-perms-container").hide();
+				$(".collection-perms-container").hide();
+				$(".collection-perms-container input").attr("disabled","disabled");
 			}
-
 		}
+		
 		
 		function show_hide_collection(id)
 		{
+			if (id<1){return;}
 			$(".collection-container").hide();
 			$(".collection-container-"+id).show();
 		}

@@ -2,7 +2,6 @@
 <?php if (!isset($hide_form)):?>
 <div class="page-links">
 	<a href="<?php echo site_url();?>/admin/users/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('create_user_account');?></a> 
-	<a href="<?php echo site_url();?>/admin/user_groups" class="button"><img src="images/page_white.png"><?php echo t('user_groups');?></a> 
 </div>
 
 <?php $message=$this->session->flashdata('message');?>
