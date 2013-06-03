@@ -15,6 +15,8 @@
  */ 
 class ACL
 {
+	var $debug=FALSE;
+	
 	/**
 	 * Constructor
 	 */
@@ -23,6 +25,7 @@ class ACL
 		log_message('debug', "ACL Class Initialized.");
 		$this->ci =& get_instance();
 		$this->ci->load->model('Permissions_model');
+		$this->ci->load->model('repository_model');
 	}
 
 	/**
@@ -89,7 +92,7 @@ class ACL
 	
 	function check_url_access($user_id,$url)
 	{
-		//get user groups
+		//get user global groups
 		$groups=$this->ci->ion_auth->get_groups_by_user($user_id);
 		
 		if (!is_array($groups))
@@ -111,7 +114,9 @@ class ACL
 		
 		//permissions are tested at the page level by per collection
 		$excluded_urls=array(
+						'admin/catalog',
 						'admin/catalog/*',
+						'admin/licensed_requests',
 						'admin/licensed_requests/*',
 						'admin/resources/*',
 						'admin/pdf_generator/*',
@@ -125,7 +130,7 @@ class ACL
 		{
 			return TRUE;
 		}
-				
+
 		//try finding url using regex/other expressions
 		foreach ($allowed_urls as $page_url)
 		{
@@ -142,9 +147,10 @@ class ACL
 		
 		/*
 		echo '<pre>';
-		var_dump($allowed_urls);
+		print_r($allowed_urls);
 		echo '</pre>';
 		*/
+		
 		return FALSE;		
 
 /*		
@@ -187,6 +193,14 @@ class ACL
 			}
 		}
 
+		if ($this->debug==TRUE)
+		{
+			echo '<pre>';
+			var_dump($repo_id);
+			var_dump($user_id);
+			var_dump($allowed_urls);
+			echo '</pre>';
+		}
 		return FALSE;
 	}
 	
@@ -520,14 +534,12 @@ class ACL
 		//get repository that owns the study [could be more than one repo owning the same study]
 		$owner_repos=$this->get_survey_owner_repos($survey_id);
 		
-		var_dump($owner_repos);
-		
 		$url=$this->ci->uri->uri_string();
-		
+
 		foreach($owner_repos as $repo_id)
 		{
 			$has_repo_access=$this->check_user_access_by_repo($user_id,$repo_id,$url);
-			
+
 			if($has_repo_access===TRUE)
 			{
 				return TRUE;
@@ -613,8 +625,86 @@ class ACL
 	}
 
 
-	function user_has_repository_access($repositoryid,$user_id=NULL,$die=FALSE)
+	function user_has_repository_access($repositoryid,$user_id=NULL,$die=TRUE)
 	{	
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			$user_id=$user->id;
+		}
+
+		$unlimited=$this->user_has_unlimited_access();
+		
+		if ($unlimited)
+		{
+			return TRUE;
+		}
+		
+		/*
+		//validate if user has access to the selected repository
+		$user_repositories=$this->get_user_repositories();
+
+		$user_repo_access=FALSE;
+		foreach($user_repositories as $repo)
+		{
+			if ($repo["id"]==$repositoryid)
+			{
+				$user_repo_access=TRUE;
+				return TRUE;
+			}
+		}*/
+		
+		$url=$this->ci->uri->uri_string();
+
+		//check user access to repository per url
+		$has_repo_access=$this->check_user_access_by_repo($user_id,$repositoryid,$url);
+
+		if($has_repo_access===TRUE)
+		{
+			return TRUE;
+		}		
+		
+		if ($has_repo_access===FALSE && $die===TRUE)
+		{
+			show_error(t("ACCESS_DENIED"));
+		}
+	
+		return FALSE;
+	}
+
+	
+	function user_has_unpublished_repo_access_or_die($user_id,$repositoryid)
+	{
+		if (!$repositoryid)
+		{
+			return FALSE;
+		}
+		
+		$repo=$this->ci->repository_model->get_repository_by_repositoryid($repositoryid);
+		
+		if (!$repo)
+		{
+			return FALSE;
+		}
+		
+		//no checks for published repositories
+		if ($repo['ispublished']==1)
+		{
+			return TRUE;
+		}
+	
+		$has_access=$this->user_has_unpublished_repo_access($user_id,$repositoryid);
+
+		if(!$has_access)
+		{
+			show_error(t("CONTENT_NOT_AVAILABLE"));
+		}
+	}
+	
+	
+	//check user has access to an unpublished repository from the front end
+	function user_has_unpublished_repo_access($user_id,$repositoryid)
+	{
 		if($user_id==NULL)
 		{
 			$user=$this->current_user();
@@ -631,23 +721,61 @@ class ACL
 		//validate if user has access to the selected repository
 		$user_repositories=$this->get_user_repositories();
 		
-		$user_repo_access=FALSE;
 		foreach($user_repositories as $repo)
 		{
-			if ($repo["id"]==$repositoryid)
+			if ($repo["repositoryid"]==$repositoryid)
 			{
-				$user_repo_access=TRUE;
 				return TRUE;
 			}
 		}
 		
-		if ($user_repo_access===FALSE && $die===TRUE)
-		{
-			show_error(t("REPO_ACCESS_DENIED"));
-		}
-	
 		return FALSE;
 	}
 
+
+	function user_can_review($study_id,$user_id=NULL)
+	{
+		if($user_id==NULL)
+		{
+			$user=$this->current_user();
+			
+			if(!$user)
+			{
+				return FALSE;
+			}
+			
+			$user_id=$user->id;
+		}
+
+		/*
+		$unlimited=$this->user_has_unlimited_access();
+		
+		if ($unlimited)
+		{
+			return TRUE;
+		}*/
+	
+		//get study repository
+		$repo=$this->ci->repository_model->get_survey_owner_repository($study_id);
+		
+		if(!$repo)
+		{
+			return FALSE;
+		}		
+		
+		//check user is member of the collection/reviewer group
+		$this->ci->db->select('count(*) as found');
+		$this->ci->db->where('repo_id',$repo['id']);
+		$this->ci->db->where('repo_pg_id',4);//hard coded group id for reviewer
+		$this->ci->db->where('user_id',$user_id);
+		$result=$this->ci->db->get('user_repo_permissions')->row_array();
+
+		if ($result['found']>0)
+		{
+			return TRUE;
+		}	
+		
+		return FALSE;
+	}
 }
 
