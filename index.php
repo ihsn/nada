@@ -8,7 +8,7 @@
  *
  *
  */
-	define('APP_VERSION', '4.0-alpha');
+	define('APP_VERSION', '4.0');
 
 
 /*
