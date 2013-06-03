@@ -637,7 +637,7 @@ class Resource_model extends CI_Model {
 				if($req['req_status']=='APPROVED' && $req['expiry']> date("U") && $req['downloads'] < $req['download_limit'])
 				{
 					//allow download
-					var_dump($req);exit;
+					//var_dump($req);exit;
 					return TRUE;
 				}
 			}
@@ -659,8 +659,8 @@ class Resource_model extends CI_Model {
 	{
 		$this->db->select('count(*) as total');
 		$this->db->where('survey_id',$surveyid);
-		//$this->db->not_like('dctype','dat]');
-		//$this->db->not_like('dctype','dat/micro]');
+		$this->db->not_like('dctype','dat]');
+		$this->db->not_like('dctype','dat/micro]');
 		$result=$this->db->get('resources')->row_array();		
 		return $result['total'];
 	}
