@@ -16,6 +16,7 @@ class Licensed_requests extends MY_Controller {
 		
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
+		$this->lang->load('catalog_admin');
 		//$this->output->enable_profiler(TRUE);
 		
 		//set active repo
