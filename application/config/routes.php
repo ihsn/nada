@@ -41,11 +41,10 @@
 $route['default_controller'] = "page";
 $route['404_override'] = 'page'; 
 
-$route['microdata-home-x'] = "page/static_page";
-$route['terms-of-use'] = "page/static_page";
-$route['using-our-catalog'] = "page/static_page";
-$route['practices-and-tools'] = "page/static_page";
-$route['faqs'] = "page/static_page";
+//$route['home'] = "page/static_page";
+//$route['using-our-catalog'] = "page/static_page";
+//$route['practices-and-tools'] = "page/static_page";
+//$route['faqs'] = "page/static_page";
 
 
 //ddi browser
