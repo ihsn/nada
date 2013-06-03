@@ -909,6 +909,17 @@ class Ion_auth_model extends CI_Model
 		}
 	}
 	
+	
+	public function assign_user_group($user_id,$group_id)
+	{
+		$options=array(
+			'group_id'=>$group_id,
+			'user_id'=>$user_id
+		);
+
+		$this->db->insert('users_groups',$options);
+	}
+	
 
 	/**
 	 * update_last_login
@@ -1650,7 +1661,8 @@ class Ion_auth_model extends CI_Model
 	function delete_user_collection_roles_all($user_id)
 	{
 		$this->db->where('user_id',$user_id);
-		return $this->db->delete('user_repo_permissions');
+		$output=$this->db->delete('user_repo_permissions');
+		return $output;
 	}
 	
 	
