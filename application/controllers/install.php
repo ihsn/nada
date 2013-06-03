@@ -197,6 +197,9 @@ class Install extends CI_Controller {
 												
 				//update user group to ADMIN and ACTIVATE account
 				$this->ion_auth->update_user($user->id, $data);	
+				
+				//set group membership
+				$this->ion_auth_model->assign_user_group($user->id,$group_id=1);
 			
 				//auto login the user
 				$this->ion_auth->login($email, $password, $remember=true);
@@ -209,6 +212,8 @@ class Install extends CI_Controller {
 			else
 			{
 				$this->error=$this->ion_auth->errors();
+				
+				var_dump($this->ion_auth_errors());
 			}        	
 		} 
 		//display the create user form
@@ -475,7 +480,14 @@ class Install extends CI_Controller {
 			// If it has a semicolon at the end, it's the end of the query
 			if (substr(trim($line), -1, 1) == ';')
 			{
-				$this->db->query($templine);
+				//log_message('info', $templine);
+				$result=$this->db->query($templine);
+				
+				if(!$result)
+				{
+					log_message('error', $templine);
+					echo $this->db->last_query();
+				}
 
 				// Reset temp variable to empty
 				$templine = '';
@@ -483,6 +495,26 @@ class Install extends CI_Controller {
 		}
 	}
 	
+
+	function test()
+	{
+		$email='mah0001@gmail.com';
+		$username='test';
+		//get the user data by email
+		$user=$this->ion_auth->get_user_by_email($email);
+			
+		if ($user)
+		{
+			//$data=$additional_data;
+			$data['username']=$username;
+			$data['active']=1;
+			$data['group_id']=1;
+											
+			//update user group to ADMIN and ACTIVATE account
+			$this->ion_auth->update_user($user->id, $data);	
+		}
+	
+	}
 
 }
 
