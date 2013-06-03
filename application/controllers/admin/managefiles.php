@@ -10,7 +10,7 @@ class Managefiles extends MY_Controller {
     function __construct()
     {
         parent::MY_Controller();
-        $this->template->set_template('blank');
+        $this->template->set_template('admin');
 		$this->load->helper('file');		
 		$this->load->model("managefiles_model");
 		$this->load->model("resource_model");
@@ -225,7 +225,7 @@ class Managefiles extends MY_Controller {
 		//render page
 		$this->template->write('content', $content,true);
 		$this->template->write('title', $data['page_title'],true);
-	  	$this->template->render();		
+	  	$this->template->render();
 	}
 	
 	function _clean_filepath($str)
