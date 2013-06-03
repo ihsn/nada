@@ -284,8 +284,8 @@ $(function() {
 
 });
 </script>
-<?php 	$this->load->view('catalog/breadcrumbs');	?>
-<h3>Upload External Resources</h3>
+
+<h3><?php echo t('upload_external_resources');?></h3>
 <form method="post" enctype="multipart/form-data" >
 	<div id="uploader">
 		<p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
@@ -303,4 +303,4 @@ $(function() {
 	</div>
 </form>
 
-<div style="margin-top:20px;"><a href="<?php echo site_url('admin/catalog/edit/'.$this->uri->segment(4));?>">Return to survey edit page</a></div>
+<div style="margin-top:20px;"><a href="<?php echo site_url('admin/catalog/edit/'.$this->uri->segment(4));?>"><?php echo t('return_to_study_edit_page');?></a></div>
