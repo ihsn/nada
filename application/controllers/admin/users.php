@@ -766,7 +766,7 @@ class Users extends MY_Controller {
 			
 			//add roles per collection
 			foreach($collection_roles as $collection_id=>$collection_roles)
-			{		
+			{	
 				$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
 			}
 			
@@ -798,7 +798,9 @@ class Users extends MY_Controller {
 	
 		
 		//$data['global_roles']=$this->ion_auth_model->get_limited_global_roles();
+		
 		$data['global_roles']['user']=$this->ion_auth_model->get_user_groups(NULL,'user');
+		$data['global_roles']['reviewer']=$this->ion_auth_model->get_user_groups(NULL,'reviewer');
 		$data['global_roles']['limited']=$this->ion_auth_model->get_user_groups('limited');
 		$data['global_roles']['unlimited']=$this->ion_auth_model->get_user_groups('unlimited');
 		//$data['global_roles']=array_merge($data['global_roles'],$this->ion_auth_model->get_user_groups('unlimited'));
