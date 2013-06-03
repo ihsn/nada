@@ -1,6 +1,6 @@
-<?php if($resources):?>
 <div style="padding-top:20px;">
 <h2><?php echo t('study_resources');?></h2>
+<?php if($resources):?>
 <div class="resources">
     <?php $class="resource"; ?>
 	<?php foreach($resources as $key=>$resourcetype):?>
@@ -128,5 +128,7 @@
     <?php endif;?>
     <?php endforeach;?>
 </div>
-</div>
+<?php else:?>
+	<?php echo t('no_resources_attached');?>
 <?php endif;?>
+</div>

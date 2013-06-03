@@ -1,6 +1,6 @@
-<?php if(!$resources_microdata){return false;}?>
 <div style="padding-top:20px;overflow:hidden;">
 <h2><?php echo t('study_data_files');?></h2>
+<?php if($resources_microdata):?>
 <div class="resources data-files">
     <?php $class="data-file";$count=0;$show_rows=150; ?>
 	<?php foreach($resources_microdata as $row):?>
@@ -111,4 +111,9 @@
                 <div style="text-align:right;margin-right:10px;"><a href="#" class="show-datafiles"><?php echo t('show_all_files');?></a></div>
                 <?php endif;?>
 </div>
+<?php else:?>
+	<?php echo t('no_microdata_attached');?>
+<?php endif;?>
+
+
 </div>
