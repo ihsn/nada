@@ -36,9 +36,10 @@ if ( ! function_exists('pager'))
 						site_url('catalog/').$search_qs.'&page=1',1
 						);
 
-			$output[]=sprintf('<a href="%s" class="page" data-page="%s"> Prev </a>',
+			$output[]=sprintf('<a href="%s" class="page" data-page="%s"> %s </a>',
 						site_url('catalog/').$search_qs.'&page='.($current_page-1),
-						$current_page-1
+						$current_page-1,
+						t('prev')
 						);
 		}	
 		
@@ -59,9 +60,10 @@ if ( ! function_exists('pager'))
 		
 		if ($current_page<$total_pages)
 		{
-			$output[]=sprintf('<a href="%s" class="page" data-page="%s"> Next </a>',
+			$output[]=sprintf('<a href="%s" class="page" data-page="%s"> %s </a>',
 					site_url('catalog/').$search_qs.'&page='.($current_page+1),
-					$current_page+1
+					$current_page+1,
+					t('next')
 					);
 			
 			$output[]=sprintf('<a href="%s" class="page last" data-page="%s" title="%s">&raquo;</a>',
