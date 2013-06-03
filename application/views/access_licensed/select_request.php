@@ -3,9 +3,9 @@
 <h2><?php echo t('licensed_survey_requests');?></h2>
 <?php if ($rows):?>
 
-<a href="<?php echo site_url('catalog/'.$survey_id.'/get_microdata/');?>?request=new#tab" class="btn-new-request">Make New Request</a>
+<a href="<?php echo site_url('catalog/'.$survey_id.'/get_microdata/');?>?request=new#tab" class="btn btn-small btn-new-request"><?php echo t('make_new_lic_request');?></a>
 
-<p>Click on a request to download microdata files. </p>
+<p><?php echo t('click_on_a_lic_request_to_see_status_or_download_data');?></p>
 
     <table class="grid-table licensed-requests" cellspacing="0">
     	<tr class="header">
