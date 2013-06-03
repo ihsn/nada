@@ -22,6 +22,8 @@ class Site_Menu
 	{
 		log_message('debug', "Site_Menu Class Initialized.");
 		$this->ci =& get_instance();
+		
+		$this->ci->lang->load('site_menu');
 		//$this->ci->output->enable_profiler(TRUE);
 	}
 
@@ -99,12 +101,12 @@ class Site_Menu
 							if ($submenu=='')
 							{
 								//first find children for the item
-								$child_items[]=sprintf('<li><a href="%s">%s</a>%s</li>',site_url().'/'.$child['url'],$child['title'],$submenu);
+								$child_items[]=sprintf('<li><a href="%s">%s</a>%s</li>',site_url().'/'.$child['url'],t($child['title']),$submenu);
 							}
 							else
 							{
 								//with submenu - currently only for MANAGE STUDIES
-								$child_items[]=sprintf('<li class="dropdown-submenu"><a tabindex="-1" href="%s">%s</a>%s</li>',site_url().'/'.$child['url'],$child['title'],$submenu);
+								$child_items[]=sprintf('<li class="dropdown-submenu"><a tabindex="-1" href="%s">%s</a>%s</li>',site_url().'/'.$child['url'],t($child['title']),$submenu);
 							}							
 						}	
 					}	
@@ -114,12 +116,12 @@ class Site_Menu
 			{
 				//add parent + children
 				$menu_tree[]=sprintf('<li class="dropdown"><a href="%s" class="dropdown-toggle" data-toggle="dropdown">%s<b class="caret"></b></a><ul class="dropdown-menu">%s</ul>'
-									,$parent['url'],$parent['title'],implode('',$child_items));
+									,$parent['url'],t($parent['title']),implode('',$child_items));
 			}
 			else
 			{
 				//parents with no children
-				$menu_tree[]=sprintf('<li class=""><a href="%s">%s</a></li>',site_url().'/'.$parent['url'],$parent['title']);
+				$menu_tree[]=sprintf('<li class=""><a href="%s">%s</a></li>',site_url().'/'.$parent['url'],t($parent['title']));
 			}						
 		}
 		return sprintf('<ul class="nav">%s</ul>',implode('',$menu_tree));
@@ -139,7 +141,7 @@ class Site_Menu
 		
 		foreach($repos as $repo)
 		{
-			$output.=sprintf('<li><a tabindex="-1" href="%s">%s</a></li>',site_url('admin/repositories/active/'.$repo['id'].'?destination=admin/catalog'),$repo['title']);
+			$output.=sprintf('<li><a tabindex="-1" href="%s">%s</a></li>',site_url('admin/repositories/active/'.$repo['id'].'?destination=admin/catalog'),t($repo['title']));
 		}
 		
 		$output.='</ul>';
