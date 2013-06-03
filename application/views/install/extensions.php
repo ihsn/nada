@@ -8,6 +8,7 @@
 					'xml'=>'',
 					'simplexml'=>'',
 					'xmlreader'=>'',
+					'gd'=>'<span class="optional">'.t('optional').'</span>',
 					"zip"=>'<span class="optional">'.t('optional').'</span>',
 					"mbstring"=>'<span class="optional">'.t('optional').'</span>'
 					);
