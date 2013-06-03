@@ -609,7 +609,7 @@ background: white;
         </tr>
         <tr>
             <td><?php echo t('authenty');?></td>
-            <td><?php echo implode(",",json_decode($authenty)); ?></td>
+            <td><?php echo implode(",",(array)json_decode($authenty)); ?></td>
         </tr>
         <tr>
             <td><?php echo t('sponsor');?></td>
@@ -659,7 +659,7 @@ background: white;
 										<div class="microdata-applies-to"><?php echo t('data_selection_apply_to_files');?></div>
                                         <ul>
                                         <?php foreach($microdata_files as $mf):?>
-                                        <li><?php echo $mf['title'];?></li>
+                                        <li><?php echo basename($mf['filename']);?></li>
                                         <?php endforeach;?>
                                         </ul>
                                     <?php else:?>
@@ -785,15 +785,16 @@ background: white;
 </div>
 <div class="box-body">
     <ul class="bull-list">
-        <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>"><?php echo t('transfer_study_ownership');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>"><?php echo t('replace_ddi');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"><?php echo t('delete_study');?></a></li>
         <li><a target="_blank" href="<?php echo site_url();?>/catalog/<?php echo $sid;?>"><?php echo t('browse_metadata');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>"><?php echo t('generate_pdf');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>"><?php echo t('upload_rdf');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/resources/fixlinks/<?php echo $sid;?>"><?php echo t('link_resources');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>"><?php echo t('generate_pdf');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>"><?php echo t('transfer_study_ownership');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>"><?php echo t('replace_ddi');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>"><?php echo t('export_ddi');?></a></li>
+        <li><a href="<?php echo site_url();?>/admin/catalog/refresh/<?php echo $sid;?>"><?php echo t('refresh_ddi');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>"><?php echo t('export_rdf');?></a></li>        
+        <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"><?php echo t('delete_study');?></a></li>
     </ul>
 </div>
 </div>
