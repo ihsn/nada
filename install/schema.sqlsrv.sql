@@ -976,3 +976,829 @@ CREATE TABLE vocabularies (
 set IDENTITY_INSERT vocabularies ON;
 INSERT INTO vocabularies (vid, title) VALUES (1, 'CESSDA Topics Classifications');
 set IDENTITY_INSERT vocabularies OFF;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+-- cache
+
+CREATE TABLE cache (
+  id bigint NOT NULL IDENTITY(1,1),
+  uid varchar(100) NOT NULL,
+  data text,
+  created int DEFAULT NULL,
+  expiry int DEFAULT NULL,
+  PRIMARY KEY (id)
+  --UNIQUE KEY uid_UNIQUE (uid)
+);
+
+
+-- country_aliases
+
+CREATE TABLE country_aliases (
+  id int NOT NULL IDENTITY(1,1),
+  countryid int NOT NULL,
+  alias varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+  --UNIQUE KEY ix_alias_uniq (countryid,alias)
+);
+
+
+
+-- group_permissions
+
+CREATE TABLE group_permissions (
+  id int NOT NULL IDENTITY(1,1),
+  group_id int NOT NULL,
+  permission_id int NOT NULL,
+  PRIMARY KEY (id),
+  --UNIQUE KEY grp_perms_UNIQUE (group_id,permission_id)
+);
+
+
+-- group_repo_access
+
+CREATE TABLE group_repo_access (
+  id int NOT NULL IDENTITY(1,1),
+  group_id int DEFAULT NULL,
+  repo_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+ -- UNIQUE KEY grp_repo_UNIQUE (group_id,repo_id)
+);
+
+-- groups
+
+CREATE TABLE groups (
+  id int NOT NULL IDENTITY(1,1),
+  name varchar(100) NOT NULL,
+  description varchar(255) NOT NULL,
+  group_type varchar(40) DEFAULT NULL,
+  access_type varchar(45) DEFAULT NULL,
+  weight int DEFAULT '0',
+  is_collection_group tinyint DEFAULT '0' ,
+  PRIMARY KEY (id)
+);
+
+set IDENTITY_INSERT groups ON;
+INSERT INTO groups (id,name,description,group_type,access_type,weight) 
+VALUES (1,'admin','Administrator','admin','UNLIMITED',0),(2,'user','General User','user','NONE',-99),(3,'catalog-admin','Catalog Administrator','admin','LIMITED',0),(4,'lic-req-admin','Licensed Request Administrator','admin','LIMITED',0),(5,'report-admin','Reports Administrato','admin','LIMITED',0),(6,'LSMS Collection Admin','Administrators for LSMS Collection','admin','limited',0),(7,'Reviewers','Reviewers','reviewer','none',-90),(9,'LAC Administrators','LAC Collection Administrators','admin','limited',0),(10,'LAC LIC-REVIEWERS','LAC Licensed Request Reviewers','admin','limited',0);
+set IDENTITY_INSERT groups OFF;
+
+--lic_requests --*********************************************************************
+
+CREATE TABLE lic_requests (
+  id int NOT NULL IDENTITY(1,1),
+  userid int NOT NULL,
+  request_type varchar(45) DEFAULT 'study',
+  surveyid int DEFAULT NULL,
+  collection_id varchar(100) DEFAULT NULL,
+  org_rec varchar(200) DEFAULT NULL,
+  org_type varchar(45) DEFAULT NULL,
+  address varchar(255) DEFAULT NULL,
+  tel varchar(150) DEFAULT NULL,
+  fax varchar(100) DEFAULT NULL,
+  datause text,
+  outputs text,
+  compdate varchar(45) DEFAULT NULL,
+  datamatching int DEFAULT NULL,
+  mergedatasets text,
+  team text,
+  dataset_access varchar(20) DEFAULT 'whole',
+  created int DEFAULT NULL,
+  status varchar(45) DEFAULT NULL,
+  comments text,
+  locked tinyint(4) DEFAULT NULL,
+  orgtype_other varchar(145) DEFAULT NULL,
+  updated int DEFAULT NULL,
+  updatedby varchar(45) DEFAULT NULL,
+  ip_limit varchar(255) DEFAULT NULL,
+  expiry_date int DEFAULT NULL,
+  additional_info text,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB IDENTITY(1,1)=22 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC$$
+
+
+-- lic_requests_history
+
+CREATE TABLE lic_requests_history (
+  id int NOT NULL IDENTITY(1,1),
+  lic_req_id int DEFAULT NULL,
+  user_id varchar(100) DEFAULT NULL,
+  logtype varchar(45) DEFAULT NULL,
+  request_status varchar(45) DEFAULT NULL,
+  description text,
+  created int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+-- login_attempts
+
+CREATE TABLE login_attempts (
+  id int NOT NULL IDENTITY(1,1),
+  ip_address varchar(30) NOT NULL,
+  login varchar(100) NOT NULL,
+  time int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+-- permission_urls
+
+CREATE TABLE permission_urls (
+  id int NOT NULL IDENTITY(1,1),
+  url varchar(255) DEFAULT NULL,
+  permission_id int NOT NULL,
+  PRIMARY KEY (id)
+  ---UNIQUE KEY url_UNIQUE (url)
+);
+
+
+-- permissions
+
+CREATE TABLE permissions (
+  id int NOT NULL IDENTITY(1,1),
+  label varchar(45) DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  section varchar(45) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+-- regions
+
+CREATE TABLE regions (
+  id int NOT NULL IDENTITY(1,1),
+  pid int DEFAULT '0',
+  title varchar(45) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+-- repo_perms_groups
+
+CREATE TABLE repo_perms_groups (
+  repo_pg_id int NOT NULL IDENTITY(1,1),
+  title varchar(45) DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  weight int DEFAULT '0',
+  PRIMARY KEY (repo_pg_id)
+);
+
+
+-- repo_perms_urls
+
+CREATE TABLE repo_perms_urls (
+  id int NOT NULL IDENTITY(1,1),
+  repo_pg_id int DEFAULT NULL,
+  url varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+-- repositories ------------ **************************
+
+CREATE TABLE repositories (
+  id int NOT NULL IDENTITY(1,1),
+  pid int DEFAULT NULL,
+  repositoryid varchar(255) NOT NULL,
+  title varchar(100) NOT NULL,
+  url varchar(255) DEFAULT NULL,
+  organization varchar(45) DEFAULT NULL,
+  email varchar(45) DEFAULT NULL,
+  country varchar(45) DEFAULT NULL,
+  status varchar(255) DEFAULT NULL,
+  surveys_found int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  type int(10) unsigned DEFAULT NULL,
+  short_text varchar(1000) DEFAULT NULL,
+  long_text text,
+  thumbnail varchar(255) DEFAULT NULL,
+  weight int(10) unsigned DEFAULT NULL,
+  ispublished tinyint(3) unsigned DEFAULT NULL,
+  section int DEFAULT NULL,
+  group_da_public tinyint(1) DEFAULT '0',
+  group_da_licensed tinyint(1) DEFAULT '0',
+  PRIMARY KEY (id),
+  UNIQUE KEY Ind_unq (repositoryid)
+) ENGINE=InnoDB IDENTITY(1,1)=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC$$
+
+
+-- repository_sections
+
+CREATE TABLE repository_sections (
+  id int NOT NULL IDENTITY(1,1),
+  title varchar(100) NOT NULL,
+  weight int NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+-- site_menu
+
+CREATE TABLE site_menu (
+  id int NOT NULL IDENTITY(1,1),
+  pid int DEFAULT NULL,
+  title varchar(100) DEFAULT NULL,
+  url varchar(255) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  depth int DEFAULT NULL,
+  module varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+-- data for site_menu
+
+set IDENTITY_INSERT site_menu ON;
+INSERT INTO site_menu (id,pid,title,url,weight,depth,module) VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/repositories',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(23,5,'User groups','admin/user_groups',90,1,'user_groups'),(24,5,'Add user group','admin/user_groups/add',80,1,'user_groups'),(25,5,'-','-',95,1,'user_groups'),(26,5,'User permissions','admin/permissions',60,1,'permissions'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users'),(36,5,'-','-',51,1,'users');
+set IDENTITY_INSERT site_menu OFF;
+
+
+-- survey_aliases
+
+CREATE TABLE survey_aliases (
+  id int NOT NULL IDENTITY(1,1),
+  sid int NOT NULL,
+  alternate_id varchar(255) NOT NULL,
+  PRIMARY KEY (id)
+  -- UNIQUE KEY survey_id (alternate_id)
+);
+
+
+
+-- survey_countries
+
+CREATE TABLE survey_countries (
+  id int NOT NULL IDENTITY(1,1),
+  sid int DEFAULT NULL,
+  cid int DEFAULT NULL,
+  country_name varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+  --UNIQUE KEY sid_iso_UNIQUE (sid,country_name)
+);
+
+
+
+-- survey_notes
+
+CREATE TABLE survey_notes (
+  id int NOT NULL IDENTITY(1,1),
+  sid int DEFAULT NULL,
+  note text NOT NULL,
+  type varchar(30) NOT NULL,
+  userid int NOT NULL,
+  created int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+-- survey_relationship_types
+
+CREATE TABLE survey_relationship_types (
+  id int NOT NULL IDENTITY(1,1),
+  rel_group_id int DEFAULT NULL,
+  rel_name varchar(45) DEFAULT NULL,
+  rel_dir tinyint DEFAULT NULL,
+  rel_cordinality varchar(10) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+-- survey_relationships
+
+CREATE TABLE survey_relationships (
+  id int NOT NULL IDENTITY(1,1),
+  sid_1 int DEFAULT NULL,
+  sid_2 int DEFAULT NULL,
+  relationship_id int DEFAULT NULL,
+  pair_id varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id)
+  --KEY idx_pair (pair_id)
+);
+
+
+--survey_tags
+
+CREATE TABLE survey_tags (
+  id int NOT NULL IDENTITY(1,1),
+  sid int NOT NULL,
+  tag varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+--  UNIQUE KEY uq_tag (sid,tag) USING BTREE
+);
+
+
+
+-- surveys ---**********************************
+
+CREATE TABLE surveys (
+  id int NOT NULL IDENTITY(1,1),
+  repositoryid varchar(128) NOT NULL,
+  surveyid varchar(200) DEFAULT NULL,
+  titl varchar(255) DEFAULT '',
+  titlstmt text,
+  authenty varchar(255) DEFAULT NULL,
+  geogcover varchar(255) DEFAULT NULL,
+  nation varchar(100) DEFAULT '',
+  topic text,
+  scope text,
+  sername varchar(255) DEFAULT NULL,
+  producer varchar(255) DEFAULT NULL,
+  sponsor varchar(255) DEFAULT NULL,
+  refno varchar(255) DEFAULT NULL,
+  proddate varchar(45) DEFAULT NULL,
+  varcount decimal(10,0) DEFAULT NULL,
+  ddifilename varchar(255) DEFAULT NULL,
+  dirpath varchar(255) DEFAULT NULL,
+  link_technical varchar(255) DEFAULT NULL COMMENT 'documentation',
+  link_study varchar(255) DEFAULT NULL COMMENT 'study website',
+  link_report varchar(255) DEFAULT NULL COMMENT 'reports',
+  link_indicator varchar(255) DEFAULT NULL COMMENT 'indicators',
+  ddi_sh char(2) DEFAULT NULL,
+  formid int DEFAULT NULL,
+  isshared tinyint(1) NOT NULL DEFAULT '1',
+  isdeleted tinyint(1) NOT NULL DEFAULT '0',
+  changed int DEFAULT NULL,
+  created int DEFAULT NULL,
+  link_questionnaire varchar(255) DEFAULT NULL,
+  countryid int DEFAULT NULL,
+  data_coll_start int DEFAULT NULL,
+  data_coll_end int DEFAULT NULL,
+  abbreviation varchar(45) DEFAULT NULL,
+  kindofdata varchar(255) DEFAULT NULL,
+  keywords text,
+  ie_program varchar(255) DEFAULT NULL,
+  ie_project_id varchar(255) DEFAULT NULL,
+  ie_project_name varchar(255) DEFAULT NULL,
+  ie_project_uri varchar(255) DEFAULT NULL,
+  ie_team_leaders text,
+  project_id varchar(255) DEFAULT NULL,
+  project_name varchar(255) DEFAULT NULL,
+  project_uri varchar(255) DEFAULT NULL,
+  link_da varchar(255) DEFAULT NULL,
+  published tinyint(4) DEFAULT NULL,
+  total_views int DEFAULT '0',
+  total_downloads int DEFAULT '0',
+  stats_last_updated int DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY idx_srvy_unq (surveyid,repositoryid),
+  FULLTEXT KEY ft_titl (titl),
+  FULLTEXT KEY ft_all (titl,authenty,geogcover,nation,topic,scope,sername,producer,sponsor,refno,abbreviation,kindofdata,keywords)
+) ENGINE=MyISAM IDENTITY(1,1)=608 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC$$
+
+
+
+-- tags
+CREATE TABLE tags (
+  id int NOT NULL IDENTITY(1,1),
+  tag varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+  --UNIQUE KEY tag_UNIQUE (tag)
+);
+
+
+
+-- url_mappings
+
+CREATE TABLE url_mappings (
+  id int NOT NULL IDENTITY(1,1),
+  source varchar(255) DEFAULT NULL,
+  target varchar(255) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+-- user_repo_permissions
+
+CREATE TABLE user_repo_permissions (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int DEFAULT NULL,
+  repo_id int DEFAULT NULL,
+  repo_pg_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+-- users -------------------- *********
+
+CREATE TABLE users (
+  id int NOT NULL IDENTITY(1,1),
+  ip_address char(16) NOT NULL,
+  username varchar(100) NOT NULL,
+  password varchar(1000) NOT NULL,
+  salt varchar(40) DEFAULT NULL,
+  email varchar(100) NOT NULL,
+  activation_code varchar(40) DEFAULT NULL,
+  forgotten_password_code varchar(40) DEFAULT NULL,
+  remember_code varchar(40) DEFAULT NULL,
+  created_on int NOT NULL,
+  last_login int NOT NULL,
+  active tinyint DEFAULT NULL,
+  authtype varchar(40) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+
+-- users_groups
+
+CREATE TABLE users_groups (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int DEFAULT NULL,
+  group_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+  --UNIQUE KEY user_group_UNQ (user_id,group_id)
+);
+
+
+-- region_countries
+
+CREATE TABLE region_countries (
+  id int NOT NULL IDENTITY(1,1),
+  region_id int DEFAULT NULL,
+  country_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+-- data for region_countries
+
+insert into region_countries (region_id,country_id) values (2,5);
+insert into region_countries (region_id,country_id) values (2,35);
+insert into region_countries (region_id,country_id) values (2,44);
+insert into region_countries (region_id,country_id) values (2,72);
+insert into region_countries (region_id,country_id) values (2,103);
+insert into region_countries (region_id,country_id) values (2,87);
+insert into region_countries (region_id,country_id) values (2,115);
+insert into region_countries (region_id,country_id) values (2,119);
+insert into region_countries (region_id,country_id) values (2,131);
+insert into region_countries (region_id,country_id) values (2,164);
+insert into region_countries (region_id,country_id) values (2,163);
+insert into region_countries (region_id,country_id) values (2,140);
+insert into region_countries (region_id,country_id) values (2,32);
+insert into region_countries (region_id,country_id) values (2,165);
+insert into region_countries (region_id,country_id) values (2,168);
+insert into region_countries (region_id,country_id) values (2,171);
+insert into region_countries (region_id,country_id) values (2,235);
+insert into region_countries (region_id,country_id) values (2,211);
+insert into region_countries (region_id,country_id) values (2,176);
+insert into region_countries (region_id,country_id) values (2,214);
+insert into region_countries (region_id,country_id) values (2,221);
+insert into region_countries (region_id,country_id) values (2,153);
+insert into region_countries (region_id,country_id) values (2,196);
+insert into region_countries (region_id,country_id) values (4,8);
+insert into region_countries (region_id,country_id) values (4,10);
+insert into region_countries (region_id,country_id) values (4,26);
+insert into region_countries (region_id,country_id) values (4,21);
+insert into region_countries (region_id,country_id) values (4,25);
+insert into region_countries (region_id,country_id) values (4,43);
+insert into region_countries (region_id,country_id) values (4,48);
+insert into region_countries (region_id,country_id) values (4,54);
+insert into region_countries (region_id,country_id) values (4,56);
+insert into region_countries (region_id,country_id) values (4,61);
+insert into region_countries (region_id,country_id) values (4,62);
+insert into region_countries (region_id,country_id) values (4,63);
+insert into region_countries (region_id,country_id) values (4,64);
+insert into region_countries (region_id,country_id) values (4,90);
+insert into region_countries (region_id,country_id) values (4,93);
+insert into region_countries (region_id,country_id) values (4,95);
+insert into region_countries (region_id,country_id) values (4,96);
+insert into region_countries (region_id,country_id) values (4,99);
+insert into region_countries (region_id,country_id) values (4,110);
+insert into region_countries (region_id,country_id) values (4,138);
+insert into region_countries (region_id,country_id) values (4,155);
+insert into region_countries (region_id,country_id) values (4,167);
+insert into region_countries (region_id,country_id) values (4,169);
+insert into region_countries (region_id,country_id) values (4,170);
+insert into region_countries (region_id,country_id) values (4,185);
+insert into region_countries (region_id,country_id) values (4,187);
+insert into region_countries (region_id,country_id) values (4,204);
+insert into region_countries (region_id,country_id) values (4,231);
+insert into region_countries (region_id,country_id) values (4,233);
+insert into region_countries (region_id,country_id) values (5,4);
+insert into region_countries (region_id,country_id) values (5,79);
+insert into region_countries (region_id,country_id) values (5,225);
+insert into region_countries (region_id,country_id) values (5,104);
+insert into region_countries (region_id,country_id) values (5,105);
+insert into region_countries (region_id,country_id) values (5,113);
+insert into region_countries (region_id,country_id) values (5,120);
+insert into region_countries (region_id,country_id) values (5,124);
+insert into region_countries (region_id,country_id) values (5,143);
+insert into region_countries (region_id,country_id) values (5,209);
+insert into region_countries (region_id,country_id) values (5,217);
+insert into region_countries (region_id,country_id) values (5,83);
+insert into region_countries (region_id,country_id) values (5,236);
+insert into region_countries (region_id,country_id) values (6,1);
+insert into region_countries (region_id,country_id) values (6,15);
+insert into region_countries (region_id,country_id) values (6,20);
+insert into region_countries (region_id,country_id) values (6,102);
+insert into region_countries (region_id,country_id) values (6,132);
+insert into region_countries (region_id,country_id) values (6,148);
+insert into region_countries (region_id,country_id) values (6,166);
+insert into region_countries (region_id,country_id) values (6,41);
+insert into region_countries (region_id,country_id) values (7,7);
+insert into region_countries (region_id,country_id) values (7,59);
+insert into region_countries (region_id,country_id) values (7,23);
+insert into region_countries (region_id,country_id) values (7,230);
+insert into region_countries (region_id,country_id) values (7,33);
+insert into region_countries (region_id,country_id) values (7,36);
+insert into region_countries (region_id,country_id) values (7,38);
+insert into region_countries (region_id,country_id) values (7,40);
+insert into region_countries (region_id,country_id) values (7,42);
+insert into region_countries (region_id,country_id) values (7,49);
+insert into region_countries (region_id,country_id) values (7,52);
+insert into region_countries (region_id,country_id) values (7,51);
+insert into region_countries (region_id,country_id) values (7,109);
+insert into region_countries (region_id,country_id) values (7,67);
+insert into region_countries (region_id,country_id) values (7,66);
+insert into region_countries (region_id,country_id) values (7,80);
+insert into region_countries (region_id,country_id) values (7,82);
+insert into region_countries (region_id,country_id) values (7,85);
+insert into region_countries (region_id,country_id) values (7,94);
+insert into region_countries (region_id,country_id) values (7,175);
+insert into region_countries (region_id,country_id) values (7,114);
+insert into region_countries (region_id,country_id) values (7,121);
+insert into region_countries (region_id,country_id) values (7,123);
+insert into region_countries (region_id,country_id) values (7,129);
+insert into region_countries (region_id,country_id) values (7,130);
+insert into region_countries (region_id,country_id) values (7,133);
+insert into region_countries (region_id,country_id) values (7,136);
+insert into region_countries (region_id,country_id) values (7,137);
+insert into region_countries (region_id,country_id) values (7,144);
+insert into region_countries (region_id,country_id) values (7,146);
+insert into region_countries (region_id,country_id) values (7,156);
+insert into region_countries (region_id,country_id) values (7,157);
+insert into region_countries (region_id,country_id) values (7,181);
+insert into region_countries (region_id,country_id) values (7,189);
+insert into region_countries (region_id,country_id) values (7,191);
+insert into region_countries (region_id,country_id) values (7,192);
+insert into region_countries (region_id,country_id) values (7,193);
+insert into region_countries (region_id,country_id) values (7,198);
+insert into region_countries (region_id,country_id) values (7,199);
+insert into region_countries (region_id,country_id) values (7,203);
+insert into region_countries (region_id,country_id) values (7,206);
+insert into region_countries (region_id,country_id) values (7,227);
+insert into region_countries (region_id,country_id) values (7,212);
+insert into region_countries (region_id,country_id) values (7,222);
+insert into region_countries (region_id,country_id) values (7,238);
+insert into region_countries (region_id,country_id) values (7,200);
+insert into region_countries (region_id,country_id) values (3,2);
+insert into region_countries (region_id,country_id) values (3,16);
+insert into region_countries (region_id,country_id) values (3,9);
+insert into region_countries (region_id,country_id) values (3,34);
+insert into region_countries (region_id,country_id) values (3,22);
+insert into region_countries (region_id,country_id) values (3,31);
+insert into region_countries (region_id,country_id) values (3,81);
+insert into region_countries (region_id,country_id) values (3,112);
+insert into region_countries (region_id,country_id) values (3,118);
+insert into region_countries (region_id,country_id) values (3,122);
+insert into region_countries (region_id,country_id) values (3,126);
+insert into region_countries (region_id,country_id) values (3,224);
+insert into region_countries (region_id,country_id) values (3,141);
+insert into region_countries (region_id,country_id) values (3,179);
+insert into region_countries (region_id,country_id) values (3,180);
+insert into region_countries (region_id,country_id) values (3,237);
+insert into region_countries (region_id,country_id) values (3,210);
+insert into region_countries (region_id,country_id) values (3,218);
+insert into region_countries (region_id,country_id) values (3,219);
+insert into region_countries (region_id,country_id) values (3,223);
+insert into region_countries (region_id,country_id) values (3,232);
+insert into region_countries (region_id,country_id) values (9,1);
+insert into region_countries (region_id,country_id) values (9,15);
+insert into region_countries (region_id,country_id) values (9,59);
+insert into region_countries (region_id,country_id) values (9,230);
+insert into region_countries (region_id,country_id) values (9,33);
+insert into region_countries (region_id,country_id) values (9,35);
+insert into region_countries (region_id,country_id) values (9,40);
+insert into region_countries (region_id,country_id) values (9,42);
+insert into region_countries (region_id,country_id) values (9,49);
+insert into region_countries (region_id,country_id) values (9,52);
+insert into region_countries (region_id,country_id) values (9,67);
+insert into region_countries (region_id,country_id) values (9,66);
+insert into region_countries (region_id,country_id) values (9,82);
+insert into region_countries (region_id,country_id) values (9,94);
+insert into region_countries (region_id,country_id) values (9,175);
+insert into region_countries (region_id,country_id) values (9,96);
+insert into region_countries (region_id,country_id) values (9,114);
+insert into region_countries (region_id,country_id) values (9,115);
+insert into region_countries (region_id,country_id) values (9,118);
+insert into region_countries (region_id,country_id) values (9,123);
+insert into region_countries (region_id,country_id) values (9,129);
+insert into region_countries (region_id,country_id) values (9,130);
+insert into region_countries (region_id,country_id) values (9,133);
+insert into region_countries (region_id,country_id) values (9,136);
+insert into region_countries (region_id,country_id) values (9,144);
+insert into region_countries (region_id,country_id) values (9,32);
+insert into region_countries (region_id,country_id) values (9,148);
+insert into region_countries (region_id,country_id) values (9,156);
+insert into region_countries (region_id,country_id) values (9,181);
+insert into region_countries (region_id,country_id) values (9,193);
+insert into region_countries (region_id,country_id) values (9,198);
+insert into region_countries (region_id,country_id) values (9,210);
+insert into region_countries (region_id,country_id) values (9,227);
+insert into region_countries (region_id,country_id) values (9,212);
+insert into region_countries (region_id,country_id) values (9,222);
+insert into region_countries (region_id,country_id) values (9,200);
+insert into region_countries (region_id,country_id) values (10,2);
+insert into region_countries (region_id,country_id) values (10,16);
+insert into region_countries (region_id,country_id) values (10,26);
+insert into region_countries (region_id,country_id) values (10,20);
+insert into region_countries (region_id,country_id) values (10,21);
+insert into region_countries (region_id,country_id) values (10,36);
+insert into region_countries (region_id,country_id) values (10,38);
+insert into region_countries (region_id,country_id) values (10,51);
+insert into region_countries (region_id,country_id) values (10,109);
+insert into region_countries (region_id,country_id) values (10,79);
+insert into region_countries (region_id,country_id) values (10,225);
+insert into region_countries (region_id,country_id) values (10,64);
+insert into region_countries (region_id,country_id) values (10,72);
+insert into region_countries (region_id,country_id) values (10,81);
+insert into region_countries (region_id,country_id) values (10,85);
+insert into region_countries (region_id,country_id) values (10,93);
+insert into region_countries (region_id,country_id) values (10,95);
+insert into region_countries (region_id,country_id) values (10,99);
+insert into region_countries (region_id,country_id) values (10,102);
+insert into region_countries (region_id,country_id) values (10,103);
+insert into region_countries (region_id,country_id) values (10,105);
+insert into region_countries (region_id,country_id) values (10,87);
+insert into region_countries (region_id,country_id) values (10,119);
+insert into region_countries (region_id,country_id) values (10,121);
+insert into region_countries (region_id,country_id) values (10,164);
+insert into region_countries (region_id,country_id) values (10,163);
+insert into region_countries (region_id,country_id) values (10,141);
+insert into region_countries (region_id,country_id) values (10,140);
+insert into region_countries (region_id,country_id) values (10,143);
+insert into region_countries (region_id,country_id) values (10,155);
+insert into region_countries (region_id,country_id) values (10,157);
+insert into region_countries (region_id,country_id) values (10,166);
+insert into region_countries (region_id,country_id) values (10,168);
+insert into region_countries (region_id,country_id) values (10,169);
+insert into region_countries (region_id,country_id) values (10,171);
+insert into region_countries (region_id,country_id) values (10,235);
+insert into region_countries (region_id,country_id) values (10,189);
+insert into region_countries (region_id,country_id) values (10,191);
+insert into region_countries (region_id,country_id) values (10,28);
+insert into region_countries (region_id,country_id) values (10,41);
+insert into region_countries (region_id,country_id) values (10,203);
+insert into region_countries (region_id,country_id) values (10,206);
+insert into region_countries (region_id,country_id) values (10,209);
+insert into region_countries (region_id,country_id) values (10,176);
+insert into region_countries (region_id,country_id) values (10,214);
+insert into region_countries (region_id,country_id) values (10,223);
+insert into region_countries (region_id,country_id) values (10,232);
+insert into region_countries (region_id,country_id) values (10,153);
+insert into region_countries (region_id,country_id) values (10,196);
+insert into region_countries (region_id,country_id) values (10,83);
+insert into region_countries (region_id,country_id) values (10,236);
+insert into region_countries (region_id,country_id) values (10,238);
+insert into region_countries (region_id,country_id) values (11,4);
+insert into region_countries (region_id,country_id) values (11,5);
+insert into region_countries (region_id,country_id) values (11,7);
+insert into region_countries (region_id,country_id) values (11,8);
+insert into region_countries (region_id,country_id) values (11,10);
+insert into region_countries (region_id,country_id) values (11,9);
+insert into region_countries (region_id,country_id) values (11,34);
+insert into region_countries (region_id,country_id) values (11,22);
+insert into region_countries (region_id,country_id) values (11,23);
+insert into region_countries (region_id,country_id) values (11,25);
+insert into region_countries (region_id,country_id) values (11,31);
+insert into region_countries (region_id,country_id) values (11,43);
+insert into region_countries (region_id,country_id) values (11,44);
+insert into region_countries (region_id,country_id) values (11,48);
+insert into region_countries (region_id,country_id) values (11,54);
+insert into region_countries (region_id,country_id) values (11,56);
+insert into region_countries (region_id,country_id) values (11,61);
+insert into region_countries (region_id,country_id) values (11,62);
+insert into region_countries (region_id,country_id) values (11,63);
+insert into region_countries (region_id,country_id) values (11,90);
+insert into region_countries (region_id,country_id) values (11,104);
+insert into region_countries (region_id,country_id) values (11,110);
+insert into region_countries (region_id,country_id) values (11,113);
+insert into region_countries (region_id,country_id) values (11,112);
+insert into region_countries (region_id,country_id) values (11,122);
+insert into region_countries (region_id,country_id) values (11,120);
+insert into region_countries (region_id,country_id) values (11,124);
+insert into region_countries (region_id,country_id) values (11,126);
+insert into region_countries (region_id,country_id) values (11,224);
+insert into region_countries (region_id,country_id) values (11,131);
+insert into region_countries (region_id,country_id) values (11,132);
+insert into region_countries (region_id,country_id) values (11,137);
+insert into region_countries (region_id,country_id) values (11,138);
+insert into region_countries (region_id,country_id) values (11,146);
+insert into region_countries (region_id,country_id) values (11,165);
+insert into region_countries (region_id,country_id) values (11,167);
+insert into region_countries (region_id,country_id) values (11,170);
+insert into region_countries (region_id,country_id) values (11,179);
+insert into region_countries (region_id,country_id) values (11,180);
+insert into region_countries (region_id,country_id) values (11,192);
+insert into region_countries (region_id,country_id) values (11,199);
+insert into region_countries (region_id,country_id) values (11,185);
+insert into region_countries (region_id,country_id) values (11,187);
+insert into region_countries (region_id,country_id) values (11,204);
+insert into region_countries (region_id,country_id) values (11,211);
+insert into region_countries (region_id,country_id) values (11,217);
+insert into region_countries (region_id,country_id) values (11,218);
+insert into region_countries (region_id,country_id) values (11,219);
+insert into region_countries (region_id,country_id) values (11,221);
+insert into region_countries (region_id,country_id) values (11,231);
+insert into region_countries (region_id,country_id) values (11,233);
+insert into region_countries (region_id,country_id) values (12,6);
+insert into region_countries (region_id,country_id) values (12,151);
+insert into region_countries (region_id,country_id) values (12,11);
+insert into region_countries (region_id,country_id) values (12,12);
+insert into region_countries (region_id,country_id) values (12,13);
+insert into region_countries (region_id,country_id) values (12,14);
+insert into region_countries (region_id,country_id) values (12,17);
+insert into region_countries (region_id,country_id) values (12,18);
+insert into region_countries (region_id,country_id) values (12,19);
+insert into region_countries (region_id,country_id) values (12,30);
+insert into region_countries (region_id,country_id) values (12,37);
+insert into region_countries (region_id,country_id) values (12,39);
+insert into region_countries (region_id,country_id) values (12,55);
+insert into region_countries (region_id,country_id) values (12,57);
+insert into region_countries (region_id,country_id) values (12,58);
+insert into region_countries (region_id,country_id) values (12,60);
+insert into region_countries (region_id,country_id) values (12,65);
+insert into region_countries (region_id,country_id) values (12,68);
+insert into region_countries (region_id,country_id) values (12,69);
+insert into region_countries (region_id,country_id) values (12,73);
+insert into region_countries (region_id,country_id) values (12,75);
+insert into region_countries (region_id,country_id) values (12,77);
+insert into region_countries (region_id,country_id) values (12,84);
+insert into region_countries (region_id,country_id) values (12,88);
+insert into region_countries (region_id,country_id) values (12,89);
+insert into region_countries (region_id,country_id) values (12,92);
+insert into region_countries (region_id,country_id) values (12,100);
+insert into region_countries (region_id,country_id) values (12,101);
+insert into region_countries (region_id,country_id) values (12,107);
+insert into region_countries (region_id,country_id) values (12,108);
+insert into region_countries (region_id,country_id) values (12,111);
+insert into region_countries (region_id,country_id) values (12,116);
+insert into region_countries (region_id,country_id) values (12,117);
+insert into region_countries (region_id,country_id) values (12,125);
+insert into region_countries (region_id,country_id) values (12,127);
+insert into region_countries (region_id,country_id) values (12,128);
+insert into region_countries (region_id,country_id) values (12,134);
+insert into region_countries (region_id,country_id) values (12,139);
+insert into region_countries (region_id,country_id) values (12,149);
+insert into region_countries (region_id,country_id) values (12,152);
+insert into region_countries (region_id,country_id) values (12,154);
+insert into region_countries (region_id,country_id) values (12,160);
+insert into region_countries (region_id,country_id) values (12,145);
+insert into region_countries (region_id,country_id) values (12,173);
+insert into region_countries (region_id,country_id) values (12,174);
+insert into region_countries (region_id,country_id) values (12,177);
+insert into region_countries (region_id,country_id) values (12,178);
+insert into region_countries (region_id,country_id) values (12,188);
+insert into region_countries (region_id,country_id) values (12,190);
+insert into region_countries (region_id,country_id) values (12,194);
+insert into region_countries (region_id,country_id) values (12,195);
+insert into region_countries (region_id,country_id) values (12,197);
+insert into region_countries (region_id,country_id) values (12,201);
+insert into region_countries (region_id,country_id) values (12,183);
+insert into region_countries (region_id,country_id) values (12,207);
+insert into region_countries (region_id,country_id) values (12,208);
+insert into region_countries (region_id,country_id) values (12,215);
+insert into region_countries (region_id,country_id) values (12,220);
+insert into region_countries (region_id,country_id) values (12,216);
+insert into region_countries (region_id,country_id) values (12,226);
+insert into region_countries (region_id,country_id) values (12,228);
+insert into region_countries (region_id,country_id) values (12,229);
+insert into region_countries (region_id,country_id) values (13,11);
+insert into region_countries (region_id,country_id) values (13,12);
+insert into region_countries (region_id,country_id) values (13,18);
+insert into region_countries (region_id,country_id) values (13,37);
+insert into region_countries (region_id,country_id) values (13,58);
+insert into region_countries (region_id,country_id) values (13,60);
+insert into region_countries (region_id,country_id) values (13,68);
+insert into region_countries (region_id,country_id) values (13,73);
+insert into region_countries (region_id,country_id) values (13,75);
+insert into region_countries (region_id,country_id) values (13,84);
+insert into region_countries (region_id,country_id) values (13,88);
+insert into region_countries (region_id,country_id) values (13,100);
+insert into region_countries (region_id,country_id) values (13,101);
+insert into region_countries (region_id,country_id) values (13,106);
+insert into region_countries (region_id,country_id) values (13,107);
+insert into region_countries (region_id,country_id) values (13,108);
+insert into region_countries (region_id,country_id) values (13,111);
+insert into region_countries (region_id,country_id) values (13,116);
+insert into region_countries (region_id,country_id) values (13,127);
+insert into region_countries (region_id,country_id) values (13,149);
+insert into region_countries (region_id,country_id) values (13,154);
+insert into region_countries (region_id,country_id) values (13,160);
+insert into region_countries (region_id,country_id) values (13,173);
+insert into region_countries (region_id,country_id) values (13,174);
+insert into region_countries (region_id,country_id) values (13,195);
+insert into region_countries (region_id,country_id) values (13,197);
+insert into region_countries (region_id,country_id) values (13,201);
+insert into region_countries (region_id,country_id) values (13,207);
+insert into region_countries (region_id,country_id) values (13,208);
+insert into region_countries (region_id,country_id) values (13,226);
+insert into region_countries (region_id,country_id) values (13,228);
