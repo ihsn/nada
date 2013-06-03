@@ -135,8 +135,7 @@ class Catalog extends REST_Controller
             unset($uri[2]);
             call_user_func_array(array($this, $method.'_get'), $uri);return;
         }
-		
-		
+				
 		$id=$this->get('id');
 		
 		if(is_numeric($id))
@@ -156,16 +155,30 @@ class Catalog extends REST_Controller
         {
         	$this->response(NULL, 400);
         }
+		
+		$study=$this->Catalog_model->select_single($id);
+		
+		if(!$study)
+		{
+			$this->response(array('error'=>'NOT-FOUND'),404);exit;
+		}
+		
+		//unpublished studies
+		if(isset($study['published']) && intval($study['published'])===0)
+		{
+			$this->response(array('error'=>'CONTENT-NOT-AVAILABLE'),404);exit;
+		}
+		
 
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
 		
 		if ($ddi_file===FALSE)
 		{
-			$this->response(array('error'=>t('file_not_found')),404);exit;
+			$this->response(array('error'=>'NOT-FOUND'),404);exit;
 		}
 	
 		$html='';
-		
+
 		switch($method)
 		{
 			case 'questionnaires':
@@ -221,6 +234,35 @@ class Catalog extends REST_Controller
 			case 'ddi':
 				$this->DDI_Browser->download_ddi($ddi_file);exit;
 			break;
+			
+			case 'rdf':
+				$this->Catalog_model->increment_study_download_count($id);
+		
+				header("Content-Type: application/xml");
+				header('Content-Encoding: UTF-8');
+				header( "Content-Disposition: attachment;filename=study-$id.rdf");
+
+				echo $this->Catalog_model->get_survey_rdf($id);exit;
+
+			break;
+		
+			case 'index':
+			case 'info':
+				$study_fields=array('id','repositoryid','surveyid','titl','authenty','geogcover','nation','producer','sponsor','link_indicator','link_study','data_coll_start','data_coll_end','link_da','published','created','changed','varcount','total_views','total_downloads','model','repo','country');
+				$study_output=array();
+				foreach($study as $key=>$value)
+				{
+					if(in_array($key,$study_fields))
+					{
+						$study_output[$key]=$value;
+					}
+				}
+				$html=$study_output;
+			break;
+		
+			default:
+				$this->response(array('error'=>'NOT-FOUND'),404);exit;
+			break;			
 		}
 		
 		$this->response($html, 200); 
