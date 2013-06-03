@@ -1,6 +1,5 @@
 <?php 
 $lang['catalog_maintenance']="Gestion du catalogue";
-$lang['upload_ddi']="Charger DDI";
 $lang['upload_ddi_hover']="Charger un fichier DDI";
 $lang['import_ddi']="Importer DDI";
 $lang['import_ddi_hover']="Importation de multiples fichiers DDI";
@@ -40,6 +39,7 @@ $lang['select_number_of_records_per_page']="Nombre d'enregistrements à afficher
 $lang['study_already_exists']="Cette étude existe déjà. Sélectionnez l'option &quot;Ecraser&quot; pour remplacer l'étude existante.";
 $lang['invalid_ddi_file']="Fichier DDI non valide:";
 $lang['nothing_to_process']="Pas d'information à traiter";
+$lang['upload_ddi']="Charger DDI";
 
 
 /* End of file catalog_admin_lang.php */
