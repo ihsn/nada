@@ -924,7 +924,7 @@ class Repository_model extends CI_Model {
 		$this->db->where('r.ispublished',1);
 		//$this->db->where('r.pid >',0);
 		$this->db->where('r.section',$section_id);
-		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.short_text,r.weight');
 		$this->db->order_by('r.weight');		
 		return $this->db->get('repositories r')->result_array();	
 	}
@@ -933,9 +933,11 @@ class Repository_model extends CI_Model {
 	{
 		$this->db->select('r.id,r.pid,r.title,r.repositoryid,count(sr.sid) as surveys_found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
+		$this->db->join('surveys', 'sr.sid= surveys.id','INNER');
 		$this->db->where('r.ispublished',1);
+		$this->db->where('surveys.published',1);
 		//$this->db->where('r.pid >',0);
-		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid');
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.weight');
 		$this->db->order_by('r.weight');		
 		$query=$this->db->get('repositories r');
 		
@@ -1241,8 +1243,71 @@ class Repository_model extends CI_Model {
 		}
 		
 		return $output;
-		
-		
 	}
+	
+	/**
+	*
+	* Return an array of owned studies for the collection
+	**/
+	function get_repo_owned_studies($repositoryid)
+	{
+		$this->db->select('sid');
+		$this->db->where('isadmin',1);
+		$this->db->where('repositoryid',$repositoryid);
+		$query=$this->db->get('survey_repos');
 		
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[]=$row['sid'];
+		}
+		
+		return $output;
+	}
+	
+	
+	/**
+	*
+	* Publish/Unpublish all studies in a repository
+	**/
+	function update_repo_studies_status($repo_id,$status)
+	{
+		//get repositoryid
+		$repositoryid=$this->get_repositoryid_by_uid($repo_id);
+				
+		//get a list repo studies
+		$studies=$this->get_repo_owned_studies($repositoryid);
+	
+		$options=array(
+					'published'=>0
+		);
+
+		$sql=sprintf('UPDATE surveys set published=%d where surveys.id in (%s)',intval($status),implode(",",$studies));
+		
+		$this->db->query($sql);	
+	}
+	
+	function get_repositoryid_by_uid($repo_id)
+	{
+		$this->db->select('repositoryid');
+		$this->db->where('id',$repo_id);
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$row=$query->row_array();
+		
+		return $row['repositoryid'];
+	}
+
 }
