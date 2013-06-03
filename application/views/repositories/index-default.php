@@ -2,7 +2,7 @@
 $repository_types=array(
 	'0'=>'Internal',
 	'1'=>'External',
-	'2'=>'System'
+	//'2'=>'System'
 );
 
 ?>
@@ -165,6 +165,7 @@ jQuery(document).ready(function(){
 	
 	//publish/unpublish
 	$(document.body).on("click",".repo-row .publish", function(){ 
+		if (!confirm("<?php echo t('confirm_collection_status_change');?>")){return false;}
 		var id=$(this).attr("data-id");
 		if ($(this).attr("data-value")==0){
 			$(this).attr("data-value",1);
