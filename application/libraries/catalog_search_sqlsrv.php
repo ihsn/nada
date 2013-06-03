@@ -32,7 +32,11 @@ class Catalog_search{
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
 	
 	//allowed sort options
-	var $sort_allowed_fields=array('titl','nation','proddate');
+	var $sort_allowed_fields=array(
+						'titl'=>'titl',
+						'nation'=>'nation',
+						'proddate'=>'proddate',
+						'popularity'=>'total_views');
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
@@ -267,9 +271,9 @@ class Catalog_search{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report';
+		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report,surveys.data_coll_start,surveys.data_coll_end';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,hq.survey_url as study_remote_url,surveys.created,surveys.data_coll_start,surveys.data_coll_end';
+		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query
 		$sql='';
@@ -282,7 +286,6 @@ class Catalog_search{
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
-			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -320,7 +323,7 @@ class Catalog_search{
 			$this->ci->db->select(" $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
+		//	$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -555,10 +558,10 @@ class Catalog_search{
 			return FALSE;
 		}
 
-		//topics
+		//countries
 		if ($countries!='')
 		{
-			return sprintf('surveys.nation in (%s)',$countries);
+			return sprintf('surveys.id in (select sid from survey_countries where cid in (%s))',$countries);
 		}
 		
 		return FALSE;
@@ -714,7 +717,7 @@ class Catalog_search{
 		}
 		
 		$surveys=implode(',',$survey_id_list);
-		$this->ci->db->select('sid');	
+		$this->ci->db->select('sid,count(sid) as total');	
 		$this->ci->db->where("sid in ($surveys)");
 		$this->ci->db->group_by('sid');	
 		$query=$this->ci->db->get('survey_citations');
@@ -727,7 +730,7 @@ class Catalog_search{
 			
 			foreach($citation_rows as $row)
 			{
-				$result[]=$row['sid'];
+				$result[$row['sid']]=$row['total'];
 			}
 			return $result;
 		}
@@ -752,9 +755,10 @@ class Catalog_search{
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
-				
+		$dtype=$this->_build_dtype_query();
+		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years);
+		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
 		
 		//create combined where clause
 		$where='';
@@ -783,6 +787,7 @@ class Catalog_search{
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,  surveys.titl as titl,surveys.nation as nation, v.surveyid_FK",FALSE);
 		$this->ci->db->join('surveys', 'v.surveyid_fk = surveys.id','inner');	
+		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		
@@ -887,9 +892,8 @@ class Catalog_search{
 
 		if ($repo!='')
 		{
-			return sprintf('survey_repos.repositoryid =%s',$this->ci->db->escape($repo));
+			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
 		}
-		
 		return FALSE;
 	}
 
@@ -922,7 +926,7 @@ class Catalog_search{
 
 		if ($param!='')
 		{
-			return sprintf('surveys.id in (select sid from survey_collections where tid in (%s) )',$params);
+			return sprintf('surveys.id in (select sid from survey_repos where repositoryid in (%s) )',$params);
 		}
 		
 		return FALSE;	
