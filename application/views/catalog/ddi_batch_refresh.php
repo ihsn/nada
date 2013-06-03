@@ -2,9 +2,9 @@
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
-<?php include 'catalog_page_links.php';?>
 
 <h1 class="page-title"><?php echo t('ddi_batch_refresh_title');?></h1>
+<p><?php echo t('refresh_ddi_description');?></p>
 <div>
 
 <?php if ( count($surveys)==0 || $surveys===false) :?>
@@ -15,7 +15,7 @@
 <?php endif; ?>
 
 <div class="note">
-	<?php echo sprintf(t('total') . ' %s',count($surveys));?>    
+	<?php echo sprintf(t('total_studies_found') . ': %s',count($surveys));?>    
 </div>
 
 <div class="note" id="batch-import-box" style="display:none;" >
@@ -38,7 +38,7 @@
     	<td><input type="checkbox" class="chk" id="<?php echo $survey['id'];?>" value="<?php echo $survey['id'];?>"/></td>
     	<td><?php echo $survey['id'];?></td>
         <td><?php echo $survey['nation'];?></td>
-        <td><?php echo $survey['titl'];?></td>
+        <td><a target="_blank" href="<?php echo site_url('admin/catalog/edit/'.$survey['id'])?>"><?php echo $survey['titl'];?></a></td>
     </tr>
 <?php endforeach;?>
 </table>
