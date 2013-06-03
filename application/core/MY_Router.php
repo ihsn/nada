@@ -3,10 +3,13 @@
 /* load the MX_Router class */
 require APPPATH."third_party/MX/Router.php";
 
-class MY_Router extends MX_Router {
+class MY_Router extends MX_Router 
+{
+	var $error_controller = 'page'; //controller name to be used as a 404 page handler
+	var $error_method_404 = 'index';//controller method to be called
 
-//copied from CI core Router class
-function _validate_request($segments)
+	//copied from CI core Router class
+	function _validate_request($segments)
     {
         if (file_exists(APPPATH.'controllers/'.$segments[0].EXT))
         {
@@ -47,7 +50,17 @@ function _validate_request($segments)
  
             return $segments;
         }
- 
-        show_404($segments[0]);
+
+        // Can't find the requested controller...
+		return $this->error_404();
     }
+	
+	function error_404()
+	{
+		$segments = array();
+		$segments[] = $this->error_controller;
+		$segments[] = $this->error_method_404;
+		return $segments;
+	}
+
 }
