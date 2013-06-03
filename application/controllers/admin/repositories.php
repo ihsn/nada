@@ -236,6 +236,12 @@ class Repositories extends MY_Controller {
 							
 				if ($db_result===TRUE)
 				{
+					if (isset($options['ispublished']))
+					{
+						//update collection studies status
+						$this->publish($id,$options['ispublished']);
+					}
+				
 					//update successful
 					$this->session->set_flashdata('message', t('form_update_success'));
 					
@@ -293,8 +299,8 @@ class Repositories extends MY_Controller {
 		$this->data['long_text']=$this->form_validation->set_value('long_text',$this->row_data['long_text']);
 		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
-		$this->data['group_da_public']=$this->form_validation->set_value('group_da_public',$this->row_data['group_da_public']);
-		$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
+		//$this->data['group_da_public']=$this->form_validation->set_value('group_da_public',$this->row_data['group_da_public']);
+		//$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
 		$this->data['section']=$this->form_validation->set_value('section',$this->row_data['section']);
 		
 		//show form
@@ -612,7 +618,7 @@ class Repositories extends MY_Controller {
 	//publish/unpublish repository
 	function publish($id,$status)
 	{
-		if(!is_numeric($id) || !is_numeric($status))
+		if(!is_numeric($id) || !in_array($status,array(0,1)))
 		{
 			show_error('INVALID-PARAMS');
 		}
@@ -622,7 +628,11 @@ class Repositories extends MY_Controller {
 		);
 		
 		$this->Repository_model->update($id,$options);
+		$this->Repository_model->update_repo_studies_status($id,$status);
+		
 	}
+	
+	
 
 	//change repo weight
 	function weight($id,$weight)
