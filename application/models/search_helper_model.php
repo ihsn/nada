@@ -348,10 +348,11 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_active_countries($repositoryid=NULL)
 	{
-		$this->db->select('cid,country_name as nation, count(cid) as surveys_found');
+		$this->db->select('cid,countries.name as nation, count(cid) as surveys_found');
 		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
-		$this->db->order_by('survey_countries.country_name','ASC');
-		$this->db->group_by('cid,country_name','ASC');
+		$this->db->join('countries', 'countries.countryid=survey_countries.cid','inner');
+		$this->db->order_by('countries.name','ASC');
+		$this->db->group_by('cid,countries.name','ASC');
 		$this->db->where('surveys.published',1);
 		$this->db->where('survey_countries.cid>',0,FALSE);
 		if($repositoryid!=NULL)
@@ -375,7 +376,6 @@ class Search_helper_model extends CI_Model {
 			$countries[$country['cid']]=$country;
 		}
 		
-		//echo $this->db->last_query();
 		return $countries;
 	}
 	
