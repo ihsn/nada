@@ -84,8 +84,14 @@ class Catalog extends MY_Controller {
 		{
 			$this->search();return;
 		}
-
-		$this->template->add_js('javascript/datacatalog.js?v=1');		
+		
+		//unpublished repos are visible to limited admins or admins only
+		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$this->active_repo['repositoryid']);
+		
+		$embed_js=$this->load->view('catalog_search/js_translations',NULL,TRUE);
+		$this->template->add_js($embed_js,'embed');
+		
+		$this->template->add_js('javascript/datacatalog.js');
 		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
@@ -95,7 +101,7 @@ class Catalog extends MY_Controller {
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
 		$this->template->add_js('javascript/jquery.scrollTo-min.js');
 		$this->template->add_js('javascript/jquery.blockui.js');
-		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css?v=1');		
+		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');
 		
 		//page description metatags
 		$this->template->add_meta("description",t('meta_description_catalog'));
@@ -105,6 +111,8 @@ class Catalog extends MY_Controller {
 		
 		$search_options=new StdClass;
 		$data=array();
+		
+		$this->da_search='yes';
 		
 		//get list of DA types available for current repository
 		if ($this->da_search)
@@ -540,16 +548,11 @@ class Catalog extends MY_Controller {
 		if ($this->uri->segment(4)!==FALSE)
       {
         show_404();
-      }  
-      	
-		echo $this->load->view('catalog_search/search_help', NULL,true);return;
-		
-		$this->template->set_template('blank');	
-		$this->template->write('title', t('catalog_search_help'),true);
-		$contents=$this->load->view('catalog_search/search_help', NULL,true);
-		
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();		
+      } 
+	  
+	  	$this->lang->load("search_help");
+	   
+      	echo t('keyword_search_help');exit;
 	}
 	
 
@@ -617,7 +620,12 @@ class Catalog extends MY_Controller {
 		}		
 	
 		$this->load->model('Catalog_model');
+		$this->Catalog_model->increment_study_download_count($id);
+		
 		header("Content-Type: application/xml");
+		header('Content-Encoding: UTF-8');
+		header( "Content-Disposition: attachment;filename=study-$id.rdf");
+
 		echo $this->Catalog_model->get_survey_rdf($id);
 	}
 	
@@ -647,6 +655,9 @@ class Catalog extends MY_Controller {
 		{
 			show_404();
 		}
+		
+		$this->Catalog_model->increment_study_download_count($id);
+		
 
 		if (file_exists($ddi_file))
 		{
@@ -1195,6 +1206,9 @@ class Catalog extends MY_Controller {
 		$this->load->model("repository_model");
 		$additional_data=NULL;
 		$repo=NULL;
+		
+		//unpublished repos are visible to limited admins or admins only
+		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
 		
 		if ($repositoryid=='central')
 		{
