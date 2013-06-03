@@ -1,9 +1,5 @@
 <div class="body-container" style="padding:10px;">
 
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/vocabularies/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('add_vocabulary');?></a> 
-</div>
-        
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
