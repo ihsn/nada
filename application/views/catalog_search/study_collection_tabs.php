@@ -15,6 +15,13 @@ else{
 			);			
 }
 ?>
+
+<?php if(isset($repo['ispublished']) && intval($repo['ispublished'])===0):?>
+	<div class="content-unpublished"><?php echo t('content_is_not_published');?></div>
+<?php endif;?>
+
+
+
 <h2><?php echo $repo['title'];?></h2>
 <div class="tab-style-1">
 <div id="collection-tabs" style="" class="ui-tabs ui-widget ui-widget-content ui-corner-all study-tabs">

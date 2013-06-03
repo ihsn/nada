@@ -161,8 +161,6 @@ var i18n=
 'collections_selected':"<?php echo t('js_collections_selected');?>",
 'country_selected':"<?php echo t('js_country_selected');?>",
 'countries_selected':"<?php echo t('js_countries_selected');?>",
-'center_selected':"<?php echo t('js_center_selected');?>",
-'centers_selected':"<?php echo t('js_centers_selected');?>",
 'collection_selected':"<?php echo t('js_collection_selected');?>",
 'collections_selected':"<?php echo t('js_collections_selected');?>",
 'cancel':"<?php echo t('cancel');?>"

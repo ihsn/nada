@@ -136,13 +136,13 @@
                 <?php endif;?>
             </div>
 			<div class="survey-stats">
-            	<span><?php echo t('Created on');?>: <?php echo date('M d, Y',$row['created']);?></span>
-                <span><?php echo t('Last modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
-                <span><?php echo t('Views');?>: <?php echo (int)$row['total_views'];?></span>
-                <span><?php echo t('Downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
+            	<span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span>
+                <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
+                <span><?php echo t('views');?>: <?php echo (int)$row['total_views'];?></span>
+                <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
                 <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
                     <span>
-                    <a title="<?php echo t('Related citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('Citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
+                    <a title="<?php echo t('related_citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('Citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
                     </span>                    
             	<?php endif;?> 
             </div>
@@ -181,13 +181,14 @@
 </div>
 <div class="light switch-page-size">
     <?php echo t('select_number_of_records_per_page');?>:
-    <span class="btn">15</span>
-    <span class="btn">30</span>
-    <span class="btn">50</span>
-    <span class="btn">100</span>
+    <span class="btn btn-mini">15</span>
+    <span class="btn btn-mini">30</span>
+    <span class="btn btn-mini">50</span>
+    <span class="btn btn-mini">100</span>
 </div>
 
 <?php else: ?>
 	<div style="padding:10px;background:white;border:1px solid gainboro;margin-bottom:20px;"><?php echo t('search_no_results');?></div>
+    <div><span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span></div>
 <?php endif; ?>
 <?php $this->load->view('tracker/tracker');?>

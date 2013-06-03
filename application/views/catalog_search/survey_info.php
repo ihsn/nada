@@ -83,12 +83,14 @@
             <?php if (file_exists($report_file)):?>
             <span class="link-col sep">
                 <a href="<?php echo site_url()."/ddibrowser/$id/export/?format=pdf&generate=yes";?>" title="<?php echo t('pdf');?>" rel="nofollow">
-                <img border="0" title="<?php echo t('link_pdf');?>" alt="PDF" src="images/pdf.gif" /> <?php echo t('Documentation in PDF');?>
+                <img border="0" title="<?php echo t('link_pdf');?>" alt="PDF" src="images/pdf.gif" /> <?php echo t('documentation_in_pdf');?>
                 </a> 
             </span>
             <?php endif;?>
-            <span class="link-col sep"><a href="<?php echo site_url('catalog/ddi').'/'.$id;?>"><?php echo t('Download DDI');?></a></span>
-            <span class="link-col"><a href="<?php echo site_url('catalog/rdf').'/'.$id;?>"><?php echo t('Download RDF');?></a></span>    
+            <span class="link-col sep"><a href="<?php echo site_url('catalog/ddi').'/'.$id;?>"><?php echo t('download_ddi');?></a></span>
+            <?php if ($has_resources):?>
+            <span class="link-col"><a href="<?php echo site_url('catalog/rdf').'/'.$id;?>"><?php echo t('download_rdf');?></a></span>    
+            <?php endif;?>
         </td>
     </tr>
     
@@ -99,7 +101,7 @@
 			<!-- indicators -->
             <span class="link-col">
 			 <?php if($link_indicator!=''): ?>
-                <a target="_blank"  href="<?php echo site_url().'/catalog/download/'.$id.'/'.base64_encode($link_indicator);?>" title="<?php echo t('link_indicators_hover');?>">
+                <a target="_blank"  href="<?php echo site_url("/catalog/$id/link/interactive");?>" title="<?php echo t('link_indicators_hover');?>">
                     <img border="0" alt="<?php echo t('link_indicators');?>" src="images/page_white_database.png" /> <?php echo t('link_indicators_hover');?>
                 </a>
             <?php endif; ?>
@@ -107,7 +109,7 @@
             
             <span class="link-col">
             <?php if($link_study!=''): ?>
-                    <a  target="_blank" href="<?php echo site_url().'/catalog/download/'.$id.'/'.base64_encode($link_study);?>" title="<?php echo t('link_study_website_hover');?>">
+                    <a  target="_blank" href="<?php echo site_url("/catalog/$id/link/study-website");?>" title="<?php echo t('link_study_website_hover');?>">
                         <img border="0" title="<?php echo t('link_study_website_hover');?>" alt="<?php echo t('link_study_website');?>" src="images/page_white_world.png" /> <?php echo t('link_study_website');?>
                     </a>
             <?php endif; ?>
@@ -121,19 +123,19 @@
 <div class="study-statistics-box">
 <table class="grid-table">
  <tr>
-    <td><?php echo t('Created On');?></td>
+    <td><?php echo t('created_on');?></td>
     <td><?php echo date("M d, Y",$created);?></td>
     </tr>
     <tr>
-    <td><?php echo t('Last Modified');?></td>
+    <td><?php echo t('last_modified');?></td>
     <td><?php echo date("M d, Y",$changed);?></td>
     </tr>
 <tr>
-	<td><?php echo t('Page Views');?></td>
+	<td><?php echo t('page_views');?></td>
     <td><?php echo $total_views;?></td>
 </tr>
 <tr>
-	<td><?php echo t('Downloads');?></td>
+	<td><?php echo t('downloads');?></td>
     <td><?php echo $total_downloads;?></td>
 </tr>
 </table>
