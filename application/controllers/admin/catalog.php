@@ -220,8 +220,8 @@ class Catalog extends MY_Controller {
 			}
 		
 			//survey repository owners/links
-			$survey_repos=$this->Repository_model->get_survey_repositories($survey_id_array);
-		
+			$survey_repos=(array)$this->Repository_model->get_survey_repositories($survey_id_array);
+			
 			$survey_lic_pending=$this->Licensed_model->get_pending_requests_count($survey_id_array);
 			
 			//attach survey repositories
@@ -455,6 +455,11 @@ class Catalog extends MY_Controller {
 	 **/
 	function add_study()
 	{		
+
+		//user has permissions on the repo
+		$this->acl->user_has_repository_access($this->active_repo->id);
+		
+
 		$this->template->set_template('admin');			
 	
 		//show upload form when no DDI is uploaded
@@ -469,9 +474,6 @@ class Catalog extends MY_Controller {
 		$overwrite=$this->input->post("overwrite");
 		$repositoryid=$this->input->post("repositoryid");
 
-		//user has permissions on the repo
-		$this->acl->user_has_repository_access($repositoryid);
-		
 		if($overwrite=='yes')
 		{
 			$overwrite=TRUE;
@@ -918,6 +920,8 @@ exit;
 	
 	function batch_refresh()
 	{
+		$this->acl->user_has_repository_access($this->active_repo->id);
+		
 		//list of all surveys
 		$data['surveys']=$this->Catalog_model->select_all_compact();
 		//show
@@ -934,6 +938,8 @@ exit;
 	**/
 	function refresh($id=NULL)
 	{
+		$this->acl->user_has_repository_access($this->active_repo->id);
+	
 		if (!is_numeric($id))
 		{
 			show_404();
@@ -1003,7 +1009,7 @@ exit;
 		}
 
 		//display import success 
-		$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
+		$success=t('study_metadata_updated');
 		log_message('DEBUG', 'Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables');
 		
 		if ($is_ajax)
@@ -1012,7 +1018,7 @@ exit;
 		}
 			
 		$this->session->set_flashdata('message', $success);			
-		redirect('admin/catalog','refresh');		
+		redirect('admin/catalog/edit/'.$id,'refresh');		
 	}
 	
 
@@ -1105,7 +1111,10 @@ exit;
 	 * @return void
 	 **/
 	function batch_import()
-	{
+	{		
+		//user has permissions on the repo
+		$this->acl->user_has_repository_access($this->active_repo->id);
+		
 		$this->load->helper('file');
 		
 		//import folder path
@@ -1634,6 +1643,10 @@ exit;
 	
 	function copy_study()
 	{	
+	
+		//user has permissions on the repo
+		$this->acl->user_has_repository_access($this->active_repo->id);
+		
 		$this->template->add_css('themes/admin/catalog_admin.css');
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 		
@@ -1722,6 +1735,9 @@ exit;
 	**/
 	function transfer($surveyid=NULL)
 	{
+		//user has permissions on the repo
+		$this->acl->user_has_repository_access($this->active_repo->id);
+		
 		if ($surveyid==NULL && !$this->input->post("sid"))
 		{
 			show_error("PARAM_MISSING");
