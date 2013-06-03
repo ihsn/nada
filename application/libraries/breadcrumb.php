@@ -384,7 +384,10 @@ class Breadcrumb
 			$active_repo=(object)$this->ci->Repository_model->get_central_catalog_array();
 		}
 		
-		if ($segments[2]!=='repositories')
+		//section to hide the collection link
+		$excluded_sections=array('users','repositories','citations','reports','configurations','countries','regions','terms','vocabularies','menu');
+		
+		if (!in_array($segments[2],$excluded_sections))
 		{
 			$breadcrumbs['admin/repositories/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
 		}	
@@ -603,7 +606,16 @@ class Breadcrumb
 				case 'upload':
 					$breadcrumbs['admin/resources/upload/'.$segments[4]]=t('upload_resources');
 				break;
-
+			}
+		}
+		
+		if ($segments[2]=='managefiles')
+		{
+			switch ($segments[4])
+			{
+				case 'edit':
+					$breadcrumbs['admin/catalog/edit/'.$segments[3]]=$this->get_study_title($segments[3]);
+				break;
 			}
 		}
 		
