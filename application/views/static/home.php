@@ -339,6 +339,7 @@ background:black;color:white;
   </div>
 </div>
 
+<?php /* ?>
 <!-- faqs -->
 <div class="box-style-1" >
   <div class="header">
@@ -356,7 +357,7 @@ background:black;color:white;
     </div>
   </div>
 </div>
-
+<?php */ ?>
 
 
 <?php if (isset($popular_surveys) && is_array($popular_surveys)):?>
