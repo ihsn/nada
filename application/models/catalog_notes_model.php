@@ -81,6 +81,22 @@ class Catalog_Notes_model extends CI_Model {
 		$this->db->order_by('created', 'DESC');
 		return $this->db->get('survey_notes')->result_array();
 	}
+	
+	//check if user is the owner of the note
+	public function is_note_owner($note_id, $user_id)
+	{
+		$this->db->select("count(*) as found");
+		$this->db->where('userid', $user_id);
+		$this->db->where('id', $note_id);
+		$result=$this->db->get('survey_notes')->row_array();
+		
+		if($result['found']>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
+	}
 
 	
 }
