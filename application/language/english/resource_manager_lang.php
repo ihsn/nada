@@ -7,8 +7,8 @@ $lang['create_folder_failed'] = "Failed to create the folder: ";
 $lang['folder_not_found'] = "Folder was not found: ";
 $lang['file_delete_failed'] = "File was not deleted: ";
 
-$lang['manage_files'] = "Manage Files";
-$lang['external_resources'] = "External Resources";
+$lang['manage_files'] = "Manage files";
+$lang['external_resources'] = "External resources";
 
 $lang['delete_selection'] = "Delete selection";
 $lang['folder'] = "Folder";
@@ -19,7 +19,7 @@ $lang['upload_files'] = "Upload files";
 $lang['not_linked'] = "Not linked";
 $lang['data_files'] = "Data files";
 $lang['other_resources'] = "Other resources";
-$lang['total_files_count'] = "Total files count: "; 
+$lang['total_files_count'] = "Total file count: "; 
 $lang['data_selection_apply_to_files'] = "The data access type selection will apply to the following files"; 
 $lang['links'] = "Links";
 $lang['study_no_data_files_assigned'] = 'No files have been assigned as data files in this study. To assign data files use the %s tab'; 
@@ -139,6 +139,9 @@ $lang['status'] = "Status";
 $lang['file_delete_success'] = "File was deleted successfuly!";
 $lang['additional_info'] = "Additional Information";
 $lang['remote_data_access_url'] = "Provide URL to external repository";
+$lang['upload_external_resources'] = "Upload External Resources";
+$lang['return_to_study_edit_page'] = "Return to study edit page";
+
 
 /* End of file resource_manager_lang.php */
 /* Location: ./system/language/english/resource_manager_lang.php */
