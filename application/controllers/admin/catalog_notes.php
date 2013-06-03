@@ -29,7 +29,8 @@ class Catalog_Notes extends MY_Controller {
 			$data=array(
 				'note'			=>'',
 				'type'			=>'',
-				'action_url'	=>site_url('admin/catalog_notes/add/'.$id)
+				'action_url'	=>site_url('admin/catalog_notes/add/'.$id),
+				'show_note_types'=>true
 			);
 			$this->load->view('catalog/study_notes_edit',$data);
 			return;
@@ -75,6 +76,7 @@ class Catalog_Notes extends MY_Controller {
 		{
 			$note=$this->Catalog_Notes_model->single($id);
 			$note['action_url']=site_url('admin/catalog_notes/edit/'.$id);
+			$note['show_note_types']=TRUE;
 			$this->load->view('catalog/study_notes_edit',$note);
 			return;
 		}
