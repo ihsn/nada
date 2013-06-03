@@ -1,5 +1,5 @@
 <div class="filter-box">
-    <h3><?php echo t('Filter by year');?></h3> 
+    <h3><?php echo t('filter_by_year');?></h3> 
 
 	<div>   	
         <input type="hidden"/>

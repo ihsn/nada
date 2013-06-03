@@ -9,7 +9,7 @@
 <div id="collections-container">
     <div class="any">    	
         <input type="checkbox" class="chk-any" id="collection-any"  <?php echo $search_options->collection!="" ? '' : 'checked="checked"';?> />
-        <label for="collection-any">Any</label>
+        <label for="collection-any"><?php echo t('any');?></label>
     </div>
 
 	<div class="items-container  collection-items <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
@@ -33,7 +33,7 @@
     
 <?php if(count($repositories)>$item_limit):?>    
     <div class="filter-footer">
-    <input type="button" class="btn-select" value="View / Select More" id="btn-collection-selection" data-dialog-id="dialog-collections" data-dialog-title="Select Collections" data-url="index.php/catalog/collection_selection"/>
+    <input type="button" class="btn-select" value="<?php echo t('view_select_more');?>" id="btn-collection-selection" data-dialog-id="dialog-collections" data-dialog-title="<?php echo t('select_collections');?>" data-url="index.php/catalog/collection_selection"/>
     </div>
 <?php endif;?>    
 </div>

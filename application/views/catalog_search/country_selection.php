@@ -14,9 +14,9 @@ $(document).ready(function()  {
 </script>
 <div id="tabs">
   <ul>
-    <li class="first"><a href="<?php echo $referer;?>#tabs-1">In Alphabatic order</a></li>
+    <li class="first"><a href="<?php echo $referer;?>#tabs-1"><?php echo t('in_alphabatic_order');?></a></li>
     <?php foreach($regions as $region):?>
-    	<li><a href="<?php echo $referer;?>#tabs-region-<?php echo $region['id'];?>"><?php echo $region['title'];?></a></li>
+    	<li><a href="<?php echo $referer;?>#tabs-region-<?php echo $region['id'];?>"><?php echo t($region['title']);?></a></li>
   	<?php endforeach;?>  
   </ul>
   <div id="tabs-1">

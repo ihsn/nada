@@ -1,4 +1,5 @@
 <?php 
+	if(!isset($topics)){return;}
 	$item_limit=7;
 ?>
 
@@ -9,7 +10,7 @@
 <div id="topics-container">
     <div class="any">    	
         <input type="checkbox" class="chk-any" id="topic-any"  <?php echo $search_options->topic!="" ? '' : 'checked="checked"';?> />
-        <label for="topic-any">Any</label>
+        <label for="topic-any"><?php echo t('any');?></label>
     </div>
 	<div class="items-container topic-items <?php //echo (count($topics)>10) ? 'scrollable' : ''; ?>">
 	<?php if($topics):?>
@@ -32,7 +33,7 @@
     </div>
         
     <div class="filter-footer">
-    <input type="button" class="btn-select" value="View / Select More" id="btn-topic-selection" data-dialog-id="dialog-topics" data-dialog-title="Select Topics" data-url="index.php/catalog/topic_selection/<?php echo $active_repo;?>"/>
+    <input type="button" class="btn-select" value="<?php echo t('view_select_more');?>" id="btn-topic-selection" data-dialog-id="dialog-topics" data-dialog-title="<?php echo t('select_topics');?>" data-url="index.php/catalog/topic_selection/<?php echo $active_repo;?>"/>
     </div>
     
 </div>

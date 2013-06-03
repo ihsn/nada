@@ -55,7 +55,7 @@ else{
     <?php endif;?>
     <?php if ($search_options->from!='' && $search_options->to!=''):?>
 		<?php if ( $search_options->from!=$min_year || $search_options->to!=$max_year ):?>
-            <span class="remove-filter years" data-type="years" data-value="0">between <?php echo $search_options->from;?>-<?php echo $search_options->to;?></span>
+            <span class="remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo $search_options->from;?>-<?php echo $search_options->to;?></span>
         <?php endif;?>
     <?php endif;?>
     
@@ -68,7 +68,7 @@ else{
     <?php endif;?>
 
 	<?php if($found!=$total):?>
-        <span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('Reset search');?></a></span>
+        <span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span>
     <?php endif;?>
 </div>
 <div class="filter-action-bar">

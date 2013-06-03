@@ -9,7 +9,7 @@
 <div id="countries-container" >
     <div class="country any country-any">    	
         <input type="checkbox" class="chk-country-any chk-any" id="country-any"  <?php echo $search_options->country!="" ? '' : 'checked="checked"';?> />
-        <label for="country-any">Any</label>
+        <label for="country-any"><?php echo t('any');?></label>
     </div>
 	<div class="country-items items-container <?php //echo (count($countries)>10) ? 'scrollable' : ''; ?>">
 	<?php if($countries):?>
@@ -35,7 +35,7 @@
     <?php endif; */ ?>
     
     <div class="filter-footer">
-    <input type="button" class="btn-select" value="View / Select More" id="btn-country-selection" data-dialog-id="dialog-countries" data-dialog-title="Select Countries" data-url="index.php/catalog/country_selection/<?php echo $active_repo;?>"/>
+    <input type="button" class="btn-select" value="<?php echo t('view_select_more');?>" id="btn-country-selection" data-dialog-id="dialog-countries" data-dialog-title="<?php echo t('select_countries');?>" data-url="index.php/catalog/country_selection/<?php echo $active_repo;?>"/>
     </div>
     
 </div>

@@ -10,8 +10,8 @@
 </style>
 <?php if ($rows && $this->input->get("view")!='v'):?>
 	<div>
-    	<h1>Data catalog: <?php echo site_url().'/catalog/';?></h1>
-        <h2>Created on: <?php echo date("M-d-Y",date("U"));?></h2>
+    	<h1><?php echo t('data_catalog');?>: <?php echo site_url().'/catalog/';?></h1>
+        <h2><?php echo t('created_on');?>: <?php echo date("M-d-Y",date("U"));?></h2>
     </div>
 	<br/>
     <br/>

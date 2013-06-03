@@ -9,7 +9,7 @@
 
     <div class="filter-da any" >
         <input type="checkbox" class="chk-da-any" id="chk-da-any"  <?php echo $search_options->dtype!="" ? '' : 'checked="checked"';?> />
-        <label for="chk-da-any">Any</label>
+        <label for="chk-da-any"><?php echo t('any');?></label>
     </div>
     
     <div class="filter-da items-container">
