@@ -129,9 +129,9 @@ text-transform: capitalize;
             <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>
             <td class="">
             	<?php if (!in_array($row['id'],$linked_studies)):?>
-            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/do_copy_study/'.$active_repo->repositoryid.'/'.$row['id']);?>"><?php echo t('select'); ?></a>
+            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/do_copy_study/'.$active_repo->repositoryid.'/'.$row['id']);?>"><?php echo t('link_study'); ?></a>
                 <?php else:?>
-                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/unlink/'.$active_repo->repositoryid.'/'.$row['id']);?>"><?php echo t('deselect') ?></a>
+                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/unlink/'.$active_repo->repositoryid.'/'.$row['id']);?>"><?php echo t('unlink_study') ?></a>
 				<?php endif?>                
             </td>
             
@@ -170,7 +170,7 @@ jQuery(document).ready(function(){
 	
 		$(document.body).on("click","#surveys a.attach", function(event){ 
 			$.get($(this).attr("href"));
-			$(this).html("<?php echo t('deselect'); ?>");
+			$(this).html("<?php echo t('unlink_study'); ?>");
 			$(this).removeClass("attach").addClass("remove");
 			var sid=$(this).attr("data-value");
 			$(this).attr("href",detach_url+sid);
@@ -179,7 +179,7 @@ jQuery(document).ready(function(){
 	
 		$(document.body).on("click","#surveys a.remove", function(event){ 
 			$.get($(this).attr("href"));
-			$(this).html("<?php echo t('select'); ?>");	
+			$(this).html("<?php echo t('link'); ?>");	
 			$(this).removeClass("remove").addClass("attach");
 			var sid=$(this).attr("data-value");
 			$(this).attr("href",detach_url+sid);
