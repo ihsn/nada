@@ -28,7 +28,7 @@ foreach($user_repositories as $repo)
 <?php if (isset($surveys) && count($surveys)>0):?>
 	<?php echo form_open_multipart('admin/catalog/transfer', array('class'=>'form'));?>
     
-    <p>Please select the Repository from the list below to transfer ownership.</p>
+    <p><?php echo t('select_the_repository_from_the_list_below');?></p>
     <div class="field">
         <label for="repositoryid"><?php echo t('msg_select_repository');?></label>
         <?php echo form_dropdown('repositoryid', $repositories_list); ?>
@@ -45,7 +45,7 @@ foreach($user_repositories as $repo)
     
     <div class="field">
     	<?php echo form_submit('submit',t('transfer')); ?>
-    <?php echo anchor('admin/catalog',t('cancel'),array('class'=>'button'));?>
+    <?php echo anchor('admin/catalog',t('cancel'));?>
     </div>
     <?php echo form_close();?>
     
