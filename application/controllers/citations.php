@@ -27,17 +27,23 @@ class Citations extends MY_Controller {
  
 	function index()
 	{	
-		$collection=$this->input->get("collection");
+		$repo=$this->get_repo_by_id($this->input->get("collection"));
+		$collection='central';
+		
+		if($repo)
+		{
+			$collection=$repo['repositoryid'];
+		}
+		
 		$data['rows']=$this->_search();	
 		$data['active_repo']=$collection;
 		$content=$this->load->view('citations/public_search', $data,true);
-		
+				
 		if ($collection!=='')
 		{			
-			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->get_repo_by_id($collection),'active_tab'=>'citations'),TRUE);
+			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$repo,'active_tab'=>'citations'),TRUE);
 		}
-		
-		
+				
 		$this->template->write('title', t('citations'),true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
@@ -132,11 +138,17 @@ class Citations extends MY_Controller {
 		$content=$this->load->view('citations/citation_info',$citation,TRUE);
 		$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
 		
-		$collection=$this->input->get("collection");
+		$repo=$this->get_repo_by_id($this->input->get("collection"));
+		$collection='central';
 		
+		if($repo)
+		{
+			$collection=$repo['repositoryid'];
+		}
+				
 		if ($collection!=='')
 		{			
-			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->get_repo_by_id($collection),'active_tab'=>'citations'),TRUE);
+			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$repo,'active_tab'=>'citations'),TRUE);
 		}
 		
 
