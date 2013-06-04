@@ -44,7 +44,7 @@ $(document).ready(function () {
 <h1 class="page-title"><?php echo t('citations');?></h1>
 <form class="search-box" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <input type="hidden" name="collection" value="<?php echo $active_repo;?>"/>
+  <input type="hidden" name="collection" value="<?php echo form_prep($active_repo);?>"/>
   <select name="field" id="field">
     <option value="all"	<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields')?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title')?></option>
