@@ -8,10 +8,10 @@
 */
 
 //omniture dev account
-$config['omniture_s_account_dev']='DEVWBTSTSAMP3';
+$config['omniture_s_account_dev']='';
 
 //omniture prod account
-$config['omniture_s_account_prod']='wbnispmdl,wbglobalext';
+$config['omniture_s_account_prod']='';
 
 //omniture page name
 $config['omniture_pagename']='Data > Data Catalog > ';
