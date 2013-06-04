@@ -537,7 +537,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//get study codebook ID from the DDI file
-		$this->load->library('ddi_parser');
+		$this->load->library('DDI_Parser','ddi_parser');
 		$codebook_id=$this->ddi_parser->get_ddi_codebook_id($uploaded_ddi_path);
 		
 		if (!$codebook_id)
@@ -721,7 +721,7 @@ exit;
 		$ddi_file=$session_data['upload_data']['full_path'];
 		
 		//load DDI Parser Library
-		$this->load->library('DDI_Parser');
+		$this->load->library('DDI_Parser','ddi_parser');
 		$this->load->library('DDI_Import','','DDI_Import');
 
 		//set file for parsing
