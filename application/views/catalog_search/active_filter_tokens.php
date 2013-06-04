@@ -50,7 +50,9 @@ else{
 
     <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
 		<?php foreach($search_options->dtype as $dtype):?>
+        <?php if (in_array($search_options->dtype,$data_access_types)):?>
             <span class="remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?></span>
+    	<?php endif;?>        
         <?php endforeach;?>
     <?php endif;?>
     <?php if ($search_options->from!='' && $search_options->to!=''):?>
