@@ -221,7 +221,7 @@ CREATE TABLE `survey_tags` (
   `sid` int(11) NOT NULL,
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_tag` (`sid`,`tag`) USING BTREE
+  UNIQUE KEY `uq_tag` (`sid`,`tag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1094,7 +1094,7 @@ LOCK TABLES `menus` WRITE;
 INSERT INTO `menus` VALUES 
 (53,'catalog','Microdata  Catalog','',1,'0',1300807037,1,1,0),
 (55,'citations','Citations',NULL,1,'0',1281460217,1,2,0),
-(55,'home','Home',NULL,1,'0',1281460217,1,0,0),
+(55,'home','Home',NULL,1,'0',1281460217,1,0,0);
 /*!40000 ALTER TABLE `menus` ENABLE KEYS */;
 UNLOCK TABLES;
 
