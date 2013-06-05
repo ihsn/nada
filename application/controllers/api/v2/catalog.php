@@ -146,7 +146,7 @@ class Catalog extends REST_Controller
 		
 	}
 	
-	//e.g. catalog/sampling?id=[study-id]
+	//e.g. catalog/sampling?id=[std
 	private function _get_study_part($method)
 	{
 		$id=$this->get('id');
