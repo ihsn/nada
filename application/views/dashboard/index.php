@@ -46,7 +46,8 @@
 	.important{color:maroon;}
 	.dashboard-box-footer{padding:0px;font-size:12px;background:#F1F1F1;}
 	.dashboard-box-footer .actions .btn a{color:white;}
-	.collection-central .btn-edit{display:none;}
+	.collection-central .btn-edit,
+	.collection-central .btn-admin{display:none;}
 </style>
 <div class="content-container">
 
@@ -121,7 +122,7 @@
                 <div class="dashboard-box-footer">
                 	<div class="actions">
                 	<span class="btn btn-mini btn-success"><a href="<?php echo site_url('admin/repositories/active/'.$collection['id'].'?destination=admin/catalog');?>"><?php echo t('Maintenance');?></a></span> 
-                	<span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/permissions/'.$collection['id'], t('Administrators'));?></span>
+                	<span class="btn btn-mini btn-success btn-admin"><?php echo anchor('admin/repositories/permissions/'.$collection['id'], t('Administrators'));?></span>
                     <span class="btn btn-mini btn-success"><?php echo anchor('admin/repositories/history/'.$collection['repositoryid'], t('History'));?></span>
                     <span class="btn btn-mini btn-success btn-edit"><?php echo anchor('admin/repositories/edit/'.$collection['id'], t('Edit'));?></span>
                     </div>
