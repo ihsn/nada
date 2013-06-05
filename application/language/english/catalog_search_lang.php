@@ -173,5 +173,10 @@ $lang['next'] = "Next";
 
 $lang['search_by_keyword'] = "Search by Keyword";
 $lang['filter_by_year'] = "Filter by Year";
+
+$lang['tab_about'] = "About";
+$lang['tab_datasets'] = "Datasets";
+$lang['tab_citations'] = "Citations";
+
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
