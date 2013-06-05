@@ -91,7 +91,8 @@
            <span><?php echo form_radio('active', '0', $active!=1);?> <?php echo t('user_blocked');?> </span>
       </div>
 
-	<div class="field">
+	<?php /* ?>
+    <div class="field">
         <label for="user_groups"><?php echo t('select_user_group');?></label>
         <div class="user_groups">
         <?php foreach($user_groups as $group):?>
@@ -104,6 +105,7 @@
 		<?php endforeach;?>
         </div>        
     </div>
+	<?php */ ?>
     
      <?php echo form_submit('submit', t('create'));?>
      <?php echo anchor('admin/users', t('cancel'));?>
