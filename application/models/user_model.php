@@ -208,6 +208,11 @@ class User_model extends CI_Model {
 	 **/
 	public function get_user_groups($id_arr=array())
 	{
+		if (is_array($id_arr) && count($id_arr) ==0 )
+		{
+			return FALSE;
+		}
+
 	    $this->db->flush_cache();
 		$this->db->select('group_id,user_id,name');
 		$this->db->where_in('user_id', $id_arr);
