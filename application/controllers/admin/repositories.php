@@ -236,7 +236,7 @@ class Repositories extends MY_Controller {
 							
 				if ($db_result===TRUE)
 				{
-					if (isset($options['ispublished']))
+					if (isset($options['ispublished']) && is_numeric($id))
 					{
 						//update collection studies status
 						$this->publish($id,$options['ispublished']);
