@@ -79,11 +79,6 @@ $repository_types=array(
     <table width="100%">
         <tr>
             <td>
-                <select id="batch_actions">
-                    <option value="-1"><?php echo t('batch_actions');?></option>
-                    <option value="delete"><?php echo t('delete');?></option>
-                </select>
-                <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>                
             </td>
             <td align="right">
                 <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
@@ -94,7 +89,6 @@ $repository_types=array(
     <!-- grid -->
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
-        	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th>ID</th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>
@@ -107,7 +101,6 @@ $repository_types=array(
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="repo-row <?php echo $tr_class; ?>">
-        	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><?php echo strtoupper($row->repositoryid);?></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
@@ -139,30 +132,6 @@ $repository_types=array(
 
 //checkbox select/deselect
 jQuery(document).ready(function(){
-	$("#chk_toggle").click(
-			function (e) 
-			{
-				$('.chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
-			}
-	);
-	$(".chk").click(
-			function (e) 
-			{
-			   if (this.checked==false){
-				$("#chk_toggle").attr('checked', false);
-			   }			   
-			}
-	);			
-	$("#batch_actions_apply").click(
-		function (e){
-			if( $("#batch_actions").val()=="delete"){
-				batch_delete();
-			}
-		}
-	);
-	
 	//publish/unpublish
 	$(document.body).on("click",".repo-row .publish", function(){ 
 		if (!confirm("<?php echo t('confirm_collection_status_change');?>")){return false;}
@@ -191,39 +160,5 @@ jQuery(document).ready(function(){
 
 });
 
-function batch_delete(){
-	if ($('.chk:checked').length==0){
-		alert("You have not selected any items");
-		return false;
-	}
-	if (!confirm("Are you sure you want to delete the selected item(s)?"))
-	{
-		return false;
-	}
-	selected='';
-	$('.chk:checked').each(function(){ 
-		if (selected!=''){selected+=',';}
-        selected+= this.value; 
-     });
-	
-	$.ajax({
-		timeout:1000*120,
-		cache:false,
-        dataType: "json",
-		data:{ submit: "submit"},
-		type:'POST', 
-		url: CI.base_url+'/admin/menu/delete/'+selected+'/?ajax=true',
-		success: function(data) {
-			if (data.success){
-				location.reload();
-			}
-			else{
-				alert(data.error);
-			}
-		},
-		error: function(XHR, textStatus, thrownError) {
-			alert("Error occured " + XHR.status);
-		}
-	});	
-}
+
 </script>
