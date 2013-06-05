@@ -1033,6 +1033,10 @@ class DDIbrowser extends MY_Controller {
 		{
 			$allow_download=TRUE;
 		}
+		else if($data_access_type=='data_na' )
+		{
+			$allow_download=TRUE;
+		}
 		else{
 			if ($resource_is_microdata===TRUE)
 			{
