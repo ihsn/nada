@@ -19,9 +19,8 @@ margin-right: 8px;
 <?php
 $repo_types=array(
 	'0'=>'Internal',
-	'1'=>'External',
-	'2'=>'System'
-);
+	'1'=>'External'
+	);
 $options_published=array(
 	'0'=>'Unpublish',
 	'1'=>'Publish'
