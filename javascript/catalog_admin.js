@@ -104,7 +104,7 @@ jQuery(document).ready(function(){
 	   }			   
 	});			
 
-	$("#batch_actions_apply").click(
+	$(document.body).on("click","#batch_actions_apply", 
 		function (e){
 			if( $("#batch_actions").val()=="delete"){
 				batch_delete();
