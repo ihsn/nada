@@ -17,6 +17,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 DROP TABLE IF EXISTS `repositories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+
 CREATE TABLE `repositories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) DEFAULT NULL,
@@ -152,6 +153,10 @@ ADD COLUMN `total_views` INT(11) NULL DEFAULT '0'  AFTER `published` ,
 ADD COLUMN `total_downloads` INT(11) NULL DEFAULT '0'  AFTER `total_views` ,
 ADD COLUMN `stats_last_updated` INT(11) NULL DEFAULT NULL  AFTER `total_downloads` ;
 
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `abbreviation` varchar(45) NULL DEFAULT NULL, 
+ADD COLUMN `kindofdata` varchar(255) NULL DEFAULT NULL, 
+ADD COLUMN `keywords` text NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
 ADD COLUMN `ie_program` varchar(255) NULL DEFAULT NULL, 
@@ -162,6 +167,7 @@ ADD COLUMN `ie_team_leaders` varchar(255) NULL DEFAULT NULL,
 ADD COLUMN `project_id` varchar(255) NULL DEFAULT NULL, 
 ADD COLUMN `project_name` varchar(255) NULL DEFAULT NULL, 
 ADD COLUMN `project_uri` varchar(255) NULL DEFAULT NULL;
+
 
 
 ALTER TABLE `dctypes` COLLATE = utf8_general_ci ;
@@ -463,6 +469,8 @@ update surveys set published=1;
 # USERS
 ################################################################
 
+ALTER TABLE `users` CHANGE COLUMN `group_id` `group_id` INT(11) NULL DEFAULT 0 ;
+
 --
 -- Dumping data for table `groups`
 --
@@ -700,9 +708,12 @@ UNLOCK TABLES;
 LOCK TABLES `forms` WRITE;
 /*!40000 ALTER TABLE `forms` DISABLE KEYS */;
 INSERT INTO `forms` VALUES 
-(5,'Data available from external repository','remote','remote','1'),
+(5,'Data available from external repository','remote','remote','1');
+
+INSERT INTO `forms` VALUES 
 (6,'Data not available','data_na','data_na','1');
 /*!40000 ALTER TABLE `forms` ENABLE KEYS */;
 UNLOCK TABLES;
 
 update surveys set formid=6 where formid is null;
+update surveys set formid=6 where formid=0;
