@@ -55,12 +55,6 @@ class Collections extends MY_Controller {
 		$obj=NULL;
 		$content=NULL;
 		
-		//edit page link
-		if ($this->input->post("linktype")==1)
-		{
-			$this->edit_link($id);return;
-		}
-
 		//validation rules
 		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
 		$this->form_validation->set_rules('description', t('description'), 'xss_clean|trim');
