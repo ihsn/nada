@@ -3,7 +3,7 @@
 	.repository-container{overflow:auto;}
 	.repository-container .photo-big{float:left;margin-right:10px;}
 	.visit-catalog{text-align:right;margin:10px;padding-top:10px;}
-	a.color-white{color:white;}
+	a.color-white,.tab-style-1 .ui-widget-content a.color-white{color:white;}
 	ul.bull,.bull li{list-style-type:disc;margin-left:20px;}
 	ul.bull{margin-bottom:10px;}
 	.about-collection .repo-thumbnail{width:82px;height:82px;}
