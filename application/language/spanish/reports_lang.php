@@ -43,6 +43,10 @@ $lang['public_requests']="Solicitudes Públicas";
 $lang['dated']="Fecha";
 $lang['intended_use']="Intención de uso";
 $lang['details']="Detalles";
+$lang['missing_data']="Operaciones estadísticas sin archivos de datos";
+$lang['studies_data_access']="Operaciones estadísticas sin archivos de datos";
+$lang['repositoryid']="Repositorio";
+$lang['titl']="Título de la operación estadística";
 
 
 /* End of file reports_lang.php */

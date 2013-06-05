@@ -1,8 +1,8 @@
 <?php 
 $lang['public_request']="Solicitud de acceso al archivo de datos de uso público";
 $lang['request_date']="Fecha de Solicitud";
-$lang['study_title']="Título del estudio";
-$lang['study_id']="ID del Estudio";
+$lang['study_title']="Título de la operación estadística";
+$lang['study_id']="ID de la operación estadística";
 $lang['email']="Correo electrónico";
 $lang['request_id']="ID de la Solicitud";
 $lang['full_name']="Nombre completo";

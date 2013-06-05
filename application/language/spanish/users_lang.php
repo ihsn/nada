@@ -22,8 +22,9 @@ $lang['remember_me']="Recordarme";
 $lang['register']="Registrar nuevo usuario";
 $lang['forgot_password']="&iquest;Olvidó su contraseña?";
 $lang['user_registration']="Registro de usuario";
-$lang['math_question']="Pregunta matemática";
-$lang['provide_math_question_answer']="Indique la respuesta para la pregunta matemática";
+$lang['captcha_question']="Pregunta";
+$lang['captcha_provide_answer']="Ingrese el texto en el recuadro";
+$lang['invalid_captcha']="La respuesta no coincide con el recuadro.";
 $lang['account_created_email_confirmation']="Su cuenta ha sido creada, pero antes de iniciar su primera sesión, debe confirmar su dirección de correo electrónico. Las instrucciones para activar su cuenta de usuario han sido enviadas a su correo electrónico.";
 $lang['user_account_activated']="Su cuenta ha sido activada correctamente";
 $lang['user_account_activation']="Active su cuenta";
@@ -39,6 +40,7 @@ $lang['old_password']="Contraseña anterior";
 $lang['new_password']="Nueva Contraseña";
 $lang['confirm_new_password']="Confirme su nueva contraseña";
 $lang['change']="Cambiar";
+$lang['user_groups']="Grupos de Usuarios";
 $lang['ADMIN']="ADMIN";
 $lang['USER']="USUARIO";
 $lang['ACTIVE']="ACTIVO";
@@ -71,7 +73,21 @@ $lang['password_reset_to']="Su contraseña ha sido restablecida a <b>%s</b>. Par
 $lang['forgot_password_verification']="¿Ha olvidado su contraseña de usuario?";
 $lang['account_activation']="Activación de cuenta";
 $lang['callback_country_invalid']="El campo País es obligatorio";
-$lang['openid_url']="URL de OpenID";
+$lang['log_in']="Ingresar";
+$lang['site_login_privacy_terms']="La información que ingrese al momento de registrarse en este catálogo será utilizada de acuerdo a los términos de la institución <a href=&quot;http://www.ejemplo.org/politica&quot; target=&quot;_blank&quot;>Política de Privacidad</a>. ";
+$lang['impersonate_user']="Probar acceso con otro usuario";
+$lang['impersonate_msg']="Seleccionar el usuario de la lista para probar el acceso con dicho usuario";
+$lang['general_user_accounts']="Cuentas de usuario general (acceso no administrador)";
+$lang['general_user_accounts_description']="Usuarios generales del sitio sin acceso a la administración del sitio";
+$lang['edit_user_permissions']="Editar permisos de usuario";
+$lang['site_admin_accounts']="Administradores del sitio (acceso total ilimitado)";
+$lang['site_admin_accounts_description']="Control total sobre todas las secciones del sitio";
+$lang['site_admin_limited_accounts']="Administradores del sitio (acceso limitado)";
+$lang['site_admin_limited_accounts_description']="Limitar acceso al usuario a la administración del sitio y control de permisos por colección para el usuario";
+$lang['user_site_level_permissions']="Permisos a nivel del sitio";
+$lang['assigned_user_groups']="Roles globales de usuario";
+$lang['manage_permissions']="Administrar permisos";
+$lang['permissions_per_collection']="Permisos por colección";
 
 
 /* End of file users_lang.php */

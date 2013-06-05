@@ -1,5 +1,5 @@
 <?php 
-$lang['title_licensed_request']="Solicitud de datos con licencia";
+$lang['title_licensed_request']="Solicitud de acceso a datos con licencia";
 $lang['edit_licensed_request']="Editar la solicitud de datos con licencia";
 $lang['request_information']="Solicitud de información";
 $lang['first_name']="Nombre";
@@ -90,6 +90,27 @@ $lang['PENDING']="Pendiente";
 $lang['MOREINFO']="Se requiere información adicional";
 $lang['CANCELLED']="Cancelado";
 $lang['reason_login_licensed_access']="Para solicitar acceso a la base de datos con licencia, por favor, ingrese al sitio web para continuar.";
+$lang['forward_lic_request']="Reenviar solicitud";
+$lang['comments_history']="Historia de comentarios";
+$lang['view_comments_history']="Ver historia";
+$lang['comment_by']="Por";
+$lang['show_hide']="Mostrar/Ocultar";
+$lang['comment']="Comentario";
+$lang['communicate_history']="Historia";
+$lang['sent_by']="Enviado por";
+$lang['forward_history']="Reenviar Historia";
+$lang['data_restricted_use']="Los datos son provistos solo para los propósitos descriptos en el formulario de solicitud. Para poder utilizar los datos con cualquier otro propósito debe hacer una nueva solicitud.";
+$lang['data_request_for']="Solicitud de datos";
+$lang['request_history']="Ver historia de la solicitud";
+$lang['study_notes']="Ver notas de la operación estadística";
+$lang['note_type']="Tipo";
+$lang['note']="Nota";
+$lang['additional_info']="Información adicional solicitada";
+$lang['request_additional_info_submitted']="Gracias por actualizar la solicitud. Le notificaremos vía email una vez que su solicitud ha sido evaluada.";
+$lang['email_sent']="email enviado";
+$lang['provide_additonal_info_for_your_request']="Por favor, ingrese información adicional necesaria para procesar su solicitud de datos.";
+$lang['click_on_a_lic_request_to_see_status_or_download_data']="Hacer clic en una solicitud para ver el estado o descargar los microdatos de las solicitudes aprobadas.";
+$lang['make_new_lic_request']="Hacer una nueva solicitud";
 
 
 /* End of file licensed_request_lang.php */

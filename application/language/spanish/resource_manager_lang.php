@@ -1,6 +1,6 @@
 <?php 
 $lang['resource_manager']="Administración de Recursos";
-$lang['edit_resource']="Editar Recursos";
+$lang['edit_resource']="Editar Recurso";
 $lang['select_data_access_type']="Seleccionar tipo de acceso a datos";
 $lang['msg_select_data_access_type']="Seleccionar un tipo de acceso a datos";
 $lang['create_folder_failed']="No se pudo crear el directorio: ";
@@ -53,8 +53,8 @@ $lang['n_resources_fixed']="%d recursos han sido actualizados.  El detalle de la
 $lang['legend_not_fixed']="NO RESUELTO";
 $lang['legend_fixed']="RESUELTO";
 $lang['indicator_database']="Indicador de base de datos";
-$lang['study_website']="Sitio Web del Estudio";
-$lang['home_folder_hover']="Carpeta inicial del Estudio";
+$lang['study_website']="Sitio Web de la operación estadística";
+$lang['home_folder_hover']="Carpeta inicial de la operación estadística";
 $lang['home_folder']="Carpeta principal";
 $lang['folder_view']="Vista de carpetas";
 $lang['folder_view_hover']="Cambiar a la vista de carpetas";
@@ -68,10 +68,10 @@ $lang['Public use files']="Archivos de uso público";
 $lang['Data accessible only in data enclave']="Datos disponibles sólo en las instalaciones del productor";
 $lang['--Data not accessible to users--']="--Los datos no están disponibles para los usuarios--";
 $lang['msg_no_data_access_type_assigned']="No se ha especificado el tipo de acceso a los datos para esta operación estadística. Esto significa que no existen datos disponibles para bajar desde este sitio.";
-$lang['msg_licensed_data_access_type_assigned']="Tipo de Archivo con Licencia ha sido asignado a éste estudio. Esto significa que los usuarios tendrán que registrarse, iniciar sesión, y completar el formulario de solicitud de licencia de archivo para acceder al mismo.";
-$lang['msg_direct_data_access_type_assigned']="Tipo de Acceso Directo ha sido asignado a este estudio. Esto significa que los usuarios podrán descargar los datos directamente sin tener que estar Registrados en el sitio.";
-$lang['msg_public_data_access_type_assigned']="Tipo de Acceso Público ha sido asignado a éste estudio. Esto significa que los usuarios tendrán que registrarse e iniciar la sesión al sitio antes de poder descargar los datos.";
-$lang['msg_enclave_data_access_type_assigned']="Tipo de Acceso a Datos en las Instalaciones del Productor ha sido asignado a éste estudio. Esto significa que no hay datos disponibles para bajarlos del sitio y deberá ponerse en contacto con el productor de los datos para acceder a éstos.";
+$lang['msg_licensed_data_access_type_assigned']="Tipo de Archivo con Licencia ha sido asignado a esta operación estadística. Esto significa que los usuarios tendrán que registrarse, iniciar sesión, y completar el formulario de solicitud de licencia de archivo para acceder al mismo.";
+$lang['msg_direct_data_access_type_assigned']="Tipo de Acceso Directo ha sido asignado a esta operación estadística. Esto significa que los usuarios podrán descargar los datos directamente sin tener que estar Registrados en el sitio.";
+$lang['msg_public_data_access_type_assigned']="Tipo de Acceso Público ha sido asignado a esta operación estadística. Esto significa que los usuarios tendrán que registrarse e iniciar la sesión al sitio antes de poder descargar los datos.";
+$lang['msg_enclave_data_access_type_assigned']="Tipo de Acceso a Datos en las Instalaciones del Productor ha sido asignado a esta operación estadística. Esto significa que no hay datos disponibles para bajarlos del sitio y deberá ponerse en contacto con el productor de los datos para acceder a éstos.";
 $lang['Document, Administrative [doc/adm]']="Documento, Administrativo [doc/adm]";
 $lang['Document, Analytical [doc/anl]']="Documento, Analítico [doc/anl]";
 $lang['Document, Other [doc/oth]']="Documento, Otros [doc/oth]";
@@ -113,6 +113,8 @@ $lang['status']="Estado";
 $lang['file_delete_success']="¡El archivo fue eliminado con exito!";
 $lang['additional_info']="Información Adicional";
 $lang['remote_data_access_url']="Ingrese la dirección URL del repositorio externo";
+$lang['upload_external_resources']="Cargar Recursos Externos";
+$lang['return_to_study_edit_page']="Volver a la página de edición del estudio";
 
 
 /* End of file resource_manager_lang.php */
