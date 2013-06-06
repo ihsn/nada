@@ -651,44 +651,6 @@ class DDIbrowser extends MY_Controller {
 		{
 			show_404();
 		}
-		$html=$this->load->view('ddibrowser/export',NULL,TRUE);
-
-		$report_link='';
-
-		//check if post back
-		if ($this->input->post('generate'))
-		{
-			//original value set in config
-			$log_threshold= $this->config->item("log_threshold");
-			
-			//disable loggin
-			$this->config->set_item("log_threshold",0);			
-
-			if ($this->input->get_post("format")=='pdf')
-			{
-				$html.=$this->_export_pdf();
-			}
-			else
-			{
-				$html.=$this->_export_word();
-			}
-			
-			//reset threshold level to whatever was set in config
-			$this->config->set_item("log_threshold",$log_threshold);
-		}
-		
-		return $html;
-	}
-	
-	/**
-	*
-	* Export DDI to PDF and start Download
-	**/
-	function _export_pdf()
-	{
-		$surveyid=$this->uri->segment(2);
-		
-		$html=$this->load->view('ddibrowser/export',NULL,TRUE);
 
 		$report_link='';
 
@@ -707,59 +669,17 @@ class DDIbrowser extends MY_Controller {
 		//output report file name
 		$report_file=unix_path($this->survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$this->survey['id'].'.pdf');
 		
-		if (file_exists($report_file))
+		if (!file_exists($report_file))
 		{
-			//check if the file was created after the ddi creation date
-			if (filemtime($report_file) > filemtime($ddi_file))
-			{
-				$report_link=$report_file;
-			}	
+			show_error("PDF_NOT_AVAILABLE");
 		}
 			
-		if ($report_link=='')
-		{			
-			//report header
-			$this->survey['report_title']=$this->survey['titl']. ' - '.$this->survey['nation'];						
-			
-			//change error logging to 0	
-			$log_threshold= $this->config->item("log_threshold");
-			$this->config->set_item("log_threshold",0);
-
-			$start_time=date("H:i:s",date("U"));
-			
-			$options=array(
-				'publisher'			=>$this->survey['authenty'],
-				'website_title'		=>$this->config->item("website_title"),
-				'study_title'		=>$survey['nation']. ' - ' . $survey['titl'],
-				'website_url'		=>site_url(),
-				'study_id'			=>$surveyid,
-				'toc_variable'		=>1,
-				'data_dic_desc'		=>1,
-				'ext_resources'		=>1,
-			);
-			
-			//write PDF report to a file			
-			$this->pdf_report->generate($report_file,$ddi_file,$options);			
-			$end_time=date("H:i:s",date("U"));
-			
-			//log
-			$this->db_logger->write_log('survey','report generated '.$start_time.' -  '. $end_time,'ddi-report',$surveyid);
-
-			//reset threshold level			
-			$this->config->set_item("log_threshold",$log_threshold);
-			
-			$report_link=$report_file;
-		}
-		
-		if ($report_link!='')
-		{
-			$this->load->helper('download');
-			log_message('info','Downloading file <em>'.$report_link.'</em>');
-			force_download2($report_link);return;
-		}
-		
-		return 'Documentation could not be generated.';		
+		$this->load->helper('download');
+		log_message('info','Downloading file <em>'.$report_file.'</em>');
+		force_download2($report_file);return;
 	}
+	
+	
 
 	/**
 	* 
