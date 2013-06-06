@@ -708,6 +708,12 @@ class ACL
 		if($user_id==NULL)
 		{
 			$user=$this->current_user();
+			
+			if (!$user)
+			{
+				return FALSE;
+			}
+			
 			$user_id=$user->id;
 		}
 
