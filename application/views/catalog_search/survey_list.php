@@ -70,7 +70,7 @@
   echo "| ";
    
 	//popularity
-	echo create_sort_link($sort_by,$sort_order,'popularity',t('Popularity'),$page_url,array('sk','vk','vf') );
+	echo create_sort_link($sort_by,$sort_order,'popularity',t('popularity'),$page_url,array('sk','vk','vf') );
 	
 ?>
 </div>
@@ -142,7 +142,7 @@
                 <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
                 <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
                     <span>
-                    <a title="<?php echo t('related_citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('Citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
+                    <a title="<?php echo t('related_citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
                     </span>                    
             	<?php endif;?> 
             </div>
