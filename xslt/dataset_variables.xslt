@@ -20,6 +20,7 @@ License:
     The full text of the license is available at http://www.gnu.org/copyleft/lesser.html
 -->
 <xsl:stylesheet version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:i18n="http://toolkit.sf.net/i18n/messages" xmlns:ddi="http://www.icpsr.umich.edu/DDI" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:outline="http://worldbank.org/toolkit/cdrom/outline" exclude-result-prefixes="ddi outline">
+        <xsl:include href="gettext.xslt"/>
         <xsl:output method="html" version="1.0" encoding="UTF-8" indent="yes"/>
 		<!--file id -->
 		<xsl:param name="file" select="'F5'"/>
@@ -27,15 +28,15 @@ License:
 <xsl:template match="/">
 	<div id="variable-list">
 	<xsl:apply-templates select="//ddi:codeBook/ddi:fileDscr[@ID=$file]"/>
-	<h2>Variables</h2>
+	<h2><xsl:call-template name="gettext"><xsl:with-param name="msg">Variables</xsl:with-param></xsl:call-template></h2>
 	<table border="1" style="border-collapse:collapse;width:100%;border:1px solid silver;" cellpadding="2" class="table-variable-list">
 		<tr class="var-th">
-		<td>ID</td>
-		<td>Name</td>
-		<td>Label</td>
-		<td>Type</td>
-		<td>Format</td>
-		<td>Question</td>
+		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">ID</xsl:with-param></xsl:call-template></td>
+		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Name</xsl:with-param></xsl:call-template></td>
+		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Label</xsl:with-param></xsl:call-template></td>
+		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Type</xsl:with-param></xsl:call-template></td>
+		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Format</xsl:with-param></xsl:call-template></td>
+		<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Question</xsl:with-param></xsl:call-template></td>
 		</tr>
 		<xsl:apply-templates select="//ddi:codeBook/ddi:dataDscr/ddi:var[@files=$file]"/>
 	</table>
@@ -73,7 +74,7 @@ License:
 		<h2><xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></h2>
 		<table class="datafile-info" cellpadding="4" >
 			<tr valign="top">
-				<td style="width:100px">Content</td>
+				<td style="width:100px"><xsl:call-template name="gettext"><xsl:with-param name="msg">Content</xsl:with-param></xsl:call-template></td>
 				<td>
                 		<div style="width:100%;height:80px; overflow:auto;border:1px solid silver;background-color:none;">
                             <div style="padding:5px;">
@@ -83,30 +84,30 @@ License:
 				</td>
 			</tr>
 			<tr valign="top">
-				<td>Cases</td>
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Cases</xsl:with-param></xsl:call-template></td>
 				<td><xsl:value-of select="ddi:fileTxt/ddi:dimensns/ddi:caseQnty"/></td>
 			</tr>
 			<tr valign="top">
-				<td>Variable(s)</td>
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Variable(s)</xsl:with-param></xsl:call-template></td>
 				<td><xsl:value-of select="ddi:fileTxt/ddi:dimensns/ddi:varQnty"/></td>
 			</tr>
 			<tr valign="top">
-				<td>Structure</td>
-				<td>Type: <xsl:value-of select="ddi:fileTxt/ddi:fileStrc/@type"/><br/>
-						Key(s): 
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Structure</xsl:with-param></xsl:call-template></td>
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Type</xsl:with-param></xsl:call-template>: <xsl:value-of select="ddi:fileTxt/ddi:fileStrc/@type"/><br/>
+						<xsl:call-template name="gettext"><xsl:with-param name="msg">Keys</xsl:with-param></xsl:call-template>: 
 						<xsl:call-template name="getVariableById"><xsl:with-param name="str"><xsl:value-of select="ddi:fileTxt/ddi:fileStrc/ddi:recGrp/@keyvar"/></xsl:with-param></xsl:call-template>
 				</td>
 			</tr>
 			<tr valign="top">
-				<td>Version</td>
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Version</xsl:with-param></xsl:call-template></td>
 				<td><xsl:value-of select="ddi:fileTxt/ddi:verStmt/ddi:version"/></td>
 			</tr>
 			<tr valign="top">
-				<td>Producer</td>
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Producer</xsl:with-param></xsl:call-template></td>
 				<td><xsl:value-of select="ddi:fileTxt/ddi:filePlac"/></td>
 			</tr>
 			<tr valign="top">
-				<td>Missing Data</td>
+				<td><xsl:call-template name="gettext"><xsl:with-param name="msg">Missing Data</xsl:with-param></xsl:call-template></td>
 				<td>	<div style="width:100%;height:80px; overflow:auto;border:1px solid silver;background-color:white;">
                             <div style="padding:5px;">
                                 <xsl:value-of select="ddi:fileTxt/ddi:dataMsng"/>
