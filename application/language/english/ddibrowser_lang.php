@@ -202,6 +202,31 @@ $lang['download_rdf'] = "Download RDF";
 
 $lang['reviewer_notes'] = "Reviewer notes";
 $lang['js_refreshing_page'] = "Reloading page, please wait...";
+$lang['visit_data_catalog_at'] = "Visit our data catalog at";
+$lang['report_generated_on'] = "Report generated on";
+
+
+
+$lang['cover'] = "Cover";
+$lang['study_title'] = "Study Title";
+$lang['overview'] = "Overview";
+$lang['sampling'] = "Sampling";
+$lang['questionnaires'] = "Questionnaires";
+$lang['data_collection'] = "Data Collection";
+$lang['data_processing'] = "Data Processing";
+$lang['data_appraisal'] = "Data Appraisal";
+$lang['file_description'] = "File Description";
+$lang['variable_list'] = "Variable List";
+$lang['variable_description'] = "Variable Description";
+$lang['external_resources'] = "External Resources";
+
+$lang['report_lang'] = "Report language";
+$lang['external_resources'] = "External Resources";
+$lang['generate_pdf'] = "Generate PDF";
+
+$lang['Mean'] = "Mean";
+$lang['Standard deviation'] = "Standard deviation";
+
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./system/language/english/ddibrowser_lang.php */

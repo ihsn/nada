@@ -177,6 +177,12 @@ $lang['filter_by_year'] = "Filter by Year";
 $lang['tab_about'] = "About";
 $lang['tab_datasets'] = "Datasets";
 $lang['tab_citations'] = "Citations";
+$lang['any'] = "Any";
+$lang['views'] = "Views";
+$lang['metadata'] = "Metadata";
+$lang['citations'] = "Citations";
+$lang['popularity'] = "Popularity";
+$lang['To compare, select two or more variables'] = "To compare, select two or more variables";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
