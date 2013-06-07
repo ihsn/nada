@@ -17,11 +17,11 @@
     </div>
     
     <div style="margin-top:5px;font-size:12pt;color:gray;">
-    Generated on: <?php echo date("F j, Y",date("U")); ?>
+    <?php echo t('report_generated_on');?>: <?php echo date("F j, Y",date("U")); ?>
     </div>
 
     <div style="margin-top:50px;font-size:12pt;color:gray;">
-    Visit our data catalog at: <?php echo anchor($website_url);?>
+    <?php echo t('visit_data_catalog_at');?>: <?php echo anchor($website_url);?>
     </div>
 
 </div>
