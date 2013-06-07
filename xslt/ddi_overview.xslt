@@ -201,7 +201,14 @@ License:
 								<xsl:with-param name="caption">Geographic Coverage</xsl:with-param>
 							</xsl:apply-templates>
 					 </xsl:if>                     
-					 <!-- universe -->
+					 
+					 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:geogUnit">
+							<xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo//ddi:geogUnit" mode="row">
+								<xsl:with-param name="caption">Geographic Unit</xsl:with-param>
+							</xsl:apply-templates>
+					 </xsl:if> 
+
+					<!-- universe -->
 					 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:universe">
 						<xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo//ddi:universe" mode="row">
 							<xsl:with-param name="caption">Universe</xsl:with-param>
