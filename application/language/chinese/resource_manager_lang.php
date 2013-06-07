@@ -113,6 +113,8 @@ $lang['status']="状态";
 $lang['file_delete_success']="文件已被删除！";
 $lang['additional_info']="附加信息";
 $lang['remote_data_access_url']="提供外部信息库的URL链接";
+$lang['upload_external_resources']="上传外部资源";
+$lang['return_to_study_edit_page']="返回研究编辑页面";
 
 
 /* End of file resource_manager_lang.php */

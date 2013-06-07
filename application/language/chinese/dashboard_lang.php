@@ -1,5 +1,5 @@
 <?php 
-$lang['dashboard']="仪表板";
+$lang['dashboard']="控制盘";
 $lang['nada_news_updates']="NADA新闻与更新";
 $lang['users']="用户";
 $lang['database_backup']="数据库备份";

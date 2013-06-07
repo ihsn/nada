@@ -1,7 +1,7 @@
 <?php 
 $lang['Home']="主页";
 $lang['edit_study']="编辑研究";
-$lang['Citations']="引用";
+$lang['Citations']="参考文献";
 $lang['add_study']="添加新研究";
 $lang['bulk_import']="批量导入DDI";
 $lang['transfer_study_ownership']="转移研究所有权";

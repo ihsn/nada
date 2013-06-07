@@ -4,7 +4,7 @@ $lang['data_catalog']="数据目录";
 $lang['catalog_search_help']="目录搜索帮助";
 $lang['study_information']="研究信息";
 $lang['citations']="参考文献";
-$lang['msg_website_redirect']="您正在被重新定向到以下网站：";
+$lang['msg_website_redirect']="您正在被重定路径到以下网站：";
 $lang['link_export_search']="导出搜索结果";
 $lang['link_search_help']="搜索帮助";
 $lang['rss_feed']="订阅源（RSS feed）";
@@ -111,7 +111,7 @@ $lang['meta_description_catalog']="此数据目录可让您浏览，搜索和下
 $lang['new_window']="在新窗口中打开";
 $lang['harvested_study_access_complete_metadata']="此页面上提供的信息是从以下贡献信息库获得的：<em>%s</em>. 您可以从这个页面浏览和下载元数据。若要下载相关材料并访问数据，<a href=&quot;%s&quot;>访问原始信息库的调查页面</a>。";
 $lang['data']="数据";
-$lang['by']="源于：";
+$lang['by']="来源:";
 $lang['data_direct_description']="数据集和相关文档免费提供给用户。没有必要登录到应用程序。";
 $lang['data_public_description']="相关文档免费提供给用户。然而，用户必须先登录到应用程序，才能访问这些数据集。";
 $lang['data_licensed_description']="相关文档免费提供给用户。若要访问该数据集，用户需要申请批准访问这些数据集。用户必须登录到应用程序，并在申请访问时填写申请表。";
@@ -155,7 +155,7 @@ $lang['in_alphabatic_order']="按字母顺序排列";
 $lang['By Income']="按收入";
 $lang['By Region']="按地区";
 $lang['cancel']="取消";
-$lang['apply_filter']="应用筛选器";
+$lang['apply_filter']="应用筛选";
 $lang['selected_itesm']="选择";
 $lang['clear']="清除";
 $lang['select_collections']="选择集合";
@@ -163,6 +163,11 @@ $lang['select_topics']="选择主题";
 $lang['reset_search']="重置搜索";
 $lang['prev']="上一页";
 $lang['next']="下一页";
+$lang['search_by_keyword']="关键词搜索";
+$lang['filter_by_year']="按年份筛选";
+$lang['tab_about']="关于";
+$lang['tab_datasets']="数据集";
+$lang['tab_citations']="参考文献 ";
 
 
 /* End of file catalog_search_lang.php */

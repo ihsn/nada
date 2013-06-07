@@ -109,6 +109,8 @@ $lang['additional_info']="需要其它信息";
 $lang['request_additional_info_submitted']="谢谢您更新请求。一旦您的申请被审阅，我们将通过电子邮件通知您。";
 $lang['email_sent']="您的邮件已发送！";
 $lang['provide_additonal_info_for_your_request']="请使用此框来提供处理您的数据请求所需要的额外信息。";
+$lang['click_on_a_lic_request_to_see_status_or_download_data']="点击请求来查看状态，或下载请求已被批准的数据。";
+$lang['make_new_lic_request']="提出一个新的请求";
 
 
 /* End of file licensed_request_lang.php */

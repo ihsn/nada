@@ -54,7 +54,7 @@ $lang['error_invalid_parameters']="提供了无效参数。";
 $lang['js_no_item_selected']="您还没有选择任何产品";
 $lang['js_confirm_delete']="您确定要删除所选的项目吗？";
 $lang['searching_please_wait']="搜索中，请稍候...";
-$lang['dashboard']="仪表盘";
+$lang['dashboard']="控制盘";
 $lang['menu']="菜单";
 $lang['licensed_survey_requests']="许可调查请求";
 $lang['users']="用户";
@@ -74,7 +74,7 @@ $lang['email_failed']="系统无法发送电子邮件，请再试一次。";
 $lang['js_loading']="加载中，请稍候...";
 $lang['file_not_found']="未找到文件";
 $lang['invalid_id']="提供的ID无效";
-$lang['sort_results_by']="按...排序结果";
+$lang['sort_results_by']="排序";
 $lang['select_number_of_records_per_page']="选择每页显示的记录数";
 $lang['share']="分享";
 $lang['share_with_facebook']="分享至Facebook";
@@ -104,6 +104,7 @@ $lang['data_is_available_from_external_repository']="可从一个外部站点获
 $lang['exit_impersonate']="退出模拟模式";
 $lang['content_is_not_published']="当前页面的内容还未发布，仅供审查。";
 $lang['licensed_requests']="许可请求";
+$lang['create_region']="创建区域";
 
 
 /* End of file general_lang.php */

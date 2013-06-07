@@ -60,7 +60,7 @@ $lang['publish']="发布";
 $lang['series']="系列";
 $lang['data_access']="数据访问";
 $lang['overwrite_if_exists']="如果内容已存在，是否覆盖？";
-$lang['sort_by']="按...排序结果";
+$lang['sort_by']="排序结果：";
 $lang['surveyid']="调查ID";
 $lang['no_related_citations_click_here_to_add']="这项调查没有附加引用，若要添加相关引用，请点击此处。";
 $lang['max_upload_limit']="最大上传文件的大小：";
@@ -120,8 +120,8 @@ $lang['admin_note']="管理员注释";
 $lang['reviewer_note']="审阅者注释";
 $lang['public_note']="公共注释";
 $lang['add_note']="添加注释";
-$lang['click_on_icon_to_remove_citation']="点击图标％s将去除引用";
-$lang['attach_citation']="附加引用";
+$lang['click_on_icon_to_remove_citation']="点击图标％s将去除参考文献";
+$lang['attach_citation']="附加参考文献";
 $lang['js_refreshing_page']="刷新页面，请稍候...";
 $lang['remove_from_collection']="删除";
 $lang['remove_from_collection_description']="从这个集合中删除这项研究。";
@@ -131,6 +131,13 @@ $lang['link_study']="链接";
 $lang['unlink_study']="未链接";
 $lang['transfer']="转让";
 $lang['select_the_repository_from_the_list_below']="从下面的列表中选择集合，来转让所有权给另一个集合。";
+$lang['study_metadata_updated']="研究元数据已被刷新！";
+$lang['refresh_ddi']="刷新DDI";
+$lang['batch_refresh_ddi']="批量刷新DDI";
+$lang['ddi_batch_refresh_title']="批量刷新DDI";
+$lang['btn_refresh']="刷新DDI";
+$lang['refresh_ddi_description']="刷新DDI，更新拥有DDI的元数据的数据库。";
+$lang['total_studies_found']="搜索到的总研究数";
 
 
 /* End of file catalog_admin_lang.php */

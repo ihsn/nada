@@ -58,6 +58,18 @@ $lang['cache_default_expires_msg']="为到期的缓存项按毫秒提供时间 �
 $lang['cache_disabled_msg']="缓存加快了页面载入速度，但占用了额外的磁盘空间";
 $lang['cache_disabled']="禁用缓存";
 $lang['select_vocabulary_for_collections']="选择集合词汇";
+$lang['collection_search_enable']="启用";
+$lang['collection_search_disable']="注销";
+$lang['da_search_enable']="启用";
+$lang['da_search_disable']="注销";
+$lang['da_search']="数据访问筛选";
+$lang['collection_search']="集合筛选";
+$lang['da_search_weight']="数据访问筛选";
+$lang['regional_search_weight']="区域筛选";
+$lang['topic_search_weight']="主题筛选";
+$lang['year_search_weight']="年份筛选";
+$lang['collection_search_weight']="集合筛选";
+$lang['instruction_weight']="权重控制了筛选的顺序。筛选会按照权重做升序排序。";
 
 
 /* End of file configurations_lang.php */

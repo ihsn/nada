@@ -125,7 +125,7 @@ $lang['Subtitle']="副标题";
 $lang['Supervision']="监督";
 $lang['Study Type']="研究类型";
 $lang['survey(s) out of']="...份中的...份调查";
-$lang['surveys per page']="每页调查";
+$lang['surveys per page']="每页调查数";
 $lang['Title']="标题";
 $lang['Type']="类型";
 $lang['Units of Analysis']="分析单元";
@@ -172,12 +172,20 @@ $lang['get_microdata']="获取微观数据";
 $lang['study_description']="研究描述";
 $lang['data_dictionary']="数据字典";
 $lang['related_materials']="相关材料";
-$lang['citations']="引用";
+$lang['citations']="参考文献";
 $lang['review_study']="审查";
 $lang['add_note']="新增附注";
 $lang['no_reviewer_notes_found']="这项研究没有附加审阅者注释。要添加一个新的注释，请使用“添加备注”链接。";
 $lang['no_resources_attached']="研究没有外部资源。";
 $lang['no_microdata_attached']="研究有没有微观数据。";
+$lang['created_on']="创建于";
+$lang['last_modified']="上次修改";
+$lang['page_views']="页面访问量";
+$lang['downloads']="下载";
+$lang['documentation_in_pdf']="PDF格式的文档";
+$lang['download_rdf']="下载RDF";
+$lang['reviewer_notes']="审阅者注释";
+$lang['js_refreshing_page']="正在刷新页面，请稍候...";
 
 
 /* End of file ddibrowser_lang.php */
