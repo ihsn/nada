@@ -1,3 +1,12 @@
+<?php
+$report_lang=array(
+		'en'	=> 'English',
+		'es'	=> 'Spanish',
+		'fr'	=> 'French',
+		'ru'	=> 'Russian',
+		'zh-CN'	=> 'Chinese (华语)'
+	);
+?>
 <script>
 $(document).ready(function () { 
 		$("#submit").click(function(e){
@@ -54,6 +63,11 @@ $(document).ready(function () {
     <input name="website_url" type="text" id="website_url" size="50" class="input-flex"  value="<?php echo get_form_value('website_url',isset($website_url) ? $website_url : ''); ?>"/>
 </div>
 
+<div class="field">
+    <label for="report_lang"><?php echo t('report_lang');?></label>
+    <?php echo form_dropdown('report_lang', get_form_value('report_lang',isset($report_lang) ? $report_lang : '') );?>
+</div> 
+
 <div class="field-group">
 	<label style="padding-bottom:10px;display:block;"><strong><?php echo t('Report options');?></strong></label>
 <div class="field-inline">
@@ -72,7 +86,7 @@ $(document).ready(function () {
 </div>
 
 <div class="field-inline action-submit">
-	<input type="submit" name="submit" id="submit" value="<?php echo t('Generate PDF'); ?>" />
+	<input type="submit" name="submit" id="submit" value="<?php echo t('generate_pdf'); ?>" />
 	<?php echo anchor('admin/catalog/edit/'.$id, t('cancel'));?>
 </div>
 

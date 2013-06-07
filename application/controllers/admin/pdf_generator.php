@@ -47,6 +47,7 @@ class Pdf_generator extends MY_Controller {
 					'toc_variable'=>(int)$this->input->post("toc_variable"),
 					'data_dic_desc'=>(int)$this->input->post("data_dic_desc"),
 					'ext_resources'=>(int)$this->input->post("ext_resources"),
+					'report_lang'=>$this->input->post("report_lang",TRUE),
 				);
 				
 				if($options['ext_resources']===1)
@@ -89,9 +90,10 @@ class Pdf_generator extends MY_Controller {
 		$log_threshold= $this->config->item("log_threshold");
 		$this->config->set_item("log_threshold",0);	//disable logging temporarily
 
-		$report_link='';
+		$report_link='';		
+		$params=array('codepage'=>$options['report_lang']);
 
-		$this->load->library('pdf_report');
+		$this->load->library('pdf_report',$params);// e.g. 'codepage' = 'zh-CN';
 		$this->load->library('DDI_Browser','','DDI_Browser');
 			
 		//get ddi file path from db
