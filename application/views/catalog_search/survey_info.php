@@ -78,7 +78,7 @@
 
 	<?php $report_file=unix_path($this->survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$id.'.pdf');?>
     <tr>
-    	<td><?php echo t('Metadata');?></td>
+    	<td><?php echo t('metadata');?></td>
         <td class="links">
             <?php if (file_exists($report_file)):?>
             <span class="link-col sep">
