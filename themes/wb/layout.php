@@ -38,6 +38,11 @@ $sidebar=$this->load->view('default_menu', $data,true);
 <script type="text/javascript"> 
    var CI = {'base_url': '<?php echo site_url(); ?>'}; 
    
+	if (top.frames.length!=0) {
+		top.location=self.document.location;
+	}
+
+   
 $(document).ready(function()  {
    	/*global ajax error handler */
 	$( document ).ajaxError(function(event, jqxhr, settings, exception) {
