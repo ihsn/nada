@@ -486,7 +486,7 @@ class Install extends CI_Controller {
 				if(!$result)
 				{
 					log_message('error', $templine);
-					echo $this->db->last_query();
+					//echo $this->db->last_query();
 				}
 
 				// Reset temp variable to empty
