@@ -550,6 +550,53 @@ $(document).ready(function()  {
 		  width:730,
 		  modal: true,
 		  autoOpen: false,
+		  
+		  buttons: [
+			{
+				text: i18n.cancel,
+				click: function() {$( this ).dialog( "close" );}
+			},
+			{
+				text: i18n.apply_filter,
+				click: function() {
+				var dialog=$(this).closest(".ui-dialog");
+				var source_list=dialog.data('source-list');			
+				var dialog_selection=dialog.find(".container").find(".cnt :checked");
+				var values=[];
+				//var total_items=source_list.find(".chk").length;//total items available for selection
+	
+				dialog_selection.each(function() { 
+					values.push($(this).val()); 
+				});
+				
+				var found=false;
+				source_list.find(".chk").each(function() { 
+					if ($.inArray($(this).prop('value'), values)!==-1 ){
+						$(this).prop('checked',true);
+						found=true;
+					}
+					else{
+						$(this).prop('checked',false);
+					}			
+				});	
+				
+				$( this ).dialog( "close" );
+				
+				if (found) { 
+					//uncheck ANY option
+					source_list.find(".chk-any").prop("checked",false);
+					hash_changed();
+				}
+				else{
+					//check ANY option if nothing selected from the dialog
+					source_list.find(".chk-any").prop("checked",true);
+					hash_changed();
+				}
+	
+			}//end apply filter
+			}
+    	]
+		  /*
 		  buttons: {
 			"Cancel": function() {$( this ).dialog( "close" );},
 			"Apply filter": function() {
@@ -589,11 +636,12 @@ $(document).ready(function()  {
 	
 			}//end apply filter
 		  }//end-buttons
+		  */
 		});//end-dialog
 
 	//load dialog content
 	$('#'+dialog_id).load(data_url+'?referer='+window.location.href, function() {		
-		dialog.closest(".ui-dialog").find(".ui-dialog-title").append('<div class="ui-dialog-subtitle"><span class="ui-dialog-stats"></span> | <span class="clear-selection link">Clear</span></div>');
+		dialog.closest(".ui-dialog").find(".ui-dialog-title").append('<div class="ui-dialog-subtitle"><span class="ui-dialog-stats"></span> | <span class="clear-selection link">'+i18n.clear+'</span></div>');
 	});
 	
 	}//end function
@@ -675,7 +723,7 @@ $(document).ready(function()  {
 	//@cnt count items only with the class=cnt
 	function dialog_update_stats(dialog){
 		var selected=dialog.find(".container").find(".cnt :checked").length;
-		dialog.find(".ui-dialog-stats").html(selected + ' selected');
+		dialog.find(".ui-dialog-stats").html(selected + ' ' + i18n.selected);
 	}
 
 	//scrollto options for dialog countries by regions
