@@ -77,6 +77,7 @@ $fac_filters=array();
 
 
 <script type="text/javascript">
+<?php /*
 //translations	
 var i18n=
 {
@@ -98,7 +99,7 @@ var i18n=
 'js_compare_studies_selected':"<?php echo t('studies');?>",
 'js_compare_variable_select_atleast_2':"<?php echo t('Select two or more variables to compare');?>"
 };
-
+*/ ?>
 //min/max years
 var years = {'from': '<?php reset($years);echo current($years); ?>', 'to': '<?php echo end($years); ?>'}; 
 </script>
