@@ -1,3 +1,8 @@
+<script type="text/javascript"> 
+	if (top.frames.length!=0) {
+		top.location=self.document.location;
+	}
+</script>	
 <style>
 body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
 </style>
