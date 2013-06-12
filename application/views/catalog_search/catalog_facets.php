@@ -13,7 +13,7 @@
 <form name="search_form" id="search_form" method="get" autocomplete = "off">
 <input type="hidden" id="view" name="view" value="<?php echo (isset($this->view) && $this->view=='v') ? 'v': 's'; ?>"/>
 <input type="hidden" id="ps" name="ps" value="<?php echo $this->limit; ?>"/>
-<input type="hidden" id="page" name="page" value="<?php echo $current_page; ?>"/>
+<input type="hidden" id="page" name="page" value="<?php echo intval($current_page); ?>"/>
 <input type="hidden" id="repo" name="repo" value="<?php echo $active_repo; ?>"/>
 <input type="hidden" id="_r" name="_r" value=""/>
 <div> 
