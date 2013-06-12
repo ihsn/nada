@@ -19,6 +19,7 @@ class Data_access_licensed extends CI_Driver {
 	public function __construct()
 	{
 		$this->CI =& get_instance();
+		$this->CI->load->library('Bulk_data_access');
 	}
 		
 	function process_form($sid,$user=FALSE)
@@ -43,15 +44,20 @@ class Data_access_licensed extends CI_Driver {
 			show_ERROR("INVALID_STUDY_ID");
 		}
 		
-		if ($this->CI->input->get("request")=="new")
+		//check study bulk access
+		$bulk_access=$this->CI->bulk_data_access->study_has_bulk_access($sid);
+		
+		if ($this->CI->input->get("request")=="new" && $bulk_access===FALSE)
 		{
 			//show application form
 			return $this->request_form('study',$sid,NULL,$user);
 		}
+		else if($this->CI->input->get("request")=="new" && $bulk_access==TRUE)
+		{
+			//show choice single study access or bulk access
+			return $this->choose_form($sid,$user);
+		}
 
-		//check study bulk access
-		//$bulk_access=$this->CI->Licensed_model->study_has_bulk_access($sid);
-		
 		//find existing requests by the user
 		$requests=$this->CI->Licensed_model->get_requests_by_study($sid,$user->id,$active_only=FALSE);
 		
@@ -395,6 +401,20 @@ class Data_access_licensed extends CI_Driver {
 		{
 			return FALSE;
 		}
+	}
+	
+	//give user option to request access to a single study or bulk access
+	function choose_form($sid,$user)
+	{
+		$data['collections']=$this->CI->bulk_data_access->get_study_bulk_access_sets($sid);
+		
+		foreach($data['collections'] as $key=>$collection)
+		{
+			$data['collections'][$key]['studies_found']=$this->CI->bulk_data_access->get_study_counts_by_collection($collection['cid']);
+		}
+		$data['sid']=$sid;
+		
+		return $this->CI->load->view('access_licensed_bulk/choose_access_type',$data,TRUE);
 	}
 
 }
