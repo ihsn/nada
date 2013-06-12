@@ -9,7 +9,7 @@
 | options are: image_captcha, recaptcha
 */
 
-$config['captcha_driver']='recaptcha';
+$config['captcha_driver']='image_captcha';
 
 /*
 |--------------------------------------------------------------------------
