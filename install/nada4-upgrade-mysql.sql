@@ -6,14 +6,6 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-#ALTER TABLE `repositories` COLLATE = utf8_general_ci , 
-#DROP COLUMN `scan_nextrun` , DROP COLUMN `scan_interval` , 
-#DROP COLUMN `scan_lastrun` , CHANGE COLUMN `url` `url` VARCHAR(255) NULL DEFAULT NULL  , 
-#CHANGE COLUMN `status` `status` VARCHAR(255) NULL DEFAULT NULL  , CHANGE COLUMN `surveys_found` `surveys_found` INT(11) NULL DEFAULT NULL  , 
-#CHANGE COLUMN `changed` `changed` INT(11) NULL DEFAULT NULL  , ADD COLUMN `pid` INT(11) NULL DEFAULT NULL  AFTER `id` , ADD COLUMN `type` INT(10) UNSIGNED NULL DEFAULT NULL  AFTER `changed` , ADD COLUMN `short_text` VARCHAR(1000) NULL DEFAULT NULL  AFTER `type` , ADD COLUMN `long_text` TEXT NULL DEFAULT NULL  AFTER `short_text` , ADD COLUMN `thumbnail` VARCHAR(255) NULL DEFAULT NULL  AFTER `long_text` , ADD COLUMN `weight` INT(10) UNSIGNED NULL DEFAULT NULL  AFTER `thumbnail` , ADD COLUMN `ispublished` TINYINT(3) UNSIGNED NULL DEFAULT NULL  AFTER `weight` , ADD COLUMN `section` INT(11) NULL DEFAULT NULL  AFTER `ispublished` , ADD COLUMN `group_da_public` TINYINT(1) NULL DEFAULT '0'  AFTER `section` , 
-#ADD COLUMN `group_da_licensed` TINYINT(1) NULL DEFAULT '0'  AFTER `group_da_public` 
-#, DROP INDEX `idx_url` ;
-
 DROP TABLE IF EXISTS `repositories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -146,16 +138,26 @@ ALTER TABLE `surveys` COLLATE = utf8_general_ci ,
 ADD COLUMN `link_da` varchar(255)  NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
-CHANGE COLUMN `changed` `changed` INT(11) NULL DEFAULT NULL  , 
-CHANGE COLUMN `created` `created` INT(11) NULL DEFAULT NULL  , 
-ADD COLUMN `published` TINYINT(4) NULL DEFAULT NULL  AFTER `link_da` , 
-ADD COLUMN `total_views` INT(11) NULL DEFAULT '0'  AFTER `published` , 
-ADD COLUMN `total_downloads` INT(11) NULL DEFAULT '0'  AFTER `total_views` ,
-ADD COLUMN `stats_last_updated` INT(11) NULL DEFAULT NULL  AFTER `total_downloads` ;
+CHANGE COLUMN `changed` `changed` INT(11) NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
-ADD COLUMN `abbreviation` varchar(45) NULL DEFAULT NULL, 
-ADD COLUMN `kindofdata` varchar(255) NULL DEFAULT NULL, 
+CHANGE COLUMN `created` `created` INT(11) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `published` TINYINT(4) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci ,  
+ADD COLUMN `total_views` INT(11) NULL DEFAULT '0'  , 
+ADD COLUMN `total_downloads` INT(11) NULL DEFAULT '0',
+ADD COLUMN `stats_last_updated` INT(11) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `abbreviation` varchar(45) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `kindofdata` varchar(255) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
 ADD COLUMN `keywords` text NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
@@ -167,7 +169,6 @@ ADD COLUMN `ie_team_leaders` varchar(255) NULL DEFAULT NULL,
 ADD COLUMN `project_id` varchar(255) NULL DEFAULT NULL, 
 ADD COLUMN `project_name` varchar(255) NULL DEFAULT NULL, 
 ADD COLUMN `project_uri` varchar(255) NULL DEFAULT NULL;
-
 
 
 ALTER TABLE `dctypes` COLLATE = utf8_general_ci ;
