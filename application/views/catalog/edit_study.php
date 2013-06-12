@@ -157,7 +157,7 @@ function update_survey_collection(e) {
 					buttons: {
 						"close": function() {
 						$( this ).dialog( "close" );
-						},
+						}
 					},
 					close: function() {
 						$.get(CI.base_url+'/admin/catalog/related_citations/'+survey_id, function(data) {
