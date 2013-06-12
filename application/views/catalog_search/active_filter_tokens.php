@@ -50,11 +50,12 @@ else{
 
     <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
 		<?php foreach($search_options->dtype as $dtype):?>
-        <?php if (in_array($search_options->dtype,$data_access_types)):?>
+        <?php if (array_key_exists($dtype,$data_access_types)):?>
             <span class="remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?></span>
     	<?php endif;?>        
         <?php endforeach;?>
     <?php endif;?>
+
     <?php if ($search_options->from!='' && $search_options->to!=''):?>
 		<?php if ( $search_options->from!=$min_year || $search_options->to!=$max_year ):?>
             <span class="remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo $search_options->from;?>-<?php echo $search_options->to;?></span>
