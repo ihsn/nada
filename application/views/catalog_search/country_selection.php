@@ -1,10 +1,15 @@
 <?php 
 //fix for UI tabs
-$referer=$this->input->get("referer");
-if (strpos($referer,site_url())===false)
+$repo=$this->input->get("repo");
+if (!$result=$this->repository_model->repository_exists($repo))
 {
-	$referer=site_url('catalog');
+	if($repo!='central')
+	{
+		show_error('INVALID-PARAM');
+	}	
 }
+
+$referer=site_url('catalog/'.$repo);
 ?>
 
 <script>
