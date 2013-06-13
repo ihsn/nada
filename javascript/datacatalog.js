@@ -600,7 +600,7 @@ $(document).ready(function()  {
 		});//end-dialog
 
 	//load dialog content
-	$('#'+dialog_id).load(data_url+'?referer='+window.location.href, function() {		
+	$('#'+dialog_id).load(data_url+'?repo='+$("#repo_ref").val(), function() {		
 		dialog.closest(".ui-dialog").find(".ui-dialog-title").append('<div class="ui-dialog-subtitle"><span class="ui-dialog-stats"></span> | <span class="clear-selection link">'+i18n.clear+'</span></div>');
 	});
 	
