@@ -1,3 +1,14 @@
+<?php
+$repo_ref=$this->uri->segment(2);
+
+if (!$result=$this->repository_model->repository_exists($repo_ref))
+{
+	if($repo_ref!='central')
+	{
+		show_error('INVALID-PARAM');
+	}	
+}
+?>
 <table style="display:none;" width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
 <tr valign="baseline">
 <td><h2><?php echo $this->page_title;?></h2></td>
@@ -15,6 +26,7 @@
 <input type="hidden" id="ps" name="ps" value="<?php echo $this->limit; ?>"/>
 <input type="hidden" id="page" name="page" value="<?php echo intval($current_page); ?>"/>
 <input type="hidden" id="repo" name="repo" value="<?php echo $active_repo; ?>"/>
+<input type="hidden" id="repo_ref" name="repo_ref" value="<?php echo $repo_ref; ?>"/>
 <input type="hidden" id="_r" name="_r" value=""/>
 <div> 
 
