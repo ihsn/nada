@@ -159,8 +159,6 @@ font-weight: bold;
 /*licensed request - select_request */
 .lic-requests-container {position:relative;}
 .lic-requests-container .inline {display:inline;font-size:small;margin-right:15px;}
-.lic-requests-container .btn-download-microdata a{padding:5px;background:#048;color:white;display:block;float:left;font-size:small;}
-.lic-requests-container .btn-download-microdata a:hover{background:black;color:white;}
 .lic-requests-container a.btn-new-request{position:absolute;top:5px;right:5px;font-size:smaller;}
 
 
