@@ -3,9 +3,9 @@
 $repo=$this->input->get("repo");
 if (!$result=$this->repository_model->repository_exists($repo))
 {
-	if($repo!='central')
+	if($repo!="" && $repo!='central')
 	{
-		show_error('INVALID-PARAM');
+		return FALSE;
 	}	
 }
 
