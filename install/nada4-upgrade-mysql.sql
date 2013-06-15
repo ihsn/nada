@@ -199,9 +199,20 @@ ALTER TABLE `schema_version` COLLATE = utf8_general_ci ;
 
 ALTER TABLE `forms` COLLATE = utf8_general_ci ;
 
-ALTER TABLE `lic_requests` COLLATE = utf8_general_ci , CHANGE COLUMN `surveyid` `surveyid` INT(11) NULL DEFAULT NULL  , ADD COLUMN `request_type` VARCHAR(45) NULL DEFAULT 'study'  AFTER `userid` , ADD COLUMN `collection_id` VARCHAR(100) NULL DEFAULT NULL  AFTER `surveyid` , ADD COLUMN `expiry_date` INT(11) NULL DEFAULT NULL  AFTER `ip_limit` , ADD COLUMN `additional_info` TEXT NULL DEFAULT NULL  AFTER `expiry_date` ;
+ALTER TABLE `lic_requests` COLLATE = utf8_general_ci , 
+CHANGE COLUMN `surveyid` `surveyid` INT(11) NULL DEFAULT NULL  , 
+ADD COLUMN `request_type` VARCHAR(45) NULL DEFAULT 'study'  AFTER `userid` , 
+ADD COLUMN `collection_id` VARCHAR(100) NULL DEFAULT NULL  AFTER `surveyid` , 
+ADD COLUMN `expiry_date` INT(11) NULL DEFAULT NULL  AFTER `ip_limit` , 
+ADD COLUMN `additional_info` TEXT NULL DEFAULT NULL  AFTER `expiry_date` ;
 
-ALTER TABLE `citations` COLLATE = utf8_general_ci , CHANGE COLUMN `page_from` `page_from` VARCHAR(25) NULL DEFAULT NULL  , CHANGE COLUMN `page_to` `page_to` VARCHAR(25) NULL DEFAULT NULL  , ADD COLUMN `ihsn_id` VARCHAR(50) NULL DEFAULT NULL  AFTER `country` ;
+ALTER TABLE `citations` COLLATE = utf8_general_ci , 
+CHANGE COLUMN `page_from` `page_from` VARCHAR(25) NULL DEFAULT NULL  , 
+CHANGE COLUMN `page_to` `page_to` VARCHAR(25) NULL DEFAULT NULL  , 
+ADD COLUMN `ihsn_id` VARCHAR(50) NULL DEFAULT NULL;
+
+ALTER TABLE `citations` COLLATE = utf8_general_ci , 
+ADD COLUMN `country` VARCHAR(100) NULL DEFAULT NULL  ;
 
 CREATE  TABLE IF NOT EXISTS `permission_urls` (
   `id` INT(11) NOT NULL AUTO_INCREMENT ,
@@ -718,3 +729,4 @@ UNLOCK TABLES;
 
 update surveys set formid=6 where formid is null;
 update surveys set formid=6 where formid=0;
+update surveys set repositoryid='central';
