@@ -57,6 +57,19 @@ $lang['cache_expiry']="Temps d'expiration du cache";
 $lang['cache_default_expires_msg']="Donnez le temps d'expiration du cache en millisecondes (ex: 7200 = 2 heures)";
 $lang['cache_disabled_msg']="Le cache accélère le chargement de la page mais nécessite plus d'espace disque";
 $lang['cache_disabled']="Désactivez le cache";
+$lang['select_vocabulary_for_collections']="Sélectionner une taxonomie de sujets";
+$lang['collection_search_enable']="Activer";
+$lang['collection_search_disable']="Désactiver";
+$lang['da_search_enable']="Activer";
+$lang['da_search_disable']="Désactiver";
+$lang['da_search']="Filtre par accès aux données";
+$lang['collection_search']="Filtre par collection";
+$lang['da_search_weight']="Filtre par accès aux données";
+$lang['regional_search_weight']="Filtre par région";
+$lang['topic_search_weight']="Filtre par thème";
+$lang['year_search_weight']="Filtre par année";
+$lang['collection_search_weight']="Filtre par collection";
+$lang['instruction_weight']="Les types de filtre sont classés en fonction de leur importance dans l'ordre croissant. ";
 
 
 /* End of file configurations_lang.php */

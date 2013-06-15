@@ -1,5 +1,5 @@
 <?php 
-$lang['title_ddi_browser']="Explorer les métadonnées";
+$lang['title_ddi_browser']="Explorer les métadonnées DDI";
 $lang['title_forms']="Questionnaires";
 $lang['title_technical_documents']="Documents techniques";
 $lang['title_reports']="Rapports";
@@ -158,6 +158,45 @@ $lang['impact_evaluation']="Evaluation d'impact";
 $lang['related_operations']="Opérations liées";
 $lang['request_microdata']="Demandez les microdonnées";
 $lang['download_metadata']="Metadonnées en XML";
+$lang['website_title']="Titre web";
+$lang['study_title']="Titre de l'enquête";
+$lang['publisher']="Editeur";
+$lang['website_url']="URL du site web";
+$lang['study_contains_too_many_variables']="L'enquête contient plus de <strong>%s</strong> variables. En cas d'échec de la création du fichier PDF, réessayez en désactivant l'option &quot;Description du dictionnaire de données&quot;.";
+$lang['include_variable_toc']="Liste des variables";
+$lang['include_variable_desc']="Description de la variable";
+$lang['include_external_resources']="Ressource externe";
+$lang['Report options']="Options de rapport :";
+$lang['processing_pdf_report']="Création du rapport au format PDF en cours. Cette opération peut prendre quelques minutes. Veuillez patienter...";
+$lang['get_microdata']="Charger les microdonnées";
+$lang['study_description']="Description de l'enquête";
+$lang['data_dictionary']="Dictionnaire de données";
+$lang['related_materials']="Informations connexes";
+$lang['citations']="Citations";
+$lang['review_study']="Révision";
+$lang['add_note']="Ajouter une note";
+$lang['no_reviewer_notes_found']="Aucune note de révision n'a été ajoutée. Pour ajouter une note, cliquez sur &quot;Ajouter une note&quot;.";
+$lang['no_resources_attached']="Aucune ressource externe n'a été définie pour l'enquête.";
+$lang['no_microdata_attached']="Cette enquête ne contient pas de microdonnées. ";
+$lang['created_on']="Créé le";
+$lang['last_modified']="Dernière modification";
+$lang['page_views']="Consultations";
+$lang['downloads']="Téléchargements";
+$lang['documentation_in_pdf']="Documentation au format PDF";
+$lang['download_rdf']="Télécharger le fichier RDF";
+$lang['reviewer_notes']="Notes de révision";
+$lang['js_refreshing_page']="Rechargement de la page en cours. Veuillez patienter...";
+$lang['visit_data_catalog_at']="Vous pouvez consulter notre catalogue de données sur";
+$lang['report_generated_on']="Rapport généré le";
+$lang['cover']="Couverture";
+$lang['file_description']="Description du fichier";
+$lang['variable_list']="Liste des variables";
+$lang['variable_description']="Description des variables";
+$lang['external_resources']="Ressources externes";
+$lang['report_lang']="Langue du rapport";
+$lang['generate_pdf']="Créer PDF";
+$lang['Mean']="Moyenne";
+$lang['Standard deviation']="Ecart-type";
 
 
 /* End of file ddibrowser_lang.php */

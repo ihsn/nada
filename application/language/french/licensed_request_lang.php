@@ -76,7 +76,7 @@ $lang['dataset_access']="Accès aux données";
 $lang['notification_licensed_survey_request_received']="[Notification] - Réception d'une demande d'un fichier sous license";
 $lang['survey_data_files']="Fichiers de données";
 $lang['dear']="Cher";
-$lang['request_licensed_reviewed']="Votre demande d'accès au fichier sous license [<b>% s </ b>] a été examinée. Pour voir le résultat, veuillez visiter :";
+$lang['request_licensed_reviewed']="Votre demande d'accès au fichier sous licence [<b>% s </ b>] a été examinée. Pour voir le résultat, veuillez visiter :";
 $lang['user_has_requested_licensed']="L'utilisateur <b>%s</b> a demandé l'accès à l'enquête sous licence <b>%s</b>. 
 ";
 $lang['to_view_request_instructions']="Pour afficher la demande, connectez vous à l'administration du site NADA et affichez la page &quot;demandes d'enquête sous license&quot;.";
@@ -90,7 +90,28 @@ $lang['DENIED']="Refusé";
 $lang['PENDING']="En attente";
 $lang['MOREINFO']="Information complémentaire requise";
 $lang['CANCELLED']="Annulé";
-$lang['reason_login_licensed_access']="Pour demander l'accès aux fichiers sous license, veuillez vous connecter au site web.";
+$lang['reason_login_licensed_access']="Pour demander l'accès aux fichiers sous licence, veuillez vous connecter au site web.";
+$lang['forward_lic_request']="Transmettre la demande";
+$lang['comments_history']="Historique des commentaires";
+$lang['view_comments_history']="Afficher l'historique";
+$lang['comment_by']="Par";
+$lang['show_hide']="Afficher/Masquer";
+$lang['comment']="Commentaire";
+$lang['communicate_history']="Historique";
+$lang['sent_by']="Envoyé par";
+$lang['forward_history']="Historique";
+$lang['data_restricted_use']="Ces données sont fournies exclusivement aux fins décrites dans le formulaire de demande. Toute autre utilisation nécessite le dépôt d'une nouvelle demande d'accès. ";
+$lang['data_request_for']="Demande de données";
+$lang['request_history']="Afficher l'historique des demandes";
+$lang['study_notes']="Afficher les notes de l'enquête";
+$lang['note_type']="Type";
+$lang['note']="Note";
+$lang['additional_info']="Informations supplémentaires requises";
+$lang['request_additional_info_submitted']="Merci d'avoir fourni les informations demandées. Vous serez informé(e) par mail de la suite donnée à votre demande.  ";
+$lang['email_sent']="Votre message a été envoyé.";
+$lang['provide_additonal_info_for_your_request']="Utilisez ce champ pour fournir les informations supplémentaires requises pour traiter votre demande de données. ";
+$lang['click_on_a_lic_request_to_see_status_or_download_data']="Cliquez sur une demande pour afficher le statut correspondant ou pour télécharger les données si la demande a été approuvée. ";
+$lang['make_new_lic_request']="Déposer une nouvelle demande";
 
 
 /* End of file licensed_request_lang.php */

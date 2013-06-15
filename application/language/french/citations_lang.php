@@ -92,6 +92,9 @@ $lang['show_all_note_entries']="Afficher toutes les citations avec des notes";
 $lang['icon_user']="Nom du propriétaire";
 $lang['citation_owner']="Propriétaire";
 $lang['created']="créé(es)";
+$lang['citation_string_invalid']="Format de citation incorrect ou inconnu";
+$lang['attach_to_survey']="Associer une ou plusieurs citations aux enquêtes suivantes (la combinaison de touches CTRL/MAJ permet de sélectionner plusieurs enquêtes)";
+$lang['attach_studies']="Associer des enquêtes";
 
 
 /* End of file citations_lang.php */
