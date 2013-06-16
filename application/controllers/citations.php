@@ -34,7 +34,7 @@ class Citations extends MY_Controller {
 		{
 			$collection=$repo['repositoryid'];
 		}
-		
+
 		$data['rows']=$this->_search();	
 		$data['active_repo']=$collection;
 		$content=$this->load->view('citations/public_search', $data,true);
@@ -51,6 +51,11 @@ class Citations extends MY_Controller {
 	
 	private function get_repo_by_id($repoid)
 	{
+		if (!$repoid)
+		{
+			return FALSE;
+		}
+		
 		$this->load->model("repository_model");
 		return $this->repository_model->get_repository_by_repositoryid($repoid);
 	}
