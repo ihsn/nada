@@ -1349,7 +1349,7 @@ CREATE TABLE `survey_notes` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sid` int(10) unsigned DEFAULT NULL,
   `note` text NOT NULL,
-  `type` tinytext NOT NULL,
+  `type` varchar(50) NOT NULL,
   `userid` int(10) unsigned NOT NULL,
   `created` int(11) DEFAULT NULL,
   `changed` int(11) DEFAULT NULL,
