@@ -23,6 +23,11 @@ $lang['terms_text']="<ol>
 </ol>
 <p>A partir de ce point, vous signifiez votre accord pour vous conformer aux termes et conditions indiquées ci-dessus et certifiez que votre utilisation des données statistiques obtenues à partir de l’Archive Nationale des Données sera conforme aux pratiques généralement acceptées et aux restrictions juridiques qui visent à protéger la confidentialité des répondants.</p>";
 $lang['public_use_files']="Fichiers d'Utilisation Publique";
+$lang['surveys_in_collection']="La collection [%s] contient les enquêtes suivantes :";
+$lang['collection_data_files']="Fichiers d'utilisation publique par collection";
+$lang['collection_requested']="Accès demandé à la collection";
+$lang['public_use_data_access_by_collection_message']="Vous avez obtenu l'autorisation d'accéder à toutes les fichiers d'utilisation publique de la collection. Consultez chaque page d'enquête pour télécharger les fichiers de données correspondants et la documentation associée. ";
+$lang['public_use_data_access_by_collection']="Télécharger les fichiers de données";
 
 
 /* End of file public_access_terms_lang.php */

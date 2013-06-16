@@ -53,7 +53,7 @@ var i18n={
 		'confirm_delete':"<?php echo t('js_confirm_delete');?>",
 		'js_loading':"<?php echo t('js_loading');?>",
 		'published':"<?php echo t('published');?>",
-		'unpublished':"<?php echo t('unpublished');?>",
+		'unpublished':"<?php echo t('unpublished');?>"
 		};
 		
 $(".box .box-header").click(function(e){

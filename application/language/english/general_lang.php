@@ -131,5 +131,10 @@ $lang['exit_impersonate'] = "Exit impersonate mode";
 $lang['content_is_not_published']='The content for the current page is not published yet and is only available for reviewing.';
 $lang['licensed_requests'] = 'Licensed requests';
 $lang['create_region'] = 'Create region';
+
+$lang['tab_about'] = "About";
+$lang['tab_datasets'] = "Datasets";
+$lang['tab_citations'] = "Citations";
+
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

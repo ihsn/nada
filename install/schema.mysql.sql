@@ -1094,7 +1094,7 @@ LOCK TABLES `menus` WRITE;
 INSERT INTO `menus` VALUES 
 (53,'catalog','Microdata  Catalog','',1,'0',1300807037,1,1,0),
 (55,'citations','Citations',NULL,1,'0',1281460217,1,2,0),
-(55,'home','Home',NULL,1,'0',1281460217,1,0,0);
+(56,'home','Home',NULL,1,'0',1281460217,1,0,0);
 /*!40000 ALTER TABLE `menus` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1349,7 +1349,7 @@ CREATE TABLE `survey_notes` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sid` int(10) unsigned DEFAULT NULL,
   `note` text NOT NULL,
-  `type` tinytext NOT NULL,
+  `type` varchar(50) NOT NULL,
   `userid` int(10) unsigned NOT NULL,
   `created` int(11) DEFAULT NULL,
   `changed` int(11) DEFAULT NULL,
@@ -1639,9 +1639,9 @@ INSERT INTO `configurations` VALUES ('cache_path','cache/','Site cache folder',N
 INSERT INTO `configurations` VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('collections_vocab','2','survey collections vocabulary',NULL,NULL);
-INSERT INTO `configurations` VALUES ('collection_search','yes',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('collection_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('collection_search_weight','5',NULL,NULL,NULL);
-INSERT INTO `configurations` VALUES ('da_search','yes',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('da_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search_weight','2',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('db_version','4.0.0-06.02.2013','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
@@ -1653,7 +1653,7 @@ INSERT INTO `configurations` VALUES ('login_timeout','40','Login timeout (minute
 INSERT INTO `configurations` VALUES ('mail_protocol','smtp','Select method for sending emails','Supported protocols: MAIL, SMTP, SENDMAIL',NULL);
 INSERT INTO `configurations` VALUES ('min_password_length','5','Minimum password length',NULL,NULL);
 INSERT INTO `configurations` VALUES ('news_feed_url','http://ihsn.org/nada/index.php?q=news/feed','','','');
-INSERT INTO `configurations` VALUES ('regional_search','yes','Enable regional search',NULL,NULL);
+INSERT INTO `configurations` VALUES ('regional_search','no','Enable regional search',NULL,NULL);
 INSERT INTO `configurations` VALUES ('regional_search_weight','3',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
 INSERT INTO `configurations` VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
@@ -1663,7 +1663,7 @@ INSERT INTO `configurations` VALUES ('smtp_port','25','SMTP port',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_user','','SMTP username',NULL,NULL);
 INSERT INTO `configurations` VALUES ('theme','default','Site theme name',NULL,NULL);
 INSERT INTO `configurations` VALUES ('topics_vocab','1','Vocabulary ID for Topics',NULL,NULL);
-INSERT INTO `configurations` VALUES ('topic_search','yes','Topic search',NULL,NULL);
+INSERT INTO `configurations` VALUES ('topic_search','no','Topic search',NULL,NULL);
 INSERT INTO `configurations` VALUES ('topic_search_weight','6',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('use_html_editor','yes','Use HTML editor for entering HTML for static pages',NULL,NULL);
 INSERT INTO `configurations` VALUES ('website_footer','Powered by NADA 4.0 and DDI','Website footer text',NULL,NULL);
@@ -1671,7 +1671,7 @@ INSERT INTO `configurations` VALUES ('website_title','National Data Archive','We
 INSERT INTO `configurations` VALUES ('website_url','http://localhost/nada','Website URL','URL of the website','website');
 INSERT INTO `configurations` VALUES ('website_webmaster_email','nada@ihsn.org','Site webmaster email address','-','website');
 INSERT INTO `configurations` VALUES ('website_webmaster_name','noreply','Webmaster name','-','website');
-INSERT INTO `configurations` VALUES ('year_search','yes',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('year_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('year_search_weight','1',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `configurations` ENABLE KEYS */;
 UNLOCK TABLES;

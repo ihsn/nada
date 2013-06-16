@@ -43,6 +43,10 @@ $lang['public_requests']="Demandes publiques";
 $lang['dated']="Daté";
 $lang['intended_use']="Utilisation prévue";
 $lang['details']="Détails";
+$lang['missing_data']="Enquêtes ayant des fichiers de données manquants";
+$lang['studies_data_access']="Enquêtes ayant des fichiers de données manquants";
+$lang['repositoryid']="Collection";
+$lang['titl']="Titre de l'enquête";
 
 
 /* End of file reports_lang.php */

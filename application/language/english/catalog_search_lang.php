@@ -174,9 +174,6 @@ $lang['next'] = "Next";
 $lang['search_by_keyword'] = "Search by Keyword";
 $lang['filter_by_year'] = "Filter by Year";
 
-$lang['tab_about'] = "About";
-$lang['tab_datasets'] = "Datasets";
-$lang['tab_citations'] = "Citations";
 $lang['any'] = "Any";
 $lang['views'] = "Views";
 $lang['metadata'] = "Metadata";

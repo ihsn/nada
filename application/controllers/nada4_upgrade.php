@@ -19,6 +19,11 @@ class Nada4_upgrade extends CI_Controller {
 		}
 	*/	
 		
+		if (!$this->_test_connection())
+		{
+			show_error("Failed to connect to your database, please check your database settings.");
+		}
+		
     }
   
 	function index()
@@ -98,7 +103,7 @@ class Nada4_upgrade extends CI_Controller {
 			
 			if(!$result)
 			{
-				echo "<BR>FAILED: ";
+				echo '<BR>FAILED: '.$this->db->_error_message().'<BR>';
 				echo $this->db->last_query();
 			}
 		}	
@@ -145,7 +150,7 @@ class Nada4_upgrade extends CI_Controller {
 				if(!$result)
 				{
 					log_message('error', $templine);
-					echo 'Update failed:<BR>';
+					echo '<BR>UPDATE FAILED: <span style="color:red">'.$this->db->_error_message().'</span><BR>';
 					echo $this->db->last_query().'<HR>';
 				}
 
@@ -155,6 +160,21 @@ class Nada4_upgrade extends CI_Controller {
 		}
 	}
 
-	
+	/**
+	*
+	* Test database connectivity
+	*
+	* return	bool
+	*/
+	function _test_connection()
+	{
+		$this->db->select('count(*) as total');
+		$result=$this->db->get('configurations');
+		if (!$result)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
 
 }//end class

@@ -851,8 +851,6 @@ class DDI_Import{
 				return false;
 			}
 		}
-		log_message('error', "path-normal:".$survey_folder);
-		log_message("error", "survey-relative-path:::".$repositoryid.'/'.md5("$repositoryid:$surveyid"));
 		
 		//return relative survey path
 		return $repositoryid.'/'.md5("$repositoryid:$surveyid");

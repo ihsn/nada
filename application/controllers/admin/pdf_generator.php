@@ -33,7 +33,7 @@ class Pdf_generator extends MY_Controller {
 		
 		$this->form_validation->set_rules('website_title', t('website_title'), 'xss_clean|trim|required|max_length[255]');
 		$this->form_validation->set_rules('study_title', t('study_title'), 'xss_clean|trim|required|max_length[400]');
-		$this->form_validation->set_rules('publisher', t('publisher'), 'xss_clean|trim|required|max_length[255]');
+		$this->form_validation->set_rules('publisher', t('publisher'), 'xss_clean|trim|max_length[255]');
 		$this->form_validation->set_rules('website_url', t('website_url'), 'xss_clean|trim|required|max_length[255]');
 
 		$data=array();
@@ -89,7 +89,7 @@ class Pdf_generator extends MY_Controller {
 		$this->load->helper('url_filter');
 		$log_threshold= $this->config->item("log_threshold");
 		$this->config->set_item("log_threshold",0);	//disable logging temporarily
-
+		
 		$report_link='';		
 		$params=array('codepage'=>$options['report_lang']);
 

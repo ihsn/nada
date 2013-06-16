@@ -113,6 +113,8 @@ $lang['status']="Statut";
 $lang['file_delete_success']="Fichier supprimé!";
 $lang['additional_info']="Information supplémentaire";
 $lang['remote_data_access_url']="Donnez l'URL du répertoire externe";
+$lang['upload_external_resources']="Charger les ressources externes";
+$lang['return_to_study_edit_page']="Retour à la page d'édition de l'enquête";
 
 
 /* End of file resource_manager_lang.php */

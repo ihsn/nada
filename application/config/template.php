@@ -88,8 +88,8 @@ $template['installer']['theme_folder'] = 'installer';
 $template['blank']['template'] = '../../themes/wb/blank';
 $template['blank']['theme_folder'] = 'wb';
 
-$template['blank_iframe']['template'] = '../../themes/wb_intranet/blank_iframe';
-$template['blank_iframe']['theme_folder'] = 'wb_intranet';
+$template['blank_iframe']['template'] =  '../../themes/wb/blank';
+$template['blank_iframe']['theme_folder'] = 'wb';
 
 
 //box template file with only the body and no layout

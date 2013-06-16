@@ -6,14 +6,6 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-#ALTER TABLE `repositories` COLLATE = utf8_general_ci , 
-#DROP COLUMN `scan_nextrun` , DROP COLUMN `scan_interval` , 
-#DROP COLUMN `scan_lastrun` , CHANGE COLUMN `url` `url` VARCHAR(255) NULL DEFAULT NULL  , 
-#CHANGE COLUMN `status` `status` VARCHAR(255) NULL DEFAULT NULL  , CHANGE COLUMN `surveys_found` `surveys_found` INT(11) NULL DEFAULT NULL  , 
-#CHANGE COLUMN `changed` `changed` INT(11) NULL DEFAULT NULL  , ADD COLUMN `pid` INT(11) NULL DEFAULT NULL  AFTER `id` , ADD COLUMN `type` INT(10) UNSIGNED NULL DEFAULT NULL  AFTER `changed` , ADD COLUMN `short_text` VARCHAR(1000) NULL DEFAULT NULL  AFTER `type` , ADD COLUMN `long_text` TEXT NULL DEFAULT NULL  AFTER `short_text` , ADD COLUMN `thumbnail` VARCHAR(255) NULL DEFAULT NULL  AFTER `long_text` , ADD COLUMN `weight` INT(10) UNSIGNED NULL DEFAULT NULL  AFTER `thumbnail` , ADD COLUMN `ispublished` TINYINT(3) UNSIGNED NULL DEFAULT NULL  AFTER `weight` , ADD COLUMN `section` INT(11) NULL DEFAULT NULL  AFTER `ispublished` , ADD COLUMN `group_da_public` TINYINT(1) NULL DEFAULT '0'  AFTER `section` , 
-#ADD COLUMN `group_da_licensed` TINYINT(1) NULL DEFAULT '0'  AFTER `group_da_public` 
-#, DROP INDEX `idx_url` ;
-
 DROP TABLE IF EXISTS `repositories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -146,16 +138,26 @@ ALTER TABLE `surveys` COLLATE = utf8_general_ci ,
 ADD COLUMN `link_da` varchar(255)  NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
-CHANGE COLUMN `changed` `changed` INT(11) NULL DEFAULT NULL  , 
-CHANGE COLUMN `created` `created` INT(11) NULL DEFAULT NULL  , 
-ADD COLUMN `published` TINYINT(4) NULL DEFAULT NULL  AFTER `link_da` , 
-ADD COLUMN `total_views` INT(11) NULL DEFAULT '0'  AFTER `published` , 
-ADD COLUMN `total_downloads` INT(11) NULL DEFAULT '0'  AFTER `total_views` ,
-ADD COLUMN `stats_last_updated` INT(11) NULL DEFAULT NULL  AFTER `total_downloads` ;
+CHANGE COLUMN `changed` `changed` INT(11) NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
-ADD COLUMN `abbreviation` varchar(45) NULL DEFAULT NULL, 
-ADD COLUMN `kindofdata` varchar(255) NULL DEFAULT NULL, 
+CHANGE COLUMN `created` `created` INT(11) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `published` TINYINT(4) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci ,  
+ADD COLUMN `total_views` INT(11) NULL DEFAULT '0'  , 
+ADD COLUMN `total_downloads` INT(11) NULL DEFAULT '0',
+ADD COLUMN `stats_last_updated` INT(11) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `abbreviation` varchar(45) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
+ADD COLUMN `kindofdata` varchar(255) NULL DEFAULT NULL;
+
+ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
 ADD COLUMN `keywords` text NULL DEFAULT NULL;
 
 ALTER TABLE `surveys` COLLATE = utf8_general_ci , 
@@ -167,7 +169,6 @@ ADD COLUMN `ie_team_leaders` varchar(255) NULL DEFAULT NULL,
 ADD COLUMN `project_id` varchar(255) NULL DEFAULT NULL, 
 ADD COLUMN `project_name` varchar(255) NULL DEFAULT NULL, 
 ADD COLUMN `project_uri` varchar(255) NULL DEFAULT NULL;
-
 
 
 ALTER TABLE `dctypes` COLLATE = utf8_general_ci ;
@@ -198,9 +199,20 @@ ALTER TABLE `schema_version` COLLATE = utf8_general_ci ;
 
 ALTER TABLE `forms` COLLATE = utf8_general_ci ;
 
-ALTER TABLE `lic_requests` COLLATE = utf8_general_ci , CHANGE COLUMN `surveyid` `surveyid` INT(11) NULL DEFAULT NULL  , ADD COLUMN `request_type` VARCHAR(45) NULL DEFAULT 'study'  AFTER `userid` , ADD COLUMN `collection_id` VARCHAR(100) NULL DEFAULT NULL  AFTER `surveyid` , ADD COLUMN `expiry_date` INT(11) NULL DEFAULT NULL  AFTER `ip_limit` , ADD COLUMN `additional_info` TEXT NULL DEFAULT NULL  AFTER `expiry_date` ;
+ALTER TABLE `lic_requests` COLLATE = utf8_general_ci , 
+CHANGE COLUMN `surveyid` `surveyid` INT(11) NULL DEFAULT NULL  , 
+ADD COLUMN `request_type` VARCHAR(45) NULL DEFAULT 'study'  AFTER `userid` , 
+ADD COLUMN `collection_id` VARCHAR(100) NULL DEFAULT NULL  AFTER `surveyid` , 
+ADD COLUMN `expiry_date` INT(11) NULL DEFAULT NULL  AFTER `ip_limit` , 
+ADD COLUMN `additional_info` TEXT NULL DEFAULT NULL  AFTER `expiry_date` ;
 
-ALTER TABLE `citations` COLLATE = utf8_general_ci , CHANGE COLUMN `page_from` `page_from` VARCHAR(25) NULL DEFAULT NULL  , CHANGE COLUMN `page_to` `page_to` VARCHAR(25) NULL DEFAULT NULL  , ADD COLUMN `ihsn_id` VARCHAR(50) NULL DEFAULT NULL  AFTER `country` ;
+ALTER TABLE `citations` COLLATE = utf8_general_ci , 
+CHANGE COLUMN `page_from` `page_from` VARCHAR(25) NULL DEFAULT NULL  , 
+CHANGE COLUMN `page_to` `page_to` VARCHAR(25) NULL DEFAULT NULL  , 
+ADD COLUMN `ihsn_id` VARCHAR(50) NULL DEFAULT NULL;
+
+ALTER TABLE `citations` COLLATE = utf8_general_ci , 
+ADD COLUMN `country` VARCHAR(100) NULL DEFAULT NULL  ;
 
 CREATE  TABLE IF NOT EXISTS `permission_urls` (
   `id` INT(11) NOT NULL AUTO_INCREMENT ,
@@ -668,9 +680,9 @@ INSERT INTO `configurations` VALUES ('cache_path','cache/','Site cache folder',N
 INSERT INTO `configurations` VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('collections_vocab','2','survey collections vocabulary',NULL,NULL);
-INSERT INTO `configurations` VALUES ('collection_search','yes',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('collection_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('collection_search_weight','5',NULL,NULL,NULL);
-INSERT INTO `configurations` VALUES ('da_search','yes',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('da_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search_weight','2',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('db_version','4.0.0-06.02.2013','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
@@ -682,7 +694,7 @@ INSERT INTO `configurations` VALUES ('login_timeout','40','Login timeout (minute
 INSERT INTO `configurations` VALUES ('mail_protocol','smtp','Select method for sending emails','Supported protocols: MAIL, SMTP, SENDMAIL',NULL);
 INSERT INTO `configurations` VALUES ('min_password_length','5','Minimum password length',NULL,NULL);
 INSERT INTO `configurations` VALUES ('news_feed_url','http://ihsn.org/nada/index.php?q=news/feed','','','');
-INSERT INTO `configurations` VALUES ('regional_search','yes','Enable regional search',NULL,NULL);
+INSERT INTO `configurations` VALUES ('regional_search','no','Enable regional search',NULL,NULL);
 INSERT INTO `configurations` VALUES ('regional_search_weight','3',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
 INSERT INTO `configurations` VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
@@ -692,7 +704,7 @@ INSERT INTO `configurations` VALUES ('smtp_port','25','SMTP port',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_user','','SMTP username',NULL,NULL);
 INSERT INTO `configurations` VALUES ('theme','default','Site theme name',NULL,NULL);
 INSERT INTO `configurations` VALUES ('topics_vocab','1','Vocabulary ID for Topics',NULL,NULL);
-INSERT INTO `configurations` VALUES ('topic_search','yes','Topic search',NULL,NULL);
+INSERT INTO `configurations` VALUES ('topic_search','no','Topic search',NULL,NULL);
 INSERT INTO `configurations` VALUES ('topic_search_weight','6',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('use_html_editor','yes','Use HTML editor for entering HTML for static pages',NULL,NULL);
 INSERT INTO `configurations` VALUES ('website_footer','Powered by NADA 4.0 and DDI','Website footer text',NULL,NULL);
@@ -700,7 +712,7 @@ INSERT INTO `configurations` VALUES ('website_title','National Data Archive','We
 INSERT INTO `configurations` VALUES ('website_url','http://localhost/nada','Website URL','URL of the website','website');
 INSERT INTO `configurations` VALUES ('website_webmaster_email','nada@ihsn.org','Site webmaster email address','-','website');
 INSERT INTO `configurations` VALUES ('website_webmaster_name','noreply','Webmaster name','-','website');
-INSERT INTO `configurations` VALUES ('year_search','yes',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('year_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('year_search_weight','1',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `configurations` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -717,3 +729,4 @@ UNLOCK TABLES;
 
 update surveys set formid=6 where formid is null;
 update surveys set formid=6 where formid=0;
+update surveys set repositoryid='central';

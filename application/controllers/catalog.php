@@ -239,7 +239,7 @@ class Catalog extends MY_Controller {
 		$search_options->to				=xss_clean($this->input->get("to"));		
 		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
 		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
-		$search_options->page			=xss_clean($this->input->get("page"));
+		$search_options->page			=(int)xss_clean($this->input->get("page"));
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
 		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));		
