@@ -1,21 +1,317 @@
+--
+-- Table structure for table repositories
+--
 
--- TABLE STRUCTURE FOR: sitelogs
-CREATE TABLE sitelogs (
+CREATE TABLE repositories (
   id int NOT NULL IDENTITY(1,1),
-  sessionid varchar(255) NOT NULL DEFAULT '',
-  logtime varchar(45) NOT NULL DEFAULT '0',
-  ip varchar(45) NOT NULL,
-  url varchar(255) NOT NULL DEFAULT '',
-  logtype varchar(45) NOT NULL,
-  surveyid int DEFAULT '0',
-  section varchar(255) DEFAULT NULL,
-  keyword varchar(500),
-  username varchar(100) DEFAULT NULL,
+  pid int DEFAULT NULL,
+  repositoryid varchar(255) NOT NULL,
+  title varchar(100) NOT NULL,
+  url varchar(255) DEFAULT NULL,
+  organization varchar(45) DEFAULT NULL,
+  email varchar(45) DEFAULT NULL,
+  country varchar(45) DEFAULT NULL,
+  status varchar(255) DEFAULT NULL,
+  surveys_found int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  type int  DEFAULT NULL,
+  short_text varchar(1000) DEFAULT NULL,
+  long_text text,
+  thumbnail varchar(255) DEFAULT NULL,
+  weight int  DEFAULT NULL,
+  ispublished tinyint  DEFAULT NULL,
+  section int DEFAULT NULL,
+  group_da_public  int DEFAULT '0',
+  group_da_licensed  int DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_repositories on [dbo].[repositories]
+(
+	[repositoryid] ASC
+);
+
+
+--
+-- Table structure for table lic_files
+--
+
+CREATE TABLE lic_files (
+  id int NOT NULL IDENTITY(1,1),
+  surveyid int NOT NULL,
+  file_name varchar(100) NOT NULL,
+  file_path varchar(255) NOT NULL,
+  changed int NOT NULL,
   PRIMARY KEY (id)
 );
 
 
--- TABLE STRUCTURE FOR: surveys
+
+--
+-- Table structure for table site_menu
+--
+
+CREATE TABLE site_menu (
+  id int NOT NULL IDENTITY(1,1),
+  pid int DEFAULT NULL,
+  title varchar(100) DEFAULT NULL,
+  url varchar(255) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  depth int DEFAULT NULL,
+  module varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table site_menu
+--
+
+set IDENTITY_INSERT site_menu ON;
+INSERT INTO site_menu(id,pid,title,url,weight,depth,module)
+ VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/repositories',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users');
+set IDENTITY_INSERT site_menu OFF;
+
+
+--
+-- Table structure for table vocabularies
+--
+
+CREATE TABLE vocabularies (
+  vid int NOT NULL IDENTITY(1,1),
+  title varchar(255) NOT NULL,
+  PRIMARY KEY (vid)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_vocabularies on [dbo].[vocabularies](
+	[title] ASC
+);
+
+
+--
+-- Table structure for table variables
+--
+
+CREATE TABLE variables (
+  uid int NOT NULL IDENTITY(1,1),
+  varID varchar(45) DEFAULT '',
+  name varchar(45) DEFAULT '',
+  labl varchar(245) DEFAULT '',
+  qstn text,
+  catgry text,
+  surveyid_FK int NOT NULL,
+  PRIMARY KEY (uid)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_variables on [dbo].[variables](
+	[varID] ASC,
+	[surveyid_FK] ASC
+);
+
+CREATE INDEX IX_var_sidfk on [dbo].[variables](
+	[surveyid_FK] ASC
+);
+
+
+--
+-- Table structure for table users_groups
+--
+
+CREATE TABLE users_groups (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int DEFAULT NULL,
+  group_id int DEFAULT NULL,
+  PRIMARY KEY (id),
+  --UNIQUE KEY user_group_UNQ (user_id,group_id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_users_groups on [dbo].[users_groups](
+	[user_id] ASC,
+	[group_id] ASC
+);
+
+
+
+--
+-- Table structure for table survey_relationships
+--
+
+CREATE TABLE survey_relationships (
+  id int NOT NULL IDENTITY(1,1),
+  sid_1 int DEFAULT NULL,
+  sid_2 int DEFAULT NULL,
+  relationship_id int DEFAULT NULL,
+  pair_id varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX IX_s_relationships on [dbo].[survey_relationships](
+	[pair_id] ASC
+);
+
+
+
+--
+-- Table structure for table survey_tags
+--
+
+CREATE TABLE survey_tags (
+  id int NOT NULL IDENTITY(1,1),
+  sid int NOT NULL,
+  tag varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_tags on [dbo].[survey_tags](
+	[sid] ASC,
+	[tag] ASC
+);
+
+
+--
+-- Table structure for table meta
+--
+
+CREATE TABLE meta (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int DEFAULT NULL,
+  first_name varchar(50) DEFAULT NULL,
+  last_name varchar(50) DEFAULT NULL,
+  company varchar(100) DEFAULT NULL,
+  phone varchar(20) DEFAULT NULL,
+  country varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Table structure for table login_attempts
+--
+
+CREATE TABLE login_attempts (
+  id int  NOT NULL IDENTITY(1,1),
+  ip_address varchar(30) NOT NULL,
+  login varchar(100) NOT NULL,
+  time int  DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+--
+-- Table structure for table repository_sections
+--
+
+CREATE TABLE repository_sections (
+  id int  NOT NULL IDENTITY(1,1),
+  title varchar(100) NOT NULL,
+  weight int NOT NULL,
+  PRIMARY KEY (id)
+);
+
+set IDENTITY_INSERT repository_sections ON;
+INSERT INTO repository_sections (id,title,[weight])
+VALUES (2,'Regional Collections',5),(3,'Specialized Collections',10);
+set IDENTITY_INSERT repository_sections OFF;
+
+
+
+
+--
+-- Table structure for table survey_topics
+--
+
+CREATE TABLE survey_topics (
+  sid int NOT NULL,
+  tid int NOT NULL,
+  uid int NOT NULL IDENTITY(1,1),
+  PRIMARY KEY (uid)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_topics on [dbo].[survey_topics](
+	[tid] ASC,
+	[sid] ASC
+);
+
+
+
+--
+-- Table structure for table blocks
+--
+
+CREATE TABLE blocks (
+  bid int NOT NULL IDENTITY(1,1),
+  title varchar(255) DEFAULT NULL,
+  body text,
+  region varchar(255) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  published int DEFAULT NULL,
+  pages text,
+  PRIMARY KEY (bid)
+) ;
+
+
+--
+-- Table structure for table survey_citations
+--
+
+CREATE TABLE survey_citations (
+  sid int DEFAULT NULL,
+  citationid int DEFAULT NULL,
+  id int NOT NULL IDENTITY(1,1),
+  PRIMARY KEY (id)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_cit on [dbo].[survey_citations](
+	[sid] ASC,
+	[citationid] ASC
+);
+
+
+
+--
+-- Table structure for table dcformats
+--
+
+CREATE TABLE dcformats (
+  id int NOT NULL IDENTITY(1,1),
+  title varchar(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table dcformats
+--
+
+set IDENTITY_INSERT dcformats ON;
+INSERT INTO dcformats (id,title)
+VALUES (1,'Compressed, Generic [application/x-compressed]'),(2,'Compressed, ZIP [application/zip]'),(3,'Data, CSPro [application/x-cspro]'),(4,'Data, dBase [application/dbase]'),(5,'Data, Microsoft Access [application/msaccess]'),(6,'Data, SAS [application/x-sas]'),(7,'Data, SPSS [application/x-spss]'),(8,'Data, Stata [application/x-stata]'),(9,'Document, Generic [text]'),(10,'Document, HTML [text/html]'),(11,'Document, Microsoft Excel [application/msexcel]'),(12,'Document, Microsoft PowerPoint [application/mspowerpoint'),(13,'Document, Microsoft Word [application/msword]'),(14,'Document, PDF [application/pdf]'),(15,'Document, Postscript [application/postscript]'),(16,'Document, Plain [text/plain]'),(17,'Document, WordPerfect [text/wordperfect]'),(18,'Image, GIF [image/gif]'),(19,'Image, JPEG [image/jpeg]'),(20,'Image, PNG [image/png]'),(21,'Image, TIFF [image/tiff]');
+set IDENTITY_INSERT dcformats OFF;
+
+
+--
+-- Table structure for table group_repo_access
+--
+
+CREATE TABLE group_repo_access (
+  id int NOT NULL IDENTITY(1,1),
+  group_id int DEFAULT NULL,
+  repo_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_grp_repo_access on [dbo].[group_repo_access](
+	[group_id] ASC,
+	[repo_id] ASC
+);
+
+
+
+
+--
+-- Table structure for table surveys
+--
+
 CREATE TABLE surveys (
   id int NOT NULL IDENTITY(1,1),
   repositoryid varchar(128) NOT NULL,
@@ -35,16 +331,16 @@ CREATE TABLE surveys (
   varcount decimal(10,0) DEFAULT NULL,
   ddifilename varchar(255) DEFAULT NULL,
   dirpath varchar(255) DEFAULT NULL,
-  link_technical varchar(255) DEFAULT NULL ,
-  link_study varchar(255) DEFAULT NULL ,
+  link_technical varchar(255) DEFAULT NULL,
+  link_study varchar(255) DEFAULT NULL,
   link_report varchar(255) DEFAULT NULL,
-  link_indicator varchar(255) DEFAULT NULL ,
+  link_indicator varchar(255) DEFAULT NULL,
   ddi_sh char(2) DEFAULT NULL,
   formid int DEFAULT NULL,
-  isshared tinyint NOT NULL DEFAULT '1',
-  isdeleted tinyint NOT NULL DEFAULT '0',
-  changed varchar(255) DEFAULT NULL,
-  created varchar(255) DEFAULT NULL,
+  isshared int NOT NULL DEFAULT '1',
+  isdeleted int NOT NULL DEFAULT '0',
+  changed int DEFAULT NULL,
+  created int DEFAULT NULL,
   link_questionnaire varchar(255) DEFAULT NULL,
   countryid int DEFAULT NULL,
   data_coll_start int DEFAULT NULL,
@@ -61,164 +357,101 @@ CREATE TABLE surveys (
   project_name varchar(255) DEFAULT NULL,
   project_uri varchar(255) DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
+  published tinyint DEFAULT NULL,
+  total_views int DEFAULT '0',
+  total_downloads int DEFAULT '0',
+  stats_last_updated int DEFAULT NULL,
   PRIMARY KEY (id)
-)
+);
 
--- UNIQUE INDEX FOR: Surveys
-CREATE UNIQUE NONCLUSTERED INDEX [IX_surveys] ON [dbo].[surveys] 
-(
+CREATE UNIQUE NONCLUSTERED INDEX IX_surveys on [dbo].[surveys](
 	[surveyid] ASC,
 	[repositoryid] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-
-
-
--- TABLE STRUCTURE FOR: variables
-CREATE TABLE variables (
-  uid int NOT NULL IDENTITY(1,1),
-  varID varchar(45) DEFAULT '',
-  name varchar(45) DEFAULT '',
-  labl varchar(245) DEFAULT '',
-  qstn text,
-  catgry text,
-  surveyid_FK int NOT NULL,
-  PRIMARY KEY (uid)
 );
 
-CREATE NONCLUSTERED INDEX [IX_variables] ON [dbo].[variables] 
-(
-	[surveyid_FK] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
 
-GO
 
--- TABLE STRUCTURE FOR: survey_collections
-CREATE TABLE survey_collections (
-  uid int NOT NULL IDENTITY(1,1),
-  sid int DEFAULT NULL,
-  tid int DEFAULT NULL,
-  PRIMARY KEY (uid)
-);
-GO
+--
+-- Table structure for table dctypes
+--
 
--- TABLE STRUCTURE FOR: harvester
-CREATE TABLE harvester_queue (
+CREATE TABLE dctypes (
   id int NOT NULL IDENTITY(1,1),
-  repositoryid varchar(50) NOT NULL,
-  survey_url varchar(100) NOT NULL,
-  status varchar(45) NOT NULL,
-  ddi_local_path varchar(255) NOT NULL,
-  changed integer NOT NULL,
   title varchar(255) NOT NULL,
-  survey_timestamp int NOT NULL,
-  retries integer DEFAULT '0',
-  country varchar(255) DEFAULT NULL,
-  survey_year int DEFAULT NULL,
-  accesspolicy varchar(45) DEFAULT NULL,
-  checksum varchar(255) DEFAULT NULL,
-  surveyid varchar(200) DEFAULT NULL,
   PRIMARY KEY (id)
 );
-GO
 
--- TABLE STRUCTURE FOR: blocks
-CREATE TABLE blocks (
-  bid int NOT NULL IDENTITY(1,1),
+
+--
+-- Dumping data for table dctypes
+--
+set IDENTITY_INSERT dctypes ON;
+INSERT INTO dctypes (id,title)
+VALUES (1,'Document, Administrative [doc/adm]'),(2,'Document, Analytical [doc/anl]'),(3,'Document, Other [doc/oth]'),(4,'Document, Questionnaire [doc/qst]'),(5,'Document, Reference [doc/ref]'),(6,'Document, Report [doc/rep]'),(7,'Document, Technical [doc/tec]'),(8,'Audio [aud]'),(9,'Database [dat]'),(10,'Map [map]'),(11,'Microdata File [dat/micro]'),(12,'Photo [pic]'),(13,'Program [prg]'),(14,'Table [tbl]'),(15,'Video [vid]'),(16,'Web Site [web]');
+set IDENTITY_INSERT dctypes OFF;
+
+--
+-- Table structure for table da_collections
+--
+
+CREATE TABLE da_collections (
+  id int NOT NULL IDENTITY(1,1),
   title varchar(255) DEFAULT NULL,
-  body text,
-  region varchar(255) DEFAULT NULL,
-  weight int DEFAULT NULL,
-  published int DEFAULT NULL,
-  pages text,
-  PRIMARY KEY (bid)
+  description varchar(1000) DEFAULT NULL,
+  PRIMARY KEY (id)
 );
 
 
--- TABLE STRUCTURE FOR: citations
-CREATE TABLE [dbo].[citations](
-	[id] [int] IDENTITY(1,1) NOT NULL,
-	[title] [varchar](255) NOT NULL,
-	[subtitle] [varchar](255) NULL,
-	[alt_title] [varchar](255) NULL,
-	[authors] [varchar](1000) NULL,
-	[editors] [varchar](1000) NULL,
-	[translators] [varchar](1000) NULL,
-	[changed] [int] NULL,
-	[created] [int] NULL,
-	[published] [tinyint] NULL,
-	[volume] [varchar](45) NULL,
-	[issue] [varchar](45) NULL,
-	[idnumber] [varchar](45) NULL,
-	[edition] [varchar](45) NULL,
-	[place_publication] [varchar](255) NULL,
-	[place_state] [varchar](255) NULL,
-	[publisher] [varchar](255) NULL,
-	[publication_medium] [tinyint] NULL,
-	[url] [varchar](255) NULL,
-	[page_from] [varchar](5) NULL,
-	[page_to] [varchar](5) NULL,
-	[data_accessed] [varchar](45) NULL,
-	[organization] [varchar](255) NULL,
-	[ctype] [varchar](45) NOT NULL,
-	[pub_day] [varchar](15) NULL,
-	[pub_month] [varchar](45) NULL,
-	[pub_year] [int] NULL,
-	[abstract] [varchar](2000) NULL,
-	[keywords] [varchar](2000) NULL,
-	[notes] [varchar](1000) NULL,
-	[doi] [varchar](255) NULL,
-	[flag] [varchar](45) NULL,
-	[owner] [varchar](255) NULL,
-	[country] [varchar](100) NULL,
-  PRIMARY KEY (id)
-); 
+--
+-- Table structure for table cache
+--
 
-
-
-
--- TABLE STRUCTURE FOR: lic_file_downloads
-CREATE TABLE lic_file_downloads (
-  id int NOT NULL IDENTITY(1,1),
-  fileid varchar(45) NOT NULL,
-  downloads varchar(45) DEFAULT NULL,
-  download_limit varchar(45) DEFAULT NULL,
+CREATE TABLE cache (
+  id bigint NOT NULL IDENTITY(1,1),
+  uid varchar(100) NOT NULL,
+  data text,
+  created int DEFAULT NULL,
   expiry int DEFAULT NULL,
-  lastdownloaded int DEFAULT NULL,
-  requestid int NOT NULL,
   PRIMARY KEY (id)
 );
 
 
--- TABLE STRUCTURE FOR: lic_files
-CREATE TABLE lic_files (
-  id int NOT NULL IDENTITY(1,1),
-  surveyid int NOT NULL,
-  file_name varchar(100) NOT NULL,
-  file_path varchar(255) NOT NULL,
-  changed int NOT NULL,
-  PRIMARY KEY (id)
+CREATE UNIQUE NONCLUSTERED INDEX IX_cache on [dbo].[cache](
+	[uid] ASC
 );
 
 
+--
+-- Table structure for table forms
+--
 
--- TABLE STRUCTURE FOR: lic_files_log
-CREATE TABLE lic_files_log (
-  id int NOT NULL IDENTITY(1,1),
-  requestid int NOT NULL,
-  fileid int NOT NULL,
-  ip varchar(20) NOT NULL,
-  created int NOT NULL,
-  username varchar(255) DEFAULT NULL,
-  PRIMARY KEY (id)
+CREATE TABLE forms (
+  formid int NOT NULL DEFAULT '0',
+  fname varchar(255) DEFAULT '',
+  model varchar(255) DEFAULT '',
+  path varchar(255) DEFAULT '',
+  iscustom char(2) DEFAULT '0',
+  PRIMARY KEY (formid)
 );
 
 
+--
+-- Dumping data for table forms
+--
+INSERT INTO forms (formid,fname,model,path,iscustom)
+VALUES (2,'Public use files','public','orderform.php','1'),(1,'Direct access','direct','direct.php','1'),(3,'Licensed data files','licensed','licensed.php','1'),(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),(5,'Data available from external repository','remote','remote','1'),(6,'Data not available','data_na','data_na','1');
 
--- TABLE STRUCTURE FOR: lic_requests
+
+--
+-- Table structure for table lic_requests
+--
+
 CREATE TABLE lic_requests (
   id int NOT NULL IDENTITY(1,1),
   userid int NOT NULL,
-  surveyid int NOT NULL,
+  request_type varchar(45) DEFAULT 'study',
+  surveyid int DEFAULT NULL,
+  collection_id varchar(100) DEFAULT NULL,
   org_rec varchar(200) DEFAULT NULL,
   org_type varchar(45) DEFAULT NULL,
   address varchar(255) DEFAULT NULL,
@@ -239,71 +472,103 @@ CREATE TABLE lic_requests (
   updated int DEFAULT NULL,
   updatedby varchar(45) DEFAULT NULL,
   ip_limit varchar(255) DEFAULT NULL,
+  expiry_date int DEFAULT NULL,
+  additional_info text,
   PRIMARY KEY (id)
 );
 
 
--- TABLE STRUCTURE FOR: meta
-CREATE TABLE meta (
-  id int NOT NULL IDENTITY(1,1),
-  user_id int DEFAULT NULL,
-  first_name varchar(50) DEFAULT NULL,
-  last_name varchar(50) DEFAULT NULL,
-  company varchar(100) DEFAULT NULL,
-  phone varchar(20) DEFAULT NULL,
-  country varchar(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
+--
+-- Table structure for table citations
+--
 
-
--- TABLE STRUCTURE FOR: planned_surveys
-CREATE TABLE planned_surveys (
+CREATE TABLE citations (
   id int NOT NULL IDENTITY(1,1),
   title varchar(255) NOT NULL,
-  abbreviation varchar(255) DEFAULT NULL,
-  studytype varchar(255) DEFAULT NULL,
-  country varchar(255) DEFAULT NULL,
-  geocoverage varchar(255) DEFAULT NULL,
-  scope varchar(255) DEFAULT NULL,
-  pinvestigator varchar(255) DEFAULT NULL,
-  producers varchar(255) DEFAULT NULL,
-  sponsors varchar(255) DEFAULT NULL,
-  fundingstatus int DEFAULT NULL,
-  samplesize int DEFAULT NULL,
-  sampleunit varchar(45) DEFAULT NULL,
-  datacollstart int DEFAULT NULL,
-  datacollend int DEFAULT NULL,
-  expect_rep_date int DEFAULT NULL,
-  expect_data_policy text,
-  expect_micro_rel_date int DEFAULT NULL,
-  notes text,
+  subtitle varchar(255) DEFAULT NULL,
+  alt_title varchar(255) DEFAULT NULL,
+  authors varchar(600),
+  editors varchar(600),
+  translators varchar(600),
+  changed int DEFAULT NULL,
+  created int DEFAULT NULL,
+  published tinyint DEFAULT '1',
+  volume varchar(45) DEFAULT NULL,
+  issue varchar(45) DEFAULT NULL,
+  idnumber varchar(45) DEFAULT NULL,
+  edition varchar(45) DEFAULT NULL,
+  place_publication varchar(255) DEFAULT NULL,
+  place_state varchar(255) DEFAULT NULL,
+  publisher varchar(255) DEFAULT NULL,
+  publication_medium tinyint DEFAULT '0',
+  url varchar(255) DEFAULT NULL,
+  page_from varchar(25) DEFAULT NULL,
+  page_to varchar(25) DEFAULT NULL,
+  data_accessed varchar(45) DEFAULT NULL,
+  organization varchar(255) DEFAULT NULL,
+  ctype varchar(45) NOT NULL,
+  pub_day varchar(15) DEFAULT NULL,
+  pub_month varchar(45) DEFAULT NULL,
+  pub_year int DEFAULT NULL,
+  abstract varchar(max),
+  keywords varchar(max),
+  notes varchar(max),
+  doi varchar(255) DEFAULT NULL,
+  flag varchar(45) DEFAULT NULL,
+  owner varchar(255) DEFAULT NULL,
+  country varchar(100) DEFAULT NULL,
+  ihsn_id varchar(50) DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
 
+--
+-- Table structure for table permission_urls
+--
 
--- TABLE STRUCTURE FOR: repositories
-CREATE TABLE repositories (
+CREATE TABLE permission_urls (
   id int NOT NULL IDENTITY(1,1),
-  repositoryid varchar(255) NOT NULL,
-  title varchar(100) NOT NULL,
-  url varchar(255) NOT NULL,
-  organization varchar(45) DEFAULT NULL,
-  email varchar(45) DEFAULT NULL,
-  country varchar(45) DEFAULT NULL,
-  scan_lastrun int NOT NULL,
-  scan_interval int NOT NULL,
-  scan_nextrun int NOT NULL,
-  status varchar(255) NOT NULL,
-  surveys_found int NOT NULL,
-  changed int NOT NULL,
-  PRIMARY KEY (id),
-  --UNIQUE KEY Ind_unq (repositoryid),
-  --UNIQUE KEY idx_url (url)
+  url varchar(255) DEFAULT NULL,
+  permission_id int NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_perms_url on [dbo].[permission_urls](
+	[url] ASC
 );
 
 
--- TABLE STRUCTURE FOR: resources
+
+--
+-- Dumping data for table permission_urls
+--
+set IDENTITY_INSERT permission_urls ON;
+INSERT INTO permission_urls (id,url,permission_id)
+VALUES (1,'admin/catalog/upload',1),(4,'admin/menu',4),(5,'admin/menu/add',5),(6,'admin/menu/edit/*',6),(7,'admin/menu/add_link',7),(8,'admin/menu/menu_sort',8),(9,'admin/vocabularies',9),(10,'admin/terms/*',10),(12,'admin/users/*',12),(14,'ddibrowser',14),(16,'page/*',16),(18,'citations',18),(22,'backup*',22),(23,'access_licensed*',23),(25,'switch_language*',25),(27,'translate/*',27),(34,'admin/catalog/do_upload',1),(48,'admin/datadeposit*',40),(51,'admin/catalog/delete',42),(52,'admin/catalog/export-ddi',43),(53,'admin/catalog/import-rdf',44),(54,'admin/repositories/*',45),(55,'admin/repositories',45),(88,'admin/catalog/replace_ddi/*',46),(100,'admin/catalog/edit/*',49),(101,'admin/catalog/update/*',49),(102,'admin/catalog/update',49),(103,'admin/managefiles/*',49),(104,'admin/resources/*',49),(112,'admin/catalog',2),(113,'admin/catalog/survey/*',2),(114,'admin/catalog/search',2),(116,'access_public/*',30),(119,'admin/catalog/copy_ddi',62),(124,'admin/repositories/select',61),(125,'admin/repositories/active/*',61),(126,'admin/catalog/publish',41),(127,'admin/catalog/publish/*',41),(131,'admin/catalog/copy_study',63),(132,'admin/catalog/do_copy_study/*',63),(133,'admin/citations',64),(134,'admin/citations/edit',65),(135,'admin/citations/edit/*',65),(136,'admin/citations/delete/*',66),(137,'admin/citations/import',67),(138,'admin/citations/export',68),(141,'admin',3),(142,'admin/users/exit_impersonate',3),(143,'admin/licensed_requests',69),(145,'admin/licensed_requests/*',70),(147,'admin/users',11),(148,'admin/reports/*',71),(149,'admin/reports',71);
+set IDENTITY_INSERT permission_urls OFF;
+
+--
+-- Table structure for table survey_aliases
+--
+
+CREATE TABLE survey_aliases (
+  id int  NOT NULL IDENTITY(1,1),
+  sid int  NOT NULL,
+  alternate_id varchar(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_alias on [dbo].[survey_aliases](
+	[alternate_id] ASC
+);
+
+
+
+--
+-- Table structure for table resources
+--
+
 CREATE TABLE resources (
   resource_id int NOT NULL IDENTITY(1,1),
   survey_id int NOT NULL,
@@ -329,1064 +594,37 @@ CREATE TABLE resources (
 );
 
 
+--
+-- Table structure for table lic_files_log
+--
 
--- TABLE STRUCTURE FOR: survey_citations
-CREATE TABLE survey_citations (
-  sid int DEFAULT NULL,
-  citationid int DEFAULT NULL,
+CREATE TABLE lic_files_log (
   id int NOT NULL IDENTITY(1,1),
-  PRIMARY KEY (id)
-  --UNIQUE KEY Idx_s_c (sid,citationid)
-);
-
-
-
--- TABLE STRUCTURE FOR: survey_topics
-CREATE TABLE survey_topics (
-  sid int NOT NULL,
-  tid int NOT NULL,
-  uid int NOT NULL IDENTITY(1,1),
-  PRIMARY KEY (uid)--,
- -- UNIQUE KEY Idx_uniq (tid,sid)
-);
-
-
-
--- TABLE STRUCTURE FOR: survey_years
-CREATE TABLE survey_years (
-  id int NOT NULL IDENTITY(1,1),
-  sid int DEFAULT NULL,
-  data_coll_year int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
--- TABLE STRUCTURE FOR: ci_sessions
-CREATE TABLE ci_sessions (
-  session_id varchar(40) NOT NULL DEFAULT '0',
-  ip_address varchar(16) DEFAULT '0',
-  user_agent varchar(50) DEFAULT NULL,
-  last_activity int DEFAULT '0',
-  user_data text,
-  PRIMARY KEY (session_id)
-);
-
-
-
--- TABLE STRUCTURE FOR: tokens
-CREATE TABLE tokens (
-  tokenid varchar(100) NOT NULL,
-  dated int NOT NULL,
-  PRIMARY KEY (tokenid)
-);
-
-
-
--- TABLE STRUCTURE FOR: users
-CREATE TABLE users (
-  id int NOT NULL IDENTITY(1,1),
-  group_id int NOT NULL,
-  ip_address char(16) NOT NULL,
-  username varchar(100) NOT NULL,
-  password varchar(100) NOT NULL,
-  salt varchar(40) DEFAULT NULL,
-  email varchar(100) NOT NULL,
-  activation_code varchar(40) DEFAULT NULL,
-  forgotten_password_code varchar(40) DEFAULT NULL,
-  remember_code varchar(40) DEFAULT NULL,
-  created_on int NOT NULL,
-  last_login int NOT NULL,
-  active tinyint DEFAULT NULL,
-  authtype varchar(50) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
--- TABLE STRUCTURE FOR: citation_authors
-CREATE TABLE citation_authors (
-  id int NOT NULL IDENTITY(1,1),
-  cid int DEFAULT NULL,
-  fname varchar(255) DEFAULT NULL,
-  lname varchar(255) DEFAULT NULL,
-  initial varchar(255) DEFAULT NULL,
-  author_type varchar(45) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
-
--- TABLE STRUCTURE FOR: public_requests
-CREATE TABLE public_requests (
-  id int NOT NULL IDENTITY(1,1),
-  userid int NOT NULL,
-  surveyid int NOT NULL,
-  abstract text NOT NULL,
-  posted int NOT NULL,
+  requestid int NOT NULL,
+  fileid int NOT NULL,
+  ip varchar(20) NOT NULL,
+  created int NOT NULL,
+  username varchar(255) DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
 
 --
--- TABLE STRUCTURE FOR: configurations
+-- Table structure for table terms
 --
 
-CREATE TABLE configurations (
-  name varchar(200) NOT NULL,
-  value varchar(255) NOT NULL,
-  label varchar(255) DEFAULT NULL,
-  helptext varchar(255) DEFAULT NULL,
-  item_group varchar(255) DEFAULT NULL,
-  PRIMARY KEY (name)
-);
-
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('app_version', '3.0.1-10.12.2010', 'Application version', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('cache_path', 'application/cache', 'Site cache folder', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('catalog_records_per_page', '5', 'Catalog search page - records per page', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('catalog_root', 'datafiles', 'Survey catalog folder', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('db_version', '3.0.1-10.12.2010', 'Database version', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('ddi_import_folder', 'imports', 'Survey catalog import folder', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('default_home_page', 'catalog', 'Default home page', 'Default home page', NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('html_folder', '/pages', NULL, NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('lang', 'en-us', 'Site Language', 'Site Language code', NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('login_timeout', '40', 'Login timeout (minutes)', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('mail_protocol', 'smtp', 'Select method for sending emails', 'Supported protocols: MAIL, SMTP, SENDMAIL', NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('min_password_length', '5', 'Minimum password length', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('regional_search', 'yes', 'Enable regional search', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('repository_identifier', 'default', 'Repository Identifier', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('site_password_protect', 'no', 'Password protect website', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_auth', 'no', 'Use SMTP Authentication', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_debug', 'yes', 'Enable SMTP Debugging', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_host', 'ihsn.org', 'SMTP Host name', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_pass', 'free001', 'SMTP password', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_port', '25', 'SMTP port', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_secure', 'no', 'Use Secure SMTP?', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('smtp_user', 'nada@ihsn.org', 'SMTP username', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('theme', 'default', 'Site theme name', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('topics_vocab', '1', 'Vocabulary ID for Topics', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('topic_search', 'yes', 'Topic search', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('use_html_editor', 'yes', 'Use HTML editor for entering HTML for static pages', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('website_footer', 'Powered by NADA 3.0 and DDI', 'Website footer text', NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('website_title', 'Your website title here', 'Website title', 'Provide the title of the website', 'website');
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('website_url', 'http://localhost/nada3', 'Website URL', 'URL of the website', 'website');
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('website_webmaster_email', 'webmaster@example.com', 'Site webmaster email address', '-', 'website');
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('website_webmaster_name', 'noreply', 'Webmaster name', '-', 'website');
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('year_search', 'yes', NULL, NULL, NULL);
-INSERT INTO configurations (name, value, label, helptext, item_group) VALUES ('news_feed_url', 'http://ihsn.org/nada/index.php?q=news/feed', '', '', '');
-
---
--- TABLE STRUCTURE FOR: countries
---
-
-CREATE TABLE countries (
-  countryid int NOT NULL IDENTITY(1,1),
-  name varchar(65) NOT NULL,
-  iso3 varchar(3) NOT NULL,
-  PRIMARY KEY (countryid)
-);
-set IDENTITY_INSERT Countries ON;
-INSERT INTO countries (countryid, name, iso3) VALUES (1, 'Afghanistan', 'AFG');
-INSERT INTO countries (countryid, name, iso3) VALUES (2, 'Albania', 'ALB');
-INSERT INTO countries (countryid, name, iso3) VALUES (3, 'Antartica', 'ATA');
-INSERT INTO countries (countryid, name, iso3) VALUES (4, 'Algeria', 'DZA');
-INSERT INTO countries (countryid, name, iso3) VALUES (5, 'American Samoa', 'ASM');
-INSERT INTO countries (countryid, name, iso3) VALUES (6, 'Andorra', 'AND');
-INSERT INTO countries (countryid, name, iso3) VALUES (7, 'Angola', 'AGO');
-INSERT INTO countries (countryid, name, iso3) VALUES (8, 'Antigua and Barbuda', 'ATG');
-INSERT INTO countries (countryid, name, iso3) VALUES (9, 'Azerbaijan', 'AZE');
-INSERT INTO countries (countryid, name, iso3) VALUES (10, 'Argentina', 'ARG');
-INSERT INTO countries (countryid, name, iso3) VALUES (11, 'Australia', 'AUS');
-INSERT INTO countries (countryid, name, iso3) VALUES (12, 'Austria', 'AUT');
-INSERT INTO countries (countryid, name, iso3) VALUES (13, 'Bahamas', 'BHS');
-INSERT INTO countries (countryid, name, iso3) VALUES (14, 'Bahrain', 'BHR');
-INSERT INTO countries (countryid, name, iso3) VALUES (15, 'Bangladesh', 'BGD');
-INSERT INTO countries (countryid, name, iso3) VALUES (16, 'Armenia', 'ARM');
-INSERT INTO countries (countryid, name, iso3) VALUES (17, 'Barbados', 'BRB');
-INSERT INTO countries (countryid, name, iso3) VALUES (18, 'Belgium', 'BEL');
-INSERT INTO countries (countryid, name, iso3) VALUES (19, 'Bermuda', 'BMU');
-INSERT INTO countries (countryid, name, iso3) VALUES (20, 'Bhutan', 'BTN');
-INSERT INTO countries (countryid, name, iso3) VALUES (21, 'Bolivia', 'BOL');
-INSERT INTO countries (countryid, name, iso3) VALUES (22, 'Bosnia-Herzegovina', 'BIH');
-INSERT INTO countries (countryid, name, iso3) VALUES (23, 'Botswana', 'BWA');
-INSERT INTO countries (countryid, name, iso3) VALUES (24, 'Bouvet Island', 'BVT');
-INSERT INTO countries (countryid, name, iso3) VALUES (25, 'Brazil', 'BRA');
-INSERT INTO countries (countryid, name, iso3) VALUES (26, 'Belize', 'BLZ');
-INSERT INTO countries (countryid, name, iso3) VALUES (27, 'British Indian Ocean Territory', 'IOT');
-INSERT INTO countries (countryid, name, iso3) VALUES (28, 'Solomon Islands', 'SLB');
-INSERT INTO countries (countryid, name, iso3) VALUES (29, 'Virgin Isld. (British)', 'VGB');
-INSERT INTO countries (countryid, name, iso3) VALUES (30, 'Brunei', 'BRN');
-INSERT INTO countries (countryid, name, iso3) VALUES (31, 'Bulgaria', 'BGR');
-INSERT INTO countries (countryid, name, iso3) VALUES (32, 'Myanmar', 'MMR');
-INSERT INTO countries (countryid, name, iso3) VALUES (33, 'Burundi', 'BDI');
-INSERT INTO countries (countryid, name, iso3) VALUES (34, 'Belarus', 'BLR');
-INSERT INTO countries (countryid, name, iso3) VALUES (35, 'Cambodia', 'KHM');
-INSERT INTO countries (countryid, name, iso3) VALUES (36, 'Cameroon', 'CMR');
-INSERT INTO countries (countryid, name, iso3) VALUES (37, 'Canada', 'CAN');
-INSERT INTO countries (countryid, name, iso3) VALUES (38, 'Cape Verde', 'CPV');
-INSERT INTO countries (countryid, name, iso3) VALUES (39, 'Cayman Islands', 'CYM');
-INSERT INTO countries (countryid, name, iso3) VALUES (40, 'Central African Republic', 'CAF');
-INSERT INTO countries (countryid, name, iso3) VALUES (41, 'Sri Lanka', 'LKA');
-INSERT INTO countries (countryid, name, iso3) VALUES (42, 'Chad', 'TCD');
-INSERT INTO countries (countryid, name, iso3) VALUES (43, 'Chile', 'CHL');
-INSERT INTO countries (countryid, name, iso3) VALUES (44, 'China', 'CHN');
-INSERT INTO countries (countryid, name, iso3) VALUES (45, 'Taiwan', 'TWN');
-INSERT INTO countries (countryid, name, iso3) VALUES (46, 'Christmas Island', 'CXR');
-INSERT INTO countries (countryid, name, iso3) VALUES (47, 'Cocos Isld.', 'CCK');
-INSERT INTO countries (countryid, name, iso3) VALUES (48, 'Colombia', 'COL');
-INSERT INTO countries (countryid, name, iso3) VALUES (49, 'Comoros', 'COM');
-INSERT INTO countries (countryid, name, iso3) VALUES (50, 'Mayotte', 'MYT');
-INSERT INTO countries (countryid, name, iso3) VALUES (51, 'Congo, Rep.', 'COG');
-INSERT INTO countries (countryid, name, iso3) VALUES (52, 'Congo, Dem. Rep.', 'COD');
-INSERT INTO countries (countryid, name, iso3) VALUES (53, 'Cook Island', 'COK');
-INSERT INTO countries (countryid, name, iso3) VALUES (54, 'Costa Rica', 'CRI');
-INSERT INTO countries (countryid, name, iso3) VALUES (55, 'Croatia', 'HRV');
-INSERT INTO countries (countryid, name, iso3) VALUES (56, 'Cuba', 'CUB');
-INSERT INTO countries (countryid, name, iso3) VALUES (57, 'Cyprus', 'CYP');
-INSERT INTO countries (countryid, name, iso3) VALUES (58, 'Czech Republic', 'CZE');
-INSERT INTO countries (countryid, name, iso3) VALUES (59, 'Benin', 'BEN');
-INSERT INTO countries (countryid, name, iso3) VALUES (60, 'Denmark', 'DNK');
-INSERT INTO countries (countryid, name, iso3) VALUES (61, 'Dominica', 'DMA');
-INSERT INTO countries (countryid, name, iso3) VALUES (62, 'Dominican Republic', 'DOM');
-INSERT INTO countries (countryid, name, iso3) VALUES (63, 'Ecuador', 'ECU');
-INSERT INTO countries (countryid, name, iso3) VALUES (64, 'El Salvador', 'SLV');
-INSERT INTO countries (countryid, name, iso3) VALUES (65, 'Equatorial Guinea', 'GNQ');
-INSERT INTO countries (countryid, name, iso3) VALUES (66, 'Ethiopia', 'ETH');
-INSERT INTO countries (countryid, name, iso3) VALUES (67, 'Eritrea', 'ERI');
-INSERT INTO countries (countryid, name, iso3) VALUES (68, 'Estonia', 'EST');
-INSERT INTO countries (countryid, name, iso3) VALUES (69, 'Faeroe Isld.', 'FRO');
-INSERT INTO countries (countryid, name, iso3) VALUES (70, 'Falkland Isld.', 'FLK');
-INSERT INTO countries (countryid, name, iso3) VALUES (71, 'S. Georgia & S. Sandwich Isld.', 'SGS');
-INSERT INTO countries (countryid, name, iso3) VALUES (72, 'Fiji', 'FJI');
-INSERT INTO countries (countryid, name, iso3) VALUES (73, 'Finland', 'FIN');
-INSERT INTO countries (countryid, name, iso3) VALUES (74, 'France, Metrop.', 'FXX');
-INSERT INTO countries (countryid, name, iso3) VALUES (75, 'France', 'FRA');
-INSERT INTO countries (countryid, name, iso3) VALUES (76, 'French Guiana', 'GUF');
-INSERT INTO countries (countryid, name, iso3) VALUES (77, 'French Polynesia', 'PYF');
-INSERT INTO countries (countryid, name, iso3) VALUES (78, 'French S.T.', 'ATF');
-INSERT INTO countries (countryid, name, iso3) VALUES (79, 'Djibouti', 'DJI');
-INSERT INTO countries (countryid, name, iso3) VALUES (80, 'Gabon', 'GAB');
-INSERT INTO countries (countryid, name, iso3) VALUES (81, 'Georgia', 'GEO');
-INSERT INTO countries (countryid, name, iso3) VALUES (82, 'Gambia', 'GMB');
-INSERT INTO countries (countryid, name, iso3) VALUES (83, 'West Bank and Gaza', 'PSE');
-INSERT INTO countries (countryid, name, iso3) VALUES (84, 'Germany', 'DEU');
-INSERT INTO countries (countryid, name, iso3) VALUES (85, 'Ghana', 'GHA');
-INSERT INTO countries (countryid, name, iso3) VALUES (86, 'Gibraltar', 'GIB');
-INSERT INTO countries (countryid, name, iso3) VALUES (87, 'Kiribati', 'KIR');
-INSERT INTO countries (countryid, name, iso3) VALUES (88, 'Greece', 'GRC');
-INSERT INTO countries (countryid, name, iso3) VALUES (89, 'Greenland', 'GRL');
-INSERT INTO countries (countryid, name, iso3) VALUES (90, 'Grenada', 'GRD');
-INSERT INTO countries (countryid, name, iso3) VALUES (91, 'Guadeloupe', 'GLP');
-INSERT INTO countries (countryid, name, iso3) VALUES (92, 'Guam', 'GUM');
-INSERT INTO countries (countryid, name, iso3) VALUES (93, 'Guatemala', 'GTM');
-INSERT INTO countries (countryid, name, iso3) VALUES (94, 'Guinea', 'GIN');
-INSERT INTO countries (countryid, name, iso3) VALUES (95, 'Guyana', 'GUY');
-INSERT INTO countries (countryid, name, iso3) VALUES (96, 'Haiti', 'HTI');
-INSERT INTO countries (countryid, name, iso3) VALUES (97, 'Heard / McDonald Isld', 'HMD');
-INSERT INTO countries (countryid, name, iso3) VALUES (98, 'Holy See', 'VAT');
-INSERT INTO countries (countryid, name, iso3) VALUES (99, 'Honduras', 'HND');
-INSERT INTO countries (countryid, name, iso3) VALUES (100, 'Hungary', 'HUN');
-INSERT INTO countries (countryid, name, iso3) VALUES (101, 'Iceland', 'ISL');
-INSERT INTO countries (countryid, name, iso3) VALUES (102, 'India', 'IND');
-INSERT INTO countries (countryid, name, iso3) VALUES (103, 'Indonesia', 'IDN');
-INSERT INTO countries (countryid, name, iso3) VALUES (104, 'Iran, Islamic Rep.', 'IRN');
-INSERT INTO countries (countryid, name, iso3) VALUES (105, 'Iraq', 'IRQ');
-INSERT INTO countries (countryid, name, iso3) VALUES (106, 'Ireland', 'IRL');
-INSERT INTO countries (countryid, name, iso3) VALUES (107, 'Israel', 'ISR');
-INSERT INTO countries (countryid, name, iso3) VALUES (108, 'Italy', 'ITA');
-INSERT INTO countries (countryid, name, iso3) VALUES (109, 'CÃ´te d\'Ivoire', 'CIV');
-INSERT INTO countries (countryid, name, iso3) VALUES (110, 'Jamaica', 'JAM');
-INSERT INTO countries (countryid, name, iso3) VALUES (111, 'Japan', 'JPN');
-INSERT INTO countries (countryid, name, iso3) VALUES (112, 'Kazakhstan', 'KAZ');
-INSERT INTO countries (countryid, name, iso3) VALUES (113, 'Jordan', 'JOR');
-INSERT INTO countries (countryid, name, iso3) VALUES (114, 'Kenya', 'KEN');
-INSERT INTO countries (countryid, name, iso3) VALUES (115, 'Korea, Dem. Rep.', 'PRK');
-INSERT INTO countries (countryid, name, iso3) VALUES (116, 'Korea, Rep.', 'KOR');
-INSERT INTO countries (countryid, name, iso3) VALUES (117, 'Kuwait', 'KWT');
-INSERT INTO countries (countryid, name, iso3) VALUES (118, 'Kyrgyz Republic', 'KGZ');
-INSERT INTO countries (countryid, name, iso3) VALUES (119, 'Lao PDR', 'LAO');
-INSERT INTO countries (countryid, name, iso3) VALUES (120, 'Lebanon', 'LBN');
-INSERT INTO countries (countryid, name, iso3) VALUES (121, 'Lesotho', 'LSO');
-INSERT INTO countries (countryid, name, iso3) VALUES (122, 'Latvia', 'LVA');
-INSERT INTO countries (countryid, name, iso3) VALUES (123, 'Liberia', 'LBR');
-INSERT INTO countries (countryid, name, iso3) VALUES (124, 'Libya', 'LBY');
-INSERT INTO countries (countryid, name, iso3) VALUES (125, 'Liechtenstein', 'LIE');
-INSERT INTO countries (countryid, name, iso3) VALUES (126, 'Lithuania', 'LTU');
-INSERT INTO countries (countryid, name, iso3) VALUES (127, 'Luxembourg', 'LUX');
-INSERT INTO countries (countryid, name, iso3) VALUES (128, 'Macao', 'MAC');
-INSERT INTO countries (countryid, name, iso3) VALUES (129, 'Madagascar', 'MDG');
-INSERT INTO countries (countryid, name, iso3) VALUES (130, 'Malawi', 'MWI');
-INSERT INTO countries (countryid, name, iso3) VALUES (131, 'Malaysia', 'MYS');
-INSERT INTO countries (countryid, name, iso3) VALUES (132, 'Maldives', 'MDV');
-INSERT INTO countries (countryid, name, iso3) VALUES (133, 'Mali', 'MLI');
-INSERT INTO countries (countryid, name, iso3) VALUES (134, 'Malta', 'MLT');
-INSERT INTO countries (countryid, name, iso3) VALUES (135, 'Martinique', 'MTQ');
-INSERT INTO countries (countryid, name, iso3) VALUES (136, 'Mauritania', 'MRT');
-INSERT INTO countries (countryid, name, iso3) VALUES (137, 'Mauritius', 'MUS');
-INSERT INTO countries (countryid, name, iso3) VALUES (138, 'Mexico', 'MEX');
-INSERT INTO countries (countryid, name, iso3) VALUES (139, 'Monaco', 'MCO');
-INSERT INTO countries (countryid, name, iso3) VALUES (140, 'Mongolia', 'MNG');
-INSERT INTO countries (countryid, name, iso3) VALUES (141, 'Moldova', 'MDA');
-INSERT INTO countries (countryid, name, iso3) VALUES (142, 'Montserrat', 'MSR');
-INSERT INTO countries (countryid, name, iso3) VALUES (143, 'Morocco', 'MAR');
-INSERT INTO countries (countryid, name, iso3) VALUES (144, 'Mozambique', 'MOZ');
-INSERT INTO countries (countryid, name, iso3) VALUES (145, 'Oman', 'OMN');
-INSERT INTO countries (countryid, name, iso3) VALUES (146, 'Namibia', 'NAM');
-INSERT INTO countries (countryid, name, iso3) VALUES (147, 'Nauru', 'NRU');
-INSERT INTO countries (countryid, name, iso3) VALUES (148, 'Nepal', 'NPL');
-INSERT INTO countries (countryid, name, iso3) VALUES (149, 'Netherlands', 'NLD');
-INSERT INTO countries (countryid, name, iso3) VALUES (150, 'Neth.Antilles', 'ANT');
-INSERT INTO countries (countryid, name, iso3) VALUES (151, 'Aruba', 'ABW');
-INSERT INTO countries (countryid, name, iso3) VALUES (152, 'New Caledonia', 'NCL');
-INSERT INTO countries (countryid, name, iso3) VALUES (153, 'Vanuatu', 'VUT');
-INSERT INTO countries (countryid, name, iso3) VALUES (154, 'New Zealand', 'NZL');
-INSERT INTO countries (countryid, name, iso3) VALUES (155, 'Nicaragua', 'NIC');
-INSERT INTO countries (countryid, name, iso3) VALUES (156, 'Niger', 'NER');
-INSERT INTO countries (countryid, name, iso3) VALUES (157, 'Nigeria', 'NGA');
-INSERT INTO countries (countryid, name, iso3) VALUES (158, 'Niue', 'NIU');
-INSERT INTO countries (countryid, name, iso3) VALUES (159, 'Norfolk Isld.', 'NFK');
-INSERT INTO countries (countryid, name, iso3) VALUES (160, 'Norway', 'NOR');
-INSERT INTO countries (countryid, name, iso3) VALUES (161, 'N. Mariana Isld.', 'MNP');
-INSERT INTO countries (countryid, name, iso3) VALUES (162, 'US minor outlying Islands', 'UMI');
-INSERT INTO countries (countryid, name, iso3) VALUES (163, 'Micronesia', 'FSM');
-INSERT INTO countries (countryid, name, iso3) VALUES (164, 'Marshall Isld.', 'MHL');
-INSERT INTO countries (countryid, name, iso3) VALUES (165, 'Palau', 'PLW');
-INSERT INTO countries (countryid, name, iso3) VALUES (166, 'Pakistan', 'PAK');
-INSERT INTO countries (countryid, name, iso3) VALUES (167, 'Panama', 'PAN');
-INSERT INTO countries (countryid, name, iso3) VALUES (168, 'Papua New Guinea', 'PNG');
-INSERT INTO countries (countryid, name, iso3) VALUES (169, 'Paraguay', 'PRY');
-INSERT INTO countries (countryid, name, iso3) VALUES (170, 'Peru', 'PER');
-INSERT INTO countries (countryid, name, iso3) VALUES (171, 'Philippines', 'PHL');
-INSERT INTO countries (countryid, name, iso3) VALUES (172, 'Pitcairn Island', 'PCN');
-INSERT INTO countries (countryid, name, iso3) VALUES (173, 'Poland', 'POL');
-INSERT INTO countries (countryid, name, iso3) VALUES (174, 'Portugal', 'PRT');
-INSERT INTO countries (countryid, name, iso3) VALUES (175, 'Guinea Bissau', 'GNB');
-INSERT INTO countries (countryid, name, iso3) VALUES (176, 'Timor-Leste', 'TLS');
-INSERT INTO countries (countryid, name, iso3) VALUES (177, 'Puerto Rico', 'PRI');
-INSERT INTO countries (countryid, name, iso3) VALUES (178, 'Qatar', 'QAT');
-INSERT INTO countries (countryid, name, iso3) VALUES (179, 'Romania', 'ROM');
-INSERT INTO countries (countryid, name, iso3) VALUES (180, 'Russian Federation', 'RUS');
-INSERT INTO countries (countryid, name, iso3) VALUES (181, 'Rwanda', 'RWA');
-INSERT INTO countries (countryid, name, iso3) VALUES (182, 'St. Helena', 'SHN');
-INSERT INTO countries (countryid, name, iso3) VALUES (183, 'St.Kitts and Nevis', 'KNA');
-INSERT INTO countries (countryid, name, iso3) VALUES (184, 'Anguilla', 'AIA');
-INSERT INTO countries (countryid, name, iso3) VALUES (185, 'St. Lucia', 'LCA');
-INSERT INTO countries (countryid, name, iso3) VALUES (186, 'St. Pierre and Miquelon', 'SPM');
-INSERT INTO countries (countryid, name, iso3) VALUES (187, 'St. Vincent and Grenadines', 'VCT');
-INSERT INTO countries (countryid, name, iso3) VALUES (188, 'San Marino', 'SMR');
-INSERT INTO countries (countryid, name, iso3) VALUES (189, 'SÃ£o TomÃ© and Principe', 'STP');
-INSERT INTO countries (countryid, name, iso3) VALUES (190, 'Saudi Arabia', 'SAU');
-INSERT INTO countries (countryid, name, iso3) VALUES (191, 'Senegal', 'SEN');
-INSERT INTO countries (countryid, name, iso3) VALUES (192, 'Seychelles', 'SYC');
-INSERT INTO countries (countryid, name, iso3) VALUES (193, 'Sierra Leone', 'SLE');
-INSERT INTO countries (countryid, name, iso3) VALUES (194, 'Singapore', 'SGP');
-INSERT INTO countries (countryid, name, iso3) VALUES (195, 'Slovak Republic', 'SVK');
-INSERT INTO countries (countryid, name, iso3) VALUES (196, 'Viet Nam', 'VNM');
-INSERT INTO countries (countryid, name, iso3) VALUES (197, 'Slovenia', 'SVN');
-INSERT INTO countries (countryid, name, iso3) VALUES (198, 'Somalia', 'SOM');
-INSERT INTO countries (countryid, name, iso3) VALUES (199, 'South Africa', 'ZAF');
-INSERT INTO countries (countryid, name, iso3) VALUES (200, 'Zimbabwe', 'ZWE');
-INSERT INTO countries (countryid, name, iso3) VALUES (201, 'Spain', 'ESP');
-INSERT INTO countries (countryid, name, iso3) VALUES (202, 'West. Sahara', 'ESH');
-INSERT INTO countries (countryid, name, iso3) VALUES (203, 'Sudan', 'SDN');
-INSERT INTO countries (countryid, name, iso3) VALUES (204, 'Suriname', 'SUR');
-INSERT INTO countries (countryid, name, iso3) VALUES (205, 'Svalbard and Jan Mayen Islands', 'SJM');
-INSERT INTO countries (countryid, name, iso3) VALUES (206, 'Swaziland', 'SWZ');
-INSERT INTO countries (countryid, name, iso3) VALUES (207, 'Sweden', 'SWE');
-INSERT INTO countries (countryid, name, iso3) VALUES (208, 'Switzerland', 'CHE');
-INSERT INTO countries (countryid, name, iso3) VALUES (209, 'Syrian Arab Republic', 'SYR');
-INSERT INTO countries (countryid, name, iso3) VALUES (210, 'Tajikistan', 'TJK');
-INSERT INTO countries (countryid, name, iso3) VALUES (211, 'Thailand', 'THA');
-INSERT INTO countries (countryid, name, iso3) VALUES (212, 'Togo', 'TGO');
-INSERT INTO countries (countryid, name, iso3) VALUES (213, 'Tokelau', 'TKL');
-INSERT INTO countries (countryid, name, iso3) VALUES (214, 'Tonga', 'TON');
-INSERT INTO countries (countryid, name, iso3) VALUES (215, 'Trinidad and Tobago', 'TTO');
-INSERT INTO countries (countryid, name, iso3) VALUES (216, 'United Arab Emirates', 'ARE');
-INSERT INTO countries (countryid, name, iso3) VALUES (217, 'Tunisia', 'TUN');
-INSERT INTO countries (countryid, name, iso3) VALUES (218, 'Turkey', 'TUR');
-INSERT INTO countries (countryid, name, iso3) VALUES (219, 'Turkmenistan', 'TKM');
-INSERT INTO countries (countryid, name, iso3) VALUES (220, 'Turks and Caicos Islands', 'TCA');
-INSERT INTO countries (countryid, name, iso3) VALUES (221, 'Tuvalu', 'TUV');
-INSERT INTO countries (countryid, name, iso3) VALUES (222, 'Uganda', 'UGA');
-INSERT INTO countries (countryid, name, iso3) VALUES (223, 'Ukraine', 'UKR');
-INSERT INTO countries (countryid, name, iso3) VALUES (224, 'Macedonia, FYR', 'MKD');
-INSERT INTO countries (countryid, name, iso3) VALUES (225, 'Egypt, Arab Rep.', 'EGY');
-INSERT INTO countries (countryid, name, iso3) VALUES (226, 'United Kingdom', 'GBR');
-INSERT INTO countries (countryid, name, iso3) VALUES (227, 'Tanzania', 'TZA');
-INSERT INTO countries (countryid, name, iso3) VALUES (228, 'United States', 'USA');
-INSERT INTO countries (countryid, name, iso3) VALUES (229, 'Virgin Islands, U.S.', 'VIR');
-INSERT INTO countries (countryid, name, iso3) VALUES (230, 'Burkina Faso', 'BFA');
-INSERT INTO countries (countryid, name, iso3) VALUES (231, 'Uruguay', 'URY');
-INSERT INTO countries (countryid, name, iso3) VALUES (232, 'Uzbekistan', 'UZB');
-INSERT INTO countries (countryid, name, iso3) VALUES (233, 'Venezuela, RB', 'VEN');
-INSERT INTO countries (countryid, name, iso3) VALUES (234, 'Wallis and Futuna', 'WLF');
-INSERT INTO countries (countryid, name, iso3) VALUES (235, 'Samoa', 'WSM');
-INSERT INTO countries (countryid, name, iso3) VALUES (236, 'Yemen', 'YEM');
-INSERT INTO countries (countryid, name, iso3) VALUES (237, 'Serbia and Montenegro', 'SCG');
-INSERT INTO countries (countryid, name, iso3) VALUES (238, 'Zambia', 'ZMB');
-INSERT INTO countries (countryid, name, iso3) VALUES (239, 'Westbank and Gaza', 'WBG');
-INSERT INTO countries (countryid, name, iso3) VALUES (240, 'Jerusalem', 'JER');
-set IDENTITY_INSERT Countries OFF;
-
---
--- TABLE STRUCTURE FOR: dcformats
---
-
-CREATE TABLE dcformats (
-  id int NOT NULL IDENTITY(1,1),
+CREATE TABLE terms (
+  tid int NOT NULL IDENTITY(1,1),
+  vid int NOT NULL,
+  pid int NOT NULL,
   title varchar(255) NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (tid)
 );
-set IDENTITY_INSERT dcformats ON;
-INSERT INTO dcformats (id, title) VALUES (1, 'Compressed, Generic [application/x-compressed]');
-INSERT INTO dcformats (id, title) VALUES (2, 'Compressed, ZIP [application/zip]');
-INSERT INTO dcformats (id, title) VALUES (3, 'Data, CSPro [application/x-cspro]');
-INSERT INTO dcformats (id, title) VALUES (4, 'Data, dBase [application/dbase]');
-INSERT INTO dcformats (id, title) VALUES (5, 'Data, Microsoft Access [application/msaccess]');
-INSERT INTO dcformats (id, title) VALUES (6, 'Data, SAS [application/x-sas]');
-INSERT INTO dcformats (id, title) VALUES (7, 'Data, SPSS [application/x-spss]');
-INSERT INTO dcformats (id, title) VALUES (8, 'Data, Stata [application/x-stata]');
-INSERT INTO dcformats (id, title) VALUES (9, 'Document, Generic [text]');
-INSERT INTO dcformats (id, title) VALUES (10, 'Document, HTML [text/html]');
-INSERT INTO dcformats (id, title) VALUES (11, 'Document, Microsoft Excel [application/msexcel]');
-INSERT INTO dcformats (id, title) VALUES (12, 'Document, Microsoft PowerPoint [application/mspowerpoint');
-INSERT INTO dcformats (id, title) VALUES (13, 'Document, Microsoft Word [application/msword]');
-INSERT INTO dcformats (id, title) VALUES (14, 'Document, PDF [application/pdf]');
-INSERT INTO dcformats (id, title) VALUES (15, 'Document, Postscript [application/postscript]');
-INSERT INTO dcformats (id, title) VALUES (16, 'Document, Plain [text/plain]');
-INSERT INTO dcformats (id, title) VALUES (17, 'Document, WordPerfect [text/wordperfect]');
-INSERT INTO dcformats (id, title) VALUES (18, 'Image, GIF [image/gif]');
-INSERT INTO dcformats (id, title) VALUES (19, 'Image, JPEG [image/jpeg]');
-INSERT INTO dcformats (id, title) VALUES (20, 'Image, PNG [image/png]');
-INSERT INTO dcformats (id, title) VALUES (21, 'Image, TIFF [image/tiff]');
-set IDENTITY_INSERT dcformats OFF;
+
 
 --
--- TABLE STRUCTURE FOR: dctypes
+-- Table structure for table users
 --
-
-CREATE TABLE dctypes (
-  id int NOT NULL IDENTITY(1,1),
-  title varchar(255) NOT NULL,
-  PRIMARY KEY (id)
-);
-set IDENTITY_INSERT dctypes ON;
-INSERT INTO dctypes (id, title) VALUES (1, 'Document, Administrative [doc/adm]');
-INSERT INTO dctypes (id, title) VALUES (2, 'Document, Analytical [doc/anl]');
-INSERT INTO dctypes (id, title) VALUES (3, 'Document, Other [doc/oth]');
-INSERT INTO dctypes (id, title) VALUES (4, 'Document, Questionnaire [doc/qst]');
-INSERT INTO dctypes (id, title) VALUES (5, 'Document, Reference [doc/ref]');
-INSERT INTO dctypes (id, title) VALUES (6, 'Document, Report [doc/rep]');
-INSERT INTO dctypes (id, title) VALUES (7, 'Document, Technical [doc/tec]');
-INSERT INTO dctypes (id, title) VALUES (8, 'Audio [aud]');
-INSERT INTO dctypes (id, title) VALUES (9, 'Database [dat]');
-INSERT INTO dctypes (id, title) VALUES (10, 'Map [map]');
-INSERT INTO dctypes (id, title) VALUES (11, 'Microdata File [dat/micro]');
-INSERT INTO dctypes (id, title) VALUES (12, 'Photo [pic]');
-INSERT INTO dctypes (id, title) VALUES (13, 'Program [prg]');
-INSERT INTO dctypes (id, title) VALUES (14, 'Table [tbl]');
-INSERT INTO dctypes (id, title) VALUES (15, 'Video [vid]');
-INSERT INTO dctypes (id, title) VALUES (16, 'Web Site [web]');
-set IDENTITY_INSERT dctypes OFF;
-
---
--- TABLE STRUCTURE FOR: forms
---
-
-CREATE TABLE forms (
-  formid int NOT NULL IDENTITY(1,1),
-  fname varchar(255) DEFAULT '',
-  model varchar(255) DEFAULT '',
-  path varchar(255) DEFAULT '',
-  iscustom char(2) DEFAULT '0',
-  PRIMARY KEY (formid)
-);
-set IDENTITY_INSERT [forms] ON;
-INSERT INTO forms (formid, fname, model, path, iscustom) VALUES (2, 'Public use files', 'public', 'orderform.php', '1');
-INSERT INTO forms (formid, fname, model, path, iscustom) VALUES (1, 'Direct access', 'direct', 'direct.php', '1');
-INSERT INTO forms (formid, fname, model, path, iscustom) VALUES (3, 'Licensed data files', 'licensed', 'licensed.php', '1');
-INSERT INTO forms (formid, fname, model, path, iscustom) VALUES (4, 'Data accessible only in data enclave', 'data_enclave', 'Application for Access to a Data Enclave.pdf', '0');
-INSERT INTO forms (formid, fname, model, path, iscustom) VALUES (5, 'Data available from external repository', 'remote', 'remote', '1');
-set IDENTITY_INSERT [forms] OFF;
-
---
--- TABLE STRUCTURE FOR: menus
---
-
-CREATE TABLE menus (
-  id int NOT NULL IDENTITY(1,1),
-  url varchar(255) NOT NULL,
-  title varchar(255) NOT NULL,
-  body text,
-  published tinyint DEFAULT NULL,
-  target varchar(45) DEFAULT NULL,
-  changed int DEFAULT NULL,
-  linktype tinyint DEFAULT NULL,
-  weight int DEFAULT NULL,
-  pid int DEFAULT NULL,
-  PRIMARY KEY (id)--,
---  UNIQUE KEY idx_url (url)
-);
-set IDENTITY_INSERT menus ON;
-INSERT INTO menus (id, url, title, body, published, target, changed, linktype, weight, pid) VALUES (1, 'catalog', 'Data Catalog', '', 1, '0', 1281460209, 1, 4, 0);
-INSERT INTO menus (id, url, title, body, published, target, changed, linktype, weight, pid) VALUES (2, 'citations', 'Citations', NULL, 1, '0', 1281460217, 1, 5, 0);
-set IDENTITY_INSERT menus OFF;
-
---
--- TABLE STRUCTURE FOR: terms
---
-
-CREATE TABLE [dbo].[terms](
-	[tid] [int] IDENTITY(1,1) NOT NULL,
-	[vid] [int] NOT NULL,
-	[pid] [int] NULL,
-	[title] [varchar](255) NOT NULL,
-	PRIMARY KEY (tid)
-);
-set IDENTITY_INSERT terms ON;
-INSERT INTO terms (tid, vid, pid, title) VALUES (1, 1, 0, 'ECONOMICS [1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (2, 1, 1, 'consumption/consumer behaviour [1.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (3, 1, 1, 'economic conditions and indicators [1.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (4, 1, 1, 'economic policy [1.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (5, 1, 1, 'economic systems and development [1.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (6, 1, 1, 'income, property and investment/saving [1.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (7, 1, 1, 'rural economics [1.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (9, 1, 0, 'TRADE, INDUSTRY AND MARKETS [2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (10, 1, 9, 'agricultural, forestry and rural industry [2.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (11, 1, 9, 'business/industrial management and organisation [2.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (13, 1, 0, 'LABOUR AND EMPLOYMENT [3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (14, 1, 13, 'employment [3.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (15, 1, 13, 'in-job training [3.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (16, 1, 13, 'labour relations/conflict [3.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (17, 1, 13, 'retirement [3.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (18, 1, 13, 'unemployment [3.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (19, 1, 13, 'working conditions [3.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (21, 1, 0, 'POLITICS [4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (22, 1, 21, 'conflict, security and peace [4.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (23, 1, 21, 'domestic political issues [4.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (24, 1, 21, 'elections [4.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (25, 1, 21, 'government, political systems and organisations [4.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (26, 1, 21, 'international politics and organisations [4.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (27, 1, 21, 'mass political behaviour, attitudes/opinion [4.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (28, 1, 21, 'political ideology [4.7]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (30, 1, 0, 'LAW, CRIME AND LEGAL SYSTEMS [5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (31, 1, 30, 'crime [5.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (32, 1, 30, 'law enforcement [5.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (33, 1, 30, 'legal systems [5.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (34, 1, 30, 'legislation [5.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (35, 1, 30, 'rehabilitation/reintegration into society [5.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (37, 1, 0, 'EDUCATION [6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (38, 1, 37, 'basic skills education [6.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (39, 1, 37, 'compulsory and pre-school education [6.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (40, 1, 37, 'educational policy [6.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (41, 1, 37, 'life-long/continuing education [6.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (42, 1, 37, 'post-compulsory education [6.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (43, 1, 37, 'teaching profession [6.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (44, 1, 37, 'vocational education [6.7]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (46, 1, 0, 'INFORMATION AND COMMUNICATION [7]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (47, 1, 46, 'advertising [7.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (48, 1, 46, 'information society [7.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (49, 1, 46, 'language and linguistics [7.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (50, 1, 46, 'mass media [7.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (52, 1, 0, 'HEALTH [8]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (53, 1, 52, 'accidents and injuries [8.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (54, 1, 52, 'childbearing, family planning and abortion [8.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (55, 1, 52, 'drug abuse, alcohol and smoking [8.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (56, 1, 52, 'general health [8.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (57, 1, 52, 'health care and medical treatment [8.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (58, 1, 52, 'health policy [8.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (59, 1, 52, 'nutrition [8.7]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (60, 1, 52, 'physical fitness and exercise [8.8]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (61, 1, 52, 'specific diseases and medical conditions [8.9]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (63, 1, 0, 'NATURAL ENVIRONMENT [9]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (64, 1, 63, 'environmental degradation/pollution and protection [9.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (65, 1, 63, 'natural landscapes [9.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (66, 1, 63, 'natural resources and energy [9.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (67, 1, 63, 'plant and animal distribution [9.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (69, 1, 0, 'HOUSING AND LAND USE PLANNING [10]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (70, 1, 69, 'housing [10.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (71, 1, 69, 'land use and planning [10.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (73, 1, 0, 'TRANSPORT, TRAVEL AND MOBILITY [11]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (74, 1, 0, 'SOCIAL STRATIFICATION AND GROUPINGS [12]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (75, 1, 74, 'children [12.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (76, 1, 74, 'elderly [12.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (77, 1, 74, 'elites and leadership [12.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (78, 1, 74, 'equality and inequality [12.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (79, 1, 74, 'family life and marriage [12.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (80, 1, 74, 'gender and gender roles [12.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (81, 1, 74, 'minorities [12.7]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (82, 1, 74, 'social and occupational mobility [12.8]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (83, 1, 74, 'social exclusion [12.9]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (84, 1, 74, 'youth [12.10]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (86, 1, 0, 'SOCIETY AND CULTURE [13]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (87, 1, 86, 'community, urban and rural life [13.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (88, 1, 86, 'cultural activities and participation [13.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (89, 1, 86, 'cultural and national identity [13.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (90, 1, 86, 'leisure, tourism and sport [13.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (91, 1, 86, 'religion and values [13.5]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (92, 1, 86, 'social behaviour and attitudes [13.6]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (93, 1, 86, 'social change [13.7]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (94, 1, 86, 'social conditions and indicators [13.8]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (95, 1, 86, 'time use [13.9]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (97, 1, 0, 'DEMOGRAPHY AND POPULATION [14]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (98, 1, 97, 'censuses [14.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (99, 1, 97, 'fertility [14.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (100, 1, 97, 'migration [14.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (101, 1, 97, 'morbidity and mortality [14.4]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (103, 1, 0, 'SOCIAL WELFARE POLICY AND SYSTEMS [15]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (104, 1, 103, 'social welfare policy [15.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (105, 1, 103, 'social welfare systems/structures [15.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (106, 1, 103, 'specific social services: use and provision [15.3]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (108, 1, 0, 'SCIENCE AND TECHNOLOGY [16]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (109, 1, 108, 'biotechnology [16.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (110, 1, 108, 'information technology [16.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (112, 1, 0, 'PSYCHOLOGY [17]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (113, 1, 0, 'HISTORY [18]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (114, 1, 0, 'REFERENCE AND INSTRUCTIONAL RESOURCES [19]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (115, 1, 114, 'computer and simulation programs [19.1]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (116, 1, 114, 'reference sources [19.2]');
-INSERT INTO terms (tid, vid, pid, title) VALUES (117, 1, 114, 'teaching packages and test datasets [19.3]');
-set IDENTITY_INSERT terms OFF;
-
---
--- TABLE STRUCTURE FOR: user_groups
---
-
-CREATE TABLE user_groups (
-  id tinyint NOT NULL IDENTITY(1,1),
-  name varchar(20) NOT NULL,
-  description varchar(100) NOT NULL,
-  PRIMARY KEY (id)
-);
-set IDENTITY_INSERT user_groups ON;
-INSERT INTO user_groups (id, name, description) VALUES (1, 'admin', 'Administrator');
-INSERT INTO user_groups (id, name, description) VALUES (2, 'members', 'General User');
-set IDENTITY_INSERT user_groups OFF;
-
---
--- TABLE STRUCTURE FOR: vocabularies
---
-
-CREATE TABLE vocabularies (
-  vid int NOT NULL IDENTITY(1,1),
-  title varchar(255) NOT NULL,
-  PRIMARY KEY (vid)--,
-  --UNIQUE KEY idx_voc_title (title)
-);
-set IDENTITY_INSERT vocabularies ON;
-INSERT INTO vocabularies (vid, title) VALUES (1, 'CESSDA Topics Classifications');
-set IDENTITY_INSERT vocabularies OFF;
-
-
---------------------------------------------------------------------------------------------------------------------------------------
--- cache
-
-CREATE TABLE cache (
-  id bigint NOT NULL IDENTITY(1,1),
-  uid varchar(100) NOT NULL,
-  data text,
-  created int DEFAULT NULL,
-  expiry int DEFAULT NULL,
-  PRIMARY KEY (id)
-  --UNIQUE KEY uid_UNIQUE (uid)
-);
-
-
--- country_aliases
-
-CREATE TABLE country_aliases (
-  id int NOT NULL IDENTITY(1,1),
-  countryid int NOT NULL,
-  alias varchar(100) NOT NULL,
-  PRIMARY KEY (id)
-  --UNIQUE KEY ix_alias_uniq (countryid,alias)
-);
-
-
-
--- group_permissions
-
-CREATE TABLE group_permissions (
-  id int NOT NULL IDENTITY(1,1),
-  group_id int NOT NULL,
-  permission_id int NOT NULL,
-  PRIMARY KEY (id),
-  --UNIQUE KEY grp_perms_UNIQUE (group_id,permission_id)
-);
-
-
--- group_repo_access
-
-CREATE TABLE group_repo_access (
-  id int NOT NULL IDENTITY(1,1),
-  group_id int DEFAULT NULL,
-  repo_id int DEFAULT NULL,
-  PRIMARY KEY (id)
- -- UNIQUE KEY grp_repo_UNIQUE (group_id,repo_id)
-);
-
--- groups
-
-CREATE TABLE groups (
-  id int NOT NULL IDENTITY(1,1),
-  name varchar(100) NOT NULL,
-  description varchar(255) NOT NULL,
-  group_type varchar(40) DEFAULT NULL,
-  access_type varchar(45) DEFAULT NULL,
-  weight int DEFAULT '0',
-  is_collection_group tinyint DEFAULT '0' ,
-  PRIMARY KEY (id)
-);
-
-set IDENTITY_INSERT groups ON;
-INSERT INTO groups (id,name,description,group_type,access_type,weight) 
-VALUES (1,'admin','Administrator','admin','UNLIMITED',0),(2,'user','General User','user','NONE',-99),(3,'catalog-admin','Catalog Administrator','admin','LIMITED',0),(4,'lic-req-admin','Licensed Request Administrator','admin','LIMITED',0),(5,'report-admin','Reports Administrato','admin','LIMITED',0),(6,'LSMS Collection Admin','Administrators for LSMS Collection','admin','limited',0),(7,'Reviewers','Reviewers','reviewer','none',-90),(9,'LAC Administrators','LAC Collection Administrators','admin','limited',0),(10,'LAC LIC-REVIEWERS','LAC Licensed Request Reviewers','admin','limited',0);
-set IDENTITY_INSERT groups OFF;
-
---lic_requests --*********************************************************************
-
-CREATE TABLE lic_requests (
-  id int NOT NULL IDENTITY(1,1),
-  userid int NOT NULL,
-  request_type varchar(45) DEFAULT 'study',
-  surveyid int DEFAULT NULL,
-  collection_id varchar(100) DEFAULT NULL,
-  org_rec varchar(200) DEFAULT NULL,
-  org_type varchar(45) DEFAULT NULL,
-  address varchar(255) DEFAULT NULL,
-  tel varchar(150) DEFAULT NULL,
-  fax varchar(100) DEFAULT NULL,
-  datause text,
-  outputs text,
-  compdate varchar(45) DEFAULT NULL,
-  datamatching int DEFAULT NULL,
-  mergedatasets text,
-  team text,
-  dataset_access varchar(20) DEFAULT 'whole',
-  created int DEFAULT NULL,
-  status varchar(45) DEFAULT NULL,
-  comments text,
-  locked tinyint(4) DEFAULT NULL,
-  orgtype_other varchar(145) DEFAULT NULL,
-  updated int DEFAULT NULL,
-  updatedby varchar(45) DEFAULT NULL,
-  ip_limit varchar(255) DEFAULT NULL,
-  expiry_date int DEFAULT NULL,
-  additional_info text,
-  PRIMARY KEY (id)
-) ENGINE=InnoDB IDENTITY(1,1)=22 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC$$
-
-
--- lic_requests_history
-
-CREATE TABLE lic_requests_history (
-  id int NOT NULL IDENTITY(1,1),
-  lic_req_id int DEFAULT NULL,
-  user_id varchar(100) DEFAULT NULL,
-  logtype varchar(45) DEFAULT NULL,
-  request_status varchar(45) DEFAULT NULL,
-  description text,
-  created int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
--- login_attempts
-
-CREATE TABLE login_attempts (
-  id int NOT NULL IDENTITY(1,1),
-  ip_address varchar(30) NOT NULL,
-  login varchar(100) NOT NULL,
-  time int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
--- permission_urls
-
-CREATE TABLE permission_urls (
-  id int NOT NULL IDENTITY(1,1),
-  url varchar(255) DEFAULT NULL,
-  permission_id int NOT NULL,
-  PRIMARY KEY (id)
-  ---UNIQUE KEY url_UNIQUE (url)
-);
-
-
--- permissions
-
-CREATE TABLE permissions (
-  id int NOT NULL IDENTITY(1,1),
-  label varchar(45) DEFAULT NULL,
-  description varchar(255) DEFAULT NULL,
-  section varchar(45) DEFAULT NULL,
-  weight int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
--- regions
-
-CREATE TABLE regions (
-  id int NOT NULL IDENTITY(1,1),
-  pid int DEFAULT '0',
-  title varchar(45) DEFAULT NULL,
-  weight int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
--- repo_perms_groups
-
-CREATE TABLE repo_perms_groups (
-  repo_pg_id int NOT NULL IDENTITY(1,1),
-  title varchar(45) DEFAULT NULL,
-  description varchar(255) DEFAULT NULL,
-  weight int DEFAULT '0',
-  PRIMARY KEY (repo_pg_id)
-);
-
-
--- repo_perms_urls
-
-CREATE TABLE repo_perms_urls (
-  id int NOT NULL IDENTITY(1,1),
-  repo_pg_id int DEFAULT NULL,
-  url varchar(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
--- repositories ------------ **************************
-
-CREATE TABLE repositories (
-  id int NOT NULL IDENTITY(1,1),
-  pid int DEFAULT NULL,
-  repositoryid varchar(255) NOT NULL,
-  title varchar(100) NOT NULL,
-  url varchar(255) DEFAULT NULL,
-  organization varchar(45) DEFAULT NULL,
-  email varchar(45) DEFAULT NULL,
-  country varchar(45) DEFAULT NULL,
-  status varchar(255) DEFAULT NULL,
-  surveys_found int DEFAULT NULL,
-  changed int DEFAULT NULL,
-  type int(10) unsigned DEFAULT NULL,
-  short_text varchar(1000) DEFAULT NULL,
-  long_text text,
-  thumbnail varchar(255) DEFAULT NULL,
-  weight int(10) unsigned DEFAULT NULL,
-  ispublished tinyint(3) unsigned DEFAULT NULL,
-  section int DEFAULT NULL,
-  group_da_public tinyint(1) DEFAULT '0',
-  group_da_licensed tinyint(1) DEFAULT '0',
-  PRIMARY KEY (id),
-  UNIQUE KEY Ind_unq (repositoryid)
-) ENGINE=InnoDB IDENTITY(1,1)=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC$$
-
-
--- repository_sections
-
-CREATE TABLE repository_sections (
-  id int NOT NULL IDENTITY(1,1),
-  title varchar(100) NOT NULL,
-  weight int NOT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
--- site_menu
-
-CREATE TABLE site_menu (
-  id int NOT NULL IDENTITY(1,1),
-  pid int DEFAULT NULL,
-  title varchar(100) DEFAULT NULL,
-  url varchar(255) DEFAULT NULL,
-  weight int DEFAULT NULL,
-  depth int DEFAULT NULL,
-  module varchar(45) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
--- data for site_menu
-
-set IDENTITY_INSERT site_menu ON;
-INSERT INTO site_menu (id,pid,title,url,weight,depth,module) VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/repositories',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(23,5,'User groups','admin/user_groups',90,1,'user_groups'),(24,5,'Add user group','admin/user_groups/add',80,1,'user_groups'),(25,5,'-','-',95,1,'user_groups'),(26,5,'User permissions','admin/permissions',60,1,'permissions'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users'),(36,5,'-','-',51,1,'users');
-set IDENTITY_INSERT site_menu OFF;
-
-
--- survey_aliases
-
-CREATE TABLE survey_aliases (
-  id int NOT NULL IDENTITY(1,1),
-  sid int NOT NULL,
-  alternate_id varchar(255) NOT NULL,
-  PRIMARY KEY (id)
-  -- UNIQUE KEY survey_id (alternate_id)
-);
-
-
-
--- survey_countries
-
-CREATE TABLE survey_countries (
-  id int NOT NULL IDENTITY(1,1),
-  sid int DEFAULT NULL,
-  cid int DEFAULT NULL,
-  country_name varchar(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-  --UNIQUE KEY sid_iso_UNIQUE (sid,country_name)
-);
-
-
-
--- survey_notes
-
-CREATE TABLE survey_notes (
-  id int NOT NULL IDENTITY(1,1),
-  sid int DEFAULT NULL,
-  note text NOT NULL,
-  type varchar(30) NOT NULL,
-  userid int NOT NULL,
-  created int DEFAULT NULL,
-  changed int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
--- survey_relationship_types
-
-CREATE TABLE survey_relationship_types (
-  id int NOT NULL IDENTITY(1,1),
-  rel_group_id int DEFAULT NULL,
-  rel_name varchar(45) DEFAULT NULL,
-  rel_dir tinyint DEFAULT NULL,
-  rel_cordinality varchar(10) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
--- survey_relationships
-
-CREATE TABLE survey_relationships (
-  id int NOT NULL IDENTITY(1,1),
-  sid_1 int DEFAULT NULL,
-  sid_2 int DEFAULT NULL,
-  relationship_id int DEFAULT NULL,
-  pair_id varchar(45) DEFAULT NULL,
-  PRIMARY KEY (id)
-  --KEY idx_pair (pair_id)
-);
-
-
---survey_tags
-
-CREATE TABLE survey_tags (
-  id int NOT NULL IDENTITY(1,1),
-  sid int NOT NULL,
-  tag varchar(100) NOT NULL,
-  PRIMARY KEY (id)
---  UNIQUE KEY uq_tag (sid,tag) USING BTREE
-);
-
-
-
--- surveys ---**********************************
-
-CREATE TABLE surveys (
-  id int NOT NULL IDENTITY(1,1),
-  repositoryid varchar(128) NOT NULL,
-  surveyid varchar(200) DEFAULT NULL,
-  titl varchar(255) DEFAULT '',
-  titlstmt text,
-  authenty varchar(255) DEFAULT NULL,
-  geogcover varchar(255) DEFAULT NULL,
-  nation varchar(100) DEFAULT '',
-  topic text,
-  scope text,
-  sername varchar(255) DEFAULT NULL,
-  producer varchar(255) DEFAULT NULL,
-  sponsor varchar(255) DEFAULT NULL,
-  refno varchar(255) DEFAULT NULL,
-  proddate varchar(45) DEFAULT NULL,
-  varcount decimal(10,0) DEFAULT NULL,
-  ddifilename varchar(255) DEFAULT NULL,
-  dirpath varchar(255) DEFAULT NULL,
-  link_technical varchar(255) DEFAULT NULL COMMENT 'documentation',
-  link_study varchar(255) DEFAULT NULL COMMENT 'study website',
-  link_report varchar(255) DEFAULT NULL COMMENT 'reports',
-  link_indicator varchar(255) DEFAULT NULL COMMENT 'indicators',
-  ddi_sh char(2) DEFAULT NULL,
-  formid int DEFAULT NULL,
-  isshared tinyint(1) NOT NULL DEFAULT '1',
-  isdeleted tinyint(1) NOT NULL DEFAULT '0',
-  changed int DEFAULT NULL,
-  created int DEFAULT NULL,
-  link_questionnaire varchar(255) DEFAULT NULL,
-  countryid int DEFAULT NULL,
-  data_coll_start int DEFAULT NULL,
-  data_coll_end int DEFAULT NULL,
-  abbreviation varchar(45) DEFAULT NULL,
-  kindofdata varchar(255) DEFAULT NULL,
-  keywords text,
-  ie_program varchar(255) DEFAULT NULL,
-  ie_project_id varchar(255) DEFAULT NULL,
-  ie_project_name varchar(255) DEFAULT NULL,
-  ie_project_uri varchar(255) DEFAULT NULL,
-  ie_team_leaders text,
-  project_id varchar(255) DEFAULT NULL,
-  project_name varchar(255) DEFAULT NULL,
-  project_uri varchar(255) DEFAULT NULL,
-  link_da varchar(255) DEFAULT NULL,
-  published tinyint(4) DEFAULT NULL,
-  total_views int DEFAULT '0',
-  total_downloads int DEFAULT '0',
-  stats_last_updated int DEFAULT NULL,
-  PRIMARY KEY (id),
-  UNIQUE KEY idx_srvy_unq (surveyid,repositoryid),
-  FULLTEXT KEY ft_titl (titl),
-  FULLTEXT KEY ft_all (titl,authenty,geogcover,nation,topic,scope,sername,producer,sponsor,refno,abbreviation,kindofdata,keywords)
-) ENGINE=MyISAM IDENTITY(1,1)=608 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC$$
-
-
-
--- tags
-CREATE TABLE tags (
-  id int NOT NULL IDENTITY(1,1),
-  tag varchar(100) NOT NULL,
-  PRIMARY KEY (id)
-  --UNIQUE KEY tag_UNIQUE (tag)
-);
-
-
-
--- url_mappings
-
-CREATE TABLE url_mappings (
-  id int NOT NULL IDENTITY(1,1),
-  source varchar(255) DEFAULT NULL,
-  target varchar(255) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
-
--- user_repo_permissions
-
-CREATE TABLE user_repo_permissions (
-  id int NOT NULL IDENTITY(1,1),
-  user_id int DEFAULT NULL,
-  repo_id int DEFAULT NULL,
-  repo_pg_id int DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
--- users -------------------- *********
 
 CREATE TABLE users (
   id int NOT NULL IDENTITY(1,1),
@@ -1406,399 +644,632 @@ CREATE TABLE users (
 );
 
 
+--
+-- Table structure for table survey_countries
+--
 
-
--- users_groups
-
-CREATE TABLE users_groups (
+CREATE TABLE survey_countries (
   id int NOT NULL IDENTITY(1,1),
-  user_id int DEFAULT NULL,
-  group_id int DEFAULT NULL,
+  sid int DEFAULT NULL,
+  cid int DEFAULT NULL,
+  country_name varchar(100) DEFAULT NULL,
   PRIMARY KEY (id)
-  --UNIQUE KEY user_group_UNQ (user_id,group_id)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_surv_countries on [dbo].[survey_countries](
+	[sid] ASC,
+	[country_name] ASC 
 );
 
 
--- region_countries
+--
+-- Table structure for table country_aliases
+--
+
+CREATE TABLE country_aliases (
+  id int NOT NULL IDENTITY(1,1),
+  countryid int NOT NULL,
+  alias varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+--  UNIQUE KEY ix_alias_uniq (countryid,alias)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_country_alias on [dbo].[country_aliases](
+	[countryid] ASC,
+	[alias] ASC 
+);
+
+
+
+--
+-- Table structure for table group_permissions
+--
+
+CREATE TABLE group_permissions (
+  id int NOT NULL IDENTITY(1,1),
+  group_id int NOT NULL,
+  permission_id int NOT NULL,
+  PRIMARY KEY (id)
+--  UNIQUE KEY grp_perms_UNIQUE (group_id,permission_id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_grp_perms on [dbo].[group_permissions](
+	[group_id] ASC,
+	[permission_id] ASC 
+);
+
+
+
+--
+-- Dumping data for table group_permissions
+--
+
+set IDENTITY_INSERT group_permissions ON;
+INSERT INTO group_permissions (id,group_id,permission_id)
+VALUES (5,1,2),(6,1,14),(292,3,1),(289,3,2),(301,3,3),(299,3,14),(293,3,41),(295,3,42),(296,3,43),(297,3,44),(291,3,46),(294,3,49),(300,3,61),(290,3,62),(298,3,63),(334,4,2),(339,4,3),(335,4,16),(338,4,61),(336,4,69),(337,4,70),(313,5,3),(312,5,71),(287,9,2),(288,9,63),(227,10,2),(229,10,3),(228,10,45);
+set IDENTITY_INSERT group_permissions OFF;
+
+--
+-- Table structure for table survey_repos
+--
+
+CREATE TABLE survey_repos (
+  id int  NOT NULL IDENTITY(1,1),
+  sid int  NOT NULL,
+  repositoryid varchar(255) NOT NULL,
+  isadmin tinyint  NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Table structure for table repo_perms_urls
+--
+
+CREATE TABLE repo_perms_urls (
+  id int NOT NULL IDENTITY(1,1),
+  repo_pg_id int DEFAULT NULL,
+  url varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table repo_perms_urls
+--
+
+set IDENTITY_INSERT repo_perms_urls ON;
+INSERT INTO repo_perms_urls(id,repo_pg_id,url)
+VALUES (5,2,'admin/catalog/copy_ddi'),(6,2,'admin/catalog/copy_study'),(7,2,'admin/catalog/delete'),(8,2,'admin/catalog/do_copy_study/*'),(9,2,'admin/catalog/do_upload'),(10,2,'admin/catalog/edit/*'),(11,2,'admin/catalog/export-ddi'),(12,2,'admin/catalog/import-rdf'),(15,2,'admin/catalog/repladce_ddi/*'),(16,2,'admin/catalog/search'),(17,2,'admin/catalog/survey/*'),(18,2,'admin/catalog/update'),(19,2,'admin/catalog/update/*'),(20,2,'admin/catalog/upload'),(28,3,'admin/licensed_requests'),(29,3,'admin/licensed_requests/*'),(30,2,'admin/managefiles/*'),(41,2,'admin/resources/*'),(64,1,'admin/catalog/*'),(67,2,'admin/pdf_generator/*'),
+(68,1,'admin/pdf_generator/*'),
+(69,1,'admin/catalog/add_study'),
+(70,1,'admin/catalog/batch_import'),
+(71,1,'admin/catalog/refresh/*');
+set IDENTITY_INSERT repo_perms_urls OFF;
+
+--
+-- Table structure for table tokens
+--
+
+CREATE TABLE tokens (
+  tokenid varchar(100) NOT NULL,
+  dated int NOT NULL,
+  PRIMARY KEY (tokenid)
+) ;
+
+
+--
+-- Table structure for table menus
+--
+
+CREATE TABLE menus (
+  id int NOT NULL IDENTITY(1,1),
+  url varchar(255) NOT NULL,
+  title varchar(255) NOT NULL,
+  body text,
+  published tinyint DEFAULT NULL,
+  target varchar(45) DEFAULT NULL,
+  changed int DEFAULT NULL,
+  linktype tinyint DEFAULT NULL,
+  weight int DEFAULT NULL,
+  pid int DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_menus on [dbo].[menus](
+	[url] ASC
+);
+
+
+
+--
+-- Dumping data for table menus
+--
+
+set IDENTITY_INSERT menus ON;
+INSERT INTO menus (id,url,title,body,published,target,changed,linktype,weight,pid) VALUES
+(53,'catalog','Microdata  Catalog','',1,'0',1300807037,1,1,0),
+(55,'citations','Citations',NULL,1,'0',1281460217,1,2,0),
+(56,'home','Home',NULL,1,'0',1281460217,1,0,0);
+set IDENTITY_INSERT menus OFF;
+
+
+
+--
+-- Table structure for table url_mappings
+--
+
+CREATE TABLE url_mappings (
+  id int NOT NULL IDENTITY(1,1),
+  source varchar(255) DEFAULT NULL,
+  target varchar(255) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+--
+-- Table structure for table groups
+--
+
+CREATE TABLE groups (
+  id tinyint NOT NULL IDENTITY(1,1),
+  name varchar(100) NOT NULL,
+  description varchar(255) NOT NULL,
+  group_type varchar(40) DEFAULT NULL,
+  access_type varchar(45) DEFAULT NULL,
+  weight int DEFAULT '0',
+  is_collection_group tinyint DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table groups
+--
+
+set IDENTITY_INSERT groups ON;
+INSERT INTO groups (id,name,description,group_type,access_type,weight,is_collection_group)
+VALUES 
+(1,'admin','It is the site administrator and has access to all site content','admin','unlimited',0,0),
+(2,'user','General user account with no access to site administration','user','none',-99,0),
+(3,'Collection administrators','Users can manage and review studies for collections they are assigned to','admin','limited',0,1),
+(5,'Report viewer','Can only generate/view reports','admin','limited',0,0),
+(11,'Citation manager','has full control over the citations','admin','limited',0,0),
+(12,'Global Licensed Reviewer','This account can review licensed data requests from all collections','admin','limited',0,0);
+set IDENTITY_INSERT groups OFF;
+
+
+
+--
+-- Table structure for table survey_relationship_types
+--
+
+CREATE TABLE survey_relationship_types (
+  id int NOT NULL IDENTITY(1,1),
+  rel_group_id int DEFAULT NULL,
+  rel_name varchar(45) DEFAULT NULL,
+  rel_dir tinyint DEFAULT NULL,
+  rel_cordinality varchar(10) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table survey_relationship_types
+--
+
+set IDENTITY_INSERT survey_relationship_types ON;
+INSERT INTO survey_relationship_types (id,rel_group_id,rel_name, rel_dir, rel_cordinality)
+VALUES (0,0,'isRelatedTo',0,'1:1'),(1,1,'isHarmonized',0,'N:1'),(2,1,'isMasterOf',1,'1:N'),(3,3,'isParentOf ',0,'1:N'),(4,3,'isChildOf',1,'N:1'),(5,5,'isAnnoynimizedVersionOf ',0,'N:1'),(6,5,'isMasterOf',1,NULL),(7,7,'isSubsetOf ',0,NULL),(8,7,'isMasterOf',1,NULL),(9,9,'containsStandardizedVersion ',0,NULL),(10,9,'isOriginalVersion',1,NULL),(11,11,'isWaveOf',2,'1:1'),(13,13,'isRevisedVersionOf',0,NULL),(14,13,'isOlderVersionOf',1,NULL);
+set IDENTITY_INSERT survey_relationship_types OFF;
+
+
+--
+-- Table structure for table lic_requests_history
+--
+
+CREATE TABLE lic_requests_history (
+  id int NOT NULL IDENTITY(1,1),
+  lic_req_id int DEFAULT NULL,
+  user_id varchar(100) DEFAULT NULL,
+  logtype varchar(45) DEFAULT NULL,
+  request_status varchar(45) DEFAULT NULL,
+  description text,
+  created int DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+--
+-- Table structure for table da_collection_surveys
+--
+
+CREATE TABLE da_collection_surveys (
+  id int NOT NULL IDENTITY(1,1),
+  cid int DEFAULT NULL,
+  sid int DEFAULT NULL,
+  PRIMARY KEY (id)
+--  UNIQUE KEY unq_coll_sid (cid,sid)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_da_coll_surveys on [dbo].[da_collection_surveys](
+	[cid] ASC,
+	[sid] ASC
+);
+
+
+--
+-- Table structure for table tags
+--
+
+CREATE TABLE tags (
+  id int NOT NULL IDENTITY(1,1),
+  tag varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+--  UNIQUE KEY tag_UNIQUE (tag)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_tags on [dbo].[tags](
+	[tag] ASC
+);
+
+
+
+--
+-- Table structure for table permissions
+--
+
+CREATE TABLE permissions (
+  id int NOT NULL IDENTITY(1,1),
+  label varchar(45) DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  section varchar(45) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table permissions
+--
+set IDENTITY_INSERT permissions ON;
+INSERT INTO permissions (id,label,description,section,weight)
+VALUES (1,'Upload DDI file','this is a test description','catalog',3),(2,'View catalog','this is a test description','catalog',0),(3,'Access site administration','this is a test description','site_admin',0),(4,'Access Menus','this is a test description','menu_admin',0),(5,'Add menu page','this is a test description','menu_admin',0),(6,'Edit menu','this is a test description','menu_admin',0),(7,'Add menu link','this is a test description','menu_admin',0),(8,'Sort menu items','this is a test description','menu_admin',0),(9,'Access vocabularies','this is a test description','vocab',0),(10,'Access vocabulary terms','this is a test description','vocab',0),(11,'View user accounts','View list of all user accounts','user_admin',0),(12,'Edit user information','this is a test description','user_admin',0),(14,'Access DDI Browser','this is a test description','ddibrowser',0),(16,'Access site pages','this is a test description','general_site',0),(18,'View citations','this is a test description','general_site',0),(22,'Site backup','this is a test description','site_admin',0),(23,'View licensed request form','this is a test description','general_site',0),(25,'Switch site language','this is a test description','general_site',0),(27,'Translate site','this is a test description','site_admin',0),(30,'Public use files','this is a test description','general_site',0),(40,'Data Deposit','Data Deposit','site_admin',0),(41,'Publish/Unpublish study','Allows publishing study','catalog',3),(42,'Delete Study','delete study','catalog',4),(43,'Export DDI','Export','catalog',5),(44,'Import RDF','Import RDF for study resources','catalog',5),(45,'Manage Repositories','Manage repositories','repositories',9),(46,'Replace DDI','Replace a DDI file','catalog',3),(49,'Edit survey','Edit survey','catalog',4),(61,'Select collection','','repositories',1),(62,'Copy DDI','copy DDI','catalog',0),(63,'Copy studies from other collections','','catalog',6),(64,'View citations','','citation',1),(65,'Edit citation','','citation',2),(66,'Delete citation','Delete a citation','citation',3),(67,'Import citations','','citation',4),(68,'Export citations','Export citations to various formats','citation',5),(69,'View licensed requests','View list of licensed data requests','Licensed requests',0),(70,'Edit request','Edit a licensed data request','Licensed requests',1),(71,'Reports','View and generate admin reports','reports',0);
+set IDENTITY_INSERT permissions OFF;
+
+
+--
+-- Table structure for table survey_years
+--
+
+CREATE TABLE survey_years (
+  id int NOT NULL IDENTITY(1,1),
+  sid int DEFAULT NULL,
+  data_coll_year int DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_sur_years on [dbo].[survey_years](
+	[sid] ASC,
+	[data_coll_year] ASC
+);
+
+CREATE INDEX IX_sur_yrs_sid on [dbo].[survey_years](
+	[sid] ASC
+);
+
+
+
+--
+-- Table structure for table region_countries
+--
 
 CREATE TABLE region_countries (
   id int NOT NULL IDENTITY(1,1),
   region_id int DEFAULT NULL,
   country_id int DEFAULT NULL,
   PRIMARY KEY (id)
+) ;
+
+
+--
+-- Table structure for table survey_notes
+--
+
+CREATE TABLE survey_notes (
+  id int  NOT NULL IDENTITY(1,1),
+  sid int  DEFAULT NULL,
+  note text NOT NULL,
+  type varchar(50) NOT NULL,
+  userid int  NOT NULL,
+  created int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+
+--
+-- Table structure for table citation_authors
+--
+
+CREATE TABLE citation_authors (
+  id int NOT NULL IDENTITY(1,1),
+  cid int DEFAULT NULL,
+  fname varchar(255) DEFAULT NULL,
+  lname varchar(255) DEFAULT NULL,
+  initial varchar(255) DEFAULT NULL,
+  author_type varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+
+--
+-- Table structure for table countries
+--
+
+CREATE TABLE countries (
+  countryid int NOT NULL IDENTITY(1,1),
+  name varchar(65) NOT NULL,
+  iso varchar(3) NOT NULL,
+  PRIMARY KEY (countryid)
 );
 
--- data for region_countries
+CREATE UNIQUE NONCLUSTERED INDEX IX_countries on [dbo].[countries](
+	[iso] ASC
+);
 
-insert into region_countries (region_id,country_id) values (2,5);
-insert into region_countries (region_id,country_id) values (2,35);
-insert into region_countries (region_id,country_id) values (2,44);
-insert into region_countries (region_id,country_id) values (2,72);
-insert into region_countries (region_id,country_id) values (2,103);
-insert into region_countries (region_id,country_id) values (2,87);
-insert into region_countries (region_id,country_id) values (2,115);
-insert into region_countries (region_id,country_id) values (2,119);
-insert into region_countries (region_id,country_id) values (2,131);
-insert into region_countries (region_id,country_id) values (2,164);
-insert into region_countries (region_id,country_id) values (2,163);
-insert into region_countries (region_id,country_id) values (2,140);
-insert into region_countries (region_id,country_id) values (2,32);
-insert into region_countries (region_id,country_id) values (2,165);
-insert into region_countries (region_id,country_id) values (2,168);
-insert into region_countries (region_id,country_id) values (2,171);
-insert into region_countries (region_id,country_id) values (2,235);
-insert into region_countries (region_id,country_id) values (2,211);
-insert into region_countries (region_id,country_id) values (2,176);
-insert into region_countries (region_id,country_id) values (2,214);
-insert into region_countries (region_id,country_id) values (2,221);
-insert into region_countries (region_id,country_id) values (2,153);
-insert into region_countries (region_id,country_id) values (2,196);
-insert into region_countries (region_id,country_id) values (4,8);
-insert into region_countries (region_id,country_id) values (4,10);
-insert into region_countries (region_id,country_id) values (4,26);
-insert into region_countries (region_id,country_id) values (4,21);
-insert into region_countries (region_id,country_id) values (4,25);
-insert into region_countries (region_id,country_id) values (4,43);
-insert into region_countries (region_id,country_id) values (4,48);
-insert into region_countries (region_id,country_id) values (4,54);
-insert into region_countries (region_id,country_id) values (4,56);
-insert into region_countries (region_id,country_id) values (4,61);
-insert into region_countries (region_id,country_id) values (4,62);
-insert into region_countries (region_id,country_id) values (4,63);
-insert into region_countries (region_id,country_id) values (4,64);
-insert into region_countries (region_id,country_id) values (4,90);
-insert into region_countries (region_id,country_id) values (4,93);
-insert into region_countries (region_id,country_id) values (4,95);
-insert into region_countries (region_id,country_id) values (4,96);
-insert into region_countries (region_id,country_id) values (4,99);
-insert into region_countries (region_id,country_id) values (4,110);
-insert into region_countries (region_id,country_id) values (4,138);
-insert into region_countries (region_id,country_id) values (4,155);
-insert into region_countries (region_id,country_id) values (4,167);
-insert into region_countries (region_id,country_id) values (4,169);
-insert into region_countries (region_id,country_id) values (4,170);
-insert into region_countries (region_id,country_id) values (4,185);
-insert into region_countries (region_id,country_id) values (4,187);
-insert into region_countries (region_id,country_id) values (4,204);
-insert into region_countries (region_id,country_id) values (4,231);
-insert into region_countries (region_id,country_id) values (4,233);
-insert into region_countries (region_id,country_id) values (5,4);
-insert into region_countries (region_id,country_id) values (5,79);
-insert into region_countries (region_id,country_id) values (5,225);
-insert into region_countries (region_id,country_id) values (5,104);
-insert into region_countries (region_id,country_id) values (5,105);
-insert into region_countries (region_id,country_id) values (5,113);
-insert into region_countries (region_id,country_id) values (5,120);
-insert into region_countries (region_id,country_id) values (5,124);
-insert into region_countries (region_id,country_id) values (5,143);
-insert into region_countries (region_id,country_id) values (5,209);
-insert into region_countries (region_id,country_id) values (5,217);
-insert into region_countries (region_id,country_id) values (5,83);
-insert into region_countries (region_id,country_id) values (5,236);
-insert into region_countries (region_id,country_id) values (6,1);
-insert into region_countries (region_id,country_id) values (6,15);
-insert into region_countries (region_id,country_id) values (6,20);
-insert into region_countries (region_id,country_id) values (6,102);
-insert into region_countries (region_id,country_id) values (6,132);
-insert into region_countries (region_id,country_id) values (6,148);
-insert into region_countries (region_id,country_id) values (6,166);
-insert into region_countries (region_id,country_id) values (6,41);
-insert into region_countries (region_id,country_id) values (7,7);
-insert into region_countries (region_id,country_id) values (7,59);
-insert into region_countries (region_id,country_id) values (7,23);
-insert into region_countries (region_id,country_id) values (7,230);
-insert into region_countries (region_id,country_id) values (7,33);
-insert into region_countries (region_id,country_id) values (7,36);
-insert into region_countries (region_id,country_id) values (7,38);
-insert into region_countries (region_id,country_id) values (7,40);
-insert into region_countries (region_id,country_id) values (7,42);
-insert into region_countries (region_id,country_id) values (7,49);
-insert into region_countries (region_id,country_id) values (7,52);
-insert into region_countries (region_id,country_id) values (7,51);
-insert into region_countries (region_id,country_id) values (7,109);
-insert into region_countries (region_id,country_id) values (7,67);
-insert into region_countries (region_id,country_id) values (7,66);
-insert into region_countries (region_id,country_id) values (7,80);
-insert into region_countries (region_id,country_id) values (7,82);
-insert into region_countries (region_id,country_id) values (7,85);
-insert into region_countries (region_id,country_id) values (7,94);
-insert into region_countries (region_id,country_id) values (7,175);
-insert into region_countries (region_id,country_id) values (7,114);
-insert into region_countries (region_id,country_id) values (7,121);
-insert into region_countries (region_id,country_id) values (7,123);
-insert into region_countries (region_id,country_id) values (7,129);
-insert into region_countries (region_id,country_id) values (7,130);
-insert into region_countries (region_id,country_id) values (7,133);
-insert into region_countries (region_id,country_id) values (7,136);
-insert into region_countries (region_id,country_id) values (7,137);
-insert into region_countries (region_id,country_id) values (7,144);
-insert into region_countries (region_id,country_id) values (7,146);
-insert into region_countries (region_id,country_id) values (7,156);
-insert into region_countries (region_id,country_id) values (7,157);
-insert into region_countries (region_id,country_id) values (7,181);
-insert into region_countries (region_id,country_id) values (7,189);
-insert into region_countries (region_id,country_id) values (7,191);
-insert into region_countries (region_id,country_id) values (7,192);
-insert into region_countries (region_id,country_id) values (7,193);
-insert into region_countries (region_id,country_id) values (7,198);
-insert into region_countries (region_id,country_id) values (7,199);
-insert into region_countries (region_id,country_id) values (7,203);
-insert into region_countries (region_id,country_id) values (7,206);
-insert into region_countries (region_id,country_id) values (7,227);
-insert into region_countries (region_id,country_id) values (7,212);
-insert into region_countries (region_id,country_id) values (7,222);
-insert into region_countries (region_id,country_id) values (7,238);
-insert into region_countries (region_id,country_id) values (7,200);
-insert into region_countries (region_id,country_id) values (3,2);
-insert into region_countries (region_id,country_id) values (3,16);
-insert into region_countries (region_id,country_id) values (3,9);
-insert into region_countries (region_id,country_id) values (3,34);
-insert into region_countries (region_id,country_id) values (3,22);
-insert into region_countries (region_id,country_id) values (3,31);
-insert into region_countries (region_id,country_id) values (3,81);
-insert into region_countries (region_id,country_id) values (3,112);
-insert into region_countries (region_id,country_id) values (3,118);
-insert into region_countries (region_id,country_id) values (3,122);
-insert into region_countries (region_id,country_id) values (3,126);
-insert into region_countries (region_id,country_id) values (3,224);
-insert into region_countries (region_id,country_id) values (3,141);
-insert into region_countries (region_id,country_id) values (3,179);
-insert into region_countries (region_id,country_id) values (3,180);
-insert into region_countries (region_id,country_id) values (3,237);
-insert into region_countries (region_id,country_id) values (3,210);
-insert into region_countries (region_id,country_id) values (3,218);
-insert into region_countries (region_id,country_id) values (3,219);
-insert into region_countries (region_id,country_id) values (3,223);
-insert into region_countries (region_id,country_id) values (3,232);
-insert into region_countries (region_id,country_id) values (9,1);
-insert into region_countries (region_id,country_id) values (9,15);
-insert into region_countries (region_id,country_id) values (9,59);
-insert into region_countries (region_id,country_id) values (9,230);
-insert into region_countries (region_id,country_id) values (9,33);
-insert into region_countries (region_id,country_id) values (9,35);
-insert into region_countries (region_id,country_id) values (9,40);
-insert into region_countries (region_id,country_id) values (9,42);
-insert into region_countries (region_id,country_id) values (9,49);
-insert into region_countries (region_id,country_id) values (9,52);
-insert into region_countries (region_id,country_id) values (9,67);
-insert into region_countries (region_id,country_id) values (9,66);
-insert into region_countries (region_id,country_id) values (9,82);
-insert into region_countries (region_id,country_id) values (9,94);
-insert into region_countries (region_id,country_id) values (9,175);
-insert into region_countries (region_id,country_id) values (9,96);
-insert into region_countries (region_id,country_id) values (9,114);
-insert into region_countries (region_id,country_id) values (9,115);
-insert into region_countries (region_id,country_id) values (9,118);
-insert into region_countries (region_id,country_id) values (9,123);
-insert into region_countries (region_id,country_id) values (9,129);
-insert into region_countries (region_id,country_id) values (9,130);
-insert into region_countries (region_id,country_id) values (9,133);
-insert into region_countries (region_id,country_id) values (9,136);
-insert into region_countries (region_id,country_id) values (9,144);
-insert into region_countries (region_id,country_id) values (9,32);
-insert into region_countries (region_id,country_id) values (9,148);
-insert into region_countries (region_id,country_id) values (9,156);
-insert into region_countries (region_id,country_id) values (9,181);
-insert into region_countries (region_id,country_id) values (9,193);
-insert into region_countries (region_id,country_id) values (9,198);
-insert into region_countries (region_id,country_id) values (9,210);
-insert into region_countries (region_id,country_id) values (9,227);
-insert into region_countries (region_id,country_id) values (9,212);
-insert into region_countries (region_id,country_id) values (9,222);
-insert into region_countries (region_id,country_id) values (9,200);
-insert into region_countries (region_id,country_id) values (10,2);
-insert into region_countries (region_id,country_id) values (10,16);
-insert into region_countries (region_id,country_id) values (10,26);
-insert into region_countries (region_id,country_id) values (10,20);
-insert into region_countries (region_id,country_id) values (10,21);
-insert into region_countries (region_id,country_id) values (10,36);
-insert into region_countries (region_id,country_id) values (10,38);
-insert into region_countries (region_id,country_id) values (10,51);
-insert into region_countries (region_id,country_id) values (10,109);
-insert into region_countries (region_id,country_id) values (10,79);
-insert into region_countries (region_id,country_id) values (10,225);
-insert into region_countries (region_id,country_id) values (10,64);
-insert into region_countries (region_id,country_id) values (10,72);
-insert into region_countries (region_id,country_id) values (10,81);
-insert into region_countries (region_id,country_id) values (10,85);
-insert into region_countries (region_id,country_id) values (10,93);
-insert into region_countries (region_id,country_id) values (10,95);
-insert into region_countries (region_id,country_id) values (10,99);
-insert into region_countries (region_id,country_id) values (10,102);
-insert into region_countries (region_id,country_id) values (10,103);
-insert into region_countries (region_id,country_id) values (10,105);
-insert into region_countries (region_id,country_id) values (10,87);
-insert into region_countries (region_id,country_id) values (10,119);
-insert into region_countries (region_id,country_id) values (10,121);
-insert into region_countries (region_id,country_id) values (10,164);
-insert into region_countries (region_id,country_id) values (10,163);
-insert into region_countries (region_id,country_id) values (10,141);
-insert into region_countries (region_id,country_id) values (10,140);
-insert into region_countries (region_id,country_id) values (10,143);
-insert into region_countries (region_id,country_id) values (10,155);
-insert into region_countries (region_id,country_id) values (10,157);
-insert into region_countries (region_id,country_id) values (10,166);
-insert into region_countries (region_id,country_id) values (10,168);
-insert into region_countries (region_id,country_id) values (10,169);
-insert into region_countries (region_id,country_id) values (10,171);
-insert into region_countries (region_id,country_id) values (10,235);
-insert into region_countries (region_id,country_id) values (10,189);
-insert into region_countries (region_id,country_id) values (10,191);
-insert into region_countries (region_id,country_id) values (10,28);
-insert into region_countries (region_id,country_id) values (10,41);
-insert into region_countries (region_id,country_id) values (10,203);
-insert into region_countries (region_id,country_id) values (10,206);
-insert into region_countries (region_id,country_id) values (10,209);
-insert into region_countries (region_id,country_id) values (10,176);
-insert into region_countries (region_id,country_id) values (10,214);
-insert into region_countries (region_id,country_id) values (10,223);
-insert into region_countries (region_id,country_id) values (10,232);
-insert into region_countries (region_id,country_id) values (10,153);
-insert into region_countries (region_id,country_id) values (10,196);
-insert into region_countries (region_id,country_id) values (10,83);
-insert into region_countries (region_id,country_id) values (10,236);
-insert into region_countries (region_id,country_id) values (10,238);
-insert into region_countries (region_id,country_id) values (11,4);
-insert into region_countries (region_id,country_id) values (11,5);
-insert into region_countries (region_id,country_id) values (11,7);
-insert into region_countries (region_id,country_id) values (11,8);
-insert into region_countries (region_id,country_id) values (11,10);
-insert into region_countries (region_id,country_id) values (11,9);
-insert into region_countries (region_id,country_id) values (11,34);
-insert into region_countries (region_id,country_id) values (11,22);
-insert into region_countries (region_id,country_id) values (11,23);
-insert into region_countries (region_id,country_id) values (11,25);
-insert into region_countries (region_id,country_id) values (11,31);
-insert into region_countries (region_id,country_id) values (11,43);
-insert into region_countries (region_id,country_id) values (11,44);
-insert into region_countries (region_id,country_id) values (11,48);
-insert into region_countries (region_id,country_id) values (11,54);
-insert into region_countries (region_id,country_id) values (11,56);
-insert into region_countries (region_id,country_id) values (11,61);
-insert into region_countries (region_id,country_id) values (11,62);
-insert into region_countries (region_id,country_id) values (11,63);
-insert into region_countries (region_id,country_id) values (11,90);
-insert into region_countries (region_id,country_id) values (11,104);
-insert into region_countries (region_id,country_id) values (11,110);
-insert into region_countries (region_id,country_id) values (11,113);
-insert into region_countries (region_id,country_id) values (11,112);
-insert into region_countries (region_id,country_id) values (11,122);
-insert into region_countries (region_id,country_id) values (11,120);
-insert into region_countries (region_id,country_id) values (11,124);
-insert into region_countries (region_id,country_id) values (11,126);
-insert into region_countries (region_id,country_id) values (11,224);
-insert into region_countries (region_id,country_id) values (11,131);
-insert into region_countries (region_id,country_id) values (11,132);
-insert into region_countries (region_id,country_id) values (11,137);
-insert into region_countries (region_id,country_id) values (11,138);
-insert into region_countries (region_id,country_id) values (11,146);
-insert into region_countries (region_id,country_id) values (11,165);
-insert into region_countries (region_id,country_id) values (11,167);
-insert into region_countries (region_id,country_id) values (11,170);
-insert into region_countries (region_id,country_id) values (11,179);
-insert into region_countries (region_id,country_id) values (11,180);
-insert into region_countries (region_id,country_id) values (11,192);
-insert into region_countries (region_id,country_id) values (11,199);
-insert into region_countries (region_id,country_id) values (11,185);
-insert into region_countries (region_id,country_id) values (11,187);
-insert into region_countries (region_id,country_id) values (11,204);
-insert into region_countries (region_id,country_id) values (11,211);
-insert into region_countries (region_id,country_id) values (11,217);
-insert into region_countries (region_id,country_id) values (11,218);
-insert into region_countries (region_id,country_id) values (11,219);
-insert into region_countries (region_id,country_id) values (11,221);
-insert into region_countries (region_id,country_id) values (11,231);
-insert into region_countries (region_id,country_id) values (11,233);
-insert into region_countries (region_id,country_id) values (12,6);
-insert into region_countries (region_id,country_id) values (12,151);
-insert into region_countries (region_id,country_id) values (12,11);
-insert into region_countries (region_id,country_id) values (12,12);
-insert into region_countries (region_id,country_id) values (12,13);
-insert into region_countries (region_id,country_id) values (12,14);
-insert into region_countries (region_id,country_id) values (12,17);
-insert into region_countries (region_id,country_id) values (12,18);
-insert into region_countries (region_id,country_id) values (12,19);
-insert into region_countries (region_id,country_id) values (12,30);
-insert into region_countries (region_id,country_id) values (12,37);
-insert into region_countries (region_id,country_id) values (12,39);
-insert into region_countries (region_id,country_id) values (12,55);
-insert into region_countries (region_id,country_id) values (12,57);
-insert into region_countries (region_id,country_id) values (12,58);
-insert into region_countries (region_id,country_id) values (12,60);
-insert into region_countries (region_id,country_id) values (12,65);
-insert into region_countries (region_id,country_id) values (12,68);
-insert into region_countries (region_id,country_id) values (12,69);
-insert into region_countries (region_id,country_id) values (12,73);
-insert into region_countries (region_id,country_id) values (12,75);
-insert into region_countries (region_id,country_id) values (12,77);
-insert into region_countries (region_id,country_id) values (12,84);
-insert into region_countries (region_id,country_id) values (12,88);
-insert into region_countries (region_id,country_id) values (12,89);
-insert into region_countries (region_id,country_id) values (12,92);
-insert into region_countries (region_id,country_id) values (12,100);
-insert into region_countries (region_id,country_id) values (12,101);
-insert into region_countries (region_id,country_id) values (12,107);
-insert into region_countries (region_id,country_id) values (12,108);
-insert into region_countries (region_id,country_id) values (12,111);
-insert into region_countries (region_id,country_id) values (12,116);
-insert into region_countries (region_id,country_id) values (12,117);
-insert into region_countries (region_id,country_id) values (12,125);
-insert into region_countries (region_id,country_id) values (12,127);
-insert into region_countries (region_id,country_id) values (12,128);
-insert into region_countries (region_id,country_id) values (12,134);
-insert into region_countries (region_id,country_id) values (12,139);
-insert into region_countries (region_id,country_id) values (12,149);
-insert into region_countries (region_id,country_id) values (12,152);
-insert into region_countries (region_id,country_id) values (12,154);
-insert into region_countries (region_id,country_id) values (12,160);
-insert into region_countries (region_id,country_id) values (12,145);
-insert into region_countries (region_id,country_id) values (12,173);
-insert into region_countries (region_id,country_id) values (12,174);
-insert into region_countries (region_id,country_id) values (12,177);
-insert into region_countries (region_id,country_id) values (12,178);
-insert into region_countries (region_id,country_id) values (12,188);
-insert into region_countries (region_id,country_id) values (12,190);
-insert into region_countries (region_id,country_id) values (12,194);
-insert into region_countries (region_id,country_id) values (12,195);
-insert into region_countries (region_id,country_id) values (12,197);
-insert into region_countries (region_id,country_id) values (12,201);
-insert into region_countries (region_id,country_id) values (12,183);
-insert into region_countries (region_id,country_id) values (12,207);
-insert into region_countries (region_id,country_id) values (12,208);
-insert into region_countries (region_id,country_id) values (12,215);
-insert into region_countries (region_id,country_id) values (12,220);
-insert into region_countries (region_id,country_id) values (12,216);
-insert into region_countries (region_id,country_id) values (12,226);
-insert into region_countries (region_id,country_id) values (12,228);
-insert into region_countries (region_id,country_id) values (12,229);
-insert into region_countries (region_id,country_id) values (13,11);
-insert into region_countries (region_id,country_id) values (13,12);
-insert into region_countries (region_id,country_id) values (13,18);
-insert into region_countries (region_id,country_id) values (13,37);
-insert into region_countries (region_id,country_id) values (13,58);
-insert into region_countries (region_id,country_id) values (13,60);
-insert into region_countries (region_id,country_id) values (13,68);
-insert into region_countries (region_id,country_id) values (13,73);
-insert into region_countries (region_id,country_id) values (13,75);
-insert into region_countries (region_id,country_id) values (13,84);
-insert into region_countries (region_id,country_id) values (13,88);
-insert into region_countries (region_id,country_id) values (13,100);
-insert into region_countries (region_id,country_id) values (13,101);
-insert into region_countries (region_id,country_id) values (13,106);
-insert into region_countries (region_id,country_id) values (13,107);
-insert into region_countries (region_id,country_id) values (13,108);
-insert into region_countries (region_id,country_id) values (13,111);
-insert into region_countries (region_id,country_id) values (13,116);
-insert into region_countries (region_id,country_id) values (13,127);
-insert into region_countries (region_id,country_id) values (13,149);
-insert into region_countries (region_id,country_id) values (13,154);
-insert into region_countries (region_id,country_id) values (13,160);
-insert into region_countries (region_id,country_id) values (13,173);
-insert into region_countries (region_id,country_id) values (13,174);
-insert into region_countries (region_id,country_id) values (13,195);
-insert into region_countries (region_id,country_id) values (13,197);
-insert into region_countries (region_id,country_id) values (13,201);
-insert into region_countries (region_id,country_id) values (13,207);
-insert into region_countries (region_id,country_id) values (13,208);
-insert into region_countries (region_id,country_id) values (13,226);
-insert into region_countries (region_id,country_id) values (13,228);
+
+--
+-- Dumping data for table countries
+--
+
+set IDENTITY_INSERT countries ON;
+INSERT INTO countries (countryid,name,iso)
+VALUES (1,'Afghanistan','AFG'),(2,'Albania','ALB'),(3,'Antartica','ATA'),(4,'Algeria','DZA'),(5,'American Samoa','ASM'),(6,'Andorra','AND'),(7,'Angola','AGO'),(8,'Antigua and Barbuda','ATG'),(9,'Azerbaijan','AZE'),(10,'Argentina','ARG'),(11,'Australia','AUS'),(12,'Austria','AUT'),(13,'Bahamas','BHS'),(14,'Bahrain','BHR'),(15,'Bangladesh','BGD'),(16,'Armenia','ARM'),(17,'Barbados','BRB'),(18,'Belgium','BEL'),(19,'Bermuda','BMU'),(20,'Bhutan','BTN'),(21,'Bolivia','BOL'),(22,'Bosnia-Herzegovina','BIH'),(23,'Botswana','BWA'),(24,'Bouvet Island','BVT'),(25,'Brazil','BRA'),(26,'Belize','BLZ'),(27,'British Indian Ocean Territory','IOT'),(28,'Solomon Islands','SLB'),(29,'Virgin Isld. (British)','VGB'),(30,'Brunei','BRN'),(31,'Bulgaria','BGR'),(32,'Myanmar','MMR'),(33,'Burundi','BDI'),(34,'Belarus','BLR'),(35,'Cambodia','KHM'),(36,'Cameroon','CMR'),(37,'Canada','CAN'),(38,'Cape Verde','CPV'),(39,'Cayman Islands','CYM'),(40,'Central African Republic','CAF'),(41,'Sri Lanka','LKA'),(42,'Chad','TCD'),(43,'Chile','CHL'),(44,'China','CHN'),(45,'Taiwan','TWN'),(46,'Christmas Island','CXR'),(47,'Cocos Isld.','CCK'),(48,'Colombia','COL'),(49,'Comoros','COM'),(50,'Mayotte','MYT'),(51,'Congo, Rep.','COG'),(52,'Congo, Dem. Rep.','COD'),(53,'Cook Island','COK'),(54,'Costa Rica','CRI'),(55,'Croatia','HRV'),(56,'Cuba','CUB'),(57,'Cyprus','CYP'),(58,'Czech Republic','CZE'),(59,'Benin','BEN'),(60,'Denmark','DNK'),(61,'Dominica','DMA'),(62,'Dominican Republic','DOM'),(63,'Ecuador','ECU'),(64,'El Salvador','SLV'),(65,'Equatorial Guinea','GNQ'),(66,'Ethiopia','ETH'),(67,'Eritrea','ERI'),(68,'Estonia','EST'),(69,'Faeroe Isld.','FRO'),(70,'Falkland Isld.','FLK'),(71,'S. Georgia & S. Sandwich Isld.','SGS'),(72,'Fiji','FJI'),(73,'Finland','FIN'),(74,'France, Metrop.','FXX'),(75,'France','FRA'),(76,'French Guiana','GUF'),(77,'French Polynesia','PYF'),(78,'French S.T.','ATF'),(79,'Djibouti','DJI'),(80,'Gabon','GAB'),(81,'Georgia','GEO'),(82,'Gambia','GMB'),(83,'West Bank and Gaza','PSE'),(84,'Germany','DEU'),(85,'Ghana','GHA'),(86,'Gibraltar','GIB'),(87,'Kiribati','KIR'),(88,'Greece','GRC'),(89,'Greenland','GRL'),(90,'Grenada','GRD'),(91,'Guadeloupe','GLP'),(92,'Guam','GUM'),(93,'Guatemala','GTM'),(94,'Guinea','GIN'),(95,'Guyana','GUY'),(96,'Haiti','HTI'),(97,'Heard / McDonald Isld','HMD'),(98,'Holy See','VAT'),(99,'Honduras','HND'),(100,'Hungary','HUN'),(101,'Iceland','ISL'),(102,'India','IND'),(103,'Indonesia','IDN'),(104,'Iran, Islamic Rep.','IRN'),(105,'Iraq','IRQ'),(106,'Ireland','IRL'),(107,'Israel','ISR'),(108,'Italy','ITA'),(109,'Cote d''Ivoire','CIV'),(110,'Jamaica','JAM'),(111,'Japan','JPN'),(112,'Kazakhstan','KAZ'),(113,'Jordan','JOR'),(114,'Kenya','KEN'),(115,'Korea, Dem. Rep.','PRK'),(116,'Korea, Rep.','KOR'),(117,'Kuwait','KWT'),(118,'Kyrgyz Republic','KGZ'),(119,'Lao PDR','LAO'),(120,'Lebanon','LBN'),(121,'Lesotho','LSO'),(122,'Latvia','LVA'),(123,'Liberia','LBR'),(124,'Libya','LBY'),(125,'Liechtenstein','LIE'),(126,'Lithuania','LTU'),(127,'Luxembourg','LUX'),(128,'Macao','MAC'),(129,'Madagascar','MDG'),(130,'Malawi','MWI'),(131,'Malaysia','MYS'),(132,'Maldives','MDV'),(133,'Mali','MLI'),(134,'Malta','MLT'),(135,'Martinique','MTQ'),(136,'Mauritania','MRT'),(137,'Mauritius','MUS'),(138,'Mexico','MEX'),(139,'Monaco','MCO'),(140,'Mongolia','MNG'),(141,'Moldova','MDA'),(142,'Montserrat','MSR'),(143,'Morocco','MAR'),(144,'Mozambique','MOZ'),(145,'Oman','OMN'),(146,'Namibia','NAM'),(147,'Nauru','NRU'),(148,'Nepal','NPL'),(149,'Netherlands','NLD'),(150,'Neth.Antilles','ANT'),(151,'Aruba','ABW'),(152,'New Caledonia','NCL'),(153,'Vanuatu','VUT'),(154,'New Zealand','NZL'),(155,'Nicaragua','NIC'),(156,'Niger','NER'),(157,'Nigeria','NGA'),(158,'Niue','NIU'),(159,'Norfolk Isld.','NFK'),(160,'Norway','NOR'),(161,'N. Mariana Isld.','MNP'),(162,'US minor outlying Islands','UMI'),(163,'Micronesia','FSM'),(164,'Marshall Isld.','MHL'),(165,'Palau','PLW'),(166,'Pakistan','PAK'),(167,'Panama','PAN'),(168,'Papua New Guinea','PNG'),(169,'Paraguay','PRY'),(170,'Peru','PER'),(171,'Philippines','PHL'),(172,'Pitcairn Island','PCN'),(173,'Poland','POL'),(174,'Portugal','PRT'),(175,'Guinea Bissau','GNB'),(176,'Timor-Leste','TLS'),(177,'Puerto Rico','PRI'),(178,'Qatar','QAT'),(179,'Romania','ROM'),(180,'Russian Federation','RUS'),(181,'Rwanda','RWA'),(182,'St. Helena','SHN'),(183,'St.Kitts and Nevis','KNA'),(184,'Anguilla','AIA'),(185,'St. Lucia','LCA'),(186,'St. Pierre and Miquelon','SPM'),(187,'St. Vincent and Grenadines','VCT'),(188,'San Marino','SMR'),(189,'São Tomé and Príncipe','STP'),(190,'Saudi Arabia','SAU'),(191,'Senegal','SEN'),(192,'Seychelles','SYC'),(193,'Sierra Leone','SLE'),(194,'Singapore','SGP'),(195,'Slovak Republic','SVK'),(196,'Viet Nam','VNM'),(197,'Slovenia','SVN'),(198,'Somalia','SOM'),(199,'South Africa','ZAF'),(200,'Zimbabwe','ZWE'),(201,'Spain','ESP'),(202,'West. Sahara','ESH'),(203,'Sudan','SDN'),(204,'Suriname','SUR'),(205,'Svalbard and Jan Mayen Islands','SJM'),(206,'Swaziland','SWZ'),(207,'Sweden','SWE'),(208,'Switzerland','CHE'),(209,'Syrian Arab Republic','SYR'),(210,'Tajikistan','TJK'),(211,'Thailand','THA'),(212,'Togo','TGO'),(213,'Tokelau','TKL'),(214,'Tonga','TON'),(215,'Trinidad and Tobago','TTO'),(216,'United Arab Emirates','ARE'),(217,'Tunisia','TUN'),(218,'Turkey','TUR'),(219,'Turkmenistan','TKM'),(220,'Turks and Caicos Islands','TCA'),(221,'Tuvalu','TUV'),(222,'Uganda','UGA'),(223,'Ukraine','UKR'),(224,'Macedonia, FYR','MKD'),(225,'Egypt, Arab Rep.','EGY'),(226,'United Kingdom','GBR'),(227,'Tanzania','TZA'),(228,'United States','USA'),(229,'Virgin Islands, U.S.','VIR'),(230,'Burkina Faso','BFA'),(231,'Uruguay','URY'),(232,'Uzbekistan','UZB'),(233,'Venezuela, RB','VEN'),(234,'Wallis and Futuna','WLF'),(235,'Samoa','WSM'),(236,'Yemen','YEM'),(237,'Serbia and Montenegro','SCG'),(238,'Zambia','ZMB'),(239,'Westbank and Gaza','WBG'),(240,'Jerusalem','JER');
+set IDENTITY_INSERT countries OFF;
+
+--
+-- Table structure for table repo_perms_groups
+--
+
+CREATE TABLE repo_perms_groups (
+  repo_pg_id int NOT NULL IDENTITY(1,1),
+  title varchar(45) DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  weight int DEFAULT '0',
+  PRIMARY KEY (repo_pg_id)
+);
+
+
+--
+-- Dumping data for table repo_perms_groups
+--
+
+set IDENTITY_INSERT repo_perms_groups ON;
+INSERT INTO repo_perms_groups(repo_pg_id,title,[description],[weight]) 
+VALUES (1,'Manage studies (full access)','Full control over the studies including adding, updating, publishing, copying from other collections, etc.',0),(2,'Manage studies (limited access)','All access except can''t publish or unpublish studies',1),(3,'Manage licensed requests','Allows user to view and process licensed data requests for the collection',2),(4,'Reviewer','Allows user to review studies from the front-end regardless of study publish/unpublish status',3);
+set IDENTITY_INSERT repo_perms_groups OFF;
+
+
+--
+-- Table structure for table user_repo_permissions
+--
+
+CREATE TABLE user_repo_permissions (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int DEFAULT NULL,
+  repo_id int DEFAULT NULL,
+  repo_pg_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+
+--
+-- Table structure for table lic_file_downloads
+--
+
+CREATE TABLE lic_file_downloads (
+  id int NOT NULL IDENTITY(1,1),
+  fileid varchar(45) NOT NULL,
+  downloads varchar(45) DEFAULT NULL,
+  download_limit varchar(45) DEFAULT NULL,
+  expiry int DEFAULT NULL,
+  lastdownloaded int DEFAULT NULL,
+  requestid int NOT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+
+--
+-- Table structure for table regions
+--
+
+CREATE TABLE regions (
+  id int NOT NULL IDENTITY(1,1),
+  pid int DEFAULT '0',
+  title varchar(45) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- Dumping data for table regions
+--
+
+set IDENTITY_INSERT regions ON;
+INSERT INTO regions(id,pid,title,[weight]) 
+VALUES (1,0,'By Region',0),(2,1,'East Asia and Pacific',1),(3,1,'Europe and Central Asia',1),(4,1,'Latin America & the Caribbean',1),(5,1,'Middle East and North Africa',1),(6,1,'South Asia',1),(7,1,'Sub-Saharan Africa',1),(8,0,'By Income',0),(9,8,'Low-income economies',0),(10,8,'Lower-middle-income economies',1),(11,8,'Upper-middle-income economies',3),(12,8,'High-income economies',4),(13,8,'High-income OECD members',6);
+set IDENTITY_INSERT regions OFF;
+
+
+--
+-- Table structure for table ci_sessions
+--
+
+CREATE TABLE ci_sessions (
+  session_id varchar(40) NOT NULL DEFAULT '0',
+  ip_address varchar(16) DEFAULT '0',
+  user_agent varchar(255) DEFAULT NULL,
+  last_activity int DEFAULT '0',
+  user_data text,
+  PRIMARY KEY (session_id)
+) ;
+
+
+
+--
+-- Table structure for table public_requests
+--
+
+CREATE TABLE public_requests (
+  id int NOT NULL IDENTITY(1,1),
+  userid int NOT NULL,
+  surveyid int DEFAULT NULL,
+  abstract text NOT NULL,
+  posted int NOT NULL,
+  request_type varchar(45) DEFAULT 'study',
+  collectionid varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+
+--
+-- Table structure for table sitelogs
+--
+
+CREATE TABLE sitelogs (
+  id int NOT NULL IDENTITY(1,1),
+  sessionid varchar(255) NOT NULL DEFAULT '',
+  logtime varchar(45) NOT NULL DEFAULT '0',
+  ip varchar(45) NOT NULL,
+  url varchar(255) NOT NULL DEFAULT '',
+  logtype varchar(45) NOT NULL,
+  surveyid int DEFAULT '0',
+  section varchar(255) DEFAULT NULL,
+  keyword varchar(max),
+  username varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ;
+
+
+
+--
+-- Table structure for table configurations
+--
+
+CREATE TABLE configurations (
+  name varchar(200) NOT NULL,
+  value varchar(255) NOT NULL,
+  label varchar(255) DEFAULT NULL,
+  helptext varchar(255) DEFAULT NULL,
+  item_group varchar(255) DEFAULT NULL,
+  PRIMARY KEY (name)
+) ;
+
+
+--
+-- Dumping data for table configurations
+--
+
+INSERT INTO configurations VALUES ('app_version','4.0.0-06.02.2013','Application version',NULL,NULL);
+INSERT INTO configurations VALUES ('cache_default_expires','7200','Cache expiry (in mili seconds)',NULL,NULL);
+INSERT INTO configurations VALUES ('cache_disabled','0','Enable/disable site caching',NULL,NULL);
+INSERT INTO configurations VALUES ('cache_path','cache/','Site cache folder',NULL,NULL);
+INSERT INTO configurations VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
+INSERT INTO configurations VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
+INSERT INTO configurations VALUES ('collections_vocab','2','survey collections vocabulary',NULL,NULL);
+INSERT INTO configurations VALUES ('collection_search','no',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('collection_search_weight','5',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('da_search','no',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('da_search_weight','2',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('db_version','4.0.0-06.02.2013','Database version',NULL,NULL);
+INSERT INTO configurations VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
+INSERT INTO configurations VALUES ('default_home_page','home','Default home page','Default home page',NULL);
+INSERT INTO configurations VALUES ('html_folder','/pages',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('lang','en-us','Site Language','Site Language code',NULL);
+INSERT INTO configurations VALUES ('language','english',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('login_timeout','40','Login timeout (minutes)',NULL,NULL);
+INSERT INTO configurations VALUES ('mail_protocol','smtp','Select method for sending emails','Supported protocols: MAIL, SMTP, SENDMAIL',NULL);
+INSERT INTO configurations VALUES ('min_password_length','5','Minimum password length',NULL,NULL);
+INSERT INTO configurations VALUES ('news_feed_url','http://ihsn.org/nada/index.php?q=news/feed','','','');
+INSERT INTO configurations VALUES ('regional_search','no','Enable regional search',NULL,NULL);
+INSERT INTO configurations VALUES ('regional_search_weight','3',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
+INSERT INTO configurations VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
+INSERT INTO configurations VALUES ('smtp_host','','SMTP Host name',NULL,NULL);
+INSERT INTO configurations VALUES ('smtp_pass','','SMTP password',NULL,NULL);
+INSERT INTO configurations VALUES ('smtp_port','25','SMTP port',NULL,NULL);
+INSERT INTO configurations VALUES ('smtp_user','','SMTP username',NULL,NULL);
+INSERT INTO configurations VALUES ('theme','default','Site theme name',NULL,NULL);
+INSERT INTO configurations VALUES ('topics_vocab','1','Vocabulary ID for Topics',NULL,NULL);
+INSERT INTO configurations VALUES ('topic_search','no','Topic search',NULL,NULL);
+INSERT INTO configurations VALUES ('topic_search_weight','6',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('use_html_editor','yes','Use HTML editor for entering HTML for static pages',NULL,NULL);
+INSERT INTO configurations VALUES ('website_footer','Powered by NADA 4.0 and DDI','Website footer text',NULL,NULL);
+INSERT INTO configurations VALUES ('website_title','National Data Archive','Website title','Provide the title of the website','website');
+INSERT INTO configurations VALUES ('website_url','http://localhost/nada','Website URL','URL of the website','website');
+INSERT INTO configurations VALUES ('website_webmaster_email','nada@ihsn.org','Site webmaster email address','-','website');
+INSERT INTO configurations VALUES ('website_webmaster_name','noreply','Webmaster name','-','website');
+INSERT INTO configurations VALUES ('year_search','no',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('year_search_weight','1',NULL,NULL,NULL);
+
+
+---------------------------------------------------------
+-- SURVEYS 
+---------------------------------------------------------
+
+-- create a unique index or use the PK
+CREATE UNIQUE INDEX pk_idx_surveys ON dbo.surveys(id);
+
+go
+
+-- create a fulltext catalog if not created already
+CREATE FULLTEXT CATALOG ft AS DEFAULT;
+
+go
+
+--add table columns to index
+CREATE FULLTEXT INDEX ON surveys
+( 
+  abbreviation	Language 1033,
+  authenty		Language 1033,
+  geogcover		Language 1033,
+  keywords		Language 1033,
+  kindofdata	Language 1033,
+  nation		Language 1033,
+  producer		Language 1033,
+  refno			Language 1033,
+  scope			Language 1033,
+  sponsor		Language 1033,
+  titl			Language 1033,
+  titlstmt		Language 1033,
+  topic			Language 1033
+ ) 
+KEY INDEX pk_idx_surveys ; 
+GO
+
+
+---------------------------------------------------------
+-- VARIABLES
+---------------------------------------------------------
+
+-- create a unique index or use the PK
+CREATE UNIQUE INDEX pk_idx_variables ON dbo.variables(uid);
+go
+
+--add table columns to index
+CREATE FULLTEXT INDEX ON variables
+( 
+  catgry	Language 1033,
+  labl		Language 1033,
+  name		Language 1033,
+  qstn		Language 1033
+ ) 
+KEY INDEX pk_idx_variables; 
