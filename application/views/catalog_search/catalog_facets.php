@@ -1,9 +1,8 @@
 <?php
 $repo_ref=$this->uri->segment(2);
-
-if (!$result=$this->repository_model->repository_exists($repo_ref))
+if($repo_ref!='central' && $repo_ref!==FALSE)
 {
-	if($repo_ref!='central' && $repo_ref!==FALSE)
+	if (!$result=$this->repository_model->repository_exists($repo_ref))
 	{
 		return false;
 	}	
