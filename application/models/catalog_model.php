@@ -130,7 +130,7 @@ class Catalog_model extends CI_Model {
 		else
 		{
 			$this->db->order_by('surveys.repositoryid'); 
-			$this->db->order_by('changed', 'desc'); 
+			$this->db->order_by('surveys.changed', 'desc'); 
 		}
 				
 	  	$this->db->limit($limit, $offset);
