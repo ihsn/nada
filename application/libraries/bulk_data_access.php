@@ -70,6 +70,103 @@ class Bulk_data_access
 		$result=$this->ci->db->get('da_collection_surveys')->row_array();
 		return $result['total'];
 	}
+	
+	function get_study_list_by_set($da_collection_id)
+	{
+		$this->ci->db->select('surveys.id,surveys.titl,nation,data_coll_start,data_coll_end');
+		$this->ci->db->join('da_collection_surveys','surveys.id=da_collection_surveys.sid','inner');
+		$this->ci->db->where('da_collection_surveys.cid',$da_collection_id);
+		$result=$this->ci->db->get('surveys')->result_array();
+		
+		return $result;
+	}
+	
+	function get_collection($da_collection_id)
+	{
+		$this->ci->db->select('*');
+		$this->ci->db->where('id',$da_collection_id);
+		$result=$this->ci->db->get('da_collections')->row_array();		
+		return $result;		
+	}
+	
+	function select_all()
+	{
+		$this->ci->db->select('*');
+		$result=$this->ci->db->get('da_collections')->result_array();		
+		return $result;
+	}
+	
+	
+	function update($cid,$options)
+	{	
+		//allowed fields
+		$valid_fields=array(
+			'title',
+			'description'
+		);
+
+		//pk field name
+		$key_field='id';
+		
+		$data=array();
+		
+		//build update statement
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$valid_fields) )
+			{
+				$data[$key]=$value;
+			}
+		}
+		
+		//update db
+		$this->ci->db->where($key_field, $cid);
+		$result=$this->ci->db->update('da_collections', $data); 
+
+		return $result;		
+	}
+	
+	
+	
+	public function insert($options)
+	{
+		//allowed fields
+		$valid_fields=array(
+			'title',
+			'description'
+		);
+
+		//pk field name
+		$key_field='id';
+		
+		$data=array();
+		
+		//build update statement
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$valid_fields) )
+			{
+				$data[$key]=$value;
+			}
+		}
+		
+		$result=$this->ci->db->insert('da_collections', $data); 
+
+		return $result;		
+	}
+	
+	
+	
+	public function delete($id)
+	{		
+		$this->ci->db->where('cid', $id); 
+		$this->ci->db->delete('da_collection_surveys');
+		
+		$this->ci->db->where('id', $id); 
+		$this->ci->db->delete('da_collections');
+	}
+	
+	
 
 }//end-class
 
