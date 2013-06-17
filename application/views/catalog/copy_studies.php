@@ -165,8 +165,8 @@ text-transform: capitalize;
 jQuery(document).ready(function(){
 
 		//link/unlink studies
-		var attach_url="<?php echo site_url('admin/catalog/do_copy_study/'.$active_repo->repositoryid.'/');?>";
-		var detach_url="<?php echo site_url('admin/catalog/unlink/'.$active_repo->repositoryid.'/');?>";
+		var attach_url="<?php echo site_url('admin/catalog/do_copy_study/'.$active_repo->repositoryid).'/';?>";
+		var detach_url="<?php echo site_url('admin/catalog/unlink/'.$active_repo->repositoryid).'/';?>";
 	
 		$(document.body).on("click","#surveys a.attach", function(event){ 
 			$.get($(this).attr("href"));
