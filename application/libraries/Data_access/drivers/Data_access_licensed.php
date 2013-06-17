@@ -45,17 +45,12 @@ class Data_access_licensed extends CI_Driver {
 		}
 		
 		//check study bulk access
-		$bulk_access=$this->CI->bulk_data_access->study_has_bulk_access($sid);
+		//$bulk_access=$this->CI->bulk_data_access->study_has_bulk_access($sid);
 		
-		if ($this->CI->input->get("request")=="new" && $bulk_access===FALSE)
+		if ($this->CI->input->get("request")=="new")
 		{
 			//show application form
 			return $this->request_form('study',$sid,NULL,$user);
-		}
-		else if($this->CI->input->get("request")=="new" && $bulk_access==TRUE)
-		{
-			//show choice single study access or bulk access
-			return $this->choose_form($sid,$user);
 		}
 
 		//find existing requests by the user
@@ -124,30 +119,15 @@ class Data_access_licensed extends CI_Driver {
 			show_404();
 		}
 		
-		$repo=NULL;
 		$surveys=NULL;
 		
-		if ($request_type=='collection')
+		$surveys[]=$this->CI->Catalog_model->select_single($survey_id);
+		
+		if ($surveys==FALSE)
 		{
-			$repo=$this->CI->Repository_model->get_repository_by_repositoryid($collection_id);
+			show_404("STUDY_NOT_FOUND");
+		}			
 
-			if($repo['group_da_licensed']!=='1')
-			{
-				show_error("NO_ACCESS_BY_COLLECTION");
-			}
-			
-			$surveys=$this->CI->Repository_model->repo_survey_list($collection_id,array('licensed'));
-		}
-		else if ($request_type=='study')
-		{
-			$surveys[]=$this->CI->Catalog_model->select_single($survey_id);
-			
-			if ($surveys==FALSE)
-			{
-				show_404("STUDY_NOT_FOUND");
-			}			
-		}
-				
 		$content=NULL;
 		$data= new stdClass;			
 
@@ -159,8 +139,8 @@ class Data_access_licensed extends CI_Driver {
 		$data->organization=$user->company;
 		$data->email=$user->email;
 		$data->surveys=$surveys;
-		$data->collection=$repo;
 		$data->request_type=$request_type;
+		$data->bulk_access=FALSE;
 		$data->abstract=$this->CI->input->post("abstract");
 
 		$this->CI->load->library('form_validation');
@@ -188,14 +168,16 @@ class Data_access_licensed extends CI_Driver {
 			{
 				$options[$key]=$this->CI->security->xss_clean($value);
 			}
-		
-			if ($request_type=='study')
+						
+			if (isset($options['cid']) & intval($options['cid'])>0 )
 			{
-				$new_requestid=$this->CI->Licensed_model->insert_request($survey_id,$user->id,$options);
+				//request by collection	
+				$new_requestid=$this->CI->Licensed_model->insert_collection_request((int)$options['cid'],$user->id,$options);
 			}
 			else
 			{
-				$new_requestid=$this->Licensed_model->insert_collection_request($collection_id,$user->id,$options);
+				//request by study
+				$new_requestid=$this->CI->Licensed_model->insert_request($survey_id,$user->id,$options);				
 			}	
 			
 			if ($new_requestid!==FALSE)
@@ -217,6 +199,26 @@ class Data_access_licensed extends CI_Driver {
 				//update failed
 				$this->CI->form_validation->set_error(t('form_update_fail'));
 			}
+		}
+		
+		
+		//check study bulk access
+		$bulk_access=$this->CI->bulk_data_access->study_has_bulk_access($survey_id);
+		
+		if ($bulk_access)
+		{
+			//get bulk access collections for the study
+			$collections=$this->CI->bulk_data_access->get_study_bulk_access_sets($survey_id);
+			
+			foreach($collections as $key=>$collection)
+			{
+				$collections[$key]['studies']=$this->CI->bulk_data_access->get_study_list_by_set($collection['cid']);
+			}
+			
+			$data->collections=$collections;
+			$data->bulk_access=TRUE;
+			
+			return $this->CI->load->view('access_licensed/request_form_collection', $data,TRUE);
 		}
 			
 		//load the contents of the page into a variable
@@ -357,7 +359,7 @@ class Data_access_licensed extends CI_Driver {
 		//get request data
 		$data=$this->CI->Licensed_model->get_request_by_id($requestid);
 		$data=(object)$data;
-			
+		
 		//set data to be passed to the view
 		$data->user_id=$user->id;
 		$data->username=$user->username;
@@ -365,6 +367,7 @@ class Data_access_licensed extends CI_Driver {
 		$data->lname=$user->last_name;
 		$data->organization=$user->company;
 		$data->email=$user->email;
+		
 		if ($data->request_type=='study')
 		{
 			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
@@ -403,6 +406,7 @@ class Data_access_licensed extends CI_Driver {
 		}
 	}
 	
+/*
 	//give user option to request access to a single study or bulk access
 	function choose_form($sid,$user)
 	{
@@ -416,5 +420,7 @@ class Data_access_licensed extends CI_Driver {
 		
 		return $this->CI->load->view('access_licensed_bulk/choose_access_type',$data,TRUE);
 	}
+*/
+
 
 }
