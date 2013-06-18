@@ -127,8 +127,21 @@ class Da_Collections extends MY_Controller {
 	}
 	
 	
-	function attach_studies()
-	{		
+	function attach_studies($collection_id=NULL)
+	{	
+		if (!is_numeric($collection_id))
+		{
+			show_error("INVALID-PARAM");
+		}
+		
+		//get collection info
+		$da_collection=$this->bulk_data_access->get_collection($collection_id);
+		
+		if (!$da_collection)
+		{
+			show_error("COLLECTION-NOT-FOUND");
+		}
+			
 		$this->load->model('Catalog_model');
 		$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
@@ -136,21 +149,6 @@ class Da_Collections extends MY_Controller {
 
 		$this->template->add_css('themes/admin/catalog_admin.css');
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
-		
-		if (isset($this->active_repo) && $this->active_repo->repositoryid=='central')
-		{
-			show_error('ACTION_NOT_ALLOWED');
-		}
-		
-		/*
-		//set filter on active repo
-		if (isset($this->active_repo) && $this->active_repo!=null)
-		{
-			//$filter=$this->Catalog_model->filter;
-			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
-			$this->Catalog_model->active_repo_negate=TRUE;
-		}
-		*/
 		
 		$ps=(int)$this->input->get("ps");
 		if($ps==0 || $ps>500)
@@ -171,7 +169,7 @@ class Da_Collections extends MY_Controller {
 		}*/
 		
 		//set pagination options
-		$base_url = site_url('admin/catalog/copy_study');
+		$base_url = site_url('admin/da_collections/attach_studies/'.$collection_id);
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $ps;
@@ -189,7 +187,10 @@ class Da_Collections extends MY_Controller {
 		$this->pagination->initialize($config); 
 
 		//get an array of survey ID that are already linked in the active collection
-		$db_rows['linked_studies']=array();//$this->Repository_model->get_repo_linked_studies($this->active_repo->repositoryid);
+		$db_rows['linked_studies']=$this->bulk_data_access->get_study_id_list_by_set($collection_id);
+		
+		//get collection info
+		$db_rows['da_collection']=$da_collection;
 		
 		//load the contents of the page into a variable
 		$content=$this->load->view('da_collections/attach_studies', $db_rows,true);
@@ -201,6 +202,25 @@ class Da_Collections extends MY_Controller {
 	  	$this->template->render();
 	}
 
+
+	function update_study_link($collection_id=NULL,$sid=NULL,$state=1)
+	{
+		if (!is_numeric($collection_id) || !is_numeric($sid))
+		{
+			show_404();
+		}
+	
+		if (intval($state)===1)
+		{
+			$this->bulk_data_access->attach_study($collection_id,$sid);
+		}
+		else if (intval($state)===0)
+		{
+			$this->bulk_data_access->detach_study($collection_id,$sid);
+		}	
+		
+		echo json_encode(array('success'=>$collection_id));exit;
+	}
 
 }
 /* End of file da_collections.php */
