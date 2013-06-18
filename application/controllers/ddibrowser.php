@@ -5,7 +5,7 @@ class DDIbrowser extends MY_Controller {
 
     public function __construct()
     {
-        	parent::__construct($skip_auth=TRUE);
+        parent::__construct($skip_auth=TRUE);
 		
 		$this->load->driver('cache', array('adapter' => 'db', 'backup' => 'file'));
 		$this->lang->load('general');
