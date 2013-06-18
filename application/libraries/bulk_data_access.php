@@ -81,6 +81,23 @@ class Bulk_data_access
 		return $result;
 	}
 	
+	function get_study_id_list_by_set($da_collection_id)
+	{
+		$this->ci->db->select('surveys.id');
+		$this->ci->db->join('da_collection_surveys','surveys.id=da_collection_surveys.sid','inner');
+		$this->ci->db->where('da_collection_surveys.cid',$da_collection_id);
+		$result=$this->ci->db->get('surveys')->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[]=$row['id'];
+		}
+		
+		return $output;
+	}
+	
+	
 	function get_collection($da_collection_id)
 	{
 		$this->ci->db->select('*');
@@ -165,7 +182,30 @@ class Bulk_data_access
 		$this->ci->db->where('id', $id); 
 		$this->ci->db->delete('da_collections');
 	}
-	
+
+
+	public function attach_study($collection_id,$sid)
+	{
+		$options=array(
+			'cid'=>$collection_id,
+			'sid'=>$sid
+		);
+		
+		return $this->ci->db->insert('da_collection_surveys', $options); 
+	}
+
+
+	public function detach_study($collection_id,$sid)
+	{
+		$options=array(
+			'cid'=>$collection_id,
+			'sid'=>$sid
+		);
+		
+		$this->ci->db->where('cid', $collection_id); 
+		$this->ci->db->where('sid', $sid); 
+		return $this->ci->db->delete('da_collection_surveys'); 
+	}
 	
 
 }//end-class
