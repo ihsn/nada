@@ -36,7 +36,10 @@ text-transform: capitalize;
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title">
-	<?php echo t('copy_studies_to');?>
+	<?php echo t('attach_studies_to');?>
+    <?php if (isset($da_collection) && $da_collection!=NULL):?>
+    	<span class="active-repo"><?php echo $da_collection['title'];?></span>
+    <?php endif;?>
 </h1>
 
 <p><?php echo sprintf(t('msg_copy_studies'),'<img src="themes/admin/bullet-gray.gif" />');?> </p>
@@ -126,10 +129,10 @@ text-transform: capitalize;
             <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>
             <td class="">
             	<?php if (!in_array($row['id'],$linked_studies)):?>
-            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/do_copy_study/'.$row['id']);?>"><?php echo t('link_study'); ?></a>
+            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/da_collections/update_study_link/'.$da_collection['id'].'/'.$row['id'].'/1');?>"><?php echo t('link_study'); ?></a>
                 <?php else:?>
-                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/catalog/unlink/'.$row['id']);?>"><?php echo t('unlink_study') ?></a>
-				<?php endif?>                
+                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/da_collections/update_study_link/'.$da_collection['id'].'/'.$row['id'].'/0');?>"><?php echo t('unlink_study') ?></a>
+				<?php endif?>
             </td>
             
         </tr>        
@@ -162,15 +165,16 @@ text-transform: capitalize;
 jQuery(document).ready(function(){
 
 		//link/unlink studies
-		var attach_url="<?php echo site_url('admin/da_collections/attach_study/').'/';?>";
-		var detach_url="<?php echo site_url('admin/da_collections/detach_study/').'/';?>";
+		var attach_url="<?php echo site_url('admin/da_collections/update_study_link/').'/';?>";
+		var detach_url="<?php echo site_url('admin/da_collections/update_study_link/').'/';?>";
+		var da_collection="<?php echo $da_collection['id'];?>";
 	
 		$(document.body).on("click","#surveys a.attach", function(event){ 
 			$.get($(this).attr("href"));
 			$(this).html("<?php echo t('unlink_study'); ?>");
 			$(this).removeClass("attach").addClass("remove");
 			var sid=$(this).attr("data-value");
-			$(this).attr("href",detach_url+sid);
+			$(this).attr("href",detach_url+da_collection+'/'+sid+'/0');
 			return false;
 		});
 	
@@ -179,7 +183,7 @@ jQuery(document).ready(function(){
 			$(this).html("<?php echo t('link'); ?>");	
 			$(this).removeClass("remove").addClass("attach");
 			var sid=$(this).attr("data-value");
-			$(this).attr("href",detach_url+sid);
+			$(this).attr("href",attach_url+da_collection+'/'+sid+'/1');
 			return false;
 		});
 	
