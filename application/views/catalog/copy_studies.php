@@ -182,7 +182,7 @@ jQuery(document).ready(function(){
 			$(this).html("<?php echo t('link'); ?>");	
 			$(this).removeClass("remove").addClass("attach");
 			var sid=$(this).attr("data-value");
-			$(this).attr("href",detach_url+sid);
+			$(this).attr("href",attach_url+sid);
 			return false;
 		});
 	
