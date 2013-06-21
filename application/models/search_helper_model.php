@@ -249,6 +249,7 @@ class Search_helper_model extends CI_Model {
 		
 		if ($result)
 		{
+			$result=array_change_key_case($result, CASE_LOWER);
 			return $result['min_year'];
 		}
 		return FALSE;
@@ -267,6 +268,7 @@ class Search_helper_model extends CI_Model {
 		$result=$this->db->get('surveys')->row_array();
 		if ($result)
 		{
+			$result=array_change_key_case($result, CASE_LOWER);
 			return $result['max_year'];
 		}
 		return FALSE;
@@ -354,7 +356,7 @@ class Search_helper_model extends CI_Model {
 		$this->db->order_by('countries.name','ASC');
 		$this->db->group_by('cid,countries.name','ASC');
 		$this->db->where('surveys.published',1);
-		$this->db->where('survey_countries.cid>',0,FALSE);
+		$this->db->where('survey_countries.cid >',0);
 		if($repositoryid!=NULL)
 		{
 			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
@@ -436,10 +438,17 @@ class Search_helper_model extends CI_Model {
 	{
 		if ($repositoryid=='central' || trim($repositoryid)=='')
 		{
-			$sql='select surveys.formid,forms.model from surveys
+			/*$sql='select surveys.formid,forms.model from surveys
 					inner join forms on forms.formid=surveys.formid
 					where surveys.published=1
 				group by surveys.formid, forms.model;';
+			*/
+				
+			$this->db->select('surveys.formid,forms.model');
+			$this->db->join('forms','forms.formid=surveys.formid','inner');	
+			$this->db->where('surveys.published',1);
+			$this->db->group_by('surveys.formid, forms.model');
+			$query=$this->db->get('surveys')->result_array();
 		}
 		else
 		{
@@ -451,7 +460,7 @@ class Search_helper_model extends CI_Model {
 				group by surveys.formid, forms.model;';
 		}
 
-		$query=$this->db->query($sql);
+		//$query=$this->db->query($sql);
 		
 		if (!$query)
 		{
