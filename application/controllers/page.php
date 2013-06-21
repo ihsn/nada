@@ -226,7 +226,7 @@ class Page extends MY_Controller {
 						$data['citation_count']=$this->stats_model->get_citation_count();
 						
 						//get top popular surveys
-						$data['popular_surveys']=$this->stats_model->get_popular_surveys(3);
+						$data['popular_surveys']=$this->stats_model->get_popular_surveys(5);
 						
 						//get top n recent acquisitions
 						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);						
