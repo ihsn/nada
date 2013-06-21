@@ -2,14 +2,13 @@
 //fix for UI tabs
 $repo=$this->input->get("repo");
 
-if(!repo && $repo!='central')
+if(!$repo && $repo!='central')
 {
 	if (!$result=$this->repository_model->repository_exists($repo))
 	{
 		return false;
 	}	
 }
-?>
 
 $referer=site_url('catalog/'.$repo);
 ?>
