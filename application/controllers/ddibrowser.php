@@ -894,6 +894,7 @@ class DDIbrowser extends MY_Controller {
 		
 		if ($file_name=='')
 		{
+			$this->db_logger->write_log('download-file-not-found',$survey_id,'resource='.$resource_id);
 			show_error('RESOURCE_NOT_AVAILABLE!');
 		}
 		
@@ -946,6 +947,7 @@ class DDIbrowser extends MY_Controller {
 			else
 			{
 				//Deny licensed requests
+				$this->db_logger->write_log('download-denied-not-microdata',$survey_id,'resource='.$resource_id);
 				show_error("RESOURCE_NOT_AVAILABLE.");
 			}	
 		}
@@ -957,11 +959,19 @@ class DDIbrowser extends MY_Controller {
 		{
 			$allow_download=TRUE;
 		}
+		else if ($data_access_type=='public' && !$resource_is_microdata)
+		{
+			$allow_download=TRUE;
+		}
 		else{
 			if ($resource_is_microdata===TRUE)
 			{
 				//for any other data access type, disable downloads of microdata resources
 				show_error("INVALID_REQUEST");
+			}
+			else
+			{
+				$allow_download=TRUE;
 			}	
 		}
 		
@@ -975,7 +985,7 @@ class DDIbrowser extends MY_Controller {
 		}
 		else
 		{
-			$this->db_logger->write_log('download-denied',$survey_id,'resource='.$resource_id);
+			$this->db_logger->write_log('download-denied-2:'.$data_access_type,$survey_id,'resource='.$resource_id);
 			show_error("RESOURCE_NOT_AVAILABLE");
 		}
 
