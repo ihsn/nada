@@ -228,6 +228,9 @@ class MY_Controller extends CI_Controller
 				$auth_info = array( "UID"=>$this->db->username,"PWD"=>$this->db->password);
 				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
 				break;
+			case 'oci8':
+				$conn_id = @oci_connect($this->db->username, $this->db->password, $this->db->hostname);
+				break;				
 			default:
 				show_error('MY_CONTROLLER::database not supported '.$this->db->dbdriver);
 		}
