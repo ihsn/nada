@@ -42,6 +42,7 @@ class Stats_model extends CI_Model {
 		$this->db->limit($limit);
 		$this->db->group_by($fields_group_by); 
 		$this->db->where('logtype','survey');
+		$this->db->where('s.published',1);
 
 		if (is_numeric($start) && is_numeric($end) ) 
 		{
