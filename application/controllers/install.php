@@ -213,7 +213,7 @@ class Install extends CI_Controller {
 			{
 				$this->error=$this->ion_auth->errors();
 				
-				var_dump($this->ion_auth_errors());
+				var_dump($this->error);
 			}        	
 		} 
 		//display the create user form
