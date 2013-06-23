@@ -438,29 +438,22 @@ class Search_helper_model extends CI_Model {
 	{
 		if ($repositoryid=='central' || trim($repositoryid)=='')
 		{
-			/*$sql='select surveys.formid,forms.model from surveys
-					inner join forms on forms.formid=surveys.formid
-					where surveys.published=1
-				group by surveys.formid, forms.model;';
-			*/
-				
 			$this->db->select('surveys.formid,forms.model');
 			$this->db->join('forms','forms.formid=surveys.formid','inner');	
 			$this->db->where('surveys.published',1);
 			$this->db->group_by('surveys.formid, forms.model');
-			$query=$this->db->get('surveys')->result_array();
+			$query=$this->db->get('surveys');
 		}
 		else
 		{
-			$sql='select surveys.formid,forms.model from surveys
-					inner join survey_repos on surveys.id=survey_repos.sid
-					inner join forms on forms.formid=surveys.formid
-					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
-					and surveys.published=1
-				group by surveys.formid, forms.model;';
+			$this->db->select('surveys.formid,forms.model');
+			$this->db->join('forms','forms.formid=surveys.formid','inner');	
+			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
+			$this->db->where('surveys.published',1);
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+			$this->db->group_by('surveys.formid, forms.model');
+			$query=$this->db->get('surveys');
 		}
-
-		//$query=$this->db->query($sql);
 		
 		if (!$query)
 		{
