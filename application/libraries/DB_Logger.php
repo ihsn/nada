@@ -131,6 +131,29 @@ class DB_Logger{
 	}
 	
 	
+	function increment_study_view_count($study_id)
+	{
+		if ($this->is_bot())
+		{
+			return false;
+		}
+
+		$this->ci->load->model("catalog_model");
+		$this->ci->catalog_model->increment_study_view_count($study_id);
+	}
+	
+	function increment_study_download_count($study_id)
+	{
+		if ($this->is_bot())
+		{
+			return false;
+		}
+
+		$this->ci->load->model("catalog_model");
+		$this->ci->catalog_model->increment_study_download_count($study_id);
+	}
+	
+	
 }// END DB_Logger
 
 /* End of file DB_Logger.php */
