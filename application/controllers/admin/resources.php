@@ -888,7 +888,7 @@ class Resources extends MY_Controller {
 		$file_info=pathinfo($fileName);
 		$allowed_types=explode(",",$this->config->item("allowed_resource_types"));
 		
-		if (!in_array($file_info['extension'],$allowed_types))
+		if (!in_array(strtolower($file_info['extension']),$allowed_types))
 		{	
 			$this->db_logger->write_log('resource-upload-failed','blocked - '.$fileName,'resources',$surveyid);
 			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "invalid-file-type"}, "type" : "{$file_info["extension"]}"}');				
