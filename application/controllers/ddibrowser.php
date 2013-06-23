@@ -148,7 +148,7 @@ class DDIbrowser extends MY_Controller {
 		
 		//log
 		$this->db_logger->write_log('survey',$this->uri->segment(4),$section,$id);
-		$this->Catalog_model->increment_study_view_count($id);
+		$this->db_logger->increment_study_view_count($id);
 
 		//check user has review permissions
 		$review_study_enabled=$this->acl->user_can_review($id);
@@ -497,18 +497,18 @@ class DDIbrowser extends MY_Controller {
 			break;
 			
 			case 'ddi':
-				$this->Catalog_model->increment_study_download_count($id);
+				$this->db_logger->increment_study_download_count($id);
 				$this->_download_ddi($ddi_file);exit;
 			break;
 			
 			case 'download':
-				$this->Catalog_model->increment_study_download_count($id);
+				$this->db_logger->increment_study_download_count($id);
 				$this->download($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
 			
 			case 'download-microdata':
 			case 'download_microdata':
-				$this->Catalog_model->increment_study_download_count($id);
+				$this->db_logger->increment_study_download_count($id);
 				$this->download_microdata($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
 						
@@ -980,7 +980,7 @@ class DDIbrowser extends MY_Controller {
 			$this->load->helper('download');		
 			log_message('info','Downloading file <em>'.$resource_path.'</em>');
 			$this->db_logger->write_log('download',$survey_id,'resource='.$resource_id);
-			$this->Catalog_model->increment_study_download_count($survey_id);
+			$this->db_logger->increment_study_download_count($survey_id);
 			force_download2($resource_path);	
 		}
 		else
