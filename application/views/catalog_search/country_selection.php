@@ -2,7 +2,7 @@
 //fix for UI tabs
 $repo=$this->input->get("repo");
 
-if(!$repo && $repo!='central')
+if(!$repo && $repo!='central' && $repo!='')
 {
 	if (!$result=$this->repository_model->repository_exists($repo))
 	{
