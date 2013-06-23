@@ -404,8 +404,9 @@ class Catalog extends MY_Controller {
 			return false;
 		}
 		
+		$config['encrypt_name']	 = TRUE;
 		$config['upload_path'] = $destination;
-		$config['disallowed_types'] = 'exe|php|js|asp|aspx';
+		$config['allowed_types'] = 'xml';
 		$config['overwrite'] = true;
 		
 		$this->load->library('upload', $config);
@@ -1574,8 +1575,15 @@ exit;
 				show_error("CATALOG_ROOT_NOT_FOUND");
 			}		
 
-			//upload the ddi
-			$upload_result=$this->__upload_file($key='userfile',$destination=$catalog_root);
+			try
+			{
+				//upload the ddi
+				$upload_result=$this->__upload_file($key='userfile',$destination=$catalog_root);
+			}	
+			catch (Exception $e)
+			{
+				show_error($e->getMessage());
+			}
 
 			if (!$upload_result)
 			{
