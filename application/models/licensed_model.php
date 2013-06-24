@@ -840,6 +840,7 @@ class Licensed_model extends CI_Model {
 		$this->db->select('surveyid as sid, count(surveyid) as total');
 		$this->db->from('lic_requests');
 		$this->db->group_by('surveyid');
+		$this->db->where('status','PENDING');
 		$this->db->where_in('surveyid',$sid_arr);		
 
 		$query= $this->db->get()->result_array();
