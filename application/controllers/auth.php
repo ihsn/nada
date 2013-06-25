@@ -390,20 +390,22 @@ class Auth extends MY_Controller {
 	{        
 		$activation = $this->ion_auth->activate($id, $code);
 		
+		$data=array();
+		
         if ($activation) 
 		{
-			$this->success=true;
+			$data['success']=true;
         }
         else 
 		{
-			$this->failed=true;
+			$data['failed']=true;
         }
 		
-			$content=$this->load->view('auth/msg_account_activation',NULL,TRUE);
-			$this->template->write('title', t('user_account_activation'),true);
-			$this->template->write('content', $content,true);
-			$this->template->write('title', t('user_account_activation'),true);
-			$this->template->render();
+		$content=$this->load->view('auth/msg_account_activation',$data,TRUE);
+		$this->template->write('title', t('user_account_activation'),true);
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('user_account_activation'),true);
+		$this->template->render();
     }
     
     //deactivate the user
