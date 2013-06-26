@@ -28,7 +28,7 @@ License:
     <xsl:param name="survey.base" select="'s'"/>	
     <xsl:param name="outline.base" select="'y'"/>
     <xsl:param name="search_varID" select="'V37'"/>
-	<xsl:param name="show_summary_stats" select="'0'"/>
+	<xsl:param name="show_summary_stats" select="'1'"/>
 	
 <xsl:template match="/">
 
