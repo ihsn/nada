@@ -29,13 +29,13 @@ License:
 		
 <xsl:template match="/">	
 	<div id="variable-list">
-    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Dictionary</xsl:with-param></xsl:call-template></div>
+    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">data_dictionary</xsl:with-param></xsl:call-template></div>
     <table  cellpadding="4" class="ddi-table data-dictionary" width="100%">	
 	<tr>
-		<th>Filename</th>
-		<th>Description</th>
-		<th>Cases</th>
-		<th>Variables</th>		
+		<th><xsl:call-template name="gettext"><xsl:with-param name="msg">File</xsl:with-param></xsl:call-template></th>
+		<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Description</xsl:with-param></xsl:call-template></th>
+		<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Cases</xsl:with-param></xsl:call-template></th>
+		<th><xsl:call-template name="gettext"><xsl:with-param name="msg">Variables</xsl:with-param></xsl:call-template></th>		
 	</tr>	
 	<xsl:apply-templates select="//ddi:codeBook/ddi:fileDscr"/>
 	</table>

@@ -36,7 +36,7 @@ License:
 		
 <xsl:template match="/">	
 	<div id="variable-list">					
-    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Dictionary</xsl:with-param></xsl:call-template></div>
+    <div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">data_dictionary</xsl:with-param></xsl:call-template></div>
 	<xsl:apply-templates select="//ddi:codeBook/ddi:fileDscr[@ID=$file]"/>
 
 	<xsl:variable name="offset">
@@ -95,7 +95,7 @@ License:
 			<td>
 			<div class="count">
 			<xsl:call-template name="gettext">
-				<xsl:with-param name="msg">Total variable(s):</xsl:with-param></xsl:call-template>
+				<xsl:with-param name="msg">Total variable(s)</xsl:with-param></xsl:call-template>:
 			<xsl:text> </xsl:text> <xsl:value-of select="$total"/>
 			</div>
 			</td>
@@ -166,7 +166,7 @@ License:
 	<!-- 4.3 FILE -->
 	<xsl:template match="ddi:fileDscr">
 		<xsl:variable name="file" select="@ID"/>
-		<h2 class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data File:</xsl:with-param></xsl:call-template> <xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></h2>
+		<h2 class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data File</xsl:with-param></xsl:call-template>: <xsl:value-of select="substring-before(ddi:fileTxt/ddi:fileName,'.NSDstat')"/></h2>
 		<table style="width:100%;" class="data-file-bg1" cellpadding="4" >
 			<xsl:if test="normalize-space(ddi:fileTxt/ddi:fileCont)">
 			<tr valign="top">
