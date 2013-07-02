@@ -2,7 +2,7 @@
    var CI = {
 				'base_url': '<?php echo site_url(); ?>',
 				'current_section': '<?php echo site_url().'/'.$this->uri->segment(1).'/'.$this->uri->segment(2); ?>',
-				'js_loading': '<?php echo t('js_loading'); ?>'  
+				'js_loading': '<?php echo t('js_loading'); ?>'
 			}; 	
 </script> 
 
@@ -25,26 +25,18 @@ $(function(){
 				};
 
 		$.bbq.pushState(hash);
-		
-		$.get($(this).attr("href"),{ ajax: "1"}, function(data) {
-			$('.study-tabs .tab-body').html(data);
-			window.hash_cache[ $.param.fragment() ]=data;			
-		});
-		
-		$(".tab-sidebar li.item a,.tab-sidebar li.sub-item a").removeClass("selected");
-		$(this).addClass("selected");
-		
 		return false;
 	});
 	
+	//intialize cache
 	window.hash_cache={};
+	window.hash_cache[""]=$('.study-tabs .tab-body').html();
 	
 	//hashchange event handler
 	$(window).bind( 'hashchange', function(e) {		
 		fragments=$.deparam.fragment();
 		
 		if(typeof fragments.tab != 'undefined'){
-			//$("#from option[value='"+fragments.from+"']").prop('selected', 'selected');
 			$("#tabs .ui-tabs-nav a").each(function(){ 				
 				if (fragments.tab==$(this).attr("data-id")){
 					$("#tabs .ui-tabs-active").removeClass("ui-tabs-active ui-state-active");
@@ -55,19 +47,24 @@ $(function(){
 		
 		var cache_exists=false;
 		var fragment_str = $.param.fragment();
-		if ( window.hash_cache[ fragment_str ] ) {
+		
+		if ( window.hash_cache[ fragment_str ] ) {			
 			//found in cache
+			$(".tab-sidebar li.item a,.tab-sidebar li.sub-item a").removeClass("selected");
 			$("#tabs .tab-body").html(window.hash_cache[ fragment_str ]);
 			cache_exists=true;
 		}
 		
-		if(typeof fragments.page!='undefined')
-		{
+		if(typeof fragments.page!='undefined') {
 			$(".tab-sidebar a").each(function(){
 				if ( $(this).attr("data-id")==fragments.page ){
+					
 					if(cache_exists==false){
-						$('.study-tabs .tab-body').load($(this).attr("href")+'?ajax=1');
+						$('.study-tabs .tab-body').load($(this).attr("href")+'?ajax=1',function(response){
+							window.hash_cache[ fragment_str ]=response;
+						});
 					}
+					
 					$(".tab-sidebar li.item a,.tab-sidebar li.sub-item a").removeClass("selected");
 					$(this).addClass("selected");
 					return;
