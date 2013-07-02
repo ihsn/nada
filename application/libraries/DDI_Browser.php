@@ -166,7 +166,7 @@ class DDI_Browser{
 						'page_limit'=>$limit
 						) 
 				);
-				//var_dump($parameters);
+				
 		$xslt=APPPATH.'../xslt/ddi_datafile.xslt';
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
