@@ -83,11 +83,14 @@ class CI_Cache_db extends CI_Driver {
 	 * @param 	string		unique key
 	 * @param 	mixed		data to store
 	 * @param 	int			length of time (in seconds) the cache is valid 
-	 *						- Default is 60 seconds - 3600=1 hour
+	 *						- Default is 3600 seconds - 3600=1 hour
 	 * @return 	boolean		true on success/false on failure
 	 */
 	public function save($id, $data, $ttl= 3600)
-	{		
+	{	
+		//change seconds into miliseconds
+		$ttl=$ttl*60;
+		
 		$options = array(
 				'uid'		=> $id,
 				'created'	=> time(),
