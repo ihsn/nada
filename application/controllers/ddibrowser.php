@@ -182,8 +182,11 @@ class DDIbrowser extends MY_Controller {
 		$html=NULL;
 		$show_data_menu=FALSE;
 		$show_study_menu=TRUE;		
-		
 		$cache_key=$id.'-'.$section.'-'.$language['lang_name'];
+		
+		$cache_ttl=(int)$this->config->item("cache_default_expires");
+		$cache_disabled=(int)$this->config->item("cache_disabled");
+		
 		switch($section)
 		{
 			case '':
@@ -192,13 +195,22 @@ class DDIbrowser extends MY_Controller {
 			case 'overview':
 			case 'study-description':
 				$this->page_title.=' - '.t('overview');
-				$html= $this->cache->get($cache_key);
-				if ($html===FALSE)
+				
+				if ($cache_disabled===1)
 				{
-					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);					
+					$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save($cache_key,$html,10);
 				}
+				else
+				{
+					$html= $this->cache->get($cache_key);
+					if ($html===FALSE)
+					{
+						$html=$this->DDI_Browser->get_overview_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}
+				}	
 			break;
 			
 			case 'link':
@@ -241,14 +253,14 @@ class DDIbrowser extends MY_Controller {
 				$html=$this->review_study($id);
 			break;
 
-			case 'impact_evaluation':
+			/*case 'impact_evaluation':
 				$this->page_title.=' - '.t('impact_evaluation');
 				$html= $this->cache->get( $cache_key );
 				if ($html===FALSE)
 				{	
 					$html=$this->DDI_Browser->get_overview_ie_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save($cache_key,$html);
+					$this->cache->save($cache_key,$html,$cache_ttl);
 				}
 		        $section_url=$current_url.'/impact_evaluation';	
 			break;
@@ -267,78 +279,134 @@ class DDIbrowser extends MY_Controller {
 			
 			case 'summary':
 			break;
+			*/
 
 			case 'accesspolicy':
 				$this->page_title.=' - '.t('access_policy');
-				$html= $this->cache->get(  $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_access_policy_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save( $cache_key,$html);
-				}	
+				}
+				else
+				{
+					$html= $this->cache->get($cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_access_policy_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}	
+				}
 			break;
 
 			case 'sampling':
 				$this->page_title.=' - '.t('sampling');
-				$html= $this->cache->get(  $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_sampling_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save( $cache_key,$html);
 				}
-		        $section_url=$current_url.'/sampling';	
+				else
+				{
+					$html= $this->cache->get(  $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_sampling_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}
+		        }
+				$section_url=$current_url.'/sampling';	
 			break;
 			
 			case 'questionnaires':
 			case 'questionnaire':
 				$this->page_title.=' - '.t('questionnaires');
-				$html= $this->cache->get(  $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_questionnaires_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save( $cache_key,$html);
+				}
+				else
+				{
+					$html= $this->cache->get(  $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_questionnaires_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}	
 				}	
+
 				$data['resources']=$this->DDI_Browser->get_resources_by_type($id,'doc/qst]');
 				$data['title']=t('title_forms');
 				$html.=$this->load->view("ddibrowser/resources",$data,TRUE);
-        		$section_url=$current_url.'/questionnaires';
+				$section_url=$current_url.'/questionnaires';
 			break;
 
 			case 'dataprocessing':
 				$this->page_title.=' - '.t('data_processing');
-				$html= $this->cache->get(  $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_dataprocessing_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save( $cache_key,$html);
-				}	
-        		$section_url=$current_url.'/dataprocessing';
+				}
+				else
+				{
+					$html= $this->cache->get(  $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_dataprocessing_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}	
+        		}
+				$section_url=$current_url.'/dataprocessing';
 			break;
 
 			case 'datacollection':
 				$this->page_title.=' - '.t('data_collection');
-				$html= $this->cache->get(  $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_datacollection_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save( $cache_key,$html);
-				}        
+				}
+				else
+				{					
+					$html= $this->cache->get(  $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_datacollection_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}
+				}	
 			break;
 
 			case 'dataappraisal':
 				$this->page_title.=' - '.t('data_appraisal');
-				$html= $this->cache->get( $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_dataappraisal_html($ddi_file,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save($cache_key,$html);
-				}				
+				}
+				else
+				{
+					$html= $this->cache->get( $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_dataappraisal_html($ddi_file,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}				
+				}
 			break;
 
 			case 'technicaldocuments':
@@ -390,14 +458,23 @@ class DDIbrowser extends MY_Controller {
 				{
 					$variable_id=$this->uri->segment(5);
 					$this->page_title.=' - '.t('variable')." - $variable_id";
-					$html= $this->cache->get( $cache_key.'-'.$variable_id);
 					
-					if ($html===FALSE)
-					{	
+					if ($cache_disabled===1)
+					{
 						$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 						$html=html_entity_decode(url_filter($html));
-						$this->cache->save($cache_key.'-'.$variable_id, $html);
-					}								
+					}
+					else
+					{
+						$html= $this->cache->get( $cache_key.'-'.$variable_id);
+						
+						if ($html===FALSE)
+						{	
+							$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
+							$html=html_entity_decode(url_filter($html));
+							$this->cache->save($cache_key.'-'.$variable_id, $html, $cache_ttl);
+						}								
+					}
 					$section_url=$current_url.'/variable/'.$variable_id;					
 				}
 				//show data file info	
@@ -419,13 +496,22 @@ class DDIbrowser extends MY_Controller {
 					
 					$fileid=$this->uri->segment(4);
 					$this->page_title.=' - '.t('data_file').' - '.$fileid;
-					$html= $this->cache->get( $cache_key.'-'.$fileid.$offset.'.'.$limit );
 					
-					if ($html===FALSE)
-					{	
+					if ($cache_disabled===1)
+					{
 						$html=$this->DDI_Browser->get_datafile_html($ddi_file,$fileid,$language);
-						$this->cache->save($cache_key.'-'.$fileid.$offset.'.'.$limit,$html);
 					}
+					else
+					{
+						$html= $this->cache->get( $cache_key.'-'.$fileid.$offset.'.'.$limit );
+						
+						if ($html===FALSE)
+						{	
+							$html=$this->DDI_Browser->get_datafile_html($ddi_file,$fileid,$language);
+							$this->cache->save($cache_key.'-'.$fileid.$offset.'.'.$limit,$html, $cache_ttl);
+						}
+					}
+					
 					$section_url=$current_url.'/datafile/'.$fileid;
 				}
 				$show_data_menu=TRUE;
@@ -436,38 +522,65 @@ class DDIbrowser extends MY_Controller {
 			case 'data-dictionary':
 			case 'datafiles':
 				$this->page_title.=' - '.t('Data Dictionary');
-				$html= $this->cache->get( $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_datafiles_html($ddi_file,$language);
-					$this->cache->save($cache_key,$html);
 				}
+				else
+				{
+					$html= $this->cache->get( $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_datafiles_html($ddi_file,$language);
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}
+				}
+				
 				$show_data_menu=TRUE;
 				$show_study_menu=FALSE;
 			break;
 
 			case 'vargrp_list':
 				$this->page_title.=' - '.t('variable_group_list');
-				$html= $this->cache->get( $cache_key);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_variable_groups_array($ddi_file);
-					$this->cache->save($cache_key,$html);
 				}
+				else
+				{
+					$html= $this->cache->get( $cache_key);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_variable_groups_array($ddi_file);
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}
+				}
+				
 				$show_data_menu=TRUE;
 				$show_study_menu=FALSE;
 			break;
 
 			case 'vargrp':
 				$groupid=$this->uri->segment(4);
-				$this->page_title.=' - '.t('variable_group')." - $groupid";				
-				$html= $this->cache->get($cache_key.'-grp-'.$groupid);
-				if ($html===FALSE)
-				{	
+				$this->page_title.=' - '.t('variable_group')." - $groupid";
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_variables_by_group($ddi_file,$groupid,$language);
-					$this->cache->save($cache_key.'-grp-'.$groupid,$html);
-				}        
-        		$section_url=$current_url.'/vargrp/'.$groupid;
+				}
+				else
+				{				
+					$html= $this->cache->get($cache_key.'-grp-'.$groupid);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_variables_by_group($ddi_file,$groupid,$language);
+						$this->cache->save($cache_key.'-grp-'.$groupid,$html);
+					}        
+        		}
+				
+				$section_url=$current_url.'/vargrp/'.$groupid;
 				$show_data_menu=TRUE;
 				$show_study_menu=FALSE;
 			break;
@@ -475,25 +588,45 @@ class DDIbrowser extends MY_Controller {
 			case 'variable':				
 				$variable_id=$this->uri->segment(4);
 				$this->page_title.=' - '.t('variable')." - $variable_id";
-				$html= $this->cache->get( $cache_key.'-var-'.$variable_id);
-				if ($html===FALSE)
-				{	
+				
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 					$html=html_entity_decode(url_filter($html));
-					$this->cache->save($cache_key.'-var-'.$variable_id,$html);
-				}								
-        		$section_url=$current_url.'/variable/'.$variable_id;
+				}
+				else
+				{
+					$html= $this->cache->get( $cache_key.'-var-'.$variable_id);
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
+						$html=html_entity_decode(url_filter($html));
+						$this->cache->save($cache_key.'-var-'.$variable_id,$html);
+					}								
+        		}
+				
+				$section_url=$current_url.'/variable/'.$variable_id;
 				$show_data_menu=TRUE;
 				$show_study_menu=FALSE;
 			break;			
 		
 			case 'get_sidebar_options':
-				$html= $this->cache->get( $cache_key);
-				if ($html===FALSE)
-				{	
+			
+				if ($cache_disabled===1)
+				{
 					$html=$this->DDI_Browser->get_sidebar_options($ddi_file);
-					$this->cache->save($cache_key,$html);
-				}								
+				}
+				else
+				{			
+					$html= $this->cache->get( $cache_key);
+					
+					if ($html===FALSE)
+					{	
+						$html=$this->DDI_Browser->get_sidebar_options($ddi_file);
+						$this->cache->save($cache_key,$html,$cache_ttl);
+					}								
+				}	
+			
 			break;
 			
 			case 'ddi':
@@ -565,6 +698,13 @@ class DDIbrowser extends MY_Controller {
 			break;
 		}
 		
+		/*
+		if (isset($cache_key))
+		{
+			$cache_meta=$this->cache->get_metadata($cache_key);
+			$html.=sprintf("<div style='color:red;'>page created on %s, expires on %s</div>",date("M-d-Y H:i:s",$cache_meta['created']),date("m-d-Y H:i:s",$cache_meta['expiry']));
+		}
+		*/
 		
 		if (trim(strip_tags($html))=='')
 		{
@@ -1093,7 +1233,7 @@ class DDIbrowser extends MY_Controller {
 				$data['vargrp']=$this->DDI_Browser->get_variable_groups_array($ddi_file);
 				$data['data_files']=$this->DDI_Browser->get_datafiles_array($ddi_file);
 			}	
-			$this->cache->save($cache_key,$data,200);
+			$this->cache->save($cache_key,$data,300);
 		}
 		
 		return $this->load->view('ddibrowser/sidebar',$data,TRUE);
