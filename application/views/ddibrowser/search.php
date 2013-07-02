@@ -1,4 +1,4 @@
-<h1 class="xsl-title"><?php echo t('Search Data Dictionary');?></h1>
+<h1 class="xsl-title"><?php echo t('search_data_dictionary');?></h1>
 <?php $url=site_url().'/ddibrowser/'.$this->uri->segment(2).'/search'; ?>
 <form action="" id="form_vsearch">
 	<input type="text" name="vk" value="<?php echo form_prep($this->input->get('vk')); ?>" size="60" maxlength="100"/>

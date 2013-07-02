@@ -67,12 +67,12 @@ $overview_items = array();
     
 		<?php if (isset($data_files) && is_array($data_files) && count($data_files)>0):?>
         <li class="filetree">
-            <a href="<?php echo site_url().'/'.$page_url.'/'.$this->uri->segment(2).'/data-dictionary';?>"><?php echo t('Data Dictionary');?></a>
+            <a href="<?php echo site_url().'/'.$page_url.'/'.$this->uri->segment(2).'/data-dictionary';?>"><?php echo t('data_dictionary');?></a>
             <ul>
                 <!--variable search-->
                 <?php if (1==2 && isset($data_files) && is_array($data_files) && count($data_files)>0):?>
                 <li class="sub-item">    	
-                    <?php echo anchor($page_url.'/'.$this->uri->segment(2).'/search',t('Search variable'),array('class'=>'ajax','title'=>"Search Data Dictionaries")); ?>
+                    <?php echo anchor($page_url.'/'.$this->uri->segment(2).'/search',t('Search variable'),array('class'=>'ajax','title'=>t("search_data_dictionary") )); ?>
                 </li>
                 <?php endif;?>
     
