@@ -4,7 +4,7 @@ class Catalog_history_model extends CI_Model {
 	//database allowed column names
 	var $allowed_fields=array('titl', 'nation','proddate', 'authenty');
 	
-	//fields for the study description
+	//fields for the study description 
 	var $study_fields=array(
 					'surveys.id',
 					'repositoryid',
