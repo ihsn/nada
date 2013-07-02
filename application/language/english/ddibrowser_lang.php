@@ -226,6 +226,8 @@ $lang['generate_pdf'] = "Generate PDF";
 
 $lang['Mean'] = "Mean";
 $lang['Standard deviation'] = "Standard deviation";
+$lang['search_data_dictionary'] = "Search data dictionary";
+$lang['Total variables(s)'] = "Total variables(s)";
 
 
 /* End of file ddibrowser_lang.php */
