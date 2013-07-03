@@ -46,7 +46,7 @@
 	$sort_order=$this->input->get("sort_order");
 	
 	//current page url
-	$page_url=site_url().$this->uri->uri_string();
+	$page_url=site_url().'/'.$this->uri->uri_string();
 ?>
 
 <?php
