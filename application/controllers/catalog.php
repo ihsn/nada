@@ -184,12 +184,17 @@ class Catalog extends MY_Controller {
 		
 		//show search form
 		$this->template->write('search_filters', $this->load->view('catalog_search/catalog_facets', $data,true),true);
-		$content=$this->load->view('catalog_search/catalog_search_result', $data,true);
+		
+		$page_data=array(
+			'repo'=>$this->active_repo,
+			'active_tab'=>'catalog',
+			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
+		);
 
-		//collections are shown in tab
-		//if (isset($this->active_repo) && $this->active_repo!==''){
-			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$this->active_repo,'active_tab'=>'catalog'),TRUE);
-		//}	
+		$page_data['content']=$this->load->view('catalog_search/catalog_search_result', $data,true);
+		
+		//show page contents in tabs
+		$content=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
 
 		//render final output
 		$this->template->write('title', $this->page_title,true);
@@ -1228,7 +1233,7 @@ class Catalog extends MY_Controller {
 			$additional_data=$this->load->view("repositories/index_public",$data,TRUE);
 			$repo=array(
 					'repositoryid'	=>'central',
-					'title'			=>'Central Data Catalog'
+					'title'			=>t('central_data_catalog')
 			);
 		}
 		else
@@ -1240,9 +1245,15 @@ class Catalog extends MY_Controller {
 				show_404();
 			}		
 		}
-				
-		$contents=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
-		$contents=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$contents,'repo'=>$repo,'active_tab'=>'about'),TRUE);
+		
+		$page_data=array(
+			'repo'=>$this->active_repo,
+			'active_tab'=>'about',
+			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
+		);
+
+		$page_data['content']=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
+		$contents=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
 		
 		//set page title
 		$this->template->write('title', $repo['title'],true);
