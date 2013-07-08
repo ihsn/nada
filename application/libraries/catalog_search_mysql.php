@@ -528,7 +528,7 @@ class Catalog_search{
 		
 		if ($index==NULL)
 		{
-			$index[]='name,labl,qstn';
+			$index[]='name,labl,qstn,catgry';
 		}
 
 		if ($is_fulltext==TRUE)	
@@ -552,11 +552,11 @@ class Catalog_search{
 	function variable_fields()
 	{
 		$vf=$this->variable_fields;
-		
+
 		if (!is_array($vf))
 		{
 			//default search field if nothing is selected
-			return array('label');
+			return array('labl,qstn,catgry');
 		}
 		
 		$tmp=NULL;
@@ -571,7 +571,7 @@ class Catalog_search{
 		//no allowed fields found	
 		if ($tmp==NULL)
 		{
-			return array('label');
+			return array('labl');
 		}
 		else
 		{
