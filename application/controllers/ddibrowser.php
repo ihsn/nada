@@ -14,6 +14,7 @@ class DDIbrowser extends MY_Controller {
 				
 		$this->lang->load("general");
 		$this->lang->load("catalog_search");
+		$this->load->helper('catalog');
 		//$this->output->enable_profiler(TRUE);
 			
 		if ($this->ion_auth->logged_in())
