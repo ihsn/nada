@@ -7,7 +7,6 @@
 	ul.bull,.bull li{list-style-type:disc;margin-left:20px;}
 	ul.bull{margin-bottom:10px;}
 	.about-collection .repo-thumbnail{width:82px;height:82px;}
-	.about-central{border-bottom: 1px solid gainsboro;}
 </style>
 
 <div class="about-collection">
