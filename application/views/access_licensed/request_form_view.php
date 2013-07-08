@@ -26,6 +26,8 @@ $options_datamatching=array(
 	0=>'No',
 	1=>'Yes'
 	);
+
+$style='style="border:1px solid gainsboro"';
 ?>
 
 <p>
@@ -44,40 +46,44 @@ $options_datamatching=array(
 <h2 class="page-title"><?php echo t('application_access_licensed_dataset');?></h2>
   <table class="public-use" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
   	<tr>
-    	<td colspan="2" class="note">
+    	<td  <?php echo $style;?>   colspan="2" class="note">
         <div><?php echo t('info_kept_confidential');?></div>
         </td>
     </tr>
     <tr class="border">
-      <td width="200px"><?php echo t('first_name');?></td>
-      <td><?php echo get_form_value('fname',isset($fname) ? $fname : ''); ?></td>
+      <td  <?php echo $style;?>   width="200px"><?php echo t('first_name');?></td>
+      <td  <?php echo $style;?>  ><?php echo get_form_value('fname',isset($fname) ? $fname : ''); ?></td>
     </tr>
     <tr class="border">
-      <td><?php echo t('last_name');?></td>
-      <td><?php echo get_form_value('lname',isset($lname) ? $lname: ''); ?></td>
+      <td  <?php echo $style;?>  ><?php echo t('last_name');?></td>
+      <td  <?php echo $style;?>  ><?php echo get_form_value('lname',isset($lname) ? $lname: ''); ?></td>
     </tr>
     <tr  class="border">
-      <td><?php echo t('organization');?></td>
-      <td><?php echo get_form_value('organization',isset($organization) ? $organization : ''); ?></td>
+      <td  <?php echo $style;?>  ><?php echo t('organization');?></td>
+      <td  <?php echo $style;?>  ><?php echo get_form_value('organization',isset($organization) ? $organization : ''); ?></td>
     </tr>
     <tr class="border">
-      <td><?php echo t('email');?></td>
-      <td><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
+      <td  <?php echo $style;?>  ><?php echo t('email');?></td>
+      <td  <?php echo $style;?>  ><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
     </tr>
    <?php if ($request_type=='study'):?>
         <tr class="border" >
-          <td valign="top"><?php echo t('dataset_requested');?></td>
-          <td><div style="color:maroon;font-size:12px;"><?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?> - <?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?> <br/><?php echo get_form_value('proddate',isset($proddate) ? $proddate : ''); ?></div></td>
+          <td  <?php echo $style;?>   valign="top"><?php echo t('dataset_requested');?></td>
+          <td  <?php echo $style;?>  >
+          	<div style="color:maroon;font-size:12px;">[<?php echo (isset($surveys[0]['surveyid']) ? $surveys[0]['surveyid'] : ''); ?>] - <?php echo $surveys[0]['titl']; ?> 
+            	<br/><?php echo $surveys[0]['nation']; ?>, <?php echo format_study_years($surveys[0]['data_coll_start'],$surveys[0]['data_coll_end']); ?>
+            </div>
+          </td>
         </tr>
     <?php elseif ($request_type='collection'):?>
         <tr class="border" valign="top">
-          <td><?php echo t('dataset_requested');?></td>
-          <td>
+          <td  <?php echo $style;?>  ><?php echo t('dataset_requested');?></td>
+          <td  <?php echo $style;?>  >
                 <table class="grid-table">
                 <?php $k=1;foreach($surveys as $survey):?>
                 <tr class="row">
-                    <td><?php echo $k++;?></td>
-                    <td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+                    <td  <?php echo $style;?>  ><?php echo $k++;?></td>
+                    <td  <?php echo $style;?>  ><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
                 </tr>
                 <?php endforeach;?>
                 </table>
@@ -85,7 +91,7 @@ $options_datamatching=array(
         </tr>    
     <?php endif;?>
     <tr class="border">
-      <td colspan="2">
+      <td  <?php echo $style;?>   colspan="2">
 				<?php echo t('filled_lead_research');?><br /><br />
 		      	<span class="required">*</span> <?php echo t('receiving_org');?>
       			<input type="text" id="org_rec" name="org_rec"   value="<?php echo get_form_value('org_rec',isset($org_rec) ? $org_rec : ''); ?>" style="width:200px" maxlength="100" /> <br />
@@ -107,9 +113,9 @@ $options_datamatching=array(
   </tr>
   <?php */ ?>
   <tr class="border">
-    <td><p>      <span class="required">*</span> <?php echo t('telephone');?><br />
+    <td  <?php echo $style;?>  ><p>      <span class="required">*</span> <?php echo t('telephone');?><br />
     </p></td>
-    <td><input type="text" id="tel" name="tel"   value="<?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?>" style="width:200px" maxlength="100" /></td>
+    <td  <?php echo $style;?>  ><input type="text" id="tel" name="tel"   value="<?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
   <?php /* ?>
   <tr class="border">
@@ -118,18 +124,18 @@ $options_datamatching=array(
   </tr>
   <?php */ ?>
   <tr class="border">
-    <td colspan="2"><div style="font-weight:bold;"><span class="required">*</span> <?php print t('intended_use');?><br /> <br />
+    <td  <?php echo $style;?>   colspan="2"><div style="font-weight:bold;"><span class="required">*</span> <?php print t('intended_use');?><br /> <br />
     </div>
       <div style="font-style:italic"> <?php print t('provide_short_desc');?> </div>
     <textarea id="datause" name="datause" style="width:98%" rows="10"><?php echo get_form_value('datause',isset($datause) ? $datause : ''); ?></textarea></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><div style="font-weight:bold;"><?php print t('expected_output');?></div> 
+    <td  <?php echo $style;?>   colspan="2"><div style="font-weight:bold;"><?php print t('expected_output');?></div> 
     <textarea id="outputs" name="outputs" style="width:98%" rows="10"><?php echo get_form_value('outputs',isset($outputs) ? $outputs : ''); ?></textarea>     </td>
   </tr>
   <tr class="border">
-    <td><strong><?php print t('expected_completion');?></strong> </td>
-    <td><input type="text" id="compdate" name="compdate"   value="<?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?>" style="width:200px" maxlength="100" /></td>
+    <td  <?php echo $style;?>  ><strong><?php print t('expected_completion');?></strong> </td>
+    <td  <?php echo $style;?>  ><input type="text" id="compdate" name="compdate"   value="<?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
   <?php /*?>
   <tr class="border">
@@ -145,13 +151,13 @@ $options_datamatching=array(
   </tr>
   <?php */ ?>
   <tr class="border">
-    <td colspan="2"><strong><?php print t('research_team');?></strong><br />
+    <td  <?php echo $style;?>   colspan="2"><strong><?php print t('research_team');?></strong><br />
       <br />
       <?php print t('provide_names');?><br/>
     <textarea id="team" name="team" style="width:98%" rows="10"><?php echo get_form_value('team',isset($team) ? $team : ''); ?></textarea></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><strong><?php print t('ident_needed');?></strong><br />
+    <td  <?php echo $style;?>   colspan="2"><strong><?php print t('ident_needed');?></strong><br />
       <br/>
 	<?php print t('da_website');?>
     <br/><br/>
@@ -163,7 +169,7 @@ $options_datamatching=array(
 <label for="access_subset"><?php print t('subset_data');?></label></td>
   </tr>
   <tr class="border">
-    <td colspan="2">
+    <td  <?php echo $style;?>   colspan="2">
         <div>
           <div style="margin-top:5px;font-weight:bold;"><?php print t('data_access_agreement');?></div>
           <?php print t('agreement_text');?>
