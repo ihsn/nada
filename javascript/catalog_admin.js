@@ -1,6 +1,6 @@
 function attach_survey_handler(){
 
-	$("#surveys .icon, #surveys .chk").click(function(event){
+	$("#surveys .icon").click(function(event){
 	  event.stopImmediatePropagation();
 	});
 
@@ -93,12 +93,12 @@ function popup_dialog(obj) {
 
 jQuery(document).ready(function(){
 	//checkbox select/deselect
-	$("#chk_toggle").live("click",function(e){
-		$('.chk').each(function(){ 
+	$(document.body).on("click","#chk_toggle", function (e){
+		$('#surveys .chk').each(function(){ 
 			this.checked = (e.target).checked; 
 		}); 
 	});
-	$(".chk").live("click",function(e){
+	$(document.body).on("click",".chk", function (e){
 	   if (this.checked==false){
 		$("#chk_toggle").attr('checked', false);
 	   }			   
