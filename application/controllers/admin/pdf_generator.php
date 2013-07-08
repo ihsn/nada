@@ -63,7 +63,7 @@ class Pdf_generator extends MY_Controller {
 		}
 		else{
 			$survey=$this->Catalog_model->select_single($sid);
-			$data['publisher']=json_decode($survey['authenty']);
+			$data['publisher']=@json_decode($survey['authenty']);
 			$data['publisher']=implode(", ",$data['publisher']);
 			$data['website_title']=$this->config->item("website_title");
 			$data['website_url']=site_url();
