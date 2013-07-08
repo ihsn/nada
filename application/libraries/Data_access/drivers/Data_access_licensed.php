@@ -113,6 +113,7 @@ class Data_access_licensed extends CI_Driver {
 	**/
 	private function request_form($request_type='study',$survey_id=NULL,$collection_id=NULL,$user)
 	{	
+	
 		if ( !is_numeric($survey_id) && !$collection_id)
 		{
 			show_404();
@@ -170,8 +171,12 @@ class Data_access_licensed extends CI_Driver {
 		//$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
 		$this->CI->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_length[45]');
 		$this->CI->form_validation->set_rules('datamatching', t('data_matching'), 'trim|xss_clean|max_length[1]');
-		$this->CI->form_validation->set_rules('fax', t('fax'), 'trim|xss_clean|max_lengh[14]');		
-	
+		//$this->CI->form_validation->set_rules('fax', t('fax'), 'trim|xss_clean|max_lengh[14]');	
+		$this->CI->form_validation->set_rules('outputs', t('expected_output'), 'trim|xss_clean|max_lengh[1000]|required');
+		$this->CI->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_lengh[30]|required');
+		$this->CI->form_validation->set_rules('team', t('research_team'), 'trim|xss_clean|max_lengh[1000]|required');
+		
+		
 		//process form				
 		if ($this->CI->form_validation->run() == TRUE)
 		{			
@@ -384,7 +389,7 @@ class Data_access_licensed extends CI_Driver {
 		if ($this->CI->email->send())
 		{
 			//notification for the site admins
-			$subject=t('notification_licensed_survey_request_received');
+			$subject=t('notification_licensed_survey_request_received').' - '.$data->title;
 			$message=$this->CI->load->view('access_licensed/admin_notification_email', $data,true);
 			
 			//notify the site admin
