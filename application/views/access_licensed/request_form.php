@@ -151,11 +151,11 @@ $options_datamatching=array(
     <textarea id="datause" name="datause" style="width:98%" rows="10"><?php echo get_form_value('datause',isset($datause) ? $datause : ''); ?></textarea></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><div style="font-weight:bold;"><?php print t('expected_output');?></div> 
+    <td colspan="2"><div style="font-weight:bold;"><span class="required">*</span> <?php print t('expected_output');?></div> 
     <textarea id="outputs" name="outputs" style="width:98%" rows="10"><?php echo get_form_value('outputs',isset($outputs) ? $outputs : ''); ?></textarea>     </td>
   </tr>
   <tr class="border">
-    <td><span class="field-caption"><?php print t('expected_completion');?></span></td>
+    <td><span class="field-caption"><span class="required">*</span> <?php print t('expected_completion');?></span></td>
     <td><input type="text" id="compdate" name="compdate"   value="<?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?>" style="width:200px" maxlength="100" /></td>
   </tr>
  <?php /* ?>
@@ -172,7 +172,7 @@ $options_datamatching=array(
   </tr>
   <?php  */ ?>
   <tr class="border">
-    <td colspan="2"><span class="field-caption"><?php print t('research_team');?></span><br />
+    <td colspan="2"><span class="field-caption"><span class="required">*</span> <?php print t('research_team');?></span><br />
       <br />
       <?php print t('provide_names');?><br/>
     <textarea id="team" name="team" style="width:98%" rows="10"><?php echo get_form_value('team',isset($team) ? $team : ''); ?></textarea></td>
