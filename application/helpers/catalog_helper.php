@@ -26,10 +26,23 @@ function create_filter($fieldname)
   	$ci =& get_instance();
 	$ci->load->model("Catalog_model");
 	return $ci->Catalog_model->select_distinct_field($fieldname);
-	return "works";
 }
   
 }
 
-/* End of file email_helper.php */
-/* Location: ./system/helpers/email_helper.php */
+// returns a study year range
+if ( ! function_exists('format_study_years'))
+{
+  
+function format_study_years($start,$end)
+{
+	$study_years=array($start,$end);
+	$study_years=array_unique($study_years);
+	return implode(" - ",$study_years);
+}
+  
+}
+
+
+/* End of file catalog_helper.php */
+/* Location: ./system/helpers/catalog_helper.php */
