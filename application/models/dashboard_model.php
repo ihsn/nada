@@ -51,18 +51,14 @@ class Dashboard_model extends CI_Model {
 		$result['inactive']=$this->db->count_all_results();
 
 		//calc date - n minutes
-		$date_obj = new DateTime();
-		$date_obj=$date_obj->modify ("-300 minutes");
+		$start_date=date("U")-(60*60);//minus 1 hour
 		
-		//timestamp
-		$start_date=$date_obj->format("U");
-
 		//get anonymous user sessions from db
 		$this->db->where('last_activity > ',$start_date,FALSE);
 		$this->db->from('ci_sessions');
 		$result['anonymous_users']=$this->db->count_all_results();
 
-		//get logged in users within last 30 minutes
+		//get logged in users within last n minutes
 		$this->db->select("username");
 		$this->db->where('last_login >= ',$start_date,FALSE);
 		$active_users=$this->db->get("users")->result_array();
