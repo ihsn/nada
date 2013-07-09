@@ -40,8 +40,15 @@ class Citations extends MY_Controller {
 		$content=$this->load->view('citations/public_search', $data,true);
 				
 		if ($collection!=='')
-		{			
-			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$repo,'active_tab'=>'citations'),TRUE);
+		{
+			$page_data=array(
+				'repo'=>$this->active_repo,
+				'active_tab'=>'citations',
+				'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']),
+				'content'=>$content
+			);
+			
+			$content=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
 		}
 				
 		$this->template->write('title', t('citations'),true);
