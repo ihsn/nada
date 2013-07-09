@@ -607,10 +607,11 @@ class Citations extends MY_Controller {
 		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');		
 		
 		$this->form_validation->set_rules('citation_string', t('citation_string'), 'xss_clean|trim|required');
-		
-		if ($this->form_validation->run() == TRUE) 
-		{					
-			$string=$this->input->post("citation_string");
+		$string=$this->input->post("citation_string");
+
+		if ($string) 
+		{				
+			//$string=$this->input->post("citation_string");
 			$format=$this->input->post("citation_format");
 			$bib_array=NULL;
 			
@@ -696,7 +697,6 @@ class Citations extends MY_Controller {
 		$data=array();
 		
 		//list of all surveys
-	//load list of all surveys		
 		$survey_list['surveys']=$this->Citation_model->get_all_surveys(NULL);
 		
 		//surveys attached to the citations
@@ -754,6 +754,10 @@ class Citations extends MY_Controller {
 		echo json_encode(array('result'=>(int)$result) );
 	}
 	
+	function export()
+	{
+		show_error("NOT_IMPLEMENTED");
+	}
 	
 	
 }
