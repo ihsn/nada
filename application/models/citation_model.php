@@ -519,6 +519,21 @@ class Citation_model extends CI_Model {
 			}
 		}
 		
+		$field_length=array(
+			'url'=>255,
+			'page_from'=>25,
+			'page_to'=>25,
+			'title'=>255
+		);
+		
+		//truncate fields
+		foreach($field_length as $name=>$length)
+		{
+			if(isset($data[$name]))
+			{
+				$data[$name]=substr($data[$name],0,$length);
+			}
+		}		
 		//insert record into db
 		$result=$this->db->insert('citations', $data); 
 		
