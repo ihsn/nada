@@ -11,14 +11,13 @@ class Nada4_upgrade extends CI_Controller {
     {
         parent::__construct($skip_auth=TRUE);
 		$this->load->database();
-	/*	
+
 		//check if maintenance mode is enabled
 		if ($this->config->item("maintenance_mode")!==1)
 		{
-			show_404();
+			show_error("MAINTENANCE_MODE_OFF");
 		}
-	*/	
-		
+				
 		if (!$this->_test_connection())
 		{
 			show_error("Failed to connect to your database, please check your database settings.");
