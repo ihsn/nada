@@ -103,7 +103,7 @@ $lang['forgot_password_verification'] = "Forgotten Password Verification";
 $lang['account_activation'] = "Account activation";
 $lang['callback_country_invalid'] = "The Country field is required.";
 $lang['log_in'] = "Log in";
-$lang['site_login_privacy_terms'] = "Information you provide by registering or login to our catalog will be used in compliance with the terms of the World Bank <a href=\"http://go.worldbank.org/FIKABS7U10\" target=\"_blank\">Privacy Policy</a>.";
+$lang['site_login_privacy_terms'] = "Information you provide by registering or login to our catalog will be used in compliance with the terms of the NSO's Privacy Policy.";
 $lang['impersonate_user'] = "Impersonate as another user";
 $lang['impersonate_msg'] = "Select the account below to impersonate as";
 
