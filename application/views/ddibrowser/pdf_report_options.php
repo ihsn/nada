@@ -5,7 +5,8 @@ $report_lang=array(
 		'fr'	=> 'French',
 		'ru'	=> 'Russian',
 		'zh-CN'	=> 'Chinese (华语)',
-		'ar'	=> 'Arabic'
+		'ar'	=> 'Arabic',
+		'mn'	=> 'Mongolian'
 	);
 ?>
 <script>
