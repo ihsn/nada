@@ -47,6 +47,42 @@
 <input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
 <input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
 
+<?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
+<div class="featured_studies" >
+	<div class="featured_studies_heading"><?php echo t('featured_study');?></div>
+    	<div class="survey-row" data-url="<?php echo site_url('catalog/'.$featured_studies['id']);?>" title="View study" style="border-bottom:0px;">
+        	<div class="data-access-icon data-access-<?php echo $featured_studies['model'];?>" title="<?php echo t("legend_data_".$featured_studies['model']);?>"></div>
+	        <h2 class="title">
+                <a href="<?php echo site_url(); ?>/catalog/<?php echo $featured_studies['id']; ?>"  title="<?php echo $featured_studies['titl']; ?>" >
+                	<?php echo $featured_studies['titl'];?>
+                </a>
+            </h2>
+            <div class="study-country">
+                        <?php echo $featured_studies['nation']. ',';?>
+                <?php 
+					$survey_year=NULL;
+					$survey_year[$featured_studies['data_coll_start']]=$featured_studies['data_coll_start'];
+					$survey_year[$featured_studies['data_coll_end']]=$featured_studies['data_coll_end'];
+					$survey_year=implode('-',$survey_year);
+				?>
+                <?php echo $survey_year!=0 ? $survey_year : '';?>
+			</div>
+            <div class="sub-title">
+            	<div>
+				<?php echo t('by');?> <?php $authenty=json_decode($featured_studies['authenty']);?>
+                <?php if (is_array($authenty)):?>
+                	<?php echo implode(", ",$authenty);?>
+                <?php else:?>
+                	<?php echo $featured_studies['authenty'];?>
+                <?php endif;?>
+            	</div>
+            </div>    
+            
+        </div>
+    
+</div>
+<?php endif;?>
+
 <table style="width:100%;" border="0" cellpadding="0" cellspacing="0">
 <tr>
 <td>
@@ -111,9 +147,9 @@
                 </a>
             </h2>
             <div class="study-country">
-				<?php if ($this->regional_search=='yes'):?>
+				<?php //if ($this->regional_search=='yes'):?>
                         <?php echo $row['nation']. ',';?>
-                <?php endif;?>
+                <?php //endif;?>
                 <?php 
 					$survey_year=NULL;
 					$survey_year[$row['data_coll_start']]=$row['data_coll_start'];
