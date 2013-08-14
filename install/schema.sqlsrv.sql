@@ -1273,3 +1273,23 @@ CREATE FULLTEXT INDEX ON variables
   qstn		Language 1033
  ) 
 KEY INDEX pk_idx_variables; 
+
+
+
+---
+--- Table structure for table `featured_surveys`
+---
+
+CREATE TABLE featured_surveys (
+  id int NOT NULL IDENTITY(1,1),
+  repoid int DEFAULT NULL,
+  sid int DEFAULT NULL,
+  weight int DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_featured_surveys on [dbo].[featured_surveys](
+	[repoid] ASC,
+	[sid] ASC
+);

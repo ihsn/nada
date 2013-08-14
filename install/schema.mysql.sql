@@ -1678,8 +1678,25 @@ INSERT INTO `configurations` VALUES ('year_search_weight','1',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `configurations` ENABLE KEYS */;
 UNLOCK TABLES;
 
+
 --
--- Dumping routines for database 'nada4_blank'
+-- Table structure for table `featured_surveys`
+--
+
+CREATE TABLE `featured_surveys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `repoid` int(11) DEFAULT NULL,
+  `sid` int(11) DEFAULT NULL,
+  `weight` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `survey_repo` (`repoid`,`sid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+
+--
+-- Dumping routines for database 'nada4'
 --
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -1690,5 +1707,3 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2013-06-02 10:52:39

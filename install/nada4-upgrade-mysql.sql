@@ -732,3 +732,17 @@ UNLOCK TABLES;
 update surveys set formid=6 where formid is null;
 update surveys set formid=6 where formid=0;
 update surveys set repositoryid='central';
+
+
+--
+-- Table structure for table `featured_surveys`
+--
+
+CREATE TABLE `featured_surveys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `repoid` int(11) DEFAULT NULL,
+  `sid` int(11) DEFAULT NULL,
+  `weight` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `survey_repo` (`repoid`,`sid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
