@@ -179,6 +179,8 @@ $lang['metadata'] = "Metadata";
 $lang['citations'] = "Citations";
 $lang['popularity'] = "Popularity";
 $lang['To compare, select two or more variables'] = "To compare, select two or more variables";
+$lang['featured_study'] = "Featured Study";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
