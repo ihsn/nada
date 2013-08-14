@@ -17,6 +17,29 @@
 	background: white;
 }
 
+/*featured study*/
+#surveys .featured_studies .survey-row:hover{
+	cursor:pointer;	
+	-webkit-box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.5);
+	-moz-box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.5);
+	box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.5);
+	background: none;
+}
+
+.featured_studies {
+	margin-top: 15px;
+	margin-bottom: 25px;
+	border: 1px solid #FFF1D3;
+	background: #FFFBE5;
+}
+
+.featured_studies .featured_studies_heading{
+	padding:7px; 
+	text-transform:uppercase;
+	font-size:smaller
+}
+/*end featured study*/
+
 #surveys .survey-row .title {
 	font-size:16px;
 	color:#993300;
@@ -701,3 +724,4 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 .study-metadata .ddi-table .data-file-row:hover{background:gainsboro;}
 
 .switch-page-size {margin-top:10px;}
+.filter-container-heading{display:none;}
