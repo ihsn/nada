@@ -2059,6 +2059,9 @@ exit;
 		
 		$survey_row['survey_id']=$id;
 		
+		$survey_row['repositoryid']=$active_repository;
+		$survey_row['is_featured']=$this->Repository_model->is_a_featured_study($this->active_repo->id,$id);
+		
 		//study warnings
 		$survey_row['warnings']=$this->catalog_admin->get_study_warnings($id);
 		
@@ -2301,6 +2304,27 @@ exit;
 		$survey_row['survey_id']=$sid;
 		$this->load->view('catalog/related_studies_tab',$survey_row);
 	}
+	
+	function set_featured_study($repositoryid,$sid,$status)
+	{
+		$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
+		
+		if ($this->input->get('destination'))
+		{
+			redirect($this->input->get('destination'));
+		}
+	}
+	
+	
+	//list all featured studies
+	function featured_studies()
+	{
+		$data['featured_studies']=$this->Repository_model->get_all_featured_studies();		
+		$content=$this->load->view('catalog/featured_studies', $data,TRUE);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
+	
 
 }
 /* End of file catalog.php */
