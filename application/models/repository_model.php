@@ -1108,4 +1108,89 @@ class Repository_model extends CI_Model {
 		return $result['total'];
 	}
 
+
+	//get featured study by repository
+	function get_featured_study($repositoryid)
+	{
+		$this->db->select('featured_surveys.sid');
+		$this->db->join('repositories','repositories.id=featured_surveys.repoid','INNER');
+		$this->db->where("repositories.repositoryid",$repositoryid);
+		$this->db->limit(1);
+		$query=$this->db->get('featured_surveys');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$row=$query->row_array();
+		
+		if (!$row)
+		{
+			return FALSE;
+		}
+		
+		//get featured study
+		return $this->Catalog_model->select_single($row['sid']);
+	}
+
+
+	//add/remove featured study to a repository
+	function set_featured_study($repositoryid,$sid,$status)
+	{
+		$repo=$this->get_repository_by_repositoryid($repositoryid);
+		
+		if (!$repo)
+		{
+			return FALSE;
+		}
+		
+		$repo_uid=$repo['id'];		
+		
+		$options=array(
+			'repoid'	=>	$repo_uid,
+			'sid'		=>	$sid,
+		);
+		
+		if($status>0)
+		{		
+			$this->db->insert('featured_surveys',$options);
+		}
+		else
+		{
+			$this->db->where('repoid',$repo_uid);
+			$this->db->where('sid',(int)$sid);
+			$this->db->delete('featured_surveys');
+		}	
+	}
+	
+	
+	function is_a_featured_study($repoid,$sid)
+	{
+		$this->db->select('count(sid) as found');
+		$this->db->where('repoid',$repoid);
+		$this->db->where('sid',$sid);
+		$result=$this->db->get('featured_surveys')->row_array();
+		
+		if ($result['found']>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;	
+	}
+	
+	function get_all_featured_studies()
+	{
+		$this->db->select('surveys.id,surveys.titl,repositories.id as repo_id,repositories.repositoryid,surveys.nation,surveys.data_coll_start');
+		$this->db->join('repositories','repositories.id=featured_surveys.repoid','INNER');
+		$this->db->join('surveys','surveys.id=featured_surveys.sid','INNER');
+		$query=$this->db->get('featured_surveys');
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
+	}
 }
