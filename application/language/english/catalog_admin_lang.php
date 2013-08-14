@@ -160,5 +160,6 @@ $lang['ddi_batch_refresh_title']='Batch refresh DDI';
 $lang['btn_refresh']='Refresh DDI';
 $lang['refresh_ddi_description']='Refresh DDI updates the database with the metadata from the DDI.';
 $lang['total_studies_found']='Total studies found';
+$lang['mark_as_featured']='Display as featured study?';
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
