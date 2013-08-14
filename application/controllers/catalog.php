@@ -130,12 +130,18 @@ class Catalog extends MY_Controller {
 			$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
 		}
 
-
 		$search_output= $this->_search();
-		if ($search_output['search_type']=='variable'){
+		
+		if ($search_output['search_type']=='variable')
+		{
 			$data['search_result']=$this->load->view('catalog_search/variable_list', $search_output,TRUE);
 		}
-		else{
+		else
+		{
+			//get featured studies for the resultset
+			$search_output['featured_studies']=$this->get_featured_study($search_output['surveys']['rows']);
+			
+			//display result using study view
 			$data['search_result']=$this->load->view('catalog_search/survey_list', $search_output,TRUE);
 		}
 
@@ -209,10 +215,15 @@ class Catalog extends MY_Controller {
 	{
 		$output= $this->_search();
 		
-		if ($output['search_type']=='variable'){
+		if ($output['search_type']=='variable')
+		{
 			$this->load->view('catalog_search/variable_list', $output);
 		}
-		else{
+		else
+		{			
+			//get featured studies for the resultset
+			$output['featured_studies']=$this->get_featured_study($output['surveys']['rows']);
+			
 			$this->load->view('catalog_search/survey_list', $output);
 		}
 	}
@@ -267,8 +278,6 @@ class Catalog extends MY_Controller {
 		}
 
 		//log
-		//$this->db_logger->write_log('search',$this->input->get("sk"),'study');
-		//$this->db_logger->write_log('search',$this->input->get("vk"),'question');
 		$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
 
 		//get list of all repositories
@@ -357,7 +366,7 @@ class Catalog extends MY_Controller {
 		$data['data_access_types']=$this->Form_model->get_form_list();
 		$data['search_type']='study';
 		return $data;
-		return $this->load->view('catalog_search/survey_list', $data);
+		//return $this->load->view('catalog_search/survey_list', $data);
 		
 		//$this->load->library("tracker");
 		//$this->tracker->track();
@@ -1382,6 +1391,38 @@ class Catalog extends MY_Controller {
 	function help_da()
 	{
 		$this->load->view("catalog_search/help_da");
+	}
+	
+	
+	private function get_featured_study($surveys)
+	{
+		if (!is_array($surveys))
+		{
+			return FALSE;
+		}
+		
+		$repos=array();
+		
+		//build an array of repositoryid
+		foreach($surveys as $survey)
+		{
+			$repos[]=$survey['repositoryid'];
+		}
+		
+		//count values for each repository
+		$repo_counts = array_count_values($repos);
+		
+		//var_dump($repo_counts);
+		
+		//find the repo with most surveys
+		$repositoryid = array_search(max($repo_counts), $repo_counts);
+		
+		//echo $repositoryid;
+		
+		//get the featured study for the selected repositoryid
+		$featured_study=$this->Repository_model->get_featured_study($repositoryid);
+
+		return $featured_study;
 	}
 }
 /* End of file catalog.php */
