@@ -69,7 +69,7 @@ class Regions extends MY_Controller {
 			
 			if ($id==NULL)
 			{
-				//$db_result=$this->country_region_model->insert($options);
+				$db_result=$this->country_region_model->insert($options);
 			}
 			else
 			{
