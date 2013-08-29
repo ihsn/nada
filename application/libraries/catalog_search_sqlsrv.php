@@ -36,7 +36,8 @@ class Catalog_search{
 						'titl'=>'titl',
 						'nation'=>'nation',
 						'proddate'=>'proddate',
-						'popularity'=>'total_views');
+						'popularity'=>'total_views',
+						'collection'=>'repositories.repositoryid');
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
@@ -104,11 +105,10 @@ class Catalog_search{
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
-		
-		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
-						
+
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections);
 		
@@ -190,6 +190,7 @@ class Catalog_search{
 			$this->ci->db->select(" count(surveys.id) as rowsfound ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
+			
 			if ($repository!='')
 			{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -228,11 +229,11 @@ class Catalog_search{
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
 		
-		$sort_by=in_array($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'titl';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'titl';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
-		
+
 		//multi-column sort
 		if ($sort_by=='nation')
 		{
@@ -249,7 +250,7 @@ class Catalog_search{
 			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
 			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
 		}
-
+		
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
 		
@@ -337,7 +338,7 @@ class Catalog_search{
 			{
 				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
 			}
-
+			
 			$this->ci->db->limit($limit,$offset);
 			
 			if ($where!='') 
