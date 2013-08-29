@@ -123,13 +123,16 @@ $(document).ready(function()
 	{
 		if ($("#pid").val()==0){
 		$(".country-selection :input").prop("disabled",true);
+		$("#country-selection").hide();
 		}
 		else{
 		$(".country-selection :input").prop("disabled",false);
+		$("#country-selection").show();
 		}		
 	}
 	
 	set_country_selection();
+	show_selected_stats();
 });
 
 </script>
