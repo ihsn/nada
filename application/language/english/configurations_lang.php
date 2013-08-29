@@ -90,7 +90,7 @@ $lang['collection_search_weight'] = "Collection filter";
 
 $lang['instruction_weight'] = "Weights control the order of the filters. Filters are sorted by weights in ascending order.";
 
-
+$lang['edit_email_settings'] = "To configure email, see <em>config/email.php</em> file.";
 
 
 
