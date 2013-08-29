@@ -203,6 +203,105 @@ class Country_region_model extends CI_Model {
 	}
 	
 	
+	
+	function insert($options)
+	{
+		//allowed fields
+		$valid_fields=array(
+			'pid',
+			'title',
+			'weight'
+			);
+
+		
+		$data=array();
+		
+		//build update statement
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$valid_fields) )
+			{
+				$data[$key]=$value;
+			}
+		}
+		
+		//insert
+		$result=$this->db->insert('regions', $data);
+		
+		if (!$result)
+		{
+			return FALSE;
+		} 
+		
+		$id=$this->db->insert_id();
+
+		$countries=array();
+		
+		if (!isset($options['country']))
+		{
+			return $result;
+		}
+		
+		//remove duplicate countries
+		foreach($options['country'] as $country)
+		{		
+			$countries[$country]=$country;
+		}
+		
+		//update related countries
+		foreach($countries as $country)
+		{
+			if( is_numeric($country) && $country>0)
+			{
+				$this->add_region_related_country($id,$country);
+			}	
+		}
+
+		return $result;
+	}
+	
+	
+	function delete($region_id)
+	{
+		//get all children regions
+		$child_regions=$this->get_child_regions($region_id);
+		
+		$regions=NULL;
+		$regions[]=$region_id;
+		
+		if($child_regions)
+		{
+			foreach($child_regions as $row)
+			{
+				$regions[]=$row['id'];
+			}
+		}
+		
+		//delete the regions + sub-regions
+		$this->db->where_in('id', $regions);
+		$this->db->delete('regions');
+		
+		//delete children regions
+		//$this->db->where('pid',$region_id);
+		//$this->db->delete('region_countries');
+		
+		//delete region countries
+		foreach($regions as $id)
+		{
+			$this->delete_region_related_countries($id);
+		}	
+	}
+	
+	
+	//return sub/children regions
+	function get_child_regions($region_id)
+	{
+		$this->db->select('id');
+		$this->db->where('pid',$region_id);
+		return $this->db->get('regions')->result_array();
+	}
+	
+	
 	//delete all related countries by region id
 	function delete_region_related_countries($region_id)
 	{
