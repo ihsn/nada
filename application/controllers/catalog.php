@@ -1351,7 +1351,7 @@ class Catalog extends MY_Controller {
 		//check if a valid repo name
 		if($this->Repository_model->repository_exists($repo)==0)
 		{
-			$repo=NULL;
+			$repo='central';
 		}
 	
 		$this->load->model("country_region_model");
@@ -1359,7 +1359,43 @@ class Catalog extends MY_Controller {
 		$data['regions']=$this->country_region_model->get_tree_region_countries($repo);
 		//array of countries
 		$data['countries']=$this->Search_helper_model->get_active_countries($repo);
+		$data['repositoryid']=$repo;
+		
 		$this->load->view('catalog_search/country_selection',$data);
+	}
+	
+	function get_country_selection_tab($repo=NULL,$section='alphabatical',$region_id=NULL)
+	{
+		if($repo==NULL)
+		{
+			$repo=$this->active_repo['repositoryid'];
+		}
+
+		//check if a valid repo name
+		if($this->Repository_model->repository_exists($repo)==0)
+		{
+			$repo=NULL;
+		}
+	
+		$this->load->model("country_region_model");
+		
+		//regions+countries tree
+		$data['regions']=$this->country_region_model->get_tree_region_countries($repo);
+		
+		//array of countries
+		$data['countries']=$this->Search_helper_model->get_active_countries($repo);
+	
+		switch($section)
+		{
+			case 'alphabatical':
+				$this->load->view('catalog_search/country_selection_alphabatical',$data);
+			break;
+			
+			case 'region':
+				$data['region_id']=$region_id;
+				$this->load->view('catalog_search/country_selection_regional',$data);
+			break;
+		}
 	}
 	
 	//topic selection dialog
@@ -1388,6 +1424,7 @@ class Catalog extends MY_Controller {
 		$this->load->view('catalog_search/collection_selection',$data);
 	}
 	
+	
 	function help_da()
 	{
 		$this->load->view("catalog_search/help_da");
@@ -1401,18 +1438,21 @@ class Catalog extends MY_Controller {
 			return FALSE;
 		}
 		
-		$repos=array();
+		$repos=NULL;
 		
 		//build an array of repositoryid
 		foreach($surveys as $survey)
 		{
 			$repos[]=$survey['repositoryid'];
 		}
-		
+
+		if (!$repos)
+		{
+			return FALSE;
+		}
+				
 		//count values for each repository
-		$repo_counts = array_count_values($repos);
-		
-		//var_dump($repo_counts);
+		$repo_counts = array_count_values($repos);		
 		
 		//find the repo with most surveys
 		$repositoryid = array_search(max($repo_counts), $repo_counts);
