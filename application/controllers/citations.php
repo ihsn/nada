@@ -42,9 +42,9 @@ class Citations extends MY_Controller {
 		if ($collection!=='')
 		{
 			$page_data=array(
-				'repo'=>$this->active_repo,
+				'repo'=>$repo,
 				'active_tab'=>'citations',
-				'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']),
+				'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($collection),
 				'content'=>$content
 			);
 			
@@ -146,6 +146,8 @@ class Citations extends MY_Controller {
 		{
 			show_404();
 		}
+		
+		$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
 		
 		$content=$this->load->view('citations/citation_info',$citation,TRUE);
 		$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
