@@ -220,6 +220,9 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 
 <fieldset class="field-expanded">
 	<legend><?php echo t('mail_settings');?></legend>
+    <?php if (file_exists(APPPATH.'/config/email.php')):?>
+    	<div class="field warning"><?php echo t('edit_email_settings');?></div>
+    <?php else:?>        
     <div class="field">
             <label style="height:50px;" for="<?php echo 'mail_protocol'; ?>"><?php echo t('select_mail_protocol');?></label>
             <div>
@@ -247,14 +250,7 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
             <label for="<?php echo 'smtp_pass'; ?>"><?php echo t('smtp_password');?></label>
             <input class="input-flex" name="smtp_pass" type="text" id="smtp_pass"  value="<?php echo get_form_value('smtp_pass',isset($smtp_pass) ? $smtp_pass : ''); ?>"/>
     </div>
-</fieldset>
-
-<fieldset class="field-expanded">
-	<legend><?php echo t('dashboard');?></legend>
-    <div class="field">
-            <label for="<?php echo 'news_feed_url'; ?>"><?php echo t('news_feed_url');?></label>
-            <input class="input-flex" style="width:90%;" name="news_feed_url" type="text" id="news_feed_url"  value="<?php echo get_form_value('news_feed_url',isset($news_feed_url) ? $news_feed_url : ''); ?>"/>
-    </div>
+    <?php endif;?>
 </fieldset>
 
 <div style="text-align:right;">
