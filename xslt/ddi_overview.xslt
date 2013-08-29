@@ -94,9 +94,7 @@ License:
                     </xsl:if>
 
                     <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:serStmt/ddi:serName">
-                        <xsl:apply-templates select="//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName" mode="row">
-                            <xsl:with-param name="caption">Study Type</xsl:with-param>
-                        </xsl:apply-templates>
+						<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Study Type</xsl:with-param></xsl:call-template></div>						<xsl:value-of select="substring-before(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'[')"/>						
                     </xsl:if>
                     
                     <xsl:if test="//ddi:stdyDscr//ddi:serInfo">
