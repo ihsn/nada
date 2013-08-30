@@ -69,6 +69,7 @@ class Ion_auth_model extends CI_Model
 		$this->load->config('ion_auth');
 		$this->load->helper('cookie');
         $this->load->library('session');
+		$this->load->library('password_hasher');
 		$this->tables  = $this->config->item('tables');
 		$this->columns = $this->config->item('columns');
 		$this->load->helper('date');
@@ -102,17 +103,23 @@ class Ion_auth_model extends CI_Model
 	    	return FALSE;
 	    }
 	    
-		return md5($password);//M1
+		return $this->password_hasher->hash_password($password);
 		
+		//return md5($password);//M1
+		
+		/*
 	    if ($this->store_salt && $salt) 
 		{
-			return  sha1($password . $salt);
+			return  md5($password . $salt);
+			//return  sha1($password . $salt);
 		}
 		else 
 		{			
 	    	$salt = $this->salt();
+			log_message('error', "salt=".$salt);
 	    	return  $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
-		}		
+		}
+		*/		
 	}
 	
 	/**
@@ -143,7 +150,9 @@ class Ion_auth_model extends CI_Model
 		    return FALSE;
 		}
 
-		return md5($password);//M1
+		
+		$this->password_hasher->hash_password($password);
+		//return md5($password);//M1
 		
 		/*
 		if ($this->store_salt) 
@@ -359,7 +368,8 @@ class Ion_auth_model extends CI_Model
 	        return FALSE;
 	    }
 	    
-		$key = $this->hash_password(microtime().$email);
+		//$key = $this->hash_password(microtime().$email);
+		$key = md5(microtime().$email);
 			
 		$this->forgotten_password_code = $key;
 		
@@ -521,7 +531,10 @@ class Ion_auth_model extends CI_Model
         {
         	$salt = false;
         }
+		
 		$password = $this->hash_password($password, $salt);
+		
+		log_message('error', "password=".$password);
 		
         // Users table.
 		$data = array(
@@ -594,9 +607,27 @@ class Ion_auth_model extends CI_Model
 
         if ($query->num_rows() == 1)
         {
-            $password = $this->hash_password_db($identity, $password);
-
-    		if ($result->password === $password)
+            $password_validated=FALSE;
+			
+			//using MD5?
+			if (strlen($result->password)==32)
+			{
+				//use MD5 for old accounts
+				$password_validated=$result->password === md5($password);
+				
+				//upgrade account password				
+				$this->set_password($identity,$this->hash_password($password));
+			}
+			else
+			{
+				//use default mroe complex password hashing
+				$password_validated=$this->password_hasher->check_password($password,$hash=$result->password);
+			}
+			
+			//$password = $this->hash_password_db($identity, $password);
+    		//if ($result->password === $password)
+			
+			if ($password_validated)
     		{
         		$this->update_last_login($result->id);
     		    $this->session->set_userdata('email',  $result->email);
@@ -619,6 +650,19 @@ class Ion_auth_model extends CI_Model
 		return FALSE;		
 	}
 	
+	/**
+	*
+	* Set user password
+	**/
+	public function set_password($email,$password_hash)
+	{		
+		$options=array(
+			'password'=>$password_hash
+		);
+		
+		$this->db->where('email',$email);
+		return $this->db->update($this->tables['users'],$options);
+	}
 	
 	/**
 	 * get_users
