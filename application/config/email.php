@@ -15,7 +15,7 @@ $config['charset']   = 'utf-8';
 */
 
 
-//using SMTP server with authentication enabled
+//using SMTP server with authentication enabled 
 $config['protocol']  = 'smtp';
 $config['smtp_host'] = 'ihsn.org';
 $config['smtp_user'] = 'email@your-website.com';
