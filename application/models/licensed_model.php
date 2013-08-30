@@ -414,10 +414,13 @@ class Licensed_model extends CI_Model {
 			}
 			elseif ($result['request_type']=='collection')
 			{
+			    $ci =& get_instance();
+				$ci->load->model('Citation_model');
+
 				//get studies from collection
-				$this->load->model('Repository_model');
-				$result['collection']=$this->Repository_model->get_repository_by_repositoryid($result['collection_id']);
-				$result['surveys']= $this->Repository_model->repo_survey_list($result['collection_id'],array('licensed'));
+				$ci->load->library('Bulk_data_access');
+				$result['collection']=$ci->bulk_data_access->get_collection($result['collection_id']);
+				$result['surveys']= $ci->bulk_data_access->get_study_list_by_set($result['collection_id']);
 			}
 			
 			//get user info
