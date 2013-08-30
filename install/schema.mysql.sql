@@ -1693,6 +1693,18 @@ CREATE TABLE `featured_surveys` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
+--
+-- Table structure for table `survey_types`
+--
+
+CREATE  TABLE `survey_types` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `title` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `title_UNIQUE` (`title` ASC) )
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_general_ci;
 
 
 --

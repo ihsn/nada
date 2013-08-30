@@ -1293,3 +1293,19 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_featured_surveys on [dbo].[featured_surveys]
 	[repoid] ASC,
 	[sid] ASC
 );
+
+
+
+--
+-- Table structure for table `survey_types`
+--
+
+CREATE  TABLE survey_types (
+  id INT NOT NULL IDENTITY(1,1),
+  title VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_types on [dbo].[survey_types](
+	[title] ASC
+);
