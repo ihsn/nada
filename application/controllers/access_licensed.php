@@ -141,12 +141,7 @@ class Access_licensed extends MY_Controller {
 			echo show_message(t('invalid_id'));return;
 			show_404();
 		}
-		
-		if($data['request_type']=='study')
-		{
-			$data['survey']=$this->Catalog_model->select_single($data['surveyid']);
-		}
-		
+				
 		//user can only view his requests
 		if ($data['userid']!=$user->id)
 		{
