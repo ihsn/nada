@@ -173,17 +173,25 @@ class Data_access_licensed extends CI_Driver {
 			{
 				$options[$key]=$this->CI->security->xss_clean($value);
 			}
-						
-			if (isset($options['cid']) & intval($options['cid'])>0 )
+			
+			/*echo '<pre>';
+			print_r($options);
+			exit;
+			*/
+			
+			if (isset($options['ds']) & intval($options['ds'])>0 )
 			{
-				//request by collection	
-				$new_requestid=$this->CI->Licensed_model->insert_collection_request((int)$options['cid'],$user->id,$options);
+				//collection title
+				$options['request_title']=$this->CI->Licensed_model->get_collection_title((int)$options['ds']) . ' [multi study request]';
 			}
 			else
 			{
-				//request by study
-				$new_requestid=$this->CI->Licensed_model->insert_request($survey_id,$user->id,$options);				
-			}	
+				//study title
+				$options['request_title']=$surveys[0]['titl'];
+			}
+			
+			//save/insert request
+			$new_requestid=$this->CI->Licensed_model->insert_request($user->id,$options);	
 			
 			if ($new_requestid!==FALSE)
 			{
@@ -221,9 +229,7 @@ class Data_access_licensed extends CI_Driver {
 			}
 			
 			$data->collections=$collections;
-			$data->bulk_access=TRUE;
-			
-			return $this->CI->load->view('access_licensed/request_form_collection', $data,TRUE);
+			$data->bulk_access=TRUE;			
 		}
 			
 		//load the contents of the page into a variable
@@ -339,12 +345,7 @@ class Data_access_licensed extends CI_Driver {
 		{
 			return FALSE;
 		}
-		
-		if($data['request_type']=='study')
-		{
-			$data['survey']=$this->CI->Catalog_model->select_single($data['surveyid']);
-		}
-		
+
 		//user can only view his requests
 		if ($data['userid']!=$user->id)
 		{
@@ -373,15 +374,7 @@ class Data_access_licensed extends CI_Driver {
 		$data->organization=$user->company;
 		$data->email=$user->email;
 		
-		if ($data->request_type=='study')
-		{
-			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
-		}	
-		else
-		{
-			$data->title='collection ['.$data->collection['title'].']';
-		}
-
+		$data->title=$data->request_title;
 		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->title;
 		$message=$this->CI->load->view('access_licensed/request_form_view', $data,true);
 
