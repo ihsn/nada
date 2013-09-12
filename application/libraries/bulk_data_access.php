@@ -43,7 +43,7 @@ class Bulk_data_access
 	//returns an array of data access sets/collections this study is part of 
 	function get_study_bulk_access_sets($study_id)
 	{
-		$this->ci->db->select('da_collection_surveys.cid,da_collections.title');
+		$this->ci->db->select('da_collection_surveys.cid,da_collections.title,da_collections.description');
 		$this->ci->db->join('da_collections','da_collections.id=da_collection_surveys.cid','inner');
 		$this->ci->db->where('sid',$study_id);
 		$result=$this->ci->db->get('da_collection_surveys')->result_array();
