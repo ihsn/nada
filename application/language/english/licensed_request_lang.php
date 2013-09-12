@@ -134,5 +134,6 @@ $lang['provide_additonal_info_for_your_request'] = "Please use this box to provi
 
 $lang['click_on_a_lic_request_to_see_status_or_download_data'] = "Click on a request to view status or download data for approved requests.";
 $lang['make_new_lic_request'] = "Make new request";
+$lang['no_microdata_files_found'] = "No microdata files were found!";
 /* End of file licensed_request_lang.php */
 /* Location: ./system/language/english/licensed_request_lang.php */
