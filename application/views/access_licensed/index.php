@@ -82,7 +82,7 @@
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('Repository'),$page_url); ?></th>
+            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('Repository'),$page_url); ?></th>-->
             <th><?php echo create_sort_link($sort_by,$sort_order,'survey_title',t('title'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('requested_by'),$page_url); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'status',t('status'),$page_url); ?></th>
@@ -95,13 +95,10 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <td><?php echo strtoupper($row->repositoryid);?></td>
+            <!--<td><?php //echo strtoupper($row->repositoryid);?></td>-->
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>">
-					<?php if($row->repo_title):?>
-                    	<?php echo t('Collection');?>: <?php echo $row->repo_title ?>
-                    <?php else:?>
-						<?php echo $row->nation .' - '. $row->survey_title.' - '.$row->data_coll_start; ?>
-                    <?php endif;?>
+						<?php echo $row->request_title;?>
+						<?php //echo $row->nation .' - '. $row->survey_title.' - '.$row->data_coll_start; ?>
                 </a>
             </td>
             <td><?php echo $row->username; ?>&nbsp;</td>

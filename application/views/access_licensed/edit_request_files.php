@@ -59,37 +59,37 @@
             <th><?php echo t('expiry');?></th>            
         </tr>
 
-		<?php foreach($files as $key=>$survey_data): ?>
+		<?php foreach($surveys as $survey):?>
             <tr>
-            <td colspan="4"><h3><?php echo $survey_list[$key];?></h3></td>
+            	<td colspan="4"><h3><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> <?php echo $survey['data_coll_start'];?></h3></td>
             </tr>
-            <?php if($survey_data):?>
-            <?php foreach($survey_data as $row): ?>
-                <?php $row=(object)$row;//echo '<pre>';var_dump($row); ?>
-                <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-                <tr class="<?php echo $tr_class; ?>">
-                    <td><input class="chk" type="checkbox" value="<?php echo $row->resource_id;?>" name="fileid-<?php echo $row->resource_id;?>" <?php  echo isset($row->download['download_limit']) ? 'checked="checked"' : ''; ?>/></td>
-                    <td><?php echo basename($row->filename); ?></td>
-                    <td><input type="text" class="download-limit" name="download-limit-<?php echo $row->resource_id;?>" maxlength="2" size="2" value="<?php echo isset($row->download['download_limit']) ? $row->download['download_limit'] : 3; ?>"/></td>
-                    <td><input maxlength="10" class="expiry" name="expiry-<?php echo $row->resource_id;?>" type="text" size="10" value="<?php echo isset($row->download['expiry']) ? date("m/d/Y",$row->download['expiry']) : date("m/d/Y",date("U")+(60*60*24*5)); ?>"/></td>
+
+        	<?php if(array_key_exists($survey['id'],$files)):?>
+            	<?php foreach($files[$survey['id']] as $file):?>
+					<?php $file=(object)$file; ?>
+                    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
+                    <tr class="<?php echo $tr_class; ?>">
+                        <td><input class="chk" type="checkbox" value="<?php echo $file->resource_id;?>" name="fileid-<?php echo $file->resource_id;?>" <?php  echo isset($file->download['download_limit']) ? 'checked="checked"' : ''; ?>/></td>
+                        <td><?php echo basename($file->filename); ?></td>
+                        <td><input type="text" class="download-limit" name="download-limit-<?php echo $file->resource_id;?>" maxlength="2" size="2" value="<?php echo isset($file->download['download_limit']) ? $file->download['download_limit'] : 3; ?>"/></td>
+                        <td><input maxlength="10" class="expiry" name="expiry-<?php echo $file->resource_id;?>" type="text" size="10" value="<?php echo isset($file->download['expiry']) ? date("m/d/Y",$file->download['expiry']) : date("m/d/Y",date("U")+(60*60*24*5)); ?>"/></td>
+                    </tr>
+                <?php endforeach;?>
+             <?php else:?>
+                    <tr class="<?php echo $tr_class; ?>">
+                        <td colspan="4"> <div class="error-msg"><?php echo t('no_microdata_files_found');?></div></td>
+                    </tr>
+             <?php endif;?>	
+		<?php endforeach;?>
+         <tr class="<?php echo $tr_class; ?> file-settings" >
+                    <td>&nbsp;</td>
+                    <td><?php echo t('change_all_settings');?></td>
+                    <td><input id="download-limit-hd" type="text" maxlength="2" size="2" value="3"/></td>			
+                    <td><input id="expiry-hd" class="expiry" type="text" maxlength="10" size="10" value="<?php echo date("m/d/Y",date("U")+(60*60*24*5));?>"/>&nbsp;<input type="button" id="update-all" value="<?php echo t('apply');?>"/></td>
                 </tr>
-            <?php endforeach;?>
-            <?php else:?>
-            <tr class="<?php echo $tr_class; ?>">
-                <td colspan="4"><?php echo t('no_microdata_files_found');?></td>
-            </tr>
-            <?php endif;?>
-        <?php endforeach;?>
+        </table>
 	<?php endif;?>	
     	
-
-	<?php /* ?>
-    <div class="field" style="margin-top:10px;">        
-    <label style="font-weight:bold;"><?php echo t('restrict_data_access_by_id');?></label>
-    <input name="ip_limit" type="text" size="30" value="<?php echo isset($ip_limit) ? $ip_limit : ''; ?>"/> <em style="font-style:italic"><?php echo t('use_comma_for_multiple_ip');?></em>
-    </div>
-	<?php */ ?>
-                
 <?php else: ?>
 	<?php echo t('not_attached_any_licensed_files');?>
 <?php endif; ?>

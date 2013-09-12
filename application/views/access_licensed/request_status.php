@@ -10,6 +10,10 @@
 	margin-top:20px;padding:5px;
 	color:gray;font-family:Arial;font-size:11px;
 	}
+.study-row{
+	border-bottom:1px solid gainsboro;padding:5px;font-size:12px;
+}	
+.survey-count-1 .study-row{border-bottom:0px;}
 </style>
 
 <div style="text-align:right;">
@@ -38,16 +42,17 @@
 ?>
 
 <table border="0" class="info" cellspacing="0" cellpadding="5" width="100%">
-	<?php if ($request_type=='study'):?>
-	<tr>
-		<td style="width:150px;"><?php echo t('survey_title');?></td>
-		<td><?php echo $survey['titl'];?></td>
+	<?php if ($surveys):?>
+	<tr valign="top">
+		<td style="width:150px;">
+		<?php echo t('datasets');?>        
+        </td>
+		<td class="survey-count-<?php echo count($surveys);?>">
+		<?php foreach($surveys as $survey):?>
+			<div class="study-row"><?php echo $survey['nation'];?> - <?php echo $survey['titl'] ?> <?php echo $survey['data_coll_start'];?></div>
+        <?php endforeach;?>
+        </td>
 	</tr>
-    <?php else:?>
-	<tr>
-		<td style="width:150px;"><?php echo t('Collection');?></td>
-		<td><?php echo $collection['title'];?></td>
-	</tr>    
     <?php endif;?>
 	<tr>
 		<td nowrap="nowrap"><?php echo t('date_requested');?></td>

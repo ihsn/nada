@@ -900,8 +900,9 @@ class Repository_model extends CI_Model {
 	**/
 	function get_stats_pending_requests($repositoryid)
 	{
-		$this->db->select('count(lic_requests.surveyid) as total');
-		$this->db->join('lic_requests','lic_requests.surveyid=survey_repos.sid');
+		$this->db->select('count(survey_lic_requests.sid) as total');
+		$this->db->join('survey_lic_requests','survey_lic_requests.sid=survey_repos.sid');
+		$this->db->join('lic_requests','survey_lic_requests.request_id=lic_requests.id');
 		$this->db->where('repositoryid',$repositoryid);
 		$this->db->where('survey_repos.isadmin',1);
 		$this->db->where('lic_requests.status','PENDING');

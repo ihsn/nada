@@ -5,9 +5,10 @@
 */
 ?>
 <style>
-.public-use td{border:1px solid gainsboro;padding:5px;}
+.public-use td{border:1px solid gainsboro;padding:5px; vertical-align:top}
 .required{color:red;}
 .ures{color:#666666;background-color:#FFFFCC}
+.study-title{font-weight:bold;}
 </style>
 
 <?php
@@ -63,7 +64,7 @@ $options_datamatching=array(
                 <tr class="row">
                     <td><?php echo $k++;?></td>
                     <td>
-                    	<a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a><br/>
+                    	<a class="study-title" target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> <?php echo $survey['data_coll_start'];?></a><br/>
                         <?php echo $survey['surveyid'];?>
                     </td>
                 </tr>
