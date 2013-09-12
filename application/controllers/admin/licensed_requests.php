@@ -71,7 +71,7 @@ class Licensed_requests extends MY_Controller {
 		
 		$result['files']=array();
 		$result['survey_list']=array();
-		
+		/*
 		if ($result['request_type']=='study')
 		{
 				$this->load->model('Catalog_model');
@@ -93,7 +93,22 @@ class Licensed_requests extends MY_Controller {
 					$result['survey_list'][$survey['id']]=$survey['nation'].' - '.$survey['titl'];
 				}
 			}
-		}
+		}*/
+		
+			foreach($result['surveys'] as $survey)
+			{
+				$files=$this->Licensed_model->get_request_files($survey['id'], $requestid=$id);
+				if ($files)
+				{
+					$result['files'][$survey['id']]=$files;
+				}
+			}
+			
+			/*
+			echo '<pre>';
+			print_r($result);
+			exit;
+			*/
 		
 		//history
 		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
