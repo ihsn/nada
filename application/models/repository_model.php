@@ -706,7 +706,9 @@ class Repository_model extends CI_Model {
 	{
 		$this->db->select('r.title,r.repositoryid,r.short_text,count(sr.sid) as surveys_found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
+		$this->db->join('surveys', 'surveys.id= sr.sid','INNER');
 		$this->db->where('r.ispublished',1);
+		$this->db->where('surveys.published',1);
 		//$this->db->where('r.pid >',0);
 		$this->db->where('r.section',$section_id);
 		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.short_text,r.weight');
@@ -900,8 +902,8 @@ class Repository_model extends CI_Model {
 	**/
 	function get_stats_pending_requests($repositoryid)
 	{
-		$this->db->select('count(survey_lic_requests.sid) as total');
-		$this->db->join('survey_lic_requests','survey_lic_requests.sid=survey_repos.sid');
+		$this->db->select('count(distinct lic_requests.id) as total');
+		$this->db->join('survey_lic_requests','survey_lic_requests.sid=survey_repos.sid');		
 		$this->db->join('lic_requests','survey_lic_requests.request_id=lic_requests.id');
 		$this->db->where('repositoryid',$repositoryid);
 		$this->db->where('survey_repos.isadmin',1);
@@ -1094,6 +1096,25 @@ class Repository_model extends CI_Model {
 		$row=$query->row_array();
 		
 		return $row['repositoryid'];
+	}
+	
+	function get_repositoryid_uid($repositoryid)
+	{
+		$this->db->select('id');
+		$this->db->where('repositoryid',$repositoryid);
+		$query=$this->db->get('repositories');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		$row=$query->row_array();
+		
+		if ($row)
+		{
+				return $row['id'];
+		}		
 	}
 	
 	//returns number of citations by collection
