@@ -19,6 +19,7 @@ text-transform: capitalize;
 	background: red;
 }
 .linked-studies-count{font-weight:bold;}
+.selected_only{padding-left:15px;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -27,6 +28,8 @@ text-transform: capitalize;
 		$ps=15;
 	}
 ?>
+
+<?php $this->load->view("da_collections/navigation_links");?>
 <div class="body-container copy-studies" style="padding:10px;">
 
 <?php $error=$this->session->flashdata('error');?>
@@ -36,29 +39,20 @@ text-transform: capitalize;
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title">
-	<?php echo t('attach_studies_to');?>
+	<?php echo t('attach_studies_to_da_collection');?>
     <?php if (isset($da_collection) && $da_collection!=NULL):?>
     	<span class="active-repo"><?php echo $da_collection['title'];?></span>
     <?php endif;?>
 </h1>
 
-<p><?php echo sprintf(t('msg_copy_studies'),'<img src="themes/admin/bullet-gray.gif" />');?> </p>
+<p><?php echo t('msg_copy_studies');?> </p>
 <p>&nbsp;</p>
 <!-- search form-->
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="catalog-search">	
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <select name="field" id="field">
-    <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
-    <option value="titl"	<?php echo ($this->input->get('field')=='titl') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
-    <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
-    <option value="surveyid"><?php echo t('survey_id');?></option>
-    <option value="authenty"><?php echo t('producer');?></option>
-    <option value="sponsor"><?php echo t('sponsor');?></option>
-    <option value="repositoryid"><?php echo t('repository');?></option>
-  </select>
   <input type="submit" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo site_url();?>/admin/catalog"><?php echo t('reset');?></a>
+    <a href="<?php echo site_url('admin/da_collections/attach_studies/'.$this->uri->segment(4));?>"><?php echo t('reset');?></a>
   <?php endif; ?>
 <br/><br/>
 
@@ -73,6 +67,7 @@ text-transform: capitalize;
 	
 	//current page url
 	$page_url=site_url().'/'.$this->uri->uri_string();
+	$page_params=array("keywords","selected_only");
 ?>
 <?php
 	if ($this->pagination->cur_page>0) {
@@ -99,7 +94,14 @@ text-transform: capitalize;
 
 <table width="100%">
     <tr>
-        <td><div class="linked-studies-count"><?php echo t('studies_linked_count');?>: <?php echo count($linked_studies);?></div></td>
+        <td>
+        	<div class="linked-studies-count">
+				<?php echo t('studies_linked_count');?>: <?php echo count($linked_studies);?> 
+                <span class="selected_only"><?php echo t('show_selected_only');?>: 
+                	<input type="checkbox" name="selected_only" value="1" id="chk_show_selected" <?php echo $this->input->get("selected_only")==1 ? 'checked="checked"' : '';?> />
+                </span>
+            </div>
+        </td>
         <td align="right">
             <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
         </td>
@@ -111,11 +113,11 @@ text-transform: capitalize;
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
          	<?php if ($this->config->item("regional_search")=='yes'):?>
-			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url); ?></th>
-                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url); ?></th>
+			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url,array("keywords")); ?></th>
+                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array("keywords")); ?></th>
             <?php endif;?>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array("keywords")); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array("keywords")); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php foreach($rows as $row): ?>
@@ -153,7 +155,7 @@ text-transform: capitalize;
 </table>
 </div>
 <?php else: ?>
-<?php echo t('no_records_found');?>
+<?php echo t('no_records_found');?> <a href="<?php echo site_url('admin/da_collections/attach_studies/'.$this->uri->segment(4));?>"><?php echo t('reset');?></a>
 <?php endif; ?>
 </form>
 
@@ -180,13 +182,16 @@ jQuery(document).ready(function(){
 	
 		$(document.body).on("click","#surveys a.remove", function(event){ 
 			$.get($(this).attr("href"));
-			$(this).html("<?php echo t('link'); ?>");	
+			$(this).html("<?php echo t('link_study'); ?>");	
 			$(this).removeClass("remove").addClass("attach");
 			var sid=$(this).attr("data-value");
 			$(this).attr("href",attach_url+da_collection+'/'+sid+'/1');
 			return false;
 		});
 	
+		$(document.body).on("click","#chk_show_selected", function(event){ 
+			$("#catalog-search").submit();
+		});
 });
 
 //page change

@@ -10,7 +10,7 @@
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
 
 
-<h1 class="page-title"><?php echo t('da_collections');?></h1>
+<h1 class="page-title"><?php echo t('bulk_da_collections');?></h1>
 
 <?php endif; ?>
 <?php if ($rows): ?>

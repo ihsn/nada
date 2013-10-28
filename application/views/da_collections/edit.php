@@ -27,7 +27,7 @@
 <?php
  //edit user
 	echo form_submit('submit',t('update'),'id="btnupdate"'); 
- 	echo anchor('admin/repository_sections',t('cancel') );	
+ 	echo anchor('admin/da_collections',t('cancel') );	
 ?>
 
 <? echo form_close(); ?>    
