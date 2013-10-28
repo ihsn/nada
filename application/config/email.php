@@ -17,7 +17,7 @@ $config['charset']   = 'utf-8';
 
 //using SMTP server with authentication enabled 
 $config['protocol']  = 'smtp';
-$config['smtp_host'] = 'ihsn.org';
+$config['smtp_host'] = 'your-website.com';
 $config['smtp_user'] = 'email@your-website.com';
 $config['smtp_pass'] = 'password';
 $config['smtp_port'] = '25';
@@ -25,8 +25,8 @@ $config['mailtype']  = 'html';
 $config['charset']   = 'utf-8';
 
 
-//for gmail or any other SSL
 /*
+//for gmail or any other SSL
 $config['protocol']  = 'smtp';
 $config['smtp_host'] = 'ssl://smtp.googlemail.com';
 $config['smtp_user'] = 'name@gmail.com';
