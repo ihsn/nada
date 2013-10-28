@@ -1,3 +1,7 @@
+<?php
+	$active_tab=strtoupper($this->input->get("status"));
+?>
+
 <div class="body-container" style="padding:10px;">
 <?php if (!isset($hide_form)):?>
 
@@ -7,11 +11,12 @@
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
 
-
 <h1 class="page-title"><?php echo t('title_licensed_request');?></h1>
-<form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
+
+<form class="left-pad" style="margin-bottom:20px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
   <input type="hidden" name="field" value="title"/>
+  <input type="hidden" name="status" value="<?php echo ($active_tab) ? $active_tab : '';?>"/>
 <?php /*
   <select name="field" id="field">
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
@@ -22,7 +27,19 @@
     <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
   <?php endif; ?>
 </form>
+
+
+<ul class="nav nav-tabs">
+  <li <?php echo (!$active_tab) ? 'class="active"' : '';?> ><a href="<?php echo site_url('admin/licensed_requests');?>"><?php echo t('all_requests');?></a></li>
+  <li <?php echo ($active_tab=='PENDING') ? 'class="active"' : '';?> ><a href="<?php echo site_url('admin/licensed_requests?status=PENDING');?>" ><?php echo t('pending');?></a></li>
+  <li <?php echo ($active_tab=='APPROVED') ? 'class="active"' : '';?> ><a href="<?php echo site_url('admin/licensed_requests?status=APPROVED');?>"><?php echo t('approved');?></a></li>
+  <li <?php echo ($active_tab=='DENIED') ? 'class="active"' : '';?> ><a href="<?php echo site_url('admin/licensed_requests?status=DENIED');?>"><?php echo t('denied');?></a></li>
+  <li <?php echo ($active_tab=='MOREINFO') ? 'class="active"' : '';?> ><a href="<?php echo site_url('admin/licensed_requests?status=MOREINFO');?>"><?php echo t('request_more_info');?></a></li>
+  <li <?php echo ($active_tab=='CANCELLED') ? 'class="active"' : '';?> ><a href="<?php echo site_url('admin/licensed_requests?status=CANCELLED');?>"><?php echo t('cancelled');?></a></li>
+</ul>
+
 <?php endif; ?>
+
 <?php if ($rows): ?>
 <?php		
 		$sort_by=$this->input->get("sort_by");
@@ -82,7 +99,6 @@
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
-            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('Repository'),$page_url); ?></th>-->
             <th><?php echo create_sort_link($sort_by,$sort_order,'survey_title',t('title'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('requested_by'),$page_url); ?></th>
 			<th><?php echo create_sort_link($sort_by,$sort_order,'status',t('status'),$page_url); ?></th>
@@ -95,10 +111,8 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <!--<td><?php //echo strtoupper($row->repositoryid);?></td>-->
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>">
-						<?php echo $row->request_title;?>
-						<?php //echo $row->nation .' - '. $row->survey_title.' - '.$row->data_coll_start; ?>
+						<?php echo $row->request_title; ?>
                 </a>
             </td>
             <td><?php echo $row->username; ?>&nbsp;</td>
