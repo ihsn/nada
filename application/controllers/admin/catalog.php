@@ -84,7 +84,7 @@ class Catalog extends MY_Controller {
 		if ($db_rows['rows'])
 		{		
 			//get survey tags
-			$this->catalog_tags=$this->Catalog_model->get_all_survey_tags();
+			$this->catalog_tags=$this->Catalog_model->get_all_survey_tags($this->active_repo->repositoryid);
 			
 			//get country list for filter
 			$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
@@ -261,7 +261,7 @@ class Catalog extends MY_Controller {
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps','titl','surveyid','producer','published','nation','tag','no_question','no_datafile','dtype'));//pass any additional querystrings
 		$config['next_link'] = t('page_next');
 		$config['num_links'] = 5;
 		$config['prev_link'] = t('page_prev');
@@ -606,89 +606,6 @@ class Catalog extends MY_Controller {
 	}
 	
 
-
-	/**
-	 * Process uploaded DDI file
-	 *
-	 * @return void
-	 **/	
-/*	function do_upload()
-	{	
-		//catalog folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//if not fixed path, use a relative path
-		if (!file_exists($catalog_root) )
-		{
-			$catalog_root=FCPATH.$catalog_root;
-		}		
-		
-		$temp_upload_folder=$catalog_root.'/tmp';
-		
-		@mkdir($temp_upload_folder);
-		
-		if (!file_exists($temp_upload_folder))
-		{
-			show_error('DATAFILES/TEMP-FOLDER-NOT-SET');
-		}
-		
-		//upload class configurations
-		$config['upload_path'] 	 = $temp_upload_folder;
-		$config['overwrite'] 	 = FALSE; //overwrite the file, if already exists
-		$config['encrypt_name']	 = TRUE; 
-		$config['allowed_types'] = 'xml';
-		
-		//load upload library
-		$this->load->library('upload', $config);
-		
-		//process uploaded ddi file
-		$ddi_upload_result=$this->upload->do_upload();
-
-		//upload class configurations
-		$config['upload_path'] = $temp_upload_folder;
-		$config['overwrite'] = FALSE; //overwrite the file, if already exists
-		$config['encrypt_name']=TRUE; 
-		$config['allowed_types'] = 'rdf';
-		
-		$this->upload->initialize($config);
-				
-		//process uploaded ddi file
-		$rdf_upload_result=$this->upload->do_upload('rdf');
-
-exit;
-		
-		if (!$ddi_upload_result)
-		{
-			//get errors while uploading
-			$error = $this->upload->display_errors();
-			
-			//log to database
-			$this->db_logger->write_log('ddi-upload',$error,'catalog');
-
-			//set error
-			$this->session->set_flashdata('error', $error);
-			
-			//redirect back to the upload page
-			redirect('admin/catalog/upload','refresh');
-		}	
-		else //successful upload
-		{			
-			//get uploaded file information
-			$data = array('upload_data' => $this->upload->data());									
-			$ddi_progress['ddi_progress']=array('status'=>'uploaded', 'upload_data'=>$this->upload->data());
-			
-			//log to database
-			$this->db_logger->write_log('ddi-upload','success','catalog');
-			
-			//save progress to session
-			$this->session->set_userdata($ddi_progress);
-			
-			$this->import();
-		}
-	}
-*/
-
-
 	/**
 	* Imports an uploaded DDI file or batch import
 	*
@@ -741,7 +658,24 @@ exit;
 			
 			redirect('admin/catalog/replace','refresh');
 		}
-						
+		
+		//get surveyid from the uploaded DDI file
+		$uploaded_ddi_codebook_id=$this->ddi_parser->get_ddi_codebook_id($ddi_file);
+		
+		//check if another study has the same ID other than the one being replaced
+		$uploaded_ddi_sid=$this->Catalog_model->get_survey_uid($uploaded_ddi_codebook_id);
+
+		$result=FALSE;
+		
+		//cancel replace if surveyid/codebookid is used by another study in the catalog - it exclude the study being replaced
+		if ($uploaded_ddi_sid!==FALSE && $uploaded_ddi_sid!==$survey_id)
+		{
+			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$uploaded_ddi_sid));//" : see study <a href={$uploaded_ddi_sid}";
+			$this->db_logger->write_log('ddi-replace-error',$error,'catalog');
+			$this->session->set_flashdata('error', $error);
+			redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');exit;
+		}
+
 		//parse ddi to array	
 		$data=$this->ddi_parser->parse();
 
@@ -752,21 +686,20 @@ exit;
 		$survey_repo_arr=$this->Catalog_model->get_repo_ownership($survey_id);
 		
 		//repository
-		$repositoryid="central";;
 		$repositoryid=$survey["repositoryid"];
 		
 		//set the repository where the ddi will be uploaded to	
 		$this->DDI_Import->repository_identifier=$repositoryid;
 						
-		//import to db
+		//replace and import ddi
 		$result=$this->DDI_Import->replace($data,$ddi_file,$target_survey_id=$survey_id);
+
 
 		if ($result===TRUE)
 		{
 			//display import success 
-			$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
+			$success=t('study imported successfully!');//$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
 			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
-			log_message('DEBUG', $success_msg);
 			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
 			$this->session->set_flashdata('message', $success);
 			
@@ -784,13 +717,11 @@ exit;
 						);
 			
 			$this->Catalog_model->update_survey_options($survey_options);
-			log_message('INFO', "updated survey options: ".$survey_ddi_path);
+			redirect('admin/catalog/edit/'.$survey_id,'refresh');
 		}
 		else
 		{
-			$failed_msg='FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
-			log_message('ERROR', $failed_msg);		
-			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');			
+			//$this->db_logger->write_log('ddi-import-failed',$failed_msg,'catalog');			
 			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
 			$this->session->set_flashdata('error', $import_failed);
 		}		
@@ -1563,10 +1494,17 @@ exit;
 		$this->acl->user_has_study_access($surveyid);
 		
 		//atleast one rule require for validation class to work
-		$this->form_validation->set_rules('target', t('study_to_replace'), 'trim|required|isnumeric');
+		$this->form_validation->set_rules('id', t('study_to_replace'), 'trim|required|isnumeric');
 		
 		if ($this->form_validation->run() == TRUE)
 		{
+		
+			//no file uploaded?
+			if ($_FILES['userfile']['size']==0)
+			{
+				redirect('admin/catalog/replace_ddi/'.$surveyid,'refresh');exit;
+			}
+		
 			//catalog folder path
 			$catalog_root=$this->config->item("catalog_root");
 			
@@ -1607,19 +1545,8 @@ exit;
 			}			
 		}
 
-		
-		//get a compact list of surveys
-		$surveys=$this->Catalog_model->select_all_compact();
-		
-		//build concatenated survey titles
-		$output=array('"0"'=>'--SELECT--');
-		foreach($surveys as $row)
-		{
-			$output[(string)$row['id']]=$row['nation']. ' - '. substr($row['titl'],0,150). '['.$row['surveyid'].']';
-		}
-
-		$data['surveys']=$output;
 		$data['id']=$surveyid;
+		$data['survey']=$this->Catalog_model->select_single($surveyid);
 
 		$content=$this->load->view('catalog/replace_ddi',$data,TRUE);
 		$this->template->write('content', $content,true);
