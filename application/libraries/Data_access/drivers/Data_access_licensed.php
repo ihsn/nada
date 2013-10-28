@@ -50,7 +50,7 @@ class Data_access_licensed extends CI_Driver {
 		if ($this->CI->input->get("request")=="new")
 		{
 			//show application form
-			return $this->request_form('study',$sid,NULL,$user);
+			return $this->request_form($sid,$user);
 		}
 
 		//find existing requests by the user
@@ -105,17 +105,17 @@ class Data_access_licensed extends CI_Driver {
 		*/
 
 		//show application form
-		return $this->request_form('study',$sid,NULL,$user);
+		return $this->request_form($sid,$user);
 	}
 	
 	
 	/**
 	* load the licensed form for single study and collections
 	**/
-	private function request_form($request_type='study',$survey_id=NULL,$collection_id=NULL,$user)
+	private function request_form($survey_id=NULL,$user)
 	{	
 	
-		if ( !is_numeric($survey_id) && !$collection_id)
+		if ( !is_numeric($survey_id) )
 		{
 			show_404();
 		}
@@ -140,7 +140,6 @@ class Data_access_licensed extends CI_Driver {
 		$data->organization=$user->company;
 		$data->email=$user->email;
 		$data->surveys=$surveys;
-		$data->request_type=$request_type;
 		$data->bulk_access=FALSE;
 		$data->abstract=$this->CI->input->post("abstract");
 
@@ -155,18 +154,23 @@ class Data_access_licensed extends CI_Driver {
 		
 		//optional fields
 		//$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
-		$this->CI->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_length[45]');
 		$this->CI->form_validation->set_rules('datamatching', t('data_matching'), 'trim|xss_clean|max_length[1]');
 		//$this->CI->form_validation->set_rules('fax', t('fax'), 'trim|xss_clean|max_lengh[14]');	
-		$this->CI->form_validation->set_rules('outputs', t('expected_output'), 'trim|xss_clean|max_lengh[1000]|required');
-		$this->CI->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_lengh[30]|required');
-		$this->CI->form_validation->set_rules('team', t('research_team'), 'trim|xss_clean|max_lengh[1000]|required');
+		$this->CI->form_validation->set_rules('outputs', t('expected_output'), 'trim|xss_clean|max_length[1000]|required');
+		$this->CI->form_validation->set_rules('compdate', t('expected_completion'), 'trim|xss_clean|max_length[10]|required');
+		$this->CI->form_validation->set_rules('team', t('research_team'), 'trim|xss_clean|max_length[1000]|required');
 		
 		
 		//process form				
 		if ($this->CI->form_validation->run() == TRUE)
 		{			
+			if (!$this->CI->input->post("sid"))
+			{
+				show_error("NO_SURVEYS_SELECTED");
+			}
+			
 			$post=$_POST;
+			
 			$options=array();
 			
 			foreach($post as $key=>$value)
@@ -174,21 +178,18 @@ class Data_access_licensed extends CI_Driver {
 				$options[$key]=$this->CI->security->xss_clean($value);
 			}
 			
-			/*echo '<pre>';
-			print_r($options);
-			exit;
-			*/
-			
-			if (isset($options['ds']) & intval($options['ds'])>0 )
+			if (isset($options['ds']) && intval($options['ds'])>0 )
 			{
-				//collection title
-				$options['request_title']=$this->CI->Licensed_model->get_collection_title((int)$options['ds']) . ' [multi study request]';
+				$options['request_title']=$this->CI->Licensed_model->get_collection_title((int)$options['ds']) . ' - multi study request';
 			}
 			else
 			{
 				//study title
 				$options['request_title']=$surveys[0]['titl'];
 			}
+			
+			//remove duplicate surveys
+			$options['sid']=array_unique($options['sid']);
 			
 			//save/insert request
 			$new_requestid=$this->CI->Licensed_model->insert_request($user->id,$options);	
@@ -376,7 +377,7 @@ class Data_access_licensed extends CI_Driver {
 		
 		$data->title=$data->request_title;
 		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->title;
-		$message=$this->CI->load->view('access_licensed/request_form_view', $data,true);
+		$message=$this->CI->load->view('access_licensed/request_form_printable', $data,true);
 
 		$this->CI->load->helper('admin_notifications');
 		$this->CI->load->library('email');
