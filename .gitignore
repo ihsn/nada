@@ -25,3 +25,4 @@ application/config/email.php
 *.bak
 logs
 cache
+backup/*
