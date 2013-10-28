@@ -212,7 +212,7 @@ $(function() {
             </div>
             <div class="field">        
                 <label><?php echo t('subject');?></label>
-                <input name="subject" type="text" class="input-flex" value="RE: [#<?php echo $id; ?>] - Application for request to a licensed dataset"/>
+                <input name="subject" type="text" class="input-flex" value="RE: [#<?php echo $id; ?>] - <?php echo form_prep($request_title);?>"/>
             </div>
     
             <div class="field">        
