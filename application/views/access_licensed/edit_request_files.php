@@ -9,7 +9,7 @@
 <?php if ($files): ?>
 	<?php $tr_class=""; ?>
     
-	<?php if (count($files)==1):?>
+	<?php if (count($surveys)==1):?>
     
 		<?php foreach($files as $key=>$survey_data): ?>
             <?php if($survey_data):?>
