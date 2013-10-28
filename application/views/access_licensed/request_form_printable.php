@@ -1,15 +1,4 @@
 <?php
-/**
-* licensed request form print view
-*
-*/
-?>
-<style>
-.public-use td{border:1px solid gainsboro;padding:5px;}
-.required{color:red;}
-</style>
-
-<?php
 //options for the org_type
 $options_org_type=array(
 	t('Line ministry/public administration')=>t('Line ministry/public administration'),
@@ -41,82 +30,82 @@ $options_datamatching=array(
     <br/>
 </p>
 
+<?php
+$css_border="border:1px solid gainsboro;padding:5px;";
+$css_margin_bottom="margin-bottom:3px;";
+$css_bold="font-weight:bold;";
+?>
+<div style="font-family:Geneva, Arial, Helvetica, sans-serif;font-size:12px;">
 <h2 class="page-title"><?php echo t('application_access_licensed_dataset');?></h2>
-  <table class="public-use" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
+  <table class="public-use" border="0" style="border-collapse:collapse;border:1px solid gainsboro;">
   	<tr>
-    	<td colspan="2" class="note">
+    	<td colspan="2" class="note" style="<?php echo $css_border;?>">
         <div><?php echo t('info_kept_confidential');?></div>
         </td>
     </tr>
     <tr class="border">
-      <td width="200px"><?php echo t('first_name');?></td>
-      <td><?php echo get_form_value('fname',isset($fname) ? $fname : ''); ?></td>
+      <td width="200px" style="<?php echo $css_border;?>"><?php echo t('first_name');?></td>
+      <td style="<?php echo $css_border;?>"><?php echo get_form_value('fname',isset($fname) ? $fname : ''); ?></td>
     </tr>
     <tr class="border">
-      <td><?php echo t('last_name');?></td>
-      <td><?php echo get_form_value('lname',isset($lname) ? $lname: ''); ?></td>
+      <td style="<?php echo $css_border;?>"><?php echo t('last_name');?></td>
+      <td style="<?php echo $css_border;?>"><?php echo get_form_value('lname',isset($lname) ? $lname: ''); ?></td>
     </tr>
     <tr  class="border">
-      <td><?php echo t('organization');?></td>
-      <td><?php echo get_form_value('organization',isset($organization) ? $organization : ''); ?></td>
+      <td style="<?php echo $css_border;?>"><?php echo t('organization');?></td>
+      <td style="<?php echo $css_border;?>"><?php echo get_form_value('organization',isset($organization) ? $organization : ''); ?></td>
     </tr>
     <tr class="border">
-      <td><?php echo t('email');?></td>
-      <td><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
+      <td style="<?php echo $css_border;?>"><?php echo t('email');?></td>
+      <td style="<?php echo $css_border;?>"><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
     </tr>
-   <?php if ($request_type=='study'):?>
-        <tr class="border" >
-          <td valign="top"><?php echo t('dataset_requested');?></td>
-          <td>
-          	<div style="color:maroon;font-size:12px;">
-		  	<?php echo $surveys[0]['surveyid']; ?> - <?php echo $surveys[0]['titl']; ?> <br/><?php echo $surveys[0]['proddate']; ?></div></td>
-        </tr>
-    <?php elseif ($request_type='collection'):?>
         <tr class="border" valign="top">
-          <td><?php echo t('dataset_requested');?></td>
-          <td>
-                <table class="grid-table">
+          <td style="<?php echo $css_border;?>"><?php echo t('dataset_requested');?></td>
+          <td  style="<?php echo $css_border;?>">
+                <table class="grid-table" border="0" style="border-collapse:collapsed;">
                 <?php $k=1;foreach($surveys as $survey):?>
                 <tr class="row">
-                    <td><?php echo $k++;?></td>
-                    <td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+                    <td style="<?php echo $css_border;?>"><?php echo $k++;?></td>
+                    <td style="<?php echo $css_border;?>">
+                    	<div style="<?php echo $css_margin_bottom;?>"><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> - <?php echo $survey['data_coll_start'];?></a></div>
+                    </td>
                 </tr>
                 <?php endforeach;?>
                 </table>
           </td>
         </tr>    
-    <?php endif;?>
+
     <tr class="border">
-      <td><?php echo t('date_requested');?></td>      
-      <td><?php echo date("M/d/Y",$created);?></td>
+      <td style="<?php echo $css_border;?>"><?php echo t('date_requested');?></td>      
+      <td style="<?php echo $css_border;?>"><?php echo date("M/d/Y",$created);?></td>
     </tr>
 
     <tr class="border">
-      <td colspan="2">
+      <td colspan="2" style="<?php echo $css_border;?>">
 				<p><?php echo t('filled_lead_research');?></p>
       </td>      
     </tr>
     
     <tr>
-    	<td><span class="required">*</span> <?php echo t('receiving_org');?></td>
-        <td><span class="response"><?php echo isset($org_rec) ? $org_rec : ''; ?></span></td>
+    	<td style="<?php echo $css_border.$css_bold;?>"><span class="required">*</span> <?php echo t('receiving_org');?></td>
+        <td  style="<?php echo $css_border;?>"><span class="response"><?php echo isset($org_rec) ? $org_rec : ''; ?></span></td>
     </tr>
   
   <tr class="border">
-    <td><span class="required">*</span> <?php echo t('telephone');?></td>
-    <td><?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?></td>
+    <td style="<?php echo $css_border.$css_bold;?>"><span class="required">*</span> <?php echo t('telephone');?></td>
+    <td style="<?php echo $css_border;?>"><?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?></td>
   </tr>
   <tr class="border">
-    <td><span class="required">*</span> <?php print t('intended_use');?></td>
-    <td><?php echo get_form_value('datause',isset($datause) ? $datause : ''); ?></td>
+    <td  style="<?php echo $css_border.$css_bold;?>"><span class="required">*</span> <?php print t('intended_use');?></td>
+    <td style="<?php echo $css_border;?>"><?php echo get_form_value('datause',isset($datause) ? $datause : ''); ?></td>
   </tr>
   <tr class="border">
-    <td><div style="font-weight:bold;"><?php print t('expected_output');?></div></td> 
-    <td><?php echo get_form_value('outputs',isset($outputs) ? $outputs : ''); ?></td>
+    <td style="<?php echo $css_border.$css_bold;?>"><?php print t('expected_output');?></td> 
+    <td style="<?php echo $css_border;?>"><?php echo get_form_value('outputs',isset($outputs) ? $outputs : ''); ?></td>
   </tr>
   <tr class="border">
-    <td><strong><?php print t('expected_completion');?></strong> </td>
-    <td><?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?></td>
+    <td style="<?php echo $css_border.$css_bold;?>"><?php print t('expected_completion');?></td>
+    <td style="<?php echo $css_border;?>"><?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?></td>
   </tr>
   <?php /*?>
   <tr class="border">
@@ -132,11 +121,11 @@ $options_datamatching=array(
   </tr>
   <?php */ ?>
   <tr class="border">
-    <td><strong><?php print t('research_team');?></strong><br /><?php print t('provide_names');?></td>
-    <td><?php echo get_form_value('team',isset($team) ? $team : ''); ?></td>
+    <td style="<?php echo $css_border.$css_bold;?>"><strong><?php print t('research_team');?></strong><br /><?php print t('provide_names');?></td>
+    <td style="<?php echo $css_border;?>"><?php echo get_form_value('team',isset($team) ? $team : ''); ?></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><strong><?php print t('ident_needed');?></strong><br />
+    <td colspan="2" style="<?php echo $css_border;?>"><strong><?php print t('ident_needed');?></strong><br />
       <br/>
 	<?php print t('da_website');?>
     <br/><br/>
@@ -155,3 +144,4 @@ $options_datamatching=array(
         </div></td>
   </tr>
   </table>
+</div>  
