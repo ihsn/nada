@@ -19,8 +19,17 @@ class Licensed_requests extends MY_Controller {
 		$this->lang->load('catalog_admin');
 		//$this->output->enable_profiler(TRUE);
 		
-		//set active repo
-		$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+		//set active repo from querystring param
+		if ($this->input->get("collection"))
+		{
+			$repo_uid=$this->repository_model->get_repositoryid_uid($this->input->get("collection"));
+			$repo_obj=$this->acl->get_repo($repo_uid);
+		}
+		else
+		{
+			//set active repo
+			$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+		}	
 
 		if (!$repo_obj)
 		{
@@ -32,8 +41,11 @@ class Licensed_requests extends MY_Controller {
 		{
 			//set active repo
 			$this->active_repo=$repo_obj;
-			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);			
+			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
 		}
+		
+		//set active repo
+		$this->acl->set_active_repo($this->active_repo->id);
 		
 		//set collection sticky bar options
 		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
@@ -71,38 +83,15 @@ class Licensed_requests extends MY_Controller {
 		
 		$result['files']=array();
 		$result['survey_list']=array();
-		/*
-		if ($result['request_type']=='study')
+
+		foreach($result['surveys'] as $survey)
 		{
-				$this->load->model('Catalog_model');
-				$survey=$this->Catalog_model->select_single($result['surveyid']);				
-				$result['files'][$result['surveyid']]=$this->Licensed_model->get_request_files($result['surveyid'], $requestid=$id);
-				$result['survey_list'][$result['surveyid']]=$survey['nation'].' - '. $survey['titl'];
-				
-				//study notes
-				$result['study_notes']=$this->Catalog_notes_model->get_notes_by_study($result['surveyid'],'admin');
+			$files=$this->Licensed_model->get_request_files($survey['id'], $requestid=$id);
+			if ($files)
+			{
+				$result['files'][$survey['id']]=$files;
+			}
 		}
-		else if ($result['request_type']=='collection')
-		{
-			foreach($result['surveys'] as $survey)
-			{
-				$files=$this->Licensed_model->get_request_files($survey['id'], $requestid=$id);
-				if ($files)
-				{
-					$result['files'][$survey['id']]=$files;
-					$result['survey_list'][$survey['id']]=$survey['nation'].' - '.$survey['titl'];
-				}
-			}
-		}*/
-		
-			foreach($result['surveys'] as $survey)
-			{
-				$files=$this->Licensed_model->get_request_files($survey['id'], $requestid=$id);
-				if ($files)
-				{
-					$result['files'][$survey['id']]=$files;
-				}
-			}
 			
 			/*
 			echo '<pre>';
@@ -309,16 +298,7 @@ class Licensed_requests extends MY_Controller {
 		$data->fname=$user->first_name;
 		$data->lname=$user->last_name;
 		$data->email=$user->email;
-		
-		if ($data->request_type=='study')
-		{
-			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
-		}	
-		else
-		{
-			$data->title='collection ['.$data->collection['title'].']';
-		}
-		
+		$data->title=$data->request_title;		
 		$data->requestid=$requestid;
 					
 		$message=$this->load->view('access_licensed/user_notification_email', $data,true);	
@@ -525,7 +505,7 @@ class Licensed_requests extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 10;
+		$per_page = 30;
 				
 		//current page
 		$offset=$this->input->get('offset');//$this->uri->segment(4);
@@ -534,17 +514,13 @@ class Licensed_requests extends MY_Controller {
 		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'desc';
 		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'created';
 
-		//filter
-		$filter=NULL;
-
-		//simple search
-		if ($this->input->get_post("keywords") ){
-			$filter[0]['field']=$this->input->get_post('field');
-			$filter[0]['keywords']=$this->input->get_post('keywords');			
-		}		
+		$search_options=array(
+				'keywords'=>$this->input->get_post("keywords"),
+				'status'=>$this->input->get_post("status")
+		);
 		
 		//records
-		$rows=$this->Licensed_model->search_requests($per_page, $offset,$filter, $sort_by, $sort_order,$this->active_repo->repositoryid);
+		$rows=$this->Licensed_model->search_requests($per_page, $offset,$search_options, $sort_by, $sort_order,$this->active_repo->repositoryid);
 
 		//total records in the db
 		$total = $this->Licensed_model->search_requests_count();
@@ -564,7 +540,7 @@ class Licensed_requests extends MY_Controller {
 		$config['per_page'] = $per_page;
 		$config['query_string_segment']="offset"; 
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('keywords', 'status'));//pass any additional querystrings
 		$config['num_links'] = 1;
 		$config['full_tag_open'] = '<span class="page-nums">' ;
 		$config['full_tag_close'] = '</span>';
