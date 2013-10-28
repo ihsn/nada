@@ -142,8 +142,8 @@ class Da_Collections extends MY_Controller {
 			show_error("COLLECTION-NOT-FOUND");
 		}
 			
-		$this->load->model('Catalog_model');
-		$this->load->model('Catalog_admin_search_model');
+		//$this->load->model('Catalog_model');
+		//$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 
@@ -153,20 +153,33 @@ class Da_Collections extends MY_Controller {
 		$ps=(int)$this->input->get("ps");
 		if($ps==0 || $ps>500)
 		{
-			$ps=15;
+			$ps=50;
 		}
 
-		$per_page=(int)$this->input->get("per_page");		
-		$total=$this->Catalog_model->search_count();
-		$db_rows['rows']=$this->Catalog_model->search($limit = $ps, $offset = $per_page);
-
-		/*if ($curr_page>$total)
+		$per_page=(int)$this->input->get("per_page");
+		$sort_by=$this->input->get("sort_by");
+		$sort_order=$this->input->get("sort_order");
+		
+		$search_options=array();
+		
+		$search_valid_options=array("keywords","selected_only");
+		
+		foreach($_GET as $key=>$value)
+		{		
+			if(in_array($key,$search_valid_options))
+			{
+				$search_options[$key]=$this->input->get($key);
+			}
+		}
+		
+		if (isset($search_options['selected_only']))
 		{
-			$curr_page=$total-$per_page;
-			
-			//search again
-			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
-		}*/
+			$search_options['selected_only']=$this->bulk_data_access->get_study_id_list_by_set($collection_id);
+		}
+		
+		$total=$this->bulk_data_access->search_count($search_options);
+		$db_rows['rows']=$this->bulk_data_access->search($search_options,$limit = $ps, $offset = $per_page,$sort_by,$sort_order);
+		
 		
 		//set pagination options
 		$base_url = site_url('admin/da_collections/attach_studies/'.$collection_id);
@@ -174,7 +187,7 @@ class Da_Collections extends MY_Controller {
 		$config['total_rows'] = $total;
 		$config['per_page'] = $ps;
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'ps','selected_only'));//pass any additional querystrings
 		$config['next_link'] = t('page_next');
 		$config['num_links'] = 5;
 		$config['prev_link'] = t('page_prev');
@@ -220,6 +233,102 @@ class Da_Collections extends MY_Controller {
 		}	
 		
 		echo json_encode(array('success'=>$collection_id));exit;
+	}
+	
+	
+		/**
+	* Delete one or more records
+	* note: to use with ajax/json, pass the ajax as querystring
+	* 
+	* id 	int or comma seperate string
+	*/
+	function delete($id)
+	{			
+		//array of id to be deleted
+		$delete_arr=array();
+	
+		//is ajax call
+		$ajax=$this->input->get_post('ajax');
+
+		if (!is_numeric($id))
+		{
+			$tmp_arr=explode(",",$id);
+		
+			foreach($tmp_arr as $key=>$value)
+			{
+				if (is_numeric($value))
+				{
+					$delete_arr[]=$value;
+				}
+			}
+			
+			if (count($delete_arr)==0)
+			{
+				//for ajax return JSON output
+				if ($ajax!='')
+				{
+					echo json_encode(array('error'=>"invalid id was provided") );
+					exit;
+				}
+				
+				$this->session->set_flashdata('error', 'Invalid id was provided.');
+				redirect('admin/menu',"refresh");
+			}	
+		}		
+		else
+		{
+			$delete_arr[]=$id;
+		}
+		
+		if ($this->input->post('cancel')!='')
+		{
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				redirect($destination);
+			}
+			else
+			{
+				redirect('admin/da_collections');
+			}	
+		}
+		else if ($this->input->post('submit')!='')
+		{
+			foreach($delete_arr as $item)
+			{
+				//confirm delete	
+				$this->bulk_data_access->delete($item);
+			}
+
+			//for ajax calls, return output as JSON						
+			if ($ajax!='')
+			{
+				echo json_encode(array('success'=>"true") );
+				exit;
+			}
+						
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!="")
+			{
+				redirect($destination);
+			}
+			else
+			{
+				redirect('admin/da_collections');
+			}	
+		}
+		else
+		{
+			//ask for confirmation
+			$content=$this->load->view('resources/delete', NULL,true);
+			
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+		}		
 	}
 
 }
