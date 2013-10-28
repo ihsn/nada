@@ -136,9 +136,11 @@ class Access_licensed extends MY_Controller {
 		//get request from db
 		$data=$this->Licensed_model->get_request_by_id($request_id);
 		
+		//find approved surveys with files for this request
+		$data['surveys_with_files']=$this->Licensed_model->get_request_approved_surveys($request_id);
+		
 		if ($data===FALSE)
 		{
-			echo show_message(t('invalid_id'));return;
 			show_404();
 		}
 				
@@ -173,38 +175,42 @@ class Access_licensed extends MY_Controller {
 	function _get_licensed_files($request_id)
 	{				
 		$this->load->helper('file');
+		$this->load->helper("resource_helper");
+		$this->load->model("Resource_model");
 		
-		$request=$this->Licensed_model->get_request_by_id($request_id);
+		$request=$this->Licensed_model->get_request_by_id($request_id);		
+		$sid=$this->input->get("sid");
 		
-		if ($request['request_type']=='study')
+		//request has no surveys attached
+		if (!isset($request['surveys']) || count($request['surveys'])==0)
 		{
-			//get the surveyid by requestid
-			$survey_id=$this->Licensed_model->get_surveyid_by_request($request_id);
-	
-			//check if the survey form is set to LICENSED
-			$model=$this->Catalog_model->get_survey_form_model($survey_id);
-	
-			if ($model!='licensed')
-			{
-				show_error('form_not_available');
-				return;
-			}		
-
-		//get files by request id
-		$data['rows']=$this->Licensed_model->get_request_downloads($request_id);		
-		
-		//get survey folder path, this is needed for the view(downloads_licensed)
-		$this->survey_folder=$this->_get_survey_folder($survey_id);
-		
-		//show files
-		$content=$this->load->view('managefiles/downloads_licensed', $data,true);
-		return $content;		
+			return FALSE;
 		}
-		else if ($request['request_type']=='collection')
+		
+		if (!is_numeric($sid))
 		{
-			return $this->load->view('access_licensed/downloads_by_collection',$request,TRUE);
+			$first_survey=reset($request['surveys']);
+			$sid=$first_survey['id'];
 		}
+		
+		//survey must be part of the request
+		if (!array_key_exists($sid,$request['surveys']))
+		{
+			show_error("INVALID-REQUEST");
+		}
+		
+		//get files by request id and survey id
+		$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
+		$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
+		$data['request']=$request;
+		$data['survey_folder']=$this->_get_survey_folder($sid);
+		$data['sid']=$sid;
+		$data['request_id']=$request_id;
+		
+		return $this->load->view("access_licensed/track_request_downloads",$data,TRUE);
 	}
+
+
 	
 	/**
 	* Download licensed data files
@@ -234,21 +240,24 @@ class Access_licensed extends MY_Controller {
 		//get currently logged-in user info
 		$user=$this->ion_auth->current_user();
 
+		//is licensed file available for the request
+		$request_file_exists=$this->Licensed_model->exists_request_file($request_id,$file_id);
+		
+		if(!$request_file_exists)
+		{
+			show_404();
+		}
+
 		//get file information
 		$fileinfo=$this->managefiles_model->get_resource_by_id($file_id);
 
-		//get the surveyid by requestid
-		$survey_id=$this->Licensed_model->get_surveyid_by_request($request_id);
-
-		//check if the survey form is set to LICENSED
-		if ($this->Catalog_model->get_survey_form_model($survey_id)!='licensed')
-		{
-			show_404();
-			return;
-		}
-				
 		//get request info from db
 		$request=$this->Licensed_model->get_request_by_id($request_id);
+		
+		if (!$fileinfo || !$request)
+		{
+			show404();
+		}
 		
 		//disable downloads for requests not approved
 		if($request['status']!=='APPROVED')
@@ -262,7 +271,6 @@ class Access_licensed extends MY_Controller {
 		if (!$download_stats)
 		{
 			show_error( 'File is no longer available for download');
-			exit();			
 		}
 		
 		//no. of times the file can be downloaded
@@ -281,15 +289,14 @@ class Access_licensed extends MY_Controller {
 		$this->Licensed_model->update_download_stats($file_id,$request_id,$user->email);
 		
 		//survey folder path
-		$survey_folder=$this->_get_survey_folder($survey_id);
+		$survey_folder=$this->_get_survey_folder($fileinfo['survey_id']);
 		
 		//build licensed file path
-		$file_path=$survey_folder.'/'.$fileinfo['filename'];
+		$file_path=unix_path($survey_folder.'/'.$fileinfo['filename']);
 		
 		if (!file_exists($file_path))
 		{
 			show_error('The file was not found.');
-			return;
 		}
 		
 		//download file
@@ -323,46 +330,6 @@ class Access_licensed extends MY_Controller {
 		$survey_folder=unix_path($catalog_root.'/'.$survey_folder);
 		
 		return $survey_folder;
-	}
-	
-	
-	/**
-	*
-	* LIC access by collection
-	*
-	**/
-	function by_collection($repositoryid=NULL)
-	{
-		if ($repositoryid==NULL)
-		{
-			show_404();
-		}
-		
-		if ($this->input->get("request")=="new")
-		{
-			$this->request_form('collection',null,$repositoryid);return;
-		}
-		
-		$user=$this->ion_auth->current_user();
-		
-		//check if user has a pending or approved request
-		$collection_requests=$this->Licensed_model->get_user_collection_requests($user->id,$repositoryid);
-		
-		if ($collection_requests)
-		{
-			$content=$this->load->view('access_licensed/request_list_by_collection',array('lic_coll_requests'=>$collection_requests),TRUE);
-			$this->template->write('title', t('profile'),true);
-			$this->template->write('content', $content,true);
-			$this->template->render();return;
-			echo '<pre>';
-			var_dump($collection_requests);exit;
-			//echo $collection_requests[0]['id'];exit;
-			redirect('access_licensed/track/'.$collection_requests[0]['id'],"refresh");
-		}
-		else
-		{
-			$this->request_form('collection',null,$repositoryid);
-		}	
 	}
 	
 	
@@ -556,7 +523,7 @@ class Access_licensed extends MY_Controller {
 	
 	}	
 	
-	/*
+/*
 	function preview($requestid)
 	{
 		//get user info
@@ -573,30 +540,15 @@ class Access_licensed extends MY_Controller {
 		$data->lname=$user->last_name;
 		$data->organization=$user->company;
 		$data->email=$user->email;
-		if ($data->request_type=='study')
-		{
-			$data->title=$data->surveys[0]['nation']. ' - '.$data->surveys[0]['titl'];
-		}	
-		else
-		{
-			$data->title='collection ['.$data->collection['title'].']';
-		}
+		$data->title=$data->request_title;
 
 		$subject=t('confirmation_application_for_licensed_dataset').' - '.$data->title;
 		$message=$this->load->view('access_licensed/request_form_printable', $data,true);
 	
 		echo $message;
 	}
-	*/
+*/
 	
-	function bulk_request($cid)
-	{
-		if(!is_numeric($cid))
-		{
-			show_404();
-		}
-	
-	}
 		
 }
 /* End of file access_licensed.php */
