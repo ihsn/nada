@@ -1333,9 +1333,17 @@ class Catalog_model extends CI_Model {
 	*
 	* Returns a unique list of all tags
 	**/
-	function get_all_survey_tags()
+	function get_all_survey_tags($repositoryid=NULL)
 	{
 		$this->db->select('tag,count(tag) as total');
+		$this->db->join('surveys','surveys.id=survey_tags.sid','INNER');
+		
+		if ($repositoryid && $repositoryid!='central')
+		{
+			$this->db->join('survey_repos','surveys.id=survey_repos.sid','INNER');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+		
 		$this->db->group_by('tag');
 		return $this->db->get('survey_tags')->result_array();
 	}
