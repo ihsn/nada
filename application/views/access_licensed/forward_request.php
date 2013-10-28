@@ -12,24 +12,9 @@
         <input name="cc" type="text" class="input-flex"/>
     </div>
     
-    <?php 
-	
-	$subject='';
-	
-	if(count($surveys)==1)
-	{
-		$subject=t('data_request_for'). ' - '.$surveys[0]['nation']. ' - '.$surveys[0]['titl'] . ' - '. $surveys[0]['surveyid'];
-	}
-	else
-	{
-		$subject=t('data_request_for_collection');
-	}
-	
-	?>
-    
     <div class="field">        
         <label><?php echo t('subject');?></label>
-        <input name="subject" type="text" class="input-flex" value="FWD: [#<?php echo $id; ?>] - <?php echo $subject;?>"/>        
+        <input name="subject" type="text" class="input-flex" value="FWD: [#<?php echo $id; ?>] - <?php echo form_prep($request_title);?>"/>        
     </div>
 
     <div class="field">        
