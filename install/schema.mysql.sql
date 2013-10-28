@@ -645,9 +645,7 @@ DROP TABLE IF EXISTS `lic_requests`;
 CREATE TABLE `lic_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userid` int(11) NOT NULL,
-  `request_type` varchar(45) DEFAULT 'study',
-  `surveyid` int(11) DEFAULT NULL,
-  `collection_id` varchar(100) DEFAULT NULL,
+  `request_title` varchar(300),
   `org_rec` varchar(200) DEFAULT NULL,
   `org_type` varchar(45) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
@@ -1705,6 +1703,20 @@ CREATE  TABLE `survey_types` (
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_general_ci;
+
+
+-- 
+-- Table structure for table 'survey_lic_requests'
+--
+
+CREATE TABLE `survey_lic_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `request_id` int(11) NOT NULL,
+  `sid` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uq_survey_requests` (`request_id`,`sid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 
 
 --
