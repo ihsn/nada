@@ -30,7 +30,7 @@
 	/**
    	* Track the number of failed login attempts for each user or ip. 
    	**/
-	$config['track_login_attempts'] = TRUE;
+	$config['track_login_attempts'] = FALSE;
 	
 	/**
 	* Set the maximum number of failed login attempts.
