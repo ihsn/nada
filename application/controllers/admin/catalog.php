@@ -32,7 +32,7 @@ class Catalog extends MY_Controller {
 		$this->lang->load('catalog_admin');
 		$this->lang->load('resource_manager');
 
-		//$this->output->enable_profiler(TRUE);	
+		//$this->output->enable_profiler(TRUE);	 
 		//$this->acl->clear_active_repo();
 		
 		//set active repo
@@ -1609,13 +1609,6 @@ class Catalog extends MY_Controller {
 		$total=$this->Catalog_model->search_count();
 		$db_rows['rows']=$this->Catalog_model->search($limit = $ps, $offset = $per_page);
 		$db_rows['active_repo']=$this->active_repo;
-		/*if ($curr_page>$total)
-		{
-			$curr_page=$total-$per_page;
-			
-			//search again
-			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
-		}*/
 		
 		//set pagination options
 		$base_url = site_url('admin/catalog/copy_study');
