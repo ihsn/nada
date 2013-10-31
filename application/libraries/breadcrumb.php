@@ -282,21 +282,23 @@ class Breadcrumb
 					{
 						if ($segments[2]=='track' && is_numeric($segments[3]))
 						{
-							//get survey id
-							$surveyid=$this->get_study_id_by_licensed_request_id($segments[3]);
+							//get request title
+							$request_title=$this->get_lic_request_title($segments[3]);
 							
 							$breadcrumbs['catalog']=$repository_title;
-							$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
-							$breadcrumbs['access_licensed/'.$segments[2]]=t('Request status');
+							//$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
+							$breadcrumbs['auth/profile']=t('Licensed Data Requests');
+							$breadcrumbs[]=$request_title;
 						}
 						
 						if ($segments[2]=='confirm' && is_numeric($segments[3]))
 						{
 							//get survey id
-							$surveyid=$this->get_study_id_by_licensed_request_id($segments[3]);
+							$surveyid=$this->get_lic_request_title($segments[3]);
 							
 							$breadcrumbs['catalog']=$repository_title;
-							$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
+							$breadcrumbs['auth/profile']=t('Licensed Data Requests');
+							//$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
 							$breadcrumbs[]=t('Request confirmation');
 						}
 					}
@@ -693,11 +695,11 @@ class Breadcrumb
 	
 	/**
 	*
-	* Returns the survey info by licensed request id
+	* get lic request title by id
 	**/
-	function get_study_id_by_licensed_request_id($id)
+	function get_lic_request_title($id)
 	{
-		$this->ci->db->select('surveyid');
+		$this->ci->db->select('request_title as title');
 		$this->ci->db->where('id',$id);
 		$query=$this->ci->db->get('lic_requests');
 		
@@ -710,7 +712,7 @@ class Breadcrumb
 		
 		if ($data)
 		{
-			return $data[0]['surveyid'];
+			return $data[0]['title'];
 		}
 		
 		return FALSE;
