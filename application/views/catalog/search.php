@@ -59,7 +59,7 @@
 
 <?php
 //persist vars for sorting
-$qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
+$qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_question','no_datafile','dtype');
 ?>
 <table width="100%">
 <tr>
@@ -213,7 +213,7 @@ $qs_sort=array('titl','nation','surveyid','ps','tag','published','producer');
 <tr>
     <td>
     <?php echo t("select_number_of_records_per_page");?>:
-    <?php echo form_dropdown('ps', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",isset($ps) ? $ps : ''),'id="ps" style="font-size:10px;"'); ?>
+    <?php echo form_dropdown('pagesize', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("pagesize",isset($ps) ? $ps : ''),'id="pagesize" style="font-size:10px;"'); ?>
     </td>
     <td>    
         <div class="pagination">
