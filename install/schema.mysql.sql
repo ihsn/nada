@@ -1596,6 +1596,7 @@ CREATE TABLE `sitelogs` (
   `section` varchar(255) DEFAULT NULL,
   `keyword` text,
   `username` varchar(100) DEFAULT NULL,
+   `useragent` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;

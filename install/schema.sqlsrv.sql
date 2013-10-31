@@ -1155,6 +1155,7 @@ CREATE TABLE sitelogs (
   section varchar(255) DEFAULT NULL,
   keyword varchar(max),
   username varchar(100) DEFAULT NULL,
+  useragent varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
 
