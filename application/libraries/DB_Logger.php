@@ -56,15 +56,16 @@ class DB_Logger{
     	}
 	
 		$log=array(
-				'url'=>substr($this->current_page_url(),0,255),//current_url(),
-				'logtime'=>date("U"),
-				'ip'=>$this->ci->input->ip_address(),
-				'sessionid'=>$this->ci->session->userdata('session_id'),
-				'logtype'=>$type,
-				'surveyid'=>$surveyid,
-				'keyword'=>$message,
-				'username'=>$username,
-				'section'=>$section
+				'url'		=> substr($this->current_page_url(),0,255),//current_url(),
+				'logtime'	=> date("U"),
+				'ip'		=> $this->ci->input->ip_address(),
+				'sessionid'	=> $this->ci->session->userdata('session_id'),
+				'logtype'	=> $type,
+				'surveyid'	=> (int)$surveyid,
+				'keyword'	=> $message,
+				'username'	=> $username,
+				'section'	=> substr($section,0,255),
+				'useragent'	=> substr(strtolower($_SERVER['HTTP_USER_AGENT']),0,300)
 				);
 		
 		return $this->ci->db->insert("sitelogs",$log);
@@ -98,7 +99,7 @@ class DB_Logger{
 	*
 	*  returns true if it is a BOT
 	*/
-	function is_bot()
+	function is_bot($agent=NULL)
 	{
 		//load ignore list
 		$ignore_array=$this->ci->config->item("bot_ignore");
@@ -109,8 +110,11 @@ class DB_Logger{
 			return FALSE;
 		}
 
-		//get the page user agent	 
-		$agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+		if (!$agent)
+		{
+			//get the page user agent	 
+			$agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+		}	
 	
 		//check if the page user-agent is a bot
 		foreach($ignore_array as $bot)
