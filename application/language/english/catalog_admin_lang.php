@@ -161,5 +161,8 @@ $lang['btn_refresh']='Refresh DDI';
 $lang['refresh_ddi_description']='Refresh DDI updates the database with the metadata from the DDI.';
 $lang['total_studies_found']='Total studies found';
 $lang['mark_as_featured']='Display as featured study?';
+$lang['msg_study_ownership_has_changed']='Study ownership changed!';
+$lang['replace_ddi_failed_duplicate_study_found']='The catalog contains another study with the same ID';
+
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
