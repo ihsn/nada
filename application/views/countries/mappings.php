@@ -47,7 +47,7 @@
 </div>
 
 
-<script type="application/javascript">
+<script>
 $(document).ready(function() 
 {	
 	$(".country-list").html($(".country-dropdown select"));
