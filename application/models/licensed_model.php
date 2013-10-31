@@ -739,7 +739,6 @@ class Licensed_model extends CI_Model {
     {
 		//start caching, without this total count will be incorrect
     	$this->db->start_cache();
-
 		
 		//allowed_fields
 		$db_fields=array(
@@ -800,6 +799,9 @@ class Licensed_model extends CI_Model {
 		{
 			$this->db->where(implode(" AND ",$where));
 		}
+		
+		//$where_=implode(" AND ",$where_);		
+		//$this->db->where($where_,NULL,FALSE);
 		
 		$this->db->stop_cache();
 
