@@ -223,7 +223,10 @@
     <span class="btn btn-mini">100</span>
 </div>
 
-<?php else: ?>
+<?php else: //no search results found ?>
+
+	<?php $this->load->view("catalog_search/active_filter_tokens");?>
+
 	<div style="padding:10px;background:white;border:1px solid gainboro;margin-bottom:20px;"><?php echo t('search_no_results');?></div>
     <div><span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span></div>
 <?php endif; ?>
