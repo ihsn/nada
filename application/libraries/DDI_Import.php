@@ -138,12 +138,11 @@ class DDI_Import{
 		// replace will not replace if duplicate survey exists	
 		if ($id!==FALSE && $id!==$target_survey_id)
 		{
-			$this->errors[]=t('study_already_exists')."{$this->ci->db->last_query()} ddi: {$this->ddi_array['study']['id']} source{$id} target {$target_survey_id} ";
+			$this->errors[]=t('replace_ddi_failed_duplicate_study_found');
 			$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');			
-			log_message('ERROR', 'ddi replace aborted: study already exists '.$id);
 			return FALSE;
 		}
-				
+
 		//change old study info with new info
 		$options=array(
 			'surveyid'=>$this->ddi_array['study']['id']
@@ -254,6 +253,14 @@ class DDI_Import{
 		{
 			//get survey aliases
 			$survey_aliases=$this->get_survey_alaises($id);
+			
+			//find the owner repositoryid
+			$owner_repository=$this->get_study_owner_repository($id);
+
+			if ($owner_repository)
+			{
+				$this->repository_identifier=$owner_repository;
+			}
 		}
 		
 		//new survey
@@ -265,7 +272,7 @@ class DDI_Import{
 			if ($insert_result)
 			{
 				//get the ID for newly added survey
-				$id=$this->survey_exists($data->id);
+				$id=$this->survey_exists($data->id);				
 			}	
 			else
 			{
@@ -979,6 +986,27 @@ class DDI_Import{
 		}
 		return FALSE;
 	}
+	
+	
+	/**
+	*
+	* Returns the owner repository for the study
+	**/
+	function get_study_owner_repository($sid)
+	{
+		$this->ci->db->select('repositoryid');
+		$this->ci->db->where('sid',$sid);
+		$this->ci->db->where('isadmin',1);
+		$query=$this->ci->db->get('survey_repos')->row_array();
+
+		if ($query)
+		{
+			return $query['repositoryid'];
+		}
+		return FALSE;	
+	}
+	
+	
 }// END DDI Import Class
 
 /* End of file DDI_Import.php */
