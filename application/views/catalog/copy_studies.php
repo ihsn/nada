@@ -19,6 +19,7 @@ text-transform: capitalize;
 	background: red;
 }
 .linked-studies-count{font-weight:bold;}
+.selected_only{padding-left:15px;}
 </style>
 <?php
 	//set default page size, if none selected
@@ -47,15 +48,6 @@ text-transform: capitalize;
 <!-- search form-->
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="catalog-search">	
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <select name="field" id="field">
-    <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
-    <option value="titl"	<?php echo ($this->input->get('field')=='titl') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
-    <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
-    <option value="surveyid"><?php echo t('survey_id');?></option>
-    <option value="authenty"><?php echo t('producer');?></option>
-    <option value="sponsor"><?php echo t('sponsor');?></option>
-    <option value="repositoryid"><?php echo t('repository');?></option>
-  </select>
   <input type="submit" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
     <a href="<?php echo site_url();?>/admin/catalog"><?php echo t('reset');?></a>
@@ -99,7 +91,13 @@ text-transform: capitalize;
 
 <table width="100%">
     <tr>
-        <td><div class="linked-studies-count"><?php echo t('studies_linked_count');?>: <?php echo count($linked_studies);?></div></td>
+        <td>
+        <div class="linked-studies-count"><?php echo t('studies_linked_count');?>: <?php echo count($linked_studies);?>
+		        <span class="selected_only"><?php echo t('show_selected_only');?>: 
+                	<input type="checkbox" name="selected_only" value="1" id="chk_show_selected" <?php echo $this->input->get("selected_only")==1 ? 'checked="checked"' : '';?> />
+                </span>
+        </div>
+        </td>
         <td align="right">
             <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
         </td>
@@ -111,11 +109,11 @@ text-transform: capitalize;
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
          	<?php if ($this->config->item("regional_search")=='yes'):?>
-			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url); ?></th>
-                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url); ?></th>
+			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url,array("keywords","selected_only")); ?></th>
+                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array("keywords","selected_only")); ?></th>
             <?php endif;?>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array("keywords","selected_only")); ?></th>
+			<th><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array("keywords","selected_only")); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php foreach($rows as $row): ?>
@@ -184,6 +182,10 @@ jQuery(document).ready(function(){
 			var sid=$(this).attr("data-value");
 			$(this).attr("href",attach_url+sid);
 			return false;
+		});
+		
+		$(document.body).on("click","#chk_show_selected", function(event){ 
+			$("#catalog-search").submit();
 		});
 	
 });

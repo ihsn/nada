@@ -1590,6 +1590,45 @@ class Catalog extends MY_Controller {
 			show_error('ACTION_NOT_ALLOWED');
 		}
 		
+		$this->load->library('Copy_studies_search');
+		
+		$ps=(int)$this->input->get("ps");
+		if($ps==0 || $ps>500)
+		{
+			$ps=50;
+		}
+
+		$per_page=(int)$this->input->get("per_page");
+		$sort_by=$this->input->get("sort_by");
+		$sort_order=$this->input->get("sort_order");
+		
+		$search_options=array();
+		
+		$search_valid_options=array("keywords","selected_only");
+		
+		foreach($_GET as $key=>$value)
+		{		
+			if(in_array($key,$search_valid_options))
+			{
+				$search_options[$key]=$this->input->get($key);
+			}
+		}
+		
+		
+		$search_options['repositoryid']=$this->active_repo->repositoryid;
+		
+		//get an array of survey ID that are already linked in the active collection
+		$db_rows['linked_studies']=$this->Repository_model->get_repo_linked_studies($this->active_repo->repositoryid);				
+		
+		if (isset($search_options['selected_only']))
+		{
+			$search_options['selected_only']=$db_rows['linked_studies'];
+		}	
+		
+		$total=$this->copy_studies_search->search_count($search_options);
+		$db_rows['rows']=$this->copy_studies_search->search($search_options,$limit = $ps, $offset = $per_page,$sort_by,$sort_order);
+		$db_rows['active_repo']=$this->active_repo;
+		
 		//set filter on active repo
 		if (isset($this->active_repo) && $this->active_repo!=null)
 		{
@@ -1597,18 +1636,7 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 			$this->Catalog_model->active_repo_negate=TRUE;
 		}
-		
-		
-		$ps=(int)$this->input->get("ps");
-		if($ps==0 || $ps>500)
-		{
-			$ps=15;
-		}
-
-		$per_page=(int)$this->input->get("per_page");		
-		$total=$this->Catalog_model->search_count();
-		$db_rows['rows']=$this->Catalog_model->search($limit = $ps, $offset = $per_page);
-		$db_rows['active_repo']=$this->active_repo;
+				
 		
 		//set pagination options
 		$base_url = site_url('admin/catalog/copy_study');
@@ -1616,7 +1644,7 @@ class Catalog extends MY_Controller {
 		$config['total_rows'] = $total;
 		$config['per_page'] = $ps;
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps','selected_only'));//pass any additional querystrings
 		$config['next_link'] = t('page_next');
 		$config['num_links'] = 5;
 		$config['prev_link'] = t('page_prev');
@@ -1628,9 +1656,6 @@ class Catalog extends MY_Controller {
 		//intialize pagination
 		$this->pagination->initialize($config); 
 
-		//get an array of survey ID that are already linked in the active collection
-		$db_rows['linked_studies']=$this->Repository_model->get_repo_linked_studies($this->active_repo->repositoryid);
-		
 		//load the contents of the page into a variable
 		$content=$this->load->view('catalog/copy_studies', $db_rows,true);
 	
