@@ -63,11 +63,11 @@ else{
     <?php endif;?>
     
     <?php if (isset($search_options->sk) && $search_options->sk!=''):?>
-    <span class="remove-filter sk" data-type="sk" data-value=""><?php echo $search_options->sk;?></span>
+    <span class="remove-filter sk" data-type="sk" data-value=""><?php echo substr($search_options->sk,0,50);?></span>
     <?php endif;?>
     
 	<?php if (isset($search_options->vk) && $search_options->vk!=''):?>
-    <span class="remove-filter vk" data-type="vk" data-value=""><?php echo $search_options->vk;?></span>
+    <span class="remove-filter vk" data-type="vk" data-value=""><?php echo substr($search_options->vk,0,50);?></span>
     <?php endif;?>
 
 	<?php if($found!=$total):?>
