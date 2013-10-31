@@ -125,8 +125,9 @@ jQuery(document).ready(function(){
 	attach_survey_handler();
 
 	//page change
-	$('#ps').change(function() {
-		$('#catalog-search').submit();
+	$(document.body).on("change","#pagesize", function (e){
+		$("#ps").val($("#pagesize").val());
+		$('#form_filter').submit();
 	});	
 });
 
