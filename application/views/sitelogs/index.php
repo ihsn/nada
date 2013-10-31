@@ -98,7 +98,7 @@
     	<tr class="<?php echo $tr_class; ?>">
         	<td><a href="<?php echo current_url();?>/?keywords=<?php echo $row->logtype;?>&field=logtype"><?php echo $row->logtype; ?></a></td>
             <td><a href="<?php echo current_url();?>/?keywords=<?php echo $row->section;?>&field=section"><?php echo $row->section; ?></a></td>
-            <td><span title="<?php echo form_prep($row->url);?>"><?php echo form_prep(substr($row->url,1,50));?></span>&nbsp;</td>
+            <td><span title="<?php echo form_prep($row->url);?>"><?php echo form_prep(substr($row->url,0,50));?></span>&nbsp;</td>
             <td><a href="<?php echo current_url();?>/?keywords=<?php echo form_prep($row->keyword);?>&field=keyword"><?php echo htmlentities($row->keyword); ?></a></td>
 			<td><a href="<?php echo current_url();?>/?keywords=<?php echo $row->username;?>&field=username"><?php echo $row->username; ?></a></td>
 			<td nowrap="nowrap"><?php echo date("m-d-Y H:i",$row->logtime); ?></td>
