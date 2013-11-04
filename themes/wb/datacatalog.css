@@ -725,3 +725,8 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 
 .switch-page-size {margin-top:10px;}
 .filter-container-heading{display:none;}
+
+/*variable description*/
+.var-categories table{border:1px solid gainsboro;}
+.var-categories .header th{border-bottom:1px solid gainsboro;padding:5px;}
+.var-categories table td{padding:2px;}
