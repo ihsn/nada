@@ -92,9 +92,17 @@ License:
                             <xsl:with-param name="caption">Subtitle</xsl:with-param>
                         </xsl:apply-templates>
                     </xsl:if>
+                    
+                    <xsl:if test="normalize-space(ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:parTitl)">
+                        <xsl:apply-templates select="//ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:parTitl" mode="row">
+                            <xsl:with-param name="caption">Translated Title</xsl:with-param>
+                        </xsl:apply-templates>
+                    </xsl:if>
 
-                    <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:serStmt/ddi:serName">
-						<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Study Type</xsl:with-param></xsl:call-template></div>						<xsl:value-of select="substring-before(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'[')"/>						
+                    <xsl:if test="normalize-space(ddi:stdyDscr/ddi:citation/ddi:serStmt/ddi:serName)">
+						<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Study Type</xsl:with-param></xsl:call-template></div>
+                        <xsl:if test="contains(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'[')"><xsl:value-of select="substring-before(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'[')"/></xsl:if>
+                        <xsl:if test="not(contains(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'['))"><xsl:value-of select="//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName"/></xsl:if>
                     </xsl:if>
                     
                     <xsl:if test="//ddi:stdyDscr//ddi:serInfo">
@@ -107,11 +115,12 @@ License:
                     <tr>
                     	<td colspan="2"><div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">ID Number</xsl:with-param></xsl:call-template></div><xsl:value-of select="@ID"/></td>
                     </tr>                    
-                    </xsl:if>
+                    </xsl:if>                                        
+                    
                     </table>
                     
                     <!-- VERSION -->
-             		<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version or ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date ">
+             		<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version or ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date or ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:notes">
 							<div class="xsl-block">
 								<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Version</xsl:with-param></xsl:call-template></div>
 								<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version">
@@ -119,13 +128,22 @@ License:
 										<xsl:with-param name="caption">Version Description</xsl:with-param>
 									</xsl:apply-templates>
 								</xsl:if>
-							</div>							
+							</div>
+                            
 							<!-- production date -->
 							<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date">
 								<div class="xsl-block">
 										<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Production Date</xsl:with-param></xsl:call-template></div>
 										<xsl:apply-templates select="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date" mode="row">
 											<xsl:with-param name="caption">Production Date</xsl:with-param>
+										</xsl:apply-templates>
+								</div>
+							</xsl:if>          
+                            <!-- version notes -->
+							<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:notes">
+								<div class="xsl-block">
+										<xsl:apply-templates select="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:notes" mode="row">
+											<xsl:with-param name="caption">Notes</xsl:with-param>
 										</xsl:apply-templates>
 								</div>
 							</xsl:if>          
