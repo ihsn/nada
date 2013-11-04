@@ -634,7 +634,7 @@ class Catalog extends MY_Controller {
 		}		
 	
 		$this->load->model('Catalog_model');
-		$this->Catalog_model->increment_study_download_count($id);
+		//$this->Catalog_model->increment_study_download_count($id);
 		
 		header("Content-Type: application/xml");
 		header('Content-Encoding: UTF-8');
