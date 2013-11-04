@@ -141,20 +141,29 @@ License:
 		<!-- DESCRIPTION -->
 		<!-- Text -->
 		<xsl:apply-templates select="ddi:txt"/>
-            
-		<!-- Universe -->
-		<xsl:apply-templates select="ddi:universe"/>
+                    
+         <xsl:if test="normalize-space(ddi:qstn)">            
+             <div style="margin-top:10px;">
+        	<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Questions and instructions</xsl:with-param></xsl:call-template></div>
+	            
+               <!-- Universe -->
+				<xsl:apply-templates select="ddi:universe"/>
+                
+                <!-- QUESTIONS -->
+                <div style="padding:5px;"><xsl:apply-templates select="ddi:qstn"/></div>
+			</div>		
+		</xsl:if>
 
 		<!-- Response Unit -->
 		<xsl:apply-templates select="ddi:respUnit"/>
 
     	<!-- CATEGORIES -->
 		<xsl:if test="count(./ddi:catgry)>0">
-            <div class="var-category-container">
-	            <div class="var-category-title"><b><xsl:call-template name="gettext"><xsl:with-param name="msg">Categories</xsl:with-param></xsl:call-template></b></div>
+            <div class="var-categories" style="padding:5px;">
+	            <div class="xsl-caption"><b><xsl:call-template name="gettext"><xsl:with-param name="msg">Categories</xsl:with-param></xsl:call-template></b></div>
 				<div>
 					<table class="varCatgry" >
-							<tr>
+							<tr class="header">
 								<th  align="left"><xsl:call-template name="gettext"><xsl:with-param name="msg">Value</xsl:with-param></xsl:call-template></th>
 								<th  align="left"><xsl:call-template name="gettext"><xsl:with-param name="msg">Category</xsl:with-param></xsl:call-template></th>
 								<xsl:if test="count(./ddi:catgry/ddi:catStat[@type='freq'])>0 and $show_summary_stats='1'">
@@ -175,10 +184,12 @@ License:
 				</xsl:if>
             </div>
 		</xsl:if>        
+        
+        <xsl:apply-templates select="ddi:qstn/ddi:ivuInstr"/>
 
         <!-- Concepts -->
         <xsl:if test="count(ddi:concept)>0">
-            <div class="xsl-caption" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Concepts</xsl:with-param></xsl:call-template></div>
+            <div class="xsl-subtitle" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Concepts</xsl:with-param></xsl:call-template></div>
             <table class="xsl-table" border="1">
                 <tr>
                     <th><xsl:call-template name="gettext"><xsl:with-param name="msg">Concept</xsl:with-param></xsl:call-template></th>
@@ -195,13 +206,7 @@ License:
             </table>        
         </xsl:if>
         
-        <xsl:if test="normalize-space(ddi:qstn)">            
-             <div style="margin-top:10px;">
-        	<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Questions and instructions</xsl:with-param></xsl:call-template></div>
-	            <!-- QUESTIONS -->
-                <div style="padding:5px;"><xsl:apply-templates select="ddi:qstn"/></div>
-			</div>		
-		</xsl:if>
+       
 
         <!-- IMPUTATION / DERIVATION-->
         <xsl:if test="normalize-space(ddi:imputation | ddi:codInstr)">
@@ -269,7 +274,7 @@ License:
 		<xsl:apply-templates select="ddi:preQTxt"/>
 		<xsl:apply-templates select="ddi:qstnLit"/>
 		<xsl:apply-templates select="ddi:postQTxt"/>
-		<xsl:apply-templates select="ddi:ivuInstr"/>
+		<!--<xsl:apply-templates select="ddi:ivuInstr"/>-->
 	</xsl:template>
 	<!-- 4.3.8.1 pre-question  -->
 	<xsl:template match="ddi:preQTxt">
@@ -312,6 +317,7 @@ License:
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
+
 	<!-- 4.3.12 variable universe -->
 	<xsl:template match="ddi:universe">
 		<xsl:call-template name="var_info">
@@ -321,6 +327,7 @@ License:
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
+
 	<!-- 4.3.14 summary statistics -->
 	<xsl:template match="ddi:sumStat">
 		<!-- frequencies -->
