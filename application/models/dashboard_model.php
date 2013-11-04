@@ -84,6 +84,27 @@ class Dashboard_model extends CI_Model {
 		$this->db->where('published', 1); 
 		return $this->db->get('menus')->result_array();
 	}
+	
+	/**
+	* return number of times email messages were not sent in the last 5 days
+	*
+	**/
+	function get_failed_email_count()
+	{
+		$start_date=date("U")-(60*60*48);//48 hours
+		$this->db->select('count(*) as total');
+		$this->db->where('logtype','email-failed');
+		$this->db->where('logtime >=',$start_date);
+		$query=$this->db->get('sitelogs')->row_array();
+		
+		return $query['total'];		
+	}
+	
+	function get_sitelog_count()
+	{
+		$query=$this->db->query('select count(*) as total from sitelogs')->row_array();
+		return $query['total'];
+	}
 
 }
 ?>
