@@ -372,7 +372,7 @@ class Catalog_model extends CI_Model {
 		
 		//get study ownership/link info
 		$this->db->select("*");
-		$this->db->where('sid', $id); 
+		$this->db->where('sid', $survey['id']); 
 		$additional=$this->db->get('survey_repos')->result_array();
 		
 		$survey['repo']=array();
@@ -383,7 +383,7 @@ class Catalog_model extends CI_Model {
 		}
 		
 		//get study countries
-		$survey['country']=$this->get_survey_iso_countries($id);
+		$survey['country']=$this->get_survey_iso_countries($survey['id']);
 
 		return $survey;
 	}
