@@ -254,34 +254,6 @@ class DDIbrowser extends MY_Controller {
 				$html=$this->review_study($id);
 			break;
 
-			/*case 'impact_evaluation':
-				$this->page_title.=' - '.t('impact_evaluation');
-				$html= $this->cache->get( $cache_key );
-				if ($html===FALSE)
-				{	
-					$html=$this->DDI_Browser->get_overview_ie_html($ddi_file,$language);
-					$html=html_entity_decode(url_filter($html));
-					$this->cache->save($cache_key,$html,$cache_ttl);
-				}
-		        $section_url=$current_url.'/impact_evaluation';	
-			break;
-			
-			case 'related_operations':
-				$this->page_title.=' - '.t('related_operations');
-				$html= $this->cache->get(  $cache_key);
-				if ($html===FALSE)
-				{	
-					$html=$this->DDI_Browser->get_overview_related_op_html($ddi_file,$language);
-					$html=html_entity_decode(url_filter($html));
-					$this->cache->save( $cache_key,$html);
-				}
-		        $section_url=$current_url.'/related_operations';	
-			break;
-			
-			case 'summary':
-			break;
-			*/
-
 			case 'accesspolicy':
 				$this->page_title.=' - '.t('access_policy');
 				
@@ -631,12 +603,12 @@ class DDIbrowser extends MY_Controller {
 			break;
 			
 			case 'ddi':
-				$this->db_logger->increment_study_download_count($id);
+				//$this->db_logger->increment_study_download_count($id);
 				$this->_download_ddi($ddi_file);exit;
 			break;
 			
 			case 'download':
-				$this->db_logger->increment_study_download_count($id);
+				//$this->db_logger->increment_study_download_count($id);
 				$this->download($this->uri->segment(4),$this->uri->segment(2));exit;
 			break;
 			
@@ -794,10 +766,6 @@ class DDIbrowser extends MY_Controller {
 		}
 
 		$report_link='';
-
-		$this->load->library('pdf_report');
-		$this->load->model('Catalog_model');
-		$this->load->library('DDI_Browser','','DDI_Browser');
 			
 		//get ddi file path from db
 		$ddi_file=$this->ddi_file;
