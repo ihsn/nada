@@ -88,6 +88,14 @@ License:
 							</xsl:apply-templates>		
 						</xsl:if>
                         
+                        <!-- questionnaires -->
+						<xsl:if test="ddi:stdyDscr//ddi:resInstru">
+							<xsl:apply-templates select="ddi:stdyDscr//ddi:resInstru" mode="row">
+									<xsl:with-param name="caption">Questionnaires</xsl:with-param>
+									<xsl:with-param name="cols">1</xsl:with-param>
+							</xsl:apply-templates>		
+						</xsl:if>
+                        
                         <!-- data collectors -->
 						<xsl:if test="ddi:stdyDscr//ddi:method/ddi:dataColl/ddi:dataCollector">
 							<xsl:apply-templates select="ddi:stdyDscr//ddi:method/ddi:dataColl" />
@@ -436,7 +444,7 @@ License:
 				<xsl:otherwise>
 					<!-- 1-column -->
 						<!--<td  colspan="2">-->
-						<div class="xsl-caption">
+						<div class="xsl-subtitle">
 							<xsl:value-of select="$label"/>
 						</div>
 						<xsl:choose>
