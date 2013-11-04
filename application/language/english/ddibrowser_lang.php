@@ -19,7 +19,7 @@ $lang['statistical_tables'] = "Statistical tables";
 $lang['reports'] = "Reports";
 
 $lang['datasets'] = "Datasets";
-$lang['access_policy'] = "Access policy";
+$lang['access_policy'] = "Data Access";
 $lang['data_files'] = "Data Files";
 $lang['variable_search'] = "Variable Search";
 $lang['other_materials'] = "Other Materials";
