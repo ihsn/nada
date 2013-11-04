@@ -356,20 +356,6 @@ function search_page(num){
 }
 
 
-/*
-(function() {
-escape_re = /[#;&,\.\+\*~':"!\^\$\[\]\(\)=>|\/\\]/;
-jQuery.escape = function jQuery$escape(s) {
-  var left = s.split(escape_re, 1)[0];
-  if (left == s) return s;
-  return left + '\\' + 
-    s.substr(left.length, 1) + 
-    jQuery.escape(s.substr(left.length+1));
-}
-})();
-*/
-
-
 //hashchange event handler
 $(window).bind( 'hashchange', function(e) {
 
@@ -484,9 +470,22 @@ $(window).bind( 'hashchange', function(e) {
 	if(typeof fragments.view != 'undefined'){
 		$("#view").val(fragments.view);
 	}
+	
 	//page size
 	if(typeof fragments.view != 'undefined'){
 		$("#ps").val(fragments.ps);
+	}
+	
+	//sort
+	var sort_fields=["titl","nation","proddate","popularity"];
+	var sort_order=["asc","desc"];
+	
+	if(typeof fragments.sort_by!= 'undefined' && $.inArray(fragments.sort_by,sort_fields)> -1 ){
+		$("#sort_by").val(fragments.sort_by);
+	}
+
+	if(typeof fragments.sort_order!= 'undefined' && $.inArray(fragments.sort_order,sort_order)> -1 ){
+		$("#sort_order").val(fragments.sort_order);
 	}
 		
 	var fragment_str = $.param.fragment();
