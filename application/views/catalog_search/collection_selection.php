@@ -1,8 +1,7 @@
 <div class="container collections-container" >
-<pre><?php //var_dump($repositories);?></pre>
     	<div class="rows-container">
 			<?php foreach($repositories as $section):if(!isset($section['children'])){continue;}?>
-            <div class="row" id="sub-collection-row-<?php echo $section['id'];?>">
+            <div class="row parent-row" id="sub-collection-row-<?php echo $section['id'];?>">
                 <div class="col-1">
                          <input class="chk-sub-collection parent" type="checkbox"                             
                             id="repo-sec-<?php echo $section['id'];?>"
@@ -17,7 +16,7 @@
                     <div class="collection item" >
                         <input class="chk-item" type="checkbox" 
                             value="<?php echo form_prep($collection['repositoryid']); ?>" 
-                            id="repo-<?php echo $collection['repositoryid']?>-<?php echo form_prep($collection['repositoryid']); ?>"
+                            id="repo-<?php echo $section['id']?>-<?php echo form_prep($collection['repositoryid']); ?>"
                             data-type="child"
                             data-name="repo-<?php echo form_prep($collection['repositoryid']); ?>"
                          />
