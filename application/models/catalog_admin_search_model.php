@@ -162,7 +162,12 @@ class Catalog_admin_search_model extends CI_Model {
 
 		if ( trim($where_clause)!='')
 		{
-			$where_clause='('.$where_clause.') AND '.$filter;
+			$where_clause='('.$where_clause.') ';
+			
+			if ($filter!='')
+			{
+				$where_clause.=' AND '.$filter;
+			}
 		}
 		else
 		{
@@ -193,7 +198,6 @@ class Catalog_admin_search_model extends CI_Model {
 				}
 			}			
 		}
-		
 		
 		//search tags
 		$tags=$this->get_param('tag');
@@ -241,7 +245,7 @@ class Catalog_admin_search_model extends CI_Model {
 			}	
 		}
 		
-		if ( trim($where_clause)!='')
+		if ( trim($where_clause)!='' && $active_repo_filter!='')
 		{	
 			$where_clause.= ' AND ' .$active_repo_filter;
 		}
