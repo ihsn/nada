@@ -53,6 +53,7 @@ $overview_items = array();
         <?php if(isset($show_study_items) && $show_study_items==TRUE):?>
         <!--access policy-->
         <li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/accesspolicy',t('access_policy'),array('class'=>'ajax','data-id'=>'accesspolicy')); ?></li>
+		<li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/export-metadata',t('export_metadata'),array('class'=>'ajax','data-id'=>'export-metadata')); ?></li>
         <?php endif;?>
     </ul>
 
