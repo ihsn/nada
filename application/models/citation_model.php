@@ -18,18 +18,14 @@ class Citation_model extends CI_Model {
 		switch($driver)
 		{
 			case 'mysql';
-				//include dirname(__FILE__).'/catalog_search_sqlsrv.php';
-				//return;
 				$this->load->library('citation_search_mysql');
 				$result=$this->citation_search_mysql->search($limit, $offset,$filter,$sort_by,$sort_order,$published,$repositoryid);
 				$this->search_found_rows=$this->citation_search_mysql->search_found_rows;
 				return $result;
 				break;
 			default:
-				//include dirname(__FILE__).'/catalog_search_mysql.php';
-				//return;
 				$this->load->library('citation_search_sql');
-				$result= $this->citation_search_sql->search($limit, $offset,$filter,$sort_by,$sort_order,$published);
+				$result= $this->citation_search_sql->search($limit, $offset,$filter,$sort_by,$sort_order,$published,$repositoryid);
 				$this->search_found_rows=$this->citation_search_sql->search_found_rows;
 				return $result;
 				break;
