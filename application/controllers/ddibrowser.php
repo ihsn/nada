@@ -190,8 +190,6 @@ class DDIbrowser extends MY_Controller {
 		
 		switch($section)
 		{
-			case '':
-			case 'home':
 			case 'info':
 			case 'overview':
 			case 'study-description':
@@ -212,6 +210,22 @@ class DDIbrowser extends MY_Controller {
 						$this->cache->save($cache_key,$html,$cache_ttl);
 					}
 				}	
+			break;
+			
+			case '':
+			case 'home':
+			case 'related_materials':
+				$this->load->model('Resource_model');
+				$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
+				
+				if (!$survey['resources'])
+				{
+					redirect('catalog/'.$id.'/study-description');exit;
+				}
+				
+				$html=$this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
+				$show_data_menu=FALSE;
+				$show_study_menu=FALSE;
 			break;
 			
 			case 'link':
@@ -624,15 +638,7 @@ class DDIbrowser extends MY_Controller {
 			
 			case 'print'://export any page to PDF
 				$this->generate_pdf($ddi_file);exit;
-			break;
-			
-			case 'related_materials':
-				$this->load->model('Resource_model');
-				$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
-				$html=$this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
-				$show_data_menu=FALSE;
-				$show_study_menu=FALSE;
-			break;
+			break;						
 						
 			case 'related_citations':
 				$this->load->model('Citation_model');				
@@ -645,6 +651,15 @@ class DDIbrowser extends MY_Controller {
 				$html=$this->load->view('catalog_search/survey_summary_citations',$survey,TRUE);
 				$show_data_menu=FALSE;
 				$show_study_menu=FALSE;
+			break;
+			
+			case 'export-metadata':			
+				$this->load->model('Resource_model');
+				$this->page_title.=' - '.t('export_metadata');
+				$data['has_resources']=$this->Resource_model->has_external_resources($id);
+				$data['title']=t('export_metadata');
+				$data['id']=$id;
+				$html=$this->load->view("ddibrowser/export_metadata",$data,TRUE);
 			break;
 			
 			case 'get_microdata':
@@ -784,8 +799,8 @@ class DDIbrowser extends MY_Controller {
 		}
 			
 		$this->load->helper('download');
-		log_message('info','Downloading file <em>'.$report_file.'</em>');
-		force_download2($report_file);return;
+		@log_message('info','Downloading file <em>'.$report_file.'</em>');
+		force_download2($report_file);exit;
 	}
 	
 	
