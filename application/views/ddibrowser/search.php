@@ -3,6 +3,9 @@
 <form action="" id="form_vsearch">
 	<input type="text" name="vk" value="<?php echo form_prep($this->input->get('vk')); ?>" size="60" maxlength="100"/>
     <input type="submit" value="<?php echo t('search');?>" name="search" onclick="vsearch('<?php echo $url;?>/ajax/');return false;"/>    
+    <?php if ($this->input->get("vk")):?>
+    <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
+    <?php endif;?>
     <?php /*
     <div>
     <input type="hidden" name="vf[]" id="name" value="name" checked="checked"/>
