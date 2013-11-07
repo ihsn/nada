@@ -147,9 +147,9 @@
                 </a>
             </h2>
             <div class="study-country">
-				<?php //if ($this->regional_search=='yes'):?>
+				<?php if ($this->regional_search=='yes'):?>
                         <?php echo $row['nation']. ',';?>
-                <?php //endif;?>
+                <?php endif;?>
                 <?php 
 					$survey_year=NULL;
 					$survey_year[$row['data_coll_start']]=$row['data_coll_start'];
