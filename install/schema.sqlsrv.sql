@@ -358,6 +358,7 @@ CREATE TABLE surveys (
   project_uri varchar(255) DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
   published tinyint DEFAULT NULL,
+  ft_keywords text,
   total_views int DEFAULT '0',
   total_downloads int DEFAULT '0',
   stats_last_updated int DEFAULT NULL,
@@ -368,6 +369,39 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_surveys on [dbo].[surveys](
 	[surveyid] ASC,
 	[repositoryid] ASC
 );
+
+
+---------------------------------------------------------
+-- trigger to populate fulltext field for SURVEYS
+---------------------------------------------------------
+
+create TRIGGER surveys_ft
+ON surveys
+AFTER INSERT, UPDATE 
+AS
+BEGIN
+
+UPDATE surveys
+SET ft_keywords = ISNULL(titlstmt,'') 
+					+ ' ' + ISNULL(nation,'') 
+					+ ' ' + ISNULL(link_da,'')
+					+ ' ' + ISNULL(surveyid,'')
+					+ ' ' + ISNULL(authenty,'')
+					+ ' ' + ISNULL(geogcover,'')
+					+ ' ' + ISNULL(topic,'')
+					+ ' ' + ISNULL(scope,'')
+					+ ' ' + ISNULL(sername,'')
+					+ ' ' + ISNULL(producer,'')
+					+ ' ' + ISNULL(sponsor,'')
+					+ ' ' + ISNULL(abbreviation,'')
+					+ ' ' + ISNULL(kindofdata,'')
+					+ ' ' + ISNULL(keywords,'')
+					+ ' ' + ISNULL(project_name,'')
+					+ ' ' + ISNULL(project_id,'')
+					
+WHERE id IN (SELECT id FROM INSERTED)
+
+END
 
 
 
