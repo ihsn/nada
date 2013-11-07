@@ -44,41 +44,24 @@ class Data_access_licensed extends CI_Driver {
 			show_ERROR("INVALID_STUDY_ID");
 		}
 		
-		//check study bulk access
-		//$bulk_access=$this->CI->bulk_data_access->study_has_bulk_access($sid);
-		
 		if ($this->CI->input->get("request")=="new")
 		{
 			//show application form
 			return $this->request_form($sid,$user);
 		}
 
-		//find existing requests by the user
-		$requests=$this->CI->Licensed_model->get_requests_by_study($sid,$user->id,$active_only=FALSE);
-		
 		//check url for requestid
 		$request_id=$this->CI->input->get("requestid");
 		
 		//check if a valid request
 		if(is_numeric($request_id))
 		{
-			$request=$this->CI->Licensed_model->get_request_by_id($request_id);
-		
-			if($request['userid']==$user->id)
-			{
-				//get request status
-				$output=$this->track_request($request_id,$user);
-				
-				//if($request['status']!=='
-				if ($request['status']=='APPROVED')
-				{
-					//return data files by request
-					$output.=$this->get_data_files($request_id);
-				}
-				return $output;
-			}
-		
+			redirect('access_licensed/track/'.$request_id);
+			exit;			
 		}
+		
+		//find existing requests by the user
+		$requests=$this->CI->Licensed_model->get_requests_by_study($sid,$user->id,$active_only=FALSE);
 		
 		if($requests)
 		{
