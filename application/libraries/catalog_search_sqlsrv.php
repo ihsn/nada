@@ -105,10 +105,11 @@ class Catalog_search{
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
-		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'titl';
+		
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
-
+						
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections);
 		
@@ -190,7 +191,6 @@ class Catalog_search{
 			$this->ci->db->select(" count(surveys.id) as rowsfound ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			
 			if ($repository!='')
 			{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -229,11 +229,11 @@ class Catalog_search{
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
 		
-		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'titl';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
-
+		
 		//multi-column sort
 		if ($sort_by=='nation')
 		{
@@ -251,6 +251,13 @@ class Catalog_search{
 			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
 		}
 		
+		
+		if (trim($this->study_keywords)!=='')
+		{
+			array_unshift($sort_options,array('sort_by'=>'k.rank', 'sort_order'=>'desc') );
+		}
+		
+
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
 		
@@ -296,6 +303,11 @@ class Catalog_search{
 			}
 			
 			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, surveys.created,surveys.data_coll_start,surveys.data_coll_end,surveys.changed,surveys.total_views,surveys.total_downloads');
+			
+			if (trim($this->study_keywords)!=='')
+			{
+				$this->ci->db->group_by('k.rank');
+			}
 
 			if ($where!='') 
 			{
@@ -338,7 +350,7 @@ class Catalog_search{
 			{
 				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
 			}
-			
+
 			$this->ci->db->limit($limit,$offset);
 			
 			if ($where!='') 
@@ -401,43 +413,67 @@ class Catalog_search{
 		}
 
 		//fix quotes, nada escapes quote
-		$study_keywords=str_replace('&quot;','',$study_keywords);
-		$study_keywords=str_replace('"','',$study_keywords);
-		$study_keywords='"'.$study_keywords.'"';
+		//$study_keywords=str_replace('&quot;','',$study_keywords);
+		//$study_keywords=str_replace('"','',$study_keywords);
+		//$study_keywords='"'.$study_keywords.'"';
 
-		
-		if ($this->use_fulltext)
+		//use freetext search if has no +-s
+		if (strpos($study_keywords," +")!==FALSE || strpos($study_keywords," -")!==FALSE)
 		{
-		//fulltext index name
-		//$study_fulltext_index='surveys.titl,surveys.authenty,surveys.geogcover,surveys.nation,surveys.topic,surveys.scope,surveys.sername,surveys.producer,surveys.sponsor,surveys.refno';
-			return sprintf("( contains((titlstmt,authenty,nation,producer,sponsor,geogcover,abbreviation),%s) )",$this->ci->db->escape($study_keywords));
-		}
+			$bool_search=array();
+			$keywords=preg_replace(array('/\s\+\s/','/\s\-\s/'),array(' +',' -'),$study_keywords);
+			$keywords = preg_replace('/\s\s+/', ' ', $keywords);
 
-		$tmp_where=NULL;
-		$keyword_list=explode(" ", $study_keywords);
-		foreach($keyword_list as $keyword)
-		{
-			if (strlen($keyword) >=3)
+			$keywords_arr=explode(" ",$keywords);
+			
+			$output=array();
+			$op="AND";
+			foreach($keywords_arr as $word)
 			{
-				//get fulltext index name
-				//$fulltext_index=$this->get_variable_search_field(TRUE);
+				if (trim($word)=="")
+				{
+					continue;
+				}
 				
-				//wild card search
-				$tmp_where[]=sprintf('titlstmt like %s',$this->ci->db->escape('%'.$keyword.'%'));
-				$tmp_where[]=sprintf('authenty like %s',$this->ci->db->escape('%'.$keyword.'%'));
-				$tmp_where[]=sprintf('nation like %s',$this->ci->db->escape('%'.$keyword.'%'));
-				$tmp_where[]=sprintf('producer like %s',$this->ci->db->escape('%'.$keyword.'%'));
-				$tmp_where[]=sprintf('sponsor like %s',$this->ci->db->escape('%'.$keyword.'%'));
-				$tmp_where[]=sprintf('geogcover like %s',$this->ci->db->escape('%'.$keyword.'%'));
-			}	
+				if (substr($word,0,1)=='+')
+				{
+					$op="AND";
+					$output[$op][]=substr($word,1,strlen($word));
+				}
+				else if (substr($word,0,1)=='-')
+				{
+					$op="NOT";
+					$output[$op][]=substr($word,1,strlen($word));
+				}
+				else
+				{
+					$output[$op][]=$word;
+				}	
+			}
+			
+			//for searches such as -national -education change them to national and education
+			if (!isset($output['AND']) && isset($output['NOT']))
+			{
+				$output['AND']=$output['NOT'];
+				unset($output['NOT']);
+			}
+			
+			$query= implode(" AND ",$output['AND']);
+			
+			//both AND and NOT are searched
+			if (isset($output['NOT']) && isset($output['AND']))
+			{
+				$query.= ' AND NOT '.'('.implode(" OR ",$output['NOT']).')';
+			}
+			
+			$this->ci->db->join("containstable(surveys, (ft_keywords), ".$this->ci->db->escape($query).") k","surveys.id=k.[key]","INNER");
+			
+		}
+		else //freetext query
+		{
+			$this->ci->db->join("freetexttable(surveys, (ft_keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER");		
 		}
 
-		if ($tmp_where!=NULL)
-		{
-			return '('.implode(' OR ',$tmp_where).')';
-		}
-		
-		return FALSE;
 	}
 	
 			
@@ -451,14 +487,14 @@ class Catalog_search{
 			return FALSE;
 		}
 		
-		$variable_keywords=str_replace('&quot;','',$variable_keywords);
-		$variable_keywords=str_replace('"','',$variable_keywords);
-		$variable_keywords='"'.$variable_keywords.'"';
+		//$variable_keywords=str_replace('&quot;','',$variable_keywords);
+		//$variable_keywords=str_replace('"','',$variable_keywords);
+		//$variable_keywords='"'.$variable_keywords.'"';
 
 		if ($this->use_fulltext)
 		{
 			$fulltext_index=$this->get_variable_search_field(TRUE);
-			return sprintf("( contains((%s),%s) )",$fulltext_index,$this->ci->db->escape($variable_keywords));
+			return sprintf("( freetext((%s),%s) )",$fulltext_index,$this->ci->db->escape($variable_keywords));
 		}
 			
 		$tmp_where=NULL;
