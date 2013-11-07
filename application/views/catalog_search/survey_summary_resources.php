@@ -1,6 +1,7 @@
 <?php if($resources):?>
 <div style="padding-top:20px;">
 <h2><?php echo t('study_resources');?></h2>
+<div class="subtext"><?php echo t('study_documentation_text');?></div>
 <div class="resources">
     <?php $class="resource"; ?>
 	<?php foreach($resources as $key=>$resourcetype):?>
