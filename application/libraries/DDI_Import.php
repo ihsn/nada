@@ -93,8 +93,6 @@ class DDI_Import{
 			//get survey folder path
 			$survey_folder=$this->_get_survey_folder($this->ddi_array['study']['id'],$this->repository_identifier);
 			
-			log_message("error", "survye-folder-path::::".$survey_folder);
-			
 			//update survey path in database
 			$this->update_survey_pathinfo($survey_folder);
 
@@ -771,10 +769,6 @@ class DDI_Import{
 		{
 			$survey_file_path=unix_path($survey_folder."/$surveyid.xml");
 
-			log_message('error', "survey_folder:".$survey_folder);
-			log_message('error', "ddi_source_path:".$ddi_source_path);
-			log_message('error', "survey_file_path:".$survey_file_path);
-						
 			//if source and target are same, don't copy
 			if (unix_path($ddi_source_path)==($survey_file_path))
 			{
