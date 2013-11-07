@@ -126,7 +126,7 @@ $lang['licensed_title']='Licensed data files';
 $lang['direct_title']='Direct access files';
 $lang['data_na_title']='Studies with no data available';
 $lang['remote_title']='Data available from external repository';
-$lang['data_is_available_from_external_repository']='Data for the study is available from an external site, please use the link below:';
+$lang['data_is_available_from_external_repository']='Data for the study is available from an external website, please use the link below:';
 $lang['exit_impersonate'] = "Exit impersonate mode";
 $lang['content_is_not_published']='The content for the current page is not published yet and is only available for reviewing.';
 $lang['licensed_requests'] = 'Licensed requests';
@@ -135,6 +135,8 @@ $lang['create_region'] = 'Create region';
 $lang['tab_about'] = "About";
 $lang['tab_datasets'] = "Datasets";
 $lang['tab_citations'] = "Citations";
+$lang['tab_collections'] = "Collections";
+$lang['collection'] = "Collection";
 
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

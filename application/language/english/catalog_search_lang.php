@@ -37,7 +37,7 @@ $lang['showing_pages']="Page %s of %d";
 $lang['variables_keywords_found']="Keyword(s) found in %d variable(s) out of %d";
 $lang['link_browse_metadata']="Browse metadata";
 $lang['link_browse_metadata_hover']="Browse metadata";
-$lang['link_access_policy']="Access policy";
+$lang['link_access_policy']="Access Policy";
 $lang['link_access_policy_hover']="Microdata access policy";
 $lang['link_data']="Data";
 $lang['link_data_direct_hover']="Microdata request form (Direct access)";
@@ -78,8 +78,8 @@ $lang['download_pdf']="Download PDF";
 $lang['click_to_browse_metadata']="Click here to browse metadata";
 $lang['producers']="Producer(s)";
 $lang['sponsors']="Sponsor(s)";
-$lang['citations_of_publications']="Citations of publications that used the study";
-$lang['study_resources']="Related Materials";
+$lang['citations_of_publications']="Related publications";
+$lang['study_resources']="Documentation";
 $lang['click_to_view_information']="Click to view information";
 $lang['view_more_information']="View more information";
 $lang['technical_documents']="Technical documents";
@@ -97,8 +97,8 @@ $lang['source']="Source";
 $lang['download_ddi']="Download DDI";
 $lang['link_data_remote_hover']="Microdata available from external repository";
 $lang['collections']="Collection(s)";
-$lang['legend_data_direct']="Direct access";
-$lang['legend_data_public']="Public use files";
+$lang['legend_data_direct']="Direct data access";
+$lang['legend_data_public']="Public use data files";
 $lang['legend_data_licensed']="Licensed data files";
 $lang['legend_data_enclave']="Data enclave";
 $lang['legend_data_remote']="Data available from external repository";
@@ -154,7 +154,7 @@ $lang['page_views'] = "Page views";
 $lang['downloads'] = "Downloads";
 
 $lang['select_countries'] = "Select Countries";
-$lang['in_alphabatic_order'] = "In alphabatic order";
+$lang['in_alphabatic_order'] = "In alphabetical order";
 $lang['By Income'] = "By income";
 $lang['By Region'] = "By region";
 
@@ -173,12 +173,17 @@ $lang['next'] = "Next";
 $lang['search_by_keyword'] = "Search by Keyword";
 $lang['filter_by_year'] = "Filter by Year";
 
-$lang['any'] = "Any";
+$lang['any'] = "All";
 $lang['views'] = "Views";
 $lang['metadata'] = "Metadata";
 $lang['citations'] = "Citations";
 $lang['popularity'] = "Popularity";
 $lang['To compare, select two or more variables'] = "To compare, select two or more variables";
+
+$lang['related_materials_tab_info'] = "Related documentation: questionnaires, reports, technical documents, tables";
+$lang['study_description_tab_info'] = "Study metadata: overview, abstract, sampling, funding, processing, access policy";
+$lang['related_citations_tab_info'] = "Links to publications that have used the data from this study";
+$lang['data_dictionary_tab_info'] = "Description of data files and variables";
 $lang['featured_study'] = "Featured Study";
 
 
