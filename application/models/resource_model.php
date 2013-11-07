@@ -700,5 +700,29 @@ class Resource_model extends CI_Model {
 
 		return $file_path;		
 	}
+	
+	
+	/**
+	*
+	* Check if resource already exists for a study
+	*
+	* @filepath	relative path to the resource
+	*/
+	function survey_resource_exists($sid,$title,$dctype,$filename)
+	{
+		$this->db->select('count(*) as found');
+		$this->db->where('survey_id', $sid); 
+		$this->db->where('filename', $filename);
+		$this->db->where('dctype', $dctype); 
+		$query=$this->db->get('resources')->row_array();
+		
+		if ($query['found']>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
+	}
+
 }
 ?>
