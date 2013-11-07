@@ -1258,9 +1258,9 @@ class Catalog extends MY_Controller {
 					$insert_data['filename']=substr($insert_data['filename'],2,255);
 				}												
 			}
-			
-			//check if the resource file already exists
-			$resource_exists=$this->Resource_model->get_resources_by_filepath($insert_data['filename']);
+
+			//check if the resource already exists for the study
+			$resource_exists=$this->Resource_model->survey_resource_exists($surveyid,$insert_data['title'],$insert_data['type'],$insert_data['filename']);
 			
 			if (!$resource_exists)
 			{										
