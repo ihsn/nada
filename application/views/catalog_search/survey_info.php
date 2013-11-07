@@ -77,22 +77,18 @@
 	<?php endif;?>
 
 	<?php $report_file=unix_path($this->survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$id.'.pdf');?>
-    <tr>
+    <?php if (file_exists($report_file)):?>
+    <tr>    
     	<td><?php echo t('metadata');?></td>
-        <td class="links">
-            <?php if (file_exists($report_file)):?>
+        <td class="links">            
             <span class="link-col sep">
                 <a href="<?php echo site_url()."/ddibrowser/$id/export/?format=pdf&generate=yes";?>" title="<?php echo t('pdf');?>" rel="nofollow">
                 <img border="0" title="<?php echo t('link_pdf');?>" alt="PDF" src="images/pdf.gif" /> <?php echo t('documentation_in_pdf');?>
                 </a> 
-            </span>
-            <?php endif;?>
-            <span class="link-col sep"><a href="<?php echo site_url('catalog/ddi').'/'.$id;?>"><?php echo t('download_ddi');?></a></span>
-            <?php if ($has_resources):?>
-            <span class="link-col"><a href="<?php echo site_url('catalog/rdf').'/'.$id;?>"><?php echo t('download_rdf');?></a></span>    
-            <?php endif;?>
+            </span>            
         </td>
     </tr>
+    <?php endif;?>
     
     <?php if($link_indicator!='' || $link_study!=''): ?>
     <tr>
