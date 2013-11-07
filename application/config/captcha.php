@@ -6,10 +6,10 @@
 | Which captcha driver to use?
 |--------------------------------------------------------------------------
 |
-| options are: image_captcha, recaptcha
+| options are: none, image_captcha, recaptcha
 */
 
-$config['captcha_driver']='image_captcha';
+$config['captcha_driver']='none';
 
 /*
 |--------------------------------------------------------------------------
