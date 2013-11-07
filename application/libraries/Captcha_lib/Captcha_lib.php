@@ -5,6 +5,7 @@ class Captcha_lib extends CI_Driver_Library
 	protected $valid_drivers 	= array(
 		'Captcha_lib_recaptcha', 
 		'Captcha_lib_image_captcha', 
+		'Captcha_lib_none', 
 	);
 	
 	//default driver to load if no driver is specified
