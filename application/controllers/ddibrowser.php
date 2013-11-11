@@ -120,7 +120,7 @@ class DDIbrowser extends MY_Controller {
 	* Show DDI page by section
 	*
 	**/
-	function _section($id,$section)
+	function _section($id,$section, $ignore_log=FALSE)
 	{
 		$this->load->model('Catalog_model');
 		$this->load->model('Repository_model');
@@ -147,10 +147,13 @@ class DDIbrowser extends MY_Controller {
 		//logged in user
 		$user=$this->ion_auth->current_user();
 		
-		//log
-		$this->db_logger->write_log('survey',$this->uri->segment(4),$section,$id);
-		$this->db_logger->increment_study_view_count($id);
-
+		if (!$ignore_log)
+		{
+			//log
+			$this->db_logger->write_log('survey',$this->uri->segment(4),$section,$id);
+			$this->db_logger->increment_study_view_count($id);
+		}
+		
 		//check user has review permissions
 		$review_study_enabled=$this->acl->user_can_review($id);
 		
@@ -220,7 +223,7 @@ class DDIbrowser extends MY_Controller {
 				
 				if (!$survey['resources'])
 				{
-					$this->_section($id,'study-description');return;
+					$this->_section($id,'study-description',$ignore_logging=TRUE);return;
 				}
 				
 				$html=$this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
