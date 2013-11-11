@@ -670,8 +670,7 @@ class Catalog extends MY_Controller {
 			show_404();
 		}
 		
-		$this->Catalog_model->increment_study_download_count($id);
-		
+		//$this->Catalog_model->increment_study_download_count($id);		
 
 		if (file_exists($ddi_file))
 		{
