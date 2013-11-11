@@ -730,3 +730,14 @@ background: url(tab-active-arrow.png) bottom center no-repeat;
 .var-categories table{border:1px solid gainsboro;}
 .var-categories .header th{border-bottom:1px solid gainsboro;padding:5px;}
 .var-categories table td{padding:2px;}
+
+.bullet-list {
+	margin-left: 20px;
+	list-style: outside disc;
+	margin-bottom: 15px;
+}
+
+.bullet-list li {
+list-style: disc;
+line-height: 20px;
+}
