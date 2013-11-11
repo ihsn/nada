@@ -220,7 +220,7 @@ class DDIbrowser extends MY_Controller {
 				
 				if (!$survey['resources'])
 				{
-					redirect('catalog/'.$id.'/study-description');exit;
+					$this->section($id,'study-description');return;
 				}
 				
 				$html=$this->load->view('catalog_search/survey_summary_resources',$survey,TRUE);
