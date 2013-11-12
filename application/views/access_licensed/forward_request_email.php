@@ -48,19 +48,19 @@ else
 
     <tr class="border">
       <td width="200px"><?php echo t('first_name');?></td>
-      <td><span class="ures"><?php echo get_form_value('fname',isset($fname) ? $fname : ''); ?></span></td>
+      <td><span class="ures"><?php echo get_form_value('fname',isset($user['fname']) ? $user['fname'] : ''); ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('last_name');?></td>
-      <td><span class="ures"><?php echo get_form_value('lname',isset($lname) ? $lname: ''); ?></span></td>
+      <td><span class="ures"><?php echo get_form_value('lname',isset($user['lname']) ? $user['lname']: ''); ?></span></td>
     </tr>
     <tr  class="border">
       <td><?php echo t('organization');?></td>
-      <td><span class="ures"><?php echo get_form_value('organization',isset($organization) ? $organization : ''); ?></span></td>
+      <td><span class="ures"><?php echo get_form_value('organization',isset($user['organization']) ? $user['organization'] : ''); ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('email');?></td>
-      <td><span class="ures"><?php echo get_form_value('email',isset($email) ? $email : ''); ?></span></td>
+      <td><span class="ures"><?php echo get_form_value('email',isset($user['email']) ? $user['email'] : ''); ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('dataset_requested');?></td>
