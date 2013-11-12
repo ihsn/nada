@@ -166,7 +166,11 @@ class Access_licensed extends MY_Controller {
 			$this->template->set_template('default');
 		}
 
-		$this->template->add_css('css/forms.css');	
+		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.accordion.min.js');
+
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
 	}
@@ -210,6 +214,44 @@ class Access_licensed extends MY_Controller {
 		return $this->load->view("access_licensed/track_request_downloads",$data,TRUE);
 	}
 
+	/**
+	* return resources by request id
+	**/
+	function get_resources($sid=NULL,$request_id=NULL)
+	{
+		$this->load->helper('file');
+		$this->load->helper("resource_helper");
+		$this->load->model("Resource_model");
+		
+		if (!is_numeric($sid) || !is_numeric($request_id))
+		{
+			show_error('INVALID-REQUEST');
+		}
+		
+		$request=$this->Licensed_model->get_request_by_id($request_id);		
+		
+		//request has no surveys attached
+		if (!isset($request['surveys']) || count($request['surveys'])==0)
+		{
+			return FALSE;
+		}
+
+		//survey must be part of the request
+		if (!array_key_exists($sid,$request['surveys']))
+		{
+			show_error("INVALID-REQUEST");
+		}
+		
+		//get files by request id and survey id
+		$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
+		$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
+		$data['request']=$request;
+		$data['survey_folder']=$this->_get_survey_folder($sid);
+		$data['sid']=$sid;
+		$data['request_id']=$request_id;
+		
+		echo $this->load->view("access_licensed/request_resources",$data,TRUE);		
+	}
 
 	
 	/**
