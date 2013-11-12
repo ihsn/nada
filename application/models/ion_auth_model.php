@@ -103,23 +103,7 @@ class Ion_auth_model extends CI_Model
 	    	return FALSE;
 	    }
 	    
-		return $this->password_hasher->hash_password($password);
-		
-		//return md5($password);//M1
-		
-		/*
-	    if ($this->store_salt && $salt) 
-		{
-			return  md5($password . $salt);
-			//return  sha1($password . $salt);
-		}
-		else 
-		{			
-	    	$salt = $this->salt();
-			log_message('error', "salt=".$salt);
-	    	return  $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
-		}
-		*/		
+		return $this->password_hasher->hash_password($password);		
 	}
 	
 	/**
@@ -152,20 +136,6 @@ class Ion_auth_model extends CI_Model
 
 		
 		$this->password_hasher->hash_password($password);
-		//return md5($password);//M1
-		
-		/*
-		if ($this->store_salt) 
-		{
-			return sha1($password . $result->salt);
-		}
-		else 
-		{
-			$salt = substr($result->password, 0, $this->salt_length);
-	
-			return $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
-		}
-		*/
 	}
 	
 	/**
@@ -533,8 +503,6 @@ class Ion_auth_model extends CI_Model
         }
 		
 		$password = $this->hash_password($password, $salt);
-		
-		log_message('error', "password=".$password);
 		
         // Users table.
 		$data = array(
@@ -1467,24 +1435,7 @@ class Ion_auth_model extends CI_Model
 		return $groups;
 	}
 
-	/**
-	*
-	* Returns user groups by repo id
-	**/
-	/*
-	function xget_user_groups_by_repo($id)
-	{
-		$this->db->select("*");
-		$this->db->where("repo_id",$id);
-		$query=$this->db->get('group_repo_access');
 	
-		if (!$query)
-		{
-			return FALSE;
-		}
-		
-		return $query->result_array();
-	}*/
 	
 	/**
 	*
