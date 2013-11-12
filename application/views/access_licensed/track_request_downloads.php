@@ -33,11 +33,8 @@
 .resources .active{border:1px solid gainsboro;margin-bottom:20px;}
 .resource .caption{font-weight:bold;}
 
-
-.survey-request-downloads-container {clear:both;}
-.survey-request-downloads-container .survey-list-row{float:left;width:250px;border-right:1px solid gainsboro;}
-.survey-request-downloads-container .resources-container{border-left:1px solid gainsboro;margin-left:250px;}
-.survey-request-downloads-container{overflow:auto;border-top:1px solid gainsboro;}
+#accordion{font-size:12px;}
+.ui-state-active{font-weight:bold;}
 </style>
 
 <?php
@@ -81,52 +78,68 @@ $request_url=site_url('access_licensed/track/'.$id);
 </table>
 -->
 
-<div class="survey-request-downloads-container" >
-    <div class="survey-list-row">
-    <?php foreach ($surveys as $survey):?>
-    	<?php if (!in_array($survey['id'],$surveys_with_files)){continue;}?>
-        <div class="survey-row <?php echo ($sid==$survey['id']) ? 'survey-active' :'';?>">
-            <div class="title"><?php echo anchor($request_url.'?sid='.$survey['id'],$survey['titl']);?></div>
-            <div class="sub"><?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?></div>
-        </div>
-    <?php endforeach;?>
-    </div>
+
+<div id="accordion">
+<?php $k=0;foreach ($surveys as $survey):?>
+	<?php if (!in_array($survey['id'],$surveys_with_files)){continue;}?>
+    <?php 
+	if ($sid==$survey['id']) {
+		$active_survey=$k;
+	}
+	$k++;
+	?>
+  <h3 data-id="survey-<?php echo $survey['id'].'-'.$id;?>" data-url="<?php echo site_url('access_licensed/get_resources/'.$survey['id'].'/'.$id);?>">
+  	<?php echo anchor($request_url.'?sid='.$survey['id'],$survey['titl']);?> - <?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?>
+  </h3>
+  <div id="survey-<?php echo $survey['id'].'-'.$id;?>-resources" >
+    <?php if ($sid==$survey['id']):?>
     <div class="resources-container">
         <div class="survey-resources">
-            <div class="survey-info">
-                <h3><?php echo $surveys[$sid]['titl'];?></h3>
-                <h4><?php echo $surveys[$sid]['nation'];?>, <?php echo $surveys[$sid]['data_coll_start'];?></h4>
-            </div>
-        
             <?php $this->load->view('access_licensed/survey_resources_microdata',array('resources_microdata'=>$microdata_resources,'request_id'=>$id));?>
             <br style="margin-top:20px;"/>
             <?php $this->load->view('access_licensed/survey_resources',array('resources'=>$external_resources,'request_id'=>$id));?>
         </div>
     </div>
+	<?php else:?>
+    ...
+    <?php endif;?>
+  </div>
+<?php endforeach;?>
 </div>
 
 
 <?php endif;?>
 
-<!--survey summary resources-->
+<!--survey summary resources--> 
 <script type="text/javascript">
 	function toggle_resource(element_id){
 		$("#"+element_id).parent(".resource").toggleClass("active");
 		$("#"+element_id).toggle();
 	}
 	
-	$(document).ready(function () { 
-		bind_behaviours();
-	});	
-	
-	function bind_behaviours() {
-		//show variable info by id
-		$(".resource-info").unbind('click');
-		$(".resource-info").click(function(){
-			if($(this).attr("id")!=''){
-				toggle_resource('info_'+$(this).attr("id"));
-			}
-			return false;
-		});			
-	}
+	$(document.body).on("click",".resource-info", function(){ 
+		if($(this).attr("id")!=''){
+			toggle_resource('info_'+$(this).attr("id"));
+		}
+		return false;
+	});			
+
+$(function() {
+	$( "#accordion" ).accordion({
+		collapsible: true,
+		heightStyle: "content",
+		
+		activate: function (event, ui){
+			var container = "#"+$(this).find('.ui-state-active').attr('data-id')+"-resources";
+			var url=$(this).find('.ui-state-active').attr('data-url');
+			$(container).html('<img src="images/loading.gif"/> loading...');
+			$(container).load(url,function(response){});
+		},
+		beforeActivate: function( event, ui ){
+			var container = "#"+$(this).find('.ui-state-active').attr('data-id')+"-resources";
+			$(container).html('<img src="images/loading.gif"/> loading...');
+		},
+		active: <?php echo $active_survey;?>
+	});
+});
 </script>
