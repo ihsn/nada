@@ -50,6 +50,7 @@
     <td><?php echo t('request_title');?></td>
     <td><?php echo $request_title;?></td>
     </tr>
+    <!--
 	<tr valign="top">
 		<td style="width:150px;">
 		<?php echo t('datasets_requested');?> <?php $count=count($surveys); echo ($count>1) ? ': '.$count : '';?>
@@ -63,6 +64,7 @@
         </div>
         </td>
 	</tr>
+    -->
     <?php endif;?>
 	<tr>
 		<td nowrap="nowrap"><?php echo t('date_requested');?></td>
