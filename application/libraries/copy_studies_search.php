@@ -64,9 +64,6 @@ class Copy_studies_search
 	{
 		$where=array();
 		
-		//show only licensed surveys
-		//$where[]=" forms.model='licensed'";
-		
 		foreach($search_options as $key=>$value)
 		{
 			if ($key=='keywords' && trim($value)!="" )
@@ -78,7 +75,7 @@ class Copy_studies_search
 						$this->ci->db->escape('%'.$value.'%')
 						);
 			}
-			else if ($key=='selected_only' && is_array($value))//attached studies only
+			else if ($key=='selected_only' && is_array($value) && count($value)>0)//attached studies only
 			{
 				$where[]=sprintf(" (surveys.id in (%s) )",implode(",",$value) );
 			}
