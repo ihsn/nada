@@ -1,5 +1,11 @@
 <div class="body-container" style="padding:10px;">
 
+<div class="page-links">
+	<a href="<?php echo site_url('admin/countries/add'); ?>" class="button"><img src="images/page_white.png"/><?php echo t('add_country');?></a>
+	<a href="<?php echo site_url('admin/countries/mappings'); ?>" class="button"><img src="images/page_white.png"/><?php echo t('country_mappings');?></a> 
+</div>
+
+
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
