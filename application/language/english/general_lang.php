@@ -138,5 +138,11 @@ $lang['tab_citations'] = "Citations";
 $lang['tab_collections'] = "Collections";
 $lang['collection'] = "Collection";
 
+$lang['add_country'] = "Add new country";
+$lang['countries'] = "Countries";
+$lang['iso'] = "ISO";
+$lang['edit_country'] = "Edit country";
+$lang['country_mappings'] = "Country mappings";
+
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */
