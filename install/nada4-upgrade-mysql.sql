@@ -759,3 +759,23 @@ CREATE  TABLE `survey_types` (
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_general_ci;
+
+
+-- 
+-- Table structure for table 'survey_lic_requests'
+--
+
+CREATE TABLE `survey_lic_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `request_id` int(11) NOT NULL,
+  `sid` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uq_survey_requests` (`request_id`,`sid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+-- 
+-- Alter table structure for table 'sitelogs'
+--
+   
+ALTER TABLE `sitelogs` COLLATE = utf8_general_ci , 
+ADD COLUMN `useragent` varchar(300) DEFAULT NULL;
