@@ -192,7 +192,7 @@ class DDI_Import{
 				$nation_arr[$key]=trim($value);
 			}
 		}
-
+		
 		//insert study description
 		$row = array(
 			'repositoryid'=>$this->repository_identifier,
@@ -201,7 +201,7 @@ class DDI_Import{
 			'abbreviation'=>substr(trim($data->abbreviation),0,45),
 			'kindofdata'=>substr(trim($data->kindofdata),0,254),
 			'titlstmt'=>$data->titlstmt,
-			'authenty'=>json_encode($authenty_arr),//substr($data->authenty,0,254),
+			'authenty'=>substr(implode("<BR>",$authenty_arr),0,255),//substr($data->authenty,0,254),
 			'geogcover'=>substr($data->geogcover,0,254),
 			'nation'=>substr(implode(", ",$nation_arr),0,255),
 			'topic'=>serialize($data->topics),
