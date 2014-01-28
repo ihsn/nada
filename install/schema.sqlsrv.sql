@@ -382,20 +382,19 @@ AS
 BEGIN
 
 UPDATE surveys
-SET ft_keywords = ISNULL(titlstmt,'') 
+SET ft_keywords = ISNULL(cast(titlstmt as varchar(max)),'')
 					+ ' ' + ISNULL(nation,'') 
 					+ ' ' + ISNULL(link_da,'')
 					+ ' ' + ISNULL(surveyid,'')
 					+ ' ' + ISNULL(authenty,'')
 					+ ' ' + ISNULL(geogcover,'')
-					+ ' ' + ISNULL(topic,'')
-					+ ' ' + ISNULL(scope,'')
+					+ ' ' + ISNULL(cast(scope as varchar(max)),'')
 					+ ' ' + ISNULL(sername,'')
 					+ ' ' + ISNULL(producer,'')
 					+ ' ' + ISNULL(sponsor,'')
 					+ ' ' + ISNULL(abbreviation,'')
 					+ ' ' + ISNULL(kindofdata,'')
-					+ ' ' + ISNULL(keywords,'')
+					+ ' ' + ISNULL(cast(keywords as varchar(max)),'')
 					+ ' ' + ISNULL(project_name,'')
 					+ ' ' + ISNULL(project_id,'')
 					
@@ -458,9 +457,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_cache on [dbo].[cache](
 --
 -- Table structure for table forms
 --
-
 CREATE TABLE forms (
-  formid int NOT NULL DEFAULT '0',
+  formid int NOT NULL IDENTITY(1,1),
   fname varchar(255) DEFAULT '',
   model varchar(255) DEFAULT '',
   path varchar(255) DEFAULT '',
@@ -472,8 +470,10 @@ CREATE TABLE forms (
 --
 -- Dumping data for table forms
 --
+set IDENTITY_INSERT forms ON;
 INSERT INTO forms (formid,fname,model,path,iscustom)
 VALUES (2,'Public use files','public','orderform.php','1'),(1,'Direct access','direct','direct.php','1'),(3,'Licensed data files','licensed','licensed.php','1'),(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),(5,'Data available from external repository','remote','remote','1'),(6,'Data not available','data_na','data_na','1');
+set IDENTITY_INSERT forms OFF;
 
 
 --
@@ -650,7 +650,7 @@ CREATE TABLE lic_files_log (
 CREATE TABLE terms (
   tid int NOT NULL IDENTITY(1,1),
   vid int NOT NULL,
-  pid int NOT NULL,
+  pid int DEFAULT NULL,
   title varchar(255) NOT NULL,
   PRIMARY KEY (tid)
 );
@@ -1312,7 +1312,7 @@ KEY INDEX pk_idx_variables;
 
 
 ---
---- Table structure for table `featured_surveys`
+--- Table structure for table featured_surveys
 ---
 
 CREATE TABLE featured_surveys (
@@ -1332,7 +1332,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_featured_surveys on [dbo].[featured_surveys]
 
 
 --
--- Table structure for table `survey_types`
+-- Table structure for table survey_types
 --
 
 CREATE  TABLE survey_types (
@@ -1343,4 +1343,22 @@ CREATE  TABLE survey_types (
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_survey_types on [dbo].[survey_types](
 	[title] ASC
+);
+
+
+-- 
+-- Table structure for table 'survey_lic_requests'
+--
+
+CREATE TABLE survey_lic_requests (
+  id int NOT NULL IDENTITY(1,1),
+  request_id int NOT NULL,
+  sid int NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_lic_req on [dbo].[survey_lic_requests](
+	[request_id] ASC,
+	[sid] ASC
 );
