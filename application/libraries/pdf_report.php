@@ -48,7 +48,7 @@ class PDF_Report{
 	
 		//supress all errors
 		$error_level=error_reporting();
-		error_reporting(0);		
+		error_reporting(E_ERROR);		
 		
 		$stylesheet='body,html,*{font-size:12px;font-family:arial,verdana}'."\r\n";
 		$stylesheet.= @file_get_contents(APPPATH.'../themes/ddibrowser/ddi.css');
@@ -233,7 +233,7 @@ class PDF_Report{
 		
 		//get the xml translation file path
 		$language_file=$this->ci->DDI_Browser->get_language_path($language['lang']);
-		
+
 		if ($language_file)
 		{
 			//change to the language file (without .xml) in cache
@@ -247,7 +247,7 @@ class PDF_Report{
 		
 		//$output=str_replace('php-survey-id',$surveyid, $output);
 		$output=str_replace('<table ','<table repeat_header="1" ', $output);
-		return html_entity_decode(url_filter($output));
+		return url_filter($output);
 	}
 	
 }// END PDF_Report Class
