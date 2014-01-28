@@ -36,7 +36,7 @@ License:
 <xsl:template match="ddi:codeBook">
     <!-- ID -->
     <xsl:element name="id">
-    	<xsl:value-of select="normalize-space(//ddi:codeBook/@ID)" />
+    	<xsl:value-of select="normalize-space(//ddi:codeBook/ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:IDNo)" />
     </xsl:element>
         
     <!-- titl -->
