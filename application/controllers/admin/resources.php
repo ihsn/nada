@@ -17,6 +17,7 @@ class Resources extends MY_Controller {
 		$this->lang->load('general');
     	$this->lang->load('catalog_admin');
 		$this->lang->load('resource_manager');
+		$this->lang->load('plupload');
 
 		//$this->output->enable_profiler(TRUE);
 	}

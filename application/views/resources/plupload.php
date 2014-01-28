@@ -184,6 +184,28 @@ li.plupload_droptext {
 // Convert divs to queue widgets when the DOM is ready
 $(function() {
 
+	plupload.addI18n({
+		'Select files' : '<?php echo t('Select files');?>',
+		'Add files to the upload queue and click the start button.' : '<?php echo t('Add files to the upload queue and click the start button.');?>',
+		'Filename' : '<?php echo t('Filename');?>',
+		'Status' : '<?php echo t('Status');?>',
+		'Size' : '<?php echo t('Size');?>',
+		'Add files' : '<?php echo t('Add files');?>',
+		'Start upload' : '<?php echo t('Start upload');?>',
+		'Stop current upload' : '<?php echo t('Stop current upload');?>',
+		'Start uploading queue' : '<?php echo t('Start uploading queue');?>',
+		'Uploaded %d/%d files': '<?php echo t('Uploaded %d/%d files');?>',
+		'N/A' : '<?php echo t('N/A');?>',
+		'Drag files here.' : '<?php echo t('Drag files here.');?>',
+		'File extension error.': '<?php echo t('File extension error.');?>',
+		'File size error.': '<?php echo t('File size error.');?>',
+		'Init error.': '<?php echo t('Init error.');?>',
+		'HTTP Error.': '<?php echo t('HTTP Error.');?>',
+		'Security error.': '<?php echo t('Security error.');?>',
+		'Generic error.': '<?php echo t('Generic error.');?>',
+		'IO error.': '<?php echo t('IO error.');?>'
+	});
+
 	function log()
 	{
 	}
