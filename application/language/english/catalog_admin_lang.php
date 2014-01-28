@@ -164,5 +164,9 @@ $lang['mark_as_featured']='Display as featured study?';
 $lang['msg_study_ownership_has_changed']='Study ownership changed!';
 $lang['replace_ddi_failed_duplicate_study_found']='The catalog contains another study with the same ID';
 $lang['show_selected_only']='Show selected only';
+
+$lang['Data available from external repository']="Data available from external repository";
+$lang['Data not available']="Data not available";
+
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */
