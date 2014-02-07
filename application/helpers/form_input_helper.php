@@ -17,7 +17,7 @@ if ( ! function_exists('get_form_value'))
 		{
 			return form_prep($ci->security->xss_clean($ci->input->get_post($field)));
 		}
-		return $ofield;
+		return form_prep($ofield);
 	}
 }
 
