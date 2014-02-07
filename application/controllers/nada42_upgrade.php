@@ -18,6 +18,57 @@ class Nada42_upgrade extends CI_Controller {
 		
 	} 
 	
+	//update language files with new translations
+	function update_translations()
+	{
+		$this->load->library('translator');
+		
+		//application language folder
+		$language_folder=APPPATH.'language/';
+		
+		//template language 
+		$language='base';
+		
+		//path to the language folder
+		$language_path=$language_folder.$language;
+		
+		//get a list of all translation files for the given language 
+		$files=$this->translator->get_language_files_array($language_path);
+		
+		//will be updated with additons from the BASE language file
+		$target_language=$this->config->item("language");
+		
+		if (!$target_language)
+		{
+			echo "language $target_language was not found";
+			return;
+		}
+		
+		foreach($files as $file)
+		{
+			$target_filepath=$language_folder.'/'.$target_language.'/'.$file;
+
+			//merge source and target language file to fill in missing translations for the target language
+			$data['translations']=$this->translator->merge_language_keys($language_path.'/'.$file,$target_filepath);
+			$data['language_name']=$target_language;
+			$data['translation_file']=$file;
+			
+			//target language file content
+			$content='<?php '."\n\n".$this->load->view('translator/save',$data,TRUE);
+			
+			//update the target language file
+			$save_result=@file_put_contents($target_filepath,$content);
+			
+			if($save_result)
+			{
+				echo "Language file updated: " . $target_filepath.'<br />';
+			}
+			else
+			{
+				echo "<div style='color:red;'>Language file update failed: " . $target_filepath.'</div>';
+			}
+		}		
+	}
 	
 	function run()
 	{
@@ -70,6 +121,11 @@ class Nada42_upgrade extends CI_Controller {
 				  UNIQUE KEY `survey_repo` (`repoid`,`sid`)
 				) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 			";
+			
+		$sql[]="
+				delete from site_menu where module='catalog' and weight=50 and depth=1 and pid=2 and title='-';
+				delete from site_menu where module='catalog' and weight=40 and depth=1 and url='admin/da_collections';
+				";
 
 		$sql[]="	
 				insert into site_menu(pid,title,url,weight,depth,module)
@@ -98,6 +154,9 @@ class Nada42_upgrade extends CI_Controller {
 				echo '</div>';
 			}
 		}
+		
+		//update translations
+		update_translations();
 		
 		echo "Upgrade completed!";
 	}
