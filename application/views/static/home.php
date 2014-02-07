@@ -195,58 +195,13 @@ color:white;
 background:black;color:white;
 }
 
-<?php /*
-//todo removed
-.slide-show .slides_container{height:200px;overflow:auto;padding:10px; background:gainsboro;width:600px;}
-.slide-show{background:red;}
-.slide-show .slide-thumb{float:left;width:200px;height:200px;margin-right:5px;overflow:hidden;}
-.slide-show .slide-body{}
-*/?>
 </style>
 <table style="width:100%;">
 <tr valign="top" style="vertical-align:top;">
 
 <td style="padding-right:10px;">
 
-<?php /* ?>
-<div id="slides" class="slide-show">
-	<div class="slides_container">
-		<div class="item">
-        	<div class="slide-thumb">
-			<a href="http://microdata.worldbank.org/index.php/catalog/global-findex/about"><img src="files/lac-fp-01.jpg" alt="Global Financial Inclusion (Global Findex) Database" /></a>
-            </div>
-            <div class="slide-body">
-            <h1><a href="http://microdata.worldbank.org/index.php/catalog/global-findex/about">Featured Catalog: Global Financial Inclusion (Global Findex) Database</a></h1>
-            <p>The Global Findex is the first public database of indicators that measures people's use of financial services across economies and over time. Based on over 150,000 interviews across 148 economies, 
-            the database can be used to develop a deeper understanding of how people save, borrow, make payments, and manage risk. <a href="http://microdata.worldbank.org/index.php/catalog/global-findex/about">Read More&raquo;</a></p>              
-            </div>
-		</div>
-        <div class="item">
-        	<div class="slide-thumb">
-                <a href="http://microdata.worldbank.org/index.php/catalog/MICS/about"><img src="files/lac-fp-01.jpg" alt="UNICEF Multiple Indicator Cluster Surveys (MICS)" /></a>                  
-            </div>
-            <div class="slide-body">
-                <h1><a href="http://microdata.worldbank.org/index.php/catalog/MICS/about">Featured Catalog: UNICEF Multiple Indicator Cluster Surveys (MICS)</a></h1>            
-                <p>UNICEF supports countries to collect data on the situation of children and women through the Multiple Indicator Cluster Survey (MICS) program. MICS is designed to collect statistically sound, 
-                internationally comparable data on child-related indicators. <a href="http://microdata.worldbank.org/index.php/catalog/MICS/about">Read More&raquo;</a></p>
-            </div>
-        </div>                                	
-        <div class="item">
-	        <div class="slide-thumb">
-        		<a href="http://microdata.worldbank.org/index.php/catalog/impact_evaluation/about"><img src="files/lac-fp-01.jpg" alt="Impact Evaluation Surveys" /></a>
-            </div>
-            <div class="slide-body">
-                <h1><a href="http://microdata.worldbank.org/index.php/catalog/impact_evaluation/about">Featured Catalog: Impact Evaluation Surveys</a></h1>                  
-                <p>This catalog provides access to datasets underlying impact evaluations conducted by the World Bank and other agencies to generate knowledge on the 
-                effectiveness of development policies and operations. Within the World Bank, this effort involves several thematic networks, 
-                regional units and the Development Research Group. <a href="http://microdata.worldbank.org/index.php/catalog/impact_evaluation/about">Read More&raquo;</a></p>              
-        	</div>
-        </div>                                        
-  </div>
-</div>
-
-<hr />
-<?php */?>
+<?php /* remove this line to enable carousel ?>
 
 <!-- carousel bootstrap -->
 <div id="myCarousel" class="carousel slide" data-interval="false">
@@ -292,6 +247,8 @@ background:black;color:white;
   <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
   <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
 </div>
+
+<?php remove this line to enable carousel */ ?>
 
 
 <!-- recent studies list -->
@@ -389,25 +346,3 @@ background:black;color:white;
 </td>
 </tr>
 </table>
-
-
-<?php /*
-<script type="application/javascript"> 
-	$(function() {
-		
-		//fix slideshow width to match the parent's width
-		var slideshow_width=$(".slide-show").closest("td").width();
-		$(".slide-show").width(slideshow_width);
-
-		$('#slides').slides({
-			preload: true,
-			play: 10000,
-			pause: 2500,
-			hoverPause: true,
-			fadeSpeed: 650, 
-			slideSpeed: 950
-		});
-		
-	});
-</script> 
-*/ ?>
