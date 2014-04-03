@@ -404,24 +404,27 @@ right: 0px;
 	background: url(data-access.gif) no-repeat 0% 0%;
 }
 
-
 #surveys .data-access-public {
-	background: url(data-access.gif) no-repeat 0% 20%;
+	background: url(data-access.gif) no-repeat 0% 16%;
 }
 
 #surveys .data-access-licensed {
-	background: url(data-access.gif) no-repeat 0% 40%;
+	background: url(data-access.gif) no-repeat 0% 33%;
 }
 
 #surveys .data-access-remote {
-	background: url(data-access.gif) no-repeat 0% 60%;
+	background: url(data-access.gif) no-repeat 0% 50%;
 }
 
 #surveys .data-access-data_na {
-	background: url(data-access.gif) no-repeat 0% 80%;
+	background: url(data-access.gif) no-repeat 0% 67%;
 }
 
 #surveys .data-access-data_enclave {
+	background: url(data-access.gif) no-repeat 0% 84%;
+}
+
+#surveys .data-access-open {
 	background: url(data-access.gif) no-repeat 0% 100%;
 }
 
@@ -433,12 +436,13 @@ right: 0px;
 /*filter by data access*/
 .filter-da .da .chk-da{padding-right:16px;}
 .filter-da table .da-icon-small{width:20px;height:20px;display:block;margin-left:5px;margin-right:5px;}
-.filter-da table .da-direct{background: url(data-access-small.gif) no-repeat 0% 2%;}
-.filter-da table .da-public{background: url(data-access-small.gif) no-repeat 0% 21%;}
-.filter-da table .da-licensed{background: url(data-access-small.gif) no-repeat 0% 42%;}
-.filter-da table .da-remote{background: url(data-access-small.gif) no-repeat 0% 62%;}
-.filter-da table .da-no_access{background: url(data-access-small.gif) no-repeat 0% 82%;}
-.filter-da table .da-enclave{background: url(data-access-small.gif) no-repeat 0% 102%;}
+.filter-da table .da-direct{background: url(data-access-small.gif) no-repeat 0% -1px;}
+.filter-da table .da-public{background: url(data-access-small.gif) no-repeat 0% -27px;}
+.filter-da table .da-licensed{background: url(data-access-small.gif) no-repeat 0% -50px;}
+.filter-da table .da-remote{background: url(data-access-small.gif) no-repeat 0% -73px;}
+.filter-da table .da-no_access{background: url(data-access-small.gif) no-repeat 0% -99px;}
+.filter-da table .da-enclave{background: url(data-access-small.gif) no-repeat 0% -122px;}
+.filter-da table .da-open{background: url(data-access-small.gif) no-repeat 0% -146px;}
 .filter-da table tr{vertical-align:top}
 .da-public{background: url(data-access-small.gif) no-repeat 0% 78%;display:block;width:16px;height:16px;}
 
@@ -599,10 +603,11 @@ text-transform: uppercase;
 .ui-tabs li a .get-microdata{display:block;width:20px;height:16px;float:left;margin-right:5px;}
 .ui-tabs .da-icon-small{width:20px;height:20px;display:block;margin-left:0px;margin-right:5px;}
 .ui-tabs .da-direct{background: url(data-access-small.gif) no-repeat 0% 2%;}
-.ui-tabs .da-public{background: url(data-access-small.gif) no-repeat 0% 21%;}
-.ui-tabs .da-licensed{background: url(data-access-small.gif) no-repeat 0% 40%;}
-.ui-tabs .da-remote{background: url(data-access-small.gif) no-repeat 0% 60%;}
+.ui-tabs .da-public{background: url(data-access-small.gif) no-repeat 0% 18%;}
+.ui-tabs .da-licensed{background: url(data-access-small.gif) no-repeat 0% 34%;}
+.ui-tabs .da-remote{background: url(data-access-small.gif) no-repeat 0% 50%;}
 .ui-tabs .da-data_enclave{background: url(data-access-small.gif) no-repeat 0% 98%;}
+.ui-tabs .da-open{background: url(data-access-small.gif) no-repeat 0% 99%;}
 
 /*grid/table listing format*/
 .study-metadata   table.survey-info{width:550px;float:left;}

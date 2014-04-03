@@ -1078,7 +1078,7 @@ class DDIbrowser extends MY_Controller {
 				show_error("RESOURCE_NOT_AVAILABLE.");
 			}	
 		}
-		else if($data_access_type=='direct' )
+		else if($data_access_type=='direct' || $data_access_type=='open' )
 		{
 			$allow_download=TRUE;
 		}

@@ -8,7 +8,8 @@ class Data_access extends CI_Driver_Library {
 		'data_access_direct', 
 		'data_access_licensed', 
 		'data_access_remote',
-		'data_access_enclave'
+		'data_access_enclave',
+		'data_access_open'
 	);
 	
 	protected $_adapter			= 'dummy';

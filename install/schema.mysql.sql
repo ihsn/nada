@@ -639,7 +639,14 @@ CREATE TABLE `forms` (
 
 LOCK TABLES `forms` WRITE;
 /*!40000 ALTER TABLE `forms` DISABLE KEYS */;
-INSERT INTO `forms` VALUES (2,'Public use files','public','orderform.php','1'),(1,'Direct access','direct','direct.php','1'),(3,'Licensed data files','licensed','licensed.php','1'),(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),(5,'Data available from external repository','remote','remote','1'),(6,'Data not available','data_na','data_na','1');
+INSERT INTO `forms` VALUES 
+(2,'Public use files','public','orderform.php','1'),
+(1,'Direct access','direct','direct.php','1'),
+(3,'Licensed data files','licensed','licensed.php','1'),
+(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),
+(5,'Data available from external repository','remote','remote','1'),
+(6,'Data not available','data_na','data_na','1'),
+(7,'Open access','open','open','1');
 /*!40000 ALTER TABLE `forms` ENABLE KEYS */;
 UNLOCK TABLES;
 
