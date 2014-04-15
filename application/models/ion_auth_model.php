@@ -245,6 +245,8 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * @return bool
 	 * @author Mathew
+	 *
+	 * @modified: Mehmood Asghar (April 2014)
 	 **/
 	public function change_password($identity, $old, $new)
 	{
@@ -256,21 +258,75 @@ class Ion_auth_model extends CI_Model
 	    $result = $query->row();
 
 	    $db_password = $result->password; 
-	    $old         = $this->hash_password_db($identity, $old);
-	    $new         = $this->hash_password($new);
-
-	    if ($db_password === $old)
+		
+		$password_valid=$this->validate_password($identity,$old);
+		
+		//validate old password
+		if (!$password_valid)
+		{
+			return FALSE;
+		}
+		
+		if ($password_valid)
 	    {
-	        $data = array('password' => $new);
-	        
+	        $data = array(
+				'password' => $this->hash_password($new)
+			);
+			
 	        $this->db->where($this->ion_auth->_extra_where);
-	        $result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
-	        
+	        $result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));	        
 	        return $result;
 	    }
 	    
 	    return FALSE;
 	}
+	
+	
+	//validate password
+	public function validate_password($identity,$password)
+	{
+		if (empty($identity) || empty($password) || !$this->identity_check($identity))
+	    {
+	        return FALSE;
+	    }
+
+	    $query = $this->db->select('username,email, id, password')
+						  ->where($this->identity_column, $identity)
+						  ->where($this->ion_auth->_extra_where)
+						  ->where('active', 1)
+						  //->limit(1)
+						  ->get($this->tables['users']);
+
+        $result = $query->row();
+
+        if ($query->num_rows() == 1)
+        {
+            $password_validated=FALSE;
+			
+			//using MD5?
+			if (strlen($result->password)==32)
+			{
+				//use MD5 for old accounts
+				$password_validated=$result->password === md5($password);
+				
+				//upgrade account password				
+				$this->set_password($identity,$this->hash_password($password));
+			}
+			else
+			{
+				//use default mroe complex password hashing
+				$password_validated=$this->password_hasher->check_password($password,$hash=$result->password);
+			}
+			
+			if ($password_validated)
+    		{
+    		    return TRUE;
+    		}
+        }
+	
+		return FALSE;	
+	}
+	
 	
 	/**
 	 * Checks username
