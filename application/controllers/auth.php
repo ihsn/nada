@@ -304,7 +304,7 @@ class Auth extends MY_Controller {
 	        $identity = $this->session->userdata($this->config->item('identity'));
 	        
 	        $change = $this->ion_auth->change_password($identity, $this->input->post('old'), $this->input->post('new'));
-		
+			
 			//delete the token so form can't be re-submitted
 			$this->token_model->remove_token($this->input->post('form_token'));
 		
