@@ -35,7 +35,7 @@ class Citations extends MY_Controller {
 			$collection=$repo['repositoryid'];
 		}
 
-		$data['rows']=$this->_search();	
+		$data['rows']=$this->_search();		
 		$data['active_repo']=$collection;
 		$content=$this->load->view('citations/public_search', $data,true);
 				
