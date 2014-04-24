@@ -25,13 +25,27 @@ class Catalog extends REST_Controller
 				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
 		);
 		
+		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);
+		
+		//covert countries names to country ID
+		$params['countries']=$this->country_name_to_id($params['countries']);
+		
+		//search countries by iso
+		$countries_by_iso=$this->security->xss_clean($this->input->get("iso"));
+		
+		if ($countries_by_iso)
+		{
+			$params['countries']=$this->country_iso_to_id($countries_by_iso);
+		}
+		
+		
 		$limit=5;
 		$page=$this->input->get('page');
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$limit;
 
 		$this->load->library('catalog_search',$params);
-		$content=$this->catalog_search->search($limit,$offset);
+		$content=$this->catalog_search->search($limit,$offset);		
 		$this->response($content, 200); 
 	}
 
@@ -87,6 +101,7 @@ class Catalog extends REST_Controller
 		$this->response($content, 200); 
 	}
 
+	
 	/**
 	*
 	* Returns all country names from db
@@ -94,9 +109,10 @@ class Catalog extends REST_Controller
 	**/
 	function countries_get()
 	{
-		$this->db->select("nation,count(*) as found");
-		$this->db->group_by("nation");
-		$query=$this->db->get("surveys");
+		$this->db->select("countries.countryid,name,iso,count(*) as found");
+		$this->db->join('survey_countries','survey_countries.cid=countries.countryid');
+		$this->db->group_by("countries.countryid,countries.iso,countries.name");
+		$query=$this->db->get("countries");
 		$content=NULL;
 		
 		if ($query)
@@ -268,5 +284,45 @@ class Catalog extends REST_Controller
 		$this->response($html, 200); 
 	}
 	
+
+	//convert country names to country IDs
+	private function country_name_to_id($country_names)
+	{
+		$this->db->select('countryid');
+		$this->db->where_in('name',$country_names);
+		$result=$this->db->get('countries')->result_array();
+		
+		$output=array();
+		
+		if ($result)
+		{
+			foreach($result as $row)
+			{
+				$output[]=$row['countryid'];
+			}
+		}
+		
+		return $output;
+	}
+
+	//convert country ISO code to country IDs
+	private function country_iso_to_id($country_iso)
+	{
+		$this->db->select('countryid');
+		$this->db->where_in('iso',$country_iso);
+		$result=$this->db->get('countries')->result_array();
+		
+		$output=array();
+		
+		if ($result)
+		{
+			foreach($result as $row)
+			{
+				$output[]=$row['countryid'];
+			}
+		}
+		
+		return $output;
+	}
 	
 }
