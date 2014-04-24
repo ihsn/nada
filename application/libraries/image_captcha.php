@@ -27,10 +27,11 @@ class Image_captcha{
 		{
 			if (!@mkdir($path))
 			{
-				log_message('error', "Captcha img_path not set - ".$path);				
+				log_message('error', "Captcha img_path not set - ".$path);
+				show_error('Captcha folder is not set:'.$path);
 			}
 		}
-		
+				
 		
 		//check If GD extension is enabled
 		if (!extension_loaded('gd')) 
@@ -64,7 +65,6 @@ class Image_captcha{
 		);
 
 		$cap = create_captcha($vals);
-		//echo $cap['image'];
 
 		$answer=base64_encode(md5($word));
 
