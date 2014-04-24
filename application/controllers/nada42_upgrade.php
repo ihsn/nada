@@ -122,10 +122,8 @@ class Nada42_upgrade extends CI_Controller {
 				) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 			";
 			
-		$sql[]="
-				delete from site_menu where module='catalog' and weight=50 and depth=1 and pid=2 and title='-';
-				delete from site_menu where module='catalog' and weight=40 and depth=1 and url='admin/da_collections';
-				";
+		$sql[]="delete from site_menu where module='catalog' and weight=50 and depth=1 and pid=2 and title='-';";
+		$sql[]="delete from site_menu where module='catalog' and weight=40 and depth=1 and url='admin/da_collections';";
 
 		$sql[]="	
 				insert into site_menu(pid,title,url,weight,depth,module)
@@ -156,7 +154,7 @@ class Nada42_upgrade extends CI_Controller {
 		}
 		
 		//update translations
-		update_translations();
+		$this->update_translations();
 		
 		echo "Upgrade completed!";
 	}
