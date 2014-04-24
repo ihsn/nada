@@ -21,8 +21,14 @@ class Catalog extends REST_Controller
 				//'topics'			=>	array('1','2'),
 				'from'				=>	$this->security->xss_clean($this->input->get("from")),
 				'to'				=>	$this->security->xss_clean($this->input->get("to")),
-				'collection'		=>	$this->security->xss_clean($this->input->get("collection"))
+				'collection'		=>	$this->security->xss_clean($this->input->get("collection")),
+				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
 		);
+		
+		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);
+		
+		//covert countries names to country ID
+		$params['countries']=$this->country_name_to_id($params['countries']);
 		
 		$limit=5;
 		$page=$this->input->get('page');
@@ -30,11 +36,7 @@ class Catalog extends REST_Controller
 		$offset=($page-1)*$limit;
 
 		$this->load->library('catalog_search',$params);
-
 		$content=$this->catalog_search->search($limit,$offset);
-		
-		//var_dump($result);
-		//return;
 		$this->response($content, 200); 
 	}
 
@@ -140,4 +142,24 @@ class Catalog extends REST_Controller
 		}
 		$this->response($content, 200); 
 	}
-
+	
+	//convert country names to country IDs
+	private function country_name_to_id($country_names)
+	{
+		$this->db->select('countryid');
+		$this->db->where_in('name',$country_names);
+		$result=$this->db->get('countries')->result_array();
+		
+		$output=array();
+		
+		if ($result)
+		{
+			foreach($result as $row)
+			{
+				$output[]=$row['countryid'];
+			}
+		}
+		
+		return $output;
+	}
+}
