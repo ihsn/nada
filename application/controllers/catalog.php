@@ -1371,7 +1371,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//check if a valid repo name
-		if($this->Repository_model->repository_exists($repo)==0)
+		if($this->Repository_model->repository_exists($repo)==0 || $repo=='central')
 		{
 			$repo=NULL;
 		}
