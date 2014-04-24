@@ -1,21 +1,18 @@
-<?php
-/*
-* Public Access Request Form
-*
-*/
-$lang['application_for_access_to_public_use_dataset'] = "Application for Access to a Public Use Dataset";
-$lang['fields_marked_mandatory'] = "Fields marked with * are mandatory.";
-$lang['msg_information_confidential'] = "The information provided on this page will be kept confidential and will be used for internal purposes only.";
-$lang['first_name'] = "First name";
-$lang['last_name'] = "Last name";
-$lang['organization'] = "Organization";
-$lang['email'] = "E-mail";
-$lang['dataset_requested'] = "Dataset requested";
-$lang['intended_use_of_data'] = "Intended use of the data";
-$lang['describe_your_project'] = "Please provide a short description of your research project (project question, objectives, methods, expected outputs, partners)";
-$lang['i_agree'] = "I agree";
-$lang['terms_and_conditions'] = "Terms and conditions";
-$lang['terms_text'] = "
+<?php 
+
+$lang['application_for_access_to_public_use_dataset']="Application for Access to a Public Use Dataset";
+$lang['fields_marked_mandatory']="Fields marked with * are mandatory.";
+$lang['msg_information_confidential']="The information provided on this page will be kept confidential and will be used for internal purposes only.";
+$lang['first_name']="First name";
+$lang['last_name']="Last name";
+$lang['organization']="Organization";
+$lang['email']="E-mail";
+$lang['dataset_requested']="Dataset requested";
+$lang['intended_use_of_data']="Intended use of the data";
+$lang['describe_your_project']="Please provide a short description of your research project (project question, objectives, methods, expected outputs, partners)";
+$lang['i_agree']="I agree";
+$lang['terms_and_conditions']="Terms and conditions";
+$lang['terms_text']="
 <ol>
   <li>The data and other materials provided by the National Data Archive will not
     be redistributed or sold to other individuals, institutions, or organizations
@@ -44,12 +41,12 @@ $lang['terms_text'] = "
   Archive will conform to widely-accepted standards of practice and legal
   restrictions that are intended to protect the confidentiality of respondents.</p>
 ";
+$lang['public_use_files']="Public Use Files";
+$lang['surveys_in_collection']="The collection [%s] contains the following surveys:";
+$lang['collection_data_files']="Public Use Files by Collection";
+$lang['collection_requested']="Collection access requested";
+$lang['public_use_data_access_by_collection_message']="You have been granted access to all public use studies in the collection. Please visit each study page to download the data files and other documentation.";
+$lang['public_use_data_access_by_collection']="Download data files";
 
-$lang['public_use_files'] = "Public Use Files";
-$lang['surveys_in_collection']='The collection [%s] contains the following surveys:';
-$lang['collection_data_files']='Public Use Files by Collection';
-$lang['collection_requested']='Collection access requested';
-$lang['public_use_data_access_by_collection_message']='You have been granted access to all public use studies in the collection. Please visit each study page to download the data files and other documentation.';
-$lang['public_use_data_access_by_collection']='Download data files';
 /* End of file public_access_terms_lang.php */
-/* Location: ./system/language/english/public_access_terms_lang.php */
+/* Location: ./application/language/english/public_access_terms_lang.php */
