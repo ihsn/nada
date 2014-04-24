@@ -2068,12 +2068,12 @@ class Catalog extends MY_Controller {
 
 		//data access form list
 		$this->load->model('Form_model');
-		$this->forms_list=array('0'=>'Select');		
+		$this->forms_list=array('0'=>'---');		
 		
 		//create a list of choices for the drop down
 		foreach($this->Form_model->get_all()  as $value)
 		{
-			$this->forms_list[$value['formid']]=$value['fname'];
+			$this->forms_list[$value['formid']]=t($value['fname']);
 		}
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
