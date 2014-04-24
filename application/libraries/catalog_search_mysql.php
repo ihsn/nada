@@ -375,6 +375,27 @@ class Catalog_search{
 		return FALSE;
 	}
 	
+	//returns country IDs by country names
+	function get_country_id_by_name($country_names=array())
+	{
+		$this->ci->db->select("countryid");
+		$this->ci->db->where_in('name',$country_names);
+		$query= $this->ci->db->get('countries')->result_array();
+		
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$output=NULL;
+		
+		foreach($query as $country)
+		{
+			$output[]=$country['countryid'];
+		}
+		
+		return $output;
+	}
 
 	/**
 	*
@@ -390,7 +411,14 @@ class Catalog_search{
 		}
 		
 		$countries_list=array();
-
+		
+		//check if country[] param contains the country name instead of country id
+		if (isset($countries[0]) && !is_numeric($countries[0]))
+		{
+			//get country id by name
+			$countries=$this->get_country_id_by_name($countries);
+		}
+		
 		foreach($countries  as $country)
 		{
 			//escape country names for db
