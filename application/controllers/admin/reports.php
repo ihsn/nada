@@ -63,7 +63,7 @@ class Reports extends MY_Controller {
 				
 				if ($format=='excel')
 				{
-					$this->_export_to_excel($data['rows'],'download-detailed-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($data['rows'],'download-detailed-'.date("m-d-y").'.csv');
 					return;
 				}	
 				
@@ -75,7 +75,7 @@ class Reports extends MY_Controller {
 				
 				if ($format=='excel')
 				{
-					$this->_export_to_excel($data['rows'],'download-detailed-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($data['rows'],'download-detailed-'.date("m-d-y").'.csv');
 					return;
 				}
 					
@@ -216,6 +216,42 @@ class Reports extends MY_Controller {
 		}	
 	}
 	
+	
+	function _export_to_csv($rows,$filename)
+	{
+		//set header for outputing to CSV
+		header("Expires: Sat, 01 Jan 1980 00:00:00 GMT");
+		header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+		header("Pragma: public");
+		header("Expires: 0");
+		header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+		header("Cache-Control: public"); 
+		header("Content-Description: File Transfer");
+		
+		session_cache_limiter("must-revalidate");
+		header('Content-Type: text/csv');
+		header('Content-Disposition: attachment; filename="'.$filename.'"'); 
+
+		if (!is_array($rows))
+		{
+			echo $rows;exit;
+		}
+
+		$outstream = fopen("php://output", "w");
+
+		//header row with column names
+		$column_names=array_keys($rows[0]);
+		
+		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');	
+	            
+		//data rows
+		foreach($rows as $row)
+		{
+			fputcsv($outstream, array_values($row));
+		}
+	
+		fclose($outstream);
+	}
 	
 	
 	/**
