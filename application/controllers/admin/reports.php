@@ -5,13 +5,12 @@ class Reports extends MY_Controller {
     {
         parent::__construct();
 		
-		//set template to admin 
-		$this->template->set_template('admin');
+	//set template to admin 
+	$this->template->set_template('admin');
       	$this->load->model('Reports_model');
 		
-		$this->lang->load("reports");
-		
-		//$this->output->enable_profiler(TRUE);
+	$this->lang->load("reports");	
+	//$this->output->enable_profiler(TRUE);
     }
  
 	function index()
@@ -71,14 +70,16 @@ class Reports extends MY_Controller {
 			break;
 
 			case 'survey-detailed':
-				$data['rows']=$this->Reports_model->get_survey_detailed($from,$to);
 				
 				if ($format=='excel')
 				{
-					$this->_export_to_csv($data['rows'],'download-detailed-'.date("m-d-y").'.csv');
+					
+				    $data['rows']=$this->Reports_model->get_survey_detailed_all($from,$to);
+					$this->_export_to_csv($data['rows'] ,'download-detailed-'.date("m-d-y").'.csv');
 					return;
 				}
 					
+				$data['rows']=$this->Reports_model->get_survey_detailed($from,$to);
 				$this->load->view("reports/survey_detailed",$data);
 			break;
 			
@@ -87,7 +88,7 @@ class Reports extends MY_Controller {
 				
 				if ($format=='excel')
 				{
-					$this->_export_to_excel($data['rows'],'download-detailed-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($data['rows'],'download-detailed-'.date("m-d-y").'.csv');
 					return;
 				}	
 				
@@ -99,7 +100,7 @@ class Reports extends MY_Controller {
 				
 				if ($format=='excel')
 				{
-					$this->_export_to_excel($data['rows'],'licensed-requests-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($data['rows'],'licensed-requests-'.date("m-d-y").'.csv');
 					return;
 				}
 					
@@ -111,7 +112,7 @@ class Reports extends MY_Controller {
 				
 				if ($format=='excel')
 				{
-					$this->_export_to_excel($data['rows'],'public-requests-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($data['rows'],'public-requests-'.date("m-d-y").'.csv');
 					return;
 				}
 					
@@ -124,7 +125,7 @@ class Reports extends MY_Controller {
 				if ($format=='excel')
 				{
 					$output=$this->load->view("reports/study_statistics",$data,TRUE);
-					$this->_export_to_excel($output,'study-statistics-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($output,'study-statistics-'.date("m-d-y").'.csv');
 					return;
 				}					
 				$this->load->view("reports/study_statistics",$data);
@@ -136,7 +137,7 @@ class Reports extends MY_Controller {
 				if ($format=='excel')
 				{
 					$output=$this->load->view("reports/users_statistics",$data,TRUE);
-					$this->_export_to_excel($output,'users-statistics-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($output,'users-statistics-'.date("m-d-y").'.csv');
 					return;
 				}					
 				$this->load->view("reports/users_statistics",$data);
@@ -148,7 +149,7 @@ class Reports extends MY_Controller {
 				if ($format=='excel')
 				{
 					$output=$this->load->view("reports/user_activity",$data,TRUE);
-					$this->_export_to_excel($output,'user-activity-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($output,'user-activity-'.date("m-d-y").'.xls');
 					return;
 				}					
 				$this->load->view("reports/user_activity",$data);
@@ -159,7 +160,7 @@ class Reports extends MY_Controller {
 				if ($format=='excel')
 				{
 					$output=$this->load->view("reports/study_data_access",$data,TRUE);
-					$this->_export_to_excel($output,'study-data-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($output,'study-data-'.date("m-d-y").'.xls');
 					return;
 				}
 				$this->load->view("reports/study_data_access",$data);
@@ -171,7 +172,7 @@ class Reports extends MY_Controller {
 				if ($format=='excel')
 				{
 					$output=$this->load->view("reports/broken_resources",$data,TRUE);
-					$this->_export_to_excel($output,'broken-resources-'.date("m-d-y").'.xls');
+					$this->_export_to_csv($output,'broken-resources-'.date("m-d-y").'.xls');
 					return;
 				}
 				$this->load->view("reports/broken_resources",$data);
@@ -231,7 +232,7 @@ class Reports extends MY_Controller {
 		session_cache_limiter("must-revalidate");
 		header('Content-Type: text/csv');
 		header('Content-Disposition: attachment; filename="'.$filename.'"'); 
-
+		
 		if (!is_array($rows))
 		{
 			echo $rows;exit;
@@ -242,12 +243,43 @@ class Reports extends MY_Controller {
 		//header row with column names
 		$column_names=array_keys($rows[0]);
 		
+		//unix timestamp type columns that needs to be formatted as readable date types
+		$date_columns=array('logtime','created','changed','updated','posted');
+		
+		//$date_type_idx=array();
+		
+		//date type columns used by current data
+		$date_columns_found=array();
+		
+		//get indexes for date type columns
+		foreach($column_names as $col)
+		{
+		   /* $idx=array_search($col,$date_columns);
+		    if ($idx!=false)
+		    {
+			$date_type_idx[]=$idx;			
+		    }*/
+		    
+		    if (in_array($col,$date_columns))
+		    {
+			$date_columns_found[]=$col;			
+		    }
+		}
+		
 		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');	
 	            
 		//data rows
 		foreach($rows as $row)
-		{
-			fputcsv($outstream, array_values($row));
+		{		    
+		    if ($date_columns_found)
+		    {			
+			foreach($date_columns_found as $col)
+			{
+			    $row[$col]=date("M/d/Y H:i:s");
+			}			
+		    }
+		    
+		    fputcsv($outstream, array_values($row));
 		}
 	
 		fclose($outstream);
