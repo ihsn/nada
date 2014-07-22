@@ -53,13 +53,16 @@ class Reports_model extends CI_Model {
 		return $query;		
 	}
 
-	function get_survey_detailed_x($start,$end)
+	//get all surveys page view hits per section
+	function get_survey_detailed_all($start,$end)
 	{
 			$sql='SELECT 
 						s.id as id,
-						n.section as section,
 						s.surveyid as survey, 
 						s.titl as title, 
+						n.section as section,						
+						s.nation as country,
+						s.proddate as year,
 						count(*) as visits 
 				FROM sitelogs n
 					  inner join surveys s on n. surveyid=s.id
@@ -74,7 +77,7 @@ class Reports_model extends CI_Model {
 			return $this->db->query($sql)->result_array();		
 	}	
 
-	//TODO:REMOVE	
+	
 	function get_survey_detailed($start,$end)
 	{
 		//get a list of popular surveys
@@ -85,18 +88,23 @@ class Reports_model extends CI_Model {
 		{
 			$sql='SELECT 
 						s.id as id,
+						s.surveyid as survey,						
+						s.titl as title,
 						n.section as section,
-						s.surveyid as survey, 
-						s.titl as title, 
+						s.nation as country,
+						s.proddate as year,
 						count(*) as visits 
 				FROM sitelogs n
 					  inner join surveys s on n. surveyid=s.id
 				where logtype=\'survey\'';
 				
+			$sql.=' and s.id='.$survey['id'];	
+				
 			if (is_numeric($start) && is_numeric($end) ) {
 				$sql.='	and (logtime between '.$start.' and '.$end.')';
-				$sql.=' and s.id='.$survey['id'];
-			}			
+				
+			}
+			
 			$sql.='	group by s.surveyid, s.id, s.titl, n.section';
 			
 			$rows=$this->db->query($sql)->result_array();		
@@ -186,9 +194,9 @@ class Reports_model extends CI_Model {
 	function licensed_requests($start=NULL,$end=NULL)
 	{
 		$sql='select
+					l.request_title,
 					l.id,
 					l.userid,
-					l.surveyid,
 					l.status,
 					l.comments,
 					l.created,
@@ -196,19 +204,16 @@ class Reports_model extends CI_Model {
 					l.updatedby,
 					meta.company,
 					meta.country,
-					u.username,
-					s.titl as survey_title
-			
+					u.username
 			from lic_requests l
 			inner join users u on u.id=l.userid
-			inner join meta on u.id=meta.user_id
-			inner join surveys s on s.id =l.surveyid';
+			inner join meta on u.id=meta.user_id';
 
 		if (is_numeric($start) && is_numeric($end) ) {
 			$sql.='	where (created between '.$start.' and '.$end.')';
 		}
 		
-		$sql.=" order by l.surveyid ASC, l.updated DESC";
+		$sql.=" order by l.updated DESC";
 
 		$query=$this->db->query($sql);
 		
@@ -219,6 +224,8 @@ class Reports_model extends CI_Model {
 		
 		return FALSE;
 	}
+	
+	
 	
 	/**
 	*
