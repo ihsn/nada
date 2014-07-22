@@ -25,7 +25,7 @@
                 </tr>                
                 <?php endif;?>
                 <tr class="section-title">
-                    <td><?php echo $row['title'];?></td>
+                    <td><?php echo $row['country'];?> - <?php echo $row['title'];?>, <?php echo $row['year'];?></td>
                     <td><?php echo t('hits');?></td>
                 </tr>
                 <?php $prev_survey=$row['id'];?>

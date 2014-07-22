@@ -25,7 +25,7 @@
             <td><?php echo $row['company'];?></td>
             <td><?php echo $row['country'];?></td>
             <td><?php echo $row['phone'];?></td>
-            <td><?php echo date("m/d/y",$row['created_on']);?></td>
+            <td><?php echo date("m-d-Y",$row['created_on']);?></td>
 			<?php if ($row['last_login']>$row['created_on']): ?>
 				<td><?php echo date("m-d-Y",$row['last_login']); ?></td>
             <?php else: ?>                    
