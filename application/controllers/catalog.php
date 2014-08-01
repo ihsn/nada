@@ -30,7 +30,7 @@ class Catalog extends MY_Controller {
 		$this->center_search=($this->config->item("center_search")===FALSE) ? 'no' : $this->config->item("center_search");
 		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
-				
+		
 		//set template for print
 		if ($this->input->get("print")==='yes')
 		{
@@ -68,9 +68,9 @@ class Catalog extends MY_Controller {
 		}
 		
 		//set max size limit
-		if($limit>500)
+		if($limit>50000)
 		{
-			return 500;
+			return 50000;
 		}
 		
 		return $limit;
@@ -232,7 +232,7 @@ class Catalog extends MY_Controller {
 	function _search()
 	{
 		//all keys that needs to be persisted
-		$get_keys_array=array('sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','center','collection');
+		$get_keys_array=array('sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection');
 		
 		$this->load->helper('security');
 		
@@ -258,7 +258,8 @@ class Catalog extends MY_Controller {
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
 		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
-		$search_options->dtype			=xss_clean($this->input->get("dtype"));		
+		$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		$search_options->sid			=xss_clean($this->input->get("sid"));
 		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order 
@@ -315,7 +316,6 @@ class Catalog extends MY_Controller {
 		{
 			//variable search
 			$params=array(
-				//'center'=>$search_options->center,
 				'collections'=>$search_options->collection,
 				'study_keywords'=>$search_options->sk,
 				'variable_keywords'=>$search_options->vk,
@@ -342,9 +342,7 @@ class Catalog extends MY_Controller {
 			
 		}
 		
-		//$surveys=$this->Advanced_search_model->search($this->limit,$offset);		
 		$params=array(
-			//'center'=>$search_options->center,
 			'collections'=>$search_options->collection,
 			'study_keywords'=>$search_options->sk,
 			'variable_keywords'=>$search_options->vk,
@@ -356,7 +354,8 @@ class Catalog extends MY_Controller {
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
 			'repo'=>$search_options->filter->repo,
-			'dtype'=>$search_options->dtype
+			'dtype'=>$search_options->dtype,
+			'sid'=>$search_options->sid,
 		);		
 		
 		$this->load->library('catalog_search',$params);
@@ -364,12 +363,9 @@ class Catalog extends MY_Controller {
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
 		$data['data_access_types']=$this->Form_model->get_form_list();
+		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
 		return $data;
-		//return $this->load->view('catalog_search/survey_list', $data);
-		
-		//$this->load->library("tracker");
-		//$this->tracker->track();
 	}
 
 
@@ -449,6 +445,7 @@ class Catalog extends MY_Controller {
 		$this->template->set_template('blank');	
 		$this->template->add_js('javascript/dragtable.js');
 		$this->template->add_css('themes/ddibrowser/ddi.css');
+		$this->template->add_css('themes/'.$this->template->theme().'/compare-variables.css');
 		
 		$content=$this->load->view("catalog_search/compare",$data,TRUE);
 		$this->template->write('title', t('title_compare_variables'),true);
@@ -790,52 +787,7 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
-	/**
-	* Download survey related files e.g. questionnaire, reports, etc
-	*
-	*/
-	/* todo: remove
-	function download($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-		
-		$file=$this->uri->segment(4);
 	
-		if ($file=='')
-		{
-			show_404();
-		}
-
-		$file_name=trim(base64_decode($file));
-		
-		//required for getting ddi file path
-		$this->load->model('Catalog_model');
-				
-		//get ddi file path from db
-		$folder_path=$this->Catalog_model->get_survey_path_full($id);
-	
-		//complete file path	
-		$file_path=$folder_path .'/'.$file_name;
-
-		if (file_exists($file_path))
-		{
-			$this->load->helper('download');
-			//download the file
-			force_download2($file_path);
-			return;
-		}
-		else
-		{
-			$file_name=prep_url($file_name);
-			echo t('msg_website_redirect').' ';
-			echo anchor($file_name,$file_name);
-			echo js_redirect($file_name,0);
-		}
-	}
-	*/
 	
 	function export($format='print')
 	{
@@ -905,98 +857,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 	
-	
-	function export_x($format='doc')
-	{
-		//$this->output->enable_profiler(TRUE);
-		$page=$this->input->get('page');
-		$page= ($page >0) ? $page : 1;
-		$offset=($page-1)*$this->limit;
-		$view=$this->input->get("view");
 
-		//log
-		$this->db_logger->write_log('search',$this->input->get("sk"),'study');
-		$this->db_logger->write_log('search',$this->input->get("vk"),'question');
-
-		//switch to variable view
-		if ($this->input->get('vk')!='' && $view=='v')
-		{
-			//variable search
-			//$surveys=$this->Advanced_search_model->vsearch(1000,$offset);
-			$params=array(
-				'study_keywords'=>$this->input->get_post('sk'),
-				'variable_keywords'=>$this->input->get_post('vk'),
-				'variable_fields'=>$this->input->get_post('vf'),
-				'countries'=>$this->input->get_post('country'),
-				'topics'=>$this->input->get_post('topic'),
-				'from'=>$this->input->get_post('from'),
-				'to'=>$this->input->get_post('to')
-			);		
-			$this->load->library('catalog_search',$params);
-			$surveys=$this->catalog_search->vsearch($limit=5000);
-			
-			$surveys['current_page']=$page;
-		}
-		else
-		{
-			//survey view
-			//$surveys=$this->Advanced_search_model->search($limit=200,$offset);
-			$params=array(
-				'study_keywords'=>$this->input->get_post('sk'),
-				'variable_keywords'=>$this->input->get_post('vk'),
-				'variable_fields'=>$this->input->get_post('vf'),
-				'countries'=>$this->input->get_post('country'),
-				'topics'=>$this->input->get_post('topic'),
-				'from'=>$this->input->get_post('from'),
-				'to'=>$this->input->get_post('to')
-			);		
-			$this->load->library('catalog_search',$params);
-			$surveys=$this->catalog_search->search($limit=200);			
-		}
-		
-		//echo '<pre>';
-		//var_dump($surveys);exit;
-		
-		switch($format)
-		{
-			case 'doc':
-				header("Content-type: application/vnd.ms-word");
-				header('Content-Disposition: attachment; filename="search-export-'.date("U").'.doc"');
-				$this->load->view('catalog_search/export_word',$surveys);
-				return;
-			break;
-			
-			default:
-				//bulid a list of fields for export
-				$export_array=array();
-				foreach($surveys['rows'] as $row)
-				{
-					$row=(object)$row;
-					$export_array[]=array
-						(
-							'surveyid'=>$row->refno,
-							'title'=>$row->titl,
-							'country'=>$row->nation,
-							'primary-investigator'=>$row->authenty,
-							'year'=>$row->proddate,
-							'study-url'=>site_url().'/catalog/'.$row->id,
-						);
-				}
-				
-				
-				header("Content-type: application/octet-stream");
-				header('Content-Disposition: attachment; filename="search-export-'.date("U").'.csv"');
-				
-				echo $this->_array_to_scv($export_array);
-				echo "\r\n\r\n\r\n";
-				echo t('data_catalog').':, '. site_url().'/catalog/';
-				echo "\r\n";
-				echo 'Date:, '. date("M-d/Y",date("U"));
-					
-		}
-	}
-	
-	
 	function access_policy($id=NULL)
 	{
 		if (!is_numeric($id))
