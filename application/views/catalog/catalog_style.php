@@ -95,11 +95,11 @@ span.link-change{font-size:10px;padding-left:5px;}
 .survey-row .actions .label:hover{background:black;cursor:pointer;}
 .survey-row .actions .info{padding-bottom:5px;margin-bottom:5px;}
 .survey-row .data-access-icon{width:82px;height:82px;position:absolute;left:0px;border:0px solid gainsboro;}
-.survey-row .data-access-public{background: url(themes/admin20/data-access.gif) no-repeat 0% 17%;}
+.survey-row .data-access-public{background: url(themes/admin20/data-access.gif) no-repeat 0% 18%;}
 .survey-row .data-access-data_na{background: url(themes/admin20/data-access.gif) no-repeat 0% 67%;}
-.survey-row .data-access-licensed{background: url(themes/admin20/data-access.gif) no-repeat 0% 33%;}
+.survey-row .data-access-licensed{background: url(themes/admin20/data-access.gif) no-repeat 0% 34%;}
 .survey-row .data-access-data_enclave{background: url(themes/admin20/data-access.gif) no-repeat 0% 85%;}
-.survey-row .data-access-remote{background: url(themes/admin20/data-access.gif) no-repeat 0% 60%;}
+.survey-row .data-access-remote{background: url(themes/admin20/data-access.gif) no-repeat 0% 51%;}
 .survey-row .data-access-direct{background: url(themes/admin20/data-access.gif) no-repeat 0% 0%;}
 .survey-row .data-access-open{background: url(themes/admin20/data-access.gif) no-repeat 0% 100%;}
 .survey-row .label-tag{background-color:white;border:1px solid gainsboro;color:black;font-weight:normal;text-shadow:none;}
