@@ -929,6 +929,7 @@ class Repository_model extends CI_Model {
 
 		if($resource_type=='microdata')
 		{
+			$this->db->where_in('forms.model',array('public','direct','licensed'));
 			$this->db->where(" (dctype like '%dat/micro]%' OR dctype like '%dat]%') ",NULL,FALSE);
 		}
 		else //if ($resource_type=='questionnaire')
