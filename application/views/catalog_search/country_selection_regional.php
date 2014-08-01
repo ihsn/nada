@@ -1,5 +1,5 @@
 <?php foreach($regions as $region):?>
-<?php if ($region_id!==$region['id']){continue;} ?>
+<?php if ($region_id!=$region['id']){continue;} ?>
 
   <div id="tabs-region-<?php echo $region['id'];?>">
 	<!--star-tab-->
