@@ -191,6 +191,14 @@ class Configurations extends MY_Controller {
 		}
 	}
 	
+	function increment_js_css_ver()
+	{
+		$options=array();
+		$options['js_css_version']=date("U");		
+		$result=$this->Configurations_model->update($options);
+		var_dump($result);
+	}
+	
 }
 
 /* End of file configurations.php */
