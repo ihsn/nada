@@ -26,9 +26,9 @@ class Catalog_search{
 	var $from=0;
 	var $to=0;
 	var $repo='';
-	//var $center=array();
 	var $collections=array();
 	var $dtype=array();//data access type
+	var $sid=''; //comma separated list of survey IDs
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -96,7 +96,7 @@ class Catalog_search{
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
-
+		$sid=$this->_build_sid_query();
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
 		$sort_by='titl';
@@ -132,7 +132,7 @@ class Catalog_search{
 		}
 				
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid);
 		
 		//create combined where clause
 		$where='';
@@ -451,6 +451,27 @@ class Catalog_search{
 		if ($from>0 && $to>0)
 		{
 			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year between %s and %s) or (data_coll_year=0) )',$from, $to);
+		}
+		
+		return FALSE;
+	}
+	
+	function _build_sid_query()
+	{
+		$sid=explode(",",$this->sid);
+		
+		$sid_list=array();
+		foreach($sid as $item)
+		{
+			if (is_numeric($item))
+			{
+				$sid_list[]=$item;
+			}	
+		}
+		
+		if (count($sid_list)>0)
+		{		
+			return sprintf('surveys.id in (%s)',implode(",",$sid_list));
 		}
 		
 		return FALSE;
