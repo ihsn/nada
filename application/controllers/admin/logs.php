@@ -113,13 +113,8 @@ class Logs extends MY_Controller {
 	**/
 	function export()
 	{
-		$this->output->enable_profiler(TRUE);
-		//$this->db->select('*');
 		$query=$this->db->query('select top 10000 * from sitelogs');
 		
-		//var_dump($query);exit;
-		
-		//$csv = fopen('php://temp/maxmemory:'. (5*1024*1024), 'r+');
 		$csv = fopen('backup/sitelogs-'.date("U").'.csv', 'w');
 
 		foreach($query->result() as $row)
@@ -132,5 +127,5 @@ class Logs extends MY_Controller {
 	}
 }
 
-/* End of file menu.php */
-/* Location: ./system/application/controllers/menu.php */
+/* End of file logs.php */
+/* Location: ./system/application/controllers/logs.php */
