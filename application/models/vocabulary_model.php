@@ -152,13 +152,15 @@ class Vocabulary_model extends CI_Model {
 		
 		if($active_only==TRUE)
 		{
-			$this->db->join('survey_topics st','st.tid=terms.tid','left');			
+			$this->db->join('survey_topics st','st.tid=terms.tid','left');
+			$this->db->join('surveys', 'st.sid=surveys.id','inner');
+			$this->db->where('surveys.published',1);			
 		}
 		
 		if($repositoryid!=NULL && $active_only==TRUE)
 		{
-			$this->db->join('survey_repos', 'st.sid=survey_repos.sid','inner');
-			$this->db->where('survey_repos.repositoryid',$repositoryid);
+			$this->db->join('survey_repos', 'st.sid=survey_repos.sid','inner');			
+			$this->db->where('survey_repos.repositoryid',$repositoryid);			
 		}
 		
 		$query=$this->db->get();
