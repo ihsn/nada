@@ -62,9 +62,12 @@ class Pdf_generator extends MY_Controller {
 				$this->_export_pdf($sid,$options);
 		}
 		else{
-			$survey=$this->Catalog_model->select_single($sid);
-			$data['publisher']=@json_decode($survey['authenty']);
-			$data['publisher']=implode(", ",$data['publisher']);
+			$survey=$this->Catalog_model->select_single($sid);			
+			$data['publisher']=$survey['authenty'];
+			if (@json_decode($data['publisher']))
+			{
+				$data['publisher']=is_array($data['publisher']) ? implode(", ",$data['publisher']) : '';
+			}
 			$data['website_title']=$this->config->item("website_title");
 			$data['website_url']=site_url();
 			$data['study_title']=$survey['nation'].' - '.$survey['titl'];
