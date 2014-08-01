@@ -32,6 +32,7 @@ function get_search_state(){
 			ps:$("#ps").val(),
 			sort_order:$("#sort_order").val(),
 			sort_by:$("#sort_by").val(),
+			sid:$("#sid").val(),
 			_r:$("#_r").val() //needed only for search button
 			};
 
@@ -461,6 +462,12 @@ $(window).bind( 'hashchange', function(e) {
 	if(typeof fragments.vk != 'undefined'){
 		$("#vk").val(fragments.vk);
 	}
+	
+	//sid
+	if(typeof fragments.sid != 'undefined'){
+		$("#sid").val(fragments.sid);
+	}
+	
 	//page
 	if(typeof fragments.page != 'undefined'){
 		$("#page").val(fragments.page);
@@ -726,6 +733,9 @@ $(document).ready(function()  {
 			case 'vk':
 				$("#vk").val("");hash_changed();
 				break;
+			case 'sid':
+				$("#sid").val("");hash_changed();
+				break;				
 		}
 		
 	});
