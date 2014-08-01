@@ -47,23 +47,38 @@ $(document).ready(function () {
 			}
 		});
 		
-
 		//study publish/unpublish
 		$(document.body).on("click","#survey .publish", function(){ 
 			var studyid=$(this).attr("data-sid");
 			if ($(this).attr("data-value")==0){
 				$(this).attr("data-value",1);
-				$(this).html("Published");
+				$(this).html("<?php echo t('published');?>");
 				$(this).addClass("label-success");
 				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1',{submit:"submit"});
 			}
 			else{
-				$(this).html("Unpublished");
+				$(this).html("<?php echo t('unpublished');?>");
 				$(this).attr("data-value",0);
 				$(this).removeClass("label-success");
 				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1',{submit:"submit"});
 			}		
 		});
+
+
+		//mark study as featured
+		$(document.body).on("click","#survey .feature_study", function(){ 
+			var studyid=$(this).attr("data-sid");
+			var repoid=$(this).attr("data-repositoryid");
+			var status=0;
+
+			if ($(this).attr("checked")) {
+				status=1;
+			}
+	
+			$.post(CI.base_url+'/admin/catalog/set_featured_study/'+repoid+'/'+studyid+'/'+status+'?ajax=1',{submit:"submit"});
+		});
+
+
 
 
 		bind_behaviours();
@@ -608,8 +623,8 @@ background: white;
             </td>
         </tr>
         <tr>
-            <td><?php echo t('authenty');?></td>
-            <td><?php echo implode(",",(array)json_decode($authenty)); ?></td>
+            <td><?php echo t('producer');?></td>
+            <td><?php echo $authenty;//implode(",",(array)json_decode($authenty)); ?></td>
         </tr>
         <tr>
             <td><?php echo t('sponsor');?></td>
@@ -763,7 +778,16 @@ background: white;
 					</div>
 				</div>
             </td>
-        </tr>      
+        </tr>
+        <tr>
+        <td></td>
+        <td>
+		        <div class="featured_survey" title="<?php echo t('click_to_feature');?>">
+                    <label for="chk_featured_survey"><input id="chk_featured_survey" type="checkbox" class="feature_study" data-repositoryid="<?php echo $repositoryid;?>" data-sid="<?php echo $sid;?>" <?php echo ($is_featured ===TRUE ) ? 'checked="checked"' : '';?>/> <?php echo t('mark_as_featured');?></span>
+                </div>        
+        </td>
+        </tr>
+              
         </table>
 
 	<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
