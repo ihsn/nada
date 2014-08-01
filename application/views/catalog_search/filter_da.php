@@ -2,7 +2,7 @@
 <h3><?php echo t('filter_by_data');?></h3>
 
 <span class="search-help da-help">
-    <img src="images/icon_question.gif" alt="help" title="Help" data-url="<?php echo site_url('catalog/help_da');?>">
+    <img src="images/icon_question.png" alt="help" title="Help" data-url="<?php echo site_url('catalog/help_da');?>">
 </span>
 
 <div id="datatype-list" >
