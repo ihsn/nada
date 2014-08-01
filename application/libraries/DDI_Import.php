@@ -211,7 +211,7 @@ class DDI_Import{
 			'producer'=>substr($data->producer,0,254),
 			'refno'=>substr($data->refno,0,254),
 			'proddate'=>substr($data->proddate,0,44),
-			'sponsor'=>substr($data->sponsor,0,254),
+			'sponsor'=>$data->sponsor,
 			//'collections'=>$data->collections,
 			'data_coll_start'=>(integer)$data->data_coll_start,
 			'data_coll_end'=>(integer)$data->data_coll_end,
