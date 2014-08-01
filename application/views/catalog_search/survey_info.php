@@ -15,12 +15,12 @@
 
 <table class="grid-table survey-info" cellspacing="0">
 	<tr>
-    	<td><?php echo t('refno');?></td>
-        <td><?php echo $refno;?></td>
+    	<td class="label"><?php echo t('refno');?></td>
+        <td class="value"><?php echo $refno;?></td>
     </tr>
 	<tr>
-    	<td style="width:100px;"><?php echo t('year');?></td>
-        <td><?php 
+    	<td class="label"><?php echo t('year');?></td>
+        <td class="value"><?php 
 				if ($data_coll_start==$data_coll_end)
 				{
 					echo $data_coll_start;
@@ -41,13 +41,13 @@
     </tr>
 	<?php if ($nation!=''):?>
 	<tr>
-    	<td><?php echo t('country');?></td>
-        <td><?php echo $nation;?></td>
+    	<td class="label"><?php echo t('country');?></td>
+        <td class="value"><?php echo $nation;?></td>
     </tr>
 	<?php endif;?>
 	<tr valign="top">
-    	<td><?php echo t('producers');?></td>
-        <td>
+    	<td class="label"><?php echo t('producers');?></td>
+        <td class="value">
         	<?php if (isset($authenty)):?>
 				<?php $authenty_arr=json_decode($authenty);?>
                 <?php if (is_array($authenty_arr)):?>
@@ -60,15 +60,15 @@
     </tr>
     <?php if (strlen($sponsor)>5):?>
 	<tr valign="top">
-    	<td><?php echo t('sponsors');?></td>
-        <td><?php echo $sponsor;?></td>
+    	<td class="label"><?php echo t('sponsors');?></td>
+        <td class="value"><?php echo $sponsor;?></td>
     </tr>
     <?php endif;?>
 
 	<?php if (isset($repositories) && is_array($repositories) && count($repositories)>0): ?>
 	<tr valign="top">
-    	<td><?php echo t('collections');?></td>
-        <td>
+    	<td class="label"><?php echo t('collections');?></td>
+        <td class="value">
 		<?php foreach($repositories as $repository):?>
 			<div class="collection"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
 		<?php endforeach;?>
@@ -79,8 +79,8 @@
 	<?php $report_file=unix_path($this->survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$id.'.pdf');?>
     <?php if (file_exists($report_file)):?>
     <tr>    
-    	<td><?php echo t('metadata');?></td>
-        <td class="links">            
+    	<td class="label"><?php echo t('metadata');?></td>
+        <td class="value links">            
             <span class="link-col sep">
                 <a href="<?php echo site_url()."/ddibrowser/$id/export/?format=pdf&generate=yes";?>" title="<?php echo t('pdf');?>" rel="nofollow">
                 <img border="0" title="<?php echo t('link_pdf');?>" alt="PDF" src="images/pdf.gif" /> <?php echo t('documentation_in_pdf');?>
@@ -93,7 +93,7 @@
     <?php if($link_indicator!='' || $link_study!=''): ?>
     <tr>
     <td></td>
-    <td>
+    <td class="study-links">
 			<!-- indicators -->
             <span class="link-col">
 			 <?php if($link_indicator!=''): ?>
@@ -117,24 +117,41 @@
 </table>
 
 <div class="study-statistics-box">
+<?php /*
 <table class="grid-table">
  <tr>
-    <td><?php echo t('created_on');?></td>
-    <td><?php echo date("M d, Y",$created);?></td>
+    <td class="label"><?php echo t('created_on');?></td>
+    <td class="value"><?php echo date("M d, Y",$created);?></td>
     </tr>
     <tr>
-    <td><?php echo t('last_modified');?></td>
-    <td><?php echo date("M d, Y",$changed);?></td>
+    <td class="label"><?php echo t('last_modified');?></td>
+    <td class="value"><?php echo date("M d, Y",$changed);?></td>
     </tr>
 <tr>
-	<td><?php echo t('page_views');?></td>
-    <td><?php echo $total_views;?></td>
+	<td class="label"><?php echo t('page_views');?></td>
+    <td class="value"><?php echo $total_views;?></td>
 </tr>
 <tr>
-	<td><?php echo t('downloads');?></td>
-    <td><?php echo $total_downloads;?></td>
+	<td class="label"><?php echo t('downloads');?></td>
+    <td class="value"><?php echo $total_downloads;?></td>
 </tr>
 </table>
+*/ ?>
+
+<div>
+    <div class="label"><?php echo t('created_on');?></div>
+    <div class="value"><?php echo date("M d, Y",$created);?></div>
+</div>
+
+<div>
+    <div class="label"><?php echo t('last_modified');?></div>
+    <div class="value"><?php echo date("M d, Y",$changed);?></div>
+</div>
+<div>
+	<div class="label"><?php echo t('page_views');?></div>
+    <div class="value"><?php echo $total_views;?></div>
+</div>
+
 </div>
 
 
