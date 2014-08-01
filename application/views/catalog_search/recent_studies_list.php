@@ -31,7 +31,7 @@
 	</li>
 	<?php endforeach;?>
 </ul>    
-<div class="align-right"><a href="<?php echo site_url();?>/catalog/history">View more...</a></div>
+<div class="align-right view-more"><a href="<?php echo site_url();?>/catalog/history">View more...</a></div>
 <?php else: ?>
 	<div><?php echo t('no_records_found');?></div>
 <?php endif; ?>
