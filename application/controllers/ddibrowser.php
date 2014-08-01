@@ -181,7 +181,7 @@ class DDIbrowser extends MY_Controller {
 		//page title
 		$this->page_title=$this->survey['nation']. ' - '.$this->survey['titl'];
     	
-		$this->template->add_css('themes/wb/datacatalog.css');
+		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');
 
 		$html=NULL;
 		$show_data_menu=FALSE;
