@@ -64,7 +64,21 @@ else
     </tr>
     <tr class="border">
       <td><?php echo t('dataset_requested');?></td>
-      <td><span class="ures"><?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?> - <?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?> <br/><?php echo get_form_value('proddate',isset($proddate) ? $proddate : ''); ?></span></td>
+      <td>
+	      <table class="grid-table" border="0" style="border-collapse:collapsed;">
+                <?php $survey_count=count($surveys);$k=1;foreach($surveys as $survey):?>
+                <tr class="row">
+                	<?php if($survey_count>1):?>
+                    <td style=""><?php echo $k++;?></td>
+                    <?php endif;?>
+                    <td style="">
+                    	<div style=""><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> - <?php echo $survey['data_coll_start'];?></a></div>
+                    </td>
+                </tr>
+                <?php endforeach;?>
+         </table>
+
+      </td>
     </tr>
     <tr class="border">
 		<td><?php echo t('receiving_organization_name');?></td>
