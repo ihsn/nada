@@ -105,8 +105,30 @@ class Logs extends MY_Controller {
 			$log_file="logs/log-$year-$month-$day.php";
 		}
 		
-		$this->load->view("sitelogs/log_file",array('log_file'=>$log_file));
+		$this->load->view("sitelogs/log_file",array('log_file'=>$log_file));		
+	}
+	
+	/**
+	* Export to csv
+	**/
+	function export()
+	{
+		$this->output->enable_profiler(TRUE);
+		//$this->db->select('*');
+		$query=$this->db->query('select top 10000 * from sitelogs');
 		
+		//var_dump($query);exit;
+		
+		//$csv = fopen('php://temp/maxmemory:'. (5*1024*1024), 'r+');
+		$csv = fopen('backup/sitelogs-'.date("U").'.csv', 'w');
+
+		foreach($query->result() as $row)
+		{
+			$row=(array)$row;
+			fputcsv($csv, array_values($row),"\t");
+		}
+		
+		fclose($csv);
 	}
 }
 
