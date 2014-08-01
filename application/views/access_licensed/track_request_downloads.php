@@ -51,32 +51,6 @@ $request_url=site_url('access_licensed/track/'.$id);
 </div>
 
 <?php else:?>
-<!--
-<table class="survey-request-downloads" >
-<tr>
-<td class="survey-list">
-<?php foreach ($surveys as $survey):?>
-	<div class="survey-row <?php echo ($sid==$survey['id']) ? 'survey-active' :'';?>">
-		<div class="title"><?php echo anchor($request_url.'?sid='.$survey['id'],$survey['titl']);?></div>
-        <div class="sub"><?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?></div>
-    </div>
-<?php endforeach;?>
-</td>
-<td class="resources-container">
-<div class="survey-resources">
-	<div class="survey-info">
-    	<h3><?php echo $surveys[$sid]['titl'];?></h3>
-    	<h4><?php echo $surveys[$sid]['nation'];?>, <?php echo $surveys[$sid]['data_coll_start'];?></h4>
-	</div>
-
-    <?php $this->load->view('access_licensed/survey_resources_microdata',array('resources_microdata'=>$microdata_resources,'request_id'=>$id));?>
-    <br style="margin-top:20px;"/>
-    <?php $this->load->view('access_licensed/survey_resources',array('resources'=>$external_resources,'request_id'=>$id));?>
-</div>
-</td>
-</tr>
-</table>
--->
 
 
 <div id="accordion">
@@ -139,7 +113,7 @@ $(function() {
 			var container = "#"+$(this).find('.ui-state-active').attr('data-id')+"-resources";
 			$(container).html('<img src="images/loading.gif"/> loading...');
 		},
-		active: <?php echo $active_survey;?>
+		active: <?php echo isset($active_survey) ? $active_survey : 0;?>
 	});
 });
 </script>
