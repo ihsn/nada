@@ -10,7 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='wb';
+$template['theme_name']='wb2';
 
 
 
@@ -85,11 +85,11 @@ $template['installer']['theme_folder'] = 'installer';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/wb/blank';
-$template['blank']['theme_folder'] = 'wb';
+$template['blank']['template'] = '../../themes/wb2/blank';
+$template['blank']['theme_folder'] = 'wb2';
 
-$template['blank_iframe']['template'] =  '../../themes/wb/blank';
-$template['blank_iframe']['theme_folder'] = 'wb';
+$template['blank_iframe']['template'] =  '../../themes/wb2/blank';
+$template['blank_iframe']['theme_folder'] = 'wb2';
 
 
 //box template file with only the body and no layout
