@@ -75,6 +75,7 @@ class Bulk_data_access
 	{
 		$this->ci->db->select('surveys.id,surveys.titl,nation,data_coll_start,data_coll_end');
 		$this->ci->db->join('da_collection_surveys','surveys.id=da_collection_surveys.sid','inner');
+		$this->ci->db->order_by('nation'); 
 		$this->ci->db->where('da_collection_surveys.cid',$da_collection_id);
 		$result=$this->ci->db->get('surveys')->result_array();
 		
@@ -86,6 +87,7 @@ class Bulk_data_access
 		$this->ci->db->select('surveys.id');
 		$this->ci->db->join('da_collection_surveys','surveys.id=da_collection_surveys.sid','inner');
 		$this->ci->db->where('da_collection_surveys.cid',$da_collection_id);
+		$this->ci->db->order_by('surveys.nation');
 		$result=$this->ci->db->get('surveys')->result_array();
 		
 		$output=array();
