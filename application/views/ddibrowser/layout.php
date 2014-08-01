@@ -171,11 +171,11 @@ if (!$page_tabs['related_materials'] && in_array($tab,$tab_urls['related_materia
 ?>
     
 <!-- tabs -->
-<div id="tabs" style="" class="study-metadata ui-tabs ui-widget ui-widget-content ui-corner-all study-tabs" >
+<div id="tabs" class="study-metadata ui-tabs ui-widget ui-widget-content ui-corner-all study-tabs" >
 
 	<div class="tab-heading"><?php echo $survey_info;?><a name="tab"></a></div>
 
-  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist" style="background:none;margin-top:-35px;border-bottom:1px solid gainsboro;">
+  <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist" >
     <?php if($page_tabs['related_materials']>0):?>
     <li class="ui-state-default ui-corner-top <?php echo (in_array($tab,$tab_urls['related_materials'])) ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-4" aria-selected="false">
     	<a href="<?php echo site_url('catalog/'.$survey_id.'/related_materials');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3" data-id="related-materials" title="<?php echo t('related_materials_tab_info');?>"><?php echo t('related_materials');?></a>
