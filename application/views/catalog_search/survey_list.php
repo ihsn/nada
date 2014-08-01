@@ -120,7 +120,7 @@
 </tr>
 </table>
 
-<div class="pagination">
+<div class="pagination top">
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 <tr valign="middle">
 	<td>
@@ -160,7 +160,7 @@
 			</div>
             <div class="sub-title">
             	<div>
-				<?php echo t('by');?> <?php $authenty=json_decode($row['authenty']);?>
+				<span class="study-by"><?php echo t('by');?></span> <?php $authenty=json_decode($row['authenty']);?>
                 <?php if (is_array($authenty)):?>
                 	<?php echo implode(", ",$authenty);?>
                 <?php else:?>
@@ -175,7 +175,9 @@
             	<span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span>
                 <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
                 <span><?php echo t('views');?>: <?php echo (int)$row['total_views'];?></span>
+                <?php /* ?>
                 <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
+				<?php */?>
                 <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
                     <span>
                     <a title="<?php echo t('related_citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
@@ -199,7 +201,7 @@
     </div>    
 <?php endforeach;?>
 
-<div class="pagination">
+<div class="pagination bottom">
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 <tr valign="middle">
 	<td>
