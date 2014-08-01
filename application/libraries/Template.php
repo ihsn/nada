@@ -52,6 +52,8 @@ class CI_Template {
    var $parser_method = 'parse';
    var $parse_template = FALSE;
    var $base_url = '';
+   
+   var $version='v41';
 
    //variables to be passed to the template	
    var $globals=array();
@@ -86,8 +88,28 @@ class CI_Template {
 	 else 
 	 {
 	 	$this->base_url=base_url();
-	 }	
+	 }
+	 
+	 //set cs/js version
+	 $this->version=date("mY");	
+	 
+	 if ($this->CI->config->item('js_css_version') )
+	 {
+	 	$this->version=$this->CI->config->item('js_css_version');
+	 }
+	 else
+	 {
+	 	//add key if not exist
+		$this->CI->load->model('Configurations_model');
+	 	$this->CI->Configurations_model->add($name='js_css_version', $value=date("U"),$label='JS/CSS version');		
+	 }
  }
+   
+   //returns the js/css version number
+   function get_js_css_version()
+   {
+   		return $this->version;
+   }
    
    // --------------------------------------------------------------------
    
@@ -464,7 +486,7 @@ class CI_Template {
       {
          case 'import':
             $filepath = $this->base_url . $script;
-            $js = '<script type="text/javascript" src="'. $filepath .'"';
+            $js = '<script type="text/javascript" src="'. $filepath . '?v='.$this->version. '"';
             if ($defer)
             {
                $js .= ' defer="defer"';
@@ -519,9 +541,10 @@ class CI_Template {
       $css = NULL;
       
       $this->CI->load->helper('url');
-	  if (strpos($style,"http:")===FALSE || strpos($style,"https:") ===FALSE)
+	  
+	  if (substr($style,0,7)==="http://" || substr($style,0,8)=="https:" || substr($style,0,2)=="//")
 	  {
-      	$filepath = $style;
+		$filepath = $style;
       }
 	  else
 	  {
@@ -532,7 +555,7 @@ class CI_Template {
       {
          case 'link':
             
-            $css = '<link type="text/css" rel="stylesheet" href="'. $filepath .'"';
+            $css = '<link type="text/css" rel="stylesheet" href="'. $filepath . '?v='.$this->version.'"';
             if ($media)
             {
                $css .= ' media="'. $media .'"';
