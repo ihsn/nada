@@ -1,39 +1,3 @@
-<style>
-.field{margin-top:10px;}
-.single-study{font-weight:normal;}
-.by-collection {font-size:12px;display:none;}
-
-.study-set {padding:10px;background:gainsboro;}
-.study-set table td{background:white;}
-.study-set table {margin-bottom:10px;}
-.header td{font-weight:bold;background:none;font-size:smaller;}
-.collection-fieldset{
-	border-top:1px solid gainsboro;
-	margin:7px 18% 0 18%;
-}
-.collection-fieldset legend{
-text-align: center;
-color: gray;
-padding: 5px;
-font-size:10px;
-text-transform:uppercase;
-}
-
-.set-header{padding:5px;cursor:pointer;}
-.set-header label,
-.select-all,
-.clear-all{cursor:pointer;}
-
-.data-request-form-container td .field-caption {font-weight:bold;font-size:.9em;}
-.field-caption{background:#E4E4E4;color:black;padding:5px;display:block;}
-.field-notes{font-size:12px;margin-top:5px;margin-bottom:5px;color: #666666}
-.expected_output {margin-bottom:5px;}
-.lic-request-form .note{background:#CCCCCC;border:0px;}
-.bull-list{margin-top:10px;}
-.ds_access{margin-top:10px;margin-left:10px;}
-.survey-title{}
-</style>
-
 <?php
 //options for the org_type
 $options_org_type=array(
@@ -263,7 +227,7 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
     <td colspan="2"><div class="field-caption"><span class="required">*</span> <?php print t('ident_needed');?></div>
 	<p><?php print t('da_website');?></p>
 
-	<div class="field-caption"><span class="required">*</span> <?php echo t('this_request');?></div>
+	<p><?php echo t('this_request');?></p>
 	
     <p class="ds_access">
     <input type="radio" name="dataset_access" id="access_whole" value="whole" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='whole' ? 'checked="checked"' : ''; ?> />		
@@ -284,9 +248,9 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
         </div></td>
   </tr>
     <tr class="border">
-      <td colspan="2" class="note" align="right"><input type="checkbox" title="I Agree" id="chk_agree" name="chk_agree" onClick="isagree()"/>
+      <td colspan="2" class="note" align="right"><input type="checkbox" title="I Agree" id="chk_agree" name="chk_agree" />
         <label for="chk_agree"><?php echo t('i_read_and_agree');?></label>&nbsp;&nbsp;
-        <input type="submit" disabled="disabled" value="<?php echo t('submit');?>" id="submit" name="submit"  onClick="submitform()">
+        <input type="submit" value="<?php echo t('submit');?>" id="submit" name="submit"  >
       </td>
     </tr>
   </table>
@@ -295,10 +259,6 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
 </div>
 
 <script type="text/javascript">
-	function isagree(){
-		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))	
-	}
-	
 $(document).ready(function() 
 {	
 	$(".access_type").click(function() {
@@ -316,6 +276,13 @@ $(document).ready(function()
 	$(".clear-all").click(function() {
 		$(this).closest("table").find(":checkbox").prop('checked',false);
 	});
-
+	
+	$("#chk_agree").click(function() {
+		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))	
+	});
+	
+	//disable submit button
+	$("#submit").prop('disabled','disabled');
+	
 });		
 </script>
