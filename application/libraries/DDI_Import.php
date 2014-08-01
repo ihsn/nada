@@ -208,7 +208,7 @@ class DDI_Import{
 			'scope'=>$data->scope,
 			'keywords'=>trim($data->keywords),
 			'sername'=>substr(trim($data->sername),0,254),
-			'producer'=>substr($data->producer,0,254),
+			'producer'=>$data->producer,
 			'refno'=>substr($data->refno,0,254),
 			'proddate'=>substr($data->proddate,0,44),
 			'sponsor'=>$data->sponsor,
