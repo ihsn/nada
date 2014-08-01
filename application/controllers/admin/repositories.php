@@ -91,7 +91,7 @@ class Repositories extends MY_Controller {
 		}
 		
 		//set pagination options
-		$base_url = site_url('admin/menu');
+		$base_url = site_url('admin/repositories');
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
