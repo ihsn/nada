@@ -1,6 +1,4 @@
 <style type="text/css">
-.quick-link{background:url(files/box_wb.png) no-repeat;width:175px;height:175px; cursor:pointer;font-weight:bold;text-align:center;}
-.quick-link:hover{background:url(files/box_wb_over.png) no-repeat;}
 
 .carousel {
   position: relative;
@@ -283,7 +281,9 @@ background:black;color:white;
                   <div class="stats-text" >As of <?php echo date("F d, Y",date("U")); ?><br /> the Library contains</div>
                   <div class="stats-surveys" ><span class="numb"><?php echo number_format($survey_count);?></span> surveys<br/> 
                   <?php echo number_format($variable_count);?> variables<br/>
+                  <?php if (count($citation_count)>0):?>
                   <?php echo number_format($citation_count);?> citations
+                  <?php endif;?>
             </div>      
           </div>
           
