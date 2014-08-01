@@ -18,6 +18,12 @@ else{
 		$items_found=t('found_studies');
 	}
 }
+
+if (!isset($_GET['collection']))
+{
+	$current_repo=@$search_options->filter->repo;
+	$_GET['collection'][]=$current_repo;
+}
 ?>
 
 <div class="active-filters-container">
@@ -73,11 +79,16 @@ else{
 	<?php if($found!=$total):?>
         <span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span>
     <?php endif;?>
+    
+    <?php if (isset($search_options->sid) && $search_options->sid!=''):?>
+    <span class="remove-filter sk" data-type="sid" data-value=""><?php echo substr($search_options->sid,0,50).'... ';?></span>
+    <?php endif;?>
+
 </div>
 <div class="filter-action-bar">
     <span class="right">
-    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=500&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view'));?>" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
-    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=500&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view'));?>" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
+    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
+    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
     </span>
 </div>
 </div>
