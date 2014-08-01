@@ -73,7 +73,7 @@ class PDF_Report{
 		
 		$mpdf->AddPage();
 		$mpdf->Bookmark(t("overview"),0);
-		$mpdf->WriteHTML( $this->get_section(FCPATH.$ddi_file,"overview") );
+		$mpdf->WriteHTML( $this->get_section($ddi_file,"overview") );
 
 		$mpdf->AddPage();
 		$mpdf->Bookmark(t("sampling"),1);
