@@ -33,6 +33,25 @@ class Configurations_model extends CI_Model {
 		$this->db->select('*');		
 		$this->db->from('configurations');
         return $this->db->get()->result_array();
+    }
+	
+	
+	/**
+	* check if a config key exists
+	*
+	*/
+	function check_key_exists($key)
+    {
+		$this->db->select('count(*) as found');
+		$this->db->where('name',$key);
+        $result=$this->db->get('configurations')->row_array();
+		
+		if ($result && $result['found']>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
     }	
 
 	/**
@@ -85,7 +104,13 @@ class Configurations_model extends CI_Model {
 		{
 			return FALSE;
 		}	
-			
+
+		//check key already exists
+		if ($this->check_key_exists($name))
+		{
+			return FALSE;
+		}
+
 		$data=array('name'=>$name,'value'=>$value,'label'=>$label,'helptext'=>$helptext);
 		$result=$this->db->insert('configurations', $data);
 		
@@ -93,6 +118,7 @@ class Configurations_model extends CI_Model {
 		{
 			return FALSE;
 		}
+		
 		return TRUE;
 	}
 	
