@@ -389,10 +389,10 @@ class Breadcrumb
 		//section to hide the collection link
 		$excluded_sections=array('users','repositories','citations','reports','configurations','countries','regions','terms','vocabularies','menu');
 		
-		if (!in_array($segments[2],$excluded_sections))
+		/*if (!in_array($segments[2],$excluded_sections))
 		{
 			$breadcrumbs['admin/repositories/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
-		}	
+		}*/	
 		
 		switch ($segments[2])
 		{
@@ -441,12 +441,25 @@ class Breadcrumb
 				$breadcrumbs['admin/pdf_generator/'.$segments[3].'/'.$segments[4] ]=t('generate_study_pdf');
 			break;
 			
+			case 'translate':
+				$breadcrumbs['admin/translate/']=t('translate');
+			break;
 
 		}
 		
 		if (!isset($segments[3]))
 		{
 			return;
+		}
+		
+		if ($segments[2]=='translate')
+		{
+			switch($segments[3])
+			{
+				case 'edit':
+					$breadcrumbs['admin/translate/edit/'.$segments[4]]=strtoupper($segments[4]);
+				break;
+			}
 		}
 		
 		if ($segments[2]=='catalog')
