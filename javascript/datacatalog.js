@@ -160,6 +160,14 @@ function bindBehaviors(e)
 		hash_changed();
 		return false;
 	});
+	
+	//show/hide search tokens
+	if ($(".active-filters").children().length>0){
+		$(".active-filters").show();
+	}
+	else{
+		$(".active-filters").hide();
+	}
 }
 
 
