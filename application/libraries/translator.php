@@ -32,33 +32,20 @@ class Translator{
  	* TODO:// copied from the CI translator, need to find the author to give credit
 	**/
 	function load($file)
-	{		
-		$fail_gracefully=TRUE;
-		$file = ($file == '') ? 'language' : str_replace(EXT, '', $file);
+	{	
+		$file=$file.'_lang.php';
 	
-		if (in_array($file, $this->is_loaded, TRUE))
+		if ( ! file_exists(APPPATH.'language/'.$file))
 		{
-			return TRUE;
-		}
-		
-		if ( ! file_exists(APPPATH.'language/'.$file.EXT))
-		{
-			if ($fail_gracefully === TRUE)
-			{
 				return FALSE;
-			}
-			show_error('The language file '.$file.EXT.' does not exist.');
 		}
 	
-		include(APPPATH.'language/'.$file.EXT);
+
+		include(APPPATH.'language/'.$file);
 
 		if ( ! isset($lang) OR ! is_array($lang))
 		{
-			if ($fail_gracefully === TRUE)
-			{
 				return FALSE;
-			}
-			show_error('Your '.$file.EXT.' file does not appear to contain a valid language array.');
 		}
 		
 		return $lang;
@@ -132,6 +119,127 @@ class Translator{
 		return $lang;
 	}
 	
+	
+	/**
+	* Returns an array of available languages
+	*
+	**/
+	function get_languages_array()
+	{
+		$lang_folder=APPPATH.'/language';
+		
+		$languages=scandir($lang_folder);
+		
+		//get rid of the .,.. entries
+		$languages=array_diff($languages,array(".","..","base"));
+		
+		return $languages;
+	}
+	
+	//check if a language folder exists
+	function language_exists($lang_name)
+	{
+		$languages=$this->get_languages_array();
+		
+		if (in_array($lang_name,$languages))
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
+	}
+	
+	
+	function translation_file_exists($language,$translation_file)
+	{
+		$fullpath=APPPATH.'/'.$language.'/'.$translation_file;
+		if (file_exists($fullpath))
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	/**
+	*
+	* Export language package as zip
+	**/
+	function export($language)
+	{
+		//application language folder
+		$language_folder=APPPATH.'language/';
+		
+		//system language folder
+		$system_language_folder='system/language/';
+		
+		//array of available languages
+		$languages=$this->get_languages_array();
+		
+		//check if valid language name
+		if (!in_array($language, $languages))
+		{
+			show_error('INVALID LANGUAGE');
+		}
+		
+		//full path to the language folder
+		$language_path=$language_folder.$language;
+		
+		//check if the language folder exist
+		if (!file_exists($language_path))
+		{
+			show_error("NOT FOUND");
+		}
+		
+		//list of files found in the language folder
+		$files=$this->get_language_files_array($language_path);
+		
+		//load zip library
+		$this->ci->load->library('zip');
+
+		//create application language folder
+		$this->ci->zip->add_dir('application/language/'.$language);
+
+		//add language files
+		foreach ($files as $file)
+		{
+			$this->ci->zip->read_file($language_path.'/'.$file,TRUE); 
+		}
+		
+		$system_files=array();
+		$system_language_path='';
+		
+		if (file_exists($system_language_folder.$language))
+		{
+			//$this->zip->read_dir($system_language_folder.$language.'/',FALSE);
+			$system_language_path=$system_language_folder.$language.'/';
+			$system_files=$this->get_language_files_array($system_language_path);
+		}
+		else
+		{
+			//$this->zip->read_dir($system_language_folder.'english/');
+			$system_language_path=$system_language_folder.'english/';
+			$system_files=$this->get_language_files_array($system_language_path);			
+		}
+
+		//create system language folder
+		$this->ci->zip->add_dir('system/language/'.$language);
+		
+		//add system language files
+		foreach($system_files as $file)
+		{
+			//read file contents
+			$contents=file_get_contents($system_language_path.$file);
+			
+			$this->ci->zip->add_data($name="system/language/$language/$file", $contents);
+			//$this->zip->read_file($system_language_path.'/'.$file,TRUE); 
+		}		
+
+		//download file
+		$this->ci->zip->download($language."-".date("m-d-Y").'.zip');
+
+	}
 	
 }// END Translator Class
 
