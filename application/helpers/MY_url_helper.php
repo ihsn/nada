@@ -112,7 +112,7 @@ if ( ! function_exists('site_home'))
 			}
 		}
 		//check SSL using server HTTPS variablbe
-		else if ($CI->config->item("enable_ssl") && isset($_SERVER['HTTPS']))
+		else if ($CI->config->item("enable_ssl") && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=="on")
 		{
 				$is_https=TRUE;
 		}
@@ -280,8 +280,8 @@ if ( ! function_exists('base_url'))
 	{
 		$CI =& get_instance();
 		$base_url=$CI->config->slash_item('base_url');
-
-		if (is_ssl_enabled() && strpos(current_url(),"/auth/")!==FALSE)
+		
+		if (is_ssl_enabled() && is_ssl_protected(current_url())==TRUE)
 		{
 			return $url=str_replace("http:","https:",$base_url);
 		}
@@ -290,6 +290,40 @@ if ( ! function_exists('base_url'))
 	}
 }	
 
+/**
+ * IS_SSL_PROTECTED
+ *
+ * Checks if a URL is protected by SSL
+ * 
+ *
+ * @access	public
+ * @param	string
+ * @return	string
+ */
+if ( ! function_exists('is_ssl_protected'))
+{
+	function is_ssl_protected($url)
+	{
+		$CI =& get_instance();
+		$ssl_urls=$CI->config->item("ssl_urls"); //array of SSL protected URLs
+	
+		if (!$ssl_urls)
+		{
+			//default value if config setting is not set
+			$ssl_urls=array('/auth/');
+		}
+		
+		foreach($ssl_urls as $ssl_part)
+		{			
+			if (strpos($url,$ssl_part)!==FALSE)
+			{
+				return TRUE;
+			}	
+		}
+		
+		return FALSE;
+	}
+}
 
 /**
  * Site URL
@@ -304,11 +338,12 @@ if ( ! function_exists('base_url'))
 if ( ! function_exists('site_url'))
 {
 	function site_url($uri = '')
-	{
+	{	
 		$CI =& get_instance();
 		$url= $CI->config->site_url($uri);
+		$ssl_urls=$CI->config->item("ssl_urls");
 		
-		if (is_ssl_enabled() && strpos(current_url(),"/auth/")!==FALSE)
+		if (is_ssl_enabled() && is_ssl_protected(current_url())!==FALSE)
 		{
 			return $url=str_replace("http:","https:",$url);
 		}
@@ -317,6 +352,30 @@ if ( ! function_exists('site_url'))
 
 	}
 }
+
+/**
+ * NADA Site URL
+ *
+ * Returns the "nada_site_url" item from your config file if set
+ *
+ * @access	public
+ * @return	string
+ */
+if ( ! function_exists('nada_site_url'))
+{
+	function nada_site_url()
+	{
+		$CI =& get_instance();
+		$nada_site_url=$CI->config->slash_item('nada_site_url');
+		
+		if ($nada_site_url!==FALSE && $nada_site_url!='')
+		{
+			return $nada_site_url;
+		}
+		
+		return base_url();
+	}
+}	
 
 /*
 if ( ! function_exists('sanitize_url'))
