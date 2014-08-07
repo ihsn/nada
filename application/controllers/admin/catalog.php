@@ -1734,20 +1734,29 @@ class Catalog extends MY_Controller {
 			$repositoryid=$this->input->post("repositoryid");
 			
 			//validate repository
-			$exists=$this->Catalog_model->repository_exists($repositoryid);			
-
+			if ($repositoryid=='central')
+			{
+				$exists=true;
+			}
+			else
+			{
+				$exists=$this->Catalog_model->repository_exists($repositoryid);	
+			}			
+			
 			if (!$exists)
 			{
-				$this->form_validation->set_error(t('error_invalid_repositoryid'));
+				$this->form_validation->set_error(t('error_no_collection_selected'));
 			}
-			
-			foreach($surveys as $key=>$value)
-			{
-				//transfer ownership
-				$this->Catalog_model->transfer_ownership($repositoryid,$key);				
-			}
-			$this->session->set_flashdata('message', t('msg_study_ownership_has_changed'));
-			redirect('admin/catalog');
+			else
+			{			
+				foreach($surveys as $key=>$value)
+				{
+					//transfer ownership
+					$this->Catalog_model->transfer_ownership($repositoryid,$key);				
+				}
+				$this->session->set_flashdata('message', t('msg_study_ownership_has_changed'));
+				redirect('admin/catalog');
+			}	
 		}
 				
 		$content=$this->load->view('catalog/transfer_ownership',array('surveys'=>$surveys),TRUE);
