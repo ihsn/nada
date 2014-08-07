@@ -146,10 +146,10 @@ class Citation_search_sql{
 	}
 
 
-    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
+    function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
 		//count search results
-		$this->search_found_rows=$this->search_count($filter);
+		$this->search_found_rows=$this->search_count($filter,$repositoryid);
 		
 		//no results found
 		if (!$this->search_found_rows>0)
@@ -163,6 +163,13 @@ class Citation_search_sql{
 		$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
 		$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
 		$this->ci->db->group_by($this->groupby_fields);
+		
+		//filter by repository if set
+		if($repositoryid!=NULL && strtolower($repositoryid)!='central')
+		{
+			$this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+			$this->ci->db->where('survey_repos.repositoryid',$repositoryid);
+		}
 		
 		//set where
 		if ($filter)
@@ -254,13 +261,20 @@ class Citation_search_sql{
 	* Return number of records found by search
 	*
 	**/
-    function search_count($filter=NULL)
+    function search_count($filter=NULL,$repositoryid)
     {
 		//select columns for output
 		$this->ci->db->select('count(citations.id) as rows_found');
 		$this->ci->db->from('citations');
 		$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
 		$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+		
+		//filter by repository if set
+		if($repositoryid!=NULL && strtolower($repositoryid)!='central')
+		{
+			$this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+			$this->ci->db->where('survey_repos.repositoryid',$repositoryid);
+		}
 		
 		//group by to remove duplicates
 		$this->ci->db->group_by('citations.id');
