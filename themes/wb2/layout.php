@@ -158,17 +158,5 @@ $(document).ready(function()  {
     </div><!-- /footer -->
         
     <?php $this->load->view('tracker/js_tracker');?>
-    
-    <!-- FIX: there is inline style information in the Catalog/About page
-         http://dev.morethanthemes.com/mtp-nada/app/index.php/catalog/central/about
-        
-         These rules can be neutralized by using the css link below. Once the "inline style" information is 
-         removed the rules the next .css file contains can be moved into the style.css file. 
-
-         See: NADA-282
-    -->    
-    <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/inline-catalog-overrides.css" />
-    <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/ddi-overrides.css" />
-    <link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/jquery-tree-overrides.css" />
 </body>
 </html>

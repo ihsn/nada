@@ -10,8 +10,6 @@ filter: progid:DXImageTransform.Microsoft.Shadow(Color=#cccccc, Strength=5, Dire
 /* Site name: No shadow */
 #banner, 
 #banner-subtitle {
-    text-shadow: 0 0 0 rgba(0,0,0, 0.14);
-    filter: dropshadow(color=rgba(0,0,0, 0.14), offx=0, offy=0);
 }
 
 input[type='submit'],

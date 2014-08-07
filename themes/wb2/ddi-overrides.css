@@ -42,9 +42,6 @@
 	margin-top:15px;
 }
 
-.xsl-text{
-}
-
 .xsl-text.xsl-country{
     font-weight:bold;
 }
@@ -66,14 +63,14 @@
     border-bottom: 2px solid #dcdcdc; 
 }
 
-.table-variable-list tr th,
+/*.table-variable-list tr th,
 .table-variable-list tr td,
 .ddi-table tr th,
 .ddi-table tr td,
 .xsl-table tr th,
 .xsl-table tr td{
     border:0;
-}
+}*/
 
 .table-variable-list tr th,
 .table-variable-list tr.var-th td,
