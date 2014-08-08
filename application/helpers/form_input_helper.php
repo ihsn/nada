@@ -12,11 +12,15 @@ if ( ! function_exists('get_form_value'))
 	function get_form_value($field, $ofield='')
 	{
 		$ci=& get_instance();
-
-		if ( $ci->input->get_post($field)!='' )
+		
+		//return form get/post value
+		if (isset($_POST[$field]) || isset($_GET[$field]))
 		{
+			//return form_prep($ci->input->get_post($field), $field);
 			return form_prep($ci->security->xss_clean($ci->input->get_post($field)));
 		}
+		
+		//return default value
 		return form_prep($ofield);
 	}
 }
