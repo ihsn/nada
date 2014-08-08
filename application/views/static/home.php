@@ -281,7 +281,7 @@ background:black;color:white;
                   <div class="stats-text" >As of <?php echo date("F d, Y",date("U")); ?><br /> the Library contains</div>
                   <div class="stats-surveys" ><span class="numb"><?php echo number_format($survey_count);?></span> surveys<br/> 
                   <?php echo number_format($variable_count);?> variables<br/>
-                  <?php if (count($citation_count)>0):?>
+                  <?php if ($citation_count>0):?>
                   <?php echo number_format($citation_count);?> citations
                   <?php endif;?>
             </div>      
