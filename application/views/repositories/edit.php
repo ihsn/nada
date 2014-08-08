@@ -98,7 +98,7 @@ foreach($sections as $sec)
     
     <div class="field">
         <label for="long_text"><?php echo t('long_description');?><span class="required">*</span></label>
-        <?php echo form_textarea('long_text', get_form_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : ''),'style="height:150px" class="input-flex"');?>
+        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : ''),'style="height:150px" class="input-flex"');?>
     </div>
 
     <fieldset class="repo-box-1">
@@ -131,13 +131,14 @@ foreach($sections as $sec)
                 <span class="fixed-100"><?php echo form_input($this->data['weight']);?></span>
             </div>
         </td>
-        
+        <!--
     	<td>
             <div class="field">
                 <label for="pid"><?php echo t('select_repo_type');?></label>
                 <?php echo form_dropdown('type', $repo_types,get_form_value('type',isset($this->data['type']) ? $this->data['type'] : ''));?>
             </div>  
         </td>        
+        -->
         <td>        
             <div class="field">
                 <label for="section"><?php echo t('section');?><span class="required">*</span></label>
