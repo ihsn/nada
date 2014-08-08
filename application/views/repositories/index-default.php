@@ -91,7 +91,7 @@ $repository_types=array(
     	<tr class="header">
             <th>ID</th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>
+            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>-->
             <th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
@@ -103,7 +103,7 @@ $repository_types=array(
     	<tr class="repo-row <?php echo $tr_class; ?>">
             <td><?php echo strtoupper($row->repositoryid);?></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
-            <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
+            <!--<td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>-->
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
                 <div class="status">
