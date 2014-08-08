@@ -139,10 +139,11 @@ class Menu extends MY_Controller {
 
 		//validation rules
 		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
+		$this->form_validation->set_rules('body', t('body'), 'xss_clean');
 		$this->form_validation->set_rules('url', t('url'), 'xss_clean|trim|required|callback__url_check|max_length[255]');
-    	$this->form_validation->set_rules('published', t('published'), 'xss_clean|numeric');
-    	$this->form_validation->set_rules('target', t('Open_in'), 'xss_clean|numeric');
-		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|numeric|max_length[3]');
+    	$this->form_validation->set_rules('published', t('published'), 'xss_clean|is_natural|max_length[1]');
+    	$this->form_validation->set_rules('target', t('Open_in'), 'xss_clean|is_natural|max_length[2]');
+		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|is_natural|max_length[3]');
 				
 		//process form				
 		if ($this->form_validation->run() == TRUE)
