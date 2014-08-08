@@ -166,9 +166,12 @@ class Repositories extends MY_Controller {
 		$this->form_validation->set_rules('repositoryid', t('repositoryid'), 'xss_clean|trim|required|max_length[255]|callback__repository_identity_check|alpha_dash');
 		//$this->form_validation->set_rules('url', t('url'), 'xss_clean|trim|required|callback__url_check|max_length[255]');
 		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
-		//$this->form_validation->set_rules('organization', t('organization'), 'xss_clean|trim|required|max_length[255]');
-		//$this->form_validation->set_rules('country', t('country'), 'xss_clean|trim|required|max_length[255]');
-		//$this->form_validation->set_rules('scan_interval', t('scan_interval'), 'xss_clean|trim|max_length[3]|is_numeric');
+		$this->form_validation->set_rules('short_text', t('short_text'), 'xss_clean|trim|required');
+		$this->form_validation->set_rules('long_text', t('long_text'), 'xss_clean|trim');
+		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|trim|max_length[5]|is_natural');
+		$this->form_validation->set_rules('thumbnail', t('thumbnail'), 'xss_clean|trim|required');
+		$this->form_validation->set_rules('section', t('section'), 'xss_clean|trim|max_length[3]|is_natural');
+		$this->form_validation->set_rules('published', t('published'), 'xss_clean|trim|max_length[1]|is_natural');
 		
 		if (is_numeric($id))
 		{
@@ -253,10 +256,8 @@ class Repositories extends MY_Controller {
 					//update failed
 					$this->form_validation->set_error(t('form_update_fail'));
 				}
-
 		}
-		
-		else //first time page is loaded
+		else //first time page is loaded or validation failed
 		{
 				if ($id!=NULL)
 				{
