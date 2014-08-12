@@ -378,6 +378,11 @@ class DDI_Import{
 		//get survey row
 		$survey_row=$this->get_survey($id);
 		
+		if (!$survey_row)
+		{
+			return;
+		}
+		
 		$survey_id=$survey_row['surveyid'];
 		
 		$new_aliases=array();
