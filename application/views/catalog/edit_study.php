@@ -779,6 +779,7 @@ background: white;
 				</div>
             </td>
         </tr>
+        <!--
         <tr>
         <td></td>
         <td>
@@ -787,7 +788,7 @@ background: white;
                 </div>        
         </td>
         </tr>
-              
+         -->     
         </table>
 
 	<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
