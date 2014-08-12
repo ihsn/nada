@@ -44,7 +44,14 @@ class Configurations_model extends CI_Model {
     {
 		$this->db->select('count(*) as found');
 		$this->db->where('name',$key);
-        $result=$this->db->get('configurations')->row_array();
+        $result=$this->db->get('configurations');
+		
+		if (!$result)
+		{
+			return FALSE;
+		}
+		
+		$result=$result->row_array();
 		
 		if ($result && $result['found']>0)
 		{
