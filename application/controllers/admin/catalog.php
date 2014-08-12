@@ -496,12 +496,15 @@ class Catalog extends MY_Controller {
 		}		
 		
 		//create .htaccess if not already exists
-		@file_put_contents($catalog_root.'/.htaccess','deny from all');
-		@chmod($catalog_root.'/.htaccess',0444);
+		//@file_put_contents($catalog_root.'/.htaccess','deny from all');
+		//@chmod($catalog_root.'/.htaccess',0444);
 		
 		$temp_upload_folder=$catalog_root.'/tmp';
 		
-		@mkdir($temp_upload_folder);
+		if (!file_exists($temp_upload_folder))
+		{
+			@mkdir($temp_upload_folder);
+		}
 		
 		if (!file_exists($temp_upload_folder))
 		{

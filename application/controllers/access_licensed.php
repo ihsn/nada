@@ -346,7 +346,7 @@ class Access_licensed extends MY_Controller {
 		
 		//log
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->db_logger->write_log('survey',$file_id,'licensed-download',$survey_id);
+		$this->db_logger->write_log('survey',$file_id,'licensed-download',$fileinfo['survey_id']);
 		
 		force_download2($file_path);
 	}
