@@ -39,7 +39,7 @@ background-color: #F2F2F2;
 .row-color1{background-color:#eeefe9;cursor:pointer;color:#333333}
 .row-color2{background-color:none;cursor:pointer;color:#333333}
 .row td{border-bottom:1px solid gainsboro;}
-.row-color1 a, .row-color2 a{color:#333333}
+/*.row-color1 a, .row-color2 a{color:#333333}*/
 
 /*row hover*/
 .table-variable-list .row-color1:hover, .table-variable-list .row-color2:hover, .row:hover{background-color:#d9dccf}
