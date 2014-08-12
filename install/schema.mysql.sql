@@ -460,14 +460,14 @@ CREATE TABLE `surveys` (
   `surveyid` varchar(200) DEFAULT NULL,
   `titl` varchar(255) DEFAULT '',
   `titlstmt` text,
-  `authenty` varchar(255) DEFAULT NULL,
+  `authenty` varchar(1000) DEFAULT NULL,
   `geogcover` varchar(255) DEFAULT NULL,
   `nation` varchar(100) DEFAULT '',
   `topic` text,
   `scope` text,
   `sername` varchar(255) DEFAULT NULL,
-  `producer` varchar(255) DEFAULT NULL,
-  `sponsor` varchar(255) DEFAULT NULL,
+  `producer` varchar(1000) DEFAULT NULL,
+  `sponsor` varchar(1000) DEFAULT NULL,
   `refno` varchar(255) DEFAULT NULL,
   `proddate` varchar(45) DEFAULT NULL,
   `varcount` decimal(10,0) DEFAULT NULL,
@@ -654,9 +654,6 @@ UNLOCK TABLES;
 -- Table structure for table `lic_requests`
 --
 
-DROP TABLE IF EXISTS `lic_requests`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lic_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userid` int(11) NOT NULL,
