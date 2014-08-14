@@ -31,8 +31,21 @@ class Auth extends MY_Controller {
 		show_404();		
     }
     
+    //expire page immediately
+    private function clear_page_cache()
+    {	
+	header( 'Expires: Sat, 26 Jul 1997 05:00:00 GMT' );
+	header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT' );
+	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'Cache-Control: post-check=0, pre-check=0', false );
+	header( 'Pragma: no-cache' );
+    }
+    
 	function profile()
 	{	
+		//don't let browsers cache this page
+		$this->clear_page_cache();
+		
 		//check if user is logged in
 		$this->_is_logged_in();
 		$this->load->model('Licensed_model');
@@ -48,7 +61,8 @@ class Auth extends MY_Controller {
 		$data['lic_requests']=$this->Licensed_model->get_user_requests($data['user']->id);
 		
 		$content=$this->load->view('auth/profile_view',$data,TRUE);
-
+		$content.=date("H:i:s");
+		
 		$this->template->write('title', t('profile'),true);
 		$this->template->write('content', $content,true);		
 	  	$this->template->render();
