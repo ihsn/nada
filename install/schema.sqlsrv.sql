@@ -325,14 +325,14 @@ CREATE TABLE surveys (
   surveyid varchar(200) DEFAULT NULL,
   titl varchar(255) DEFAULT '',
   titlstmt text,
-  authenty varchar(255) DEFAULT NULL,
+  authenty varchar(max) DEFAULT NULL,
   geogcover varchar(255) DEFAULT NULL,
   nation varchar(100) DEFAULT '',
   topic text,
   scope text,
   sername varchar(255) DEFAULT NULL,
-  producer varchar(255) DEFAULT NULL,
-  sponsor varchar(255) DEFAULT NULL,
+  producer varchar(max) DEFAULT NULL,
+  sponsor varchar(max) DEFAULT NULL,
   refno varchar(255) DEFAULT NULL,
   proddate varchar(45) DEFAULT NULL,
   varcount decimal(10,0) DEFAULT NULL,
@@ -407,7 +407,7 @@ SET ft_keywords = ISNULL(cast(titlstmt as varchar(max)),'')
 					
 WHERE id IN (SELECT id FROM INSERTED)
 
-END
+END;
 
 
 
@@ -517,6 +517,37 @@ CREATE TABLE lic_requests (
   additional_info text,
   PRIMARY KEY (id)
 );
+
+
+CREATE TABLE lic_requests (
+  id int NOT NULL IDENTITY(1,1),
+  userid int NOT NULL,
+  request_title varchar(300),
+  org_rec varchar(200) DEFAULT NULL,
+  org_type varchar(45) DEFAULT NULL,
+  address varchar(255) DEFAULT NULL,
+  tel varchar(150) DEFAULT NULL,
+  fax varchar(100) DEFAULT NULL,
+  datause text,
+  outputs text,
+  compdate varchar(45) DEFAULT NULL,
+  datamatching int DEFAULT NULL,
+  mergedatasets text,
+  team text,
+  dataset_access varchar(20) DEFAULT 'whole',
+  created int DEFAULT NULL,
+  status varchar(45) DEFAULT NULL,
+  comments text,
+  locked tinyint DEFAULT NULL,
+  orgtype_other varchar(145) DEFAULT NULL,
+  updated int DEFAULT NULL,
+  updatedby varchar(45) DEFAULT NULL,
+  ip_limit varchar(255) DEFAULT NULL,
+  expiry_date int DEFAULT NULL,
+  additional_info text,
+  PRIMARY KEY (id)
+);
+
 
 
 --
@@ -1277,6 +1308,9 @@ CREATE FULLTEXT CATALOG ft AS DEFAULT;
 
 go
 
+--drop existing fulltext index
+DROP FULLTEXT INDEX ON surveys;
+
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 ( 
@@ -1292,10 +1326,12 @@ CREATE FULLTEXT INDEX ON surveys
   sponsor		Language 1033,
   titl			Language 1033,
   titlstmt		Language 1033,
-  topic			Language 1033
+  topic			Language 1033,
+  ft_keywords	Language 1033
  ) 
 KEY INDEX pk_idx_surveys ; 
 GO
+
 
 
 ---------------------------------------------------------
