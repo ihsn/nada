@@ -490,38 +490,6 @@ set IDENTITY_INSERT forms OFF;
 CREATE TABLE lic_requests (
   id int NOT NULL IDENTITY(1,1),
   userid int NOT NULL,
-  request_type varchar(45) DEFAULT 'study',
-  surveyid int DEFAULT NULL,
-  collection_id varchar(100) DEFAULT NULL,
-  org_rec varchar(200) DEFAULT NULL,
-  org_type varchar(45) DEFAULT NULL,
-  address varchar(255) DEFAULT NULL,
-  tel varchar(150) DEFAULT NULL,
-  fax varchar(100) DEFAULT NULL,
-  datause text,
-  outputs text,
-  compdate varchar(45) DEFAULT NULL,
-  datamatching int DEFAULT NULL,
-  mergedatasets text,
-  team text,
-  dataset_access varchar(20) DEFAULT 'whole',
-  created int DEFAULT NULL,
-  status varchar(45) DEFAULT NULL,
-  comments text,
-  locked tinyint DEFAULT NULL,
-  orgtype_other varchar(145) DEFAULT NULL,
-  updated int DEFAULT NULL,
-  updatedby varchar(45) DEFAULT NULL,
-  ip_limit varchar(255) DEFAULT NULL,
-  expiry_date int DEFAULT NULL,
-  additional_info text,
-  PRIMARY KEY (id)
-);
-
-
-CREATE TABLE lic_requests (
-  id int NOT NULL IDENTITY(1,1),
-  userid int NOT NULL,
   request_title varchar(300),
   org_rec varchar(200) DEFAULT NULL,
   org_type varchar(45) DEFAULT NULL,
