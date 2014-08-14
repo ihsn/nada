@@ -257,11 +257,12 @@ class Auth extends MY_Controller {
 			$this->form_token=$this->token_model->create_token();
 		}
 		
-
+	    $use_complex_password=$this->config->item("require_complex_password");
+		
 	    $this->form_validation->set_rules('old', t('old_password'), 'required|max_length[20]|xss_clean');
-	    $this->form_validation->set_rules('new', t('new_password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[new_confirm]');
-	    $this->form_validation->set_rules('new_confirm', t('confirm_new_password'), 'required|max_length[20]|');
-   		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
+	    $this->form_validation->set_rules('new', t('new_password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[new_confirm]|is_complex_password['.$use_complex_password.']');
+	    $this->form_validation->set_rules('new_confirm', t('confirm_new_password'), 'required|max_length[20]');
+   	    $this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
 
 	    if (!$this->ion_auth->logged_in()) {
 	    	redirect('auth/login', 'refresh');
@@ -445,6 +446,9 @@ class Auth extends MY_Controller {
 			//create a new token
 			$this->form_token=$this->token_model->create_token();
 		}
+	
+	$use_complex_password=$this->config->item("require_complex_password");
+		
 		
         //validate form input
     	$this->form_validation->set_rules('first_name', t('first_name'), 'trim|required|xss_clean|max_length[50]');
@@ -452,11 +456,11 @@ class Auth extends MY_Controller {
     	$this->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]|callback_email_exists');
     	//$this->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
     	//$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
-		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
-    	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
+	$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
+    	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');		
-		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');		
-		$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
+	$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');		
+    	$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
 		
         if ($this->form_validation->run() === TRUE) 
 		{ 

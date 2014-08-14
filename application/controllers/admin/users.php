@@ -255,7 +255,9 @@ class Users extends MY_Controller {
 	function edit($id) 
 	{  		
         $this->data['page_title'] = t("edit_user_account");
-              		
+	
+	$use_complex_password=$this->config->item("require_complex_password");
+	              		
         //validate form input
 		$this->form_validation->set_rules('username', t('username'), 'trim|required|callback_username_exists');
     	$this->form_validation->set_rules('email', t('email'), 'max_length[100]|required|valid_email|callback_email_exists');		
@@ -266,7 +268,7 @@ class Users extends MY_Controller {
 
 		if ($this->input->post("password") || $this->input->post("password_confirm") )
 		{
-	    	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
+	    	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     		$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 		}
 				
