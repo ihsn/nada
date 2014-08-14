@@ -32,19 +32,19 @@ class Auth extends MY_Controller {
     }
     
     //expire page immediately
-    private function clear_page_cache()
+    private function disable_page_cache()
     {	
-	header( 'Expires: Sat, 26 Jul 1997 05:00:00 GMT' );
-	header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT' );
-	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
-	header( 'Cache-Control: post-check=0, pre-check=0', false );
-	header( 'Pragma: no-cache' );
+		header( 'Expires: Sat, 26 Jul 1997 05:00:00 GMT' );
+		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT' );
+		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+		header( 'Cache-Control: post-check=0, pre-check=0', false );
+		header( 'Pragma: no-cache' );
     }
     
 	function profile()
 	{	
 		//don't let browsers cache this page
-		$this->clear_page_cache();
+		$this->disable_page_cache();
 		
 		//check if user is logged in
 		$this->_is_logged_in();
@@ -61,7 +61,6 @@ class Auth extends MY_Controller {
 		$data['lic_requests']=$this->Licensed_model->get_user_requests($data['user']->id);
 		
 		$content=$this->load->view('auth/profile_view',$data,TRUE);
-		$content.=date("H:i:s");
 		
 		$this->template->write('title', t('profile'),true);
 		$this->template->write('content', $content,true);		
@@ -70,6 +69,8 @@ class Auth extends MY_Controller {
 
 	function edit_profile()
 	{	
+		$this->disable_page_cache();
+		
 		//check if user is logged in
 		$this->_is_logged_in();
 
@@ -241,7 +242,9 @@ class Auth extends MY_Controller {
     //log the user out
 	function logout() 
 	{
-        $this->data['title'] = t("logout");
+        $this->disable_page_cache();
+		
+		$this->data['title'] = t("logout");
         
 		//log
 		$this->db_logger->write_log('logout');
@@ -256,6 +259,8 @@ class Auth extends MY_Controller {
     //change password
 	function change_password() 
 	{	 
+		$this->disable_page_cache();
+		
 		//log
 		$this->db_logger->write_log('change-pass');
    
@@ -337,6 +342,7 @@ class Auth extends MY_Controller {
 	//forgot password
 	function forgot_password() 
 	{
+		$this->disable_page_cache();
 		$this->form_validation->set_rules('email', t('email'), 'trim|required|xss_clean|max_length[100]|');
 	    
 		if ($this->form_validation->run() == false) 
@@ -380,6 +386,7 @@ class Auth extends MY_Controller {
 	//reset password - final step for forgotten password
 	public function reset_password($code) 
 	{
+		$this->disable_page_cache();
 		$reset = $this->ion_auth->forgotten_password_complete($code);
 		
 		if ($reset) //if the reset worked then send them to the login page
@@ -400,6 +407,7 @@ class Auth extends MY_Controller {
 	//activate the user
 	function activate($id=NULL, $code=false) 
 	{        
+		$this->disable_page_cache();
 		$activation = $this->ion_auth->activate($id, $code);
 		
 		$data=array();
@@ -423,6 +431,7 @@ class Auth extends MY_Controller {
     //deactivate the user
 	function deactivate($id) 
 	{        
+		$this->disable_page_cache();
 		if ($this->ion_auth->logged_in() && $this->ion_auth->is_admin()) 
 		{
 	        //de-activate the user
@@ -434,12 +443,8 @@ class Auth extends MY_Controller {
     
 	
 	function create_user()
-	{
-		/*if (!$this->ion_auth->logged_in() || !$this->ion_auth->is_admin()) 
-		{
-			redirect('auth', 'refresh');
-		}*/
-
+	{		
+		$this->disable_page_cache();
 		$this->_create_user();
 	}
 	
@@ -470,10 +475,10 @@ class Auth extends MY_Controller {
     	$this->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]|callback_email_exists');
     	//$this->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
     	//$this->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
-	$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
+		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
     	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');		
-	$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');		
+		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');		
     	$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
 		
         if ($this->form_validation->run() === TRUE) 
@@ -607,7 +612,7 @@ class Auth extends MY_Controller {
 	}
 	
 	//check if the email address exists in db
-	function email_exists($email)
+	private function email_exists($email)
 	{
 		$user_data=$this->ion_auth->get_user_by_email($email);
 
