@@ -90,14 +90,14 @@
 	 **/
 	$config['max_password_length'] = 20;	
 
-        /**
-         * Enable complex password
-         *
-         * This requires the password to must have atleast one uppercase, one lowercase, one number and one special charater
-         * - Only whitelisted Special characters are allowed
-         * - For password length, the minimum and maximum password length settings are used
-         **/
-        $config['require_complex_password']=true;
+	/**
+	 * Enable complex password
+	 *
+	 * This requires the password to must have atleast one uppercase, one lowercase, one number and one special charater
+	 * - Only whitelisted Special characters are allowed
+	 * - For password length, the minimum and maximum password length settings are used
+	 **/
+	$config['require_complex_password']=true;
 
 	/**
 	 * Email Activation for registration
