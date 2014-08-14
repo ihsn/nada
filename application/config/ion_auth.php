@@ -39,8 +39,8 @@
 	* The controller should check this function and act
 	* appropriately. If this variable set to 0, there is no maximum.
 	**/
-	$config['maximum_login_attempts'] = 3;	
-	$config['login_lockout_period'] = 60*15;//5 minutes
+	$config['maximum_login_attempts'] = 10;	
+	$config['login_lockout_period'] = 60*5;//5 minutes
 	
 	/**
 	 * Site Title, example.com
@@ -89,6 +89,15 @@
 	 * Maximum Allowed Length of Password
 	 **/
 	$config['max_password_length'] = 20;	
+
+        /**
+         * Enable complex password
+         *
+         * This requires the password to must have atleast one uppercase, one lowercase, one number and one special charater
+         * - Only whitelisted Special characters are allowed
+         * - For password length, the minimum and maximum password length settings are used
+         **/
+        $config['require_complex_password']=true;
 
 	/**
 	 * Email Activation for registration
@@ -163,6 +172,9 @@
 	 * Error End Delimiter
 	 **/
 	$config['error_end_delimiter'] = '</p>';
+        
+        
+        
 	
 /* End of file ion_auth.php */
 /* Location: ./system/application/config/ion_auth.php */
