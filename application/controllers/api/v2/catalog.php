@@ -140,6 +140,60 @@ class Catalog extends REST_Controller
 	}
 	
 	
+	/**
+	*
+	*	Returns a list of Country Regions
+	**/
+	function regions_get()
+	{
+		$this->db->select("id,title");
+		$this->db->where("pid >",0);
+		$query=$this->db->get("regions");
+		
+		$rows=NULL;
+		
+		if ($query)
+		{
+			$rows=$query->result_array();
+			foreach($rows as $key=>$row)
+			{
+				$rows[$key]['countries']=$this->get_countries_by_region($row['id']);
+			}
+		}
+				
+		if (!$rows)
+		{
+    		$content=array('error'=>'NO_RECORDS_FOUND');    	
+		}
+		$this->response($rows, 200); 
+	}
+	
+	
+	//returns a comma separated list of countries by region 
+	private function get_countries_by_region($region_id)
+	{
+		$this->db->select("country_id");
+		$this->db->where("region_id",$region_id);
+		$query=$this->db->get("region_countries");
+
+		if (!$query)
+		{
+			return false;
+		}
+			
+		$rows=$query->result_array();
+		
+		$output=array();
+		
+		foreach($rows as $country)
+		{
+			$output[]=$country['country_id'];
+		}
+		
+		return implode(",",$output);
+	}
+	
+	
 	function _remap($method)
 	{
 		$method=strtolower($method);
