@@ -54,7 +54,7 @@ class MY_Form_validation extends CI_Form_validation {
       
 	if (!$validate)
 	{
-	    $this->set_message('is_complex_password', 'Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are: !@#$%&*()^,._;:- ');
+	    $this->set_message('is_complex_password', t('Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are:').' '. '!@#$%&*()^,._;:- ');
 	}
 	
 	return $validate;
