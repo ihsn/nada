@@ -193,7 +193,8 @@ class DDI_Browser{
 	function get_variable_html($ddi_file,$variable_id,$parameters=array())
 	{	
 		$parameters=array_merge($parameters,array('search_varID'=>$variable_id) );
-		$xslt=APPPATH.'../xslt/ddi_variable.xslt';
+		//$xslt=APPPATH.'../xslt/ddi_variable.xslt';
+		$xslt=$this->get_xslt_file(APPPATH.'../xslt/ddi_variable.xslt');
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
 		$output=$this->_clean_xml($output);
 		return $output;
