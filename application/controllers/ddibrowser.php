@@ -577,11 +577,27 @@ class DDIbrowser extends MY_Controller {
 
 			case 'variable':				
 				$variable_id=$this->uri->segment(4);
+				$variable_url=$current_url.'/variable/'.$variable_id;
 				$this->page_title.=' - '.t('variable')." - $variable_id";
 				
-				if ($cache_disabled===1)
+				$html='';
+				if(!$this->input->get('print') && !$this->input->get('pdf'))
 				{
-					$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
+					$output_links=sprintf('<div class="variable-actions">
+							<a href="%s" target="_blank">PDF</a> | 
+							<a href="%s" target="_blank">Print</a></div>',
+							$variable_url.'?pdf=1',
+							$variable_url.'?print=1');
+				}
+				
+				if ($cache_disabled===1)
+				{					
+					if (!$this->input->get('pdf'))
+					{
+						$variable_url=$current_url.'/variable/'.$variable_id;
+					}
+					$html=$output_links;
+					$html.=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 					$html=html_entity_decode(url_filter($html));
 				}
 				else
@@ -589,10 +605,11 @@ class DDIbrowser extends MY_Controller {
 					$html= $this->cache->get( $cache_key.'-var-'.$variable_id);
 					if ($html===FALSE)
 					{	
-						$html=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
+						$html=$output_links;
+						$html.=$this->DDI_Browser->get_variable_html($ddi_file,$variable_id,$language);
 						$html=html_entity_decode(url_filter($html));
 						$this->cache->save($cache_key.'-var-'.$variable_id,$html);
-					}								
+					}							
         		}
 				
 				$section_url=$current_url.'/variable/'.$variable_id;
@@ -756,6 +773,7 @@ class DDIbrowser extends MY_Controller {
 				'review_study'=>$review_study_enabled
 			);
 			
+			$data['section']=$section;
 			$data['survey_title']=$survey['nation']. ' - '. $survey['titl'];
 			$data['survey_info']=$this->get_survey_info($this->uri->segment(2));
 			$data['data_access_type']=$data_access_type;
