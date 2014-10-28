@@ -254,7 +254,8 @@ class Catalog_search{
 		
 		if (trim($this->study_keywords)!=='')
 		{
-			array_unshift($sort_options,array('sort_by'=>'k.rank', 'sort_order'=>'desc') );
+			//array_unshift($sort_options,array('sort_by'=>'k.rank', 'sort_order'=>'desc') );
+			$sort_options[]=array('sort_by'=>'k.rank', 'sort_order'=>'desc');
 		}
 		
 
