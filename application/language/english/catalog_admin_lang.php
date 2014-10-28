@@ -145,6 +145,7 @@ $lang['replace_ddi_failed_duplicate_study_found']="The catalog contains another 
 $lang['show_selected_only']="Show selected only";
 $lang['Data available from external repository']="Data available from external repository";
 $lang['Data not available']="Data not available";
+$lang['error_no_collection_selected']="You have not selected a collection!";
 
 /* End of file catalog_admin_lang.php */
 /* Location: ./application/language/english/catalog_admin_lang.php */
