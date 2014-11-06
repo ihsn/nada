@@ -17,7 +17,7 @@ $lang['user_inactive']="Inactive - never logged in";
 $lang['bug_report']="Report Bug or Request a feature";
 $lang['run_database_backup_script']="Run database backup script";
 $lang['no_cache_files_found']="No cache files were found";
-$lang['clear_cache_files']="You have <b>%d</b> cached files, <a href=&quot;%s&quot;>click here to clear cache.</a>";
+$lang['clear_cache_files']="You have <b>%d</b> cached files, <a href=%s>click here to clear cache.</a>";
 $lang['recent_studies']="Recently updated studies";
 $lang['logged_in_users']="Logged in";
 $lang['anonymous_users']="Anonymous users viewing the site";

@@ -164,7 +164,7 @@
                     <div class="dashboard-box-body">
                     	<?php if (isset($cache_files)):?>
                         <?php if ($cache_files>0):?>
-                        	<?php echo sprintf (t("clear_cache_files"),$cache_files,site_url().'/admin/clear_cache/');?>
+                        	<?php echo sprintf (t("clear_cache_files"),$cache_files,site_url('admin/clear_cache'));?>
                             <?php else:?>
                             <p><?php echo t('no_cache_files_found');?></p>
                         <?php endif;?>
