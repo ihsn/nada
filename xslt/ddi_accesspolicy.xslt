@@ -104,7 +104,43 @@ License:
 								<xsl:with-param name="caption">Citation Requirements</xsl:with-param>
 								<xsl:with-param name="cols">div</xsl:with-param>
 						</xsl:apply-templates>
-					</xsl:if>	
+					</xsl:if>
+
+                <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI">
+                    <xsl:choose>
+                        <xsl:when test="substring(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,1,4)='doi:'">
+                            <div class="xsl-subtitle">
+                                <xsl:call-template name="gettext"><xsl:with-param name="msg">Digital Object Identifier (DOI)</xsl:with-param></xsl:call-template>
+                            </div>
+                            <div>
+                            <a href="http://doi.org/{substring-after(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,':')}" target="_blank">
+                                http://doi.org/<xsl:value-of select="substring-after(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,':')"/>
+                            </a>
+                            </div>
+                        </xsl:when>
+                        <xsl:when test="substring(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,1,5)='http:'">
+                            <div class="xsl-subtitle">
+                                <xsl:call-template name="gettext"><xsl:with-param name="msg">Holdings Information</xsl:with-param></xsl:call-template>
+                            </div>
+                            <div>
+                                <xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI"/>
+                                <a href="{@URI}" target="_blank">
+                                    <xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI"/>
+                                </a>
+                            </div>
+                            <br/> <br/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <div class="xsl-subtitle">
+                                <xsl:call-template name="gettext"><xsl:with-param name="msg">Holdings Information</xsl:with-param></xsl:call-template>
+                            </div>
+                            <div>
+                                    <xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI"/>
+                            </div>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:if>
+
 			</xsl:if>	
 			<!--End Accessibility -->
 			
@@ -340,7 +376,7 @@ License:
 		<xsl:call-template name="lf2br">
 					<xsl:with-param name="text" select="."/>
 				</xsl:call-template>
-	</xsl:template>		
+	</xsl:template>
 <!--End Accessibility-->
 
 <!--Disclaimer-->
