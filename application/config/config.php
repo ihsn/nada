@@ -476,6 +476,16 @@ $config['site_user_register']='yes';
 $config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt';
 
 
+/*
+|--------------------------------------------------------------------------
+| Max file upload size for external resources
+|--------------------------------------------------------------------------
+|
+| max_resource_upload_size	maximum file upload size in MB
+|
+*/
+$config['max_resource_upload_size']='300';
+
 
 /*
 |--------------------------------------------------------------------------

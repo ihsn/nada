@@ -209,12 +209,21 @@ $(function() {
 	function log()
 	{
 	}
-	
+
+    <?php
+        $max_resource_upload_size=intval($this->config->item("max_resource_upload_size"));
+        if ($max_resource_upload_size<1)
+        {
+            //default file size
+            $max_resource_upload_size=500;
+        }
+    ?>
+
 	$("#uploader").pluploadQueue({
 		// General settings
 		runtimes : 'flash,silverlight,gears,browserplus,html5',
 		url : '<?php echo site_url().'/admin/resources/pl_uploads/'.$this->uri->segment(4); ?>',
-		max_file_size : '300mb',
+		max_file_size : '<?php echo $max_resource_upload_size;?>mb',
 		chunk_size : '2mb',
 		unique_names : false,
 		multiple_queues:true,
