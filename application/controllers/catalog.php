@@ -245,8 +245,8 @@ class Catalog extends MY_Controller {
 		
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
-		$search_options->sk				=xss_clean($this->input->get("sk"));
-		$search_options->vk				=xss_clean($this->input->get("vk"));
+		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
+		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));		
@@ -262,7 +262,7 @@ class Catalog extends MY_Controller {
 		$search_options->sid			=xss_clean($this->input->get("sid"));
 		$offset=						($search_options->page-1)*$this->limit;
 
-		//allowed fields for sort_by and sort_order 
+		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('proddate','titl','labl','nation','popularity');
 		$allowed_order=array('asc','desc');
 		
@@ -1273,9 +1273,16 @@ class Catalog extends MY_Controller {
 		}
 	
 		$this->load->model("vocabulary_model");
-		$data['topics']=$this->vocabulary_model->get_tree($vid=1,$active_only=TRUE,$repo);
+        $vocab_id=$this->config->item("topics_vocab");
+
+        if (!$vocab_id){
+            $vocab_id=1;
+        }
+
+		$data['topics']=$this->vocabulary_model->get_tree($vid=$vocab_id,$active_only=TRUE,$repo);
 		$this->load->view('catalog_search/topic_selection',$data);
 	}
+
 	
 	function collection_selection()
 	{
