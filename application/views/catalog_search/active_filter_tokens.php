@@ -41,7 +41,14 @@ if (!isset($_GET['collection']))
 	<?php if (is_array($search_options->topic)):?>
 		<?php foreach($search_options->topic as $topic):?>
         	<?php if (array_key_exists($topic,$topics)):?>
-            <span class="remove-filter topic" data-type="topic" data-value="<?php echo $topic;?>"><?php echo substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0)); ?></span>
+            <span class="remove-filter topic" data-type="topic" data-value="<?php echo $topic;?>">
+                <?php $brac_pos=strpos($topics[$topic]['title'],'[',0);?>
+                <?php if ($brac_pos):?>
+                    <?php echo substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0)); ?>
+                <?php else: ?>
+                    <?php echo $topics[$topic]['title']; ?>
+                <?php endif;?>
+            </span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
