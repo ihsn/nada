@@ -178,7 +178,8 @@ div.left {
 
 .filter-box #datatype-list label,
 .filter-box #countries-container label,
-.filter-box #collections-container label
+.filter-box #collections-container label,
+.filter-box #topics-container label
 {
     display:inline;
     padding-left:0;
@@ -197,8 +198,6 @@ div.left {
 .filter-box select#to{
     margin-right:0;
 }
-
-
 
 .ui-accordion .ui-accordion-content{padding:5px;}
 .variable-search{font-weight:normal;color:black;}
