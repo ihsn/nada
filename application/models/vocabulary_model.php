@@ -130,8 +130,12 @@ class Vocabulary_model extends CI_Model {
 				$item['children'] = $children[$item['tid']];
 			}
 		}	
-		
-		return $children[0];
+
+        if (isset($children[0])) {
+            return $children[0];
+        }
+
+        return $children;
 	}
 	
 	
@@ -139,7 +143,10 @@ class Vocabulary_model extends CI_Model {
 	function get_tree($vid,$active_only=FALSE,$repositoryid=NULL)
 	{
 		$items= $this->get_terms_array($vid,$active_only,$repositoryid);
-		return $this->build_tree($items);
+        $parent_items=$this->get_parent_terms($vid);
+        $items=array_merge($parent_items,$items);
+		$tree=$this->build_tree($items);
+        return $tree;
 	}
 	
 	function get_terms_array($vid,$active_only=FALSE,$repositoryid=NULL)
@@ -148,6 +155,7 @@ class Vocabulary_model extends CI_Model {
 		$this->db->from('terms');
 		$this->db->order_by('title');
 		$this->db->where('vid',$vid);
+        $this->db->where('pid >',0,false);
 		$this->db->group_by('terms.tid,terms.pid,terms.title');
 		
 		if($active_only==TRUE)
@@ -180,6 +188,37 @@ class Vocabulary_model extends CI_Model {
 
 		return $output;
 	}
-	
-	
+
+    /**
+     *
+     * get parent terms by vocabulary
+     * e.g. where PID=0
+     *
+     */
+	function get_parent_terms($vid)
+    {
+        $this->db->select('terms.tid,terms.pid,terms.title,count(terms.tid) as surveys_found');
+        $this->db->from('terms');
+        $this->db->order_by('title');
+        $this->db->where('vid',$vid);
+        $this->db->where('pid',0);
+        $this->db->group_by('terms.tid,terms.pid,terms.title');
+
+        $query=$this->db->get();
+
+        if(!$query)
+        {
+            return FALSE;
+        }
+
+        $items=$query->result_array();
+
+        $output=array();
+        foreach($items as $row)
+        {
+            $output[$row['tid']]=$row;
+        }
+
+        return $output;
+    }
 }
