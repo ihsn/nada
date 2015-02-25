@@ -615,8 +615,10 @@ class Catalog extends MY_Controller {
 	*/
 	function __replace_ddi()
 	{
+		$this->load->model("Survey_alias_model");
+
 		//survey id
-		$survey_id=$this->uri->segment(4);
+		$survey_id=(int)$this->uri->segment(4);
 				
 		if (!is_numeric($survey_id))
 		{
@@ -671,9 +673,9 @@ class Catalog extends MY_Controller {
 		$result=FALSE;
 		
 		//cancel replace if surveyid/codebookid is used by another study in the catalog - it exclude the study being replaced
-		if ($uploaded_ddi_sid!==FALSE && $uploaded_ddi_sid!==$survey_id)
+		if ($uploaded_ddi_sid!==FALSE && $uploaded_ddi_sid!=$survey_id)
 		{
-			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$uploaded_ddi_sid));//" : see study <a href={$uploaded_ddi_sid}";
+			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$uploaded_ddi_sid));
 			$this->db_logger->write_log('ddi-replace-error',$error,'catalog');
 			$this->session->set_flashdata('error', $error);
 			redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');exit;
@@ -700,7 +702,19 @@ class Catalog extends MY_Controller {
 
 		if ($result===TRUE)
 		{
-			//display import success 
+            //if Survey ID has changed then add the OLD ID as alias
+            if (!$this->Survey_alias_model->id_exists($survey['surveyid']) && $data['study']['id']!=$survey['surveyid'])
+            {
+                $options = array(
+                    'sid'  => $survey_id,
+                    'alternate_id' => $survey['surveyid'],
+                );
+
+                $this->Survey_alias_model->insert($options);
+            }
+
+
+			//display import success
 			$success=t('study imported successfully!');//$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
 			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
 			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
