@@ -210,7 +210,7 @@ class Licensed_model extends CI_Model {
 		
 		if ($this->db->trans_status() === FALSE)
 		{
-			log_message('info',"FAILED to save request for [Licensed dataset=$survey_id] by user $user_id ");
+			log_message('info',"FAILED to save request for [Licensed dataset=$request_id] by user $user_id ");
 			return FALSE;
 		}
 
