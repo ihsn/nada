@@ -155,7 +155,7 @@ License:
         
             <!-- data collection end date -->
             <xsl:element name="data_coll_end">
-                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end']/@date),1,4)"/>
+                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end'][last()]/@date),1,4)"/>
             </xsl:element>
 
         </xsl:otherwise>
