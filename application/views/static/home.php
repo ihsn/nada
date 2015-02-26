@@ -1,5 +1,6 @@
 <style type="text/css">
-
+<?php /*
+>>>>>>> Stashed changes
 .carousel {
   position: relative;
   margin-bottom: 20px;
@@ -69,24 +70,24 @@ left: 20px;
 }
 
 .carousel-control {
-position: absolute;
-top: 72%;
-left: 15px;
-width: 30px;
-height: 30px;
-margin-top: 4px;
-font-size: 35px;
-font-weight: 100;
-line-height: 23px;
-color: white;
-text-align: center;
-background: #222;
-border: 3px solid white;
--webkit-border-radius: 23px;
--moz-border-radius: 23px;
-border-radius: 23px;
-opacity: 0.5;
-filter: alpha(opacity=50);
+  position: absolute;
+  top: 72%;
+  left: 15px;
+  width: 30px;
+  height: 30px;
+  margin-top: 4px;
+  font-size: 35px;
+  font-weight: 100;
+  line-height: 23px;
+  color: white;
+  text-align: center;
+  background: #222;
+  border: 3px solid white;
+  -webkit-border-radius: 23px;
+  -moz-border-radius: 23px;
+  border-radius: 23px;
+  opacity: 0.5;
+  filter: alpha(opacity=50);
 }
 
 .carousel-control.right {
@@ -155,17 +156,19 @@ filter: alpha(opacity=50);
 .carousel-content .carousel-thumb{float:left;margin-right:10px;overflow:hidden;height:200px;width:200px;}
 .carousel-content .inner-content{overflow:hidden;}
 .carousel-content h3{font-size:20px;margin-bottom:10px;line-height:120%;}
+*/ ?>
 
 .box-style-1{
-border: 1px solid gainsboro;
-overflow: auto;
-clear: both;
-margin-bottom: 30px;
--webkit-border-radius: 3px;
--moz-border-radius: 3px;
-border-radius: 3px;
-position: relative;
+  border: 1px solid gainsboro;
+  overflow: auto;
+  clear: both;
+  margin-bottom: 30px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  position: relative;
 }
+
 .box-style-1 .header{background:#F8F8F8;border-bottom:1px solid gainsboro;padding:5px 10px;}
 .box-style-1 .content{padding:10px;}
 .box-style-1 .item{padding-bottom:5px;margin-bottom:5px;border-bottom:1px dashed gainsboro;}
@@ -178,29 +181,30 @@ position: relative;
 .box-style-1 .item .sub{font-size:12px;color:#999999}
 
 .btn-central-catalog {
-margin-top: 10px;
-padding: 10px;
-background: #039;
-display: block;
-text-align: center;
-font-size: 14px;
--webkit-border-radius: 3px;
--moz-border-radius: 3px;
-border-radius: 3px;
-color:white;
-}
-.btn-central-catalog:hover {
-background:black;color:white;
+  margin-top: 10px;
+  padding: 10px;
+  background: #039;
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  color:white;
 }
 
+.btn-central-catalog:hover {
+  background:black;
+  color:white;
+}
 </style>
+
 <table style="width:100%;">
 <tr valign="top" style="vertical-align:top;">
 
 <td style="padding-right:10px;">
 
 <?php /* remove this line to enable carousel ?>
-
 <!-- carousel bootstrap -->
 <div id="myCarousel" class="carousel slide" data-interval="false">
   <!-- Carousel items -->
@@ -245,9 +249,7 @@ background:black;color:white;
   <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
   <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
 </div>
-
-<?php remove this line to enable carousel */ ?>
-
+<?php */ ?>
 
 <!-- recent studies list -->
 <div class="box-style-1" id="sidebar-faq" >
@@ -280,7 +282,9 @@ background:black;color:white;
         	<div class="bg-star">
                   <div class="stats-text" >As of <?php echo date("F d, Y",date("U")); ?><br /> the Library contains</div>
                   <div class="stats-surveys" ><span class="numb"><?php echo number_format($survey_count);?></span> surveys<br/> 
+                  <?php if ($variable_count>0):?>
                   <?php echo number_format($variable_count);?> variables<br/>
+                  <?php endif;?>
                   <?php if ($citation_count>0):?>
                   <?php echo number_format($citation_count);?> citations
                   <?php endif;?>
@@ -296,28 +300,9 @@ background:black;color:white;
   </div>
 </div>
 
-<?php /* ?>
-<!-- faqs -->
-<div class="box-style-1" >
-  <div class="header">
-    <h2>FAQs</h2>
-  </div>
-  <div class="m-body">
-    <div class="right-border content">
-      <ul>
-        <li><a href="index.php/faqs#nodata">Why is there no data available for some studies?</a></li>
-        <li><a href="index.php/faqs#contribute">I want to contribute a dataset or a survey catalog to the Microdata Library. How do I do this? </a></li>
-        <li><a href="index.php/faqs#purchase">Can the Microdata Library purchase data from an outside source for me?</a></li>
-        <li><a href="index.php/faqs#error">I have found an error in a data file. What do I do?</a></li>
-      </ul>
-      <div style="text-align:right;padding-right:5px"> <a href="index.php/faqs" title="View more">View more...</a> </div>
-    </div>
-  </div>
-</div>
-<?php */ ?>
 
 
-<?php if (isset($popular_surveys) && is_array($popular_surveys)):?>
+<?php if (isset($popular_surveys) && is_array($popular_surveys) && count($popular_surveys)>0):?>
 <!-- popular studies -->
 <div class="box-style-1" >
   <div class="header">
@@ -339,7 +324,6 @@ background:black;color:white;
   </div>
 </div>
 <?php endif;?>
-
 
 
 

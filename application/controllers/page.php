@@ -126,16 +126,9 @@ class Page extends MY_Controller {
 		}
 
 		
-		//load the contents of the page into a variable
 		$content=$this->load->view('page_index', $data,true);
-		
-		//set page title
 		$this->template->write('title', $data['title'],true);
-		
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-		
-		//render final output
 	  	$this->template->render();
 	}
 	
@@ -207,34 +200,20 @@ class Page extends MY_Controller {
 					$data['title']='Microdata Library Home';
 					$this->load->model("repository_model");
 					$this->lang->load('catalog_search');
-					$this->load->library('cache');
 					$this->load->model("stats_model");
-					//$this->template->add_css('themes/admin20/css/bootstrap.min.css');
-					$this->template->add_js('themes/admin20/js/bootstrap.min.js');
-					//$this->template->add_js('javascript/slidesjs/slides.min.jquery.js');
 
-					//check if a cached copy of the page is available
-					$data= $this->cache->get( 'home_'.md5($page));
-				
-					//no cache found
-					if ($data===FALSE)
-					{						
-						//get stats
-						$data['title']='Microdata Home';
-						$data['survey_count']=$this->stats_model->get_survey_count();
-						$data['variable_count']=$this->stats_model->get_variable_count();
-						$data['citation_count']=$this->stats_model->get_citation_count();
+					//get stats
+					$data['title']='Microdata Home';
+					$data['survey_count']=$this->stats_model->get_survey_count();
+					$data['variable_count']=$this->stats_model->get_variable_count();
+					$data['citation_count']=$this->stats_model->get_citation_count();
 						
-						//get top popular surveys
-						$data['popular_surveys']=$this->stats_model->get_popular_surveys(5);
+					//get top popular surveys
+					$data['popular_surveys']=$this->stats_model->get_popular_surveys(5);
 						
-						//get top n recent acquisitions
-						$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);						
+					//get top n recent acquisitions
+					$data['latest_surveys']=$this->stats_model->get_latest_surveys(10);						
 						
-						//cache data
-						//$this->cache->write($data, 'home_'.md5($page));
-					}
-
 					//reset any search options selected
 					$this->session->unset_userdata('search');
 					
@@ -242,32 +221,11 @@ class Page extends MY_Controller {
 					$this->session->set_userdata('active_repository','central');	
 	
 			break;
-			case 'contributing-catalogs';
-					$this->lang->load('collection');
-					$this->lang->load('catalog_search');
-					$this->load->model("repository_model");
-					$data['title']='Contributing Catalogs';
-					
-					//reset any search options selected
-					$this->session->unset_userdata('search');
-					
-					//reset repository
-					$this->session->set_userdata('active_repository','central');	
-					
-			break;
-			case 'collections';
-					$this->lang->load('collections');
-					$this->load->model("collections_model");
-					$data['title']=t('collections');
-					
-			break;
-			
-			
 			
 			default:
 			return FALSE;			
 		}
-		//$data['body']=file_get_contents("static/$page.php");	
+		
 		$data['body']=$this->load->view('static/'.$page,$data,TRUE);
 		$content=$this->load->view('page_index', $data,true);
 		
