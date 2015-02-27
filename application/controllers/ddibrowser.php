@@ -575,7 +575,7 @@ class DDIbrowser extends MY_Controller {
 				$show_study_menu=FALSE;
 			break;
 
-			case 'variable':				
+			case 'variable':
 				$variable_id=$this->uri->segment(4);
 				$variable_url=$current_url.'/variable/'.$variable_id;
 				$this->page_title.=' - '.t('variable')." - $variable_id";
@@ -611,6 +611,8 @@ class DDIbrowser extends MY_Controller {
 						$this->cache->save($cache_key.'-var-'.$variable_id,$html);
 					}							
         		}
+                //embed variable info into a div container
+                $html='<div class="variable-info-container">'.$html.'</div>';
 				
 				$section_url=$current_url.'/variable/'.$variable_id;
 				$show_data_menu=TRUE;
