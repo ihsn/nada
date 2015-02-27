@@ -173,7 +173,7 @@ div.left {
 
 .filter-box label{
     display:block;
-    margin: 15px 0 5px;
+    /*margin: 15px 0 5px;*/
 }
 
 .filter-box #datatype-list label,
@@ -181,8 +181,13 @@ div.left {
 .filter-box #collections-container label,
 .filter-box #topics-container label
 {
-    display:inline;
+    /*display:inline;*/
     padding-left:0;
+}
+
+.filter-box .any label{
+    display:inline;
+    padding-left:0px;
 }
 
 .filter-box select#from,
