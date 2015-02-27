@@ -405,26 +405,8 @@ display: inline-block;}
 }
 
 .filter-box .btn-search{
-    /* TODO: remove this code 
-	border: 1px solid navy;
-	color: white;
-	padding: 2px 5px;
-	font-size: small;
-	background-color: navy;
-	background: url(btn-bg-sprites.png) 100% 0%;
-	cursor:pointer
-    */
 }
 .filter-box .btn-search:hover{
-    /*
-	border: 1px solid navy;
-	color: white;
-	padding: 2px 5px;
-	font-size: small;
-	background-color: gray;
-	background: url(btn-bg-sprites.png) 100% 66%;
-	cursor:pointer
-    */
 }
 
 .filter-box .clear-filter{position:absolute;right:0px;top:0px;display:block;padding:5px;font-size:smaller;}
@@ -443,8 +425,8 @@ display: inline-block;}
     padding:5px;
 
     -webkit-box-shadow: none;
-       -moz-box-shadow: none;
-            box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
 }
 .filter-box .btn-select:hover{color:#00b6f5 ;text-decoration:underline}
 
@@ -528,12 +510,6 @@ right: 0px;
 /*data catalog survey list style*/
 #surveys {
     margin-top:0px;
-    /* TODO: the next rule solves the issue demonstrated in: http://www.screencast.com/t/LH5IwcWJw
-     * the issue occured because we removed the padding (left/right)from the tabs content 
-     * http://www.screencast.com/t/tZUm7mwo9 
-     * 
-     * If there is no need for additional space for the hover effect the next rule may be removed or adjusted
-     */
     padding: 0 5px;
 }
 #surveys .survey-row{
@@ -591,10 +567,9 @@ right: 0px;
 /*filter by data access*/
 .filter-da .da .chk-da{padding-right:16px;}
 .filter-da table .da-icon-small{
-    width:20px;height:20px;display:block;
-    /*TODO: remove 5px old rules */
-    margin-left:5px;margin-right:5px;
-    
+    width:20px;
+    height:20px;
+    display:block;
     margin-left: 7px;
     margin-right: 7px;
 }
@@ -695,7 +670,7 @@ right: 0px;
 }
 
 .container .row .col-1{float:left;width:200px;font-weight:bold;font-size:14px;}
-.container .row .col-2{float:left:overflow:auto;margin-left:200px;}
+.container .row .col-2{margin-left: 200px;}
 .container .row .col-2 .item{float:left;width:200px;}
 
 .container .row .col-1 .parent{float:left;width:20px;}
@@ -748,42 +723,6 @@ right: 0px;
     text-align: center;
 }
 
-/*
-#surveys .pager .page.first,
-#surveys .pager .page.prev,
-#surveys .pager .page.next,
-#surveys .pager .page.last{
-    text-indent: -9999px;
-}
-
-#surveys .pager .page.first{
-    background: url(icons/pagination-first.png) no-repeat 4px 50%;
-}
-#surveys .pager .page.prev{
-     background: url(icons/pagination-previous.png) no-repeat 4px 50%;
-}
-
-#surveys .pager .page.next{
-    background: url(icons/pagination-next.png) no-repeat 4px 50%;
-}
-#surveys .pager .page.last{
-    background: url(icons/pagination-last.png) no-repeat 4px 50%;
-}
-
-#surveys .pager .page.first:hover{
-    background: url(icons/pagination-first-white.png) no-repeat 4px 50% #00b6f5;
-}
-#surveys .pager .page.prev:hover{
-     background: url(icons/pagination-previous-white.png) no-repeat 4px 50% #00b6f5;
-}
-#surveys .pager .page.next:hover{
-    background: url(icons/pagination-next-white.png) no-repeat 4px 50% #00b6f5;
-}
-#surveys .pager .page.last:hover{
-    background: url(icons/pagination-last-white.png) no-repeat 4px 50% #00b6f5;
-}
-*/
-
 #surveys .pager a.active,
 #surveys .pager a:hover,
 #surveys .pager .page:hover{
@@ -823,32 +762,21 @@ right: 0px;
 .ui-dialog-content .xsl-title{font-size:18px;font-weight:bold;margin-bottom:15px;}
 .ui-dialog-content .variable-name{display:none;}
 .ui-dialog-content .xsl-subtitle{
-    
-    /* TODO: remove
-    font-size:14px;font-weight:bold;border-bottom: 2px solid gray;
-    */
-    
     font-size: 14px;
     margin: 15px 0 15px 0;
     padding: 0;
     border-bottom: 2px solid #e8e8e8;
 }
 .ui-dialog-content .var-category-container {
-margin-top: 10px;
-    /* TODO: remove 
-    border: 1px solid #EEEFE9;
-    */
+    margin-top: 10px;
 }
+
 .ui-dialog-content .varCatgry {
 width: 100%;
 }
 .ui-dialog-content .varCatgry td, 
 .ui-dialog-content .varCatgry th {
-font-size: 11px;
-    /* TODO: remove the commented lines
-    padding: 0px;
-    padding-left: 5px;
-    */
+    font-size: 11px;
 }
 
 .ui-dialog-content .var-category-title{
@@ -888,13 +816,7 @@ text-transform: uppercase;
 .related-citations .sub-title{font-style:italic;}
 .related-citations .citation-rows .alternate{background:#f2f2f2}
 .related-citations .citation-row:hover {
-	cursor:pointer;	
-    /*
-	-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-	background: white;
-    */
+	cursor:pointer;
     background: #fafafa;
 	z-index:100;
 }
@@ -1117,18 +1039,13 @@ text-transform: uppercase;
 
 .ui-dialog .ui-tabs-nav li.ui-state-active,
 .study-metadata .ui-tabs-nav li.ui-state-active {
-position: relative;
+    position: relative;
     background:#ffffff;
-    /* TODO: Remove this
-    background: url(tab-active-arrow.png) bottom center no-repeat; */
 }
 
 /*active tab*/
 .ui-dialog .ui-tabs-nav li.ui-state-active a,
 .study-metadata .ui-tabs-nav li.ui-state-active a {
-    /* TODO: remove this
-	background: url(active-tab-bg.png);
-    */
     background: #ffffff;
 	color: #00b6f5;
 	margin-bottom:0px;
@@ -1273,8 +1190,13 @@ position: relative;
 .switch-page-size {margin-top:10px;}
 
 /* overrides and important overrides */
+.study-search input,
+.variable-search input{
+    width:94% !important;
+    min-width: inherit;
+}
 
-variable-search,
+.variable-search,
 .search-buttons{
     margin-top: 15px !important;
 }
@@ -1294,3 +1216,74 @@ display:none;
 	margin-left:20px;
 }
 
+/* variable info*/
+.varCatgry td,.varCatgry th{font-size:11px;padding:0px;padding-left:5px;}
+.varCatgry {width:100%;}
+.varCatgry th{font-weight:bold;}
+
+.xsl-study-title .xsl-text{
+    font-weight:bold;
+}
+
+.xsl-warning{
+    color: #ff6c00;
+    margin: 10px;
+}
+
+.table-variable-list,
+.ddi-table,
+.xsl-table,
+.varCatgry{
+    border-top: 2px solid #dcdcdc;
+    border-bottom: 2px solid #dcdcdc;
+}
+
+.table-variable-list tr th,
+.table-variable-list tr.var-th td,
+.ddi-table tr th,
+.varCatgry tr th,
+.xsl-table tr.xsl-table-header th
+{
+    background:#ececec;
+    font-weight: bold;
+}
+
+.variable-content .var-category-container .xsl-warning{
+    margin: 10px;
+}
+
+.var-category-title,
+.variable-content .var-category-container .var-category-title{
+    font-size:15px;
+    background:transparent;
+}
+
+.variable-content .var-category-container .varCatgry td, .varCatgry th,
+.varCatgry td{
+    padding: 5px;
+    padding-left: 15px;
+}
+
+.row-color1,
+.xsl-table tr:nth-child(even) td,
+.varCatgry tr:nth-child(even) td{
+    background: #ffffff;
+}
+
+.row-color2,
+.xsl-table tr:nth-child(odd) td,
+.varCatgry tr:nth-child(odd) td{
+    background: #f2f2f2;
+}
+
+.table-variable-list .row-color1:hover,
+.table-variable-list .row-color2:hover,
+.row:hover {
+    background-color: #fafafa;
+}
+
+/*scrollbar for variable description in the lightbox*/
+.ui-dialog .variable-info-container{
+    height: 390px;
+    overflow: auto;
+}
