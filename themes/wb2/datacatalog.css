@@ -703,6 +703,19 @@ right: 0px;
 .collections-container .row .col-2 .item{width:100%;}
 .collections-container .rows-container{height:350px;}
 
+.collections-container .col-1-collection{
+    padding: 10px;
+    background: rgb(247, 247, 247);
+    margin-bottom:10px;
+}
+.collections-container .col-1-collection label{
+    font-size:14px;
+    font-weight:bold;
+}
+
+.collections-container .col-2-collection-items{
+    margin-left:25px;
+}
 
 /*show as link*/
 .link{color:#0088cc;cursor:pointer;}
