@@ -49,6 +49,8 @@ $lang['preview'] = 'Preview';
 $lang['user'] = 'User';
 $lang['none'] = 'None';
 $lang['confirm_collection_status_change'] = 'Are you sure you want to continue? This will change the status of all studies beloging to this collection.';
+$lang['section'] = 'Section';
+
 
 /* End of file collection_lang.php */
 /* Location: ./system/language/english/collection_lang.php */
