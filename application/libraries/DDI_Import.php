@@ -193,6 +193,7 @@ class DDI_Import{
 			}
 		}
 		
+		
 		//insert study description
 		$row = array(
 			'repositoryid'=>$this->repository_identifier,
@@ -211,8 +212,7 @@ class DDI_Import{
 			'producer'=>$data->producer,
 			'refno'=>substr($data->refno,0,254),
 			'proddate'=>substr($data->proddate,0,44),
-			'sponsor'=>$data->sponsor,
-			//'collections'=>$data->collections,
+			'sponsor'=>substr($data->sponsor,0,254),
 			'data_coll_start'=>(integer)$data->data_coll_start,
 			'data_coll_end'=>(integer)$data->data_coll_end,
 			'changed'=>date("U"),
@@ -228,6 +228,23 @@ class DDI_Import{
 			'published'=>0,
 			'formid'=>6
 		);
+		
+		
+		//TODO: substr to be replaced with mb_substr and related functions
+		//mb_convert_encoding replaces the invalid/broken mb characters to ?
+		
+		//if mb_string extension is installed
+		if (extension_loaded('mbstring'))
+		{		
+			mb_internal_encoding("UTF-8");
+			mb_substitute_character(0xFFFD);//set to ?
+	
+			foreach($row as $key=>$value)
+			{
+				$value=mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+				$row[$key]=$value;
+			}
+		}
 	
 
 		//production date, use the max date
