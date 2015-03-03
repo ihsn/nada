@@ -1,12 +1,7 @@
 <?php
 /**
- * Study Collections
+ * Bulk Data Access Collections
  *
- * handles all study collection related 
- *
- * @package		NADA 4
- * @author		Mehmood Asghar
- * @link		http://ihsn.org/nada/
  */
 class Da_Collections extends MY_Controller {
 
@@ -236,7 +231,7 @@ class Da_Collections extends MY_Controller {
 	}
 	
 	
-		/**
+	/**
 	* Delete one or more records
 	* note: to use with ajax/json, pass the ajax as querystring
 	* 
