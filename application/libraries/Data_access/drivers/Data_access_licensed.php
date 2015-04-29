@@ -167,8 +167,8 @@ class Data_access_licensed extends CI_Driver {
 			}
 			else
 			{
-				//study title
-				$options['request_title']=$surveys[0]['titl'];
+				//study title for single study requests
+				$options['request_title']=$surveys[0]['nation'].' - '.$surveys[0]['titl'] . ' - '.$surveys[0]['proddate'];
 			}
 			
 			//remove duplicate surveys
