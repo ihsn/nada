@@ -111,13 +111,13 @@ $(function(){
 	}
 </script>
 
-<div class="page-body-full study-metadata-page" >
+<div class="page-body-full study-metadata-page" itemscope="itemscope" itemtype="http://schema.org/Dataset" itemid="<?php echo site_url('catalog/'.$id);?>">
 <?php if(intval($published)===0):?>
 	<div class="content-unpublished"><?php echo t('content_is_not_published');?></div>
 <?php endif;?>
 
 <?php if (isset($survey_title)):?>
-	<h1><?php echo $survey_title;?></h1>
+	<h1 itemprop="name"><?php echo $survey_title;?></h1>
 <?php endif;?>	
 
 
