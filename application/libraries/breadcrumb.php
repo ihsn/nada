@@ -240,7 +240,7 @@ class Breadcrumb
 					$breadcrumbs['data-deposit']=t('datadeposit');
 					$breadcrumbs['datadeposit/projects']=t('my_projects');
 					$dd_array=array('summary', 'update', 'submit_review','study','datafiles','citations');
-					if(in_array($segments[2], $dd_array) && isset($segments[3]))
+					if(isset($segments[2]) && in_array($segments[2], $dd_array) && isset($segments[3]))
 					{
 							$title = $this->get_data_deposit_project_title($segments[3]);
 							if (strlen($title) > 100) {
