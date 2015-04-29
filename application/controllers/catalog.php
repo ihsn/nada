@@ -17,7 +17,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Vocabulary_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
-	 	//$this->output->enable_profiler(TRUE);
+	 	$this->output->enable_profiler(TRUE);
     		
 		//language files
 		$this->lang->load('general');
@@ -263,7 +263,7 @@ class Catalog extends MY_Controller {
 		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('proddate','titl','labl','nation','popularity');
+		$allowed_fields = array('proddate','titl','labl','nation','popularity','rank');
 		$allowed_order=array('asc','desc');
 		
 		//set default sort options, if passed values are not valid
