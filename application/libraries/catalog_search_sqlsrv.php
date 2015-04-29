@@ -33,11 +33,14 @@ class Catalog_search{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
-						'titl'=>'titl',
-						'nation'=>'nation',
-						'proddate'=>'proddate',
-						'popularity'=>'total_views',
-						'collection'=>'repositories.repositoryid');
+        'titl'=>'titl',
+        'nation'=>'nation',
+        'proddate'=>'proddate',
+        'popularity'=>'total_views',
+        'collection'=>'repositories.repositoryid',
+        'rank'=>'k.rank'
+        );
+
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
@@ -105,7 +108,7 @@ class Catalog_search{
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
-		
+
 		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
@@ -147,13 +150,6 @@ class Catalog_search{
 		
 		if ($variable!==FALSE)
 		{
-			//variable search			
-			/*$this->ci->db->select('count(*) as rowsfound',FALSE);
-			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
-			$this->ci->db->group_by('id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount');
-			*/
 			$query_count='select count(rowsfound) as rowsfound from (';
 			$query_count.='select count(surveys.id) as rowsfound from surveys ';
 			$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
@@ -171,18 +167,6 @@ class Catalog_search{
 			$query_count.=" GROUP BY surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, surveys.repositoryid,varcount \r\n";
 			$query_count.=') as result';
 			
-			//$query_found_rows=$this->query($query_count)->row_array();
-		
-			
-			/*if ($where!='') 
-			{
-				$this->ci->db->where($where);
-			}*/
-
-			//group by
-			//$sql.=" GROUP BY id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount \r\n";
-
-			//$query=$this->ci->db->get();
 			$query=$this->ci->db->query($query_count);
 		}		
 		else 
@@ -219,45 +203,39 @@ class Catalog_search{
 
 	//perform the search
 	function search($limit=15, $offset=0)
-	{
-		$dtype=$this->_build_dtype_query();
-		$study=$this->_build_study_query();
-		$variable=$this->_build_variable_query();
-		$topics=$this->_build_topics_query();
-		$countries=$this->_build_countries_query();
-		$years=$this->_build_years_query();
-		$repository=$this->_build_repository_query();
-		$collections=$this->_build_collections_query();
-		
-		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-		
-		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
-		
-		//multi-column sort
-		if ($sort_by=='nation')
-		{
-			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
-		}
-		elseif ($sort_by=='titl')
-		{
-			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
-		}
-		if ($sort_by=='proddate')
-		{
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
-			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
-		}
-		
-		
-		if (trim($this->study_keywords)!=='')
-		{
-			//array_unshift($sort_options,array('sort_by'=>'k.rank', 'sort_order'=>'desc') );
-			$sort_options[]=array('sort_by'=>'k.rank', 'sort_order'=>'desc');
-		}
-		
+    {
+        $dtype = $this->_build_dtype_query();
+        $study = $this->_build_study_query();
+        $variable = $this->_build_variable_query();
+        $topics = $this->_build_topics_query();
+        $countries = $this->_build_countries_query();
+        $years = $this->_build_years_query();
+        $repository = $this->_build_repository_query();
+        $collections = $this->_build_collections_query();
+
+        //RANK sort is only available when search study keywords
+        if(!trim($this->study_keywords)){
+            unset($this->sort_allowed_fields['rank']);
+        }
+
+        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
+        $sort_order = in_array($this->sort_order, $this->sort_allowed_order) ? $this->sort_order : 'ASC';
+
+        //set sort
+        $sort_options[0] = $sort_options[0] = array('sort_by' => $sort_by, 'sort_order' => $sort_order);
+
+        //multi-column sort
+        if ($sort_by == 'nation') {
+            $sort_options[1] = array('sort_by' => 'proddate', 'sort_order' => 'desc');
+            $sort_options[2] = array('sort_by' => 'titl', 'sort_order' => 'asc');
+        } elseif ($sort_by == 'titl') {
+            $sort_options[1] = array('sort_by' => 'proddate', 'sort_order' => 'desc');
+            $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+        }
+        if ($sort_by == 'proddate') {
+            $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+            $sort_options[2] = array('sort_by' => 'titl', 'sort_order' => 'asc');
+        }
 
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
@@ -310,7 +288,7 @@ class Catalog_search{
 				$this->ci->db->group_by('k.rank');
 			}
 
-			if ($where!='') 
+			if ($where!='')
 			{
 				$this->ci->db->where($where);
 			}
@@ -319,16 +297,10 @@ class Catalog_search{
 			$sql_sorts=array();
 			foreach($sort_options as $sort)
 			{
-				//$sql_sorts[]=sprintf(' %s %s', $sort['sort_by'],$sort['sort_order']);
 				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
 			}
 			
-			/*if (count($sql_sorts)>0)
-			{			
-				$sql.=sprintf(' ORDER BY %s', implode(", ", $sql_sorts));
-			}*/
-			
-			$this->ci->db->limit($limit,$offset);			
+			$this->ci->db->limit($limit,$offset);
 			$query=$this->ci->db->get();
 		}		
 		else 
@@ -337,7 +309,6 @@ class Catalog_search{
 			$this->ci->db->select(" $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-		//	$this->ci->db->join('harvester_queue hq','surveys.surveyid=hq.surveyid AND surveys.repositoryid=hq.repositoryid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -406,75 +377,14 @@ class Catalog_search{
 	function _build_study_query()
 	{
 		//study search keywords
-		$study_keywords=$this->study_keywords;
+		$study_keywords=trim($this->study_keywords);
 
 		if ($study_keywords=='')
 		{
 			return FALSE;
 		}
 
-		//fix quotes, nada escapes quote
-		//$study_keywords=str_replace('&quot;','',$study_keywords);
-		//$study_keywords=str_replace('"','',$study_keywords);
-		//$study_keywords='"'.$study_keywords.'"';
-
-		//use freetext search if has no +-s
-		if (strpos($study_keywords," +")!==FALSE || strpos($study_keywords," -")!==FALSE)
-		{
-			$bool_search=array();
-			$keywords=preg_replace(array('/\s\+\s/','/\s\-\s/'),array(' +',' -'),$study_keywords);
-			$keywords = preg_replace('/\s\s+/', ' ', $keywords);
-
-			$keywords_arr=explode(" ",$keywords);
-			
-			$output=array();
-			$op="AND";
-			foreach($keywords_arr as $word)
-			{
-				if (trim($word)=="")
-				{
-					continue;
-				}
-				
-				if (substr($word,0,1)=='+')
-				{
-					$op="AND";
-					$output[$op][]=substr($word,1,strlen($word));
-				}
-				else if (substr($word,0,1)=='-')
-				{
-					$op="NOT";
-					$output[$op][]=substr($word,1,strlen($word));
-				}
-				else
-				{
-					$output[$op][]=$word;
-				}	
-			}
-			
-			//for searches such as -national -education change them to national and education
-			if (!isset($output['AND']) && isset($output['NOT']))
-			{
-				$output['AND']=$output['NOT'];
-				unset($output['NOT']);
-			}
-			
-			$query= implode(" AND ",$output['AND']);
-			
-			//both AND and NOT are searched
-			if (isset($output['NOT']) && isset($output['AND']))
-			{
-				$query.= ' AND NOT '.'('.implode(" OR ",$output['NOT']).')';
-			}
-			
-			$this->ci->db->join("containstable(surveys, (ft_keywords), ".$this->ci->db->escape($query).") k","surveys.id=k.[key]","INNER");
-			
-		}
-		else //freetext query
-		{
-			$this->ci->db->join("freetexttable(surveys, (ft_keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER");		
-		}
-
+        $this->ci->db->join("freetexttable(surveys, (ft_keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER");
 	}
 	
 			
@@ -488,10 +398,6 @@ class Catalog_search{
 			return FALSE;
 		}
 		
-		//$variable_keywords=str_replace('&quot;','',$variable_keywords);
-		//$variable_keywords=str_replace('"','',$variable_keywords);
-		//$variable_keywords='"'.$variable_keywords.'"';
-
 		if ($this->use_fulltext)
 		{
 			$fulltext_index=$this->get_variable_search_field(TRUE);
@@ -788,7 +694,6 @@ class Catalog_search{
 		$variable_keywords=$this->variable_keywords;
 		$variable_fields=$this->variable_fields;
 
-		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
@@ -796,7 +701,7 @@ class Catalog_search{
 		$dtype=$this->_build_dtype_query();
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
+		$where_list=array($variable,$topics,$countries,$years,$dtype);
 		
 		//create combined where clause
 		$where='';
@@ -825,37 +730,28 @@ class Catalog_search{
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,  surveys.titl as titl,surveys.nation as nation, v.surveyid_FK",FALSE);
 		$this->ci->db->join('surveys', 'v.surveyid_fk = surveys.id','inner');	
-		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-		
-		//get resultset
+        $this->_build_study_query();
+
+
+        //get result set
 		$result=$this->ci->db->get("variables as v")->result_array();
-		
-		//get total search result count
-		/*
-		$this->ci->db->select("count(*) as rowsfound",FALSE);
-		$this->ci->db->join('surveys', 'v.surveyid_fk = surveys.id','inner');	
-		$this->ci->db->where($where);		
-		$query_found_rows=$this->ci->db->get("variables as v")->row_array();
-		*/
-		
-		//$query_count='select count(*) as rowsfound (';
+
+        //count search
 		$query_count='select count(*) as rowsfound from surveys ';
 		$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
+        $query_count.='inner join forms f on surveys.formid=f.formid ';
+        
 		if ($where!='')
 		{
 			$query_count.=' where '.$where;
 		}	
-		//$query_count.=') as result';
-		//var_dump($query_count);exit;
 		$query_found_rows=$this->ci->db->query($query_count)->row_array();
-		//var_dump($query_found_rows);exit;
-		//->row_array();
-		
+
 		$found_rows=$query_found_rows['rowsfound'];
 
-		//return $result;
 		$tmp['total']=$this->ci->db->count_all('variables');
 		$tmp['found']=$found_rows;
 		$tmp['limit']=$limit;
@@ -971,5 +867,5 @@ class Catalog_search{
 	}
 }// END Search class
 
-/* End of file Catalog_search.php */
-/* Location: ./application/libraries/Catalog_search.php */
+/* End of file Catalog_search_sqlsrv.php */
+/* Location: ./application/libraries/Catalog_search_sqlsrv.php */
