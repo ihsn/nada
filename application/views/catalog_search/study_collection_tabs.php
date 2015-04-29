@@ -23,7 +23,7 @@ else{
 
 
 <h1><?php echo $repo['title'];?></h1>
-<div class="tab-style-1">
+<div class="tab-style-1 page-type page-data-catalog" data-page-type="catalog">
 <div id="collection-tabs" class="ui-tabs ui-widget ui-widget-content ui-corner-all study-tabs ">
   <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all study-info-tabs" role="tablist" >
     <?php if (isset($repo) && isset($repo['repositoryid']) && $repo['repositoryid']=='central'):?>
