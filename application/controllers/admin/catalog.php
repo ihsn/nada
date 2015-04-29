@@ -542,16 +542,25 @@ class Catalog extends MY_Controller {
 
 		//get study codebook ID from the DDI file
 		$this->load->library('DDI_Parser','ddi_parser');
-		$codebook_id=$this->ddi_parser->get_ddi_codebook_id($uploaded_ddi_path);
-		
-		if (!$codebook_id)
+		$ddi_study_id=$this->ddi_parser->get_ddi_study_id($uploaded_ddi_path);
+
+        //sanitize study id
+        $sanitized_id=$this->security->sanitize_filename($ddi_study_id);
+
+        if ($sanitized_id!=$ddi_study_id)
+        {
+            $this->session->set_flashdata('error', t('INVALID-DDI-STUDY-ID').':'.htmlspecialchars($ddi_study_id,ENT_QUOTES));
+            redirect('admin/catalog/add_study','refresh');return;
+        }
+
+		if (!$ddi_study_id)
 		{
 			$this->session->set_flashdata('error', 'NOT-A-VALID-DDI');
 			redirect('admin/catalog/add_study','refresh');return;
 		}
 		
 		//get study internal ID
-		$study_id=$this->Catalog_model->get_survey_uid($codebook_id);
+		$study_id=$this->Catalog_model->get_survey_uid($ddi_study_id);
 		
 		//study found
 		if ($study_id)
@@ -565,7 +574,7 @@ class Catalog extends MY_Controller {
 				redirect('admin/catalog/add_study','refresh');return;
 			}
 		}
-				
+
 		//import DDI file
 		$this->load->library('catalog_admin');
 		$result=$this->catalog_admin->import_ddi($uploaded_ddi_path,$overwrite,$repositoryid, $delete_after_import=TRUE);
