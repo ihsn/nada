@@ -329,6 +329,19 @@ $(document).ready(function()
 	$("#btnsearch").click(function() {
     	$("#page").val(1);
 		$("#_r").val($.now());
+
+        //set default sort to rank if searching on keywords
+        if ($.trim($("#sk").val())!='' ){
+            $("#sort_by").val("rank");
+            $("#sort_order").val("desc");
+        }
+        else{//reset to default sort only if sort_by is set to "rank"
+            if ($("#sort_by").val()=="rank") {
+                $("#sort_by").val("nation");
+                $("#sort_order").val("asc");
+            }
+        }
+        
 		hash_changed();return false;
 	});
 
