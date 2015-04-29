@@ -49,7 +49,7 @@ function xsl_transform($xml,$xslt,$parameters, $format="html") {
 					// use libxslt
 					// load the xml file and stylesheet as domdocuments
 					$xmlDom = new DomDocument(); //new DOMDocument('1.0','UTF-8');
-                    if (is_file($xml) ) {  //load xml file
+                    if (@is_file($xml) ) {  //load xml file
                         $xmlDom->load($xml);
                     }
                     else{ //load xml string
