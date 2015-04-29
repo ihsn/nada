@@ -95,7 +95,7 @@ class ACL
 		//get user global groups
 		$groups=$this->ci->ion_auth->get_groups_by_user($user_id);
 		
-		if (!is_array($groups))
+		if (!is_array($groups) || count($groups)==0)
 		{
 			return FALSE;
 		}
@@ -267,6 +267,11 @@ class ACL
 	**/
 	function has_unlimited_access($groups)
 	{
+		if (!$groups)
+		{
+			return FALSE;
+		}
+	
 		$this->ci->db->select('access_type');
 		$this->ci->db->from('groups');
 		$this->ci->db->where_in('id',$groups);
