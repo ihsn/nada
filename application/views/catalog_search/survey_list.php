@@ -89,7 +89,12 @@
 <div class="catalog-sort-links">
 <?php echo t('sort_results_by');?>:
 <?php
-  //nation  
+    if ($search_options->sk!="" || $search_options->vk!=""){
+        echo create_sort_link($sort_by,$sort_order,'rank',t('Relevance'),$page_url,array('sk','vk','vf') );
+        echo "| ";
+    }
+
+//nation
   if ($this->config->item("regional_search")=='yes')
   {
     echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('sk','vk','vf') );
