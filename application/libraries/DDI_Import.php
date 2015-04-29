@@ -54,9 +54,11 @@ class DDI_Import{
 		}
 		
 		$this->ddi_array=$data;
-		
+
+        $codebook_id=$this->ddi_array['study']['id'];
+
 		//check if survey already exists
-		$id=$this->survey_exists($surveyid=$this->ddi_array['study']['id'],$repositoryid=$this->repository_identifier);
+		$id=$this->survey_exists($codebook_id,$repositoryid=$this->repository_identifier);
 
 		//check if the survey already exists
 		if ($overwrite!==TRUE)
@@ -286,6 +288,7 @@ class DDI_Import{
 			//unset fields
 			unset($row['published']);
 			unset($row['formid']);
+			unset($row['changed']);
 			
 			$sql= $this->ci->db->update_string('surveys', $row,$where);			
 			$this->ci->db->query($sql);
