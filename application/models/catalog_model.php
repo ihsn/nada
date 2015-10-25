@@ -1345,7 +1345,12 @@ class Catalog_model extends CI_Model {
 		}
 		
 		$this->db->group_by('tag');
-		return $this->db->get('survey_tags')->result_array();
+		$result=$this->db->get('survey_tags');
+
+        if ($result) {
+            return $result->result_array();
+        }
+
 	}
 
 
