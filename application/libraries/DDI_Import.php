@@ -194,7 +194,18 @@ class DDI_Import{
 				$nation_arr[$key]=trim($value);
 			}
 		}
-		
+
+        //tokenize keywords
+        $keywords=explode(" ", str_replace("\r\n"," ",$data->keywords));
+
+        //keep unique keywords only
+        $keywords=array_unique($keywords);
+
+        //remove empty values
+        $keywords=array_filter($keywords);
+
+        //convert to string
+        $keywords=implode(" ", $keywords);
 		
 		//insert study description
 		$row = array(
@@ -209,7 +220,7 @@ class DDI_Import{
 			'nation'=>substr(implode(", ",$nation_arr),0,255),
 			'topic'=>serialize($data->topics),
 			'scope'=>$data->scope,
-			'keywords'=>trim($data->keywords),
+			'keywords'=> $keywords,
 			'sername'=>substr(trim($data->sername),0,254),
 			'producer'=>$data->producer,
 			'refno'=>substr($data->refno,0,254),

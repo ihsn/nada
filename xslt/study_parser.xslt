@@ -91,7 +91,9 @@ License:
     
     <!-- Keywords-->   
     <xsl:element name="keywords">
-       	<xsl:call-template name="keywords"/>
+       	<!--<xsl:call-template name="keywords"/>-->
+       	<xsl:value-of select="normalize-space(//ddi:docDscr)"/>
+		<xsl:value-of select="normalize-space(//ddi:stdyDscr)"/>
     </xsl:element>    
     
 	<!--Study type/serName-->
