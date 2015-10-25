@@ -124,8 +124,7 @@ class Reports extends MY_Controller {
 				
 				if ($format=='excel')
 				{
-					$output=$this->load->view("reports/study_statistics",$data,TRUE);
-					$this->_export_to_csv($output,'study-statistics-'.date("m-d-y").'.csv');
+					$this->_export_study_statistics_to_csv($data,'study-statistics-'.date("m-d-y").'.csv');
 					return;
 				}					
 				$this->load->view("reports/study_statistics",$data);
@@ -190,7 +189,20 @@ class Reports extends MY_Controller {
 	   $to=$this->_unix_date($to);
 */	   
 	}
-	
+
+    function _export_study_statistics_to_csv($options,$filename)
+    {
+        foreach ($options['rows'] as $row_idx => $row) {
+            $options['rows'][$row_idx]['has_data'] = (isset($options['data'][$row['id']]) ? $options['data'][$row['id']] : 'N/A');
+            $options['rows'][$row_idx]['has_data'] = (isset($options['citations'][$row['id']])) ? $options['citations'][$row['id']] : 0;
+            $options['rows'][$row_idx]['has_reports'] = (isset($options['reports'][$row['id']])) ? $options['reports'][$row['id']] : 0;
+            $options['rows'][$row_idx]['has_questionnaire'] = (isset($options['questionnaires'][$row['id']])) ? $options['questionnaires'][$row['id']] : 0;
+        }
+
+        $this->_export_to_csv($options['rows'],$filename);
+    }
+
+
 	
 	function _export_to_excel($rows,$filename)
 	{
@@ -230,8 +242,8 @@ class Reports extends MY_Controller {
 		header("Content-Description: File Transfer");
 		
 		session_cache_limiter("must-revalidate");
-		header('Content-Type: text/csv');
-		header('Content-Disposition: attachment; filename="'.$filename.'"'); 
+        header('Content-Type: text/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="'.$filename.'"');
 		
 		if (!is_array($rows))
 		{
@@ -265,7 +277,10 @@ class Reports extends MY_Controller {
 			$date_columns_found[]=$col;			
 		    }
 		}
-		
+
+        //UTF8 BOM
+        echo "\xEF\xBB\xBF";
+
 		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');	
 	            
 		//data rows
