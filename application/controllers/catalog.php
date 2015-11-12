@@ -17,7 +17,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Vocabulary_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
-	 	$this->output->enable_profiler(TRUE);
+	 	//$this->output->enable_profiler(TRUE);
     		
 		//language files
 		$this->lang->load('general');
@@ -260,6 +260,7 @@ class Catalog extends MY_Controller {
 		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
 		$search_options->sid			=xss_clean($this->input->get("sid"));
+        $search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order
@@ -356,6 +357,7 @@ class Catalog extends MY_Controller {
 			'repo'=>$search_options->filter->repo,
 			'dtype'=>$search_options->dtype,
 			'sid'=>$search_options->sid,
+            'country_iso3'=>$search_options->country_iso3,
 		);		
 		
 		$this->load->library('catalog_search',$params);

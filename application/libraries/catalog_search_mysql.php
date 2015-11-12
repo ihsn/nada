@@ -11,7 +11,7 @@
  * @link		-
  *
  */ 
-class Catalog_search{    	
+class Catalog_search_mysql{
 	
 	var $ci;
 	
@@ -29,6 +29,7 @@ class Catalog_search{
 	var $collections=array();
 	var $dtype=array();//data access type
 	var $sid=''; //comma separated list of survey IDs
+    var $country_iso3=''; //comma seperated list country iso3 codes
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -86,7 +87,7 @@ class Catalog_search{
 	}
 
 	//perform the search
-	function search($limit=15, $offset=0)
+	public function search($limit=15, $offset=0)
 	{
 		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
@@ -97,6 +98,7 @@ class Catalog_search{
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
 		$sid=$this->_build_sid_query();
+        $countries_iso3=$this->_build_countries_iso3_query();
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
 		$sort_by='titl';
@@ -119,20 +121,23 @@ class Catalog_search{
 		{
 			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
 			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
 		elseif ($sort_by=='titl')
 		{
 			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
 			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
 		if ($sort_by=='proddate')
 		{
 			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
 			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
 				
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -179,7 +184,7 @@ class Catalog_search{
 			//multi-sort
 			foreach($sort_options as $sort)
 			{
-				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
+				$this->ci->db->order_by($this->sort_allowed_fields[$sort['sort_by']],$sort['sort_order']);
 			}
 			
 			$this->ci->db->limit($limit,$offset);
@@ -207,7 +212,7 @@ class Catalog_search{
 			//multi-sort
 			foreach($sort_options as $sort)
 			{
-				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
+				$this->ci->db->order_by($this->sort_allowed_fields[$sort['sort_by']],$sort['sort_order']);
 			}
 
 			$this->ci->db->limit($limit,$offset);
@@ -258,7 +263,7 @@ class Catalog_search{
 	/**
 	* Build study search
 	*/
-	function _build_study_query()
+	protected function _build_study_query()
 	{
 		//study search keywords
 		$study_keywords=$this->study_keywords;
@@ -296,7 +301,7 @@ class Catalog_search{
 		}
 	}
 			
-	function _build_variable_query()
+	protected function _build_variable_query()
 	{
 		$variable_keywords=trim($this->variable_keywords);
 		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
@@ -338,7 +343,7 @@ class Catalog_search{
 	*
 	* build where for topics
 	*/
-	function _build_topics_query()
+	protected function _build_topics_query()
 	{
 		$topics=$this->topics;//must always be an array
 
@@ -401,7 +406,7 @@ class Catalog_search{
 	*
 	* build where for nations
 	*/
-	function _build_countries_query()
+	protected function _build_countries_query()
 	{
 		$countries=$this->countries;//must always be an array
 
@@ -441,9 +446,54 @@ class Catalog_search{
 		
 		return FALSE;
 	}
+
+
+    /**
+     *
+     * build where countries by iso3 code
+     */
+    protected function _build_countries_iso3_query()
+    {
+        if (trim($this->country_iso3)=="")
+        {
+            return FALSE;
+        }
+
+        $countries=explode(",",$this->country_iso3);
+
+        if (!is_array($countries))
+        {
+            return FALSE;
+        }
+
+        $countries_list=array();
+        foreach($countries  as $country_code)
+        {
+            if (strlen(trim($country_code))==3) {
+                //escape country names for db
+                $countries_list[] = $this->ci->db->escape($country_code);
+            }
+        }
+
+        if ( count($countries_list)>0)
+        {
+            $countries= implode(',',$countries_list);
+        }
+        else
+        {
+            return FALSE;
+        }
+
+        if ($countries!='')
+        {
+            return sprintf('surveys.id in (select survey_countries.sid from countries
+                inner join survey_countries  on countries.countryid=survey_countries.cid  where countries.iso in (%s))',$countries);
+        }
+
+        return FALSE;
+    }
 	
-	
-	function _build_years_query()
+	protected function _build_years_query()
 	{
 		$from=(integer)$this->from;
 		$to=(integer)$this->to;
@@ -456,7 +506,7 @@ class Catalog_search{
 		return FALSE;
 	}
 	
-	function _build_sid_query()
+	protected function _build_sid_query()
 	{
 		$sid=explode(",",$this->sid);
 		
@@ -476,44 +526,8 @@ class Catalog_search{
 		
 		return FALSE;
 	}
-	
-	
-	function _build_centers_query()
-	{	
-		$centers=$this->center;//must always be an array
 
-		if (!is_array($centers))
-		{
-			return FALSE;
-		}
-		
-		$centers_list=array();
-
-		foreach($centers  as $center)
-		{
-			//escape country names for db
-			$centers_list[]=$this->ci->db->escape($center);
-		}
-
-		if ( count($centers_list)>0)
-		{
-			$centers= implode(',',$centers_list);
-		}
-		else
-		{
-			return FALSE;
-		}
-
-		if ($centers!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_centers where id in (%s) )',$centers);
-		}
-		
-		return FALSE;	
-	}
-
-
-	function _build_collections_query()
+	protected function _build_collections_query()
 	{	
 		$params=$this->collections;//must always be an array
 
@@ -673,7 +687,7 @@ class Catalog_search{
 	}
 
 	//search on variables
-	function vsearch($limit = 15, $offset = 0)
+	public function vsearch($limit = 15, $offset = 0)
 	{
 		//sort allowed fields for the variable view
 		$sortable_fields=array('name','labl','titl','nation');
@@ -742,10 +756,10 @@ class Catalog_search{
 	}
 
 	//search for variables for a single survey
-	function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
+	public function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
 	{
 		//sort allowed fields for the variable view
-		$sortable_fields=array('name','labl','nation');
+		$sortable_fields=array('name','labl');
 
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'name';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
