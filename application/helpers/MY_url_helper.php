@@ -395,5 +395,47 @@ if ( ! function_exists('sanitize_url'))
 */
 
 
+
+/**
+ * Parse out the attributes
+ *
+ * Some of the functions use this
+ *
+ * @access	private
+ * @param	array
+ * @param	bool
+ * @return	string
+ */
+if ( ! function_exists('_parse_attributes'))
+{
+    function _parse_attributes($attributes, $javascript = FALSE)
+    {
+        if (is_string($attributes))
+        {
+            return ($attributes != '') ? ' '.$attributes : '';
+        }
+
+        $att = '';
+        foreach ($attributes as $key => $val)
+        {
+            if ($javascript == TRUE)
+            {
+                $att .= $key . '=' . $val . ',';
+            }
+            else
+            {
+                $att .= ' ' . $key . '="' . $val . '"';
+            }
+        }
+
+        if ($javascript == TRUE AND $att != '')
+        {
+            $att = substr($att, 0, -1);
+        }
+
+        return $att;
+    }
+}
+
 /* End of file MY_url_helper.php */
 /* Location: ./application/helpers/MY_url_helper.php */

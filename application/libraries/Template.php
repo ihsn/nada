@@ -30,7 +30,7 @@
  * @version 1.4.1
  * 
  */
-class CI_Template {
+class Template {
    
    var $CI;
    var $config;
@@ -67,7 +67,7 @@ class CI_Template {
 	 * @access	public
 	 */
    
-   function CI_Template()
+   function Template()
    {
       // Copy an instance of CI so we can use the entire framework.
       $this->CI =& get_instance();
@@ -541,7 +541,7 @@ class CI_Template {
       $css = NULL;
       
       $this->CI->load->helper('url');
-	  
+
 	  if (substr($style,0,7)==="http://" || substr($style,0,8)=="https:" || substr($style,0,2)=="//")
 	  {
 		$filepath = $style;
