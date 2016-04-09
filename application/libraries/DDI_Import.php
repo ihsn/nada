@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+326<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * DDI-to-DB Import Class
  * 
@@ -323,9 +323,10 @@ class DDI_Import{
 		}
 		
 		//check for errors
-		if ($this->ci->db->_error_message() )
+		if ($this->ci->db->error() )
 		{
-				$error='Study-import::Database Error: '.$this->ci->db->_error_message();
+				$db_error=$this->ci->db->error();
+				$error='Study-import::Database Error: '.$db_error['message'];
 				$this->errors[]=$error;
 				$error.="\r\n".$this->ci->db->last_query();				
 						
