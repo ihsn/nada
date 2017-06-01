@@ -16,7 +16,7 @@
 // ------------------------------------------------------------------------
 
 /**
- * Pagination Class - exended to use querystrings
+ * Pagination Class - extended to use querystrings
  *
  * @package		CodeIgniter
  * @subpackage	Libraries
@@ -29,8 +29,12 @@
 class My_Pagination Extends CI_Pagination {
 	// --------------------------------------------------------------------
 	var $additional_querystring = ''; //any querystring values to be passed along the page
-	
-	
+
+
+function get_total_rows()
+{
+		return $this->total_rows;
+}
 
 	/**
 	 * Generate the pagination links

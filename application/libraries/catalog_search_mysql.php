@@ -4,10 +4,7 @@
  * 
  * 
  *
- * @package		NADA 3
- * @subpackage	Libraries
  * @category	Data Catalog Search
- * @author		Mehmood Asghar
  * @link		-
  *
  */ 
@@ -26,9 +23,10 @@ class Catalog_search_mysql{
 	var $from=0;
 	var $to=0;
 	var $repo='';
+	//var $center=array();
 	var $collections=array();
 	var $dtype=array();//data access type
-	var $sid=''; //comma separated list of survey IDs
+    var $sid=''; //comma separated list of survey IDs
     var $country_iso3=''; //comma seperated list country iso3 codes
 
 	//allowed variable search fields
@@ -707,7 +705,10 @@ class Catalog_search_mysql{
 		
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
-		
+
+        //show only publshed studies
+        $where_list[]='published=1';
+
 		//create combined where clause
 		$where='';
 		
@@ -747,13 +748,20 @@ class Catalog_search_mysql{
 		$found_rows=$query_found_rows['rowcount'];
 
 		//return $result;
-		$tmp['total']=$this->ci->db->count_all('variables');
+		$tmp['total']=$this->get_total_variable_count();
 		$tmp['found']=$found_rows;
 		$tmp['limit']=$limit;
 		$tmp['offset']=$offset;
 		$tmp['rows']=$result;
 		return $tmp;		
 	}
+
+
+    function get_total_variable_count()
+    {
+        $result=$this->ci->db->query('select count(*) as total from variables where surveyid_FK in (select id from surveys where published=1)')->row_array();
+        return $result['total'];
+    }
 
 	//search for variables for a single survey
 	public function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
@@ -853,5 +861,5 @@ class Catalog_search_mysql{
 
 }// END Search class
 
-/* End of file Catalog_search.php */
-/* Location: ./application/libraries/Catalog_search.php */
+/* End of file Catalog_search_mysql.php */
+/* Location: ./application/libraries/Catalog_search_mysql.php */

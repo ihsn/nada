@@ -1,4 +1,4 @@
-<?php  $this->template->add_css($this->load->view('catalog/catalog_style'),'embed'); ?>
+<?php  //$this->template->add_css($this->load->view('catalog/catalog_style'),'embed'); ?>
 <?php
 	//set default page size, if none selected
 	if(!$this->input->get("ps"))

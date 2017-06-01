@@ -4,8 +4,8 @@
 | Active template group
 |--------------------------------------------------------------------------
 |
-| The $template['active_template'] setting lets you choose which template 
-| group to make active.  By default there is only one group (the 
+| The $template['active_template'] setting lets you choose which template
+| group to make active.  By default there is only one group (the
 | "default" group).
 |
 */
@@ -19,7 +19,7 @@ $template['theme_name']='wb2';
 | Multi site hosting [DO NOT EDIT SETTTINGS BELOW]
 |--------------------------------------------------------------------------
 |
-| These settings are used for sharing single code base for multi site 
+| These settings are used for sharing single code base for multi site
 | hosting, for more details on how to setup multiple sites using single
 | instance of nada code:
 |
@@ -44,9 +44,9 @@ $template['base_url']=defined('JS_BASE_URL') ? JS_BASE_URL : base_url();
 |   Typically this file will contain a full XHTML skeleton that outputs your
 |   full template or region per region. Include the file extension if other
 |   than ".php"
-| ['regions'] Places within the template where your content may land. 
-|   You may also include default markup, wrappers and attributes here 
-|   (though not recommended). Region keys must be translatable into variables 
+| ['regions'] Places within the template where your content may land.
+|   You may also include default markup, wrappers and attributes here
+|   (though not recommended). Region keys must be translatable into variables
 |   (no spaces or dashes, etc)
 | ['parser'] The parser class/library to use for the parse_view() method
 |   NOTE: See http://codeigniter.com/forums/viewthread/60050/P0/ for a good
@@ -57,9 +57,9 @@ $template['base_url']=defined('JS_BASE_URL') ? JS_BASE_URL : base_url();
 | Region information can be extended by setting the following variables:
 | ['content'] Must be an array! Use to set default region content
 | ['name'] A string to identify the region beyond what it is defined by its key.
-| ['wrapper'] An HTML element to wrap the region contents in. (We 
+| ['wrapper'] An HTML element to wrap the region contents in. (We
 |   recommend doing this in your template file.)
-| ['attributes'] Multidimensional array defining HTML attributes of the 
+| ['attributes'] Multidimensional array defining HTML attributes of the
 |   wrapper. (We recommend doing this in your template file.)
 |
 | Example:
@@ -137,7 +137,7 @@ $template['admin']['parse_template'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------
-| Site Template Configuration 
+| Site Template Configuration
 |--------------------------------------------------------------------------
 */
 
@@ -160,7 +160,7 @@ $template['default']['regions'] = array(
   'breadcrumb',
   'survey_title',
   'section_url',
-  'ddi_sidebar'  
+  'ddi_sidebar'
 );
 
 $template['default']['parser'] = 'parser';

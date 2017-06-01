@@ -108,7 +108,9 @@ class Catalog extends MY_Controller {
 		}
 		
 		$db_rows['active_repo_obj']=$this->active_repo;
-				
+
+        $inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
+        $this->template->add_css($inline_styles,'embed');
 		$content=$this->load->view('catalog/index', $db_rows,true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();

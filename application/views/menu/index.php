@@ -53,22 +53,22 @@
 	if ($this->pagination->cur_page>0) {
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
 
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows()) 
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 
 		$pager=sprintf(t('showing %d-%d of %d')
 						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
 						,$to_page
-						,$this->pagination->total_rows);
+						,$this->pagination->get_total_rows());
 	}
 	else
 	{
 		$pager=sprintf(t('showing %d-%d of %d')
 				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
+				,$this->pagination->get_total_rows()
+				,$this->pagination->get_total_rows());
 	}
 ?>
 

@@ -91,7 +91,7 @@ $config['supported_languages']=array();//array("english","french","arabic","russ
 | This option allows you to restrict the access to site administration by IP
 | addresses. If values are provided then only the supplied IP addresses can be
 | used to access the site administration.
-|*/ 
+|*/
 $config['admin_allowed_ip']=array();
 
 /*
@@ -386,9 +386,9 @@ $config['encryption_key'] = "CzYs1979";
 |
 */
 $config['sess_driver'] = 'files';
-$config['sess_cookie_name'] = 'nada';
+$config['sess_cookie_name'] = 'ihsn_nada';
 $config['sess_expiration'] = 7200; //7200 default
-$config['sess_save_path'] = 'files/sessions';
+$config['sess_save_path'] = 'c:/wb/workspace/nada4/files/sessions';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 0;
 $config['sess_regenerate_destroy'] = FALSE;
@@ -554,12 +554,12 @@ $config['date_format_long']='m/d/Y H:i';
 |
 |	enable_ssl	= 	TRUE/FALSE	whether to enable SSL or not
 |	http_port	=  	port number application is using. e.g. if you are running website on a
-|					non-standard port e.g. http://localhost:81/nada, enter 81  	
+|					non-standard port e.g. http://localhost:81/nada, enter 81
 |	proxy_ssl				=	TRUE/FALSE - use when the proxy server is managing SSL and SSL info is sent in an HTTP Header
 |	proxy_ssl_header		=	Name of the $_SERVER variable sent by the proxy server
 |	proxy_ssl_header_value	=	Value that indicate page is served using SSL
 |
-| 
+|
 */
 $config['enable_ssl']=FALSE;
 $config['http_port']=80;
@@ -575,7 +575,7 @@ $config['proxy_ssl_header_value']='80, 443'; //$_SERVER variable value for SSL p
 | Enable Right-to-Left layout support for languages such as Arabic, Urdu, etc
 |
 |	enable_rtl	= TRUE	changes site template and other UI to use RTl
-| 
+|
 */
 $config['enable_rtl']=FALSE;
 
@@ -645,7 +645,7 @@ $config['max_resource_upload_size']='300';
 |
 | All of these settings are stored/read from the database. The settings defined here
 | are used as fallback settings, incase the database configurations were not readable.
-| 
+|
 | DO NOT EDIT THE SETTINGS HERE
 */
 $config['catalog_root']='datafiles';

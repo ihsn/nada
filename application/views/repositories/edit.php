@@ -15,6 +15,7 @@ margin-right: 8px;
 .repo-box-1 .repo-file-upload label{display:inline;}*/
 .fixed-100 input{width:100px;}
 .fixed-200 input{width:200px;}
+    .field .help-block {color:gray; margin-bottom:20px;}
 </style>
 <?php
 $repo_types=array(
@@ -98,7 +99,8 @@ foreach($sections as $sec)
     
     <div class="field">
         <label for="long_text"><?php echo t('long_description');?><span class="required">*</span></label>
-        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : ''),'style="height:150px" class="input-flex"');?>
+        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : '',FALSE),'style="height:150px" class="input-flex"');?>
+        <div class="help-block">Limited HTML allowed: P, DIV, SPAN, IMG, A, HR, UL, LI, OL </div>
     </div>
 
     <fieldset class="repo-box-1">

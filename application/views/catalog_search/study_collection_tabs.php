@@ -12,7 +12,7 @@ else{
 	$repo=array(
 			'repositoryid'	=>'central',
 			'title'			=>t('central_data_catalog')
-			);			
+			);
 }
 ?>
 
@@ -36,9 +36,9 @@ else{
     <li class="ui-state-default ui-corner-top <?php echo ($active_tab=='citations') ? $active_class : '' ?>" role="tab" tabindex="-1" aria-controls="tabs-3" aria-labelledby="ui-id-4" aria-selected="false"><a href="<?php echo site_url('citations/?collection='.$repo['repositoryid']);?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" ><?php echo t('tab_citations');?></a></li>
     <?php endif;?>
   </ul>
-  <div id="tabs-1" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="true" aria-hidden="false">  	
-	  <?php echo $content;?>  
+  <div id="tabs-1" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="true" aria-hidden="false">
+	  <?php echo $content;?>
   </div>
-  
+
 </div>
 </div>

@@ -58,7 +58,7 @@ class Repositories extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 15;
+		$per_page = 100;
 				
 		//current page
 		$offset=$this->input->get('offset');//$this->uri->segment(4);
@@ -157,17 +157,18 @@ class Repositories extends MY_Controller {
 	*/
 	function edit($id=NULL)	
 	{
-		if (!is_numeric($id)  && $id!==NULL)
+        $this->load->helper('security');
+
+        if (!is_numeric($id)  && $id!==NULL)
 		{
 			show_error('Invalid id provided');exit;		
 		}
 
 		//set validation rules
-		$this->form_validation->set_rules('repositoryid', t('repositoryid'), 'xss_clean|trim|required|max_length[255]|callback__repository_identity_check|alpha_dash');
-		//$this->form_validation->set_rules('url', t('url'), 'xss_clean|trim|required|callback__url_check|max_length[255]');
+		$this->form_validation->set_rules('repositoryid', t('repositoryid'), 'xss_clean|trim|required|max_length[255]|callback__repository_identity_check|callback__repository_id_format_check|alpha_dash');
 		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
 		$this->form_validation->set_rules('short_text', t('short_text'), 'xss_clean|trim|required');
-		$this->form_validation->set_rules('long_text', t('long_text'), 'xss_clean|trim');
+		$this->form_validation->set_rules('long_text', t('long_text'), 'trim');
 		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|trim|max_length[5]|is_natural');
 		$this->form_validation->set_rules('thumbnail', t('thumbnail'), 'xss_clean|trim|required');
 		$this->form_validation->set_rules('section', t('section'), 'xss_clean|trim|max_length[3]|is_natural');
@@ -202,8 +203,8 @@ class Repositories extends MY_Controller {
 												
 		//process form
 		if ($this->form_validation->run() == TRUE)
-		{		
-				$options=array(
+		{
+            $options=array(
 					'group_da_public'=>0,
 					'group_da_licensed'=>0
 				);
@@ -212,10 +213,19 @@ class Repositories extends MY_Controller {
 				//read post values to pass to db
 				foreach($post_arr as $key=>$value)
 				{
-					$options[$key]=$this->input->post($key);//$this->security->xss_clean($this->input->post($key));
+					$options[$key]=$this->input->post($key);
 				}
-				
-				//process thumbnail flie uploads
+
+                //sanitize description html
+                $options['long_text']=$this->sanitize_html_input($options['long_text']);
+
+            /*echo '<pre>';
+            echo '<textarea style="width:500px;height:400px;">';
+            var_dump($options);
+            echo '</textarea>';
+            die();*/
+
+				//process thumbnail file uploads
 				if(!empty($_FILES['thumbnail_file']['name'])) 
 				{
 					$fileupload_output=$this->process_file_uploads('thumbnail_file');
@@ -249,7 +259,12 @@ class Repositories extends MY_Controller {
 					$this->session->set_flashdata('message', t('form_update_success'));
 					
 					//redirect back to the list
-					redirect("admin/repositories","refresh");
+                    if (!$id) {
+                        redirect("admin/repositories", "refresh");
+                    }
+                    else{
+                        redirect("admin/repositories/edit/" . $id, "refresh");
+                    }
 				}
 				else
 				{
@@ -313,7 +328,56 @@ class Repositories extends MY_Controller {
 		//render final output
 	  	$this->template->render();								
 	}
-	
+
+
+    /**
+     *
+     * Validation HTML
+     */
+    function sanitize_html_input($html)
+    {
+        $this->load->helper('kses');
+        $string=$html;//'<span><p id="<script>alert(1);</script>">this is a test<div>!</div>';
+        $allowed_tags = array('b' => array(),
+            'h1'    => array("class"=>array()),
+            'h2'    => array("class"=>array()),
+            'h3'    => array("class"=>array()),
+            'i'    => array("class"=>array()),
+            'div'  => array("class"=>array()),
+            'span' => array("class"=>array()),
+            'a'    => array('href'=> array(),
+                'title' => array('valueless' => 'n')),
+            'p' => array('class' => array(),
+                'id'=>array()),
+            'img' => array('src' => array()),
+            'font' => array('size' =>
+                array('minval' => 4, 'maxval' => 20)),
+            'br' => array()
+        );
+
+        //don't throw php warnings for non well formed html
+        $libxml_error_setting= libxml_use_internal_errors(true);
+
+        //fix the missing closing tags
+        $doc = new DOMDocument();
+        $doc->loadHTML($string);
+        $html=$doc->saveHTML();
+
+        //reset to whatever it was set before
+        libxml_use_internal_errors($libxml_error_setting);
+
+        return wp_kses($html, $allowed_tags);
+        /*die();
+        $doc = new DOMDocument();
+        $doc->loadHTML($string);
+
+        $doc->removeChild($doc->firstChild);
+        echo $doc->saveXML();
+
+           echo str_replace("<body>","",$doc->saveHTML());
+        */
+
+    }
 	
 	/**
 	* check repositoryID
@@ -337,6 +401,28 @@ class Repositories extends MY_Controller {
 		}
 			return TRUE;
 	}
+
+
+    /**
+     *
+     * The repository ID call back to validate ID is not numeric
+     */
+    function _repository_id_format_check($repositoryid)
+    {
+        $id=$this->uri->segment(4);
+
+        if (!is_numeric($id) )
+        {
+            $id=NULL;
+        }
+
+        if (is_numeric($repositoryid))
+        {
+            $this->form_validation->set_message('_repository_id_format_check', t('callback_error_repositoryid_is_numeric'));
+            return FALSE;
+        }
+        return TRUE;
+    }
 	
 	
 	/**
@@ -629,8 +715,9 @@ class Repositories extends MY_Controller {
 		);
 		
 		$this->Repository_model->update($id,$options);
-		$this->Repository_model->update_repo_studies_status($id,$status);
-		
+
+        //publish/unpublish studies in the collection based on the publish status of the collection
+		//$this->Repository_model->update_repo_studies_status($id,$status);
 	}
 	
 	

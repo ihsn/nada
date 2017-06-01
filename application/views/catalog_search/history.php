@@ -39,14 +39,14 @@ span.link-change{font-size:10px;padding-left:5px;}
 </h1>
 
 <?php if ($rows): ?>
-<?php		
-	//pagination 
+<?php
+	//pagination
 	$page_nums=$this->pagination->create_links();
 	$current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
 
 	$sort_by=$this->input->get("sort_by");
-	$sort_order=$this->input->get("sort_order");			
-	
+	$sort_order=$this->input->get("sort_order");
+
 	//current page url
 	$page_url=site_url().'/'.$this->uri->uri_string();
 ?>
@@ -54,22 +54,22 @@ span.link-change{font-size:10px;padding-left:5px;}
 	if ($this->pagination->cur_page>0) {
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
 
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows())
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 
 		$pager=sprintf(t('showing %d-%d of %d')
 						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
 						,$to_page
-						,$this->pagination->total_rows);
+						,$this->pagination->get_total_rows());
 	}
 	else
 	{
 		$pager=sprintf(t('showing %d-%d of %d')
 				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
+				,$this->pagination->get_total_rows()
+				,$this->pagination->get_total_rows());
 	}
 ?>
 
@@ -77,9 +77,9 @@ span.link-change{font-size:10px;padding-left:5px;}
 
 <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
-            <?php if ($this->config->item("regional_search")=='yes'):?>            
-                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('keywords','field','ps')); ?></th>                
-            <?php endif;?> 
+            <?php if ($this->config->item("regional_search")=='yes'):?>
+                <th><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('keywords','field','ps')); ?></th>
+            <?php endif;?>
             <th nowrap="nowrap"><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,array('keywords','field','ps')); ?></th>
             <th nowrap="nowrap"><?php echo create_sort_link($sort_by,$sort_order,'proddate',t('year'),$page_url,array('keywords','field','ps')); ?></th>
             <th nowrap="nowrap"><?php echo create_sort_link($sort_by,$sort_order,'created',t('created'),$page_url,array('keywords','field','ps')); ?></th>
@@ -98,13 +98,13 @@ span.link-change{font-size:10px;padding-left:5px;}
             <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>
         </tr>
     <?php endforeach;?>
-</table>    
+</table>
 
 
 <table width="100%" style="margin-top:10px;">
     <tr>
         <td>&nbsp;</td>
-        <td>    
+        <td>
             <div class="pagination">
                     <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
             </div>

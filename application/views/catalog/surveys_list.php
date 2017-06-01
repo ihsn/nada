@@ -41,7 +41,7 @@
 	//create pagination bar
 	$pagination='<table width="100%" class="pagination">';
 	$pagination.='<tr>';
-	$pagination.='<td>'.$this->pagination->total_rows.' records found</td>';
+	$pagination.='<td>'.$this->pagination->get_total_rows().' records found</td>';
 	$pagination.='<td align="right">'.$this->pagination->create_links().'</td>';
 	$pagination.='</tr>';
 	$pagination.='</table>';

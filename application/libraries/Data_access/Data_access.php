@@ -2,23 +2,18 @@
 
 class Data_access extends CI_Driver_Library {
 
-    //public $valid_drivers;
 	protected $valid_drivers 	= array(
-		'data_access_public', 
-		'data_access_direct', 
-		'data_access_licensed', 
-		'data_access_remote',
-		'data_access_enclave',
-		'data_access_open'
+		'public',
+		'direct',
+		'licensed',
+		'remote',
+		'enclave',
+		'open'
 	);
 	
-	protected $_adapter			= 'dummy';
+	protected $_adapter			= 'enclave';
 
-    /*function __construct()
-    {
-        
-    }*/
-	
+
 	/**
 	 * Constructor
 	 *
@@ -31,6 +26,7 @@ class Data_access extends CI_Driver_Library {
 			$this->_initialize($config);
 		}
 	}
+
 	
 	/**
 	 * Initialize
@@ -43,8 +39,7 @@ class Data_access extends CI_Driver_Library {
 	private function _initialize($config)
 	{        
 		$default_config = array(
-				'adapter',
-				'memcached'
+				'adapter'
 			);
 
 		foreach ($default_config as $key)
@@ -66,10 +61,9 @@ class Data_access extends CI_Driver_Library {
 	 */
 	public function is_supported($driver)
 	{
-		$prefix='data_access_';
-		if ( in_array($prefix.$driver,$this->valid_drivers))
+		if ( in_array($driver,$this->valid_drivers))
 		{
-			return TRUE;
+            return TRUE;
 		}
 
 		return FALSE;
@@ -78,7 +72,7 @@ class Data_access extends CI_Driver_Library {
 	
 	function process_form($sid,$user=FALSE)
 	{
-		return $this->{$this->_adapter}->process_form($sid,$user);
+        return $this->{$this->_adapter}->process_form($sid,$user);
 	}
 	
 }

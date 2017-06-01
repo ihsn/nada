@@ -1,11 +1,14 @@
 <?php
 $repo_ref=$this->uri->segment(2);
-if($repo_ref!='central' && $repo_ref!==FALSE)
+
+//if not CENTRAL or NULL then check if exists in system
+//blocks loading page for invalid repository names
+if($repo_ref!='central' && $repo_ref)
 {
 	if (!$result=$this->repository_model->repository_exists($repo_ref))
 	{
 		return false;
-	}	
+	}
 }
 ?>
 <table style="display:none;" width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
@@ -38,7 +41,7 @@ if($repo_ref!='central' && $repo_ref!==FALSE)
 <?php endif;?>
 
 
-<div class="filter-container"> 
+<div class="filter-container">
 
 <div class="filter-container-heading refine-list">
 <h3>Refine List</h3>
@@ -51,12 +54,12 @@ $fac_filters=array();
 
 	<!--keywords filter-->
 	<?php  $this->load->view("catalog_search/filter_keywords",array('repoid'=>$active_repo)); ?>
-    
+
     <!--year filter-->
     <?php if ($this->config->item("year_search")=='yes'):?>
 		<?php $fac_filters[(int)$this->config->item("year_search_weight")]['year']= $this->load->view("catalog_search/filter_years",array('repoid'=>$active_repo),TRUE); ?>
     <?php endif;?>
-    
+
 	<!-- country filter-->
 	<?php if ($this->regional_search=='yes'):?>
     	<?php  $fac_filters[(int)$this->config->item("regional_search_weight")]['country']=$this->load->view("catalog_search/filter_countries",array('active_repo',$active_repo),TRUE); ?>
@@ -65,14 +68,14 @@ $fac_filters=array();
 	<!-- da filter -->
     <?php if ($this->config->item("da_search")=='yes' && is_array($da_types) && count($da_types)>0):?>
     	<?php  $fac_filters[(int)$this->config->item("da_search_weight")]['da']=$this->load->view("catalog_search/filter_da",NULL,TRUE); ?>
-    <?php endif;?>    
+    <?php endif;?>
     <!-- end da filter -->
 
 	<?php if ($this->center_search=='yes'):?>
         <!-- center filter-->
         <?php  $this->load->view("catalog_search/filter_centers"); ?>
-	<?php endif;?>    
-    
+	<?php endif;?>
+
     <?php if ($this->collection_search=='yes' && $active_repo==''):?>
         <?php  $fac_filters[(int)$this->config->item("collection_search_weight")]['collection']=$this->load->view("catalog_search/filter_collections",NULL,TRUE); ?>
 	<?php endif;?>
@@ -80,16 +83,16 @@ $fac_filters=array();
     <?php if($this->topic_search==='yes'):?>
 	    <?php  $fac_filters[(int)$this->config->item("topic_search_weight")]['topic']=$this->load->view("catalog_search/filter_topics",NULL,TRUE); ?>
     <?php endif;?>
-    
+
     <?php ksort($fac_filters);?>
     <?php foreach($fac_filters as $key=>$filter):?>
 		<?php if(is_array($filter)):?>
 			<?php echo implode("",$filter);?>
-        <?php else:?>        
+        <?php else:?>
     	<?php echo $filter;?>
         <?php endif;?>
-    <?php endforeach;?>    
-    
+    <?php endforeach;?>
+
 </div>
 </form>
 
@@ -97,5 +100,5 @@ $fac_filters=array();
 
 <script type="text/javascript">
 //min/max years
-var years = {'from': '<?php reset($years);echo current($years); ?>', 'to': '<?php echo end($years); ?>'}; 
+var years = {'from': '<?php reset($years);echo current($years); ?>', 'to': '<?php echo end($years); ?>'};
 </script>

@@ -26,3 +26,6 @@ application/config/email.php
 logs
 cache
 backup/*
+system.old
+patches
+.idea

@@ -230,14 +230,6 @@ class DDI_Import{
 			'data_coll_end'=>(integer)$data->data_coll_end,
 			'changed'=>date("U"),
 			'isdeleted'=>0,
-			'ie_program'=>substr(trim($data->program),0,254),
-			'ie_project_id'=>substr(trim($data->ie_project_id),0,254),
-			'ie_project_name'=>substr(trim($data->ie_project_name),0,254),
-			'ie_project_uri'=>substr(trim($data->ie_project_uri),0,254),
-			'ie_team_leaders'=>serialize($data->ie_team_leaders),
-			'project_id'=>substr(trim($data->project_id),0,254),
-			'project_name'=>substr(trim($data->project_name),0,254),
-			'project_uri'=>substr(trim($data->project_uri),0,254),
 			'published'=>0,
 			'formid'=>6
 		);
@@ -323,7 +315,7 @@ class DDI_Import{
 		}
 		
 		//check for errors
-		if ($this->ci->db->_error_message() )
+		if ($this->ci->db->error() )
 		{
 				$error='Study-import::Database Error: '.$this->ci->db->_error_message();
 				$this->errors[]=$error;

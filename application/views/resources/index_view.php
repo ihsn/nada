@@ -60,7 +60,7 @@
 ?>
 
 <div id="resources">
-	<div>Total records found: <?php echo $this->pagination->total_rows; ?></div>
+	<div>Total records found: <?php echo $this->pagination->get_total_rows(); ?></div>
 	
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr>
@@ -85,7 +85,7 @@
     <div class="pagination">
         <table width="100%" border="0" cellpadding="0" cellspacing="0">
         	<tr valign="top">
-            	<td><?php echo 'showing page '.$current_page.' of '.ceil($this->pagination->total_rows/$this->pagination->per_page); ?></td>
+            	<td><?php echo 'showing page '.$current_page.' of '.ceil($this->pagination->get_total_rows()/$this->pagination->per_page); ?></td>
                 <td align="right"><?php echo $page_nums;?></td>
             </tr>
         </table>

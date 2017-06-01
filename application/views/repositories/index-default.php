@@ -54,22 +54,22 @@ $repository_types=array(
 	if ($this->pagination->cur_page>0) {
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
 
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows()) 
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 
 		$pager=sprintf(t('showing %d-%d of %d')
 						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
 						,$to_page
-						,$this->pagination->total_rows);
+						,$this->pagination->get_total_rows());
 	}
 	else
 	{
 		$pager=sprintf(t('showing %d-%d of %d')
 				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
+				,$this->pagination->get_total_rows()
+				,$this->pagination->get_total_rows());
 	}
 ?>
 
@@ -85,7 +85,7 @@ $repository_types=array(
             </td>
         </tr>
     </table>
-    
+
     <!-- grid -->
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
@@ -134,7 +134,7 @@ $repository_types=array(
 jQuery(document).ready(function(){
 	//publish/unpublish
 	$(document.body).on("click",".repo-row .publish", function(){ 
-		if (!confirm("<?php echo t('confirm_collection_status_change');?>")){return false;}
+		//if (!confirm("<?php echo t('confirm_collection_status_change');?>")){return false;}
 		var id=$(this).attr("data-id");
 		if ($(this).attr("data-value")==0){
 			$(this).attr("data-value",1);

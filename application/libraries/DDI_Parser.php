@@ -104,7 +104,7 @@ class DDI_Parser{
 			}
 		}				
 		$reader->close();
-		
+
 		return $codebook_id;
 	}
 
@@ -220,7 +220,7 @@ class DDI_Parser{
 			}
 		}				
 		$reader->close();
-		
+
 		//basic DDI validation
 		if (!isset($output['ID']) || !isset($output['version']))
 		{

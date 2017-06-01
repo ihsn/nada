@@ -17,9 +17,9 @@
  * @link - http://codeigniter.com/forums/viewthread/69407/
  * @Author Beren - http://codeigniter.com/forums/member/58252/
  */
-define('DEBUG_BACKTRACE', FALSE); 
+define('DEBUG_BACKTRACE', true);
 class MY_Exceptions extends CI_Exceptions {
-  
+
   /**
    * Generates a pretty backtrace for display in the browser
    *
@@ -32,39 +32,39 @@ class MY_Exceptions extends CI_Exceptions {
   {
       // the first two results are this function and $this->show_error() call
       // so we'll ignore them
-      $backtrace = array_slice(debug_backtrace(), 2); 
-      
+      $backtrace = array_slice(debug_backtrace(), 2);
+
       $trace_output = array();
-      
+
       foreach($backtrace as $entry)
       {
         $html = '<li>';
-        
+
         if( isset($entry['file']))
         {
           $html .= 'Line #<strong>' . $entry['line'] . '</strong> of <strong>' . $entry['file'] . '</strong>';
         }
-        
+
         $html .= '<pre>';
-      
+
         if( isset($entry['class']))
         {
           $html .= $entry['class'].$entry['type'];
         }
-        
+
         if( isset($entry['function']))
         {
           $html .= $entry['function'] . '(';
-          
+
           if( isset($entry['args']))
           {
             if( isset($entry['args'][0]) AND is_array($entry['args'][0]))
             {
               $seperator = '';
-              
+
               foreach($entry['args'] as $argument)
               {
-			  	if(is_array($argument)) 
+			  	if(is_array($argument))
 				{
 					continue;
 				}
@@ -78,12 +78,12 @@ class MY_Exceptions extends CI_Exceptions {
               $html .= implode(', ', $entry['args']);  */
             }
           }
-          
+
           $html .= ')';
         }
-        
+
         $html .= '</li>';
-        
+
         $trace_output[] = $html;
       }
       echo '<h2 style="font-weight:normal">Backtrace</h2><ul>' . implode("\n", $trace_output) . '</ul>';
@@ -103,52 +103,42 @@ class MY_Exceptions extends CI_Exceptions {
      * @param    string    the template name
      * @return    string
      */
-    function show_error($heading, $message, $template = 'error_general', $status_code=500)
+    public function show_error($heading, $message, $template = 'error_general', $status_code = 500)
     {
-		set_status_header($status_code);
-		$is_ajax_request=FALSE;
-		
-		if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') 
-		{
-			$is_ajax_request=TRUE;
-		}
-		
-		if ($is_ajax_request)
-		{
-			$message = implode("\r", ( ! is_array($message)) ? array($message) : $message);
-		}
-		else
-		{
-			$message = '<p>'.implode('</p><p>', ( ! is_array($message)) ? array($message) : $message).'</p>';
-		}	
+      $templates_path = config_item('error_views_path');
+      if (empty($templates_path))
+      {
+        $templates_path = VIEWPATH.'errors'.DIRECTORY_SEPARATOR;
+      }
 
-		if (ob_get_level() > $this->ob_level + 1)
-		{
-			ob_end_flush();
-		}
-		
-		ob_start();
-		
-		//check ajax requests
-		if ($is_ajax_request)
-		{
-			echo $message;
-		}			
-		else
-		{					
-			include(APPPATH.'errors/'.$template.'.php');
-							
-			if (DEBUG_BACKTRACE)
+      if (is_cli())
+      {
+        $message = "\t".(is_array($message) ? implode("\n\t", $message) : $message);
+        $template = 'cli'.DIRECTORY_SEPARATOR.$template;
+      }
+      else
+      {
+        set_status_header($status_code);
+        $message = '<p>'.(is_array($message) ? implode('</p><p>', $message) : $message).'</p>';
+        $template = 'html'.DIRECTORY_SEPARATOR.$template;
+      }
+
+      if (ob_get_level() > $this->ob_level + 1)
+      {
+        ob_end_flush();
+      }
+      ob_start();
+      include($templates_path.$template.'.php');
+
+      if (DEBUG_BACKTRACE)
 			{
 			  echo $this->generate_backtrace();
 			}
-		}
-		
-        $buffer = ob_get_contents();
-        ob_end_clean();
-        return $buffer;
-    }
 
+      $buffer = ob_get_contents();
+      ob_end_clean();
+      return $buffer;
+    }
 
     /**
      * Native PHP error handler
@@ -160,34 +150,49 @@ class MY_Exceptions extends CI_Exceptions {
      * @param    string    the error line number
      * @return    string
      */
-    function show_php_error($severity, $message, $filepath, $line)
-    {    
-        $severity = ( ! isset($this->levels[$severity])) ? $severity : $this->levels[$severity];
+    public function show_php_error($severity, $message, $filepath, $line)
+  	{
+  		$templates_path = config_item('error_views_path');
+  		if (empty($templates_path))
+  		{
+  			$templates_path = VIEWPATH.'errors'.DIRECTORY_SEPARATOR;
+  		}
 
-        $filepath = str_replace("\\", "/", $filepath);
+  		$severity = isset($this->levels[$severity]) ? $this->levels[$severity] : $severity;
 
-        // For safety reasons we do not show the full file path
-        if (FALSE !== strpos($filepath, '/'))
-        {
-            $x = explode('/', $filepath);
-            $filepath = $x[count($x)-2].'/'.end($x);
-        }
+  		// For safety reasons we don't show the full file path in non-CLI requests
+  		if ( ! is_cli())
+  		{
+  			$filepath = str_replace('\\', '/', $filepath);
+  			if (FALSE !== strpos($filepath, '/'))
+  			{
+  				$x = explode('/', $filepath);
+  				$filepath = $x[count($x)-2].'/'.end($x);
+  			}
 
-        if (ob_get_level() > $this->ob_level + 1)
-        {
-            ob_end_flush();    
-        }
-        ob_start();
-        include(APPPATH.'errors/error_php'.EXT);
-        
-        if (DEBUG_BACKTRACE)
-        {
-          echo $this->generate_backtrace();
-        }
-        
-        $buffer = ob_get_contents();
-        ob_end_clean();
-        echo $buffer;
-    }
+  			$template = 'html'.DIRECTORY_SEPARATOR.'error_php';
+  		}
+  		else
+  		{
+  			$template = 'cli'.DIRECTORY_SEPARATOR.'error_php';
+  		}
 
-} 
+  		if (ob_get_level() > $this->ob_level + 1)
+  		{
+  			ob_end_flush();
+  		}
+  		ob_start();
+  		include($templates_path.$template.'.php');
+
+
+      if (DEBUG_BACKTRACE)
+      {
+        echo $this->generate_backtrace();
+      }
+
+  		$buffer = ob_get_contents();
+  		ob_end_clean();
+  		echo $buffer;
+  	}
+
+}

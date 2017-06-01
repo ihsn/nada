@@ -1073,15 +1073,22 @@ class Repository_model extends CI_Model {
 				
 		//get a list repo studies
 		$studies=$this->get_repo_owned_studies($repositoryid);
-	
+
+        //do nothing if no studies found in the collection
+        if (count($studies)==0)
+        {
+            return false;
+        }
+
 		$options=array(
-					'published'=>0
+            'published'=>0
 		);
 
 		$sql=sprintf('UPDATE surveys set published=%d where surveys.id in (%s)',intval($status),implode(",",$studies));
 		
-		$this->db->query($sql);	
+		return $this->db->query($sql);
 	}
+
 	
 	function get_repositoryid_by_uid($repo_id)
 	{

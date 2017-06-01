@@ -1,13 +1,10 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
- * Data Catalog Search Class for MYSQL FULLTEXT Database
+ * Data Catalog Search Class for Microsoft SQL Server
  * 
  * 
  *
- * @package		NADA 3
- * @subpackage	Libraries
  * @category	Data Catalog Search
- * @author		Mehmood Asghar
  *
  */ 
 class Catalog_search{
@@ -141,8 +138,6 @@ class Catalog_search{
 			}
 		}
 
-		//study fields returned by the select statement
-		$study_fields='surveys.id,refno,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,created,data_coll_start,data_coll_end';
 
 		//build final search sql query
 		$sql='';
@@ -154,6 +149,13 @@ class Catalog_search{
 			$query_count.='select count(surveys.id) as rowsfound from surveys ';
 			$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
 			$query_count.='left join forms f on f.formid=surveys.formid ';
+
+            //study keywords
+            $study_keywords=trim($this->study_keywords);
+
+            if ($study_keywords!=='') {
+                $query_count.='inner join freetexttable(surveys, (ft_keywords), '.  $this->ci->db->escape($study_keywords) . ') k on surveys.id=k.[key]';
+            }
 			
 			if ($repository!='')
 			{
@@ -168,12 +170,14 @@ class Catalog_search{
 			$query_count.=') as result';
 			
 			$query=$this->ci->db->query($query_count);
-		}		
+
+            //workaround for _build_study_query - ci AR queries can't be combined with the db->query. the line below discards the previously half-built AR queries
+            $discard=$this->ci->db->get_compiled_select($table = 'surveys', $reset = TRUE);
+        }
 		else 
 		{
 			//study search
 			$this->ci->db->select(" count(surveys.id) as rowsfound ",FALSE);
-			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 			if ($repository!='')
 			{
@@ -184,8 +188,8 @@ class Catalog_search{
 			{
 				$this->ci->db->where($where);
 			}
-		
-			$query=$this->ci->db->get();
+
+			$query=$this->ci->db->get("surveys");
 		}
 		
 		if ($query)
@@ -239,7 +243,10 @@ class Catalog_search{
 
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
-		
+
+        //show only publshed studies
+        $where_list[]='surveys.published=1';
+
 		//create combined where clause
 		$where='';
 		
@@ -256,7 +263,8 @@ class Catalog_search{
 				}
 			}
 		}
-		
+
+
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report,surveys.data_coll_start,surveys.data_coll_end';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
@@ -268,7 +276,7 @@ class Catalog_search{
 		
 		if ($variable!==FALSE)
 		{
-			//variable search			
+			//variable search
 			$this->ci->db->select($study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
@@ -302,7 +310,7 @@ class Catalog_search{
 			
 			$this->ci->db->limit($limit,$offset);
 			$query=$this->ci->db->get();
-		}		
+		}
 		else 
 		{
 			//study search
@@ -343,23 +351,13 @@ class Catalog_search{
 			//some error occured
 			return FALSE;
 		}
-		
+
 		//get total search result count		
 		$this->search_found_rows=$this->_search_count();
-		
-		//get total surveys in db
-		$this->ci->db->select('count(surveys.id) as rowsfound',FALSE);
-		$this->ci->db->where('published',1);
-		
-		if ($repository!='')
-		{			
-			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
-			$this->ci->db->where('survey_repos.repositoryid',(string)$this->repo);
-		}
+        $output=$this->ci->db->get_compiled_select($table = 'surveys', $reset = TRUE);
 
-		$query_total_surveys=$this->ci->db->get('surveys')->row_array();
-		//$query_total_surveys=$this->ci->db->query(sprintf('SELECT count(*) as rowsfound from %ssurveys', $this->ci->db->dbprefix))->row_array();
-		$this->total_surveys=$query_total_surveys['rowsfound'];
+		//get total surveys in db
+        $this->total_surveys=$this->get_total_surveys_count($repository);
 
 		//combine into one array
 		$result['rows']=$this->search_result;
@@ -370,6 +368,26 @@ class Catalog_search{
 		$result['citations']=$this->get_survey_citation();
 		return $result;
 	}
+
+
+    //get total published surveys in the catalog or repository
+    function get_total_surveys_count($repository=NULL)
+    {
+        $this->ci->db->flush_cache();
+        //get total surveys in db
+        $this->ci->db->select('count(surveys.id) as rowsfound',FALSE);
+        $this->ci->db->where('published',1);
+
+        if ($repository!='')
+        {
+            $this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+            $this->ci->db->where('survey_repos.repositoryid',(string)$this->repo);
+        }
+
+        $query_total_surveys=$this->ci->db->get('surveys')->row_array();
+        return $query_total_surveys['rowsfound'];
+    }
+
 	
 	/**
 	* Build study search
@@ -471,6 +489,29 @@ class Catalog_search{
 		return FALSE;
 	}
 	
+	//returns country IDs by country names
+	//todo:move to country model class
+	function get_country_id_by_name($country_names=array())
+	{
+		$this->ci->db->select("countryid");
+		$this->ci->db->where_in('name',$country_names);
+		$query= $this->ci->db->get('countries')->result_array();
+		
+		if (!$query)
+		{
+			return array();
+		}
+		
+		$output=NULL;
+		
+		foreach($query as $country)
+		{
+			$output[]=$country['countryid'];
+		}
+		
+		return $output;
+	}
+	
 
 	/**
 	*
@@ -486,11 +527,20 @@ class Catalog_search{
 		}
 		
 		$countries_list=array();
+		
+		//check if country[] param contains the country name instead of country id
+		if (isset($countries[0]) && !is_numeric($countries[0]))
+		{
+			//get country id by name
+			$countries=$this->get_country_id_by_name($countries);
+		}
 
 		foreach($countries  as $country)
 		{
-			//escape country names for db
-			$countries_list[]=$this->ci->db->escape($country);
+			if (is_numeric($country))
+			{
+				$countries_list[]=intval($country);
+			}	
 		}
 
 		if ( count($countries_list)>0)
@@ -702,7 +752,10 @@ class Catalog_search{
 		
 		//array of all options
 		$where_list=array($variable,$topics,$countries,$years,$dtype);
-		
+
+        //show only publshed studies
+        $where_list[]='published=1';
+
 		//create combined where clause
 		$where='';
 		
@@ -747,18 +800,25 @@ class Catalog_search{
 		if ($where!='')
 		{
 			$query_count.=' where '.$where;
-		}	
+		}
+
 		$query_found_rows=$this->ci->db->query($query_count)->row_array();
 
 		$found_rows=$query_found_rows['rowsfound'];
 
-		$tmp['total']=$this->ci->db->count_all('variables');
+		$tmp['total']=$this->get_total_variable_count();//$this->ci->db->count_all('variables');
 		$tmp['found']=$found_rows;
 		$tmp['limit']=$limit;
 		$tmp['offset']=$offset;
 		$tmp['rows']=$result;
 		return $tmp;		
 	}
+
+    function get_total_variable_count()
+    {
+        $result=$this->ci->db->query('select count(*) as total from variables where surveyid_FK in (select id from surveys where published=1)')->row_array();
+        return $result['total'];
+    }
 
 	//search for variables for a single survey
 	function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
