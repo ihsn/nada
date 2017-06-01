@@ -54,12 +54,12 @@ class DB_Logger{
 				$username=$user->email;
 			}
     	}
-	
+		
 		$log=array(
 				'url'		=> substr($this->current_page_url(),0,255),//current_url(),
 				'logtime'	=> date("U"),
 				'ip'		=> $this->ci->input->ip_address(),
-				'sessionid'	=> $this->ci->session->userdata('session_id'),
+				'sessionid'	=> session_id(),
 				'logtype'	=> $type,
 				'surveyid'	=> (int)$surveyid,
 				'keyword'	=> $message,

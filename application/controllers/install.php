@@ -158,8 +158,8 @@ class Install extends CI_Controller {
         $this->data['page_title'] = t("create_admin_account");		
               		
         //validate form input
-		$this->form_validation->set_rules('username', t('username'), 'xss_clean|max_length[20]|callback_username_exists');
-    	$this->form_validation->set_rules('email', t('email'), 'max_length[100]|required|valid_email|callback_email_exists');
+		$this->form_validation->set_rules('username', t('username'), 'xss_clean|max_length[20]');
+    	$this->form_validation->set_rules('email', t('email'), 'max_length[100]|required|valid_email');
     	$this->form_validation->set_rules('first_name', t('first_name'), 'max_length[20]|required|xss_clean');
     	$this->form_validation->set_rules('last_name', t('last_name'), 'max_length[20]|required|xss_clean');
     	$this->form_validation->set_rules('phone1', t('phone'), 'max_length[20]|xss_clean|trim');
