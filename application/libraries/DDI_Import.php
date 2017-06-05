@@ -1,7 +1,7 @@
 326<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * DDI-to-DB Import Class
- * 
+ *
  * Includes functions to add ddi data to database
  *
  *
@@ -14,27 +14,27 @@
  * @link		-
  *
  */
-class DDI_Import{    	
-	
-	//array of study and variables array 	
+class DDI_Import{
+
+	//array of study and variables array
 	var $ddi_array;
-	
+
 	//repository identifier for the imported survey
 	var $repository_identifier;
-		
+
 	var $ci;
-	
+
 	var $id;//survey database id
-	
+
 	var $errors=array();
-	
+
 	var $variables_imported=0; //no. of variables imported
-	
+
     //constructor
 	function DDI_Import()
 	{
 		$this->ci =& get_instance();
-		
+
 		//set to local repository by default
 		$this->repository_identifier=$this->ci->config->item('repository_identifier');
     }
@@ -46,13 +46,13 @@ class DDI_Import{
 	* @return boolean
 	*/
 	function import($data,$ddi_file_path,$overwrite=FALSE)
-	{	
+	{
 		if ( !is_array($data) )
 		{
 			$this->errors[]='DDI_Import:: No data was provided for import';
 			return false;
 		}
-		
+
 		$this->ddi_array=$data;
 
         $codebook_id=$this->ddi_array['study']['id'];
@@ -62,24 +62,24 @@ class DDI_Import{
 
 		//check if the survey already exists
 		if ($overwrite!==TRUE)
-		{			
+		{
 			if($id!==FALSE)
 			{
 				$this->errors[]=t('study_already_exists');
 				return FALSE;
 			}
 		}
-		
+
 		//import study description
 		$result=$this->import_study();
-					
+
 		if (!$result)
 		{
 			$this->errors[]=t('database_error_');
 			return FALSE;
 		}
 		else
-		{	
+		{
 			//copy survey file to the repository
 			$survey_ddi_path=$this->_copy_survey_file(
 									$ddi_file_path,
@@ -91,21 +91,21 @@ class DDI_Import{
 				//$this->ci->db->trans_rollback();
 				return false;
 			}
-			
+
 			//get survey folder path
 			$survey_folder=$this->_get_survey_folder($this->ddi_array['study']['id'],$this->repository_identifier);
-			
+
 			//update survey path in database
 			$this->update_survey_pathinfo($survey_folder);
 
-			//import variables		
+			//import variables
 			if (!$this->import_variables())
 			{
 				return FALSE;
 			}
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 
@@ -121,38 +121,38 @@ class DDI_Import{
 	* @return boolean
 	*/
 	function replace($data,$ddi_file_path,$target_survey_id)
-	{	
+	{
 		if ( !is_array($data) )
 		{
 			$this->errors[]='DDI_Import:: No data was provided for replace';
 			log_message('ERROR', 'DDI_Import:: No data was provided for replace');
 			return false;
 		}
-		
+
 		$this->ddi_array=$data;
-		
+
 		//check if the survey already exists
 		$id=$this->survey_exists($surveyid=$this->ddi_array['study']['id']);
-		
+
 		// check if survey already exists in the catalog and ID is not same as the target
-		// replace will not replace if duplicate survey exists	
+		// replace will not replace if duplicate survey exists
 		if ($id!==FALSE && $id!==$target_survey_id)
 		{
 			$this->errors[]=t('replace_ddi_failed_duplicate_study_found');
-			$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');			
+			$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');
 			return FALSE;
 		}
 
 		//change old study info with new info
 		$options=array(
 			'surveyid'=>$this->ddi_array['study']['id']
-		);						
+		);
 		$this->ci->db->where("id",$target_survey_id);
 		$this->ci->db->update("surveys",$options);
-		
+
 		//$this->ci->db_logger->write_log('ddi-replace',"survey exists - ".$id,'catalog');
 		log_message('INFO', 'DDI_Import: updated study file to new file');
-		
+
 		//import will replace the DDI with new metadata
 		return $this->import($data,$ddi_file_path,$overwrite=TRUE);
 	}
@@ -165,13 +165,13 @@ class DDI_Import{
 	*
 	**/
 	function import_study()
-	{		
+	{
 		$data=$this->ddi_array['study'];
 		$data=(object)$data;
-		
+
 		//clean up authenty
 		$authenty_arr=explode("{BR}",substr($data->authenty,0,200));
-				
+
 		foreach($authenty_arr as $key=>$pi)
 		{
 			if	($pi=='')
@@ -179,10 +179,10 @@ class DDI_Import{
 				unset($authenty_arr[$key]);
 			}
 		}
-		
+
 		//countries array
 		$nation_arr=explode("{BR}",$data->nation);
-		
+
 		foreach($nation_arr as $key=>$value)
 		{
 			if	(trim($value)=='')
@@ -206,11 +206,11 @@ class DDI_Import{
 
         //convert to string
         $keywords=implode(" ", $keywords);
-		
+
 		//insert study description
 		$row = array(
 			'repositoryid'=>$this->repository_identifier,
-			'surveyid'=>substr($data->id,0,200), 
+			'surveyid'=>substr($data->id,0,200),
 			'titl'=>substr($data->titl,0,254),
 			'abbreviation'=>substr(trim($data->abbreviation),0,45),
 			'kindofdata'=>substr(trim($data->kindofdata),0,254),
@@ -233,27 +233,27 @@ class DDI_Import{
 			'published'=>0,
 			'formid'=>6
 		);
-		
-		
+
+
 		//TODO: substr to be replaced with mb_substr and related functions
 		//mb_convert_encoding replaces the invalid/broken mb characters to ?
-		
+
 		//if mb_string extension is installed
 		if (extension_loaded('mbstring'))
-		{		
+		{
 			mb_internal_encoding("UTF-8");
 			mb_substitute_character(0xFFFD);//set to ?
-	
+
 			foreach($row as $key=>$value)
 			{
 				$value=mb_convert_encoding($value, 'UTF-8', 'UTF-8');
 				$row[$key]=$value;
 			}
 		}
-	
+
 
 		//production date, use the max date
-		// todo:fix this is a workaround, catalog search MUST use the data_coll_start or end 
+		// todo:fix this is a workaround, catalog search MUST use the data_coll_start or end
 		// dates for sorting and searching instead of using proddate
 		if ($row['data_coll_end']>=$row['data_coll_start'])
 		{
@@ -262,18 +262,18 @@ class DDI_Import{
 		else
 		{
 			$row['proddate']=$row['data_coll_start'];
-		}	
-	
+		}
+
 		//check if survey already exists
 		$id=$this->survey_exists($surveyid=$data->id);
-		
+
 		$survey_aliases=array();
-		
+
 		if ($id)
 		{
 			//get survey aliases
 			$survey_aliases=$this->get_survey_alaises($id);
-			
+
 			//find the owner repositoryid
 			$owner_repository=$this->get_study_owner_repository($id);
 
@@ -282,20 +282,18 @@ class DDI_Import{
 				$this->repository_identifier=$owner_repository;
 			}
 		}
-		
+
 		//new survey
 		if(!$id)
 		{
 			$row['created']=date("U");
 			$insert_result=$this->ci->db->insert('surveys', $row);
 
-			if ($insert_result)
-			{
+			if ($insert_result){
 				//get the ID for newly added survey
-				$id=$this->survey_exists($data->id);				
-			}	
-			else
-			{
+				$id=$this->survey_exists($data->id);
+			}
+			else{
 				$this->errors[]='DB_ERROR: '.$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
 				log_message('ERROR', 'DDI_Import-DB_ERROR:: '.$this->ci->db->last_query());
 				return FALSE;
@@ -304,95 +302,96 @@ class DDI_Import{
 		else //existing survey
 		{
 			$where=sprintf('id=%d',$id);
-			
+
 			//unset fields
 			unset($row['published']);
 			unset($row['formid']);
 			unset($row['changed']);
-			
-			$sql= $this->ci->db->update_string('surveys', $row,$where);			
-			$this->ci->db->query($sql);
+
+			$sql= $this->ci->db->update_string('surveys', $row,$where);
+			$update_result=$this->ci->db->query($sql);
+
+			echo "--------";
+			var_dump($update_result);
+			echo "--------";
 		}
-		
+
 		//check for errors
+		/*
 		if ($this->ci->db->error() )
 		{
+				var_dump($this->ci->db->last_query());
+				var_dump($this->ci->db->error());die();
 				$db_error=$this->ci->db->error();
 				$error='Study-import::Database Error: '.$db_error['message'];
 				$this->errors[]=$error;
-				$error.="\r\n".$this->ci->db->last_query();				
-						
-				//add to error log file	
+				$error.="\r\n".$this->ci->db->last_query();
+
+				//add to error log file
 				log_message('error', $error);
-				return FALSE;			
-		}
-		
+				return FALSE;
+		}*/
+
 		//update survey repository info
 		$this->update_survey_repos($id,$this->repository_identifier);
 
 		//update survey aliases
 		$this->update_survey_aliases($id, $survey_aliases);
-		
+
 		//update data collection dates
 		$this->update_data_collection_dates($id, $row);
-		
+
 		//update survey countries
 		$this->update_survey_countries($id,$nation_arr);
-		
-		//update survey centers
-		if (isset($data->center) && trim($data->center)!="")
-		{
-			$this->update_orig_arch($id,$data->center);
-		}
-		
+
 		//remove old topic mappings
 		$this->ci->db->delete('survey_topics',array('sid' => $id));
 
 		//import topics
 		if ($data->topics)
-		{	
+		{
 			//topics array structure is different for single and multiple topics
 			if (isset($data->topics['topic']) && isset($data->topics['topic']['name']))
 			{
 						$topic_title=trim($data->topics['topic']['name']);
-						
+
 						//get topic id
 						$topic_id=$this->get_topic_by_title($topic_title);
-						
+
 						//add topic to db
 						if ($topic_id!==FALSE)
-						{				
+						{
 							$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
 							$this->ci->db->insert('survey_topics', $topic_row);
-						}	
+						}
 			}
 			else //multiple topics
 			{
 					foreach($data->topics['topic'] as $topic)
 					{
 						$topic_title=trim($topic['name']);
-						
+
 						//get topic id
 						$topic_id=$this->get_topic_by_title($topic_title);
-						
+
 						//add topic to db
 						if ($topic_id!==FALSE)
-						{				
+						{
 							$topic_row=array('sid'=>$id, 'tid'=>$topic_id);
 							$this->ci->db->insert('survey_topics', $topic_row);
-						}	
-						
+						}
+
 					}//end-foreach
-				}//end-else			
+				}//end-else
 		}
-		
+
 		$this->id=$id;
-		
+
 		//success, return the survey row id
 		return $id;
 	}
-	
-	
+
+
 	/**
 	*
 	* Update survey aliases info
@@ -401,35 +400,35 @@ class DDI_Import{
 	{
 		//get survey row
 		$survey_row=$this->get_survey($id);
-		
+
 		if (!$survey_row)
 		{
 			return;
 		}
-		
+
 		$survey_id=$survey_row['surveyid'];
-		
+
 		$new_aliases=array();
-		
+
 		foreach($survey_aliases as $alias)
 		{
 			//don't include the surveyid from survey
-			if (trim($alias)!==trim($survey_id))			
+			if (trim($alias)!==trim($survey_id))
 			{
 				$new_aliases[$alias]=$alias;
-			}	
+			}
 		}
-		
+
 		//remove existing aliases
 		$this->ci->db->where('sid',$id);
 		$this->ci->db->delete('survey_aliases');
-		
+
 		//survey has no aliases
 		if (count($new_aliases)==0)
 		{
 			return FALSE;
 		}
-		
+
 		//add aliases
 		foreach($new_aliases as $alias)
 		{
@@ -437,11 +436,11 @@ class DDI_Import{
 						'sid'=>$id,
 						'alternate_id'=>$alias
 						);
-						
+
 			$this->ci->db->insert('survey_aliases',$options);
-		}		
+		}
 	}
-	
+
 
 
 	/**
@@ -459,12 +458,12 @@ class DDI_Import{
 		{
 			//get country ISO code
 			$countryid=$this->get_country_id($country);
-			
+
 			//add to survey_countries
 			$this->add_survey_country($surveyid, $country, $countryid);
-		}		
+		}
 	}
-	
+
 	/**
 	*
 	* Add a single country to survey
@@ -478,8 +477,8 @@ class DDI_Import{
 				);
 		$this->ci->db->insert('survey_countries',$options);
 	}
-	
-	
+
+
 	/**
 	*
 	* Return country id by country name
@@ -489,16 +488,16 @@ class DDI_Import{
 		$this->ci->db->select('countryid');
 		$this->ci->db->where('name',trim($country_name));
 		$country=$this->ci->db->get('countries')->row_array();
-		
+
 		if (!$country)
 		{
 			return FALSE;
 		}
-		
+
 		return $country['countryid'];
 	}
-		
-	
+
+
 	/**
 	*
 	* Update/add survey_repos info
@@ -510,36 +509,36 @@ class DDI_Import{
 				'repositoryid'=>$repositoryid,
 				'isadmin'=>1 //give admin rights to the repo that uploaded the survey
 			);
-		
+
 		//delete any existing entry for the study
 		$this->ci->db->where('sid',$surveyid);
-		$this->ci->db->where('repositoryid',$repositoryid);		
+		$this->ci->db->where('repositoryid',$repositoryid);
 		$this->ci->db->delete('survey_repos');
-		
+
 		//add new info
 		$this->ci->db->insert('survey_repos',$data);
 		return TRUE;
 	}
-		
-		
-		
+
+
+
 	function update_collections($surveyid,$coll_str)
 	{
 		$this->ci->load->model('vocabulary_model','vocabularies');
 		$this->ci->load->model('term_model','terms');
-		
+
 		//collection array
 		$coll_arr=explode("{BR}",$coll_str);
-		
+
 		//get COLLECTIONS vocabulary
 		$vocab=$this->ci->vocabularies->get_vocabulary_by_title('DDI Collection');
-		
-		$vocabid=FALSE;		
+
+		$vocabid=FALSE;
 		if (!$vocab)
 		{
 			//create vocabulary
 			$vocabid=$this->ci->vocabularies->insert('DDI Collection');
-			
+
 			if (!$vocabid)
 			{
 				$this->errors[]='Failed to create vocabulary for Collections';
@@ -550,10 +549,10 @@ class DDI_Import{
 		{
 			$vocabid=$vocab['vid'];
 		}
-		
+
 		//delete existing collections from survey
 		$this->ci->db->query('delete from survey_collections where sid='.(int)$surveyid);
-				
+
 		//add collections to survey
 		foreach($coll_arr as $collection)
 		{
@@ -578,14 +577,14 @@ class DDI_Import{
 			{
 				$collection_id=$term_arr[0]['tid'];
 			}
-			
+
 			//link to survey
 			$this->update_single_collection($surveyid,$collection_id);
 //			echo $this->ci->db->last_query();exit;
 		}
-		
+
 		return TRUE;
-	
+
 	}
 
 	/**
@@ -605,30 +604,30 @@ class DDI_Import{
 	/**
 	*
 	* Build a range of data collection years range
-	* 
+	*
 	* It uses the start and end as range and add each year as a new row
-	* in the database. 
-	* 
+	* in the database.
+	*
 	* e.g. for range 2005-2010, there will be 6 rows in the survey_rows
 	*/
 	function update_data_collection_dates($surveyid, $row)
 	{
 		//remove existing dates if any
 		$this->ci->db->delete('survey_years',array('sid' => $surveyid));
-		
+
 		$start=(integer)$row['data_coll_start'];
 		$end=(integer)$row['data_coll_end'];
-		
+
 		if ($start==0)
 		{
 			$start=$end;
 		}
-		
+
 		if($end==0)
 		{
 			$start=$end;
 		}
-		
+
 		//build an array of years range
 		$years=range($start,$end);
 
@@ -638,9 +637,9 @@ class DDI_Import{
 			$options=array(
 						'sid' => $surveyid,
 						'data_coll_year' => $year);
-			//insert			
+			//insert
 			$result=$this->ci->db->insert('survey_years',$options);
-			
+
 			if(!$result)
 			{
 				$this->errors[]=$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
@@ -648,19 +647,19 @@ class DDI_Import{
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	*
 	* add/update center info using the element (origArch)
 	*
-	* Note: Expects element to be a comma separated list 
+	* Note: Expects element to be a comma separated list
 	*/
 	function update_orig_arch($surveyid, $el)
 	{
 		//remove existing dates if any
 		$this->ci->db->delete('survey_centers',array('sid' => $surveyid));
-		
+
 		//split centers
 		$centers=explode(",",$el);
 
@@ -670,9 +669,9 @@ class DDI_Import{
 			$options=array(
 						'sid' => $surveyid,
 						'center_name' => trim($center));
-			//insert			
+			//insert
 			$result=$this->ci->db->insert('survey_centers',$options);
-			
+
 			if(!$result)
 			{
 				$this->errors[]=$this->ci->db->_error_message().'<BR />'.$this->ci->db->last_query();
@@ -692,23 +691,23 @@ class DDI_Import{
 	{
 		$survey_id=substr($this->ddi_array['study']['id'],0,200);
 		$id=$this->survey_exists($survey_id,$this->repository_identifier);
-		
+
 		if($id===false)
 		{
-			$error='import_variables::failed to find the survey.';			
-			$this->errors[]=$error;			
+			$error='import_variables::failed to find the survey.';
+			$this->errors[]=$error;
 			log_message('error', $error);
-			
+
 			return false;
 		}
-		
+
 		$data=$this->ddi_array['variables'];
-		
+
 		//delete existing variables for the survey
-		$this->ci->db->delete('variables', array('surveyid_FK' => $id)); 
-		
+		$this->ci->db->delete('variables', array('surveyid_FK' => $id));
+
 		$this->variables_imported=0;
-		
+
 		foreach($data as $v)
 		{
 			$row = array(
@@ -719,68 +718,68 @@ class DDI_Import{
 			   'catgry' => trim($v[4]),
 			   'surveyid_FK' => $id
 			);
-		
+
 			$result=$this->ci->db->insert('variables', $row);
-			
+
 			//insert failed
 			if (!$result)
 			{
 				$error='import_variables: '.$this->ci->db->_error_message();
-				$error.="\r\n".$this->ci->db->last_query();				
+				$error.="\r\n".$this->ci->db->last_query();
 				$this->errors[]=$error;
 				log_message('error', $error);
 				return FALSE;
 			}
-			
-			$this->variables_imported++;			
+
+			$this->variables_imported++;
 		}
-		
+
 		//update varcount field
 		$row=array('varcount'=>$this->variables_imported);
 		$where=sprintf('id=%d',$id);
-		$sql= $this->ci->db->update_string('surveys', $row,$where);			
+		$sql= $this->ci->db->update_string('surveys', $row,$where);
 		$this->ci->db->query($sql);
-		
+
 		return TRUE;
 	}
-	
-	
+
+
 	/**
 	* Update database with survey folder path
 	*
 	*/
 	function update_survey_pathinfo($survey_path=NULL)
-	{		
+	{
 		$surveyid=$this->ddi_array['study']['id'];
 		$id=$this->survey_exists($surveyid,	$this->repository_identifier);
-		
+
 		$row = array(
 				'ddifilename'=>"$surveyid.xml",
 				'dirpath'=>$this->repository_identifier.'/'.md5($this->repository_identifier.':'.$surveyid)
 				);
-		
+
 		if ($id)
 		{
 			unset($row['dirpath']);//don't update path if survey exists in db
 		}
-		
+
 		if ($survey_path!==NULL && trim($survey_path)!=='')
 		{
 			$row['dirpath']=$survey_path;
 		}
-		
+
 		$where=sprintf('id=%d',$id);
 		$sql= $this->ci->db->update_string('surveys', $row,$where);
 		$this->ci->db->query($sql);
 	}
-	
+
 	/**
 	* copy DDI file to the catalog folder
 	*
 	*/
 	function _copy_survey_file($ddi_source_path,$surveyid,$repositoryid)
 	{
-		$survey_folder=$this->_get_survey_folder($surveyid,$repositoryid);	
+		$survey_folder=$this->_get_survey_folder($surveyid,$repositoryid);
 		$catalog_root=$this->ci->config->item('catalog_root');
 
 		//check if folder exists
@@ -791,9 +790,9 @@ class DDI_Import{
 				log_message('error', $error);
 				return FALSE;
 		}
-		
+
 		$survey_folder=$catalog_root.'/'.$survey_folder;
-		
+
 		if ($survey_folder!==false)
 		{
 			$survey_file_path=unix_path($survey_folder."/$surveyid.xml");
@@ -803,9 +802,9 @@ class DDI_Import{
 			{
 				return $survey_file_path;
 			}
-			
-			//copy the ddi file 			
-			if (!@copy($ddi_source_path,$survey_file_path) ) 
+
+			//copy the ddi file
+			if (!@copy($ddi_source_path,$survey_file_path) )
 			{
 				$this->errors[]= "File was not copied source:$ddi_source_path, target:$survey_file_path";
 				return false;
@@ -817,14 +816,14 @@ class DDI_Import{
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
-	* Returns the survey folder path, 
+	* Returns the survey folder path,
 	* if the survey folder does not exists, it will create it.
 	*
-	* @return	string	path to the survey folder 
-	*/	
+	* @return	string	path to the survey folder
+	*/
 	function _get_survey_folder($surveyid,$repositoryid)
 	{
 		//datafiles foldee
@@ -838,10 +837,10 @@ class DDI_Import{
 				log_message('error', $error);
 				return FALSE;
 		}
-		
+
 		//check if survey folder is already set in db
 		$survey_row=$this->get_survey_by_surveyid($surveyid);
-		
+
 		if (count($survey_row)>0)
 		{
 			if ($survey_row["dirpath"]!==NULL && $survey_row["dirpath"]!="")
@@ -849,19 +848,19 @@ class DDI_Import{
 				//$path=$catalog_root.'/'.$survey_row['dirpath'];
 				return $survey_row['dirpath'];
 				//return $path;
-			}	
+			}
 		}
-		
+
 		//repository folder path
 		$repository_folder=$catalog_root."/$repositoryid";
-				
+
 		//survey folder path
 		$survey_folder=$repository_folder.'/'.md5("$repositoryid:$surveyid");
-		
+
 		//check repository folder
 		if (!file_exists($repository_folder) )
 		{
-			if ( !@mkdir($repository_folder) ) 
+			if ( !@mkdir($repository_folder) )
 			{//create folder
 				$error= "Failed to create new folder for the repository ". " " . $repository_folder;
 				$this->errors[]=$error;
@@ -869,11 +868,11 @@ class DDI_Import{
 				return false;
 			}
 		}
-		
+
 		//check survey folder
 		if (!file_exists($survey_folder) )
 		{
-			if ( !mkdir($survey_folder) ) 
+			if ( !mkdir($survey_folder) )
 			{//create folder
 				$error= "Failed to create new folder for the survey ". " " . $survey_folder;
 				$this->errors[]=$error;
@@ -881,11 +880,11 @@ class DDI_Import{
 				return false;
 			}
 		}
-		
+
 		//return relative survey path
 		return $repositoryid.'/'.md5("$repositoryid:$surveyid");
-	}	
-	
+	}
+
 	/**
 	*
 	* check if the survey already exists?
@@ -904,18 +903,18 @@ class DDI_Import{
 				return $row->id;
 		   }
 		}
-		
+
 		//check if survey has an alias
 		$survey_alias=$this->survey_alias_exists($surveyid);
-		
+
 		if($survey_alias)
 		{
 			return $survey_alias;
 		}
-				
-		return false;		
+
+		return false;
 	}
-	
+
 	function survey_alias_exists($surveyid)
 	{
 		$this->ci->db->select('sid');
@@ -926,26 +925,26 @@ class DDI_Import{
 		{
 			return FALSE;
 		}
-		
-		return $query[0]['sid'];		
+
+		return $query[0]['sid'];
 	}
-	
-	
+
+
 	/**
 	*
 	* Return survey aliases + surveyid by internal id
-	* 
+	*
 	* note: duplicated from catalog_model
 	**/
 	function get_survey_alaises($sid)
-	{		
+	{
 		//from aliases table
 		$this->ci->db->select('alternate_id');
 		$this->ci->db->where(array('sid' => $sid) );
 		$query=$this->ci->db->get('survey_aliases')->result_array();
 
 		$aliases=array();
-		
+
 		if ($query)
 		{
 			foreach($query as $row)
@@ -953,42 +952,42 @@ class DDI_Import{
 				$aliases[]=$row['alternate_id'];
 			}
 		}
-		
+
 		//from survey table
 		$this->ci->db->select('surveyid');
 		$this->ci->db->where(array('id' => $sid) );
 		$query=$this->ci->db->get('surveys')->row_array();
-		
+
 		if ($query)
 		{
 			$aliases[]=$query['surveyid'];
 		}
-		
+
 		return $aliases;
 	}
-	
+
 	/**
 	*
 	* Return survey info by survey id
-	**/	
+	**/
 	function get_survey($id)
 	{
 		$this->ci->db->select('id,surveyid');
 		$this->ci->db->where("id",$id);
-		return $this->ci->db->get('surveys')->row_array();		
+		return $this->ci->db->get('surveys')->row_array();
 	}
-	
+
 	/**
 	*
 	* Return survey info by surveyid
-	**/	
+	**/
 	function get_survey_by_surveyid($surveyid)
 	{
 		$this->ci->db->select('id,surveyid,dirpath');
 		$this->ci->db->where("surveyid",$surveyid);
-		return $this->ci->db->get('surveys')->row_array();		
+		return $this->ci->db->get('surveys')->row_array();
 	}
-	
+
 	/**
 	* Returns Topic ID by topic name
 	*
@@ -1009,8 +1008,8 @@ class DDI_Import{
 		}
 		return FALSE;
 	}
-	
-	
+
+
 	/**
 	*
 	* Returns the owner repository for the study
@@ -1026,10 +1025,10 @@ class DDI_Import{
 		{
 			return $query['repositoryid'];
 		}
-		return FALSE;	
+		return FALSE;
 	}
-	
-	
+
+
 }// END DDI Import Class
 
 /* End of file DDI_Import.php */

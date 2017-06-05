@@ -85,7 +85,7 @@ class Translate extends MY_Controller {
 		
 		$data['language']=$language;
 		$data['template_file']=$this->translator->load($this->base_lang.'/'.$translation_file);
-		$data['fill_missing']=true;
+		$data['fill_missing']=false;
 		$data['language_file']=$translation_file;
 		
 		$post_data=array();
