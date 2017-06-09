@@ -53,12 +53,12 @@ class Catalog_search{
         $driver = $ci->db->dbdriver;
 
         //default/base search class
-        require_once dirname(__FILE__) . '/catalog_search_mysql.php';
+        require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
 
         switch ($driver) {
             case 'sqlsrv';
                 //extended sqlsrv class
-                require_once dirname(__FILE__) . '/catalog_search_sqlsrv.php';
+                require_once dirname(__FILE__) . '/Catalog_search_sqlsrv.php';
                 $this->search_obj= new catalog_search_sqlsrv($params);
                 break;
             case 'mysql';
