@@ -618,7 +618,7 @@ class Auth extends MY_Controller {
 
 		if ($user_data)
 		{
-			$this->form_validation->set_message('email_exists', t('callback_email_exists'));
+			$this->form_validation->set_message('_email_exists', t('callback_email_exists'));
 			return FALSE;
 		}
 		return TRUE;
