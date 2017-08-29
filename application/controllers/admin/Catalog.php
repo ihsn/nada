@@ -1182,7 +1182,6 @@ class Catalog extends MY_Controller {
 			}
 		}
 
-
 		//set file for parsing
 		$this->ddi_parser->ddi_file=$ddi_file;
 
@@ -2013,8 +2012,8 @@ class Catalog extends MY_Controller {
 			//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
 			$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
 			$this->load->model('Citation_model');
-			$this->load->model('Catalog_Notes_model');
-			$this->load->model('Catalog_Tags_model');
+			$this->load->model('Catalog_notes_model');
+			$this->load->model('Catalog_tags_model');
 			$this->load->model('Survey_alias_model');
 			$this->load->library('catalog_admin');
 			//$this->load->library('ion_auth');
@@ -2066,10 +2065,10 @@ class Catalog extends MY_Controller {
 			$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 
 			//get all study notes
-			$survey_row['study_notes']=$this->Catalog_Notes_model->get_notes_by_study($id);
+			$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);
 
 			//survey tags
-			$tags['tags'] = $this->Catalog_Tags_model->survey_tags($id);
+			$tags['tags'] = $this->Catalog_tags_model->survey_tags($id);
 
 			//all tags
 			$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
