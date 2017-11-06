@@ -15,16 +15,16 @@ if ($variables): ?>
         <?php 
 			$compare='';	
 			//compare items selected
-			if (in_array($surveyid.'/'.$row['varID'],$compare_items) )
+			if (in_array($surveyid.'/'.$row['vid'],$compare_items) )
 			{  
 				$compare=' checked="checked" ';
 			}
 		?>        
-    	<tr  class="vrow <?php echo $tr_class; ?>" data-url="<?php echo site_url('catalog/'.$surveyid.'/variable/'.$row['varID']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>">
+    	<tr  class="vrow <?php echo $tr_class; ?>" data-url="<?php echo site_url('catalog/'.$surveyid.'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>">
 	        <td style="color:gray;" title="<?php echo t('mark_for_variable_comparison');?>">
-            		<input type="checkbox" class="compare" value="<?php echo $surveyid.'/'.$row['varID'] ?>" <?php echo $compare; ?>/>
+            		<input type="checkbox" class="compare" value="<?php echo $surveyid.'/'.$row['vid'] ?>" <?php echo $compare; ?>/>
             </td>
-            <td><?php echo anchor('catalog/'.$surveyid.'/variable/'.$row['varID'],$row['name'],array('target'=>'blank_','title'=>$row['labl'],'class'=>'link'));?></td>
+            <td><?php echo anchor('catalog/'.$surveyid.'/variable/'.$row['vid'],$row['name'],array('target'=>'blank_','title'=>$row['labl'],'class'=>'link'));?></td>
             <td><?php echo $row['labl']?></td>
         </tr>
     <?php endforeach;?>

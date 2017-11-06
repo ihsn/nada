@@ -25,7 +25,7 @@ License:
 
 	<xsl:param name="survey.base" select="'s'"/>	
 	<xsl:param name="outline.base" select="'y'"/>
-	<xsl:param name="search_varID" select="'V37'"/>
+	<xsl:param name="search_vid" select="'V37'"/>
 	
 	
 <xsl:template match="/"><style>
@@ -35,9 +35,9 @@ License:
 </style>
 
 <div style="font-family:arial;font-size:12px;">
-	<!--	<div style="text-align:right;margin-bottom:10px;"> <a style="text-decoration:none;" href="variable.php?id=362&section=variable&varid=V50" onclick="javascript:window.print();return false;"><img border="0" alt="" src="../images/print.gif"/> Print</a> 
+	<!--	<div style="text-align:right;margin-bottom:10px;"> <a style="text-decoration:none;" href="variable.php?id=362&section=variable&vid=V50" onclick="javascript:window.print();return false;"><img border="0" alt="" src="../images/print.gif"/> Print</a> 
 <a style="margin-left:5px;text-decoration:none" href="#" onclick="close_var_window();return false;"><img src="../images/close.gif" border="0"/>Close</a></div>-->
-	<xsl:apply-templates select="/ddi:codeBook/ddi:dataDscr/ddi:var[@ID=$search_varID]"/>
+	<xsl:apply-templates select="/ddi:codeBook/ddi:dataDscr/ddi:var[@ID=$search_vid]"/>
 </div>
 </xsl:template>	
 	

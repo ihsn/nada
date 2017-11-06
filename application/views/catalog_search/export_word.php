@@ -63,7 +63,7 @@
             <td><?php echo $row['name'];?></td>
             <td><?php echo ($row['labl']!=='') ? utf8_decode($row['labl']) : $row['name']; ?></td>
             <td><?php echo utf8_decode($row['nation']). ' - '.utf8_decode($row['titl']); ?></td>
-            <td><a href="<?php echo site_url().'/ddibrowser/'.$row['surveyid_FK'].'/variable/'.$row['varID'];?>"><?php echo site_url().'/ddibrowser/'.$row['surveyid_FK'].'/variable/'.$row['varID'];?></a></td>
+            <td><a href="<?php echo site_url().'/ddibrowser/'.$row['sid'].'/variable/'.$row['vid'];?>"><?php echo site_url().'/ddibrowser/'.$row['sid'].'/variable/'.$row['vid'];?></a></td>
         </tr>
     <?php endforeach;?>
 	</table>

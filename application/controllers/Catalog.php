@@ -421,7 +421,7 @@ class Catalog extends MY_Controller {
 				$tmp=explode('/',$value);
 				if (isset($tmp[1]))
 				{
-					$list[]=array('surveyid'=>$tmp[0], 'varid'=>$tmp[1]);
+					$list[]=array('surveyid'=>$tmp[0], 'vid'=>$tmp[1]);
 				}
 			}
 		}
@@ -816,7 +816,7 @@ class Catalog extends MY_Controller {
 					if ($output['search_type']=='variable')
 					{
 						$rows=$output['rows'];
-						$cols=explode(",",'uid,name,labl,varID,titl,nation');
+						$cols=explode(",",'uid,name,labl,vid,titl,nation');
 					}
 					else
 					{

@@ -107,13 +107,13 @@ function eraseCookie(name) {
 		<?php foreach($list as $item):?>
     		<td>
 				<?php $survey_title=$this->compare_variable->get_survey_title($item['surveyid']);?>
-                <?php $variable_name=$this->compare_variable->get_variable_name($item['surveyid'],$item['varid']);?>
+                <?php $variable_name=$this->compare_variable->get_variable_name($item['surveyid'],$item['vid']);?>
                 <?php if ($survey_title!==FALSE && $variable_name!==FALSE):?>
             	<div class="compare-box" >
 	            	<div class="compare-box-title" title="<?php echo t('click_drag_move');?>">
 						<div class="var-name" ><?php echo $variable_name;?></div>
                         <div class="var-links" >
-							<?php echo anchor('catalog/compare/#remove='.$item['surveyid'].'/'.$item['varid'],t('remove'),array('class'=>'remove','title'=>t('remove'),'id'=>$item['surveyid'].'/'.$item['varid']));?>
+							<?php echo anchor('catalog/compare/#remove='.$item['surveyid'].'/'.$item['vid'],t('remove'),array('class'=>'remove','title'=>t('remove'),'id'=>$item['surveyid'].'/'.$item['vid']));?>
                         </div>
                         <br style="clear:both"/>
                      </div>
@@ -122,7 +122,7 @@ function eraseCookie(name) {
 								<?php echo anchor("ddibrowser/".$item['surveyid'],$this->compare_variable->get_survey_title($item['surveyid']),array('target'=>'_blank'));?>
                             </div>
                             <div class="variable-content">
-							<?php echo $this->compare_variable->get_variable_html($item['surveyid'], $item['varid']);?>
+							<?php echo $this->compare_variable->get_variable_html($item['surveyid'], $item['vid']);?>
                             </div>
                     </div>
 				</div>

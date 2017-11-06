@@ -99,7 +99,7 @@ class Stats_model extends CI_Model {
 	function get_variable_count()
 	{		
 		$this->db->select('count(surveys.id) as total');
-		$this->db->join('variables v', 'surveys.id= v.surveyid_fk','inner');
+		$this->db->join('variables v', 'surveys.id= v.sid','inner');
 		$this->db->where('surveys.published',1);
 		$query=$this->db->get('surveys')->row_array();
 		

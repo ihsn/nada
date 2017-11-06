@@ -93,16 +93,16 @@
         <?php 
 			$compare='';	
 			//compare items selected
-			if (in_array($row['surveyid_FK'].'/'.$row['varID'], $compare_items) )
+			if (in_array($row['sid'].'/'.$row['vid'], $compare_items) )
 			{  
 				$compare=' checked="checked" ';
 			} 
 		?>
-    	<tr  class="vrow <?php echo $tr_class; ?>" valign="top" data-url="<?php echo site_url('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
+    	<tr  class="vrow <?php echo $tr_class; ?>" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
 	        <td title="<?php echo t('mark_for_variable_comparison');?>">
-            	<input type="checkbox" class="compare" value="<?php echo $row['surveyid_FK'].'/'.$row['varID'] ?>" <?php echo $compare; ?>/>
+            	<input type="checkbox" class="compare" value="<?php echo $row['sid'].'/'.$row['vid'] ?>" <?php echo $compare; ?>/>
              </td>
-            <td><?php echo anchor('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID'],$row['name'],array('target'=>'blank_','class'=>'dlg','title'=>t('variable_info')));?></td>
+            <td><?php echo anchor('catalog/'.$row['sid'].'/variable/'.$row['vid'],$row['name'],array('target'=>'blank_','class'=>'dlg','title'=>t('variable_info')));?></td>
             <td>
 				<div class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></div>
 				<div class="var-subtitle"><?php echo $row['nation']. ' - '.$row['titl']; ?></div>

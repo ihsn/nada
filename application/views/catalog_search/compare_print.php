@@ -28,14 +28,14 @@ if ($list): ?>
 	        <?php $k++;?>
     		<div class="item">
             	<?php $survey_title=$this->compare_variable->get_survey_title($item['surveyid']);?>
-                <?php $variable_name=$this->compare_variable->get_variable_name($item['surveyid'],$item['varid']);?>
+                <?php $variable_name=$this->compare_variable->get_variable_name($item['surveyid'],$item['vid']);?>
                 <?php if ($survey_title!==FALSE && $variable_name!==FALSE):?>
             	<div style="border:1px solid gray;margin:5px;">
 	            	<div style="background-color:gray;color:white;padding:5px;">
 						<div><?php echo $variable_name;?> - <?php echo $this->compare_variable->get_survey_title($item['surveyid'])?></div>
                      </div>
     	        	<div style="padding:5px;">
-                            <?php echo $this->compare_variable->get_variable_html($item['surveyid'], $item['varid']);?>
+                            <?php echo $this->compare_variable->get_variable_html($item['surveyid'], $item['vid']);?>
                     </div>
 				</div>
 				<?php endif;?>                

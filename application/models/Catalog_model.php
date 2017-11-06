@@ -26,24 +26,15 @@ class Catalog_model extends CI_Model {
 					'refno',
 					'isshared',
 					'dirpath',
-					'ddifilename',
+					'metafile',
 					'link_technical', 
 					'link_study',
 					'link_report',
 					'link_indicator',
-					'ddi_sh',
 					'link_questionnaire',
 					'data_coll_start',
 					'data_coll_end',
 					'link_da',
-					'ie_program', 
-					'ie_project_id',
-					'ie_project_name',
-					'ie_project_uri',
-					'ie_team_leaders',
-					'project_id',
-					'project_name',
-					'project_uri',
 					'published',
 					'surveys.created',
 					'changed',
@@ -410,13 +401,13 @@ class Catalog_model extends CI_Model {
 	}
 
 	/**
-	* get variable by varid
+	* get variable by vid
 	**/
 	function get_variable_by_vid($survey_id, $variable_id)
 	{
 		$this->db->select('uid,name,labl');
-		$this->db->where('varID', $variable_id); 
-		$this->db->where('surveyid_FK', $survey_id); 
+		$this->db->where('vid', $variable_id); 
+		$this->db->where('sid', $survey_id); 
 		return $this->db->get('variables')->row_array();
 	}
 
@@ -680,7 +671,7 @@ class Catalog_model extends CI_Model {
 		$catalog_root=$this->config->item("catalog_root");
 		
 		//join to create full path
-		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->ddifilename;
+		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->metafile;
 
 		$ddi_file=unix_path($ddi_file);
 		
@@ -747,7 +738,7 @@ class Catalog_model extends CI_Model {
 		if ($deleted)
 		{
 			//remove variables
-			$this->db->where('surveyid_fk', $id); 
+			$this->db->where('sid', $id); 
 			$this->db->delete('variables');		
 			
 			//remove external resources

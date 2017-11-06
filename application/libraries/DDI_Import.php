@@ -1,4 +1,4 @@
-326<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * DDI-to-DB Import Class
  *
@@ -10,8 +10,6 @@
  * @package		NADA 3.0
  * @subpackage	Libraries
  * @category	DDI-to-DB Import
- * @author		Mehmood Asghar
- * @link		-
  *
  */
 class DDI_Import{
@@ -34,10 +32,8 @@ class DDI_Import{
 	function DDI_Import()
 	{
 		$this->ci =& get_instance();
-
-		//set to local repository by default
 		$this->repository_identifier=$this->ci->config->item('repository_identifier');
-    }
+  }
 
 	/**
 	*
@@ -54,8 +50,7 @@ class DDI_Import{
 		}
 
 		$this->ddi_array=$data;
-
-        $codebook_id=$this->ddi_array['study']['id'];
+    $codebook_id=$this->ddi_array['study']['id'];
 
 		//check if survey already exists
 		$id=$this->survey_exists($codebook_id,$repositoryid=$this->repository_identifier);
@@ -234,7 +229,6 @@ class DDI_Import{
 			'formid'=>6
 		);
 
-
 		//TODO: substr to be replaced with mb_substr and related functions
 		//mb_convert_encoding replaces the invalid/broken mb characters to ?
 
@@ -310,10 +304,6 @@ class DDI_Import{
 
 			$sql= $this->ci->db->update_string('surveys', $row,$where);
 			$update_result=$this->ci->db->query($sql);
-
-			echo "--------";
-			var_dump($update_result);
-			echo "--------";
 		}
 
 		//check for errors
@@ -471,9 +461,9 @@ class DDI_Import{
 	function add_survey_country($surveyid,$country_name,$countryid)
 	{
 		$options=array(
-					'sid'			=>$surveyid,
+					'sid'						=>$surveyid,
 					'country_name'	=>$country_name,
-					'cid'			=>$countryid
+					'cid'						=>$countryid
 				);
 		$this->ci->db->insert('survey_countries',$options);
 	}
@@ -704,19 +694,19 @@ class DDI_Import{
 		$data=$this->ddi_array['variables'];
 
 		//delete existing variables for the survey
-		$this->ci->db->delete('variables', array('surveyid_FK' => $id));
+		$this->ci->db->delete('variables', array('sid' => $id));
 
 		$this->variables_imported=0;
 
 		foreach($data as $v)
 		{
 			$row = array(
-			   'varID' => $v[0],
+			   'vid' => $v[0],
 			   'name' => $v[1],
 			   'labl' => $v[2],
 			   'qstn' => trim($v[3]),
 			   'catgry' => trim($v[4]),
-			   'surveyid_FK' => $id
+			   'sid' => $id
 			);
 
 			$result=$this->ci->db->insert('variables', $row);
@@ -754,7 +744,7 @@ class DDI_Import{
 		$id=$this->survey_exists($surveyid,	$this->repository_identifier);
 
 		$row = array(
-				'ddifilename'=>"$surveyid.xml",
+				'metafile'=>"$surveyid.xml",
 				'dirpath'=>$this->repository_identifier.'/'.md5($this->repository_identifier.':'.$surveyid)
 				);
 

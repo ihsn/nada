@@ -101,8 +101,8 @@ class Catalog_search_model extends CI_Model {
 		if ($this->_is_variable_search()===TRUE)
 		{
 			//select columns for output
-			$this->db->select('count(variables.surveyid_fk) as totalFound');
-			$this->db->join('variables', 'variables.surveyid_fk = surveys.id','right');		
+			$this->db->select('count(variables.sid) as totalFound');
+			$this->db->join('variables', 'variables.sid = surveys.id','right');		
 			$this->db->group_by( explode(',','id,titl,nation,authenty,refno') );		
 		}
 		else
@@ -150,7 +150,7 @@ class Catalog_search_model extends CI_Model {
 
 		if ($variable_search===TRUE)
 		{			
-			$sql="select count(id) as total from surveys right join variables on surveys.id=variables.surveyid_fk $where group by surveys.id";
+			$sql="select count(id) as total from surveys right join variables on surveys.id=variables.sid $where group by surveys.id";
 			$sql="SELECT COUNT(*) AS total FROM ($sql) as table1";
 		}
 		else

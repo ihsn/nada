@@ -147,7 +147,7 @@ class Catalog_search{
 		{
 			$query_count='select count(rowsfound) as rowsfound from (';
 			$query_count.='select count(surveys.id) as rowsfound from surveys ';
-			$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
+			$query_count.='inner join variables v on v.sid=surveys.id ';
 			$query_count.='left join forms f on f.formid=surveys.formid ';
 
             //study keywords
@@ -280,7 +280,7 @@ class Catalog_search{
 			$this->ci->db->select($study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
+			$this->ci->db->join('variables v','surveys.id=v.sid','inner');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -781,8 +781,8 @@ class Catalog_search{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,  surveys.titl as titl,surveys.nation as nation, v.surveyid_FK",FALSE);
-		$this->ci->db->join('surveys', 'v.surveyid_fk = surveys.id','inner');	
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,  surveys.titl as titl,surveys.nation as nation, v.sid",FALSE);
+		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
@@ -794,7 +794,7 @@ class Catalog_search{
 
         //count search
 		$query_count='select count(*) as rowsfound from surveys ';
-		$query_count.='inner join variables v on v.surveyid_FK=surveys.id ';
+		$query_count.='inner join variables v on v.sid=surveys.id ';
         $query_count.='inner join forms f on surveys.formid=f.formid ';
         
 		if ($where!='')
@@ -816,7 +816,7 @@ class Catalog_search{
 
     function get_total_variable_count()
     {
-        $result=$this->ci->db->query('select count(*) as total from variables where surveyid_FK in (select id from surveys where published=1)')->row_array();
+        $result=$this->ci->db->query('select count(*) as total from variables where sid in (select id from surveys where published=1)')->row_array();
         return $result['total'];
     }
 
@@ -862,10 +862,10 @@ class Catalog_search{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,v.qstn");
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-		$this->ci->db->where('surveyid_fk',$surveyid);
+		$this->ci->db->where('s.sid',$surveyid);
 		
 		//get resultset
 		$query=$this->ci->db->get("variables as v");

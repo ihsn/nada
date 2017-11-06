@@ -234,7 +234,7 @@ class Advanced_search_model extends CI_Model {
 			$sql='select '.$fields.',varcount, count(*) as var_found
 					from surveys
 					left join forms on surveys.formid=forms.formid
-			    	right join variables v on surveys.id=v.surveyid_fk '.$where;
+			    	right join variables v on surveys.id=v.sid '.$where;
 			$sql.=' group by id,surveyid,titl,nation';
 		}		
 		else //study search
@@ -404,19 +404,19 @@ class Advanced_search_model extends CI_Model {
 		
 		if ($variable_view==TRUE)
 		{
-			$this->db->select("variables.uid,variables.name,variables.labl,variables.varID,  surveys.titl, variables.surveyid_FK");
-			$this->db->join('surveys', 'variables.surveyid_fk = surveys.id','right');	
+			$this->db->select("variables.uid,variables.name,variables.labl,variables.vid,  surveys.titl, variables.sid");
+			$this->db->join('surveys', 'variables.sid = surveys.id','right');	
 		}
 		else
 		{
-			$this->db->select("variables.uid,variables.name,variables.labl,variables.varID, variables.surveyid_FK");
+			$this->db->select("variables.uid,variables.name,variables.labl,variables.vid, variables.sid");
 		}	
 
 		$this->db->where($where);
 
 		if ($survey_id!=NULL)
 		{
-			$this->db->where('surveyid_fk', $survey_id);
+			$this->db->where('sid', $survey_id);
 			$result=$this->db->get("variables")->result_array();
 			return $result;
 		}

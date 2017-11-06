@@ -10,13 +10,13 @@
         </tr>
 	<?php foreach($variables as $row):?>
   		<?php if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
-    	<tr  class="<?php echo $tr_class; ?>" id="<?php echo $row['varID'];?>">
-            <td><?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/variable/'.$row['varID'],$row['name'], array('class'=>'xajax'));?></td>
+    	<tr  class="<?php echo $tr_class; ?>" id="<?php echo $row['vid'];?>">
+            <td><?php echo anchor('ddibrowser/'.$this->uri->segment(2).'/variable/'.$row['vid'],$row['name'], array('class'=>'xajax'));?></td>
             <td><?php echo $row['labl']?> </td>
             <td><?php echo substr($row['qstn'],0,100); if (strlen($row['qstn'])>100){echo '...';}?> </td>
         </tr>
           <tr class="var-info-panel" style="display:none;">
-        <td colspan="3" id="pnl-<?php echo $row['varID'];?>"></td>
+        <td colspan="3" id="pnl-<?php echo $row['vid'];?>"></td>
     </tr>
     <?php endforeach;?>
 	</table>

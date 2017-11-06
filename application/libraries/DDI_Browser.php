@@ -66,14 +66,6 @@ class DDI_Browser{
 		return $output;
 	}
 
-	function get_overview_ie_html($ddi_file,$parameters=NULL)
-	{				
-		$xslt=APPPATH.'../xslt/ddi_overview_ie.xslt';
-		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
-		$output=$this->_clean_xml($output);
-		return $output;
-	}
-	
 	function get_overview_related_op_html($ddi_file,$parameters=NULL)
 	{				
 		$xslt=APPPATH.'../xslt/ddi_overview_related_op.xslt';
@@ -192,7 +184,7 @@ class DDI_Browser{
 
 	function get_variable_html($ddi_file,$variable_id,$parameters=array())
 	{	
-		$parameters=array_merge($parameters,array('search_varID'=>$variable_id) );
+		$parameters=array_merge($parameters,array('search_vid'=>$variable_id) );
 		//$xslt=APPPATH.'../xslt/ddi_variable.xslt';
 		$xslt=$this->get_xslt_file(APPPATH.'../xslt/ddi_variable.xslt');
 		$output=xsl_transform($ddi_file,$xslt,$parameters, $format="xml");
