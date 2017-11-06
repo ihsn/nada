@@ -1,7 +1,7 @@
 <div class="content-container">
 <?php
 	//menu breadcrumbs
-	include 'menu_breadcrumb.php'; 
+	include 'menu_breadcrumb.php';
 ?>
 
 <h1 class="page-title"><?php echo isset($id) ? t('menu_edit') : t('menu_add'); ?></h1>
@@ -29,10 +29,10 @@
         <input class="input-flex"  name="url" type="text" id="url"  value="<?php echo get_form_value('url',isset($url) ? $url : '') ; ?>"/>
         <label for="url" class="desc" id="url-label"><?php echo site_url(); ?>/<?php echo get_form_value('url',isset($url) ? $url : '') ; ?></label>
     </div>
-           
+
     <div class="field">
         <label for="body"><?php echo t('body');?></label>
-        <textarea id="body" class="input-flex"  name="body" rows="30"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>        
+        <textarea id="body" class="input-flex"  name="body" rows="30"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>
     </div>
 
     <div class="field">
@@ -51,11 +51,11 @@
     </div>
 <?php
  //edit user
-	echo form_submit('submit',t('update'),'id="btnupdate"'); 
- 	echo anchor('admin/menu',t('cancel'),array('class'=>'button') );	
+	echo form_submit('submit',t('update'),'id="btnupdate"');
+ 	echo anchor('admin/menu',t('cancel'),array('class'=>'button') );
 ?>
 
-<? echo form_close(); ?>    
+<? echo form_close(); ?>
 </div>
 <script type="text/javascript">
 
@@ -65,17 +65,17 @@ $(document).ready(function() {
 		if( $("#url").val()==''){
 			$path=$("#title").val().trim().replace(/\s/g,"-").toLowerCase();
 			$("#url").val($path);
-			$("#url-label").html(CI.base_url+'/'+$path);
+			$("#url-label").text(CI.base_url+'/'+$path);
 		}
     });
-	$("#url").keyup(function() {		
-	       $("#url-label").html(CI.base_url+'/'+$("#url").val());
+	$("#url").keyup(function() {
+	       $("#url-label").text(CI.base_url+'/'+$("#url").val());
     });
 
 });
 </script>
 <script type="text/javascript">
-<?php 
+<?php
 /*
 //TODO:
 1. read about the compressor - http://wiki.moxiecode.com/index.php/TinyMCE:Compressor/PHP
@@ -109,13 +109,13 @@ tinyMCE.init({
 	//external_link_list_url : "js/link_list.js",
 	external_image_list_url : "index.php/tinymce/image_list",
 	//media_external_list_url : "js/media_list.js",
-	
+
 	setup : function(ed) {
       ed.onSaveContent.add(function(ed, o) {
 	  	$('#btnupdate').click();
 	  });
    	}
-	
+
 });
 
 <?php endif;?>
