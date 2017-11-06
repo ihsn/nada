@@ -124,7 +124,7 @@ class Catalog_search{
 			$this->ci->db->select('count(*) as rowsfound',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v."surveyid_FK"','inner');
+			$this->ci->db->join('variables v','surveys.id=v."sid"','inner');
 			$this->ci->db->group_by('id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount');
 			
 			if ($where!='') 
@@ -231,12 +231,12 @@ class Catalog_search{
 			$this->ci->db->select($study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v."surveyid_FK"','inner');
+			$this->ci->db->join('variables v','surveys.id=v."sid"','inner');
 			$this->ci->db->group_by('id,refno,surveyid,titl,nation,authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid,varcount');
 			
 			//$sql=sprintf('SELECT %s from surveys s',$study_fields.', varcount, count(*) as var_found');
 			//$sql.=sprintf(" LEFT JOIN forms f on f.formid=s.formid \r\n");
-			//$sql.=" INNER JOIN variables v on s.id=v.surveyid_fk \r\n";
+			//$sql.=" INNER JOIN variables v on s.id=v.sid \r\n";
 			
 			if ($where!='') 
 			{
@@ -661,8 +661,8 @@ class Catalog_search{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,  surveys.titl as titl,surveys.nation as nation, v.surveyid_FK");
-		$this->ci->db->join('surveys', 'v."surveyid_FK" = surveys.id','inner');
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,  surveys.titl as titl,surveys.nation as nation, v.sid");
+		$this->ci->db->join('surveys', 'v."sid" = surveys.id','inner');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		
@@ -671,7 +671,7 @@ class Catalog_search{
 		
 		//get total search result count
 		$this->ci->db->select("count(*) as rowsfound",FALSE);
-		$this->ci->db->join('surveys', 'v."surveyid_FK" = surveys.id','inner');	
+		$this->ci->db->join('surveys', 'v."sid" = surveys.id','inner');	
 		$this->ci->db->where($where);		
 		$query_found_rows=$this->ci->db->get("variables as v")->row_array();		
 		$found_rows=$query_found_rows['rowsfound'];
@@ -727,10 +727,10 @@ class Catalog_search{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,v.qstn");
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-		$this->ci->db->where('surveyid_FK',$surveyid);
+		$this->ci->db->where('v.sid',$surveyid);
 		
 		//get resultset
 		$query=$this->ci->db->get("variables as v");

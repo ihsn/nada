@@ -168,7 +168,7 @@ class Catalog_search_mysql{
 			$this->ci->db->select('SQL_CALC_FOUND_ROWS '.$study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v.surveyid_fk','inner');
+			$this->ci->db->join('variables v','surveys.id=v.sid','inner');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 	
@@ -271,16 +271,10 @@ class Catalog_search_mysql{
 		$study_fulltext_index.=',surveys.scope,surveys.sername,surveys.producer,surveys.sponsor,surveys.refno';
 		$study_fulltext_index.=',abbreviation,kindofdata,keywords';
 		
-		//additional index fields
-		$ie_fulltext_index='surveys.ie_program,surveys.ie_project_id,surveys.ie_project_name,surveys.ie_team_leaders';
-		$ie_fulltext_index.=',surveys.project_id,surveys.project_name';
-
 		if (strlen($study_keywords)>3)
 		{		
 			//build the sql where using FULLTEXT
-			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$study_fulltext_index,$this->ci->db->escape($study_keywords));
-			$sql.=sprintf(' OR MATCH(%s) AGAINST(%s IN BOOLEAN MODE) )',$ie_fulltext_index,$this->ci->db->escape($study_keywords));
-			
+			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
 			return $sql;
 		}
 		else if(strlen($study_keywords)==3)
@@ -734,8 +728,8 @@ class Catalog_search_mysql{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.varID,  surveys.titl as titl,surveys.nation as nation, v.surveyid_FK",FALSE);
-		$this->ci->db->join('surveys', 'v.surveyid_fk = surveys.id','inner');	
+		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,  surveys.titl as titl,surveys.nation as nation, v.sid",FALSE);
+		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
@@ -759,7 +753,7 @@ class Catalog_search_mysql{
 
     function get_total_variable_count()
     {
-        $result=$this->ci->db->query('select count(*) as total from variables where surveyid_FK in (select id from surveys where published=1)')->row_array();
+        $result=$this->ci->db->query('select count(*) as total from variables where sid in (select id from surveys where published=1)')->row_array();
         return $result['total'];
     }
 
@@ -803,10 +797,10 @@ class Catalog_search_mysql{
 
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.varID,v.qstn");
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-		$this->ci->db->where('surveyid_fk',$surveyid);
+		$this->ci->db->where('sid',$surveyid);
 		
 		//get resultset
 		$query=$this->ci->db->get("variables as v");
