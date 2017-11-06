@@ -16,11 +16,10 @@ class Citations extends MY_Controller {
 
 		$this->lang->load('general');
 		$this->lang->load('citations');
-		$this->output->enable_profiler(TRUE);
+		//$this->output->enable_profiler(TRUE);
 
 		//set template for print
-		if ($this->input->get("print")==='yes')
-		{
+		if ($this->input->get("print")==='yes'){
 			$this->template->set_template('blank');
 		}
 	}
@@ -30,8 +29,7 @@ class Citations extends MY_Controller {
 		$repo=$this->get_repo_by_id($this->input->get("collection"));
 		$collection='central';
 
-		if($repo)
-		{
+		if($repo){
 			$collection=$repo['repositoryid'];
 		}
 
@@ -39,8 +37,7 @@ class Citations extends MY_Controller {
 		$data['active_repo']=$collection;
 		$content=$this->load->view('citations/public_search', $data,true);
 
-		if ($collection!=='')
-		{
+		if ($collection!==''){
 			$page_data=array(
 				'repo'=>$repo,
 				'active_tab'=>'citations',
@@ -58,8 +55,7 @@ class Citations extends MY_Controller {
 
 	private function get_repo_by_id($repoid)
 	{
-		if (!$repoid)
-		{
+		if (!$repoid){
 			return FALSE;
 		}
 
@@ -101,8 +97,7 @@ class Citations extends MY_Controller {
 		//total records found
 		$total = $this->Citation_model->search_count();
 
-		if ($offset>$total)
-		{
+		if ($offset>$total){
 			$offset=$total-$per_page;
 
 			//search again
@@ -135,15 +130,13 @@ class Citations extends MY_Controller {
 	**/
 	function view($citationid=NULL)
 	{
-		if ( !is_numeric($citationid))
-		{
+		if (!is_numeric($citationid)){
 			show_404();
 		}
 
 		$citation=$this->Citation_model->select_single($citationid);
 
-		if (!$citation)
-		{
+		if (!$citation){
 			show_404();
 		}
 
@@ -155,20 +148,17 @@ class Citations extends MY_Controller {
 		$repo=$this->get_repo_by_id($this->input->get("collection"));
 		$collection='central';
 
-		if($repo)
-		{
+		if($repo){
 			$collection=$repo['repositoryid'];
 		}
 
-		if ($collection!=='')
-		{
+		if ($collection!==''){
 			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$repo,'active_tab'=>'citations'),TRUE);
 		}
 
 
 		//change template if ajax request
-		if ($this->input->get_post("ajax")!==false || $this->input->get_post("print")!==false)
-		{
+		if ($this->input->get_post("ajax") || $this->input->get_post("print")){
 			$this->template->set_template('blank');
 		}
 
@@ -184,21 +174,21 @@ class Citations extends MY_Controller {
 	**/
 	function export($citationid=NULL,$format='bibtex')
 	{
-		if ( !is_numeric($citationid))
-		{
+		if (!is_numeric($citationid)){
 			show_404();
 		}
 
 		$citation=$this->Citation_model->select_single($citationid);
+
 		header("Content-Type: text/plain");
 		$this->load->view('citations/export_bibtex', array('bib'=>$citation));
 		//$this->load->library('bibtex');
-
 		//echo $this->bibtex->export($citation);
 	}
 
-	function export_all($format='html')
-	{
+
+
+	function export_all($format='html'){
 		$this->db->select('*');
 		$citations=$this->db->get('citations')->result_array();
 		//$this->load->view('citations/export_to_html',$data);
@@ -214,8 +204,7 @@ class Citations extends MY_Controller {
 		//add column names
 		fputcsv($fp, array_keys($citations[0]));
 
-		foreach($citations as $citation)
-		{
+		foreach($citations as $citation){
 			$citation['changed']=date("M-d-y",$citation['changed']);
 			$citation['created']=date("M-d-y",$citation['created']);
 			fputcsv($fp, $citation);
@@ -225,10 +214,8 @@ class Citations extends MY_Controller {
 	}
 
 
-	function _show_citations_by_collection($repository_id)
-	{
+	function _show_citations_by_collection($repository_id){
 		$this->load->model("repository_model");
-
 		$repository_id=strtolower($repository_id);
 
 		//get an array of all valid repository names from db
@@ -236,22 +223,18 @@ class Citations extends MY_Controller {
 		$repositories[]='central';
 
 		//repo names to lower case
-		foreach($repositories as $key=>$value)
-		{
+		foreach($repositories as $key=>$value){
 			$repositories[$key]=strtolower($value);
 		}
 
 		//check if URI matches to a repository name
-		if (in_array($repository_id,$repositories))
-		{
+		if (in_array($repository_id,$repositories)){
 			//repository options
-			if ($repository_id=='central')
-			{
+			if ($repository_id=='central'){
 				$this->active_repo=NULL;
 				$this->session->set_userdata('active_repository','');
 			}
-			else
-			{
+			else{
 				//add repo filter
 				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repository_id);
 
@@ -262,11 +245,12 @@ class Citations extends MY_Controller {
 			//load the default listing page
 			$this->index();
 		}
-		else
-		{
+		else{
 			show_404();
 		}
 	}
+
+
 
 	function _remap()
 	{
@@ -278,8 +262,7 @@ class Citations extends MY_Controller {
 			$this->index();	return;
 		}
 
-		switch($method)
-		{
+		switch($method){
 			case 'collection':
 			case 'by-collection':
 				$this->_show_citations_by_collection($this->uri->segment(3));
@@ -289,18 +272,16 @@ class Citations extends MY_Controller {
 			case is_numeric($method):
 				$action=$this->uri->segment(3);
 
-				if ($action=='export')
-				{
+				if ($action=='export'){
 					$this->export($method);
 				}
-				else
-				{
+				else{
 					//default view
 					$this->view($method);
 				}
 
 			break;
-						case 'export_all':
+			case 'export_all':
 				$this->export_all();
 			break;
 
