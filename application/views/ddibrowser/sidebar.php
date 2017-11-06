@@ -53,6 +53,7 @@ $overview_items = array();
         <?php if(isset($show_study_items) && $show_study_items==TRUE):?>
         <!--access policy-->
         <li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/accesspolicy',t('access_policy'),array('class'=>'ajax','data-id'=>'accesspolicy')); ?></li>
+		<li class="item"><?php echo anchor($page_url.'/'.$this->uri->segment(2).'/export-metadata',t('export_metadata'),array('class'=>'ajax','data-id'=>'export-metadata')); ?></li>
         <?php endif;?>
     </ul>
 
@@ -61,7 +62,7 @@ $overview_items = array();
 	<?php if(isset($show_data_items) && $show_data_items==TRUE):?>
         <form method="get" action="<?php echo site_url('catalog/'.$this->uri->segment(2).'/search');?>" class="dictionary-search">        
         <div class="dictionary-search-wrap">
-        <input type="text" name="vk" class="search-keywords" placeholder="Search dictionary" /><input type="submit" value="GO" class="btn-search"/>
+        <input type="text" name="vk" class="search-keywords" placeholder="Search dictionary" value="<?php echo form_prep($this->input->get('vk')); ?>" /><input type="submit" value="GO" class="btn-search"/>
         </div>
         </form>
     

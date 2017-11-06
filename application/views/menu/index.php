@@ -5,9 +5,9 @@
 <div class="body-container" style="padding:10px;">
 <?php if (!isset($hide_form)):?>
 
-<?php 
+<?php
 	//menu breadcrumbs
-	include 'menu_breadcrumb.php'; 
+	include 'menu_breadcrumb.php';
 ?>
 
 <?php $message=$this->session->flashdata('message');?>
@@ -32,19 +32,19 @@
 </form>
 <?php endif; ?>
 <?php if ($rows): ?>
-<?php		
+<?php
 		$sort_by=$this->input->get("sort_by");
-		$sort_order=$this->input->get("sort_order");			
+		$sort_order=$this->input->get("sort_order");
 ?>
-<?php 
-	//pagination 
+<?php
+	//pagination
 	$page_nums=$this->pagination->create_links();
 	$current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
-	
+
 	//sort
 	$sort_by=$this->input->get("sort_by");
 	$sort_order=$this->input->get("sort_order");
-	
+
 	//current page url
 	$page_url=site_url().'/'.$this->uri->uri_string();
 ?>
@@ -53,22 +53,22 @@
 	if ($this->pagination->cur_page>0) {
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
 
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows())
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 
 		$pager=sprintf(t('showing %d-%d of %d')
 						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
 						,$to_page
-						,$this->pagination->total_rows);
+						,$this->pagination->get_total_rows());
 	}
 	else
 	{
 		$pager=sprintf(t('showing %d-%d of %d')
 				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
+				,$this->pagination->get_total_rows()
+				,$this->pagination->get_total_rows());
 	}
 ?>
 
@@ -82,14 +82,14 @@
                     <option value="-1"><?php echo t('batch_actions');?></option>
                     <option value="delete"><?php echo t('delete');?></option>
                 </select>
-                <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>                
+                <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>
             </td>
             <td align="right">
                 <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
             </td>
         </tr>
     </table>
-    
+
     <!-- grid -->
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
@@ -107,13 +107,13 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>""><?php echo $row->title; ?></a></td>
-            <td><?php echo $row->url; ?>&nbsp;</td>
+            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>""><?php echo html_escape($row->title); ?></a></td>
+            <td><?php echo html_escape($row->url); ?>&nbsp;</td>
             <td><?php echo ($row->linktype==0 ? '<img src="images/page_white.png" alt="Internal"/>' : '<img src="images/link.png" alt="Page link"/>'); ?></td>
 			<td title="Click to publish/unpublish" class="<?php echo ($row->published==1 ? 'published' : 'unpublished'); ?>" id="<?php echo $row->id; ?>"></td>
 			<td><?php echo date("m-d-Y",$row->changed); ?></td>
 			<td>
-            	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
+            	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> |
                 <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a>
             </td>
         </tr>
@@ -133,21 +133,21 @@
 //checkbox select/deselect
 jQuery(document).ready(function(){
 	$("#chk_toggle").click(
-			function (e) 
+			function (e)
 			{
-				$('.chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
+				$('.chk').each(function(){
+                    this.checked = (e.target).checked;
+                });
 			}
 	);
 	$(".chk").click(
-			function (e) 
+			function (e)
 			{
 			   if (this.checked==false){
 				$("#chk_toggle").attr('checked', false);
-			   }			   
+			   }
 			}
-	);			
+	);
 	$("#batch_actions_apply").click(
 		function (e){
 			if( $("#batch_actions").val()=="delete"){
@@ -163,22 +163,22 @@ function bind_events()
 {
 	//remove events
     $(".unpublished, .published").unbind('click');
-    
+
 	$(".unpublished").click(
-			function (e) {				
+			function (e) {
                 $(this).removeClass('unpublished').addClass('published');bind_events();
                 url=CI.base_url+'/admin/menu/publish/'+$(this).attr("id")+'/'+1;
                 $.get(url);
 			}
-	);    
+	);
 
 	$(".published").click(
-			function (e) {				
+			function (e) {
 				$(this).removeClass('published').addClass('unpublished');bind_events();
                 url=CI.base_url+'/admin/menu/publish/'+$(this).attr("id")+'/'+0;
                 $.get(url);
 			}
-	);    
+	);
 }
 
 function batch_delete(){
@@ -191,17 +191,17 @@ function batch_delete(){
 		return false;
 	}
 	selected='';
-	$('.chk:checked').each(function(){ 
+	$('.chk:checked').each(function(){
 		if (selected!=''){selected+=',';}
-        selected+= this.value; 
+        selected+= this.value;
      });
-	
+
 	$.ajax({
 		timeout:1000*120,
 		cache:false,
         dataType: "json",
 		data:{ submit: "submit"},
-		type:'POST', 
+		type:'POST',
 		url: CI.base_url+'/admin/menu/delete/'+selected+'/?ajax=true',
 		success: function(data) {
 			if (data.success){
@@ -214,6 +214,6 @@ function batch_delete(){
 		error: function(XHR, textStatus, thrownError) {
 			alert("Error occured " + XHR.status);
 		}
-	});	
+	});
 }
 </script>

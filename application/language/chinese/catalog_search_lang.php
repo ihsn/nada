@@ -165,9 +165,11 @@ $lang['prev']="上一页";
 $lang['next']="下一页";
 $lang['search_by_keyword']="关键词搜索";
 $lang['filter_by_year']="按年份筛选";
-$lang['tab_about']="关于";
-$lang['tab_datasets']="数据集";
-$lang['tab_citations']="参考文献 ";
+$lang['any']="全部";
+$lang['views']="浏览";
+$lang['metadata']="元数据";
+$lang['popularity']="受欢迎程度";
+$lang['To compare, select two or more variables']="若要比较，请选择两个或两个以上的变量";
 
 
 /* End of file catalog_search_lang.php */

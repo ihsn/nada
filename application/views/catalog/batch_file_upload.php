@@ -1,9 +1,6 @@
-<script type="text/javascript" src="javascript/plupload/gears_init.js"></script>
-<script type="text/javascript" src="http://bp.yahooapis.com/2.4.21/browserplus-min.js"></script>
-
 <!-- Load plupload and all it's runtimes and finally the jQuery queue widget -->
-<script type="text/javascript" src="javascript/plupload/plupload.full.min.js"></script>
-<script type="text/javascript" src="javascript/plupload/jquery.plupload.queue.min.js"></script>
+<script type="text/javascript" src="javascript/plupload/js/plupload.full.min.js"></script>
+<script type="text/javascript" src="javascript/plupload/js/jquery.plupload.queue/jquery.plupload.queue.min.js"></script>
 
 <script type="text/javascript">
 // Convert divs to queue widgets when the DOM is ready
@@ -12,10 +9,10 @@ $(function() {
 	function log()
 	{
 	}
-	
+
 	$("#uploader").pluploadQueue({
 		// General settings
-		runtimes : 'flash,silverlight,gears,browserplus,html5',
+		runtimes : 'html5,flash,silverlight,html4',
 		url : '<?php echo site_url($upload_url); ?>',
 		max_file_size : '300mb',
 		chunk_size : '2mb',
@@ -29,19 +26,19 @@ $(function() {
 		],
 
 		// Flash settings
-		flash_swf_url : 'javascript/plupload/plupload.flash.swf',
+		flash_swf_url : 'javascript/plupload/js/Moxie.swf',
 
 		// Silverlight settings
-		silverlight_xap_url : 'javascript/plupload/plupload.silverlight.xap',
-		
+		silverlight_xap_url : 'javascript/plupload/js/Moxie.xap',
+
 		// Post init events, bound after the internal events
 		init : {
 			Refresh: function(up) {
 				// Called when upload shim is moved
 				log('[Refresh]');
 			},
-			
-			BeforeUpload: function(up,file) {							
+
+			BeforeUpload: function(up,file) {
 				 if ($("#overwrite").is(':checked')) {
 				 	up.settings.multipart_params.overwrite = 1;
 				 }
@@ -89,12 +86,12 @@ $(function() {
 				// Called when a file chunk has finished uploading
 				//log('[ChunkUploaded] File:', file, "Info:", info);
 			},
-			
+
 			UploadComplete: function (up, file) {
 				//called when all files are uploaded
 				window.location='<?php echo site_url($destination_url);?>';
 			},
-			
+
 			Error: function(up, args) {
 				// Called when a error has occured
 				log('[error] ', args);

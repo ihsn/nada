@@ -5,7 +5,7 @@
     <div class="page-links">
         <a href="<?php echo site_url(); ?>/admin/countries" class="button"><img src="images/house.png"/><?php echo t('home');?></a>
     </div>
-	<h1><?php echo t('Edit Country'); ?></h1>
+	<h1><?php echo t('edit_country'); ?></h1>
 	<?php if (validation_errors() ) : ?>
         <div class="error">
             <?php echo validation_errors(); ?>
@@ -33,8 +33,6 @@
 		}
 		
 		$aliases=get_form_value('alias',isset($aliases) ? $aliases: array('') );
-		//echo '<PRE>';
-		//var_dump($aliases);
 	?>
 	
     <?php echo form_open($form_action_url, array('class'=>'form'));?>

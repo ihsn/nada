@@ -1,5 +1,10 @@
 <div class="body-container" style="padding:10px;">
 
+<div class="page-links">
+	<a href="<?php echo site_url(); ?>/admin/countries" class="button"><img src="images/house.png"/><?php echo t('home');?></a>
+</div>
+
+
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
@@ -47,7 +52,7 @@
 </div>
 
 
-<script type="application/javascript">
+<script>
 $(document).ready(function() 
 {	
 	$(".country-list").html($(".country-dropdown select"));

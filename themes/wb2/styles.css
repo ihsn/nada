@@ -1,0 +1,1144 @@
+/*
+ *  1. Layout
+ *  2. Common elements 
+ *  3. Form elemetns (Inputs, Buttons etc)
+ *  4. Menu / Share bar
+ *  5. Breadcrumb
+ *  6. Licensed
+ *  7. Tabs
+ *  8. Login page
+ *  9. Home
+ * 10. Sidebar and boxes
+ * 11. Bootstrap button
+ * 12. Grid table
+ * 13. H2 edit link 
+ * 14. Citations page
+ * 15. About page(s)
+ * 16. Central Data Catalog / Datasets 
+ * 17. Pagination icons
+ */
+
+/*
+ * 1. Layout
+ */
+body, html {
+	background-color:#FFFFFF;color:#333;
+    font-family: 'Open Sans', sans-serif;
+    text-align: inherit; /* fix the text aling center set by the reset-fonts-grid */
+}
+#doc2, #doc4 {
+	background-color:white;
+}
+
+#mt-header{
+    background: #dedede; 
+    min-width: 1006px;
+}
+
+#mt-information-bar{
+    background: #ffffff;
+    
+    -webkit-box-shadow:  0px 2px 5px 0px rgba(0, 0, 0, .1);
+    box-shadow:  0px 2px 5px 0px rgba(0, 0, 0, .1);
+}
+
+#mt-banner-strip{
+    border-bottom: 1px solid #d4d4d4;
+}
+
+#mt-menu-bar{
+    background: #eeeeee;
+    border-top: 1px solid #ffffff;
+    border-bottom: 1px solid #dddddd;
+}
+
+.mt-inner{
+    width: 960px;
+    margin:0 auto;
+    padding:0;
+}
+
+#custom-doc {
+	background-color:white;
+	width:73.85em;
+	*width:72.07em;
+	min-width:960px;
+	margin:auto;
+	text-align:left;
+	padding:23px;
+	padding-bottom:0px;
+	padding-top:5px;
+}
+
+#bd{border:0px;margint-top:10px;clear:both;margin-top:10px;}
+#banner,
+#banner-subtitle {
+    font-weight:bolder;
+    font-size: 40px;
+
+    background-color: transparent;
+    padding: 0;
+
+    color: #0088cc;
+    display:block;
+    
+    padding-top: 10px;
+    text-align:left;
+}
+
+#banner-subtitle{
+    padding-top: 0;
+    line-height: 90%;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+#ft {
+    color: #72767a;
+	background-color:#dadada;
+	padding: 50px 0 35px 0;
+	text-align:left;
+	margin:0px;
+	margin-top:25px;
+    min-width: 1006px;
+	/* border-bottom:20px solid white; 
+	color:#CCCCCC*/
+}
+
+.site-logo {
+    color: gray;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/*user login bar */
+#user-bar {
+	padding:13px 0;
+	text-align:right
+}
+.user-box      { text-align:right;}
+.user-box a    { font-size:11px; text-transform:uppercase; text-align:right;}
+.user-box li   { display:inline; font-size:11px; text-transform:uppercase;}
+.user-box li a { color:#0088cc; border-left:1px solid gainsboro;padding-left:5px;}
+.user-box li a:hover{color:#00b6f5;}
+
+.site-logo {
+	color:gray;
+	font-size:18px;
+	font-weight:bold;
+}
+
+.site-logo img {
+	float:left;
+}
+
+.site-logo-title {
+	float:left;
+	padding-top:15px;
+	color:#666666
+}
+
+#content {
+	padding:0px;
+	padding-top:0px;
+	min-height:400px;
+}
+
+#inner-body{border:0px solid gainsboro;}
+
+/* 
+ * 2. Common elements 
+ */
+h1 {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 28px;
+}
+
+h2 {
+    margin-bottom: 15px;
+    font-size: 21px;
+    font-weight: normal;
+}
+
+h3 {
+	font-size:20px;
+	font-weight:bold;
+	line-height:20px;
+}
+
+h3 a{
+    font-weight: normal;
+}
+
+h4 {
+	font-size:1em;
+}
+
+p {
+	margin-bottom:15px;
+	font-size:13px;
+	line-height:20px;
+	color:#333333;
+}
+
+img {
+	border:0px;
+}
+
+a {
+	text-decoration:none;
+	color:#0088cc;
+}
+
+a:hover {
+	color:#00b6f5;
+    text-decoration:underline;
+}
+
+ol { 
+    display: block;
+    margin-bottom:20px; 
+}
+
+ol li{
+    list-style-type:decimal;
+    margin-left:20px;
+}
+
+em{ font-style:italic; }
+
+strong{ font-weight:bold; }
+
+/* 
+ * 3. Form elements (Inputs, Buttons etc)
+ */
+.button{
+    padding:1px;
+    margin-top:5px;
+    cursor:pointer;
+    background-color:#0088cc;
+    color:white;
+    border:0px;}
+
+.button:hover{background-color:#00b6f5;color:white;}
+
+.btn-mini{
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+            border-radius: 0; 
+
+    -webkit-box-shadow: none;
+       -moz-box-shadow: none;
+            box-shadow: none;
+    
+    border: 0;
+    
+    text-shadow: none;
+    
+    color: #ffffff;
+    background: #0088cc;
+}
+
+.btn-mini:hover{
+    color: #ffffff;
+    background: #00b6f5;
+}
+
+form,
+form.form{ }
+
+form.form.register,
+form.form.change-password,
+form.form.login{
+    background:#f3f3f3;
+    width:360px;
+    padding: 20px;
+}
+
+input,
+input.input-flex {
+    border:1px solid #cccccc;
+    padding: 5px;
+    
+    -webkit-box-shadow: inset 0px 1px 3px 0px rgba(0, 0, 0, .15);
+       -moz-box-shadow: inset 0px 1px 3px 0px rgba(0, 0, 0, .15);
+            box-shadow: inset 0px 1px 3px 0px rgba(0, 0, 0, .15);
+}
+
+input.chk,
+input.chk:hover,
+input.chk-any,
+input.chk-any:hover,
+input.chk-da-any,
+input.chk-da-any:hover,
+input.chk-section,
+input.chk-section:hover,
+input.chk-item,
+input.chk-item:hover,
+input.chk-sub-collection,
+input.chk-sub-collection:hover{
+    border:0;
+    padding:0;
+    -webkit-box-shadow: none;
+       -moz-box-shadow: none;
+            box-shadow: none;
+}
+
+input:hover{
+    border:1px solid #00b6f5;
+}
+
+/*input[type='text'], input[type='password']{
+    min-width: 350px;
+}*/
+
+input[type='submit'],
+.btn-style-1{
+    color: #ffffff;
+    border: 0;
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    background: #0088cc;
+    font-size: 13px;
+    font-weight: normal;
+    text-shadow: inherit;
+    padding: 7px 23px;
+    min-width: 90px;
+    -webkit-box-shadow: inherit;
+    -moz-box-shadow: inherit;
+    box-shadow: inherit;
+    margin-right: 15px;
+}
+
+input[type='submit']:hover{
+    background: #00b6f5;
+}
+
+.btn-style-1:hover {
+    border: 0;
+    padding: 7px 23px;
+    background: #00b6f5;
+}
+
+label,
+.form .field label {
+    color:#363636;
+    font-weight: normal;
+    margin-bottom: 7px;
+}
+
+.form .field, 
+.form .field-inline {
+    margin-bottom: 12px;
+}
+
+select {
+    background: #ffffff;
+    height: 30px;
+    border: 1px solid #cccccc;
+    padding: 4px;
+}
+
+/* links next to the form buttons */
+a.form-link{
+    font-size: 10px;
+    text-decoration: underline;
+}
+
+a.form-link.cancel{
+
+}
+
+/*
+ * 4. Menu / Share bar
+ */ 
+.menu-horizontal {
+    border-top: 0px;
+    height: 36px;
+    padding: 10px 0px;
+}
+
+.menu-horizontal li {
+    list-style: none;
+    float: left;
+    padding: 10px 20px;
+}
+
+.menu-horizontal li:first-child {
+    background: url(icons/home.png) no-repeat 0 center transparent;
+    padding-left: 0;
+    
+    width: 16px; 
+}
+
+.menu-horizontal li:first-child a{
+    text-indent: -9999px;
+    width: 16px;
+    display: block;
+}
+
+/* share bar*/
+.share-bar-container{position:relative;text-align:right;border:0px solid blue;margin-left:auto;margin-right:0px;z-index:100;height:35px;}
+ul.share-bar{position:absolute;border:0px solid red;height:30px;width:auto;text-align:left;right:0px;z-index:999}
+ul.share-bar li{float:left;margin-left:3px;border:0px solid blue;padding:5px;position:relative;height:24px;vertical-align:baseline}
+ul.share-bar .item-body{position:absolute;height:100px;width:100px;background:white;border:2px solid #CCCCCC;right:0px;z-index:100}
+
+ul.share-bar ul{display:none;position:absolute;width:220px;background:#F7F7F7;right:0px;top:24px;padding:10px;border:4px solid #CCCCCC;z-index:1000}
+ul.share-bar ul li{float:left;width:45%;font-size:11px;margin:0px;padding:5px;}
+ul.share-bar ul li:hover{background-color:#FBFBFB; cursor:pointer}
+ur.share-bar ul li img{vertical-align:baseline}
+ul.share-bar li.active ul{display:block;}
+ul.share-bar li.active{background-color:#CCCCCC}
+a.share{background:url("../../images/shared_open.gif") no-repeat left center;padding-left:20px;color:#999999;text-transform:uppercase;font-size:11px}
+.active a.share{background:url("../../images/shared_close.gif") no-repeat left center;color:black;}
+ul.share-bar img{vertical-align:baseline}
+
+/*
+ * 5. Breadcrumb
+ */ 
+#breadcrumb{
+    background: #ffffff;
+    border-top: 1px solid #ffffff;
+    text-align:left;
+}
+
+.breadcrumbs{
+    padding: 10px 0px;
+    font-size:11px;
+    text-transform:uppercase;
+    margin-bottom:20px;
+}
+
+.breadcrumbs a{
+    padding: 0 10px;
+}
+
+.breadcrumbs span:first-child a{
+    padding-left:0;
+}
+
+.breadcrumbs a,.breadcrumbs span{color:#0088cc;}
+
+.breadcrumbs .active{color:gray;}
+
+/*
+ * 6. Licensed
+ */ 
+/* licensed request - select_request */
+.lic-requests-container {position:relative;}
+.lic-requests-container .inline {display:inline;font-size:small;margin-right:15px;}
+.lic-requests-container a.btn-new-request{position:absolute;top:5px;right:5px;font-size:smaller;}
+
+/* table for listing pending/approved lic requests */
+.lic-requests-container .grid-table .header{
+	border-bottom:1px solid gainsboro;
+}
+
+.lic-requests-container .grid-table tr td{
+	border-bottom:1px solid gainsboro;
+	padding-bottom:10px;
+}
+
+.lic-requests-container .grid-table h3,
+.lic-requests-container .grid-table h3 a{
+	margin-top:0px;
+	margin-bottom:0px;
+	font-weight:bold;
+	font-size:14px;
+}
+
+.lic-requests-container .grid-table .inline{
+	color:gray;
+	font-size:12px;
+}
+
+
+/*licensed request application form*/
+.data-request-form-container .note{background-color:#C1DAD7;}
+.data-request-form-container .grid-table .no-wrap{white-space:nowrap}
+.data-request-form-container .grid-table .border td{border:1px solid gainsboro;}
+.data-request-form-container .bull-list{margin-left:10px;}
+.data-request-form-container .bull-list li{font-size:small;margin-bottom:8px;line-height:140%;}
+.data-request-form-container td .required{color:red;}
+.data-request-form-container .field-caption{background:#E4E4E4;color:black;padding:5px;display:block;font-weight:bold;font-size:13px;}
+
+.data-request-form-container .field{margin-top:10px;}
+.data-request-form-container .single-study{font-weight:normal;}
+.data-request-form-container .by-collection {font-size:12px;display:none;}
+
+.data-request-form-container .study-set {padding:10px;background:gainsboro;}
+.data-request-form-container .study-set table td{background:white;}
+.data-request-form-container .study-set table {margin-bottom:10px;}
+.data-request-form-container .header td{font-weight:bold;background:none;font-size:smaller;}
+.data-request-form-container .collection-fieldset{
+	border-top:1px solid gainsboro;
+	margin:7px 18% 0 18%;
+}
+.data-request-form-container .collection-fieldset legend{
+text-align: center;
+color: gray;
+padding: 5px;
+font-size:10px;
+text-transform:uppercase;
+}
+
+.data-request-form-container .set-header{padding:5px;cursor:pointer;}
+.data-request-form-container .set-header label,
+.data-request-form-container .select-all,
+.data-request-form-container .clear-all{cursor:pointer;}
+
+.data-request-form-container .field-notes{font-size:12px;margin-top:5px;margin-bottom:5px;color: #666666}
+.data-request-form-container .expected_output {margin-bottom:5px;}
+.data-request-form-container .lic-request-form .note{background:#CCCCCC;border:0px;}
+.data-request-form-container .bull-list{margin-top:10px;}
+.data-request-form-container .ds_access{margin-top:10px;margin-left:10px;}
+
+
+/*remote data access*/
+.remote-data-access .remote-access-link{background-color:#F3F3F3;border:1px solid gainsboro;padding:5px;}
+.remote-data-access a:link{color:navy;}
+.remote-data-access a:link:hover{color:maroon;}
+
+/*
+ * 7. Tabs
+ */
+/*tab style 1 - collections, study-info*/
+.ui-widget,
+.tab-style-1 .ui-widget{
+    font:13px/1.231 'Open Sans', arial,helvetica,clean,sans-serif
+}
+
+.tab-style-1 .ui-tabs { border:0px; }
+
+.tab-style-1 .tab-heading {
+    text-align: left;
+    padding: 10px;
+    padding-bottom: 40px;
+    z-index: -1;
+    padding-left: 20px;
+    font-size:small;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav{
+    border:0px;
+    margin:0;
+    /*border-bottom: 1px solid #0088cc;*/
+            border-radius: 0;
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-panel{
+    background:white;
+    border:0;
+    overflow:auto;
+	border-top:1px solid #0088cc;
+    padding: 30px 0;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li.ui-state-active {
+    position: relative;
+
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li a {
+    color: #0088cc;
+    font-size: 14px;
+    text-transform:uppercase;
+    margin: 0 5px;
+}
+
+/*active tab*/
+.tab-style-1 .ui-tabs .ui-tabs-nav li.ui-state-active a {
+	color: #00b6f5;
+	margin-bottom:0px;
+    border-bottom: 4px solid #0088cc;
+}
+
+/*set tab borders*/
+.tab-style-1 .ui-tabs .ui-tabs-nav li a, 
+.tab-style-1 .ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-active a{
+	border-bottom: 0px;
+	background:white;
+	padding:5px 23px;
+	line-height:140%;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li {
+    margin:0;
+	border: 0px;
+	font-size:13px;
+    background: none;
+}
+
+.tab-style-1 .ui-tabs .ui-tabs-nav li.ui-tabs-active{
+    margin: 0;
+    padding:0;
+}
+
+.tab-style-1 .tab-body{
+    font-size:small;
+    margin-left:170px;
+    border-left:1px solid gainsboro;padding-left:20px;
+}
+
+.ui-widget-content a,
+.ui-widget-content h3 a,
+.tab-style-1 .ui-widget-content a:link{ color:#0088cc;}
+
+.ui-widget-content a:hover,
+.ui-widget-content h3 a:hover,
+.tab-style-1 .ui-widget-content a:link:hover{ color:#00b6f5;}
+
+.pagination .page-nums a {border:1px soild black;}
+
+/*
+ * 8. Login page
+ */
+.login-header{
+	clear: both;
+	height:60px;
+	overflow:hidden;
+	background:#000066;
+}
+
+.nada-login .login-header .title, 
+.nada-login .login-header .title a{
+	font-size:18px;color:white;padding:16px;
+}
+
+.nada-login .login-box{ margin-right:30px; }
+
+.nada-login h1{ 
+    font-size:16px;
+    font-weight:bold;
+    border-bottom:1px dotted gainsboro;
+    margin-bottom:20px;
+    padding-bottom:5px;
+}
+
+.reason{
+    font-size:16px;
+    padding:10px;
+    background-color:#FFFFCC;
+    border:1px solid #FFCC66;
+    margin-bottom:40px;
+}
+
+.privacy-info{
+    font-size:11px; 
+    color:#666666;
+    padding:5px;
+    margin-top:20px;
+    line-height: 160%;
+}
+
+.login-footer .ot{
+    margin-left:25px;
+    font-size:smaller;
+}
+
+.login-footer .first{
+    border-right:1px solid gainsboro;
+    padding-right:10px;
+    margin-right:5px;
+}
+
+.captcha_container .image_captcha{ margin-top:15px; }
+
+.captcha_container .image_captcha label{ margin-top:15px; }
+
+.captcha_container{ margin-bottom:15px; }
+
+.content-unpublished{background:red;padding:15px;color:white;font-size:16px;margin-bottom:15px;}
+
+/*
+ * 9. Home
+ */
+.is-home #mt-header {
+    margin-bottom:28px;
+}
+
+.is-home .breadcrumbs{
+    display:none;
+}
+.is-home .left-col{
+    padding-right:20px;
+    padding-right:20px;
+}
+
+.is-home .right-col{
+    width:230px;
+}
+
+/* 
+ * 10. Sidebar and boxes
+ */
+.left-col .box-style-1 .view-more{
+    padding: 15px;
+    text-align: center;
+    padding: 35px 15px 10px 35px;
+    font-weight: bold;
+}
+
+.box-style-1.featured{
+    background: #f3f3f3;
+}
+
+.box-style-1.featured .block{
+    float:left;
+    width:33%;
+}
+
+.box-style-1.featured .block .header{
+    font-size: 19px;
+    border:0;
+    padding: 15px 10px 0 10px;
+}
+
+.box-style-1.featured .block .content{
+    padding:15px;
+}
+
+/* 
+ * 11. Bootstrap button 
+ */
+a.btn-primary{
+    border: 0;
+            border-radius: 0;
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+    background: #0088cc;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: normal;
+    text-shadow: inherit;
+    padding: 9px 30px;
+    min-width: 145px;
+    
+    -webkit-box-shadow: inherit;
+       -moz-box-shadow: inherit;
+            box-shadow: inherit;
+}
+
+.ui-widget-content a.btn-primary,
+.tab-style-1 .ui-widget-content a.btn-primary,
+.ui-widget-content a.btn-primary:hover,
+.tab-style-1 .ui-widget-content a.btn-primary:hover
+{
+    color: #ffffff;
+}
+
+a.btn-primary:after{
+    content:"»";
+    padding-left: 4px;
+}
+
+a.btn-primary:hover{
+    background-color: #00b6f5;
+    color: #ffffff;
+}
+
+/* 
+ * 12. Grid table 
+ */
+.grid-table{
+    border-top: 2px solid #dcdcdc;
+    border-bottom: 2px solid #dcdcdc;
+    font-size: 11px;
+}
+
+/* http://www.w3.org/Style/Examples/007/evenodd.en.html */  
+.grid-table tr:nth-child(even) {
+    background: #ffffff;
+}
+
+.grid-table tr:nth-child(odd) {
+    background: #ececec;
+}
+
+.grid-table tr th,
+.grid-table tr.header th{
+    border:0;
+    color: #333333;
+}
+
+.grid-table tr th,
+.grid-table tr td{
+    border:0;
+}
+
+.grid-table a {
+    color:#0088cc;
+}
+
+.grid-table a:hover {
+    color: #00b6f5;
+}
+
+.grid-table.profile{
+    border-top: 12px solid #f3f3f3;
+    border-bottom: 12px solid #f3f3f3;
+}
+
+.grid-table.profile tr:nth-child(even),
+.grid-table.profile tr:nth-child(odd) {
+    background: #f3f3f3;
+}
+
+.grid-table tr td.label{
+    color: #898989;
+    width: 75px;
+    text-align: right;
+    padding: 6px 30px 6px 5px;
+    font-size: 12px;
+}
+
+/*
+ * 13. H2 edit link
+ *
+ * Profile page
+ * http://localhost:8888/mtp-nada/app/index.php/auth/profile
+ */
+h2 span.profile-edit{
+    font-size:10px;
+    margin-left: 25px;
+    line-height: 100%;
+}
+
+/* 
+ * 14. Citations page
+ *
+ * Central Data Catalog
+ * http://localhost:8888/mtp-nada/app/index.php/citations/?collection=central
+ */
+.sort-links{
+    font-size:10px;
+    padding: 10px 0;
+}
+
+.sort-links a{
+    font-weight:bold;
+    border-left: 1px solid #97a7b1; 
+    padding: 0px 10px 0px 10px;
+    display:inline-block;
+    text-decoration:none;
+}
+
+.sort-links a:first-child {
+    margin-left: 10px;
+}
+
+.citation-rows .alternate {
+    background: #f2f2f2;
+}
+
+.search-box{
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f3f3f3;
+}
+
+.search-box select#field{
+    /* Central Data Catalog / Citacions page */
+    margin: 0 10px;
+    position: relative;
+    top: -1px;
+}
+
+.pagination {
+    font-size: 12px;
+    margin: 2px 0px;
+    padding: 10px 0;
+    line-height: 21px;
+    border-top: 1px solid #dcdcdc;
+    border-bottom: 1px solid #dcdcdc;
+}
+.pagination {
+    background-color: #ffffff;
+    text-align:inherit;
+}
+
+.pagination em {
+    text-align:center;
+}
+
+.pagination .page-nums{
+    text-align: center;
+    display: inline-block;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+.pagination strong,
+.pagination a{
+    color: #596c71; 
+    font-weight: normal;
+    background: #ffffff;
+            border-radius: 0;
+    -webkit-border-radius: 0;
+       -moz-border-radius: 0;
+    display: inline-block;
+    /*width: 15px;*/
+    height: 15px;
+    line-height: 15px;
+    border:0;
+    margin: 0 3px;
+}
+.pagination strong{
+    color: #FFFFFF;
+    background:#0088cc;
+}
+
+.pagination a:hover {
+    background-color: #00b6f5;
+    color: white;
+    text-decoration:none;
+}
+
+.ui-widget-content .pagination a:hover, 
+.tab-style-1 .ui-widget-content .pagination a:link:hover {
+    color: #ffffff;
+    text-decoration:none;
+}
+
+/* citations page (externalized rules) */
+.page-citations{
+	padding:10px;
+}
+
+.page-citations .grid-table .citation-title{font-weight:normal;}
+.page-citations .grid-table .citation-subtitle{ font-style:italic}
+.page-citations .sort-links a{
+
+}
+
+.page-citations .pagination{}
+.page-citations .citation-row{padding:10px;color:#333333; }
+.page-citations em{font-style:normal}
+.page-citations .sub-title{font-style:italic;}
+.page-citations .citation-rows .alternate{background:#F5F5F5}
+.page-citations .citation-row:hover {
+	cursor:pointer;	
+	background: #fafafa;
+	z-index:100;
+}
+.page-citations .citation-row{position:relative;clear:both;overflow:hidden;}
+.page-citations .citation-row .page-num{width:40px;float:left;display:block;height:20px;color:grainsboro;}
+.page-citations .citation-row .row-body{float:left;width:90%;overflow:hidden;}
+
+/*
+ * 15. About page(s)
+ *  
+ * http://localhost:8888/mtp-nada/app/index.php/catalog/central/about
+ * http://localhost:8888/mtp-nada/app/index.php/catalog/afr/about
+ */
+
+/* About / Detail */
+.repository-container .photo-big {
+    float: left;
+    margin-right: 20px;
+}
+
+/* collection about page */
+.repository-container {
+
+}
+
+.visit-catalog{
+    clear:both;
+    text-align:right;
+	margin:10px;
+}
+
+.repository-container a.color-white,
+.repository-container .tab-style-1 .ui-widget-content a.color-white{
+	color:white;
+}
+
+.repository-container ul.bull,
+.repository-container .bull li{
+	list-style-type:disc;
+	margin-left:20px;
+}
+
+.repository-container ul.bull{
+	margin-bottom:10px;
+}
+
+/* these rules are neutrilized by some inlice css rules
+   for this purpose the inline-catalog-overrides.css is used. 
+   
+   See: NADA-282
+*/
+.contributing-repos h2 {
+    margin-top: 40px;
+    margin-bottom: 5px;
+    color: #464646;
+    font-size: 19px;
+}
+
+.repo-table td {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+.repo-table td h3{
+    margin-bottom: 7px;
+}
+
+.repo-table td.text p{
+    margin-bottom: 0;
+}
+
+.thumb {
+    padding-right: 20px;
+}
+.thumb img {
+    padding-bottom: 0;
+    width: 82px;
+    height:auto;
+}
+
+.visit-catalog {
+    margin: 20px 0;
+}
+
+
+/* /inline-catalog-overrides.css rules */
+
+
+/* 
+ * 16. Central Data Catalog / Datasets 
+ */ 
+#facets.yui-b {
+    float: left;
+    width: 240px;
+}
+
+.yui-t7 #yui-main .yui-b {
+    margin-left: 260px;
+}
+
+.yui-t7 #yui-main {
+    float: right;
+    margin-left: -240px;
+}
+
+/* data catalog tabs */
+.study-tabs .ui-tabs-nav{
+	background:none;margin-top:0;border-bottom:1px solid gainsboro;
+}
+
+/* sidebar inside jq tabs */
+.ui-tabs-panel .tab-sidebar-container {
+	overflow:hidden;clear:both
+}
+
+/*
+ * 17. Pagination icons
+ */
+.pagination .first a,
+.pagination .prev a,
+.pagination .next a,
+.pagination .last a{
+    display: inline-block;
+    width: 16px;
+    text-indent: -9999px;
+}
+
+.pagination .first a:hover,
+.pagination .prev a:hover,
+.pagination .next a:hover,
+.pagination .last a:hover{
+    
+}
+
+.pagination .first a{
+    background: url(icons/pagination-first.png) no-repeat 3px 2px transparent;
+}
+
+.pagination .prev a{
+    background: url(icons/pagination-previous.png) no-repeat 3px 2px transparent;
+}
+.pagination .next a{
+    background: url(icons/pagination-next.png) no-repeat 3px 2px transparent;
+}
+
+.pagination .last a{
+    background: url(icons/pagination-last.png) no-repeat 3px 2px transparent;
+}
+
+/* share bar*/
+.share-bar-container{position:relative;text-align:right;border:0px solid blue;margin-left:auto;margin-right:0px;z-index:100;height:35px;}
+ul.share-bar{position:absolute;border:0px solid red;height:30px;width:auto;text-align:left;right:0px;z-index:999}
+ul.share-bar li{float:left;margin-left:3px;border:0px solid blue;padding:5px;position:relative;height:24px;vertical-align:baseline}
+ul.share-bar .item-body{position:absolute;height:100px;width:100px;background:white;border:2px solid #CCCCCC;right:0px;z-index:100}
+
+ul.share-bar ul{display:none;position:absolute;width:220px;background:#F7F7F7;right:0px;top:24px;padding:10px;border:4px solid #CCCCCC;z-index:1000}
+ul.share-bar ul li{float:left;width:45%;font-size:11px;margin:0px;padding:5px;}
+ul.share-bar ul li:hover{background-color:#FBFBFB; cursor:pointer}
+ur.share-bar ul li img{vertical-align:baseline}
+ul.share-bar li.active ul{display:block;}
+ul.share-bar li.active{background-color:#CCCCCC}
+a.share{background:url("../../images/shared_open.gif") no-repeat left center;padding-left:20px;color:#999999;text-transform:uppercase;font-size:11px}
+.active a.share{background:url("../../images/shared_close.gif") no-repeat left center;color:black;}
+ul.share-bar img{vertical-align:baseline}
+
+
+.related-citations .citations-found {
+	float:right;
+	width:30%;
+	text-align:right;
+    font-size: 10px;
+}	
+
+
+/* repository about page */
+.contributing-repos .repo-table td{
+	padding-top:20px;
+	padding-bottom:20px;
+	border-bottom:1px solid gainsboro;
+	font-size:12px;
+	line-height:140%;
+}
+.contributing-repos .thumb{padding-right:10px;padding-bottom:5px;}
+.contributing-repos .thumb img{padding-bottom:10px;}
+.contributing-repos .page-title{border-bottom:1px solid gainsboro;}
+.contributing-repos h2 {
+	border-bottom:0px solid gainsboro;
+	font-family:Arial, Helvetica, sans-serif; 
+	text-transform:uppercase; 
+	font-weight:normal; 
+	word-spacing:110%;
+	margin-top:40px;
+    margin-bottom: 5px;
+    color: #464646;
+    font-size: 19px;
+
+}
+.contributing-repos p a, .central-repo p a{color:black;}
+.contributing-repos p a:hover, .central-repo p a:hover{text-decoration:underline}
+
+.contributing-repos .repo-table td h3{
+    margin-bottom: 7px;
+}
+
+.contributing-repos .repo-table td.text p{
+    margin-bottom: 0;
+}
+
+.contributing-repos .thumb {
+    padding-right: 20px;
+}
+.contributing-repos .thumb img {
+    padding-bottom: 0;
+    width: 82px;
+    height:auto;
+}
+

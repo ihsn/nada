@@ -2,8 +2,7 @@
 $lang['site_logs']="Логи сайта";
 $lang['logtype']="Тип";
 $lang['section']="Раздел";
-$lang['url']=" 
-URL ";
+$lang['url']="URL ";
 $lang['keywords']="Ключевые слова";
 $lang['user']="Пользователь ";
 $lang['ip_address']="IP адрес";

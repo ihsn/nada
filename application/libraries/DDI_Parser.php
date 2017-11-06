@@ -104,9 +104,21 @@ class DDI_Parser{
 			}
 		}				
 		$reader->close();
-		
+
 		return $codebook_id;
 	}
+
+    //returns the DDI Study ID
+    public function get_ddi_study_id($ddi_file)
+    {
+        $this->ddi_file=$ddi_file;
+        $study_array=$this->get_study_array();
+
+        if ($study_array)
+        {
+            return $study_array['id'];
+        }
+    }
 	
 
 	/**
@@ -208,7 +220,7 @@ class DDI_Parser{
 			}
 		}				
 		$reader->close();
-		
+
 		//basic DDI validation
 		if (!isset($output['ID']) || !isset($output['version']))
 		{
@@ -228,11 +240,6 @@ class DDI_Parser{
 		$xslt=APPPATH.'../xslt/study_parser.xslt';
 		$output=xsl_transform($xml,$xslt,$parameters=NULL, $format="xml");
 
-		//var_dump($output);exit;
-		//cleanup the output for whitespaces,xml header
-		//$output=trim(str_replace('<?xml version="1.0" encoding="UTF-8"? >','',$output));
-		//$output=str_replace("\n",' ',$output);
-		
 		//read into SIMPLE XML
 		$xmlObj = simplexml_load_string($output);
 		
@@ -419,31 +426,6 @@ class DDI_Parser{
 	}
 	
 	
-	/*	
-	//array of variable xml data
-	function _put_parsed_variables($var_xml,$file_path)
-	{
-		//get an array of variables
-		$variables=$this->_transform_var( '<codeBook>'.implode('',$var_xml).'</codeBook>' );
-		
-		$csv_data='';
-		
-		//iterate variables
-		foreach($variables as $variable)
-		{
-			//process variable row
-			foreach($variable as $value)		
-			{
-				$csv_data .= '"'.$value.'",';
-			}
-			$csv_data .= "\015\012";
-		}
-		
-		//write to a file for import
-		file_put_contents($file_path,$csv_data,FILE_APPEND);		
-	}
-	*/
-
 	/**
 	* Converts Objects into Array
 	*

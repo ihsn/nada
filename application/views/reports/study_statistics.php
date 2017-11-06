@@ -21,7 +21,7 @@
 <?php if ($rows):?>
     <table class="report-table" style="width:100%;">
     	<tr>
-            <th><?php echo t('username');?></th>
+            <th><?php echo t('title');?></th>
             <th><?php echo t('updated');?></th>
             <th><?php echo t('variables');?></th>
             <th><?php echo t('access_type');?></th>

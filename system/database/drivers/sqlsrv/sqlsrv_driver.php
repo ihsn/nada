@@ -1,225 +1,207 @@
-<?php  if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 4.3.2 or newer
+ * An open source application development framework for PHP
  *
- * @package		CodeIgniter
- * @author		Rick Ellis
- * @copyright	Copyright (c) 2006, EllisLab, Inc.
- * @license		http://www.codeignitor.com/user_guide/license.html
- * @link		http://www.codeigniter.com
- * @since		Version 1.0
+ * This content is released under the MIT License (MIT)
+ *
+ * Copyright (c) 2014 - 2017, British Columbia Institute of Technology
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @package	CodeIgniter
+ * @author	EllisLab Dev Team
+ * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
+ * @copyright	Copyright (c) 2014 - 2017, British Columbia Institute of Technology (http://bcit.ca/)
+ * @license	http://opensource.org/licenses/MIT	MIT License
+ * @link	https://codeigniter.com
+ * @since	Version 2.0.3
  * @filesource
  */
-
-// ------------------------------------------------------------------------
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * SQLSRV Database Adapter Class
- * (Note: This driver is intended for MSSQL Server 2005 onwards)
  *
- * NOTES:
- * ------
- *
- * This driver was written as Microsoft have announced that they do not
- * support the php_mssql.dll driver that utilises ntwdblib.dll in conjunction
- * with SQL Server 2005.  It is designed to use the new php_sqlsrv.dll driver
- * produced by the SQL Connectivity group at Microsoft.
- *
- * There is a user guide posted at MSDN at:
- * http://msdn.microsoft.com/en-us/library/ee229548%28SQL.10%29.aspx
- *
- * I strongly recommend you check the requirements at the URL below before you
- * start using this - it may save you a bunch of time.
- * http://msdn.microsoft.com/en-us/library/cc296170%28SQL.90%29.aspx
- *
+ * Note: _DB is an extender class that the app controller
+ * creates dynamically based on whether the query builder
+ * class is being used or not.
  *
  * @package		CodeIgniter
  * @subpackage	Drivers
  * @category	Database
- * @author		Jon Ellis-Jones <jon@kaweb.co.uk>
- * @link		http://www.phrenzy.org/code/sql-server-and-php
- * @link		http://www.kaweb.co.uk/blog/mssql-server-2005-and-codeigniter
- * @link		http://codeigniter.com/forums/viewthread/86023/
- * @version		1.1
- *
- * -----------------------------------------------------------------------------
- * 
- * Special thanks to Julian Magnone <jmagnone@mgnn.com> for some additional code
- * and fixes to the 1.0 driver.
- *
+ * @author		EllisLab Dev Team
+ * @link		https://codeigniter.com/user_guide/database/
  */
 class CI_DB_sqlsrv_driver extends CI_DB {
 
-var	$_escape_char = '';
-    var $_like_escape_str = " ESCAPE '%s' ";
-    var $_like_escape_chr = '!';    
-    var $_count_string = "SELECT COUNT(*) AS ";
-    var $_random_keyword = ' ASC'; // not currently supported 	
 	/**
-	 * db_connect
-	 * 
-	 * Connect to a database and product a connection resource
+	 * Database driver
 	 *
-	 * @access	private called by the base class
-	 * @return	resource
-	 */	
-	function db_connect($pooling = false)
-	{
-		// Check for a UTF-8 charset being passed as CI's default 'utf8'.
-		$character_set = (0 === strcasecmp('utf8', $this->char_set)) ? 'UTF-8' : $this->char_set;
+	 * @var	string
+	 */
+	public $dbdriver = 'sqlsrv';
 
-		$connection = array(
-			'UID'				=> empty($this->username) ? '' : $this->username,
-			'PWD'				=> empty($this->password) ? '' : $this->password,
-			'Database'			=> $this->database,
-			'ConnectionPooling' => $pooling ? 1 : 0,
-			'CharacterSet'		=> $character_set
-		);
-		
-		// If the username and password are both empty, assume this is a 
-		// 'Windows Authentication Mode' connection.
-		if(empty($connection['UID']) && empty($connection['PWD'])) {
-			unset($connection['UID'], $connection['PWD']);
-		}
+	/**
+	 * Scrollable flag
+	 *
+	 * Determines what cursor type to use when executing queries.
+	 *
+	 * FALSE or SQLSRV_CURSOR_FORWARD would increase performance,
+	 * but would disable num_rows() (and possibly insert_id())
+	 *
+	 * @var	mixed
+	 */
+	public $scrollable;
 
-		return sqlsrv_connect($this->hostname, $connection);
-	}
-	
-	
 	// --------------------------------------------------------------------
 
 	/**
-	 * Persistent database connection
+	 * ORDER BY random keyword
 	 *
-	 *	You cannot really specify persistance using the SQLSRV driver.  The
-	 * closest is connection pooling, so we pass this to the main connect
-	 * function instead.
+	 * @var	array
+	 */
+	protected $_random_keyword = array('NEWID()', 'RAND(%d)');
+
+	/**
+	 * Quoted identifier flag
 	 *
-	 * @access	private called by the base class
-	 * @return	resource
-	 */	
-	function db_pconnect()
+	 * Whether to use SQL-92 standard quoted identifier
+	 * (double quotes) or brackets for identifier escaping.
+	 *
+	 * @var	bool
+	 */
+	protected $_quoted_identifier = TRUE;
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Class constructor
+	 *
+	 * @param	array	$params
+	 * @return	void
+	 */
+	public function __construct($params)
 	{
-		return $this->db_connect(true);
+		parent::__construct($params);
+
+		// This is only supported as of SQLSRV 3.0
+		if ($this->scrollable === NULL)
+		{
+			$this->scrollable = defined('SQLSRV_CURSOR_CLIENT_BUFFERED')
+				? SQLSRV_CURSOR_CLIENT_BUFFERED
+				: FALSE;
+		}
 	}
 
-	
+	// --------------------------------------------------------------------
+
+	/**
+	 * Database connection
+	 *
+	 * @param	bool	$pooling
+	 * @return	resource
+	 */
+	public function db_connect($pooling = FALSE)
+	{
+		$charset = in_array(strtolower($this->char_set), array('utf-8', 'utf8'), TRUE)
+			? 'UTF-8' : SQLSRV_ENC_CHAR;
+
+		$connection = array(
+			'UID'			=> empty($this->username) ? '' : $this->username,
+			'PWD'			=> empty($this->password) ? '' : $this->password,
+			'Database'		=> $this->database,
+			'ConnectionPooling'	=> ($pooling === TRUE) ? 1 : 0,
+			'CharacterSet'		=> $charset,
+			'Encrypt'		=> ($this->encrypt === TRUE) ? 1 : 0,
+			'ReturnDatesAsStrings'	=> 1
+		);
+
+		// If the username and password are both empty, assume this is a
+		// 'Windows Authentication Mode' connection.
+		if (empty($connection['UID']) && empty($connection['PWD']))
+		{
+			unset($connection['UID'], $connection['PWD']);
+		}
+
+		if (FALSE !== ($this->conn_id = sqlsrv_connect($this->hostname, $connection)))
+		{
+			// Determine how identifiers are escaped
+			$query = $this->query('SELECT CASE WHEN (@@OPTIONS | 256) = @@OPTIONS THEN 1 ELSE 0 END AS qi');
+			$query = $query->row_array();
+			$this->_quoted_identifier = empty($query) ? FALSE : (bool) $query['qi'];
+			$this->_escape_char = ($this->_quoted_identifier) ? '"' : array('[', ']');
+		}
+
+		return $this->conn_id;
+	}
+
 	// --------------------------------------------------------------------
 
 	/**
 	 * Select the database
 	 *
-	 *	Not required by the SQLSRV driver, as a database is selected on
-	 * connection.  You cannot switch databases, a new connection must be made.
-	 *
-	 * @access	private called by the base class
-	 * @return	resource
-	 */	
-	function db_select()
-	{
-		return true;
-	}
-
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set client character set
-	 *
-	 *	Not required by SQLSRV driver.  The character set is passed during the
-	 * initial connection.  You cannot switch character sets, a new connection
-	 * must be made.
-	 *
-	 * @access	private
-	 * @param	string
-	 * @return	boolean
+	 * @param	string	$database
+	 * @return	bool
 	 */
-	function _db_set_charset($charset)
+	public function db_select($database = '')
 	{
-		return true;
+		if ($database === '')
+		{
+			$database = $this->database;
+		}
+
+		if ($this->_execute('USE '.$this->escape_identifiers($database)))
+		{
+			$this->database = $database;
+			$this->data_cache = array();
+			return TRUE;
+		}
+
+		return FALSE;
 	}
-	
-	
-	// --------------------------------------------------------------------
-	
-	/**
-	 * Version number query string
-	 *
-	 * @access	public
-	 * @return	string
-	 */
-	function _version()
-	{
-		$info = sqlsrv_server_info($this->conn_id);
-		return sprintf("select '%s' as ver", $info['SQLServerVersion']);
-	}
-	
-	
+
 	// --------------------------------------------------------------------
 
 	/**
 	 * Execute the query
 	 *
-	 * @todo	allow for parameterized queries
-	 * @access	private called by the base class
-	 * @param	string	an SQL query
+	 * @param	string	$sql	an SQL query
 	 * @return	resource
-	 */	
-	function _execute($sql)
+	 */
+	protected function _execute($sql)
 	{
-		$sql = $this->_prep_query($sql);
-		return sqlsrv_query($this->conn_id, $sql, null, array(
-			'Scrollable'				=> SQLSRV_CURSOR_STATIC,
-			'SendStreamParamsAtExec'	=> true
-		));
+		return ($this->scrollable === FALSE OR $this->is_write_type($sql))
+			? sqlsrv_query($this->conn_id, $sql)
+			: sqlsrv_query($this->conn_id, $sql, NULL, array('Scrollable' => $this->scrollable));
 	}
-	
-	
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prep the query
-	 *
-	 * If needed, each database adapter can prep the query string
-	 *
-	 * @access	private called by execute()
-	 * @param	string	an SQL query
-	 * @return	string
-	 */	
-	function _prep_query($sql)
-	{
-		return $sql;
-	}
-
 
 	// --------------------------------------------------------------------
 
 	/**
 	 * Begin Transaction
 	 *
-	 * @access	public
-	 * @return	bool		
-	 */	
-	function trans_begin($test_mode = FALSE)
+	 * @return	bool
+	 */
+	protected function _trans_begin()
 	{
-		if ( ! $this->trans_enabled)
-		{
-			return TRUE;
-		}
-		
-		// When transactions are nested we only begin/commit/rollback the outermost ones
-		if ($this->_trans_depth > 0)
-		{
-			return TRUE;
-		}
-
-		// Reset the transaction failure flag.
-		// If the $test_mode flag is set to TRUE transactions will be rolled back
-		// even if the queries produce a successful result.
-		$this->_trans_failure = ($test_mode === TRUE) ? TRUE : FALSE;
-		
 		return sqlsrv_begin_transaction($this->conn_id);
 	}
 
@@ -228,22 +210,10 @@ var	$_escape_char = '';
 	/**
 	 * Commit Transaction
 	 *
-	 * @access	public
-	 * @return	bool		
-	 */	
-	function trans_commit()
+	 * @return	bool
+	 */
+	protected function _trans_commit()
 	{
-		if ( ! $this->trans_enabled)
-		{
-			return TRUE;
-		}
-
-		// When transactions are nested we only begin/commit/rollback the outermost ones
-		if ($this->_trans_depth > 0)
-		{
-			return TRUE;
-		}
-		
 		return sqlsrv_commit($this->conn_id);
 	}
 
@@ -252,90 +222,59 @@ var	$_escape_char = '';
 	/**
 	 * Rollback Transaction
 	 *
-	 * @access	public
-	 * @return	bool		
-	 */	
-	function trans_rollback()
+	 * @return	bool
+	 */
+	protected function _trans_rollback()
 	{
-		if ( ! $this->trans_enabled)
-		{
-			return TRUE;
-		}
-
-		// When transactions are nested we only begin/commit/rollback the outermost ones
-		if ($this->_trans_depth > 0)
-		{
-			return TRUE;
-		}
-
 		return sqlsrv_rollback($this->conn_id);
 	}
-	
-	// --------------------------------------------------------------------
 
-	/**
-	 * Escape String
-	 *
-	 * @access	public
-	 * @param	string
-	 * @return	string
-	 */
-	function escape_str($str)	
-	{	
-		// Escape single quotes
-		return str_replace("'", "''", $str);
-	}
-	
 	// --------------------------------------------------------------------
 
 	/**
 	 * Affected Rows
 	 *
-	 * @access	public
-	 * @return	integer
+	 * @return	int
 	 */
-	function affected_rows()
+	public function affected_rows()
 	{
-		return @sqlsrv_rows_affected($this->conn_id);
+		return sqlsrv_rows_affected($this->result_id);
 	}
-	
+
 	// --------------------------------------------------------------------
 
 	/**
 	 * Insert ID
 	 *
-	 * @access	public
-	 * @return	integer
+	 * Returns the last id created in the Identity column.
+	 *
+	 * @return	string
 	 */
-	function insert_id()
+	public function insert_id()
 	{
-		return $this->query('select @@IDENTITY as insert_id')->row('insert_id');
+		return $this->query('SELECT SCOPE_IDENTITY() AS insert_id')->row()->insert_id;
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * "Count All" query
+	 * Database version number
 	 *
-	 * Generates a platform-specific query string that counts all records in
-	 * the specified database
-	 *
-	 * @access	public
-	 * @param	string
 	 * @return	string
 	 */
-	function count_all($table = '')
+	public function version()
 	{
-		if ($table == '')
-			return '0';
-	
-		$query = $this->query("SELECT COUNT(*) AS numrows FROM " . $this->dbprefix . $table);
-		
-		if ($query->num_rows() == 0)
-			return '0';
+		if (isset($this->data_cache['version']))
+		{
+			return $this->data_cache['version'];
+		}
 
-		$row = $query->row();
-		return $row->numrows;
+		if ( ! $this->conn_id OR ($info = sqlsrv_server_info($this->conn_id)) === FALSE)
+		{
+			return FALSE;
+		}
+
+		return $this->data_cache['version'] = $info['SQLServerVersion'];
 	}
 
 	// --------------------------------------------------------------------
@@ -345,12 +284,22 @@ var	$_escape_char = '';
 	 *
 	 * Generates a platform-specific query string so that the table names can be fetched
 	 *
-	 * @access	private
-	 * @return	string
+	 * @param	bool
+	 * @return	string	$prefix_limit
 	 */
-	function _list_tables()
+	protected function _list_tables($prefix_limit = FALSE)
 	{
-		return "SELECT name FROM sysobjects WHERE type = 'U' ORDER BY name";		
+		$sql = 'SELECT '.$this->escape_identifiers('name')
+			.' FROM '.$this->escape_identifiers('sysobjects')
+			.' WHERE '.$this->escape_identifiers('type')." = 'U'";
+
+		if ($prefix_limit === TRUE && $this->dbprefix !== '')
+		{
+			$sql .= ' AND '.$this->escape_identifiers('name')." LIKE '".$this->escape_like_str($this->dbprefix)."%' "
+				.sprintf($this->_escape_like_str, $this->_escape_like_chr);
+		}
+
+		return $sql.' ORDER BY '.$this->escape_identifiers('name');
 	}
 
 	// --------------------------------------------------------------------
@@ -360,140 +309,87 @@ var	$_escape_char = '';
 	 *
 	 * Generates a platform-specific query string so that the column names can be fetched
 	 *
-	 * @access	private
-	 * @param	string	the table name
+	 * @param	string	$table
 	 * @return	string
 	 */
-	function _list_columns($table = '')
+	protected function _list_columns($table = '')
 	{
-		return "SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME = '".$this->_escape_table($table)."'";	
+		return 'SELECT COLUMN_NAME
+			FROM INFORMATION_SCHEMA.Columns
+			WHERE UPPER(TABLE_NAME) = '.$this->escape(strtoupper($table));
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Field data query
+	 * Returns an object with field data
 	 *
-	 * Generates a platform-specific query so that the column data can be retrieved
-	 *
-	 * @access	public
-	 * @param	string	the table name
-	 * @return	object
+	 * @param	string	$table
+	 * @return	array
 	 */
-	function _field_data($table)
+	public function field_data($table)
 	{
-		return "SELECT TOP 1 * FROM " . $this->_escape_table($table);	
-	}
+		$sql = 'SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, COLUMN_DEFAULT
+			FROM INFORMATION_SCHEMA.Columns
+			WHERE UPPER(TABLE_NAME) = '.$this->escape(strtoupper($table));
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * The error message string
-	 *
-	 * @access	private
-	 * @return	string
-	 */
-	function _error_message()
-	{
-		$errors_array=sqlsrv_errors();
-		$error=false;
-		if (is_array($errors_array))
+		if (($query = $this->query($sql)) === FALSE)
 		{
-			$error = array_shift($errors_array);
-		}	
-		return !empty($error['message']) ? $error['message'] : null;
-	}
-	
-	// --------------------------------------------------------------------
-
-	/**
-	 * The error message number
-	 *
-	 * @access	private
-	 * @return	integer
-	 */
-	function _error_number()
-	{
-		$error = array_shift(sqlsrv_errors());
-		return isset($error['SQLSTATE']) ? $error['SQLSTATE'] : null;
-	}
-	
-	// --------------------------------------------------------------------
-
-	/**
-	 * Escape Table Name
-	 *
-	 * This function adds backticks if the table name has a period
-	 * in it. Some DBs will get cranky unless periods are escaped
-	 *
-	 * @access	private
-	 * @param	string	the table name
-	 * @return	string
-	 */
-	function _escape_table($table)
-	{
-		return $table;
-	}	
-
-
-
-	/**
-	 * Escape the SQL Identifiers
-	 *
-	 * This function escapes column and table names
-	 *
-	 * @access	private
-	 * @param	string
-	 * @return	string
-	 */
-	function _escape_identifiers($item)
-	{
-		return $item;
-	}
-
-
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * From Tables
-	 *
-	 * This function implicitly groups FROM tables so there is no confusion
-	 * about operator precedence in harmony with SQL standards
-	 *
-	 * @access	public
-	 * @param	type
-	 * @return	type
-	 */
-	function _from_tables($tables)
-	{
-		if(!is_array($tables)) {
-			$tables = array($tables);
+			return FALSE;
 		}
-		
-		return implode(', ', $tables);
+		$query = $query->result_object();
+
+		$retval = array();
+		for ($i = 0, $c = count($query); $i < $c; $i++)
+		{
+			$retval[$i]			= new stdClass();
+			$retval[$i]->name		= $query[$i]->COLUMN_NAME;
+			$retval[$i]->type		= $query[$i]->DATA_TYPE;
+			$retval[$i]->max_length		= ($query[$i]->CHARACTER_MAXIMUM_LENGTH > 0) ? $query[$i]->CHARACTER_MAXIMUM_LENGTH : $query[$i]->NUMERIC_PRECISION;
+			$retval[$i]->default		= $query[$i]->COLUMN_DEFAULT;
+		}
+
+		return $retval;
 	}
 
-
-	
 	// --------------------------------------------------------------------
 
 	/**
-	 * Insert statement
+	 * Error
 	 *
-	 * Generates a platform-specific insert string from the supplied data
+	 * Returns an array containing code and message of the last
+	 * database error that has occurred.
 	 *
-	 * @access	public
-	 * @param	string	the table name
-	 * @param	array	the insert keys
-	 * @param	array	the insert values
-	 * @return	string
+	 * @return	array
 	 */
-	function _insert($table, $keys, $values)
-	{	
-		return "INSERT INTO ".$this->_escape_table($table)." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+	public function error()
+	{
+		$error = array('code' => '00000', 'message' => '');
+		$sqlsrv_errors = sqlsrv_errors(SQLSRV_ERR_ERRORS);
+
+		if ( ! is_array($sqlsrv_errors))
+		{
+			return $error;
+		}
+
+		$sqlsrv_error = array_shift($sqlsrv_errors);
+		if (isset($sqlsrv_error['SQLSTATE']))
+		{
+			$error['code'] = isset($sqlsrv_error['code']) ? $sqlsrv_error['SQLSTATE'].'/'.$sqlsrv_error['code'] : $sqlsrv_error['SQLSTATE'];
+		}
+		elseif (isset($sqlsrv_error['code']))
+		{
+			$error['code'] = $sqlsrv_error['code'];
+		}
+
+		if (isset($sqlsrv_error['message']))
+		{
+			$error['message'] = $sqlsrv_error['message'];
+		}
+
+		return $error;
 	}
-	
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -501,22 +397,35 @@ var	$_escape_char = '';
 	 *
 	 * Generates a platform-specific update string from the supplied data
 	 *
-	 * @access	public
-	 * @param	string	the table name
-	 * @param	array	the update data
-	 * @param	array	the where clause
+	 * @param	string	$table
+	 * @param	array	$values
 	 * @return	string
 	 */
-	function _update($table, $values, $where)
+	protected function _update($table, $values)
 	{
-		foreach($values as $key => $val)
-		{
-			$valstr[] = $key." = ".$val;
-		}
-	
-		return "UPDATE ".$this->_escape_table($table)." SET ".implode(', ', $valstr)." WHERE ".implode(" ", $where);
+		$this->qb_limit = FALSE;
+		$this->qb_orderby = array();
+		return parent::_update($table, $values);
 	}
-	
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Truncate statement
+	 *
+	 * Generates a platform-specific truncate string from the supplied data
+	 *
+	 * If the database does not support the TRUNCATE statement,
+	 * then this method maps to 'DELETE FROM table'
+	 *
+	 * @param	string	$table
+	 * @return	string
+	 */
+	protected function _truncate($table)
+	{
+		return 'TRUNCATE TABLE '.$table;
+	}
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -524,118 +433,111 @@ var	$_escape_char = '';
 	 *
 	 * Generates a platform-specific delete string from the supplied data
 	 *
-	 * @access	public
-	 * @param	string	the table name
-	 * @param	array	the where clause
+	 * @param	string	$table
 	 * @return	string
-	 */	
-	function _delete($table, $where)
+	 */
+	protected function _delete($table)
 	{
-		return "DELETE FROM ".$this->_escape_table($table)." WHERE ".implode(" ", $where);
+		if ($this->qb_limit)
+		{
+			return 'WITH ci_delete AS (SELECT TOP '.$this->qb_limit.' * FROM '.$table.$this->_compile_wh('qb_where').') DELETE FROM ci_delete';
+		}
+
+		return parent::_delete($table);
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Limit string
+	 * LIMIT
 	 *
 	 * Generates a platform-specific LIMIT clause
 	 *
-	 * @access	public
-	 * @param	string	the sql query string
-	 * @param	integer	the number of rows to limit the query to
-	 * @param	integer	the offset value
+	 * @param	string	$sql	SQL Query
 	 * @return	string
 	 */
-	function _xlimit($sql, $limit, $offset)
+	protected function _limit($sql)
 	{
-		$i = $limit + $offset;
-	
-		return preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 TOP '.$i.' ', $sql);		
+		// As of SQL Server 2012 (11.0.*) OFFSET is supported
+		if (version_compare($this->version(), '11', '>='))
+		{
+			// SQL Server OFFSET-FETCH can be used only with the ORDER BY clause
+			empty($this->qb_orderby) && $sql .= ' ORDER BY 1';
+
+			return $sql.' OFFSET '.(int) $this->qb_offset.' ROWS FETCH NEXT '.$this->qb_limit.' ROWS ONLY';
+		}
+
+		$limit = $this->qb_offset + $this->qb_limit;
+
+		// An ORDER BY clause is required for ROW_NUMBER() to work
+		if ($this->qb_offset && ! empty($this->qb_orderby))
+		{
+			$orderby = $this->_compile_order_by();
+
+			// We have to strip the ORDER BY clause
+			$sql = trim(substr($sql, 0, strrpos($sql, $orderby)));
+
+			// Get the fields to select from our subquery, so that we can avoid CI_rownum appearing in the actual results
+			if (count($this->qb_select) === 0)
+			{
+				$select = '*'; // Inevitable
+			}
+			else
+			{
+				// Use only field names and their aliases, everything else is out of our scope.
+				$select = array();
+				$field_regexp = ($this->_quoted_identifier)
+					? '("[^\"]+")' : '(\[[^\]]+\])';
+				for ($i = 0, $c = count($this->qb_select); $i < $c; $i++)
+				{
+					$select[] = preg_match('/(?:\s|\.)'.$field_regexp.'$/i', $this->qb_select[$i], $m)
+						? $m[1] : $this->qb_select[$i];
+				}
+				$select = implode(', ', $select);
+			}
+
+			return 'SELECT '.$select." FROM (\n\n"
+				.preg_replace('/^(SELECT( DISTINCT)?)/i', '\\1 ROW_NUMBER() OVER('.trim($orderby).') AS '.$this->escape_identifiers('CI_rownum').', ', $sql)
+				."\n\n) ".$this->escape_identifiers('CI_subquery')
+				."\nWHERE ".$this->escape_identifiers('CI_rownum').' BETWEEN '.($this->qb_offset + 1).' AND '.$limit;
+		}
+
+		return preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 TOP '.$limit.' ', $sql);
 	}
 
-	function _limit($sql, $limit, $offset)
-    {
-		//default order if no order by is defined. 
-		//limit queries require an ORDER BY
-		$OrderBy="ORDER BY RAND()"; 
-		
-        if (count($this->ar_orderby) > 0)
-        {
-            $OrderBy  = "ORDER BY ";
-            $OrderBy .= implode(', ', $this->ar_orderby);
+	// --------------------------------------------------------------------
 
-            if ($this->ar_order !== FALSE)
-            {
-                $OrderBy .= ($this->ar_order == 'desc') ? ' DESC' : ' ASC';
-            }
-        }
+	/**
+	 * Insert batch statement
+	 *
+	 * Generates a platform-specific insert string from the supplied data.
+	 *
+	 * @param	string	$table	Table name
+	 * @param	array	$keys	INSERT keys
+	 * @param	array	$values	INSERT values
+	 * @return	string|bool
+	 */
+	protected function _insert_batch($table, $keys, $values)
+	{
+		// Multiple-value inserts are only supported as of SQL Server 2008
+		if (version_compare($this->version(), '10', '>='))
+		{
+			return parent::_insert_batch($table, $keys, $values);
+		}
 
-        $sql = preg_replace('/(\\'. $OrderBy .'\n?)/i','', $sql);
-        $sql = preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 row_number() OVER ('.$OrderBy.') AS rownum, ', $sql);
-
-        $NewSQL = "SELECT * \nFROM (\n" . $sql . ") AS A \nWHERE A.rownum BETWEEN (" .($offset + 1) . ") AND (".($offset + $limit).")";
-
-        return     $NewSQL;
-    } 	
+		return ($this->db_debug) ? $this->display_error('db_unsupported_feature') : FALSE;
+	}
 
 	// --------------------------------------------------------------------
 
 	/**
 	 * Close DB Connection
 	 *
-	 * @access	public
-	 * @param	resource
 	 * @return	void
 	 */
-	function _close($conn_id)
+	protected function _close()
 	{
-		sqlsrv_close($conn_id);
-	}	
-	
-	/**
-	 * "Count All Results" query
-	 *
-	 * Generates a platform-specific query string that counts all records 
-	 * returned by an Active Record query.
-	 *
-	 * @access	public
-	 * @param	string
-	 * @return	string
-	 */
-	function count_all_results($table = '')
-	{
-		if ($table != '')
-		{
-			$this->_track_aliases($table);
-			$this->from($table);
-		}
-		
-		$sql = $this->_compile_select($this->_count_string . $this->_protect_identifiers('num_rows'));
-		
-		//remove order by
-		$pos=strpos(strtolower($sql),"order ");
-
-		if ($pos>0)
-		{
-			$sql=substr($sql,0,$pos-1);
-		}
-		
-		$query = $this->query($sql);
-		$this->_reset_select();
-	
-		if (!$query)
-		{
-			return '0';
-		}
-	
-		if ($query->num_rows() == 0)
-		{
-			return '0';
-		}
-
-		$row = $query->row();
-		return $row->num_rows;
+		sqlsrv_close($this->conn_id);
 	}
-	
+
 }

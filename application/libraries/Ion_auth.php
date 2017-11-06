@@ -878,7 +878,10 @@ class Ion_auth
 	function get_current_user_id()
 	{
 		$user=$this->current_user();
-		return $user->id;
+        if ($user) {
+            return $user->id;
+        }
+        return false;
 	}
 	
 	

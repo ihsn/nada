@@ -6,13 +6,13 @@
  * @subpackage	Libraries
  * @category	NADA Core
  * @author		IHSN
- * @link		
+ * @link
  */
 
 class Data_access_public extends CI_Driver {
 
 	protected $CI;
-	
+
 	/**
 	 * Constructor
 	 */
@@ -20,7 +20,7 @@ class Data_access_public extends CI_Driver {
 	{
 		$this->CI =& get_instance();
 	}
-		
+
 	function process_form($sid,$user=FALSE)
 	{
 		$this->CI->load->model('Form_model');
@@ -28,7 +28,7 @@ class Data_access_public extends CI_Driver {
 		$this->CI->lang->load('public_request');
 
 		//check if user is logged in
-		if (!$user) 
+		if (!$user)
 		{
 			$this->CI->session->set_flashdata('reason', t('reason_login_public_access'));
 			$destination=$this->CI->uri->uri_string();
@@ -37,14 +37,14 @@ class Data_access_public extends CI_Driver {
 			//redirect to the login page
 			redirect("auth/login/?destination=$destination", 'refresh');
 		}
-		
+
 		$survey=$this->CI->Catalog_model->select_single($sid);
-		
+
 		if(!$survey)
 		{
 			show_ERROR("INVALID_STUDY_ID");
 		}
-		
+
 		$data= new stdclass;
 		$data->user_id=$user->id;
 		$data->username=$user->username;
@@ -60,13 +60,13 @@ class Data_access_public extends CI_Driver {
 
 		//check if the user has requested this survey in the past, if yes, don't show the request form
 		$request_exists=$this->CI->Form_model->check_user_public_request($user->id,$sid);
-		
+
 		if ($request_exists>0)
 		{
 			//log
 			$this->CI->db_logger->write_log('public-request','viewing public use files','public-request-view',$data->survey_uid);
 
-			//show survey data files 
+			//show survey data files
 			//$this->_show_data_files($data->survey_uid);
 
 			//return "data files";
@@ -77,31 +77,31 @@ class Data_access_public extends CI_Driver {
 		//Ask user for data intended usage + show terms and conditions
 		return $this->get_application_form($data);
 	}
-	
-	
+
+
 	/**
 	* 	Shows the Public Use Request Form + Terms & Conditions form.
 	*	User must fill this form and agree to the terms to download survey files
-	*	
+	*
 	*/
 	private function get_application_form($data)
 	{
 		//validation rules
 		$this->CI->form_validation->set_rules('abstract', t('intended_use_of_data'), 'trim|required');
-		
-		//process form				
+
+		//process form
 		if ($this->CI->form_validation->run() == TRUE)
 		{
 			//insert
 			$db_result=$this->CI->Form_model->insert_public_request($data->survey_uid,$data->user_id,$data->abstract);
-			
+
 			//log
 			$this->CI->db_logger->write_log('public-request','request submitted for public use','public-request',$data->survey_uid);
 
 			if ($db_result===TRUE)
 			{
 				$destination=current_url();
-				
+
 				if ($this->CI->input->get_post("ajax"))
 				{
 					$destination.='/?ajax=true';
@@ -116,15 +116,15 @@ class Data_access_public extends CI_Driver {
 			}
 		}
 
-		return $this->CI->load->view('access_public/request_form', $data,true);			
+		return $this->CI->load->view('access_public/request_form', $data,true);
 	}
-	
+
 	//get study microdata files
 	function get_data_files($sid)
-	{	
+	{
 		$this->CI->load->model('Resource_model');
 		$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
-		return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);		
+		return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);
 	}
 
 

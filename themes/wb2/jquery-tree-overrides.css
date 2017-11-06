@@ -1,0 +1,12 @@
+.treeview li {
+    /* http://lead:8080/browse/NADA-205 */
+    background-position: 0 5px;
+    background-position: 0 0px;
+}
+
+.treeview li.last {
+    background-position: 0 -1760px;
+    /* http://lead:8080/browse/NADA-205 */
+    background-position: 0 -1766px;
+}
+

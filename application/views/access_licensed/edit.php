@@ -1,4 +1,5 @@
 <style>
+.error-msg{color:red;}
 .process-request .form .field{margin-bottom:20px;}
 .fieldset{padding:10px;width:99%;}
 h2{font-weight:bold; font-size:14px;}
@@ -157,7 +158,7 @@ $(function() {
         <div class="box-wrapper microdata-files field">
                 <h3 class="expand"><?php echo t('grant_access_to_files');?></h3>
                 <div class="collapse">
-			        <?php $this->load->view('access_licensed/edit_request_files',array('files'=>$files));?>
+			        <?php $this->load->view('access_licensed/edit_request_files',array('surveys'=>$surveys,'files'=>$files));?>
             	</div>
         </div>
 
@@ -166,13 +167,14 @@ $(function() {
             <textarea name="comments" rows="9" class="input-flex"><?php //echo isset($comments) ? $comments : ''; ?></textarea>
         </div>
 
-        
+        <?php if (!isset($comments_history) || count($comments_history)>0): ?>
         <fieldset class="comments_history field-expanded">
             <legend><?php echo t('request_history');?></legend>
             <div class="field" ><?php $this->load->view('access_licensed/comments_history',array('files'=>$files));?></div>
         </fieldset>   
-
-		<?php if (count($study_notes)>0):?>
+		<?php endif;?>
+		
+		<?php if (isset($study_notes) && count($study_notes)>0):?>
         <fieldset class="study_notes field-expanded">
             <legend><?php echo t('study_notes');?></legend>
             <div class="field" ><?php $this->load->view('access_licensed/study_notes',array('study_notes'=>$study_notes));?></div>
@@ -210,7 +212,7 @@ $(function() {
             </div>
             <div class="field">        
                 <label><?php echo t('subject');?></label>
-                <input name="subject" type="text" class="input-flex" value="RE: [#<?php echo $id; ?>] - Application for request to a licensed dataset"/>
+                <input name="subject" type="text" class="input-flex" value="RE: [#<?php echo $id; ?>] - <?php echo form_prep($request_title);?>"/>
             </div>
     
             <div class="field">        

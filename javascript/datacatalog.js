@@ -32,6 +32,7 @@ function get_search_state(){
 			ps:$("#ps").val(),
 			sort_order:$("#sort_order").val(),
 			sort_by:$("#sort_by").val(),
+			sid:$("#sid").val(),
 			_r:$("#_r").val() //needed only for search button
 			};
 
@@ -159,6 +160,14 @@ function bindBehaviors(e)
 		hash_changed();
 		return false;
 	});
+	
+	//show/hide search tokens
+	if ($(".active-filters").children().length>0){
+		$(".active-filters").show();
+	}
+	else{
+		$(".active-filters").hide();
+	}
 }
 
 
@@ -320,6 +329,19 @@ $(document).ready(function()
 	$("#btnsearch").click(function() {
     	$("#page").val(1);
 		$("#_r").val($.now());
+
+        //set default sort to rank if searching on keywords
+        if ($.trim($("#sk").val())!='' ){
+            $("#sort_by").val("rank");
+            $("#sort_order").val("desc");
+        }
+        else{//reset to default sort only if sort_by is set to "rank"
+            if ($("#sort_by").val()=="rank") {
+                $("#sort_by").val("nation");
+                $("#sort_order").val("asc");
+            }
+        }
+        
 		hash_changed();return false;
 	});
 
@@ -354,20 +376,6 @@ $(document).ready(function()
 function search_page(num){
 	$("#page").val(num);advanced_search();	
 }
-
-
-/*
-(function() {
-escape_re = /[#;&,\.\+\*~':"!\^\$\[\]\(\)=>|\/\\]/;
-jQuery.escape = function jQuery$escape(s) {
-  var left = s.split(escape_re, 1)[0];
-  if (left == s) return s;
-  return left + '\\' + 
-    s.substr(left.length, 1) + 
-    jQuery.escape(s.substr(left.length+1));
-}
-})();
-*/
 
 
 //hashchange event handler
@@ -475,6 +483,12 @@ $(window).bind( 'hashchange', function(e) {
 	if(typeof fragments.vk != 'undefined'){
 		$("#vk").val(fragments.vk);
 	}
+	
+	//sid
+	if(typeof fragments.sid != 'undefined'){
+		$("#sid").val(fragments.sid);
+	}
+	
 	//page
 	if(typeof fragments.page != 'undefined'){
 		$("#page").val(fragments.page);
@@ -484,9 +498,22 @@ $(window).bind( 'hashchange', function(e) {
 	if(typeof fragments.view != 'undefined'){
 		$("#view").val(fragments.view);
 	}
+	
 	//page size
 	if(typeof fragments.view != 'undefined'){
 		$("#ps").val(fragments.ps);
+	}
+	
+	//sort
+	var sort_fields=["titl","nation","proddate","popularity"];
+	var sort_order=["asc","desc"];
+	
+	if(typeof fragments.sort_by!= 'undefined' && $.inArray(fragments.sort_by,sort_fields)> -1 ){
+		$("#sort_by").val(fragments.sort_by);
+	}
+
+	if(typeof fragments.sort_order!= 'undefined' && $.inArray(fragments.sort_order,sort_order)> -1 ){
+		$("#sort_order").val(fragments.sort_order);
 	}
 		
 	var fragment_str = $.param.fragment();
@@ -727,6 +754,9 @@ $(document).ready(function()  {
 			case 'vk':
 				$("#vk").val("");hash_changed();
 				break;
+			case 'sid':
+				$("#sid").val("");hash_changed();
+				break;				
 		}
 		
 	});

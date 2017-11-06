@@ -4,6 +4,7 @@
 *
 */?>
 <form id="form_filter">
+	<input type="hidden" name="ps" value="<?php echo get_form_value('ps',isset($ps) ? $ps : '15') ; ?>" id="ps"/>
 	<div style="font-size:smaller;text-align:right;">
     <a href="<?php echo site_url();?>/admin/catalog/?reset=reset"><?php echo t('clear_filter');?></a>
 	</div>

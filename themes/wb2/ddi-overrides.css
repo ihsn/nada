@@ -1,0 +1,210 @@
+.xsl-title {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 21px;
+    color: #363636;
+    font-weight: normal;
+}
+
+.var-info-panel .xsl-title{
+    font-size:15px;
+    margin-bottom:8px;
+}
+
+.xsl-subtitle {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 18px;
+    color: #363636;
+    font-weight: bold;
+    border-bottom: 1px solid #e8e8e8;
+    margin-left: -20px;
+    padding-left: 20px;
+    margin-right: -20px;
+    padding-right: 20px;
+    margin-bottom: 20px;
+}
+
+.var-info-panel .xsl-subtitle{
+    font-size:13px;
+    margin-left: -0;
+    padding-left: 0;
+    margin-right: -0;
+    padding-right: 0;
+    margin-top:8px;
+    margin-bottom: 4px;
+}
+
+.xsl-caption {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    color: #707070 ;
+    text-transform: uppercase;
+	margin-top:15px;
+}
+
+.xsl-text.xsl-country{
+    font-weight:bold;
+}
+
+.xsl-study-title .xsl-text{
+    font-weight:bold;
+}
+
+.xsl-warning{
+    color: #ff6c00;
+    margin: 10px;
+}
+
+.table-variable-list,
+.ddi-table,
+.xsl-table,
+.varCatgry{
+    border-top: 2px solid #dcdcdc;   
+    border-bottom: 2px solid #dcdcdc; 
+}
+
+/*.table-variable-list tr th,
+.table-variable-list tr td,
+.ddi-table tr th,
+.ddi-table tr td,
+.xsl-table tr th,
+.xsl-table tr td{
+    border:0;
+}*/
+
+.table-variable-list tr th,
+.table-variable-list tr.var-th td,
+.ddi-table tr th,
+.varCatgry tr th,
+.xsl-table tr.xsl-table-header th
+{
+    background:#ececec;
+    font-weight: bold;
+}
+
+.xsl-row .label,
+.xsl-row .value{
+    display:inline;
+    font-size:12px;
+}
+
+.xsl-row .label{
+    color:#959595;
+    margin-right: 4px;
+}
+
+.tbl-summary-statis td {
+    white-space: nowrap;
+    padding-right: 10px;
+}
+
+.tbl-summary-statis td .xsl-row {
+padding: 3px 0;
+}
+
+.row-color1,
+.xsl-table tr:nth-child(even) td,
+.varCatgry tr:nth-child(even) td{
+    background: #ffffff;
+}
+
+.row-color2,
+.xsl-table tr:nth-child(odd) td,
+.varCatgry tr:nth-child(odd) td{
+    background: #f2f2f2;
+}
+
+.table-variable-list .row-color1:hover, 
+.table-variable-list .row-color2:hover, 
+.row:hover {
+    background-color: #fafafa;
+}
+
+.pnl-active {
+    background: #fefefe;
+    background: #f0f0f0;
+    border: 0;
+    border-top: 1px solid #dcdcdc;
+    color:#333333;
+    font-weight:bold;
+}
+
+.pnl-active .var-td:first-child{
+    border-left: 2px solid #0088cc; 
+}
+
+.pnl-active .var-td:first-child::before{
+    font-family: FontAwesome;
+    content: "\f150";
+    width: 14px;
+    padding-right: 5px;
+}
+
+.pnl-active a {
+    color: #333333;
+}
+
+.study-metadata .var-info-panel {
+    border:0;
+    background: #f0f0f0;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+.var-info-panel .panel-td {
+    border: 0;
+    padding-bottom: 15px;
+    
+    padding-left: 20px;
+    border-left: 2px solid #0088cc;
+}
+
+
+/*
+ * DDI rules for the compare variables 
+ */
+.variable-content {}
+
+
+.variable-content .xsl-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+     
+.variable-content .xsl-subtitle{
+    font-size: 14px;
+    margin:15px 0 15px 0;
+    padding:0;
+    border-bottom: 2px solid #e8e8e8;
+}
+
+.variable-content .var-category-container,
+.var-category-container{
+    border:0;
+}
+
+.variable-content .var-category-container .xsl-warning{
+    margin: 10px;
+}
+
+.var-category-title,
+.variable-content .var-category-container .var-category-title{
+    font-size:15px;
+    background:transparent;
+}
+
+.variable-content .var-category-container .varCatgry td, .varCatgry th,
+.varCatgry td{
+    padding: 5px;
+    padding-left: 15px;
+}
+
+.variable-content .xsl-caption {
+    font-weight: bold;
+    color: #464646;
+    text-transform: uppercase;
+}
+
+.table-variable-list, .table-variable-list td
+{
+	font-size:12px;
+}

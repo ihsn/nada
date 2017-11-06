@@ -186,6 +186,17 @@ $lang['documentation_in_pdf']="PDF格式的文档";
 $lang['download_rdf']="下载RDF";
 $lang['reviewer_notes']="审阅者注释";
 $lang['js_refreshing_page']="正在刷新页面，请稍候...";
+$lang['visit_data_catalog_at']="请访问我们的数据目录";
+$lang['report_generated_on']="报告生成于";
+$lang['cover']="封面";
+$lang['file_description']="文件描述";
+$lang['variable_list']="变量列表";
+$lang['variable_description']="变量描述";
+$lang['external_resources']="外部资源";
+$lang['report_lang']="报告语言";
+$lang['generate_pdf']="生成PDF";
+$lang['Mean']="平均值";
+$lang['Standard deviation']="标准差";
 
 
 /* End of file ddibrowser_lang.php */

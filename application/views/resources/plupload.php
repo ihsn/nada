@@ -87,7 +87,7 @@
 	padding: 8px 8px;
 	color: #42454A;
 }
-.plupload_filelist_header {	
+.plupload_filelist_header {
 	border-top: 1px solid #EEE;
 	border-bottom: 1px solid #CDCDCD;
 }
@@ -160,7 +160,7 @@ li.plupload_done a {
 .plupload_clearer{
 	display: block;
 	font-size: 0;
-	line-height: 0px;	
+	line-height: 0px;
 	height:1px;
 }
 
@@ -173,26 +173,54 @@ li.plupload_droptext {
 }
 </style>
 
-<script type="text/javascript" src="javascript/plupload/gears_init.js"></script>
-<script type="text/javascript" src="http://bp.yahooapis.com/2.4.21/browserplus-min.js"></script>
-
 <!-- Load plupload and all it's runtimes and finally the jQuery queue widget -->
-<script type="text/javascript" src="javascript/plupload/plupload.full.min.js"></script>
-<script type="text/javascript" src="javascript/plupload/jquery.plupload.queue.min.js"></script>
+<script type="text/javascript" src="javascript/plupload/js/plupload.full.min.js"></script>
+<script type="text/javascript" src="javascript/plupload/js/jquery.plupload.queue/jquery.plupload.queue.min.js"></script>
 
 <script type="text/javascript">
 // Convert divs to queue widgets when the DOM is ready
 $(function() {
 
+	plupload.addI18n({
+		'Select files' : '<?php echo t('Select files');?>',
+		'Add files to the upload queue and click the start button.' : '<?php echo t('Add files to the upload queue and click the start button.');?>',
+		'Filename' : '<?php echo t('Filename');?>',
+		'Status' : '<?php echo t('Status');?>',
+		'Size' : '<?php echo t('Size');?>',
+		'Add files' : '<?php echo t('Add files');?>',
+		'Start upload' : '<?php echo t('Start upload');?>',
+		'Stop current upload' : '<?php echo t('Stop current upload');?>',
+		'Start uploading queue' : '<?php echo t('Start uploading queue');?>',
+		'Uploaded %d/%d files': '<?php echo t('Uploaded %d/%d files');?>',
+		'N/A' : '<?php echo t('N/A');?>',
+		'Drag files here.' : '<?php echo t('Drag files here.');?>',
+		'File extension error.': '<?php echo t('File extension error.');?>',
+		'File size error.': '<?php echo t('File size error.');?>',
+		'Init error.': '<?php echo t('Init error.');?>',
+		'HTTP Error.': '<?php echo t('HTTP Error.');?>',
+		'Security error.': '<?php echo t('Security error.');?>',
+		'Generic error.': '<?php echo t('Generic error.');?>',
+		'IO error.': '<?php echo t('IO error.');?>'
+	});
+
 	function log()
 	{
 	}
-	
+
+    <?php
+        $max_resource_upload_size=intval($this->config->item("max_resource_upload_size"));
+        if ($max_resource_upload_size<1)
+        {
+            //default file size
+            $max_resource_upload_size=500;
+        }
+    ?>
+
 	$("#uploader").pluploadQueue({
 		// General settings
-		runtimes : 'flash,silverlight,gears,browserplus,html5',
+		runtimes : 'html5,flash,silverlight,html4',
 		url : '<?php echo site_url().'/admin/resources/pl_uploads/'.$this->uri->segment(4); ?>',
-		max_file_size : '300mb',
+		max_file_size : '<?php echo $max_resource_upload_size;?>mb',
 		chunk_size : '2mb',
 		unique_names : false,
 		multiple_queues:true,
@@ -207,19 +235,19 @@ $(function() {
 		],
 
 		// Flash settings
-		flash_swf_url : 'javascript/plupload/plupload.flash.swf',
+		flash_swf_url : 'javascript/plupload/js/Moxie.swf',
 
 		// Silverlight settings
-		silverlight_xap_url : 'javascript/plupload/plupload.silverlight.xap',
-		
+		silverlight_xap_url : 'javascript/plupload/js/Moxie.xap',
+
 		// Post init events, bound after the internal events
 		init : {
 			Refresh: function(up) {
 				// Called when upload shim is moved
 				log('[Refresh]');
 			},
-			
-			BeforeUpload: function(up,file) {							
+
+			BeforeUpload: function(up,file) {
 				 //up.settings.multipart_params.upload_folder = $("#upload_folder").val();
 				 if ($("#overwrite").is(':checked')) {
 				 	up.settings.multipart_params.overwrite = 1;
@@ -268,12 +296,12 @@ $(function() {
 				// Called when a file chunk has finished uploading
 				log('[ChunkUploaded] File:', file, "Info:", info);
 			},
-			
+
 			UploadComplete: function (up, file) {
 				//called when all files are uploaded
 				window.location='<?php echo site_url('admin/catalog/edit/'.$this->uri->segment(4));?>';
 			},
-			
+
 			Error: function(up, args) {
 				// Called when a error has occured
 				log('[error] ', args);
@@ -292,9 +320,9 @@ $(function() {
 
         <div class="field">
             <label for="upload_folder"><?php echo t('select_upload_files');?></label>
-            <?php for($i=0;$i<5;$i++):?>    	
+            <?php for($i=0;$i<5;$i++):?>
                 <input class="input-flex" type="file" name="file[]" /><br/>
-            <?php endfor;?>    
+            <?php endfor;?>
         </div>
 
         <div style="margin-top:5px;">
@@ -302,5 +330,5 @@ $(function() {
         </div>
 	</div>
 </form>
-
+<div> Max upload file size: <?php echo $max_resource_upload_size;?> mb </div>
 <div style="margin-top:20px;"><a href="<?php echo site_url('admin/catalog/edit/'.$this->uri->segment(4));?>"><?php echo t('return_to_study_edit_page');?></a></div>

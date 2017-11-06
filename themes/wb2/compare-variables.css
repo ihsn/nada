@@ -1,0 +1,115 @@
+
+.var-compare-container{
+    font-family:'Open Sans', sans-serif;
+    margin:0px;
+    padding:0px;
+    position: relative;
+}
+
+.var-compare-container .compare-header{
+    position:relative;
+}
+
+.var-compare-container .compare-header .action-bar{
+    display: block;
+    position: absolute;
+    top: 15px;
+    left: 380px;
+}
+
+.var-compare-container .compare-header .action-bar a{
+    background: #0088cc;
+    color: #ffffff;
+    font-size: 13px;
+    padding: 8px 15px 8px 35px; 
+}
+
+.var-compare-container .compare-header .action-bar a.refresh{
+    background:url(icons/vcompare-refresh.png) no-repeat 10px 50% #0088cc;
+}
+
+.var-compare-container .compare-header .action-bar a.clear{
+    background:url(icons/vcompare-clear.png) no-repeat 10px 50% #0088cc;
+}
+
+.var-compare-container .compare-header .action-bar a.download{
+    background:url(icons/vcompare-download.png) no-repeat 10px 50% #0088cc;
+}
+
+.var-compare-container .compare-header .action-bar a:hover {
+    background-color: #00b6f5;
+}
+
+.var-compare-container .remove {
+    color:inherit;
+    background:url(icons/vcompare-close.png) no-repeat 50% 50% transparent;
+    text-indent:-9999px;
+    display: block;
+    width: 32px;
+    height: 32px;
+}
+
+.var-compare-container .error{font-size:16px;color:red;padding:10px;margin:10px;}
+
+
+/* single variable box*/
+.var-compare-container .compare-box{
+    border:3px solid #eeeeee;
+    margin:5px;
+}
+
+.var-compare-container .compare-box .compare-box-title{
+    background-color:#eeeeee;
+    color:#333333;
+    padding:15px 20px;
+    cursor:move;
+}	
+
+.var-compare-container .compare-box .var-name{
+    float:left;
+    font-weight:normal;
+    font-size: 28px;
+}
+
+.var-compare-container .compare-box .var-links{
+    float:right;
+    font-size:11px
+}	
+
+.var-compare-container .compare-box-body{
+    padding: 15px 25px;
+    width: 330px;
+}
+
+.var-compare-container .compare-box .survey-link{
+    margin-bottom:10px;
+    font-size: 11px;
+}
+
+/* IMPORTANT:  Please don't format anything that is inside the class "variable-content"*/
+.var-compare-container .compare-box .variable-content{}
+        
+/* TODO: According to the previous warning mehmood should check the below rules */
+.var-compare-container .compare-box .variable-content .tbl-summary-statis td{
+    white-space: nowrap;
+    padding-right: 10px;
+}
+
+.var-compare-container .compare-box .variable-content .tbl-summary-statis td .xsl-row{
+    padding:3px 0;
+}
+
+.var-compare-container .compare-box .variable-content .tbl-summary-statis td .label,
+.var-compare-container .compare-box .variable-content .tbl-summary-statis td .value,
+.xsl-row .label,
+.xsl-row .value{
+    display:inline;
+    font-size:12px;
+}
+
+.var-compare-container .compare-box .variable-content .tbl-summary-statis td .label,
+.xsl-row .label{
+    color:#959595;
+    margin-right: 4px;
+}
+ 

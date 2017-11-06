@@ -1,12 +1,13 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Captcha_lib extends CI_Driver_Library 
+class Captcha_lib extends CI_Driver_Library
 {
 	protected $valid_drivers 	= array(
-		'Captcha_lib_recaptcha', 
-		'Captcha_lib_image_captcha', 
+		'recaptcha',
+		'image_captcha',
+		'none',
 	);
-	
+
 	//default driver to load if no driver is specified
 	protected $_adapter	= 'image_captcha';
 
@@ -30,18 +31,18 @@ class Captcha_lib extends CI_Driver_Library
 			//select driver to use from config
 			$driver=$CI->config->item("captcha_driver");
 			$config=array('adapter' => $driver);
-			
+
 			//load driver
 			$this->_initialize($config);
 		}
 	}
-	
+
 	/**
 	 * Initialize
 	 *
 	 * Initialize class properties based on the configuration array.
 	 *
-	 * @param	array 	
+	 * @param	array
 	 * @return 	void
 	 */
 	private function _initialize($config)
@@ -61,7 +62,7 @@ class Captcha_lib extends CI_Driver_Library
 			}
 		}
 	}
-	
+
 	/**
 	 * Is the requested driver supported in this environment?
 	 *
@@ -77,21 +78,21 @@ class Captcha_lib extends CI_Driver_Library
 		}
 		return FALSE;
 	}
-	
-	
+
+
 	function get_html()
 	{
 		return $this->{$this->_adapter}->get_html();
 	}
-	
+
 	function check_answer()
 	{
 		return $this->{$this->_adapter}->check_answer();
 	}
-	
+
 	function get_question_field()
 	{
 		return $this->{$this->_adapter}->get_question_field();
 	}
-	
+
 }

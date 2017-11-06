@@ -1,16 +1,15 @@
-<div class="filter-box">
+<div class="filter-box keyword-search">
 
     <h3><?php echo t('search_by_keyword');?></h3> 
-	<span class="search-help keyword-help"><img src="images/icon_question.gif" alt="help" title="<?php echo t('Help');?>" data-url="<?php echo site_url('catalog/help');?>"/></span>
 
     <div class="study-search">
-        <?php echo t('in_study_description');?> <br/>
-        <input maxlength="100" type="text" id="sk" name="sk" value="<?php echo form_prep(isset($search_options->sk) ? $search_options->sk : '') ; ?>" style="width:90%;"/> 
+        <label><?php echo t('in_study_description');?></label>
+        <input maxlength="100" type="text" id="sk" name="sk" value="<?php echo form_prep(isset($search_options->sk) ? $search_options->sk : '') ; ?>" /> 
     </div>    
     
-    <div class="variable-search" style="margin-top:5px;">
-        <?php echo t('in_variable_description');?> <br/> 
-        <input maxlength="100"  type="text" id="vk" name="vk" value="<?php echo form_prep(isset($search_options->vk) ? $search_options->vk : '') ; ?>" style="width:90%;"/> 
+    <div class="variable-search" >
+        <label><?php echo t('in_variable_description');?></label>
+        <input maxlength="100"  type="text" id="vk" name="vk" value="<?php echo form_prep(isset($search_options->vk) ? $search_options->vk : '') ; ?>" /> 
 
     </div>
 

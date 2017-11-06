@@ -80,6 +80,7 @@
 </div>
 
 <?php $tr_class=""; ?>
+<div class="variable-list-container">
 	<table class="grid-table variable-list" cellpadding="0" cellspacing="0" width="100%">
         	<tr class="header">
         	<td><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></td>
@@ -92,21 +93,24 @@
         <?php 
 			$compare='';	
 			//compare items selected
-			if (in_array($row['surveyid_FK'].'/'.$row['varID'], $compare_items) )
+			if (in_array($row['sid'].'/'.$row['vid'], $compare_items) )
 			{  
 				$compare=' checked="checked" ';
 			} 
 		?>
-    	<tr  class="vrow <?php echo $tr_class; ?>" valign="top" data-url="<?php echo site_url('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
-	        <td style="color:gray;" title="<?php echo t('mark_for_variable_comparison');?>"><input type="checkbox" class="compare" value="<?php echo $row['surveyid_FK'].'/'.$row['varID'] ?>" <?php echo $compare; ?>/></td>
-            <td><?php echo anchor('catalog/'.$row['surveyid_FK'].'/variable/'.$row['varID'],$row['name'],array('target'=>'blank_','class'=>'dlg','title'=>t('variable_info')));?></td>
+    	<tr  class="vrow <?php echo $tr_class; ?>" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
+	        <td title="<?php echo t('mark_for_variable_comparison');?>">
+            	<input type="checkbox" class="compare" value="<?php echo $row['sid'].'/'.$row['vid'] ?>" <?php echo $compare; ?>/>
+             </td>
+            <td><?php echo anchor('catalog/'.$row['sid'].'/variable/'.$row['vid'],$row['name'],array('target'=>'blank_','class'=>'dlg','title'=>t('variable_info')));?></td>
             <td>
-				<h3 class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></h3>
-				<div style="color:#666666"><?php echo $row['nation']. ' - '.$row['titl']; ?></div>
+				<div class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></div>
+				<div class="var-subtitle"><?php echo $row['nation']. ' - '.$row['titl']; ?></div>
             </td>
         </tr>
     <?php endforeach;?>
 	</table>
+</div>
 
 <div class="pagination">
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -126,13 +130,13 @@
 </table>
 </div>
 
-<span class="light switch-page-size">
+<div class="light switch-page-size">
     <?php echo t('select_number_of_records_per_page');?>:
-    <span class="button">15</span>
-    <span class="button">30</span>
-    <span class="button light">50</span>
-    <span class="button light">100</span>
-</span>
+    <span class="btn btn-mini">15</span>
+    <span class="btn btn-mini">30</span>
+    <span class="btn btn-mini">50</span>
+    <span class="btn btn-mini">100</span>
+</div>
 <script type="text/javascript">
 	var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
 </script>

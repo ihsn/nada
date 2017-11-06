@@ -134,6 +134,13 @@
     <?php endif;?>
     
     <div class="yui-u span6">
+    
+    			<?php /*if ($failed_email_count>0):?>
+               	<div class="alert alert-error">
+                	Check email settings - <?php echo $failed_email_count;?> errors were logged. <a href="<?php echo site_url('admin/logs?keywords=email-failed&field=logtype');?>">View details</a></b>
+               	</div>
+                <?php endif;*/?>
+    
                 <div class="dashboard-box">
                     <div class="dashboard-box-title"><?php echo t('users');?></div>
                     <div class="dashboard-box-body">
@@ -157,7 +164,7 @@
                     <div class="dashboard-box-body">
                     	<?php if (isset($cache_files)):?>
                         <?php if ($cache_files>0):?>
-                        	<?php echo sprintf (t("clear_cache_files"),$cache_files,site_url().'/admin/clear_cache/');?>
+                        	<?php echo sprintf (t("clear_cache_files"),$cache_files,site_url('admin/clear_cache'));?>
                             <?php else:?>
                             <p><?php echo t('no_cache_files_found');?></p>
                         <?php endif;?>

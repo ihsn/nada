@@ -33,7 +33,7 @@ $lang['setting']="Настройка";
 $lang['value']="Значение";
 $lang['recommended']="Рекомендовано";
 $lang['disabled']="Отключено";
-$lang['install_database']="Установить базу данных";
+$lang['install_database']="Установить Базу Данных";
 $lang['create_user']="Создать аккаунт";
 $lang['installer_title']="Установщик NADA";
 $lang['time_zone_is_required']="См. как <a target=&quot;_blank&quot; href=&quot;%s&quot;>настроить</a> и выбрать правильный <a target=&quot;_blank&quot; href=&quot;%s&quot;>часовой пояс</a> ";

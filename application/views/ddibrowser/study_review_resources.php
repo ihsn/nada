@@ -68,7 +68,7 @@
 								
 								if ($url!='')
 								{
-									$link_text= '<a target="_blank" href="'.$url.'" title="'.basename($row['filename']).'" class="download">'.$link_text.'</a>';
+									$link_text= '<a target="_blank" href="'.$url.'" data-file-id="'.$row['resource_id'].'" title="'.basename($row['filename']).'" class="download">'.$link_text.'</a>';
 								}
 								else
 								{

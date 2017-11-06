@@ -13,16 +13,19 @@
 						
                         $url=NULL;
 						$file_size='';
-						
+                        $file_basename='';
+
                         //check file/URL
                         if (substr($row['filename'],0,4)=='www.' || substr($row['filename'],0,7)=='http://' || substr($row['filename'],0,8)=='https://' || substr($row['filename'],0,6)=='ftp://') 
                         {
                             $url=prep_url($row['filename']);
+                            $file_basename=$url;
                         }
                         elseif (trim($row['filename'])!=='' && check_resource_file($this->survey_folder.'/'.$row['filename'])!==FALSE )
                         {
                             $url=site_url().'/catalog/'.$this->uri->segment(2).'/download/'.$row['resource_id'];
 							$file_size=format_bytes(filesize($this->survey_folder.'/'.$row['filename']),2);
+                            $file_basename=form_prep(basename($row['filename']));
                         }
 						//get file extension
 						$ext=get_file_extension($row['filename']);
@@ -35,14 +38,14 @@
 						}
 				?>
                
-                <div class="<?php echo $class;?>">    	
+                <div class="<?php echo $class;?>" data-file-type="microdata" >
                     <div class="resource-left-col">
                     		<div class="resource-info" class="resource-info" title="<?php echo t('click_to_view_information');?>" alt="<?php echo t('view_more_information');?>" id="<?php echo $row['resource_id'];?>"><?php echo $row['title'];?></div>
                     </div>
                     <div class="resource-right-col">
                     	<span class="resource-file-size">
 							<?php 
-								$link_text= '<img src="'.get_file_icon($ext).'" alt="'.$ext.'"  title="'.basename($row['filename']).'"/> ';
+								$link_text= '<img src="'.get_file_icon($ext).'" alt="'.$ext.'"  title="'.$file_basename.'"/> ';
 								//$link_text.= strtoupper($ext);
                             	if ($file_size!='')
 								{									
@@ -51,7 +54,7 @@
 								
 								if ($url!='')
 								{
-									$link_text= '<a target="_blank" href="'.$url.'" title="'.basename($row['filename']).'" class="download">'.$link_text.'</a>';
+									$link_text= '<a data-file-id="'.$row['resource_id'].'" target="_blank" href="'.$url.'" title="'.$file_basename.'" data-file-type="microdata" class="download">'.$link_text.'</a>';
 								}
 								else
 								{
@@ -98,7 +101,7 @@
                             <?php endforeach;?>
                             <tr>
                                 <td class="caption"><?php echo t('download');?></td>
-                                <td><?php echo ($link_text==="") ? "N/A" : '<a class="download" title="'.basename($row['filename']).'" href="'.$url.'">'.$url.'</a>';?></td>
+                                <td><?php echo ($link_text==="") ? "N/A" : '<a data-file-id="'.$row['resource_id'].'" class="download" title="'.$file_basename.'" href="'.$url.'">'.$url.'</a>';?></td>
                             </tr>                        
                         </table>
                         

@@ -732,3 +732,50 @@ UNLOCK TABLES;
 update surveys set formid=6 where formid is null;
 update surveys set formid=6 where formid=0;
 update surveys set repositoryid='central';
+
+
+--
+-- Table structure for table `featured_surveys`
+--
+
+CREATE TABLE `featured_surveys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `repoid` int(11) DEFAULT NULL,
+  `sid` int(11) DEFAULT NULL,
+  `weight` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `survey_repo` (`repoid`,`sid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `survey_types`
+--
+
+CREATE  TABLE `survey_types` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `title` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `title_UNIQUE` (`title` ASC) )
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_general_ci;
+
+
+-- 
+-- Table structure for table 'survey_lic_requests'
+--
+
+CREATE TABLE `survey_lic_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `request_id` int(11) NOT NULL,
+  `sid` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uq_survey_requests` (`request_id`,`sid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+-- 
+-- Alter table structure for table 'sitelogs'
+--
+   
+ALTER TABLE `sitelogs` COLLATE = utf8_general_ci , 
+ADD COLUMN `useragent` varchar(300) DEFAULT NULL;

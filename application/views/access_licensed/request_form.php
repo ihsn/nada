@@ -1,11 +1,4 @@
 <?php
-/**
-* Form for collecting data for - Licensed Data Requests
-*
-*/
-?>
-
-<?php
 //options for the org_type
 $options_org_type=array(
 	t('Line ministry/public administration')=>t('Line ministry/public administration'),
@@ -24,6 +17,11 @@ $options_datamatching=array(
 	);
 ?>
 
+<?php
+$ds=get_form_value('ds',isset($ds) ? $ds: 'study');
+$selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
+?>
+
 <div class="data-request-form-container">
 
 <div style="text-align:right">
@@ -35,7 +33,7 @@ $options_datamatching=array(
 
 
 <h2 class="page-title"><?php echo t('application_access_licensed_dataset');?></h2>
-<div style="font-style:italic;color:red;"><?php echo t('required_fields');?></div>
+<div style="font-size:12px;color:red;"><?php echo t('required_fields');?></div>
 
 <?php if (validation_errors() ) : ?>
     <div class="error">
@@ -50,11 +48,12 @@ $options_datamatching=array(
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 
-<form style="padding:0px;margin:0px" name="orderform" id="orderform" method="post" >
+<form style="padding:0px;margin:0px" name="orderform" id="orderform" method="post" class="lic-request-form">
 
 	<input type="hidden" name="surveytitle" value="<?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?>" />
 	<input type="hidden" name="surveyid" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?>" />
 	<input type="hidden" name="survey_uid" value="<?php echo get_form_value('survey_uid',isset($survey_uid) ? $survey_uid : ''); ?>" />
+    
     <?php if (isset($this->ajax)):?>
     	<input type="hidden" name="ajax" value="1" />
     <?php endif;?>
@@ -80,34 +79,82 @@ $options_datamatching=array(
       <td><?php echo t('email');?></td>
       <td><?php echo get_form_value('email',isset($email) ? $email : ''); ?></td>
     </tr>
-    <?php if ($request_type=='study'):?>
+	</table>
+
+	
+    <table class="grid-table" border="0" width="100%" style="margin-top:15px;border-collapse:collapse;border:1px solid gainsboro;">
+    <?php if ($bulk_access==TRUE && isset($collections)):?>
+    
+    <tr>
+    	<td colspan="2">
+        		<div class="field-caption">
+                    <span class="required">*</span> <?php echo t('Select dataset(s)');?>
+                </div>
+        		<div class="field single-study collapsible">
+                	<div class="set-header">
+                    <input type="radio" name="ds" value="study"  id="access_type_study" class="access_type" <?php echo (($ds=='study') ? 'checked="checked"' : ''); ?> /> 
+                    <label for="access_type_study">Request access to data for this study only:
+					<?php foreach($surveys as $survey):?>
+                		<b><?php echo $survey['nation'];?> - <?php echo $survey['titl']. ' '.$survey['data_coll_start'];?></b>
+                        <input type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" checked="checked" style="display:none;"/>
+                	<?php endforeach;?>
+                    </label>
+                    </div>
+                </div>
+                
+				<?php foreach($collections as $collection):?>   
+                    <div class="field collection-container collapsible">
+                    <div class="set-header">
+                	<input type="radio" name="ds" value="<?php echo $collection['cid'];?>" data-cid="<?php echo $collection['cid'];?> " id="da-coll-<?php echo $collection['cid'];?>"  class="access_type" <?php echo (($ds==$collection['cid']) ? 'checked="checked"' : ''); ?>/> 
+                    <label for="da-coll-<?php echo $collection['cid'];?>">Request access to data for <b><?php echo count($collection['studies']);?> studies</b> in the collection <b><?php echo $collection['title'];?></b></label>
+                    </div>
+                    
+                    <div class="by-collection <?php echo (count($collection['studies'])>10 ? 'study-scroll' : '');?>">
+                    <div class="study-set">
+                    <?php if (isset($collection['description'])):?>
+                    <p class="about-set"><?php echo $collection['description'];?></p>
+                    <?php endif;?>
+                    
+                    <table class="grid-table  studies-<?php echo $collection['cid'];?>">
+                    <tr class="header">
+                        <td colspan="2"><span class="select-all">Select all</span> | <span class="clear-all">Clear</span></td>
+                    </tr>
+					<?php $k=1;foreach($collection['studies'] as $survey):?>
+                    <tr class="study-row">
+                        <td><?php //echo $k++;?><input type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" <?php if ($ds==$collection['cid'] && in_array($survey['id'],$selected_surveys)){ echo 'checked="checked"';} ?>/></td>
+                        <td><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> <?php echo $survey['data_coll_start'];?></td>
+                    </tr>
+                    <?php endforeach;?>
+                    </table>
+                    </div>
+                    </div>
+                    
+                    </div>
+                    
+                <?php endforeach;?>
+        </td>
+    </tr>
+    <?php else:?>
         <tr class="border" >
           <td valign="top"><?php echo t('dataset_requested');?></td>
           <td><div style="color:maroon;font-size:12px;">
 		  		<?php foreach($surveys as $survey):?>
-                	<a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>">[#<?php echo $survey['id'];?>] <?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a>
+                	<a class="survey-title" target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> - <?php echo $survey['data_coll_start']; ?></a>
+                     <input type="hidden" name="sid[]" value="<?php echo $survey['id'];?>" />
                 <?php endforeach;?>
               </div>
           </td>
         </tr>
-    <?php elseif ($request_type='collection'):?>
-        <tr class="border" valign="top">
-          <td><?php echo t('dataset_requested');?></td>
-          <td>
-                <table class="grid-table">
-                <?php $k=1;foreach($surveys as $survey):?>
-                <tr class="row">
-                    <td><?php echo $k++;?></td>
-                    <td><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
-                </tr>
-                <?php endforeach;?>
-                </table>
-          </td>
-        </tr>    
     <?php endif;?>
+
+	</table>
+    
+	<table class="grid-table" border="0" width="100%" style="margin-top:15px;border-collapse:collapse;border:1px solid gainsboro;">
+
     <tr>
     <td class="border" colspan="2"><?php echo t('filled_lead_research');?></td>
     </tr>
+    
     <tr class="border">
       <td class="no-wrap">
       <span class="field-caption">
@@ -144,14 +191,13 @@ $options_datamatching=array(
   </tr>
   <?php */ ?>
   <tr class="border">
-    <td colspan="2"><div style="font-weight:bold;"><span class="required">*</span> <?php print t('intended_use');?><br />
-          <br />
-    </div>
-      <div style="font-style:italic"> <?php print t('provide_short_desc');?> </div>
+    <td colspan="2">
+    	<div class="field-caption"><span class="required">*</span> <?php print t('intended_use');?></div>
+        <div class="field-notes"> <?php print t('provide_short_desc');?> </div>
     <textarea id="datause" name="datause" style="width:98%" rows="10"><?php echo get_form_value('datause',isset($datause) ? $datause : ''); ?></textarea></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><div style="font-weight:bold;"><span class="required">*</span> <?php print t('expected_output');?></div> 
+    <td colspan="2"><div class="field-caption expected_output"><span class="required">*</span> <?php print t('expected_output');?></div> 
     <textarea id="outputs" name="outputs" style="width:98%" rows="10"><?php echo get_form_value('outputs',isset($outputs) ? $outputs : ''); ?></textarea>     </td>
   </tr>
   <tr class="border">
@@ -172,20 +218,18 @@ $options_datamatching=array(
   </tr>
   <?php  */ ?>
   <tr class="border">
-    <td colspan="2"><span class="field-caption"><span class="required">*</span> <?php print t('research_team');?></span><br />
-      <br />
-      <?php print t('provide_names');?><br/>
+    <td colspan="2">
+    	<div class="field-caption"><span class="required">*</span> <?php print t('research_team');?></div>
+      	<div class="field-notes"><?php print t('provide_names');?></div>
     <textarea id="team" name="team" style="width:98%" rows="10"><?php echo get_form_value('team',isset($team) ? $team : ''); ?></textarea></td>
   </tr>
   <tr class="border">
-    <td colspan="2"><div class="field-caption"><?php print t('ident_needed');?></div>
+    <td colspan="2"><div class="field-caption"><span class="required">*</span> <?php print t('ident_needed');?></div>
 	<p><?php print t('da_website');?></p>
 
-	<span class="field-caption"><?php echo t('this_request');?>
-    	<span class="required">*</span>
-    </span> <br/>
+	<p><?php echo t('this_request');?></p>
 	
-    <p>
+    <p class="ds_access">
     <input type="radio" name="dataset_access" id="access_whole" value="whole" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='whole' ? 'checked="checked"' : ''; ?> />		
     <label for="access_whole"><?php print t('whole_dataset');?></label><br/>
     
@@ -199,14 +243,14 @@ $options_datamatching=array(
   <tr class="border">
     <td colspan="2">
         <div>
-          <div style="margin-top:5px;font-weight:bold;"><?php print t('data_access_agreement');?></div>          
+          <div class="field-caption"><?php print t('data_access_agreement');?></div>          
           <div class="bull-list"><?php print t('agreement_text');?></div>
         </div></td>
   </tr>
     <tr class="border">
-      <td colspan="2" class="note" align="right"><input type="checkbox" title="I Agree" id="chk_agree" name="chk_agree" onClick="isagree()"/>
+      <td colspan="2" class="note" align="right"><input type="checkbox" title="I Agree" id="chk_agree" name="chk_agree" />
         <label for="chk_agree"><?php echo t('i_read_and_agree');?></label>&nbsp;&nbsp;
-        <input type="submit" disabled="disabled" value="<?php echo t('submit');?>" id="submit" name="submit"  onClick="submitform()">
+        <input type="submit" value="<?php echo t('submit');?>" id="submit" name="submit"  >
       </td>
     </tr>
   </table>
@@ -215,7 +259,30 @@ $options_datamatching=array(
 </div>
 
 <script type="text/javascript">
-	function isagree(){
+$(document).ready(function() 
+{	
+	$(".access_type").click(function() {
+		$(".by-collection").hide();
+		$(this).closest(".collection-container").find(".by-collection").show();
+		$(".collapsible :checkbox").attr("disabled",true);//disable all checkboxes
+		$(this).closest(".collapsible").find(":checkbox").attr("disabled",false);//enable checkboxes only for the current/active box
+		
+	});
+	
+	$(".select-all").click(function() {
+		$(this).closest("table").find(":checkbox").prop('checked',true);
+	});
+	
+	$(".clear-all").click(function() {
+		$(this).closest("table").find(":checkbox").prop('checked',false);
+	});
+	
+	$("#chk_agree").click(function() {
 		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))	
-	}
+	});
+	
+	//disable submit button
+	$("#submit").prop('disabled','disabled');
+	
+});		
 </script>

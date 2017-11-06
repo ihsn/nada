@@ -1,4 +1,4 @@
-<?php  $this->template->add_css($this->load->view('catalog/catalog_style'),'embed'); ?>
+<?php  //$this->template->add_css($this->load->view('catalog/catalog_style'),'embed'); ?>
 <?php
 	//set default page size, if none selected
 	if(!$this->input->get("ps"))
@@ -69,7 +69,7 @@ function toggle_sidebar(e){
 function search()
 {
 	data=$("#form_filter").serialize();
-	$("#surveys").html('<img src="images/loading.gif"/><?php echo t('js_updating_please_wait');?>');
+	$("#surveys").html('<img src="images/loading.gif"/><?php echo t('js_loading');?>');
 	$.ajax({
 		timeout:1000*120,
 		dataType: "html",

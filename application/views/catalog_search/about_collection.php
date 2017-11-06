@@ -1,14 +1,3 @@
-<style>
-	.about-photo{float:left;margin-right:10px;}
-	.repository-container{overflow:auto;}
-	.repository-container .photo-big{float:left;margin-right:10px;}
-	.visit-catalog{text-align:right;margin:10px;padding-top:10px;}
-	a.color-white,.tab-style-1 .ui-widget-content a.color-white{color:white;}
-	ul.bull,.bull li{list-style-type:disc;margin-left:20px;}
-	ul.bull{margin-bottom:10px;}
-	.about-collection .repo-thumbnail{width:82px;height:82px;}
-</style>
-
 <div class="about-collection">
 <?php if($row->repositoryid!=='central'):?>
 <div class="repository-container">
@@ -17,7 +6,7 @@
 <div class="visit-catalog">
 	<a class="btn btn-primary color-white" href="<?php echo site_url(); ?>/catalog/<?php echo $row->repositoryid; ?>"><?php echo t('visit_catalog');?></a>
 </div>
-<?php elseif($row->repositoryid=='central'):?>
+<?php elseif($row->repositoryid=='central' && strlen( t('about_central_catalog')) > 50 ):?>
 <div class="about-central">
 	<p><?php echo t('about_central_catalog');?></p>    
     <div class="visit-catalog">

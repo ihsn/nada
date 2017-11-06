@@ -72,6 +72,13 @@ INSERT INTO site_menu(id,pid,title,url,weight,depth,module)
  VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/repositories',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users');
 set IDENTITY_INSERT site_menu OFF;
 
+insert into site_menu(pid,title,url,weight,depth,module) 
+	values (2,'-', '-',50,1,'catalog');
+	
+insert into site_menu(pid,title,url,weight,depth,module) 
+	values (2,'Bulk access collections', 'admin/da_collections',40,1,'catalog');
+
+
 
 --
 -- Table structure for table vocabularies
@@ -318,14 +325,14 @@ CREATE TABLE surveys (
   surveyid varchar(200) DEFAULT NULL,
   titl varchar(255) DEFAULT '',
   titlstmt text,
-  authenty varchar(255) DEFAULT NULL,
+  authenty varchar(max) DEFAULT NULL,
   geogcover varchar(255) DEFAULT NULL,
   nation varchar(100) DEFAULT '',
   topic text,
   scope text,
   sername varchar(255) DEFAULT NULL,
-  producer varchar(255) DEFAULT NULL,
-  sponsor varchar(255) DEFAULT NULL,
+  producer varchar(max) DEFAULT NULL,
+  sponsor varchar(max) DEFAULT NULL,
   refno varchar(255) DEFAULT NULL,
   proddate varchar(45) DEFAULT NULL,
   varcount decimal(10,0) DEFAULT NULL,
@@ -358,6 +365,7 @@ CREATE TABLE surveys (
   project_uri varchar(255) DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
   published tinyint DEFAULT NULL,
+  ft_keywords text,
   total_views int DEFAULT '0',
   total_downloads int DEFAULT '0',
   stats_last_updated int DEFAULT NULL,
@@ -368,6 +376,38 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_surveys on [dbo].[surveys](
 	[surveyid] ASC,
 	[repositoryid] ASC
 );
+
+
+---------------------------------------------------------
+-- trigger to populate fulltext field for SURVEYS
+---------------------------------------------------------
+
+create TRIGGER surveys_ft
+ON surveys
+AFTER INSERT, UPDATE 
+AS
+BEGIN
+
+UPDATE surveys
+SET ft_keywords = ISNULL(cast(titlstmt as varchar(max)),'')
+					+ ' ' + ISNULL(nation,'') 
+					+ ' ' + ISNULL(link_da,'')
+					+ ' ' + ISNULL(surveyid,'')
+					+ ' ' + ISNULL(authenty,'')
+					+ ' ' + ISNULL(geogcover,'')
+					+ ' ' + ISNULL(cast(scope as varchar(max)),'')
+					+ ' ' + ISNULL(sername,'')
+					+ ' ' + ISNULL(producer,'')
+					+ ' ' + ISNULL(sponsor,'')
+					+ ' ' + ISNULL(abbreviation,'')
+					+ ' ' + ISNULL(kindofdata,'')
+					+ ' ' + ISNULL(cast(keywords as varchar(max)),'')
+					+ ' ' + ISNULL(project_name,'')
+					+ ' ' + ISNULL(project_id,'')
+					
+WHERE id IN (SELECT id FROM INSERTED)
+
+END;
 
 
 
@@ -424,9 +464,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_cache on [dbo].[cache](
 --
 -- Table structure for table forms
 --
-
 CREATE TABLE forms (
-  formid int NOT NULL DEFAULT '0',
+  formid int NOT NULL IDENTITY(1,1),
   fname varchar(255) DEFAULT '',
   model varchar(255) DEFAULT '',
   path varchar(255) DEFAULT '',
@@ -438,8 +477,10 @@ CREATE TABLE forms (
 --
 -- Dumping data for table forms
 --
+set IDENTITY_INSERT forms ON;
 INSERT INTO forms (formid,fname,model,path,iscustom)
 VALUES (2,'Public use files','public','orderform.php','1'),(1,'Direct access','direct','direct.php','1'),(3,'Licensed data files','licensed','licensed.php','1'),(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),(5,'Data available from external repository','remote','remote','1'),(6,'Data not available','data_na','data_na','1');
+set IDENTITY_INSERT forms OFF;
 
 
 --
@@ -449,9 +490,7 @@ VALUES (2,'Public use files','public','orderform.php','1'),(1,'Direct access','d
 CREATE TABLE lic_requests (
   id int NOT NULL IDENTITY(1,1),
   userid int NOT NULL,
-  request_type varchar(45) DEFAULT 'study',
-  surveyid int DEFAULT NULL,
-  collection_id varchar(100) DEFAULT NULL,
+  request_title varchar(300),
   org_rec varchar(200) DEFAULT NULL,
   org_type varchar(45) DEFAULT NULL,
   address varchar(255) DEFAULT NULL,
@@ -476,6 +515,7 @@ CREATE TABLE lic_requests (
   additional_info text,
   PRIMARY KEY (id)
 );
+
 
 
 --
@@ -616,7 +656,7 @@ CREATE TABLE lic_files_log (
 CREATE TABLE terms (
   tid int NOT NULL IDENTITY(1,1),
   vid int NOT NULL,
-  pid int NOT NULL,
+  pid int DEFAULT NULL,
   title varchar(255) NOT NULL,
   PRIMARY KEY (tid)
 );
@@ -1155,6 +1195,7 @@ CREATE TABLE sitelogs (
   section varchar(255) DEFAULT NULL,
   keyword varchar(max),
   username varchar(100) DEFAULT NULL,
+  useragent varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
 
@@ -1235,6 +1276,9 @@ CREATE FULLTEXT CATALOG ft AS DEFAULT;
 
 go
 
+--drop existing fulltext index
+DROP FULLTEXT INDEX ON surveys;
+
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 ( 
@@ -1250,10 +1294,12 @@ CREATE FULLTEXT INDEX ON surveys
   sponsor		Language 1033,
   titl			Language 1033,
   titlstmt		Language 1033,
-  topic			Language 1033
+  topic			Language 1033,
+  ft_keywords	Language 1033
  ) 
 KEY INDEX pk_idx_surveys ; 
 GO
+
 
 
 ---------------------------------------------------------
@@ -1273,3 +1319,57 @@ CREATE FULLTEXT INDEX ON variables
   qstn		Language 1033
  ) 
 KEY INDEX pk_idx_variables; 
+
+
+
+---
+--- Table structure for table featured_surveys
+---
+
+CREATE TABLE featured_surveys (
+  id int NOT NULL IDENTITY(1,1),
+  repoid int DEFAULT NULL,
+  sid int DEFAULT NULL,
+  weight int DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_featured_surveys on [dbo].[featured_surveys](
+	[repoid] ASC,
+	[sid] ASC
+);
+
+
+
+--
+-- Table structure for table survey_types
+--
+
+CREATE  TABLE survey_types (
+  id INT NOT NULL IDENTITY(1,1),
+  title VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_types on [dbo].[survey_types](
+	[title] ASC
+);
+
+
+-- 
+-- Table structure for table 'survey_lic_requests'
+--
+
+CREATE TABLE survey_lic_requests (
+  id int NOT NULL IDENTITY(1,1),
+  request_id int NOT NULL,
+  sid int NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_survey_lic_req on [dbo].[survey_lic_requests](
+	[request_id] ASC,
+	[sid] ASC
+);

@@ -1,15 +1,22 @@
 <style>
-	.info td{
-		border-bottom:1px solid gainsboro;padding:5px;
-	}
-	.info{
-		border-collapse:collapsed;
-		border-top:1px solid gainsboro;
-	}
+.info{border:1px solid gainsboro;}
+.info td{
+	border:1px solid gainsboro;padding:5px;
+}
+.info{
+	border-collapse:collapsed;
+	border-top:1px solid gainsboro;
+}
 .status-codes{
 	margin-top:20px;padding:5px;
 	color:gray;font-family:Arial;font-size:11px;
 	}
+.study-row{
+	border:1px solid gainsboro;padding:5px;font-size:12px;margin-bottom:3px;
+}	
+.survey-count-1 .study-row{border:0px;margin:0px;padding:0px;}
+
+.show-scroll{height:200px;overflow:auto;}
 </style>
 
 <div style="text-align:right;">
@@ -32,22 +39,32 @@
         $status='PENDING';
     }
     if (strtolower($status)=='denied'){
-        $css_class='class="error"';			
+        $css_class='class="error"';
     } 
     
 ?>
 
 <table border="0" class="info" cellspacing="0" cellpadding="5" width="100%">
-	<?php if ($request_type=='study'):?>
-	<tr>
-		<td style="width:150px;"><?php echo t('survey_title');?></td>
-		<td><?php echo $survey['titl'];?></td>
+	<?php if ($surveys):?>
+    <tr>
+    <td><?php echo t('request_title');?></td>
+    <td><?php echo $request_title;?></td>
+    </tr>
+    <!--
+	<tr valign="top">
+		<td style="width:150px;">
+		<?php echo t('datasets_requested');?> <?php $count=count($surveys); echo ($count>1) ? ': '.$count : '';?>
+        </td>
+		<td class="survey-count-<?php echo count($surveys);?> ">
+        <div class="<?php echo count($surveys)>5 ? 'show-scroll' : '';?>">
+		<?php foreach($surveys as $survey):?>
+            <div class="study-row">
+				<?php echo $survey['nation'];?> - <?php echo $survey['titl'] ?> - <?php echo $survey['data_coll_start'];?></div>
+        <?php endforeach;?>
+        </div>
+        </td>
 	</tr>
-    <?php else:?>
-	<tr>
-		<td style="width:150px;"><?php echo t('Collection');?></td>
-		<td><?php echo $collection['title'];?></td>
-	</tr>    
+    -->
     <?php endif;?>
 	<tr>
 		<td nowrap="nowrap"><?php echo t('date_requested');?></td>

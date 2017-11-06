@@ -1,11 +1,14 @@
 <?php
 $repo_ref=$this->uri->segment(2);
-if($repo_ref!='central' && $repo_ref!==FALSE)
+
+//if not CENTRAL or NULL then check if exists in system
+//blocks loading page for invalid repository names
+if($repo_ref!='central' && $repo_ref)
 {
 	if (!$result=$this->repository_model->repository_exists($repo_ref))
 	{
 		return false;
-	}	
+	}
 }
 ?>
 <table style="display:none;" width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
@@ -26,15 +29,23 @@ if($repo_ref!='central' && $repo_ref!==FALSE)
 <input type="hidden" id="page" name="page" value="<?php echo intval($current_page); ?>"/>
 <input type="hidden" id="repo" name="repo" value="<?php echo $active_repo; ?>"/>
 <input type="hidden" id="repo_ref" name="repo_ref" value="<?php echo $repo_ref; ?>"/>
+<input type="hidden" id="sid" name="sid" value="<?php echo isset($sid) ? $sid : ''; ?>"/>
 <input type="hidden" id="_r" name="_r" value=""/>
-<div> 
 
 <?php if((string)$active_repo!='' && $active_repo!='central'):?>
-<div class="filter-box">
-<div><a class="btn-central-catalog" href="<?php echo site_url('catalog/central');?>" title="<?php echo t('Return to central catalog');?>"><?php echo t('Central Catalog');?></a></div>
+<div class="filter-box back-to-catalog">
+    <div class="back-to-catalog">
+        <a class="btn-central-catalog" href="<?php echo site_url('catalog/central');?>" title="<?php echo t('Return to central catalog');?>"><?php echo t('Central Catalog');?></a>
+    </div>
 </div>
-
 <?php endif;?>
+
+
+<div class="filter-container">
+
+<div class="filter-container-heading refine-list">
+<h3>Refine List</h3>
+</div>
 
 
 <?php
@@ -43,12 +54,12 @@ $fac_filters=array();
 
 	<!--keywords filter-->
 	<?php  $this->load->view("catalog_search/filter_keywords",array('repoid'=>$active_repo)); ?>
-    
+
     <!--year filter-->
     <?php if ($this->config->item("year_search")=='yes'):?>
 		<?php $fac_filters[(int)$this->config->item("year_search_weight")]['year']= $this->load->view("catalog_search/filter_years",array('repoid'=>$active_repo),TRUE); ?>
     <?php endif;?>
-    
+
 	<!-- country filter-->
 	<?php if ($this->regional_search=='yes'):?>
     	<?php  $fac_filters[(int)$this->config->item("regional_search_weight")]['country']=$this->load->view("catalog_search/filter_countries",array('active_repo',$active_repo),TRUE); ?>
@@ -57,14 +68,14 @@ $fac_filters=array();
 	<!-- da filter -->
     <?php if ($this->config->item("da_search")=='yes' && is_array($da_types) && count($da_types)>0):?>
     	<?php  $fac_filters[(int)$this->config->item("da_search_weight")]['da']=$this->load->view("catalog_search/filter_da",NULL,TRUE); ?>
-    <?php endif;?>    
+    <?php endif;?>
     <!-- end da filter -->
 
 	<?php if ($this->center_search=='yes'):?>
         <!-- center filter-->
         <?php  $this->load->view("catalog_search/filter_centers"); ?>
-	<?php endif;?>    
-    
+	<?php endif;?>
+
     <?php if ($this->collection_search=='yes' && $active_repo==''):?>
         <?php  $fac_filters[(int)$this->config->item("collection_search_weight")]['collection']=$this->load->view("catalog_search/filter_collections",NULL,TRUE); ?>
 	<?php endif;?>
@@ -72,45 +83,22 @@ $fac_filters=array();
     <?php if($this->topic_search==='yes'):?>
 	    <?php  $fac_filters[(int)$this->config->item("topic_search_weight")]['topic']=$this->load->view("catalog_search/filter_topics",NULL,TRUE); ?>
     <?php endif;?>
-    
+
     <?php ksort($fac_filters);?>
     <?php foreach($fac_filters as $key=>$filter):?>
-    	<?php if(is_array($filter)):?>
-        	<?php echo implode("",$filter);?>
+		<?php if(is_array($filter)):?>
+			<?php echo implode("",$filter);?>
         <?php else:?>
     	<?php echo $filter;?>
         <?php endif;?>
-    <?php endforeach;?>    
-    
+    <?php endforeach;?>
+
 </div>
 </form>
 
 
 
 <script type="text/javascript">
-<?php /*
-//translations	
-var i18n=
-{
-'searching':"<?php echo t('js_searching');?>",
-'loading':"<?php echo t('js_loading');?>",
-'invalid_year_range_selected':"<?php echo t('js_invalid_year_range_selected');?>",
-'topic_selected':"<?php echo t('js_topic_selected');?>",
-'topics_selected':"<?php echo t('js_topics_selected');?>",
-'collection_selected':"<?php echo t('js_collection_selected');?>",
-'collections_selected':"<?php echo t('js_collections_selected');?>",
-'country_selected':"<?php echo t('js_country_selected');?>",
-'countries_selected':"<?php echo t('js_countries_selected');?>",
-'center_selected':"<?php echo t('js_center_selected');?>",
-'centers_selected':"<?php echo t('js_centers_selected');?>",
-'collection_selected':"<?php echo t('js_collection_selected');?>",
-'collections_selected':"<?php echo t('js_collections_selected');?>",
-'cancel':"<?php echo t('cancel');?>",
-'js_compare_variables_selected':"<?php echo t('variables selected from');?>",
-'js_compare_studies_selected':"<?php echo t('studies');?>",
-'js_compare_variable_select_atleast_2':"<?php echo t('Select two or more variables to compare');?>"
-};
-*/ ?>
 //min/max years
-var years = {'from': '<?php reset($years);echo current($years); ?>', 'to': '<?php echo end($years); ?>'}; 
+var years = {'from': '<?php reset($years);echo current($years); ?>', 'to': '<?php echo end($years); ?>'};
 </script>

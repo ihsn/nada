@@ -70,7 +70,7 @@ class Nada4_upgrade extends CI_Controller {
 		
 		#study downloads
 		$sql['total_downloads']='select surveyid,count(*) as total from sitelogs 
-		where logtype=\'survey\' and section=\'download\'
+		where logtype=\'survey\' and (section=\'download\' or section=\'public-download\')
 		group by surveyid;';
 	
 		$output=array();
@@ -78,8 +78,15 @@ class Nada4_upgrade extends CI_Controller {
 		foreach($sql as $key=>$s)
 		{
 			set_time_limit(0);
+			$query=$this->db->query($s);
 			
-			$rows=$this->db->query($s)->result_array();
+			if (!$query)
+			{
+				echo ($this->db->last_query());
+				return;
+			}
+			
+			$rows=$query->result_array();
 			
 			foreach($rows as $row)
 			{				

@@ -26,24 +26,15 @@ class Catalog_model extends CI_Model {
 					'refno',
 					'isshared',
 					'dirpath',
-					'ddifilename',
+					'metafile',
 					'link_technical', 
 					'link_study',
 					'link_report',
 					'link_indicator',
-					'ddi_sh',
 					'link_questionnaire',
 					'data_coll_start',
 					'data_coll_end',
-					'link_da',
-					'ie_program', 
-					'ie_project_id',
-					'ie_project_name',
-					'ie_project_uri',
-					'ie_team_leaders',
-					'project_id',
-					'project_name',
-					'project_uri'
+					'link_da'
 					);
 	
 	//additional filters on search
@@ -254,13 +245,13 @@ class Catalog_model extends CI_Model {
 	}
 
 	/**
-	* get variable by varid
+	* get variable by vid
 	**/
 	function get_variable_by_vid($survey_id, $variable_id)
 	{
 		$this->db->select('uid,name,labl');
-		$this->db->where('varID', $variable_id); 
-		$this->db->where('surveyid_FK', $survey_id); 
+		$this->db->where('vid', $variable_id); 
+		$this->db->where('sid', $survey_id); 
 		return $this->db->get('variables')->row_array();
 	}
 
@@ -526,7 +517,7 @@ class Catalog_model extends CI_Model {
 		$catalog_root=$this->config->item("catalog_root");
 
 		//join to create full path
-		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->ddifilename;
+		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->metafile;
 
 		$ddi_file=str_replace('\\','/',$ddi_file);
 		$ddi_file=str_replace('//','/',$ddi_file);
@@ -594,7 +585,7 @@ class Catalog_model extends CI_Model {
 		if ($deleted)
 		{
 			//remove variables
-			$this->db->where('surveyid_fk', $id); 
+			$this->db->where('sid', $id); 
 			$this->db->delete('variables');		
 			
 			//remove external resources
@@ -897,8 +888,8 @@ class Catalog_model extends CI_Model {
 		$catalog_root=$this->config->item("catalog_root");
 
 		//get ddi file paths
-		$source_ddi_file=$catalog_root.'/'.$source_survey->dirpath.'/'.$source_survey->ddifilename;
-		$target_ddi_file=$catalog_root.'/'.$target_survey->dirpath.'/'.$source_survey->ddifilename;
+		$source_ddi_file=$catalog_root.'/'.$source_survey->dirpath.'/'.$source_survey->metafile;
+		$target_ddi_file=$catalog_root.'/'.$target_survey->dirpath.'/'.$source_survey->metafile;
 		
 		if (!file_exists($source_ddi_file))
 		{
@@ -961,11 +952,11 @@ class Catalog_model extends CI_Model {
 		//echo $this->db->last_query();	
 	
 		//delete variables from target
-		$this->db->query(sprintf('delete from variables where surveyid_FK=%d',$target));
+		$this->db->query(sprintf('delete from variables where sid=%d',$target));
 		$debug['query'][]=$this->db->last_query();
 		
 		//replace variables
-		$this->db->query(sprintf('update variables set surveyid_FK=%d where surveyid_FK=%d',$source,$target));
+		$this->db->query(sprintf('update variables set sid=%d where sid=%d',$source,$target));
 		$debug['query'][]=$this->db->last_query();
 		
 		//replace external resources reference

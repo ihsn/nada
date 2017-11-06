@@ -1,11 +1,7 @@
-<?php
-/*
-* Terms and Conditions for the Direct Access Request Form
-*
-*/
+<?php 
 
-$lang['title_terms_and_conditions'] = "Terms and conditions";
-$lang['terms_text'] = "
+$lang['title_terms_and_conditions']="Terms and conditions";
+$lang['terms_text']="
 <ol>
   <li>The data and other materials provided by the National Data Archive will not
     be redistributed or sold to other individuals, institutions, or organizations
@@ -34,9 +30,8 @@ $lang['terms_text'] = "
   Archive will conform to widely-accepted standards of practice and legal
   restrictions that are intended to protect the confidentiality of respondents.</p>
 ";
-
-$lang['form_removed_and_not_available']='Form has been removed and is not longer available.';
-$lang['survey_data_files']='Survey Data Files';
+$lang['form_removed_and_not_available']="Form has been removed and is not longer available.";
+$lang['survey_data_files']="Survey Data Files";
 
 /* End of file direct_access_terms_lang.php */
-/* Location: ./system/language/english/direct_access_terms_lang.php */
+/* Location: ./application/language/english/direct_access_terms_lang.php */

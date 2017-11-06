@@ -32,7 +32,7 @@
     <?php if (isset($this->ajax)):?>
     	<input type="hidden" name="ajax" value="true" />
     <?php endif;?>
-    
+
   <table class="public-use" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
   	<tr>
     	<td colspan="2" class="note">
@@ -80,6 +80,6 @@
 </form>
 <script type="text/javascript">
 	function isagree(){
-		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))	
+		$("#submit").prop('disabled', !$("#chk_agree").prop("checked"))
 	}
 </script>

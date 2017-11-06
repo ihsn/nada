@@ -92,11 +92,17 @@ License:
                             <xsl:with-param name="caption">Subtitle</xsl:with-param>
                         </xsl:apply-templates>
                     </xsl:if>
-
-                    <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:serStmt/ddi:serName">
-                        <xsl:apply-templates select="//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName" mode="row">
-                            <xsl:with-param name="caption">Study Type</xsl:with-param>
+                    
+                    <xsl:if test="normalize-space(ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:parTitl)">
+                        <xsl:apply-templates select="//ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:parTitl" mode="row">
+                            <xsl:with-param name="caption">Translated Title</xsl:with-param>
                         </xsl:apply-templates>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(ddi:stdyDscr/ddi:citation/ddi:serStmt/ddi:serName)">
+						<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Study Type</xsl:with-param></xsl:call-template></div>
+                        <xsl:if test="contains(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'[')"><xsl:value-of select="substring-before(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'[')"/></xsl:if>
+                        <xsl:if test="not(contains(//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName,'['))"><xsl:value-of select="//ddi:stdyDscr/ddi:citation/ddi:serStmt//ddi:serName"/></xsl:if>
                     </xsl:if>
                     
                     <xsl:if test="//ddi:stdyDscr//ddi:serInfo">
@@ -109,11 +115,12 @@ License:
                     <tr>
                     	<td colspan="2"><div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">ID Number</xsl:with-param></xsl:call-template></div><xsl:value-of select="@ID"/></td>
                     </tr>                    
-                    </xsl:if>
+                    </xsl:if>                                        
+                    
                     </table>
                     
                     <!-- VERSION -->
-             		<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version or ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date ">
+             		<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version or ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date or ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:notes">
 							<div class="xsl-block">
 								<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Version</xsl:with-param></xsl:call-template></div>
 								<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version">
@@ -121,7 +128,8 @@ License:
 										<xsl:with-param name="caption">Version Description</xsl:with-param>
 									</xsl:apply-templates>
 								</xsl:if>
-							</div>							
+							</div>
+                            
 							<!-- production date -->
 							<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:version/@date">
 								<div class="xsl-block">
@@ -131,10 +139,20 @@ License:
 										</xsl:apply-templates>
 								</div>
 							</xsl:if>          
+                            <!-- version notes -->
+							<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:notes">
+								<div class="xsl-block">
+										<xsl:apply-templates select="ddi:stdyDscr/ddi:citation/ddi:verStmt/ddi:notes" mode="row">
+											<xsl:with-param name="caption">Notes</xsl:with-param>
+										</xsl:apply-templates>
+								</div>
+							</xsl:if>          
 					</xsl:if>
 					
 					<!-- OVERVIEW-->
-					<xsl:if test="ddi:stdyDscr/ddi:stdyInfo/ddi:abstract or ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:dataKind or ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:anlyUnit">
+					<xsl:if test="normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:abstract) or
+                            normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:dataKind) or
+                            normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:anlyUnit)">
 						<div class="xsl-block">
 							<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Overview</xsl:with-param></xsl:call-template></div>
 							<xsl:if test="ddi:stdyDscr/ddi:stdyInfo/ddi:abstract">
@@ -158,7 +176,7 @@ License:
 					</xsl:if>	
 					
                 <!-- SCOPE -->                
-                 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo/ddi:notes">
+                 <xsl:if test="normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:notes)">
 						 <div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Scope</xsl:with-param></xsl:call-template></div>
 						<xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo/ddi:notes" mode="row">
 							<xsl:with-param name="caption">Notes</xsl:with-param>
@@ -194,22 +212,23 @@ License:
                 </xsl:if>				
 
                 <!-- COVERAGE -->                
-                <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover or ddi:stdyDscr/ddi:stdyInfo//ddi:universe">
-					 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover">
+                <xsl:if test="normalize-space(ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover) or normalize-space(ddi:stdyDscr/ddi:stdyInfo//ddi:universe)
+                or normalize-space(ddi:stdyDscr/ddi:stdyInfo//ddi:geogUnit)">
 							 <div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Coverage</xsl:with-param></xsl:call-template></div>
+                         <xsl:if test="normalize-space(ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover)">
 							<xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo//ddi:geogCover" mode="row">
 								<xsl:with-param name="caption">Geographic Coverage</xsl:with-param>
 							</xsl:apply-templates>
 					 </xsl:if>                     
 					 
-					 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:geogUnit">
+					 <xsl:if test="normalize-space(ddi:stdyDscr/ddi:stdyInfo//ddi:geogUnit)">
 							<xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo//ddi:geogUnit" mode="row">
 								<xsl:with-param name="caption">Geographic Unit</xsl:with-param>
 							</xsl:apply-templates>
 					 </xsl:if> 
 
 					<!-- universe -->
-					 <xsl:if test="ddi:stdyDscr/ddi:stdyInfo//ddi:universe">
+					 <xsl:if test="normalize-space(ddi:stdyDscr/ddi:stdyInfo//ddi:universe)">
 						<xsl:apply-templates select="ddi:stdyDscr/ddi:stdyInfo//ddi:universe" mode="row">
 							<xsl:with-param name="caption">Universe</xsl:with-param>
 						</xsl:apply-templates>
@@ -295,16 +314,18 @@ License:
 							 </xsl:if>
 				</xsl:if>			 
                  
-                <!--METADATA PRODUCTION --> 
-                <xsl:variable name="metadata">
-	                <xsl:call-template name="metadata_production"/>
-                </xsl:variable>
-                <xsl:if test="$metadata">
-                    <div class="xsl-subtitle" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Metadata Production</xsl:with-param></xsl:call-template></div>
-                    <div class="xsl-caption" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Metadata Produced By</xsl:with-param></xsl:call-template></div>
-                    <xsl:call-template name="metadata_production"/>
-				</xsl:if>
-                
+                <!--METADATA PRODUCTION -->
+                <xsl:if test="normalize-space(ddi:docDscr//ddi:producer)">
+                    <xsl:variable name="metadata">
+                        <xsl:call-template name="metadata_production"/>
+                    </xsl:variable>
+                    <xsl:if test="$metadata">
+                        <div class="xsl-subtitle" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Metadata Production</xsl:with-param></xsl:call-template></div>
+                        <div class="xsl-caption" style="margin-bottom:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Metadata Produced By</xsl:with-param></xsl:call-template></div>
+                        <xsl:call-template name="metadata_production"/>
+                    </xsl:if>
+                </xsl:if>
+
                 <xsl:if test="normalize-space(ddi:docDscr//ddi:prodDate)">
                     <div class="xsl-caption" style="margin-top:10px;"><xsl:call-template name="gettext"><xsl:with-param name="msg">Date of Metadata Production</xsl:with-param></xsl:call-template></div>
                     <xsl:value-of select="normalize-space(ddi:docDscr//ddi:prodDate)"/>

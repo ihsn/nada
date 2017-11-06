@@ -22,9 +22,10 @@
 		<h1><?php echo $survey['nation'] . ' - ' . $survey['titl']; ?></h1>
     <?php endif;?>
 
-	<h2 style="margin-bottom:20px;"><?php echo t('citations_of_publications');?></h2>
+	<h2 style="margin-bottom:0px;"><?php echo t('citations_of_publications');?></h2>
+    <div class="subtext" style="margin-bottom:20px;"><?php echo t('related_publications_text');?></div>
     
-    <div style="float:right;width:30%;text-align:right"><?php echo t('Found: '),count($citations);?></div>
+    <div class="citations-found"><?php echo t('Found: '),count($citations);?></div>
     <div class="sort-links" >
 		<?php echo t('Sort by:');?>    
         <?php echo create_sort_link($sort_by,$sort_order,'authors',t('Author'),$page_url,array('keywords','field','collection') ); ?>

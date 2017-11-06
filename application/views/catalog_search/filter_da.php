@@ -2,7 +2,7 @@
 <h3><?php echo t('filter_by_data');?></h3>
 
 <span class="search-help da-help">
-    <img src="images/icon_question.gif" alt="help" title="Help" data-url="<?php echo site_url('catalog/help_da');?>">
+    <img src="images/icon_question.png" alt="help" title="Help" data-url="<?php echo site_url('catalog/help_da');?>">
 </span>
 
 <div id="datatype-list" >
@@ -14,6 +14,14 @@
 
     <div class="filter-da items-container">
     	<table>
+            <?php if (in_array('open',$da_types)):?>
+            <tr class="item">
+                <td><input class="chk chk-da" type="checkbox"  <?php if(isset($search_options->dtype) && is_array($search_options->dtype) && in_array('7',$search_options->dtype) ){echo 'checked="checked"'; }?> value="7" name="dtype[]" id="da_open"/></td>
+                <td><span class="da-icon-small da-open"></span></td>
+                <td class="nopad"> <label title="<?php echo t('data_open_description');?>" for="da_open"> <span class="title"><?php echo t('legend_data_open');?></span> </label></td>
+            </tr>
+            <?php endif;?>
+
             <?php if (in_array('direct',$da_types)):?>
             <tr class="item">
                 <td><input class="chk chk-da" type="checkbox"  <?php if(isset($search_options->dtype) && is_array($search_options->dtype) && in_array('1',$search_options->dtype) ){echo 'checked="checked"'; }?> value="1" name="dtype[]" id="da_direct"/></td>

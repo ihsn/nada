@@ -52,21 +52,19 @@ License:
 	</xsl:template>
 	<!-- ddi:codeBook -->
 	<xsl:template match="ddi:codeBook">
-	<div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Access Policy</xsl:with-param></xsl:call-template></div>
+	<div class="xsl-title"><xsl:call-template name="gettext"><xsl:with-param name="msg">Data Access</xsl:with-param></xsl:call-template></div>
 		<!--Accessibility -->
 			<xsl:if test="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:contact | ddi:stdyDscr/ddi:citation//ddi:distStmt/ddi:contact | ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:confDec | ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:conditions | ddi:stdyDscr//ddi:citReq">		
 
-					<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Accessibility</xsl:with-param></xsl:call-template></div>
-
 					<!-- Access Authority-->
 					<xsl:if test="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:contact">
-							<div class="xsl-caption" ><xsl:call-template name="gettext"><xsl:with-param name="msg">Access Authority</xsl:with-param></xsl:call-template></div>
+							<div class="xsl-subtitle" ><xsl:call-template name="gettext"><xsl:with-param name="msg">Access Authority</xsl:with-param></xsl:call-template></div>
 							<xsl:apply-templates select="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:contact"/>
 					</xsl:if>
                     
 					<!-- Contacts-->
 					<xsl:if test="ddi:stdyDscr/ddi:citation//ddi:distStmt/ddi:contact">
-						<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Contact(s)</xsl:with-param></xsl:call-template></div>
+						<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Contact(s)</xsl:with-param></xsl:call-template></div>
                         <xsl:for-each select="ddi:stdyDscr/ddi:citation//ddi:distStmt/ddi:contact">
                             <xsl:value-of select="."/>
 	                        <xsl:if test="normalize-space(@affiliation)">
@@ -106,13 +104,48 @@ License:
 								<xsl:with-param name="caption">Citation Requirements</xsl:with-param>
 								<xsl:with-param name="cols">div</xsl:with-param>
 						</xsl:apply-templates>
-					</xsl:if>	
+					</xsl:if>
+
+                <xsl:if test="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI">
+                    <xsl:choose>
+                        <xsl:when test="substring(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,1,4)='doi:'">
+                            <div class="xsl-subtitle">
+                                <xsl:call-template name="gettext"><xsl:with-param name="msg">Digital Object Identifier (DOI)</xsl:with-param></xsl:call-template>
+                            </div>
+                            <div>
+                            <a href="http://doi.org/{substring-after(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,':')}" target="_blank">
+                                http://doi.org/<xsl:value-of select="substring-after(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,':')"/>
+                            </a>
+                            </div>
+                        </xsl:when>
+                        <xsl:when test="substring(ddi:stdyDscr/ddi:citation/ddi:holdings/@URI,1,5)='http:'">
+                            <div class="xsl-subtitle">
+                                <xsl:call-template name="gettext"><xsl:with-param name="msg">Holdings Information</xsl:with-param></xsl:call-template>
+                            </div>
+                            <div>
+                                <xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI"/>
+                                <a href="{@URI}" target="_blank">
+                                    <xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI"/>
+                                </a>
+                            </div>
+                            <br/> <br/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <div class="xsl-subtitle">
+                                <xsl:call-template name="gettext"><xsl:with-param name="msg">Holdings Information</xsl:with-param></xsl:call-template>
+                            </div>
+                            <div>
+                                    <xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:holdings/@URI"/>
+                            </div>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:if>
+
 			</xsl:if>	
 			<!--End Accessibility -->
 			
 				<!--Rights & Disclaimer -->
 				<xsl:if test="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:disclaimer | ddi:stdyDscr/ddi:citation/ddi:prodStmt/ddi:copyright">				
-						<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Rights &amp; Disclaimer</xsl:with-param></xsl:call-template></div>
 						<!-- Disclaimer-->
 						<xsl:if test="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:disclaimer">
 							<xsl:apply-templates select="ddi:stdyDscr/ddi:dataAccs/ddi:useStmt/ddi:disclaimer" mode="row">
@@ -122,7 +155,7 @@ License:
 						</xsl:if>	
 						<!-- Copyright [non-repeatable]-->
 						<xsl:if test="ddi:stdyDscr/ddi:citation/ddi:prodStmt/ddi:copyright">
-								<div class="xsl-caption"><xsl:call-template name="gettext"><xsl:with-param name="msg">Copyright</xsl:with-param></xsl:call-template></div>
+								<div class="xsl-subtitle"><xsl:call-template name="gettext"><xsl:with-param name="msg">Copyright</xsl:with-param></xsl:call-template></div>
 									<xsl:value-of select="ddi:stdyDscr/ddi:citation/ddi:prodStmt/ddi:copyright"/>
 						</xsl:if>
 				</xsl:if>	
@@ -343,7 +376,7 @@ License:
 		<xsl:call-template name="lf2br">
 					<xsl:with-param name="text" select="."/>
 				</xsl:call-template>
-	</xsl:template>		
+	</xsl:template>
 <!--End Accessibility-->
 
 <!--Disclaimer-->
@@ -373,7 +406,7 @@ License:
 			<xsl:choose>
 	            <xsl:when test="$cols='div'">
 					<!-- DIV -->
-						<div class="xsl-caption"><xsl:value-of select="$label"/></div>
+						<div class="xsl-subtitle"><xsl:value-of select="$label"/></div>
 						<xsl:choose>
 							<xsl:when test="normalize-space($text)">
 								<xsl:call-template name="lf2br">

@@ -46,16 +46,16 @@
 		$pager= 'showing '.(($this->pagination->cur_page-1)*$this->pagination->per_page+(1));
 		$pager.= ' - ';
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows()) 
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 		$pager.= $to_page;
-		$pager.= ' of '.$this->pagination->total_rows;
+		$pager.= ' of '.$this->pagination->get_total_rows();
 	}
 	else
 	{
-		$pager='showing 1 - '.$this->pagination->total_rows. ' of '.$this->pagination->total_rows;
+		$pager='showing 1 - '.$this->pagination->get_total_rows(). ' of '.$this->pagination->get_total_rows();
 	}
 ?>
 <form autocomplete="off">

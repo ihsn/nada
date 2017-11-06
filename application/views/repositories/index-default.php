@@ -54,22 +54,22 @@ $repository_types=array(
 	if ($this->pagination->cur_page>0) {
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
 
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows()) 
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 
 		$pager=sprintf(t('showing %d-%d of %d')
 						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
 						,$to_page
-						,$this->pagination->total_rows);
+						,$this->pagination->get_total_rows());
 	}
 	else
 	{
 		$pager=sprintf(t('showing %d-%d of %d')
 				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
+				,$this->pagination->get_total_rows()
+				,$this->pagination->get_total_rows());
 	}
 ?>
 
@@ -85,13 +85,13 @@ $repository_types=array(
             </td>
         </tr>
     </table>
-    
+
     <!-- grid -->
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th>ID</th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>
+            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>-->
             <th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
@@ -103,7 +103,7 @@ $repository_types=array(
     	<tr class="repo-row <?php echo $tr_class; ?>">
             <td><?php echo strtoupper($row->repositoryid);?></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
-            <td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>
+            <!--<td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>-->
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
                 <div class="status">
@@ -134,7 +134,7 @@ $repository_types=array(
 jQuery(document).ready(function(){
 	//publish/unpublish
 	$(document.body).on("click",".repo-row .publish", function(){ 
-		if (!confirm("<?php echo t('confirm_collection_status_change');?>")){return false;}
+		//if (!confirm("<?php echo t('confirm_collection_status_change');?>")){return false;}
 		var id=$(this).attr("data-id");
 		if ($(this).attr("data-value")==0){
 			$(this).attr("data-value",1);

@@ -25,7 +25,13 @@
                 <?php endif;?>
              />
             <label for="tpc-<?php echo form_prep($topic['tid']); ?>">
-                <?php echo substr($topic['title'],0,strpos($topic['title'],'[',0)); ?> <span class="count">(<?php echo $topic['surveys_found']; ?>)</span>
+                <?php $brac_pos=strpos($topic['title'],'[',0);?>
+                <?php if ($brac_pos):?>
+                    <?php echo substr($topic['title'],0,strpos($topic['title'],'[',0)); ?>
+                <?php else:?>
+                    <?php echo $topic['title']; ?>
+                <?php endif;?>
+                <span class="count">(<?php echo $topic['surveys_found']; ?>)</span>
             </label>
         </div>
     <?php endforeach;?>

@@ -1,14 +1,15 @@
 <?php if($resources):?>
 <div style="padding-top:20px;">
 <h2><?php echo t('study_resources');?></h2>
+<div class="subtext"><?php echo t('study_documentation_text');?></div>
 <div class="resources">
     <?php $class="resource"; ?>
-	<?php foreach($resources as $key=>$resourcetype):?>
+	<?php foreach($resources as $resource_key=>$resourcetype):?>
 		<?php if (count($resourcetype)>0):?>
         <fieldset>
         <legend>
 			<?php 
-				switch($key) 
+				switch($resource_key)
 				{
 					case 'technical':
 						echo t('technical_documents');
@@ -37,29 +38,32 @@
 						
                         $url=NULL;
 						$file_size='';
+                        $file_basename='';
 						
                         //check file/URL
                         if (substr($row['filename'],0,4)=='www.' || substr($row['filename'],0,7)=='http://' || substr($row['filename'],0,8)=='https://' || substr($row['filename'],0,6)=='ftp://') 
                         {
                             $url=prep_url($row['filename']);
+                            $file_basename=$url;
                         }
                         elseif (trim($row['filename'])!=='' && check_resource_file($this->survey_folder.'/'.$row['filename'])!==FALSE )
                         {
-                            $url=site_url().'/catalog/'.$this->uri->segment(2).'/download/'.$row['resource_id'];
+                            $url=site_url().'/catalog/'.$this->uri->segment(2).'/download/'.$row['resource_id'].'/'.basename($row['filename']);
 							$file_size=format_bytes(filesize($this->survey_folder.'/'.$row['filename']),2);
+                            $file_basename=form_prep(basename($row['filename']));
                         }
 						//get file extension
 						$ext=get_file_extension($row['filename']);
                 ?>
                 <?php if($class=="resource") {$class="resource alternate";} else{ $class="resource"; } ?>
-                <div class="<?php echo $class;?>">    	
+                <div class="<?php echo $class;?>" data-file-type="<?php echo $resource_key;?>">
                     <div class="resource-left-col">
                     		<div class="resource-info" class="resource-info" title="<?php echo t('click_to_view_information');?>" alt="<?php echo t('view_more_information');?>" id="<?php echo $row['resource_id'];?>"><?php echo $row['title'];?></div>
                     </div>
                     <div class="resource-right-col">
                     	<span class="resource-file-size">
 							<?php 
-								$link_text= '<img src="'.get_file_icon($ext).'" alt="'.$ext.'"  title="'.basename($row['filename']).'"/> ';
+								$link_text= '<img src="'.get_file_icon($ext).'" alt="'.$ext.'"  title="'.$file_basename.'"/> ';
 								//$link_text.= strtoupper($ext);
                             	if ($file_size!='')
 								{									
@@ -68,7 +72,7 @@
 								
 								if ($url!='')
 								{
-									$link_text= '<a target="_blank" href="'.$url.'" title="'.basename($row['filename']).'" class="download">'.$link_text.'</a>';
+									$link_text= '<a data-file-id="'.$row['resource_id'].'" target="_blank" href="'.$url.'" title="'.$file_basename.'" class="download" >'.$link_text.'</a>';
 								}
 								else
 								{
@@ -115,8 +119,8 @@
                             <?php endforeach;?>
                             <tr>
                                 <td class="caption"><?php echo t('download');?></td>
-                                <td><?php echo ($link_text==="") ? "N/A" : '<a class="download" title="'.basename($row['filename']).'" href="'.$url.'">'.$url.'</a>';?></td>
-                            </tr>                        
+                                <td><?php echo ($link_text==="") ? "N/A" : '<a data-file-id="'.$row['resource_id'].'" class="download" title="'.$file_basename.'" href="'.$url.'">'.$file_basename.'</a>';?></td>
+                            </tr>
                         </table>
                         
                         </div>

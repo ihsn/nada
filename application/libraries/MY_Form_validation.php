@@ -1,13 +1,70 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-/**
-* Adds URL validation functions ot the validation class
-*
-* source: http://codeigniter.com/forums/viewthread/111319/
-*
-*
-*/
+
 class MY_Form_validation extends CI_Form_validation {
 
+    
+    /**
+     * Validate a password is complex
+     *
+     *	@str - password string
+     *	@enforce - if set to FALSE then SKIP validation
+     *
+     *
+     * password MUST have atleast one upper case letter
+     * password MUST have atleast one lower case letter
+     * password MUST have atleast one number
+     * password MUST have atleast one special character
+     *
+     * Source: https://gist.github.com/davidstanley01/4161999
+     **/
+    function is_complex_password($str,$enforce=TRUE)
+    {
+	//skips complex password validation if config setting is set to not require strong password
+	if (!$enforce)
+	{
+	    return TRUE;
+	}
+	
+	$regex_upper='/[A-Z]/';  //Uppercase
+	$regex_lower='/[a-z]/';  //lowercase
+	$regex_special='/[!@#$%&*()^,._;:-]/';  //list of allowed special characters
+	$regex_numbers='/[0-9]/';  //numbers
+ 
+	$validate=TRUE;
+ 
+	if(preg_match_all($regex_lower,$str, $o)<1) {
+	    $validate=FALSE;
+	    //$this->set_message('is_complex_password', 'Password must contain a LOWERCASE letter.');
+	}
+      
+	if(preg_match_all($regex_upper,$str, $o)<1) {
+	    $validate=FALSE;
+	    //$this->set_message('is_complex_password', 'Password must contain an UPPERCASE letter.');
+	}
+      
+	if(preg_match_all($regex_special,$str, $o)<1)  {
+	    $validate=FALSE;
+	    //$this->set_message('is_complex_password', 'Password must contain a special character. Allowed characters are: !@#$%&*()^,._;:-');
+	}
+      
+	if(preg_match_all($regex_numbers,$str, $o)<1)  {
+	    $validate=FALSE;
+	    //$this->set_message('is_complex_password', 'Password must contain a Number.');
+	}
+      
+	if (!$validate)
+	{
+	    $this->set_message('is_complex_password', t('Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are:').' '. '!@#$%&*()^,._;:- ');
+	}
+	
+	return $validate;
+    }
+    
+    /**
+    * Adds URL validation functions ot the validation class
+    *
+    * source: http://codeigniter.com/forums/viewthread/111319/
+    */
     function valid_url($str){
 
            $pattern = "/^(http|https|ftp):\/\/([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i";
@@ -19,7 +76,7 @@ class MY_Form_validation extends CI_Form_validation {
             return TRUE;
     }
 
-	/**
+    /**
      * Real URL
      *
      * @access    public

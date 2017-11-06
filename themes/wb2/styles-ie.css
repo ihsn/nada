@@ -1,0 +1,31 @@
+@charset "utf-8";
+/* styles for IE */
+.ui-dialog{
+filter: progid:DXImageTransform.Microsoft.Shadow(Color=#cccccc, Strength=5, Direction=0),
+     progid:DXImageTransform.Microsoft.Shadow(Color=#cccccc, Strength=5, Direction=90),
+     progid:DXImageTransform.Microsoft.Shadow(Color=#cccccc, Strength=5, Direction=180),
+     progid:DXImageTransform.Microsoft.Shadow(Color=#cccccc, Strength=5, Direction=270);
+}     
+
+/* Site name: No shadow */
+#banner, 
+#banner-subtitle {
+}
+
+input[type='submit'],
+.btn-style-1{
+    color: #ffffff;
+    border: 0;
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    background: #0088cc;
+    font-size: 13px;
+    font-weight: normal;
+    text-shadow: inherit;
+    min-width: auto;
+    -webkit-box-shadow: inherit;
+    -moz-box-shadow: inherit;
+    box-shadow: inherit;
+    margin-right: 15px;
+}

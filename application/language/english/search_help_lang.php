@@ -1,9 +1,10 @@
-<?php
-$lang['keyword_search_help'] = '<table cellpadding="0" cellspacing="0" class="table-grid grid-table">
+<?php 
+
+$lang['keyword_search_help']="<table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; class=&quot;table-grid grid-table&quot;>
  <tbody>
     <tr>
-      <td width="65"><strong>Operator</strong></td>
-      <td width="715"><strong>Meaning</strong></td>
+      <td width=&quot;65&quot;><strong>Operator</strong></td>
+      <td width=&quot;715&quot;><strong>Meaning</strong></td>
     </tr>
     <tr>
       <td><strong>space</strong></td>
@@ -30,7 +31,7 @@ operators, it is appended to the word (put at end), or fragment, not
 prepended (put at beginning).</td>
     </tr>
     <tr>
-      <td><strong>""</strong></td>
+      <td><strong>&quot;&quot;</strong></td>
       <td>Double quotes at the beginning and end of a phrase, matches
 only rows that contain the complete phrase, as it was typed.</td>
     </tr>
@@ -64,11 +65,11 @@ results to studies that contain all the elements Gender and Age and
 Employed, but exclude results for Kenya from the results.<br>
     <br>
   </li>
-  <li>Placing quotation marks <strong>""</strong> around a search term
+  <li>Placing quotation marks <strong>&quot;&quot;</strong> around a search term
 will force the term to be evaluated as one term. For example: to limit
 a search to study descriptions that contain the exact sequence of words<em>
-health study</em> in them one would type <strong> <em>"</em>Health
-Study<em>"</em> </strong>between quotation marks. Without the
+health study</em> in them one would type <strong> <em>&quot;</em>Health
+Study<em>&quot;</em> </strong>between quotation marks. Without the
 quotation marks the search would show all studies with health or study
 in them. With the quotation marks only studies with the exact wording
 in the sequence <em>health study</em> will be shown.<br>
@@ -85,8 +86,7 @@ would yield results for employ or employed.<br>
     <br>
   </li>
 </ul>
-';
-
+";
 
 /* End of file search_help_lang.php */
-/* Location: ./system/language/english/search_help_lang.php */
+/* Location: ./application/language/english/search_help_lang.php */

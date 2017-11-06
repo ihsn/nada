@@ -105,6 +105,9 @@ $lang['exit_impersonate']="退出模拟模式";
 $lang['content_is_not_published']="当前页面的内容还未发布，仅供审查。";
 $lang['licensed_requests']="许可请求";
 $lang['create_region']="创建区域";
+$lang['tab_about']="关于";
+$lang['tab_datasets']="数据集";
+$lang['tab_citations']="参考文献 ";
 
 
 /* End of file general_lang.php */

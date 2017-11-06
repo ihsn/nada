@@ -11,7 +11,7 @@ em{font-style:italic}
 .sub-title{font-style:italic;}
 .citation-rows .alternate{background:#F5F5F5}
 .citation-row:hover {
-	cursor:pointer;	
+	cursor:pointer;
 	-webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 	-moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
@@ -28,7 +28,7 @@ em{font-style:italic}
 </style>
 
 <script type="text/javascript">
-$(document).ready(function () { 
+$(document).ready(function () {
 	$(".citation-row").click(function(){
 		window.location=$(this).attr("data-url");
 		return false;
@@ -59,56 +59,56 @@ $(document).ready(function () {
 </form>
 <?php endif; ?>
 <?php if ($rows): ?>
-<?php 
-	//pagination 
+<?php
+	//pagination
 	$page_nums=$this->pagination->create_links();
 	$current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
-	
+
 	//sort
 	$sort_by=$this->input->get("sort_by");
 	$sort_order=$this->input->get("sort_order");
-	
+
 	//current page url
 	$page_url=site_url().'/citations';//form_prep($this->uri->uri_string());
 ?>
 
 <?php
   $from_page=1;
-  
+
 	if ($this->pagination->cur_page>0) {
 		$from_page=(($this->pagination->cur_page-1)*$this->pagination->per_page+(1));
 		$to_page=$this->pagination->per_page*$this->pagination->cur_page;
 
-		if ($to_page> $this->pagination->total_rows) 
+		if ($to_page> $this->pagination->get_total_rows())
 		{
-			$to_page=$this->pagination->total_rows;
+			$to_page=$this->pagination->get_total_rows();
 		}
 
 		$pager=sprintf(t('showing %d-%d of %d')
 						,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
 						,$to_page
-						,$this->pagination->total_rows);
+						,$this->pagination->get_total_rows());
 	}
 	else
 	{
 		$pager=sprintf(t('showing %d-%d of %d')
 				,$current_page
-				,$this->pagination->total_rows
-				,$this->pagination->total_rows);
+				,$this->pagination->get_total_rows()
+				,$this->pagination->get_total_rows());
 	}
 ?>
 
 <form autocomplete="off" class="citations-listing">
     <div class="sort-links">
-    <?php echo t('sort_results_by');?>    
+    <?php echo t('sort_results_by');?>
     <?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,array('keywords','field','collection') ); ?>
     <?php echo create_sort_link($sort_by,$sort_order,'pub_year',t('date'),$page_url,array('keywords','field','collection') ); ?>
     <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','collection') ); ?>
     </div>
 
 	<div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
-    
-	<?php $tr_class="alternate"; ?>    
+
+	<?php $tr_class="alternate"; ?>
     <div  class="citation-rows">
 	<?php $k=0;foreach($rows as $row): ?>
 	    <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
@@ -179,7 +179,7 @@ function format_author($authors)
 function format_place($city, $country, $publisher, $date)
 {
 	$output=NULL;
-	
+
 	if ($city!=='')
 	{
 		$output[]=$city;
@@ -188,14 +188,14 @@ function format_place($city, $country, $publisher, $date)
 	{
 		$output[]=$country;
 	}
-	
+
 	//combine city and country
-	$city_country=NULL;	
+	$city_country=NULL;
 	if ($output!==NULL)
 	{
 		$city_country=implode(", ", $output);
 	}
-	
+
 	$tmp=NULL;
 	//combine publisher and date
 	if ($publisher!=='')
@@ -213,12 +213,12 @@ function format_place($city, $country, $publisher, $date)
 		//join publisher and date
 		$pub_and_date=implode(", ", $tmp);
 	}
-	
+
 	if ($pub_and_date!=='')
 	{
 		$pub_and_date.=". ";
 	}
-	
+
 	//combine all
 	$result=NULL;
 	if ($city_country!=='')
@@ -228,20 +228,20 @@ function format_place($city, $country, $publisher, $date)
 	}
 
 	$final_output=implode(": ", $result);
-	
+
 	return $final_output;
 }
 
 function format_date($day,$month,$year)
 {
 	$month_day='';
-	
-	//format Month, day	
+
+	//format Month, day
 	if($month!='')
 	{
 		$month_day=$month;
-	}		
-	
+	}
+
 	if ((integer)$day>0)
 	{
 		if ($month!='')
@@ -251,15 +251,15 @@ function format_date($day,$month,$year)
 		else
 		{
 			$month_day=$day;
-		}	
+		}
 	}
-	
+
 	$output='';
-	
+
 	//add year
 	if ((integer)$year>0)
 	{
-	
+
 		if ($month_day!='')
 		{
 			$output=$month_day.', '. $year;
@@ -267,13 +267,13 @@ function format_date($day,$month,$year)
 		else
 		{
 			$output=$year;
-		}	
+		}
 	}
-	
+
 	if ($output!='')
 	{
 		return $output.=".";
-	}	
+	}
 	else
 	{
 		return "";

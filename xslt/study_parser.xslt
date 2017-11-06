@@ -36,7 +36,7 @@ License:
 <xsl:template match="ddi:codeBook">
     <!-- ID -->
     <xsl:element name="id">
-    	<xsl:value-of select="normalize-space(//ddi:codeBook/@ID)" />
+    	<xsl:value-of select="normalize-space(//ddi:codeBook/ddi:stdyDscr/ddi:citation/ddi:titlStmt/ddi:IDNo)" />
     </xsl:element>
         
     <!-- titl -->
@@ -91,7 +91,9 @@ License:
     
     <!-- Keywords-->   
     <xsl:element name="keywords">
-       	<xsl:call-template name="keywords"/>
+       	<!--<xsl:call-template name="keywords"/>-->
+       	<xsl:value-of select="normalize-space(//ddi:docDscr)"/>
+		<xsl:value-of select="normalize-space(//ddi:stdyDscr)"/>
     </xsl:element>    
     
 	<!--Study type/serName-->
@@ -155,7 +157,7 @@ License:
         
             <!-- data collection end date -->
             <xsl:element name="data_coll_end">
-                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end']/@date),1,4)"/>
+                <xsl:value-of select="substring(normalize-space(ddi:stdyDscr/ddi:stdyInfo/ddi:sumDscr/ddi:collDate[@event='end'][last()]/@date),1,4)"/>
             </xsl:element>
 
         </xsl:otherwise>

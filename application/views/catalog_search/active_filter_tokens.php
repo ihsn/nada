@@ -18,6 +18,12 @@ else{
 		$items_found=t('found_studies');
 	}
 }
+
+if (!isset($_GET['collection']))
+{
+	$current_repo=@$search_options->filter->repo;
+	$_GET['collection'][]=$current_repo;
+}
 ?>
 
 <div class="active-filters-container">
@@ -35,7 +41,14 @@ else{
 	<?php if (is_array($search_options->topic)):?>
 		<?php foreach($search_options->topic as $topic):?>
         	<?php if (array_key_exists($topic,$topics)):?>
-            <span class="remove-filter topic" data-type="topic" data-value="<?php echo $topic;?>"><?php echo substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0)); ?></span>
+            <span class="remove-filter topic" data-type="topic" data-value="<?php echo $topic;?>">
+                <?php $brac_pos=strpos($topics[$topic]['title'],'[',0);?>
+                <?php if ($brac_pos):?>
+                    <?php echo substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0)); ?>
+                <?php else: ?>
+                    <?php echo $topics[$topic]['title']; ?>
+                <?php endif;?>
+            </span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
@@ -63,21 +76,26 @@ else{
     <?php endif;?>
     
     <?php if (isset($search_options->sk) && $search_options->sk!=''):?>
-    <span class="remove-filter sk" data-type="sk" data-value=""><?php echo $search_options->sk;?></span>
+    <span class="remove-filter sk" data-type="sk" data-value=""><?php echo substr($search_options->sk,0,50);?></span>
     <?php endif;?>
     
 	<?php if (isset($search_options->vk) && $search_options->vk!=''):?>
-    <span class="remove-filter vk" data-type="vk" data-value=""><?php echo $search_options->vk;?></span>
+    <span class="remove-filter vk" data-type="vk" data-value=""><?php echo substr($search_options->vk,0,50);?></span>
     <?php endif;?>
 
 	<?php if($found!=$total):?>
         <span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span>
     <?php endif;?>
+    
+    <?php if (isset($search_options->sid) && $search_options->sid!=''):?>
+    <span class="remove-filter sk" data-type="sid" data-value=""><?php echo substr($search_options->sid,0,50).'... ';?></span>
+    <?php endif;?>
+
 </div>
 <div class="filter-action-bar">
     <span class="right">
-    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=500&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view'));?>" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
-    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=500&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view'));?>" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
+    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="print-search"><img src="images/print.gif" alt="Print" title="Print search results"/></a>
+    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="print-search"><img src="images/page_excel.png" alt="CSV" title="Download search results as CSV"/></a>
     </span>
 </div>
 </div>

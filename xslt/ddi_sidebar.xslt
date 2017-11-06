@@ -51,7 +51,7 @@ License:
 				</xsl:if>
 				
 				<!--DATA APPRAISAL -->
-				<xsl:if test="ddi:stdyDscr//ddi:EstSmpErr | ddi:stdyDscr//ddi:dataAppr">
+				<xsl:if test="normalize-space(ddi:stdyDscr//ddi:EstSmpErr) | normalize-space(ddi:stdyDscr//ddi:dataAppr)">
 					dataappraisal
 				</xsl:if>
 

@@ -54,12 +54,12 @@ $autoload['packages'] = array(APPPATH.'third_party');
 $autoload['libraries'] = array(
 							'database',
 							'template',
-							'session', 							
+							'session',
 							'site_configurations',
 							'DB_Logger',
 							'MY_Exception',
 							'ion_auth',
-							'breadcrumb'							
+							'breadcrumb'
 							);
 
 /*
@@ -71,7 +71,7 @@ $autoload['libraries'] = array(
 |	$autoload['helper'] = array('url', 'file');
 */
 
-$autoload['helper'] = array('url','language','form_input_helper','querystring_helper','file_helper');
+$autoload['helper'] = array('security','url','language','form_input_helper','querystring_helper','file_helper','debug_helper');
 
 
 
@@ -99,7 +99,7 @@ $autoload['config'] = array();
 |
 |	$autoload['language'] = array('lang1', 'lang2');
 |
-| NOTE: Do not include the "_lang" part of your file.  For example 
+| NOTE: Do not include the "_lang" part of your file.  For example
 | "codeigniter_lang.php" would be referenced as array('codeigniter');
 |
 */
