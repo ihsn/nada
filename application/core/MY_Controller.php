@@ -23,7 +23,7 @@ class MY_Controller extends CI_Controller
 	* @skip			skip authentication  (true=skip authentication)
 	* @is_admin		requires the user to have admin rights
 	*/
-	public function MY_Controller($skip=FALSE,$is_admin=TRUE)
+	public function __construct($skip=FALSE,$is_admin=TRUE)
 	{		
 		parent::__construct();
 		
