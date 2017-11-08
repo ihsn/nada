@@ -31,7 +31,7 @@ class DDI_Browser{
 	
 	
     //constructor
-	function DDI_Browser()
+	function __construct()
 	{
 		$this->ci =& get_instance();
 		$this->ci->load->helper('xslt_helper');

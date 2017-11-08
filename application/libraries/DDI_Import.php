@@ -29,7 +29,7 @@ class DDI_Import{
 	var $variables_imported=0; //no. of variables imported
 
     //constructor
-	function DDI_Import()
+	function __construct()
 	{
 		$this->ci =& get_instance();
 		$this->repository_identifier=$this->ci->config->item('repository_identifier');

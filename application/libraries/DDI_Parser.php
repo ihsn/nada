@@ -62,7 +62,7 @@ class DDI_Parser{
 	
 	
     //constructor
-	function DDI_Parser()
+	function __construct()
 	{
 		$CI =& get_instance();
 		$CI->load->helper('xslt_helper');

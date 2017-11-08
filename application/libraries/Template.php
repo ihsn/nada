@@ -67,7 +67,7 @@ class Template {
 	 * @access	public
 	 */
    
-   function Template()
+   function __construct()
    {
       // Copy an instance of CI so we can use the entire framework.
       $this->CI =& get_instance();
