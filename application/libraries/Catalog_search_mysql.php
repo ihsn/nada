@@ -274,7 +274,7 @@ class Catalog_search_mysql{
 		if (strlen($study_keywords)>3)
 		{		
 			//build the sql where using FULLTEXT
-			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
+			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
 			return $sql;
 		}
 		else if(strlen($study_keywords)==3)
