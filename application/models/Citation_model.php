@@ -17,7 +17,8 @@ class Citation_model extends CI_Model {
 
 		switch($driver)
 		{
-			case 'mysql';
+			case 'mysql':
+			case 'mysqli':
 				$this->load->library('citation_search_mysql');
 				$result=$this->citation_search_mysql->search($limit, $offset,$filter,$sort_by,$sort_order,$published,$repositoryid);
 				$this->search_found_rows=$this->citation_search_mysql->search_found_rows;
