@@ -1,35 +1,4 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-/*
-class Catalog_search
-{
-
-    private $search_obj=null;
-
-    function __construct()
-    {
-        //decides which database search driver to load
-        $ci =& get_instance();
-        $driver = $ci->db->dbdriver;
-
-        switch ($driver) {
-            case 'postgre';
-                include dirname(__FILE__) . '/catalog_search_postgre.php';
-                break;
-            case 'sqlsrv';
-                include dirname(__FILE__) . '/catalog_search_sqlsrv.php';
-                return;
-                break;
-            case 'mysql';
-                require_once dirname(__FILE__) . '/catalog_search_mysql.php';
-                $this->search_obj= new Catalog_search_mysql;
-                return;
-                break;
-        }
-    }
-}
-*/
-
-
 /**
  * Adaptor class for catalog search
  *
@@ -80,7 +49,8 @@ class Catalog_search{
         return $this->search_obj->vsearch($limit, $offset);
     }
 
-    function v_quick_search($surveyid=NULL,$limit=50,$offset=0){
+    function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
+    {
         return $this->search_obj->v_quick_search($surveyid,$limit,$offset);
     }
 
