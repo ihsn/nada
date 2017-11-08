@@ -348,6 +348,9 @@ class Install extends CI_Controller {
 			case 'mysql':
 				$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
 				break;
+			case 'mysqli':
+				$conn_id = @mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);
+				break;	
 			case 'postgre':
 				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
 				break;
@@ -382,6 +385,9 @@ class Install extends CI_Controller {
 		{
 			case 'mysql':
 				$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
+			break;
+			case 'mysqli':
+			$conn_id = @mysqlI_connect($this->db->hostname, $this->db->username, $this->db->password);
 			break;
 			case 'postgre':
 				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
@@ -453,8 +459,16 @@ class Install extends CI_Controller {
 	*/
 	function _create_tables()
 	{
+		//default
+		$db_driver=$this->db->dbdriver;
+
+		//mysql, mysqli
+		if (in_array($db_driver,array('mysql','mysqli'))){
+			$db_driver='mysql';
+		}
+
 		//sql file to restore database
-		$filename=APPPATH.'../install/schema.'.$this->db->dbdriver.'.sql';
+		$filename=APPPATH.'../install/schema.'.$db_driver.'.sql';
 		
 		if (!file_exists($filename))
 		{
@@ -495,26 +509,6 @@ class Install extends CI_Controller {
 		}
 	}
 	
-
-	function test()
-	{
-		$email='mah0001@gmail.com';
-		$username='test';
-		//get the user data by email
-		$user=$this->ion_auth->get_user_by_email($email);
-			
-		if ($user)
-		{
-			//$data=$additional_data;
-			$data['username']=$username;
-			$data['active']=1;
-			$data['group_id']=1;
-											
-			//update user group to ADMIN and ACTIVATE account
-			$this->ion_auth->update_user($user->id, $data);	
-		}
-	
-	}
 
 }
 

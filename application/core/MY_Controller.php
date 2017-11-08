@@ -221,6 +221,9 @@ class MY_Controller extends CI_Controller
 			case 'mysql':
 				$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
 				break;
+			case 'mysqli':
+				$conn_id = mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);								
+				break;	
 			case 'postgre':
 				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
 				break;
