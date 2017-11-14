@@ -472,7 +472,7 @@ CREATE TABLE `surveys` (
   `refno` varchar(255) DEFAULT NULL,
   `proddate` varchar(45) DEFAULT NULL,
   `varcount` decimal(10,0) DEFAULT NULL,
-  `ddifilename` varchar(255) DEFAULT NULL,
+  `metafile` varchar(255) DEFAULT NULL,
   `dirpath` varchar(255) DEFAULT NULL,
   `link_technical` varchar(255) DEFAULT NULL COMMENT 'documentation',
   `link_study` varchar(255) DEFAULT NULL COMMENT 'study website',
