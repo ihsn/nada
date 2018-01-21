@@ -146,6 +146,15 @@ $lang['show_selected_only']="Show selected only";
 $lang['Data available from external repository']="Data available from external repository";
 $lang['Data not available']="Data not available";
 $lang['error_no_collection_selected']="You have not selected a collection!";
+$lang['confirm_publish_records']="Confirm to publish study?";
+$lang['confirm_publish']="Publish?";
+$lang['attach_citations']="Attach citations";
+$lang['return_to_edit_page']="Return to edit page";
+$lang['attach_related_data']="Attach related";
+$lang['no_related_studies_click_here_to_add']="There are no related studies attached";
+$lang['relationship_type']="Relationship type";
+$lang['draft']="Draft";
+
 
 /* End of file catalog_admin_lang.php */
 /* Location: ./application/language/english/catalog_admin_lang.php */

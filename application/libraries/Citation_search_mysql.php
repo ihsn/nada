@@ -89,117 +89,174 @@ class Citation_search_mysql{
 						citations.notes,
 						citations.doi,
 						citations.flag,
-						count(survey_citations.sid) as survey_count,
-						citations.owner';
-						
-		//select columns for output
-		$this->ci->db->select($select_fields, FALSE);
-	
-		//allowed_fields
-		$db_fields=array(
-					'id'=>'citations.id',
-					'title'=>'citations.title',
-					'subtitle'=>'citations.subtitle',
-					'alt_title'=>'citations.alt_title',
-					'authors'=>'citations.authors',
-					'editors'=>'citations.editors',
-					'translators'=>'citations.translators',
-					'place_publication'=>'citations.place_publication',
-					'publisher'=>'citations.publisher',
-					'url'=>'citations.url',
-					'place_state'=>'citations.place_state',
-					'country'=>'surveys.nation',
-					'pub_year'=>'citations.pub_year',
-					'survey_count'=>'survey_count',
-					'changed'=>'citations.changed',
-					'created'=>'citations.created',
-					'ctype'=>'citations.ctype',
-					'keywords'=>'citations.keywords',
-					'notes'=>'citations.notes',
-					'doi'=>'citations.doi',
-					'flag'=>'citations.flag',
-					'published'=>'citations.published',
-					'owner'=>'citations.owner'
-					);
-		
-		//fields to search when search=ALL FIELDS
-		$all_fields=array(
-					'citations.title',
-					'citations.subtitle',
-					'citations.alt_title',
-					'citations.authors',
-					'citations.url',
-					'citations.pub_year',
-					'surveys.nation',
-					'citations.keywords',
-					'citations.doi'
-					);
-		
-		$this->ci->db->from('citations');
-		$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
-		$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
-		
-		//filter by repository if set
-		if($repositoryid!=NULL && strtolower($repositoryid)!='central')
-		{
-			$this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
-			$this->ci->db->where('survey_repos.repositoryid',$repositoryid);
-		}
-		
-		$this->ci->db->group_by('citations.id');
-		
-		$fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords';
-		$country_fulltext_index='surveys.nation';
+						citations.url_status,
+						citations.owner,
+						user_changed.username as changed_by_user,
+						user_created.username as created_by_user';
 
-		if (is_numeric($published))
-		{
-			$this->ci->db->where ('citations.published',$published);
-		}
-		
-		//set where
-		if ($filter)
-		{			
-			foreach($filter as $f)
-			{	
-				$keywords=trim($f['keywords']);
-				if (trim($keywords)!="" && strlen($keywords)>=3)
-				{
-					//search only in the allowed fields
-					if ($f['field']!='' &&  array_key_exists($f['field'],$db_fields))
-					{
-						//$this->ci->db->like($db_fields[$f['field']], trim($keyword)); 
-						$this->ci->db->where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$f['field'],$this->ci->db->escape($keywords)));
-					}
-					else if ($f['field']=='all')
-					{
-							//$this->ci->db->or_like($field, trim($keyword)); 
-							$this->ci->db->where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$fulltext_index,$this->ci->db->escape($keywords)));
-							$this->ci->db->or_where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$country_fulltext_index,$this->ci->db->escape($keywords)));
-					}
-				}
-				if ( ($f['field']=='notes' ||  $f['field']=='flag') && $f['keywords']=='*')
-				{
-					$this->ci->db->where(sprintf("%s !=''",$f['field']));
-				}
+        //select columns for output
+        $this->ci->db->select($select_fields, FALSE);
 
-			}
-		}				
-				
-		//set order by
-		if ($sort_by!='' && $sort_order!='')
-		{
-			if (array_key_exists($sort_by,$db_fields))
-			{
-				$this->ci->db->order_by($sort_by, $sort_order); 
-			}
-			else
-			{
-				$this->ci->db->order_by('citations.title', $sort_order); 
-			}			
-		}
-		
-		//set Limit clause
-	  	$this->ci->db->limit($limit, $offset);
+        //allowed_fields
+        $db_fields=array(
+            'id'=>'citations.id',
+            'title'=>'citations.title',
+            'subtitle'=>'citations.subtitle',
+            'alt_title'=>'citations.alt_title',
+            'authors'=>'citations.authors',
+            'editors'=>'citations.editors',
+            'translators'=>'citations.translators',
+            'place_publication'=>'citations.place_publication',
+            'publisher'=>'citations.publisher',
+            'url'=>'citations.url',
+            'place_state'=>'citations.place_state',
+            'country'=>'surveys.nation',
+            'pub_year'=>'citations.pub_year',
+            //'survey_count'=>'survey_count',
+            'changed'=>'citations.changed',
+            'created'=>'citations.created',
+            'ctype'=>'citations.ctype',
+            'keywords'=>'citations.keywords',
+            'notes'=>'citations.notes',
+            'doi'=>'citations.doi',
+            'flag'=>'citations.flag',
+            'published'=>'citations.published',
+            'owner'=>'citations.owner',
+            'changed_by_user'=>'user_changed.username',
+            'created_by_user'=>'user_created.username',
+            'url_status'=>'citations.url_status'
+        );
+
+        //fields to search when search=ALL FIELDS
+        $all_fields=array(
+            'citations.title',
+            'citations.subtitle',
+            'citations.alt_title',
+            'citations.authors',
+            'citations.url',
+            'citations.pub_year',
+            'surveys.nation',
+            'citations.keywords',
+            'citations.doi'
+        );
+
+        $where=array();//all where statements are combined in the end as a custom where to overcome the AR limits
+
+        $this->ci->db->from('citations');
+        //$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
+        //$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+
+        //user created the citation
+        $this->ci->db->join('users user_created', 'citations.created_by = user_created.id','left');
+
+        //user changed citation
+        $this->ci->db->join('users user_changed', 'citations.changed_by = user_changed.id','left');
+
+        //filter by repository if set
+        if($repositoryid!=NULL && strtolower($repositoryid)!='central')
+        {
+            $this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+            $this->ci->db->where('survey_repos.repositoryid',$repositoryid);
+        }
+
+        //$this->ci->db->group_by('citations.id');
+
+        $fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords';
+        $country_fulltext_index='surveys.nation';
+
+        if (is_numeric($published))
+        {
+            $this->ci->db->where ('citations.published',$published);
+        }
+
+        $sort_on_rank=false;
+
+
+        //set where
+        if ($filter)
+        {
+            foreach($filter as $search_field=>$keywords)
+            {
+                //echo $search_field;
+
+                switch($search_field)
+                {
+                    case 'keywords':
+                        if (trim($keywords)==""){break;}
+
+                        $keywords_where="(";
+                        $keywords_where.=sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$fulltext_index,$this->ci->db->escape($keywords));
+                        //$keywords_where.=" OR ".sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$country_fulltext_index,$this->ci->db->escape($keywords));
+                        $keywords_where.=")";
+
+                        //$this->ci->db->where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$fulltext_index,$this->ci->db->escape($keywords)));
+                        //$this->ci->db->or_where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$country_fulltext_index,$this->ci->db->escape($keywords)));
+                        $this->ci->db->where($keywords_where, NUll,FALSE);
+
+                        $this->ci->db->select(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE) as rank',$fulltext_index,$this->ci->db->escape($keywords)),false);
+                        $sort_on_rank=true;
+
+                        break;
+
+                    case 'published':
+                        if (is_numeric($keywords)){
+                            $this->ci->db->where ('citations.published',$keywords);
+                        }
+                        break;
+
+                    case 'flag':
+                        if ($keywords!=""){
+                            $this->ci->db->where_in ('citations.flag',$keywords);
+                        }
+                        break;
+
+                    case 'user':
+                        if (is_array($keywords) && count($keywords)>0){
+                            $this->ci->db->where_in('changed_by',$keywords);
+                        }
+                        break;
+
+                    case 'has_notes':
+                        if ($keywords!=""){
+                            $this->ci->db->where(" (notes IS NOT NULL and notes !='') ",NULL, FALSE);
+                        }
+                        break;
+
+                    case 'no_survey_attached': //TODO: broken
+                        if ($keywords!=""){
+                            //$this->ci->db->having("count(survey_citations.sid)<1",NULL,FALSE);
+                        }
+                        break;
+
+                    case 'url_status':
+                        if ($keywords!=""){
+                            $this->ci->db->where_in ('citations.url_status',$keywords);
+                        }
+                        break;
+                }
+
+            }
+
+        }
+
+        //set order by
+        if ($sort_by!='' && $sort_order!='')
+        {
+            if (array_key_exists($sort_by,$db_fields))
+            {
+                $this->ci->db->order_by($sort_by, $sort_order);
+            }
+            else
+            {
+                if ($sort_on_rank){
+                    //default sort on rank
+                    $this->ci->db->order_by('rank', $sort_order='desc');
+                }
+            }
+        }
+
+        //set Limit clause
+        $this->ci->db->limit($limit, $offset);
         $query= $this->ci->db->get();
 		
 		if ($query)

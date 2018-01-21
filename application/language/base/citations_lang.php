@@ -110,6 +110,8 @@ $lang['citation_string_invalid'] = "Unexpected or incorrect Citation format";
 $lang['attach_to_survey'] = "Attach citation(s) to the following studies (use CTRL/SHIFT to select multiple studies)";
 $lang['attach_studies'] = "Attach studies";
 $lang['citations_text'] = "A bibliography of publications that have cited the use of a dataset listed in this catalog.  Selecting a publication from the list will show which study dataset was used and provide a link to the study in the catalog.";
+$lang['tab_home'] = "Home";
+$lang['tab_attach_surveys'] = "Attach surveys";
 
 /* End of file citation_lang.php */
 /* Location: ./system/language/english/citations_lang.php */

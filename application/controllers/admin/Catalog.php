@@ -4,9 +4,6 @@
  *
  * handles all Catalog Maintenance pages
  *
- * @package		NADA 4
- * @author		Mehmood Asghar
- * @link		http://ihsn.org/nada/
  */
 class Catalog extends MY_Controller {
 
@@ -60,19 +57,18 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
-		//TODO:need more testing.
-		//$this->_persist_search();
-
 		//css files
-		$this->template->add_css('themes/admin/catalog_admin.css');
+		//$this->template->add_css('themes/admin/catalog_admin.css');
+		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
+        $this->template->add_css($inline_styles,'embed');
+
 
 		//js files
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 		$this->template->add_js('javascript/catalog_admin.js');
 
 		//set filter on active repo
-		if (isset($this->active_repo) && $this->active_repo!=null)
-		{
+		if (isset($this->active_repo) && $this->active_repo!=null){
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 
@@ -94,7 +90,7 @@ class Catalog extends MY_Controller {
 			}
 
 			//get citations per study
-			$citations=$this->Citation_model->get_citations_count_by_survey($sid_list);
+			$citations=$this->Citation_model->get_citations_count_by_survey_list($sid_list);
 
 			foreach($db_rows['rows'] as $key=>$row)
 			{
@@ -106,9 +102,6 @@ class Catalog extends MY_Controller {
 		}
 
 		$db_rows['active_repo_obj']=$this->active_repo;
-
-        $inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
-        $this->template->add_css($inline_styles,'embed');
 		$content=$this->load->view('catalog/index', $db_rows,true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
@@ -358,35 +351,6 @@ class Catalog extends MY_Controller {
 	}
 
 
-
-	/**
-	*
-	* Enable/Disable ddi sharing
-	*
-	* NOTE: updated through ajax request and no output is needed
-	*/
-	function shareddi($surveyid=NULL,$share=true)
-	{
-		if (!is_numeric($surveyid))
-		{
-			show_404();
-		}
-
-		if (!is_numeric($share))
-		{
-			show_404();
-		}
-
-		$options=array('id'=>$surveyid, 'isshared'=>$share);
-
-		//update db
-		$result=$this->Catalog_model->update_survey_options($options);
-
-		if($result)
-		{
-			echo 'updated';
-		}
-	}
 
 
 	/**
@@ -2006,17 +1970,18 @@ class Catalog extends MY_Controller {
 			//test user study permissiosn
 			$this->acl->user_has_study_access($id);
 
-			//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-			$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-			//$this->template->add_js('javascript/jquery/ui/ui.core.js');
-			//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
-			$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
-			$this->load->model('Citation_model');
-			$this->load->model('Catalog_notes_model');
-			$this->load->model('Catalog_tags_model');
-			$this->load->model('Survey_alias_model');
-			$this->load->library('catalog_admin');
-			//$this->load->library('ion_auth');
+		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
+		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
+		//$this->template->add_js('javascript/jquery/ui/ui.core.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
+		$this->load->model('Citation_model');
+		$this->load->model('Catalog_notes_model');
+		$this->load->model('Catalog_tags_model');
+		$this->load->model('Survey_alias_model');
+		$this->load->library('catalog_admin');
+		$this->load->library('chicago_citation');
+		//$this->load->library('ion_auth');
 
 			$this->load->library("catalog_admin");
 
@@ -2048,8 +2013,11 @@ class Catalog extends MY_Controller {
 			//check if survey has citations
 			$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
 
-			//get survey files
-			$survey_row['files']=$this->catalog_admin->managefiles($id);
+		//get survey files
+		$survey_row['files_formatted']=$this->catalog_admin->managefiles($id);
+
+		//get survey files ArrayAccess
+		$survey_row['files']=$this->catalog_admin->get_files_array($id);
 
 			//get microdata attached to the study
 			$survey_row['microdata_files']=$this->resource_model->get_microdata_resources($id);
@@ -2064,11 +2032,11 @@ class Catalog extends MY_Controller {
 			//formatted list of external resources
 			$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 
-			//get all study notes
-			$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);
+		//get all study notes
+		$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);
 
-			//survey tags
-			$tags['tags'] = $this->Catalog_tags_model->survey_tags($id);
+		//survey tags
+		$tags['tags'] = $this->Catalog_tags_model->survey_tags($id);
 
 			//all tags
 			$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
@@ -2227,7 +2195,7 @@ class Catalog extends MY_Controller {
 	*	@sid_2			child studies comma separated list e.g 1,2,3,4
 	*	@rel_id			relationship id
 	**/
-	function update_related_study($sid_1,$sid_2,$rel_id)
+	function update_related_study($sid_1=null,$sid_2=null,$rel_id=null)
 	{
 		if(!is_numeric($sid_1) || !is_numeric($rel_id))
 		{
@@ -2253,7 +2221,7 @@ class Catalog extends MY_Controller {
 	*
 	*	Remove a single study relationship
 	**/
-	function remove_related_study($sid_1,$sid_2,$rel_id)
+	function remove_related_study($sid_1=null,$sid_2=null,$rel_id=null)
 	{
 		if(!is_numeric($sid_1) || !is_numeric($rel_id) || !is_numeric($sid_2) )
 		{
@@ -2263,7 +2231,9 @@ class Catalog extends MY_Controller {
 		$sid_2_arr=explode(",",$sid_2);
 
 		$this->load->model("Related_study_model");
-		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id);
+		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id=null);
+
+    echo $this->db->last_query();
 	}
 
 	function get_related_studies($sid)

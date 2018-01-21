@@ -124,7 +124,7 @@ class Site_Menu
 				$menu_tree[]=sprintf('<li class=""><a href="%s">%s</a></li>',site_url().'/'.$parent['url'],t($parent['title']));
 			}						
 		}
-		return sprintf('<ul class="nav">%s</ul>',implode('',$menu_tree));
+		return sprintf('<ul class="nav navbar-nav">%s</ul>',implode('',$menu_tree));
 	}
 	
 	

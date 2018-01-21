@@ -1,21 +1,21 @@
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid terms-index-page" >
 
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/vocabularies/" class="button"><img src="images/house.png"/><?php echo t('home');?></a>
-    <a href="<?php echo site_url(); ?>/admin/terms/<?php echo $this->uri->segment(3);?>/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('add_term');?></a> 
+<div class="text-right page-links">
+	<a href="<?php echo site_url(); ?>/admin/vocabularies/" class="btn btn-default"><span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('vocabularies');?></a>
+    <a href="<?php echo site_url(); ?>/admin/terms/<?php echo $this->uri->segment(3);?>/add" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('add_term');?></a> 
 </div>
         
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo $page_title;?></h1>
 
 <?php if ($rows):?>
 	 <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th><?php echo t('term');?></th>
 			<th>&nbsp;</th>

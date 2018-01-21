@@ -1,13 +1,13 @@
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid">
 <?php if (!isset($hide_form)):?>
 
 <?php $this->load->view('da_collections/navigation_links'); ?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 
 <h1 class="page-title"><?php echo t('bulk_da_collections');?></h1>
@@ -36,7 +36,7 @@
     </table>
     
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo t('title'); ?></th>
@@ -48,7 +48,7 @@
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
-        	<td style="width:20px;"><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
+        	<td style="width=50px;"><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <td><?php echo substr($row->description,0,100); ?>&nbsp;</td>
 			<td>

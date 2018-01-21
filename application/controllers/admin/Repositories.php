@@ -306,7 +306,7 @@ class Repositories extends MY_Controller {
 							'name'	=> $field,
 							'id'    => $field,
 							'type'  => 'text',
-							'class' => 'input-flex',
+							'class' => 'form-control',
 							'value' => $this->form_validation->set_value($field,$this->row_data[$field]));
 		}
 		

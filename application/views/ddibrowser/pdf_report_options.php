@@ -23,7 +23,7 @@ $(document).ready(function () {
 .processing{display:none;background:gainsboro;padding:15px;border:1px solid gainsboro;font-size:18px;}
 </style>
 
-<div class="content-container">
+<div class="container-fluid">
 
 <?php if (validation_errors() ) : ?>
     <div class="error">
@@ -44,34 +44,34 @@ $(document).ready(function () {
 <?php endif;?>
 
 <form method="post" class="form">
-<div class="field">
+<div class="form-group">
     <label for="website_title"><?php echo t('website_title');?></label>
-    <input name="website_title" type="text" id="website_title" size="50" class="input-flex"  value="<?php echo get_form_value('website_title',isset($website_title) ? $website_title : ''); ?>"/>
+    <input name="website_title" type="text" id="website_title" size="50" class="form-control"  value="<?php echo get_form_value('website_title',isset($website_title) ? $website_title : ''); ?>"/>
 </div>
 
 
-<div class="field">
+<div class="form-group">
     <label for="study_title"><?php echo t('study_title');?></label>
-    <input name="study_title" type="text" id="study_title" size="50" class="input-flex"  value="<?php echo get_form_value('study_title',isset($study_title) ? $study_title : ''); ?>"/>
+    <input name="study_title" type="text" id="study_title" size="50" class="form-control"  value="<?php echo get_form_value('study_title',isset($study_title) ? $study_title : ''); ?>"/>
 </div>
 
 
-<div class="field">
+<div class="form-group">
     <label for="publisher"><?php echo t('publisher');?></label>
-    <input name="publisher" type="text" id="publisher" size="50" class="input-flex"  value="<?php echo get_form_value('publisher',isset($publisher) ? $publisher : ''); ?>"/>
+    <input name="publisher" type="text" id="publisher" size="50" class="form-control"  value="<?php echo get_form_value('publisher',isset($publisher) ? $publisher : ''); ?>"/>
 </div>
 
-<div class="field">
+<div class="form-group">
     <label for="website_url"><?php echo t('website_url');?></label>
-    <input name="website_url" type="text" id="website_url" size="50" class="input-flex"  value="<?php echo get_form_value('website_url',isset($website_url) ? $website_url : ''); ?>"/>
+    <input name="website_url" type="text" id="website_url" size="50" class="form-control"  value="<?php echo get_form_value('website_url',isset($website_url) ? $website_url : ''); ?>"/>
 </div>
 
-<div class="field">
+<div class="form-group">
     <label for="report_lang"><?php echo t('report_lang');?></label>
     <?php echo form_dropdown('report_lang', get_form_value('report_lang',isset($report_lang) ? $report_lang : '') );?>
 </div> 
 
-<div class="field-group">
+<div class="form-group">
 	<label style="padding-bottom:10px;display:block;"><strong><?php echo t('Report options');?></strong></label>
 <div class="field-inline">
     <input name="toc_variable" id="toc_variable" type="checkbox" value="1" <?php echo ($this->input->post("toc_variable")==1 ? 'checked="checked"' : '');?> />
@@ -88,8 +88,8 @@ $(document).ready(function () {
     <label for="ext_resources"><?php echo t('include_external_resources');?></label>    
 </div>
 
-<div class="field-inline action-submit">
-	<input type="submit" name="submit" id="submit" value="<?php echo t('generate_pdf'); ?>" />
+<div class="field-inline action-submit" style="margin-top:15px;">
+	<input class="btn btn-primary" type="submit" name="submit" id="submit" value="<?php echo t('generate_pdf'); ?>" />
 	<?php echo anchor('admin/catalog/edit/'.$id, t('cancel'));?>
 </div>
 

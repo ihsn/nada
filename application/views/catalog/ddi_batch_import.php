@@ -1,5 +1,8 @@
 <style type="text/css">
 .active-repo{background:gainsboro;padding:5px;}
+.state-hidden{
+	display:none;
+}
 </style>
 
 <?php
@@ -31,12 +34,12 @@ $batch_upload_options=array(
 $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_options,TRUE);
 ?>
 
-<div class="content-container">
+<div class="container-fluid">
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
-<h1 class="page-title"><?php echo t('batch_import_title');?> <span class="active-repo"><?php echo $repositories_list[$active_repository];?></span></h1>
+<h1 class="page-title"><?php echo t('batch_import_title');?> <span class="label label-default"><?php echo $repositories_list[$active_repository];?></span></h1>
 <div>
 
 <?php if ( count($files)==0 || $files===false) :?>
@@ -49,11 +52,11 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 <?php endif; ?>
 
 <div>
-	<?php echo sprintf(t('import_ddi_files_found'),count($files));?> <input type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
+	<?php echo sprintf(t('import_ddi_files_found'),count($files));?> <input class="btn btn-default" type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
     
-    <div style="margin-top:20px;">
+    <div>
     
-    <div class="field" style="margin-bottom:5px;">
+    <div class="form-group">
         <label for="overwrite" class="desc" >
         	<input type="checkbox" name="overwrite" id="overwrite" checked="checked"  value="yes"/> <?php echo t('ddi_overwrite_exist');?> 
         </label>
@@ -78,7 +81,7 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 
 <div class="uploader-body state-hidden"><?php echo $batch_uploader;?></div>
 
-<table class="grid-table" width="100%" cellspacing="0" cellpadding="0"> 
+<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0"> 
 <tr align="left" class="header">
 	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
     <th><?php echo t('name');?></th>
@@ -169,7 +172,7 @@ var batch_import = {
 		
 		var overwrite=0;
 		var repositoryid=null;
-		if ($("#overwrite").attr("checked")){overwrite=1}
+		if ($("#overwrite").is(":checked")){overwrite=1}
 		repositoryid=$("#repositoryid").val();
 		//post	
 		this.xhr=$.post(CI.base_url+"/admin/catalog/do_batch_import",{id:id,overwrite:overwrite,repositoryid:repositoryid},func_data, "json");

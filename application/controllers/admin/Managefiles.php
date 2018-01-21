@@ -9,7 +9,7 @@ class Managefiles extends MY_Controller {
 	
     function __construct()
     {
-        parent::MY_Controller();
+        parent::__construct();
         $this->template->set_template('admin');
 		$this->load->helper('file');		
 		$this->load->model("managefiles_model");
@@ -590,7 +590,7 @@ class Managefiles extends MY_Controller {
 		}
 				
 		//redirect
-		redirect("admin/catalog/edit/".$surveyid,"refresh");
+		redirect("admin/catalog/edit/".$surveyid."/files","refresh");
 	}
 	
 	function _delete_files($absolute_path)

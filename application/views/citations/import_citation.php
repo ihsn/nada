@@ -1,64 +1,3 @@
-<style>
-/*model dialog*/
-.ui-widget-header{background:black;border:black;color:white;}
-.ui-dialog .ui-dialog-content{overflow:auto;padding:0px;background:white;}
-
-/*related studies tab*/
-.dialog-container .table-container {
-/*	height: 246px;
-	overflow: auto;*/
-	font-size: 12px;
-}
-
-.dialog-container .pagination em{float:left;}
-.dialog-container .pagination .page-nums{float:right;}
-
-.dialog-container a.attach, 
-.dialog-container a.remove {
-background: green;
-padding: 3px;
-color: white;
-display: block;
--webkit-border-radius: 3px;
--moz-border-radius: 3px;
-border-radius: 3px;
-float:left;
-width:60px;
-text-align:center;
-text-transform:capitalize
-}
-.dialog-container a.remove{background:red;}
-
-.dialog-container a.attach:hover, 
-.dialog-container a.remove:hover {background:black;}
-
-
-.ui-widget-header {
-background: white;
-border: 0px;
-color: black;
-}
-
-/*dialog header*/
-.ui-dialog .ui-dialog-titlebar {
-	border-radius: 0px;
-	border: 0px;
-	text-align: left;
-	height: 1;
-	background:#F3F3F3
-}
-
-/*dialog footer*/
-.ui-dialog .ui-dialog-buttonpane {
-	font-size: 12px;	
-}
-.ui-widget-overlay {opacity:0.8}
-
-.grid-table .header{font-weight:bold;}
-.sub-text{font-size:smaller;color:gray;}
-
-</style>
-
 <?php
 $citation_formats = array(
                   'bibtex'  => 'BibTex',
@@ -193,7 +132,7 @@ $flag_options=array(
 		$(document.body).on("click",".table-container a.attach", function(event){ 
 			$.get($(this).attr("href"));
 			$(this).html("<?php echo t('deselect'); ?>");
-			$(this).removeClass("attach").addClass("remove");
+			$(this).removeClass("btn btn-success btn-sm attach").addClass("btn btn-danger btn-sm remove");
 			var sid=$(this).attr("data-value");
 			$(this).attr("href",detach_url+sid);			
 			return false;
@@ -204,7 +143,7 @@ $flag_options=array(
 		$(document.body).on("click","#related-surveys .table-container a.remove", function(event){ 
 			$.get($(this).attr("href"));
 			$(this).html("<?php echo t('select'); ?>");	
-			$(this).removeClass("remove").addClass("attach");
+			$(this).removeClass("btn btn-danger btn-sm remove").addClass("btn btn-success btn-sm attach");
 			var sid=$(this).attr("data-value");
 			$(this).attr("href",detach_url+sid);
 			return false;
@@ -213,55 +152,55 @@ $flag_options=array(
 	}//end-function		
 </script>
 <div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/citations/" class="button"><img src="images/house.png"/><?php echo t('citation_home');?></a> 
+	<a href="<?php echo site_url(); ?>/admin/citations/" class="btn btn-default"><span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('citation_home');?></a> 
 </div>
 
-<div class="content-container">
+<div class="container-fluid">
 
 <?php if (validation_errors() ) : ?>
-    <div class="error">
+    <div class="alert alert-danger">
 	    <?php echo validation_errors(); ?>
     </div>
 <?php endif; ?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('import_citation'); ?></h1>
 
 <?php echo form_open_multipart(site_url().'/admin/citations/import/', array('class'=>'form') ); ?>
 <input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
 <input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: 'cit-'.date("U")); ?>"/>
-<div class="field">
+<div class="form-group field">
 	<label for="citation_format"><?php echo t('citation_import_format');?></label>
-	<?php echo form_dropdown('citation_format', $citation_formats);?>
+	<?php echo form_dropdown('citation_format', $citation_formats ,'',array('class'=>'form-control'));?>
 </div>
 
-<div class="field">
+<div class="form-group field">
 	<label for="citation_string"><?php echo t('paste_citation_string');?></label>
-	<textarea rows="10" name="citation_string" id="citation_string" class="input-flex"><?php echo get_form_value('citation_string',isset($citation_string) ? $citation_string : ''); ?></textarea>
+	<textarea rows="10" name="citation_string" id="citation_string" class="form-control"><?php echo get_form_value('citation_string',isset($citation_string) ? $citation_string : ''); ?></textarea>
 </div>
 
-<div class="field">
+<div class="form-group field">
     <label for="publish"><?php echo t('publish_citation');?></label>
-    <?php echo form_dropdown('published', $publish_options, get_form_value("published",isset($published) ? $published : ''),'id="published"'); ?>
+    <?php echo form_dropdown('published', $publish_options, get_form_value("published",isset($published) ? $published : ''),array('class'=>'form-control','id'=>'published')); ?>
 </div>
 
-<div class="field">
+<div class="form-group field">
     <label for="flag"><?php echo t('flag_entry_as');?></label>
-    <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),'id="flag"'); ?>
+    <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),array('class'=>'form-control','id'=>'flag')); ?>
 </div>
 
 <fieldset class="field-expanded">
-	<legend><?php echo t('related_studies');?></legend>
+	<label class="left-margin-5"><?php echo t('related_studies');?></label>
 <div class="field">
-    <div id="related-surveys" style="height:200px;overflow:scroll;overflow-x: hidden;border:1px solid gainsboro;padding:5px;margin-bottom:5px;">    	
+    <div id="related-surveys" class="related-surveys">    	
 			<?php echo $survey_list; ?>
     </div> 
-	<a style="display:block" class="add_survey" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
+	<a  class="add_survey" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
 </div>
 </fieldset>
 <?php
@@ -278,9 +217,9 @@ $flag_options=array(
 */
 ?>
 
-<div class="field">
-	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
-	<?php echo anchor('admin/citations/', t('cancel'), array('class'=>''));?>
+<div class="form-group" style="margin-top:20px">
+	<input class="btn btn-primary" type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
+	<?php echo anchor('admin/citations/', t('cancel'), array('class'=>'btn btn-default'));?>
 </div>
 
 

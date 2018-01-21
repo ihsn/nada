@@ -10,7 +10,7 @@
 <?php endif; ?>
 
 <!-- grid -->
-<table class="grid-table comments-history-table" width="100%" cellspacing="0" cellpadding="0">
+<table class="table table-striped comments-history-table" width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
 	    <th><?php echo t('dated');?></th>
 	    <th><?php echo t('status');?></th>        

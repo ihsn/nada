@@ -1,26 +1,33 @@
-<div class="body-container" style="padding:10px;">
+<style>
+.form-control-custom{
+	width:auto;
+	display:inline;
+}
+</style>
+<div class="container-fluid">
 
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/countries" class="button"><img src="images/house.png"/><?php echo t('home');?></a>
+<div class="text-right page-links">
+	<a href="<?php echo site_url(); ?>/admin/countries" class="btn btn-default">
+    	<span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('countries');?></a>
 </div>
 
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('Fix Country Mapping');?></h1>
 
 <div class="country-dropdown" style="display:none;">
-<?php echo form_dropdown('cid', $country_list,NULL); ?>
+<?php echo form_dropdown('cid', $country_list,NULL,'class="form-control form-control-custom"'); ?>
 </div>
 
 <?php if($rows):?>
 	<div><?php echo t('Total rows');?>: <?php echo count($rows);?></div>
 	 <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><?php echo t('Country');?></th>
             <th><?php echo t('Assign Country');?></th>
@@ -32,12 +39,16 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
        
     	<tr class="<?php echo $tr_class; ?>" valign="top">
-            <td><a href="<?php echo site_url();?>/admin/countries/edit/<?php echo $row->country_name;?>"><?php echo $row->country_name; ?></a> (<?php echo $row->total;?>)</td>
+            <td>
+				<a href="<?php echo site_url();?>/admin/countries/edit/<?php echo $row->country_name;?>">
+				<?php echo $row->country_name; ?>
+			</a> (<?php echo $row->total;?>)
+			</td>
             <td> 
             	<form method="get" action="<?php echo site_url('admin/countries/fix_mappings');?>">
                     <input type="hidden" name="name" value="<?php echo $row->country_name;?>"/>
                     <span class="country-list"></span>
-                    <input type="submit" name="Submit" value="Update"/>
+                    <input type="submit" name="Submit" value="Update" class="btn btn-primary"/>
             	</form>
             </td>
 			<td>

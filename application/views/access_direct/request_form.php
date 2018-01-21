@@ -103,6 +103,6 @@ restrictions that are intended to protect the confidentiality of respondents.</p
 </form>
 <script type="text/javascript">
 	function isagree(){
-		$("#submit").attr('disabled', !$("#chk_agree").attr("checked"))	
+		$("#submit").attr('disabled', !$("#chk_agree").is(":checked"))	
 	}
 </script>

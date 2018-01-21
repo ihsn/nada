@@ -98,8 +98,13 @@ $template['box']['theme_folder'] = 'opendata';
 
 
 //admin template file
-$template['admin']['template'] = '../../themes/admin20/index';
-$template['admin']['theme_folder'] = 'admin20';
+$template['admin']['template'] = '../../themes/adminbt/index';
+$template['admin']['theme_folder'] = 'adminbt';
+
+//blank admin template with all stylesheets included
+$template['admin_blank']['template'] = '../../themes/adminbt/blank';
+$template['admin_blank']['theme_folder'] = 'adminbt';
+
 
 //ddi browser template file
 $template['ddibrowser']['template'] = '../../themes/ddibrowser/layout';

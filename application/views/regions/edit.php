@@ -25,48 +25,57 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
 <style type="text/css">
 .selected-container{font-weight:normal;font-size:12px;}
 .input-fixed-1{width:300px;}
-.country-selection{height:200px;overflow:auto;width:300px;border:1px solid gainsboro;}
+.country-selection{height:200px;overflow:auto;width:100%;border:1px solid gainsboro;}
 .form .normal label{margin:0px;padding:0px;display:inline;font-weight:normal;}
+.country-row .chk-country {
+    margin-left:10px;
+    margin-right:10px;
+}
 .clear-all{color:navy;font-weight:normal;cursor:pointer;margin-left:10px;}
+.form-custom-width{
+    width:400px;
+}
 </style>
-<div class='content-container'>
-    <div class="page-links">
-        <a href="<?php echo site_url(); ?>/admin/regions" class="button"><img src="images/house.png"/><?php echo t('home');?></a>
+<div class='container-fluid'>
+    <div class="text-right page-links">
+        <a href="<?php echo site_url(); ?>/admin/regions" class="btn btn-default">
+    	<span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('regions');?></a>
     </div>
+
 <?php if ($row_id):?>
 	<h1><?php echo t('Edit Region'); ?></h1>
 <?php else:?>
 	<h1><?php echo t('Create New Region'); ?></h1>
 <?php endif;?>    
 	<?php if (validation_errors() ) : ?>
-        <div class="error">
+        <div class="alert alert-danger">
             <?php echo validation_errors(); ?>
         </div>
     <?php endif; ?>
     
     <?php $error=$this->session->flashdata('error');?>
-    <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+    <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
         
     <?php $message=$this->session->flashdata('message');?>
-    <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+    <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 	
-    <?php echo form_open($form_action_url, array('class'=>'form'));?>
+    <?php echo form_open($form_action_url, array('class'=>'form form-custom-width'));?>
 
     
-    <div class="field">
+    <div class="form-group">
         <label for="pid"><?php echo t('Select Parent');?><span class="required">*</span></label>
-        <?php echo form_dropdown('pid', $parent_regions, get_form_value("pid",isset($row['pid']) ? $row['pid'] : ''), 'id="pid"'); ?>
+        <?php echo form_dropdown('pid', $parent_regions, get_form_value("pid",isset($row['pid']) ? $row['pid'] : ''), 'id="pid" class="form-control"'); ?>
     </div>
     
-    <div class="field">
+    <div class="form-group">
         <label for="title"><?php echo t('name');?><span class="required">*</span></label>
-        <input class="input-fixed-1" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($row['title']) ? $row['title'] : ''); ?>"/>
+        <input class="form-control" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($row['title']) ? $row['title'] : ''); ?>"/>
     </div>
     
-    <div class="field">
+    <div class="form-group">
         <label for="weight"><?php echo t('Weight');?><span class="required">*</span></label>
-        <input class="input-fixed-1" name="weight" type="text" id="weight"  value="<?php echo get_form_value('weight',isset($row['weight']) ? $row['weight'] : ''); ?>"/>
+        <input class="form-control" name="weight" type="text" id="weight"  value="<?php echo get_form_value('weight',isset($row['weight']) ? $row['weight'] : ''); ?>"/>
     </div>
 
     <div class="field" id="country-selection">
@@ -89,8 +98,10 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
         </div>
     </div>
 
-	<?php echo form_submit('submit', t('update'));?>
-    <?php echo anchor('admin/regions/', t('cancel'));?>
+    <div style="margin-top:10px;">
+	<?php echo form_submit('submit', t('update'),array('class'=>'btn btn-primary'));?>
+    <?php echo anchor('admin/regions/', t('cancel'),array('class'=>'btn btn-default'));?>
+</div>
       
     <?php echo form_close();?>
 

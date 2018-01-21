@@ -1,23 +1,29 @@
 <?php $survey_id=$this->uri->segment(4); ?>
 <style>
-.resource-found{background:url(images/tick.png) no-repeat; padding-left:25px;}
+.table-resources .glyphicon-ok-sign{
+  color:green;
+}
+.table-resources .glyphicon-remove-sign{
+  color:red;
+}
+
 .resource-notfound{background:url(images/close.gif) no-repeat; padding-left:25px;}
 </style>
 <div class="body-container" >
-    <div class="page-links">
-        <a href="<?php echo site_url(); ?>/admin/resources/add/new/<?php echo $survey_id;?>" ><?php echo t('link_add_new_resource'); ?></a>  | 
+    <div class="page-links pull-right">
+        <a href="<?php echo site_url(); ?>/admin/resources/add/new/<?php echo $survey_id;?>" ><?php echo t('link_add_new_resource'); ?></a>  |
         <a href="<?php echo site_url(); ?>/admin/resources/import/<?php echo $survey_id;?>" ><?php echo t('link_import_rdf'); ?></a>  |
         <a href="<?php echo site_url(); ?>/admin/resources/fixlinks/<?php echo $survey_id;?>" ><?php echo t('link_fix_broken'); ?></a>  |
-        <a href="<?php echo site_url(); ?>/admin/catalog/export_rdf/<?php echo $survey_id;?>" ><?php echo t('rdf_export'); ?></a> 
+        <a href="<?php echo site_url(); ?>/admin/catalog/export_rdf/<?php echo $survey_id;?>" ><?php echo t('rdf_export'); ?></a>
     </div>
 
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="search-form">
 <?php if ($rows): ?>
-<?php		
+<?php
 	//sort
 	$sort_by=$this->input->get("sort_by");
 	$sort_order=$this->input->get("sort_order");
-	
+
 	//current page url
 	$page_url=site_url().'/'.$this->uri->uri_string();
 ?>
@@ -31,15 +37,15 @@
                     <option value="-1"><?php echo t('batch_actions'); ?></option>
                     <option value="delete"><?php echo t('delete'); ?></option>
                 </select>
-                <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply'); ?>"/>                
+                <input style="margin-bottom:5px;" class="btn btn-default btn-sm" type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply'); ?>"/>
             </td>
             <td align="right">
                 &nbsp;
             </td>
         </tr>
     </table>
-    
-    <table class="grid-table resources" width="100%" cellspacing="0" cellpadding="0">
+
+    <table class="table table-striped resources table-resources" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></th>
@@ -51,8 +57,8 @@
 	<?php $tr_class=""; ?>
 	<?php foreach($rows as $row): ?>
     	<?php $row=(object)$row;?>
-		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>        
-        <?php 
+		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
+        <?php
 				$resource_exists=FALSE;
 				if( trim($row->filename)=='')
 				{
@@ -65,30 +71,40 @@
 				else if (is_url($row->filename))
 				{
 					$resource_exists=TRUE;
-				}		
+				}
 		?>
-        <?php $resource_class=($resource_exists===TRUE) ? 'resource-found' : 'resource-notfound';?> 
+        <?php $resource_class=($resource_exists===TRUE) ? 'resource-found' : 'resource-notfound';?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->resource_id; ?>" class="chk"/></td>
             <td><a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo $row->title; ?></a></td>
-            <td><span class="<?php echo $resource_class; ?>">&nbsp;</span></td>
+            <td>
+                <?php if ($resource_exists):?>
+                  <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+                <?php else:?>
+                  <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
+                <?php endif;?>
+
+            </td>
             <td><?php echo $row->dctype; ?>&nbsp;</td>
-			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
-			<td nowrap="nowrap">
-            <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo t('edit'); ?></a> | 
-            <a href="<?php echo site_url();?>/admin/resources/delete/<?php echo $row->resource_id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete'); ?></a>
-            <?php if($row->filename!=''):?>
-            | <a href="<?php echo site_url();?>/ddibrowser/<?php echo $survey_id; ?>/download/<?php echo $row->resource_id;?>"><?php echo t('download'); ?></a>
-            <?php endif;?>
+      			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
+      			<td nowrap="nowrap">
+              <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo t('edit'); ?></a> |
+              <a href="<?php echo site_url();?>/admin/resources/delete/<?php echo $row->resource_id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete'); ?></a>
+              <?php if($row->filename!=''):?>
+              | <a href="<?php echo site_url();?>/ddibrowser/<?php echo $survey_id; ?>/download/<?php echo $row->resource_id;?>"><?php echo t('download'); ?></a>
+              <?php endif;?>
             </td>
         </tr>
     <?php endforeach;?>
-    </table>    
-    <div class="pagination">
-    	<div style="float:left;color:#999999">
-            	
-        	<div style="display:inline;"><img src="images/tick.png"/> <?php echo t('legend_file_exist'); ?></div>
-            <div style="display:inline;margin-left:10px;"><img src="images/close.gif"/> <?php echo t('legend_file_no_exist'); ?></div>
+    </table>
+    <div class="table-resources">
+    	<div style="float:left;">
+
+        	<div style="display:inline;">
+            <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> <?php echo t('legend_file_exist'); ?>
+          </div>
+            <div style="display:inline;margin-left:10px;">
+              <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span> <?php echo t('legend_file_no_exist'); ?></div>
         </div>
     </div>
 
@@ -103,21 +119,21 @@
 //checkbox select/deselect
 jQuery(document).ready(function(){
 	$("#chk_toggle").click(
-			function (e) 
+			function (e)
 			{
-				$('.resources .chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
+				$('.resources .chk').each(function(){
+                    this.checked = (e.target).checked;
+                });
 			}
 	);
 	$(".resources .chk").click(
-			function (e) 
+			function (e)
 			{
 			   if (this.checked==false){
 				$("#chk_toggle").attr('checked', false);
-			   }			   
+			   }
 			}
-	);			
+	);
 	$("#batch_actions_apply").click(
 		function (e){
 			if( $("#batch_actions").val()=="delete"){
@@ -137,16 +153,16 @@ function batch_delete(){
 		return false;
 	}
 	selected='';
-	$('.resources .chk:checked').each(function(){ 
+	$('.resources .chk:checked').each(function(){
 		if (selected!=''){selected+=',';}
-        selected+= this.value; 
+        selected+= this.value;
      });
-	
+
 	$.ajax({
 		timeout:1000*120,
 		dataType: "json",
 		data:{ submit: "submit"},
-		type:'POST', 
+		type:'POST',
 		url: CI.base_url+'/admin/resources/delete/'+selected+'/?ajax=true',
 		success: function(data) {
 			if (data.success){
@@ -159,7 +175,7 @@ function batch_delete(){
 		error: function(XHR, textStatus, thrownError) {
 			alert("Error occured " + XHR.status);
 		}
-	});	
+	});
 }
 //page change
 $('#ps').change(function() {

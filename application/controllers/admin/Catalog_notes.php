@@ -6,14 +6,14 @@ class Catalog_Notes extends MY_Controller {
     {
         parent::__construct();
 		
-       	$this->load->model('Catalog_Notes_model');
+       	$this->load->model('Catalog_notes_model');
 		$this->lang->load('general');
 		$this->lang->load('catalog_admin');
 	}
 	
 	public function delete($id) 
 	{
-		return $this->Catalog_Notes_model->delete($id);
+		return $this->Catalog_notes_model->delete($id);
 	}
 	
 	public function add($id) 
@@ -51,16 +51,16 @@ class Catalog_Notes extends MY_Controller {
 		}
 	
 		//add note
-		$this->Catalog_Notes_model->insert($note);
+		$this->Catalog_notes_model->insert($note);
 	}
 	
 	public function get_notes($sid)
 	{
 		//get a list of notes from db
-		$notes= $this->Catalog_Notes_model->get_notes_by_study($sid);
-		
+		$notes= $this->Catalog_notes_model->get_notes_by_study($sid);
+
 		//return formatted list of notes
-		echo $this->load->view('catalog/study_notes_list',array('study_notes'=>$notes));
+		echo $this->load->view('catalog/study_notes_list',array('study_notes'=>$notes),true);
 
 	}
 	
@@ -74,7 +74,7 @@ class Catalog_Notes extends MY_Controller {
 		//show the edit form
 		if (!$this->input->post('note'))
 		{
-			$note=$this->Catalog_Notes_model->single($id);
+			$note=$this->Catalog_notes_model->single($id);
 			$note['action_url']=site_url('admin/catalog_notes/edit/'.$id);
 			$note['show_note_types']=TRUE;
 			$this->load->view('catalog/study_notes_edit',$note);
@@ -95,7 +95,7 @@ class Catalog_Notes extends MY_Controller {
 		}
 	
 		//add note
-		$this->Catalog_Notes_model->update($id,$note);
+		$this->Catalog_notes_model->update($id,$note);
 	
 	}
 	

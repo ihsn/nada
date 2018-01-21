@@ -195,50 +195,50 @@ class Users extends MY_Controller {
 		                                              'id'      => 'first_name',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('first_name'),
-													  'class'=>'input-fixed300'
+													  'class'	=> 'form-control'
 		                                             );
             $this->data['last_name']           = array('name'   => 'last_name',
 		                                              'id'      => 'last_name',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('last_name'),
-													  'class'=>'input-fixed300'
+													  'class'	=> 'form-control'
 		                                             );
             $this->data['email']              = array('name'    => 'email',
 		                                              'id'      => 'email',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('email'),
-													  'class'=>'input-fixed300'
+													  'class'	=> 'form-control'
 		                                             );
             $this->data['username']           = array('name'    => 'username',
 		                                              'id'      => 'username',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('username'),
-													  'class'=>'input-fixed300'
+													  'class'	=> 'form-control'
 		                                             );
 
             $this->data['company']            = array('name'    => 'company',
 		                                              'id'      => 'company',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('company'),
-													  'class'=>'input-fixed300'
+													  'class'	=> 'form-control'
 		                                             );
             $this->data['phone1']             = array('name'    => 'phone1',
 		                                              'id'      => 'phone1',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('phone1'),
-													  'class'=>'input-fixed300'
+													  'class'	=> 'form-control'
 		                                             );
 		    $this->data['password']           = array('name'    => 'password',
 		                                              'id'      => 'password',
 		                                              'type'    => 'password',
 		                                              'value'   => $this->form_validation->set_value('password'),
-													  'class'=>'input-fixed200'
+													  'class'	=> 'form-control'
 		                                             );
             $this->data['password_confirm']   = array('name'    => 'password_confirm',
                                                       'id'      => 'password_confirm',
                                                       'type'    => 'password',
                                                       'value'   => $this->form_validation->set_value('password_confirm'),
-													  'class'=>'input-fixed200'
+													  'class'	=> 'form-control'
                                                      );
             $this->data['active']=$this->form_validation->set_value('active',1);
 			$this->data['groups']=array();
@@ -341,43 +341,51 @@ class Users extends MY_Controller {
 			$this->data['first_name']          = array('name'   => 'first_name',
 		                                              'id'      => 'first_name',
 		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('first_name',$db_data->first_name),
+													  'value'   => $this->form_validation->set_value('first_name',$db_data->first_name),
+													  'class'	=> 'form-control'
 		                                             );
             $this->data['last_name']           = array('name'   => 'last_name',
 		                                              'id'      => 'last_name',
 		                                              'type'    => 'text',
 		                                              'value'   => $this->form_validation->set_value('last_name',$db_data->last_name),
-		                                             );
+													  'class'	=> 'form-control'
+													);
             $this->data['email']              = array('name'    => 'email',
 		                                              'id'      => 'email',
 		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('email',$db_data->email),
+													  'value'   => $this->form_validation->set_value('email',$db_data->email),
+													  'class'	=> 'form-control'													  
 		                                             );
             $this->data['username']           = array('name'    => 'username',
 		                                              'id'      => 'username',
 		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('username',$db_data->username),
+													  'value'   => $this->form_validation->set_value('username',$db_data->username),
+													  'class'	=> 'form-control'													  
 		                                             );
 
             $this->data['company']            = array('name'    => 'company',
 		                                              'id'      => 'company',
 		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('company',$db_data->company),
+													  'value'   => $this->form_validation->set_value('company',$db_data->company),
+													  'class'	=> 'form-control'													  
 		                                             );
             $this->data['phone1']             = array('name'    => 'phone1',
 		                                              'id'      => 'phone1',
 		                                              'type'    => 'text',
-		                                              'value'   => $this->form_validation->set_value('phone1',$db_data->phone),
+													  'value'   => $this->form_validation->set_value('phone1',$db_data->phone),
+													  'class'	=> 'form-control'													  
 		                                             );
 		    $this->data['password']           = array('name'    => 'password',
 		                                              'id'      => 'password',
 		                                              'type'    => 'password',
-		                                              'value'   => $this->form_validation->set_value('password'),
+													  'value'   => $this->form_validation->set_value('password'),
+													  'class'	=> 'form-control'													  
 		                                             );
             $this->data['password_confirm']   = array('name'    => 'password_confirm',
                                                       'id'      => 'password_confirm',
                                                       'type'    => 'password',
-                                                      'value'   => $this->form_validation->set_value('password_confirm'),
+													  'value'   => $this->form_validation->set_value('password_confirm'),
+													  'class'	=> 'form-control'													  
                                                      );
 			$this->data['country']=$db_data->country;										 
             //$this->data['group_id']	=$this->form_validation->set_value('group_id',$db_data->group_id);
@@ -776,6 +784,8 @@ class Users extends MY_Controller {
 			
 			//remove all existing user roles for all collections
 			$this->ion_auth_model->delete_user_collection_roles_all($user_id);
+
+			var_dump($collection_roles);
 			
 			//add roles per collection
 			foreach($collection_roles as $collection_id=>$collection_roles)

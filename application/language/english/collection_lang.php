@@ -8,6 +8,7 @@ $lang['organization']="Organization";
 $lang['country']="Country";
 $lang['scan_interval_in_days']="Scan interval (days)";
 $lang['published']="Published";
+$lang['draft']="Draft";
 $lang['status']="Status";
 $lang['select_repo_type']="Select collection type";
 $lang['thumbnail']="Thumbnail";

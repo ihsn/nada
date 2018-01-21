@@ -21,24 +21,40 @@ form{margin:10px;padding:0px;}
 .micro-file-tr td,.micro-file-tr a{color:#6633CC}
 .resource-file-tr td,.resource-file-tr a{color:#339933}
 .inline label{display:inline;}
-.actions a{color:navy;}
-.actions a:hover{color:red;}
+
+.table-survey-files .glyphicon {
+	font-size:14px;margin:3px;
+}
 </style>
 
 <form method="post" enctype="multipart/form-data" class="form manage-files" action="<?php echo site_url('admin/managefiles/'.$survey_id.'/batch_delete');?>">
 <input type="hidden" name="ajax" value="1"/>
 <div class="actions">
-	<div style="float:left;color:gainsboro;">		
-    	<input type="image"  src="images/bin_closed.png" class="" title="<?php echo t('delete_selection');?>" name="delete" value="<?php echo t('delete_selection');?>" onclick="return batch_delete();"/> |
-        <a href="<?php echo site_url('/admin/resources/upload/'.$survey_id);?>" style="cursor:pointer;" title="<?php echo t('upload_files_hover');?>" ><img src="images/upload.png"/> <?php echo t('upload_files');?></a>
+	<div style="float:left">
+
+		<a href="#"
+						class="btn btn-default btn-sm"
+						aria-label="Left Align"
+						title="<?php echo t('delete_selection');?>"
+						name="delete"
+						value="<?php echo t('delete_selection');?>"
+						onclick="return batch_delete();">
+		  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+		</a>
+
+    <a href="<?php echo site_url('/admin/resources/upload/'.$survey_id);?>"
+			class="btn btn-default"
+			title="<?php echo t('upload_files_hover');?>" >
+			<span class="glyphicon glyphicon-upload" aria-hidden="true"></span> <?php echo t('upload_files_hover');?>
+		</a>
     </div>
 
-	<div style="float:right"> 
+	<div style="float:right">
     </div>
     <br style="clear:both;"/>
 </div>
 
-<table width="100%" class="grid-table" style="margin-top:5px;">
+<table width="100%" class="table table-striped table-survey-files" style="margin-top:5px;">
 <tr valign="top" align="left" class="header">
 	<th><input type="checkbox" id="chk_toggle"></th>
     <th><?php echo t('name');?></th>
@@ -52,13 +68,13 @@ form{margin:10px;padding:0px;}
 <?php if (!empty($files)): ?>
 	<?php foreach( $files as $file): ?>
     	<?php $isresource=is_array($file['resource']) ? 'resource-file' : '';?>
-		<?php 
+		<?php
 				$resource_type='';
 				if(is_array($file['resource']))
 				{
 					$ismicro=$file['resource']['ismicro'];
 
-					if ($ismicro==TRUE)	
+					if ($ismicro==TRUE)
 					{
 						$resource_type='micro-file';
 					}
@@ -75,23 +91,42 @@ form{margin:10px;padding:0px;}
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
-            <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
-                <?php echo '<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ';?> 
-                <?php echo anchor('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
+            <td>
+							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+								<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+							</a>
+
+							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+								<span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+							</a>
+
+							<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+
             </td>
             <?php else:?>
-        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>            
+        		<td>
+							<input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>
             <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
-            <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
-                <?php echo anchor('admin/managefiles/'.$survey_id.'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ','onclick="return delete_confirm();"');?> 
-                <?php echo anchor('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
-            </td>            
+            <td>
+
+							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+								<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+							</a>
+
+							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+								<span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+							</a>
+
+							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+								<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+							</a>
+						</td>
 			<?php endif;?>
         </tr>
-    <?php endforeach;?>        
+    <?php endforeach;?>
 <?php endif;?>
 </table>
 <div style="padding-top:10px;color:#999999;float:left;">
@@ -106,21 +141,21 @@ form{margin:10px;padding:0px;}
 //checkbox select/deselect
 jQuery(document).ready(function(){
 	$(".manage-files #chk_toggle").click(
-			function (e) 
+			function (e)
 			{
-				$('.manage-files .chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
+				$('.manage-files .chk').each(function(){
+                    this.checked = (e.target).checked;
+                });
 			}
 	);
 	$(".manage-files .chk").click(
-			function (e) 
+			function (e)
 			{
 			   if (this.checked==false){
 				$(".manage-files #chk_toggle").attr('checked', false);
-			   }			   
+			   }
 			}
-	);			
+	);
 });
 
 function batch_delete(){
@@ -132,18 +167,18 @@ function batch_delete(){
 	{
 		return false;
 	}
-	
+
 	$(".manage-files").submit();return false;
-	
+
 	/*
 	$k=0;
-	$('.manage-files .chk:checked').each(function(){ 
+	$('.manage-files .chk:checked').each(function(){
 		//console.log(CI.base_url+'/admin/managefiles/<?php echo $survey_id;?>/delete/'+this.value+'?ajax=1');return;
-	
+
 		$k++;
 			$.ajax({
 				timeout:1000*120,
-				type:'GET', 
+				type:'GET',
 				url: CI.base_url+'/admin/managefiles/<?php echo $survey_id;?>/delete/'+this.value+'?ajax=1',
 				error: function(XHR, textStatus, thrownError) {
 					alert("Error occured " + XHR.status);
@@ -151,7 +186,7 @@ function batch_delete(){
 				}
 			});
      });
-	 
+
 	 alert($k + " files were removed");
 	 //window.location.reload();
 	 return false;

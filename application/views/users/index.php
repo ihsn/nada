@@ -1,31 +1,37 @@
-<div class="body-container" style="padding:10px;">
-<?php if (!isset($hide_form)):?>
-<div class="page-links">
-	<a href="<?php echo site_url();?>/admin/users/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('create_user_account');?></a> 
-</div>
+<div class="container-fluid page-users-index">
+  <?php if (!isset($hide_form)):?>
+  <div class="page-links text-right"> 
+    <a href="<?php echo site_url();?>/admin/users/add" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('create_user_account');?></a> 
+  </div>
 
-<?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
-
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
-
-<h1 class="page-title"><?php echo t('title_user_management');?></h1>
-<form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
-  <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <select name="field" id="field">
-    <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
-    <option value="username"	<?php echo ($this->input->get('field')=='username') ? 'selected="selected"' : '' ; ?> ><?php echo t('username');?></option>
-    <option value="email"	<?php echo ($this->input->get('field')=='email') ? 'selected="selected"' : '' ; ?> ><?php echo t('email');?></option>
-  </select>
-  <input type="submit" value="<?php echo t('search');?>" name="search"/>
-  <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
+  <?php $message=$this->session->flashdata('message');?>
+  <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
+  <?php $error=$this->session->flashdata('error');?>
+  <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+  <h1 class="page-title"><?php echo t('title_user_management');?></h1>
+  <div class="row">
+    <form class="left-pad form-horizontal" method="GET" id="user-search">
+      <div class="col-md-4">
+        <input type="text" class="form-control" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
+      </div>
+      <div class="col-md-2">
+        <select name="field" id="field" class="form-control">
+          <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
+          <option value="username"	<?php echo ($this->input->get('field')=='username') ? 'selected="selected"' : '' ; ?> ><?php echo t('username');?></option>
+          <option value="email"	<?php echo ($this->input->get('field')=='email') ? 'selected="selected"' : '' ; ?> ><?php echo t('email');?></option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <input type="submit" class="btn btn-primary" value="<?php echo t('search');?>" name="search"/>
+        <?php if ($this->input->get("keywords")!=''): ?>
+        <a class="btn btn-default" href="<?php echo current_url();?>"><?php echo t('reset');?></a>
+        <?php endif; ?>
+      </div>
+    </form>
+  </div>
   <?php endif; ?>
-</form>
-<?php endif; ?>
-<?php if ($rows): ?>
-<?php 
+  <?php if ($rows): ?>
+  <?php 
 	//pagination 
 	$page_nums=$this->pagination->create_links();
 	$current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
@@ -61,12 +67,12 @@
 	}
 ?>
 
-    <div class="pagination">
+    <div class="nada-pagination text-right">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped " width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
-        	<th><input type="checkbox" value="-1"/></th>
+        	<!--<th><input type="checkbox" value="-1"/></th>-->
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('username'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'email',t('email'),$page_url); ?></th>  
             <th><?php echo create_sort_link($sort_by,$sort_order,'group_name',t('group'),$page_url); ?></th>
@@ -81,7 +87,7 @@
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>" valign="top">
-        	<td><input type="checkbox" value="<?php echo $row->id; ?>"/></td>
+        	<!--<td><input type="checkbox" value="<?php echo $row->id; ?>"/></td>-->
             <td>
             	<div><a href="<?php echo site_url('admin/users/edit/'.$row->id); ?>"><?php echo form_prep($row->username); ?></a></div>
             </td>
@@ -111,7 +117,7 @@
         </tr>
     <?php endforeach;?>
     </table>
-    <div class="pagination">
+    <div class="nada-pagination text-right">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
 

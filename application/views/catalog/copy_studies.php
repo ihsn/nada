@@ -28,7 +28,7 @@ text-transform: capitalize;
 		$ps=15;
 	}
 ?>
-<div class="body-container copy-studies" style="padding:10px;">
+<div class="container-fluid copy-studies">
 
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
@@ -99,14 +99,14 @@ text-transform: capitalize;
         </div>
         </td>
         <td align="right">
-            <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+            <div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
         </td>
     </tr>
 </table>
 
 <div id="surveys">
 	<?php $tr_class=""; ?>
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="grid-table table table-striped" width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
          	<?php if ($this->config->item("regional_search")=='yes'):?>
 			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url,array("keywords","selected_only")); ?></th>
@@ -143,7 +143,7 @@ text-transform: capitalize;
         <?php echo form_dropdown('ps', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",isset($ps) ? $ps : ''),'id="ps" style="font-size:10px;"'); ?>
         </td>
         <td>    
-            <div class="pagination">
+            <div class="nada-pagination">
                     <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
             </div>
 		</td>

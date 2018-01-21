@@ -18,11 +18,18 @@
 			$c=0;
 			$search_fields=array('titl','surveyid','producer');
 		?>
+
 		<?php foreach($search_fields as $field): $c++?>
-			<div class="field">
+			<div class="keyword-filter-item" style="margin-bottom:10px">
 			<label for="field-<?php echo $field;?>"><?php echo t($field);?></label><br/>
-			<input class="mini" type="textbox" id="field-<?php echo $field;?>" name="<?php echo $field;?>" value="<?php echo get_form_value($field,'') ; ?>"/>
-			<span class="icon icon-search apply-filter"></span>
+			<div class="input-group">
+				<input class="form-control" type="textbox" id="field-<?php echo $field;?>" name="<?php echo $field;?>" value="<?php echo get_form_value($field,'') ; ?>"/>
+				<span class="input-group-btn apply-filter">
+				<button class="btn btn-default" type="button">
+					<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+				</button>
+				</span>
+			</div>
 			</div>
 		<?php endforeach;?>
         
@@ -73,8 +80,8 @@
 		</div>       
    </div>
 	
-	
-	<div class="box survey-countries">
+	<?php if (isset($this->catalog_tags) && count($this->catalog_tags)>0):?>
+	<div class="box survey-tags">
 		<div class="box-header"><?php echo t('tags');?>
 		   <span class="sh" title="toggle_box">&nbsp;</span>
 		</div>
@@ -92,6 +99,7 @@
 		</div>
 		</div>    
 	</div>
+<?php endif;?>
 
 	<!-- data access filter-->
     <div class="box da-filter">

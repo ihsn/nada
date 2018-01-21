@@ -127,5 +127,7 @@ $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2
 
 $route['admin/permissions/(:num)'] = "admin/permissions/index/$1";
 
+$route['admin/catalog/attach_related_data/(:num)'] = "admin/attach_related_data/index/$1";
+
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */

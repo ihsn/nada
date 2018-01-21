@@ -8,10 +8,10 @@
 <?php include 'page_links.php'; ?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 
 <h1 class="page-title"><?php echo t('repository_permissions');?> <span class="subtitle">[<?php echo $repo['title'];?>]</span>  </h1>
@@ -19,7 +19,7 @@
 <div class="contributing-repos" >
 <?php if ($users_by_repo):?>
 <form method="post">
-	<table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+	<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
     	<th><?php echo t('user');?></th>
         <th><?php echo t('permissions');?></th>

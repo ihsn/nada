@@ -10,7 +10,7 @@ class Repository_model extends CI_Model {
 	//search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL)
     {
-		$this->db->start_cache();
+		//$this->db->start_cache();
 
 		//select columns for output
 		$this->db->select('*');
@@ -47,7 +47,7 @@ class Repository_model extends CI_Model {
 		//set Limit clause
 	  	$this->db->limit($limit, $offset);
 		$this->db->from('repositories');
-		$this->db->stop_cache();
+		//$this->db->stop_cache();
 
         $result= $this->db->get();
 		if ($result)

@@ -6,16 +6,16 @@ $repository_types=array(
 );
 
 ?>
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid">
 
 <?php include 'page_links.php'; ?>
 
 <?php if (!isset($hide_form)):?>
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 
 <h1 class="page-title"><?php echo t('repositories');?></h1>
@@ -81,13 +81,13 @@ $repository_types=array(
             <td>
             </td>
             <td align="right">
-                <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+                <div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
             </td>
         </tr>
     </table>
 
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th>ID</th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
@@ -107,7 +107,7 @@ $repository_types=array(
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
                 <div class="status">
-                <span class="label publish <?php echo ($row->ispublished==1) ? "label-success" :''; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('unpublished'); ?></span>
+                <span class="btn btn-xs publish <?php echo ($row->ispublished==1) ? "btn-success" :'btn-danger'; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('draft'); ?></span>
                 </div>			
 			</td>
 			<td>
@@ -119,7 +119,7 @@ $repository_types=array(
         </tr>
     <?php endforeach;?>
     </table>
-    <div class="pagination">
+    <div class="nada-pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
 </form>
@@ -138,14 +138,16 @@ jQuery(document).ready(function(){
 		var id=$(this).attr("data-id");
 		if ($(this).attr("data-value")==0){
 			$(this).attr("data-value",1);
-			$(this).html("Published");
-			$(this).addClass("label-success");
+			$(this).html('<?php echo t("published");?>');
+			$(this).addClass("btn-success");
+			$(this).removeClass("btn-danger");
 			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/1?ajax=1',{submit:"submit"});
 		}
 		else{
-			$(this).html("Unpublished");
+			$(this).html('<?php echo t("draft");?>');
 			$(this).attr("data-value",0);
-			$(this).removeClass("label-success");
+			$(this).removeClass("btn-success");
+			$(this).addClass("btn-danger");
 			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/0?ajax=1',{submit:"submit"});
 		}
 	

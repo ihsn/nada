@@ -9,7 +9,7 @@ label{font-weight:bold;}
 .form-title{font-size:14px; font-weight:bold;padding-top:5px; padding-bottom:5px;}
 </style>
 
-<div class="content-container">
+<div class="container-fluid">
 <h1><?php echo t('reports');?></h1>
 <form style="background-color:#E6E6E6;padding:10px;margin-bottom:20px;" id="form_report">	
 	<div class="form-title"><?php echo t('select_reporting_period');?></div>

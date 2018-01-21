@@ -14,7 +14,7 @@ class Catalog_Tags extends MY_Controller {
     {
         parent::__construct();
 		
-       	$this->load->model('Catalog_Tags_model');
+       	$this->load->model('Catalog_tags_model');
 		$this->lang->load('general');
 		$this->load->helper('security');
 		//$this->output->enable_profiler(TRUE);			
@@ -41,17 +41,17 @@ class Catalog_Tags extends MY_Controller {
 		//convert spaces and accents
 		$tag=url_title($tag);
 		
-		if (!$this->Catalog_Tags_model->tag_exists($id, $tag)) 
+		if (!$this->Catalog_tags_model->tag_exists($id, $tag)) 
 		{
 			$options=array(
 					'sid'=>$id,
 					'tag'=>$tag
 				);
-			$this->Catalog_Tags_model->insert($options);
+			$this->Catalog_tags_model->insert($options);
 		}
 		
 		//get all tags associated with the survey	
-		$survey_tags = $this->Catalog_Tags_model->survey_tags($id);		
+		$survey_tags = $this->Catalog_tags_model->survey_tags($id);		
 		
 		//return new tag list for the survey
 		$this->load->view("catalog/survey_tags_list",array('tags'=>$survey_tags));
@@ -64,6 +64,6 @@ class Catalog_Tags extends MY_Controller {
 		{
 			return FALSE;
 		}
-		$this->Catalog_Tags_model->delete($id);
+		$this->Catalog_tags_model->delete($id);
 	}
 }

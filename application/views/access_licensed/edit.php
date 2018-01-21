@@ -32,7 +32,7 @@ background: #ECF5F4;}
   border-style:solid;
   background:#eee url(images/up.gif) no-repeat 99.5% 50%
 }
-.collapse{border:1px solid gainsboro;margin-bottom:10px;padding:5px;overflow:auto;height:auto;}
+.collapsed{border:1px solid gainsboro;margin-bottom:10px;padding:5px;overflow:auto;height:auto;}
 h3{font-size:1em;font-weight:bold;}
 .box-wrapper{margin-bottom:10px;margin-top:10px;}
 /* end styles for expand/collapse */
@@ -67,6 +67,9 @@ a.view_comments{color:#08C;font-size:10px;margin-right:5px;cursor:pointer;}
 .field-collapsed .field{display:none;}
 .field-expanded .field label, .always-visible label{font-weight:normal;}
 .study-notes {font-size:small;}
+.tab-content{
+    padding-top:15px;
+}
 </style>
 
 <script type="text/javascript">
@@ -103,68 +106,66 @@ $(function() {
 * Licensed request edit form
 */
 ?>
-<div class="content-container">
-<div style="text-align:right;margin-top:10px;">
+<div class="container-fluid">
+<div class="col-md-12">
+<div class="top-margin-10 pull-right">
 <?php          
-    echo anchor('admin/licensed_requests',t('return_request_home'),array('class'=>'button') );	
+    echo anchor('admin/licensed_requests',t('return_request_home'),array('class'=>'btn btn-default') );	
 ?>
+</div>
 </div>
 
 <?php if (validation_errors() ) : ?>
-	<div class="error">
+	<div class="alert alert-danger">
 		<?php echo validation_errors(); ?>
 	</div>
 <?php endif; ?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('edit_licensed_request');?></h1> 
-<script type="text/javascript">
-	jQuery(document).ready(function(){
-		$("#tabs").tabs();
-	});
-</script>
 <div id="tabs">
-	<ul>
-		<li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-1"><?php echo t('request_information');?></a></li>
-		<li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-2"><?php echo t('tab_process');?></a></li>
-		<li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-3"><?php echo t('tab_communicate');?></a></li>
-        <li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-4"><?php echo t('tab_monitor');?></a></li>
-        <li><a href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-5"><?php echo t('forward_lic_request');?></a></li>
+	<ul class="nav nav-tabs" id="myTabs">
+		<li class="active"><a class="active" role="presentation" href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab"><?php echo t('request_information');?></a></li>
+		<li><a role="presentation" href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-2" aria-controls="tabs-2" role="tab" data-toggle="tab"><?php echo t('tab_process');?></a></li>
+		<li><a role="presentation" href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-3" aria-controls="tabs-3" role="tab" data-toggle="tab"><?php echo t('tab_communicate');?></a></li>
+        <li><a role="presentation" href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-4" aria-controls="tabs-4" role="tab" data-toggle="tab"><?php echo t('tab_monitor');?></a></li>
+        <li><a role="presentation" href="<?php echo site_url('admin/licensed_requests/edit/'.$this->uri->segment(4) );?>#tabs-5" aria-controls="tabs-5" role="tab" data-toggle="tab"><?php echo t('forward_lic_request');?></a></li>
 	</ul>
-	<div id="tabs-1">
+    <div class="tab-content">
+	<div role="tabpanel" class="tab-pane active" id="tabs-1">
 		<?php $this->load->view('access_licensed/edit_request_view');?>	
 	</div>
     
-	<div id="tabs-2">
+	<div role="tabpanel" class="tab-pane" id="tabs-2">
     	<div class="process-request">
-    	<div style="margin-bottom:10px;font-weight:bold"><?php echo t('request_status');?>: <em><?php echo t($status); ?></em></div>
-		<form id="form_request_review" name="form_request_review" method="post" autocomplete="off" class="form">
+    	<div class="bottom-margin-10"><strong><?php echo t('request_status');?>: <em><?php echo t($status); ?></em></strong></div>
+		<form id="form_request_review" name="form_request_review" method="post" autocomplete="off" class="form-group">
         
         <div class="field action">
             <div>
-           		<span style="font-weight:bold;"><?php echo t('select_action');?></span>
-                <label class="inline"><input type="radio" name="status" value="APPROVED" <?php echo ($status=='APPROVED') ? 'checked="checked"' : ''; ?>/><?php echo t('approve');?></label>
-                <label class="inline"><input type="radio" name="status" value="DENIED"	<?php echo ($status=='DENIED') ? 'checked="checked"' : ''; ?>/><?php echo t('deny');?></label>
-                <label class="inline"><input type="radio"  name="status" value="MOREINFO" <?php echo ($status=='MOREINFO') ? 'checked="checked"' : ''; ?>/><?php echo t('request_more_info');?></label>
-                <label class="inline"><input type="radio"  name="status" value="CANCELLED" <?php echo ($status=='CANCELLED') ? 'checked="checked"' : ''; ?>/><?php echo t('cancel_authorization');?></label>
+           		<strong><?php echo t('select_action');?></strong>
+                <label class="inline"><input type="radio" name="status" value="APPROVED" <?php echo ($status=='APPROVED') ? 'checked="checked"' : ''; ?>/> <?php echo t('approve');?></label>
+                <label class="inline"><input type="radio" name="status" value="DENIED"	<?php echo ($status=='DENIED') ? 'checked="checked"' : ''; ?>/> <?php echo t('deny');?></label>
+                <label class="inline"><input type="radio"  name="status" value="MOREINFO" <?php echo ($status=='MOREINFO') ? 'checked="checked"' : ''; ?>/> <?php echo t('request_more_info');?></label>
+                <label class="inline"><input type="radio"  name="status" value="CANCELLED" <?php echo ($status=='CANCELLED') ? 'checked="checked"' : ''; ?>/> <?php echo t('cancel_authorization');?></label>
 			</div>
         </div>    
         
         <div class="box-wrapper microdata-files field">
                 <h3 class="expand"><?php echo t('grant_access_to_files');?></h3>
-                <div class="collapse">
+                <div class="collapsed">
 			        <?php $this->load->view('access_licensed/edit_request_files',array('surveys'=>$surveys,'files'=>$files));?>
             	</div>
         </div>
 
-        <div class="field">
-            <label><b><?php echo t('comments');?></b> <em style="font-weight:normal"><?php echo t('comments_visible_to_users');?></em></label>
-            <textarea name="comments" rows="9" class="input-flex"><?php //echo isset($comments) ? $comments : ''; ?></textarea>
+        <div class="form-group">
+            <label><b><?php echo t('comments');?></b> <em><?php echo t('comments_visible_to_users');?></em></label>
+            <textarea name="comments" rows="9" class="form-control"><?php //echo isset($comments) ? $comments : ''; ?></textarea>
         </div>
 
         <?php if (!isset($comments_history) || count($comments_history)>0): ?>
@@ -181,12 +182,16 @@ $(function() {
         </fieldset>
         <?php endif;?>   
 
-		<div id="status-text" style="margin-bottom:10px;"></div>
+		<div id="status-text" class="bottom-margin-10"></div>
 
-        <div class="field" style="margin-top:20px;background:#F5F2F2;padding:5px;">
-                 <label for="notify" style="display:inline;margin-right:20px;"><input type="checkbox" name="notify" id="notify" value="1" checked="checked"/> <?php echo t('notify_user_by_email');?></label>
-                 <input type="button" name="update" id="update" value="<?php echo t('update');?>" onclick="process_request(<?php echo $this->uri->segment(4); ?>);"/>
-                 <a href="<?php echo site_url('admin/licensed_requests');?>"><?php echo t('cancel');?></a>
+        <div class="field gray-bg">
+            <label for="notify">
+                <input type="checkbox" name="notify" id="notify" value="1" checked="checked"/> <?php echo t('notify_user_by_email');?>
+            </label>
+            <div>
+            <input type="button" name="update" class="btn btn-primary" id="update" value="<?php echo t('update');?>" onclick="process_request(<?php echo $this->uri->segment(4); ?>);"/>
+                <a href="<?php echo site_url('admin/licensed_requests');?>"><?php echo t('cancel');?></a>
+            </div>
          </div>
 
         
@@ -196,34 +201,34 @@ $(function() {
         </div>
     </div>
     
-	<div id="tabs-3">
-		<form class="form" name="form_compose_email" id="form_compose_email">
-            <div class="field">
+	<div role="tabpanel" class="tab-pane" id="tabs-3">
+		<form class="form-group" name="form_compose_email" id="form_compose_email">
+            <div class="form-group">
                  <label><?php echo t('compose_email');?></label>
             </div>
         
-            <div class="field">        
+            <div class="form-group">        
                 <label for="to"><?php echo t('to');?></label>
-                <input name="to" type="text" class="input-flex" value="<?php echo isset($email) ? $email : ''; ?>"/>
+                <input name="to" type="text" class="form-control" value="<?php echo isset($email) ? $email : ''; ?>"/>
             </div>
-            <div class="field">        
+            <div class="form-group">        
                 <label><?php echo t('cc');?> <?php echo t('use_comma_to_seperate_email');?></label>
-                <input name="cc" type="text" class="input-flex"/>
+                <input name="cc" type="text" class="form-control"/>
             </div>
-            <div class="field">        
+            <div class="form-group">        
                 <label><?php echo t('subject');?></label>
-                <input name="subject" type="text" class="input-flex" value="RE: [#<?php echo $id; ?>] - <?php echo form_prep($request_title);?>"/>
+                <input name="subject" type="text" class="form-control" value="RE: [#<?php echo $id; ?>] - <?php echo form_prep($request_title);?>"/>
             </div>
     
-            <div class="field">        
+            <div class="form-group">        
                 <label><?php echo t('body');?></label>
-                <textarea name="body" rows="5" class="input-flex">your email message to the user...</textarea>
+                <textarea name="body" rows="5" class="form-control">your email message to the user...</textarea>
             </div>
 			
             <span id="form_compose_email_status"></span>
             
-            <div class="field">        
-            	<input type="button" name="send" id="send" value="<?php echo t('send');?>" onclick="send_mail(<?php echo $this->uri->segment(4); ?>);"/>
+            <div class="form-group">        
+            	<input type="button" class="btn btn-primary" name="send" id="send" value="<?php echo t('send');?>" onclick="send_mail(<?php echo $this->uri->segment(4); ?>);"/>
             </div>            
         </form>
         
@@ -235,11 +240,11 @@ $(function() {
         
 	</div>
 
-	<div id="tabs-4">
+	<div role="tabpanel" class="tab-pane" id="tabs-4">
 		<?php echo $download_log;?>
 	</div>
     
-	<div id="tabs-5">
+	<div role="tabpanel" class="tab-pane"  id="tabs-5">
 		<?php $this->load->view("access_licensed/forward_request");?>
         
         <div>

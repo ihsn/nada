@@ -19,23 +19,25 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
 .selected{background:gainsboro;padding:5px;}
 </style>
 
-<div class="content-container">
-<div class="page-links">
-	<a href="<?php echo site_url();?>/admin/users" class="button"><img src="images/icon_plus.gif"/><?php echo t('users');?></a> 
-    <a href="<?php echo site_url();?>/admin/users/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('create_user_account');?></a> 
+<div class="container-fluid">
+<div class="text-right page-links">
+	<a href="<?php echo site_url();?>/admin/users" class="btn btn-default">
+    	<span class="glyphicon glyphicon-user ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('users');?></a> 
+    <a href="<?php echo site_url();?>/admin/users/add" class="btn btn-default">
+    	<span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('create_user_account');?></a> 
 </div>
 
 <?php if (validation_errors() ) : ?>
-    <div class="error">
+    <div class="alert alert-danger">
 	    <?php echo validation_errors(); ?>
     </div>
 <?php endif; ?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <?php if (isset($message)):?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 <?php endif;?>
 
 <h1 class="page-title"><?php echo t('edit_user_permissions'); ?> - <span class="selected"><?php echo $user->first_name. ' '. $user->last_name;?> </span></h1>
@@ -156,8 +158,8 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
 </div>
 </fieldset>
 
-<input type="submit" name="submit" value="<?php echo t('update');?>"/>
-<a href="<?php echo site_url($destination);?>"><?php echo t('cancel');?></a>
+<input class="btn btn-primary" type="submit" name="submit" value="<?php echo t('update');?>"/>
+<a class="btn btn-default" href="<?php echo site_url($destination);?>"><?php echo t('cancel');?></a>
 </form>
 </div>
 
@@ -174,8 +176,9 @@ $(function() {
 			$(".access_type").each(function(){
 			
 				var parent_=$(this).closest(".access-type-container");
+				console.log(parent);
 				
-				if ($(this).attr("checked")){
+				if ($(this).is(":checked")){
 					parent_.find(".roles-list").show();
 					parent_.find(".roles-list input").removeAttr('disabled');
 				}

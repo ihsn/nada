@@ -15,7 +15,7 @@
             <?php if($survey_data):?>
             
             	    <!-- single study grid -->
-                <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+                <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
                 <tr class="header">
                     <th><input type="checkbox" id="chk_toggle"/></th>
                     <th><?php echo t('file');?></th>
@@ -51,7 +51,7 @@
     <?php else:?>
     
         <!-- multi study grid -->
-        <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+        <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
         <tr class="header">
             <th><input type="checkbox" id="chk_toggle"/></th>
             <th><?php echo t('file');?></th>

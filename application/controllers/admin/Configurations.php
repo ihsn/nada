@@ -35,8 +35,7 @@ class Configurations extends MY_Controller {
 		$this->form_validation->set_rules('catalog_records_per_page', t('catalog_records_per_page'), 'xss_clean|trim|max_length[10]|numeric');
 			
 		$settings=NULL;
-		if ($this->form_validation->run() === TRUE)
-		{
+		if ($this->form_validation->run() === TRUE){
 			$this->update();
 			$settings=$this->Configurations_model->get_config_array();
 		}
@@ -67,7 +66,6 @@ class Configurations extends MY_Controller {
 						}
 					}
 				}
-				$this->update();
 				$settings=$this->Configurations_model->get_config_array();	
 			}
 			else

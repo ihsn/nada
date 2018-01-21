@@ -11,7 +11,7 @@
 	});
 </script> 
 
-<div class="content-container">
+<div class="container-fluid">
 <?php 
 	//menu breadcrumbs
 	include 'menu_breadcrumb.php'; 
@@ -19,16 +19,15 @@
 
     <h1 class="page-title"><?php echo t('menu_reorder');?></h1>
     <form name="menu_order_form" method="post">
-        <div style="margin-bottom:15px;"><?php echo t('menu_reorder_instructions');?></div>
+        <div class="bottom-margin-10"><?php echo t('menu_reorder_instructions');?></div>
         <ul id="sortable"> 
             <?php foreach($rows as $row): ?>
             <li class="ui-state-default" id="<?php echo $row['id'] ?>"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span><input type="hidden" name="id[]" value="<?php echo $row['id'];?>"/><?php echo $row['title'];?></li> 
             <?php endforeach;?>
         </ul> 
-        <div style="margin-top:10px;">
-        <?php
-            echo form_submit('submit',t('update')); 
-            echo anchor('admin/menu',t('cancel'),array('class'=>'button') );	
+        <div class="top-margin-10">
+        <span class="custom-fields"><?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary','id'=>'btnupdate')); ?></span>
+        <?php echo anchor('admin/menu',t('cancel'),array('class'=>'btn btn-default') );	
         ?>
         </div>
     </form>

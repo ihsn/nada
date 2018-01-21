@@ -117,5 +117,6 @@ $lang['iso']="ISO";
 $lang['edit_country']="Edit country";
 $lang['country_mappings']="Country mappings";
 
+
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */

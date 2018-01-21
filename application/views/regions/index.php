@@ -2,23 +2,24 @@
 .parent{font-weight:bold;}
 .child{margin-left:25px;}
 </style>
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid">
 
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/regions/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('create_region');?></a> 
+<div class="text-right page-links">
+	<a href="<?php echo site_url(); ?>/admin/regions/add" class="btn btn-default">
+    	<span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('create_region');?></a> 
 </div>
         
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('Regions');?></h1>
 
 <?php if($tree):?>
 	 <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th><?php echo t('ID');?></th>
             <th><?php echo t('PID');?></th>

@@ -6,7 +6,7 @@ $da_types=(array)$this->input->get('dtype');
     <div class="filter-da items-container">
     	<table>
             <tr class="item">
-                <td><input class="chk chk-da" type="checkbox"  <?php if(in_array(7,$da_types) ){ echo 'checked="checked"'; }?> value="7" name="dtype[]" id="da_open"/></td>
+                <td style="width:20px;"><input class="chk chk-da" type="checkbox"  <?php if(in_array(7,$da_types) ){ echo 'checked="checked"'; }?> value="7" name="dtype[]" id="da_open"/></td>
                 <td><span class="da-icon-small da-open"></span></td>
                 <td class="nopad"> <label title="<?php echo t('link_data_open_hover');?>" for="da_open"> <span class="title"><?php echo t('legend_data_open');?></span> </label></td>
             </tr>

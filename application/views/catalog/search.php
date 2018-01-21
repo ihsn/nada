@@ -45,15 +45,16 @@
 	$filters=filter();
 ?>
 
+
 <!--search tokens-->
 <?php if ($filters):?>
-	<div class="filter-container label">
-    	<div class="filter-info">Filter: 
+	<div class="filter-container">
+    	<div class="filter-infox">Filter: 
 		<?php foreach($filters as $f):?>
-        	<span class="label filter"><?php echo $f;?></span>
+        	<span class="label label-info filter"><?php echo $f;?></span>
         <?php endforeach;?>
+        <a class="btn btn-default btn-xs clear-filter" href="<?php echo site_url('admin/catalog/');?>/?reset=reset"><?php echo t('clear_filter');?></a>
         </div>
-        <a class="clear-filter" href="<?php echo site_url('admin/catalog/');?>/?reset=reset"><?php echo t('clear_filter');?></a>
     </div>
 <?php endif;?>
 
@@ -75,7 +76,7 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
   </ul>
 </td>
 <td>
-<div class="pagination">
+<div class="nada-pagination">
 	<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
 </div>
 </td>
@@ -99,7 +100,7 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
 </tr>
 </table>
 
-<table class="grid-table" width="100%" cellspacing="0" cellpadding="0" >
+<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0" >
     <?php $tr_class=""; ?>
     <?php foreach($rows as $row): ?>
     	<?php //var_dump($row);?>
@@ -142,13 +143,13 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
                                 <?php if ($row['repositories']):?>
                                     <?php foreach($row['repositories'] as $repo):?>
                                     	<?php if ($repo['isadmin']==1):?>
-											<span class="label label-info" title="<?php echo t('Owner');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
+											<span class="label label-primary" title="<?php echo t('Owner');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
                                         <?php else:?>
-                                            <span class="label" title="<?php echo t('Linked');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
+                                            <span class="label label-default" title="<?php echo t('Linked');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
                                         <?php endif;?>
                                     <?php endforeach;?>
                                 <?php else:?>
-                                	<span class="label label-info"><?php echo strtoupper($row['repositoryid']);?></span>
+                                	<span class="label label-primary"><?php echo strtoupper($row['repositoryid']);?></span>
                               <?php endif;?>  
                             </span>
                         </div>
@@ -157,8 +158,7 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
                         	<span class="cell-label"><?php echo t('modified_on')?>:</span>
 							<span class="cell-value"><?php echo date($this->config->item('date_format'), $row['changed']); ?></span>
                         </div>
-                        
-                        <?php if (isset($row['tags'])):?>
+                        <?php if (isset($row['tags']) &&  count($row['tags']>0)):?>
                         <div class="table-row">
                         	<span class="cell-label"><?php echo t('tags');?>:</span>
 							<span class="cell-value">
@@ -171,11 +171,8 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
                         
                         <div class="actions">
                         	<div class="status">
-	                        <?php if (!$row['published']):?>
-                                <span class="label publish" data-value="0" data-sid="<?php echo $row['id'];?>"><?php echo t('Unpublished');?></span>
-                        	<?php else:?>
-                            	<span class="label publish label-success" data-value="1"  data-sid="<?php echo $row['id'];?>"><?php echo t('Published');?></span>
-							<?php endif;?>
+                                <?php $published_checked=(!$row['published']) ? '' :'checked="checked"';?>                             
+                                <input class="publish-toggle" type="checkbox" data-sid="<?php echo $row['id'];?>" <?php echo $published_checked;?> data-toggle="toggle" data-on="<?php echo t('published');?>" data-off="<?php echo t('draft');?>" data-onstyle="success" data-offstyle="danger">
                             </div>
                             
                             <?php if (isset($row['citations'])):?>
@@ -209,14 +206,14 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
     <?php endforeach;?>
 </table>    
 
-<table width="100%">
+<table width="100%" style="border-top:1px solid gainsboro;margin-top:10px;">
 <tr>
     <td>
     <?php echo t("select_number_of_records_per_page");?>:
     <?php echo form_dropdown('pagesize', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("pagesize",isset($ps) ? $ps : ''),'id="pagesize" style="font-size:10px;"'); ?>
     </td>
     <td>    
-        <div class="pagination">
+        <div class="nada-pagination">
                 <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
         </div>
     </td>

@@ -16,29 +16,29 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 .instructions{font-weight:bold;}
 
 </style>
-<div class="content-container">
+<div class="container-fluid">
 <h1 class="page-title"><?php echo t('site_configurations');?></h1>
 
 <?php if (validation_errors() ) : ?>
-    <div class="error">
+    <div class="alert alert-danger">
 	    <?php echo validation_errors(); ?>
     </div>
 <?php endif; ?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php if (isset($this->message)):?>
-<?php echo ($this->message!="") ? '<div class="success">'.$this->message.'</div>' : '';?>
+<?php echo ($this->message!="") ? '<div class="alert alert-success">'.$this->message.'</div>' : '';?>
 <?php endif;?>
 
 <form method="post" >
 
 <div style="text-align:right;">
-	<input type="submit" value="<?php echo t('update');?>" name="submit"/>
+	<input class="btn btn-primary" type="submit" value="<?php echo t('update');?>" name="submit"/>
 </div>
 
 <fieldset class="field-expanded">
@@ -254,7 +254,7 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 </fieldset>
 
 <div style="text-align:right;">
-	<input type="submit" value="<?php echo t('update');?>" name="submit"/>
+	<input class="btn btn-primary" type="submit" value="<?php echo t('update');?>" name="submit"/>
 </div>
 
 </form>
@@ -281,11 +281,11 @@ function folder_exists($folder)
 {
 	if (is_dir($folder))
 	{
-		return '<img src="images/tick.png" border="0" title="'.t('folder_exists_on_server').'"/>';
+		return '<span class="glyphicon glyphicon-ok ico-add-color"></span><span title="'.t('folder_exists_on_server').'"</span>';
 	}
 	else
 	{
-		return '<img src="images/delete.png" border="0" title="'.t('path_not_found').'"/>';
+		return '<span class="glyphicon glyphicon-remove red-color"></span><span title="'.t('path_not_found').'"</span>';
 	}
 }
 function get_languages()

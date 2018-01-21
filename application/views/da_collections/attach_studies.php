@@ -33,15 +33,15 @@ text-transform: capitalize;
 <div class="body-container copy-studies" style="padding:10px;">
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <h1 class="page-title">
 	<?php echo t('attach_studies_to_da_collection');?>
     <?php if (isset($da_collection) && $da_collection!=NULL):?>
-    	<span class="active-repo"><?php echo $da_collection['title'];?></span>
+    	<span class="label label-default active-repo"><?php echo $da_collection['title'];?></span>
     <?php endif;?>
 </h1>
 
@@ -103,14 +103,14 @@ text-transform: capitalize;
             </div>
         </td>
         <td align="right">
-            <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+            <div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
         </td>
     </tr>
 </table>
 
 <div id="surveys">
 	<?php $tr_class=""; ?>
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped"  width="100%" cellspacing="0" cellpadding="0">
     <tr class="header">
          	<?php if ($this->config->item("regional_search")=='yes'):?>
 			  	<th><?php echo create_sort_link($sort_by,$sort_order,'repositoryid',t('repository'),$page_url,array("keywords")); ?></th>
@@ -131,9 +131,9 @@ text-transform: capitalize;
             <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>
             <td class="">
             	<?php if (!in_array($row['id'],$linked_studies)):?>
-            	<a class="attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/da_collections/update_study_link/'.$da_collection['id'].'/'.$row['id'].'/1');?>"><?php echo t('link_study'); ?></a>
+            	<a class="btn btn-success attach" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/da_collections/update_study_link/'.$da_collection['id'].'/'.$row['id'].'/1');?>"><?php echo t('link_study'); ?></a>
                 <?php else:?>
-                <a class="remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/da_collections/update_study_link/'.$da_collection['id'].'/'.$row['id'].'/0');?>"><?php echo t('unlink_study') ?></a>
+                <a class="btn btn-danger remove" data-value="<?php echo $row['id'];?>" href="<?php echo site_url('admin/da_collections/update_study_link/'.$da_collection['id'].'/'.$row['id'].'/0');?>"><?php echo t('unlink_study') ?></a>
 				<?php endif?>
             </td>
             
@@ -147,7 +147,7 @@ text-transform: capitalize;
         <?php echo form_dropdown('ps', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",isset($ps) ? $ps : ''),'id="ps" style="font-size:10px;"'); ?>
         </td>
         <td>    
-            <div class="pagination">
+            <div class="nada-pagination">
                     <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
             </div>
 		</td>

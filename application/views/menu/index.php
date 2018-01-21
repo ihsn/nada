@@ -1,8 +1,9 @@
 <style>
-.published{background:url(images/tick.png) no-repeat center;cursor:pointer; }
-.unpublished{background:url(images/cross.png) no-repeat center; cursor:pointer;}
+.published, .unpublished{
+	cursor:pointer;
+}
 </style>
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid menu-index-page">
 <?php if (!isset($hide_form)):?>
 
 <?php
@@ -10,26 +11,30 @@
 	include 'menu_breadcrumb.php';
 ?>
 
+
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 
 <h1 class="page-title"><?php echo t('menu_management');?></h1>
-<form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
-  <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <select name="field" id="field">
+<div class="form-inline">
+<form class="form-group" method="GET" id="user-search">
+  <input class="form-control" type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
+  <select name="field" id="field" class="form-control">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="body"	<?php echo ($this->input->get('field')=='body') ? 'selected="selected"' : '' ; ?> ><?php echo t('body');?></option>
   </select>
-  <input type="submit" value="<?php echo t('search');?>" name="search"/>
+  
+  <input type="submit" class="btn btn-primary" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
+    <a  class="btn btn-default" href="<?php echo current_url();?>"><?php echo t('reset');?></a>
   <?php endif; ?>
 </form>
+</div>
 <?php endif; ?>
 <?php if ($rows): ?>
 <?php
@@ -72,26 +77,26 @@
 	}
 ?>
 
-<form autocomplete="off">
+<form autocomplete="off" class="form-group">
 
 	<!-- batch operations -->
-    <table width="100%">
-        <tr>
-            <td>
-                <select id="batch_actions">
-                    <option value="-1"><?php echo t('batch_actions');?></option>
-                    <option value="delete"><?php echo t('delete');?></option>
-                </select>
-                <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>
-            </td>
-            <td align="right">
-                <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
-            </td>
-        </tr>
-    </table>
+	<div class="row" style="margin-top:30px;">
+		<div class="col-md-6">    
+			<select id="batch_actions" style="margin-bottom:5px;">
+				<option value="-1"><?php echo t('batch_actions');?></option>
+				<option value="delete"><?php echo t('delete');?></option>
+			</select>
+			<input type="button" class="btn btn-default btn-xs" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>			
+			</div>
+		<div class="col-md-6">
+			<div class="pull-right">
+				<div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+			</div>
+		</div>
+	</div>
 
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped table-border-bottom top-margin-10" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
@@ -107,10 +112,10 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
-            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>""><?php echo html_escape($row->title); ?></a></td>
+            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo html_escape($row->title); ?></a></td>
             <td><?php echo html_escape($row->url); ?>&nbsp;</td>
-            <td><?php echo ($row->linktype==0 ? '<img src="images/page_white.png" alt="Internal"/>' : '<img src="images/link.png" alt="Page link"/>'); ?></td>
-			<td title="Click to publish/unpublish" class="<?php echo ($row->published==1 ? 'published' : 'unpublished'); ?>" id="<?php echo $row->id; ?>"></td>
+            <td><?php echo ($row->linktype==0 ? '<span class="glyphicon glyphicon-file"></span>' : '<span class="glyphicon glyphicon-link"></span>'); ?></td>
+			<td title="Click to publish/unpublish"><span class="<?php echo ($row->published==1 ? 'published glyphicon glyphicon-ok ico-add-color ' : 'unpublished glyphicon glyphicon-remove red-color'); ?>" id="<?php echo $row->id; ?>"></span></td>
 			<td><?php echo date("m-d-Y",$row->changed); ?></td>
 			<td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> |
@@ -119,13 +124,13 @@
         </tr>
     <?php endforeach;?>
     </table>
-    <div class="pagination">
+    <div class="pull-right nada-pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
 </form>
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
-<?php endif; ?>
+<?php endif;?>
 </div>
 
 <script type="text/javascript" >
@@ -167,6 +172,7 @@ function bind_events()
 	$(".unpublished").click(
 			function (e) {
                 $(this).removeClass('unpublished').addClass('published');bind_events();
+				$(this).removeClass("glyphicon-remove").addClass("glyphicon-ok");
                 url=CI.base_url+'/admin/menu/publish/'+$(this).attr("id")+'/'+1;
                 $.get(url);
 			}
@@ -175,6 +181,7 @@ function bind_events()
 	$(".published").click(
 			function (e) {
 				$(this).removeClass('published').addClass('unpublished');bind_events();
+				$(this).removeClass("glyphicon-ok").addClass("glyphicon-remove");
                 url=CI.base_url+'/admin/menu/publish/'+$(this).attr("id")+'/'+0;
                 $.get(url);
 			}

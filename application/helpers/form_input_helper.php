@@ -134,6 +134,47 @@ if ( ! function_exists('get_post_cookie'))
 		
 		return FALSE;
 	}
+
+}
+if ( ! function_exists('my_set_radio'))
+{
+    function my_set_radio($field,$value)
+    {
+        $request=@$_REQUEST[$field];
+
+        if (is_array($request))
+        {
+            if (in_array($value,$request))
+            {
+                return 'checked="checked"';
+            }
+            return false;
+        }
+
+        if ((string)$request==(string)$value){
+            return 'checked="checked"';
+        }
+    }
+}
+if ( ! function_exists('my_set_checkbox'))
+{
+    function my_set_checkbox($field,$value)
+    {
+        $request=@$_REQUEST[$field];
+
+        if (is_array($request))
+        {
+            if (in_array($value,$request))
+            {
+                return 'checked="checked"';
+            }
+            return false;
+        }
+
+        if ((string)$request==(string)$value){
+            return 'checked="checked"';
+        }
+    }
 }
 
 /* End of file form_input_helper.php */

@@ -1,4 +1,4 @@
-<div class="content-container">
+<div class="container-fluid page-menu-edit">
 <?php
 	//menu breadcrumbs
 	include 'menu_breadcrumb.php';
@@ -6,54 +6,56 @@
 
 <h1 class="page-title"><?php echo isset($id) ? t('menu_edit') : t('menu_add'); ?></h1>
 <?php if (validation_errors() ) : ?>
-    <div class="error">
+    <div class="alert alert-danger">
 	    <?php echo validation_errors(); ?>
     </div>
 <?php endif; ?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php echo form_open($this->html_form_url, array('class'=>'form') ); ?>
-    <div class="field">
+    <div class="form-group">
         <label for="title"><?php echo t('title');?><span class="required">*</span></label>
-        <input class="input-flex" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($title) ? $title : ''); ?>"/>
+        <input class="form-control" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($title) ? $title : ''); ?>"/>
         <input type="hidden" name="pid" value="<?php echo get_form_value('pid',isset($pid) ? $pid : ''); ?>"/>
     </div>
 
-    <div class="field" style="display:block;">
+    <div class="form-group" >
      	<label for="username"><?php echo t('url');?><span class="required">*</span></label>
-        <input class="input-flex"  name="url" type="text" id="url"  value="<?php echo get_form_value('url',isset($url) ? $url : '') ; ?>"/>
+        <input class="form-control"  name="url" type="text" id="url"  value="<?php echo get_form_value('url',isset($url) ? $url : '') ; ?>"/>
         <label for="url" class="desc" id="url-label"><?php echo site_url(); ?>/<?php echo get_form_value('url',isset($url) ? $url : '') ; ?></label>
     </div>
 
-    <div class="field">
+    <div class="form-group">
         <label for="body"><?php echo t('body');?></label>
-        <textarea id="body" class="input-flex"  name="body" rows="30"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>
+        <textarea id="body" class="form-control"  name="body" rows="20"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>
     </div>
 
-    <div class="field">
-        <label for="published"><?php echo t('publish');?><span class="required">*</span></label>
-        <?php echo form_dropdown('published', array(1=>t('yes'),0=>t('no')), get_form_value("published",isset($published) ? $published : '')); ?>
-    </div>
+	<div class="form-group form-inline form-inline-with-spacing">
+		
+		<div class="form-group field">
+			<label for="target"><?php echo t('open_in');?><span class="required">*</span></label>
+			<?php echo form_dropdown('target', array(0=>t('same_window'),1=>t('new_window')), get_form_value("target",isset($target) ? $target : '')); ?>
+		</div>
+		
+		<div class="form-group">
+			<label for="weight"><?php echo t('weight');?><span class="required">*</span></label>
+			<input class="form-control" name="weight" type="text" id="weight" size="3"  value="<?php echo get_form_value('weight',isset($weight) ? $weight : ''); ?>"/>		
+		</div>
 
-    <div class="field">
-        <label for="target"><?php echo t('open_in');?><span class="required">*</span></label>
-        <?php echo form_dropdown('target', array(0=>t('same_window'),1=>t('new_window')), get_form_value("target",isset($target) ? $target : '')); ?>
-    </div>
+		<div class="form-group field">
+			<label for="published"><?php echo t('publish');?><span class="required">*</span></label>
+			<?php echo form_dropdown('published', array(1=>t('yes'),0=>t('no')), get_form_value("published",isset($published) ? $published : '')); ?>
+		</div>
 
-    <div class="field">
-        <label for="weight"><?php echo t('weight');?><span class="required">*</span></label>
-        <input class="input-flex" style="width:50px" name="weight" type="text" id="weight" maxlength="3"  value="<?php echo get_form_value('weight',isset($weight) ? $weight : ''); ?>"/>
-    </div>
-<?php
- //edit user
-	echo form_submit('submit',t('update'),'id="btnupdate"');
- 	echo anchor('admin/menu',t('cancel'),array('class'=>'button') );
-?>
+	</div>
+
+<div class="form-group"><?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary','id'=>'btnupdate')); ?>
+<?php echo anchor('admin/menu',t('cancel'),array('class'=>'btn btn-default') );?></div>
 
 <? echo form_close(); ?>
 </div>

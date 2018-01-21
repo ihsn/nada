@@ -640,6 +640,17 @@ $config['max_resource_upload_size']='300';
 
 /*
 |--------------------------------------------------------------------------
+| Folder path for storing citation attachments
+|--------------------------------------------------------------------------
+|
+| citations_storage_path   relative or absolute path to a folder
+|
+*/
+$config['citations_storage_path']='datafiles/citations'; //don't add a trailing slash
+
+
+/*
+|--------------------------------------------------------------------------
 | NADA fallback configurations
 |--------------------------------------------------------------------------
 |

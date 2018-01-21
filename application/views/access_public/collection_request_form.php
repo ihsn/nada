@@ -93,6 +93,6 @@
 </form>
 <script type="text/javascript">
 	function isagree(){
-		$("#submit").attr('disabled', !$("#chk_agree").attr("checked"))	
+		$("#submit").attr('disabled', !$("#chk_agree").is(":checked"))	
 	}
 </script>

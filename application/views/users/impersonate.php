@@ -28,8 +28,10 @@
         </div>
     <?php endforeach;?>
      
-	 <?php echo form_submit('submit', t('impersonate'));?>
-     <?php echo anchor('admin/users', t('cancel'));?>
+    <div style="margin-top:20px;">
+        <input class="btn btn-primary" type="submit" name="submit" value="<?php echo t('impersonate');?>"/>
+        <a class="btn btn-default" href="<?php echo site_url('admin/users');?>"><?php echo t('cancel');?></a>
+    </div>
       
     <?php echo form_close();?>
 

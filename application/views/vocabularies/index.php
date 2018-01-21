@@ -1,20 +1,21 @@
-<div class="body-container" style="padding:10px;">
+<div class="content-container">
 
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/vocabularies/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('add_vocabulary');?></a> 
+<div class="text-right page-links">
+	<a href="<?php echo site_url(); ?>/admin/vocabularies/add" class="btn btn-default">
+    	<span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('add_vocabulary');?></a> 
 </div>
         
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('title_vocabulary');?></h1>
 
 <?php if($rows):?>
 	 <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th><?php echo t('vocabulary');?></th>
 			<th>&nbsp;</th>

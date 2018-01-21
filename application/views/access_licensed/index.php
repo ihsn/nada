@@ -2,30 +2,31 @@
 	$active_tab=strtoupper($this->input->get("status"));
 ?>
 
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid">
 <?php if (!isset($hide_form)):?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
 <?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('title_licensed_request');?></h1>
 
-<form class="left-pad" style="margin-bottom:20px;" method="GET" id="user-search">
-  <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <input type="hidden" name="field" value="title"/>
-  <input type="hidden" name="status" value="<?php echo ($active_tab) ? $active_tab : '';?>"/>
-<?php /*
-  <select name="field" id="field">
-    <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
-  </select>
-  */ ?>
-  <input type="submit" value="<?php echo t('search');?>" name="search"/>
-  <?php if ($this->input->get("keywords")!=''): ?>
-    <a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
-  <?php endif; ?>
+<form class="form-inline" style="margin-bottom:20px;" method="GET" id="user-search">
+
+	<div class="input-group">
+		<input class="form-control" type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
+		<input type="hidden" name="field" value="title"/>
+		<input type="hidden" name="status" value="<?php echo ($active_tab) ? $active_tab : '';?>"/>
+		<span class="input-group-btn">
+			<input class="btn btn-primary" type="submit" value="<?php echo t('search');?>" name="search"/>
+		</span>
+		<?php if ($this->input->get("keywords")!=''): ?>
+		<a href="<?php echo current_url();?>"><?php echo t('reset');?></a>
+		<?php endif; ?>
+ 	</div>
+
 </form>
 
 
@@ -77,7 +78,7 @@
 	}
 ?>
 
-<form autocomplete="off">
+<form autocomplete="off" style="margin-top:25px;">
 
 	<!-- batch operations -->
     <table width="100%">
@@ -90,13 +91,13 @@
                 <input type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>                
             </td>
             <td align="right">
-                <div class="pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+                <div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
             </td>
         </tr>
     </table>
     
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-bordered table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'survey_title',t('title'),$page_url); ?></th>
@@ -125,7 +126,7 @@
         </tr>
     <?php endforeach;?>
     </table>
-    <div class="pagination">
+    <div class="nada-pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
 </form>
