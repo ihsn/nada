@@ -692,7 +692,7 @@ class Ion_auth
 	 **/
 	public function extra_where()
 	{
-		$where =& func_get_args();
+		$where =func_get_args();
 		
 		$this->_extra_where = count($where) == 1 ? $where[0] : array($where[0] => $where[1]);
 	}
@@ -707,7 +707,7 @@ class Ion_auth
 	 **/
 	public function extra_set()
 	{
-		$set =& func_get_args();
+		$set =func_get_args();
 		
 		$this->_extra_set = count($set) == 1 ? $set[0] : array($set[0] => $set[1]);
 	}

@@ -2,7 +2,7 @@
 
 class Install extends CI_Controller {
 
-	function Install()
+	function __construct()
 	{		
 		parent::__construct();
 

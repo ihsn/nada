@@ -1,6 +1,10 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-require_once(APPPATH."../modules/mpdf/mpdf_source.php");
+//require_once(APPPATH."../modules/mpdf/mpdf_source.php");
+
+require_once 'vendor/autoload.php';
+
+//$mpdf = new \Mpdf\Mpdf();
 
 /**
  * PDF Generation class wrapper
@@ -8,27 +12,27 @@ require_once(APPPATH."../modules/mpdf/mpdf_source.php");
  *
  *
  *
- * @package		NADA 3.0
  * @subpackage	Libraries
  * @category	PDF Generator
- * @author		Mehmood
- * @link		-
  *
  */ 
-class MY_mPDF extends mPDF{
+class MY_mPDF extends \Mpdf\Mpdf{
     
 	function __construct($params=NULL)
 	{
 		if (is_array($params))
 		{
+			//set temp folder path
+			$params['tempDir'] = FCPATH.'/datafiles/tmp';
+
 			if (isset($params['codepage']))
 			{
-				parent::__construct($params['codepage']);
+				parent::__construct($params);
 				return;
 			}	
 		}
 		
-		parent::__construct();
+		parent::__construct($params);
 	}
 }
 // END MY_mPDF Class
