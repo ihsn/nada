@@ -35,7 +35,7 @@ $(function(){
 	//hashchange event handler
 	$(window).bind( 'hashchange', function(e) {
 		
-		$('.study-tabs .tab-body').html('<img src="images/loading.gif"/> loading...');
+		$('.study-tabs .tab-body').html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> loading...');
 		
 		fragments=$.deparam.fragment();
 		

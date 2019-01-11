@@ -15,7 +15,12 @@
 .folder{background:url(images/folder.png) no-repeat;padding-left:20px;display:block;margin-bottom:5px;}
 .file{background:url(images/page_white.png) no-repeat;padding-left:20px;color:#333333;display:block;margin-bottom:5px;}
 .micro-file{background:url(images/database_table.png) no-repeat;}
-.locked-file{background:url(images/lock.png) no-repeat;}
+.locked-file{}
+.locked-file:before {
+    content: "\f06a";
+    font-family: FontAwesome;
+    padding-right:5px;
+}
 .resource-file{background:url(images/page_green.png) no-repeat;}
 .actions{text-align:right;margin-top:15px;}
 #file-uploads{text-align:left;background-color:#EFEFEF;padding:10px;display:none;margin-bottom:10px;margin-top:10px;}

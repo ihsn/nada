@@ -67,8 +67,8 @@ else{
 <?php foreach($surveys['rows'] as $row): ?>
 	<div class="survey-row" data-url="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>">
             <h2 class="title">
-                <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
-                	<?php echo $row['titl'];?>
+                <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
+                	<?php echo $row['title'];?>
                 </a>
             </h2>
             <div class="study-country">
@@ -77,21 +77,14 @@ else{
                 <?php endif;?>
                 <?php 
 					$survey_year=NULL;
-					$survey_year[$row['data_coll_start']]=$row['data_coll_start'];
-					$survey_year[$row['data_coll_end']]=$row['data_coll_end'];
+					$survey_year[$row['year_start']]=$row['year_start'];
+					$survey_year[$row['year_end']]=$row['year_end'];
 					$survey_year=implode('-',$survey_year);
 				?>
                 <?php echo $survey_year!=0 ? $survey_year : '';?>
 			</div>
             <div class="sub-title">
-            	<div>
-				<?php echo t('by');?> <?php $authenty=json_decode($row['authenty']);?>
-                <?php if (is_array($authenty)):?>
-                	<?php echo implode(", ",$authenty);?>
-                <?php else:?>
-                	<?php echo $row['authenty'];?>
-                <?php endif;?>
-            	</div>
+            	<div><?php echo t('by');?> <?php echo $row['authoring_entity'];?></div>
 				<?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
                     <div><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid'].'/about');?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
@@ -116,4 +109,3 @@ else{
 <?php else: ?>
 	<div style="padding:10px;background:white;border:1px solid gainboro;margin-bottom:20px;"><?php echo t('search_no_results');?></div>
 <?php endif; ?>
-<?php $this->load->view('tracker/tracker');?>

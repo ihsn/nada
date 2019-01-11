@@ -4,13 +4,7 @@
  * NADA Site Menu
  * 
  *
- *
- *
- * @package		NADA 4.0-Alpha
- * @subpackage	Libraries
  * @category	Site Menu/Navigation
- * @author		Mehmood Asghar
- * @link		-
  *
  */ 
 class Site_Menu
@@ -101,12 +95,12 @@ class Site_Menu
 							if ($submenu=='')
 							{
 								//first find children for the item
-								$child_items[]=sprintf('<li><a href="%s">%s</a>%s</li>',site_url().'/'.$child['url'],t($child['title']),$submenu);
+								$child_items[]=sprintf('<li><a href="%s">%s</a>%s</li>',site_url($child['url']),t($child['title']),$submenu);
 							}
 							else
 							{
 								//with submenu - currently only for MANAGE STUDIES
-								$child_items[]=sprintf('<li class="dropdown-submenu"><a tabindex="-1" href="%s">%s</a>%s</li>',site_url().'/'.$child['url'],t($child['title']),$submenu);
+								$child_items[]=sprintf('<li class="dropdown-submenu"><a tabindex="-1" href="%s">%s</a>%s</li>',site_url($child['url']),t($child['title']),$submenu);
 							}							
 						}	
 					}	
@@ -121,7 +115,7 @@ class Site_Menu
 			else
 			{
 				//parents with no children
-				$menu_tree[]=sprintf('<li class=""><a href="%s">%s</a></li>',site_url().'/'.$parent['url'],t($parent['title']));
+				$menu_tree[]=sprintf('<li class=""><a href="%s">%s</a></li>',site_url($parent['url']),t($parent['title']));
 			}						
 		}
 		return sprintf('<ul class="nav navbar-nav">%s</ul>',implode('',$menu_tree));

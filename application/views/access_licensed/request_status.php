@@ -59,7 +59,7 @@
         <div class="<?php echo count($surveys)>5 ? 'show-scroll' : '';?>">
 		<?php foreach($surveys as $survey):?>
             <div class="study-row">
-				<?php echo $survey['nation'];?> - <?php echo $survey['titl'] ?> - <?php echo $survey['data_coll_start'];?></div>
+				<?php echo $survey['nation'];?> - <?php echo $survey['title'] ?> - <?php echo $survey['year_start'];?></div>
         <?php endforeach;?>
         </div>
         </td>

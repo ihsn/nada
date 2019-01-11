@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="<?php echo base_url();?>/xslt/rss.xslt" ?>
+<?php header("Content-type: text/xml");?>
+<?php echo '<?xml version="1.0" encoding="utf-8"?>'."\r\n";?>
+<?php //echo '<?xml-stylesheet type="text/xsl" href="'. base_url().'/xslt/rss.xslt"'; ?>
 <?php
 //from config
 $language=$this->config->item("language");
@@ -26,14 +27,14 @@ if ($language=='')
         <dc:rights>Copyright <?php echo gmdate("Y", time()); ?></dc:rights>    	
         <?php foreach($records->result() as $entry): ?>
         <item>
-          <title><![CDATA[<?php echo ($entry->titl); ?>]]></title>
+          <title><![CDATA[<?php echo ($entry->title); ?>]]></title>
           <link><?php echo site_url('catalog/' . $entry->id) ?></link>
-          <guid><?php echo $entry->surveyid ?></guid>
-          <description><![CDATA[<?php echo (strip_tags($entry->titlstmt.', ' . $entry->authenty.  ' - ' . $entry->nation)); ?>]]></description>
+          <guid><?php echo $entry->idno ?></guid>
+          <description><![CDATA[<?php echo (strip_tags($entry->title.', ' . $entry->authoring_entity.  ' - ' . $entry->nation)); ?>]]></description>
           <pubDate><?php echo date ('r', $entry->changed);?></pubDate>
-          <nada:surveyid><?php echo $entry->surveyid; ?></nada:surveyid>
+          <nada:surveyid><?php echo $entry->idno; ?></nada:surveyid>
           <nada:country><?php echo $entry->nation; ?></nada:country>
-          <nada:colldate><?php echo $entry->proddate; ?></nada:colldate>
+          <nada:colldate><?php echo $entry->year_start; ?></nada:colldate>
           <nada:accesspolicy><?php echo $entry->model; ?></nada:accesspolicy>
         </item>
         <?php endforeach; ?>   

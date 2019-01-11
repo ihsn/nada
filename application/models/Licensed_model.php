@@ -27,37 +27,7 @@ class Licensed_model extends CI_Model {
 		//$this->output->enable_profiler(TRUE);
     }
 	
-	
-    /**
-     * Check if user has already submitted a request
-     * There could be one request per user per survey
-     * 
-     * 
-     * @param $user_id
-     * @param $survey_id
-     * @return request id or false
-     */
-	/*
-	*TOBE REMOVED
-	function check_user_request($user_id,$survey_id)
-	{
-		$this->db->select('id');
-		$this->db->limit(1);
-		$this->db->from('lic_requests');
-		$this->db->order_by('updated','DESC');
-		$this->db->where('surveyid',$survey_id);		
-		$this->db->where('userid',$user_id);		
-				
-        $result= $this->db->get()->row_array();
-		
-		if ($result)
-		{
-			return $result['id'];
-		}
-		
-		return FALSE;
-	}
-	*/
+    
 
 	/**
      * Returns request by user
@@ -95,7 +65,7 @@ class Licensed_model extends CI_Model {
 	**/
 	function get_requests_by_study($sid,$user_id,$active_only=FALSE)
 	{
-		$this->db->select('lic_requests.id,lic_requests.request_title,surveys.titl,lic_requests.created,lic_requests.status,lic_requests.expiry_date');
+		$this->db->select('lic_requests.id,lic_requests.request_title,surveys.title,lic_requests.created,lic_requests.status,lic_requests.expiry_date');
 		$this->db->from('lic_requests');	
 		$this->db->join('survey_lic_requests', 'lic_requests.id = survey_lic_requests.request_id','inner');
 		$this->db->join('surveys', 'surveys.id = survey_lic_requests.sid','inner');
@@ -153,7 +123,7 @@ class Licensed_model extends CI_Model {
 	 */
 	function get_request_status($user_id,$survey_id)
 	{
-		$this->db->select('lic_requests.*,surveys.titl');		
+		$this->db->select('lic_requests.*,surveys.title');		
 		$this->db->from('lic_requests');		
 		$this->db->join('surveys', 'surveys.id = lic_requests.surveyid','inner');
 		$this->db->where('surveys.id',$survey_id);		
@@ -366,26 +336,6 @@ class Licensed_model extends CI_Model {
 	}
 
 
-	/**
-	* Returns the surveyid by requestid
-	*
-	*/
-	/*
-	//TODO:remove
-	function get_surveyid_by_request($request_id)
-	{
-		$this->db->select('surveyid');		
-		$this->db->from('lic_requests');		
-		$this->db->where('id',$request_id);
-		
-		$result=$this->db->get()->row_array();		
-		
-		if ($result)
-		{
-			return $result['surveyid'];
-		}
-		return FALSE;
-	}*/
 	
 
 	/**
@@ -462,10 +412,10 @@ class Licensed_model extends CI_Model {
 	
 	function get_request_survey_list($request_id)
 	{
-		$this->db->select('surveys.id,surveyid,titl,proddate,nation,data_coll_start,data_coll_end');
+		$this->db->select('surveys.id,idno,surveys.title,surveys.nation,year_start,year_end');
 		$this->db->join('survey_lic_requests', 'survey_lic_requests.sid= surveys.id');
 		$this->db->where('survey_lic_requests.request_id',$request_id);
-		$this->db->order_by('surveys.nation,surveys.titl,surveys.data_coll_start');
+		$this->db->order_by('surveys.nation,surveys.title,surveys.year_start');
 		$result=$this->db->get('surveys')->result_array();
 		
 		$output=array();

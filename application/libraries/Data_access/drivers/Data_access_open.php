@@ -32,6 +32,8 @@ class Data_access_open extends CI_Driver {
 		{
 			//get study microdata files
 			$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
+			$result['sid']=$sid;
+			$result['storage_path']=$this->CI->Dataset_model->get_storage_fullpath($sid);
 			return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);		
 		}
 		

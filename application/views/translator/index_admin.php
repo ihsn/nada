@@ -3,9 +3,9 @@
 <h1 class="page-title"><?php echo t('translate');?></h1>
 
 Template language set to: BASE
-<table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
 	<tr class="header">
-        <th>Language</th>
+        <th><?php echo t('language');?></th>
         <th><?php echo t('actions');?></th>
     </tr>
 	<?php $tr_class=""; ?>

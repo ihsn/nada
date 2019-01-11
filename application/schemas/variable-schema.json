@@ -1,0 +1,197 @@
+{
+	"$id": "http://ihsn.org/schemas/nada/ddi_variable.json",
+	"type": "object",
+	"definitions": {},
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"properties": {
+		"file_id": {
+			"type": "string",
+			"title": "File ID e.g. F1",
+			"description": "File to which the variable belongs"
+		},
+		"vid": {
+			"type": "string",
+			"title": "Variable unique ID",
+			"description": "Unique variable ID e.g. V1, V2"
+		},
+		"name": {
+			"type": "string",
+			"title": "Variable name"
+		},
+		"labl": {
+			"type": "string",
+			"title": "Variable label"
+		},
+		"var_intrvl": {
+			"type": "string",
+			  "title" : "Interval type",
+			"description": "indicates the interval type; options are discrete or continuous.",
+			  "enum": [ "discrete", "contin"]
+		},
+		"var_dcml": {
+			"type": "string",
+			"title": "Variable decimal points",
+			"description": "Number of decimal points in the variable"
+		},
+		"var_wgt": {
+			"type": "integer",
+			"title":"Weight",
+			"description": "indicates whether the variable is a weight",
+			"default": 0
+		},		
+		"var_start_pos": {
+			"type": "integer",
+			"title": "Variable start position"
+		},
+		"var_end_pos": {
+			"type": "integer",
+			"title": "Variable end position"
+		},
+		"var_width": {
+			"type": "integer",
+            "title": "Variable width"		
+        },
+		"var_imputation": {
+			"type": "string",
+			"title": "Imputation"
+		},
+		"var_security": {
+			"type": "string",
+			"title": "Security"
+		},
+		"var_respunit": {
+			"type": "string",
+			"title": "Source of information"
+		},
+		"var_qstn_preqtxt": {
+			"type": "string",
+			"title": "Pre-question text",
+			"description": "Text describing a set of conditions under which a question might be asked."
+		},
+		"var_qstn_qstnlit": {
+			"type": "string",
+			"title": "Literal question"
+		},
+		"var_qstn_postqtxt": {
+			"type": "string",
+			"title": "Post-question text"
+		},
+		"var_qstn_ivulnstr": {
+			"type": "string",
+			"title": "Interviewer instructions"
+		},
+		"var_universe": {
+			"type": "string",
+			"title": "Universe"
+		},
+		"var_sumstat": {
+            "type": "array",
+            "description": "One or more statistical measures that describe the responses to a particular variable and may include one or more standard summaries, e.g., minimum and maximum values, median, mode, etc. \n\n The attribute 'type' denotes the type of statistics being shown: mean, median, mode, valid cases, invalid cases, minimum, maximum, or standard deviation.",
+			"items": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string",
+						"title": "Type"
+					},
+					"value": {
+						"type": "string",
+						"title": "Value"
+					}
+				}
+			}
+		},
+		"var_txt": {
+			"type": "string",
+			"title": "Variable description"
+		},
+		"var_catgry": {
+            "type": "array",
+            "title": "Categories",
+			"items": {
+				"type": "object",
+				"properties": {
+					"value": {
+						"type": "string",
+						"title": "Value"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"stats": {
+						"type": "array",
+						"title": "Category statistics",
+						"description": "Category level statistics e.g. frequency",
+						"items": {
+							"type": "object",
+							"properties": {
+								"type": {
+									"type": "string",
+									"title": "Type",
+									"description": "Type such as frequency, percent, etc"
+								},
+								"value": {
+									"type": "string",
+									"title": "Value"
+								}								
+							}
+						}
+					}
+				}
+			}
+		},
+		"var_codinstr": {
+			"type": "string",
+			"title": "Recoding and derivation"
+		},
+		"var_concept": {
+			"type": "array",
+			"title": "Concepts",
+			"items": {
+			  "type": "object",
+			  "properties": {
+				"title": {
+				  "title": "Concept",
+				  "type": "string"
+				},
+				"vocab": {
+				  "title": "Vocabulary",
+				  "type": "string"
+				},
+				"uri": {
+				  "title": "Vocabulary URI",
+				  "type": "string"
+				}
+			  },
+			  "required": [
+				"title"
+			  ]
+			}
+		  },
+		"var_format": {
+            "type": "object",
+            "title": "Variable format",
+            "description": "The technical format of the variable in question. Attributes for this element include: 'type', which indicates if the variable is character or numeric; 'formatname,' which in some cases may provide the name of the particular, proprietary format actually used; 'schema,' which identifies the vendor or standards body that defined the format (acceptable choices are SAS, SPSS, IBM, ANSI, ISO, XML-data or other); 'category,' which describes what kind of data the format represents, and includes date, time, currency, or 'other' conceptual possibilities.",            
+            "properties": {
+              "type": {
+                "type": "string",
+                "title": "Type"
+              },
+              "name": {
+                "type": "string",
+                "title": "Name"
+              },
+              "value": {
+                "type": "string",
+                "title": "Value"
+              }
+            }
+          },
+		"var_notes": {
+			"type": "string",
+			"title": "Variable notes"
+		}
+    },
+    "required": [ "vid", "file_id", "name","labl" ]
+}

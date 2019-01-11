@@ -16,8 +16,8 @@
 	
 	$dbextensions=array($this->db->dbdriver);
 	
-	$yes='<span class="green"><img src="images/tick.png"/></span>';
-	$no='<span class="red" style="background:none;color:red;"><img src="images/icon_cancel.gif" alt="X"/></span>';
+	$yes='<span class="green">'.t('yes').'</span>';
+	$no='<span class="red" style="background:none;color:red;">'.t('no').'</span>';
 	
 	echo '<h1>'.t('required_php_extensions').'</h1>';
 	echo '<table cellpadding="0" cellspacing="0" class="grid-table">';

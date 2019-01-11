@@ -60,7 +60,7 @@
 
 <?php
 //persist vars for sorting
-$qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_question','no_datafile','dtype');
+$qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_datafile','dtype');
 ?>
 <table width="100%">
 <tr>
@@ -70,8 +70,8 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
         <?php if ($this->config->item("regional_search")=='yes'):?>            
         <li><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$qs_sort); ?></li>
     <?php endif;?> 
-    <li><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,$qs_sort); ?></li>
-    <li><?php echo create_sort_link($sort_by,$sort_order,'surveyid',t('surveyid'),$page_url,$qs_sort); ?></li>
+    <li><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,$qs_sort); ?></li>
+    <li><?php echo create_sort_link($sort_by,$sort_order,'idno',t('surveyid'),$page_url,$qs_sort); ?></li>
     <li><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,$qs_sort); ?></li>
   </ul>
 </td>
@@ -115,10 +115,10 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
                     <div class="survey-row">
                     	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></div>
                         <h3>
-                            <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo $row['titl'];?></a>
+                            <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo $row['title'];?></a>
                         </h3>
                         <?php 
-							$study_years=array_unique(array($row['data_coll_start'],$row['data_coll_end']));
+							$study_years=array_unique(array($row['year_start'],$row['year_end']));
 							$study_years=implode(" - ",$study_years);
 						?>
                         <div class="sub-title">
@@ -132,7 +132,7 @@ $qs_sort=array('ps','titl','surveyid','producer','published','nation','tag','no_
 
                         <div class="table-row">
                         	<span class="cell-label"><?php echo t('ID');?>:</span>
-							<span class="cell-value"><?php echo $row['surveyid'];?></span>
+							<span class="cell-value"><?php echo $row['idno'];?></span>
                         </div>						
 
 

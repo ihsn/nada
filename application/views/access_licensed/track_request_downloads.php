@@ -55,7 +55,10 @@ $request_url=site_url('access_licensed/track/'.$id);
 
 <div id="accordion">
 <?php $k=0;foreach ($surveys as $survey):?>
-	<?php if (!in_array($survey['id'],$surveys_with_files)){continue;}?>
+	<?php if (!in_array($survey['id'],(array)$surveys_with_files)){
+		continue;
+	}
+	?>
     <?php 
 	if ($sid==$survey['id']) {
 		$active_survey=$k;
@@ -63,7 +66,7 @@ $request_url=site_url('access_licensed/track/'.$id);
 	$k++;
 	?>
   <h3 data-id="survey-<?php echo $survey['id'].'-'.$id;?>" data-url="<?php echo site_url('access_licensed/get_resources/'.$survey['id'].'/'.$id);?>">
-  	<?php echo anchor($request_url.'?sid='.$survey['id'],$survey['titl']);?> - <?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?>
+  	<?php echo anchor($request_url.'?sid='.$survey['id'],$survey['title']);?> - <?php echo $survey['nation'];?>, <?php echo $survey['year_start'];?>
   </h3>
   <div id="survey-<?php echo $survey['id'].'-'.$id;?>-resources" >
     <?php if ($sid==$survey['id']):?>
@@ -106,12 +109,12 @@ $(function() {
 		activate: function (event, ui){
 			var container = "#"+$(this).find('.ui-state-active').attr('data-id')+"-resources";
 			var url=$(this).find('.ui-state-active').attr('data-url');
-			$(container).html('<img src="images/loading.gif"/> loading...');
+			$(container).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> loading...');
 			$(container).load(url,function(response){});
 		},
 		beforeActivate: function( event, ui ){
 			var container = "#"+$(this).find('.ui-state-active').attr('data-id')+"-resources";
-			$(container).html('<img src="images/loading.gif"/> loading...');
+			$(container).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> loading...');
 		},
 		active: <?php echo isset($active_survey) ? $active_survey : 0;?>
 	});

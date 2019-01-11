@@ -31,7 +31,7 @@ class Catalog_Admin
 		$this->ci->load->helper('file');
 		$this->ci->load->model("managefiles_model");
 		$this->ci->load->model("resource_model");
-		$this->ci->load->model("form_model");
+		$this->ci->load->model("form_model");		
 
 		$this->ci->lang->load("resource_manager");
 
@@ -137,24 +137,54 @@ class Catalog_Admin
 		return $output;
 	}
 
+	
+	/**
+	* returns survey data files
+	*
+	*/
+	function get_formatted_data_files($sid)
+	{
+		$this->ci->load->model("Data_file_resources_model");
+
+		//get all data files for a survey
+		$data_files=$this->ci->Data_file_resources_model->get_all_files_resources($sid);
+
+		//total resources
+		$output['total'] = count($data_files);
+
+		//formatted resources list
+		$output['formatted']=$this->ci->load->view('catalog/data_files', array('rows'=>$data_files),TRUE);
+
+		return $output;
+	}
+
 
 	/**
 	*
 	* Return a formatted list of collections attached to a study
 	*
 	**/
-	function get_formatted_collections($sid=NULL)
+	function get_formatted_collections($sid=NULL,$owner_repo=NULL)
 	{
 		$this->ci->load->model('repository_model');
 
 		//get a list of all survey collections
 		$data['collections']=$this->ci->repository_model->get_repositories();
+
+		if(isset($owner_repo[0]['repositoryid'])){
+			foreach($data['collections'] as $key=>$collection){
+				if($collection['repositoryid']==$owner_repo[0]['repositoryid']){
+					unset($data['collections'][$key]);
+					break;
+				}
+			}
+		}
+
 		$data['selected']=array();
 
-		if (is_numeric($sid))
-		{
+		if (is_numeric($sid)){
 			//get collections attached to a study
-			$data['selected']=$this->ci->repository_model->get_repo_list_by_survey($sid);
+			$data['selected']=$this->ci->repository_model->get_repo_list_by_survey($sid,$exclude_owner=1);
 		}
 
 		return $this->ci->load->view("catalog/study_collections",$data,TRUE);
@@ -290,6 +320,7 @@ class Catalog_Admin
 	/**
 	*
 	* Import RDF file
+	* TODO:// moved to resource_model
 	**/
 	public function import_rdf($surveyid,$filepath)
 	{
@@ -367,7 +398,7 @@ class Catalog_Admin
 
 		//published
 		//collection dates are missing?
-		$this->ci->db->select('published,data_coll_start,data_coll_end');
+		$this->ci->db->select('published,year_start,year_end');
 		$this->ci->db->where('id',$sid);
 		$study_row=$this->ci->db->get('surveys')->row_array();
 
@@ -376,7 +407,7 @@ class Catalog_Admin
 			$warnings[]='warning_study_not_published';
 		}
 
-		if ((int)$study_row['data_coll_start']===0 && (int)$study_row['data_coll_end']===0)
+		if ((int)$study_row['year_start']===0 && (int)$study_row['year_end']===0)
 		{
 			$warnings[]='warning_study_years_not_set';
 		}

@@ -67,7 +67,7 @@ $css_bold="font-weight:bold;";
                 <tr class="row">
                     <td style="<?php echo $css_border;?>"><?php echo $k++;?></td>
                     <td style="<?php echo $css_border;?>">
-                    	<div style="<?php echo $css_margin_bottom;?>"><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> - <?php echo $survey['data_coll_start'];?></a></div>
+                    	<div style="<?php echo $css_margin_bottom;?>"><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['title'];?> - <?php echo $survey['year_start'];?></a></div>
                     </td>
                 </tr>
                 <?php endforeach;?>

@@ -1,7 +1,7 @@
 <h1><?php echo t('change_password');?></h1>
 
 <?php if (validation_errors() ) : ?>
-    <div class="error">
+    <div class="nada-error error">
 	    <?php echo validation_errors(); ?>
     </div>
 <?php endif; ?>
@@ -12,7 +12,8 @@
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
-
+<div class="row">
+    <div class="col-12 col-sm-6 col-md-6 col-lg-6">
 <form method="post" autocomplete="off" class="form">
 <input type="hidden" name="form_token" value="<?php echo form_prep($this->form_token); ?>"/>
       <p><?php echo t('old_password');?>:<br />
@@ -28,6 +29,7 @@
       </p>
       
       <?php echo form_input($user_id);?>
-      <p><?php echo form_submit('submit', t('change'));?></p>
-      
+      <p><button class="btn btn-primary wb-btn" type="submit"><?php echo t('change');?></button></p>
+ </div>
+</div>      
 <?php echo form_close();?>

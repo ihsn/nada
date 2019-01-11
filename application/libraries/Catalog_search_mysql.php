@@ -34,14 +34,16 @@ class Catalog_search_mysql{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
-						'titl'=>'titl',
-						'nation'=>'nation',
-						'proddate'=>'proddate',
-						'popularity'=>'total_views');
+						'title'=>'title',
+						'country'=>'nation',
+						'year'=>'year_start',
+						'popularity'=>'total_views',
+						'total_views'=>'total_views'
+					);
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
-	var $sort_by='titl';
+	var $sort_by='title';
 	var $sort_order='ASC';
 	
 		
@@ -99,7 +101,7 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
-		$sort_by='titl';
+		$sort_by='title';
 		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
 		{
 			$sort_by=$this->sort_allowed_fields[$this->sort_by];
@@ -108,32 +110,32 @@ class Catalog_search_mysql{
 		{
 			if ($this->ci->config->item("regional_search")=='yes')
 			{
-				$sort_by='nation';
+				$sort_by='country';
 			}		
 		}
 
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
-		if ($sort_by=='nation')
+		if ($sort_by=='country')
 		{
-			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
+			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
             $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
-		elseif ($sort_by=='titl')
+		elseif ($sort_by=='title')
 		{
-			$sort_options[1]=array('sort_by'=>'proddate', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
+			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
             $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
-		if ($sort_by=='proddate')
+		if ($sort_by=='year')
 		{
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
-			$sort_options[2]=array('sort_by'=>'titl', 'sort_order'=>'asc');
+			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
+			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
             $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
-				
+		
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
@@ -155,9 +157,9 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, forms.model as form_model,link_report,surveys.data_coll_start,surveys.data_coll_end';
-		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+		$study_fields='surveys.id as id,surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end';
+		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
+		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query
 		$sql='';
@@ -177,7 +179,7 @@ class Catalog_search_mysql{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 			
-			$this->ci->db->group_by('id,surveyid,titl,nation');
+			$this->ci->db->group_by('id,idno,title,nation');
 			
 			//multi-sort
 			foreach($sort_options as $sort)
@@ -267,9 +269,10 @@ class Catalog_search_mysql{
 		$study_keywords=$this->study_keywords;
 		
 		//fulltext index name
-		$study_fulltext_index='surveys.titl,surveys.authenty,surveys.geogcover,surveys.nation,surveys.topic';
-		$study_fulltext_index.=',surveys.scope,surveys.sername,surveys.producer,surveys.sponsor,surveys.refno';
-		$study_fulltext_index.=',abbreviation,kindofdata,keywords';
+		//$study_fulltext_index='surveys.title,surveys.authoring_entity,surveys.nation';
+		//$study_fulltext_index.=',abbreviation,keywords';
+
+		$study_fulltext_index='keywords';
 		
 		if (strlen($study_keywords)>3)
 		{		
@@ -281,7 +284,7 @@ class Catalog_search_mysql{
 		{
 			//sql using REGEX for keywords shorter or equal to 3 characters
 			$study_keywords=sprintf("[[:<:]]%s[[:>:]]",$study_keywords);
-			$sql=sprintf('%s REGEXP (%s)','surveys.titl',$this->ci->db->escape($study_keywords));
+			$sql=sprintf('%s REGEXP (%s)','surveys.title',$this->ci->db->escape($study_keywords));
 			$sql.=' OR ';
 			$sql.=sprintf('%s REGEXP (%s)','surveys.abbreviation',$this->ci->db->escape($study_keywords));
 			$sql='('.$sql.')';
@@ -489,9 +492,16 @@ class Catalog_search_mysql{
 	{
 		$from=(integer)$this->from;
 		$to=(integer)$this->to;
+
+		if ($from==0 && $to>0){
+			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year <= %s) or (data_coll_year=0) )',$to);
+		}
+
+		if ($from>0 && $to==0){
+			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year >= %s) or (data_coll_year=0) )',$from);
+		}
 		
-		if ($from>0 && $to>0)
-		{
+		if ($from>0 && $to>0){
 			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year between %s and %s) or (data_coll_year=0) )',$from, $to);
 		}
 		
@@ -682,9 +692,9 @@ class Catalog_search_mysql{
 	public function vsearch($limit = 15, $offset = 0)
 	{
 		//sort allowed fields for the variable view
-		$sortable_fields=array('name','labl','titl','nation');
+		$sortable_fields=array('name','labl','title','nation');
 
-		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'titl';
+		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
 		$variable_keywords=$this->variable_keywords;
@@ -695,7 +705,7 @@ class Catalog_search_mysql{
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
-		$dtype=$this->_build_dtype_query();
+		$dtype=$this->_build_dtype_query();		
 		
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$dtype);
@@ -719,7 +729,7 @@ class Catalog_search_mysql{
 				}
 			}
 		}
-		
+		 
 		if ($where=='') {
 			return FALSE;
 		}
@@ -728,7 +738,7 @@ class Catalog_search_mysql{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,  surveys.titl as titl,surveys.nation as nation, v.sid",FALSE);
+		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,  surveys.title as title,surveys.nation, v.sid",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
@@ -758,7 +768,7 @@ class Catalog_search_mysql{
     }
 
 	//search for variables for a single survey
-	public function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
+	public function v_quick_search($sid=NULL,$limit=50,$offset=0)
 	{
 		//sort allowed fields for the variable view
 		$sortable_fields=array('name','labl');
@@ -800,7 +810,7 @@ class Catalog_search_mysql{
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-		$this->ci->db->where('sid',$surveyid);
+		$this->ci->db->where('sid',$sid);
 		
 		//get resultset
 		$query=$this->ci->db->get("variables as v");

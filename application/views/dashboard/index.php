@@ -132,7 +132,7 @@
                         <?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
                             <tr class="<?php echo $tr_class;?>">
                             <td width="10%"><?php echo strtoupper($row['repositoryid']);?></td>
-                            <td width="65%"><?php echo anchor('admin/catalog/edit/'.$row['id'],$row['titl']);?></td>
+                            <td width="65%"><?php echo anchor('admin/catalog/edit/'.$row['id'],$row['title']);?></td>
                             <td width="25%"><?php echo relative_date($row['changed']); ?></td>
                             </tr>
                         <?php endforeach;?>

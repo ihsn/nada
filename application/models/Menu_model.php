@@ -265,16 +265,19 @@ class Menu_model extends CI_Model {
 	function get_page($page_url)
     {
 		$this->db->select('*');		
-		$this->db->from('menus');
 		$this->db->where('url',$page_url );
 		
-		if (is_numeric($page_url))
-		{
+		if (is_numeric($page_url)){
 			$this->db->or_where('id',$page_url );
 		}
 			
-        $result= $this->db->get()->row_array();
-		return $result;
+		$result= $this->db->get('menus');
+		
+		if($result){
+			return $result->row_array();
+		}
+
+		return false;
     }
 	
 	/**

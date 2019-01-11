@@ -69,7 +69,7 @@ function toggle_sidebar(e){
 function search()
 {
 	data=$("#form_filter").serialize();
-	$("#surveys").html('<img src="images/loading.gif"/><?php echo t('js_loading');?>');
+	$("#surveys").html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i><?php echo t('js_loading');?>');
 	$.ajax({
 		timeout:1000*120,
 		dataType: "html",

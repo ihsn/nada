@@ -27,15 +27,15 @@ if ($list): ?>
 		<?php foreach($list as $item):?>
 	        <?php $k++;?>
     		<div class="item">
-            	<?php $survey_title=$this->compare_variable->get_survey_title($item['surveyid']);?>
-                <?php $variable_name=$this->compare_variable->get_variable_name($item['surveyid'],$item['vid']);?>
+            	<?php $survey_title=$item['dataset']['title'];?>
+                <?php $variable_name=$item['variable']['name'];?>
                 <?php if ($survey_title!==FALSE && $variable_name!==FALSE):?>
             	<div style="border:1px solid gray;margin:5px;">
 	            	<div style="background-color:gray;color:white;padding:5px;">
-						<div><?php echo $variable_name;?> - <?php echo $this->compare_variable->get_survey_title($item['surveyid'])?></div>
+						<div><?php echo $variable_name;?> - <?php echo $survey_title;?></div>
                      </div>
     	        	<div style="padding:5px;">
-                            <?php echo $this->compare_variable->get_variable_html($item['surveyid'], $item['vid']);?>
+                            <?php echo $item['html'];?>
                     </div>
 				</div>
 				<?php endif;?>                

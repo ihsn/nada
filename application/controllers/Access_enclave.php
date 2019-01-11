@@ -25,15 +25,15 @@ class Access_enclave extends MY_Controller {
 	*	link to download the form for required information
 	*
 	*/
-	function index($survey_id=NULL)
+	function index($sid=NULL)
 	{					
-		if ( !is_numeric($survey_id))
+		if ( !is_numeric($sid))
 		{
 			show_404();return;
 		}
 				
 		//get survey row
-		$survey=$this->Catalog_model->select_single($survey_id);
+		$survey=$this->Catalog_model->select_single($sid);
 		
 		if ($survey==FALSE)
 		{
@@ -41,7 +41,7 @@ class Access_enclave extends MY_Controller {
 		}
 		
 		//check if the survey has the correct form type
-		if ($this->Catalog_model->get_survey_form_model($survey_id)!=$this->form_model)
+		if ($this->Catalog_model->get_survey_form_model($sid)!=$this->form_model)
 		{
 		//	show_404();
 		//	return;

@@ -4,9 +4,6 @@
  *
  * @package		CodeIgniter
  * @subpackage	Helpers
- * @category	Helpers
- * @author		Mehmood Asghar
- * @link		
  */
 
 // ------------------------------------------------------------------------

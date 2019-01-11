@@ -27,7 +27,7 @@
             <td><?php echo $row->nation; ?></td>
             <td>
 				<?php 
-					$years=array($row->data_coll_start,$row->data_coll_end);
+					$years=array($row->year_start,$row->year_end);
 					$years=array_unique($years);
 					echo implode(" - ",$years);
 				?>

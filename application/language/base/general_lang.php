@@ -144,7 +144,7 @@ $lang['iso'] = "ISO";
 $lang['edit_country'] = "Edit country";
 $lang['country_mappings'] = "Country mappings";
 $lang['translate'] = "Translate";
-$lang['Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are:'="Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are:";
+$lang['Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are:']="Password must contain at least a number, an uppercase letter, a lowercase letter and a special character. Allowed special characters are:";
 
 /* End of file general_lang.php */
 /* Location: ./system/language/english/general_lang.php */

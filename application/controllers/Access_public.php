@@ -52,9 +52,9 @@ class Access_public extends MY_Controller {
 	*	3. show the user list of files for downloading	
 	*
 	*/
-	function index($survey_id=NULL)
+	function index($sid=NULL)
 	{					
-		if ( !is_numeric($survey_id))
+		if ( !is_numeric($sid))
 		{
 			show_404();
 			return;
@@ -62,11 +62,11 @@ class Access_public extends MY_Controller {
 		
 		/*
 		//check if survey da is set by collection
-		$da_by_collection=$this->Repository_model->survey_has_da_by_collection($survey_id);
+		$da_by_collection=$this->Repository_model->survey_has_da_by_collection($sid);
 
 		if ($da_by_collection)
 		{
-			redirect('access_public_collection/'.$survey_id);exit;
+			redirect('access_public_collection/'.$sid);exit;
 		}	
 		*/	
 		
@@ -76,7 +76,7 @@ class Access_public extends MY_Controller {
 		$user=$this->ion_auth->current_user();
 		
 		//get survey row
-		$survey=$this->Catalog_model->select_single($survey_id);
+		$survey=$this->Catalog_model->select_single($sid);
 		
 		if ($survey==FALSE)
 		{
@@ -84,7 +84,7 @@ class Access_public extends MY_Controller {
 		}
 
 		//check if the survey has the correct form type
-		if ($this->Catalog_model->get_survey_form_model($survey_id)!=$this->form_model)
+		if ($this->Catalog_model->get_survey_form_model($sid)!=$this->form_model)
 		{
 			show_404();return;
 		}
@@ -97,7 +97,7 @@ class Access_public extends MY_Controller {
 		$data->organization=$user->company;
 		$data->email=$user->email;
 		$data->survey_title=$survey["titl"];
-		$data->survey_id=$survey_id;
+		$data->sid=$sid;
 		$data->survey_uid=$survey["id"];
 		$data->proddate=$survey["proddate"];
 		$data->abstract=$this->input->post("abstract");
@@ -169,16 +169,16 @@ class Access_public extends MY_Controller {
 	*
 	* Shows a listing of downloadable data files
 	*/
-	function _show_data_files($surveyid)
+	function _show_data_files($sid)
 	{
 		//survey folder  path
-		$this->survey_folder=$this->_get_survey_folder($surveyid);
+		$this->survey_folder=$this->_get_survey_folder($sid);
 		
 		//get form information
-		//$forminfo=$this->Datafiles_model->get_survey_access_form($surveyid);
+		//$forminfo=$this->Datafiles_model->get_survey_access_form($sid);
 		
 		//check if the survey form is set to LICENSED
-		if ($this->Catalog_model->get_survey_form_model($surveyid)!='public')
+		if ($this->Catalog_model->get_survey_form_model($sid)!='public')
 		{
 			show_error(t('form_already_saved'));
 			return;
@@ -196,7 +196,7 @@ class Access_public extends MY_Controller {
 		}*/
 				
 		//get files associated with the survey	
-		$result['rows']=$this->managefiles_model->get_data_files($surveyid);
+		$result['rows']=$this->managefiles_model->get_data_files($sid);
 		
 		//show listing
 		$content=$this->load->view('managefiles/downloads_public', $result,true);		
@@ -211,9 +211,9 @@ class Access_public extends MY_Controller {
 	* Downloads survey data file
 	*
 	*/
-	function download($survey_id,$file_id)
+	function download($sid,$file_id)
 	{
-		if (!is_numeric($survey_id) )
+		if (!is_numeric($sid) )
 		{			
 			show_404();
 			return;
@@ -225,7 +225,7 @@ class Access_public extends MY_Controller {
 			return;	
 		}
 		
-		if ($this->Catalog_model->get_survey_form_model($survey_id)!=$this->form_model)
+		if ($this->Catalog_model->get_survey_form_model($sid)!=$this->form_model)
 		{
 			show_404();
 			return;
@@ -235,18 +235,18 @@ class Access_public extends MY_Controller {
 		$user=$this->ion_auth->current_user();
 		
 		//check if user has accepted the terms and conditions
-		$request_exists=$this->Form_model->check_user_public_request($user->id,$survey_id);
+		$request_exists=$this->Form_model->check_user_public_request($user->id,$sid);
 		
 		if (!$request_exists)
 		{
-			$this->index($survey_id);return;
+			$this->index($sid);return;
 		}
 				
 		//get file information
 		$fileinfo=$this->managefiles_model->get_resource_by_id($file_id);
 		
 		//get survey folder path
-		$survey_folder=$this->_get_survey_folder($survey_id);
+		$survey_folder=$this->_get_survey_folder($sid);
 				
 		if (!$fileinfo)
 		{
@@ -265,7 +265,7 @@ class Access_public extends MY_Controller {
 		
 		//log
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->db_logger->write_log('survey',$file_id,'public-download',$survey_id);
+		$this->db_logger->write_log('survey',$file_id,'public-download',$sid);
 		
 		//start download
 		force_download2($file_path);
@@ -275,12 +275,12 @@ class Access_public extends MY_Controller {
 	* Returns the survey folder path
 	*
 	*/
-	function _get_survey_folder($surveyid)
+	function _get_survey_folder($sid)
 	{
 	
 		//build fixed survey folder path
 		$catalog_root=$this->config->item("catalog_root");
-		$survey_folder=$this->Catalog_model->get_survey_path($surveyid);
+		$survey_folder=$this->Catalog_model->get_survey_path($sid);
 
 		if($survey_folder===FALSE)
 		{

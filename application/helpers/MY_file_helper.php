@@ -263,6 +263,27 @@ if ( ! function_exists('get_dir_recursive'))
 		return array('files'=>$files, 'folders'=>$folders);
 	}
 }	
+
+
+if ( ! function_exists('get_catalog_root'))
+{
+	function get_catalog_root()
+	{	
+		$CI =& get_instance();
+		$catalog_root=$CI->config->item("catalog_root");
+		
+		if(!$catalog_root || trim($catalog_root)==''){
+			throw new Exception("CATALOG_ROOT-NOT_SET");
+		}
+		
+		//if not fixed path, use a relative path
+		if (!file_exists($catalog_root) ){
+			$catalog_root=FCPATH.$catalog_root;
+		}
+
+		return $catalog_root;
+	}
+}	
 // ------------------------------------------------------------------------
 /* End of file MY_file_helper.php */
 /* Location: ./system/helpers/MY_file_helper.php */

@@ -70,8 +70,8 @@ $style='style="border:1px solid gainsboro"';
         <tr class="border" >
           <td  <?php echo $style;?>   valign="top"><?php echo t('dataset_requested');?></td>
           <td  <?php echo $style;?>  >
-          	<div style="color:maroon;font-size:12px;">[<?php echo (isset($surveys[0]['surveyid']) ? $surveys[0]['surveyid'] : ''); ?>] - <?php echo $surveys[0]['titl']; ?> 
-            	<br/><?php echo $surveys[0]['nation']; ?>, <?php echo format_study_years($surveys[0]['data_coll_start'],$surveys[0]['data_coll_end']); ?>
+          	<div style="color:maroon;font-size:12px;">[<?php echo (isset($surveys[0]['surveyid']) ? $surveys[0]['surveyid'] : ''); ?>] - <?php echo $surveys[0]['title']; ?> 
+            	<br/><?php echo $surveys[0]['nation']; ?>, <?php echo format_study_years($surveys[0]['year_start'],$surveys[0]['year_end']); ?>
             </div>
           </td>
         </tr>
@@ -83,7 +83,7 @@ $style='style="border:1px solid gainsboro"';
                 <?php $k=1;foreach($surveys as $survey):?>
                 <tr class="row">
                     <td  <?php echo $style;?>  ><?php echo $k++;?></td>
-                    <td  <?php echo $style;?>  ><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+                    <td  <?php echo $style;?>  ><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['title'];?></a></td>
                 </tr>
                 <?php endforeach;?>
                 </table>

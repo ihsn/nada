@@ -126,19 +126,25 @@
 li.plupload_uploading {background: #ECF3DC;}
 li.plupload_done {color:#AAA}
 
-li.plupload_delete a {
-	background: url('images/delete.gif');
+
+li.plupload_delete a:before {
+    content: "\f1f8";
+    font-family: FontAwesome;
+    padding-right:5px;
 }
 
-li.plupload_failed a {
-	background: url('images/error.gif');
-	cursor: default;
+li.plupload_failed a:before {
+    content: "\f06a";
+    font-family: FontAwesome;
+    padding-right:5px;
 }
 
-li.plupload_done a {
-	background: url('images/done.gif');
-	cursor: default;
+li.plupload_done a:before {
+    content: "\f05d";
+    font-family: FontAwesome;
+    padding-right:5px;
 }
+
 
 .plupload_progress, .plupload_upload_status {
 	display: none;

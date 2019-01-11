@@ -585,7 +585,7 @@ background: white;
 
 <div class="row">
 <div class="col-md-12">
-	<h1><?php echo $titl; ?></h1>
+	<h1><?php echo $title; ?></h1>
 </div>
 
 
@@ -598,6 +598,9 @@ background: white;
 				<li role="presentation" <?php echo $selected_page=='files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/files');?>" aria-controls="profile" role="tab" >Manage files <span class="badge badge-light"><?php echo count($files);?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='resources' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/resources');?>" aria-controls="resources" role="tab" >Resources <span class="badge badge-light"><?php echo $resources['total'];?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='citations' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/citations');?>" aria-controls="settings" role="tab" >Citations <span class="badge badge-light"><?php echo is_array($selected_citations) ? count($selected_citations) : '';?></span></a></li>
+
+				<li role="presentation" <?php echo $selected_page=='data-files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/data-files');?>" aria-controls="data-files" role="tab" >Data files <span class="badge badge-light"><?php echo $data_files['total'];?></span></a></li>
+
 				<li role="presentation" <?php echo $selected_page=='notes' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/notes');?>" aria-controls="settings" role="tab" >Notes <span class="badge badge-light"><?php echo is_array($study_notes) && count($study_notes) >0 ? count($study_notes) : '';?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='related-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/related-data');?>" aria-controls="settings" role="tab" >Releted data <span class="badge badge-light"><?php echo is_array($related_studies) ? count($related_studies) : '';?></span></a></li>
 			</ul>
@@ -614,6 +617,9 @@ background: white;
 				case 'resources':
 					echo $resources['formatted'];
 				break;
+				case 'data-files':
+				echo $data_files['formatted'];
+			break;
 				case 'citations':
 					echo '<div id="related-citations" class="field related-citations">';
 					$this->load->view('catalog/related_citations', array('related_citations'=>$selected_citations));

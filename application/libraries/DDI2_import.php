@@ -1,0 +1,651 @@
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+/**
+ * Import DDI2 codebook 
+ *
+ */
+class DDI2_Import{
+
+    private $ci;
+    private $file_path;//metadata file path
+    private $file_type; //survey,timeseries,etc
+    private $sid;
+    private $user_id;
+    private $repositoryid='central';
+    private $published=0;
+    private $formid=6;//data not available
+    private $catalog_root; //storage folder path
+    private $overwrite=false;
+
+    //which field to use for country name - nation | geog_coverage
+    private $geog_coverage_field='nation'; 
+
+    public function __construct()
+    {
+        $this->ci =& get_instance();
+    }
+
+    
+    //import ddi
+    public function import($params,$sid=null)
+    {
+        $parser_params=array(
+            'file_type'=>'survey',
+            'file_path'=>$params['file_path']
+        );
+
+        $this->ci->load->library('Metadata_parser', $parser_params);
+        $this->ci->load->model('Survey_type_model');
+        $this->ci->load->model("Dataset_model");
+        $this->ci->load->model("Variable_model");
+        $this->ci->load->model('Catalog_model');
+        $this->catalog_root=get_catalog_root();
+
+
+        //required parameters
+        $required=array(
+            'file_path',
+            'user_id',
+            'repositoryid',
+            'overwrite'
+        );
+
+        //optional params
+        $optional=array(
+            'published',
+            'formid'
+        );
+        
+        foreach($required as $field)
+        {
+            if(array_key_exists($field,$params)){
+                $this->{$field}=$params[$field];
+            }
+            else{
+                throw new Exception("DDI2_IMPORT::MISSING_PARAMS: ".$field);
+            }
+        }
+
+        foreach($optional as $field){
+            if(array_key_exists($field,$params)){
+                $this->{$field}=$params[$field];
+            }            
+        }
+        
+        //parser to read metadata
+        $parser=$this->ci->metadata_parser->get_reader();
+
+        
+        /*echo "<pre>";
+        var_dump($parser->get_metadata_array());
+        echo "</pre>";
+        die();
+        */
+        /*
+        echo '<table>';
+        foreach($parser->get_metadata_array() as $key=>$value){
+        echo '<tr>';
+        echo '<td>'.$key.'</td>';
+        echo '<td><pre>';
+        print_r($value);
+        echo '</pre></td>';
+        echo '</tr>';
+        }
+        echo '</table>';
+
+        die();*/
+
+        //echo $parser->get_id();
+        //echo $parser->get_title();
+        //echo $parser->get_years();
+
+        $idno=$parser->get_id();
+
+        //sanitize ID to remove anything except a-Z1-9 characters
+        if ($idno!==$this->sanitize_filename($idno)){
+            throw new Exception(t('IDNO_INVALID_FORMAT').': '.$idno);
+        }       
+
+        //delete if already exists
+		//$deleted=$this->ci->Dataset_model->delete_by_idno($idno);
+        
+
+        //check if the study already exists, find the sid
+        if (!$sid){
+            $sid=$this->ci->Dataset_model->find_by_idno($idno);
+            $this->sid=$sid;
+        }        
+
+        //study found
+		if ($sid){
+            //overwrite?
+            if(!$this->overwrite){
+                throw new Exception("SURVEY_ALREADY_EXISTS: ".$sid);
+            }
+                        
+            //check if study is owned by the active repository
+            $owner_repository=$this->ci->Catalog_model->get_study_owner($sid);
+            
+            if (!$owner_repository){
+                $owner_repository='central';
+            }
+
+			$this->repositoryid=$owner_repository;
+		}
+
+		$repositoryid=$this->repositoryid;
+		$ddi_filename=$idno.".xml";
+
+        //generate survey folder name hash
+        $survey_folder_hash=md5($repositoryid.':'.$idno);
+
+		//survey folder path
+        $survey_folder_path=$this->setup_folder($repositoryid,$survey_folder_hash);
+        
+        //partial relative path to survey folder
+        $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
+
+		//target file path
+		$survey_target_filepath=$survey_folder_path.'/'.$idno.'.xml';
+
+        //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
+        if($this->file_path!==$survey_target_filepath){
+            $copied=$this->copy_file($this->file_path, $survey_target_filepath);
+        }
+        
+        $options=$this->transform_ddi_fields($parser->get_metadata_array());        
+                
+        //which field to use for country name
+        /*if($this->geog_coverage_field=='nation'){
+            $nation=$this->get_array_nested_value($options, 'study_desc/study_info/nation');
+            if(isset($nation[0]['name'])){
+                $options['study_desc']['study_info']['geog_coverage']=$nation[0]['name'];
+            }
+        }*/
+
+        $options['created_by']=$this->user_id;
+		$options['changed_by']=$this->user_id;
+		//$options['created']=date("U");
+		$options['changed']=date("U");
+        $options['repositoryid']=$repositoryid;
+        $options['metafile']=$ddi_filename;
+
+
+        //options only for new studies
+		if (!$sid){
+            $options['repositoryid']=$repositoryid;
+            $options['dirpath']		= $repositoryid.'/'.$survey_folder_hash;
+			$options['published']	= $this->published;
+			$options['formid']		= $this->formid;
+            $options['created']		= date("U");
+            $options['created_by']  = $this->user_id;
+        }
+        
+        //if params are set
+        if ($this->published!=null){
+            $options['published']=$this->published;
+        }
+
+        if ($this->formid!=null){
+            $options['formid']=$this->formid;
+        }
+
+        if ($this->repositoryid!=null){
+            $options['repositoryid']=$this->repositoryid;
+        }
+                
+        //validate & create study
+		if(!$sid){
+            //create new survey and return the sid
+            $sid=$this->ci->Dataset_model->create_dataset('survey',$options);
+            $this->sid=$sid;
+		}
+        else //existing survey
+        {            
+            $this->ci->Dataset_model->update_dataset($sid,'survey',$options);
+        }
+        
+
+        //var_dump($sid);
+        
+
+        //callbacks for updating related tables
+
+        /* 
+        
+        MOVED TO DATASET_MODEL
+
+
+        //survey_years
+        $this->update_survey_years($sid, $parser->get_years());
+
+        //survey_topics
+        $this->update_survey_topics($sid, $parser->get_topics());
+
+        //survey_aliases
+        
+
+        //survey_countries
+        $this->update_survey_countries($sid, $parser->get_countries());
+
+        //survey bbox
+        $this->update_survey_locations($sid, $parser->get_bounding_box());
+        */
+
+        //set survey owner repo
+        $this->ci->Dataset_model->set_dataset_owner_repo($sid,$this->repositoryid);   
+
+        //get list of data files
+        $files=(array)$parser->get_data_files();
+
+        $data_files=array();
+        foreach($files as $file){
+            $data_files[$file['id']]=$file;
+        }
+        unset($files);
+
+        //import data files and update data_files with file db id
+        $data_files=$this->update_survey_data_files($sid,$data_files);
+
+        //import variables
+        $variables_imported=$this->import_variables($sid,$data_files, $parser->get_variable_iterator());
+
+        //update survey variables count
+        #$this->ci->Dataset_model->update($sid,array('varcount'=>$variables_imported));
+
+        //update survey varcount
+        $this->ci->Dataset_model->update_varcount($sid);
+                    
+        return array(
+            'sid'=>$sid,
+            'idno'=>$idno,
+            'varcount'=>$variables_imported,
+            'published'=>$this->published,
+            'repositoryid'=>$this->repositoryid,  
+            'folder'=>$survey_folder_rel_path
+        );
+    }
+
+    
+    
+    //transform structure of ddi fields  to survey type fields
+    private function transform_ddi_fields($metadata)
+    {
+        //mappings from DDI to NADA SURVEY type
+        $ddi_mappings=$this->ci->config->item('survey',"metadata_parser",TRUE);
+
+        $mappings=array();
+        $complex_fields=array();
+        foreach($ddi_mappings as $key=>$value){
+            $mappings[$value['xpath']][]=$key;
+
+            if(isset($value['type']) && $value['type']=='array' ){
+                $complex_fields[$value['xpath']]['type']='array';
+            }
+        }
+
+        $output=array();
+        //only importing what is mapped
+        foreach($mappings as $xpath=>$values)
+        {
+            foreach($values as $value){            
+                //metadata exists?
+                if(isset($metadata[$xpath])){
+                    $element_value=$metadata[$xpath];
+
+                    //complex type?
+                    if(isset($ddi_mappings[$value]['type']) &&  $ddi_mappings[$value]['type']=='array'){
+                        $this->array_nested_path($output, $value, $element_value, $glue = '/');
+                    }
+                    else{
+                        //non-complex types
+                        //value in array format
+                        if(is_array($element_value) ){
+                            //echo $value."-----\r\n";
+                            //var_dump($element_value);
+                            $this->array_nested_path($output, $value, implode(" ",$element_value), $glue = '/');
+                        }
+                        else { //simple element
+                            #$output[$mappings[$key]]=$value;
+                            $this->array_nested_path($output, $value, $element_value, $glue = '/');
+                        }
+                    }
+                                  
+                }
+            }    
+        }
+
+        return $output;
+    }
+
+    
+    //return an array with the nested path and value
+    function array_nested_path(&$array, $parents, $value, $glue = '/')
+    {
+        $parents = explode($glue, (string) $parents);
+        $reference = &$array;
+        foreach ($parents as $key) {
+            if (!array_key_exists($key, $reference)) {
+                $reference[$key] = [];
+            }
+            $reference = &$reference[$key];
+        }
+        $reference = $value;
+        unset($reference);
+
+        return $array;
+    }
+
+    function get_array_nested_value($data, $path, $glue = '/')
+    {
+        $paths = explode($glue, (string) $path);
+        $reference = $data;
+        foreach ($paths as $key) {
+            if (!array_key_exists($key, $reference)) {
+                return false;
+            }
+            $reference = $reference[$key];
+        }
+        return $reference;
+    }
+
+
+
+    public function get_sid()
+	{
+		return $this->sid;
+    }
+    
+
+    //create folder for the study
+    public function setup_folder($repositoryid, $folder_name)
+    {
+        $repository_folder=$this->catalog_root.'/'.$repositoryid;
+        $survey_folder=$repository_folder.'/'.$folder_name;
+
+        //create the repo folder and survey folder
+        @mkdir($survey_folder, 0777, $recursive=true);
+
+        if(!file_exists($repository_folder)){
+            throw new Exception("REPO_FOLDER_NOT_CREATED:".$repository_folder);
+        }
+
+        if(!file_exists($survey_folder)){
+            throw new Exception("DDI2_IMPORT::SURVEY_FOLDER_NOT_CREATED::CHECK-PERMISSIONS-OR-PATH: ".$survey_folder);
+        }
+
+        return $survey_folder;
+    }
+
+
+	public function copy_file($source,$target)
+	{
+		if(!copy($source, $target)){
+            throw new Exception(sprintf("FILE_NOT_COPIED: \r\n source: %s \r\n target: %s ",$source,$target));
+        }
+
+		if(!file_exists($target)){
+			throw new Exception("FILE_NOT_COPIED: ".$target);
+        }
+	}
+
+    //convert array keys for metadata
+    function transform_metadata_keys($metadata_arr){
+        $output=array();
+        foreach($metadata_arr as $el_key=>$el_value)
+        {
+            $el_key=strtolower(str_replace("/","_",$el_key));
+            $output[$el_key]=$el_value;
+        }
+        return $output;
+    }
+
+
+
+    private function update_survey_data_files($sid, $files)
+    {
+        //delete existing data files for the survey
+        $this->ci->db->where('sid',$sid);
+        $this->ci->db->delete('data_files');
+
+        //import files
+        foreach($files as $key=>$file)
+        {            
+            $options=array(
+                'sid'           =>$sid,
+                'file_id'       =>$file['id'],
+                'file_name'     =>str_replace(".NSDstat","",$file['filename']),
+                'description'   =>$file['fileCont'],
+                'case_count'    =>$file['caseQnty'],
+                'var_count'     =>$file['varQnty']
+            );
+
+			if ($this->ci->Data_file_model->validate_data_file($options)){				
+                $file_id=$this->ci->Data_file_model->insert($sid,$options);
+                $files[$key]['id']=$file_id;
+			}
+        }
+
+        return $files;
+    }
+
+
+    //@years array (1999, 2000, ...)
+    private function update_survey_years($sid, $years)
+    {
+        $this->ci->Survey_model->update_survey_years($sid, $years);
+    }
+
+    //@topics array(topic, vocab, uri)
+    private function update_survey_topics($sid, $topics)
+    {
+        $this->ci->Survey_model->update_survey_topics($sid, $topics);
+    }
+
+    //@countries array(name, abbreviation)
+    private function update_survey_countries($sid, $countries)
+    {
+        $this->ci->Survey_model->update_survey_countries($sid, $countries);
+    }
+
+    private function update_survey_locations($sid, $bounds=array())
+    {
+        //delete any existing locations
+        $this->ci->db->delete('survey_locations',array('sid' => $sid));
+
+        if(!is_array($bounds)){
+            return false;
+        }
+        
+        foreach($bounds as $bbox)
+        {
+            $north=$bbox['north'];
+            $south=$bbox['south'];
+            $east=$bbox['east'];
+            $west=$bbox['west'];
+
+            $this->ci->load->helper("gis_helper");
+            $bbox_wkt=$this->ci->db->escape(bbox_to_wkt($north, $south, $east, $west));
+
+            $this->ci->db->set('sid',$sid);
+            $this->ci->db->set('location','GeomFromText('.$bbox_wkt.')',false);
+            $this->ci->db->insert('survey_locations');
+        }
+    }
+
+    private function encode_metadata($metadata_array)
+    {
+        return $this->ci->Survey_model->encode_metadata($metadata_array); //base64_encode(serialize($metadata_array));
+    }
+
+
+    /**
+	*
+	*Sanitize file name
+	**/
+	function sanitize_filename($name)
+	{
+		return preg_replace('/[^a-zA-Z0-9-_\.]/','-',$name);
+	}
+
+
+    private function import_variables($sid,$data_files, $variable_iterator)
+    {
+        if(!$data_files){
+            return 0;
+        }
+        
+        if (!$variable_iterator){
+            return 0;
+        }
+
+        //delete existing variables + variables metadata
+        $this->ci->Variable_model->remove_all_variables($sid);
+
+        $batch_inserts=true; //enable or disable batch inserts
+        $batch_insert_size=200; //rows inserted at once
+        $batch_insert_count=0;
+        $batch_options=array();
+        $k=0;
+
+        //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
+        foreach($variable_iterator as $var_obj)
+        {
+            //get file id
+            $fid=$data_files[$var_obj->get_file_id()]['id'];
+            
+            if(!$fid){
+                throw new exception("FILE_NOT_FOUND: ".$file_id);
+            }
+            
+            //transform fields to map to variable fields and validate
+            $variable=$this->map_variable_fields($var_obj->get_metadata_array());
+            $variable['fid']=$variable['file_id'];            
+
+            try{
+                $this->ci->Variable_model->validate_variable($variable);
+            }
+            catch(ValidationException $e){                
+                throw new ValidationException("VALIDATION_ERROR: ".$e->getMessage(), $variable);
+                
+            }
+            catch(Exception $e){
+                throw new Exception('DDI2_IMPORT::VARIABLE-IMPORT: '.$e->getMessage());
+            }
+
+
+            //fid = auto generated numeric id for file
+            //file_id = user defined .e.g. F1, F2
+            
+            $options=array(
+                //'file_id'   	=> $var_obj->get_file_id(),
+                //'fid'   		=> $fid,
+                'fid'           =>$var_obj->get_file_id(), //F1, F2
+                'vid'		    => $var_obj->get_id(),
+                'name'			=> $var_obj->get_name(),
+                'labl'			=> $var_obj->get_label(),
+                'qstn'			=> $var_obj->get_question(),
+                //'catgry'		=> $var_obj->get_categories_str(),
+                'sid'	        => $sid,
+                'metadata'      => $variable
+            );
+        
+            if(!$batch_inserts){
+                $variable_id=$this->ci->Variable_model->insert($sid,$variable);
+
+                if (!$variable_id) {
+                    throw new Exception("variable not created " . $this->ci->db->last_query());
+                }
+            }
+
+            if ($batch_inserts){
+                $batch_options[$k]=$options;
+
+                if(count($batch_options)==$batch_insert_size){                    
+                    $this->ci->Variable_model->batch_insert($sid,$batch_options);
+                    $batch_options=[];
+                }
+            }            
+            $k++;
+       }
+
+        if(count($batch_options)>0){
+            $this->ci->Variable_model->batch_insert($sid,$batch_options);
+        }
+        return $k;//no. of variables imported
+    }
+
+
+    //rename variable fields to match survey > variable schema fields
+    function map_variable_fields($variable)
+    {
+        $mappings=array(
+            'id'=>'vid',
+            'name'=>'name',
+            'files'=>'file_id',
+            'dcml'=>'var_dcml',
+            'intrvl'=>'var_intrvl',
+            'loc_start_pos'=>'var_start_pos',
+            'loc_end_pos'=>'var_end_pos',
+            'loc_width'=>'var_width',
+            'loc_rec_seg_no'=>'var_rec_seg_no',
+            'labl'=>'labl',
+            'imputation'=>'var_imputation',
+            'security'=>'var_security',
+            'resp_unit'=>'var_respunit',
+            'preqtxt'=>'var_qstn_preqtxt',
+            'qstnlit'=>'var_qstn_qstnlit',
+            'postqtxt'=>'var_qstn_postqtxt',
+            'ivuinstr'=>'var_qstn_ivulnstr',
+            'universe'=>'var_universe',
+            'universe_clusion'=>'universe_clusion',
+            'sumstat'=>'var_sumstat',
+            'catgry'=>'var_catgry',
+            'txt'=>'var_txt',
+            'codinstr'=>'var_codeinstr',
+            'concept'=>'var_concept',
+            'var_format_type'=>'var_format',
+            'var_format_schema'=>'var_format_schema',
+            'notes'=>'var_notes'
+        );
+
+        //define repeatable fields
+        $complex_fields=array(
+            "sumstat"=>array(
+                'type'=>'array'
+            ),
+            'concept'=>array(
+                'type'=>'array'
+            ),
+            'catgry'=>array(
+                'type'=>'array'
+            )
+        );
+
+        $output=array();
+
+        foreach($variable as $key=>$value){
+            //complex types e.g. repeatable array types
+			if(array_key_exists($key,$complex_fields)){ 
+				$output[$mappings[$key]]=$value;
+			}
+			else{
+                //non-complex types
+                if(array_key_exists($key,$mappings)){
+                    //value is not in array format
+                    if(!is_array($value)){
+                        $output[$mappings[$key]]=$value;
+                    }
+                    else { //simple element
+                        $output[$mappings[$key]]=implode(" ",$value);
+                    }
+                }
+                else{//element mapping not found
+                    $output[$key]=$value;
+                }    
+			}
+		}
+
+        return $output;
+    }
+
+}

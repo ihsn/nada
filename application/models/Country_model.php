@@ -250,6 +250,12 @@ class Country_model extends CI_Model {
 	}
 	
 
+	//remove countries by survey SID
+	function delete_by_sid($sid)
+	{
+		$this->db->where('sid',$sid);
+		$this->db->delete('survey_countries');
+	}
 
 	
 	//return a list of study related countries that are not using an ISO code
@@ -276,5 +282,36 @@ class Country_model extends CI_Model {
 		$this->db->where('cid',0);
 		$this->db->update('survey_countries',$options);
 	}
+	
+	
+	/**
+	*
+	* Return country id by country name
+	**/
+	function find_country_by_name($name)
+	{
+		$this->db->select('countryid');
+		$this->db->where('name',$name);
+		$country=$this->db->get('countries')->row_array();
+		
+		if ($country)
+		{
+			return $country['countryid'];
+		}
+		
+		//search country aliases for the country name
+		$this->db->select('countryid');
+		$this->db->where('alias',$name);
+		$country=$this->db->get('country_aliases')->row_array();
+		
+		if ($country)
+		{
+			return $country['countryid'];
+		}
+		
+		return false;
+	}
+	
+	
 	
 }

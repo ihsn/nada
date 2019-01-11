@@ -15,6 +15,7 @@ $css='.js .flash {display: none;}
 $this->template->add_css($css, $type = 'embed');
 $this->template->add_js($script, $type = 'embed');
 ?>
+<?php /*?>
 <table width="100%" class="catalog-page-title" cellpadding="0" cellspacing="0" border="0">
 <tr valign="baseline">
 <td><h2><?php echo $this->page_title;?></h2></td>
@@ -26,6 +27,7 @@ $this->template->add_js($script, $type = 'embed');
 </td>
 </tr>
 </table>
+<?php */?>
 
 <form name="search_form" id="search_form" method="get" autocomplete = "off">
 <input type="hidden" id="view" name="view" value="<?php echo (isset($this->view) && $this->view=='v') ? 'v': 's'; ?>"/>

@@ -134,29 +134,24 @@ class Related_study_model extends CI_Model {
 	public function delete_relationship($sid_1,$sid_2,$relation_id=null)
 	{
 
-    if (!$relation_id)
-    {
-      $this->db->where('sid_1',$sid_1);
-      $this->db->where('sid_2',$sid_2);
-      $this->db->delete('survey_relationships');
+		if (!$relation_id){
+			$this->db->where('sid_1',$sid_1);
+			$this->db->where('sid_2',$sid_2);
+			$this->db->delete('survey_relationships');
 
-      //delete the reverse of the relationship
-      $this->db->where('sid_1',$sid_2);
-      $this->db->where('sid_2',$sid_1);
-      $this->db->delete('survey_relationships');
-
-      return;
-    }
-
+			//delete the reverse of the relationship
+			$this->db->where('sid_1',$sid_2);
+			$this->db->where('sid_2',$sid_1);
+			$this->db->delete('survey_relationships');
+			return;
+		}
 
 		//get pairs
 		$rel_pairs=$this->get_relationship_pairs($relation_id);
 
 		//delete both relationship entries
-		foreach($rel_pairs as $key=>$relation)
-		{
-			if($key==$relation_id)
-			{
+		foreach($rel_pairs as $key=>$relation){
+			if($key==$relation_id){
 				$p_sid=$sid_1;
 				$c_sid=$sid_2;
 
@@ -165,8 +160,7 @@ class Related_study_model extends CI_Model {
 				$this->db->where('relationship_id',$relation['id']);
 				$this->db->delete('survey_relationships');
 			}
-			else
-			{
+			else{
 				$p_sid=$sid_2;
 				$c_sid=$sid_1;
 
@@ -179,27 +173,37 @@ class Related_study_model extends CI_Model {
 
 	}
 
-  //return a list of related survey IDs
-  public function get_related_studies_list($sid)
+  	//return a list of related survey IDs
+	public function get_related_studies_id_list($sid)
 	{
 		$this->db->select('surveys.id');
 		$this->db->where('sid_1',$sid);
 		$this->db->join('surveys','surveys.id=survey_relationships.sid_2','INNER');
 		$result=$this->db->get('survey_relationships')->result_array();
 
-    $list=array();
-    foreach($result as $row)
-    {
-      $list[]=$row['id'];
-    }
+		$list=array();
 
-    return $list;
+		foreach($result as $row){
+			$list[]=$row['id'];
+		}
+
+		return $list;
+	}
+
+	//return a list of related surveys
+	public function get_related_studies_list($sid)
+	{
+		$this->db->select('surveys.id,surveys.title,surveys.nation,surveys.year_start, surveys.year_end');
+		$this->db->where('sid_1',$sid);
+		$this->db->join('surveys','surveys.id=survey_relationships.sid_2','INNER');
+		$result=$this->db->get('survey_relationships')->result_array();
+		return $result;
 	}
 
 
 	public function get_relationships($sid)
 	{
-		$this->db->select('surveys.id as sid,surveys.titl, surveys.nation,surveys.data_coll_start, survey_relationships.*');
+		$this->db->select('surveys.id as sid,surveys.title, surveys.nation,surveys.year_start, survey_relationships.*');
 		$this->db->where('sid_1',$sid);
 		$this->db->join('surveys','surveys.id=survey_relationships.sid_2','INNER');
 		return $this->db->get('survey_relationships')->result_array();

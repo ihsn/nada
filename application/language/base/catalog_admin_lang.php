@@ -1,6 +1,6 @@
 <?php
 $lang['catalog_maintenance'] = "Manage Studies";
-$lang['add_study_to_collection'] = "Add study to collection:";
+$lang['add_study_to_collection'] = "Add study to collection";
 $lang['upload_ddi_hover'] = "Upload a DDI file";
 $lang['import_ddi'] = "Bulk import DDI";
 $lang['import_ddi_hover'] = "Import multiple DDI files";

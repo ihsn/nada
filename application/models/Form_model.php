@@ -99,5 +99,42 @@ class Form_model extends CI_Model {
         $result= $this->db->count_all_results();
 		return $result;
 	}
+
+
+	function data_access_types_list()
+	{
+		$types=$this->get_all();
+		$output=array();
+		foreach($types as $type)
+		{
+			$output[]=array(
+				'id'=>$type['formid'],
+				'title'=>$type['fname']
+			);
+		}
+		return $output;
+	}
+
+
+	/** 
+	 * 
+	 * 
+	 * Get Data Access ID by name
+	 * 
+	 * 
+	*/
+	function get_formid_by_name($name)
+	{
+		$this->db->select('formid');
+		$this->db->from('forms');
+		$this->db->where('model', $name); 
+		$query = $this->db->get()->row_array();		
+		
+		if($query){
+			return $query['formid'];
+		}
+
+		return false;
+	}
+
 }
-?>

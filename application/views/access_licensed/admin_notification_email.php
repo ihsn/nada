@@ -11,12 +11,12 @@
 		<h3 style="margin:0px;"><a href="<?php echo site_url('admin/licensed_requests/edit/'.$id);?>"><?php echo $request_title;?></a></h3>
 		<?php if (count($surveys)==1):?>
 		<?php $survey=reset($surveys);?>
-			<div><?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?> <?php echo isset($survey['data_coll_end']) ? ' - '.$survey['data_coll_end'] : '';?></div>
+			<div><?php echo $survey['nation'];?>, <?php echo $survey['year_start'];?> <?php echo isset($survey['year_end']) ? ' - '.$survey['year_end'] : '';?></div>
 		<?php else:?>
 		<ul>
 			<?php foreach($surveys as $survey):?>
-				<li><b><?php echo $survey['titl'];?></b><br/>
-					<?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?> <?php echo isset($survey['data_coll_end']) ? ' - '.$survey['data_coll_end'] : '';?>
+				<li><b><?php echo $survey['title'];?></b><br/>
+					<?php echo $survey['nation'];?>, <?php echo $survey['year_start'];?> <?php echo isset($survey['year_end']) ? ' - '.$survey['year_end'] : '';?>
 					<br/><br/>
 				</li>
 			<?php endforeach;?>

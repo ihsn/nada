@@ -37,7 +37,7 @@ class RDF_Parser{
 			);
 	
     //constructor
-	function RDF_Parser()
+	function __construct()
 	{
 		$CI =& get_instance();
 		$CI->load->helper('xslt_helper');

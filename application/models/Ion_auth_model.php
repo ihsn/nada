@@ -246,7 +246,6 @@ class Ion_auth_model extends CI_Model
 	 * @return bool
 	 * @author Mathew
 	 *
-	 * @modified: Mehmood Asghar (April 2014)
 	 **/
 	public function change_password($identity, $old, $new)
 	{
@@ -611,7 +610,6 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * @return bool
 	 * @author Mathew
-	 * @modified	Mehmood Asghar
 	 **/
 	public function login($identity, $password, $remember=FALSE)
 	{
@@ -761,7 +759,6 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * @return 		object
 	 * @author 		Phil Sturgeon
-	 * @modified	Mehmood Asghar
 	 **/
 	public function get_user($id = false)
 	{
@@ -781,6 +778,10 @@ class Ion_auth_model extends CI_Model
 		$this->db->where($this->tables['users'].'.id', $id);
 		$user=$this->db->get($this->tables['users'].' users')->row();
 		
+		if(!$user){
+			return false;
+		}
+
 		//get user groups
 		$user->groups=$this->get_groups_by_user($id);		
 		return $user;
@@ -804,7 +805,6 @@ class Ion_auth_model extends CI_Model
 	 * get_user_by_username
 	 *
 	 * @return object
-	 * @author Mehmood Asghar
 	 **/
 	public function get_user_by_username($username)
 	{
@@ -1836,4 +1836,100 @@ class Ion_auth_model extends CI_Model
 		$qres = $this->db->get($this->tables['login_attempts']);
 		return $qres->num_rows();
 	}
+
+
+	/**
+	 * 
+	 * 
+	 * Validate resource
+	 * @options - array of resource fields
+	 * @is_new - boolean - if set to true, requires resource_id field to be set
+	 * 
+	 **/
+	function validate_login($email,$password)
+	{		
+		$options=array(
+			'email'=>$email,
+			'password'=>$password
+		);
+
+		$this->load->library("form_validation");
+		$this->form_validation->reset_validation();
+		$this->form_validation->set_data($options);
+	
+		$this->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]');
+		$this->form_validation->set_rules('password', t('password'), 'required|max_length[100]');
+		
+		if ($this->form_validation->run() == TRUE){
+			return TRUE;
+		}
+		
+		//failed
+		$errors=$this->form_validation->error_array();
+		$error_str=$this->form_validation->error_array_to_string($errors);
+		throw new ValidationException("VALIDATION_ERROR: ".$error_str, $errors);
+	}
+
+	/**
+	 * 
+	 * 
+	 * Return user's API keys
+	 * 
+	 * 
+	 */
+	function get_api_keys($user_id)
+	{
+		$this->db->where("user_id",$user_id);
+		$result=$this->db->get("api_keys")->result_array();
+
+		if(!$result){
+			return false;
+		}
+
+		$output=array();
+		foreach($result as $row){
+			$output[]=$row['key'];
+		}
+
+		return $output;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Create a new API token for user
+	 * 
+	 * @user id - User ID
+	 * @token (optional) If null, generate a random token
+	 */
+	function set_api_key($user_id,$key=NULL)
+	{
+		if(!$key || strlen(trim($key))<10 ){
+			$key=md5(uniqid(rand(),true));
+		}
+
+		$options=array(
+			'user_id'=>$user_id,
+			'key'=>$key,
+			'date_created'=>date("U"),
+			'level'=>0,
+			'ignore_limits'=>1
+		);
+
+		$this->db->insert("api_keys",$options);
+	}
+
+	//remove api key
+	function delete_api_key($api_key)
+	{
+		$options=array(
+			'api_key'=>$api_key
+		);
+
+		$this->db->where("api_key",$api_key);
+		$this->db->delete("api_keys");
+	}
+
+
 }

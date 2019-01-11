@@ -25,6 +25,4 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 <br style="clear:both;"/>
 </div>
 <?php echo $html;?>
-<?php $this->load->view('tracker/tracker');?>
-<?php //exit;?>
 <?php return;?>

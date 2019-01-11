@@ -53,19 +53,19 @@
 	<tr>
     	<td style="width:100px;"><?php echo t('year');?></td>
         <td><?php 
-				if ($data_coll_start==$data_coll_end)
+				if ($year_start==$year_end)
 				{
-					echo $data_coll_start;
+					echo $year_start;
 				}
 				else
 				{
-					if ($data_coll_start!='')
+					if ($year_start!='')
 					{
-						$dates[]=$data_coll_start;
+						$dates[]=$year_start;
 					}
-					if ($data_coll_end!='')
+					if ($year_end!='')
 					{
-						$dates[]=$data_coll_end;
+						$dates[]=$year_end;
 					}						
 					echo implode(" - ", $dates);
 				}?>
@@ -80,12 +80,12 @@
 	<tr valign="top">
     	<td><?php echo t('producers');?></td>
         <td>
-        	<?php if (isset($authenty)):?>
-				<?php $authenty_arr=json_decode($authenty);?>
-                <?php if (is_array($authenty_arr)):?>
-                    <?php echo implode("<BR>",$authenty_arr);?>
+        	<?php if (isset($authoring_entity)):?>
+				<?php $authoring_entity_arr=json_decode($authoring_entity);?>
+                <?php if (is_array($authoring_entity_arr)):?>
+                    <?php echo implode("<BR>",$authoring_entity_arr);?>
                 <?php else:?>
-                    <?php echo $authenty;?>
+                    <?php echo $authoring_entity;?>
                 <?php endif;?>
             <?php endif;?>    
         </td>

@@ -27,31 +27,43 @@ if ($this->config->item("proxy_ssl")===TRUE)
 	$site_url=str_replace("http:","https:",$site_url);
 }
 
+$user=$this->session->userdata('username');
 ?>
+<div class="row">
+    <?php if ($user!=''): ?>
+        <div class="col-12 d-flex justify-content-end mt-2 mb-2 wb-login-link login-bar">
+            <div class="dropdown ml-auto">
+                <a class="dropdown-toggle small" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-user-circle-o fa-lg"></i><?php echo $user; ?>
+                </a>
 
-<div id="user-bar">
-<?php $user=$this->session->userdata('username'); ?>
-<?php if ($user!=''):?>
-    <div class="user-box">
-        <ul>                
-            <li class="username"><?php echo $user; ?></li>
-            <?php //if ($this->session->userdata('group_id')==1):?>
-            <?php if ($this->ion_auth->is_admin()): ?>
-	            <li><a href="<?php echo $site_url; ?>/admin"><?php echo t('site_administration');?></a></li>
-            <?php endif;?>
-            <li class="profile"><a href="<?php echo site_url(); ?>/auth/profile"><?php echo t('profile');?></a></li>
-            <li class="password"><a href="<?php echo site_url(); ?>/auth/change_password"><?php echo t('password');?></a></li>                                    
-            <li><a href="<?php echo site_url(); ?>/auth/logout"><?php echo t('logout');?></a></li>
-            <?php echo $lang_ul;?>
-        </ul>        
-    </div>
-<?php else:?>
-<div class="user-box">
-    <a href="<?php echo site_url(); ?>/auth/login"><?php echo t('login');?></a> 
-    <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'):?>	
-     | <a class="register" href="<?php echo site_url(); ?>/auth/register"><?php echo t('register');?></a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                    <?php if ($this->ion_auth->is_admin()): ?>
+                        <a class="dropdown-item small" href="<?php echo $site_url; ?>/admin"><?php echo t('site_administration');?></a>
+                    <?php endif;?>
+                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/profile"><?php echo t('profile');?></a>
+                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/change_password"><?php echo t('password');?></a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/logout"><?php echo t('logout');?></a>
+                </div>
+            </div>
+
+        </div>
+    <?php else: ?>
+        <div class="col-12 d-flex justify-content-end mt-2 mb-2 wb-login-link login-bar">
+            <div class="dropdown ml-auto">
+                <a class="dropdown-toggle small" href="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('login');?></a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/login"><?php echo t('login');?></a>
+                </div>
+                <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'): ?>
+                    <a class="dropdown-toggle small" href="<?php echo site_url(); ?>/auth/register" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('register');?></a>
+                <?php endif; ?>
+                <?php echo $lang_ul; ?>
+            </div>
+
+        </div>
+
     <?php endif;?>
-    <?php echo $lang_ul;?>
 </div>
-<?php endif;?>
-</div>
+<!-- /row -->

@@ -5,10 +5,6 @@
  *
  * Create breadcrumbs based on the URL
  *
- * @category	Libraries
- * @author		Mehmood Asghar
- * @link		
- * @license		GPL
  */
 
 class Breadcrumb
@@ -286,7 +282,6 @@ class Breadcrumb
 							$request_title=$this->get_lic_request_title($segments[3]);
 							
 							$breadcrumbs['catalog']=$repository_title;
-							//$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
 							$breadcrumbs['auth/profile']=t('Licensed Data Requests');
 							$breadcrumbs[]=$request_title;
 						}
@@ -298,7 +293,6 @@ class Breadcrumb
 							
 							$breadcrumbs['catalog']=$repository_title;
 							$breadcrumbs['auth/profile']=t('Licensed Data Requests');
-							//$breadcrumbs['catalog/'.$surveyid]=$this->get_study_info($surveyid);
 							$breadcrumbs[]=t('Request confirmation');
 						}
 					}
@@ -659,15 +653,15 @@ class Breadcrumb
 	**/
 	function get_study_info($id)
 	{		
-		$this->ci->load->model('catalog_model');
-		$survey=$this->ci->catalog_model->get_survey($id);
+		$this->ci->load->model('Survey_model');
+		$survey=$this->ci->Survey_model->get_row($id);
 		
 		if(!$survey)
 		{
 			return $id;
 		}
 		
-		return strtoupper($survey['surveyid']);
+		return strtoupper($survey['idno']);
 	}
 	
 	
@@ -683,7 +677,7 @@ class Breadcrumb
 		
 		if($survey)
 		{
-			return strtoupper($survey['titl']);
+			return strtoupper($survey['title']);
 		}
 		
 		return FALSE;

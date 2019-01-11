@@ -19,7 +19,7 @@
 
 <div class="related-citations">
     <?php if (isset($survey)):?>
-		<h1><?php echo $survey['nation'] . ' - ' . $survey['titl']; ?></h1>
+		<h1><?php echo $survey['nation'] . ' - ' . $survey['title']; ?></h1>
     <?php endif;?>
 
 	<h2 style="margin-bottom:0px;"><?php echo t('citations_of_publications');?></h2>

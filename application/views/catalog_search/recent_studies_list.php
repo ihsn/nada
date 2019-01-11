@@ -1,38 +1,36 @@
-<div class="recent-studies">
+<h3><?php echo t('latest_additions');?></h3>
 <?php if (isset($rows) && count($rows)>0): ?>
-<ul class="bl">
-	<?php 
-		$total_rows=count($rows);
-		$counter=0;
-	?>
-	<?php foreach($rows as $row): ?>
-    <?php $counter++; ?>
-    <li class="item">
-            <div class="title">
-                <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
-                        <?php echo $row['nation']. ' - '. $row['titl'];?>
-                </a>
+
+    <?php
+    $total_rows=count($rows);
+    $counter=0;
+    foreach($rows as $row):
+    $counter++; ?>
+
+        <div class="survey-row">
+            <div class="row">
+                <div class="col-12 col-lg-12">
+                    <h5>
+                        <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
+                            <?php echo $row['nation']. ' - '. $row['title'];?>
+                        </a>
+                    </h5>
+
+                    <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
+                        <div class="sub-title"><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
+                    <?php endif;?>
+
+                    <div class="survey-stats"><span><?php echo date("M d, Y",$row['created']);?></span>
+                    </div>
+                </div>
             </div>
-            <!--
-            <div class="sub-title"><?php echo t('by');?> 
-                <?php $authenty=json_decode($row['authenty']);?>
-                <?php if (is_array($authenty)):?>
-                    <?php echo implode(", ",$authenty);?>
-                <?php else:?>
-                    <?php echo $row['authenty'];?>
-                <?php endif;?>
-            </div>
-            -->
-            <div class="created"><?php echo date("M d, Y",$row['created']);?></div>
-            
-            <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                <div class="sub-title"><?php echo t('catalog_owned_by')?>: <?php echo $row['repo_title'];?></div>
-            <?php endif;?>
-	</li>
-	<?php endforeach;?>
-</ul>    
-<div class="align-right view-more"><a href="<?php echo site_url();?>/catalog/history">View more...</a></div>
+        </div>
+    <?php endforeach;?>
+    <p>
+        <a href="<?php echo site_url();?>/catalog/history" class="btn btn-link btn-sm float-left" >View more »</a>
+    </p>
 <?php else: ?>
-	<div><?php echo t('no_records_found');?></div>
+    <div>
+        <?php echo t('no_records_found');?>
+    </div>
 <?php endif; ?>
-</div>

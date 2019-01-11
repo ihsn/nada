@@ -12,20 +12,11 @@
     <tr  class="survey-row <?php if($counter==$total_rows) { echo "last";}?> ">
     <td>
             <div class="title">
-                <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >
-                        <?php echo $row['nation']. ' - '. $row['titl'];?>
+                <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
+                        <?php echo $row['nation']. ' - '. $row['title'];?>
                 </a>
             </div>
-            <!--
-            <div class="sub-title"><?php echo t('by');?> 
-                <?php $authenty=json_decode($row['authenty']);?>
-                <?php if (is_array($authenty)):?>
-                    <?php echo implode(", ",$authenty);?>
-                <?php else:?>
-                    <?php echo $row['authenty'];?>
-                <?php endif;?>
-            </div>
-            -->
+            
             <div class="created"><?php echo date("M d, Y",$row['created']);?></div>
             
             <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
@@ -34,7 +25,7 @@
 	</td>
     <td>	
        		<?php if ($row['form_model']!=''):?>
-	            <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['titl']; ?>" >        
+	            <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >        
 		        <?php if($row['form_model']=='direct'): ?>
                     <span title="<?php echo t('link_data_direct_hover');?>"><img src="images/form_direct.gif" /></span>                    
                 <?php elseif($row['form_model']=='public'): ?>                    

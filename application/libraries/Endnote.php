@@ -6,12 +6,9 @@
  * 
  *
  *
- * @package		NADA 3.0
  * @subpackage	Libraries
  * @category	EndNote import/export
  * @format		Refer/BibIX
- * @author		Mehmood Asghar
- * @link		-
  *
  * @resouces
  * Refer/BibIX file format	http://the-database.org/bibex.htm, EndNote 9 Manual PDF [pages around 173]

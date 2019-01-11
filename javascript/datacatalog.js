@@ -89,7 +89,7 @@ function advanced_search()
 
 
 	block_search_form(true);
-	$("#surveys").html('<img src="images/loading.gif" border="0"/> ' + i18n.searching );
+	$("#surveys").html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>' + i18n.searching );
 	
 	$.ajax({
         type: "GET",
@@ -121,7 +121,7 @@ function bindBehaviors(e)
 		var result=$(this).parent().find(".vsearch-result");
 		if (result.html()!='' ){
 			result.empty().hide();
-			result.parent().find(".open-close").prop("src",'images/next.gif');
+			//result.parent().find(".open-close").prop("src",'images/next.gif');
 		}
 		else{
 			result.show().html(i18n.loading).load($(this).prop("href"), function(data){
@@ -137,7 +137,7 @@ function bindBehaviors(e)
 				//attach compare handlers
 				variable_compare_handlers();
 			});
-			result.parent().find(".open-close").prop("src",'images/arrow_down.gif');
+			//result.parent().find(".open-close").prop("src",'images/arrow_down.gif');
 		}
 		compare_var_summary();
 		return false;
@@ -147,7 +147,7 @@ function bindBehaviors(e)
 	variable_compare_handlers();
 	
 	//on page size change
-	$(".switch-page-size .button, .switch-page-size .btn").unbind('click').click(function(event) {
+	$(".switch-page-size .button, .switch-page-size .nada-btn").unbind('click').click(function(event) {
 		$("#ps").val($(this).html());
 		$("#page").val(1);
 		createCookie('ps',$("#ps").val(),1);
@@ -249,7 +249,7 @@ function variable_compare_handlers(){
 			sel_items=sel_items.split(",");
 		}
 		if(sel_items.length>1){
-			window.open(CI.base_url+'/catalog/compare','_blank');
+			window.open(CI.base_url+'/catalog/compare','compare');
 		}
 		else{
 			alert(i18n.js_compare_variable_select_atleast_2);return false;
@@ -505,7 +505,7 @@ $(window).bind( 'hashchange', function(e) {
 	}
 	
 	//sort
-	var sort_fields=["titl","nation","proddate","popularity"];
+	var sort_fields=["title","nation","year","popularity"];
 	var sort_order=["asc","desc"];
 	
 	if(typeof fragments.sort_by!= 'undefined' && $.inArray(fragments.sort_by,sort_fields)> -1 ){
@@ -541,25 +541,66 @@ $(document).ready(function()  {
 	window.simple_dialog=function simple_dialog(dialog_id,title,data_url)
 	{
 		if($("#"+dialog_id).length ==0) {
-			$("body").append('<div id="'+dialog_id+'" title="'+title+'">loading...</div>');
+            /********* for jQuery ui modal *******/
 
-			var dialog=$( "#"+dialog_id ).dialog({
-			  height: 520,
-			  position:"center",
-			  width:730,
-			  modal: true,
-			  autoOpen: false
-			});//end-dialog
+            /* $("body").append('<div id="'+dialog_id+'" title="'+title+'">loading...</div>'); // for jQuery ui modal
+
+            var dialog=$( "#"+dialog_id ).dialog({
+              height: 520,
+              position:"center",
+              width:730,
+              modal: true,
+              autoOpen: false
+            });//end-dialog*/
+
+            /********* for Bootstrap modal *********/
+
+            $("body").append('<div class="modal fade" id="'+dialog_id+'" tabindex="-1" role="dialog"  aria-hidden="true">\
+                <div class="modal-dialog  modal-lg catalog-modal-dialog" role="document">\
+                <div class="modal-content">\
+                <div class="modal-header">\
+                <h5 class="modal-title" id="'+dialog_id+'Label">'+title+'</h5>\
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">\
+						<span aria-hidden="true">&times;</span>\
+					</button>\
+					</div>\
+					<div class="modal-body">\
+				</div>\
+					<div class="modal-footer">\
+						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>\
+					</div>\
+					</div>\
+					</div>\
+					</div>');
+
+
+
+
 		}
 		else
-		{	
-			dialog=	$("#"+dialog_id);
+		{
+            /********* for jQuery ui modal *******/
+			/*dialog=	$("#"+dialog_id);
 			dialog.html("loading...");
-			dialog.dialog({ title: title});			
+			dialog.dialog({ title: title});*/
+
+            /********* for Bootstrap modal *********/
+            $('#'+dialog_id+' h5.modal-title').html(title);
+            $('#'+dialog_id+' div.modal-body').html("loading...");
+
+
+
+
 		}
-		
-		dialog.dialog( "open" );
-		$('#'+dialog_id).load(data_url+'?ajax=1');//load content
+        // for jQuery ui modal
+		/*
+		dialog.dialog( "open" ); // for jQuery ui modal
+        //$('#'+dialog_id).load(data_url+'?ajax=1');//load content
+        */
+
+        // for Bootstrap modal
+		$('#'+dialog_id).modal('show');// for Bootstrap modal
+        $('#'+dialog_id+' div.modal-body').load(data_url+'?ajax=1');//load content
 	}//end function
 	
 	
@@ -699,7 +740,7 @@ $(document).ready(function()  {
 	
 	
 	//sort links
-	$(document.body).on("click",".catalog-sort-links a", function(){ 	
+	$(document.body).on("click",".catalog-sort-links a", function(){
 		$("#sort_by").val($(this).attr("data-sort_by"));
 		$("#sort_order").val($(this).attr("data-sort_order"));
 		hash_changed();	return false;

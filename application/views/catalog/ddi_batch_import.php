@@ -145,7 +145,7 @@ var batch_import = {
 	process_queue: function(){
 		if (this.queue_idx<this.queue.length) {			
 			
-			html='<img src="images/loading.gif" align="absbottom"> Importing '+ (this.queue_idx+1) +' of '+this.queue.length+'... <b>['+this.queue[this.queue_idx].name+']</b>';
+			html='<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> Importing '+ (this.queue_idx+1) +' of '+this.queue.length+'... <b>['+this.queue[this.queue_idx].name+']</b>';
 			html+=' <a href="#" onclick="batch_import.abort();return false;">' +i18n.cancel_import_process+'</a>';
 			$("#batch-import-box").show();
 			$("#batch-import-processing").html(html);

@@ -266,7 +266,7 @@ class Catalog_search{
 
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report,surveys.data_coll_start,surveys.data_coll_end';
+		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report,surveys.year_start,surveys.year_end';
 		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
 		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
@@ -289,7 +289,7 @@ class Catalog_search{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 			
-			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, surveys.created,surveys.data_coll_start,surveys.data_coll_end,surveys.changed,surveys.total_views,surveys.total_downloads');
+			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, surveys.created,surveys.year_start,surveys.year_end,surveys.changed,surveys.total_views,surveys.total_downloads');
 			
 			if (trim($this->study_keywords)!=='')
 			{

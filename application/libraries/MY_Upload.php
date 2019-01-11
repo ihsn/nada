@@ -5,7 +5,6 @@
  * @package		CodeIgniter
  * @subpackage	Libraries
  * @category	Upload
- * @author		Mehmood Asghar
  *
  */
 class MY_Upload extends CI_Upload {
@@ -25,6 +24,7 @@ class MY_Upload extends CI_Upload {
 	 */
 	public function set_filename($path, $filename)
 	{
+		
 		if ($this->encrypt_name == TRUE)
 		{
 			mt_srand();
@@ -32,6 +32,9 @@ class MY_Upload extends CI_Upload {
 			$filename = md5(uniqid(mt_rand())).$this->file_ext."_";
 		}
 
+		return parent::set_filename($path,$filename);
+		
+		/*
 		if ( ! file_exists($path.$filename))
 		{
 			return $filename;
@@ -57,7 +60,8 @@ class MY_Upload extends CI_Upload {
 		else
 		{
 			return $new_filename;
-		}
+		}*/
+
 	}
 
   
@@ -105,8 +109,6 @@ class MY_Upload extends CI_Upload {
 		}
 
 		$mime = $this->mimes_types($ext);
-
-		var_dump($mime);exit;
 		
 		if (is_array($mime))
 		{

@@ -135,7 +135,8 @@ function get_total_rows()
 		// Render the "First" link
 		if  ($this->cur_page > ($this->num_links + 1))
 		{
-			$output .= $this->first_tag_open.'<a href="'.$this->base_url.'">'.$this->first_link.'</a>'.$this->first_tag_close;
+			$output .= $this->first_tag_open.'<a class="page-link" href="'.$this->base_url.'">'.$this->first_link.'</a>'
+                .$this->first_tag_close;
 		}
 
 		// Render the "previous" link
@@ -143,7 +144,8 @@ function get_total_rows()
 		{
 			$i = $uri_page_number - $this->per_page;
 			if ($i == 0) $i = '';
-			$output .= $this->prev_tag_open.'<a href="'.$this->base_url.$i.'">'.$this->prev_link.'</a>'.$this->prev_tag_close;
+			$output .= $this->prev_tag_open.'<a class="page-link" href="'.$this->base_url.$i.'">'.$this->prev_link.'</a>'
+                .$this->prev_tag_close;
 		}
 
 		// Write the digit links
@@ -155,12 +157,13 @@ function get_total_rows()
 			{
 				if ($this->cur_page == $loop)
 				{
-					$output .= $this->cur_tag_open.$loop.$this->cur_tag_close; // Current page
+					$output .= '<a class="page-link">'.$this->cur_tag_open.$loop.$this->cur_tag_close.'</span>'; // Current page
 				}
 				else
 				{
 					$n = ($i == 0) ? '' : $i;
-					$output .= $this->num_tag_open.'<a href="'.$this->base_url.$n.'">'.$loop.'</a>'.$this->num_tag_close;
+					$output .= $this->num_tag_open.'<a class="page-link" href="'.$this->base_url.$n.'">'.$loop.'</a>'
+                        .$this->num_tag_close;
 				}
 			}
 		}
@@ -168,14 +171,15 @@ function get_total_rows()
 		// Render the "next" link
 		if ($this->cur_page < $num_pages)
 		{
-			$output .= $this->next_tag_open.'<a href="'.$this->base_url.($this->cur_page * $this->per_page).'">'.$this->next_link.'</a>'.$this->next_tag_close;
+			$output .= $this->next_tag_open.'<a class="page-link" href="'.$this->base_url.($this->cur_page * $this->per_page).'">'.$this->next_link.'</a>'.$this->next_tag_close;
 		}
 
 		// Render the "Last" link
 		if (($this->cur_page + $this->num_links) < $num_pages)
 		{
 			$i = (($num_pages * $this->per_page) - $this->per_page);
-			$output .= $this->last_tag_open.'<a href="'.$this->base_url.$i.'">'.$this->last_link.'</a>'.$this->last_tag_close;
+			$output .= $this->last_tag_open.'<a class="page-link" href="'.$this->base_url.$i.'">'.$this->last_link.'</a>'
+                .$this->last_tag_close;
 		}
 
 		// Kill double slashes.  Note: Sometimes we can end up with a double slash

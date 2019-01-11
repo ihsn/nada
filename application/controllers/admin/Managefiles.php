@@ -9,7 +9,7 @@ class Managefiles extends MY_Controller {
 	
     function __construct()
     {
-        parent::__construct();
+		parent::__construct();		
         $this->template->set_template('admin');
 		$this->load->helper('file');		
 		$this->load->model("managefiles_model");

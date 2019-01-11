@@ -49,9 +49,9 @@ class Catalog_search{
         return $this->search_obj->vsearch($limit, $offset);
     }
 
-    function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
+    function v_quick_search($sid=NULL,$limit=50,$offset=0)
     {
-        return $this->search_obj->v_quick_search($surveyid,$limit,$offset);
+        return $this->search_obj->v_quick_search($sid,$limit,$offset);
     }
 
 }

@@ -1,7 +1,3 @@
-<style>
-h3{margin:0px;}
-</style>
-
 <?php if (isset($rows)): ?>
 <?php if ($rows): ?>
 
@@ -12,56 +8,54 @@ h3{margin:0px;}
 	//total pages
 	$pages=ceil($found/$limit);	
 ?>
+        <div class="nada-pagination nada-variable-pagination">
+            <div class="row mt-3 d-flex align-items-lg-center">
 
-<div class="pagination">
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr valign="middle">
-	<td>
-         <?php echo sprintf(t('showing_variables'),
-							(($limit*$current_page)-$limit+1),
-							($limit*($current_page-1))+ count($rows),
-							$found);?>
-     </td>
-    <td align="right"></td>
-</tr>
-</table>
-</div>
+                <div class="col-12 col-md-12 col-lg-12 text-center text-md-left mb-2 mb-md-0">
+                    <small>
+                        <?php echo sprintf(t('showing_variables'),
+                            (($limit*$current_page)-$limit+1),
+                            ($limit*($current_page-1))+ count($rows),
+                            $found);?>
+                    </small>
+                </div>
+            </div>
+        </div>
 
-<?php $tr_class=""; ?>
-	<table class="grid-table" cellpadding="0" cellspacing="0" width="100%">
-        	<tr class="header">
-            <td><?php echo t('name');?></td>
-            <td><?php echo t('label');?></td>
-        </tr>	
+        <table class="table table-striped table-hover grid-table">
+            <thead>
 
-	<?php foreach($rows as $row):?>
-  		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
-    	<tr  class="<?php echo $tr_class; ?>" valign="top">
-            <td><?php echo $row['name'];?></td>
-            <td>
-				<h3 class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></h3>
-				<div style="color:#666666"><?php echo $row['nation']. ' - '.$row['titl']; ?></div>
-            </td>
-        </tr>
-    <?php endforeach;?>
-	</table>
+            <th><?php echo t('name');?></th>
+            <th><?php echo t('label');?></th>
+            </thead>
+            <tbody>
+                <?php foreach($rows as $row):?>
+                    <tr>
+                        <td><?php echo $row['name'];?></td>
+                        <td>
+                            <h4 ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></h4>
+                            <div><?php echo $row['nation']. ' - '.$row['title']; ?></div>
+                        </td>
+                    </tr>
+                <?php endforeach;?>
 
-<div class="pagination">
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-<tr valign="middle">
-	<td>
-         <?php echo sprintf(t('showing_variables'),
-							(($limit*$current_page)-$limit+1),
-							($limit*($current_page-1))+ count($rows),
-							$found);?>
-     </td>
-    <td align="right"></td>
-</tr>
-</table>
-</div>
+            </tbody>
+        </table>
+        <div class="nada-pagination">
+            <div class="row mt-3 d-flex align-items-lg-center">
+
+                <div class="col-12 col-md-12 col-lg-12 text-center text-md-left mb-2 mb-md-0">
+                    <small>
+                        <?php echo sprintf(t('showing_variables'),
+                            (($limit*$current_page)-$limit+1),
+                            ($limit*($current_page-1))+ count($rows),
+                            $found);?>
+                    </small>
+                </div>
+            </div>
+        </div>
 
 <?php else: ?>
 	<?php echo t('no_records_found');?>
 <?php endif; ?>
 <?php endif; ?>
-<?php $this->load->view('tracker/tracker');?>

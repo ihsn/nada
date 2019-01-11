@@ -10,6 +10,7 @@ class Access_licensed extends MY_Controller {
 			
 		$this->load->model('Licensed_model');
 		$this->load->model('Datafiles_model');
+		$this->load->model('Dataset_model');
 		$this->load->model('Catalog_model');
 		$this->template->set_template('default');
 		$this->load->helper('admin_notifications');
@@ -37,16 +38,16 @@ class Access_licensed extends MY_Controller {
 	/**
      * Show the request form
      * 
-     * @param $survey_id
+     * @param $sid
      */
-	function index($survey_id=NULL)
+	function index($sid=NULL)
 	{
-		if ($survey_id==NULL)
+		if ($sid==NULL)
 		{
 			show_404();
 		}
 		
-		$this->request_form('study',$survey_id);
+		$this->request_form('study',$sid);
 	}
 	
 	
@@ -207,7 +208,7 @@ class Access_licensed extends MY_Controller {
 		$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
 		$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
 		$data['request']=$request;
-		$data['survey_folder']=$this->_get_survey_folder($sid);
+		$data['survey_folder']=$this->Dataset_model->get_storage_fullpath($sid);
 		$data['sid']=$sid;
 		$data['request_id']=$request_id;
 		
@@ -246,7 +247,7 @@ class Access_licensed extends MY_Controller {
 		$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
 		$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
 		$data['request']=$request;
-		$data['survey_folder']=$this->_get_survey_folder($sid);
+		$data['survey_folder']=$this->Dataset_model->get_storage_fullpath($sid);
 		$data['sid']=$sid;
 		$data['request_id']=$request_id;
 		
@@ -331,7 +332,8 @@ class Access_licensed extends MY_Controller {
 		$this->Licensed_model->update_download_stats($file_id,$request_id,$user->email);
 		
 		//survey folder path
-		$survey_folder=$this->_get_survey_folder($fileinfo['survey_id']);
+		$survey_folder=$this->Dataset_model->get_storage_fullpath($fileinfo['survey_id']);
+		
 		
 		//build licensed file path
 		$file_path=unix_path($survey_folder.'/'.$fileinfo['filename']);
@@ -352,32 +354,12 @@ class Access_licensed extends MY_Controller {
 	}
 
 
-	/**
-	* Returns the survey folder path
-	*
-	*/
-	function _get_survey_folder($surveyid)
-	{
-	
-		//build fixed survey folder path
-		$catalog_root=$this->config->item("catalog_root");
-		$survey_folder=$this->Catalog_model->get_survey_path($surveyid);
-
-		if($survey_folder===FALSE)
-		{
-			show_404();
-		}
-					
-		//survey folder path
-		$survey_folder=unix_path($catalog_root.'/'.$survey_folder);
-		
-		return $survey_folder;
-	}
 	
 	
-	private function request_form($request_type='study',$survey_id=NULL,$collection_id=NULL)
+	
+	private function request_form($request_type='study',$sid=NULL,$collection_id=NULL)
 	{	
-		if ( !is_numeric($survey_id) && !$collection_id)
+		if ( !is_numeric($sid) && !$collection_id)
 		{
 			show_404();return;
 		}
@@ -398,13 +380,13 @@ class Access_licensed extends MY_Controller {
 		}
 		else if ($request_type=='study')
 		{
-			$model=$this->Catalog_model->get_survey_form_model($survey_id);
+			$model=$this->Catalog_model->get_survey_form_model($sid);
 			if ($model!=$this->form_model)
 			{
 				show_404();
 			}
 
-			$surveys[]=$this->Catalog_model->select_single($survey_id);
+			$surveys[]=$this->Catalog_model->select_single($sid);
 			
 			if ($surveys==FALSE)
 			{
@@ -426,13 +408,7 @@ class Access_licensed extends MY_Controller {
 		$data->email=$user->email;
 		$data->surveys=$surveys;
 		$data->collection=$repo;
-		$data->request_type=$request_type;
-		/*
-		$data->survey_title=$survey["titl"];
-		$data->survey_id=$survey["surveyid"];
-		$data->survey_uid=$survey_id;
-		$data->proddate=$survey["proddate"];
-		*/
+		$data->request_type=$request_type;		
 		$data->abstract=$this->input->post("abstract");
 
 		$this->load->library('form_validation');
@@ -463,7 +439,7 @@ class Access_licensed extends MY_Controller {
 		
 			if ($request_type=='study')
 			{
-				$new_requestid=$this->Licensed_model->insert_request($survey_id,$data->user_id,$options);
+				$new_requestid=$this->Licensed_model->insert_request($sid,$data->user_id,$options);
 			}
 			else
 			{

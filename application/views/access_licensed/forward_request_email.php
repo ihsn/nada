@@ -72,7 +72,7 @@ else
                     <td style=""><?php echo $k++;?></td>
                     <?php endif;?>
                     <td style="">
-                    	<div style=""><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> - <?php echo $survey['data_coll_start'];?></a></div>
+                    	<div style=""><a target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['title'];?> - <?php echo $survey['year_start'];?></a></div>
                     </td>
                 </tr>
                 <?php endforeach;?>

@@ -5,8 +5,6 @@
  * @package		CodeIgniter
  * @subpackage	Helpers
  * @category	Helpers
- * @author		Mehmood Asghar
- * @link		
  */
 
 // ------------------------------------------------------------------------
@@ -48,4 +46,4 @@ if ( ! function_exists('check_resource_file'))
 	}
 }
 /* End of file email_helper.php */
-/* Location: ./system/helpers/email_helper.php */
+/* Location: ./system/helpers/resource_helper.php */

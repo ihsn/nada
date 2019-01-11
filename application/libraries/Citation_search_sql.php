@@ -4,12 +4,6 @@
  * 
  * 
  *
- * @package		NADA 3
- * @subpackage	Libraries
- * @category	Citation Search
- * @author		Mehmood Asghar
- * @link		-
- *
  */ 
 class Citation_search_sql{    	
 	

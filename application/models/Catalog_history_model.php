@@ -8,19 +8,18 @@ class Catalog_history_model extends CI_Model {
 	var $study_fields=array(
 					'surveys.id',
 					'repositoryid',
-					'surveyid',
-					'titl',
+					'idno',
+					'title',
 					'nation',
-					'data_coll_start',
-					'data_coll_end',
+					'year_start',
+					'year_end',
 					'published',
 					'created',
-					'changed',
-					'proddate'
-					);
+					'changed'					
+				);
 	
 	//additional filters on search
-	var $filter=array('isdeleted='=>0);
+	var $filter=array();
 	var $active_repo=NULL;
 	
     public function __construct()
@@ -59,11 +58,10 @@ class Catalog_history_model extends CI_Model {
 		$sort_by=$this->input->get('sort_by');
 		
 		//select survey fields
-		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl,nation,
-							changed,created,published,data_coll_start');
+		$this->db->select('surveys.id,surveys.repositoryid,idno,title,nation,
+							changed,created,published,year_start');
 		
 		$this->db->where("published",1);
-		$this->db->where("isdeleted",0);		
 
 		//set order by
 		if ($sort_by!='' && $sort_order!='')
@@ -89,10 +87,8 @@ class Catalog_history_model extends CI_Model {
     function search_count()
     {		
 		$this->db->where("published",1);
-		$this->db->where("isdeleted",0);
 		return $this->db->count_all_results('surveys');
     }
 
 
 }
-?>

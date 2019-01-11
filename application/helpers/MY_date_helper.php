@@ -1,4 +1,5 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+
 /**
  * Convert date to relative date format
  *
@@ -48,6 +49,38 @@ if ( ! function_exists('relative_date'))
 		else 
 		{
 			return date('l, j F, Y',$time ? $time : time());
+		}
+	}
+}
+
+/**
+ * 
+ * 
+ *  Convert an associated array dates to gmt
+ *
+ *  usage - 	array_walk($studies, 'unix_date_to_gmt',array('created','changed')); 
+ *
+ * @item - associated array
+ * @column_names - array of date field names to be converted  
+ */
+if ( ! function_exists('unix_date_to_gmt'))
+{
+	function unix_date_to_gmt(&$item, $key, $column_names=array())
+	{
+		foreach($column_names as $col){
+			if (isset($item[$col])){
+				$item[$col]=date("c",$item[$col]);
+			}
+		}
+	}
+}	
+
+if ( ! function_exists('unix_date_to_gmt_row'))
+{
+	function unix_date_to_gmt_row(&$item, $key, $column_names=array())
+	{
+		if(in_array($key,$column_names) && !empty($item)){
+			$item=date("c",$item);
 		}
 	}
 }	

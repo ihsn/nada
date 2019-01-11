@@ -23,7 +23,7 @@
         </tr>
     	<tr>
 	    	<td class="">Primary Inv.</td>
-            <td class=""><?php echo utf8_decode($row->authenty);?></td>
+            <td class=""><?php echo utf8_decode($row->authoring_entity);?></td>
         </tr>    
     	<tr>
 	    	<td class="">Country</td>
@@ -62,7 +62,7 @@
     	<tr  class="<?php echo $tr_class; ?>" valign="top">
             <td><?php echo $row['name'];?></td>
             <td><?php echo ($row['labl']!=='') ? utf8_decode($row['labl']) : $row['name']; ?></td>
-            <td><?php echo utf8_decode($row['nation']). ' - '.utf8_decode($row['titl']); ?></td>
+            <td><?php echo utf8_decode($row['nation']). ' - '.utf8_decode($row['title']); ?></td>
             <td><a href="<?php echo site_url().'/ddibrowser/'.$row['sid'].'/variable/'.$row['vid'];?>"><?php echo site_url().'/ddibrowser/'.$row['sid'].'/variable/'.$row['vid'];?></a></td>
         </tr>
     <?php endforeach;?>

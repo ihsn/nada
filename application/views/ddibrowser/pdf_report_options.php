@@ -94,7 +94,7 @@ $(document).ready(function () {
 </div>
 
 <div class="processing">
-	<img src="images/loading.gif" alt="loading" /> <?php echo t('processing_pdf_report');?>
+<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> <?php echo t('processing_pdf_report');?>
 </div>
 
 </div>

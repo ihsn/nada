@@ -31,8 +31,8 @@
 <?php foreach ($related_studies as $study):?>
 	<tr class="item" align="left" valign="top" data-sid_1="<?php echo $survey_id;?>" data-sid_2="<?php echo $study['sid_2'];?>" >
 		<td>
-			<div><?php echo anchor('admin/catalog/edit/'.$study['sid'].'/related_studies',$study['titl']);?></div>
-      <div class="sub-text"><?php echo $study['nation'];?>, <?php echo $study['data_coll_start'];?> </div>
+			<div><?php echo anchor('admin/catalog/edit/'.$study['sid'].'/related_studies',$study['title']);?></div>
+      <div class="sub-text"><?php echo $study['nation'];?>, <?php echo $study['year_start'];?> </div>
     </td>
 		<td><?php echo form_dropdown('relation_id', $relationship_types, $study['relationship_id'],'class="rel-type"'); ?></td>
     <td nowrap="nowrap">

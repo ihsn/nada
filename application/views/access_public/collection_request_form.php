@@ -66,7 +66,7 @@
           <?php $k=1;foreach($surveys as $survey):?>
             <tr class="row">
                 <td><?php echo $k++;?></td>
-                <td><a href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?></a></td>
+                <td><a href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['title'];?></a></td>
             </tr>
           <?php endforeach;?>
           </table>

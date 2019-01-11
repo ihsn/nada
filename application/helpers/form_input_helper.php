@@ -52,8 +52,6 @@ if ( ! function_exists('form_nonce'))
  *
  * @access	public
  * @return	string
- * @link	
- * @author	Mehmood Asghar
  */
 if ( ! function_exists('get_post_sess'))
 {
@@ -102,8 +100,6 @@ if ( ! function_exists('get_post_sess'))
  *
  * @access	public
  * @return	string
- * @link	
- * @author	Mehmood Asghar
  */
 if ( ! function_exists('get_post_cookie'))
 {
@@ -175,6 +171,25 @@ if ( ! function_exists('my_set_checkbox'))
             return 'checked="checked"';
         }
     }
+}
+
+
+
+/**
+ * Check if a request is a post rquest
+ *
+ * @access	public
+ * @return	boolean
+ */
+if (!function_exists('is_post_request'))
+{
+	function is_post_request()
+	{
+		if($this->input->method()=='post'){
+			return TRUE;
+		}
+		return FALSE;
+	}
 }
 
 /* End of file form_input_helper.php */

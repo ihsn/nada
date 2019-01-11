@@ -204,7 +204,7 @@ class Citation_model extends CI_Model {
 
 
 	//returns citation authors, editors, translators for a single or multiple citations
-	  function get_citation_authors_array($citation_id_arr)
+	function get_citation_authors_array($citation_id_arr)
 	{
 		$this->db->select('*');
 		$this->db->where_in('cid', $citation_id_arr);
@@ -226,17 +226,17 @@ class Citation_model extends CI_Model {
 
 
 	/**
-	* Returns a list of related surveys by citation id
-	*
-	* @return	array
-	*/
+	 * 
+	 * Returns a list of related surveys by citation id 
+	 * 
+	 **/
 	function get_related_surveys($citationid)
 	{
-		$this->db->select('surveys.id,surveys.surveyid,surveys.titl, surveys.proddate, surveys.nation,surveys.authenty,, surveys.refno, citationid, surveys.data_coll_start,surveys.data_coll_end');
+		$this->db->select('surveys.id,surveys.idno,nation,title');
 		$this->db->join('surveys', 'surveys.id= survey_citations.sid','inner');		
 		$this->db->where('citationid', $citationid);
 		$this->db->order_by('surveys.nation');
-		$this->db->order_by('surveys.titl');
+		$this->db->order_by('surveys.title');
 		return $this->db->get('survey_citations')->result_array();
 	}
 	
@@ -248,7 +248,7 @@ class Citation_model extends CI_Model {
 	{
 		//$remove_list=$this->get_related_surveys($citationid);
 		
-		$this->db->select('surveys.id,surveys.surveyid,surveys.titl, surveys.proddate, surveys.nation,data_coll_start,data_coll_end');
+		$this->db->select('surveys.id,surveys.idno,surveys.title, surveys.nation,year_start,year_end');
 		//$this->db->where('citationid!=', $citationid); 		
 		return $this->db->get('surveys')->result_array();
 	}
@@ -262,6 +262,10 @@ class Citation_model extends CI_Model {
 	*/
 	function attach_related_surveys($citationid,$surveys)
 	{
+		if(empty($surveys)){
+			return false;
+		}
+
 		$this->db->where('citationid', $citationid); 
 		foreach($surveys as $survey)
 		{
@@ -356,7 +360,7 @@ class Citation_model extends CI_Model {
 				'doi',
 				'flag',
 				'owner',
-				'ihsn_id',
+				'uuid',
 				'attachment',
                 'created_by',
                 'changed_by',
@@ -381,11 +385,14 @@ class Citation_model extends CI_Model {
 		
 		
 		//add date modified
-		$options['changed']=date("U");
+		if(!isset($options['changed'])){
+			$options['changed']=date("U");
+		}
+
 		$options['authors']=$this->authors_to_string($authors);
 		$options['translators']=$this->authors_to_string($translators);
 		$options['editors']=$this->authors_to_string($editors);
-		
+
 		//pk field name
 		$key_field='id';
 		
@@ -429,22 +436,44 @@ class Citation_model extends CI_Model {
         return $this->db->update('citations',$attached);
     }
 
+
+	/**
+	 * 
+	 *  Convert authors array to JSON string
+	 * 
+	 */
 	function authors_to_string($authors_array)
 	{
-		if (!is_array($authors_array))
-		{
+		if (!is_array($authors_array)){
 			return FALSE;
 		}
 
-		$output='';
-		foreach($authors_array as $author)
-		{
-			$author=(array)$author;
-			$output.=$author['lname']. ' '. $author['initial']. ' '. $author['fname']. ' ';
+		//keep only author first and last name
+		$authors=array();
+		foreach($authors_array as $author){
+			$authors[]=array(
+				'fname'=>$author['fname'],
+				'lname'=>$author['lname'],
+				'initial'=>$author['initial']
+			);
 		}
-		
-		return substr($output,0,254);
+
+		return json_encode($authors_array);
 	}
+
+
+
+	/**
+	 * 
+	 * Decode JSON encoded authors
+	 * 
+	 */
+	function authors_string_decode($authors)
+	{		
+		return (array)json_decode($authors,1);
+	}
+
+
 
 	/**
 	*
@@ -499,6 +528,22 @@ class Citation_model extends CI_Model {
 	}
 
 	/**
+	 * 
+	 * Generate GUID
+	 * @author - http://php.net/manual/en/function.com-create-guid.php#99425
+	 * 
+	 */
+	function GUID()
+	{
+		if (function_exists('com_create_guid') === true)
+		{
+			return trim(com_create_guid(), '{}');
+		}
+	
+		return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
+	}
+
+	/**
 	* add new citation
 	*
 	* 	options		array
@@ -539,7 +584,7 @@ class Citation_model extends CI_Model {
 				'doi',
 				'flag',
 				'owner',
-				'ihsn_id',
+				'uuid',
                 'created_by',
 				'changed_by',
 				'attachment',
@@ -560,6 +605,11 @@ class Citation_model extends CI_Model {
 				
 		if (isset($options['translators'])) {
 			$translators=$options['translators'];
+		}
+
+		//set uuid if not defined
+		if(!isset($options['uuid'])){
+			$options['uuid']=$this->GUID();
 		}
 
 
@@ -620,6 +670,9 @@ class Citation_model extends CI_Model {
 		//return the new record
 		return $id;
 	}
+
+
+
 	
 	/**
 	*
@@ -736,10 +789,15 @@ class Citation_model extends CI_Model {
 	**/
 	function get_surveys($id_list)
 	{
-        if (!is_array($id_list) && !count($id_list)>0) {
+		if (!is_array($id_list)) {
             return false;
-        }
-        $this->db->select('id,titl,surveyid,proddate,nation,repositoryid,data_coll_start,data_coll_end');
+		}
+
+		if (count($id_list)<1){
+			return false;
+		}
+		
+        $this->db->select('id,title,idno,nation,repositoryid,year_start,year_end');
         $this->db->where_in('id', $id_list);
         $result = $this->db->get('surveys');
 
@@ -782,10 +840,14 @@ class Citation_model extends CI_Model {
 	
 	function get_citations_count_by_survey_list($sid_list)
 	{
+		if (!is_array($sid_list)){
+			$sid_list=(array)$sid_list;
+		}
+
 		if(count($sid_list)==0){
 			return false;
 		}
-
+	
 		$surveys=implode(',',$sid_list);
 		$this->db->select('sid,count(sid) as total');
 		$this->db->where("sid in ($surveys)");
@@ -843,12 +905,15 @@ class Citation_model extends CI_Model {
 
 	    $result=$this->db->query($sql);
 
-	    if(!$result)
-	    {
+	    if(!$result){
 			return FALSE;
 	    }
 
-	    $result=$result->result_array();
+		$result=$result->result_array();
+		
+		foreach($result as $idx=>$row){
+			$result[$idx]['authors']=$this->authors_string_decode($row['authors']);
+		}
 
 	    return $result;
 	}
@@ -1261,6 +1326,378 @@ class Citation_model extends CI_Model {
 			default:
 				throw new Exception("UKNOWN_FORMAT: ".$format);		
 		}
+	}
+
+
+	/**
+	 * 
+	 * Return an array of all citations
+	 * 
+	 * usage as an iterator: 
+	 * $iterator = function () {
+	 *		for($i=0;$i<=500;$i++){
+	 *			$citations=$this->Citation_model->get_all_citations($start=$i*500, $limit=500,$loop=false);
+	 *			set_time_limit(0);
+	 *			yield $citations;
+	 *		}
+	 *	};
+	 * 
+	 * 
+	 * @start - starting citation id
+	 * @limit - number of rows to return
+	 * 
+	 * 
+	 */
+	function get_all_citations($start=0, $limit=100)
+	{		
+		//citations
+		$this->db->select("*");
+		$this->db->order_by('id');
+		$this->db->limit($limit);
+
+		$this->db->where('id >',$start);
+		
+		$citations=$this->db->get("citations")->result_array();
+
+		if(!$citations){
+			return false;
+		}
+
+		//citation id array
+		$citation_id_list=array_column($citations,'id');
+
+		//citation surveys
+		$this->db->select("survey_citations.citationid as citation_id, surveys.idno");
+		$this->db->where_in('citationid',$citation_id_list);
+		$this->db->join('surveys', 'survey_citations.sid = surveys.id','inner');
+		$result=$this->db->get("survey_citations")->result_array();
+
+
+		//create array with citation id as key
+		$citation_surveys=array();
+		foreach($result as $row){
+			$citation_surveys[$row['citation_id']][]=$row['idno'];
+		}
+
+		//attach related survey IDNO
+		foreach($citations  as $idx=>$citation){
+			if(array_key_exists($citation['id'],$citation_surveys)){
+				$citations[$idx]['related_datasets']=json_encode($citation_surveys[$citation['id']]);
+			}
+
+			//decode json fields
+			//$citations[$idx]['authors']=json_decode($citation['authors']);
+			//$citations[$idx]['editors']=json_decode($citation['editors']);
+			//$citations[$idx]['translators']=json_decode($citation['translators']);
+		}
+
+		return $citations;
+	}
+
+
+	/**
+	 * 
+	 * Get count of total citations in db
+	 * 
+	 */
+	function get_citations_count()
+	{
+		$result=$this->db->query('select count(id) as total from citations')->row_array();
+		return $result['total'];
+	}
+
+	
+	/**
+	 * 
+	 * Check if UUID already exists and returns the citation ID
+	 * 
+	 */
+	function uuid_exists($uuid)
+	{
+		$this->db->select("id");
+		$this->db->where('uuid',$uuid);
+		$this->db->limit(1);
+		$result=$this->db->get("citations")->row_array();
+
+		if(isset($result['id'])){
+			return $result['id'];
+		}
+
+		return false;
+	}
+
+	
+
+
+	/**
+	 * 
+	 * 
+	 * convert authors, editors, translators to json and add them back to the citation table
+	 * 
+	 */
+	function refresh_author_field($citation_id)
+	{
+		//get authors, editors, translators
+		$authors=$this->get_authors($citation_id);
+		
+		//update citation author fields
+		$this->update_author_field($citation_id,$authors);
+	}
+
+
+	/**
+	 * 
+	 * Update authors, ediors, translations field for citations table
+	 */
+	function update_author_field($citation_id, $options)
+	{
+		$authors=array();
+		$editors=array();
+		$translators=array();
+		
+		if (isset($options['authors'])) {
+			$authors=$options['authors'];
+		}
+
+		if (isset($options['editors'])) {		
+			$editors=$options['editors'];
+		}
+				
+		if (isset($options['translators'])) {
+			$translators=$options['translators'];
+		}
+
+		$options['authors']=$this->authors_to_string($authors);
+		$options['translators']=$this->authors_to_string($translators);
+		$options['editors']=$this->authors_to_string($editors);
+
+		$this->db->where("id",$citation_id);
+		return $this->db->update("citations",$options);
+	}
+
+
+	/**
+	 * 
+	 * Get authors, translators, editors by citation ID
+	 * 
+	 */
+	function get_authors($citation_id)
+	{
+		$this->db->select('*'); 
+		$this->db->where('cid', $citation_id); 		
+		$authors=$this->db->get("citation_authors")->result_array();
+		
+		$output=array();
+		$types=array(
+			'author'=>'authors',
+			'editor'=>'editors',
+			'translator'=>'translators'
+		);
+		foreach($authors as $author){			
+			$output[$types[$author['author_type']]][]=array(
+				'fname'=>$author['fname'],
+				'lname'=>$author['lname'],
+				'initial'=>$author['initial']
+			);
+		}
+
+		return $output;
+		
+	}
+
+
+	/**
+	 * 
+	 * Convert citation table's author fields to JSON strings
+	 * for NADA 4.5 and later versions
+	 * 
+	 * 
+	 */
+	function refresh_db_author_fields($offset=0,$limit=0,$verbose=0)
+	{
+		//get all citations
+		$this->db->select('id');
+		$this->db->order_by('id');
+
+		if ($offset>0){
+			$this->db->where('id>=',$offset,false);
+		}
+
+		if ($limit>0){
+			$this->db->limit($limit);
+		}
+
+		$query=$this->db->get("citations");
+		
+		
+		if(!$query){
+			return false;
+		}	
+
+		$citations=$query->result_array();
+
+		$k=0;
+		foreach($citations as $citation){
+			$this->refresh_author_field($citation['id']);
+			$k++;
+			if($verbose!=0){
+				echo $k.":".$citation['id']."\r\n";
+			}
+		}
+
+		return $k;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Import citations from JSON
+	 * 
+	 * @json_file - JSON file path
+	 * @overwrite - overwrite if already exists
+	 * @matched - import citations if a matching dataset is found. if set to false, all citations are imported
+	 * @verbose - print status message for each citation imported
+	 * 
+	 * 
+	 * NOTE: Requires the library - https://github.com/salsify/jsonstreamingparser
+	 * 
+	 */
+	function import_from_json($json_file, $overwrite=false, $dataset_matched=false,$verbose=false)
+	{
+		$this->load->model("Dataset_model");
+
+		$stream = fopen($json_file, 'r');
+		$listener = new \JsonStreamingParser\Listener\SimpleObjectQueueListener(function($obj) use ($overwrite,$dataset_matched,$verbose) {
+
+			$obj['editors']=json_decode($obj['editors'],true);
+			$obj['authors']=json_decode($obj['authors'],true);
+			$obj['translators']=json_decode($obj['translators'],true);
+
+			//var_dump($obj);
+			//die();
+
+			if(!isset($obj['uuid']) && trim($obj['uuid'])!='') {
+				$obj['uuid']=$this->GUID();
+			}
+
+			$citation_id=$this->uuid_exists($obj['uuid']);
+
+			$related_survey_uids=array();
+			$related_surveys=array();
+
+			if(isset($obj['related_datasets'])){
+				$related_survey_uids=json_decode($obj['related_datasets'],true);
+				
+				foreach($related_survey_uids as $idno){
+					$id=$this->Dataset_model->find_by_idno($idno);
+					if($id>0){
+						$related_surveys[]=$id;
+					}
+				}	
+			}				
+			
+			//var_dump($related_surveys);
+			//die();
+
+			//skip import
+			if($dataset_matched==true && empty($related_surveys)){
+				echo ($verbose==true) ? $obj['uuid'].' - ' . implode(",", $related_survey_uids). " - skipped - no matching dataset found \r\n" : '';
+				return;
+			}
+
+			
+			if ($citation_id>0 && $overwrite==true){
+				$this->update($citation_id,$obj);
+				$this->attach_related_surveys($citation_id,$related_surveys);
+				echo ($verbose==true) ? $obj['uuid']. " updated\r\n" : '';
+			}
+			else if(!$citation_id){
+				$citation_id=$this->insert($obj);
+				$this->attach_related_surveys($citation_id,$related_surveys);
+				echo ($verbose==true) ? $obj['uuid']. " imported\r\n" : '';
+			}else{
+				echo ($verbose==true) ? $obj['uuid']. " skipped\r\n" : '';
+			}
+			
+		});
+
+		try {
+		  $parser = new \JsonStreamingParser\Parser($stream, $listener);
+		  $parser->parse();
+		  fclose($stream);
+		} catch (Exception $e) {
+		  fclose($stream);
+		  throw $e;
+		}
+	}
+
+
+	/**
+	 * 
+	 * Export all citations to JSON
+	 * 
+	 * 
+	 * Note: requires the library - https://github.com/violet-php/streaming-json-encoder
+	 * 
+	 */
+	function export_to_json_file($file_handle)
+	{
+		$iterator = function () {
+			$total_citations=$this->get_citations_count();
+			$max_rows=500;
+			$iter_count=ceil($total_citations/$max_rows);
+
+			for($i=0;$i<$iter_count;$i++){
+				$citations=$this->Citation_model->get_all_citations($start=$i*$max_rows, $limit=$max_rows);
+				set_time_limit(0);
+				yield $citations;
+			}
+		};
+		
+		//$fp = fopen($output_file, 'wb');
+
+		$encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder(
+			$iterator,
+			function ($json) use ($file_handle) {
+				fwrite($file_handle, $json);
+			}
+		);
+		//$encoder->setOptions(JSON_PRETTY_PRINT);
+		
+		$encoder->encode();
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Count citations by type
+	 * 
+	 */
+	function get_types_with_count($repo_id=null)
+	{
+		$this->db->select('ctype, count(citations.id) as total');
+		//$this->db->join('survey_citations', 'survey_citations.citationid = citations.id','inner');
+		$this->db->where('published',1);
+		$this->db->group_by('ctype');
+
+		if($repo_id!=null && $repo_id!=='central'){
+			$this->db->join('survey_citations', 'survey_citations.citationid = citations.id','inner');
+			$this->db->join('survey_repos', 'survey_citations.sid = survey_repos.sid','inner');
+            $this->db->where('survey_repos.repositoryid',$repo_id);
+		}
+
+		$result=$this->db->get('citations')->result_array();
+
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[$row['ctype']]=$row['total'];
+		}
+
+		return $output;
+
 	}
 
 }

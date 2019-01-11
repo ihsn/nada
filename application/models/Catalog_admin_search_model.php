@@ -6,25 +6,16 @@
 class Catalog_admin_search_model extends CI_Model {
 	
 	//database allowed column names
-	var $allowed_fields=array('titl', 'nation','proddate', 'authenty');
+	var $allowed_fields=array('title', 'nation','year', 'authoring_entity');
 	
 	//fields for the study description
 	var $study_fields=array(
 					'surveys.id',
 					'surveys.repositoryid',
-					'surveyid',
-					'titl',
-					'titlstmt',
-					'authenty',
-					'geogcover',
+					'idno',
+					'title',
+					'authoring_entity',
 					'nation',
-					'topic',
-					'sername',
-					'producer',
-					'sponsor',
-					'proddate',
-					'refno',
-					'isshared',
 					'dirpath',
 					'metafile',
 					'link_technical', 
@@ -32,8 +23,8 @@ class Catalog_admin_search_model extends CI_Model {
 					'link_report',
 					'link_indicator',
 					'link_questionnaire',
-					'data_coll_start',
-					'data_coll_end',
+					'year_start',
+					'year_end',
 					'link_da',
 					'published',
 					'surveys.created',
@@ -60,7 +51,7 @@ class Catalog_admin_search_model extends CI_Model {
 	/**
 	* searches the catalog
 	* 
-	* supported fields	surveyid, id, nation, titl, repositoryid, country_name, tags, 
+	* supported fields	idno, id, nation, title, repositoryid, country_name, tags, 
 	**/
     function search($options=array(), $limit = 15, $offset = 0,$filter=NULL)
     {	
@@ -305,8 +296,8 @@ class Catalog_admin_search_model extends CI_Model {
 		}
 		
 		
-		//search on FIELDS [country, surveyid, titl, producer]
-		$search_fields=array('nation','surveyid','titl','published');
+		//search on FIELDS [country, idno, title, producer]
+		$search_fields=array('nation','idno','title','published');
 		$search_options=NULL;
 		
 		foreach($search_fields as $name)

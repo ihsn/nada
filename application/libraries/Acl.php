@@ -6,11 +6,8 @@
  *
  *
  *
- * @package		NADA 4.0-Alpha
  * @subpackage	Libraries
  * @category	Access Control Lists (ACL)
- * @author		Mehmood Asghar
- * @link		-
  *
  */ 
 class ACL
@@ -638,7 +635,7 @@ class ACL
 			$user_id=$user->id;
 		}
 
-		$unlimited=$this->user_has_unlimited_access();
+		$unlimited=$this->user_has_unlimited_access($user_id);
 		
 		if ($unlimited)
 		{

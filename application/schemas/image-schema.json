@@ -1,0 +1,1498 @@
+{
+	"definitions": {},
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "image-schema.json",
+	"title": "Image data type Schema",
+	"description": "Based on IPTC Photo Metadata - ",
+	"properties": {
+		"repositoryid": {
+			"type": "string",
+			"title": "Collection ID that owns the document",
+			"description": "Abbreviation for the collection that owns the document"
+		},
+		"published": {
+			"type": "integer",
+			"title": "Status",
+			"description": "Status  - 0=draft, 1=published",
+			"default": 0
+		},
+		"overwrite": {
+			"type": "string",
+			"enum": [
+				"yes",
+				"no"
+			],
+			"description": "Overwrite document if already exists?",
+			"default": ""
+		},
+		"metadata_information": {
+			"type": "object",
+			"title": "Document metadata information",
+			"description": "Document description",
+			"additionalProperties": false,
+			"properties": {
+				"title": {
+					"type": "string",
+					"title": "Document title",
+					"description": "Document title"
+				},
+				"idno": {
+					"type": "string",
+					"title": "Unique ID number for the document"
+				},
+				"producers": {
+					"type": "array",
+					"title": "Producers",
+					"description": "List of producers",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"title": "Name",
+								"description": "Name (required)"
+							},
+							"abbr": {
+								"type": "string",
+								"title": "Abbreviation"
+							},
+							"affiliation": {
+								"type": "string",
+								"title": "Affiliation"
+							},
+							"role": {
+								"type": "string",
+								"title": "Role"
+							}
+						}
+					}
+				},
+				"production_date": {
+					"type": "string",
+					"title": "Date of Production",
+					"description": "Document production date using format(YYYY-MM-DD)"
+				},
+				"version": {
+					"type": "string",
+					"title": "Document version",
+					"description": "Identify and describe the current version of the document"
+				}
+			}
+		},
+		"image_description": {
+			"type": "object",
+			"title": "Image Description",
+			"description": "Image Description",
+			"properties": {
+				"identification": {
+					"type": "object",
+					"title": "The Identification Schema",
+					"required": [
+						"title",						
+						"date_created",
+						"digital_image_guid"						
+					],
+					"properties": {
+						"title": {							
+							"type": "string",
+							"title": "Title",
+							"default": ""
+						},
+						"headline": {
+							"type": "string",
+							"title": "Headline"
+						},
+						"date_created": {
+							"type": "string",
+							"title": "Creation date"
+						},
+						"digital_image_guid": {
+							"type": "string",
+							"title": "Image unique identifier"
+						},
+						"digital_source_type": {							
+							"type": "string",
+							"title": "Digital source type"
+						}
+					}
+				},
+				"rights": {
+					"type": "object",
+					"title": "Rights",
+					"properties": {
+						"license": {
+							"type": "array",
+							"title": "License",
+							"description": "License information",
+							"items": {
+								"type": "object",
+								"properties": {
+									"type": {
+										"title": "Type",
+										"type": "string"
+									},
+									"uri": {
+										"title": "URI",
+										"type": "string"
+									},
+									"note": {
+										"title": "Note",
+										"type": "string"
+									}
+								}
+							},
+							"required": [
+								"type"
+							]
+						},
+						"instructions": {
+							"$id": "#/properties/rights/properties/instructions",
+							"type": "string",
+							"title": "The Instructions Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"copyright_notice": {
+							"$id": "#/properties/rights/properties/copyright_notice",
+							"type": "string",
+							"title": "The Copyright_notice Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"usage_terms": {
+							"$id": "#/properties/rights/properties/usage_terms",
+							"type": "string",
+							"title": "The Usage_terms Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"copyright_owners": {
+							"$id": "#/properties/rights/properties/copyright_owners",
+							"type": "array",
+							"title": "The Copyright_owners Schema",
+							"items": {
+								"$id": "#/properties/rights/properties/copyright_owners/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"name"
+								],
+								"properties": {
+									"name": {
+										"$id": "#/properties/rights/properties/copyright_owners/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/rights/properties/copyright_owners/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/rights/properties/copyright_owners/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"embed_encod_rights_exp": {
+							"$id": "#/properties/rights/properties/embed_encod_rights_exp",
+							"type": "array",
+							"title": "The Embed_encod_rights_exp Schema",
+							"items": {
+								"$id": "#/properties/rights/properties/embed_encod_rights_exp/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"expression"									
+								],
+								"properties": {
+									"expression": {
+										"$id": "#/properties/rights/properties/embed_encod_rights_exp/items/properties/expression",
+										"type": "string",
+										"title": "The Expression Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"encoding_type": {
+										"$id": "#/properties/rights/properties/embed_encod_rights_exp/items/properties/encoding_type",
+										"type": "string",
+										"title": "The Encoding_type Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"language_id": {
+										"$id": "#/properties/rights/properties/embed_encod_rights_exp/items/properties/language_id",
+										"type": "string",
+										"title": "The Language_id Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"plus_licensor": {
+							"$id": "#/properties/rights/properties/plus_licensor",
+							"type": "array",
+							"title": "The Plus_licensor Schema",
+							"items": {
+								"$id": "#/properties/rights/properties/plus_licensor/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"name"									
+								],
+								"properties": {
+									"name": {
+										"$id": "#/properties/rights/properties/plus_licensor/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/rights/properties/plus_licensor/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/rights/properties/plus_licensor/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"linked_enc_rights_expression": {
+							"$id": "#/properties/rights/properties/linked_enc_rights_expression",
+							"type": "array",
+							"title": "The Linked_enc_rights_expression Schema",
+							"items": {
+								"$id": "#/properties/rights/properties/linked_enc_rights_expression/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [									
+									"expression"
+								],
+								"properties": {
+									"language_id": {
+										"$id": "#/properties/rights/properties/linked_enc_rights_expression/items/properties/language_id",
+										"type": "string",
+										"title": "The Language_id Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"encoding_type": {
+										"$id": "#/properties/rights/properties/linked_enc_rights_expression/items/properties/encoding_type",
+										"type": "string",
+										"title": "The Encoding_type Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"expression": {
+										"$id": "#/properties/rights/properties/linked_enc_rights_expression/items/properties/expression",
+										"type": "string",
+										"title": "The Expression Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"web_rights_statement": {
+							"$id": "#/properties/rights/properties/web_rights_statement",
+							"type": "string",
+							"title": "The Web_rights_statement Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						}
+					}
+				},
+				"description": {
+					"$id": "#/properties/description",
+					"type": "object",
+					"title": "The Description Schema",
+					"properties": {
+						"description": {
+							"$id": "#/properties/description/properties/description",
+							"type": "string",
+							"title": "The Description Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+
+						"intellectual_genre": {
+							"$id": "#/properties/description/properties/intellectual_genre",
+							"type": "string",
+							"title": "The Intellectual_genre Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"keywords": {
+							"$id": "#/properties/description/properties/keywords",
+							"type": "string",
+							"title": "The Keywords Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"scene_codes": {
+							"$id": "#/properties/description/properties/scene_codes",
+							"type": "string",
+							"title": "The Scene_codes Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"subject_codes": {
+							"$id": "#/properties/description/properties/subject_codes",
+							"type": "string",
+							"title": "The Subject_codes Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"caption_writer": {
+							"$id": "#/properties/description/properties/caption_writer",
+							"type": "array",
+							"title": "The Caption_writer Schema",
+							"items": {
+								"$id": "#/properties/description/properties/caption_writer/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"name"									
+								],
+								"properties": {
+									"name": {
+										"$id": "#/properties/description/properties/caption_writer/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/description/properties/caption_writer/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/description/properties/caption_writer/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"artwork_or_objects": {
+							"$id": "#/properties/description/properties/artwork_or_objects",
+							"type": "array",
+							"title": "The Artwork_or_objects Schema",
+							"items": {
+								"$id": "#/properties/description/properties/artwork_or_objects/items",
+								"type": "object",
+								"title": "The Items Schema",								
+								"properties": {
+									"circa_date_created": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/circa_date_created",
+										"type": "string",
+										"title": "The Circa_date_created Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"description": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/description",
+										"type": "string",
+										"title": "The Description Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"contribution": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/contribution",
+										"type": "string",
+										"title": "The Contribution Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"copyright": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/copyright",
+										"type": "string",
+										"title": "The Copyright Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"creator": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/creator",
+										"type": "string",
+										"title": "The Creator Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"creator_id": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/creator_id",
+										"type": "string",
+										"title": "The Creator_id Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"current_owner_id": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/current_owner_id",
+										"type": "string",
+										"title": "The Current_owner_id Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"current_owner_name": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/current_owner_name",
+										"type": "string",
+										"title": "The Current_owner_name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"current_licenser_id": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/current_licenser_id",
+										"type": "string",
+										"title": "The Current_licenser_id Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"date_created": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/date_created",
+										"type": "string",
+										"title": "The Date_created Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"physical_description": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/physical_description",
+										"type": "string",
+										"title": "The Physical_description Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"source": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/source",
+										"type": "string",
+										"title": "The Source Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"source_inventory_number": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/source_inventory_number",
+										"type": "string",
+										"title": "The Source_inventory_number Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"source_inventory_uri": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/source_inventory_uri",
+										"type": "string",
+										"title": "The Source_inventory_uri Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"style_period": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/style_period",
+										"type": "string",
+										"title": "The Style_period Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"title": {
+										"$id": "#/properties/description/properties/artwork_or_objects/items/properties/title",
+										"type": "string",
+										"title": "The Title Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"about_cv_terms": {
+							"$id": "#/properties/description/properties/about_cv_terms",
+							"type": "array",
+							"title": "The About_cv_terms Schema",
+							"items": {
+								"$id": "#/properties/description/properties/about_cv_terms/items",
+								"type": "object",
+								"title": "The Items Schema",								
+								"properties": {
+									"term": {
+										"$id": "#/properties/description/properties/about_cv_terms/items/properties/term",
+										"type": "string",
+										"title": "The Term Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/description/properties/about_cv_terms/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"term_identifier": {
+										"$id": "#/properties/description/properties/about_cv_terms/items/properties/term_identifier",
+										"type": "string",
+										"title": "The Term_identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"term_name": {
+										"$id": "#/properties/description/properties/about_cv_terms/items/properties/term_name",
+										"type": "string",
+										"title": "The Term_name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"term_refined_about": {
+										"$id": "#/properties/description/properties/about_cv_terms/items/properties/term_refined_about",
+										"type": "string",
+										"title": "The Term_refined_about Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"genres": {
+							"$id": "#/properties/description/properties/genres",
+							"type": "string",
+							"title": "The Genres Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"event_name": {
+							"$id": "#/properties/description/properties/event_name",
+							"type": "string",
+							"title": "The Event_name Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"max_avail_height": {
+							"$id": "#/properties/description/properties/max_avail_height",
+							"type": "string",
+							"title": "The Max_avail_height Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"max_avail_width": {
+							"$id": "#/properties/description/properties/max_avail_width",
+							"type": "string",
+							"title": "The Max_avail_width Schema",
+							"default": "",
+							"examples": [
+								"text"
+							]
+						},
+						"albums": {
+							"type": "array",
+							"title": "Album information",
+							"description": "Album information",
+							"items": {
+								"type": "object",
+								"properties": {
+									"name": {
+										"title": "Name",
+										"type": "string"
+									},
+									"description": {
+										"title": "Description",
+										"type": "string"
+									},
+									"uri": {
+										"title": "URI",
+										"type": "string"
+									}
+								}
+							},
+							"required": [
+								"name"
+							]
+						}
+					}
+				},
+				"creation": {
+					"$id": "#/properties/creation",
+					"type": "object",
+					"title": "The Creation Schema",
+					"properties": {
+						"creator_name": {
+							"$id": "#/properties/creation/properties/creator_name",
+							"type": "string",
+							"title": "The Creator_name Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"creator_contact": {
+							"$id": "#/properties/creation/properties/creator_contact",
+							"type": "array",
+							"title": "The Creator_contact Schema",
+							"items": {
+								"$id": "#/properties/creation/properties/creator_contact/items",
+								"type": "object",
+								"title": "The Items Schema",								
+								"properties": {
+									"address": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/address",
+										"type": "string",
+										"title": "The Address Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"city": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/city",
+										"type": "string",
+										"title": "The City Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"country": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/country",
+										"type": "string",
+										"title": "The Country Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"email": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/email",
+										"type": "string",
+										"title": "The Email Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"phone": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/phone",
+										"type": "string",
+										"title": "The Phone Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"postal_code": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/postal_code",
+										"type": "string",
+										"title": "The Postal_code Schema",
+										"default": "",
+										"examples": [
+											""
+										],
+										"pattern": "^(.*)$"
+									},
+									"region": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/region",
+										"type": "string",
+										"title": "The Region Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"url": {
+										"$id": "#/properties/creation/properties/creator_contact/items/properties/url",
+										"type": "string",
+										"title": "The Url Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"job_title": {
+							"$id": "#/properties/creation/properties/job_title",
+							"type": "string",
+							"title": "The Job_title Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"credit_line": {
+							"$id": "#/properties/creation/properties/credit_line",
+							"type": "string",
+							"title": "The Credit_line Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"image_creator": {
+							"$id": "#/properties/creation/properties/image_creator",
+							"type": "array",
+							"title": "The Image_creator Schema",
+							"items": {
+								"$id": "#/properties/creation/properties/image_creator/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"name"									
+								],
+								"properties": {
+									"name": {
+										"$id": "#/properties/creation/properties/image_creator/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/creation/properties/image_creator/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/creation/properties/image_creator/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						}
+					}
+				},
+				"persons": {
+					"$id": "#/properties/persons",
+					"type": "object",
+					"title": "The Persons Schema",					
+					"properties": {
+						"additional_model_info": {
+							"$id": "#/properties/persons/properties/additional_model_info",
+							"type": "string",
+							"title": "The Additional_model_info Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"model_age": {
+							"$id": "#/properties/persons/properties/model_age",
+							"type": "string",
+							"title": "The Model_age Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"person_in_image_names": {
+							"$id": "#/properties/persons/properties/person_in_image_names",
+							"type": "string",
+							"title": "The Person_in_image_names Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"person_shown": {
+							"$id": "#/properties/persons/properties/person_shown",
+							"type": "array",
+							"title": "The Person_shown Schema",
+							"items": {
+								"$id": "#/properties/persons/properties/person_shown/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"properties": {
+									"characteristics": {
+										"$id": "#/properties/persons/properties/person_shown/items/properties/characteristics",
+										"type": "string",
+										"title": "The Characteristics Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"description": {
+										"$id": "#/properties/persons/properties/person_shown/items/properties/description",
+										"type": "string",
+										"title": "The Description Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/persons/properties/person_shown/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"name": {
+										"$id": "#/properties/persons/properties/person_shown/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						}
+					}
+				},
+				"organization": {
+					"$id": "#/properties/organization",
+					"type": "object",
+					"title": "The Organization Schema",					
+					"properties": {
+						"in_image_codes": {
+							"$id": "#/properties/organization/properties/in_image_codes",
+							"type": "string",
+							"title": "The In_image_codes Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"in_image_names": {
+							"$id": "#/properties/organization/properties/in_image_names",
+							"type": "string",
+							"title": "The In_image_names Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						}
+					}
+				},
+				"location": {
+					"$id": "#/properties/location",
+					"type": "object",
+					"title": "The Location Schema",					
+					"properties": {
+						"locations_shown": {
+							"$id": "#/properties/location/properties/locations_shown",
+							"type": "array",
+							"title": "The Locations_shown Schema",
+							"items": {
+								"$id": "#/properties/location/properties/locations_shown/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"properties": {
+									"city": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/city",
+										"type": "string",
+										"title": "The City Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"country_code": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/country_code",
+										"type": "string",
+										"title": "The Country_code Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"country_name": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/country_name",
+										"type": "string",
+										"title": "The Country_name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"province_state": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/province_state",
+										"type": "string",
+										"title": "The Province_state Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"sub_location": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/sub_location",
+										"type": "string",
+										"title": "The Sub_location Schema",
+										"default": "",
+										"examples": [
+											""
+										],
+										"pattern": "^(.*)$"
+									},
+									"world_region": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/world_region",
+										"type": "string",
+										"title": "The World_region Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"name": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"gps_longitude": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/gps_longitude",
+										"type": "string",
+										"title": "The Gps_longitude Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"gps_latitude": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/gps_latitude",
+										"type": "string",
+										"title": "The Gps_latitude Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"gps_altitude": {
+										"$id": "#/properties/location/properties/locations_shown/items/properties/gps_altitude",
+										"type": "string",
+										"title": "The Gps_altitude Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"in_image_names": {
+							"$id": "#/properties/location/properties/in_image_names",
+							"type": "string",
+							"title": "The In_image_names Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						}
+					}
+				},
+				"product": {
+					"$id": "#/properties/product",
+					"type": "object",
+					"title": "The Product Schema",
+					
+					"properties": {
+						"products_shown": {
+							"$id": "#/properties/product/properties/products_shown",
+							"type": "array",
+							"title": "The Products_shown Schema",
+							"items": {
+								"$id": "#/properties/product/properties/products_shown/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [									
+									"name"
+								],
+								"properties": {
+									"description": {
+										"$id": "#/properties/product/properties/products_shown/items/properties/description",
+										"type": "string",
+										"title": "The Description Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"gtin": {
+										"$id": "#/properties/product/properties/products_shown/items/properties/gtin",
+										"type": "string",
+										"title": "The Gtin Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"name": {
+										"$id": "#/properties/product/properties/products_shown/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						}
+					}
+				},
+				"rating": {
+					"$id": "#/properties/rating",
+					"type": "object",
+					"title": "The Rating Schema",
+					
+					"properties": {
+						"image_rating": {
+							"$id": "#/properties/rating/properties/image_rating",
+							"type": "string",
+							"title": "The Image_rating Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						}
+					}
+				},
+				"registry": {
+					"$id": "#/properties/registry",
+					"type": "object",
+					"title": "The Registry Schema",
+					
+					"properties": {
+						"registry_entries": {
+							"$id": "#/properties/registry/properties/registry_entries",
+							"type": "array",
+							"title": "The Registry_entries Schema",
+							"items": {
+								"$id": "#/properties/registry/properties/registry_entries/items",
+								"type": "object",
+								"title": "The Items Schema",								
+								"properties": {
+									"asset_identifier": {
+										"$id": "#/properties/registry/properties/registry_entries/items/properties/asset_identifier",
+										"type": "string",
+										"title": "The Asset_identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"registry_identifier": {
+										"$id": "#/properties/registry/properties/registry_entries/items/properties/registry_identifier",
+										"type": "string",
+										"title": "The Registry_identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/registry/properties/registry_entries/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						}
+					}
+				},
+				"supply": {
+					"$id": "#/properties/supply",
+					"type": "object",
+					"title": "The Supply Schema",					
+					"properties": {
+						"supplier": {
+							"$id": "#/properties/supply/properties/supplier",
+							"type": "array",
+							"title": "The Supplier Schema",
+							"items": {
+								"$id": "#/properties/supply/properties/supplier/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"name"									
+								],
+								"properties": {
+									"name": {
+										"$id": "#/properties/supply/properties/supplier/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/supply/properties/supplier/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/supply/properties/supplier/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						},
+						"image_supplier_image_id": {
+							"$id": "#/properties/supply/properties/image_supplier_image_id",
+							"type": "string",
+							"title": "The Image_supplier_image_id Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"job_id": {
+							"$id": "#/properties/supply/properties/job_id",
+							"type": "string",
+							"title": "The Job_id Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"source": {
+							"$id": "#/properties/supply/properties/source",
+							"type": "array",
+							"title": "The Source Schema",
+							"items": {
+								"$id": "#/properties/supply/properties/source/items",
+								"type": "object",
+								"title": "The Items Schema",
+								"required": [
+									"name"
+								],
+								"properties": {
+									"name": {
+										"$id": "#/properties/supply/properties/source/items/properties/name",
+										"type": "string",
+										"title": "The Name Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"identifier": {
+										"$id": "#/properties/supply/properties/source/items/properties/identifier",
+										"type": "string",
+										"title": "The Identifier Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									},
+									"role": {
+										"$id": "#/properties/supply/properties/source/items/properties/role",
+										"type": "string",
+										"title": "The Role Schema",
+										"default": "",
+										"examples": [
+											"text"
+										],
+										"pattern": "^(.*)$"
+									}
+								}
+							}
+						}
+					}
+				},
+				"privacy": {
+					"$id": "#/properties/privacy",
+					"type": "object",
+					"title": "The Privacy Schema",					
+					"properties": {
+						"minor_model_age_disclosure": {
+							"$id": "#/properties/privacy/properties/minor_model_age_disclosure",
+							"type": "string",
+							"title": "The Minor_model_age_disclosure Schema",
+							"default": "",
+							"examples": [
+								""
+							],
+							"pattern": "^(.*)$"
+						},
+						"model_release_documents": {
+							"$id": "#/properties/privacy/properties/model_release_documents",
+							"type": "string",
+							"title": "The Model_release_documents Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"model_release_status": {
+							"$id": "#/properties/privacy/properties/model_release_status",
+							"type": "string",
+							"title": "The Model_release_status Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"property_release_documents": {
+							"$id": "#/properties/privacy/properties/property_release_documents",
+							"type": "string",
+							"title": "The Property_release_documents Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						},
+						"property_release_status": {
+							"$id": "#/properties/privacy/properties/property_release_status",
+							"type": "string",
+							"title": "The Property_release_status Schema",
+							"default": "",
+							"examples": [
+								"text"
+							],
+							"pattern": "^(.*)$"
+						}
+					}
+				}
+			}
+		}
+	}
+}

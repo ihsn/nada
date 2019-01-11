@@ -97,7 +97,7 @@ jQuery(document).ready(function(){
 				userid=$(this).parent().parent("tr").attr("id");
 				repoid=$("#repositoryid").val();
 				roleid=$(".repo_role_id",$(this).parent().parent("tr")).val();
-				$(e.target).parent().append('<img class="loading" src="images/loading.gif"/>');
+				$(e.target).parent().append('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>');
 				$.ajax({
 					timeout:1000*120,
 					cache:false,

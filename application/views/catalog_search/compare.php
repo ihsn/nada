@@ -92,37 +92,41 @@ function eraseCookie(name) {
 	<div class="error"><?php echo t('no_variables_to_compare');?></div>
 <?php endif;?>
 
-<div class="compare-header">
-	<h1 class="title" ><?php echo t('title_compare_variables');?></h1>
-    <div class="action-bar">
-    	<a href="<?php echo current_url(); ?>" onClick="window.location.reload();return false;" class="refresh"><?php echo t('refresh');?></a> 
-        <a href="<?php echo current_url(); ?>#clear" onClick="remove_all();return false;" title="Clear selection of variables to be compared" class="clear"><?php echo t('clear');?></a> 
-		<?php echo anchor('catalog/compare/print/pdf',t('download_pdf'), array('target'=>'_blank', 'class'=>'download'));?>
+<div class="compare-header clearfix">
+	<h1 class="title float-left" ><?php echo t('title_compare_variables');?></h1>
+    <div class="action-bar float-right">
+		<a href="<?php echo current_url(); ?>" onClick="window.location.reload();return false;" class="refresh btn btn-outline-primary btn-sm">
+			<i class="fa fa-refresh" aria-hidden="true"></i><?php echo t('refresh');?>
+		</a> 
+		<a href="<?php echo current_url(); ?>#clear" onClick="remove_all();return false;" title="Clear selection of variables to be compared" class="clear btn btn-outline-primary btn-sm">
+			<i class="fa fa-trash" aria-hidden="true"></i> <?php echo t('clear');?>
+		</a> 
+		<?php echo anchor('catalog/compare/print/pdf',t('download_pdf'), array('target'=>'_blank', 'class'=>'download btn btn-outline-primary btn-sm'));?>
     </div>
 </div>    
-
+  
 	<?php $tr_class=""; ?>
 	<table class="draggable" cellpadding="0" cellspacing="5" >
 	    <tr  class="<?php echo $tr_class; ?>" valign="top">
 		<?php foreach($list as $item):?>
-    		<td>
-				<?php $survey_title=$this->compare_variable->get_survey_title($item['surveyid']);?>
-                <?php $variable_name=$this->compare_variable->get_variable_name($item['surveyid'],$item['vid']);?>
+    		<td><?php //var_dump($item['variable']);?>
+				<?php $survey_title=$item['dataset']['title'];?>
+                <?php $variable_name=$item['variable']['name'];?>
                 <?php if ($survey_title!==FALSE && $variable_name!==FALSE):?>
             	<div class="compare-box" >
 	            	<div class="compare-box-title" title="<?php echo t('click_drag_move');?>">
 						<div class="var-name" ><?php echo $variable_name;?></div>
                         <div class="var-links" >
-							<?php echo anchor('catalog/compare/#remove='.$item['surveyid'].'/'.$item['vid'],t('remove'),array('class'=>'remove','title'=>t('remove'),'id'=>$item['surveyid'].'/'.$item['vid']));?>
+							<?php echo anchor('catalog/compare/#remove='.$item['sid'].'/'.$item['vid'],t('remove'),array('class'=>'remove btn btn-outline-primary btn-sm','title'=>t('remove'),'id'=>$item['sid'].'/'.$item['vid']));?>
                         </div>
                         <br style="clear:both"/>
                      </div>
     	        	<div class="compare-box-body" >
                             <div class="survey-link">
-								<?php echo anchor("ddibrowser/".$item['surveyid'],$this->compare_variable->get_survey_title($item['surveyid']),array('target'=>'_blank'));?>
+								<?php echo anchor("catalog/".$item['sid'],$survey_title,array('target'=>'_blank'));?>
                             </div>
                             <div class="variable-content">
-							<?php echo $this->compare_variable->get_variable_html($item['surveyid'], $item['vid']);?>
+							<?php echo $item['html']; //echo $this->compare_variable->get_variable_html($item['surveyid'], $item['vid']);?>
                             </div>
                     </div>
 				</div>

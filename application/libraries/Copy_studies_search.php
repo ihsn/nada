@@ -29,7 +29,7 @@ class Copy_studies_search
 		$where=$this->build_search_where($search_options);
 		
 		//set Limit clause
-	  	$this->ci->db->select('surveys.id,surveys.titl,surveys.nation,surveys.data_coll_start,surveys.data_coll_end,survey_repos.repositoryid,surveys.proddate,surveys.changed');
+	  	$this->ci->db->select('surveys.id,surveys.titl,surveys.nation,surveys.year_start,surveys.year_end,survey_repos.repositoryid,surveys.proddate,surveys.changed');
 		$this->ci->db->join('forms', 'forms.formid= surveys.formid');
 		$this->ci->db->join('survey_repos', 'survey_repos.sid= surveys.id');
 		$this->ci->db->limit($limit, $offset);

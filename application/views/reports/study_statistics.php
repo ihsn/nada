@@ -43,7 +43,7 @@
             <td><?php echo date("m/d/y",$row['changed']);?></td>
             <td><?php echo $row['varcount'];?></td>            
             <td><?php echo ($row['form_type'])=='' ? $img_no : $row['form_type'];?></td>
-            <td><?php echo (integer)($row['data_coll_start']) >0 ? $row['data_coll_start']: $img_no;?></td>
+            <td><?php echo (integer)($row['year_start']) >0 ? $row['year_start']: $img_no;?></td>
             <?php if (isset($data[$row['id']])): ?>
 	            <td><?php echo $data[$row['id']];?></td>
             <?php else:?>

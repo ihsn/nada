@@ -62,7 +62,7 @@ class Admin extends MY_Controller {
 	**/
 	function _get_recent_studies()
 	{
-		$this->db->select("id,titl,changed,repositoryid,created");
+		$this->db->select("id,title,changed,repositoryid,created");
 		$this->db->limit(15);
 		$this->db->order_by('changed', 'DESC');
 		return $this->db->get("surveys")->result_array();

@@ -1,0 +1,49 @@
+{
+	"$id": "http://ihsn.org/schemas/nada/datafile.json",
+	"type": "object",
+	"definitions": {},
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"properties": {
+		"file_id": {
+			"type": "string",
+			"title": "File unique ID"
+		},
+		"file_name": {
+			"type": "string",
+			"title" : "File name"
+		},
+		"description": {
+			"type": "string",
+			"title": "File description"
+		},
+		"case_count": {
+			"type": "integer",
+			"title": "Cases count"
+		},
+		"var_count": {
+			"type": "integer",
+			"title": "Variable count"
+		},
+		"producer": {
+			"type": "string",
+			"description": "File producer"
+		},		
+		"data_checks": {
+			"type": "string",
+			"title": "Processing checks"
+		},
+		"missing_data": {
+			"type": "string",
+			"title": "Missing data"
+		},
+		"version": {
+			"type": "string",
+            "title": "Version"		
+        },		
+		"notes": {
+			"type": "string",
+			"title": "File notes"
+		}
+	},
+	"required": [ "file_id", "file_name"]
+}

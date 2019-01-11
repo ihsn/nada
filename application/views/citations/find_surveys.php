@@ -10,10 +10,10 @@
                     <input class="chk" type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" id="s-<?php echo $survey['id'];?>" />
                 </div>
                 <div class="col2">
-                    <div class="survey-title"><?php echo $survey['titl'];?></div>
+                    <div class="survey-title"><?php echo $survey['title'];?></div>
             <span>
             	<span class="country"><?php echo $survey['nation'];?></span>, 
-            	<span class="year"><?php $years=array_unique(array($survey['data_coll_start'],$survey['data_coll_end']));
+            	<span class="year"><?php $years=array_unique(array($survey['year_start'],$survey['year_end']));
                     echo implode(" - ",$years);  ?>
             	</span>
                 <a target="_blank" title="<?php echo t('Display survey information');?>" href="<?php echo site_url('catalog/'.$survey['id']);?>"><i class="icon-globe"></i></a>
@@ -33,10 +33,10 @@
                 <td><input class="chk" type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" id="s-<?php echo $survey['id'];?>" /></td>
                 <td>
                     <label for="s-<?php echo $survey['id'];?>"?>
-                        <div class="survey-title"><?php echo $survey['titl'];?></div>
+                        <div class="survey-title"><?php echo $survey['title'];?></div>
             <span>
             	<span class="country"><?php echo $survey['nation'];?></span>, 
-            	<span class="year"><?php $years=array_unique(array($survey['data_coll_start'],$survey['data_coll_end']));
+            	<span class="year"><?php $years=array_unique(array($survey['year_start'],$survey['year_end']));
                     echo implode(" - ",$years);  ?>
             	</span>
             </span>

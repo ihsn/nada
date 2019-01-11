@@ -56,7 +56,7 @@
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
-	        <td><?php echo end(explode('/',$row->filepath)); ?></td>
+	        <td><?php echo basename($row->filepath); ?></td>
             <td><?php echo $row->ip; ?></td>
             <td><?php echo $row->username; ?>&nbsp;</td>			
 			<td><?php echo date("m-d-Y H:i:s",$row->created); ?></td>

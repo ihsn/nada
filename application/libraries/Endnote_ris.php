@@ -6,11 +6,8 @@
  * 
  *
  *
- * @package		NADA 3.0
- * @subpackage	Libraries
  * @category	EndNote import
  * @format		RIS
- * @author		Mehmood Asghar
  * @link		http://en.wikipedia.org/wiki/RIS_(file_format)
  *
  */ 
@@ -375,7 +372,7 @@ class EndNote_RIS{
 				//'flag'				=>'',
 				//'owner'				=>'',
 				'country'			=>'C2',
-				'ihsn_id'			=>'C1',
+				'uuid'				=>'C1',
 				'id'				=>'C3'		
 		);
 		

@@ -17,7 +17,7 @@ class Citations extends MY_Controller {
         $this->lang->load('general');
         $this->lang->load('citations');
         //$this->output->enable_profiler(TRUE);
-
+        
         //set storage path
         $this->citations_storage_path=$this->config->item("citations_storage_path");
     }
@@ -847,9 +847,31 @@ class Citations extends MY_Controller {
 		echo json_encode(array('result'=>(int)$result) );
 	}
 
-	function export()
+    /**
+     * 
+     * Export all citations
+     */
+	function export($format=null)
 	{
-		$this->Citation_model->export('csv');
+        if($format=='json'){            
+            $filename='citations-'.date("m-d-y-his").'.json';
+            header( 'Content-Type: application/json');
+            header('Content-Encoding: UTF-8');		
+            header( 'Content-Disposition: attachment;filename='.$filename);
+            $fp = fopen('php://output', 'w');
+            $this->Citation_model->export_to_json_file($fp);
+            fclose($fp);
+            return;
+        }
+        else if($format=='csv'){
+            $this->Citation_model->export('csv');
+            return;
+        }
+        
+        $content= $this->load->view('citations/export_options',null,true);        
+        $this->template->write('title', t('export_citations'),true);
+        $this->template->write('content', $content,true);
+        $this->template->render();
 	}
 
 
@@ -907,12 +929,13 @@ class Citations extends MY_Controller {
         $keywords=$this->input->post("q",true);
 
         $exclude_surveys=$this->input->post('exclude',true);
-        if (!$keywords)
-        {
+
+        if (!$keywords){
+            show_error('NO-KEYWORDS-PROVIDED');
             return FALSE;
         }
 
-        $study_fulltext_index='surveyid,titl,nation,abbreviation';
+        $study_fulltext_index='idno,title,nation,abbreviation,authoring_entity,keywords';
         $where=array();
 
         $tmp_surveys=explode(",",$exclude_surveys);
@@ -942,7 +965,7 @@ class Citations extends MY_Controller {
         else if($this->db->dbdriver=='sqlsrv')
         {
             $sql=sprintf("SELECT
-					surveys.id,titl,nation,data_coll_start,data_coll_end,
+					surveys.id,title,nation,year_start,year_end,
 					KEY_TBL.*
 					FROM surveys
 					INNER JOIN
@@ -957,7 +980,8 @@ class Citations extends MY_Controller {
 
         if(!$result)
         {
-            return FALSE;
+            $error=$this->db->error();
+            show_error('DB:Exception: '.$error['message']);
         }
 
         $result=$result->result_array();
@@ -1184,6 +1208,29 @@ class Citations extends MY_Controller {
         else{
             show_error('FILE_NOT_FOUND: '. $file_path);
         }
+    }
+
+
+    /**
+     * 
+     * for NADA 4.5 and later, run this to update authors, editors, translators
+     * fields in citations table to use JSON instead of plain text
+     * 
+     * refresh authors, editor, translators info 
+     */
+    function refresh_citations_authors($offset=0,$limit=0,$verbose=0)
+    {
+        echo "<pre>";
+        $count=$this->Citation_model->refresh_db_author_fields($offset,$limit,$verbose);
+        echo $count. " updated";
+
+    }
+
+    function to_json()
+    {
+        $citations=$this->Citation_model->get_all_citations();
+
+        echo json_encode($citations);
     }
 
 

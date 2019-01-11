@@ -6,10 +6,23 @@ $survey_id=$this->uri->segment(4);
 
 <style>
 .folder{background:url(images/folder.png) no-repeat;padding-left:20px;display:block;margin-bottom:5px;}
-.file{background:url(images/page_white.png) no-repeat;padding-left:20px;color:#333333;display:block;margin-bottom:5px;line-height:150%;}
-.micro-file{background:url(images/database_table.png) no-repeat;}
-.resource-file{background:url(images/page_green.png) no-repeat;}
-.locked-file{background:url(images/lock.png) no-repeat;}
+.file:before {
+    content: "\f127";
+    font-family: FontAwesome;
+	padding-right:5px;
+	font-size:14px;
+}
+.micro-file:before {
+    content: "\f1c0";
+    font-family: FontAwesome;
+}
+
+.resource-file:before {
+    content: "\f016";
+}
+.locked-file:before {
+    content: "\f023";
+}
 .actions{text-align:right;margin-top:15px;}
 #file-uploads{text-align:left;background-color:#EFEFEF;padding:10px;display:none;margin-bottom:10px;margin-top:10px;}
 .input-file{width:300px;}
@@ -104,8 +117,7 @@ form{margin:10px;padding:0px;}
 
             </td>
             <?php else:?>
-        		<td>
-							<input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>
+        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>
             <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
@@ -130,9 +142,9 @@ form{margin:10px;padding:0px;}
 <?php endif;?>
 </table>
 <div style="padding-top:10px;color:#999999;float:left;">
-        	<div style="display:inline;"><img src="images/page_white.png"/> <?php echo t('not_linked');?></div>
-            <div style="display:inline;margin-left:10px;"><img src="images/database_table.png"/> <?php echo t('data_files');?></div>
-            <div style="display:inline;margin-left:10px;"><img src="images/page_green.png"/> <?php echo t('other_resources');?></div>
+        	<div style="display:inline;"><i class="fa fa-chain-broken" aria-hidden="true"></i> <?php echo t('not_linked');?></div>
+            <div style="display:inline;margin-left:10px;"><i class="fa fa-database" aria-hidden="true"></i> <?php echo t('data_files');?></div>
+            <div style="display:inline;margin-left:10px;"><i class="fa fa-file-o" aria-hidden="true"></i> <?php echo t('other_resources');?></div>
 </div>
             <div style="float:right;padding:5px;font-style:italic;"><?php echo t('total_files_count');?><?php echo count($files);?></div>
 </form>
@@ -169,28 +181,7 @@ function batch_delete(){
 	}
 
 	$(".manage-files").submit();return false;
-
-	/*
-	$k=0;
-	$('.manage-files .chk:checked').each(function(){
-		//console.log(CI.base_url+'/admin/managefiles/<?php echo $survey_id;?>/delete/'+this.value+'?ajax=1');return;
-
-		$k++;
-			$.ajax({
-				timeout:1000*120,
-				type:'GET',
-				url: CI.base_url+'/admin/managefiles/<?php echo $survey_id;?>/delete/'+this.value+'?ajax=1',
-				error: function(XHR, textStatus, thrownError) {
-					alert("Error occured " + XHR.status);
-					return false;
-				}
-			});
-     });
-
-	 alert($k + " files were removed");
-	 //window.location.reload();
-	 return false;
-	 */
+	
 }
 
 

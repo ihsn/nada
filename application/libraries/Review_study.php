@@ -6,11 +6,6 @@
  *
  *
  *
- * @package		NADA 4.0
- * @subpackage	Libraries
- * @author		Mehmood Asghar
- * @link		-
- *
  */ 
 class Review_study
 {

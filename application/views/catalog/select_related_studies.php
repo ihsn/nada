@@ -83,11 +83,11 @@ $(function() {
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="catalog-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
   <select name="field" id="field">
-    <option value="titl"	<?php echo ($this->input->get('field')=='titl') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
+    <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
-    <option value="proddate"	<?php echo ($this->input->get('field')=='proddate') ? 'selected="selected"' : '' ; ?> ><?php echo t('year');?></option>
+    <option value="year_start"	<?php echo ($this->input->get('field')=='year_start') ? 'selected="selected"' : '' ; ?> ><?php echo t('year');?></option>
     <option value="surveyid"><?php echo t('survey_id');?></option>
-    <option value="authenty"><?php echo t('producer');?></option>
+    <option value="authoring_entity"><?php echo t('producer');?></option>
   </select>
   <input type="submit" value="<?php echo t('search');?>" name="search" class="btn-search-submit"/>
   <?php if ($this->input->get("keywords")!=''): ?>
@@ -138,7 +138,7 @@ $(function() {
     	<tr class="header">
         	<?php $params_persist=array('keywords','field','ps','show_selected_only');?>
              <th><?php echo create_sort_link($sort_by,$sort_order,'id',t('ID'),$page_url,$params_persist); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,$params_persist); ?></th>
+            <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,$params_persist); ?></th>
 						<th><?php echo t('relationship_type');?></th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -151,12 +151,12 @@ $(function() {
     	<tr class="table-row <?php echo $tr_class; ?>" id="s_<?php echo $row['id']; ?>" >
             <td><b><?php echo $row['id'];?></b></td>
             <td style="width:50%;">
-							<div class="survey-title"><?php echo $row['titl']; ?></div>
+							<div class="survey-title"><?php echo $row['title']; ?></div>
 							<div class="survey-sub-info">
 								<span class="">
 									<?php echo $row['nation']; ?>
 								</span>
-								<span class="uid">ID: <?php echo $row['surveyid']; ?></span>
+								<span class="uid">ID: <?php echo $row['idno']; ?></span>
 							</div>
 						</td>
 <!--

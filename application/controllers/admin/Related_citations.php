@@ -46,7 +46,7 @@ class Related_Citations extends MY_Controller {
       //survey id
       $db_rows['survey_id']=$skey;
 
-      $db_rows['survey_title']=$survey['titl'];
+      $db_rows['survey_title']=$survey['title'];
 
       //list of attached citations to survey
       $db_rows['selected_citations']=$this->Citation_model->get_citations_id_array_by_survey($skey);

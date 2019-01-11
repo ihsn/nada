@@ -11,11 +11,8 @@ require_once APPPATH."../modules/bibtex/PARSEPAGE.php";
  *
  *
  *
- * @package		NADA 3.0
  * @subpackage	Libraries
  * @category	BibText import/export
- * @author		Mehmood Asghar
- * @link		-
  *
  */ 
 class BibTeX{

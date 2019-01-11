@@ -7,7 +7,7 @@
 
 <p><?php echo t('click_on_a_lic_request_to_see_status_or_download_data');?></p>
 
-    <table class="grid-table licensed-requests" cellspacing="0">
+    <table class="table table-striped grid-table licensed-requests" cellspacing="0">
     	<tr class="header">
         	<th><?php echo t('title');?></th>
             <th><?php echo t('status');?></th>
@@ -16,7 +16,7 @@
         <?php foreach($rows as $request) :?>
             <tr>
                 <td>
-					<h3>#<?php echo $request['id'];?> <?php echo anchor('catalog/'.$survey_id.'/get_microdata/?requestid='.$request['id'],($request['request_title']==NULL) ? $request['titl'] : $request['request_title']);?></h3>
+					<h3>#<?php echo $request['id'];?> <?php echo anchor('catalog/'.$survey_id.'/get_microdata/?requestid='.$request['id'],($request['request_title']==NULL) ? $request['title'] : $request['request_title']);?></h3>
                     <div class="inline">Requested on: <?php echo date("F d, Y",$request['created']); ?></div>
                     <div class="inline">Expires: <?php echo $request['expiry_date']!=NULL ? date("F d, Y",$request['expiry_date']) : 'N/A'; ?></div>
                 </td>

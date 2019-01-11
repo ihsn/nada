@@ -9,47 +9,49 @@ class Catalog extends MY_Controller {
 
 	var $active_repo=NULL; //active repo object
 
-  public function __construct()
+  	public function __construct()
 	{
-      parent::__construct();
+      	parent::__construct();
      	$this->load->model('Catalog_model');
-			$this->load->model('Licensed_model');
-			$this->load->model('Repository_model');
-			$this->load->model('Citation_model');
-			$this->load->model('Catalog_admin_search_model');
-			$this->load->library('pagination');
-			$this->load->helper('querystring_helper','url');
-			$this->load->helper('form');
-			$this->load->helper("catalog");
-			$this->template->set_template('admin');
+		$this->load->model('Licensed_model');
+		$this->load->model('Repository_model');
+		$this->load->model('Citation_model');
+		$this->load->model('Catalog_admin_search_model');
+		$this->load->library('pagination');
+		$this->load->helper('querystring_helper','url');
+		$this->load->helper('form');
+		$this->load->helper("catalog");
+		$this->template->set_template('admin');
 
-			//load language file
-			$this->lang->load('general');
-			$this->lang->load('catalog_search');
-			$this->lang->load('catalog_admin');
-			$this->lang->load('resource_manager');
+		//load language file
+		$this->lang->load('general');
+		$this->lang->load('catalog_search');
+		$this->lang->load('catalog_admin');
+		$this->lang->load('resource_manager');
 
-			//$this->output->enable_profiler(TRUE);
-			//$this->acl->clear_active_repo();
+		//$this->output->enable_profiler(TRUE);
+		//$this->acl->clear_active_repo();
 
+		//set active repo
+		$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+
+		if (!$repo_obj){
+			//set active repo to CENTRAL
+			$data=$this->Repository_model->get_central_catalog_array();
+			$this->active_repo=(object)$data;
+		}
+		else{
 			//set active repo
-			$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
-
-			if (!$repo_obj){
-				//set active repo to CENTRAL
-				$data=$this->Repository_model->get_central_catalog_array();
-				$this->active_repo=(object)$data;
-			}
-			else{
-				//set active repo
-				$this->active_repo=$repo_obj;
-				$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
-			}
+			$this->active_repo=$repo_obj;
+			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
+		}
 
 		//set collection sticky bar options
 		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
 		$this->template->add_variable($name='collection',$value=$collection);
 	}
+
+
 
 	/**
 	 * Default page
@@ -388,71 +390,12 @@ class Catalog extends MY_Controller {
 	}
 
 
-
-	/**
-	 * Upload form for DDI (xml) file
-	 *
-	 * @return void
-	 *
-	 * TODO: Remove
-	 **/
-	function upload()
+	//return temp upload folder path
+	private function get_temp_upload_folder()
 	{
-		redirect("admin/catalog/add_study");return;
-
-		$this->template->set_template('admin');
-		$this->load->library('upload');
-
-		 //load the upload form
-		$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
-
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
-
-		//render final output
-	  	$this->template->render();
-	}
-
-	/**
-	 * Upload form for DDI (xml) file
-	 *
-	 * @return void
-	 **/
-	function add_study()
-	{
-
-		//user has permissions on the repo
-		$this->acl->user_has_repository_access($this->active_repo->id);
-
-
-		$this->template->set_template('admin');
-
-		//show upload form when no DDI is uploaded
-		if(!$this->input->post("submit"))
-		{
-			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-			return;
-		}
-
-		$overwrite=$this->input->post("overwrite");
-		$repositoryid=$this->input->post("repositoryid");
-
-		if($overwrite=='yes')
-		{
-			$overwrite=TRUE;
-		}
-		else
-		{
-			$overwrite=FALSE;
-		}
-
-		//process form
-
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
-
+		
 		//if not fixed path, use a relative path
 		if (!file_exists($catalog_root) )
 		{
@@ -475,6 +418,60 @@ class Catalog extends MY_Controller {
 			show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
 		}
 
+		return $temp_upload_folder;
+	}
+
+
+	/**
+	 * Upload ddi and rdf files to tmp folder
+	 *
+	 * @return - array of uploaded files
+	 *
+	 **/
+	private function upload_files_to_temp()
+	{
+	}	
+
+
+	function upload()
+	{
+		$this->add_study();
+	}
+
+	/**
+	 * Upload form for DDI (xml) file
+	 *
+	 * @return void
+	 **/
+	function add_study()
+	{
+		//user has permissions on the repo
+		$this->acl->user_has_repository_access($this->active_repo->id);
+
+		$this->template->set_template('admin');
+
+		//show upload form when no DDI is uploaded
+		if(!$this->input->post("submit")){
+			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+			return;
+		}
+
+		$overwrite=$this->input->post("overwrite");
+		$repositoryid=$this->input->post("repositoryid");
+
+		if($overwrite=='yes'){
+			$overwrite=TRUE;
+		}
+		else{
+			$overwrite=FALSE;
+		}
+
+		//process form
+
+		$temp_upload_folder=$this->get_temp_upload_folder();
+
 		//upload class configurations for DDI
 		$config['upload_path'] 	 = $temp_upload_folder;
 		$config['overwrite'] 	 = FALSE;
@@ -489,8 +486,7 @@ class Catalog extends MY_Controller {
 		$uploaded_ddi_path=NULL;
 
 		//ddi upload failed
-		if (!$ddi_upload_result)
-		{
+		if (!$ddi_upload_result){
 			$error = $this->upload->display_errors();
 			$this->db_logger->write_log('ddi-upload',$error,'catalog');
 			$this->session->set_flashdata('error', $error);
@@ -504,53 +500,54 @@ class Catalog extends MY_Controller {
 			$this->db_logger->write_log('ddi-upload','success','catalog');
 		}
 
-		//get study codebook ID from the DDI file
-		$this->load->library('DDI_Parser','ddi_parser');
-		$ddi_study_id=$this->ddi_parser->get_ddi_study_id($uploaded_ddi_path);
+		$this->load->model("Data_file_model");
+		$this->load->library('DDI2_import');
+		
+		$user=$this->acl->current_user();
 
-        //sanitize study id
-        $sanitized_id=$this->security->sanitize_filename($ddi_study_id);
+		$ddi_path=$uploaded_ddi_path;
+		$params=array(
+			'file_type'=>'survey',
+			'file_path'=>$ddi_path,
+			'user_id'=>$user->id,
+			'repositoryid'=>$repositoryid,
+			'overwrite'=>$overwrite
+		);
 
-        if ($sanitized_id!=$ddi_study_id)
-        {
-            $this->session->set_flashdata('error', t('INVALID-DDI-STUDY-ID').':'.htmlspecialchars($ddi_study_id,ENT_QUOTES));
-            redirect('admin/catalog/add_study','refresh');return;
-        }
+		try{
+			//import ddi
+			$result=$this->ddi2_import->import($params);
 
-		if (!$ddi_study_id)
-		{
-			$this->session->set_flashdata('error', 'NOT-A-VALID-DDI');
+			//import rdf
+			$rdf_result=$this->upload_rdf_file($result['sid']);
+
+			$this->session->set_flashdata('success', $result);
+			redirect('admin/catalog/edit/'.$result['sid'],'refresh');return;
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+
+			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';			
+			$this->session->set_flashdata('error', $error_str);
 			redirect('admin/catalog/add_study','refresh');return;
 		}
-
-		//get study internal ID
-		$study_id=$this->Catalog_model->get_survey_uid($ddi_study_id);
-
-		//study found
-		if ($study_id)
-		{
-			//check if study is owned by the active repository
-			$owner_repository=$this->Catalog_model->get_study_owner($study_id);
-
-			if($owner_repository!==$repositoryid)
-			{
-				$this->session->set_flashdata('error', sprintf(t('study_exists_in_other_collection'),$owner_repository));
-				redirect('admin/catalog/add_study','refresh');return;
-			}
+		catch(Exception $e){
+			$this->session->set_flashdata('error', $e->getMessage());
+			redirect('admin/catalog/add_study','refresh');return;
 		}
+	}
 
-		//import DDI file
+
+	private function upload_rdf_file($sid)
+	{
 		$this->load->library('catalog_admin');
-		$result=$this->catalog_admin->import_ddi($uploaded_ddi_path,$overwrite,$repositoryid, $delete_after_import=TRUE);
-
-		if ($result['status']=='error')
-		{
-			$this->session->set_flashdata('error', $result['message']);
-			redirect('admin/catalog/add_study','refresh');return;
-		}
-
+		
 		//upload class configurations for RDF
-		$config['upload_path'] = $temp_upload_folder;
+		$config['upload_path'] = $this->get_temp_upload_folder();
 		$config['overwrite'] = FALSE;
 		$config['encrypt_name']=TRUE;
 		$config['allowed_types'] = 'rdf';
@@ -568,17 +565,16 @@ class Catalog extends MY_Controller {
 			$uploaded_rdf_path=$uploaded_rdf_path['full_path'];
 		}
 
-		if (isset($result['sid']) && $uploaded_rdf_path!="")
+		if ($uploaded_rdf_path!="")
 		{
 			//import rdf
-			$this->catalog_admin->import_rdf($result['sid'],$uploaded_rdf_path);
+			$this->catalog_admin->import_rdf($sid,$uploaded_rdf_path);
 
 			//delete rdf
 			@unlink($uploaded_rdf_path);
 		}
 
-		$this->session->set_flashdata('message', $result['message']);
-		redirect('admin/catalog/edit/'.$result['sid'],'refresh');
+		return true;
 	}
 
 
@@ -676,11 +672,11 @@ class Catalog extends MY_Controller {
 		if ($result===TRUE)
 		{
             //if Survey ID has changed then add the OLD ID as alias
-            if (!$this->Survey_alias_model->id_exists($survey['surveyid']) && $data['study']['id']!=$survey['surveyid'])
+            if (!$this->Survey_alias_model->id_exists($survey['idno']) && $data['study']['id']!=$survey['idno'])
             {
                 $options = array(
                     'sid'  => $survey_id,
-                    'alternate_id' => $survey['surveyid'],
+                    'alternate_id' => $survey['idno'],
                 );
 
                 $this->Survey_alias_model->insert($options);
@@ -725,121 +721,6 @@ class Catalog extends MY_Controller {
 
 
 
-	/**
-	* Imports an uploaded DDI file or batch import
-	*
-	*/
-	function import()
-	{
-		$session_data=$this->session->userdata('ddi_progress');
-
-		if (!is_array($session_data) )
-		{
-			show_error(t('nothing_to_process'));
-		}
-
-		$ddi_file=$session_data['upload_data']['full_path'];
-
-		//load DDI Parser Library
-		$this->load->library('DDI_Parser');
-		$this->load->library('DDI_Import','','DDI_Import');
-
-		//set file for parsing
-		$this->ddi_parser->ddi_file=$ddi_file;
-
-		//only available for xml_reader
-		$this->ddi_parser->use_xml_reader=TRUE;
-
-		//validate DDI file
-		if ($this->ddi_parser->validate()===false)
-		{
-			//log import error
-			$error= t('invalid_ddi_file').' '.$ddi_file;
-			log_message('error', $error);
-
-			//log to database
-			$this->db_logger->write_log('ddi-import',$error,'catalog');
-
-			//$error.=$this->load->view('catalog/upload_file_info', $session_data, true);
-
-			$this->session->set_flashdata('error', $error);
-			redirect('admin/catalog/upload','refresh');
-		}
-
-		//parse ddi to array
-		$data=$this->ddi_parser->parse();
-
-		//overwrite?
-		$overwrite=(bool)$this->input->post("overwrite");
-
-		//repository
-		$repositoryid=$this->input->post("repositoryid");
-
-		//validate if user has access to the selected repository
-		$user_repositories=$this->acl->get_user_repositories();
-
-		$user_repo_access=FALSE;
-		foreach($user_repositories as $repo)
-		{
-			if ($repo["repositoryid"]==$repositoryid)
-			{
-				$user_repo_access=TRUE;
-				break;
-			}
-		}
-
-		if ($user_repo_access===FALSE)
-		{
-			show_error(t("REPO_ACCESS_DENIED"));
-		}
-
-		//set the repository where the ddi will be uploaded to
-		$this->DDI_Import->repository_identifier=$repositoryid;
-
-		//import to db
-		$result=$this->DDI_Import->import($data,$ddi_file,$overwrite);
-
-		if ($result===TRUE)
-		{
-			//display import success
-			$success=$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
-			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
-			log_message('DEBUG', $success_msg);
-
-			//log
-			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
-
-			$this->session->set_flashdata('message', $success);
-
-			//delete uploaded file
-			unlink($ddi_file);
-
-			//redirect to study edit page
-			if (isset($data['study']['id']))
-			{
-				$uid=$this->Catalog_model->get_survey_uid($data['study']['id']);
-				$this->session->unset_userdata('ddi_progress');
-				redirect('admin/catalog/edit/'.$uid,'refresh');
-			}
-		}
-		else
-		{
-			$failed_msg='FAILED - Survey import - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
-
-			//log
-			log_message('DEBUG', $failed_msg);
-			$this->db_logger->write_log('ddi-import',$failed_msg,'catalog');
-
-			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
-			$this->session->set_flashdata('error', $import_failed);
-		}
-
-		//remove session
-		$this->session->unset_userdata('ddi_progress');
-		redirect('admin/catalog/upload','refresh');
-	}
-
-
 	function batch_refresh()
 	{
 		$this->acl->user_has_repository_access($this->active_repo->id);
@@ -862,87 +743,77 @@ class Catalog extends MY_Controller {
 	{
 		$this->acl->user_has_repository_access($this->active_repo->id);
 
-		if (!is_numeric($id))
-		{
+		if (!is_numeric($id)){
 			show_404();
 		}
 
-		$is_ajax=$this->input->get("ajax");
+		$this->load->model("Dataset_model");
+		$this->load->model("Data_file_model");
+		$this->load->library('DDI2_import');
 
-		//load DDI Parser Library
-		$this->load->library('DDI_Parser');
-		$this->load->library('DDI_Import','','DDI_Import');
+
+		$is_ajax=$this->input->get("ajax");
 
 		//get survey ddi file path by id
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
 
-		if ($ddi_file===FALSE)
-		{
-			if($is_ajax==FALSE)
-			{
+		if ($ddi_file===FALSE){
+			if($is_ajax==FALSE){
 				show_error('DDI_NOT_FOUND');
 			}
-			else
-			{
+			else{
 				die (json_encode(array('error'=>'DDI_NOT_FOUND' )));
 			}
 		}
-		//load DDI Parser Library
-		$this->load->library('DDI_Parser');
-		$this->load->library('DDI_Import','','DDI_Import');
+		
+		$user=$this->acl->current_user();
+		$dataset=$this->Dataset_model->get_row($id);
 
-		//set file for parsing
-		$this->ddi_parser->set_ddi_file($ddi_file);
+		$params=array(
+			'file_type'=>'survey',
+			'file_path'=>$ddi_file,
+			'user_id'=>$user->id,
+			'repositoryid'=>$dataset['repositoryid'],
+			'overwrite'=>'yes'
+		);
 
-		//only available for xml_reader
-		$this->ddi_parser->use_xml_reader=TRUE;
+		try{			
+			$result=$this->ddi2_import->import($params,$id);
 
-		//validate DDI file
-		if ($this->ddi_parser->validate()===false)
-		{
-			$error= 'Invalid DDI file: '.$ddi_file;
-			log_message('error', $error);
-			$error.=$this->load->view('catalog/upload_file_info', $session_data, true);
+			//reset changed and created dates
+			$update_options=array(
+				'changed'=>$dataset['changed'],
+				'created'=>$dataset['created'],
+				'repositoryid'=>$dataset['repositoryid']
+			);
 
-			if ($is_ajax)
-			{
-				die (json_encode(array('error'=>$error) ));
+			$this->Dataset_model->update_options($id,$update_options);
+
+			if ($is_ajax){
+				die (json_encode(array('success'=>'UPDATED: '.$id) ));
 			}
-
-			$this->session->set_flashdata('error', $error);
-			redirect('admin/catalog','refresh');
+	
+			$this->session->set_flashdata('success', $result);			
+			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
 
-		//parse ddi study to array
-		$data['study']=$this->ddi_parser->get_study_array();
-
-		//pass study data
-		$this->DDI_Import->ddi_array=$data;
-
-		//import to study data to db
-		$result=$this->DDI_Import->import_study();
-
-		//import failed
-		if ($result===FALSE)
-		{
-			log_message('DEBUG', 'FAILED - Survey import - <em>'. $data['study']['id']. '</em>');
-			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
-			$this->session->set_flashdata('error', $import_failed);
+			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';			
+			$this->session->set_flashdata('error', $error_str);
+			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
-
-		//display import success
-		$success=t('study_metadata_updated');
-		log_message('DEBUG', 'Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables');
-
-		if ($is_ajax)
-		{
-			die (json_encode(array('success'=>'UPDATED: '.$data['study']['id']) ));
+		catch(Exception $e){
+			$this->session->set_flashdata('error', $e->getMessage());
+			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
-
-		$this->session->set_flashdata('message', $success);
-		redirect('admin/catalog/edit/'.$id,'refresh');
 	}
 
+	
 
 	/**
 	*
@@ -1042,30 +913,23 @@ class Catalog extends MY_Controller {
 		//import folder path
 		$import_folder=$this->config->item('ddi_import_folder');
 
-		if (!file_exists($import_folder) )
-		{
+		if (!file_exists($import_folder) ){
 			$import_folder="/datasets";
 		}
 
 		//read files
 		$files['files']=get_dir_file_info($import_folder);
 
-		if ( $files['files'])
-		{
-			foreach($files['files'] as $key=>$value)
-			{
-				//var_dump($value);exit;
-				if (substr($value['name'],-4)!='.xml')
-				{
+		if ( $files['files']){
+			foreach($files['files'] as $key=>$value){				
+				if (substr($value['name'],-4)!='.xml'){
 					unset($files['files'][$key]);
 				}
 			}
 		}
 
 		$files['active_repo']=$this->active_repo;
-
 		$content=$this->load->view('catalog/ddi_batch_import', $files, true);
-
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
@@ -1077,10 +941,6 @@ class Catalog extends MY_Controller {
 	*/
 	function do_batch_import()
 	{
-		//load DDI Parser Library
-		$this->load->library('DDI_Parser');
-		$this->load->library('DDI_Import','','DDI_Import');
-
 		//get the encoded file path from post
 		$encoded_filepath=$this->input->post("id");
 		$overwrite=(bool)$this->input->post("overwrite");
@@ -1089,8 +949,7 @@ class Catalog extends MY_Controller {
 		$ddi_file=base64_decode($encoded_filepath);
 
 		//check file exists
-		if (!file_exists($ddi_file))
-		{
+		if (!file_exists($ddi_file)){
 			echo json_encode(array('error'=>t("file_not_found")) );
 			exit;
 		}
@@ -1098,99 +957,71 @@ class Catalog extends MY_Controller {
 		//repository
 		$repositoryid=$this->input->post("repositoryid");
 
-
 		//validate if user has access to the selected repository
 		$user_repositories=$this->acl->get_user_repositories();
 
 		$user_repo_access=FALSE;
-		foreach($user_repositories as $repo)
-		{
-			if ($repo["repositoryid"]==$repositoryid)
-			{
+		foreach($user_repositories as $repo){
+			if ($repo["repositoryid"]==$repositoryid){
 				$user_repo_access=TRUE;
 				break;
 			}
 		}
 
-		if ($user_repo_access===FALSE)
-		{
+		if ($user_repo_access===FALSE){
 			//show_error("REPO_ACCESS_DENIED");
 			echo json_encode(array('error'=>t('REPO_ACCESS_DENIED')) );
 			exit;
 		}
 
-		//set the repository where the ddi will be uploaded to
-		$this->DDI_Import->repository_identifier=$repositoryid;
+		
+		$this->load->model("Data_file_model");
+		$this->load->library('DDI2_import');
+		
+		$user=$this->acl->current_user();
 
+		$ddi_path=$ddi_file;
+		$params=array(
+			'file_type'=>'survey',
+			'file_path'=>$ddi_path,
+			'user_id'=>$user->id,
+			'repositoryid'=>$repositoryid,
+			'overwrite'=>$overwrite
+		);
 
-		//get study codebook ID from the DDI file
-		$codebook_id=$this->ddi_parser->get_ddi_codebook_id($ddi_file);
-
-		if (!$codebook_id)
-		{
-			echo json_encode(array('error'=>'NOT-A-VALID-DDI') );exit;
-		}
-
-		//get study internal ID
-		$study_id=$this->Catalog_model->get_survey_uid($codebook_id);
-
-		//study found
-		if ($study_id)
-		{
-			//check if study is owned by the active repository
-			$owner_repository=$this->Catalog_model->get_study_owner($study_id);
-
-			if($owner_repository!==$repositoryid)
-			{
-				echo json_encode(array('error'=>sprintf(t('study_exists_in_other_collection'),$owner_repository)) );exit;
-			}
-		}
-
-		//set file for parsing
-		$this->ddi_parser->ddi_file=$ddi_file;
-
-		//only available for xml_reader
-		$this->ddi_parser->use_xml_reader=TRUE;
-
-		//validate DDI file
-		if ($this->ddi_parser->validate()===false)
-		{
-			$error= t('invalid_ddi_file').$ddi_file;
-			log_message('error', $error);
-			echo json_encode(array('error'=>$error) );
-			exit;
-		}
-
-		//parse ddi to array
-		$data=$this->ddi_parser->parse();
-
-		//import to db
-		$result=$this->DDI_Import->import($data,$ddi_file,$overwrite);
-
-		if ($result===TRUE)
-		{
-			//display import success
-			$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']));
-			$msg='<strong>'. $data['study']['titl']. '</strong> - <em>'.$this->DDI_Import->variables_imported.' '.t('variables').'</em>';
-			log_message('info', $msg);
+		try{
+			//import ddi
+			$result=$this->ddi2_import->import($params);
 
 			//try importing the RDF if exists. The RDF must match the XML file name
-			$this->_import_rdf($this->DDI_Import->id,str_replace(".xml",".rdf",$ddi_file));
+			$rdf_result=$this->_import_rdf($result['sid'],str_replace(".xml",".rdf",$result['idno']));
+
+			$msg='<strong>'. $result['idno']. '</strong> - <em>'.$result['varcount'].' '.t('variables').'</em>';
+			log_message('info', $msg);
 
 			//return the json success message
 			echo json_encode(array('success'=>$msg) );
 			exit;
-
-			//delete uploaded file
-			//unlink($ddi_file);
 		}
-		else
-		{
-			$error=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),true);
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			
+			$error=print_r($e->GetValidationErrors(),true);
 			echo json_encode(array('error'=>$error) );
-			exit;
+			die();
+		}
+		catch(Exception $e){
+			$error=print_r($e->getMessage(),true);
+			echo json_encode(array('error'=>$error) );
+			die();
 		}
 	}
+
+	
 
 	/**
 	*
@@ -1328,7 +1159,7 @@ class Catalog extends MY_Controller {
 					$this->Catalog_model->delete($item);
 
 					//log deletion
-					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
 					$this->db_logger->write_log('study-deleted',$survey_name,'catalog',$item);
 				}
 			}
@@ -1365,7 +1196,7 @@ class Catalog extends MY_Controller {
 				if ($survey)
 				{
 					//log deletion
-					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
 					$items[]=$survey_name;
 				}
 			}
@@ -1901,10 +1732,13 @@ class Catalog extends MY_Controller {
 					}*/
 
 					//log
-					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
 					$this->db_logger->write_log('study-published',$survey_name,'catalog',$item);
 				}
 			}
+
+			//raise db update event
+			//$this->events->emit('db.after.update', 'surveys', $id_arr,'atomic');
 
 			//for ajax calls, return output as JSON
 			if ($ajax!='')
@@ -1938,7 +1772,7 @@ class Catalog extends MY_Controller {
 				//exists
 				if ($survey)
 				{
-					$survey_name=$survey['surveyid']. ' - '.$survey['titl'].' - '. $survey['proddate'].' - '. $survey['nation'];
+					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
 					$items[]=$survey_name;
 				}
 			}
@@ -1962,13 +1796,12 @@ class Catalog extends MY_Controller {
 	 **/
 	function edit($id=NULL)
 	{
-			if ( !is_numeric($id) )
-			{
-				show_error('Invalid parameters were passed');
-			}
+		if ( !is_numeric($id)){
+			show_error('Invalid parameters were passed');
+		}
 
-			//test user study permissiosn
-			$this->acl->user_has_study_access($id);
+		//test user study permissiosn
+		$this->acl->user_has_study_access($id);
 
 		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
 		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
@@ -1983,35 +1816,34 @@ class Catalog extends MY_Controller {
 		$this->load->library('chicago_citation');
 		//$this->load->library('ion_auth');
 
-			$this->load->library("catalog_admin");
+		$this->load->library("catalog_admin");
 
-			$active_repository=FALSE;
+		$active_repository=FALSE;
 
-			//get active repository
-			if (isset($this->active_repo) && $this->active_repo!=NULL)
-			{
-				$active_repository=$this->active_repo->repositoryid;
-			}
+		//get active repository
+		if (isset($this->active_repo) && $this->active_repo!=NULL){
+			$active_repository=$this->active_repo->repositoryid;
+		}
 
-			//get the survey info from db
-      $survey_row=$this->Catalog_model->select_single($id,$active_repository);
+		//get the survey info from db
+		$survey_row=$this->Catalog_model->select_single($id,$active_repository);
 
-			if (!$survey_row){
-				show_error('Survey was not found');
-			}
+		if (!$survey_row){
+			show_error('Survey was not found');
+		}
 
-			$survey_row['survey_id']=$id;
-			$survey_row['repositoryid']=$active_repository;
-			$survey_row['is_featured']=$this->Repository_model->is_a_featured_study($this->active_repo->id,$id);
+		$survey_row['survey_id']=$id;
+		$survey_row['repositoryid']=$active_repository;
+		$survey_row['is_featured']=$this->Repository_model->is_a_featured_study($this->active_repo->id,$id);
 
-			//study warnings
-			$survey_row['warnings']=$this->catalog_admin->get_study_warnings($id);
+		//study warnings
+		$survey_row['warnings']=$this->catalog_admin->get_study_warnings($id);
 
-			//get survey countries
-			$survey_row['countries']=$this->Catalog_model->get_survey_countries($id);
+		//get survey countries
+		$survey_row['countries']=$this->Catalog_model->get_survey_countries($id);
 
-			//check if survey has citations
-			$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
+		//check if survey has citations
+		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
 
 		//get survey files
 		$survey_row['files_formatted']=$this->catalog_admin->managefiles($id);
@@ -2019,18 +1851,21 @@ class Catalog extends MY_Controller {
 		//get survey files ArrayAccess
 		$survey_row['files']=$this->catalog_admin->get_files_array($id);
 
-			//get microdata attached to the study
-			$survey_row['microdata_files']=$this->resource_model->get_microdata_resources($id);
+		//get microdata attached to the study
+		$survey_row['microdata_files']=$this->resource_model->get_microdata_resources($id); 
 
-			//get resources
-			//$resources['rows']=$this->catalog_admin->resources($id);
-			//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
+		//get resources
+		//$resources['rows']=$this->catalog_admin->resources($id);
+		//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
 
-			//survey collections for current survey
-			$survey_row['collections']=$this->catalog_admin->get_formatted_collections($id);
+		//survey collections for current survey
+		$survey_row['collections']=$this->catalog_admin->get_formatted_collections($id,$survey_row['repo']);
 
-			//formatted list of external resources
-			$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
+		//formatted list of external resources
+		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
+
+		//formatted list of data files
+		$survey_row['data_files']=$this->catalog_admin->get_formatted_data_files($id);
 
 		//get all study notes
 		$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);
@@ -2038,48 +1873,48 @@ class Catalog extends MY_Controller {
 		//survey tags
 		$tags['tags'] = $this->Catalog_tags_model->survey_tags($id);
 
-			//all tags
-			$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
+		//all tags
+		$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
 
-			$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
+		$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
 
-			//other survey IDs
-			$survey_aliases = $this->Survey_alias_model->get_aliases($id);
-			$survey_row['survey_aliases']=$this->load->view('catalog/survey_aliases', array('rows'=>$survey_aliases), true);
-			$survey_row['survey_alias_array']=$survey_aliases;
+		//other survey IDs
+		$survey_aliases = $this->Survey_alias_model->get_aliases($id);
+		$survey_row['survey_aliases']=$this->load->view('catalog/survey_aliases', array('rows'=>$survey_aliases), true);
+		$survey_row['survey_alias_array']=$survey_aliases;
 
-			//get citations for the current survey
-			$selected_citations= $this->Citation_model->get_citations_by_survey($id);
+		//get citations for the current survey
+		$selected_citations= $this->Citation_model->get_citations_by_survey($id);
 
-			//TODO: recheck
-			//see if the edited citation has citations attached, otherwise assign empty array
-			$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
-			$survey_row['selected_citations'] = $selected_citations;
+		//TODO: recheck
+		//see if the edited citation has citations attached, otherwise assign empty array
+		$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
+		$survey_row['selected_citations'] = $selected_citations;
 
-			//get study relationships
-			$this->load->model("Related_study_model");
-			$survey_row['related_studies']=$this->Related_study_model->get_relationships($id);
+		//get study relationships
+		$this->load->model("Related_study_model");
+		$survey_row['related_studies']=$this->Related_study_model->get_relationships($id);
 
-			//array of all relationship types
-			$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
+		//array of all relationship types
+		$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
 
-			//pdf documentation for study
-			$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
+		//pdf documentation for study
+		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
-			//data access form list
-			$this->load->model('Form_model');
-			$this->forms_list=array('0'=>'---');
+		//data access form list
+		$this->load->model('Form_model');
+		$this->forms_list=array('0'=>'---');
 
-			//create a list of choices for the drop down
-			foreach($this->Form_model->get_all()  as $value)
-			{
-				$this->forms_list[$value['formid']]=t($value['fname']);
-			}
+		//create a list of choices for the drop down
+		foreach($this->Form_model->get_all()  as $value){
+			$this->forms_list[$value['formid']]=t($value['fname']);
+		}
 
-			$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
-			$this->template->write('content', $content,true);
+		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
+		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+
 
 
 	/*
@@ -2124,6 +1959,8 @@ class Catalog extends MY_Controller {
 					}
 			}
 		}
+
+		//$this->events->emit('db.after.update', 'surveys', $id,'atomic');
 
 		redirect('admin/catalog/edit/'.$id);
 
@@ -2233,7 +2070,7 @@ class Catalog extends MY_Controller {
 		$this->load->model("Related_study_model");
 		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id=null);
 
-    echo $this->db->last_query();
+    	echo $this->db->last_query();
 	}
 
 	function get_related_studies($sid)
@@ -2254,7 +2091,7 @@ class Catalog extends MY_Controller {
 
 	function set_featured_study($repositoryid,$sid,$status)
 	{
-		$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
+		$result=$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
 
 		if ($this->input->get('destination'))
 		{
@@ -2270,6 +2107,76 @@ class Catalog extends MY_Controller {
 		$content=$this->load->view('catalog/featured_studies', $data,TRUE);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
+	}
+
+
+	/**
+	 * 
+	 * Attach survey data files to external resources
+	 * 
+	 */
+	function attach_data_file_resources($sid,$file_id)
+	{
+		$this->load->model("Dataset_model");
+		$this->load->model("Survey_resource_model");
+		$this->load->model("Data_file_model");
+		$this->load->model("Data_file_resources_model");
+
+		$survey=$this->Dataset_model->get_row($sid);
+
+		if(!$survey){
+			show_error("DATASET-NOT-FOUND");
+		}
+
+		//load data file and resources
+		//TODO
+
+		$data['sid']=$sid;
+		$data['file_id']=$file_id;
+		$data['survey']=$survey;
+
+		//get file info
+		$data['file']=$this->Data_file_model->get_file_by_id($sid,$file_id);
+
+		//get all microdata type external resources
+		$data['resources']=$this->Survey_resource_model->get_microdata_resources($sid);
+
+		//get current data file and attached resources
+		$data['attached_resources']=$this->Data_file_resources_model->get_file_resources($sid,$file_id);
+
+		$content=$this->load->view('catalog/attach_data_file_resources',$data,true);
+		
+		$this->template->set_template('admin_blank');
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
+
+	//process posted form
+	function attach_data_file_resources_post($sid,$file_id)
+	{
+		$this->load->model("Data_file_resources_model");
+		$resources=$this->input->post("resource_id");
+		$formats=$this->input->post("format");
+
+		$options=array();
+		foreach($resources as $idx=>$value)
+		{
+			echo $value;
+			echo "-";
+			echo $formats[$idx];
+
+			$options[]=array(
+				'resource_id'=>$value,
+				'sid'=>$sid,
+				'fid'=>$file_id,
+				'file_format'=>$formats[$idx]
+			);
+		}
+
+		//update data file resources links
+		$this->Data_file_resources_model->batch_update($sid, $file_id, $options);
+
+		redirect('admin/catalog/attach_data_file_resources/'.$sid.'/'.$file_id);
 	}
 
 

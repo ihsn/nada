@@ -13,8 +13,8 @@
     
     <div class="field" style="background:gainsboro;padding:10px;margin-bottom:15px;">
         <?php //echo form_dropdown('target', $surveys,$id);?>
-        <div style="font-weight:bold"><?php echo $survey['titl'];?></div>
-        <div><?php echo $survey['nation'];?>, <?php echo $survey['data_coll_start'];?></div>
+        <div style="font-weight:bold"><?php echo $survey['title'];?></div>
+        <div><?php echo $survey['nation'];?>, <?php echo $survey['year_start'];?></div>
     </div>
     
     <div class="field">

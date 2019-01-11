@@ -10,8 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='wb2';
-
+$template['theme_name']='nada';
 
 
 /*
@@ -37,7 +36,7 @@ $template['base_url']=defined('JS_BASE_URL') ? JS_BASE_URL : base_url();
 
 /*
 |--------------------------------------------------------------------------
-| Explaination of template group variables
+| Explanation of template group variables
 |--------------------------------------------------------------------------
 |
 | ['template'] The filename of your master template file in the Views folder.
@@ -85,8 +84,8 @@ $template['installer']['theme_folder'] = 'installer';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/wb2/blank';
-$template['blank']['theme_folder'] = 'wb2';
+$template['blank']['template'] = '../../themes/nada/blank';
+$template['blank']['theme_folder'] = 'nada';
 
 $template['blank_iframe']['template'] =  '../../themes/wb2/blank';
 $template['blank_iframe']['theme_folder'] = 'wb2';

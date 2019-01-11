@@ -37,6 +37,21 @@ class Citations extends MY_Controller {
 		$data['active_repo']=$collection;
 		$content=$this->load->view('citations/public_search', $data,true);
 
+		$facet_options=array();
+
+		$facet_options['ctypes']=$this->Citation_model->get_types_with_count($collection);
+		$facet_options['active_repo']=$collection;
+
+		$facet_options['search']=array(
+			'keywords'=>$this->input->get("keywords"),
+			'from'=>$this->input->get("from"),
+			'to'=>$this->input->get("to"),
+			'ctype'=>(array)$this->input->get("ctype")
+		);
+
+		//show search form
+		$this->template->write('search_filters', $this->load->view('citations/facets',$facet_options,true),true);
+
 		if ($collection!==''){
 			$page_data=array(
 				'repo'=>$repo,
@@ -72,7 +87,7 @@ class Citations extends MY_Controller {
 	function _search()
 	{
 		//records to show per page
-		$per_page = 50;
+		$per_page = 30;
 
 		//current page
 		$offset=(int)$this->input->get('offset');//$this->uri->segment(4);
@@ -80,19 +95,20 @@ class Citations extends MY_Controller {
 
 		//sort order
 		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
-		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'authors';
+		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'rank';
 
 		//filter
 		$filter=NULL;
 
-		//simple search
-		if ($this->input->get_post("keywords") ){
-			$filter[0]['field']=$this->input->get_post('field');
-			$filter[0]['keywords']=$this->input->get_post('keywords');
-		}
+		$search_options=array(
+			'keywords'=>$this->input->get("keywords"),
+			'from'=>$this->input->get("from"),
+			'to'=>$this->input->get("to"),
+			'ctype'=>$this->input->get("ctype")
+		);
 
 		//records
-		$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1,$repository=$collection);
+		$rows=$this->Citation_model->search($per_page, $offset,$search_options, $sort_by, $sort_order,$published=1,$repository=$collection);
 
 		//total records found
 		$total = $this->Citation_model->search_count();
@@ -104,19 +120,20 @@ class Citations extends MY_Controller {
 			$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1,$repository=$collection);
 		}
 
-		//set pagination options
+		//set pagination options		
 		$base_url = site_url('citations');
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
 		$config['query_string_segment']="offset";
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','sort_by','sort_order','collection'));//pass any additional querystrings
+		$config['additional_querystring']=get_querystring( array('keywords', 'field','sort_by','sort_order','collection','ctype','from','to'));//pass any additional querystrings
 		$config['num_links'] = 1;
-		$config['full_tag_open'] = '<span class="page-nums">' ;
-		$config['full_tag_close'] = '</span>';
+		$config['full_tag_open'] = '<ul class="pagination pagination-md page-nums">' ;
+		$config['full_tag_close'] = '</ul>';
 		$config['last_link'] = '&raquo;';
 		$config['first_link'] = '&laquo;';
+		
 
 		//intialize pagination
 		$this->pagination->initialize($config);
@@ -143,7 +160,7 @@ class Citations extends MY_Controller {
 		$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
 
 		$content=$this->load->view('citations/citation_info',$citation,TRUE);
-		$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
+		//$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
 
 		$repo=$this->get_repo_by_id($this->input->get("collection"));
 		$collection='central';

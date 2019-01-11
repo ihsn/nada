@@ -4,12 +4,6 @@
  * Bulk Data Acces
  * 
  *
- *
- *
- * @subpackage	Libraries
- * @author		Mehmood Asghar
- * @link		-
- *
  */ 
 class Bulk_data_access
 {
@@ -73,7 +67,7 @@ class Bulk_data_access
 	
 	function get_study_list_by_set($da_collection_id)
 	{
-		$this->ci->db->select('surveys.id,surveys.titl,nation,data_coll_start,data_coll_end');
+		$this->ci->db->select('surveys.id,surveys.title,nation,year_start,year_end');
 		$this->ci->db->join('da_collection_surveys','surveys.id=da_collection_surveys.sid','inner');
 		$this->ci->db->order_by('nation'); 
 		$this->ci->db->where('da_collection_surveys.cid',$da_collection_id);
@@ -214,7 +208,7 @@ class Bulk_data_access
     {
 	
 		$db_fields=array(
-				'title'			=> 'surveys.titl',
+				'title'			=> 'surveys.title',
 				'nation'		=> 'surveys.nation',
 				'repositoryid'	=> 'survey_repos.repositoryid',
 				'changed'		=> 'surveys.changed'
@@ -223,7 +217,7 @@ class Bulk_data_access
 		$where=$this->build_search_where($search_options);
 		
 		//set Limit clause
-	  	$this->ci->db->select('surveys.id,surveys.titl,surveys.nation,surveys.data_coll_start,surveys.data_coll_end,survey_repos.repositoryid,surveys.proddate,surveys.changed');
+	  	$this->ci->db->select('surveys.id,surveys.title,surveys.nation,surveys.year_start,surveys.year_end,survey_repos.repositoryid,surveys.changed');
 		$this->ci->db->join('forms', 'forms.formid= surveys.formid');
 		$this->ci->db->join('survey_repos', 'survey_repos.sid= surveys.id');
 		$this->ci->db->limit($limit, $offset);
@@ -265,7 +259,7 @@ class Bulk_data_access
 		{
 			if ($key=='keywords' && trim($value)!="" )
 			{
-				$where[]=sprintf(" (surveys.titl like %s OR surveys.surveyid=%s OR surveys.nation like %s or survey_repos.repositoryid like %s)",
+				$where[]=sprintf(" (surveys.title like %s OR surveys.idno=%s OR surveys.nation like %s or survey_repos.repositoryid like %s)",
 						$this->ci->db->escape('%'.$value.'%'),
 						$this->ci->db->escape($value),
 						$this->ci->db->escape('%'.$value.'%'),

@@ -512,6 +512,17 @@ class Resource_model extends CI_Model {
 	}
 
 	/**
+	* returns a single row
+	*
+	*
+	**/
+	function get_single_resource_by_survey($sid,$resource_id){
+		$this->db->where('resource_id', $resource_id); 
+		$this->db->where('survey_id', $sid); 
+		return $this->db->get('resources')->row_array();
+	}
+
+	/**
 	*
 	* List of resources grouped by resource-type
 	*
@@ -724,5 +735,148 @@ class Resource_model extends CI_Model {
 		return FALSE;
 	}
 
+
+	/**
+	*
+	* Import RDF file
+	**/
+	public function import_rdf($surveyid,$filepath)
+	{
+		//check file exists
+		if (!file_exists($filepath))
+		{
+			return FALSE;
+		}
+		
+		//read rdf file contents
+		$rdf_contents=file_get_contents($filepath);
+			
+		//load RDF parser class
+		$this->load->library('RDF_Parser');
+			
+		//parse RDF to array
+		$rdf_array=$this->rdf_parser->parse($rdf_contents);
+
+		if ($rdf_array===FALSE || $rdf_array==NULL){
+			return FALSE;
+		}
+
+		//Import
+		$rdf_fields=$this->rdf_parser->fields;
+
+		$output=array(
+			'added'=>0,
+			'skipped'=>0
+		);
+			
+		//success
+		foreach($rdf_array as $rdf_rec)
+		{
+			$insert_data['survey_id']=$surveyid;
+			
+			foreach($rdf_fields as $key=>$value)
+			{
+				if ( isset($rdf_rec[$rdf_fields[$key]]))
+				{
+					$insert_data[$key]=trim($rdf_rec[$rdf_fields[$key]]);
+				}	
+			}										
+			
+			//check filenam is URL?
+			if (!is_url($insert_data['filename']))
+			{
+				//clean file paths
+				$insert_data['filename']=unix_path($insert_data['filename']);
+
+				//remove slash before the file path otherwise can't link the path to the file
+				if (substr($insert_data['filename'],1,1)=='/')
+				{
+					$insert_data['filename']=substr($insert_data['filename'],2,255);
+				}												
+			}
+			
+			//check if the resource file already exists
+			$resource_exists=$this->Resource_model->get_resources_by_filepath($insert_data['filename']);
+			
+			if (!$resource_exists)
+			{										
+				//insert into db
+				$this->insert($insert_data);
+				$output['added']++;
+			}
+			else{
+				$output['skipped']++;
+			}
+		}
+	
+		return $output;
+	}
+
+	/**
+     *
+     * Count resources by survey
+     *
+     */
+    function get_resources_count_by_survey($sid)
+    {
+        $this->db->select('count(resource_id) as total');
+        $this->db->where('survey_id', $sid);
+        $result=$this->db->get('resources')->row_array();
+        return $result['total'];
+	}
+	
+
+	/**
+	 * 
+	 * 
+	 * Upload an RDF and return path to the file
+	 * 
+	 * @tmp_path - folder where to upload the file
+	 * @file_field - FILE field name
+	 * 
+	 */
+	function upload_rdf($tmp_path,$file_field='rdf')
+	{
+		//upload class configurations for RDF
+		$config['upload_path'] = $tmp_path;
+		$config['overwrite'] = FALSE;
+		$config['encrypt_name']=TRUE;
+		$config['allowed_types'] = 'rdf';
+
+		$this->upload->initialize($config);
+
+		//process uploaded rdf file
+		$rdf_upload_result=$this->upload->do_upload($file_field);
+
+		if(!$rdf_upload_result){
+			$error = $this->upload->display_errors();
+			throw new Exception("RDF_UPLOAD::".$error);
+		}
+		
+		$upload = $this->upload->data();
+
+		//path to the uploaded rdf file
+		return $upload['full_path'];
+	}
+
+	/**
+	 * 
+	 * Upload an RDF file and import resources
+	 * 
+	 * 
+	 */
+	function import_uploaded_rdf($sid,$tmp_path,$file_field='rdf')
+	{
+		//upload RDF file
+		$uploaded_rdf_path=$this->upload_rdf($tmp_path,$file_field);
+		
+		//import rdf entries
+		$rdf_import_result=$this->import_rdf($sid,$uploaded_rdf_path);
+
+		//delete rdf
+		@unlink($uploaded_rdf_path);
+
+		return $rdf_import_result;
+	}
+
 }
-?>

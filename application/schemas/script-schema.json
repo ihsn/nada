@@ -1,0 +1,823 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Script Schema [DRAFT]",
+  "description": "Schema for Script data type",
+  "type": "object",
+  "properties": {    
+
+    "repositoryid": {
+      "type": "string",
+      "title": "Collection ID that owns the script",
+      "description": "Abbreviation for the collection that owns the script"
+    },
+
+    "access_policy": {
+      "type": "string",
+      "title": "Data access policy",
+      "description": "Data access policy for attached microdata resources",
+      "enum": [
+        "direct",
+        "open",
+        "public",
+        "licensed",
+        "remote",
+        "na"
+      ],
+      "default": "na"
+    },
+    
+    "data_remote_url": {
+      "type": "string",
+      "title": "Data website URL",
+      "description": "Link to the website where the data is available, this is only needed if `access_policy` is set to `remote`.",
+      "default": ""
+    },
+    "published": {
+      "type": "integer",
+      "title": "Status",
+      "description": "Status of the script - 0=draft, 1=published",
+      "default": 0
+    },
+
+    "doc_desc": {      
+      "type": "object",
+      "title": "Document Description",
+      "description": "Document Description",
+      "properties": {        
+        "title": {
+          "title": "Document title",
+          "description": "Document title",
+          "type": "string"
+        },
+        "idno": {
+          "title": "Unique ID number for the document",
+          "type": "string"
+        },
+        "producers": {
+          "type": "array",
+          "title": "Producers",
+          "description": "List of producers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "description": "Name (required)",
+                "type": "string"
+              },
+              "abbr": {
+                "title": "Abbreviation",
+                "type": "string"
+              },
+              "affiliation": {
+                "type": "string",
+                "title": "Affiliation"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "prod_date": {
+          "title": "Date of Production",
+          "description": "Document production date using format(YYYY-MM-DD)",
+          "type": "string"
+        },
+        "version": {
+          "title": "Document version",
+          "description": "Identify and describe the current version of the document",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "project_desc": {
+      "type": "object",
+      "title": "Project Description",
+      "description": "Project Description",
+      "properties": {  
+
+        "title_statement": {
+          "type": "object",
+          "description": "Study title",
+          "_ddi_xpath":"stdyDscr/citation/titlStmt",
+          "properties": {
+            "idno": {
+              "type": "string",
+              "title": "Unique user defined ID",
+              "description": "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)",
+              "_ddi_xpath":"stdyDscr/citation/titlStmt/IDNo"
+            },
+            "title": {
+              "type": "string",
+              "title": "Survey title",
+              "description": "The title is the official name of the survey as it is stated on the questionnaire or as it appears in the design documents. The following items should be noted:\n - Include the reference year(s) of the survey in the title. \n - Do not include the abbreviation of the survey name in the title. \n - As the survey title is a proper noun, the first letter of each word should be capitalized (except for prepositions or other conjunctions).\n - Including the country name in the title is optional.",
+              "_ddi_xpath":"stdyDscr/citation/titlStmt/titl"
+            },
+            "sub_title": {
+              "type": "string",
+              "title": "Survey subtitle",
+              "description": "A short subtitle for the survey",
+              "_ddi_xpath":"stdyDscr/citation/titlStmt/subTitl"
+            },
+            "alternate_title": {
+              "type": "string",
+              "title": "Abbreviation or Acronym",
+              "description": "The abbreviation of a survey is usually the first letter of each word of the titled survey. The survey reference year(s) may be included.",
+              "_ddi_xpath":"stdyDscr/citation/titlStmt/altTitl"
+            },
+            "translated_title": {
+              "title": "Translated Title",
+              "description": "In countries with more than one official language, a translation of the title may be provided.",
+              "type": "string",
+              "_ddi_xpath":"stdyDscr/citation/titlStmt/parTitl"
+            }
+          },
+          "required": [
+            "idno",
+            "title"
+          ]
+        },
+
+        "production_date": {
+          "type": "string",
+          "title":"Date of production (YYYY-MM-DD)",
+          "description": "Date when the project (dissemination-ready version) was implemented"
+        },
+        "geographic_coverage": {
+          "title": "Geographic coverage",
+          "description": "Information on the geographic areas (if any) covered by the scripts/project. This may be a list of countries, regions, etc",
+          "type": "array",
+          "items": {
+            "type": "string"
+            }      
+        },
+        "authoring_entity": {
+          "type": "array",
+          "title": "Authoring entity",
+          "description": "The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Agency Name",
+                "type": "string",
+                "description":"Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+              },
+              "role": {
+                "title": "Role",
+                "type": "string",
+                "description":"Title of the person (if any) responsible for the work's substantive and intellectual content."
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "abbreviation": {
+                "title": "Abbreviation",
+                "description":"Abbreviation"
+              },
+              "email": {
+                "title": "Email",
+                "description":"Email"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "contributor": {
+          "type": "array",
+          "title": "Contributor(s)",
+          "description": "The person, corporate body, or agency who contributed to the project.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Agency Name",
+                "type": "string",
+                "description":"Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+              },
+              "role": {
+                "title": "Role",
+                "type": "string",
+                "description":"Title of the person (if any) responsible for the work's substantive and intellectual content."
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "abbreviation": {
+                "title": "Abbreviation",
+                "description":"Abbreviation"
+              },
+              "email": {
+                "title": "Email",
+                "description":"Email"
+              },
+              "url": {
+                "title": "URL",
+                "description":"URL"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "curator": {
+          "type": "array",
+          "title": "Contributor(s)",
+          "description": "The person, corporate body, or agency who contributed to the project.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Agency Name",
+                "type": "string",
+                "description":"Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+              },
+              "role": {
+                "title": "Role",
+                "type": "string",
+                "description":"Title of the person (if any) responsible for the work's substantive and intellectual content."
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "abbreviation": {
+                "title": "Abbreviation",
+                "description":"Abbreviation"
+              },
+              "email": {
+                "title": "Email",
+                "description":"Email"
+              },
+              "url": {
+                "title": "URL",
+                "description":"URL"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },        
+        "abstract": {
+          "type": "string",
+          "title": "Abstract"
+        }, 
+        "output_type": {
+          "type": "string",
+          "title":"Output type",
+          "description": "Type of output of the script/research project. Example: `On-line interactive data visualization`, `Working paper`"
+        },
+        "publication_url": {
+          "type": "string",
+          "title":"Publication URL",
+          "description": "Link to the publication (output) to which the scripts are related. This will for example be the URL of a PDF working paper."    
+        },
+        "doi": {
+          "type": "string",
+          "title":"DOI",
+          "description": "DOI handle"    
+        },
+        
+        "repository_url": {
+            "type": "array",
+            "title": "Source code repository",
+            "description": "Source code repository",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "title": "Repository name",
+                  "type": "string",
+                  "description":"Name of the repository where code is hosted. e.g. `Github`, `Bitbucket`, etc."
+                },
+                "type": {
+                  "title": "Type",
+                  "type": "string",
+                  "description":"Repo type e.g. `git`, `svn`, `other`"
+                },
+                "uri": {
+                  "title": "URI",
+                  "description":"URI"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },    
+        "project_website": {
+          "type": "string",
+          "description": "Project website link"    
+        },
+        "version_statement": {
+          "type": "object",
+          "title": "Version Statement",
+          "description": "Version Statement",
+          "_ddi_xpath":"stdyDscr/citation/verStmt",
+          "properties": {
+            "version": {
+              "title": "Version",
+              "type": "string",
+              "_ddi_xpath":"stdyDscr/citation/verStmt/version"
+            },
+            "version_date": {
+              "title": "Version Date",
+              "type": "string",
+              "_ddi_xpath":"stdyDscr/citation/verStmt/version/@date"
+            },
+            "version_resp": {
+              "title": "Version Responsibility Statement",
+              "description":"The organization or person responsible for the version of the work",
+              "type": "string",
+              "_ddi_xpath":"stdyDscr/citation/verStmt/verResp"
+            },
+            "version_notes": {
+              "title": "Version Notes",
+              "type": "string",
+              "_ddi_xpath":"stdyDscr/citation/verStmt/notes"
+            }
+          }
+        },
+        
+        "language": {
+          "type": "object",
+          "title": "Language",
+          "description": "Documentation language e.g. English, French, etc.",          
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "code": {
+              "title": "Code",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "methods": {
+          "type": "array",
+          "title":"Methods or algorithms applied",
+          "description": "Methods or algorithms used",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Method Name",
+                "type": "string"
+              },
+              "note": {
+                "title": "Description",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },    
+       
+        "software": {
+          "type": "array",
+          "title": "Software",
+          "description": "Software",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "version": {
+                "title": "Version",
+                "type": "string"
+              },
+              "library": {
+                "title": "Libraries or packages used",
+                "description": "Libraries or packages used",
+                "type": "array",
+                "items":{
+                  "type":"string"
+                }
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "technology_environment": {
+          "title": "Technology environment",
+          "description":"Notes about specific technology environment for the project",
+          "type": "string"
+        },
+        "technology_requirements": {
+          "title": "Technology requirements",
+          "description":"Any specific software/hardware or other requirements",
+          "type": "string"
+        },
+        
+        "reproduction_instructions": {
+          "type": "string",
+          "description": "Reproduction instructions"    
+        }, 
+
+       
+        "license": {
+          "type": "object",
+          "title": "License",
+          "description": "License",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "URI": {
+                "title": "URI",
+                "type": "string"
+              }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+
+
+
+        
+        "pub_research": {
+          "type": "array",
+          "title": "Published research",
+          "description": "Published research",
+          "items": {
+            "type": "object",
+            "properties": {
+              "submit_date": {
+                "title": "Date submitted",
+                "type": "string"
+              },
+              "reviewer": {
+                "title": "Reviewer",
+                "type": "string"
+              },
+              "review_status": {
+                "title": "Review status",
+                "type": "string"
+              },
+              "review_date": {
+                "title": "Review status",
+                "type": "string"
+              },
+              "approval_date": {
+                "title": "Approval date",
+                "type": "string"
+              },
+              "approval_authority": {
+                "title": "Approval authority",
+                "type": "string"
+              },
+              "pub_date": {
+                "title": "Date published",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }, 
+        
+        
+        "data_included": {
+          "type": "boolean",
+          "description": "Is data included with the script?"    
+        },
+        "data_url": {
+          "type": "string",
+          "description": "Link to an external website where data is available"    
+        },
+        "contact": {
+          "type": "array",
+          "title": "Contact",
+          "description": "Contact",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "URI": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "disclaimer": {
+          "title": "Disclaimer",
+          "type": "string"
+        },
+        "confidentiality": {
+          "title": "Confidentiality",
+          "type": "string"
+        },        
+        "citation_requirement": {
+          "type": "string",
+          "description": "Citation requirements"    
+        },   
+        
+        "data_desc": {
+          "type": "array",
+          "title": "Data description",
+          "description": "Contributors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Dataset name",
+                "type": "string"
+              },
+              "idno": {
+                "title": "Dataset ID",
+                "type": "string"
+              },
+              "note": {
+                "title": "Description",
+                "type": "string"
+              },
+              "access_type": {
+                "title": "Data access policy",
+                "type": "string"
+              },
+              "URI": {
+                "title": "URL",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+        "review_process": {
+          "type": "array",
+          "title": "Project Review Process",
+          "description": "Project review process that led to the publishing of the scripts",
+          "items": {
+            "type": "object",
+            "properties": {
+              "submit_date": {
+                "title": "Submission date",
+                "type": "string"
+              },
+              "reviewer": {
+                "title": "Reviewer name",
+                "type": "string"
+              },
+              "status": {
+                "title": "Status of review",
+                "type": "string"
+              },
+              "review_date": {
+                "title": "Date of review",
+                "type": "string"
+              },
+              "approval_date": {
+                "title": "Date of final approval",
+                "type": "string"
+              },
+              "authority": {
+                "title": "Authority",
+                "description":"Identification of the person or organization having formally approved the scripts/project after comlpetion of the review process",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "reviewer"
+          ]
+        },
+
+        "sponsor": {
+          "type": "array",
+          "title": "Sponsor / Funding agency",
+          "description": "The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Funding Agency/Sponsor",
+                "type": "string"
+              },
+              "abbr": {
+                "title": "Abbreviation",
+                "type": "string"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "acknowledgements": {
+          "type": "array",
+          "title": "Other Identifications /Acknowledgments",
+          "description": "Other Identifications /Acknowledgments",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+                
+        "related_projects": {
+          "type": "array",
+          "title": "Related projects/scripts",
+          "description": "Related projects",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+        "contacts": {
+          "type": "array",
+          "title": "Contacts",
+          "description": "Contacts",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              },
+              "phone": {
+                "title": "Phone number",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+
+        "script_files": {
+          "type": "array",
+          "title": "Script files",
+          "description": "Script files",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file_name": {
+                "title": "File name",
+                "type": "string"
+              },
+              "title": {
+                "title": "Title",
+                "type": "string"
+              },
+              "authors": {
+                "type": "array",
+                "title": "Authors",
+                "description": "Authors",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "title": "Person or Organization name",
+                      "type": "string"
+                    },
+                    "abbr": {
+                      "title": "Abbreviation",
+                      "type": "string"
+                    },
+                    "role": {
+                      "title": "Role",
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              },
+              "date": {
+                "title": "Date",
+                "type": "string"
+              },
+              "format": {
+                "title": "Format",
+                "type": "string"
+              },
+              "software": {
+                "title": "software",
+                "type": "string"
+              },
+              "description": {
+                "title": "Description",
+                "type": "string"
+              },
+              "methods": {
+                "title": "Methods",
+                "type": "string"
+              },
+              "dependencies": {
+                "title": "Dependencies",
+                "type": "string"
+              },
+              "instructions": {
+                "title": "Instructions or note for running the script",
+                "type": "string"
+              },
+              "source_code_repo": {
+                "title": "Source code repositor",
+                "type": "string"
+              },
+              "notes": {
+                "title": "Notes",
+                "type": "string"
+              }
+              
+            }
+          },
+          "required": [
+            "title"
+          ]
+        }
+        
+        
+
+      }
+    }
+  }
+}

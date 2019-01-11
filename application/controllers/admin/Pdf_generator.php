@@ -10,6 +10,7 @@ class Pdf_generator extends MY_Controller {
 		$this->lang->load("ddibrowser");
 		$this->lang->load("catalog_search");
 		$this->load->model('Catalog_model');
+		$this->load->model('Dataset_model');
 		//$this->output->enable_profiler(TRUE);
     }
  
@@ -63,15 +64,15 @@ class Pdf_generator extends MY_Controller {
 		}
 		else{
 			$survey=$this->Catalog_model->select_single($sid);			
-			$data['publisher']=$survey['authenty'];
+			$data['publisher']=$survey['authoring_entity'];
 			if (@json_decode($data['publisher']))
 			{
 				$data['publisher']=is_array($data['publisher']) ? implode(", ",$data['publisher']) : '';
 			}
 			$data['website_title']=$this->config->item("website_title");
 			$data['website_url']=site_url();
-			$data['study_title']=$survey['nation'].' - '.$survey['titl'];
-			$data['study_id']=$survey['surveyid'];
+			$data['study_title']=$survey['nation'].' - '.$survey['title'];
+			$data['study_id']=$survey['idno'];
 			$data['id']=$survey['id'];
 			$data['varcount']=$survey['varcount'];
 		}
@@ -102,10 +103,10 @@ class Pdf_generator extends MY_Controller {
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($surveyid);
 		$survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
+		//$survey_folder=$this->Dataset_model->get_storage_fullpath($surveyid);		
 		
-		if ($ddi_file===FALSE || !file_exists($ddi_file))
-		{
-			show_error(t('file_not_found'));
+		if ($ddi_file===FALSE || !file_exists($ddi_file)){
+			show_error(t('file_not_found'. $ddi_file));
 		}
 	
 		//output report file name
@@ -128,7 +129,7 @@ class Pdf_generator extends MY_Controller {
 			$this->config->set_item("log_threshold",0);
 
 			$start_time=date("H:i:s",date("U"));
-			
+
 			//write PDF report to a file
 			$this->pdf_report->generate($report_file,$ddi_file,$options);
 			$end_time=date("H:i:s",date("U"));

@@ -2,7 +2,7 @@
 <form method="post">
 
 <?php if ($template_file!=''):?>
-	<table width="100%" cellpadding="0" cellspacing="0">
+	<table class="table table-striped" cellpadding="0" cellspacing="0">
         <tr class="table-header" valign="top" align="left">
             <th width="100px">Key</th>
             <th>Translation</th>
@@ -21,7 +21,7 @@
 			}
 			else
 			{
-				$td_css.=' not-found';
+				$td_css.=' not-found bg-danger';
 			}
 		?>
     	<tr class="<?php echo $td_css; ?>" valign="top">
@@ -39,14 +39,15 @@
 					$lines=2;
 				}					
 			?>
-            <?php //echo form_textarea(md5($key), set_value(NULL, $slave_value),'class="flex-textarea" rows="'.$lines.'"');?>
-			<textarea name="<?php echo md5($key);?>" class="flex-textarea flex" rows="<?php echo $lines;?>"><?php echo set_value(NULL, htmlspecialchars_decode($edit_value)); ?></textarea>
+			<?php //echo form_textarea(md5($key), set_value(NULL, $slave_value),'class="flex-textarea" rows="'.$lines.'"');?>
+			<?php //echo set_value('text', htmlspecialchars_decode($edit_value)); ?>
+			<textarea name="<?php echo md5($key);?>" class="form-control flex-textarea flex" rows="<?php echo $lines;?>"><?php echo set_value(md5($key), htmlspecialchars_decode($edit_value)); ?></textarea>
         </td>
         </tr>
         <?php //break;?>
     <?php endforeach;?>
     </table>
-	<div><input type="submit" value="Save" name="save"/>  </div>
+	<div><input class="btn btn-primary" type="submit" value="Save" name="save"/>  </div>
     <?php else:?>
         <h1>How to use Translation editor</h1>
         <p>Use the left pane to select the language and the translation file to start editing</p>

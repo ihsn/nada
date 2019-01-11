@@ -72,7 +72,8 @@ class Repository_model extends CI_Model {
 	* Select a single repository item
 	*
 	**/
-	function select_single($id){
+	function select_single($id)
+	{
 		$this->db->where('id', $id); 
 		return $this->db->get('repositories')->row_array();
 	}
@@ -115,6 +116,8 @@ class Repository_model extends CI_Model {
 		}
 		return FALSE;	
 	}
+
+
 	
 	function get_survey_id($repositoryid,$surveyid)
 	{
@@ -130,23 +133,7 @@ class Repository_model extends CI_Model {
 		return FALSE;
 	}
 	
-	function get_row($repositoryid,$surveyid)
-	{
-		$this->db->select("harvester_queue.*,repositories.url as repo_url, repositories.title as repo_title");
-		$this->db->join('repositories', 'harvester_queue.repositoryid = repositories.repositoryid','left');
-		$this->db->where('harvester_queue.repositoryid', $repositoryid); 
-		$this->db->where('harvester_queue.surveyid', $surveyid); 
-		$query=$this->db->get('harvester_queue');
-		$rows=$query->result_array();
-
-		if (count($rows)>0)
-		{
-			return $rows[0];
-		}
-		return FALSE;
-	}
 	
-
 
 	/**
 	* update 
@@ -286,37 +273,70 @@ class Repository_model extends CI_Model {
 		$this->db->delete('survey_repos');
 	}
 	
-	/**
-	*
-	* Returns an array of all repositories
-	*	
-	**/
-	function select_all()
-	{
-		$this->db->select('*');
-		$this->db->order_by('title', 'ASC'); 
-		$query=$this->db->get('repositories');
 
-		if (!$query)
-		{
-			return array();
-		}
-		
-		$result=$query->result_array();
-		
-		if (!$result)
-		{
+	/**
+	 * 
+	 * 
+	 * Return a list of repositories
+	 * 
+	 */
+	function list_all()
+	{
+		$this->db->select('id,repositoryid,title,ispublished');
+		$this->db->order_by('title', 'ASC'); 
+		$result=$this->db->get('repositories')->result_array();
+
+		if (!$result){
 			return array();
 		}
 
 		$repos=array();
-		foreach($result as $row)
-		{
+		foreach($result as $row){
 			$repos[$row['repositoryid']]=$row;
 		}
 	
 		return $repos;
 	}
+
+	
+
+
+
+	/**
+	*
+	* Returns an array of all repositories
+	*	
+	**/
+	function select_all($published=null)
+	{
+		$this->db->select('*');
+		$this->db->order_by('title', 'ASC'); 
+
+		if($published!==null){
+			$this->db->where('ispublished',$published);
+		}
+
+		$query=$this->db->get('repositories');
+
+		if (!$query){
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		if (!$result){
+			return array();
+		}
+
+		$repos=array();
+		foreach($result as $row){
+			$repos[$row['repositoryid']]=$row;
+		}
+	
+		return $repos;
+	}
+
+
 	
 	/**
 	*
@@ -328,49 +348,39 @@ class Repository_model extends CI_Model {
 	{
 		$this->db->select('repositories.*,repository_sections.title as section_title, repository_sections.weight as section_weight');
 
-		if ($published==TRUE)
-		{
+		if ($published==TRUE){
 			$this->db->where("repositories.ispublished",1);
 		}
 
-		if ($system==FALSE)
-		{
+		if ($system==FALSE){
 			//show system repositories
 			$this->db->where("repositories.type !=",2);
-		}
-		
-		/*if ($exclude_central==TRUE)
-		{
-			//show system repositories
-			$this->db->where("repositories.pid!=",0,FALSE);
-		}*/
-		
+		}		
 		
 		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title'); 
 		$this->db->join('repository_sections', 'repository_sections.id= repositories.section','inner');
 		$query=$this->db->get('repositories');
 
-		if (!$query)
-		{
+		if (!$query){
 			return array();
 		}
 		
 		$result=$query->result_array();
 		
-		if (!$result)
-		{
+		if (!$result){
 			return array();
 		}
 
 		//create an array, making the repositoryid array key
 		$repos=array();
-		foreach($result as $row)
-		{
+		foreach($result as $row){
 			$repos[$row['repositoryid']]=$row;
 		}
 	
 		return $repos;
 	}
+
+	
 	
 	
 	function get_repository_by_repositoryid($repositoryid)
@@ -587,11 +597,21 @@ class Repository_model extends CI_Model {
 		return $output;
 	}
 	
-	//get repository list by survey id
-	function get_repo_list_by_survey($sid)
+	/**
+	 * 
+	 * get repository list by survey id
+	 * 
+	 * @exclude_owner - exclude repo that own the survey
+	 **/ 
+	function get_repo_list_by_survey($sid,$exclude_owner=false)
 	{
 		$this->db->select('repositoryid');
 		$this->db->where('sid',$sid);
+
+		if($exclude_owner==true){
+			$this->db->where('isadmin!=',1,false);
+		}
+		
 		$rows=$this->db->get('survey_repos')->result_array();
 		
 		$output=array();
@@ -602,6 +622,20 @@ class Repository_model extends CI_Model {
 		return $output;
 	}
 
+	
+	function is_valid_repo($repo_name)
+	{
+		if($repo_name=='central'){
+			return true;
+		}
+
+		if($this->repository_exists($repo_name)){
+			return true;
+		}
+
+		return false;
+	}
+	
 	/**
 	* checks if a repositoryid exists
 	*
@@ -660,7 +694,7 @@ class Repository_model extends CI_Model {
 	**/
 	public function repo_survey_list($repositoryid,$data_access_types=NULL)
 	{
-		$this->db->select('surveys.id,surveys.titl,surveys.nation,surveys.data_coll_start,surveys.data_coll_end,forms.model as da_model,surveys.created,surveys.changed');
+		$this->db->select('surveys.id,surveys.titl,surveys.nation,surveys.year_start,surveys.year_end,forms.model as da_model,surveys.created,surveys.changed');
 		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
 		$this->db->join('forms', 'surveys.formid = forms.formid','left');
 		$this->db->where('survey_repos.repositoryid',$repositoryid);
@@ -1191,7 +1225,9 @@ class Repository_model extends CI_Model {
 			$this->db->where('repoid',$repo_uid);
 			$this->db->where('sid',(int)$sid);
 			$this->db->delete('featured_surveys');
-		}	
+		}
+		
+		return true;
 	}
 	
 	
@@ -1212,7 +1248,7 @@ class Repository_model extends CI_Model {
 	
 	function get_all_featured_studies()
 	{
-		$this->db->select('surveys.id,surveys.titl,repositories.id as repo_id,repositories.repositoryid,surveys.nation,surveys.data_coll_start');
+		$this->db->select('surveys.id,surveys.titl,repositories.id as repo_id,repositories.repositoryid,surveys.nation,surveys.year_start');
 		$this->db->join('repositories','repositories.id=featured_surveys.repoid','INNER');
 		$this->db->join('surveys','surveys.id=featured_surveys.sid','INNER');
 		$query=$this->db->get('featured_surveys');
@@ -1222,5 +1258,35 @@ class Repository_model extends CI_Model {
 		}
 		
 		return $query->result_array();
+	}
+
+
+	/**
+	 * 
+	 * Return a list of all linked or owned studies for a collection
+	 * 
+	 * @rep_id - repository unique ID
+	 * @ispublished - by default all studies are returned regardless of published status
+	 * 
+	 */
+	function get_all_repo_studies($repo_id, $ispublished=null)
+	{
+		$this->db->select('surveys.id,surveys.idno,survey_repos.repositoryid,surveys.title,surveys.nation,surveys.year_start');
+		$this->db->join('survey_repos','survey_repos.sid=surveys.id','INNER');
+		$this->db->where('survey_repos.repositoryid',$repo_id);
+
+		if($ispublished!==null){
+			$this->db->where('surveys.published',$ispublished);
+		}
+
+		$query=$this->db->get('surveys');
+
+		if (!$query)
+		{
+			return FALSE;
+		}
+		
+		return $query->result_array();
+
 	}
 }

@@ -1,2 +1,0 @@
-<?php
-$lang['db'] = 'Database';

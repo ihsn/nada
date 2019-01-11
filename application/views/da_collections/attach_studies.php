@@ -127,7 +127,7 @@ text-transform: capitalize;
             	<td><?php echo strtoupper($row['repositoryid']);?></td>
 			  	<td><?php echo $row['nation'];?></td>
             <?php endif;?>
-            <td><?php echo $row['titl']; ?> - <?php echo $row['proddate']; ?></td>
+            <td><?php echo $row['title']; ?> - <?php echo $row['year_start']; ?></td>
             <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>
             <td class="">
             	<?php if (!in_array($row['id'],$linked_studies)):?>

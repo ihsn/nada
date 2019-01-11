@@ -45,6 +45,7 @@ class Data_access_public extends CI_Driver {
 			show_ERROR("INVALID_STUDY_ID");
 		}
 
+
 		$data= new stdclass;
 		$data->user_id=$user->id;
 		$data->username=$user->username;
@@ -52,10 +53,10 @@ class Data_access_public extends CI_Driver {
 		$data->lname=$user->last_name;
 		$data->organization=$user->company;
 		$data->email=$user->email;
-		$data->survey_title=$survey["titl"];
+		$data->survey_title=$survey["title"];
 		$data->survey_id=$sid;
 		$data->survey_uid=$survey["id"];
-		$data->proddate=$survey["proddate"];
+		$data->proddate=$survey["year_start"];
 		$data->abstract=$this->CI->input->post("abstract");
 
 		//check if the user has requested this survey in the past, if yes, don't show the request form
@@ -123,7 +124,9 @@ class Data_access_public extends CI_Driver {
 	function get_data_files($sid)
 	{
 		$this->CI->load->model('Resource_model');
-		$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
+		$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);
+		$result['sid']=$sid;
+		$result['storage_path']=$this->CI->Dataset_model->get_storage_fullpath($sid);
 		return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);
 	}
 

@@ -10,16 +10,16 @@ $selected_page=$this->uri->segment(5);
 		<table class="table table-striped" cellspacing="0">
         <tr>
             <td nowrap="nowrap" style="width:150px;"><?php echo t('ref_no');?></td>
-            <td><?php echo $surveyid; ?></td>
+            <td><?php echo $idno; ?></td>
         </tr>
 
-				<?php if(isset($survey_alias_array) && count($survey_alias_array)>0):?>
+		<?php if(isset($survey_alias_array) && count($survey_alias_array)>0):?>
         <tr>
             <td><?php echo t('study_aliases');?></td>
             <td>
             	<span class="survey-alias">
-								<?php foreach($survey_alias_array as $alias):?>
-										<span class="label label-default"><?php echo $alias['alternate_id'];?></span>
+				<?php foreach($survey_alias_array as $alias):?>
+					<span class="label label-default"><?php echo $alias['alternate_id'];?></span>
                 <?php endforeach;?>
                 </span>
             </td>
@@ -29,7 +29,7 @@ $selected_page=$this->uri->segment(5);
         <tr>
             <td><?php echo t('year');?></td>
             <td><?php
-				$years=array($data_coll_start,$data_coll_end);
+				$years=array($year_start,$year_end);
 				$years=array_unique($years);
 				?>
 				<?php echo implode(" - ",$years); ?>
@@ -52,19 +52,17 @@ $selected_page=$this->uri->segment(5);
                 </div>
             </td>
         </tr>
-        <tr>
+ <?php /* ?>
+       <tr>
             <td><?php echo t('producer');?></td>
-            <td><?php echo $authenty;//implode(",",(array)json_decode($authenty)); ?></td>
-        </tr>
-        <tr>
-            <td><?php echo t('sponsor');?></td>
-            <td><?php echo $sponsor; ?></td>
-        </tr>
+            <td><?php echo $authoring_entity; ?></td>
+		</tr>
+<?php */ ?>		
         <tr>
             <td><?php echo t('folder');?></td>
             <td><?php echo $dirpath;?></td>
         </tr>
-				<!--
+				
         <tr>
             <td><?php echo t('repository');?></td>
             <td>
@@ -77,7 +75,7 @@ $selected_page=$this->uri->segment(5);
                 <?php endif;?>
             </td>
         </tr>
-			-->
+			
 			<!--
         <tr>
             <td><?php echo t('Status');?></td>

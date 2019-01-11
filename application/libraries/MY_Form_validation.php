@@ -152,10 +152,37 @@ class MY_Form_validation extends CI_Form_validation {
 			$this->set_message('check_nonce','%s is no longer valid.');
 		}
 		return $result;
-	}
+    }
+    
 
+    //convert an array of errors to string 
+    public function error_array_to_string($errors)
+    {
+        $output=array();
+        foreach($errors as $key=>$value){
+            $output[]=$value;
+        }
+        return implode("<BR/>",$output);
+    }
+
+}//end class
+
+
+
+//Custom validation exception class
+class ValidationException extends \Exception
+{
+    private $options;
+
+    public function __construct($message,$options = array('params')) 
+    {
+        parent::__construct($message, $code=0, $previous=NULL);
+        $this->options = $options; 
+    }
+
+    //get validation errors as array
+    public function GetValidationErrors() 
+    { 
+        return $this->options; 
+    }
 }
-
-
-
-

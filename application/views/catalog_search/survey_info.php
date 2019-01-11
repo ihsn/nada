@@ -22,24 +22,24 @@
 <table class="grid-table survey-info" cellspacing="0">
 	<tr>
     	<td class="label"><?php echo t('refno');?></td>
-        <td class="value"><?php echo $refno;?></td>
+        <td class="value"><?php echo $surveyid;?></td>
     </tr>
 	<tr>
     	<td class="label"><?php echo t('year');?></td>
         <td class="value" itemprop="temporal"><?php
-				if ($data_coll_start==$data_coll_end)
+				if ($year_start==$year_end)
 				{
-					echo $data_coll_start;
+					echo $year_start;
 				}
 				else
 				{
-					if ($data_coll_start!='')
+					if ($year_start!='')
 					{
-						$dates[]=$data_coll_start;
+						$dates[]=$year_start;
 					}
-					if ($data_coll_end!='')
+					if ($year_end!='')
 					{
-						$dates[]=$data_coll_end;
+						$dates[]=$year_end;
 					}						
 					echo implode(" - ", $dates);
 				}?>
@@ -54,13 +54,8 @@
 	<tr valign="top" itemprop="producer" itemscope="itemscope" itemtype="http://schema.org/Person">
     	<td class="label"><?php echo t('producers');?></td>
         <td class="value" itemprop="name" >
-        	<?php if (isset($authenty)):?>
-				<?php $authenty_arr=json_decode($authenty);?>
-                <?php if (is_array($authenty_arr)):?>
-                    <?php echo implode("<BR>",$authenty_arr);?>
-                <?php else:?>
-                    <?php echo $authenty;?>
-                <?php endif;?>
+        	<?php if (isset($authoring_entity)):?>
+                    <?php echo $authoring_entity;?>
             <?php endif;?>    
         </td>
     </tr>

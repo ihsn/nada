@@ -54,7 +54,7 @@ label{font-weight:bold;}
 	
 	function do_report()
 	{
-		$("#report-body").html('<img src="images/loading.gif" align="bottom" border="0"/> <?php echo t('searching_please_wait');?>');
+		$("#report-body").html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> <?php echo t('searching_please_wait');?>');
 		var url=CI.base_url+'/admin/reports/?ajax=1';
 		$.get(url,$("#form_report").serialize(), 
 			function (data) {

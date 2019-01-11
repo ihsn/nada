@@ -18,10 +18,10 @@
 <?php foreach ($selected_surveys as $survey):?>
 	<tr align="left">
     	<td><input class="chk chk-sid" type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" checked="checked" /></td>
-		<td><?php echo $survey['titl'];?></td>
+		<td><?php echo $survey['title'];?></td>
 		<td><?php echo $survey['nation'];?></td>
         <td><?php 
-				$years=array_unique(array($survey['data_coll_start'],$survey['data_coll_end']));
+				$years=array_unique(array($survey['year_start'],$survey['year_end']));
 				echo implode(" - ",$years);
 		 	?>
         </td>

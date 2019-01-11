@@ -1,42 +1,44 @@
 <?php
 class Catalog extends MY_Controller {
 
-		//active repository object
-		var $active_repo=NULL;
+	//active repository object
+	var $active_repo=NULL;
 
     public function __construct()
     {
         parent::__construct($skip_auth=TRUE);
 
        	$this->template->set_template('default');
-				$this->template->write('sidebar', $this->_menu(),true);
+		$this->template->write('sidebar', $this->_menu(),true);
 
-				$this->load->helper('pagination_helper');
-				$this->load->model('Search_helper_model');
-				$this->load->model('Catalog_model');
-				$this->load->model('Vocabulary_model');
-				$this->load->model('Repository_model');
-				$this->load->model('Form_model');
-			 	//$this->output->enable_profiler(TRUE);
+		$this->load->helper('pagination_helper');
+		$this->load->model('Search_helper_model');
+		$this->load->model('Catalog_model');
+		$this->load->model('Vocabulary_model');
+		$this->load->model('Repository_model');
+		$this->load->model('Form_model');
+		//$this->output->enable_profiler(TRUE);
 
-				//language files
-				$this->lang->load('general');
-				$this->lang->load('catalog_search');
+		//language files
+		$this->lang->load('general');
+		$this->lang->load('catalog_search');
 
-				//configuration settings
-				$this->limit= $this->get_page_size();
-				$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
-				$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
-				$this->center_search=($this->config->item("center_search")===FALSE) ? 'no' : $this->config->item("center_search");
-				$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
-				$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
+		//configuration settings
+		$this->limit= $this->get_page_size();
+		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
+		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
+		$this->center_search=($this->config->item("center_search")===FALSE) ? 'no' : $this->config->item("center_search");
+		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
+		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
 
-				//set template for print
-				if ($this->input->get("print")==='yes')
-				{
-					$this->template->set_template('blank');
-				}
+		//set template for print
+		if ($this->input->get("print")==='yes')
+		{
+			$this->template->set_template('blank');
+		}
 	}
+
+	
 
 	/**
 	*
@@ -100,8 +102,7 @@ class Catalog extends MY_Controller {
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
 		$this->template->add_js('javascript/jquery.scrollTo-min.js');
-		$this->template->add_js('javascript/jquery.blockui.js');
-		$this->template->add_css('themes/'.$this->template->theme().'/datacatalog.css');
+		$this->template->add_js('javascript/jquery.blockui.js');		
 
 		//page description metatags
 		$this->template->add_meta("description",t('meta_description_catalog'));
@@ -205,7 +206,7 @@ class Catalog extends MY_Controller {
 		//render final output
 		$this->template->write('title', $this->page_title,true);
 		$this->template->write('content', $content,true);
-	  $this->template->render();
+	  	$this->template->render();
 	}
 
 
@@ -376,15 +377,14 @@ class Catalog extends MY_Controller {
 	* variable search
 	*
 	*/
-	function vsearch($surveyid=NULL)
+	function vsearch($sid=NULL)
 	{
-		if ($surveyid==NULL || !is_numeric($surveyid))
+		if ($sid==NULL || !is_numeric($sid))
 		{
 			echo t('error_invalid_parameters');
 			return;
 		}
 
-		//$data['variables']=$this->Advanced_search_model->v_quick_search($surveyid);
 		$params=array(
 			'study_keywords'=>$this->input->get_post('sk'),
 			'variable_keywords'=>$this->input->get_post('vk'),
@@ -398,7 +398,7 @@ class Catalog extends MY_Controller {
 			'repo'=>$this->input->get_post('repo')
 		);
 		$this->load->library('catalog_search',$params);
-		$data['variables']=$this->catalog_search->v_quick_search($surveyid);
+		$data['variables']=$this->catalog_search->v_quick_search($sid);
 
 		$this->load->view("catalog_search/var_quick_list", $data);
 	}
@@ -411,6 +411,11 @@ class Catalog extends MY_Controller {
 	**/
 	function compare($option=NULL, $format=NULL)
 	{
+		$this->load->model("Dataset_model");
+		$this->load->model("Variable_model");
+		$this->load->model("Data_file_model");
+		$this->load->helper("metadata_view");		
+
 		$items=explode(",",$this->input->cookie('variable-compare', TRUE));
 		$list=array();
 
@@ -421,23 +426,32 @@ class Catalog extends MY_Controller {
 				$tmp=explode('/',$value);
 				if (isset($tmp[1]))
 				{
-					$list[]=array('surveyid'=>$tmp[0], 'vid'=>$tmp[1]);
+					$item_data=array(
+						'sid'=>$tmp[0], 
+						'vid'=>$tmp[1],
+						'variable'=>$this->Variable_model->get_var_by_vid($tmp[0],$tmp[1]),
+						'file'=>$this->Data_file_model->get_file_by_varid($tmp[0],$tmp[1]),
+						'dataset'=>$this->Dataset_model->get_row($tmp[0])
+					);
+
+					$item_data['html']=$this->load->view('survey_info/variable_ddi',$item_data,true);
+
+					$list[]=$item_data;
 				}
 			}
 		}
 
-		$this->load->library('Compare_variable');
 		$data['list']=$list;
 		if ($option=='print')
 		{
 			if ($format!=='pdf')
 			{
-				$this->load->view("catalog_search/compare_print",$data);exit;
+				echo $this->load->view("catalog_search/compare_print",$data,true);exit;
 			}
 			else if ($format==='pdf')
 			{
 				$this->load->library('pdf_export');
-				$contents=$this->load->view("catalog_search/compare_print",$data,TRUE);
+				$contents=$this->load->view("catalog_search/compare",$data,TRUE);
 				$this->pdf_export->create_pdf($contents);
 				exit;
 			}
@@ -446,8 +460,7 @@ class Catalog extends MY_Controller {
 
 		$this->template->set_template('blank');
 		$this->template->add_js('javascript/dragtable.js');
-		$this->template->add_css('themes/ddibrowser/ddi.css');
-		$this->template->add_css('themes/'.$this->template->theme().'/compare-variables.css');
+		//$this->template->add_css('themes/ddibrowser/ddi.css');		
 
 		$content=$this->load->view("catalog_search/compare",$data,TRUE);
 		$this->template->write('title', t('title_compare_variables'),true);
@@ -705,6 +718,8 @@ class Catalog extends MY_Controller {
 		}
 	}
 
+
+
 	function study($codebookid=NULL)
 	{
 		if ($codebookid==NULL)
@@ -821,7 +836,7 @@ class Catalog extends MY_Controller {
 					else
 					{
 						$rows=$output['surveys']['rows'];
-						$cols=explode(",",'id,surveyid,titl,nation,authenty,data_coll_start,data_coll_end,created,changed');
+						$cols=explode(",",'id,idno,titl,nation,authenty,year_start,year_end,created,changed');
 					}
 
 					//var_dump($output['surveys']);exit;
@@ -930,119 +945,47 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
-	/**
-	*
-	* Redirect for external repositories
-	*/
-	function redirect($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-
-		//get survey information
-		$this->survey=$this->Catalog_model->select_single($id);
-
-		if (!$this->survey)
-		{
-			show_404();
-		}
-
-		//get survey repo + remote url
-		$this->load->model('Repository_model');
-
-		$this->survey_repo=$this->Repository_model->get_row($this->survey['repositoryid'],$this->survey['surveyid']);
-
-		if (!$this->survey_repo)
-		{
-			show_404();
-		}
-
-		//log
-		$this->db_logger->write_log('redirect',"{$this->survey['nation']} - {$this->survey['titl']} ",'study');
-
-		$this->template->set_template('box');
-		$this->template->write('title', 'Redirecting to external catalog',true);
-		$content=$this->load->view('catalog_search/survey_redirect',NULL,true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
-
-	}
-
-	/**
-	* Generatting CSV formatted string from an array.
-	* By Sergey Gurevich.
-	*/
-	function _array_to_scv($array, $header_row = true, $col_sep = ",", $row_sep = "\n", $qut = '"')
-	{
-		$output='';
-		//Header row.
-		if ($header_row)
-		{
-			foreach ($array[0] as $key => $val)
-			{
-				//Escaping quotes.
-				$key = str_replace($qut, "$qut$qut", $key);
-				$output .= "$col_sep$qut$key$qut";
-			}
-			$output = substr($output, 1)."\n";
-		}
-
-
-		//Data rows.
-		foreach ($array as $key => $val)
-		{
-			$tmp = '';
-			foreach ($val as $cell_key => $cell_val)
-			{
-				//Escaping quotes.
-				$cell_val = str_replace($qut, "$qut$qut", utf8_decode($cell_val));
-				$tmp .= "$col_sep$qut$cell_val$qut";
-			}
-			$output .= substr($tmp, 1).$row_sep;
-		}
-
-		return $output;
-	}
 
 
 	function _remap($method)
 	{
 		$method=strtolower($method);
 
-		if ($method=='search')
-		{
+		if ($method=='search'){
 			$this->_set_active_repo($this->input->get("repo"));
 			$this->search();
 		}
-		else if (in_array(($method), array_map('strtolower', get_class_methods($this))) )
-		{
-					$uri = $this->uri->segment_array();
+		else if (in_array(($method), array_map('strtolower', get_class_methods($this))) ){
+		  $uri = $this->uri->segment_array();
           unset($uri[1]);
           unset($uri[2]);
           call_user_func_array(array($this, $method), $uri);
-    }
-    else
-		{
-			//valid repo?
-			if (!$this->_set_active_repo($method)!==false)
-			{
-					//about?
-					if ($this->uri->segment(3)=='about')
-					{
-						$this->about_repository();return;
-					}
-					//load the default listing page
-					$this->index();
-			}
-			else
-			{
-				show_404();
-			}
-    }
+		}
+		else{
 
-  }
+			//get repository id
+			$repo_code=$this->uri->segment(2);
+
+			//set active repos
+			$this->_set_active_repo($method);
+			
+			//valid repo?			
+			if ($this->active_repo || $repo_code=='central'){
+				//about?
+				if ($this->uri->segment(3)=='about'){
+					$this->about_repository();
+					return;
+				}
+				//load the default listing page
+				$this->index();
+			}
+			else{
+				//show_404();
+				$this->index();
+			}
+		}
+  	}
+
 
 	private function _set_active_repo($repo)
 	{
@@ -1054,21 +997,18 @@ class Catalog extends MY_Controller {
 		$repositories[]='central';
 
 		//repo names to lower case
-		foreach($repositories as $key=>$value)
-		{
+		foreach($repositories as $key=>$value){
 			$repositories[$key]=strtolower($value);
 		}
 
 		//check if URI matches to a repository name
-		if (in_array($repo,$repositories))
-		{
+		if (in_array($repo,$repositories)){
 			//repository options
-			if ($repo=='central')
-			{
-				$this->active_repo=NULL;
+			if ($repo=='central'){
+				$this->active_repo=null;
+				//$this->active_repo=$this->repository_model->get_central_catalog_array();
 			}
-			else
-			{
+			else{
 				//set active repo
 				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repo);
 			}
@@ -1182,8 +1122,10 @@ class Catalog extends MY_Controller {
 		$config['prev_link'] = t('page_prev');
 		$config['first_link'] = t('page_first');
 		$config['last_link'] = t('last');
-		$config['full_tag_open'] = '<span class="page-nums">' ;
-		$config['full_tag_close'] = '</span>';
+		$config['full_tag_open'] = '<ul class="pagination pagination-md page-nums">' ;
+		$config['full_tag_close'] = '</ul>';
+		
+		
 
 		//intialize pagination
 		$this->pagination->initialize($config);
@@ -1198,6 +1140,8 @@ class Catalog extends MY_Controller {
 		//render final output
 	  	$this->template->render();
 	}
+
+
 
 	/**
 	*
@@ -1302,24 +1246,23 @@ class Catalog extends MY_Controller {
 
 	private function get_featured_study($surveys)
 	{
-		if (!is_array($surveys))
-		{
+		if (!is_array($surveys)){
 			return FALSE;
 		}
 
 		$repos=NULL;
 
 		//build an array of repositoryid
-		foreach($surveys as $survey)
-		{
-			$repos[]=$survey['repositoryid'];
+		foreach($surveys as $survey){
+			if($survey['repositoryid']){
+				$repos[]=$survey['repositoryid'];
+			}
 		}
 
-		if (!$repos)
-		{
+		if (!$repos){
 			return FALSE;
 		}
-
+		
 		//count values for each repository
 		$repo_counts = array_count_values($repos);
 

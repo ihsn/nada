@@ -5,7 +5,7 @@ modules/mpdf
 .settings
 datafiles
 *.spc
-*.zip
+-*.zip
 _notes
 dwsync.xml
 backup/*.sql
@@ -32,3 +32,5 @@ patches
 imports
 files/sessions
 vendor
+sample
+system/language/base

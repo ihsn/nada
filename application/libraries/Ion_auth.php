@@ -15,7 +15,7 @@
 * Description:  Modified auth system based on redux_auth with extensive customization.  This is basically what Redux Auth 2 should be.  Original redux license is below.
 * Original Author name has been kept but that does not mean that the method has not been modified.
 * 
-* Modifications made for NADA (@author: Mehmood Asghar)
+* Modifications made for NADA (@author: IHSN)
 * - uses MD5 instead of SHA1/SALT to be compatible with nada 2 database
 *
 */
@@ -417,10 +417,12 @@ class Ion_auth
 	 *
 	 * @return bool
 	 * @author Ben Edmunds
-	 * @modified Mehmood Asghar
 	 **/
-	public function is_admin()
-	{	    
+	public function is_admin($user_id=null)
+	{	
+		if($user_id){
+			return $this->ci->ion_auth_model->is_admin($user_id);	
+		} 
 		return $this->ci->ion_auth_model->is_admin($this->ci->session->userdata("user_id"));
 	}
 	
@@ -573,7 +575,6 @@ class Ion_auth
 	 * Get User by Username
 	 *
 	 * @return object User
-	 * @author Mehmood Asghar
 	 **/
 	public function get_user_by_username($username)
 	{
@@ -596,7 +597,6 @@ class Ion_auth
 	 * Get current logged in user
 	 *
 	 * @return array User
-	 * @author Mehmood Asghar
 	 **/
 	public function current_user()
 	{
@@ -899,6 +899,27 @@ class Ion_auth
 	function is_max_login_attempts_exceeded($identity)
 	{
 		return 	$this->ci->ion_auth_model->is_max_login_attempts_exceeded($identity);
+	}
+
+
+	function validate_login($email,$password)
+	{
+		return $this->ci->ion_auth_model->validate_login($email,$password);
+	}
+
+	function get_api_keys($user_id)
+	{
+		return $this->ci->ion_auth_model->get_api_keys($user_id);
+	}
+
+	function set_api_key($user_id,$token=NULL)
+	{
+		return $this->ci->ion_auth_model->set_api_key($user_id,$token);
+	}
+
+	function delete_api_key($api_key)
+	{
+		return $this->ci->ion_auth_model->delete_api_key($api_key);
 	}
 
 }

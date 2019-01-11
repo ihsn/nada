@@ -5,12 +5,6 @@
  *
  *
  *
- *
- * @package		NADA 3.0
- * @subpackage	Libraries
- * @author		Mehmood Asghar
- * @link		-
- *
  */
 class Chicago_Citation{
 	
@@ -545,11 +539,11 @@ function format_book_title($data)
 				//first author
 				if ($i==0)
 				{
+					$tmp=array();
 					if ($authors[$i]['lname']!='' || $authors[$i]['fname'])
 					{
-						//combine last, first name
-						$tmp=array();
-						if (trim($authors[$i]['lname']!="") )
+						//combine last, first name						
+						if (!empty(trim($authors[$i]['lname'])) )
 						{
 							$tmp[]=trim($authors[$i]['lname']);
 						}						
@@ -559,7 +553,7 @@ function format_book_title($data)
 							$tmp[]=trim(sprintf("%s %s",trim($authors[$i]['fname']), trim($authors[$i]['initial'])));
 						}						
 					}
-
+					
 					$output[]=implode(", ",$tmp);
 				}
 				else if ($i==count($authors)-1)//last author

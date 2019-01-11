@@ -59,15 +59,122 @@ $route['translate_uri_dashes'] = FALSE;
 
 
 //ddi browser
-$route['ddibrowser/(:num)'] = "ddibrowser/index/$1";
+//$route['ddibrowser/(:num)'] = "ddibrowser/index/$1";
 
 //data-catalog page
-$route['catalog/(:num)/ddibrowser'] = "ddibrowser/$1";
+//$route['catalog/(:num)/ddibrowser'] = "ddibrowser/$1";
 
-$route['catalog/(:num)'] = "ddibrowser/$1";
+//data deposit api
+//$route['api/datadeposits/(:num)'] = "api/datadeposit/project/$1";
+
+//$route['api/datadeposits/user_projects'] = "api/datadeposit/user_projects";
+
+/*$route['api/datadeposits/(:num)'] = "api/datadeposits/projects/$1";
+$route['api/datadeposits'] = "api/datadeposits/projects";
+$route['api/datadeposits/update/(:num)'] = "api/datadeposits/projects_update/$1";
+*/
+
+
+///////////////////////// API routes ////////////////////////////////////////
+
+//data deposit project - resources
+$route['api/datadeposits/(:num)/resources'] = "api/datadeposits/resources/$1";
+$route['api/datadeposits/(:num)/resources/(:num)'] = "api/datadeposits/resources/$1/$2";
+
+//data deposit project - citations
+$route['api/datadeposits/(:num)/citations'] = "api/datadeposits/citations/$1";
+$route['api/datadeposits/(:num)/citations/(:num)'] = "api/datadeposits/citations/$1/$2";
+
+//submit project
+$route['api/datadeposits/(:num)/submit'] = "api/datadeposits/submit/$1";
+
+//projct access policy
+$route['api/datadeposits/(:num)/access_policy'] = "api/datadeposits/access_policy/$1";
+
+//dataset datafiles
+$route['api/datasets/(:any)/datafiles'] = "api/datasets/datafiles/$1";
+
+//timeseries series [variable]
+$route['api/datasets/(:any)/series/(:any)'] = "api/datasets/series/$1/$2";
+
+//variables
+$route['api/datasets/(:any)/variables/(:any)'] = "api/datasets/variables/$1/$2";
+
+
+//dataset resources
+$route['api/datasets/(:any)/resources'] = "api/resources/$1";
+$route['api/datasets/(:any)/resources/(:num)'] = "api/resources/$1/$2";
+$route['api/datasets/(:any)/resources/delete_all'] = "api/resources/delete_all/$1";
+$route['api/datasets/(:any)/resources/import_rdf'] = "api/resources/import_rdf/$1";
+
+//dataset files
+$route['api/datasets/(:any)/files'] = "api/files/$1";
+$route['api/datasets/(:any)/files/(:num)'] = "api/files/$1/$2";
+$route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
+
+$route['api/datasets/(:any)/thumbnail'] = "api/datasets/thumbnail/$1";
+
+
+
+//Collections
+$route['api/collections/(:any)/datasets'] = "api/collections/datasets/$1";
+
+
+/*
+$route['api/datasets/(:num)/resources/delete_all'] = "api/datadeposits/resources/delete_all/$1";
+$route['api/datasets/(:num)/resources/upload_file'] = "api/datadeposits/resources/upload_file/$1";
+$route['api/datasets/(:num)/resources(:num)/upload'] = "api/datadeposits/resources/upload/$1/$2";
+*/
+
+
+///////////////////////// END API routes /////////////////////////////////////
+
+/*
+$route['api/datadeposits/(:any)'] = "api/datadeposits/projects/$1";
+$route['api/datadeposits'] = "api/datadeposits/projects";
+*/
+
+
+
+//for new study page
+$route['catalog/(:num)/study-description'] = "study/metadata/$1";
+$route['catalog/(:num)/metadata'] = "study/metadata/$1";
+$route['catalog/(:num)/data-dictionary'] = "study/data_dictionary/$1";
+$route['catalog/(:num)/data_dictionary'] = "study/data_dictionary/$1";
+
+
+//data file page
+$route['catalog/(:num)/data-dictionary/(.*)'] = "study/data_file/$1/$2";
+$route['catalog/(:num)/data_dictionary/(.*)'] = "study/data_file/$1/$2";
+$route['catalog/(:num)/datafile/(.*)'] = "study/data_file/$1/$2";
+$route['catalog/(:num)/data-file/(.*)'] = "study/data_file/$1/$2";
+
+//download
+$route['catalog/(:num)/download/(.*)'] = "study/download/$1/$2";
+
+//variable info page
+$route['catalog/(:num)/variable/(.*)'] = "study/variable/$1/$2/$3"; //sid/fid/vid
+
+//variable search
+$route['catalog/(:num)/search'] = "study/search/$1";
+
+$route['catalog/(:num)'] = "study/metadata/$1";
+$route['catalog/(:num)/related-publications'] = "study/related_publications/$1";
+$route['catalog/(:num)/related_citations'] = "study/related_publications/$1";
+$route['catalog/(:num)/get-microdata'] = "study/get_microdata/$1";
+$route['catalog/(:num)/get_microdata'] = "study/get_microdata/$1";
+$route['catalog/(:num)/related_materials'] = "study/related_materials/$1";
+$route['catalog/(:num)/related-materials'] = "study/related_materials/$1";
+$route['catalog/(:num)/related-datasets'] = "study/related_datasets/$1";
+$route['catalog/(:num)/pdf-documentation'] = "study/pdf_documentation/$1";
+
+
+//$route['catalog/(:num)'] = "ddibrowser/$1";
 $route['catalog/(:num)/rdf'] = "catalog/rdf/$1";
 $route['catalog/(:num)/citations'] = "catalog/citations/$1";
-$route['catalog/(:num)/(.*)'] = "ddibrowser/$1/$2";
+//$route['catalog/(:num)/(.*)'] = "ddibrowser/$1/$2";
+$route['catalog/(:num)/(.*)'] = "study/$1/$2";
+
 $route['catalog/(.*)'] = "catalog/$1";//this should always be the last route for the data-catalog routes
 
 $route['switch_language/(.*)'] = "page/switch_language/$1";

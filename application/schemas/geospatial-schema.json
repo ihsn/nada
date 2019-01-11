@@ -1,0 +1,564 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Geospatial Schema",
+	"description":"Geospatial draft schema",
+	"version" :"0.0",
+	"id": "geospatial-schema.json",
+	"definitions":{
+		"contact": {
+			"type": "array",
+			"description": "Contact",
+			"title": "Contact",
+			"items": {
+				"type": "object",
+				"properties": {
+					"person_name": {
+						"title": "Individual name",
+						"type": "string"						
+					},
+					"role": {
+						"title": "Role",
+						"type": "string"
+					},
+					"organisation": {
+						"title": "Organization",
+						"type": "string"
+					},
+					"position": {
+						"title": "Position",
+						"type": "string"
+					},
+					"instructions": {
+						"title": "Contact Instructions",
+						"type": "string"
+					},
+					"phone": {
+						"title": "Phone",
+						"type": "string"
+					},
+					"fax": {
+						"title": "Fax",
+						"type": "string"
+					},
+					"email": {
+						"title": "Email",
+						"type": "string"
+					},
+					"website": {
+						"title": "Website Link",
+						"type": "string"
+					},
+					"address": {
+						"title": "Address",
+						"type": "string"
+					},
+					"city": {
+						"title": "City",
+						"type": "string"
+					},
+					"administrative_area": {
+						"title": "Administrative Area",
+						"type": "string"
+					},
+					"postal_code": {
+						"title": "Postal Code",
+						"type": "string"
+					},
+					"country": {
+						"title": "Country",
+						"type": "string"
+					}
+				}
+			},
+			"required": [
+				"name"
+			]
+		},
+		"date": {
+			"type": "array",
+			"title": "Date",
+			"description": "Date",
+			"items": {
+			  "type": "object",
+			  "properties": {
+				"date": {
+				  "title": "Date",
+				  "description": "Date in ISO 8601 format - YYYY-MM-DD",
+				  "type": "string"
+				},
+				"type": {
+				  "title": "Date type",
+				  "description":"Date type e.g. `publication`, `revision`, `creation`, `expiry`, `lastUpdate`, `lastRevision`, `deprecated`. See full list at [data.noaa.gov](https://data.noaa.gov/resources/iso19139/schema/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode)",
+				  "type": "string"
+				}
+			  },
+			  "required": [
+				"date"
+			  ]
+			}
+		},
+		"keyword": {
+			"type": "array",
+			"description": "Keywords",
+			"items": {
+				"type": "object",
+				"properties": {
+					"value": {
+						"title": "Keyword",
+						"type": "string"
+					},
+					"code_list_value": {
+						"title": "Type",
+						"type": "string",
+						"description": "allowed = discipline, place, stratum, temporal, theme"
+					},
+					"code_list_uri": {
+						"title": "Code list URI",
+						"type": "string",
+						"description": "Code list used e.g. http://www.isotc211.org/2005/resources/codeList.xml#MD_KeywordTypeCode"
+					}					
+				}
+			},
+			"required": [
+				"keyword"
+			]
+		},
+		"graphic_overview": {
+			"type": "array",
+			"description": "Graphic overview of resource",
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"title": "File name / URL",
+						"type": "string"
+					},
+					"type": {
+						"title": "File Type",
+						"type": "string"
+					},
+					"description": {
+						"title": "File Description",
+						"type": "string"
+					}
+				}
+			},
+			"required": [
+				"name"
+			]
+		},
+		"controlled_vocabulary": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"code_list_uri": {
+						"title": "Code list URI",
+						"type": "string"
+					},
+					"code": {
+						"title": "Code",
+						"type": "string"
+					},
+					"value": {
+						"title": "Value",
+						"type": "string"
+					}
+				}
+			},
+			"required": [
+				"value"
+			]
+		},
+		"online_resource": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"url": {
+						"title": "Link to the resource",
+						"type": "string"
+					},
+					"name": {
+						"title": "Resource title",
+						"type": "string"
+					},
+					"description": {
+						"title": "Resource description",
+						"type": "string"
+					},
+					"format": {
+						"title": "Resource format",
+						"description": "File format - CSV, ZIP",
+						"type": "string"
+					}
+				}
+			},
+			"required": [
+				"url"
+			]
+		}
+	},
+	"properties": {
+
+		"repositoryid": {
+            "type": "string",
+            "title": "Collection ID that owns the dataset",
+            "description": "Abbreviation for the collection that owns this dataset"
+          },
+          "published": {
+            "type": "integer",
+            "description": "Status of the dataset - 0=draft, 1=published",
+            "default": 0
+          },
+          "overwrite": {
+            "type": "string",
+            "description": "Overwrite if already exists?",            
+            "enum":["yes","no"],
+            "default": "no"
+          },
+
+		"metadata_maintenance": {
+			"type": "object",
+			"title": "Metadata production",
+			"description": "Document production",
+			
+			"properties": {
+				"update_frequency": {
+					"title": "Maintenance Frequency",
+					"type": "string",
+					"description": "continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, not-Planned, unknown"
+				},
+				"note": {
+					"title": "Maintenance Note",
+					"type": "string"					
+				},
+				"contact": {
+					"$ref":"#/definitions/contact",
+					"description": "Maintenance contact"
+				},
+				"prod_date": {
+					"title": "Date of Production",
+					"description": "Document production date using format(YYYY-MM-DD)",
+					"type": "string"
+				  },
+				  "version": {
+					"title": "Document version",
+					"description": "Identify and describe the current version of the document",
+					"type": "string"
+				  }
+			}
+		},
+
+		"dataset_description": {
+			"type": "object",
+			"title": "Dataset description",
+			"description": "Dataset description",
+			"properties": {
+
+				"file_identifier": {
+					"title": "Unique Identifier",
+					"description":"Global unique identifier",
+					"type": "string"
+				},
+				"language": {
+					"title": "Language",
+					"description":"Language code",					
+					"type": "string"
+				},
+				"charset_code": {
+					"title": "Characterset",
+					"description":"Character encoding used e.g. UTF-8",
+					"type": "string"
+				},
+				"date_stamp": {
+					"title": "Metadata Date Stamp (YYYY-MM-DD)",
+					"type": "string",
+					"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)"
+				},
+				"contact":{
+					"$ref": "#/definitions/contact"
+				},
+				
+				"identification_info": {
+					"title": "Resource Identification Information",
+					"type": "object",
+					"description": "Resource Dataset or Dataset Series Identification",
+					"properties": {
+						"title": {
+							"title": "Title",
+							"type": "string",
+							"description": "Dataset title"
+						},
+						"alternate_title": {
+							"title": "Alternate Title",
+							"type": "string"
+						},
+						"date":{
+							"$ref": "#/definitions/date"
+						},
+						"edition": {
+							"title": "Edition",
+							"type": "string",
+							"description": "Edition e.g. first"
+						},
+						"identifier": {
+							"title": "Unique Identifier",
+							"description":"Unique identifier",
+							"type": "array",
+							"items":{
+								"type":"string"
+							}
+						},
+						"presentation_form": {
+							"title": "Dataset Presentation Form",
+							"type": "string",
+							"description": "documentDigital, documentHardcopy, imageDigital, image-Hardcopy, mapDigital, mapHardcopy, modelDigital, model-Hardcopy, profileDigital, profileHardcopy, tableDigital, tableHardcopy, videoDigital, videoHardcopy, audioDigital"
+						},
+						"abstract": {
+							"title": "Abstract",
+							"type": "string",
+							"description": "A free text summary of the content, significance, purpose, scope, etc. of the resource."
+						},
+						"purpose": {
+							"title": "Purpose",
+							"type": "string",
+							"description": "Summary of the intentions for which the dataset was developed. Purpose includes objectives for creating the dataset and what the dataset is to support."
+						},
+
+						"credit": {
+							"title": "Credit",
+							"type": "string"							
+						},
+
+						"status": {
+							"title": "Status",
+							"type": "string",
+							"description": "completed, historicalArchive, obsolete, onGoing, planned, required, underDevelopment"
+						},
+						"point_of_contact":{
+							"$ref": "#/definitions/contact"
+						},
+
+						"resource_maintenance": {
+							"type": "object",
+							"description": "Resource maintenance",							
+							"properties": {
+								"maintenance_frequency": {
+									"title": "Maintenance Frequency",
+									"type": "string",
+									"description": "continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, not-Planned, unknown"
+								}
+							}
+						},
+						
+						"graphic_overview": {
+							"$ref": "#/definitions/graphic_overview"
+						},
+						"keywords": {
+							"$ref": "#/definitions/keyword"
+						},
+
+						"resource_constraints": {
+							"type": "object",
+							"description": "Resource constraints",							
+							"properties": {
+								"access_constraints": {
+									"title":"Access constraints",
+									"description":"Access constraints",
+									"$ref":"#/definitions/controlled_vocabulary"
+								},
+								"use_constraints": {
+									"title":"Use constraints",
+									"description":"Use constraints",
+									"$ref":"#/definitions/controlled_vocabulary"
+								},
+								"other_constraints": {
+									"title":"Other constraints",
+									"description":"Other constraints",
+									"type":"string"
+								}
+							}
+						},
+
+						"use_limitation": {
+							"title": "Condition Applying To Access and Use of Resource",
+							"type": "string"
+						},
+
+						
+						"spatial_representation_type": {
+							"title": "Spatial Representation Type",							
+							"description": "Spatial Representation type - `vector`, `grid`, `textTable`, `tin`, `stereoModel`, `video`",
+							"type":"string"
+						},
+						"representative_fraction_denominator": {
+							"title": "Spatial Resolution Fraction",
+							"type": "string",
+							"description": "e.g. 100000"
+						},
+						"language": {
+							"title": "Language code",
+							"description": "Language code",
+							"type": "string"
+						},
+						"charset_code": {
+							"title": "Characterset code",
+							"description": "Characterset code",
+							"type": "string"
+						},
+
+						"topics": {
+							"type": "array",
+							"title": "Topic Classification",
+							"description": "Topic Classification",
+							"items": {
+							  "type": "object",
+							  "properties": {
+								"topic": {
+								  "title": "Topic",
+								  "type": "string",
+								  "description": "Topics e.g. farming, biota, boundaries, climatologyMeterologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWater, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication"
+								},
+								"vocab": {
+								  "title": "Vocabulary name",
+								  "type": "string"
+								},
+								"vocab_uri": {
+								  "title": "Vocabulary URI",
+								  "type": "string"
+								}
+							  },
+							  "required": [
+								"topic"
+							  ]
+							}
+						},
+						"extent": {
+							"title": "Resource Content Extent",
+							"description": "Defines the spatial (horizontal and vertical) and temporal region to which the content of the resource applies.",
+							"type": "object",
+							"properties": {
+								"geographic_bounding_box": {
+									"title": "Geographic Bounding Box",
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"south": {
+												"title": "South",
+												"type": "number", 
+												"minimum": -180,
+												"maximum":180
+											},
+											"west": {
+												"title": "West",
+												"type": "number", 
+												"minimum": -180,
+												"maximum":180
+											},
+											"north": {
+												"title": "North",
+												"type": "number", 
+												"minimum": -180,
+												"maximum":180
+											},
+											"east": {
+												"title": "East",
+												"type": "number", 
+												"minimum": -180,
+												"maximum":180
+											}
+										}
+									}
+								}
+							}
+						},
+						"supplemental_information": {
+							"title": "Supplemental information",
+							"description": "Supplemental information",
+							"type": "string"
+						}
+					},
+					"required":["title"]
+				},				
+
+				"distribution_info": {
+					"type": "object",
+					"title": "Distribution information",
+					"description": "Distribution information",
+					"properties": {
+						"distributors":{
+							"title":"Distributors",
+							"description":"Distributors",
+							"$ref": "#/definitions/contact"
+						},
+						"online_resource":{
+							"title":"Online resource",
+							"description":"Online resource",
+							"$ref": "#/definitions/online_resource"
+						}
+					}
+				},
+
+				"data_quality_info": {
+					"title": "Data Quality",
+					"type": "object",
+					"properties": {
+						"Scope": {
+							"title": "Data Quality Scope",
+							"description": "dataset, series, collectionSession, etc.",
+							"type": "string"
+						},
+						"lineage": {
+							"title": "Data Quality Lineage Statement",
+							"description": "Data quality lineage statement",
+							"type": "string"
+						}
+					}
+				},
+
+				"spatial_representation_info": {
+					"title": "Resource Spatial Representation",
+					"type": "object",
+					"description": "Resource spatial representation - Spatial representation information for the dataset (resource). Best practice is to include metadata for spatial representation if the described resource is a georeferenced dataset.",
+					"properties": {
+						"topology_level": {
+							"title": "Topology Level Code",
+							"type": "string",
+							"description": "codes: {geometryOnly, topology1D, planarGraph, fullPlanarGraph, surfaceGraph, fullSurfaceGraph, topology3D, fullTopology3D, abstract} "
+						},
+						"Geometric_object_code": {
+							"title": "Geometric Object Type Code",
+							"type": "string",
+							"description": "Identification of the objects used to represent features in the dataset - codes ={complex, composite, curve, point, solid, surface}"
+						}
+					}
+				},
+				"reference_system_info": {
+					"title": "Resource Reference System",
+					"type": "object",
+					"description": "Resource’s spatial reference system - Description of the spatial and/or temporal reference systems used in the dataset.",
+					"properties": {
+						"code": {
+							"title": "Reference System Identifier Code",
+							"type": "string",
+							"description": "example - EPSG:5701 "
+						},
+						"code_space": {
+							"title": "Code Space",
+							"type": "string",
+							"description": "example - urn:ogc:def:crs"
+						}
+					}
+				}		
+			},
+			"required":["file_identifier"]
+		},
+									
+		"additional": {
+			"title":"Additional metadata",
+			"description":"Any additional metadata"
+		}
+	}
+}

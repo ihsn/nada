@@ -101,17 +101,9 @@
         <div class="user_groups">
         <ul>
         <?php foreach($user_groups as $group):?>
-        	<?php if (in_array($group['id'],$groups)):?>
+        	<?php if (isset($groups) && count($groups)>0 && in_array($group['id'],$groups)):?>
             <li class="role"><?php echo $group['name'];?></li>
             <?php endif;?>
-        	<?php /* ?>
-			<?php $checked=(in_array($group['id'],$groups)) ? 'checked="checked"' : '';?>
-        	<div class="group">
-	            <label for="group_id-<?php echo $group['id'];?>" style="font-weight:normal;">
-				<input <?php echo $checked;?> type="checkbox" id="group_id-<?php echo $group['id'];?>" name="group_id[]" value="<?php echo $group['id'];?>"/> <?php echo $group['name'];?> <span class="description">[<?php echo $group['description'];?>]</span>
-                </label>
-            </div>
-			<?php */ ?>    
 		<?php endforeach;?>
         </ul>
         </div>        

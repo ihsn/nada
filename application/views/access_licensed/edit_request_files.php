@@ -61,7 +61,7 @@
 
 		<?php foreach($surveys as $survey):?>
             <tr>
-            	<td colspan="4"><h3><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> <?php echo $survey['data_coll_start'];?></h3></td>
+            	<td colspan="4"><h3><?php echo $survey['nation'];?> - <?php echo $survey['title'];?> <?php echo $survey['year_start'];?></h3></td>
             </tr>
 
         	<?php if(array_key_exists($survey['id'],$files)):?>
@@ -101,7 +101,7 @@
 
 	function process_request(requestid){
 		data=$("#form_request_review").serialize();
-		$("#status-text").html('<img src="images/loading.gif"/><?php echo t('js_updating_please_wait');?>');
+		$("#status-text").html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i><?php echo t('js_updating_please_wait');?>');
 		$.ajax({
 			timeout:1000*120,
 			dataType: "html",

@@ -1,0 +1,659 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Table Schema [DRAFT]",
+  "description": "Schema for Table data type",
+  "type": "object",
+  "definitions":{
+    "authoring_entity":{
+      "type":"array",
+      "title":"Authoring entity/Primary investigators",
+      "description":"The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
+      "items":{
+        "type":"object",
+        "properties":{
+          "name":{
+            "title":"Agency Name",
+            "type":"string"
+          },
+          "role":{
+            "title":"Role",
+            "type":"string"
+          },
+          "affiliation":{
+            "title":"Affiliation",
+            "type":"string"
+          },
+          "abbreviation":{
+            "title":"Abbreviation",
+            "type":"string"
+          },
+          "uri":{
+            "title":"URI",
+            "type":"string"
+          }
+        },
+        "required":[
+          "name"
+        ]
+      }
+    },
+    "contributor":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "properties":{
+          "name":{
+            "title":"Name",
+            "type":"string"
+          },
+          "affiliation":{
+            "title":"Affiliation",
+            "type":"string"
+          },
+          "abbreviation":{
+            "title":"Abbreviation",
+            "type":"string"
+          },
+          "uri":{
+            "title":"URI",
+            "type":"string"
+          }
+        },
+        "required":[
+          "name"
+        ]
+      }
+    },
+    "keyword":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "properties":{
+          "name":{
+            "title":"Name",
+            "type":"string"
+          },
+          "vocabulary":{
+            "title":"Vocabulary name",
+            "type":"string"
+          },
+          "uri":{
+            "title":"Vocabulary URI",
+            "type":"string"
+          }
+        }
+      }
+    }
+  },
+  "properties": {    
+
+    "repositoryid": {
+      "type": "string",
+      "title": "Collection ID that owns the document",
+      "description": "Abbreviation for the collection that owns the document"
+    },
+
+    "published": {
+      "type": "integer",
+      "title": "Status",
+      "description": "Status  - 0=draft, 1=published",
+      "default": 0
+    },
+    
+    "overwrite": {
+      "type": "string",
+      "description": "Overwrite document if already exists?",            
+      "enum":["yes","no"],
+      "default": "no"
+    },
+
+    "metadata_information": {      
+      "type": "object",
+      "title": "Document metadata information",
+      "description": "Document description",
+      "properties": {        
+        "idno": {
+          "title": "Unique ID number for the document",
+          "type": "string"
+        },
+        "producers": {
+          "type": "array",
+          "title": "Producers",
+          "description": "List of producers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "description": "Name (required)",
+                "type": "string"
+              },
+              "abbr": {
+                "title": "Abbreviation",
+                "type": "string"
+              },
+              "affiliation": {
+                "type": "string",
+                "title": "Affiliation"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "production_date": {
+          "title": "Date of Production",
+          "description": "Document production date using format(YYYY-MM-DD)",
+          "type": "string"
+        },
+        "version": {
+          "title": "Document version",
+          "description": "Identify and describe the current version of the document",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "table_description": {
+      "type": "object",
+      "title": "Table Description",
+      "description": "Table Description",
+      "properties": {  
+
+        "title_statement": {
+          "type": "object",
+          "description": "Title statement",
+          "properties": {
+            "idno": {
+              "type": "string",
+              "title": "Unique user defined ID",
+              "description": "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)"
+            },
+            "table_number": {
+              "type": "string",
+              "title": "Table number",
+              "description": "Table number"
+            },
+            "title": {
+              "type": "string",
+              "title": "Table title",
+              "description": "Table title"
+            },
+            "sub_title": {
+              "type": "string",
+              "title": "Table subtitle",
+              "description": "A short subtitle for the table"
+            },
+            "alternate_title": {
+              "type": "string",
+              "title": "Abbreviation or Acronym",
+              "description": "Any form of the title used as a substitute or alternative to the formal title of the resource."
+            },
+            "abbreviated_title": {
+              "title": "Abbreviated Title",
+              "description": "Title as abbreviated for indexing or identification.",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "idno",
+            "title"
+          ]
+        },
+
+        "id_numbers": {
+          "type": "object",
+          "title": "Identifier numbers",
+          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",          
+          "properties": {
+            "type": {
+              "title": "Type",
+              "description":"ID number type such as  ISSN, ISBN, DOI",
+              "type": "string"
+            },
+            "value": {
+              "title": "ID number",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "type","value"
+          ]
+        },
+
+        "format": {
+          "type": "string",
+          "title":"File format",          
+          "description": "The file format, physical medium, or dimensions of the resource."    
+        },
+        "filename": {
+          "type": "string",
+          "title":"Table file name",
+          "description": "Table file name"    
+        },
+        "sheetname": {
+          "type": "string",
+          "title":"Sheet name"          
+        },        
+        
+        "authoring_entity": {
+          "title": "Authoring entity",
+          "$ref":"#/definitions/authoring_entity",
+          "description": "Authoring entity"
+        },
+        "contributor": {
+          "title": "Contributors",
+          "$ref":"#/definitions/contributor",
+          "description": "Contributors"
+        },
+        "publisher": {
+          "title": "Publisher",
+          "$ref":"#/definitions/contributor",
+          "description": "Publisher"
+        },
+        "date_produced": {
+          "type": "string",
+          "title":"Date produced",
+          "description": "Date of production"
+        },
+        "date_released": {
+          "type": "string",
+          "title":"Date released"
+        },
+        "date_changed": {
+          "type": "string",
+          "title":"Date last modified",
+          "description": "Date on which the resource was changed."    
+        },
+
+        "version": {
+          "title": "Version",
+          "type": "string"        
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "description":"Description"
+        },
+
+        "table_columns": {
+          "type": "array",
+          "title": "Table column names",
+          "description": "List of table column names", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "var_name": {
+                "title": "Variable name",
+                "description": "Variable name",
+                "type": "string"
+              },
+              "label": {
+                "title": "Label",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "table_rows": {
+          "type": "array",
+          "title": "Table row level data",
+          "description": "Table row level data",  
+          "items": {
+            "type": "object",
+            "properties": {
+              "var_name": {
+                "title": "Variable name",
+                "description": "Variable name",
+                "type": "string"
+              },
+              "label": {
+                "title": "Label",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "table_series": {
+          "type": "array",
+          "title": "Table series",
+          "description": "Table series", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "description": "Name",
+                "type": "string"
+              },
+              "maintainer": {
+                "title": "Maintainer",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+
+        "statistics": {
+          "type": "array",
+          "title": "Statistics",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "title": "Value",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "unit_observation": {
+          "type": "array",
+          "title": "Unit observation",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "title": "Value",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "data_sources": {
+          "type": "array",
+          "title": "Data sources",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "title": "Source",
+                "type": "string"
+              }
+            }
+          }
+        },
+        
+        "data_years_range": {
+          "type": "array",
+          "title": "Years range",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "title": "Start year",
+                "type": "number"
+              },
+              "to": {
+                "title": "End year",
+                "type": "number"
+              }
+            }
+          }
+        },
+
+        "data_years_list": {
+          "type": "array",
+          "title": "Years list",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "title": "Year",
+                "type": "number"
+              }
+            }
+          }
+        },
+        "universe": {
+          "type": "array",
+          "title": "Universe",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "title": "Universe",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "ref_country": {
+          "type": "array",
+          "title": "Reference country",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "country": {
+                "title": "Country name",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "geographic_units": {
+          "title": "Geographic locations",
+          "description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Location name",
+                "description": "Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'",
+                "type": "string"
+              },
+              "code": {
+                "title": "Location code",
+                "description": "Code of the geographic unit (for countries, preferred = ISO3 code)",
+                "type": "string"
+              },
+              "type": {
+                "title": "Type",
+                "description": "Type of geographic unit e.g. country, state, region, province etc",
+                "type": "string"
+              }          
+            },
+            "required": [
+              "name"
+            ]
+          }
+        }, 
+        "geographic_granularity": {
+          "description": "Granularity of geographic coverage. examples `national`, `regional`, `provincial`",
+          "type": "string",
+          "title":"Geographic granularity"
+        },
+        
+        "languages": {
+          "type": "array",
+          "description": "languages",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "description": "Language name",
+                "type": "string"
+              },
+              "code": {
+                "title": "code",
+                "Descripton": "Language code",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+        "links": {
+          "type": "array",
+          "title": "Links",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "uri": {
+                "title": "URL",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "publications": {
+          "type": "array",
+          "title": "Publications",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "title": "Title",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URL",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "keywords":{
+          "allOf": [ 
+            {"$ref":"#/definitions/keyword"}
+          ],
+          "title":"Keywords",
+          "description":"test"
+        },
+        "themes":{
+          "type":"array",
+          "description":"Themes",
+          "allOf": [ 
+            {"$ref":"#/definitions/keyword"}
+          ]
+        },
+        "topics":{
+          "type":"array",
+          "description":"Topics",
+          "allOf": [ 
+            {"$ref":"#/definitions/keyword"}
+          ]
+        },
+        "sub_topics":{
+          "type":"array",
+          "description":"Sub-topics",
+          "allOf": [ 
+            {"$ref":"#/definitions/keyword"}
+          ]
+        },
+
+
+        "rights": {
+          "type": "string",
+          "title": "Rights"
+        },
+
+        "license": {
+          "type": "array",
+          "title": "License",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "License",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "citation": {
+          "type": "string",
+          "title":"Citation",
+          "description": "A bibliographic reference for the resource."    
+        },
+
+        "confidentiality": {
+          "type": "string",
+          "title":"Confidentiality"
+        },
+
+        "notes": {
+          "type": "array",
+          "title": "Notes",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "note": {
+                "title": "Note",
+                "type": "string"
+              }
+            }
+          }
+        },
+                
+        "relations": {
+          "type": "array",
+          "title": "Relations",
+          "description": "Related documents",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "type": {
+                "title": "Type",
+                "type": "string",
+                "enum":[
+                  "isPartOf",
+                  "hasPart",
+                  "isVersionOf",
+                  "isFormatOf",
+                  "hasFormat",
+                  "references",
+                  "isReferencedBy",
+                  "isBasedOn",
+                  "isBasisFor",
+                  "requires",
+                  "isRequiredBy"
+                ]
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
+    }
+  }
+}

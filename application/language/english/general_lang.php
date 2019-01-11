@@ -116,6 +116,7 @@ $lang['countries']="Countries";
 $lang['iso']="ISO";
 $lang['edit_country']="Edit country";
 $lang['country_mappings']="Country mappings";
+$lang['latest_additions']='Latest additions';
 
 
 /* End of file general_lang.php */

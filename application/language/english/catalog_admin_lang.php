@@ -1,7 +1,7 @@
 <?php 
 
 $lang['catalog_maintenance']="Manage Studies";
-$lang['add_study_to_collection']="Add study to collection:";
+$lang['add_study_to_collection']="Add study to collection";
 $lang['upload_ddi_hover']="Upload a DDI file";
 $lang['import_ddi']="Bulk import DDI";
 $lang['import_ddi_hover']="Import multiple DDI files";
@@ -154,6 +154,9 @@ $lang['attach_related_data']="Attach related";
 $lang['no_related_studies_click_here_to_add']="There are no related studies attached";
 $lang['relationship_type']="Relationship type";
 $lang['draft']="Draft";
+$lang['confirm_unpublish_records']="Are you sure you want to unpublish records?";
+$lang['confirm_unpublish']="Confirm unpublish";
+
 
 
 /* End of file catalog_admin_lang.php */

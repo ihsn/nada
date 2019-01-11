@@ -100,6 +100,8 @@ $lang['citations_text']="A bibliography of publications that have cited the use 
 $lang['allowed_file_types']="Allowed file types";
 $lang['attach_file']="Attach file";
 $lang['max_upload_limit']="Max upload limit";
+$lang['export_citations']="Export citations";
+$lang['export_to_csv']="Export to CSV";
 
 /* End of file citations_lang.php */
 /* Location: ./application/language/english/citations_lang.php */

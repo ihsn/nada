@@ -17,7 +17,7 @@ class Translate extends MY_Controller {
  
  	function index()
 	{
-		$data['title']='Translate';
+		$data['title']=t('translate');
 		$data['languages']=$this->translator->get_languages_array();
 		$content=$this->load->view("translator/index_admin",$data,true);
 		
@@ -48,7 +48,7 @@ class Translate extends MY_Controller {
 			$data['save_status']=$this->_save($language,$translation_file);
 		}
 		
-		$data['title']='Translate';
+		$data['title']=t('translate');
 		$data['active_lang_file']=$translation_file;
 		$data['languages']=$this->translator->get_languages_array();
 		$data['language']=$language;

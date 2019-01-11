@@ -30,11 +30,8 @@ $site_navigation_menu=get_site_menu();
 	<base href="<?php echo js_base_url(); ?>">
 	<title><?php echo $title; ?></title>
 	
-    <!-- style reset using YUI -->
-    <!--[if lt IE 9]>
-      <link rel="stylesheet" type="text/css" href="themes/admin/reset-fonts-grids.css">
-    <![endif]-->
-    
+  <link rel="stylesheet" href="<?php echo base_url()?>themes/base/css/font-awesome.min.css">
+
     <!-- Bootstrap -->
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/custom.css" rel="stylesheet">
@@ -44,11 +41,7 @@ $site_navigation_menu=get_site_menu();
     <link href="<?php echo base_url(); ?>javascript/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet">
 
 
-
-	<!--<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/forms.css">
-  <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/catalog_admin.css">
--->
-    
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/style.css">
     <!--[if lt IE 8]>
       <style>
       .btn-group > .btn-mini + .dropdown-toggle{border:0px solid red;padding:4px;vertical-align:top}

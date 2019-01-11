@@ -315,8 +315,8 @@ class Reports_model extends CI_Model {
 				varcount,
 				dirpath,
 				s.formid,
-				data_coll_start,
-				data_coll_end,
+				year_start,
+				year_end,
 				f.model as form_type,
 				s.changed
 		

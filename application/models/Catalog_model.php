@@ -6,25 +6,16 @@
 class Catalog_model extends CI_Model {
 	
 	//database allowed column names
-	var $allowed_fields=array('titl', 'nation','proddate', 'authenty');
+	var $allowed_fields=array('title', 'nation','year_start', 'authoring_entity');
 	
 	//fields for the study description
 	var $study_fields=array(
 					'surveys.id',
 					'repositoryid',
-					'surveyid',
-					'titl',
-					'titlstmt',
-					'authenty',
-					'geogcover',
+					'idno',
+					'title',
+					'authoring_entity',
 					'nation',
-					'topic',
-					'sername',
-					'producer',
-					'sponsor',
-					'proddate',
-					'refno',
-					'isshared',
 					'dirpath',
 					'metafile',
 					'link_technical', 
@@ -32,8 +23,8 @@ class Catalog_model extends CI_Model {
 					'link_report',
 					'link_indicator',
 					'link_questionnaire',
-					'data_coll_start',
-					'data_coll_end',
+					'year_start',
+					'year_end',
 					'link_da',
 					'published',
 					'surveys.created',
@@ -86,9 +77,9 @@ class Catalog_model extends CI_Model {
 		//$this->db->start_cache();		
 		
 		//select survey fields
-		$this->db->select('surveys.id,surveys.repositoryid,surveyid,titl, authenty,nation,refno,proddate,
+		$this->db->select('surveys.id,surveys.repositoryid,idno,title, authoring_entity,nation,
 							varcount,link_technical, link_study, link_report, 
-							link_indicator, link_questionnaire,	isshared,surveys.changed,surveys.created,surveys.published,surveys.data_coll_start');
+							link_indicator, link_questionnaire,	isshared,surveys.changed,surveys.created,surveys.published,surveys.year_start, surveys.year_end');
 		
 		//select form fields
 		$this->db->select('forms.model as form_model, forms.path as form_path');		
@@ -143,11 +134,9 @@ class Catalog_model extends CI_Model {
 		$keywords=trim($this->input->get("keywords"));
 		
 		$allowed_fields=array(
-						'titl', 
-						'surveyid', 
-						'producer', 
-						'sponsor', 
-						'proddate',
+						'title', 
+						'idno', 
+						'authoring_entity', 
 						'nation'
 						);
 		
@@ -244,8 +233,8 @@ class Catalog_model extends CI_Model {
 			}	
 		}
 		
-		//search on FIELDS [country, surveyid, titl, producer]
-		$search_fields=array('nation','surveyid','titl','published');
+		//search on FIELDS [country, idno, title, producer]
+		$search_fields=array('nation','idno','title','published');
 		$search_options=NULL;
 		
 		foreach($search_fields as $name)
@@ -320,7 +309,7 @@ class Catalog_model extends CI_Model {
     }
 
 	/**
-	* returns a single survey row by ID, or surveyid
+	* returns a single survey row by ID, or IDNO
 	*
 	*
 	**/
@@ -349,8 +338,8 @@ class Catalog_model extends CI_Model {
 		}
 		else 
 		{	
-			//get survey by surveyid
-			$this->db->where('surveys.surveyid', $id); 
+			//get survey by idno
+			$this->db->where('surveys.idno', $id); 
 		}	
 		
 		//execute query
@@ -395,7 +384,7 @@ class Catalog_model extends CI_Model {
 	**/
 	function get_survey($id)
 	{
-		$this->db->select('id,titl,surveyid,proddate,nation,repositoryid');
+		$this->db->select('id,title,idno,year_start,nation,repositoryid');
 		$this->db->where('id', $id); 
 		return $this->db->get('surveys')->row_array();
 	}
@@ -456,10 +445,10 @@ class Catalog_model extends CI_Model {
 	* Get a list of all resources by survey id
 	*
 	*/
-	function get_resources_by_survey($surveyid)
+	function get_resources_by_survey($sid)
 	{
 		$this->db->select('*');
-		$this->db->where('survey_id', $surveyid); 
+		$this->db->where('survey_id', $sid); 
 		return $this->db->get('resources')->result_array();
 	}
 
@@ -469,33 +458,33 @@ class Catalog_model extends CI_Model {
 	*
 	*
 	*/
-	function get_grouped_resources_by_survey($surveyid)
+	function get_grouped_resources_by_survey($sid)
 	{
 		$output=FALSE;
 		
 		//questionnaires
-		$result=$this->get_resources_by_type($surveyid,'doc/qst]');
+		$result=$this->get_resources_by_type($sid,'doc/qst]');
 		if ($result)
 		{
 			$output['questionnaires']=$result;
 		}	
 
 		//reports
-		$result=$this->get_resources_by_type($surveyid,'doc/rep]');
+		$result=$this->get_resources_by_type($sid,'doc/rep]');
 		if ($result)
 		{
 			$output['reports']=$result;
 		}			
 			
 		//technical documents
-		$result=$this->get_resources_by_type($surveyid,'doc/tec]');
+		$result=$this->get_resources_by_type($sid,'doc/tec]');
 		if ($result)
 		{
 			$output['technical']=$result;
 		}					
 		
 		//other materials
-		$result=$this->get_resources_by_type($surveyid,'other');
+		$result=$this->get_resources_by_type($sid,'other');
 		if ($result)
 		{
 			$output['other']=$result;
@@ -509,11 +498,11 @@ class Catalog_model extends CI_Model {
 	* Get a list of citations for a survey by survey id
 	*
 	*/
-	function get_citations_by_survey($surveyid)
+	function get_citations_by_survey($sid)
 	{
 		$this->db->select('citations.*');
 		$this->db->join('survey_citations', 'citations.id= survey_citations.citationid');
-		$this->db->where('survey_citations.sid', $surveyid); 
+		$this->db->where('survey_citations.sid', $sid); 
 		return $this->db->get('citations')->result_array();
 	}
 
@@ -522,10 +511,10 @@ class Catalog_model extends CI_Model {
 	* Return resource by survey and resource type
 	*
 	*/
-	function get_resources_by_type($surveyid,$dctype)
+	function get_resources_by_type($sid,$dctype)
 	{
 		$this->db->select('*');
-		$this->db->where('survey_id',$surveyid);
+		$this->db->where('survey_id',$sid);
 		
 		if ($dctype=='other')
 		{
@@ -788,13 +777,13 @@ class Catalog_model extends CI_Model {
 	function batch_update_collection_dates()
 	{
 		//get all surveys
-		$this->db->select("id,data_coll_start,data_coll_end");
+		$this->db->select("id,year_start,year_end");
 		$surveys=$this->db->get("surveys")->result_array();
 		
 		//update/add dates for each survey
 		foreach($surveys as $survey)
 		{
-			$this->update_data_collection_dates($survey["id"], $survey["data_coll_start"], $survey["data_coll_end"]);
+			$this->update_data_collection_dates($survey["id"], $survey["year_start"], $survey["year_end"]);
 		}		
 	}
 
@@ -802,7 +791,7 @@ class Catalog_model extends CI_Model {
 	*
 	* Insert/delete survey data collection date range
 	*/	
-	function update_data_collection_dates($surveyid,$start,$end)
+	function update_data_collection_dates($sid,$start,$end)
 	{
 		$start=(integer)$start;
 		$end=(integer)$end;
@@ -821,13 +810,13 @@ class Catalog_model extends CI_Model {
 		$years=range($start,$end);
 
 		//remove existing dates if any
-		$this->db->delete('survey_years',array('sid' => $surveyid));
+		$this->db->delete('survey_years',array('sid' => $sid));
 
 		//insert dates into database
 		foreach($years as $year)
 		{
 			$options=array(
-						'sid' => $surveyid,
+						'sid' => $sid,
 						'data_coll_year' => $year);
 			//insert			
 			$this->db->insert('survey_years',$options);
@@ -1055,8 +1044,8 @@ class Catalog_model extends CI_Model {
 	**/
 	function select_all_compact()
 	{
-		$this->db->select('id, surveyid,titl,nation');
-		$this->db->order_by('nation, titl'); 
+		$this->db->select('id, idno,title,nation');
+		$this->db->order_by('nation, title'); 
 		return $this->db->get('surveys')->result_array();		
 	}
 
@@ -1068,9 +1057,9 @@ class Catalog_model extends CI_Model {
 	*
 	* returns number of citations per study
 	**/
-	function has_citations($surveyid)
+	function has_citations($sid)
 	{
-		$query=$this->db->query('select count(*) as total from survey_citations where sid='.(integer)$surveyid);
+		$query=$this->db->query('select count(*) as total from survey_citations where sid='.(integer)$sid);
 		if ($query)
 		{
 			$row=$query->row_array();
@@ -1086,10 +1075,10 @@ class Catalog_model extends CI_Model {
 	* Return resource count by survey and resource type
 	*
 	*/
-	function has_external_resources($surveyid)
+	function has_external_resources($sid)
 	{
 		$this->db->select('count(*) as total');
-		$this->db->where('survey_id',$surveyid);
+		$this->db->where('survey_id',$sid);
 		$this->db->not_like('dctype','dat]');
 		$this->db->not_like('dctype','dat/micro]');
 		$result=$this->db->get('resources')->row_array();
@@ -1199,7 +1188,7 @@ class Catalog_model extends CI_Model {
 	* transfer owndership of a study
 	*
 	* 	@target_repository_id		new owner of the study
-	*	@sid	surveyid
+	*	@sid	surveys.id
 	**/
 	function transfer_ownership($target_repositoryid,$sid)
 	{
@@ -1346,13 +1335,13 @@ class Catalog_model extends CI_Model {
 
 
 	/**
-	* returns internal survey id by SURVEYID
+	* returns internal survey id by IDNO
 	* checks for ID in both surveys and aliases table
 	**/
-	function get_survey_uid($survey_id)
+	function get_survey_uid($idno)
 	{
 		$this->db->select('id');
-		$this->db->where('surveyid', $survey_id); 
+		$this->db->where('idno', $idno); 
 		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query)
@@ -1360,9 +1349,9 @@ class Catalog_model extends CI_Model {
 			return $query['id'];
 		}
 		
-		//check surveyid in survey aliases
+		//check IDNO in survey aliases
 		$this->db->select('sid');
-		$this->db->where(array('alternate_id' => $survey_id) );
+		$this->db->where(array('alternate_id' => $idno) );
 		$query=$this->db->get('survey_aliases')->result_array();
 
 		if (!$query)
@@ -1394,7 +1383,7 @@ class Catalog_model extends CI_Model {
 
 	/**
 	*
-	* Get tags by surveyid
+	* Get tags by survey.id
 	*
 	* @surveys array
 	**/
@@ -1421,7 +1410,7 @@ class Catalog_model extends CI_Model {
 
 	/**
 	*
-	* Return survey aliases + surveyid by internal id
+	* Return survey aliases + survey.id by internal id
 	**/
 	function get_survey_alaises($sid)
 	{		
@@ -1441,13 +1430,13 @@ class Catalog_model extends CI_Model {
 		}
 		
 		//from survey table
-		$this->db->select('surveyid');
+		$this->db->select('idno');
 		$this->db->where(array('id' => $sid) );
 		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query)
 		{
-			$aliases[]=$query['surveyid'];
+			$aliases[]=$query['idno'];
 		}
 		
 		return $aliases;

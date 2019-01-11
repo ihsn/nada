@@ -179,7 +179,6 @@ div.right {
 <script type="text/javascript">
 function topic_search(){
  	data=$("#topic_search_form").serialize();
-	//$('#surveys').html('<img src="images/loading.gif" align="bottom" border="0"/> Searching, please wait...');
 	$.ajax({
         type: "GET",
         url: CI.base_url+"/topic_search/search",

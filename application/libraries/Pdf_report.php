@@ -4,10 +4,6 @@
  * 
  *
  *
- * @package		NADA 3.0
- * @subpackage	Libraries
- * @author		Mehmood Asghar
- * @link		-
  *
  */
 class PDF_Report{
@@ -44,7 +40,7 @@ class PDF_Report{
 	{
 		$mpdf=$this->ci->my_mpdf;
 		//$mpdf=new mPDF('win-1251');
-		$mpdf->useOnlyCoreFonts = false;
+		//$mpdf->useOnlyCoreFonts = false;
 	
 		//supress all errors
 		$error_level=error_reporting();

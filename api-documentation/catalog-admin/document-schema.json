@@ -1,0 +1,636 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Script Schema [DRAFT]",
+  "description": "Schema for Document data type",
+  "type": "object",
+  "properties": {    
+
+    "repositoryid": {
+      "type": "string",
+      "title": "Collection ID that owns the document",
+      "description": "Abbreviation for the collection that owns the document"
+    },
+
+    "published": {
+      "type": "integer",
+      "title": "Status",
+      "description": "Status  - 0=draft, 1=published",
+      "default": 0
+    },
+    
+    "overwrite": {
+      "type": "string",
+      "description": "Overwrite document if already exists?",            
+      "enum":["yes","no"],
+      "default": "no"
+    },
+
+    "metadata_information": {      
+      "type": "object",
+      "title": "Document metadata information",
+      "description": "Document description",
+      "properties": {        
+        "title": {
+          "title": "Document title",
+          "description": "Document title",
+          "type": "string"
+        },
+        "idno": {
+          "title": "Unique ID number for the document",
+          "type": "string"
+        },
+        "producers": {
+          "type": "array",
+          "title": "Producers",
+          "description": "List of producers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "description": "Name (required)",
+                "type": "string"
+              },
+              "abbr": {
+                "title": "Abbreviation",
+                "type": "string"
+              },
+              "affiliation": {
+                "type": "string",
+                "title": "Affiliation"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "production_date": {
+          "title": "Date of Production",
+          "description": "Document production date using format(YYYY-MM-DD)",
+          "type": "string"
+        },
+        "version": {
+          "title": "Document version",
+          "description": "Identify and describe the current version of the document",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "document_description": {
+      "type": "object",
+      "title": "Document Description",
+      "description": "Document Description",
+      "properties": {  
+
+        "title_statement": {
+          "type": "object",
+          "description": "Study title",
+          "properties": {
+            "idno": {
+              "type": "string",
+              "title": "Unique user defined ID",
+              "description": "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)"
+            },
+            "title": {
+              "type": "string",
+              "title": "Survey title",
+              "description": "The title is the official name of the survey as it is stated on the questionnaire or as it appears in the design documents. The following items should be noted:\n - Include the reference year(s) of the survey in the title. \n - Do not include the abbreviation of the survey name in the title. \n - As the survey title is a proper noun, the first letter of each word should be capitalized (except for prepositions or other conjunctions).\n - Including the country name in the title is optional."
+            },
+            "sub_title": {
+              "type": "string",
+              "title": "Survey subtitle",
+              "description": "A short subtitle for the survey"
+            },
+            "alternate_title": {
+              "type": "string",
+              "title": "Abbreviation or Acronym",
+              "description": "Any form of the title used as a substitute or alternative to the formal title of the resource."
+            },
+            "abbreviated_title": {
+              "title": "Abbreviated Title",
+              "description": "Title as abbreviated for indexing or identification.",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "idno",
+            "title"
+          ]
+        },
+
+        "type": {
+          "type": "string",
+          "title":"Resource type",
+          "description": "Resource type",
+          "enum": [
+            "article",
+            "book",
+            "booklet",
+            "collection",
+            "conference",
+            "inbook",
+            "incollection",
+            "inproceeding",
+            "manual",
+            "masterthesis",
+            "patent",
+            "phdthesis",
+            "proceedings",
+            "techreport",
+            "working-paper",
+            "website",
+            "other"
+          ]
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "description": "An account of the content of the resource."
+        },
+        "toc": {
+          "title": "Table of contents",
+          "type": "string",
+          "description": "Table of contents"
+        },
+        "abstract": {
+          "title": "Abstract",
+          "type": "string",
+          "description": "A summary of the content"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string",
+          "description":"Notes"
+        },
+
+
+        "coverage": {
+          "title": "Coverage",
+          "type": "string",
+          "description": "The extent or scope of the content of the resource."
+        },
+        "spatial_coverage": {
+          "title": "Spatial coverage",
+          "type": "string",
+          "description": "The spatial extent or scope of the content of the resource."
+        },
+        "temporal_coverage": {
+          "title": "Temporal coverage",
+          "type": "string",
+          "description": "The temporal extent or scope of the content of the resource."
+        },
+
+        "date_created": {
+          "type": "string",
+          "title":"Date created",
+          "description": "Date of creation"
+        },
+        "date_available": {
+          "type": "string",
+          "title":"Date available",
+          "description": "Date (often a range) that the resource will become or did become available."    
+        },
+        "date_modified": {
+          "type": "string",
+          "title":"Date last modified",
+          "description": "Date on which the resource was changed."    
+        },
+        "date_published": {
+          "type": "string",
+          "title":"Date published",
+          "description": "Date on which document was published."    
+        },
+
+        "id_numbers": {
+          "type": "object",
+          "title": "Identifier numbers",
+          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",          
+          "properties": {
+            "type": {
+              "title": "Type",
+              "description":"ID number type such as  ISSN, ISBN, DOI",
+              "type": "string"
+            },
+            "value": {
+              "title": "ID number",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "type","value"
+          ]
+        },        
+
+        "publication_frequency": {
+          "type": "string",
+          "title":"Publication frequency",
+          "description": "Current stated publication frequency of either an item or an update to an item. Dates are included when the beginning date of the current frequency is not the same as the beginning date of publication."    
+        },
+                 
+        "format": {
+          "type": "string",
+          "description": "Format"    
+        },
+
+        "language": {
+          "type": "object",
+          "title": "Language",
+          "description": "Documentation language e.g. English, French, etc.",          
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "code": {
+              "title": "Code",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+        "bibligraphic_citation": {
+          "type": "string",
+          "title":"Bibliographic citation",
+          "description": "A bibliographic reference for the resource."    
+        },
+
+        "chapter": {
+          "type": "string",
+          "title": "Chapter number",
+          "description":"A chapter or section number"              
+        },
+        "edition": {
+          "type": "string",
+          "title": "Edition",
+          "description":"The edition of a book"              
+        },
+
+        "institution": {
+          "type": "string",
+          "title": "Institution",
+          "description":"The sponsoring institution of a document."              
+        },
+
+        "journal": {
+          "type": "string",
+          "title": "Journal name",
+          "description":"Name of the Journal"              
+        },
+
+        "volume": {
+          "type": "string",
+          "title": "Volume number",
+          "description":"Volume number"              
+        },
+        "issue": {
+          "type": "string",
+          "title": "Issue number",
+          "description":"Issue number"              
+        },
+
+        "pages": {
+          "type": "string",
+          "title": "Page numbers",
+          "description":"One or more page numbers or ranges of number, such as 37--42, or 7,53,82--94"              
+        },
+        "series": {
+          "type": "string",
+          "title": "Series name",
+          "description":"The name given to a series or set of books. When citing an entire book, the title field gives its title and the optional series field gives the name of a series in which the book was published."              
+        },
+
+        "creator": {
+          "type": "string",
+          "title": "Creator",
+          "description":"Entity primarily responsible for making the content of the resource."              
+        },
+
+
+        "authors": {
+          "type": "array",
+          "title": "Editors",
+          "description": "Editors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+
+        "editors": {
+          "type": "array",
+          "title": "Editors",
+          "description": "Editors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+        "translators": {
+          "type": "array",
+          "title": "Translators",
+          "description": "Translators",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+        "contributors": {
+          "type": "array",
+          "title": "Contributors",
+          "description": "Contributors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+
+        "publisher": {
+          "type": "string",
+          "title": "Publisher",
+          "description":"Entity responsible for making the resource available"              
+        },
+
+        "publisher_address": {
+          "type": "string",
+          "title":"Publisher's address",
+          "description": "For major publishing houses, just the city is given. For small publishers, you can help the reader by giving the complete address."    
+        }, 
+
+        "rights": {
+          "type": "string",
+          "title": "Rights",
+          "description":"Information about rights held in and over the resource."              
+        },
+
+        "copyright": {
+          "type": "string",
+          "title": "Copyright",
+          "description":"Statement and identifier indicating the legal ownership and rights regarding use and re-use of all or part of the resource."
+        },
+
+        "usage_terms": {
+          "type": "string",
+          "title": "Terms governing use and reproduction",
+          "description":"Terms Governing Use and Reproduction"
+        },
+
+        "security_classification": {
+          "type": "string",
+          "title": "Security classification control",
+          "description":"Specifics pertaining to the security classification associated with the document, title, abstract, contents note, and/or the author. In addition, it can contain handling instructions and external dissemination information pertaining to the dissemination of the document, title, abstract, contents note, and author."
+        },
+
+        "access_restrictions": {
+          "type": "string",
+          "title": "Restrictions on Access",
+          "description":"Information about restrictions imposed on access to the described materials."
+        },
+
+        "sources": {
+          "type": "object",
+          "title": "Sources",
+          "description": "Description of sources used. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. ",
+          "_ddi_xpath":"stdyDscr/method/dataColl/sources",
+            "properties": {
+              "data_source":{
+                "type":"array",
+                "title":"Data Sources",
+                "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
+                "_ddi_xpath":"stdyDscr/method/dataColl/sources/dataSrc"
+              },
+              "source_origin":{
+                "type":"string",
+                "title":"Origin of Source",
+                "description":"For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
+                "_ddi_xpath":"stdyDscr/method/dataColl/sources/srcOrig"
+              },
+              "source_char":{
+                "type":"string",
+                "title":"Characteristics of Source Noted",
+                "description":"Assessment of characteristics and quality of source material. May not be relevant to survey data.",
+                "_ddi_xpath":"stdyDscr/method/dataColl/sources/srcChar"
+              },
+              "source_doc":{
+                "type":"string",
+                "title":"Source documentation",
+                "description":"Documentation and Access to Sources",
+                "_ddi_xpath":"stdyDscr/method/dataColl/sources/srcDocu"
+              }                
+            }
+        },
+        
+        "keywords": {
+          "type": "array",
+          "description": "Keywords",
+          "_ddi_xpath":"stdyDscr/stdyInfo/subject/keywords",
+          "items": {
+            "type": "object",
+            "properties": {
+              "keyword": {
+                "title": "Keyword",
+                "type": "string"
+              },
+              "uri": {
+                "title": "uri",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "topics": {
+          "type": "array",
+          "title": "Topic Classification",
+          "description": "Topic Classification",
+          "_ddi_xpath":"stdyDscr/stdyInfo/subject/topcClas",
+          "items": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "title": "Topic",
+                "type": "string"
+              },
+              "vocab": {
+                "title": "Vocab",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            },
+            "required": [
+              "topic"
+            ]
+          }
+        },
+
+        "audience": {
+          "title": "Audience",
+          "type": "string",
+          "description":"A category of user for whom the resource is intended."
+        },
+        "location": {
+          "type": "array",
+          "title": "Location(s)",
+          "description": "Physical or electroninc locations of a resource",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
+        "mandate": {
+          "title": "Audience",
+          "type": "string",
+          "description":"A category of user for whom the resource is intended."
+        },
+
+        "pricing": {
+          "title": "Pricing",
+          "type": "string",
+          "description":"Current price of an item or the special export price of an item in any currency."
+        },
+                
+        "relations": {
+          "type": "array",
+          "title": "Document relations",
+          "description": "Related documents",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "type": {
+                "title": "Type",
+                "type": "string",
+                "enum":[
+                  "isPartOf",
+                  "hasPart",
+                  "isVersionOf",
+                  "isFormatOf",
+                  "hasFormat",
+                  "references",
+                  "isReferencedBy",
+                  "isBasedOn",
+                  "isBasisFor",
+                  "requires",
+                  "isRequiredBy"
+                ]
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+
+        
+        
+
+      }
+    }
+  }
+}

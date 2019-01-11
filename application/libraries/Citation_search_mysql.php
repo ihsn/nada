@@ -4,12 +4,6 @@
  * 
  * 
  *
- * @package		NADA 3
- * @subpackage	Libraries
- * @category	Citation Search MySQL
- * @author		Mehmood Asghar
- * @link		-
- *
  */ 
 class Citation_search_mysql{ 
 	
@@ -54,10 +48,11 @@ class Citation_search_mysql{
 
     //search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
-    {
+    {        
 		//fields returned by select
 		$select_fields='SQL_CALC_FOUND_ROWS 
-						citations.id,
+                        citations.id,
+                        citations.uuid,
 						citations.title,
 						citations.subtitle,
 						citations.alt_title,
@@ -143,8 +138,8 @@ class Citation_search_mysql{
         $where=array();//all where statements are combined in the end as a custom where to overcome the AR limits
 
         $this->ci->db->from('citations');
-        //$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
-        //$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+        $this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
+        $this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
 
         //user created the citation
         $this->ci->db->join('users user_created', 'citations.created_by = user_created.id','left');
@@ -161,7 +156,7 @@ class Citation_search_mysql{
 
         //$this->ci->db->group_by('citations.id');
 
-        $fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords';
+        $fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords,citations.abstract,citations.notes,citations.organization';
         $country_fulltext_index='surveys.nation';
 
         if (is_numeric($published))
@@ -170,7 +165,6 @@ class Citation_search_mysql{
         }
 
         $sort_on_rank=false;
-
 
         //set where
         if ($filter)
@@ -197,6 +191,23 @@ class Citation_search_mysql{
                         $sort_on_rank=true;
 
                         break;
+                    
+                    case 'ctype':
+                        if (is_array($keywords)){                            
+                            $this->ci->db->where_in ('citations.ctype',$keywords);
+                        }
+                        break;    
+                    
+                    case 'from':                        
+                        if (strlen($keywords)==4 && is_numeric($keywords)){
+                            $this->ci->db->where ('citations.pub_year >=',intval($keywords),false);
+                        }
+                        break;  
+                    case 'to':                        
+                        if (strlen($keywords)==4 && is_numeric($keywords)){
+                            $this->ci->db->where ('citations.pub_year <=',intval($keywords),false);
+                        }
+                        break;          
 
                     case 'published':
                         if (is_numeric($keywords)){

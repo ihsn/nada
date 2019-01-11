@@ -49,10 +49,10 @@ class Attach_related_data extends MY_Controller {
 		$db_rows=$this->_search($sid);
 
 		$db_rows['survey_id']=$sid;
-		$db_rows['survey_title']=$survey['titl'];
+		$db_rows['survey_title']=$survey['title'];
 
 		$related_studies=$this->Related_study_model->get_relationships($sid);
-		$db_rows['attached_studies']=$this->Related_study_model->get_related_studies_list($sid);
+		$db_rows['attached_studies']=$this->Related_study_model->get_related_studies_id_list($sid);
 		$db_rows['relationship_types']=$this->Related_study_model->get_relationship_types_array();
 
 		foreach($related_studies as $row){

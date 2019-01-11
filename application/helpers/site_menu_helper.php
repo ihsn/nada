@@ -2,11 +2,6 @@
 /**
  * Back-end site menu helper functions
  *
- * @package		CodeIgniter
- * @subpackage	Helpers
- * @category	Helpers
- * @author		Mehmood Asghar
- * @link		
  */
 
 // ------------------------------------------------------------------------

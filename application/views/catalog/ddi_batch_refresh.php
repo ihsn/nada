@@ -31,14 +31,14 @@
 	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
     <th><?php echo t('id');?></th>
     <th><?php echo t('nation');?></th>
-    <th><?php echo t('titl');?></th>
+    <th><?php echo t('title');?></th>
 </tr>
 <?php foreach($surveys as $survey):?>
 	<tr>
     	<td><input type="checkbox" class="chk" id="<?php echo $survey['id'];?>" value="<?php echo $survey['id'];?>"/></td>
     	<td><?php echo $survey['id'];?></td>
         <td><?php echo $survey['nation'];?></td>
-        <td><a target="_blank" href="<?php echo site_url('admin/catalog/edit/'.$survey['id'])?>"><?php echo $survey['titl'];?></a></td>
+        <td><a target="_blank" href="<?php echo site_url('admin/catalog/edit/'.$survey['id'])?>"><?php echo $survey['title'];?></a></td>
     </tr>
 <?php endforeach;?>
 </table>
@@ -91,7 +91,7 @@ var batch_import = {
 	process_queue: function(){
 		if (this.queue_idx<this.queue.length) {			
 			
-			html='<img src="images/loading.gif" align="absbottom"> Refreshing '+ (this.queue_idx+1) +' of '+this.queue.length+'... <b>['+this.queue[this.queue_idx].name+']</b>';
+			html='<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> Refreshing '+ (this.queue_idx+1) +' of '+this.queue.length+'... <b>['+this.queue[this.queue_idx].name+']</b>';
 			html+=' <a href="#" onclick="batch_import.abort();return false;">' +i18n.cancel_import_process+'</a>';
 			$("#batch-import-box").show();
 			$("#batch-import-processing").html(html);

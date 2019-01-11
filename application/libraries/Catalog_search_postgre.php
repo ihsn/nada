@@ -4,11 +4,8 @@
  * 
  * 
  *
- * @package		NADA 3
  * @subpackage	Libraries
  * @category	Data Catalog Search
- * @author		Mehmood Asghar
- * @link		-
  *
  */ 
 class Catalog_search{    	
@@ -112,7 +109,7 @@ class Catalog_search{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='id,refno,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid';
+		$study_fields='id,surveyid,titl,nation,authenty, f.model as form_model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, repositoryid';
 
 		//build final search sql query
 		$sql='';

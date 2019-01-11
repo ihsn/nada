@@ -38,7 +38,7 @@ foreach($user_repositories as $repo)
 	    <label for=""><?php echo t('msg_studies_to_transfer');?></label>
         <ul>
         <?php foreach($surveys as $survey):?>
-            <li><?php echo $survey['titl'];?><input type="hidden" name="sid[]" value="<?php echo $survey['id'];?>"/></li>
+            <li><?php echo $survey['title'];?><input type="hidden" name="sid[]" value="<?php echo $survey['id'];?>"/></li>
         <?php endforeach;?>
         </ul>
 	</div>

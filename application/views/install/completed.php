@@ -9,15 +9,15 @@
 </tr>
 <tr>
 	<td><?php echo t('database');?></td>
-	<td><img src="images/tick.png" /></td>
+	<td><?php echo t('Done');?></td>
 </tr>
 <tr>
 	<td><?php echo t('tables');?></td>
-	<td><img src="images/tick.png" /></td>
+	<td><?php echo t('Done');?></td>
 </tr>
 <tr>
 	<td><?php echo t('admin_account');?></td>
-	<td><img src="images/tick.png" /></td>
+	<td><?php echo t('Done');?></td>
 </tr>
 </table>
 </div>

@@ -32,8 +32,8 @@
 <?php
 function canwritefile($filename){
 	
-	$yes='<span class="green"><img src="images/tick.png"/></span>';
-	$no='<span class="red" style="background:none;color:red;"><img src="images/icon_cancel.gif" alt="X"/></span>';
+	$yes='<span class="green">'.t('yes').'</span>';
+	$no='<span class="red" style="background:none;color:red;">'.t('no').'</span>';
 			
 	$somecontent = "sample content\n";
 
@@ -50,15 +50,15 @@ function canwritefile($filename){
 
 function candeletefile($filename)
 {	
-		$yes='<span class="green"><img src="images/tick.png"/></span>';
-		$no='<span class="red" style="background:none;color:red;"><img src="images/icon_cancel.gif" alt="X"/></span>';
-			
-		if (@unlink($filename)){
-			return $yes;
-		}
-		else{
-			return $no;
-		}
+	$yes='<span class="green">'.t('yes').'</span>';
+	$no='<span class="red" style="background:none;color:red;">'.t('no').'</span>';
+		
+	if (@unlink($filename)){
+		return $yes;
+	}
+	else{
+		return $no;
+	}
 }
 
 

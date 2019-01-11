@@ -64,8 +64,8 @@ $options_datamatching=array(
                 <tr class="row">
                     <td><?php echo $k++;?></td>
                     <td>
-                    	<a class="study-title" target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['titl'];?> <?php echo $survey['data_coll_start'];?></a><br/>
-                        <?php echo $survey['surveyid'];?>
+                    	<a class="study-title" target="_blank" href="<?php echo site_url('catalog/'.$survey['id']);?>"><?php echo $survey['nation'];?> - <?php echo $survey['title'];?> <?php echo $survey['year_start'];?></a><br/>
+                        <?php echo $survey['idno'];?>
                     </td>
                 </tr>
                 <?php endforeach;?>

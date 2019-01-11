@@ -6,27 +6,15 @@
 </tr>
 <tr>
 	<td><?php echo t('title');?></td>
-	<td><?php echo $info['titl']; ?></td>
-</tr>
-<tr>
-	<td><?php echo t('authenty');?></td>
-    <td><?php echo $info['authenty']; ?></td>
-</tr>
-<tr>
-	<td><?php echo t('producer');?></td>
-    <td><?php echo ($info['producer']=='') ? t('missing') : $info['producer']; ?></td>
-</tr>
-<tr>
-	<td><?php echo t('sponsor');?></td>
-    <td><?php echo ($info['sponsor']=='') ? t('missing') : $info['sponsor']; ?></td>
+	<td><?php echo $info['title']; ?></td>
 </tr>
 <tr>
 	<td><?php echo t('collection_date');?></td>
     <td>
-    	<?php if ( !is_numeric($info['data_coll_start'])  || !is_numeric($info['data_coll_end']) ):?>
+    	<?php if ( !is_numeric($info['year_start'])  || !is_numeric($info['year_end']) ):?>
 			<span style="color:red"><?php echo t('missing');?></span>
     	<?php else:?>
-			<?php echo $info['data_coll_start']; ?> - <?php echo $info['data_coll_end']; ?>
+			<?php echo $info['year_start']; ?> - <?php echo $info['year_end']; ?>
 		<?php endif;?>        
     </td>
 </tr>

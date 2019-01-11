@@ -47,7 +47,7 @@ span.link-change{font-size:10px;padding-left:5px;}
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
   <select name="field" id="field">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
-    <option value="titl"	<?php echo ($this->input->get('field')=='titl') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
+    <option value="titl"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
     <option value="surveyid"><?php echo t('survey_id');?></option>
     <option value="authenty"><?php echo t('producer');?></option>
@@ -118,7 +118,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 			<?php if ($this->config->item("regional_search")=='yes'):?>
                 <span style="float:left;display:block;width:150px;overflow:hidden;"><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('keywords','field','ps')); ?></span>
             <?php endif;?>                
-			<?php echo create_sort_link($sort_by,$sort_order,'titl',t('title'),$page_url,array('keywords','field','ps')); ?></div>
+			<?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('keywords','field','ps')); ?></div>
           <div class="row-date"><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,array('keywords','field','ps')); ?></div>
         </div>
     </div>
@@ -133,7 +133,7 @@ span.link-change{font-size:10px;padding-left:5px;}
           	<?php if ($this->config->item("regional_search")=='yes'):?>
 			  	<span style="float:left;display:block;width:150px;overflow:hidden;"><b><?php echo $row['repositoryid'];?></b> <?php echo $row['nation'];?></span>
             <?php endif;?>
-          	<?php echo $row['titl']; ?>
+          	<?php echo $row['title']; ?>
           </div>
           <div class="row-date"><?php echo date($this->config->item('date_format_long'), $row['changed']); ?> <img src="images/bullet-green.gif"/></div>
         </div>

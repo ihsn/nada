@@ -4,15 +4,19 @@
 	}
 </script>	
 <style>
-body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
+.login-form{
+    width: 100%;
+    max-width: 420px;
+    padding: 15px;
+    margin: auto;
+}
+.privacy-info{
+    font-size:smaller;
+}
 </style>
-<div class="nada-login">
+<div class="login-form">
 
-<div class="login-header">
-	<div class="title"><?php echo anchor ("",$this->config->item('website_title'),'class="jx"'); ?></div>
-</div>
-
-<table style="width:400px;margin-top:50px;margin-left:100px;" >
+<table>
 <?php $reason=$this->session->flashdata('reason');?>
 <?php if ($reason!==""):?>
 <tr>
@@ -33,26 +37,24 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
 	<td colspan="3"><?php echo $message.$error;?></td>
 </tr>
 <?php endif;?>
+</table>
 
 
-<tr valign="top">
-	<td style="width:400px;">
-        <div class="login-box">
+
         <h1><?php echo t('log_in');?></h1>
         <form method="post" class="form" autocomplete="off">        
         <div class="pageTitleBorder"></div>
         
         <div style="padding:5px;">
         
-            <div class="field">
-                <label for="email"><?php echo t('email');?>:</label>
-                <?php //echo form_input(get_form_value('email',isset($email) ? $email : ''),NULL,'class="input-flex"' );?>
-                <input class="input-flex"  name="email" type="text" id="email"  value=""/>
+            <div class="form-group">
+                <!--<label for="email"><?php echo t('email');?>:</label>-->
+                <input class="form-control"  name="email" type="text" id="email"  value="" placeholder="<?php echo t('email');?>" />
             </div>
         
-            <div class="field">
-                <label for="password"><?php echo t('password');?>:</label>
-                <input class="input-flex"  name="password" type="password" id="password"  value=""/>
+            <div class="form-group">
+                <!--<label for="password"><?php echo t('password');?>:</label>-->
+                <input class="form-control"  name="password" type="password" id="password"  value="" placeholder="<?php echo t('password');?>"/>
             </div>    
         
         	<?php /*
@@ -62,21 +64,20 @@ body,html{background-color:#F0F0F0;margin:0px;padding:0px;}
             </div> */ ?>
         
             <div class="login-footer">
-                <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn-style-2"/>
+                <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn btn-primary btn-block"/>
                 <?php /* <input type="button" name="cancel" id="cancel" value="<?php echo t('cancel');?>" class="button jx" onclick="history.back();"/> */?>
-                <span class="ot">
+                <div class="ot clearfix">
                 <?php if ($this->config->item("site_user_register")!=='no' && $this->config->item("site_password_protect")!=='yes'):?>	
-                    <span class="lnk first"><?php echo anchor('auth/register',t('register'),'class="jx"'); ?></span>
+                    <span class="lnk first float-left"><?php echo anchor('auth/register',t('register'),'class="jx btn btn-link btn-sm"'); ?></span>
                 <?php endif;?>
-                <span class="lnk"><?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx"'); ?></span>
-                </span>
+                <span class="lnk float-right"><?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx btn btn-link btn-sm"'); ?></span>
+                </div>
             </div>
         </form>
         
-        <div class="privacy-info"><?php echo t('site_login_privacy_terms');?></div>
+        <div class="privacy-info mt-4 text-secondary"><?php echo t('site_login_privacy_terms');?></div>
         </div>    
-    </td>	
-</table>
+   
 
 </div>
 </div>

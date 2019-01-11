@@ -343,7 +343,7 @@ class Auth extends MY_Controller {
 	function forgot_password()
 	{
 		$this->disable_page_cache();
-		$this->form_validation->set_rules('email', t('email'), 'trim|required|xss_clean|max_length[100]|');
+		$this->form_validation->set_rules('email', t('email'), 'trim|required|xss_clean|max_length[100]');
 
 		if ($this->form_validation->run() == false)
 		{

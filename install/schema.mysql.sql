@@ -148,12 +148,13 @@ DROP TABLE IF EXISTS `variables`;
 CREATE TABLE `variables` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
   `sid` int(11) NOT NULL,
-  `fid` varchar(45) DEFAULT '',
+  `fid` varchar(45) DEFAULT NULL,
   `vid` varchar(45) DEFAULT '',
-  `name` varchar(45) DEFAULT '',
-  `labl` varchar(245) DEFAULT '',
+  `name` varchar(100) DEFAULT '',
+  `labl` varchar(255) DEFAULT '',
   `qstn` text,
-  `catgry` text,  
+  `catgry` text,
+  `metadata` mediumtext,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `idxSurvey` (`vid`,`sid`),
   KEY `idxsurveyidfk` (`sid`),
@@ -163,7 +164,8 @@ CREATE TABLE `variables` (
   FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
   FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
   FULLTEXT KEY `idx_nm` (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -262,14 +264,6 @@ CREATE TABLE `meta` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `meta`
---
-
-LOCK TABLES `meta` WRITE;
-/*!40000 ALTER TABLE `meta` DISABLE KEYS */;
-/*!40000 ALTER TABLE `meta` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `login_attempts`
@@ -287,14 +281,6 @@ CREATE TABLE `login_attempts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `login_attempts`
---
-
-LOCK TABLES `login_attempts` WRITE;
-/*!40000 ALTER TABLE `login_attempts` DISABLE KEYS */;
-/*!40000 ALTER TABLE `login_attempts` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `repository_sections`
@@ -337,42 +323,6 @@ CREATE TABLE `survey_topics` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_topics`
---
-
-LOCK TABLES `survey_topics` WRITE;
-/*!40000 ALTER TABLE `survey_topics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_topics` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `blocks`
---
-
-DROP TABLE IF EXISTS `blocks`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `blocks` (
-  `bid` int(11) NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) DEFAULT NULL,
-  `body` text,
-  `region` varchar(255) DEFAULT NULL,
-  `weight` int(11) DEFAULT NULL,
-  `published` int(11) DEFAULT NULL,
-  `pages` text,
-  PRIMARY KEY (`bid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `blocks`
---
-
-LOCK TABLES `blocks` WRITE;
-/*!40000 ALTER TABLE `blocks` DISABLE KEYS */;
-/*!40000 ALTER TABLE `blocks` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `survey_citations`
@@ -390,14 +340,6 @@ CREATE TABLE `survey_citations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_citations`
---
-
-LOCK TABLES `survey_citations` WRITE;
-/*!40000 ALTER TABLE `survey_citations` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_citations` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `dcformats`
@@ -439,14 +381,6 @@ CREATE TABLE `group_repo_access` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `group_repo_access`
---
-
-LOCK TABLES `group_repo_access` WRITE;
-/*!40000 ALTER TABLE `group_repo_access` DISABLE KEYS */;
-/*!40000 ALTER TABLE `group_repo_access` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `surveys`
@@ -455,63 +389,50 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `surveys`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+
 CREATE TABLE `surveys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `repositoryid` varchar(128) NOT NULL,
-  `surveyid` varchar(200) DEFAULT NULL,
-  `titl` varchar(255) DEFAULT '',
-  `titlstmt` text,
-  `authenty` varchar(1000) DEFAULT NULL,
-  `geogcover` varchar(255) DEFAULT NULL,
-  `nation` varchar(100) DEFAULT '',
-  `topic` text,
-  `scope` text,
-  `sername` varchar(255) DEFAULT NULL,
-  `producer` varchar(1000) DEFAULT NULL,
-  `sponsor` varchar(1000) DEFAULT NULL,
-  `refno` varchar(255) DEFAULT NULL,
-  `proddate` varchar(45) DEFAULT NULL,
-  `varcount` decimal(10,0) DEFAULT NULL,
+  `idno` varchar(200) NOT NULL,
+  `type` varchar(15) DEFAULT NULL,
+  `repositoryid` varchar(100) DEFAULT NULL,
+  `title` varchar(255) NOT NULL DEFAULT '',
+  `abbreviation` varchar(45) DEFAULT NULL,
+  `authoring_entity` text,
+  `nation` varchar(150) DEFAULT '',
+  `year_start` int(11) DEFAULT '0',
+  `year_end` int(11) DEFAULT '0',
   `metafile` varchar(255) DEFAULT NULL,
   `dirpath` varchar(255) DEFAULT NULL,
+  `varcount` int(11) DEFAULT NULL,
   `link_technical` varchar(255) DEFAULT NULL COMMENT 'documentation',
   `link_study` varchar(255) DEFAULT NULL COMMENT 'study website',
   `link_report` varchar(255) DEFAULT NULL COMMENT 'reports',
   `link_indicator` varchar(255) DEFAULT NULL COMMENT 'indicators',
-  `formid` int(11) DEFAULT NULL,
-  `isshared` tinyint(1) NOT NULL DEFAULT '1',
-  `isdeleted` tinyint(1) NOT NULL DEFAULT '0',
-  `changed` int(11) DEFAULT NULL,
-  `created` int(11) DEFAULT NULL,
   `link_questionnaire` varchar(255) DEFAULT NULL,
-  `countryid` int(11) DEFAULT NULL,
-  `data_coll_start` int(11) DEFAULT NULL,
-  `data_coll_end` int(11) DEFAULT NULL,
-  `abbreviation` varchar(45) DEFAULT NULL,
-  `kindofdata` varchar(255) DEFAULT NULL,
+  `formid` int(11) DEFAULT NULL,
   `keywords` text,
   `link_da` varchar(255) DEFAULT NULL,
   `published` tinyint(4) DEFAULT NULL,
   `total_views` int(11) DEFAULT '0',
   `total_downloads` int(11) DEFAULT '0',
   `stats_last_updated` int(11) DEFAULT NULL,
+  `created` int(11) DEFAULT NULL,
+  `changed` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `changed_by` int(11) DEFAULT NULL,
+  `metadata` mediumtext,
+  `variable_data` mediumtext,
+  `ts_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `thumbnail` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_srvy_unq` (`surveyid`,`repositoryid`),
-  FULLTEXT KEY `ft_titl` (`titl`),
-  FULLTEXT KEY `ft_all` (`titl`,`authenty`,`geogcover`,`nation`,`topic`,`scope`,`sername`,`producer`,`sponsor`,`refno`,`abbreviation`,`kindofdata`,`keywords`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  UNIQUE KEY `surveyid_UNIQUE` (`idno`),
+  UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
+  FULLTEXT KEY `ft_titl` (`title`),
+  FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`),
+  FULLTEXT KEY `ft_keywords` (`keywords`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `surveys`
---
-
-LOCK TABLES `surveys` WRITE;
-/*!40000 ALTER TABLE `surveys` DISABLE KEYS */;
-/*!40000 ALTER TABLE `surveys` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `dctypes`
@@ -552,14 +473,6 @@ CREATE TABLE `da_collections` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='data access by collection/set';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `da_collections`
---
-
-LOCK TABLES `da_collections` WRITE;
-/*!40000 ALTER TABLE `da_collections` DISABLE KEYS */;
-/*!40000 ALTER TABLE `da_collections` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `cache`
@@ -588,27 +501,6 @@ LOCK TABLES `cache` WRITE;
 /*!40000 ALTER TABLE `cache` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `schema_version`
---
-
-DROP TABLE IF EXISTS `schema_version`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `schema_version` (
-  `version` int(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `schema_version`
---
-
-LOCK TABLES `schema_version` WRITE;
-/*!40000 ALTER TABLE `schema_version` DISABLE KEYS */;
-INSERT INTO `schema_version` VALUES (2);
-/*!40000 ALTER TABLE `schema_version` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `forms`
@@ -624,7 +516,7 @@ CREATE TABLE `forms` (
   `path` varchar(255) DEFAULT '',
   `iscustom` char(2) DEFAULT '0',
   PRIMARY KEY (`formid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -692,10 +584,9 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `citations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `citations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(50) NOT NULL,
   `title` varchar(255) NOT NULL,
   `subtitle` varchar(255) DEFAULT NULL,
   `alt_title` varchar(255) DEFAULT NULL,
@@ -729,19 +620,20 @@ CREATE TABLE `citations` (
   `flag` varchar(45) DEFAULT NULL,
   `owner` varchar(255) DEFAULT NULL,
   `country` varchar(100) DEFAULT NULL,
-  `ihsn_id` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `url_status` varchar(50) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  `attachment` varchar(300) DEFAULT NULL,
+  `lang` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uid_UNIQUE` (`uuid`),
+  FULLTEXT KEY `ft_citations` (`title`,`subtitle`,`alt_title`,`authors`,`editors`,`translators`),
+  FULLTEXT KEY `ft_cit2` (`title`,`subtitle`,`authors`,`organization`,`abstract`,`keywords`,`notes`,`doi`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
---
--- Dumping data for table `citations`
---
 
-LOCK TABLES `citations` WRITE;
-/*!40000 ALTER TABLE `citations` DISABLE KEYS */;
-/*!40000 ALTER TABLE `citations` ENABLE KEYS */;
-UNLOCK TABLES;
+
+
 
 --
 -- Table structure for table `permission_urls`
@@ -778,11 +670,13 @@ DROP TABLE IF EXISTS `survey_aliases`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_aliases` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `sid` int(10) unsigned NOT NULL,
+  `sid` int(10)  NOT NULL,
   `alternate_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_id` (`alternate_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Other codeBook IDs for the survey';
+
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -909,7 +803,7 @@ CREATE TABLE `users` (
   `active` tinyint(3) DEFAULT NULL,
   `authtype` varchar(40) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -998,12 +892,13 @@ DROP TABLE IF EXISTS `survey_repos`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_repos` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `sid` int(10) unsigned NOT NULL,
+  `sid` int(10)  NOT NULL,
   `repositoryid` varchar(255) NOT NULL,
   `isadmin` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
 
 --
 -- Dumping data for table `survey_repos`
@@ -1043,28 +938,6 @@ INSERT INTO `repo_perms_urls` VALUES (5,2,'admin/catalog/copy_ddi'),(6,2,'admin/
 /*!40000 ALTER TABLE `repo_perms_urls` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `tokens`
---
-
-DROP TABLE IF EXISTS `tokens`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `tokens` (
-  `tokenid` varchar(100) NOT NULL,
-  `dated` int(11) NOT NULL,
-  PRIMARY KEY (`tokenid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `tokens`
---
-
-LOCK TABLES `tokens` WRITE;
-/*!40000 ALTER TABLE `tokens` DISABLE KEYS */;
-/*!40000 ALTER TABLE `tokens` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `menus`
@@ -1353,7 +1226,7 @@ DROP TABLE IF EXISTS `survey_notes`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_notes` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `sid` int(10) unsigned DEFAULT NULL,
+  `sid` int(10) NOT NULL,
   `note` text NOT NULL,
   `type` varchar(50) NOT NULL,
   `userid` int(10) unsigned NOT NULL,
@@ -1361,6 +1234,7 @@ CREATE TABLE `survey_notes` (
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1386,18 +1260,11 @@ CREATE TABLE `citation_authors` (
   `lname` varchar(255) DEFAULT NULL,
   `initial` varchar(255) DEFAULT NULL,
   `author_type` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`id`),
+  KEY `idx_cit_auth` (`cid`,`author_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `citation_authors`
---
-
-LOCK TABLES `citation_authors` WRITE;
-/*!40000 ALTER TABLE `citation_authors` DISABLE KEYS */;
-/*!40000 ALTER TABLE `citation_authors` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `countries`
@@ -1604,7 +1471,7 @@ CREATE TABLE `sitelogs` (
   `username` varchar(100) DEFAULT NULL,
    `useragent` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1639,9 +1506,9 @@ CREATE TABLE `configurations` (
 
 LOCK TABLES `configurations` WRITE;
 /*!40000 ALTER TABLE `configurations` DISABLE KEYS */;
-INSERT INTO `configurations` VALUES ('app_version','4.0.0-06.02.2013','Application version',NULL,NULL);
+INSERT INTO `configurations` VALUES ('app_version','5.0.0','Application version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('cache_default_expires','7200','Cache expiry (in mili seconds)',NULL,NULL);
-INSERT INTO `configurations` VALUES ('cache_disabled','0','Enable/disable site caching',NULL,NULL);
+INSERT INTO `configurations` VALUES ('cache_disabled','1','Enable/disable site caching',NULL,NULL);
 INSERT INTO `configurations` VALUES ('cache_path','cache/','Site cache folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
@@ -1650,7 +1517,7 @@ INSERT INTO `configurations` VALUES ('collection_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('collection_search_weight','5',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search_weight','2',NULL,NULL,NULL);
-INSERT INTO `configurations` VALUES ('db_version','4.0.0-06.02.2013','Database version',NULL,NULL);
+INSERT INTO `configurations` VALUES ('db_version','5.0.0','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('default_home_page','home','Default home page','Default home page',NULL);
 INSERT INTO `configurations` VALUES ('html_folder','/pages',NULL,NULL,NULL);
@@ -1726,9 +1593,238 @@ CREATE TABLE `survey_lic_requests` (
 
 
 
+
+-- 
+-- Table structure for table 'data_files'
 --
--- Dumping routines for database 'nada4'
+CREATE TABLE `data_files` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) NOT NULL,
+  `file_id` varchar(100) DEFAULT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `description` text,
+  `case_count` int(11) DEFAULT NULL,
+  `var_count` int(11) DEFAULT NULL,
+  `producer` varchar(255) DEFAULT NULL,
+  `data_checks` varchar(255) DEFAULT NULL,
+  `missing_data` varchar(255) DEFAULT NULL,
+  `version` varchar(255) DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `survey_file` (`sid`,`file_id`),
+  CONSTRAINT `cascade_data_files` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
 --
+-- API KEYS table
+--
+CREATE TABLE `api_keys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `key` varchar(40) NOT NULL,
+  `level` int(2) NOT NULL,
+  `ignore_limits` tinyint(1) NOT NULL DEFAULT '0',
+  `ip_addresses` text,
+  `date_created` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `is_private_key` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key_UNIQUE` (`key`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `api_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uri` varchar(255) NOT NULL,
+  `method` varchar(6) NOT NULL,
+  `params` text,
+  `api_key` varchar(40) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `time` int(11) NOT NULL,
+  `rtime` float DEFAULT NULL,
+  `authorized` varchar(1) NOT NULL,
+  `response_code` smallint(3) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+
+CREATE TABLE `data_files_resources` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `sid` INT NULL,
+  `fid` VARCHAR(45) NULL,
+  `resource_id` INT NULL,
+  `file_format` VARCHAR(45) NULL,
+  `api_use` TINYINT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `file_resource` (`sid` ASC, `resource_id` ASC));
+
+
+CREATE TABLE `survey_locations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `location` geometry NOT NULL,
+  PRIMARY KEY (`id`),
+  SPATIAL KEY `idx_location` (`location`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+--
+-- Set foreign keys
+--
+
+
+/* 
+-- Enable/dislabe foreign key checks
+-- SET FOREIGN_KEY_CHECKS = 0; 
+*/
+
+
+ALTER TABLE da_collection_surveys
+   ADD CONSTRAINT `del_da_coll_surveys`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+
+ALTER TABLE data_files
+   ADD CONSTRAINT `cascade_data_files`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+
+ALTER TABLE data_files_resources
+   ADD CONSTRAINT `cascade_data_files_resources`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;  
+   
+   
+ALTER TABLE featured_surveys
+   ADD CONSTRAINT `cascade_featured_surveys`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+   
+ALTER TABLE lic_files
+   ADD CONSTRAINT `cascade_lic_files`
+   FOREIGN KEY (`surveyid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+
+ALTER TABLE public_requests
+   ADD CONSTRAINT `cascade_pubilc_requests`
+   FOREIGN KEY (`surveyid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+ALTER TABLE resources
+   ADD CONSTRAINT `cascade_resources`
+   FOREIGN KEY (`survey_id`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+
+
+ALTER TABLE survey_aliases
+   ADD CONSTRAINT `cascade_survey_aliases`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;   
+
+
+ALTER TABLE survey_citations
+   ADD CONSTRAINT `cascade_survey_citations`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+   
+ALTER TABLE survey_countries
+   ADD CONSTRAINT `cascade_survey_countries`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+   
+
+ALTER TABLE survey_lic_requests
+   ADD CONSTRAINT `cascade_survey_lic_requests`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+      
+ALTER TABLE survey_locations
+   ADD CONSTRAINT `cascade_survey_locations`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+   
+   
+ALTER TABLE survey_notes
+   ADD CONSTRAINT `cascade_survey_notes`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;   
+
+   
+ALTER TABLE survey_repos
+   ADD CONSTRAINT `cascade_survey_repos`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+
+
+ALTER TABLE survey_tags
+   ADD CONSTRAINT `cascade_survey_tags`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;    
+   
+   
+ALTER TABLE survey_topics
+   ADD CONSTRAINT `cascade_survey_topics`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;
+
+ALTER TABLE survey_years
+   ADD CONSTRAINT `cascade_survey_years`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;       
+   
+ALTER TABLE variables
+   ADD CONSTRAINT `cascade_survey_variables`
+   FOREIGN KEY (`sid`)
+   REFERENCES `surveys` (`id`)
+   ON DELETE CASCADE
+   ON UPDATE CASCADE;          
+
+
+
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

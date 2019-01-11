@@ -153,7 +153,7 @@ $config['subclass_prefix'] = 'MY_';
 | Note: This will NOT disable or override the CodeIgniter-specific
 |	autoloading (application/config/autoload.php)
 */
-$config['composer_autoload'] = TRUE;
+$config['composer_autoload'] = 'vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -231,7 +231,7 @@ $config['directory_trigger'] = 'd';
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$config['log_threshold'] = 1;
 
 /*
 |--------------------------------------------------------------------------
@@ -624,7 +624,7 @@ $config['site_user_register']='yes';
 |
 | allowed_resource_types	comma seperated list of file extensions that are allowed for uploading external resources
 */
-$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt';
+$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar';
 
 
 /*
@@ -647,6 +647,21 @@ $config['max_resource_upload_size']='300';
 |
 */
 $config['citations_storage_path']='datafiles/citations'; //don't add a trailing slash
+
+
+/*
+|--------------------------------------------------------------------------
+| Search providers
+|--------------------------------------------------------------------------
+|
+| options are DB and SOLR
+|
+| db - use database builtin search - no configurations required
+| solr - use solr for search. solr instance info must be added to solr config file
+|
+*/
+
+$config['search_provider']='db';
 
 
 /*

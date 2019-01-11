@@ -94,37 +94,7 @@ class Search_helper_model extends CI_Model {
 				$output['countries'][]=$country['nation'];
 			}			
 		}
-		
-		//get min year
-		/*$sql=sprintf('select min(data_coll_year) as min_year from survey_years y
-					  inner join survey_topics t on t.sid=y.sid
-					  where t.tid in (%s) and data_coll_year>0;',$topics);		
-
-		$min_query=$this->db->query($sql)->row_array();
-		
-		if ($min_query)
-		{
-			$output['min_year']=$min_query['min_year'];
-		}
-		
-		$sql=sprintf('select max(data_coll_year) as max_year from survey_years y
-					  inner join survey_topics t on t.sid=y.sid
-					  where t.tid in (%s);',$topics);		
-
-		
-		$max_query=$this->db->query($sql)->row_array();
-		
-		if ($max_query)
-		{
-			$output['max_year']=$max_query['max_year'];
-		}
-
-		//set min/max years to 0 if not found in db
-		if (!is_numeric($output['min_year']) || !is_numeric($output['max_year']) )
-		{
-			$output['min_year']=0;
-			$output['max_year']=0;
-		}*/
+				
 			$output['min_year']=0;
 			$output['max_year']=0;
 
@@ -242,8 +212,8 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_min_year()
 	{
-		$this->db->select_min('data_coll_start','min_year');
-		$this->db->where('data_coll_start > 0'); 
+		$this->db->select_min('year_start','min_year');
+		$this->db->where('year_start > 0'); 
 		$this->db->where('published',1); 
 		$result=$this->db->get('surveys')->row_array();
 		
@@ -262,8 +232,8 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_max_year()
 	{
-		$this->db->select_max('data_coll_end','max_year');
-		$this->db->where('data_coll_end > 0'); 
+		$this->db->select_max('year_end','max_year');
+		$this->db->where('year_end > 0'); 
 		$this->db->where('published',1); 
 		$result=$this->db->get('surveys')->row_array();
 		if ($result)
@@ -282,9 +252,9 @@ class Search_helper_model extends CI_Model {
 	function get_collection_years()
 	{
 		//get start years
-		$sql='select data_coll_start from surveys
-				where data_coll_start>0 and published=1
-				group by data_coll_start;';
+		$sql='select year_start from surveys
+				where year_start>0 and published=1
+				group by year_start;';
 		$result=$this->db->query($sql)->result_array();
 		
 		$years['from']=array('--'=>'--');
@@ -293,14 +263,14 @@ class Search_helper_model extends CI_Model {
 		{
 			foreach($result as $row)
 			{
-				$years['from'][$row['data_coll_start']]=$row['data_coll_start'];
+				$years['from'][$row['year_start']]=$row['year_start'];
 			}
 		}
 
 		//get end years
-		$sql='select data_coll_end from surveys
-				where data_coll_end>0 and published=1
-				group by data_coll_end;';
+		$sql='select year_end from surveys
+				where year_end>0 and published=1
+				group by year_end;';
 				
 		$result=$this->db->query($sql)->result_array();
 		
@@ -309,7 +279,7 @@ class Search_helper_model extends CI_Model {
 		{
 			foreach($result as $row)
 			{
-				$years['to'][$row['data_coll_end']]=$row['data_coll_end'];
+				$years['to'][$row['year_end']]=$row['year_end'];
 			}
 		}
 		
