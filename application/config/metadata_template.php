@@ -49,7 +49,7 @@ $config['document']=array(
 //table
 $config['table']=array(
     'template' => 'metadata_templates/table-template',
-    'language_translations'=>'table_fields'
+    'language_translations'=>'fields_table'
 ); 
 
 //image
