@@ -82,7 +82,7 @@ class Dataset_model extends CI_Model {
 			'variable_groups'=>array('variable_groups')
 		),
 		'timeseries'=>array(
-			'study'=>array('doc_desc','study_desc','additional'),
+			'study'=>array('metadata_creation','database_description','additional'),
 			'data_files'=>array('data_files','database'),
 			'variables'=>array('indicators'),
 			'variable_groups'=>array('indicator_groups')
@@ -299,7 +299,7 @@ class Dataset_model extends CI_Model {
 				$output=$options;
 
 				//title
-				$output['title']=$this->get_array_nested_value($options,'study_desc/title');
+				$output['title']=$this->get_array_nested_value($options,'database_description/title');
 
 				//idno
 				$output['idno']=$this->get_array_nested_value($options,'idno');
@@ -316,10 +316,10 @@ class Dataset_model extends CI_Model {
 				$output['nation']=$nation_str;
 
 				//abbreviation
-				$output['abbreviation']=$this->get_array_nested_value($options,'study_desc/abbreviation');
+				$output['abbreviation']=$this->get_array_nested_value($options,'database_description/abbreviation');
 
 				//authoring entity
-				$output['authoring_entity']=$this->authoring_entity_to_string($this->get_array_nested_value($options,'study_desc/authoring_entity'));
+				$output['authoring_entity']=$this->authoring_entity_to_string($this->get_array_nested_value($options,'database_description/authoring_entity'));
 
 				//year_start, year_end
 				$years=$this->ddi_transform_years($type,$options);
@@ -1145,7 +1145,7 @@ class Dataset_model extends CI_Model {
 			break;
 
 			case 'timeseries':
-				$nations=$this->get_array_nested_value($options,'study_desc/geographic_units');				
+				$nations=$this->get_array_nested_value($options,'database_description/geographic_units');				
 				$nation_names=array();
 				foreach($nations as $nation){
 					$nation_names[]=$nation['name'];
