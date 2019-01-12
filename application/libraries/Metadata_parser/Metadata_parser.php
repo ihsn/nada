@@ -14,7 +14,7 @@ class Metadata_parser {
 	public function __construct($params)
     {
         if (!isset($params['file_type']) || !isset($params['file_path'])){
-            throw new Exception("METADATA_PARSER::MISSING_PARAMS: file_typ or file_path");
+            throw new Exception("METADATA_PARSER::MISSING_PARAMS: file_type or file_path");
         }
         
         $this->ci =& get_instance();
