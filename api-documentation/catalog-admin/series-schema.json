@@ -39,15 +39,15 @@
 			}
 		  },
 		  "measurement_unit":{
-			"type":"integer",
+			"type":"string",
 			"title":"Series unit of measure"
 		  },
 		  "periodicity":{
-			"type":"integer",
+			"type":"string",
 			"title":"Periodicity of data"
 		  },
 		  "base_period":{
-			"type":"integer",
+			"type":"string",
 			"title":"Base period"
 		  },
 		  "definition_short":{
@@ -243,28 +243,42 @@
 			"title":"Confidentiality note"
 		  },
 		  "series_links":{
-			"type":"array",
-			"title":"Series links",
-			"description":"Links to API calls, websites, etc.",
-			"items":{
-			  "type":"object",
-			  "properties":{
-				"type":{
-				  "type":"string",
-				  "title":"Link type",
-				  "description":"Link types - API, website, etc."
-				},
-				"description":{
-				  "type":"string",
-				  "title":"Description"
-				},
-				"url":{
-				  "type":"string",
-				  "title":"Link URL"
+				"type":"array",
+				"title":"Series links",
+				"description":"Links to API calls, websites, etc.",
+				"items":{
+					"type":"object",
+					"properties":{
+						"type":{
+							"type":"string",
+							"title":"Link type",
+							"description":"Link types - API, website, etc."
+						},
+						"description":{
+							"type":"string",
+							"title":"Description"
+						},
+						"uri":{
+							"type":"string",
+							"title":"URI"
+						}
+					}
 				}
-			  }
-			}
-		  },
+			},
+			"api_documentation":{
+				"type":"object",
+				"description":"API Documentation",
+					"properties":{
+					"description":{
+						"title":"Description",
+						"type":"string"
+					},
+					"uri":{
+						"title":"URI",
+						"type":"string"
+					}
+				}
+			},
 		  "source":{
 			"type":"string",
 			"title":"Original source"
@@ -280,33 +294,47 @@
 			"items":{
 			  "type":"object",
 			  "properties":{
-				"keyword":{
+				"name":{
 				  "title":"Keyword",
 				  "type":"string"
 				},
+				"vocabulary":{
+				  "title":"Vocabulary",
+				  "type":"string"
+				},
 				"uri":{
-				  "title":"uri",
+				  "title":"URI",
 				  "type":"string"
 				}
 			  }
 			}
 		  },
 		  "notes":{
-			"type":"string",
-			"title":"Notes"
-		  },
+				"title": "Notes",
+				"description": "Notes",
+				"type":"array",
+				"items":{
+					"type":"object",
+					"properties":{
+						"note":{
+							"title":"Note",
+							"type":"string"
+						}
+					}
+				}
+			},
 		  "related_indicators":{
 			"type":"array",
 			"description":"Related indicators",
 			"items":{
 			  "type":"object",
 			  "properties":{
-				"idno":{
-				  "title":"Indicator ID",
+				"code":{
+				  "title":"Indicator code",
 				  "type":"string"
 				},
-				"title":{
-				  "title":"Indicator title",
+				"label":{
+				  "title":"Indicator name",
 				  "type":"string"
 				},
 				"uri":{
@@ -316,47 +344,59 @@
 			  }
 			},
 			"required":[
-			  "idno"
+			  "code"
 			]
-		  },
-		  "compliance":{
-			"type":"object",
-			"title":"Compliance with international resolution",
-			"description":"Compliance with international resolution",
-			"properties":{
-			  "value":{
-				"type":"string",
-				"title":"Resolution"
-			  },
-			  "uri":{
-				"type":"string",
-				"title":"URI"
-			  },
-			  "org":{
-				"type":"string",
-				"title":"Organization name"
-			  }
-			}
-		  },
-		  "series_groups":{
-			"type":"object",
-			"title":"Series groups",
-			"description":"Series included in groups",
-			"properties":{
-			  "name":{
-				"type":"string",
-				"title":"Name"
-			  },
-			  "uri":{
-				"type":"string",
-				"title":"URI"
-			  },
-			  "version":{
-				"type":"string",
-				"title":"Version"
-			  }
-			}
-		  }
+			},
+			"compliance":{
+				"type":"array",
+				"title":"Compliance with international resolution",
+				"description":"Compliance with international resolution",
+				"items":{
+					"type":"object",
+					"properties":{
+						"standard":{
+							"type":"string",
+							"title":"Standard name"
+							},
+							"organization":{
+								"type":"string",
+								"title":"Organization name"
+								},	
+						"uri":{
+							"type":"string",
+							"title":"URI"
+							}				
+					}
+				},
+				"required":[
+					"value"
+				]
+			},
+			"series_groups":{
+				"type":"array",
+				"title":"Series groups",
+				"description":"Series included in groups",
+				"items":{
+					"type":"object",
+					"properties":{
+						"name":{
+							"type":"string",
+							"title":"Name"
+							},						
+							"version":{
+							"type":"string",
+							"title":"Version"
+							},
+							"uri":{
+								"type":"string",
+								"title":"URI"
+							}			
+					}
+				},
+				"required":[
+					"name"
+				]
+			}		  
 		},
 		"required":[
 		  "fid",
