@@ -56,14 +56,13 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 		<h1 class="mt-0 mb-1"><?php echo $survey_title;?></h1>
 		<h6 class="sub-title"><?php echo $sub_title;?>
 
-
 		<?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?>                    
 			<?php foreach($survey['repositories'] as $repository):?>
 				<div class="collection badge badge-light"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
 			<?php endforeach;?>                    
 		<?php endif;?>
 
-</h6>
+		</h6>
 					
 
 		<div class="producers mb-3">
@@ -73,9 +72,6 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 		</div>
 
 		<div class="dataset-links">
-
-		                         
-
 		</div>
 
 		<div class="dataset-footer-bar mt-2">
@@ -198,7 +194,7 @@ else{
 
 
 <!-- Nav tabs -->
-<ul class="container nav nav-tabs wb-nav-tab-space flex-wrap" role="tablist">
+<ul class="nav nav-tabs wb-nav-tab-space flex-wrap" role="tablist">
 	<?php foreach($page_tabs as $tab_name=>$tab):?>
 		<?php if ($tab['show_tab']==0){continue;};?>
 		<?php if($tab_name=='get_microdata'):?>
