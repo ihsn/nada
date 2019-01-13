@@ -6,7 +6,7 @@
   crossorigin=""></script>
 
 
-<div id="map-canvas" style="height:300px;background:gainsboro;">map here</div>
+<div id="map-canvas" style="height:300px;background:gainsboro;"></div>
 
 <?php
   $columns=array(

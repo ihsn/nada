@@ -113,7 +113,7 @@
 
 
 <!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2 hidden-sm-down">
+<div class="col-sm-2 col-lg-2  d-none d-sm-block">
 <div class="navbar-collapse sticky-top">
 
     <ul class="navbar-nav flex-column wb--full-width">
