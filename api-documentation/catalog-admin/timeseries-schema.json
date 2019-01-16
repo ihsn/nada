@@ -30,7 +30,6 @@
       ],
       "default": "na"
     },
-
     
     "data_remote_url": {
       "type": "string",
@@ -185,56 +184,40 @@
           "type": "string",
           "title": "Date of creation",
           "description":"Date this version of the dataset was created"
-        },
-        "revision_dates": {
-          "type": "array",
-          "title": "Dates of revisions",
-          "description": "Dates of revisions",
-          "items": {
-            "type": "object",
-            "properties": {
-              "date": {
-                "title": "Date",
-                "type": "string"
-              },
-              "revision": {
-                "title": "Revision",
-                "description": "e.g. current, previous last revision",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "date"
-          ]
-        },
+        },        
         "date_published": {
           "type": "string",
           "title": "Dataset published date",
           "description":"Date this version of the dataset was published"
         },
         "version": {
-          "type": "object",
+          "type": "array",
           "title": "Version Statement",
-          "properties": {
-            "version": {
-              "title": "Version",
-              "type": "string",
-              "description":"Version number e.g. v1.0"
-            },
-            "date": {
-              "title": "Version Date",
-              "type": "string"
-            },
-            "responsibility": {
-              "title": "Version Responsibility Statement",
-              "description": "Version Responsibility Statement",
-              "type": "string"
-            },
-            "notes": {
-              "title": "Version Notes",
-              "type": "string"
-            }            
+          "items":{
+            "type":"object",
+              "properties": {
+                "version": {
+                  "title": "Version",
+                  "type": "string",
+                  "description":"Version number e.g. v1.0"
+                },
+                "date": {
+                  "title": "Version Date",
+                  "type": "string"
+                },
+                "responsibility": {
+                  "title": "Version Responsibility Statement",
+                  "description": "Version Responsibility Statement",
+                  "type": "string"
+                },
+                "notes": {
+                  "title": "Version Notes",
+                  "type": "string"
+                }            
+              },
+              "required": [
+                "version","date"
+              ]
           }
         },
         "update_frequency": {
@@ -275,6 +258,11 @@
               }
             }
           }
+        },
+        "time_coverage_note": {
+          "title": "Time coverage note",
+          "description":"Time coverage note",
+          "type": "string"
         },
         "periodicity":{
           "title": "Periodicity of series",
@@ -332,7 +320,7 @@
                 "title": "Topic",
                 "type": "string"
               },
-              "parent": {
+              "parent_id": {
                 "title": "Parent topic Identifier",
                 "description":"For subtopics, provide the ID of the parent topic",
                 "type": "string"
@@ -538,11 +526,46 @@
               "email": {
                 "title": "Email",
                 "type": "string"
+              },
+              "telephone": {
+                "title": "Telephone",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
               }
             }
           },
           "required": [
             "name"
+          ]
+        },
+
+        "related_links": {
+          "type": "array",
+          "title": "Related links",
+          "description": "Related links",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "description": "Type of link e.g. `facebook`, `twitter`,`website`, `other`,",
+                "type": "string"
+              },              
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "uri"
           ]
         },
 
