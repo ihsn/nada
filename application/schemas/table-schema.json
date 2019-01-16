@@ -15,10 +15,6 @@
             "title":"Agency Name",
             "type":"string"
           },
-          "role":{
-            "title":"Role",
-            "type":"string"
-          },
           "affiliation":{
             "title":"Affiliation",
             "type":"string"
@@ -52,6 +48,10 @@
           },
           "abbreviation":{
             "title":"Abbreviation",
+            "type":"string"
+          },
+          "role":{
+            "title":"Role",
             "type":"string"
           },
           "uri":{
@@ -228,44 +228,76 @@
 
         "format": {
           "type": "string",
-          "title":"File format",          
-          "description": "The file format, physical medium, or dimensions of the resource."    
+          "title":"File format",
+          "description": "The file format, physical medium, or dimensions of the resource."
         },
         "filename": {
           "type": "string",
           "title":"Table file name",
-          "description": "Table file name"    
+          "description": "Table file name"
         },
         "sheetname": {
           "type": "string",
-          "title":"Sheet name"          
-        },        
+          "title":"Sheet name"
+        },
+        "page_number": {
+          "type": "string",
+          "title":"Page number"
+        },
         
         "authoring_entity": {
           "title": "Authoring entity",
           "$ref":"#/definitions/authoring_entity",
           "description": "Authoring entity"
         },
-        "contributor": {
+        "contributors": {
           "title": "Contributors",
           "$ref":"#/definitions/contributor",
           "description": "Contributors"
         },
-        "publisher": {
-          "title": "Publisher",
-          "$ref":"#/definitions/contributor",
-          "description": "Publisher"
+        "publisher":{
+          "type":"array",
+          "title":"Publisher",
+          "description":"Publisher",
+          "items":{
+            "type":"object",
+            "properties":{
+              "name":{
+                "title":"Name",
+                "type":"string"
+              },
+              "affiliation":{
+                "title":"Affiliation",
+                "type":"string"
+              },
+              "abbreviation":{
+                "title":"Abbreviation",
+                "type":"string"
+              },
+              "role":{
+                "title":"Role",
+                "type":"string"
+              },
+              "uri":{
+                "title":"URI",
+                "type":"string"
+              }
+            },
+            "required":[
+              "name"
+            ]
+          }
         },
-        "date_produced": {
+        "date_created": {
           "type": "string",
-          "title":"Date produced",
-          "description": "Date of production"
+          "title":"Date created",
+          "description": "Date created"
         },
-        "date_released": {
+        "date_published": {
           "type": "string",
-          "title":"Date released"
+          "title":"Date published"
         },
-        "date_changed": {
+        "date_modified": {
           "type": "string",
           "title":"Date last modified",
           "description": "Date on which the resource was changed."    
@@ -439,8 +471,12 @@
           "items": {
             "type": "object",
             "properties": {
-              "country": {
+              "name": {
                 "title": "Country name",
+                "type": "string"
+              },
+              "code": {
+                "title": "Country code",
                 "type": "string"
               }
             }
@@ -540,7 +576,7 @@
             {"$ref":"#/definitions/keyword"}
           ],
           "title":"Keywords",
-          "description":"test"
+          "description":"Keywords"
         },
         "themes":{
           "type":"array",
@@ -549,19 +585,41 @@
             {"$ref":"#/definitions/keyword"}
           ]
         },
-        "topics":{
-          "type":"array",
-          "description":"Topics",
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ]
-        },
-        "sub_topics":{
-          "type":"array",
-          "description":"Sub-topics",
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ]
+        "topics": {
+          "type": "array",
+          "title": "Topics",
+          "description": "Topics covered by the table (ideally, the list of topics will be a controlled vocabulary)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Topic",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent topic Identifier",
+                "description":"For subtopics, provide the ID of the parent topic",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id","name"
+            ]
+          }
         },
 
 
