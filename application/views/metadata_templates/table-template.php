@@ -74,19 +74,15 @@
 
 
 <!-- additional items -->
-<?php if (isset($metadata['metadata']['additional'])){
-        $additional_fields=array();
-        foreach ($metadata['metadata']['additional'] as $item_key=>$value){
-            $additional_fields['metadata.additional.'.$item_key]=is_array($value) ? 'array' : 'text';
-        }
+<?php if (isset($metadata['metadata']['additional'])):?>
+<?php   
+    $additional_fields=array();
+    foreach ($metadata['metadata']['additional'] as $item_key=>$value){
+        $additional_fields['metadata.additional.'.$item_key]=is_array($value) ? 'array' : 'text';
     }
-?>    
-<?php $output['additional']= render_group('additional',
-    $fields=$additional_fields,
-    $metadata);
-    
-
+    $output['additional']= render_group('additional',$fields=$additional_fields,$metadata);
 ?>
+<?php endif;?>
 
 
 
