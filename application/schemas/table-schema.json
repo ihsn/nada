@@ -657,6 +657,44 @@
           "title":"Confidentiality"
         },
 
+        "contacts": {
+          "type": "array",
+          "title": "Contacts",
+          "description": "Contacts",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              },
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "email": {
+                "title": "Email",
+                "type": "string"
+              },
+              "telephone": {
+                "title": "Telephone",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+
         "notes": {
           "type": "array",
           "title": "Notes",          
