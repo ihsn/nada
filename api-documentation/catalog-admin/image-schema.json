@@ -3,7 +3,7 @@
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"$id": "image-schema.json",
 	"title": "Image data type Schema",
-	"description": "Based on IPTC Photo Metadata - ",
+	"description": "Uses IPTC JSON schema. See for more details - http://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata",
 	"properties": {
 		"repositoryid": {
 			"type": "string",
@@ -82,9 +82,7 @@
 		"image_description":{
 			"allOf": [ 			  
 			  { "$ref": "../schemas/iptc-pmd-schema.json" }
-			],
-			"title":"Keywords",
-			"description":"Keywords"
+			]
 		  },
 	}
 }
