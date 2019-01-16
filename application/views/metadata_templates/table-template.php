@@ -74,19 +74,15 @@
 
 
 <!-- additional items -->
-<?php if (isset($metadata['metadata']['additional'])){
-        $additional_fields=array();
-        foreach ($metadata['metadata']['additional'] as $item_key=>$value){
-            $additional_fields['metadata.additional.'.$item_key]=is_array($value) ? 'array' : 'text';
-        }
+<?php if (isset($metadata['metadata']['additional'])):?>
+<?php   
+    $additional_fields=array();
+    foreach ($metadata['metadata']['additional'] as $item_key=>$value){
+        $additional_fields['metadata.additional.'.$item_key]=is_array($value) ? 'array' : 'text';
     }
-?>    
-<?php $output['additional']= render_group('additional',
-    $fields=$additional_fields,
-    $metadata);
-    
-
+    $output['additional']= render_group('additional',$fields=$additional_fields,$metadata);
 ?>
+<?php endif;?>
 
 
 
@@ -113,7 +109,7 @@
 
 
 <!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2 hidden-sm-down">
+<div class="col-sm-2 col-lg-2  d-none d-sm-block">
 <div class="navbar-collapse sticky-top">
 
     <ul class="navbar-nav flex-column wb--full-width">

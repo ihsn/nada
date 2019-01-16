@@ -1,5 +1,61 @@
 <?php 
 
+$lang['metadata_production']="Metadata production";
+$lang['identification']="Identification";
+$lang['abbr']="Abbreviation";
+$lang['affiliation']="Affiliation";
+$lang['role']="Role";
+$lang['uri']="URI";
+$lang['type']="Type";
+$lang['note']="Note";
+$lang['code']="Code";
+$lang['grant']="Grant";
+$lang['abbreviation']="Abbreviation";
+$lang['vocabulary']="Vocabulary";
+$lang['id']="ID";
+$lang['parent']="Parent";
+$lang['period']="Period";
+$lang['start']="Start";
+$lang['end']="End";
+$lang['revision']="Revision";
+$lang['email']="Email";
+
+$lang['metadata.database_description.title']="Title";
+$lang['metadata.database_description.abbreviation']="Abbreviation";
+$lang['metadata.database_description.authoring_entity']="Authoring entities";
+$lang['metadata.database_description.abstract']="Abstract";
+$lang['metadata.database_description.url']="Website";
+$lang['metadata.database_description.type']="Type";
+$lang['metadata.database_description.doi']="DOI";
+$lang['metadata.database_description.date_created']="Date created";
+$lang['metadata.database_description.revision_dates']="Revision date";
+$lang['metadata.database_description.date_published']="Date published";
+$lang['metadata.database_description.update_frequency']="Update frequency";
+$lang['metadata.database_description.update_schedule']="Update schedule";
+$lang['metadata.database_description.time_coverage']="Time coverage";
+$lang['metadata.database_description.periodicity']="Periodicity";
+$lang['metadata.database_description.themes']="Themes";
+$lang['metadata.database_description.topics']="Topics";
+$lang['metadata.database_description.keywords']="Keywords";
+$lang['metadata.database_description.geographic_coverage_note']="Geographic coverage note";
+$lang['metadata.database_description.geographic_granularity']="Geographic granularity";
+$lang['metadata.database_description.geographic_area_count']="Geographic area count";
+$lang['metadata.database_description.sponsors']="Sponsors";
+$lang['metadata.database_description.contacts']="Contacts";
+$lang['metadata.database_description.languages']="Languages";
+$lang['metadata.database_description.access_options']="Access options";
+$lang['metadata.database_description.license']="License";
+$lang['metadata.database_description.citation']="Citation";
+$lang['metadata.database_description.notes']="Notes";
+$lang['metadata.database_description.disclaimer']="Disclaimer";
+$lang['metadata.database_description.copyright']="Copyright";
+$lang['metadata.metadata_creation.idno']="Reference ID";
+$lang['metadata.metadata_creation.producers']="Producers";
+$lang['metadata.metadata_creation.prod_date']="Production date";
+$lang['metadata.metadata_creation.version']="Version";
+
+
+
 $lang['fid']="File ID";
 $lang['vid']="Series indicator ID";
 $lang['name']="Name";

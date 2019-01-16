@@ -1,12 +1,9 @@
 <?php
 /*
- * DDI template - display metadata for DDI fields
+ * Timeseries display template
  *
  * @metadata - array containing all metadata
  *
- * @id - survey id
- * @surveyid - IDNO
- * @ all survey table fields
  *
  *
  **/
@@ -18,29 +15,46 @@
     $output=array();
 ?>
 
-<?php /* ?>
-<pre>
-<?php
- var_dump($metadata);
-?>
-</pre>
-<?php */?>
 
 <!-- identification section -->
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "titl"=>'text',
             "abbreviation"=>'text',
-            "metadata.ts_geog_units"=>"geog_units",
-            "metadata.titlstmt.alttitl"=>'text',
-            "metadata.titlstmt.partitl"=>'text',
-            "nation"=>'text',
-            "metadata.serStmt.serName"=>'text',
-            "metadata.serStmt.serInfo"=>'text',
-            "surveyid"=>'text',
-            "metadata.stdyInfo.abstract"=>'text',
-            "metadata.stdyInfo.dataKind"=>'text',
-            "metadata.stdyInfo.anlyUnit"=>'text'            
+            "metadata.database_description.title"=>"text",
+            "metadata.database_description.abbreviation"=>"text",
+            "metadata.database_description.authoring_entity"=>"array",
+            "metadata.database_description.abstract"=>"text",
+            "metadata.database_description.url"=>"text",
+            "metadata.database_description.type"=>"text",
+
+            "metadata.database_description.doi"=>"text",
+            "metadata.database_description.date_created"=>"text",
+            "metadata.database_description.revision_dates"=>"array",
+            "metadata.database_description.date_published"=>"text",
+            "metadata.database_description.update_frequency"=>"text",
+            "metadata.database_description.update_schedule"=>"array",
+            "metadata.database_description.time_coverage"=>"array",
+            "metadata.database_description.periodicity"=>"array",
+            "metadata.database_description.themes"=>"array",
+            "metadata.database_description.topics"=>"array",
+            "metadata.database_description.keywords"=>"array",
+
+            "metadata.database_description.geographic_coverage_note"=>"text",
+            "metadata.database_description.bbox"=>"bounding_box",
+            "metadata.database_description.geographic_granularity"=>"text",
+            "metadata.database_description.geographic_area_count"=>"text",
+            "metadata.database_description.sponsors"=>"array",
+            "metadata.database_description.acknowledgements"=>"text",
+            "metadata.database_description.contacts"=>"array",
+            "metadata.database_description.languages"=>"array",
+            "metadata.database_description.access_options"=>"array",
+            "metadata.database_description.license"=>"array",
+            "metadata.database_description.citation"=>"text",
+            "metadata.database_description.notes"=>"text",
+            "metadata.database_description.disclaimer"=>"text",
+            "metadata.database_description.copyright"=>"text",
+
     ),
     $metadata);
 ?>
@@ -49,131 +63,20 @@
 <!-- version -->
 <?php $output['version']= render_group('version',
     $fields=array(
-            "metadata.verStmt.version"=>'text',
-            "metadata.verStmt.date"=>'text',
-            "metadata.verStmt.notes"=>'text'
+            "metadata.databased_description.version"=>'text',
+            "metadata.databased_description.date"=>'text',
+            "metadata.databased_description.responsibility"=>'text',
+            "metadata.databased_description.notes"=>'text'
             ),
     $metadata);
 ?>
 
-
-<?php
-$all_fields=array();
-foreach($metadata['metadata'] as $key=>$value){
-    $all_fields["metadata.".$key]=is_array($value) ? 'array' : 'text';
-}
-?>
-
-<!-- scope -->
-<?php $output['scope']= render_group('scope',
-    $fields=$all_fields,
-    $metadata);
-?>
-
-
-<!-- coverage -->
-<?php $output['coverage']= render_group('coverage',
-    $fields=array(
-            "metadata.stdyInfo.geogCover"=>'text',
-            "metadata.stdyInfo.geogUnit"=>'text',
-            "metadata.stdyInfo.anlyUnit"=>'text',
-            "metadata.stdyInfo.universe"=>'text'
-            ),
-    $metadata);
-?>
-
-
-<!-- producers_sponsors -->
-<?php $output['producers_sponsors']= render_group('producers_sponsors',
-    $fields=array(
-            "authenty"=>'array',
-            "producer"=>'array',
-            "fundag"=>'array',
-            "metadata.othId"=>'array'
-            ),
-    $metadata);
-?>
-
-
-<!-- sampling -->
-<?php $output['sampling']= render_group('sampling',
-    $fields=array(
-            "metadata.method.sampProc"=>'text',
-            "metadata.method.deviat"=>'text',
-            "metadata.method.respRate"=>'text',
-            'metadata.method.weight'=>'text'
-            ),
-    $metadata);
-?>
-
-
-<!-- data_collection -->
-<?php $output['data_collection']= render_group('data_collection',
-    $fields=array(
-            "metadata.stdyInfo.collDate"=>'array',
-            "metadata.method.frequenc"=>'text',
-            "metadata.stdyInfo.timePrd"=>'array',
-            "metadata.method.dataSrc"=>'text',
-            "metadata.method.collMode"=>'text',
-            "metadata.method.collSitu"=>'text',
-            "metadata.method.actMin"=>'text',
-            "metadata.method.resInstru"=>'text',
-            "metadata.method.dataCollector"=>'array',
-            ),
-    $metadata);
-?>
-
-
-<!-- data_processing -->
-<?php $output['data_processing']= render_group('data_processing',
-    $fields=array(
-            "metadata.method.cleanOps"=>'text',
-            "metadata.method.notes"=>'text'
-            ),
-    $metadata);
-?>
-
-
-<!-- data_appraisal -->
-<?php $output['data_appraisal']= render_group('data_appraisal',
-    $fields=array(
-            "metadata.method.estSmpErr"=>'text',
-            "metadata.method.dataAppr"=>'text'
-            ),
-    $metadata);
-?>
-
-
-<!-- data_access -->
-<?php $output['data_access']= render_group('data_access',
-    $fields=array(
-            "metadata.dataAccess.contact"=>'array',
-            "metadata.dataAccess.confDec"=>'text',
-            "metadata.dataAccess.conditions"=>'text',
-            "metadata.dataAccess.citReq"=>'text',
-            "metadata.dataAccess.deposReq">'text',
-            "metadata.dataAccess.accsPlac"=>'text', 
-            "metadata.dataAccess.origArch"=>'text', 
-            "metadata.dataAccess.avlStatus"=>'text'
-            ),
-    $metadata);
-?>
-
-
-<!-- disclaimer_copyright -->
-<?php $output['disclaimer_copyright']= render_group('disclaimer_copyright',
-    $fields=array(
-            "metadata.dataAccess.disclaimer"=>'text',
-            "metadata.prodStmt.copyright"=>'text'
-            ),
-    $metadata);
-?>
 
 
 <!-- contacts -->
 <?php $output['contacts']= render_group('contacts',
     $fields=array(
-            "metadata.distStmt.contact"=>'array'
+            "metadata.database_description.contact"=>'array'
             ),
     $metadata);
 ?>
@@ -181,33 +84,30 @@ foreach($metadata['metadata'] as $key=>$value){
 <!-- metadata_production -->
 <?php $output['metadata_production']= render_group('metadata_production',
     $fields=array(
-            "stdy_producer"=>'array',
-            "doc_producer"=>'array',
-            "doc_version"=>'text',
-            "doc_idno"=>'text'
+            "metadata.metadata_creation.idno"=>'text',
+            "metadata.metadata_creation.producers"=>'array',
+            "metadata.metadata_creation.prod_date"=>'text',
+            "metadata.metadata_creation.version"=>'text'
             ),
     $metadata);
 ?>
 
-<div style="overflow:hidden;clear:both">
-<div style="float: left;
-    width: 170px;
-    font-size: 14px;
-    margin: 0;
-    padding: 0;
-    padding-top:15px;">
+<!-- sidebar with section links -->
+<div class="col-sm-2 col-lg-2 d-none d-sm-block">
+<div class="navbar-collapse sticky-top">
 
+    <ul class="navbar-nav flex-column wb--full-width">
     <?php foreach($output as $key=>$value):?>            
         <?php if(trim($value)!==""):?>    
-        <div style="padding:5px;font-size:smaller;">
+        <li class="nav-item">
             <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
-        </div>
+        </li>
         <?php endif;?>
     <?php endforeach;?>
+    </ul>
 </div>
-<div style="margin-left: 170px;
-    border-left: 1px solid #e8e8e8;
-    padding: 0 20px 20px 20px;">
-<?php echo implode('',$output);?>
 </div>
+<!--metadata content-->
+<div class="col-12 col-sm-10 col-lg-10 wb-border-left">
+    <?php echo implode('',$output);?>
 </div>

@@ -3,6 +3,28 @@
   "title": "Script Schema [DRAFT]",
   "description": "Schema for Document data type",
   "type": "object",
+  "definitions":{
+    "keyword":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "properties":{
+          "name":{
+            "title":"Name",
+            "type":"string"
+          },
+          "vocabulary":{
+            "title":"Vocabulary name",
+            "type":"string"
+          },
+          "uri":{
+            "title":"Vocabulary URI",
+            "type":"string"
+          }
+        }
+      }
+    }
+  },
   "properties": {    
 
     "repositoryid": {
@@ -148,6 +170,26 @@
             "other"
           ]
         },
+
+        "format": {
+          "type": "string",
+          "title":"File format",
+          "description": "The file format, physical medium, or dimensions of the resource."
+        },
+        "filename": {
+          "type": "string",
+          "title":"Document file name",
+          "description": "Document file name"
+        },
+        "sheetname": {
+          "type": "string",
+          "title":"Sheet name"
+        },
+        "page_number": {
+          "type": "string",
+          "title":"Page number"
+        },
+
         "description": {
           "title": "Description",
           "type": "string",
@@ -158,23 +200,75 @@
           "type": "string",
           "description": "Table of contents"
         },
+        "toc_structured": {
+          "type": "array",
+          "title": "Table of contents",
+          "description": "Table of contents",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "ID or Number",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent Identifier",
+                "description":"For sub levels, provide the ID of the parent TOC ID",
+                "type": "string"
+              },
+              "name": {
+                "title": "Title",
+                "type": "string"
+              }              
+            },
+            "required": [
+              "id","name"
+            ]
+          }
+        },
         "abstract": {
           "title": "Abstract",
           "type": "string",
           "description": "A summary of the content"
         },
-        "note": {
-          "title": "Note",
-          "type": "string",
-          "description":"Notes"
+        "notes": {
+          "type": "array",
+          "title": "Notes",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "note": {
+                "title": "Note",
+                "type": "string"
+              }
+            }
+          }
         },
 
-
-        "coverage": {
-          "title": "Coverage",
+        "scope": {
+          "title": "Scope",
           "type": "string",
-          "description": "The extent or scope of the content of the resource."
+          "description": "The extent or scope of the content of the resource. This fields maps to Dublin Core's coverage field."
         },
+
+        "ref_country": {
+          "type": "array",
+          "title": "Reference country",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Country name",
+                "type": "string"
+              },
+              "code": {
+                "title": "Country code",
+                "type": "string"
+              }
+            }
+          }
+        },
+
         "spatial_coverage": {
           "title": "Spatial coverage",
           "type": "string",
@@ -238,7 +332,7 @@
           "description": "Format"    
         },
 
-        "language": {
+        "languages": {
           "type": "object",
           "title": "Language",
           "description": "Documentation language e.g. English, French, etc.",          
@@ -255,6 +349,24 @@
           "required": [
             "name"
           ]
+        },
+
+        "license": {
+          "type": "array",
+          "title": "License",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "License",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          }
         },
 
         "bibligraphic_citation": {
@@ -507,48 +619,54 @@
               }                
             }
         },
-        
-        "keywords": {
-          "type": "array",
-          "description": "Keywords",
-          "_ddi_xpath":"stdyDscr/stdyInfo/subject/keywords",
-          "items": {
-            "type": "object",
-            "properties": {
-              "keyword": {
-                "title": "Keyword",
-                "type": "string"
-              },
-              "uri": {
-                "title": "uri",
-                "type": "string"
-              }
-            }
-          }
+                
+        "keywords":{
+          "allOf": [ 
+            {"$ref":"#/definitions/keyword"}
+          ],
+          "title":"Keywords",
+          "description":"Keywords"
+        },
+        "themes":{
+          "type":"array",
+          "description":"Themes",
+          "allOf": [ 
+            {"$ref":"#/definitions/keyword"}
+          ]
         },
         "topics": {
           "type": "array",
-          "title": "Topic Classification",
-          "description": "Topic Classification",
-          "_ddi_xpath":"stdyDscr/stdyInfo/subject/topcClas",
+          "title": "Topics",
+          "description": "Topics covered by the table (ideally, the list of topics will be a controlled vocabulary)",
           "items": {
             "type": "object",
             "properties": {
-              "topic": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
                 "title": "Topic",
                 "type": "string"
               },
-              "vocab": {
-                "title": "Vocab",
+              "parent_id": {
+                "title": "Parent topic Identifier",
+                "description":"For subtopics, provide the ID of the parent topic",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
                 "type": "string"
               },
               "uri": {
-                "title": "URI",
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
                 "type": "string"
               }
             },
             "required": [
-              "topic"
+              "id","name"
             ]
           }
         },
@@ -626,10 +744,6 @@
             "name"
           ]
         }
-
-        
-        
-
       }
     }
   }

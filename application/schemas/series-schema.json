@@ -1,9 +1,11 @@
 {
 	"$id": "http://ihsn.org/schemas/nada/series-schema.json",
 	"$schema": "http://json-schema.org/draft-07/schema#",
+	"id": "series-schema.json",
+	"version": "0.0",
 	"definitions": {
-		"series":{
-			"type":"object",
+		"series": {
+			"type": "object",
 			"properties": {
 				"fid": {
 					"type": "string",
@@ -25,23 +27,29 @@
 				},
 				"aliases": {
 					"type": "array",
+					"title": "Series other names",
 					"items": {
-						"type": "string",
-						"title": "Series other names"
+						"type": "object",
+						"properties": {
+							"alias": {
+								"title": "Alias",
+								"type": "string"
+							}
+						}
 					}
 				},
 				"measurement_unit": {
-					"type": "integer",
+					"type": "string",
 					"title": "Series unit of measure"
 				},
 				"periodicity": {
-					"type": "integer",
+					"type": "string",
 					"title": "Periodicity of data"
 				},
 				"base_period": {
-					"type": "integer",
-								"title": "Base period"		
-						},
+					"type": "string",
+					"title": "Base period"
+				},
 				"definition_short": {
 					"type": "string",
 					"title": "Definition short"
@@ -50,14 +58,10 @@
 					"type": "string",
 					"title": "Definition long"
 				},
-				"definition_reference": {
-					"type": "array",
-					"title": "Definition reference",
-					"description": "URL to standard definition of the indicator (international or national standard)"
-				},
 				"definition_references": {
 					"type": "array",
 					"title": "Definition references",
+					"description": "URL to standard definition of the indicator (international or national standard)",
 					"items": {
 						"type": "object",
 						"properties": {
@@ -99,7 +103,7 @@
 							}
 						},
 						"required": [
-							"topic"
+							"name"
 						]
 					}
 				},
@@ -163,8 +167,8 @@
 					"title": "Relavance"
 				},
 				"series_dates": {
-								"type": "array",
-								"title": "Series dates",
+					"type": "array",
+					"title": "Series dates",
 					"items": {
 						"type": "object",
 						"properties": {
@@ -178,7 +182,7 @@
 							}
 						}
 					}
-				},		
+				},
 				"geographic_units": {
 					"title": "Geographic locations",
 					"description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
@@ -200,31 +204,31 @@
 								"title": "Type",
 								"description": "Type of geographic unit e.g. country, state, region, province etc",
 								"type": "string"
-							}          
+							}
 						},
 						"required": [
 							"name"
 						]
 					}
-				}, 
+				},
 				"aggregation_method": {
 					"type": "string",
 					"title": "Aggregation method"
 				},
 				"ser_access_license": {
-								"type": "object",
-								"title": "Access licence",
-								"properties": {
-									"type": {
-										"type": "string",
-										"title": "License type"              
-								},
-									"uri": {
-										"type": "string",
-										"title": "URI"
-									}
-								}
-							},
+					"type": "object",
+					"title": "Access licence",
+					"properties": {
+						"type": {
+							"type": "string",
+							"title": "License type"
+						},
+						"uri": {
+							"type": "string",
+							"title": "URI"
+						}
+					}
+				},
 				"confidentiality": {
 					"type": "string",
 					"title": "Confidentiality statement",
@@ -232,12 +236,12 @@
 				},
 				"confidentiality_status": {
 					"type": "string",
-					"title": "Confidentiality status"			
+					"title": "Confidentiality status"
 				},
 				"confidentiality_note": {
 					"type": "string",
-					"title": "Confidentiality note"			
-				},			
+					"title": "Confidentiality note"
+				},
 				"series_links": {
 					"type": "array",
 					"title": "Series links",
@@ -246,94 +250,162 @@
 						"type": "object",
 						"properties": {
 							"type": {
-									"type": "string",
-									"title": "Link type",
-									"description": "Link types - API, website, etc."
+								"type": "string",
+								"title": "Link type",
+								"description": "Link types - API, website, etc."
 							},
 							"description": {
 								"type": "string",
 								"title": "Description"
 							},
-							"url": {
+							"uri": {
 								"type": "string",
-								"title": "Link URL"
+								"title": "URI"
 							}
+						}
+					}
+				},
+				"api_documentation": {
+					"type": "object",
+					"description": "API Documentation",
+					"properties": {
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"uri": {
+							"title": "URI",
+							"type": "string"
 						}
 					}
 				},
 				"source": {
 					"type": "string",
 					"title": "Original source"
-						}
-						,
+				},
 				"source_note": {
 					"type": "string",
 					"title": "Notes form original source"
 				},
 				"keywords": {
-								"type": "array",
-								"items": {
-									"type": "string",
-									"title": "Keywords"
-								}
+					"type": "array",
+					"description": "Keywords",
+					"_ddi_xpath": "stdyDscr/stdyInfo/subject/keywords",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Keyword",
+								"type": "string"
 							},
+							"vocabulary": {
+								"title": "Vocabulary",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
+						}
+					}
+				},
 				"notes": {
-					"type": "string",
-					"title": "Notes"
+					"title": "Notes",
+					"description": "Notes",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"note": {
+								"title": "Note",
+								"type": "string"
+							}
+						}
+					}
 				},
 				"related_indicators": {
-								"type": "array",
-								"items": {
-									"type": "string",
-									"title": "Related Indicators",
-									"description": "Related indicators IDs"
-								}
-							},
-				"compliance": {
-								"type": "object",
-								"title": "Compliance with international resolution",
-								"description": "Compliance with international resolution",
-								"properties": {
-									"value": {
-										"type": "string",
-										"title": "Resolution"
-									},
-									"uri": {
-										"type": "string",
-										"title": "URI"
-									},
-									"org": {
-										"type": "string",
-										"title": "Organization name"
-									}
-								}
-							},
-					"series_groups": {
+					"type": "array",
+					"description": "Related indicators",
+					"items": {
 						"type": "object",
-						"title": "Series groups",
-						"description": "Series included in groups",
+						"properties": {
+							"code": {
+								"title": "Indicator code",
+								"type": "string"
+							},
+							"label": {
+								"title": "Indicator name",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
+						}
+					},
+					"required": [
+						"code"
+					]
+				},
+				"compliance": {
+					"type": "array",
+					"title": "Compliance with international resolution",
+					"description": "Compliance with international resolution",
+					"items": {
+						"type": "object",
+						"properties": {
+							"standard": {
+								"type": "string",
+								"title": "Standard name"
+							},
+							"organization": {
+								"type": "string",
+								"title": "Organization name"
+							},
+							"uri": {
+								"type": "string",
+								"title": "URI"
+							}
+						}
+					},
+					"required": [
+						"value"
+					]
+				},
+				"series_groups": {
+					"type": "array",
+					"title": "Series groups",
+					"description": "Series included in groups",
+					"items": {
+						"type": "object",
 						"properties": {
 							"name": {
 								"type": "string",
 								"title": "Name"
 							},
-							"uri": {
-								"type": "string",
-								"title": "URI"
-							},
 							"version": {
 								"type": "string",
 								"title": "Version"
+							},
+							"uri": {
+								"type": "string",
+								"title": "URI"
 							}
 						}
-					}
-				},
-				"required": [ "fid", "vid", "name","labl" ]
-			}
+					},
+					"required": [
+						"name"
+					]
+				}
+			},
+			"required": [
+				"fid",
+				"vid",
+				"name",
+				"labl"
+			]
+		}
 	},
-	
-	"type":"object",	
+	"type": "object",
 	"$ref": "#/definitions/series"
-	
-
 }

@@ -6,7 +6,7 @@
   crossorigin=""></script>
 
 
-<div id="map-canvas" style="height:300px;background:gainsboro;">map here</div>
+<div id="map-canvas" style="height:300px;background:gainsboro;"></div>
 
 <?php
   $columns=array(
@@ -21,7 +21,7 @@
 <div class="row extent-geographic-element">
 <?php foreach($data as $row):?>
 <?php foreach($row as $key=>$value):?>
-	<div class="col-1">
+	<div class="col-3 col-md-1">
 	<div><?php echo $columns[$key];?></div>
 	<div><?php echo $value;?></div>
 </div>
