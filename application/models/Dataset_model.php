@@ -268,7 +268,10 @@ class Dataset_model extends CI_Model {
 		$validator = new JsonSchema\Validator;
 		$validator->validate($data, 
 				(object)['$ref' => 'file://' . unix_path(realpath($schema_file))],
-				Constraint::CHECK_MODE_TYPE_CAST + Constraint::CHECK_MODE_COERCE_TYPES);
+				Constraint::CHECK_MODE_TYPE_CAST 
+				+ Constraint::CHECK_MODE_COERCE_TYPES 
+				+ Constraint::CHECK_MODE_APPLY_DEFAULTS
+			);
 
 		if ($validator->isValid()) {
 			return true;
@@ -460,16 +463,15 @@ class Dataset_model extends CI_Model {
 
 			case 'image':
 			
-				$output=$options;
-
+				$output=$options;				
 				$output['metadata_information']=null;
 				$output['image_description']=null;
 
 				//title
-				$output['title']=$this->get_array_nested_value($options,'image_description/identification/title');
+				$output['title']=$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/headline');
 
 				//idno
-				$output['idno']=$this->get_array_nested_value($options,'image_description/identification/digital_image_guid');
+				$output['idno']=$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/digitalImageGuid');
 
 				//country
 				$output['nation']='';
@@ -478,10 +480,11 @@ class Dataset_model extends CI_Model {
 				$output['abbreviation']='';
 
 				//authoring entity
-				$output['authoring_entity']=$this->get_array_nested_value($options,'creation/creator_name');
+				$creators=(array)$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/creatorNames');
+				$output['authoring_entity']=implode(",", $creators);
 
 				//year_start, year_end
-				$date=explode("-",$this->get_array_nested_value($options,'image_description/identification/date_created'));
+				$date=explode("-",$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/dateCreated'));
 
 				if(is_array($date)){
 					$output['year_start']=(int)$date[0];
@@ -578,7 +581,8 @@ class Dataset_model extends CI_Model {
 		$data=$this->get_core_fields($type,$options);
 		
 		if(!isset($data['idno']) || empty($data['idno'])){
-			throw new exception("IDNO-NOT-FOUND");
+			var_dump($data);
+			throw new exception("IDNO-NOT-SET");
 		}
 
 		//validate IDNO field

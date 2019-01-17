@@ -1,3 +1,3 @@
 <pre>
-<?php var_dump($field['data']);?>
+<?php print_r($data);?>
 </pre>

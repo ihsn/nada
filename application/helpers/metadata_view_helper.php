@@ -25,8 +25,6 @@ if ( ! function_exists('render_field'))
             case 'var_category':
                 return render_var_category($name, $data);
                 break;
-			case 'dump':
-				break;
 			default:				
 				return render_custom($type,$name,$data);
 		}

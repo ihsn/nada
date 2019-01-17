@@ -4,11 +4,6 @@
  *
  * @metadata - array containing all metadata
  *
- * @id - survey id
- * @surveyid - IDNO
- * @ all survey table fields
- *
- *
  **/
 ?>
 
@@ -42,7 +37,6 @@
 ?>
 
 
-
 <!-- contacts -->
 <?php $output['contacts']= render_group('contacts',
     $fields=array(
@@ -60,6 +54,11 @@
             "metadata.metadata_information.idno"=>'text',
             ),
     $metadata);
+?>
+
+
+<!-- metadata_production -->
+<?php $output['metadata_dump']= render_field('dump',$field_name='dump',$metadata,true);
 ?>
 
 

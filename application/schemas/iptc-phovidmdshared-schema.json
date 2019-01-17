@@ -30,7 +30,7 @@
 			],
 			"additionalProperties": false
 		},
-		"AltLang": {
+		"AltLangObject": {
 			"description": "Text in alternative languages",
 			"type": "object",
 			"patternProperties": {
@@ -41,6 +41,10 @@
 				}
 			},
 			"additionalProperties": false
+		},
+		"AltLang": {
+			"description": "Text in alternative languages",
+			"type": "string"			
 		},
 		"ArtworkOrObject": {
 			"type": "object",
