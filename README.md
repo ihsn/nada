@@ -13,12 +13,12 @@ NADA is an open source microdata cataloging system, compliant with the Data Docu
 
 ### Installation
 
-Please see the [NADA installation guide](https://nada-4.readthedocs.io/en/latest/installation-guide.html).
+Please see the [NADA installation guide](https://nada.readthedocs.io/en/v5.0/installation-guide.html).
 
 
 ### Upgrading from older versions of NADA
 
-Please see the [NADA upgrade guide](https://nada-4.readthedocs.io/en/latest/upgrade-guide.html).
+Please see the [NADA upgrade guide](https://nada.readthedocs.io/en/v5.0/upgrade-from-4.4-to-5.html).
 
 
 ## Versioning
