@@ -37,11 +37,11 @@ class Dataset_timeseries_model extends Dataset_model {
         $id=$this->find_by_idno($core_fields['idno']); 
 
 		//overwrite?
-		if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
+		/*if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
 			return $this->update_dataset($id,$type,$options);
-		}
+		}*/
 
-		if(is_numeric($id) ){
+		if($id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$id);
         }
         
@@ -86,19 +86,24 @@ class Dataset_timeseries_model extends Dataset_model {
 
 		//start transaction
 		$this->db->trans_start();
-				
-		//insert record
-		$dataset_id=$this->insert($type,$options);
+        
+        if($id>0){
+            //update
+            $dataset_id=$id;
+            $this->update($id,$type,$options);
+        }
+        else{
+		    //insert record
+            $dataset_id=$this->insert($type,$options);
+        }
 
 		//update years
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
 
 		//set topics
 
-        //get list of countries
+        //update related countries
         $countries=$this->get_country_names($this->get_array_nested_value($options,'database_description/geographic_units'));
-
-		//update countries
 		$this->Survey_country_model->update_countries($dataset_id,$countries);
 
 		//set aliases
@@ -123,7 +128,7 @@ class Dataset_timeseries_model extends Dataset_model {
     }
 
 
-
+    /*
     function update_dataset($sid,$type,$options)
 	{
 		//need this to validate IDNO for uniqueness
@@ -217,6 +222,7 @@ class Dataset_timeseries_model extends Dataset_model {
 
 		return $sid;
     }
+    */
 
 
     
