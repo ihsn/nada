@@ -326,29 +326,27 @@
           "title":"Publication frequency",
           "description": "Current stated publication frequency of either an item or an update to an item. Dates are included when the beginning date of the current frequency is not the same as the beginning date of publication."    
         },
-                 
-        "format": {
-          "type": "string",
-          "description": "Format"    
-        },
 
         "languages": {
-          "type": "object",
+          "type": "array",
           "title": "Language",
-          "description": "Documentation language e.g. English, French, etc.",          
-          "properties": {
-            "name": {
-              "title": "Name",
-              "type": "string"
+          "description": "Documentation language e.g. English, French, etc.",  
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "code": {
+                "title": "Code",
+                "type": "string"              
+              }
             },
-            "code": {
-              "title": "Code",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "name"
-          ]
+            "required": [
+              "name"
+            ]
+          }
         },
 
         "license": {
@@ -369,7 +367,7 @@
           }
         },
 
-        "bibligraphic_citation": {
+        "bibliographic_citation": {
           "type": "string",
           "title":"Bibliographic citation",
           "description": "A bibliographic reference for the resource."    
