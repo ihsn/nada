@@ -549,6 +549,10 @@
               "uri": {
                 "title": "URL",
                 "type": "string"
+              },
+              "description": {
+                "title": "Description",
+                "type": "string"
               }
             }
           }
@@ -618,6 +622,67 @@
             },
             "required": [
               "id","name"
+            ]
+          }
+        },
+
+        "definitions": {
+          "type": "array",
+          "title": "Definitions",
+          "description": "Definitions or concepts covered by the table",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Definition",
+                "type": "string"
+              },
+              "definition": {
+                "title": "Definition",
+                "description": "Definition",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+
+        "classifications": {
+          "type": "array",
+          "title": "Classifications",
+          "description": "Classifications used in the table",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Classification name",
+                "type": "string"
+              },
+              "version": {
+                "title": "Version",
+                "description": "Version number",
+                "type": "string"
+              },
+              "organization": {
+                "title": "Organization",
+                "description": "Organization responsible for the classification",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
             ]
           }
         },
@@ -742,7 +807,25 @@
           "required": [
             "name"
           ]
+        },
+        "tags": {
+          "type": "array",
+          "title": "Tags",
+          "description": "Tags",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tag": {
+                "title": "Tag",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "tag"
+          ]
         }
+        
       },
       "additionalProperties": false
     },
