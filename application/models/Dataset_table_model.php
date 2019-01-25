@@ -95,7 +95,9 @@ class Dataset_table_model extends Dataset_model {
         $output['nation']='';
 
         $output['abbreviation']=$this->get_array_nested_value($options,'table_description/title_statement/alternate_title');            
-        $output['authoring_entity']=$this->get_array_nested_value($options,'table_description/publisher');
+        
+        $auth_entity=$this->get_array_nested_value($options,'table_description/publisher');
+        $output['authoring_entity']=$this->array_column_to_string($auth_entity,$column_name='name', $max_length=300);
 
         $years=$this->get_years($options);
         $output['year_start']=$years['start'];
