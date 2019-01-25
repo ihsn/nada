@@ -11,7 +11,8 @@ class Datasets extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');	
-		$this->load->model('Dataset_model');
+		$this->load->model('Dataset_model');//remove with Datasets library
+		$this->load->library("Dataset_manager");
 		$this->is_admin_or_die();
 	}
 
@@ -29,7 +30,7 @@ class Datasets extends MY_REST_Controller
 				return $this->single_get($idno);
 			}
 			
-			$result=$this->Dataset_model->get_all();
+			$result=$this->dataset_manager->get_all();
 			array_walk($result, 'unix_date_to_gmt',array('created','changed'));				
 			$response=array(
 				'status'=>'success',
@@ -57,14 +58,14 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
-			$result=$this->Dataset_model->get_row($sid);
+			$result=$this->dataset_manager->get_row($sid);
 			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
 				
 			if(!$result){
 				throw new Exception("DATASET_NOT_FOUND");
 			}
 
-			$result['metadata']=$this->Dataset_model->get_metadata($sid);
+			$result['metadata']=$this->dataset_manager->get_metadata($sid);
 			
 			$response=array(
 				'status'=>'success',
@@ -104,7 +105,7 @@ class Datasets extends MY_REST_Controller
 
 			$options=array(				
 				'repositoryid'			=> array_get_value($input,'owner_collection'),
-				'formid'				=> $this->Dataset_model->get_data_access_type_id(array_get_value($input,'access_policy')),
+				'formid'				=> $this->dataset_manager->get_data_access_type_id(array_get_value($input,'access_policy')),
 				'link_da'				=> array_get_value($input,'data_remote_url'),
 				'published'				=> array_get_value($input,'published'),
 				'link_study'			=> array_get_value($input,'link_study'),
@@ -119,10 +120,10 @@ class Datasets extends MY_REST_Controller
 			}
 
 			//validate
-			$this->Dataset_model->validate_options($options);
+			$this->dataset_manager->validate_options($options);
 			
 			//update
-			$this->Dataset_model->update_options($sid,$options);
+			$this->dataset_manager->update_options($sid,$options);
 
 			$response=array(
 				'status'=>'success'				
@@ -161,7 +162,7 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("PARAM-MISSING::SID");
 			}
 			
-			$result=$this->Dataset_model->get_row($sid);
+			$result=$this->dataset_manager->get_row($sid);
 
 			if($result){
 				$response=array(
@@ -201,31 +202,35 @@ class Datasets extends MY_REST_Controller
 			$options['changed_by']=$user_id;
 			$options['created']=date("U");
 			$options['changed']=date("U");
-						
+			
+			/* 
+			* TODO: move to create_dataset ------ need this
+
 			//get sid for idno if already exists
 			$sid=$this->Dataset_model->find_by_idno($idno);
 
 			if(isset($options['overwrite']) && $options['overwrite']=='yes' && $sid>0){
 				return $this->update_post($type,$idno);
 			}
+			*/
 			
 			//validate & create dataset
-			$dataset_id=$this->Dataset_model->create_dataset($type,$options);
+			$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 
 			if(!$dataset_id){
 				throw new Exception("FAILED_TO_CREATE_DATASET");
 			}
 
-			$dataset=$this->Dataset_model->get_row_detailed($dataset_id);
+			$dataset=$this->dataset_manager->get_row($dataset_id);
 
 			//create dataset project folder
-			$dataset['dirpath']=$this->Dataset_model->setup_folder($repositoryid='central', $folder_name=md5($dataset['idno']));
+			$dataset['dirpath']=$this->dataset_manager->setup_folder($repositoryid='central', $folder_name=md5($dataset['idno']));
 
 			$update_options=array(
 				'dirpath'=>$dataset['dirpath']
 			);
 
-			$this->Dataset_model->update_options($dataset_id,$update_options);
+			$this->dataset_manager->update_options($dataset_id,$update_options);
 
 			$response=array(
 				'status'=>'success',
@@ -270,7 +275,7 @@ class Datasets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 
 			//load dataset
-			$dataset=$this->Dataset_model->get_row_detailed($sid);
+			$dataset=$this->dataset_manager->get_row($sid);
 
 			//get existing metadata
 			$metadata=$dataset['metadata'];
@@ -286,10 +291,10 @@ class Datasets extends MY_REST_Controller
 
 			
 			//validate & update dataset
-			$dataset_id=$this->Dataset_model->update_dataset($sid,$type,$options);
+			$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options);
 
 			//load updated dataset
-			$dataset=$this->Dataset_model->get_row_detailed($dataset_id);
+			$dataset=$this->dataset_manager->get_row_detailed($dataset_id);
 
 			$response=array(
 				'status'=>'success',
@@ -330,7 +335,7 @@ class Datasets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 
 			$user_id=$this->get_api_user_id();        
-			$survey=$this->Dataset_model->get_row($sid);
+			$survey=$this->dataset_manager->get_row($sid);
 
 			if(!$survey){
 				throw new exception("STUDY_NOT_FOUND");
@@ -421,7 +426,7 @@ class Datasets extends MY_REST_Controller
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$user_id=$this->get_api_user_id();        
-			$survey=$this->Dataset_model->get_row($sid);
+			$survey=$this->dataset_manager->get_row($sid);
 
 			if(!$survey){
 				throw new exception("STUDY_NOT_FOUND");
@@ -540,7 +545,7 @@ class Datasets extends MY_REST_Controller
 			}
 
 			//update survey varcount
-			$this->Dataset_model->update_varcount($sid);
+			$this->dataset_manager->update_varcount($sid);
 
 			$response=array(
 				'status'=>'success',
@@ -616,7 +621,7 @@ class Datasets extends MY_REST_Controller
 			throw new Exception("IDNO-NOT-PROVIDED");
 		}
 
-		$sid=$this->Dataset_model->find_by_idno($idno);
+		$sid=$this->dataset_manager->find_by_idno($idno);
 
 		if(!$sid){
 			throw new Exception("IDNO-NOT-FOUND");
@@ -645,22 +650,22 @@ class Datasets extends MY_REST_Controller
 				$response=array(
 					'status'=>'success',
 					'message'=>'updated',
-					"dataset"=>$this->Dataset_model->get_row($new_id)
+					"dataset"=>$this->dataset_manager->get_row($new_id)
 				);
 			}
 			else{
-				$survey=$this->Dataset_model->get_row($new_id);
+				$survey=$this->dataset_manager->get_row($new_id);
 
 				if($survey){
 					throw new Exception("A DATASET EXISTS WITH THE ID: ".$new_id);
 				}
 				//update ID
-				$result=$this->Dataset_model->update_sid($old_sid,$new_id);
+				$result=$this->dataset_manager->update_sid($old_sid,$new_id);
 
 				$response=array(
 					'status'=>'success',
 					'message'=>'updated',
-					"dataset"=>$this->Dataset_model->get_row($new_id)
+					"dataset"=>$this->dataset_manager->get_row($new_id)
 				);
 			}
 
@@ -710,7 +715,6 @@ class Datasets extends MY_REST_Controller
 	{
 		$this->load->library('ion_auth');
 		$this->load->library('acl');
-		$this->load->model("Dataset_model");
 
 		$overwrite=$this->input->post("overwrite")=='yes' ? TRUE : FALSE;
 		$repositoryid=$this->input->post("repositoryid");
@@ -762,7 +766,7 @@ class Datasets extends MY_REST_Controller
 			}
 
 			//data access type
-			$form_id=$this->Dataset_model->get_data_access_type_id($this->input->post('access_policy'));
+			$form_id=$this->dataset_manager->get_data_access_type_id($this->input->post('access_policy'));
 
 			//default
 			if(!$form_id){
@@ -894,7 +898,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
-			$this->Dataset_model->delete($sid);
+			$this->dataset_manager->delete($sid);
 		
 			$response=array(
 				'status'=>'success',
@@ -915,7 +919,7 @@ class Datasets extends MY_REST_Controller
 	public function delete_by_id_delete($sid=null)
 	{
 		try{
-			$this->Dataset_model->delete($sid);
+			$this->dataset_manager->delete($sid);
 		
 			$response=array(
 				'status'=>'success',
@@ -950,7 +954,7 @@ class Datasets extends MY_REST_Controller
 			if(!is_numeric($sid) || !is_numeric($publish_status)){
 				throw new Exception("MISSING_PARAMS");
 			}
-			$this->Dataset_model->set_publish_status($sid,$publish_status);
+			$this->dataset_manager->set_publish_status($sid,$publish_status);
 			$this->set_response('UPDATED', REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -1044,7 +1048,7 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("VALUE_MISSING: da_link");
 			}
 
-			$result=$this->Dataset_model->set_data_access_type($sid,$da_type,$da_link);			
+			$result=$this->dataset_manager->set_data_access_type($sid,$da_type,$da_link);			
 			$this->set_response($result, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -1094,8 +1098,7 @@ class Datasets extends MY_REST_Controller
 				'thumbnail'=>$uploaded_file_name
 			);
 
-			$this->load->model('Dataset_model');
-			$this->Dataset_model->update_options($sid,$options);
+			$this->dataset_manager->update_options($sid,$options);
 
 			$output=array(
 				'status'=>'success',
