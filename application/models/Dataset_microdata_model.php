@@ -149,10 +149,14 @@ class Dataset_microdata_model extends Dataset_model {
         
         $dataset=$this->get_row_detailed($sid);
         $metadata=$dataset['metadata'];
-        unset($metadata['idno']);
 
-        //replace metadata with new options
-        $options=array_replace_recursive($metadata,$options);
+        if(is_array($metadata)){
+            unset($metadata['idno']);
+            
+            //replace metadata with new options
+            $options=array_replace_recursive($metadata,$options);
+        }
+        
         $options['changed']=date("U");
 				
 		//split parts of the metadata
