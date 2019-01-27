@@ -1167,7 +1167,7 @@ class Datasets extends MY_REST_Controller
 
 			$output=array(
 				'status'=>'success',
-				'result'=>$result
+				'result'=>$dataset
 			);
 
 			$this->set_response($output, REST_Controller::HTTP_OK);	
