@@ -174,6 +174,20 @@ class DDI2_Import{
         //get list of data files
         $files=(array)$parser->get_data_files();
 
+        //check if data file is empty
+        foreach($files as $idx =>$file){
+            $is_null=true;
+            foreach(array_keys($file) as $file_field){
+                if(!empty($file[$file_field])){
+                    $is_null=false;
+                }
+            }
+            if($is_null){
+                //remove empty data file
+                unset($files[$idx]);
+            }
+        }
+
         $data_files=array();
         foreach($files as $file){
             $data_files[$file['id']]=$file;
