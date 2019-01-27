@@ -37,7 +37,7 @@ class Dataset_manager{
     function update_dataset($sid,$type,$options)
     {
         $this->validate_type($type);
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($type,$options);
+        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options);
     }
 
 
