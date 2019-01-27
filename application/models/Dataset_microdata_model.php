@@ -312,6 +312,10 @@ class Dataset_microdata_model extends Dataset_model {
      */
 	function get_country_names($nations)
 	{
+        if(!is_array($nations)){
+            return false;
+        }
+
         foreach($nations as $nation){
             $nation_names[]=$nation['name'];
         }	
