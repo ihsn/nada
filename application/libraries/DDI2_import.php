@@ -34,8 +34,8 @@ class DDI2_Import{
         );
 
         $this->ci->load->library('Metadata_parser', $parser_params);
+        $this->ci->load->library('Dataset_manager');
         $this->ci->load->model('Survey_type_model');
-        $this->ci->load->model("Dataset_model");
         $this->ci->load->model("Variable_model");
         $this->ci->load->model('Catalog_model');
         $this->catalog_root=get_catalog_root();
@@ -74,30 +74,6 @@ class DDI2_Import{
         //parser to read metadata
         $parser=$this->ci->metadata_parser->get_reader();
 
-        
-        /*echo "<pre>";
-        var_dump($parser->get_metadata_array());
-        echo "</pre>";
-        die();
-        */
-        /*
-        echo '<table>';
-        foreach($parser->get_metadata_array() as $key=>$value){
-        echo '<tr>';
-        echo '<td>'.$key.'</td>';
-        echo '<td><pre>';
-        print_r($value);
-        echo '</pre></td>';
-        echo '</tr>';
-        }
-        echo '</table>';
-
-        die();*/
-
-        //echo $parser->get_id();
-        //echo $parser->get_title();
-        //echo $parser->get_years();
-
         $idno=$parser->get_id();
 
         //sanitize ID to remove anything except a-Z1-9 characters
@@ -105,13 +81,9 @@ class DDI2_Import{
             throw new Exception(t('IDNO_INVALID_FORMAT').': '.$idno);
         }       
 
-        //delete if already exists
-		//$deleted=$this->ci->Dataset_model->delete_by_idno($idno);
-        
-
         //check if the study already exists, find the sid
         if (!$sid){
-            $sid=$this->ci->Dataset_model->find_by_idno($idno);
+            $sid=$this->ci->dataset_manager->find_by_idno($idno);
             $this->sid=$sid;
         }        
 
@@ -145,7 +117,7 @@ class DDI2_Import{
         $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
 
 		//target file path
-		$survey_target_filepath=$survey_folder_path.'/'.$idno.'.xml';
+		$survey_target_filepath=unix_path($survey_folder_path.'/'.$idno.'.xml');
 
         //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
         if($this->file_path!==$survey_target_filepath){
@@ -154,14 +126,6 @@ class DDI2_Import{
         
         $options=$this->transform_ddi_fields($parser->get_metadata_array());        
                 
-        //which field to use for country name
-        /*if($this->geog_coverage_field=='nation'){
-            $nation=$this->get_array_nested_value($options, 'study_desc/study_info/nation');
-            if(isset($nation[0]['name'])){
-                $options['study_desc']['study_info']['geog_coverage']=$nation[0]['name'];
-            }
-        }*/
-
         $options['created_by']=$this->user_id;
 		$options['changed_by']=$this->user_id;
 		//$options['created']=date("U");
@@ -196,40 +160,13 @@ class DDI2_Import{
         //validate & create study
 		if(!$sid){
             //create new survey and return the sid
-            $sid=$this->ci->Dataset_model->create_dataset('survey',$options);
+            $sid=$this->ci->dataset_manager->create_dataset('survey',$options);
             $this->sid=$sid;
 		}
         else //existing survey
         {            
-            $this->ci->Dataset_model->update_dataset($sid,'survey',$options);
+            $this->ci->dataset_manager->update_dataset($sid,'survey',$options);
         }
-        
-
-        //var_dump($sid);
-        
-
-        //callbacks for updating related tables
-
-        /* 
-        
-        MOVED TO DATASET_MODEL
-
-
-        //survey_years
-        $this->update_survey_years($sid, $parser->get_years());
-
-        //survey_topics
-        $this->update_survey_topics($sid, $parser->get_topics());
-
-        //survey_aliases
-        
-
-        //survey_countries
-        $this->update_survey_countries($sid, $parser->get_countries());
-
-        //survey bbox
-        $this->update_survey_locations($sid, $parser->get_bounding_box());
-        */
 
         //set survey owner repo
         $this->ci->Dataset_model->set_dataset_owner_repo($sid,$this->repositoryid);   
@@ -249,11 +186,8 @@ class DDI2_Import{
         //import variables
         $variables_imported=$this->import_variables($sid,$data_files, $parser->get_variable_iterator());
 
-        //update survey variables count
-        #$this->ci->Dataset_model->update($sid,array('varcount'=>$variables_imported));
-
         //update survey varcount
-        $this->ci->Dataset_model->update_varcount($sid);
+        $this->ci->dataset_manager->update_varcount($sid);
                     
         return array(
             'sid'=>$sid,
