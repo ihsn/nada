@@ -1117,6 +1117,80 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+
+	/**
+	*
+	* Reload metadata from DDI
+	*
+	* Updates database with the metadata from DDI
+	*
+	**/
+	function reload_ddi_put($id=NULL)
+	{
+		//$this->acl->user_has_repository_access($repositoryid,$this->get_api_user_id());
+		try{
+
+			if (!is_numeric($id)){
+				throw new Exception("ID_MISSING");
+			}
+
+			$this->load->model("Data_file_model");
+			$this->load->library('DDI2_import');
+
+			//get survey ddi file path by id
+			$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+
+			if ($ddi_file===FALSE){
+				throw new Exception("DDI_FILE_NOT_FOUND");
+			}
+			
+			$dataset=$this->dataset_manager->get_row($id);
+
+			$params=array(
+				'file_type'=>'survey',
+				'file_path'=>$ddi_file,
+				'user_id'=>$this->get_api_user_id(),
+				'repositoryid'=>$dataset['repositoryid'],
+				'overwrite'=>'yes'
+			);
+					
+			$result=$this->ddi2_import->import($params,$id);
+
+			//reset changed and created dates
+			$update_options=array(
+				'changed'=>$dataset['changed'],
+				'created'=>$dataset['created'],
+				'repositoryid'=>$dataset['repositoryid']
+			);
+
+			$this->dataset_manager->update_options($id,$update_options);
+
+			$output=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);	
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()				
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 	/** 
 	 * 
 	 * 
