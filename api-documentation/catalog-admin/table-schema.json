@@ -226,23 +226,37 @@
           ]
         },
 
-        "format": {
-          "type": "string",
-          "title":"File format",
-          "description": "The file format, physical medium, or dimensions of the resource."
-        },
-        "filename": {
-          "type": "string",
-          "title":"Table file name",
-          "description": "Table file name"
-        },
-        "sheetname": {
-          "type": "string",
-          "title":"Sheet name"
-        },
-        "page_number": {
-          "type": "string",
-          "title":"Page number"
+
+        "file": {
+          "type": "array",
+          "title": "Table file",
+          "description": "Table file",          
+          "items":{
+            "type":"object",
+            "properties":{
+            "filename": {
+              "title": "File name",
+              "description":"Provide table file name",
+              "type": "string"
+            },
+            "format": {
+              "title": "File format e.g. `application/excel`, `application/pdf`",
+              "description": "The file format, physical medium, or dimensions of the resource.",
+              "type": "string"              
+            },
+            "location": {
+              "title": "Page number or sheet name for the table",
+              "type": "string"              
+            },
+            "note": {
+              "title": "Notes",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
         },
         
         "authoring_entity": {
@@ -371,6 +385,10 @@
               },
               "uri": {
                 "title": "URI",
+                "type": "string"
+              },
+              "description": {
+                "title": "Description",
                 "type": "string"
               }
             },
