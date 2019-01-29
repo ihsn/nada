@@ -99,7 +99,7 @@ class Dataset_microdata_model extends Dataset_model {
         $countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
 
 		//update countries
-		$this->Survey_country_model->update_countries($dataset_id,$countries);
+		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);
 
 		//set aliases
 
@@ -201,8 +201,7 @@ class Dataset_microdata_model extends Dataset_model {
 		//set topics
 
 		//set countries
-		$countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
-		$this->Survey_country_model->update_countries($sid,$countries);
+		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);
 
 		//set aliases
 
@@ -284,15 +283,15 @@ class Dataset_microdata_model extends Dataset_model {
 	function get_core_fields($type,$options)
 	{
 		$output=array();
-        //$output=$options;
-        //$output['study_desc']=null;
-        //$output['doc_desc']=null;
 
         $output['title']=$this->get_array_nested_value($options,'study_desc/title_statement/title');
         $output['idno']=$this->get_array_nested_value($options,'study_desc/title_statement/idno');
 
-        $nations=(array)$this->get_array_nested_value($options,'study_desc/study_info/nation');				
-        $output['nation']=$this->get_country_names_string($this->get_country_names($nations));
+        $nations=(array)$this->get_array_nested_value($options,'study_desc/study_info/nation');
+        $nations=$this->get_country_names($nations);//get names only
+
+        $output['nations']=$nations;
+        $output['nation']=$this->get_country_names_string($nations);
 
         $output['abbreviation']=$this->get_array_nested_value($options,'study_desc/title_statement/alternate_title');
         
