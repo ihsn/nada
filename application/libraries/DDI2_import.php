@@ -25,7 +25,19 @@ class DDI2_Import{
     }
 
     
-    //import ddi
+    /**
+     * 
+     * import ddi
+     * 
+     * params
+     * - file_type - [survey]
+	 * - file_path  - ddi file path
+	 * - user_id
+	 * - repositoryid 
+	 * - overwrite - yes
+	 * - partial - true or false - if true, import only study level metadata
+     * 
+     **/ 
     public function import($params,$sid=null)
     {
         $parser_params=array(
@@ -33,13 +45,14 @@ class DDI2_Import{
             'file_path'=>$params['file_path']
         );
 
+        $partial=isset($params['partial']) ? $params['partial'] : false;
+
         $this->ci->load->library('Metadata_parser', $parser_params);
         $this->ci->load->library('Dataset_manager');
         $this->ci->load->model('Survey_type_model');
         $this->ci->load->model("Variable_model");
         $this->ci->load->model('Catalog_model');
         $this->catalog_root=get_catalog_root();
-
 
         //required parameters
         $required=array(
@@ -55,8 +68,7 @@ class DDI2_Import{
             'formid'
         );
         
-        foreach($required as $field)
-        {
+        foreach($required as $field){
             if(array_key_exists($field,$params)){
                 $this->{$field}=$params[$field];
             }
@@ -68,7 +80,7 @@ class DDI2_Import{
         foreach($optional as $field){
             if(array_key_exists($field,$params)){
                 $this->{$field}=$params[$field];
-            }            
+            }
         }
         
         //parser to read metadata
@@ -124,11 +136,9 @@ class DDI2_Import{
             $copied=$this->copy_file($this->file_path, $survey_target_filepath);
         }
         
-        $options=$this->transform_ddi_fields($parser->get_metadata_array());        
-                
+        $options=$this->transform_ddi_fields($parser->get_metadata_array());                
         $options['created_by']=$this->user_id;
 		$options['changed_by']=$this->user_id;
-		//$options['created']=date("U");
 		$options['changed']=date("U");
         $options['repositoryid']=$repositoryid;
         $options['metafile']=$ddi_filename;
@@ -164,12 +174,23 @@ class DDI2_Import{
             $this->sid=$sid;
 		}
         else //existing survey
-        {            
+        {
             $this->ci->dataset_manager->update_dataset($sid,'survey',$options);
         }
 
         //set survey owner repo
         $this->ci->Dataset_model->set_dataset_owner_repo($sid,$this->repositoryid);   
+
+        if($partial){
+            return array(
+                'sid'=>$sid,
+                'idno'=>$idno,
+                'partial'=>$partial,
+                'published'=>$this->published,
+                'repositoryid'=>$this->repositoryid,  
+                'folder'=>$survey_folder_rel_path
+            );
+        }
 
         //get list of data files
         $files=(array)$parser->get_data_files();

@@ -1123,9 +1123,11 @@ class Datasets extends MY_REST_Controller
 	* Reload metadata from DDI
 	*
 	* Updates database with the metadata from DDI
+	* 
+	* partial - if yes, only update study level metadata
 	*
 	**/
-	function reload_ddi_put($id=NULL)
+	function reload_ddi_put($id=NULL,$partial=false)
 	{
 		//$this->acl->user_has_repository_access($repositoryid,$this->get_api_user_id());
 		try{
@@ -1151,7 +1153,8 @@ class Datasets extends MY_REST_Controller
 				'file_path'=>$ddi_file,
 				'user_id'=>$this->get_api_user_id(),
 				'repositoryid'=>$dataset['repositoryid'],
-				'overwrite'=>'yes'
+				'overwrite'=>'yes',
+				'partial'=>$partial
 			);
 					
 			$result=$this->ddi2_import->import($params,$id);
@@ -1167,7 +1170,7 @@ class Datasets extends MY_REST_Controller
 
 			$output=array(
 				'status'=>'success',
-				'result'=>$dataset
+				'result'=>$result
 			);
 
 			$this->set_response($output, REST_Controller::HTTP_OK);	
