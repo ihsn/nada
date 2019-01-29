@@ -273,6 +273,7 @@ class Catalog_search_mysql{
 		//$study_fulltext_index.=',abbreviation,keywords';
 
 		$study_fulltext_index='keywords';
+		$study_keywords=str_replace(array('"',"'"), '',$study_keywords);
 		
 		if (strlen($study_keywords)>3)
 		{		
