@@ -1,21 +1,8 @@
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
 --
 -- Table structure for table `repositories`
 --
 
 DROP TABLE IF EXISTS `repositories`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `repositories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) DEFAULT NULL,
@@ -40,24 +27,14 @@ CREATE TABLE `repositories` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `Ind_unq` (`repositoryid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `repositories`
---
 
-LOCK TABLES `repositories` WRITE;
-/*!40000 ALTER TABLE `repositories` DISABLE KEYS */;
-/*!40000 ALTER TABLE `repositories` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `lic_files`
 --
 
 DROP TABLE IF EXISTS `lic_files`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lic_files` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `surveyid` int(11) NOT NULL,
@@ -66,24 +43,13 @@ CREATE TABLE `lic_files` (
   `changed` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `lic_files`
---
-
-LOCK TABLES `lic_files` WRITE;
-/*!40000 ALTER TABLE `lic_files` DISABLE KEYS */;
-/*!40000 ALTER TABLE `lic_files` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `site_menu`
 --
 
 DROP TABLE IF EXISTS `site_menu`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `site_menu` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) DEFAULT NULL,
@@ -94,7 +60,6 @@ CREATE TABLE `site_menu` (
   `module` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `site_menu`
@@ -129,14 +94,7 @@ CREATE TABLE `vocabularies` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `vocabularies`
---
 
-LOCK TABLES `vocabularies` WRITE;
-/*!40000 ALTER TABLE `vocabularies` DISABLE KEYS */;
-/*!40000 ALTER TABLE `vocabularies` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `variables`
@@ -164,18 +122,10 @@ CREATE TABLE `variables` (
   FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
   FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
   FULLTEXT KEY `idx_nm` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `variables`
---
-
-LOCK TABLES `variables` WRITE;
-/*!40000 ALTER TABLE `variables` DISABLE KEYS */;
-/*!40000 ALTER TABLE `variables` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `users_groups`
@@ -211,14 +161,6 @@ CREATE TABLE `survey_relationships` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='related surveys e.g. parent, child, sibling, related';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_relationships`
---
-
-LOCK TABLES `survey_relationships` WRITE;
-/*!40000 ALTER TABLE `survey_relationships` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_relationships` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `survey_tags`
@@ -236,14 +178,6 @@ CREATE TABLE `survey_tags` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_tags`
---
-
-LOCK TABLES `survey_tags` WRITE;
-/*!40000 ALTER TABLE `survey_tags` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_tags` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `meta`
@@ -430,7 +364,7 @@ CREATE TABLE `surveys` (
   FULLTEXT KEY `ft_titl` (`title`),
   FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`),
   FULLTEXT KEY `ft_keywords` (`keywords`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -491,15 +425,6 @@ CREATE TABLE `cache` (
   UNIQUE KEY `uid_UNIQUE` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `cache`
---
-
-LOCK TABLES `cache` WRITE;
-/*!40000 ALTER TABLE `cache` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cache` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 --
@@ -570,14 +495,6 @@ CREATE TABLE `lic_requests` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `lic_requests`
---
-
-LOCK TABLES `lic_requests` WRITE;
-/*!40000 ALTER TABLE `lic_requests` DISABLE KEYS */;
-/*!40000 ALTER TABLE `lic_requests` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `citations`
@@ -629,7 +546,7 @@ CREATE TABLE `citations` (
   UNIQUE KEY `uid_UNIQUE` (`uuid`),
   FULLTEXT KEY `ft_citations` (`title`,`subtitle`,`alt_title`,`authors`,`editors`,`translators`),
   FULLTEXT KEY `ft_cit2` (`title`,`subtitle`,`authors`,`organization`,`abstract`,`keywords`,`notes`,`doi`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
 
@@ -677,16 +594,7 @@ CREATE TABLE `survey_aliases` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Other codeBook IDs for the survey';
 
 
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_aliases`
---
-
-LOCK TABLES `survey_aliases` WRITE;
-/*!40000 ALTER TABLE `survey_aliases` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_aliases` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `resources`
@@ -720,14 +628,7 @@ CREATE TABLE `resources` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `resources`
---
 
-LOCK TABLES `resources` WRITE;
-/*!40000 ALTER TABLE `resources` DISABLE KEYS */;
-/*!40000 ALTER TABLE `resources` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `lic_files_log`
@@ -747,14 +648,7 @@ CREATE TABLE `lic_files_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='licensed files download log';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `lic_files_log`
---
 
-LOCK TABLES `lic_files_log` WRITE;
-/*!40000 ALTER TABLE `lic_files_log` DISABLE KEYS */;
-/*!40000 ALTER TABLE `lic_files_log` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `terms`
@@ -772,14 +666,7 @@ CREATE TABLE `terms` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `terms`
---
 
-LOCK TABLES `terms` WRITE;
-/*!40000 ALTER TABLE `terms` DISABLE KEYS */;
-/*!40000 ALTER TABLE `terms` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -823,14 +710,7 @@ CREATE TABLE `survey_countries` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_countries`
---
 
-LOCK TABLES `survey_countries` WRITE;
-/*!40000 ALTER TABLE `survey_countries` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_countries` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `country_aliases`
@@ -848,14 +728,7 @@ CREATE TABLE `country_aliases` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `country_aliases`
---
 
-LOCK TABLES `country_aliases` WRITE;
-/*!40000 ALTER TABLE `country_aliases` DISABLE KEYS */;
-/*!40000 ALTER TABLE `country_aliases` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `group_permissions`
@@ -990,14 +863,7 @@ CREATE TABLE `url_mappings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `url_mappings`
---
 
-LOCK TABLES `url_mappings` WRITE;
-/*!40000 ALTER TABLE `url_mappings` DISABLE KEYS */;
-/*!40000 ALTER TABLE `url_mappings` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `groups`
@@ -1080,14 +946,7 @@ CREATE TABLE `lic_requests_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `lic_requests_history`
---
 
-LOCK TABLES `lic_requests_history` WRITE;
-/*!40000 ALTER TABLE `lic_requests_history` DISABLE KEYS */;
-/*!40000 ALTER TABLE `lic_requests_history` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `da_collection_surveys`
@@ -1105,14 +964,7 @@ CREATE TABLE `da_collection_surveys` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `da_collection_surveys`
---
 
-LOCK TABLES `da_collection_surveys` WRITE;
-/*!40000 ALTER TABLE `da_collection_surveys` DISABLE KEYS */;
-/*!40000 ALTER TABLE `da_collection_surveys` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `tags`
@@ -1129,14 +981,7 @@ CREATE TABLE `tags` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `tags`
---
 
-LOCK TABLES `tags` WRITE;
-/*!40000 ALTER TABLE `tags` DISABLE KEYS */;
-/*!40000 ALTER TABLE `tags` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `permissions`
@@ -1182,14 +1027,7 @@ CREATE TABLE `survey_years` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_years`
---
 
-LOCK TABLES `survey_years` WRITE;
-/*!40000 ALTER TABLE `survey_years` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_years` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `region_countries`
@@ -1235,16 +1073,7 @@ CREATE TABLE `survey_notes` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `survey_notes`
---
-
-LOCK TABLES `survey_notes` WRITE;
-/*!40000 ALTER TABLE `survey_notes` DISABLE KEYS */;
-/*!40000 ALTER TABLE `survey_notes` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `citation_authors`
@@ -1334,14 +1163,7 @@ CREATE TABLE `user_repo_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='set user permission for a collection';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `user_repo_permissions`
---
 
-LOCK TABLES `user_repo_permissions` WRITE;
-/*!40000 ALTER TABLE `user_repo_permissions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user_repo_permissions` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `lic_file_downloads`
@@ -1362,14 +1184,6 @@ CREATE TABLE `lic_file_downloads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `lic_file_downloads`
---
-
-LOCK TABLES `lic_file_downloads` WRITE;
-/*!40000 ALTER TABLE `lic_file_downloads` DISABLE KEYS */;
-/*!40000 ALTER TABLE `lic_file_downloads` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `regions`
@@ -1414,14 +1228,6 @@ CREATE TABLE `ci_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `ci_sessions`
---
-
-LOCK TABLES `ci_sessions` WRITE;
-/*!40000 ALTER TABLE `ci_sessions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ci_sessions` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `public_requests`
@@ -1440,16 +1246,7 @@ CREATE TABLE `public_requests` (
   `collectionid` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `public_requests`
---
-
-LOCK TABLES `public_requests` WRITE;
-/*!40000 ALTER TABLE `public_requests` DISABLE KEYS */;
-/*!40000 ALTER TABLE `public_requests` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `sitelogs`
@@ -1474,14 +1271,7 @@ CREATE TABLE `sitelogs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `sitelogs`
---
 
-LOCK TABLES `sitelogs` WRITE;
-/*!40000 ALTER TABLE `sitelogs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `sitelogs` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `configurations`
@@ -1543,7 +1333,7 @@ INSERT INTO `configurations` VALUES ('use_html_editor','yes','Use HTML editor fo
 INSERT INTO `configurations` VALUES ('website_footer','Powered by NADA 4.0 and DDI','Website footer text',NULL,NULL);
 INSERT INTO `configurations` VALUES ('website_title','National Data Archive','Website title','Provide the title of the website','website');
 INSERT INTO `configurations` VALUES ('website_url','http://localhost/nada','Website URL','URL of the website','website');
-INSERT INTO `configurations` VALUES ('website_webmaster_email','nada@ihsn.org','Site webmaster email address','-','website');
+INSERT INTO `configurations` VALUES ('website_webmaster_email','','Site webmaster email address','-','website');
 INSERT INTO `configurations` VALUES ('website_webmaster_name','noreply','Webmaster name','-','website');
 INSERT INTO `configurations` VALUES ('year_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('year_search_weight','1',NULL,NULL,NULL);
@@ -1611,8 +1401,7 @@ CREATE TABLE `data_files` (
   `version` varchar(255) DEFAULT NULL,
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `survey_file` (`sid`,`file_id`),
-  CONSTRAINT `cascade_data_files` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE KEY `survey_file` (`sid`,`file_id`)  
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
@@ -1650,7 +1439,6 @@ CREATE TABLE `api_logs` (
 
 
 
-
 CREATE TABLE `data_files_resources` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `sid` INT NULL,
@@ -1672,165 +1460,3 @@ CREATE TABLE `survey_locations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
---
--- Set foreign keys
---
-
-
-/* 
--- Enable/dislabe foreign key checks
--- SET FOREIGN_KEY_CHECKS = 0; 
-*/
-
-
-ALTER TABLE da_collection_surveys
-   ADD CONSTRAINT `del_da_coll_surveys`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-
-ALTER TABLE data_files
-   ADD CONSTRAINT `cascade_data_files`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-
-ALTER TABLE data_files_resources
-   ADD CONSTRAINT `cascade_data_files_resources`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;  
-   
-   
-ALTER TABLE featured_surveys
-   ADD CONSTRAINT `cascade_featured_surveys`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-   
-ALTER TABLE lic_files
-   ADD CONSTRAINT `cascade_lic_files`
-   FOREIGN KEY (`surveyid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-
-ALTER TABLE public_requests
-   ADD CONSTRAINT `cascade_pubilc_requests`
-   FOREIGN KEY (`surveyid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-ALTER TABLE resources
-   ADD CONSTRAINT `cascade_resources`
-   FOREIGN KEY (`survey_id`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-
-
-ALTER TABLE survey_aliases
-   ADD CONSTRAINT `cascade_survey_aliases`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;   
-
-
-ALTER TABLE survey_citations
-   ADD CONSTRAINT `cascade_survey_citations`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-   
-ALTER TABLE survey_countries
-   ADD CONSTRAINT `cascade_survey_countries`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-   
-
-ALTER TABLE survey_lic_requests
-   ADD CONSTRAINT `cascade_survey_lic_requests`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-      
-ALTER TABLE survey_locations
-   ADD CONSTRAINT `cascade_survey_locations`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-   
-   
-ALTER TABLE survey_notes
-   ADD CONSTRAINT `cascade_survey_notes`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;   
-
-   
-ALTER TABLE survey_repos
-   ADD CONSTRAINT `cascade_survey_repos`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-
-
-ALTER TABLE survey_tags
-   ADD CONSTRAINT `cascade_survey_tags`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;    
-   
-   
-ALTER TABLE survey_topics
-   ADD CONSTRAINT `cascade_survey_topics`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;
-
-ALTER TABLE survey_years
-   ADD CONSTRAINT `cascade_survey_years`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;       
-   
-ALTER TABLE variables
-   ADD CONSTRAINT `cascade_survey_variables`
-   FOREIGN KEY (`sid`)
-   REFERENCES `surveys` (`id`)
-   ON DELETE CASCADE
-   ON UPDATE CASCADE;          
-
-
-
-
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
