@@ -1,14 +1,8 @@
 ###################################################################################
-# script to upgrade nada42/44 mysql database to nada5
+# Upgrade nada42/44 mysql database to nada5
 ###################################################################################
 
 DROP TABLE `blocks`;
-ALTER TABLE `sitelogs` ENGINE = InnoDB;
-ALTER TABLE `surveys` ENGINE = InnoDB;
-ALTER TABLE `tokens` ENGINE = InnoDB;
-ALTER TABLE `variables` ENGINE = InnoDB;
-ALTER TABLE `citations` ENGINE = InnoDB;
-ALTER TABLE `forms` ENGINE = InnoDB;
 
 ALTER TABLE `surveys` CHANGE `ddifilename` `metafile` VARCHAR(255) DEFAULT NULL;
 ALTER TABLE `surveys` ADD `metadata` mediumtext;
@@ -59,6 +53,8 @@ ALTER TABLE `surveys` DROP `producer`;
 ALTER TABLE `surveys` DROP `sponsor`;
 ALTER TABLE `surveys` DROP `topic`;
 
+UPDATE TABLE `surveys` set type='survey';
+
 ALTER TABLE `variables` ADD `fid` varchar(45) DEFAULT NULL;
 ALTER TABLE `variables` CHANGE `varID` `vid` varchar(45) DEFAULT '';
 ALTER TABLE `variables` ADD `metadata` mediumtext;
@@ -70,8 +66,6 @@ ALTER TABLE `variables` DROP INDEX `idxSurvey`;
 ALTER TABLE `variables` ADD UNIQUE KEY `idxSurvey` (`vid`,`sid`);
 ALTER TABLE `variables` DROP INDEX `idxsurveyidfk`;
 ALTER TABLE `variables` ADD KEY `idxsurveyidfk` (`sid`);
-
-
 
 ALTER TABLE `citations` CHANGE `ihsn_id` `uuid` varchar(50) NOT NULL;
 ALTER TABLE `citations` ADD UNIQUE KEY `cit_uuid` (`uuid`);
@@ -92,9 +86,7 @@ ALTER TABLE `resources` ADD KEY `cascade_resources` (`survey_id`);
 
 ALTER TABLE `survey_notes` ADD KEY `cascade_survey_notes` (`sid`);
 ALTER TABLE `survey_notes` CHANGE `sid` `sid` int(10) NOT NULL;
-
 ALTER TABLE `survey_aliases` CHANGE `sid` `sid` int(10) NOT NULL;
-
 
 ALTER TABLE `survey_repos` CHANGE `sid` `sid` int(10) NOT NULL;
 ALTER TABLE `survey_repos` ADD KEY `cascade_survey_repos` (`sid`);
@@ -105,7 +97,6 @@ ALTER TABLE `survey_aliases` ADD KEY `cascade_survey_aliases` (`sid`);
 ALTER TABLE `featured_surveys` ADD KEY `cascade_featured_surveys` (`sid`);
 ALTER TABLE `da_collection_surveys` ADD KEY `del_da_coll_surveys` (`sid`);
 ALTER TABLE `survey_lic_requests` ADD KEY `cascade_survey_lic_requests` (`sid`);
-
 
 
 CREATE TABLE `api_keys` (
@@ -119,7 +110,7 @@ CREATE TABLE `api_keys` (
   `is_private_key` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_UNIQUE` (`key`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `api_logs` (
@@ -134,7 +125,7 @@ CREATE TABLE `api_logs` (
   `authorized` varchar(1) NOT NULL,
   `response_code` smallint(3) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `data_files` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -150,9 +141,8 @@ CREATE TABLE `data_files` (
   `version` varchar(255) DEFAULT NULL,
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `survey_file` (`sid`,`file_id`),
-  CONSTRAINT `cascade_data_files` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2422 DEFAULT CHARSET=utf8;
+  UNIQUE KEY `survey_file` (`sid`,`file_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `data_files_resources` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -163,9 +153,8 @@ CREATE TABLE `data_files_resources` (
   `api_use` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `file_resource` (`sid`,`resource_id`),
-  CONSTRAINT `cascade_data_files_resources` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+  UNIQUE KEY `file_resource` (`sid`,`resource_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `deleted_objects` (
@@ -176,7 +165,7 @@ CREATE TABLE `deleted_objects` (
   `notes` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `obj_type` (`object_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `survey_locations` (
@@ -184,10 +173,21 @@ CREATE TABLE `survey_locations` (
   `sid` int(11) DEFAULT NULL,
   `location` geometry NOT NULL,
   PRIMARY KEY (`id`),
-  SPATIAL KEY `idx_location` (`location`),
-  KEY `cascade_survey_locations` (`sid`),
-  CONSTRAINT `cascade_survey_locations` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  SPATIAL KEY `idx_location` (`location`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+--- 
+--- For MYSQL 5.6 or later only
+--- requires INNODB with fulltext and geometry 
+--- 
+
+--- ALTER TABLE `sitelogs` ENGINE = InnoDB;
+--- ALTER TABLE `surveys` ENGINE = InnoDB;
+--- ALTER TABLE `tokens` ENGINE = InnoDB;
+--- ALTER TABLE `variables` ENGINE = InnoDB;
+--- ALTER TABLE `citations` ENGINE = InnoDB;
+--- ALTER TABLE `forms` ENGINE = InnoDB;
 
 ALTER TABLE `survey_topics` ADD KEY `cascade_survey_topics` (`sid`);
 ALTER TABLE `variables` ADD CONSTRAINT `cascade_survey_variables` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -205,3 +205,7 @@ ALTER TABLE `lic_files` ADD CONSTRAINT `cascade_lic_files` FOREIGN KEY (`surveyi
 ALTER TABLE `public_requests` ADD CONSTRAINT `cascade_pubilc_requests` FOREIGN KEY (`surveyid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `survey_topics` ADD CONSTRAINT `cascade_survey_topics` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `survey_aliases` ADD CONSTRAINT `cascade_survey_aliases` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `survey_locations` ADD CONSTRAINT `cascade_survey_locations` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `data_files` ADD CONSTRAINT `cascade_data_files` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE; 
+ALTER TABLE `data_files_resources` ADD CONSTRAINT `cascade_data_files_resources` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
