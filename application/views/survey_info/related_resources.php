@@ -38,6 +38,7 @@
 
                             $url=NULL;
                             $file_size='';
+                            $link_text='';
 
                             //check file/URL
                             if (substr($row['filename'],0,4)=='www.' || substr($row['filename'],0,7)=='http://' || substr($row['filename'],0,8)=='https://' || substr($row['filename'],0,6)=='ftp://')
@@ -145,6 +146,7 @@
                                                     <?php endif;?>
                                                 <?php endif;?>
                                             <?php endforeach;?>
+                                            <?php $link_text='';?>
                                             <tr>
                                                 <td class="caption"><?php echo t('download');?></td>
                                                 <td><?php echo ($link_text==="") ? "N/A" : '<a class="download" title="'.basename($row['filename']).'" href="'.$url.'">'.$url.'</a>';?></td>
