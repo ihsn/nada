@@ -58,11 +58,6 @@ if($repo_ref!='central' && $repo_ref)
             <?php endif;?>
             <!-- end da filter -->
 
-            <?php if ($this->center_search=='yes'):?>
-                <!-- center filter-->
-                <?php  $this->load->view("catalog_search/filter_centers"); ?>
-            <?php endif;?>
-
             <?php if ($this->collection_search=='yes' && $active_repo==''):?>
                 <?php  $fac_filters[(int)$this->config->item("collection_search_weight")]['collection']=$this->load->view("catalog_search/filter_collections",NULL,TRUE); ?>
             <?php endif;?>
