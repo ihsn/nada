@@ -1219,8 +1219,11 @@ class Catalog_model extends CI_Model {
 		$this->unlink_study($target_repositoryid,$sid);
 						
 		//log
-		$this->db_logger->write_log('transfer-ownership','transfered study ['.$survey['titl'].'] from '.$survey['repositoryid'].' '.$target_repositoryid,'transfer-ownership',$sid);
+		$this->db_logger->write_log('transfer-ownership','transfered study ['.$survey['title'].'] from '.$survey['repositoryid'].' '.$target_repositoryid,'transfer-ownership',$sid);
 	}
+
+
+	
 	
 	/**
 	*
