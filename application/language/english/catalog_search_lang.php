@@ -179,6 +179,17 @@ $lang['study_description_tab_info']="Study metadata: overview, abstract, samplin
 $lang['related_citations_tab_info']="Links to publications that have used the data from this study";
 $lang['data_dictionary_tab_info']="Description of data files and variables";
 $lang['featured_study']="Featured Study";
+$lang['dataset_type_survey']="Microdata";
+$lang['dataset_type_table']="Tables";
+$lang['dataset_type_document']="Documents";
+$lang['dataset_type_geospatial']="Geospatial";
+$lang['dataset_type_image']="Images";
+
+$lang['variables']="Variables";
+$lang['total']="Total";
+$lang['data_file']="Data file";
+$lang['data_files']="Data files";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

@@ -89,8 +89,8 @@
         var pnl_body=$(pnl).find(".panel-td");
 
         //collapse
-        if ($(var_obj).closest("tr").is(".pnl-active")){
-            $(var_obj).closest("tr").toggleClass("pnl-active");
+        if ($(var_obj).closest(".var-row").is(".pnl-active")){
+            $(var_obj).closest(".var-row").toggleClass("pnl-active");
             $(pnl).hide();
             return;
         }
@@ -99,13 +99,13 @@
         $('.data-dictionary .var-info-panel').hide();
 
         //unset any active panels
-        $(".data-dictionary tr").removeClass("pnl-active");
+        $(".data-dictionary .var-row").removeClass("pnl-active");
 
         //error handler
         variable_error_handler(pnl_body);
 
         $(pnl).show();
-        $(var_obj).closest("tr").toggleClass("pnl-active");
+        $(var_obj).closest(".var-row").toggleClass("pnl-active");
         $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ CI.js_loading);
         $(pnl_body).load(var_obj.attr("href")+'&ajax=true', function(){
             var fooOffset = jQuery('.pnl-active').offset(),

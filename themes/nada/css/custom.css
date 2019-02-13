@@ -291,6 +291,57 @@ a.active.page-link {
 }
 
 
+.variables-container .icon-toggle{
+    position:absolute;
+    right:20px;
+    top:8px;        
+    font-size:20px;
+}
+
+.variables-container .icon-toggle .expanded_{
+    display:none;
+}
+
+.variables-container .pnl-active .icon-toggle .expanded_{
+    display:inherit;
+}
+
+.variables-container .pnl-active .icon-toggle .collapased_ {
+    display:none;
+}
+
+.variables-container .var-row{
+    padding:8px;
+    position:relative;
+    border-bottom: 1px solid #e9ecef;
+    cursor:pointer;
+}
+
+.variables-container .var-row:hover{
+    background:#e9ecef;
+}
+
+.variables-container .var-row:hover a{
+    color:black;
+}
+
+.variables-container .pnl-active{
+    background:#0088cc;
+    border:0px;
+}
+
+.variables-container .pnl-active a{
+    color:white;
+}
+
+
+.variables-container .data-dictionary{
+    border-top:2px solid #0071bc;
+    border-bottom:2px solid #0071bc;
+    margin-bottom:15px;
+}
+
+
 /*survey resources summary*/
 .study-metadata  .resources h3{font-weight:bold;padding-top:10px;font-size:12px;}
 .study-metadata  .abstract{display:none;margin-bottom:10px;background-color:none;margin-top:10px;}
