@@ -171,23 +171,36 @@
           ]
         },
 
-        "format": {
-          "type": "string",
-          "title":"File format",
-          "description": "The file format, physical medium, or dimensions of the resource."
-        },
-        "filename": {
-          "type": "string",
-          "title":"Document file name",
-          "description": "Document file name"
-        },
-        "sheetname": {
-          "type": "string",
-          "title":"Sheet name"
-        },
-        "page_number": {
-          "type": "string",
-          "title":"Page number"
+        "file": {
+          "type": "array",
+          "title": "Table file",
+          "description": "Table file",          
+          "items":{
+            "type":"object",
+            "properties":{
+            "filename": {
+              "title": "File name",
+              "description":"Provide table file name",
+              "type": "string"
+            },
+            "format": {
+              "title": "File format e.g. `application/excel`, `application/pdf`",
+              "description": "The file format, physical medium, or dimensions of the resource.",
+              "type": "string"              
+            },
+            "location": {
+              "title": "Page number or sheet name for the table",
+              "type": "string"              
+            },
+            "note": {
+              "title": "Notes",
+              "type": "string"              
+            }
+          },
+          "required": [
+            "filename"
+          ]
+        }
         },
 
         "description": {
@@ -741,7 +754,124 @@
           "required": [
             "name"
           ]
+        },
+
+
+        "tags": {
+          "type": "array",
+          "title": "Tags",
+          "description": "Tags",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tag": {
+                "title": "Tag",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+
+        "lda_topics": {
+          "type": "array",
+          "title": "LDA topics",
+          "description": "LDA topics",
+          "items": {
+            "type": "object",
+            "properties": {
+              "model_info": {
+                "type": "array",
+                "title": "Model information",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "source": {
+                      "title": "Source",
+                      "type": "string"
+                    },
+                    "author": {
+                      "title": "Author",
+                      "type": "string"
+                    },
+                    "version": {
+                      "title": "Version",
+                      "type": "string"
+                    },
+                    "model_id": {
+                      "title": "Model Identifier",
+                      "type": "string"
+                    },
+                    "nb_topics": {
+                      "title": "Number of topics",
+                      "type": "string"
+                    },
+                    "description": {
+                      "title": "Description",
+                      "type": "string"
+                    },
+                    "corpus": {
+                      "title": "Corpus name",
+                      "type": "string"
+                    },
+                    "uri": {
+                      "title": "URI",
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "model_id"
+                ]
+              },              
+              "topic_description": {
+                "type": "array",
+                "title": "Topic information",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "topic_id": {
+                      "title": "Topic identifier",
+                      "type": "string"
+                    },
+                    "topic_score": {
+                      "title": "Topic score",
+                      "type": "string"
+                    },
+                    "topic_label": {
+                      "title": "Topic label",
+                      "type": "string"
+                    },
+                    "topic_words": {
+                      "type": "array",
+                      "title": "Topic words",
+                      "description": "Words",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "word": {
+                            "title": "Word",
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "word"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "topic_id"
+                ]
+              }
+            }
+          }
         }
+
+
       }
     }
   }
