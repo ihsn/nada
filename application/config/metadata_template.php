@@ -43,7 +43,7 @@ $config['geospatial']=array(
 //document
 $config['document']=array(
     'template' => 'metadata_templates/document-template',
-    'language_translations'=>'document_fields'
+    'language_translations'=>'fields_document'
 ); 
 
 //table
