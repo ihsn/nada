@@ -222,48 +222,7 @@ if ( ! function_exists('anchor'))
 	}
 }
 
-/*
-//TODO:REMOVE
-	function force_proxy_ssl($site_url)
-	{
-		//check if proxy_ssl =TRUE
-		$CI =& get_instance();
-		if ($CI->config->item("proxy_ssl")===TRUE || $CI->config->item("enable_ssl")===TRUE)
-		{
-			//Force SSL for URLs containing /auth/
-			if (strpos(current_url(),"/auth/")!==FALSE)
-			{
-				$site_url=str_replace("http:","https:",$site_url);
-			}
-		}
-		
-		return $site_url;
-	}
-*/
 
-/*
-//TODO:REMOVE
-	
-	//force SSL for specific pages
-	function force_ssl($url)
-	{
-		$CI =& get_instance();
-		
-		//no SSL support on server
-		if (!is_ssl_enabled())
-		{
-			return $url;
-		}
-		return $url;
-				
-		//Force SSL for URLs containing /auth/
-		if (strpos(current_url(),"/auth/")!==FALSE)
-		{
-			$url=str_replace("http:","https:",$url);
-		}
-		return $url;
-	}
-*/
 	
 
 /**
@@ -377,23 +336,6 @@ if ( ! function_exists('nada_site_url'))
 	}
 }	
 
-/*
-if ( ! function_exists('sanitize_url'))
-{
-	function sanitize_url($url)
-	{
-		$url_parts=explode("/",$url);
-		foreach($url_parts as $key=>$value)
-		{
-			$url_parts[$key]=filter_var($value,FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH);
-		}
-
-		$url=implode("/",$url_parts);		
-		return $url;
-	}
-}
-*/
-
 
 
 /**
@@ -437,5 +379,56 @@ if ( ! function_exists('_parse_attributes'))
     }
 }
 
+
+
+
+    /**
+     * Turn all URLs in clickable links.
+     * 
+     * @param string $value
+     * @param array  $protocols  http/https, ftp, mail, twitter
+     * @param array  $attributes
+     * @param string $mode       normal or all
+     * @return string
+	 * @author - https://stackoverflow.com/users/2533787/nothingctrl
+	 * @author - https://stackoverflow.com/users/5774880/ruddernation-designs
+	 * @author - https://stackoverflow.com/questions/1960461/convert-plain-text-urls-into-html-hyperlinks-in-php
+	 * 
+     */
+	if ( ! function_exists('linkify'))
+	{	
+		function linkify($str) {
+			
+			//email addresses	
+			$mail_pattern = "/([A-z0-9\._-]+\@[A-z0-9_-]+\.)([A-z0-9\_\-\.]{1,}[A-z])/";
+			$str = preg_replace($mail_pattern, '<a href="mailto:$1$2">$1$2</a>', $str);
+			
+			//urls
+			$url_pattern = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/';   
+			return preg_replace($url_pattern, '<a href="$0" target="_blank" title="$0">$0</a>', $str);
+
+			/*
+			//urls starting with www
+			$url_pattern = '~(?:(https?)://([^\s<]+)|(www\.[^\s<]+?\.[^\s<]+))(?<![\.,:])~i'; 
+			return preg_replace($url_pattern, '<a href="$0" target="_blank" title="$0">$0</a>', $str);
+			*/
+		 }
+	}
+
+	/**
+	 * 
+	 * Encode email for display
+	 * 
+	 * @author - david walsh
+	 * @author_website - https://davidwalsh.name/php-email-encode-prevent-spam
+	 * 
+	 */
+	if ( ! function_exists('encode_email'))
+	{
+		function encode_email($e) {
+			for ($i = 0; $i < strlen($e); $i++) { $output .= '&#'.ord($e[$i]).';'; }
+			return $output;
+		}
+	}
 /* End of file MY_url_helper.php */
 /* Location: ./application/helpers/MY_url_helper.php */
