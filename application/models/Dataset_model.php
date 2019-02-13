@@ -178,6 +178,10 @@ class Dataset_model extends CI_Model {
 	//decode all encoded fields
 	function decode_encoded_fields($data)
 	{
+		if(!$data){
+			return $data;
+		}
+
 		foreach($data as $key=>$value){
 			if(in_array($key,$this->encoded_fields)){
 				$data[$key]=$this->decode_metadata($value);
