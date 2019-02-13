@@ -95,7 +95,24 @@ class Dataset_document_model extends Dataset_model {
         $output['nation']='';
 
         $output['abbreviation']=$this->get_array_nested_value($options,'document_description/title_statement/alternate_title');            
-        $output['authoring_entity']=$this->get_array_nested_value($options,'document_description/publisher');
+        $authors=$this->get_array_nested_value($options,'document_description/authors');
+        
+        $output['authoring_entity']='';
+
+        if(is_array($authors)){
+            $authors_str=array();
+            foreach($authors as $author){
+                $tmp=array();
+                $tmp[]=$this->get_array_nested_value($author,'first_name');
+                $tmp[]=$this->get_array_nested_value($author,'last_name');
+
+                $authors_str[]=implode(" ", $tmp);
+            }
+
+            $output['authoring_entity']=implode(", ",$authors_str);
+        }
+
+        
 
         $years=$this->get_years($options);
         $output['year_start']=$years['start'];
