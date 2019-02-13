@@ -145,6 +145,7 @@ class Variable_model extends CI_Model {
         $this->db->select("uid,vid,name,labl,qstn");
         $this->db->where("sid",$sid);
         $this->db->where("fid",$file_id);
+        $this->db->order_by("uid");
         return $this->db->get("variables")->result_array();
     }
 
