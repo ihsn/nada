@@ -53,14 +53,12 @@ $use_cdn=false;
                 <div class="body-content-wrap">
                     <?php //include 'share.php';?>
                     <!--breadcrumbs -->
-                    <div class="container">
                     <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
                     <?php if ($breadcrumbs_str!=''):?>
                         <ol class="breadcrumb wb-breadcrumb">
                             <?php echo $breadcrumbs_str;?>
                         </ol>
                     <?php endif;?>
-                    </div>
                     <!-- /breadcrumbs -->
 
                     <?php echo isset($content) ? $content : '';?>
