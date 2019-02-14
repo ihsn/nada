@@ -232,10 +232,9 @@ ul.nada-list-group{
     background-color: #464a4c6e;
 }
 
-.pnl-active {    
-    background: #f2f2f2;
+.variables-container .pnl-active{
+    background: #ced4da;
     border: 0;
-    border-top: 1px solid #dcdcdc;
     color:#333333;
     font-weight:bold;
 }
@@ -244,16 +243,6 @@ ul.nada-list-group{
     border:0px;
 }
 
-.pnl-active .var-td:first-child{
-    border-left: 2px solid #0088cc; 
-}
-
-.pnl-active .var-td:first-child::before{
-    font-family: FontAwesome;
-    content: "\f150";
-    width: 14px;
-    padding-right: 5px;
-}
 
 .pnl-active a {
     color: #333333;
@@ -269,7 +258,7 @@ ul.nada-list-group{
     border: 0;
     padding-bottom: 15px;    
     padding-left: 20px;
-    border-left: 2px solid #0088cc;
+    /*border-left: 2px solid #0088cc;*/
 }
 
 .var-info-panel .xsl-caption{
@@ -323,15 +312,6 @@ a.active.page-link {
 
 .variables-container .var-row:hover a{
     color:black;
-}
-
-.variables-container .pnl-active{
-    background:#0088cc;
-    border:0px;
-}
-
-.variables-container .pnl-active a{
-    color:white;
 }
 
 
@@ -429,7 +409,21 @@ a.active.page-link {
     padding: 7px;
 }
 
+.error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    position: relative;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: .25rem;
+}
 
+.error p{
+    margin:0px;
+    padding:0px;
+    color: #721c24;
+}
 
 
 

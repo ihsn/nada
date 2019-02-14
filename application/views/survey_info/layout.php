@@ -31,7 +31,7 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 	$sub_title=implode(", ", $sub_title);
 ?>
 
-<div class="media">
+<div class="row">
 	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
 	<?php 
 		$thumbnail=$survey['owner_repo']['thumbnail'];
@@ -39,6 +39,7 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			$thumbnail='files/thumbnails/'.$survey['thumbnail'];
 		}
 	?>
+	<div class="col-md-2">
 	<div class="collection-thumb-container">
 		<a href="<?php echo site_url('catalog/'.$survey['owner_repo']['repositoryid']);?>">
 		<img  src="<?php echo base_url().$thumbnail;?>" class="mr-3 img-responsive" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
@@ -51,8 +52,9 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 		<?php endif;?>
 		<?php */ ?>
 	</div>
+	</div>
 	<?php endif;?>		
-	<div class="media-body">
+	<div class="col-md-10">
 		<h1 class="mt-0 mb-1"><?php echo $survey_title;?></h1>
 		<h6 class="sub-title"><?php echo $sub_title;?>
 

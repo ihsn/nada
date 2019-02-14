@@ -56,15 +56,12 @@
 
     <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">
 
-        <div class="container-fluid" id="datafile-container">
-
-        <!--<h2 class="xsl-title">Data Dictionary / <?php echo $file['file_name'];?></h2>-->
+        <div class="container-fluid" id="datafile-container">        
         <h4><?php echo t('data_file');?>: <?php echo $file['file_name'];?></h4>
         <table class="data-file-bg1">
             <?php if($file['description']!=''):?>
             <tr>
-                <td><?php echo t('description');?></td>
-                <td><?php echo $file['description'];?></td>
+                <td colspan="2"><?php echo $file['description'];?></td>
             </tr>
             <?php endif;?>
             <tr>
@@ -89,8 +86,10 @@
                     <?php //if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
                     <div class="row var-row <?php echo $tr_class;?>" >
                     <div class="icon-toggle"><i class="collapased_ fa fa-angle-down" aria-hidden="true"></i><i class="expanded_ fa fa-angle-up" aria-hidden="true"></i></div>            
-                        <div class="col-md-3 var-td">
+                        <div class="col-md-3">
+                            <div class="var-td p-1">
                             <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
+                            </div>
                         </div>
                         <div class="col">
                             <div class="p-1">
