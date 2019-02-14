@@ -6,13 +6,13 @@
 
 </style>
 
-<h2 class="xsl-title"><?php echo t('data_dictionary');?></h2>
+<h3><?php echo t('data_dictionary');?></h3>
 <table class="table table-data-files ddi-table data-dictionary" >
     <tbody>
     <tr>
-        <th>File</th>
-        <th>Cases</th>
-        <th>Variables</th>
+        <th><?php echo t('data_file');?></th>
+        <th><?php echo t('cases');?></th>
+        <th><?php echo t('variables');?></th>
     </tr>
     <?php foreach($files as $file):?>
     <tr class="data-file-row row-color1" data-url="<?php echo site_url("catalog/$sid/data-dictionary/{$file['file_id']}");?>">
