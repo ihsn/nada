@@ -53,6 +53,7 @@
     .label-url_status-1{
         background:green;
     }
+    
 </style>
 
 <?php
@@ -77,12 +78,12 @@ $publish_options=array(
         <a href="<?php echo site_url(); ?>/admin/citations/add" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('add_new_citation');?></a>
         <a href="<?php echo site_url(); ?>/admin/citations/import" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('import_citation');?></a>
         <a href="<?php echo site_url(); ?>/citations/export_all" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('export_to_csv');?></a>
-    </div>
+    </div>    
+
+    <h1 class="page-title"><?php echo t('title_citations');?></h1>
 
     <?php $message=$this->session->flashdata('message');?>
     <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
-
-    <h1 class="page-title"><?php echo t('title_citations');?></h1>
 
     <div class="row">
 
@@ -219,26 +220,28 @@ $publish_options=array(
 
 
 
-                <form autocomplete="off" >
-                    <!-- batch operations -->
-                    <table width="100%">
-                        <tr>
-                            <td width="60%">
-                            	 <div class="form-group col-md-6">
-                                 	<div class="col-md-8">
-                                        <select id="batch_actions_cit" class="form-control">
-                                            <option value="-1"><?php echo t('batch_actions');?></option>
-                                            <option value="delete"><?php echo t('delete');?></option>
-                                            <!--<option value="validate_url"><?php echo t('validate_publication_links');?></option>-->
-
-                                        </select>
-                                        </div>
-                                <input type="button" id="batch_actions_apply_cit" name="batch_actions_apply" value="<?php echo t('apply');?>" class="btn btn-primary"/>
-                                </div>
+    <form autocomplete="off" >
+        <!-- batch operations -->
+        <table width="100%" style="margin-top:20px;">
+            <tr>
+                <td width="60%" style="padding-bottom:10px;">                    
+                    <div class="row citation-options">
+                    <div class="col-md-5">
+                    <div class="input-group">
+                        <select id="batch_actions_cit" class="form-control form-control-sm">
+                            <option value="-1"><?php echo t('batch_actions');?></option>
+                            <option value="delete"><?php echo t('delete');?></option>
+                            <!--<option value="validate_url"><?php echo t('validate_publication_links');?></option>-->
+                        </select>
+                        <span class="input-group-btn">
+                            <input type="button" id="batch_actions_apply_cit" name="batch_actions_apply" value="<?php echo t('apply');?>" class="btn btn-default"/>
+                        </span>
+                    </div>                    
+                    </div>
 
 	    <div class="col-md-6">        	
         	 <div class="form-inline">
-             <label><span><?php echo t('sort_results_by');?>:</span></label>
+             <label><span><?php echo t('sort');?>:</span></label>
                 <select id="select_sort_by" class="form-control">
                     <option value="rank" data-sort_by="rank" data-sort_order="DESC" <?php echo ($sort_=='rank_desc') ? 'selected="selected"' : "";?> ><?php echo t('Relevance');?></option>
                     <option value="title"  data-sort_by="title" data-sort_order="ASC" <?php echo ($sort_=='title_asc') ? 'selected="selected"' : "";?> ><?php echo t('Title ascending');?></option>
@@ -251,9 +254,8 @@ $publish_options=array(
 
                     <option value="authors" data-sort_by="authors" data-sort_order="ASC" <?php echo ($sort_=='authors_asc') ? 'selected="selected"' : "";?> ><?php echo t('Author ascending');?></option>
                     <option value="authors" data-sort_by="authors" data-sort_order="DESC" <?php echo ($sort_=='authors_desc') ? 'selected="selected"' : "";?> ><?php echo t('Author descending');?></option>
-
                 </select>
-
+        </div>
         </div>
         </div>
                             </td>

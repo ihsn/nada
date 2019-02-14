@@ -138,8 +138,8 @@ class Citation_search_mysql{
         $where=array();//all where statements are combined in the end as a custom where to overcome the AR limits
 
         $this->ci->db->from('citations');
-        $this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
-        $this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+        //$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
+        //$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
 
         //user created the citation
         $this->ci->db->join('users user_created', 'citations.created_by = user_created.id','left');
@@ -148,10 +148,17 @@ class Citation_search_mysql{
         $this->ci->db->join('users user_changed', 'citations.changed_by = user_changed.id','left');
 
         //filter by repository if set
-        if($repositoryid!=NULL && strtolower($repositoryid)!='central')
-        {
-            $this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
-            $this->ci->db->where('survey_repos.repositoryid',$repositoryid);
+        if($repositoryid!=NULL && strtolower($repositoryid)!='central'){
+            //$this->ci->db->join('survey_citations', 'survey_citations.citationid = citations.id','left');
+            //$this->ci->db->join('surveys', 'survey_citations.sid = surveys.id','left');
+            //$this->ci->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+            //$this->ci->db->where('survey_repos.repositoryid',$repositoryid);
+
+            $subquery_repo='citations.id in(select citationid from survey_citations sc
+                                inner join surveys on sc.sid=surveys.id 
+                                inner join survey_repos sr on sr.sid=surveys.id
+                                where sr.repositoryid='.$this->ci->db->escape($repositoryid).')';
+            $this->ci->db->where($subquery_repo);
         }
 
         //$this->ci->db->group_by('citations.id');
@@ -159,8 +166,7 @@ class Citation_search_mysql{
         $fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords,citations.abstract,citations.notes,citations.organization';
         $country_fulltext_index='surveys.nation';
 
-        if (is_numeric($published))
-        {
+        if (is_numeric($published)){
             $this->ci->db->where ('citations.published',$published);
         }
 
