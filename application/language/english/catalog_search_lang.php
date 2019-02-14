@@ -189,6 +189,7 @@ $lang['variables']="Variables";
 $lang['total']="Total";
 $lang['data_file']="Data file";
 $lang['data_files']="Data files";
+$lang['cases']="Cases";
 
 
 /* End of file catalog_search_lang.php */
