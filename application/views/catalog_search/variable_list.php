@@ -81,7 +81,7 @@
                 </div>
 
                 <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
-                    <nav aria-label="Page navigation example">
+                    <nav aria-label="Page navigation">
                         <?php
                         $pager_bar=(pager($found,$limit,$current_page,5));
                         echo $pager_bar;
@@ -141,7 +141,7 @@
                 </div>
 
                 <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
-                    <nav aria-label="Page navigation example">
+                    <nav aria-label="Page navigation">
                         <?php
                         $pager_bar=(pager($found,$limit,$current_page,5));
                         echo $pager_bar;
