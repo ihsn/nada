@@ -59,8 +59,10 @@
                         <td><?php echo (int)$cat->stats;?></td>                        
                         <td class="bar-container">
                             <?php if(is_numeric($cat->value)):?>
-                                <?php echo $width;?>
-                                <div class="bar" style="margin-right:5px; float:left;background:#000;height:13px;width:<?php echo 1*$width;?>px;"></div><?php echo $percent;?>%
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: <?php echo $percent;?>%;" aria-valuenow="<?php echo $percent;?>;" aria-valuemin="0" aria-valuemax="100"></div>
+                                <span class="progress-text"><?php echo $percent;?>%</span>
+                            </div>                                
                             <?php endif;?>
                         </td>
                         <?php endif;?>

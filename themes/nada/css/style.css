@@ -711,3 +711,7 @@ footer {
   h1.mobile-viewport {
     display: none; }
   }
+
+  .progress-text {
+    margin-left:5px
+  }
