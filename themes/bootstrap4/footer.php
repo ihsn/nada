@@ -1,6 +1,6 @@
 <footer>
     <!-- footer top section -->
-    <?php include_once 'footer_top.php';?>
+    <?php //include_once 'footer_top.php';?>
     <!-- End footer top section -->
 
     <!-- footer bottom section -->

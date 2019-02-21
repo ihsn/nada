@@ -13,7 +13,7 @@
                         <a href="http://www.worldbank.org" class="g01v1-logo wb-logo">
                             <img title="The World Bank Working for a World Free of Poverty" alt="The World Bank Working for a World Free of Poverty" src="<?php echo base_url().$bootstrap_theme; ?>/images/logo-wb-header-en.svg" class="img-responsive">
                         </a>
-                        <strong><a class="nada-sitename" href="#index.html">Microdata Library</a></strong>
+                        <strong><a class="nada-sitename" href="<?php echo site_url();?>">Microdata Library</a></strong>
                     </div>
 
                     <button class="navbar-toggler navbar-toggler-right collapsed wb-navbar-button-toggler" type="button" data-toggle="collapse" data-target="#containerNavbar" aria-controls="containerNavbar" aria-expanded="false" aria-label="Toggle navigation">
