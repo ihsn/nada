@@ -435,4 +435,15 @@ h1, h2, h3, h4, h5, h6{
     border-color: #0071bc;
 }
 
+.catalog-tabs .nav-link.active {
+    color: #495057;
+    background-color: transparent;    
+    border: 0px;
+    border-bottom: 3px solid #004c92;
+}
  
+.catalog-tabs .nav-item{
+    font-weight:bold;
+    text-transform:uppercase;
+}
+/*end wb overrides*/
