@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme; ?>/css/bootstrap.min.css">
 <?php endif;?>    
 
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v1">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v1">
 
 <!-- Bootstrap core JavaScript
 ================================================== -->
