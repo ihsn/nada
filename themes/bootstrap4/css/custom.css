@@ -425,8 +425,14 @@ a.active.page-link {
     color: #721c24;
 }
 
+/*wb overrides */
 h1, h2, h3, h4, h5, h6{
     font-family:"Andes", sans-serif;
+}
+
+.btn-primary{
+    background-color: #0071bc;
+    border-color: #0071bc;
 }
 
  
