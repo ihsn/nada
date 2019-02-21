@@ -23,5 +23,6 @@ patches
 imports
 files/sessions
 files/public
+files/thumbnails
 sample
 system/language/base
