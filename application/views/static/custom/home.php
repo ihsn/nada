@@ -15,8 +15,7 @@ $latest_surveys=$this->stats_model->get_latest_surveys(5);
 $this->title='Home';
 ?>
 
-<style>
-    h1,h2,h3, h4, h5{font-family:sans-serif}
+<style>    
     h1{
         font-size: 1.9rem;        
     }
