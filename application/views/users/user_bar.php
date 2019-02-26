@@ -31,7 +31,8 @@ $user=$this->session->userdata('username');
 ?>
 <div class="row">
     <?php if ($user!=''): ?>
-        <div class="col-12 d-flex justify-content-end mt-2 mb-2 wb-login-link login-bar">
+        <div class="col-12 mt-2 mb-2 wb-login-link login-bar">
+            <div class="float-right">
             <div class="dropdown ml-auto">
                 <a class="dropdown-toggle small" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fa fa-user-circle-o fa-lg"></i><?php echo $user; ?>
@@ -47,10 +48,12 @@ $user=$this->session->userdata('username');
                     <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/logout"><?php echo t('logout');?></a>
                 </div>
             </div>
+            </div>
 
         </div>
     <?php else: ?>
-        <div class="col-12 d-flex justify-content-end mt-2 mb-2 wb-login-link login-bar">
+        <div class="col-12 mt-2 mb-2 wb-login-link login-bar">
+            <div class="float-right">
             <div class="dropdown ml-auto">
                 <a class="dropdown-toggle small" href="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('login');?></a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
@@ -61,7 +64,7 @@ $user=$this->session->userdata('username');
                 <?php endif; ?>
                 <?php echo $lang_ul; ?>
             </div>
-
+            </div>
         </div>
 
     <?php endif;?>
