@@ -84,6 +84,10 @@
 
     function get_variable(var_obj)
     {
+        var i18n={
+		'js_loading':"<?php echo t('js_loading');?>",
+		};
+
         //panel id
         var pnl="#pnl-"+var_obj.attr("id");
         var pnl_body=$(pnl).find(".panel-td");
@@ -106,7 +110,7 @@
 
         $(pnl).show();
         $(var_obj).closest(".var-row").toggleClass("pnl-active");
-        $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ CI.js_loading);
+        $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ i18n.js_loading); 
         $(pnl_body).load(var_obj.attr("href")+'&ajax=true', function(){
             var fooOffset = jQuery('.pnl-active').offset(),
                 destination = fooOffset.top;
