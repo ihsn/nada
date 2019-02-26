@@ -23,6 +23,6 @@ patches
 imports
 files/sessions
 files/public
-vendor
+vendor/mpdf
 sample
 system/language/base
