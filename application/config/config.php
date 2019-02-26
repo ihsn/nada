@@ -649,6 +649,23 @@ $config['max_resource_upload_size']='300';
 $config['citations_storage_path']='datafiles/citations'; //don't add a trailing slash
 
 
+
+/*
+|--------------------------------------------------------------------------
+| Filestore
+|--------------------------------------------------------------------------
+|
+| Public files storage
+|
+| Path for storing public files
+|
+*/
+
+$config['filestore_path']='files/public';
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Search providers
@@ -662,6 +679,9 @@ $config['citations_storage_path']='datafiles/citations'; //don't add a trailing 
 */
 
 $config['search_provider']='db';
+
+
+
 
 
 /*

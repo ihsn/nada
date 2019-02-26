@@ -21,6 +21,8 @@ tags:
     description: External resources follow the same workflow as on the NADA site administration. To create resources, either '`import RDF`' or use '`add resource`'. To upload files, use the endpoint '`Upload file`'. You cannot create a resource and upload a file at the same time.  
   - name: Citations
     description: Citations represent the publications related to the datasets.
+  - name: Filestore
+    description: File storage for uploading and viewing images and other document types.  
 x-tagGroups:
   - name: Catalog administration
     tags:
@@ -34,7 +36,8 @@ x-tagGroups:
       - Images
       - Documents
       - Tables
-      - Citations      
+      - Citations
+      - Filestore
 schemes:
   - http
 paths:
@@ -1201,7 +1204,98 @@ paths:
             schema:
                $ref: '../schemas/citation-schema.json'
         security:
-          - ApiKeyAuth: []            
+          - ApiKeyAuth: []
+
+  /filestore:
+      get:
+        tags:
+          - Filestore
+        summary: List files
+        description: List uploaded files
+        operationId: listFiles
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+            schema:
+               $ref: '#/definitions/FileStore'
+        security:
+          - ApiKeyAuth: []
+      post:
+          tags:
+            - Filestore
+          summary: Upload a file
+          description: Upload a file
+          operationId: postFile
+          consumes:
+            - application/json
+          produces:
+            - application/xml
+            - application/json
+          parameters:
+          - in: "formData"
+            name: "file"
+            type: file
+            description: "Upload file"
+            required: true
+          - in: "formData"
+            name: "overwrite"
+            description: "Overwrite if the file already exists?"
+            type: boolean
+            required: false
+          responses:
+            '200':
+              description: successful operation
+          security:
+            - ApiKeyAuth: []
+      delete:
+        tags:
+          - Filestore
+        summary: Delete file
+        description: Delete file
+        operationId: deleteFilestore
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "filename"
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []              
+  /filestore/download/{fileName}:
+      get:
+        tags:
+          - Filestore
+        summary: Download file
+        description: Download file
+        operationId: downloadFilestore
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "fileName"
+            type: string
+            format: string
+            required: true
+            description: File name
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []                                
 ###############################################################
 securityDefinitions:
   ApiKeyAuth:
@@ -1209,6 +1303,24 @@ securityDefinitions:
     name: X-API-KEY
     in: header
 definitions:
+  FileStore:
+    type: object
+    properties:
+      file_name:
+        type: string
+        format: string
+        description: File name
+      file_ext:
+        type: string
+        description: File extension
+      is_image:
+        type: boolean
+        description: Is an image file?
+      changed:
+        type: string
+        description: Last modified time
+    xml:
+      name: Filestore
   CollectionList:
     type: object
     properties:
