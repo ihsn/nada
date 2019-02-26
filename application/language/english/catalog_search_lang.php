@@ -192,5 +192,10 @@ $lang['data_files']="Data files";
 $lang['cases']="Cases";
 
 
+$lang['metadata_in_json']="JSON";
+$lang['metadata_in_ddi_xml']="DDI Codebook (2.5)";
+$lang['metadata']="Metadata";
+
+
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

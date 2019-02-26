@@ -72,19 +72,9 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			<?php echo $survey['authoring_entity'];?>
 		<?php endif;?>
 		</div>
+	
 
-		<div class="dataset-links">
-		</div>
-
-		<div class="dataset-footer-bar mt-2">
-			<?php /* ?>
-			<!--<span class="mr-3 link-col">
-				<small><?php echo t('created_on');?> 
-				<strong><?php echo date("F d, Y",$survey['created']);?></strong>
-			</small> 				
-			</span>--> 
-			<?php */?>
-		
+		<div class="dataset-footer-bar mt-2">					
             <span class="mr-3 link-col">
 				<small><?php echo t('last_modified');?> 
 				<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
@@ -125,7 +115,21 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 				<i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>
 				</a>
 				</span>
-			<?php endif; ?>			
+			<?php endif; ?>
+
+
+			<span class="mr-3 link-col">
+				<small><i class="fa fa-download" aria-hidden="true"> </i> <?php echo t('metadata');?></small>
+				<?php if($survey['type']=='survey'):?>
+					<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" title="<?php echo t('metadata_in_ddi_xml');?>">
+						<span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
+					</a>
+				<?php endif;?>
+
+				<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" title="<?php echo t('metadata_in_json');?>">
+					<span class="badge badge-info"><?php echo t('JSON');?></span>
+				</a>
+			</span>			
 
 		</div>
 

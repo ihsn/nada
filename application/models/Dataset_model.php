@@ -653,6 +653,20 @@ class Dataset_model extends CI_Model {
 	{
 		return get_catalog_root() . '/'.$this->get_dirpath($sid);
 	}
+
+	function get_metadata_file_path($sid)
+	{
+		$this->db->select('dirpath,metafile');
+		$this->db->where('id', $sid);
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query){
+			return get_catalog_root() . '/'. $query['dirpath'].'/'.$query['metafile'];
+		}
+		
+		return false;
+	}
+
     
     /**
 	* returns internal survey id by IDNO
