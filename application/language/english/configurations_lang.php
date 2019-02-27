@@ -72,6 +72,8 @@ $lang['year_search_weight']="Year filter";
 $lang['collection_search_weight']="Collection filter";
 $lang['instruction_weight']="Weights control the order of the filters. Filters are sorted by weights in ascending order.";
 $lang['edit_email_settings']="To configure email, see <em>config/email.php</em> file.";
+$lang['test_email_configurations']="Test email configurations";
+
 
 /* End of file configurations_lang.php */
 /* Location: ./application/language/english/configurations_lang.php */
