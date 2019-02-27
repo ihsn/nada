@@ -227,10 +227,10 @@
         },
 
 
-        "file": {
+        "files": {
           "type": "array",
-          "title": "Table file",
-          "description": "Table file",          
+          "title": "Table files",
+          "description": "Table files",          
           "items":{
             "type":"object",
             "properties":{

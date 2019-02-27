@@ -171,16 +171,16 @@
           ]
         },
 
-        "file": {
+        "files": {
           "type": "array",
-          "title": "Table file",
-          "description": "Table file",          
+          "title": "Document related files",
+          "description": "Document related files",
           "items":{
             "type":"object",
             "properties":{
             "filename": {
               "title": "File name",
-              "description":"Provide table file name",
+              "description":"File name",
               "type": "string"
             },
             "format": {
