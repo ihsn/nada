@@ -487,10 +487,16 @@ class Ion_auth_model extends CI_Model
 		$this->db->where($this->ion_auth->_extra_where);
 		   
 		$this->db->limit(1);
-		$i = $this->db->get($this->tables['users']);
-		
-		return ($i->num_rows > 0) ? $i->row() : FALSE;
+		$result = $this->db->get($this->tables['users']);
+
+		if($result){
+			return $result->row();
+		}
+
+		return false;
 	}
+
+	
 
 	/**
 	 * Basic functionality
