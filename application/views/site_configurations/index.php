@@ -225,6 +225,11 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 
 <fieldset class="field-expanded">
 	<legend><?php echo t('mail_settings');?></legend>
+
+        <div class="field">
+        <a class="btn btn-default btn-sm" href="<?php echo site_url('admin/configurations/test_email');?>"><?php echo t('test_email_configurations');?></a>
+        </div>
+
     <?php if (file_exists(APPPATH.'/config/email.php')):?>
     	<div class="field warning"><?php echo t('edit_email_settings');?></div>
     <?php else:?>        
@@ -271,9 +276,9 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	}
 	
 	$('.field-expanded > legend').click(function(e) {
-			e.preventDefault();
-			$(this).parent('fieldset').toggleClass("field-collapsed");
-			return false;
+                e.preventDefault();
+                $(this).parent('fieldset').toggleClass("field-collapsed");
+                return false;
 	});
 	
 	$(document).ready(function() {
@@ -281,27 +286,25 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	});
 	
 </script>
+
 <?php
 function folder_exists($folder)
 {
-	if (is_dir($folder))
-	{
-		return '<span class="glyphicon glyphicon-ok ico-add-color"></span><span title="'.t('folder_exists_on_server').'"</span>';
+	if (is_dir($folder)){
+	  return '<span class="glyphicon glyphicon-ok ico-add-color"></span><span title="'.t('folder_exists_on_server').'"</span>';
 	}
-	else
-	{
-		return '<span class="glyphicon glyphicon-remove red-color"></span><span title="'.t('path_not_found').'"</span>';
+	else{
+	  return '<span class="glyphicon glyphicon-remove red-color"></span><span title="'.t('path_not_found').'"</span>';
 	}
 }
+
 function get_languages()
 {
 	$languages = scandir(APPPATH.'language/');
-	foreach($languages as $lang)
-	{
-		if ($lang!=='.' && $lang!=='..')
-		{
-			$output[$lang]=$lang;
-		}	
+	foreach($languages as $lang){
+          if ($lang!=='.' && $lang!=='..'){
+             $output[$lang]=$lang;
+          }	
 	}	
 	return $output;
 }
