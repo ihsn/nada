@@ -74,15 +74,9 @@ class Configurations extends MY_Controller {
 			}	
 		}
 
-		$content=$this->load->view('site_configurations/index', $settings,true);
-		
-		//pass data to the site's template
+		$content=$this->load->view('site_configurations/index', $settings,true);				
 		$this->template->write('content', $content,true);
-		
-		//set page title
 		$this->template->write('title', t('Site configurations'),true);
-
-		//render final output
 	  	$this->template->render();	
 	}
 	
@@ -195,6 +189,80 @@ class Configurations extends MY_Controller {
 		$options['js_css_version']=date("U");		
 		$result=$this->Configurations_model->update($options);
 		var_dump($result);
+	}
+
+
+	/**
+	 * 
+	 * Test email configurations form
+	 * 
+	 */
+	function test_email()
+	{
+		$this->config->load('email');
+
+		$email_config=array(
+			'smtp_host'=>$this->config->item('smtp_host'),
+			'smtp_auth'=>$this->config->item('smtp_auth'),
+			'smtp_crypto'=>$this->config->item('smtp_crypto'),
+			'smtp_user'=>$this->config->item('smtp_user'),
+			'mail_from'=>$this->config->item('smtp_user'),
+			'smtp_pass'=>'',
+			'smtp_port'=>$this->config->item('smtp_port'),
+			'useragent'=>$this->config->item('useragent')
+		);
+
+		$content=$this->load->view('site_configurations/test_email', $email_config,true);
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('Site configurations'),true);
+	  	$this->template->render();	
+	}
+
+	/**
+	 * 
+	 * Send test email
+	 * 
+	 * @input = $_POST
+	 * 
+	 */
+	function send_test_email()
+	{	
+		$this->config->load('email');
+		$this->load->library('email');		
+
+		$config = Array(
+			'protocol'  => 'smtp',
+			'useragent' =>$this->input->post('useragent'),
+			'smtp_host' => $this->input->post('smtp_host'),
+			'smtp_port' => $this->input->post('smtp_port'),
+			'smtp_user' => $this->input->post('smtp_user'),
+			'smtp_pass' => $this->input->post('smtp_pass'),
+			'mailtype'  => 'html',
+			'smtp_debug'  => 2,
+			'smtp_auth' =>$this->input->post('smtp_auth'),
+			'smtp_crypto' =>$this->input->post('smtp_crypto'),
+		);
+
+		//password
+		if($config['smtp_pass']==''){
+			//use password from the config file
+			$config['smtp_pass']=$this->config->item("smtp_pass");
+		}
+
+		//mail from
+		$email_sender=$this->input->post("email_from");
+
+		if(empty($email_sender)){
+			$email_sender=$this->input->post('smtp_user');
+		}
+
+		$this->email->initialize($config);		
+		$this->email->from($email_sender);
+		$this->email->to($this->input->post('mail_to'));		
+		$this->email->subject('NADA test email');
+		$this->email->message('NADA test email message body');
+		$this->email->send();
+		echo $this->email->print_debugger();
 	}
 	
 }
