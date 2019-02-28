@@ -410,7 +410,9 @@ class Catalog extends MY_Controller {
 	*
 	**/
 	function compare($option=NULL, $format=NULL)
-	{
+	{		
+		$this->lang->load('ddi_fields');
+		$this->lang->load('catalog_search');
 		$this->load->model("Dataset_model");
 		$this->load->model("Variable_model");
 		$this->load->model("Data_file_model");
@@ -419,49 +421,75 @@ class Catalog extends MY_Controller {
 		$items=explode(",",$this->input->cookie('variable-compare', TRUE));
 		$list=array();
 
-		if ($items)
-		{
-			foreach($items as $item=>$value)
-			{
-				$tmp=explode('/',$value);
-				if (isset($tmp[1]))
-				{
-					$item_data=array(
-						'sid'=>$tmp[0], 
-						'vid'=>$tmp[1],
-						'variable'=>$this->Variable_model->get_var_by_vid($tmp[0],$tmp[1]),
-						'file'=>$this->Data_file_model->get_file_by_varid($tmp[0],$tmp[1]),
-						'dataset'=>$this->Dataset_model->get_row($tmp[0])
-					);
+		if (!$items){
+			return false;
+		}
 
-					$item_data['html']=$this->load->view('survey_info/variable_ddi',$item_data,true);
+		//JSON /CSV export
+		if ($option=='export'){
+			if($format=='json' || $format=='csv'){
+				foreach($items as $item=>$value){
+					$tmp=explode('/',$value);
+					if (isset($tmp[1])){
+						$item_data=array();
 
-					$list[]=$item_data;
+						$dataset=$this->Dataset_model->get_row($tmp[0]);
+						$variable=$this->Variable_model->get_var_by_vid($tmp[0],$tmp[1]);
+
+						$item_data=$variable['metadata'];
+						$item_data['sid']=$tmp[0];
+						$item_data['survey_idno']=$dataset['idno'];
+						
+						$list[]=$item_data;
+					}
+				}
+
+				if ($format=='json'){
+					$this->output
+						->set_content_type('application/json')
+						->set_output(json_encode($list));
+					return;
+				}
+				else if($format=='csv'){
+					$this->Variable_model->export($list,'csv');
+					return;
 				}
 			}
 		}
 
+		//PDF
+		foreach($items as $item=>$value){
+			$tmp=explode('/',$value);
+			if (isset($tmp[1])){
+				$item_data=array(
+					'sid'=>$tmp[0], 
+					'vid'=>$tmp[1],
+					'variable'=>$this->Variable_model->get_var_by_vid($tmp[0],$tmp[1]),
+					'file'=>$this->Data_file_model->get_file_by_varid($tmp[0],$tmp[1]),
+					'dataset'=>$this->Dataset_model->get_row($tmp[0])
+				);
+
+				$item_data['html']=$this->load->view('survey_info/variable_ddi',$item_data,true);
+				$list[]=$item_data;
+			}
+		}		
+		
 		$data['list']=$list;
-		if ($option=='print')
-		{
-			if ($format!=='pdf')
-			{
+
+		if ($option=='print'){
+			if ($format!=='pdf'){
 				echo $this->load->view("catalog_search/compare_print",$data,true);exit;
 			}
-			else if ($format==='pdf')
-			{
+			else if ($format==='pdf'){
 				$this->load->library('pdf_export');
-				$contents=$this->load->view("catalog_search/compare",$data,TRUE);
+				$contents=$this->load->view("catalog_search/compare_print",$data,TRUE);
 				$this->pdf_export->create_pdf($contents);
 				exit;
 			}
 		}
 
-
 		$this->template->set_template('blank');
 		$this->template->add_js('javascript/dragtable.js');
-		//$this->template->add_css('themes/ddibrowser/ddi.css');		
-
 		$content=$this->load->view("catalog_search/compare",$data,TRUE);
 		$this->template->write('title', t('title_compare_variables'),true);
 		$this->template->write('content', $content,true);
