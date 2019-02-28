@@ -15,11 +15,7 @@
 			"type": "integer",
 			"title": "Status",
 			"description": "Status  `0=draft`, `1=published`",
-			"default": 0,
-			"enum": [
-				"0",
-				"1"
-			]
+			"default": "0"
 		},
 		"overwrite": {
 			"type": "string",
