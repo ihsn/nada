@@ -36,6 +36,7 @@ x-tagGroups:
       - Images
       - Documents
       - Tables
+      - Visualizations
       - Citations
       - Filestore
 schemes:
@@ -509,7 +510,38 @@ paths:
             schema:
               $ref: 'table-schema.json'
         security:
-          - ApiKeyAuth: []        
+          - ApiKeyAuth: []
+          
+  /datasets/create/visualization/{IDNo}:
+    post:
+      tags:
+        - Visualizations
+      summary: Create visualization
+      description: Create a new visualization
+      operationId: createVisualization
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "IDNo"
+          description: Unique IDNo
+          type: string
+          format: string
+          required: true
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'visualization-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'visualization-schema.json'
+      security:
+        - ApiKeyAuth: []              
           
           
   /datasets/datafiles:

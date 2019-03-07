@@ -81,20 +81,20 @@
 			}
 		},
 		"image_description":{
-			"allOf": [ 			  
-			  { "$ref": "../schemas/iptc-pmd-schema.json" },
-			  {
-				"properties": {
-					"files": {
-					"type": "array",
-					"title": "Files",
-					"description": "Files",
-					"items":{
-					"type":"object",
-					"properties":{
-					"filename": {
+			"allOf": [{ 
+				"$ref": "../schemas/iptc-pmd-schema.json" 
+			}]
+		},
+		"files": {
+			"type": "array",
+			"title": "Files",
+			"description": "Files",
+			"items":{
+				"type":"object",
+				"properties":{
+					"file_uri": {
 						"title": "File name",
-						"description":"File nanme",
+						"description":"File name or URL",
 						"type": "string"
 					},
 					"format": {
@@ -106,14 +106,10 @@
 						"title": "Notes",
 						"type": "string"              
 					}
-					},
-					"required": [
-					"filename"
-					]
-				}
-				}}
+				},
+				"required": ["file_uri"]
 			}
-			]
-		  }
-	}
+		}
+	},
+	"additionalProperties": false
 }

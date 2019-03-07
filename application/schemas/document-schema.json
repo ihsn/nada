@@ -169,39 +169,7 @@
             "website",
             "other"
           ]
-        },
-
-        "files": {
-          "type": "array",
-          "title": "Document related files",
-          "description": "Document related files",
-          "items":{
-            "type":"object",
-            "properties":{
-            "filename": {
-              "title": "File name",
-              "description":"File name",
-              "type": "string"
-            },
-            "format": {
-              "title": "File format e.g. `application/excel`, `application/pdf`",
-              "description": "The file format, physical medium, or dimensions of the resource.",
-              "type": "string"              
-            },
-            "location": {
-              "title": "Page number or sheet name for the table",
-              "type": "string"              
-            },
-            "note": {
-              "title": "Notes",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "filename"
-          ]
-        }
-        },
+        },        
 
         "description": {
           "title": "Description",
@@ -682,6 +650,34 @@
           }
         },
 
+        "disciplines": {
+          "type": "array",
+          "title": "Disciplines",
+          "description": "Disciplines e.g. `Social sciences, economics`, `Natural sciences, biology`",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Discipline title or name",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+
         "audience": {
           "title": "Audience",
           "type": "string",
@@ -873,6 +869,39 @@
 
 
       }
+    },
+
+    "files": {
+      "type": "array",
+      "title": "Files",
+      "description": "Files",
+      "items":{
+        "type":"object",
+        "properties":{
+        "file_uri": {
+          "title": "File name or URL",
+          "description":"File name or URL",
+          "type": "string"
+        },
+        "format": {
+          "title": "File format e.g. `application/excel`, `application/pdf`",
+          "description": "The file format, physical medium, or dimensions of the resource.",
+          "type": "string"              
+        },
+        "location": {
+          "title": "Page number or sheet name for the table",
+          "type": "string"              
+        },
+        "note": {
+          "title": "Notes",
+          "type": "string"              
+        }
+      },
+      "required": [
+        "file_uri"
+      ]
     }
+    },
+    "additionalProperties": false
   }
 }
