@@ -431,7 +431,7 @@ paths:
       post:
         tags:
           - Images
-        summary: Create Image [TODO]
+        summary: Create Image
         description: Create a new image using the IPTC Photo Metadata Standard 2017. See for more details http://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata
         operationId: createImage
         consumes:

@@ -984,7 +984,7 @@
       "type": "object",
       "description": "Additional metadata",
       "properties": {}
-    },
-    "additionalProperties": false
-  }
+    }
+  },
+  "additionalProperties": false
 }

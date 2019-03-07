@@ -1,7 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Table Schema [DRAFT]",
-  "description": "Schema for Table data type",
+  "$id": "http://ihsn.org/schemas/table",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Draft Schema for Table data type",
   "type": "object",
   "definitions":{
     "authoring_entity":{
@@ -871,7 +871,7 @@
       "type": "object",
       "description": "Additional metadata",
       "properties": {}
-    },
-    "additionalProperties": false
-  }
+    }
+  },
+  "additionalProperties": false
 }

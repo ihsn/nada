@@ -1,8 +1,8 @@
 {
-	"$id": "http://ihsn.org/schemas/nada/datafile.json",
+	"$id": "http://ihsn.org/schemas/datafile",
+  	"$schema": "http://json-schema.org/draft-07/schema#",
 	"type": "object",
-	"definitions": {},
-	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {},	
 	"properties": {
 		"file_id": {
 			"type": "string",
