@@ -10,7 +10,8 @@ class Dataset_manager{
         'document'=>'document',
         'image'=>'image',
         'table'=>'table',
-        'script'=>'script'
+        'script'=>'script',
+        'visualization'=>'visualization'
     );
 
     function __construct($params=array())
@@ -24,6 +25,7 @@ class Dataset_manager{
         $this->ci->load->model("Dataset_image_model");
         $this->ci->load->model("Dataset_script_model");
         $this->ci->load->model("Dataset_table_model");
+        $this->ci->load->model("Dataset_visualization_model");
     }
 
     function create_dataset($type,$options)

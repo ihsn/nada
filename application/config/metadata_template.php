@@ -59,26 +59,8 @@ $config['image']=array(
 ); 
 
 
-/*
-//config format to support multiple formats for each type of data
-$config['survey']=array(
-    'ddi2'=>array(
-        'template' => 'metadata_templates/survey-ddi2-template',
-        'language_translations'=>'ddi_fields'
-    ),//for metadata editor JSON projects
-    'json'=>array(
-        'template' => 'metadata_templates/survey-json-template'
-    )
+//visualization
+$config['visualization']=array(
+    'template' => 'metadata_templates/visualization-template',
+    'language_translations'=>'fields_visualization'
 ); 
-
-//geospatial template/view
-$config['geospatial']=array(
-    'iso19139'=>array(
-        'template' => 'metadata_templates/geospatial-iso19139',
-        'language_translations'=>'iso19139_fields'
-    ),
-    'json'=>array(
-        'template' => 'metadata_templates/geospatial-json-template'
-    )
-); 
-*/

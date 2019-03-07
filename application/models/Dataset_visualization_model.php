@@ -8,10 +8,10 @@ use JsonSchema\Constraints\Constraint;
 
 /**
  * 
- * Image
+ * Visualization
  * 
  */
-class Dataset_image_model extends Dataset_model {
+class Dataset_visualization_model extends Dataset_model {
  
     public function __construct()
     {
@@ -40,7 +40,7 @@ class Dataset_image_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','image_description','files','additional');
+        $study_metadata_sections=array('metadata_information','visualization_description','files','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -88,25 +88,44 @@ class Dataset_image_model extends Dataset_model {
 	function get_core_fields($options)
 	{        
         $output=array();
-        $output['title']=$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/headline');
-        $output['idno']=$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/digitalImageGuid');
+        $output['title']=$this->get_array_nested_value($options,'visualization_description/title_statement/title');
+        $output['idno']=$this->get_array_nested_value($options,'visualization_description/title_statement/idno');
 
         //todo
         $output['nation']='';
 
-        $output['abbreviation']=$this->get_array_nested_value($options,'table_description/title_statement/alternate_title');            
-        $creators=(array)$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/creatorNames');
-		$output['authoring_entity']=implode(",", $creators);
+        $output['abbreviation']=$this->get_array_nested_value($options,'visualization_description/title_statement/alternate_title');            
+        
+        $auth_entity=$this->get_array_nested_value($options,'visualization_description/publisher');
+        $output['authoring_entity']=$this->array_column_to_string($auth_entity,$column_name='name', $max_length=300);
 
-        $date=explode("-",$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/dateCreated'));
-
-		if(is_array($date)){
-			$output['year_start']=(int)$date[0];
-			$output['year_end']=(int)$date[0];			
-        }
+        $years=$this->get_years($options);
+        $output['year_start']=$years['start'];
+        $output['year_end']=$years['end'];
         
         return $output;
     }
     
+
+
+    /**
+     * 
+     * get years
+     * 
+     **/
+	function get_years($options)
+	{
+        $years=explode("-",$this->get_array_nested_value($options,'visualization_description/date_published'));
+
+        if(is_array($years)){
+            $start=(int)$years[0];
+            $end=(int)$years[0];			
+        }
+
+		return array(
+			'start'=>$start,
+			'end'=>$end
+		);
+	}
 
 }
