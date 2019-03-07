@@ -110,6 +110,5 @@
 				"required": ["file_uri"]
 			}
 		}
-	},
-	"additionalProperties": false
+	}
 }

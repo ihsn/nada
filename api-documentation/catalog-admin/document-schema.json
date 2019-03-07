@@ -903,6 +903,5 @@
       ]
     }
     }
-  },
-  "additionalProperties": false
+  }
 }

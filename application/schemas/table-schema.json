@@ -872,6 +872,5 @@
       "description": "Additional metadata",
       "properties": {}
     }
-  },
-  "additionalProperties": false
+  }
 }
