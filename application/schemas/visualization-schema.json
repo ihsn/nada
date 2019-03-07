@@ -214,41 +214,46 @@
 
 
         "sub_chart_titles": {
-          "type": "object",
+          "type": "array",
           "title": "Subchart titles",
-          "description": "Titls for each chart included in the visualization",
-          "properties": {
-            "title": {
-              "title": "Title",
-              "description":"Title",
-              "type": "string"
-            }
-          },
-          "required": [
-            "title"
-          ]
+          "description": "Titls for each chart included in the visualization",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "title": "Title",
+                "description":"Title",
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          } 
         },
 
         "chart_footnotes": {
-          "type": "object",
+          "type": "array",
           "title": "Chart footnotes",
           "description": "Footnotes",
-          "properties": {
-            "number": {
-              "title": "Footnote number",
-              "description":"Footnote number",
-              "type": "string"
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "title": "Footnote number",
+                "description":"Footnote number",
+                "type": "string"
+              },
+              "text": {
+                "title": "Footnote text",
+                "type": "string"
+              }
             },
-            "text": {
-              "title": "Footnote text",
-              "type": "string"
-            }
-          },
-          "required": [
-            "text"
-          ]
+            "required": [
+              "text"
+            ]
+          } 
         },
-
 
 
         "id_numbers": {
