@@ -277,25 +277,28 @@
         },
 
 
-        "visualization_type": {
-          "type": "object",
-          "title": "Visualization type",
-          "description": "tood",
-          "properties": {
-            "type": {
-              "title": "Type",
-              "description":"Visualization type e.g. `scatter plot`, `line chart`, `choropleth`",
-              "type": "string"
+        "visualization_types": {
+          "type": "array",
+          "title": "Visualization type",          
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "description":"Visualization type e.g. `scatter plot`, `line chart`, `choropleth`",
+                "type": "string"
+              },
+              "note": {
+                "title": "Notes",
+                "type": "string"              
+              }
             },
-            "note": {
-              "title": "Notes",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "type"
-          ]
+            "required": [
+              "type"
+            ]
+          } 
         },
+       
 
         "animated": {
           "title": "Animated",
