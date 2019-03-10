@@ -157,6 +157,14 @@ $lang['draft']="Draft";
 $lang['confirm_unpublish_records']="Are you sure you want to unpublish records?";
 $lang['confirm_unpublish']="Confirm unpublish";
 
+$lang['tab_overview']="Overview";
+$lang['tab_manage_files']="Files";
+$lang['tab_resources']="Resources";
+$lang['tab_citations']="Citations";
+$lang['tab_data_files']="Data files";
+$lang['tab_notes']="Notes";
+$lang['tab_related_data']="Related studies";
+
 
 
 /* End of file catalog_admin_lang.php */
