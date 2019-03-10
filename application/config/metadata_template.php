@@ -55,7 +55,7 @@ $config['table']=array(
 //image
 $config['image']=array(
     'template' => 'metadata_templates/image-template',
-    'language_translations'=>'image_fields'
+    'language_translations'=>'fields_image'
 ); 
 
 
