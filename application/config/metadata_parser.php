@@ -4,7 +4,20 @@
 //note: all complex types are tranformed by the DDI2Reader at the time of parsing the DDI. The transform_callbacks are not implemented yet.
 $config['survey']=array(
     #docDesc elements
-    'doc_desc/title'=>array('xpath'=>'codeBook/docDscr/citation/titlStmt/title', 'transform_callback'=>'none'),
+    'doc_desc/title'=>array('xpath'=>'codeBook/docDscr/citation/titlStmt/titl', 'transform_callback'=>'none'),
+    'doc_desc/idno'=>array('xpath'=>'codeBook/docDscr/citation/titlStmt/IDNo', 'transform_callback'=>'none'),
+    'doc_desc/producers'=>array(
+        'xpath'=>'codeBook/docDscr/citation/prodStmt/producer', 
+        'transform_callback'=>'none',
+        'type'=>'array'
+    ),
+    'doc_desc/prod_date'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    #version statement    
+    'doc_desc/version_statement/version'=>array('xpath'=>'codeBook/docDscr/citation/verStmt/version', 'transform_callback'=>'none'),
+    'doc_desc/version_statement/version_date'=>array('xpath'=>'codeBook/docDscr/citation/verStmt/version/@date', 'transform_callback'=>'none'),
+    'doc_desc/version_statement/version_notes'=>array('xpath'=>'codeBook/docDscr/citation/verStmt/notes', 'transform_callback'=>'none'),
+    'doc_desc/version_statement/version_resp'=>array('xpath'=>'codeBook/docDscr/citation/verStmt/verResp', 'transform_callback'=>'none'),
+    
     
     #stdyDesc elements
     'idno'=>array('xpath'=>'codeBook/stdyDscr/citation/titlStmt/IDNo', 'transform_callback'=>'none'),
