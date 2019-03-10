@@ -30,7 +30,7 @@ class Survey_alias_model extends CI_Model {
 		//check surveys table if id is in use
 		$this->db->select('id');		
 		$this->db->from('surveys');		
-		$this->db->where('surveyid',$alternate_id);				
+		$this->db->where('idno',$alternate_id);				
         return $this->db->count_all_results();
 	}
 	
