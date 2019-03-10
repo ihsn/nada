@@ -18,17 +18,11 @@
     $output=array();
 ?>
 
-<?php /* ?>
-<pre>
-<?php
- var_dump($metadata);
-?>
-</pre>
-<?php */?>
 
 <!-- identification section -->
 <?php $output['identification']= render_group('identification',
     $fields=array(
+            "idno"=>'text',
             "title"=>'text',
             "metadata.study_desc.title_statement.sub_title"=>'text',
             "metadata.study_desc.title_statement.alternate_title"=>'text',
@@ -37,8 +31,7 @@
             "metadata.study_desc.study_info.nation"=>'array',
             "metadata.study_desc.geog_units"=>'array',
             "metadata.study_desc.series_name"=>'text',
-            "metadata.study_desc.series_info"=>'text',
-            "idno"=>'text',
+            "metadata.study_desc.series_info"=>'text',            
             "metadata.study_desc.study_info.abstract"=>'text',
             "metadata.study_desc.study_info.data_kind"=>'text',
             "metadata.study_desc.study_info.analysis_unit"=>'text'            
@@ -179,10 +172,10 @@
 <!-- metadata_production -->
 <?php $output['metadata_production']= render_group('metadata_production',
     $fields=array(
-            "metadata.doc_desc.prod_date"=>'text',
-            "metadata.doc_desc.version"=>'text',
             "metadata.doc_desc.idno"=>'text',
-            "metadata.doc_desc.xidno"=>'text',
+            "metadata.doc_desc.producers"=>'array',
+            "metadata.doc_desc.prod_date"=>'text',
+            "metadata.doc_desc.version_statement.version"=>'text',
             ),
     $metadata);
 ?>

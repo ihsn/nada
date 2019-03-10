@@ -11,14 +11,20 @@
         <table class="table table-bordered table-striped table-condensed xsl-table table-grid">
             <tr>
                 <?php foreach($columns as $column_name):?>
-                    <th><?php echo t($column_name);?></th>
+                    <th><?php echo t($name.'.'.$column_name);?></th>
                 <?php endforeach;?>
             </tr>
             
             <?php foreach($data as $row):?>
                 <tr>
                     <?php foreach($row as $key=>$value):?>
-                        <td><?php echo $value;?></td>
+                        <td>
+                            <?php if(is_array($value)):?>
+                            <?php echo render_field($field_type='array_comma',$field_name=$name.'.'.$key,$value);?>
+                            <?php else:?>
+                                <?php echo $value;?>
+                            <?php endif;?>    
+                        </td>
                     <?php endforeach;?>                    
                 </tr>
             <?php endforeach;?>
