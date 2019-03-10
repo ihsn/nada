@@ -749,20 +749,17 @@ class Catalog extends MY_Controller {
 
 
 	function study($codebookid=NULL)
-	{
-		if ($codebookid==NULL)
-		{
+	{		
+		if ($codebookid==NULL){
 			show_404();
 		}
 
-		$survey=$this->Catalog_model->select_single($codebookid);
+		$sid=$this->Catalog_model->get_survey_uid($codebookid);
 
-		if ($survey)
-		{
-			redirect('catalog/'.$survey['id']);
+		if ($sid){
+			redirect('catalog/'.$sid);
 		}
-		else
-		{
+		else{
 			show_404();
 		}
 	}
