@@ -71,11 +71,6 @@ $this->template->add_js($script, $type = 'embed');
     	<?php  $this->load->view("catalog_search/filter_da"); ?>
     <?php endif;?>    
     <!-- end da filter -->
-
-	<?php if ($this->center_search=='yes'):?>
-        <!-- center filter-->
-        <?php  $this->load->view("catalog_search/filter_centers"); ?>
-	<?php endif;?>    
     
     <?php if ($this->collection_search=='yes'):?>
         <!-- center filter-->

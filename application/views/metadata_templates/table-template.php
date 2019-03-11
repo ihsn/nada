@@ -16,11 +16,23 @@
 ?>
 
 
+<?php
+//convert file links into hyperlnks
+if(isset($metadata['metadata']['table_description']['file'])){
+    foreach($metadata['metadata']['table_description']['file']  as $idx=>$value){
+        if(isset($metadata['metadata']['table_description']['file'][$idx]['filename'])){
+            $metadata['metadata']['table_description']['file'][$idx]['filename']='<a href="'.site_url('filestore/file/'.$value['filename']).'">'.$value['filename'].'</a>';
+        }
+    }
+}
+?>
+
+
 <!-- identification section -->
 <?php $output['description']= render_group('description',
     $fields=array(
             "metadata.table_description.title_statement.idno"=>'text',
-            "metadata.table_description.id_numbers"=>'array',
+            "metadata.table_description.id_numbers"=>'array_comma',
             "metadata.table_description.title_statement.title"=>'text',
             "metadata.table_description.title_statement.sub_title"=>'text',
             "metadata.table_description.title_statement.alternate_title"=>'text',
@@ -32,12 +44,9 @@
             "metadata.table_description.date_changed"=>'text',
 
             "metadata.table_description.version"=>'text',
-            "metadata.table_description.ref_country"=>'array',
-            "metadata.table_description.id_numbers"=>'array',
-
-            "metadata.table_description.format"=>'text',
-            "metadata.table_description.filename"=>'text',
-            "metadata.table_description.sheetname"=>'text',
+            "metadata.table_description.ref_country"=>'array',            
+            
+            "metadata.table_description.file"=>'array',
 
             "metadata.table_description.table_series"=>'array',
             "metadata.table_description.authoring_entity"=>'array',            
@@ -47,12 +56,12 @@
             "metadata.table_description.table_columns"=>'array',
             "metadata.table_description.table_rows"=>'array',
             "metadata.table_description.statistics"=>'text',
-            "metadata.table_description.unit_observation"=>'array',
+            "metadata.table_description.unit_observation"=>'array_comma',
 
             "metadata.table_description.universe"=>'text',
             "metadata.table_description.data_sources"=>'array',
             "metadata.table_description.data_years_range"=>'array',
-            "metadata.table_description.data_years_list"=>'array',
+            "metadata.table_description.data_years_list"=>'array_comma',
 
             "metadata.table_description.geographic_granularity"=>'text',
             "metadata.table_description.geographic_units"=>'array',

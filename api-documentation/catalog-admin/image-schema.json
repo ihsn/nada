@@ -15,11 +15,7 @@
 			"type": "integer",
 			"title": "Status",
 			"description": "Status  `0=draft`, `1=published`",
-			"default": 0,
-			"enum": [
-				"0",
-				"1"
-			]
+			"default": "0"
 		},
 		"overwrite": {
 			"type": "string",
@@ -85,9 +81,34 @@
 			}
 		},
 		"image_description":{
-			"allOf": [ 			  
-			  { "$ref": "../schemas/iptc-pmd-schema.json" }
-			]			
-		  }
+			"allOf": [{ 
+				"$ref": "../schemas/iptc-pmd-schema.json" 
+			}]
+		},
+		"files": {
+			"type": "array",
+			"title": "Files",
+			"description": "Files",
+			"items":{
+				"type":"object",
+				"properties":{
+					"file_uri": {
+						"title": "File name",
+						"description":"File name or URL",
+						"type": "string"
+					},
+					"format": {
+						"title": "File format",
+						"description": "The file format, physical medium, or dimensions of the resource.",
+						"type": "string"              
+					},
+					"note": {
+						"title": "Notes",
+						"type": "string"              
+					}
+				},
+				"required": ["file_uri"]
+			}
+		}
 	}
 }

@@ -93,13 +93,15 @@ class Dataset_microdata_model extends Dataset_model {
 		//update years
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
 
-		//set topics
+        //set topics
+        $this->delete_topics($dataset_id);
+        $this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
 
         //get list of countries
         $countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
 
 		//update countries
-		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
@@ -198,7 +200,9 @@ class Dataset_microdata_model extends Dataset_model {
 		//update years
 		$this->update_years($sid,$options['year_start'],$options['year_end']);
 
-		//set topics
+        //set topics
+        $this->delete_topics($sid);
+        $this->update_topics($sid,$this->get_array_nested_value($options,'metadata/study_desc/study_info/topics'));
 
 		//set countries
 		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);

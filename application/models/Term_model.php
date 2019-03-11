@@ -452,4 +452,44 @@ class Term_model extends CI_Model {
 		}
 		return $result;
 	}
+
+
+	function get_terms_by_repo($vid,$active_only=FALSE,$repositoryid=NULL)
+	{
+		$this->db->select('terms.tid,terms.pid,terms.title,count(terms.tid) as surveys_found');
+		$this->db->from('terms');
+		$this->db->order_by('title');
+		$this->db->where('vid',$vid);
+        //$this->db->where('pid >',0,false);
+		$this->db->group_by('terms.tid,terms.pid,terms.title');
+		
+		if($active_only==TRUE)
+		{
+			$this->db->join('survey_topics st','st.tid=terms.tid','left');
+			$this->db->join('surveys', 'st.sid=surveys.id','inner');
+			$this->db->where('surveys.published',1);			
+		}
+		
+		if($repositoryid!=NULL && $active_only==TRUE)
+		{
+			$this->db->join('survey_repos', 'st.sid=survey_repos.sid','inner');			
+			$this->db->where('survey_repos.repositoryid',$repositoryid);			
+		}
+		
+		$query=$this->db->get();
+		
+		if(!$query){
+			return FALSE;
+		}		
+		
+		$items=$query->result_array();
+
+		$output=array();
+		foreach($items as $row)
+		{
+			$output[$row['tid']]=$row;
+		}
+
+		return $output;
+	}
 }

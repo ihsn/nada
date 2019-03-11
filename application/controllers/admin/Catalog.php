@@ -577,146 +577,91 @@ class Catalog extends MY_Controller {
 		return true;
 	}
 
+	
+	/**
+	 * 
+	 * Sanitize file name
+	 */
+	private function sanitize_filename($name)
+	{
+		return preg_replace('/[^a-zA-Z0-9-_\.]/','-',$name);
+	}
 
 	/**
 	* Imports an uploaded DDI file or batch import
 	*
 	*/
-	function __replace_ddi()
+	private function __replace_ddi($sid,$new_ddi_file)
 	{
 		$this->load->model("Survey_alias_model");
-
-		//survey id
-		$survey_id=(int)$this->uri->segment(4);
-
-		if (!is_numeric($survey_id))
-		{
-			show_error("INVALID_SURVEY_PARAM");
-		}
+		$this->load->model("Dataset_model");
+		$this->load->model("Data_file_model");
+		$this->load->library('Dataset_manager');
 
 		//get survey info
-		$survey=$this->Catalog_model->select_single($survey_id);
+		$survey=$this->Dataset_model->get_row($sid);
+		$user=$this->acl->current_user();
 
-		if (!$survey)
-		{
+		if (!$survey){
 			show_error("SURVEY_NOT_FOUND");
 		}
 
 		//get ddi path
-		$survey_ddi_path=$this->Catalog_model->get_survey_path_full($survey_id);
+		$survey_ddi_path=$this->Catalog_model->get_survey_ddi_path($sid);
 
-		//get uploaded file information
-		$data = array('upload_data' => $this->upload->data());
-		$session_data=array('status'=>'uploaded', 'upload_data'=>$this->upload->data());
-		$this->db_logger->write_log('ddi-replace','success','catalog');
+		$parser_params=array(
+            'file_type'=>'survey',
+            'file_path'=>$new_ddi_file
+        );
+        
+		$this->load->library('Metadata_parser', $parser_params);
+		
+		 //parser to read metadata
+		 $parser=$this->metadata_parser->get_reader();
 
-		$ddi_file=$session_data['upload_data']['full_path'];
+		 $new_idno=$parser->get_id();
 
-		//load DDI Parser Library
-		$this->load->library('DDI_Parser','ddi_parser');
-		$this->load->library('DDI_Import','','DDI_Import');
+		 //sanitize ID to remove anything except a-Z1-9 characters
+		 if ($new_idno!==$this->sanitize_filename($new_idno)){
+			 throw new Exception(t('IDNO_INVALID_FORMAT').': '.$new_idno);
+		 }
+ 
+		 //check if the study already exists, find the sid		
+		$new_ddi_sid=$this->dataset_manager->find_by_idno($new_idno);
 
-		//set file for parsing
-		$this->ddi_parser->ddi_file=$ddi_file;
-		$this->ddi_parser->use_xml_reader=TRUE;
-
-		//validate DDI file
-		if ($this->ddi_parser->validate()===false)
-		{
-			//log import error
-			$error= t('invalid_ddi_file').' '.$ddi_file;
-			log_message('error', $error);
-			$this->db_logger->write_log('ddi-import',$error,'catalog');
-			//$error.=$this->load->view('catalog/upload_file_info', $session_data, true);
-			$this->session->set_flashdata('error', $error);
-
-			redirect('admin/catalog/replace','refresh');
-		}
-
-		//get surveyid from the uploaded DDI file
-		$uploaded_ddi_codebook_id=$this->ddi_parser->get_ddi_codebook_id($ddi_file);
-
-		//check if another study has the same ID other than the one being replaced
-		$uploaded_ddi_sid=$this->Catalog_model->get_survey_uid($uploaded_ddi_codebook_id);
-
-		$result=FALSE;
-
-		//cancel replace if surveyid/codebookid is used by another study in the catalog - it exclude the study being replaced
-		if ($uploaded_ddi_sid!==FALSE && $uploaded_ddi_sid!=$survey_id)
-		{
-			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$uploaded_ddi_sid));
+		//check if uploaded study ID is used by another study in the catalog
+		if(!empty($new_ddi_sid) && $new_ddi_sid!=$sid){			
+			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$new_ddi_sid));
 			$this->db_logger->write_log('ddi-replace-error',$error,'catalog');
-			$this->session->set_flashdata('error', $error);
-			redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');exit;
+			throw new Exception($error);
 		}
 
-		//parse ddi to array
-		$data=$this->ddi_parser->parse();
+		//copy
+		$survey_folder_path=$this->Dataset_model->get_storage_fullpath($sid);
+		$survey_target_ddi=unix_path($survey_folder_path.'/'.$new_idno.'.xml');
 
-		//overwrite?
-		$overwrite=TRUE;
-
-		//get repository ownership details for the study
-		$survey_repo_arr=$this->Catalog_model->get_repo_ownership($survey_id);
-
-		//repository
-		$repositoryid=$survey["repositoryid"];
-
-		//set the repository where the ddi will be uploaded to
-		$this->DDI_Import->repository_identifier=$repositoryid;
-
-		//replace and import ddi
-		$result=$this->DDI_Import->replace($data,$ddi_file,$target_survey_id=$survey_id);
-
-
-		if ($result===TRUE)
-		{
-            //if Survey ID has changed then add the OLD ID as alias
-            if (!$this->Survey_alias_model->id_exists($survey['idno']) && $data['study']['id']!=$survey['idno'])
-            {
-                $options = array(
-                    'sid'  => $survey_id,
-                    'alternate_id' => $survey['idno'],
-                );
-
-                $this->Survey_alias_model->insert($options);
-            }
-
-
-			//display import success
-			$success=t('study imported successfully!');//$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']),true);
-			$success_msg='Survey imported - <em>'. $data['study']['id']. '</em> with '.$this->DDI_Import->variables_imported .' variables';
-			$this->db_logger->write_log('ddi-import',$success_msg,'catalog');
-			$this->session->set_flashdata('message', $success);
-
-			//delete uploaded file
-			@unlink($ddi_file);
-
-			//remove old ddi file
-			@unlink($survey_ddi_path);
-			log_message('INFO', "removed old ddi file: ".$survey_ddi_path);
-
-			//update survey info
-			$survey_options=array(
-						'id'=>$survey_id,
-						'published'=>$survey['published']
-						);
-
-			$this->Catalog_model->update_survey_options($survey_options);
-			redirect('admin/catalog/edit/'.$survey_id,'refresh');
-		}
-		else
-		{
-			//$this->db_logger->write_log('ddi-import-failed',$failed_msg,'catalog');
-			$import_failed=$this->load->view('catalog/ddi_import_fail', array('errors'=>$this->DDI_Import->errors),TRUE);
-			$this->session->set_flashdata('error', $import_failed);
+		if (!@rename($new_ddi_file,$survey_target_ddi)){
+			throw new Exception("COPY_FAILED: ".$survey_target_ddi);
 		}
 
-		//remove session
-		$this->session->unset_userdata('ddi_progress');
+		//update survey metadata to point to new file
+		$survey_options=array(
+			'metafile'=>$new_idno.'.xml'
+		);
+		
+		$this->Dataset_model->update_options($sid,$survey_options);
 
-		//redirect
-		redirect('admin/catalog/replace_ddi/'.$survey_id,'refresh');
+		//if Survey ID has changed then add the OLD ID as alias
+		if (!$this->Survey_alias_model->id_exists($new_idno)){
+			$alias_options = array(
+				'sid'  => $sid,
+				'alternate_id' => $new_idno,
+			);
+			$this->Survey_alias_model->insert($alias_options);
+		}
+	
+		//refresh metadata
+		return redirect('admin/catalog/refresh/'.$sid,'refresh');
 	}
 
 
@@ -732,6 +677,7 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
 	}
+	
 
 	/**
 	*
@@ -740,7 +686,7 @@ class Catalog extends MY_Controller {
 	* Note: Useful for updating study information in the database for existing DDIs
 	**/
 	function refresh($id=NULL)
-	{
+	{		
 		$this->acl->user_has_repository_access($this->active_repo->id);
 
 		if (!is_numeric($id)){
@@ -1303,74 +1249,58 @@ class Catalog extends MY_Controller {
 	* Replace a DDI
 	*
 	**/
-	function replace_ddi($surveyid=NULL)
+	function replace_ddi($sid=NULL)
 	{
-
-		if (!is_numeric($surveyid))
-		{
+		if (!is_numeric($sid)){
 			show_error("ID_INVALID");
 		}
 
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl->user_has_study_access($sid);
 
-		//atleast one rule require for validation class to work
-		$this->form_validation->set_rules('id', t('study_to_replace'), 'trim|required|isnumeric');
 
-		if ($this->form_validation->run() == TRUE)
-		{
+		if(!isset($_FILES['userfile'])){			
+			$data['id']=$sid;
+			$data['survey']=$this->Catalog_model->select_single($sid);
 
-			//no file uploaded?
-			if ($_FILES['userfile']['size']==0)
-			{
-				redirect('admin/catalog/replace_ddi/'.$surveyid,'refresh');exit;
-			}
-
-			//catalog folder path
-			$catalog_root=$this->config->item("catalog_root");
-
-			if (!file_exists($catalog_root) )
-			{
-				show_error("CATALOG_ROOT_NOT_FOUND");
-			}
-
-			try
-			{
-				//upload the ddi
-				$upload_result=$this->__upload_file($key='userfile',$destination=$catalog_root);
-			}
-			catch (Exception $e)
-			{
-				show_error($e->getMessage());
-			}
-
-			if (!$upload_result)
-			{
-				//get errors while uploading
-				$error = $this->upload->display_errors();
-
-				//log to database
-				$this->db_logger->write_log('ddi-upload',$error,'catalog');
-
-				//set error
-				$this->session->set_flashdata('error', $error);
-
-				//redirect back to the upload page
-				redirect('admin/catalog/replace_ddi/'.$surveyid,'refresh');
-
-				return FALSE;
-			}
-			else //successful upload
-			{
-				$this->__replace_ddi();
-			}
+			$content=$this->load->view('catalog/replace_ddi',$data,TRUE);
+			$this->template->write('content', $content,true);
+			$this->template->render();
+			return;
 		}
 
-		$data['id']=$surveyid;
-		$data['survey']=$this->Catalog_model->select_single($surveyid);
+		//no file uploaded?
+		if ($_FILES['userfile']['size']==0){		
+			$this->session->set_flashdata('error', "NO_FILE_UPLOADED");	
+			redirect('admin/catalog/replace_ddi/'.$sid,'refresh');exit;
+		}
 
-		$content=$this->load->view('catalog/replace_ddi',$data,TRUE);
-		$this->template->write('content', $content,true);
-		$this->template->render();
+		//catalog folder path
+		$catalog_root=$this->config->item("catalog_root");
+
+		if (!file_exists($catalog_root) ){
+			show_error("CATALOG_ROOT_NOT_FOUND");
+		}
+
+		$tmp_path=unix_path($catalog_root.'/tmp');
+
+		try
+		{
+			//upload the ddi
+			$upload_result=$this->__upload_file($key='userfile',$destination=$tmp_path);
+
+			if(!$upload_result){				
+				$error = $this->upload->display_errors();
+				$this->db_logger->write_log('ddi-upload',$error,'catalog');
+				throw new Exception($error);
+			}
+
+			$this->__replace_ddi($sid,$new_ddi_file=$upload_result['full_path']);
+		}
+		catch (Exception $e)
+		{
+			$this->session->set_flashdata('error', $e->getMessage());
+			redirect('admin/catalog/replace_ddi/'.$sid,'refresh');			
+		}
 	}
 
 

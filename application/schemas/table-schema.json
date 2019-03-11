@@ -1,7 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Table Schema [DRAFT]",
-  "description": "Schema for Table data type",
+  "$id": "http://ihsn.org/schemas/table",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Draft Schema for Table data type",
   "type": "object",
   "definitions":{
     "authoring_entity":{
@@ -224,40 +224,7 @@
           "required": [
             "type","value"
           ]
-        },
-
-
-        "file": {
-          "type": "array",
-          "title": "Table file",
-          "description": "Table file",          
-          "items":{
-            "type":"object",
-            "properties":{
-            "filename": {
-              "title": "File name",
-              "description":"Provide table file name",
-              "type": "string"
-            },
-            "format": {
-              "title": "File format e.g. `application/excel`, `application/pdf`",
-              "description": "The file format, physical medium, or dimensions of the resource.",
-              "type": "string"              
-            },
-            "location": {
-              "title": "Page number or sheet name for the table",
-              "type": "string"              
-            },
-            "note": {
-              "title": "Notes",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "filename"
-          ]
-        }
-        },
+        },        
         
         "authoring_entity": {
           "title": "Authoring entity",
@@ -438,37 +405,31 @@
           }
         },
         
-        "data_years_range": {
+        
+        "time_periods": {
           "type": "array",
-          "title": "Years range",          
+          "title": "Time periods",
+          "description": "Time periods",
           "items": {
             "type": "object",
             "properties": {
               "from": {
-                "title": "Start year",
-                "type": "number"
+                "title": "Start date",
+                "description": "Date in ISO format  (YYYY-MM-DD). Partial dates are supported",
+                "type": "string"
               },
               "to": {
-                "title": "End year",
-                "type": "number"
+                "title": "End date",
+                "description": "Date in ISO format  (YYYY-MM-DD). Partial dates are supported",
+                "type": "string"
               }
-            }
+            },
+            "required": [
+              "from"
+            ]
           }
-        },
-
-        "data_years_list": {
-          "type": "array",
-          "title": "Years list",          
-          "items": {
-            "type": "object",
-            "properties": {
-              "year": {
-                "title": "Year",
-                "type": "number"
-              }
-            }
-          }
-        },
+        },   
+        
         "universe": {
           "type": "array",
           "title": "Universe",          
@@ -640,6 +601,34 @@
             },
             "required": [
               "id","name"
+            ]
+          }
+        },
+
+        "disciplines": {
+          "type": "array",
+          "title": "Disciplines",
+          "description": "Disciplines e.g. `Social sciences, economics`, `Natural sciences, biology`",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Discipline title or name",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
             ]
           }
         },
@@ -846,6 +835,37 @@
         
       },
       "additionalProperties": false
+    },
+      "files": {
+        "type": "array",
+        "title": "Table file",
+        "description": "Table file",          
+        "items":{
+          "type":"object",
+          "properties":{
+          "file_uri": {
+            "title": "File name",
+            "description":"File name or URL",
+            "type": "string"
+          },
+          "format": {
+            "title": "File format e.g. `application/excel`, `application/pdf`",
+            "description": "The file format, physical medium, or dimensions of the resource.",
+            "type": "string"              
+          },
+          "location": {
+            "title": "Page number or sheet name for the table",
+            "type": "string"              
+          },
+          "note": {
+            "title": "Notes",
+            "type": "string"              
+          }
+        },
+        "required": [
+          "file_uri"
+        ]
+      }
     },
     "additional": {
       "type": "object",

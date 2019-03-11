@@ -1,4 +1,4 @@
-<style>
+<style>    
     .data-file-bg1 tr,.data-file-bg1 td {vertical-align: top;}
     .data-file-bg1 .col-1{width:100px;}
     .data-file-bg1 {margin-bottom:20px;}
@@ -29,11 +29,6 @@
         border-top:0px;
     }
 
-    .table-variable-list .var-breadcrumb{
-        display:none;
-    }
-
-
 </style>
 
 <div class="row">
@@ -50,7 +45,7 @@
         </form>
         
         <ul class="nada-list-group">
-            <li class="nada-list-group-item nada-list-group-title">Data files</li>
+            <li class="nada-list-group-item nada-list-group-title"><?php echo t('data_files');?></li>
             <?php foreach($file_list as $file_):?>
                 <li class="nada-list-group-item">
                     <a href="<?php echo site_url("catalog/$sid/data-dictionary/{$file_['file_id']}");?>?file_name=<?php echo html_escape($file_['file_name']);?>"><?php echo wordwrap($file_['file_name'],15,"<BR>");?></a>
@@ -61,48 +56,56 @@
 
     <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">
 
-        <!--<h2 class="xsl-title">Data Dictionary / <?php echo $file['file_name'];?></h2>-->
-        <h3>Data File: <?php echo $file['file_name'];?></h3>
+        <div class="container-fluid" id="datafile-container">        
+        <h4><?php echo t('data_file');?>: <?php echo $file['file_name'];?></h4>
         <table class="data-file-bg1">
+            <?php if($file['description']!=''):?>
             <tr>
-                <td>Description</td>
-                <td><?php echo $file['description'];?></td>
+                <td colspan="2"><?php echo $file['description'];?></td>
             </tr>
+            <?php endif;?>
             <tr>
-                <td>Cases</td>
+                <td><?php echo t('cases');?></td>
                 <td><?php echo $file['case_count'];?></td>
             </tr>
             <tr>
-                <td>Variables</td>
+                <td><?php echo t('variables');?></td>
                 <td><?php echo $file['var_count'];?></td>
             </tr>
         </table>
 
-        <div class="study-metadata">
-            <h4>Variables</h4>
+        </div>
 
-            <?php $tr_class="row-color1"; ?>
-            <table class="table table-bordered tbl-grid ddi-table table-variable-list data-dictionary">
-                <tr>
-                    <th>Name</th>
-                    <th>Label</th>
-                    <!--<th>Question</th>-->
-                </tr>
+        
+        <div class="container-fluid variables-container" id="variables-container">
+            <h4><?php echo t('variables');?></h4>
+            
+            <?php $tr_class="";//"row-color1"; ?>
+            <div class="container-fluid table-variable-list data-dictionary ">
                 <?php foreach($variables as $variable):?>
-                    <?php if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
-                <tr class="var-row <?php echo $tr_class;?>" >
-                    <td class="var-td">
-                        <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
-                        </td>
-                    <td><?php echo $variable['labl'];?></td>
-                    <!--<td><?php echo $variable['qstn'];?></td>-->
-                </tr>
-                <tr class="var-info-panel" id="pnl-<?php echo md5($variable['vid']);?>">
-                    <td colspan="3" class="panel-td"></td>
-                </tr>
+                    <?php //if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
+                    <div class="row var-row <?php echo $tr_class;?>" >
+                    <div class="icon-toggle"><i class="collapased_ fa fa-angle-down" aria-hidden="true"></i><i class="expanded_ fa fa-angle-up" aria-hidden="true"></i></div>            
+                        <div class="col-md-3">
+                            <div class="var-td p-1">
+                            <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-1">
+                                <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>">
+                                    <?php echo html_escape($variable['labl']);?>
+                                </a>
+                            </div>                            
+                        </div>                    
+                    </div>
+                    <div class="row var-info-panel" id="pnl-<?php echo md5($variable['vid']);?>">
+                        <div class="panel-td p-4"></div>
+                    </div>                
                 <?php endforeach;?>
-            </table>
-            <div>Total: <?php echo count($variables);?></div>
+            </div>
+            
+            <div><?php echo t('total');?>: <?php echo count($variables);?></div>
         </div>
 
     </div>
@@ -124,13 +127,17 @@
 
     function get_variable(var_obj)
     {
+        var i18n={
+		'js_loading':"<?php echo t('js_loading');?>",
+        };
+        
         //panel id
         var pnl="#pnl-"+var_obj.attr("id");
         var pnl_body=$(pnl).find(".panel-td");
 
         //collapse
-        if ($(var_obj).closest("tr").is(".pnl-active")){
-            $(var_obj).closest("tr").toggleClass("pnl-active");
+        if ($(var_obj).closest(".var-row").is(".pnl-active")){
+            $(var_obj).closest(".var-row").toggleClass("pnl-active");
             $(pnl).hide();
             return;
         }
@@ -139,14 +146,14 @@
         $('.data-dictionary .var-info-panel').hide();
 
         //unset any active panels
-        $(".data-dictionary tr").removeClass("pnl-active");
+        $(".data-dictionary .var-row").removeClass("pnl-active");
 
         //error handler
         variable_error_handler(pnl_body);
 
         $(pnl).show();
-        $(var_obj).closest("tr").toggleClass("pnl-active");
-        $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ CI.js_loading);
+        $(var_obj).closest(".var-row").toggleClass("pnl-active");
+        $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ i18n.js_loading);
         $(pnl_body).load(var_obj.attr("href")+'&ajax=true', function(){
             var fooOffset = jQuery('.pnl-active').offset(),
                 destination = fooOffset.top;

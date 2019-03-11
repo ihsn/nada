@@ -170,8 +170,7 @@ class Citations extends MY_Controller {
 		//form action url
 		$this->html_form_url=site_url().'/admin/citations';
 
-		if ($id!=NULL && !is_numeric($id) )
-		{
+		if ($id!=NULL && !is_numeric($id) ){
 			show_404();
 		}
 
@@ -211,10 +210,10 @@ class Citations extends MY_Controller {
                         show_error('INVALID ID');
                     }
 
-					if ($db_row['authors'])
-					{
+					if ($db_row['authors']){
 						$this->_set_post_from_db($db_row);
-					}
+                    }
+                    
 					$data=array_merge($data,$db_row);
 				}
 			}
@@ -242,7 +241,7 @@ class Citations extends MY_Controller {
 		{
 			//see if the edited citation has surveys attached, otherwise assign empty array
 			$selected_surveys=isset($data['related_surveys']) ? $data['related_surveys'] : array();
-		}
+        }                
 
 		//IDs of selected surveys
 		$data['selected_surveys_id_arr']=$this->_get_related_surveys_array($selected_surveys);
@@ -301,7 +300,7 @@ class Citations extends MY_Controller {
 	* Returns an array of survey IDs
 	*
 	**/
-	function _get_related_surveys_array($surveys)
+	function _get_related_surveys_array($surveys) 
 	{
 		$result=array();
 		foreach($surveys as $survey)
@@ -808,8 +807,8 @@ class Citations extends MY_Controller {
 		{
 			//see if the edited citation has surveys attached, otherwise assign empty array
 			$selected_surveys=isset($data['related_surveys']) ? $data['related_surveys'] : array();
-		}
-
+        }
+        
 		//IDs of selected surveys
 		$data['selected_surveys_id_arr']=$this->_get_related_surveys_array($selected_surveys);
 
@@ -935,7 +934,7 @@ class Citations extends MY_Controller {
             return FALSE;
         }
 
-        $study_fulltext_index='idno,title,nation,abbreviation,authoring_entity,keywords';
+        $study_fulltext_index='keywords';//'idno,title,nation,abbreviation,authoring_entity,keywords';
         $where=array();
 
         $tmp_surveys=explode(",",$exclude_surveys);

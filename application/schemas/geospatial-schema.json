@@ -1,5 +1,6 @@
 {
-	"$schema": "http://json-schema.org/draft-04/schema#",
+	"$id": "http://ihsn.org/schemas/geospatial",
+  	"$schema": "http://json-schema.org/draft-07/schema#",
 	"title": "Geospatial Schema",
 	"description":"Geospatial draft schema",
 	"version" :"0.0",
@@ -11,7 +12,7 @@
 			"title": "Contact",
 			"items": {
 				"type": "object",
-				"properties": {
+				"properties": { 
 					"person_name": {
 						"title": "Individual name",
 						"type": "string"						
@@ -103,19 +104,22 @@
 			"items": {
 				"type": "object",
 				"properties": {
-					"value": {
+					"keyword": {
 						"title": "Keyword",
-						"type": "string"
-					},
-					"code_list_value": {
-						"title": "Type",
 						"type": "string",
-						"description": "allowed = discipline, place, stratum, temporal, theme"
+						"_xpath":"gmd:keyword/gco:CharacterString"
 					},
-					"code_list_uri": {
+					"code": {
+						"title": "Code",
+						"type": "string",
+						"description": "Code value - allowed {`discipline`, `place`, `stratum`, `temporal`, `theme`}",
+						"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeListValue"
+					},
+					"code_uri": {
 						"title": "Code list URI",
 						"type": "string",
-						"description": "Code list used e.g. http://www.isotc211.org/2005/resources/codeList.xml#MD_KeywordTypeCode"
+						"description": "Code list used e.g. http://www.isotc211.org/2005/resources/codeList.xml#MD_KeywordTypeCode",
+						"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeList"
 					}					
 				}
 			},
@@ -131,7 +135,8 @@
 				"properties": {
 					"name": {
 						"title": "File name / URL",
-						"type": "string"
+						"type": "string",
+						"_xpath":"gmd:MD_BrowseGraphic/gmd:fileName/gco:CharacterString"
 					},
 					"type": {
 						"title": "File Type",
@@ -139,7 +144,8 @@
 					},
 					"description": {
 						"title": "File Description",
-						"type": "string"
+						"type": "string",
+						"_xpath":"gmd:MD_BrowseGraphic/gmd:fileDescription/gco:CharacterString"
 					}
 				}
 			},
@@ -259,25 +265,36 @@
 				"file_identifier": {
 					"title": "Unique Identifier",
 					"description":"Global unique identifier",
-					"type": "string"
+					"type": "string",
+					"_xpath":"gmd:fileIdentifier/gco:CharacterString"
 				},
 				"language": {
 					"title": "Language",
 					"description":"Language code",					
-					"type": "string"
+					"type": "string",
+					"_xpath":"gmd:language/gco:CharacterString"
 				},
 				"charset_code": {
 					"title": "Characterset",
 					"description":"Character encoding used e.g. UTF-8",
-					"type": "string"
+					"type": "string",
+					"_xpath":"gmd:characterSet/gmd:MD_CharacterSetCode"
+				},
+				"hierarchy_level": {
+					"title": "Hierarchy level",
+					"description":"Hierarchy level e.g. dataset, series",
+					"type": "string",
+					"_xpath":"gmd:hierarchyLevel/gmd:MD_ScopeCode"
 				},
 				"date_stamp": {
 					"title": "Metadata Date Stamp (YYYY-MM-DD)",
 					"type": "string",
-					"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)"
+					"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+					"_xpath":"gmd:dateStamp/gco:Date"
 				},
 				"contact":{
-					"$ref": "#/definitions/contact"
+					"$ref": "#/definitions/contact",
+					"_xpath":"gmd:contact"
 				},
 				
 				"identification_info": {
@@ -288,42 +305,56 @@
 						"title": {
 							"title": "Title",
 							"type": "string",
-							"description": "Dataset title"
+							"description": "Dataset title",
+							"_xpath" :"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString"
 						},
 						"alternate_title": {
 							"title": "Alternate Title",
-							"type": "string"
+							"type": "string",
+							"_xpath" :"",
+							"_xpath_note":"not supported by ISO-19139"
 						},
 						"date":{
-							"$ref": "#/definitions/date"
+							"$ref": "#/definitions/date",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:DateTime"
 						},
 						"edition": {
 							"title": "Edition",
 							"type": "string",
-							"description": "Edition e.g. first"
+							"description": "Edition e.g. first",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:edition/gco:CharacterString"
 						},
-						"identifier": {
+						"identifiers":{
 							"title": "Unique Identifier",
 							"description":"Unique identifier",
-							"type": "array",
+							"type":"array",
 							"items":{
-								"type":"string"
+							  "type":"object",
+							  "properties":{
+								"identifier":{
+								  "title":"Identifier",
+								  "type":"string"
+								}
+							  }
 							}
-						},
+						  },
 						"presentation_form": {
 							"title": "Dataset Presentation Form",
 							"type": "string",
-							"description": "documentDigital, documentHardcopy, imageDigital, image-Hardcopy, mapDigital, mapHardcopy, modelDigital, model-Hardcopy, profileDigital, profileHardcopy, tableDigital, tableHardcopy, videoDigital, videoHardcopy, audioDigital"
+							"description": "documentDigital, documentHardcopy, imageDigital, image-Hardcopy, mapDigital, mapHardcopy, modelDigital, model-Hardcopy, profileDigital, profileHardcopy, tableDigital, tableHardcopy, videoDigital, videoHardcopy, audioDigital",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:presentationForm/gmd:CI_PresentationFormCode/@codeListValue"
 						},
 						"abstract": {
 							"title": "Abstract",
 							"type": "string",
-							"description": "A free text summary of the content, significance, purpose, scope, etc. of the resource."
+							"description": "A free text summary of the content, significance, purpose, scope, etc. of the resource.",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString"
 						},
 						"purpose": {
 							"title": "Purpose",
 							"type": "string",
-							"description": "Summary of the intentions for which the dataset was developed. Purpose includes objectives for creating the dataset and what the dataset is to support."
+							"description": "Summary of the intentions for which the dataset was developed. Purpose includes objectives for creating the dataset and what the dataset is to support.",
+							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:purpose/gco:CharacterString"
 						},
 
 						"credit": {
@@ -334,10 +365,12 @@
 						"status": {
 							"title": "Status",
 							"type": "string",
-							"description": "completed, historicalArchive, obsolete, onGoing, planned, required, underDevelopment"
+							"description": "Status code - completed, historicalArchive, obsolete, onGoing, planned, required, underDevelopment",
+							"_xpath": "//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode/@codeListValue"
 						},
 						"point_of_contact":{
-							"$ref": "#/definitions/contact"
+							"$ref": "#/definitions/contact",
+							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty"
 						},
 
 						"resource_maintenance": {
@@ -347,78 +380,84 @@
 								"maintenance_frequency": {
 									"title": "Maintenance Frequency",
 									"type": "string",
-									"description": "continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, not-Planned, unknown"
+									"description": "Maintenance frequency code - continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, not-Planned, unknown",
+									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency/gmd:MD_MaintenanceFrequencyCode/@codeListValue"
 								}
 							}
 						},
 						
 						"graphic_overview": {
-							"$ref": "#/definitions/graphic_overview"
+							"$ref": "#/definitions/graphic_overview",
+							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview"
 						},
 						"keywords": {
-							"$ref": "#/definitions/keyword"
+							"$ref": "#/definitions/keyword",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords"
 						},
 
 						"resource_constraints": {
 							"type": "object",
 							"description": "Resource constraints",							
 							"properties": {
-								"access_constraints": {
-									"title":"Access constraints",
-									"description":"Access constraints",
-									"$ref":"#/definitions/controlled_vocabulary"
+								"legal_constraints": {
+									"title":"Legal constraints",
+									"description":"Legal constraints",
+									"$ref":"#/definitions/controlled_vocabulary",
+									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useConstraints/gmd:MD_RestrictionCode/@codeListValue"
 								},
-								"use_constraints": {
-									"title":"Use constraints",
-									"description":"Use constraints",
-									"$ref":"#/definitions/controlled_vocabulary"
+								"use_limitations": {
+									"title":"Use limitations",
+									"description":"Use limitations",
+									"type":"string",
+									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_Constraints/gmd:useLimitation/gco:CharacterString"
 								},
 								"other_constraints": {
 									"title":"Other constraints",
 									"description":"Other constraints",
-									"type":"string"
+									"type":"string",
+									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString"
 								}
 							}
 						},
-
-						"use_limitation": {
-							"title": "Condition Applying To Access and Use of Resource",
-							"type": "string"
-						},
-
 						
 						"spatial_representation_type": {
 							"title": "Spatial Representation Type",							
 							"description": "Spatial Representation type - `vector`, `grid`, `textTable`, `tin`, `stereoModel`, `video`",
-							"type":"string"
+							"type":"string",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode/@codeListValue"
 						},
 						"representative_fraction_denominator": {
 							"title": "Spatial Resolution Fraction",
 							"type": "string",
-							"description": "e.g. 100000"
+							"description": "e.g. 100000",
+							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gmd:equivalentScale/gmd:MD_RepresentativeFraction/gmd:denominator/gco:Integer"
 						},
 						"language": {
 							"title": "Language code",
 							"description": "Language code",
-							"type": "string"
+							"type": "string",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gco:CharacterString"
 						},
 						"charset_code": {
 							"title": "Characterset code",
 							"description": "Characterset code",
-							"type": "string"
+							"type": "string",
+							"_xpath":"//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:characterSet/gmd:MD_CharacterSetCode/@codeListValue"
 						},
 
 						"topics": {
 							"type": "array",
 							"title": "Topic Classification",
 							"description": "Topic Classification",
+							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory",
 							"items": {
 							  "type": "object",
 							  "properties": {
 								"topic": {
 								  "title": "Topic",
 								  "type": "string",
-								  "description": "Topics e.g. farming, biota, boundaries, climatologyMeterologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWater, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication"
+								  "description": "Topic code e.g. farming, biota, boundaries, climatologyMeterologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWater, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication",
+								  "_xpath":"gmd:MD_TopicCategoryCode"
 								},
 								"vocab": {
 								  "title": "Vocabulary name",
@@ -442,6 +481,7 @@
 								"geographic_bounding_box": {
 									"title": "Geographic Bounding Box",
 									"type": "array",
+									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox",
 									"items": {
 										"type": "object",
 										"properties": {
@@ -449,25 +489,29 @@
 												"title": "South",
 												"type": "number", 
 												"minimum": -180,
-												"maximum":180
+												"maximum":180,
+												"_xpath":"gmd:southBoundLongitude/gco:Decimal"
 											},
 											"west": {
 												"title": "West",
 												"type": "number", 
 												"minimum": -180,
-												"maximum":180
+												"maximum":180,
+												"_xpath":"gmd:westBoundLongitude/gco:Decimal"
 											},
 											"north": {
 												"title": "North",
 												"type": "number", 
 												"minimum": -180,
-												"maximum":180
+												"maximum":180,
+												"_xpath":"gmd:northBoundLongitude/gco:Decimal"
 											},
 											"east": {
 												"title": "East",
 												"type": "number", 
 												"minimum": -180,
-												"maximum":180
+												"maximum":180,
+												"_xpath":"gmd:eastBoundLongitude/gco:Decimal"
 											}
 										}
 									}
@@ -491,12 +535,14 @@
 						"distributors":{
 							"title":"Distributors",
 							"description":"Distributors",
-							"$ref": "#/definitions/contact"
+							"$ref": "#/definitions/contact",
+							"_xpath":"gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor"
 						},
 						"online_resource":{
 							"title":"Online resource",
 							"description":"Online resource",
-							"$ref": "#/definitions/online_resource"
+							"$ref": "#/definitions/online_resource",
+							"_xpath":"gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource"
 						}
 					}
 				},
@@ -507,13 +553,15 @@
 					"properties": {
 						"Scope": {
 							"title": "Data Quality Scope",
-							"description": "dataset, series, collectionSession, etc.",
-							"type": "string"
+							"description": "Scope code - dataset, series, collectionSession, etc.",
+							"type": "string",
+							"_xpath":"gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode/@codeListValue"
 						},
 						"lineage": {
 							"title": "Data Quality Lineage Statement",
 							"description": "Data quality lineage statement",
-							"type": "string"
+							"type": "string",
+							"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage"
 						}
 					}
 				},

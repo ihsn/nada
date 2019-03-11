@@ -75,7 +75,9 @@ $lang['js_countries_selected']="countries selected";
 $lang['title_compare_variables']="Compare Variables";
 $lang['click_drag_move']="Click and drag to move";
 $lang['open_in_new_window']="Open in new window";
-$lang['download_pdf']="Download PDF";
+$lang['download_pdf']="PDF";
+$lang['download_csv']="CSV";
+$lang['download_json']="JSON";
 $lang['click_to_browse_metadata']="Click here to browse metadata";
 $lang['producers']="Producer(s)";
 $lang['sponsors']="Sponsor(s)";
@@ -179,6 +181,23 @@ $lang['study_description_tab_info']="Study metadata: overview, abstract, samplin
 $lang['related_citations_tab_info']="Links to publications that have used the data from this study";
 $lang['data_dictionary_tab_info']="Description of data files and variables";
 $lang['featured_study']="Featured Study";
+$lang['dataset_type_survey']="Microdata";
+$lang['dataset_type_table']="Tables";
+$lang['dataset_type_document']="Documents";
+$lang['dataset_type_geospatial']="Geospatial";
+$lang['dataset_type_image']="Images";
+
+$lang['variables']="Variables";
+$lang['total']="Total";
+$lang['data_file']="Data file";
+$lang['data_files']="Data files";
+$lang['cases']="Cases";
+
+
+$lang['metadata_in_json']="JSON";
+$lang['metadata_in_ddi_xml']="DDI Codebook (2.5)";
+$lang['metadata']="Metadata";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

@@ -279,7 +279,9 @@ li.nav-item.dropdown .fa {
 .wb-breadcrumb {
   background: none;
   padding-left: 0;
-  font-size: .8rem; }
+  font-size: .8rem; 
+  text-transform:uppercase;
+}
 
 .sort-results-by a {
   margin: auto 10px; }
@@ -708,4 +710,8 @@ footer {
 @media (min-width: 768px) {
   h1.mobile-viewport {
     display: none; }
+  }
+
+  .progress-text {
+    margin-left:5px
   }

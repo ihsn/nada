@@ -1,23 +1,27 @@
-<div id="variable-list" >
+<div class="variables-container" id="variable-list" >
 <?php if ($variables): ?>
 <h5 style="margin-top:20px;margin-bottom:25px;"><?php echo sprintf(t('variable_search_match_found'),count($variables));?></h5>
-<?php $tr_class="row-color1"; ?>
-	<table class="table table-striped table-bordered table-variable-list" cellpadding="4" cellspacing="0" width="100%" border="1" style="border-collapse:collapse">
-    	<tr class="var-th">
-        	<td><?php echo t('name');?></td>
-            <td><?php echo t('label');?></td>
-        </tr>
-	<?php foreach($variables as $row):?>
-  		<?php if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
-    	<tr  class="<?php echo $tr_class; ?>" id="<?php echo $row['vid'];?>">
-            <td><?php echo anchor('catalog/'.$sid.'/variable/'.$row['vid'],$row['name'], array('class'=>'ajax'));?></td>
-            <td><?php echo $row['labl']?> </td>
-        </tr>
-          <tr class="var-info-panel" style="display:none;">
-        <td colspan="3" id="pnl-<?php echo $row['vid'];?>"></td>
-    </tr>
-    <?php endforeach;?>
-	</table>
+    <div class="container-fluid table-variable-list data-dictionary ">
+        <?php foreach($variables as $variable):?>
+            <?php $tr_class=""; //if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
+            <div class="row var-row <?php echo $tr_class;?>" >
+            <div class="icon-toggle"><i class="collapased_ fa fa-angle-down" aria-hidden="true"></i><i class="expanded_ fa fa-angle-up" aria-hidden="true"></i></div>            
+                <div class="col-md-3 var-td p-1">
+                    <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
+                </div>
+                <div class="col">
+                    <div class="p-1">
+                        <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>">
+                            <?php echo html_escape($variable['labl']);?>
+                        </a>
+                    </div>                            
+                </div>                    
+            </div>
+            <div class="row var-info-panel" id="pnl-<?php echo md5($variable['vid']);?>">
+                <div class="panel-td p-4"></div>
+            </div>                
+        <?php endforeach;?>
+    </div>    
 <?php else: ?>
 	<?php echo t('no_records_found');?>
 <?php endif; ?>

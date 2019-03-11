@@ -157,7 +157,7 @@ function get_total_rows()
 			{
 				if ($this->cur_page == $loop)
 				{
-					$output .= '<a class="page-link">'.$this->cur_tag_open.$loop.$this->cur_tag_close.'</span>'; // Current page
+					$output .= '<a class="page-link">'.$this->cur_tag_open.$loop.$this->cur_tag_close.'</a>'; // Current page
 				}
 				else
 				{

@@ -31,7 +31,7 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 	$sub_title=implode(", ", $sub_title);
 ?>
 
-<div class="media">
+<div class="row">
 	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
 	<?php 
 		$thumbnail=$survey['owner_repo']['thumbnail'];
@@ -39,9 +39,10 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			$thumbnail='files/thumbnails/'.$survey['thumbnail'];
 		}
 	?>
+	<div class="col-md-2">
 	<div class="collection-thumb-container">
 		<a href="<?php echo site_url('catalog/'.$survey['owner_repo']['repositoryid']);?>">
-		<img  src="<?php echo base_url().$thumbnail;?>" class="mr-3 img-responsive" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
+		<img  src="<?php echo base_url().$thumbnail;?>" class="mr-3 img-fluid img-thumbnail" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
 		</a>
 		<?php /* ?>
 		<?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?>
@@ -51,8 +52,9 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 		<?php endif;?>
 		<?php */ ?>
 	</div>
+	</div>
 	<?php endif;?>		
-	<div class="media-body">
+	<div class="col-md-10">
 		<h1 class="mt-0 mb-1"><?php echo $survey_title;?></h1>
 		<h6 class="sub-title"><?php echo $sub_title;?>
 
@@ -70,27 +72,17 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			<?php echo $survey['authoring_entity'];?>
 		<?php endif;?>
 		</div>
+	
 
-		<div class="dataset-links">
-		</div>
-
-		<div class="dataset-footer-bar mt-2">
-			<?php /* ?>
-			<!--<span class="mr-3 link-col">
-				<small><?php echo t('created_on');?> 
-				<strong><?php echo date("F d, Y",$survey['created']);?></strong>
-			</small> 				
-			</span>--> 
-			<?php */?>
-		
-            <span class="mr-3 link-col">
+		<div class="dataset-footer-bar mt-2">					
+            <span class="mr-3 link-col float-left">
 				<small><?php echo t('last_modified');?> 
 				<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
 			</small>
             </span>
 
             <?php if ((int)$survey['total_views']>0):?>
-            <span class="mr-3 link-col">
+            <span class="mr-3 link-col float-left">
                 <small>
 				<i class="fa fa-eye" aria-hidden="true"></i> 
 				<?php echo t('page_views');?> 
@@ -101,15 +93,16 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			
 			<?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
 			<?php if (file_exists($report_file)):?>
-				<span class="mr-3 link-col sep badge badge-light">
-					<a href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('pdf');?>" >
+				<span class="mr-3 link-col float-left">
+					<small><a href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('pdf');?>" >
 					<i class="fa fa-file-pdf-o" aria-hidden="true"> </i> <?php echo t('documentation_in_pdf');?>
 					</a> 
+					</small>
 				</span>            
 			<?php endif;?>
 
 			<?php if($survey['link_study']!=''): ?>
-				<span class="mr-3 link-col badge badge-light">
+				<span class="mr-3 link-col badge badge-light float-left">
 				<a  target="_blank" href="<?php echo html_escape($survey['link_study']);?>" title="<?php echo t('link_study_website_hover');?>">
 				<i class="fa fa-globe" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
 				</a>
@@ -118,12 +111,26 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 		
 
 			<?php if($survey['link_indicator']!=''): ?>
-				<span class="mr-3 link-col badge badge-light">
+				<span class="mr-3 link-col badge badge-light float-left">
 				<a target="_blank"  href="<?php echo html_escape($survey['link_indicator']);?>" title="<?php echo t('link_indicators_hover');?>">
 				<i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>
 				</a>
 				</span>
-			<?php endif; ?>			
+			<?php endif; ?>
+
+
+			<span class="mr-3 link-col  float-left">
+				<small><i class="fa fa-download" aria-hidden="true"> </i> <?php echo t('metadata');?></small>
+				<?php if($survey['type']=='survey'):?>
+					<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" title="<?php echo t('metadata_in_ddi_xml');?>">
+						<span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
+					</a>
+				<?php endif;?>
+
+				<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" title="<?php echo t('metadata_in_json');?>">
+					<span class="badge badge-info"><?php echo t('JSON');?></span>
+				</a>
+			</span>			
 
 		</div>
 

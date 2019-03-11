@@ -32,7 +32,7 @@ $use_cdn=false;
 
 <!-- page body -->
 <div class="<?php echo $content_wrap_class;?>">
-    <div class="rowx">
+    
         <?php if ($menu_horizontal===TRUE):?>
             <?php if (isset($search_filters) && $search_filters!==false):?>
               <div class="row">            
@@ -50,7 +50,8 @@ $use_cdn=false;
                 <?php echo isset($content) ? $content : '';?>
               </div>
             <?php else:?>
-                <div class="col-sm-12x">
+                <div class="body-content-wrap">
+                    
                     <?php //include 'share.php';?>
                     <!--breadcrumbs -->
                     <div class="container">
@@ -70,7 +71,7 @@ $use_cdn=false;
             <?php echo isset($content) ? $content : '';?>
         <?php endif;?>
 
-    </div>
+    
 
 </div>
 

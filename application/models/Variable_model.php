@@ -1,6 +1,15 @@
 <?php
 class Variable_model extends CI_Model {
 
+
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model("Dataset_model");
+
+    }
+
     public function remove_all_variables($sid)
     {
         $this->db->where("sid",$sid);
@@ -14,10 +23,8 @@ class Variable_model extends CI_Model {
         $this->db->where("uid",$vid);
         $variable=$this->db->get("variables")->row_array();
 
-        if(isset($variable['metadata']))
-        {
-            $this->load->model("Survey_model");
-            $variable['metadata']=$this->Survey_model->decode_metadata($variable['metadata']);
+        if(isset($variable['metadata'])){            
+            $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
         }
 
         return $variable;
@@ -43,22 +50,32 @@ class Variable_model extends CI_Model {
     }
 
 
+    /**
+     * 
+     * Get a single variable vid and Survey ID
+     * 
+     */
     function get_var_by_vid($sid,$vid)
     {
         $this->db->select("*");
         $this->db->where("sid",$sid);
         $this->db->where("vid",$vid);
-
+        
         $variable=$this->db->get("variables")->row_array();
 
-        if(isset($variable['metadata'])){
-            $this->load->model("Survey_model");
-            $variable['metadata']=$this->Survey_model->decode_metadata($variable['metadata']);
+        if(isset($variable['metadata'])){            
+            $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
         }
 
         return $variable;
     }
 
+    /**
+     * 
+     * 
+     * Get a single variable by variable UID
+     * 
+     */
     function get_var_by_uid($sid,$uid)
     {
         $this->db->select("*");
@@ -68,12 +85,12 @@ class Variable_model extends CI_Model {
         $variable=$this->db->get("variables")->row_array();
 
         if(isset($variable['metadata'])){
-            $this->load->model("Survey_model");
-            $variable['metadata']=$this->Survey_model->decode_metadata($variable['metadata']);
+            $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
         }
 
         return $variable;
     }
+
 
     //get a single variable
     function get_by_var_id($sid, $file_id=null, $var_id)
@@ -89,8 +106,7 @@ class Variable_model extends CI_Model {
         $variable=$this->db->get("variables")->row_array();
 
         if(isset($variable['metadata'])){
-            $this->load->model("Survey_model");
-            $variable['metadata']=$this->Survey_model->decode_metadata($variable['metadata']);
+            $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
         }
 
         return $variable;
@@ -145,6 +161,7 @@ class Variable_model extends CI_Model {
         $this->db->select("uid,vid,name,labl,qstn");
         $this->db->where("sid",$sid);
         $this->db->where("fid",$file_id);
+        $this->db->order_by("uid");
         return $this->db->get("variables")->result_array();
     }
 
@@ -290,6 +307,88 @@ class Variable_model extends CI_Model {
 		$errors=$this->form_validation->error_array();
 		$error_str=$this->form_validation->error_array_to_string($errors);
 		throw new ValidationException("VALIDATION_ERROR: ".$error_str, $errors);
+    }
+    
+
+
+    /**
+     * 
+     * 
+     * Export variables
+     * 
+     * @variables - array of variables
+     * @format - JSON | CSV
+     * 
+     */
+    function export($variables,$format='json')
+	{
+        if ($format=='json'){
+            return;
+        }        
+        
+        $columns=array(
+            'survey_idno',
+            'sid',
+            'file_id',
+            'vid',
+            'name',
+            'labl',
+            'var_intrvl',
+            'var_dcml',
+            'var_wgt',
+            'var_start_pos',
+            'var_end_pos',
+            'var_width',
+            'var_imputation',
+            'var_security',
+            'var_respunit',
+            'var_qstn_preqtxt',
+            'var_qstn_qstnlit',
+            'var_qstn_postqtxt',
+            'var_qstn_ivulnstr',
+            'var_universe',
+            'var_sumstat',
+            'var_txt',
+            'var_catgry',
+            'var_codinstr',
+            'var_concept',
+            'var_format',
+            'var_notes',
+            );
+        
+        $filename='variables-'.date("m-d-y-his").'.csv';
+        header('Content-Encoding: UTF-8');
+        header( 'Content-Type: text/csv' );
+        header( 'Content-Disposition: attachment;filename='.$filename);
+        $fp = fopen('php://output', 'w');
+
+        echo "\xEF\xBB\xBF"; // UTF-8 BOM
+
+        //add column names
+        fputcsv($fp, $columns);
+
+        foreach($variables as $row)
+        {
+            $data=array();
+            foreach($columns as $col)
+            {
+                if (!isset($row[$col])){
+                    $data[$col]='';
+                    continue;
+                }
+                
+                if(is_array($row[$col])){
+                    $data[$col]=json_encode($row[$col]);
+                }
+                else{
+                    $data[$col]=$row[$col];
+                }                
+            }
+
+            fputcsv($fp, $data);
+        }
+
+        fclose($fp);
 	}
 	
 }

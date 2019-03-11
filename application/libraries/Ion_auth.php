@@ -193,9 +193,7 @@ class Ion_auth
 
 			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_forgot_password'), $data, true);
 			$this->ci->email->clear();
-			$config['mailtype'] = "html";
-			$this->ci->email->initialize($config);
-			$this->ci->email->set_newline("\r\n");
+			$this->ci->email->initialize();			
 			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
 			$this->ci->email->to($profile->email);
 			$this->ci->email->subject(t('forgot_password_verification'));
@@ -243,9 +241,6 @@ class Ion_auth
 			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_forgot_password_complete'), $data, true);
 				
 			$this->ci->email->clear();
-			//$config['mailtype'] = "html";
-			//$this->ci->email->initialize($config);
-			$this->ci->email->set_newline("\r\n");
 			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
 			$this->ci->email->to($profile->email);
 			$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('new_password'));
@@ -324,10 +319,7 @@ class Ion_auth
             
 			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_activate'), $data, true);
             
-			//using email settings from /config/email.php
 			$this->ci->email->clear();			
-			//$this->ci->email->initialize($config);
-			$this->ci->email->set_newline("\r\n");
 			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
 			$this->ci->email->to($email);
 			$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('account_activation'));

@@ -1,8 +1,8 @@
 {
-	"$id": "http://ihsn.org/schemas/nada/ddi_variable.json",
+	"$id": "http://ihsn.org/schemas/variable",
+  "$schema": "http://json-schema.org/draft-07/schema#",
 	"type": "object",
 	"definitions": {},
-	"$schema": "http://json-schema.org/draft-07/schema#",
 	"properties": {
 		"file_id": {
 			"type": "string",

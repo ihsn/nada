@@ -102,16 +102,14 @@ class Citation_model extends CI_Model {
 		//get citation row
 		$query=$this->db->get('citations');
 		
-		if (!$query)
-		{
+		if (!$query){
 			return FALSE;
 		}
 		
 		//convert to array
 		$row=$query->row_array();
 		
-		if (!$row)
-		{
+		if (!$row){
 			return FALSE;
 		}
 		
@@ -128,14 +126,12 @@ class Citation_model extends CI_Model {
 		$row['translators']=$this->get_citation_authors($id,'translator');
 
         //add created_by and changed_by user names
-        if ($row['created_by'])
-        {
+        if ($row['created_by']){
             $user_created= $this->ion_auth->get_user($row['created_by']);
             $row['created_by_user']=@$user_created->username;
         }
 
-        if ($row['changed_by'])
-        {
+        if ($row['changed_by']){
             $user_changed= $this->ion_auth->get_user($row['changed_by']);
             $row['changed_by_user']=@$user_changed->username;
         }
@@ -232,7 +228,7 @@ class Citation_model extends CI_Model {
 	 **/
 	function get_related_surveys($citationid)
 	{
-		$this->db->select('surveys.id,surveys.idno,nation,title');
+		$this->db->select('surveys.id,surveys.idno,nation,title,year_start,year_end');
 		$this->db->join('surveys', 'surveys.id= survey_citations.sid','inner');		
 		$this->db->where('citationid', $citationid);
 		$this->db->order_by('surveys.nation');

@@ -41,7 +41,7 @@ class Study extends MY_Controller {
 		$survey=$this->Dataset_model->get_row_detailed($sid);
 
 		if (!$survey){
-			throw new Exception("DATASET NOT FOUND");
+			show_404();
 		}
 
 		if(!is_array($survey['metadata'])){
@@ -304,6 +304,7 @@ class Study extends MY_Controller {
 		$options=array(
 			'published'=>$published,
 			'sid'=>$sid,
+			'dataset_type'=>$survey['type'],
 			'survey'=>$this->get_survey_info($sid),
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,

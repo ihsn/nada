@@ -64,7 +64,9 @@
           <br />
         </div>
         <div style="font-style:italic"> <?php echo t('describe_your_project');?> </div>
-        <textarea id="abstract" name="abstract" class="input-flex" rows=10><?php echo get_form_value('abstract',isset($abstract) ? $abstract : ''); ?></textarea>
+        <div class="form-group">
+        <textarea id="abstract" name="abstract" class="form-control" rows=10><?php echo get_form_value('abstract',isset($abstract) ? $abstract : ''); ?></textarea>
+        </div>
         <div>
           <div style="margin-top:5px;font-weight:bold;"><?php echo t('terms_and_conditions');?></div>
 			<div class="bull-list"><?php echo t('terms_text');?></div>
@@ -73,7 +75,7 @@
     <tr class="border">
       <td colspan="2" class="note" align="right"><input type="checkbox" title="I Agree" id="chk_agree" name="chk_agree" onClick="isagree()"/>
         <label for="chk_agree"><?php echo t('i_agree');?>&nbsp;&nbsp;</label>
-        <input type="submit" disabled="disabled" value="<?php echo t('submit');?>" id="submit" name="submit"  onClick="submitform()" />
+        <input class="btn btn-primary btn-sm" type="submit" disabled="disabled" value="<?php echo t('submit');?>" id="submit" name="submit"  onClick="submitform()" />
       </td>
     </tr>
   </table>

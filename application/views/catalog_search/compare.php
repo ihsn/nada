@@ -22,7 +22,8 @@ function remove_all(){
 	update_compare_variable_list('remove-all',0);
 	
 	//remove form the parent/search page
-	$("#surveys .compare",opener.document).attr("checked",false);
+	//$("#surveys .compare",opener.document).attr("checked",false);
+	$("#surveys .compare",opener.document).prop( "checked", false );
 	window.location.reload();
 }
 
@@ -53,6 +54,7 @@ function update_compare_variable_list(action,value){
 		
 		case 'remove-all':
 			eraseCookie("variable-compare");return;
+
 		break;
 	}
 
@@ -101,7 +103,19 @@ function eraseCookie(name) {
 		<a href="<?php echo current_url(); ?>#clear" onClick="remove_all();return false;" title="Clear selection of variables to be compared" class="clear btn btn-outline-primary btn-sm">
 			<i class="fa fa-trash" aria-hidden="true"></i> <?php echo t('clear');?>
 		</a> 
-		<?php echo anchor('catalog/compare/print/pdf',t('download_pdf'), array('target'=>'_blank', 'class'=>'download btn btn-outline-primary btn-sm'));?>
+
+		<a href="<?php echo site_url('catalog/compare/print/pdf'); ?>"  class="download btn btn-outline-primary btn-sm">
+			<i class="fa fa-file-pdf-o" aria-hidden="true"></i> <?php echo t('download_pdf');?>
+		</a> 
+
+		<a href="<?php echo site_url('catalog/compare/export/csv'); ?>"  class="download btn btn-outline-primary btn-sm">
+			<i class="fa fa-file-excel-o" aria-hidden="true"></i> <?php echo t('download_csv');?>
+		</a> 
+
+		<a href="<?php echo site_url('catalog/compare/export/json'); ?>"  class="download btn btn-outline-primary btn-sm">
+		<i class="fa fa-file-code-o" aria-hidden="true"></i> <?php echo t('download_json');?>
+		</a> 
+
     </div>
 </div>    
   

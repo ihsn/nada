@@ -40,7 +40,7 @@ class Dataset_document_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','additional');
+        $study_metadata_sections=array('metadata_information','document_description','files','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -95,7 +95,24 @@ class Dataset_document_model extends Dataset_model {
         $output['nation']='';
 
         $output['abbreviation']=$this->get_array_nested_value($options,'document_description/title_statement/alternate_title');            
-        $output['authoring_entity']=$this->get_array_nested_value($options,'document_description/publisher');
+        $authors=$this->get_array_nested_value($options,'document_description/authors');
+        
+        $output['authoring_entity']='';
+
+        if(is_array($authors)){
+            $authors_str=array();
+            foreach($authors as $author){
+                $tmp=array();
+                $tmp[]=$this->get_array_nested_value($author,'first_name');
+                $tmp[]=$this->get_array_nested_value($author,'last_name');
+
+                $authors_str[]=implode(" ", $tmp);
+            }
+
+            $output['authoring_entity']=implode(", ",$authors_str);
+        }
+
+        
 
         $years=$this->get_years($options);
         $output['year_start']=$years['start'];

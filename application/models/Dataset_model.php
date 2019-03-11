@@ -80,6 +80,9 @@ class Dataset_model extends CI_Model {
 		parent::__construct();
 		$this->load->library("form_validation");		
 		$this->load->model("Survey_country_model");
+		$this->load->model("Vocabulary_model");
+		$this->load->model("Term_model");
+
 	}
 	
 	
@@ -178,6 +181,10 @@ class Dataset_model extends CI_Model {
 	//decode all encoded fields
 	function decode_encoded_fields($data)
 	{
+		if(!$data){
+			return $data;
+		}
+
 		foreach($data as $key=>$value){
 			if(in_array($key,$this->encoded_fields)){
 				$data[$key]=$this->decode_metadata($value);
@@ -649,6 +656,20 @@ class Dataset_model extends CI_Model {
 	{
 		return get_catalog_root() . '/'.$this->get_dirpath($sid);
 	}
+
+	function get_metadata_file_path($sid)
+	{
+		$this->db->select('dirpath,metafile');
+		$this->db->where('id', $sid);
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query){
+			return get_catalog_root() . '/'. $query['dirpath'].'/'.$query['metafile'];
+		}
+		
+		return false;
+	}
+
     
     /**
 	* returns internal survey id by IDNO
@@ -676,12 +697,45 @@ class Dataset_model extends CI_Model {
 		return false;
 	}
     
-	
+	function delete_topics($sid)
+	{
+		$this->db->where("sid",$sid);
+		$this->db->delete("survey_topics");
+	}
     
     //@topics array(topic, vocab, uri)
-    function update_survey_topics($sid,$topics)
+    function update_topics($sid,$topics)
 	{
-        //TODO
+		if(!$topics){
+			return false;
+		}
+
+		$options=array();
+
+		foreach($topics as $topic){
+			$vocab=$this->Vocabulary_model->get_vocabulary_by_title($topic['vocab']);
+
+			$topic_title=explode("[",$topic['topic']);
+			$topic_title=trim($topic_title[0]);
+
+			//if($vocab){
+				$terms=$this->Term_model->find_term($topic_title);
+
+				if($terms){
+					foreach($terms as $term){
+						$options[]=array(
+							'sid'=>$sid,
+							'tid'=>$term['tid']
+						);
+					}
+				}
+			//}
+		}
+
+		if(count($options)>0){
+			$this->db->insert_batch('survey_topics',$options);
+		}
+
 	}
 	
 	

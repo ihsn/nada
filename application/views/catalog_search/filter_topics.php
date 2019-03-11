@@ -1,10 +1,10 @@
 <?php 
 	if(!isset($topics)){return;}
-	$item_limit=7;
+    $item_limit=7;
 ?>
-<div id="filter-by-income" class="sidebar-filter wb-ihsn-sidebar-filter filter-by-income filter-box filter-by-topic">
+<div id="filter-by-topic" class="sidebar-filter wb-ihsn-sidebar-filter filter-by-income filter-box filter-by-topic">
 
-    <!-- By income -->
+    <!-- By topic -->
     <h6 class="togglable"> <i class="fa fa-filter pr-2"></i><?php echo t('filter_by_topic');?></h6>
     <div class="sidebar-filter-index selected-items-count" data-toggle="tooltip" data-placement="top"><?php echo count($topics);?></div>
         <div class="form-check any">
@@ -16,7 +16,7 @@
     <div class="sidebar-filter-entries wb-sidebar-filter-collapse items-container topic-items">
         <?php if($topics):?>
             <?php $k=0;foreach($topics as $topic):$k++; ?>
-                <?php if($topic['pid']==0){continue;}?>
+                <?php //if($topic['pid']==0){continue;}?>
                 <div class="form-check">
                     <label for="tpc-<?php echo form_prep($topic['tid']); ?>" class="form-check-label topic item inactive">
                         <input class="form-check-input chk chk-topic" type="checkbox" name="topic[]"

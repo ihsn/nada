@@ -1,7 +1,9 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Survey Microdata Schema [DRAFT]",
+  "$id": "http://ihsn.org/schemas/microdata",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Survey Microdata Schema",
   "id": "survey-schema.json",
+  "version" :"0.0",
   "description": "Schema for Survey data type based on DDI 2.5",  
   "allOf": [    
     {
@@ -28,8 +30,14 @@
           },
           "published": {
             "type": "integer",
-            "description": "Status of the study - 0=draft, 1=published",
+            "description": "Status of the survey - 0=draft, 1=published",
             "default": 0
+          },
+          "overwrite": {
+            "type": "string",
+            "description": "Overwrite survey if already exists?",            
+            "enum":["yes","no"],
+            "default": "no"
           }
         }
     },

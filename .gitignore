@@ -7,19 +7,10 @@ datafiles
 *.spc
 -*.zip
 _notes
-dwsync.xml
 backup/*.sql
 database.php
 email.php
 application/cache/*
-themes/datafirst
-themes/vam
-themes/sudan
-themes/ja_purity
-themes/lucia
-themes/argentina
-themes/peru
-themes/sedlac
 application/config/database.php
 application/config/email.php
 *.bak
@@ -31,6 +22,6 @@ patches
 .idea
 imports
 files/sessions
-vendor
+files/public
 sample
 system/language/base

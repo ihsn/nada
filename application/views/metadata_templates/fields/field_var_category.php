@@ -29,13 +29,14 @@
                     //$max_value=max($stats_col);
                 }
             }
+
             ?>
 
             <table class="table table-stripped xsl-table">
                 <tr>
                     <th><?php echo t('value');?></th>
                     <th><?php echo t('category');?></th>
-                    <?php if($show_stats):?>
+                    <?php if($show_stats && $sum_cases>0):?>
                         <th><?php echo t('cases');?></th>                    
                     <th></th>
                     <?php endif;?>
@@ -44,7 +45,7 @@
                     <?php
                     $cat=(object)$cat;
 
-                    if($show_stats){
+                    if($show_stats && $sum_cases>0){
                         $percent=@round($cat->stats/$sum_cases * 100,1);
                         $width=@round($cat->stats/$max_value * 100,1);
                     }
@@ -53,12 +54,15 @@
                     ?>
                     <tr>
                         <td><?php echo isset($cat->value) ? $cat->value : '';?></td>
-                        <td><?php echo isset($cat->label) ? $cat->label : '';?></td>
-                        <?php if($show_stats):?>
+                        <td><?php echo isset($cat->labl) ? $cat->labl : '';?></td>
+                        <?php if($show_stats && $sum_cases>0):?>
                         <td><?php echo (int)$cat->stats;?></td>                        
                         <td class="bar-container">
                             <?php if(is_numeric($cat->value)):?>
-                                <div class="bar" style="margin-right:5px; float:left;background:#000;height:13px;width:<?php echo 1*$width;?>px;"></div><?php echo $percent;?>%
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: <?php echo $percent;?>%;" aria-valuenow="<?php echo $percent;?>;" aria-valuemin="0" aria-valuemax="100"></div>
+                                <span class="progress-text"><?php echo $percent;?>%</span>
+                            </div>                                
                             <?php endif;?>
                         </td>
                         <?php endif;?>
