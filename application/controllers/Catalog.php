@@ -156,8 +156,8 @@ class Catalog extends MY_Controller {
 
 			if ($vid!==FALSE && is_numeric($vid))
 			{
-				$this->load->model('term_model');
-				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE,$data['active_repo']);
+				$this->load->model('Term_model');
+				$data['topics']=$this->Term_model->get_terms_by_repo($vid,$active_only=TRUE,$data['active_repo']);				
 				$data['topic_search']=TRUE;
 			}
 			else
