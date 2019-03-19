@@ -244,6 +244,25 @@ class Search_helper_model extends CI_Model {
 		return FALSE;
 	}
 
+
+	/**
+	 * 
+	 * Return years range
+	 * 
+	 */
+	function get_years_range()
+	{		
+		$min_year=$this->get_min_year();
+		$max_year=$this->get_max_year();
+
+		$output=array();
+
+		foreach (range($max_year, $min_year) as $year){
+      $output[$year]=$year;
+		}
+
+		return $output;
+	}
 		
 	/**
 	* Get start and End data collection years
@@ -401,10 +420,12 @@ class Search_helper_model extends CI_Model {
 	}	
 	
 	/**
-	* Returns an array of available DA types for current repo
-	*
-	*/
-	function get_active_data_types($repositoryid)
+	 * 
+	 * 
+	 * Returns an array of available DA types for current repo
+	 *
+	 */
+	function get_active_data_types($repositoryid=null)
 	{
 		if ($repositoryid=='central' || trim($repositoryid)=='')
 		{
@@ -447,44 +468,7 @@ class Search_helper_model extends CI_Model {
 	}
 	
 	
-	/**
-	* Returns a list of Centers 
-	*
-	**/
-	function get_active_centers($repositoryid)
-	{
-		if ($repositoryid=='central' || trim($repositoryid)=='')
-		{
-			$sql='select survey_centers.id,center_name from surveys
-					inner join survey_centers on survey_centers.sid=surveys.id
-					where surveys.published=1
-				group by survey_centers.id, survey_centers.center_name;';
-		}
-		else
-		{
-			$sql='select survey_centers.id,center_name from surveys
-					inner join survey_centers on survey_centers.sid=surveys.id
-					inner join survey_repos on surveys.id=survey_repos.sid
-					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
-					and surveys.published=1
-				group by survey_centers.id, survey_centers.center_name;';
-		}
 
-		$result=$this->db->query($sql)->result_array();
-
-		if (!$result)
-		{
-			return FALSE;
-		}
-		
-		$centers=array();
-		foreach($result as $row)
-		{
-			$centers[(string)$row['id']]=$row['center_name'];
-		}
-		
-		return $centers;
-	}
 	
 	
 	/**
@@ -518,6 +502,37 @@ class Search_helper_model extends CI_Model {
 		
 		return $output;
 	}
+
+
+
+/**
+	* 
+	* Returns a list of collections
+	*/	
+	function get_dataset_types($repositoryid=null)
+	{
+			$this->db->select('survey_types.code,survey_types.title,count(*) as found');
+			$this->db->join('surveys s', 's.type=survey_types.code','inner');
+			$this->db->where('s.published',1);
+			$this->db->group_by('survey_types.code, survey_types.title');
+
+			//filter by repository
+			if (trim($repositoryid)!=='' && $repositoryid!='central'){
+				$this->db->join('survey_repos sr', 'sr.sid=surveys.sid','inner');
+				$this->db->where('sr.repositoryid',$repositoryid);	
+			}
+
+			$result=$this->db->get('survey_types')->result_array();
+			
+			$output=array();
+			foreach($result as $row){
+				$output[$row['code']]=$row;
+			}
+			
+			return $output;
+	}
+
+
+
 	
-}
-?>
+}//end class
