@@ -14,7 +14,7 @@ class Catalog_search_mysql{
 	
 	var $errors=array();
 	
-	//search fields
+	//search fields	
 	var $study_keywords='';
 	var $variable_keywords='';
 	var $variable_fields=array();
@@ -23,6 +23,7 @@ class Catalog_search_mysql{
 	var $from=0;
 	var $to=0;
 	var $repo='';
+	var $type=array();
 	//var $center=array();
 	var $collections=array();
 	var $dtype=array();//data access type
@@ -88,7 +89,8 @@ class Catalog_search_mysql{
 
 	//perform the search
 	public function search($limit=15, $offset=0)
-	{
+	{		
+		$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
@@ -137,7 +139,7 @@ class Catalog_search_mysql{
 		}
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -157,7 +159,7 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end, surveys.thumbnail';
 		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
@@ -236,17 +238,18 @@ class Catalog_search_mysql{
 		}
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();		
+		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',false)->row_array();		
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
 		$this->ci->db->select('count(*) as rowcount');
 		$this->ci->db->where('published',1);
-		if($repository!='')
-		{
+
+		if($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','inner');
 			$this->ci->db->where($repository);
 		}
+
 		$query_total_surveys=$this->ci->db->get('surveys')->row_array();
 		$this->total_surveys=$query_total_surveys['rowcount'];		
 
@@ -256,9 +259,98 @@ class Catalog_search_mysql{
 		$result['total']=$this->total_surveys;
 		$result['limit']=$limit;
 		$result['offset']=$offset;
-		$result['citations']=$this->get_survey_citation();		
+		$result['citations']=$this->get_survey_citation();
+		$result['search_counts_by_type']=null;
+
+		if ($result['found']>0){
+			$result['search_counts_by_type']=$this->search_counts_by_type();
+		}
+
 		return $result;
 	}
+
+
+	/**
+	 * 
+	 * Get search counts by dataset type
+	 * 
+	 */
+	public function search_counts_by_type()
+	{		
+		$type=$this->_build_dataset_type_query();
+		$study=$this->_build_study_query();
+		$variable=$this->_build_variable_query();
+		$topics=$this->_build_topics_query();
+		$countries=$this->_build_countries_query();
+		$collections=$this->_build_collections_query();
+		$years=$this->_build_years_query();		
+		$repository=$this->_build_repository_query();
+		$dtype=$this->_build_dtype_query();
+		$sid=$this->_build_sid_query();
+        $countries_iso3=$this->_build_countries_iso3_query();
+		
+		//array of all options
+		$where_list=array($type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		
+		//create combined where clause
+		$where='';
+		
+		foreach($where_list as $stmt)
+		{
+			if ($where=='')
+			{
+				$where=$stmt;
+			}
+			else
+			{
+				if ($stmt!==FALSE) {
+					$where.="\r\n".' AND '. $stmt;
+				}
+			}
+		}
+		
+		//study fields returned by the select statement
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end';
+		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
+		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+
+		//build final search sql query
+		$sql='';
+			
+		//study search
+		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->where('surveys.published',1);
+		$this->ci->db->group_by('surveys.type');	
+		
+		if ($repository!=''){
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+		}
+		
+		if ($where!='') {
+			$this->ci->db->where($where,FALSE,FALSE);
+		}
+	
+		$query=$this->ci->db->get();
+		$output=array();
+				
+		if ($query){
+			$query=$query->result_array();
+
+			foreach($query as $row){
+				$output[$row['type']]=$row['total'];
+			}
+		}
+		else{
+			//some error occured
+			return FALSE;
+		}
+		
+		return $output;
+	}
+
 	
 	/**
 	* Build study search
@@ -397,6 +489,33 @@ class Catalog_search_mysql{
 		
 		return $output;
 	}
+
+
+	protected function _build_dataset_type_query()
+	{
+		$types=(array)$this->type;//must always be an array
+
+		if (!is_array($types)){
+			return FALSE;
+		}
+		
+		$types_list=array();
+				
+		foreach($types  as $type){
+			if(!empty($type)){
+				$types_list[]=$this->ci->db->escape($type);
+			}
+		}
+
+		$types= implode(',',$types_list);
+
+		if ($types!=''){
+			return sprintf('(surveys.type in (%s))',$types);
+		}
+		
+		return FALSE;
+	}
+
 
 	/**
 	*
