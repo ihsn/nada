@@ -16,6 +16,7 @@
     font-weight:normal!important;
 }
 
+<<<<<<< HEAD
 .breadcrumb{
     display:none;
 }
@@ -35,6 +36,8 @@
     display:none;
 }
 
+=======
+>>>>>>> tip - search
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -42,6 +45,7 @@
 
 <div class="container">
 <form method="get" id="catalog-search-form">    
+<<<<<<< HEAD
     <!--
 <pre>
 <?php //print_r($search_options);?>
@@ -49,21 +53,35 @@
 -->
 <input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
 <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
+=======
+
+<input type="hidden" name="tab_type" id="tab_type" value=""/>
+>>>>>>> tip - search
 
 <!--search bar-->
 <div>
     <!--<h5>Catalog search</h5>-->
     <div class="row mb-5 justify-content-center align-items-center">
+<<<<<<< HEAD
         <div class="input-group col-10 search-box-container">            
         <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
+=======
+        <div class="input-group col-10">
+            <div class="mr-3 mt-2"><strong>Catalog search</strong></div>
+        <input class="form-control py-2 search-keywords" id="search-keywords" name="sk" value="" >
+>>>>>>> tip - search
         <span class="input-group-append">
             <button class="btn btn-outline-secondary" type="submit" id="submit_search">
                 <i class="fa fa-search"></i>
             </button>
+<<<<<<< HEAD
             <!--<a class="btn btn-link btn-sm" href="<?php echo site_url('catalog');?>">Reset</a>-->
             <a href="<?php echo site_url('catalog');?>" class="close clear-search-button" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </a>
+=======
+            <a class="btn btn-link btn-sm" href="<?php echo site_url('catalogue');?>">Reset</a>
+>>>>>>> tip - search
         </span>
         </div>
     </div>
