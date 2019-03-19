@@ -221,14 +221,7 @@ li.nav-item.dropdown .fa {
   .survey-row h2,
   .survey-row h3 {
     margin-top: 10px; }
-  .citation-row img,
-  .survey-row img {
-    margin-top: 1rem;
-    max-width: 100%;
-    height: auto;
-    margin-left: auto;
-    margin-right: auto;
-    display: block; }
+
   .citation-row .study-country,
   .citation-row .sub-title,
   .citation-row .owner-collection,
