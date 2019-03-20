@@ -351,8 +351,9 @@ class DDI2Reader
             'label' => 'Keyword',
             'type' => 'table',
             'cols' => array(
-                '.' => 'keyword',
-                '@uri' => 'uri',
+                '.' => 'keyword',                
+                '@vocab'=>'vocab',
+                '@uri' => 'uri'
             )
         );
 
