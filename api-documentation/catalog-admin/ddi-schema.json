@@ -534,10 +534,14 @@
                     "title":"Keyword",
                     "type":"string"
                   },
+                  "vocab":{
+                    "title":"Vocabulary",
+                    "type":"string"
+                  },
                   "uri":{
                     "title":"uri",
                     "type":"string"
-                  }
+                  }                  
                 }
               }
             },
