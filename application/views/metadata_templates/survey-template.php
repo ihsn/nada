@@ -78,7 +78,7 @@
 <!-- producers_sponsors -->
 <?php $output['producers_sponsors']= render_group('producers_sponsors',
     $fields=array(
-            "authoring_entity"=>'array',
+            "metadata.study_desc.authoring_entity"=>'array',
             "metadata.study_desc.production_statement.producers"=>'array',
             "metadata.study_desc.production_statement.funding_agencies"=>'array',
             "metadata.study_desc.oth_id"=>'array'
