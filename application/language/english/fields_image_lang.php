@@ -153,13 +153,14 @@ $lang['metadata.image_description.files.file_uri']='File';
 $lang['metadata.image_description.files.show']='Show';
 
 $lang['metadata.image_description.album']='Albums';
-$lang['metadata.image_description.album.name']='Albums';
+$lang['metadata.image_description.album.name']='Name';
 $lang['metadata.image_description.album.description']='Description';
 $lang['metadata.image_description.album.owner']='Owner';
 $lang['metadata.image_description.album.uri']='URI';
 
 
 $lang['files']='Files';
+$lang['album']='Albums';
 $lang['image_description']='Image description';
 $lang['metadata_production']='Metadata production';
 $lang['identification']='Identification';
