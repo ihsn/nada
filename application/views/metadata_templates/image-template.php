@@ -184,6 +184,14 @@
 ?>
 
 
+<?php $output['album']= render_group('album',
+    $fields=array(
+        "metadata.image_description.album"=>"array"
+    ),
+    $metadata);
+?>        
+
+
 <?php $output['files']= render_group('files',
     $fields=array(
         "metadata.image_description.files"=>"array",
