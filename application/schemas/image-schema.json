@@ -81,34 +81,89 @@
 			}
 		},
 		"image_description":{
-			"allOf": [{ 
-				"$ref": "../schemas/iptc-pmd-schema.json" 
-			}]
-		},
-		"files": {
-			"type": "array",
-			"title": "Files",
-			"description": "Files",
-			"items":{
-				"type":"object",
-				"properties":{
-					"file_uri": {
-						"title": "File name",
-						"description":"File name or URL",
-						"type": "string"
-					},
-					"format": {
-						"title": "File format",
-						"description": "The file format, physical medium, or dimensions of the resource.",
-						"type": "string"              
-					},
-					"note": {
-						"title": "Notes",
-						"type": "string"              
+			"type": "object",
+			"properties": {
+				"iptc": {
+					"allOf": [{ "$ref": "../schemas/iptc-pmd-schema.json" }]
+				},
+				"license": {
+					"type": "array",
+					"title": "License",          
+					"items": {
+						"type": "object",
+						"properties": {
+						"name": {
+							"title": "License",
+							"type": "string"
+						},
+						"uri": {
+							"title": "URI",
+							"type": "string"
+						}
+						}
 					}
 				},
-				"required": ["file_uri"]
+				"album": {
+					"type": "array",
+					"title": "Album",          
+					"items": {
+					  "type": "object",
+					  "properties": {
+						"name": {
+						  "title": "Name of album",
+						  "type": "string"
+						},
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"owner": {
+							"title": "Owner",
+							"type": "string"
+						},
+						"uri": {
+						  "title": "URI",
+						  "type": "string"
+						}
+					  }
+					}
+				  },
+				"files": {
+					"type": "array",
+					"title": "Files",
+					"description": "Files",
+					"items":{
+						"type":"object",
+						"properties":{
+							"file_uri": {
+								"title": "File name",
+								"description":"File name or URL",
+								"type": "string"
+							},
+							"format": {
+								"title": "File format",
+								"description": "The file format, physical medium, or dimensions of the resource.",
+								"type": "string"              
+							},
+							"note": {
+								"title": "Notes",
+								"type": "string"              
+							},
+							"show": {
+								"title": "Show file (images only)",
+								"description": "Show the image file on the page",
+								"type": "boolean"
+							}
+						},
+						"required": ["file_uri"]
+					}
+				}
 			}
 		}
-	}
+	},
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
+    }
 }
