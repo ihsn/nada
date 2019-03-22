@@ -35,6 +35,7 @@ class Catalog_search_mysql{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
+						'rank'=>'rank',
 						'title'=>'title',
 						'country'=>'nation',
 						'year'=>'year_start',
@@ -101,42 +102,54 @@ class Catalog_search_mysql{
 		$dtype=$this->_build_dtype_query();
 		$sid=$this->_build_sid_query();
         $countries_iso3=$this->_build_countries_iso3_query();
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-		
+		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_by='title';
-		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
-		{
+		
+		//order desc by RANK for keyword search
+		if(!empty($study) && empty($this->sort_by)){
+			$this->sort_by='rank';
+			$this->sort_order='desc';
+		}
+
+
+		if (array_key_exists($this->sort_by,$this->sort_allowed_fields)){
 			$sort_by=$this->sort_allowed_fields[$this->sort_by];
 		} 
-		else
-		{
-			if ($this->ci->config->item("regional_search")=='yes')
-			{
+		/*else{
+			if ($this->ci->config->item("regional_search")=='yes'){
 				$sort_by='country';
 			}		
-		}
+		}*/
+
+		//no sort_by set?
+		
+		
 
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
-		if ($sort_by=='country')
-		{
+		if ($sort_by=='country'){
 			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
 			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
             $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
-		elseif ($sort_by=='title')
-		{
+		elseif ($sort_by=='title'){
 			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
 			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
             $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
-		if ($sort_by=='year')
-		{
+		if ($sort_by=='year'){
 			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
 			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
             $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
 		}
+
+		if($sort_by=='rank' && !empty($study)){
+			$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>'desc');
+		}
+
+		//var_dump($sort_by);
+		//var_dump($sort_order);
 		
 		//array of all options
 		$where_list=array($type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
@@ -162,6 +175,11 @@ class Catalog_search_mysql{
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end, surveys.thumbnail';
 		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+
+		//add ranking if keywords are not empty
+		if(!empty($study)){
+			$study_fields.=', '.$study. ' as rank';
+		}
 
 		//build final search sql query
 		$sql='';
@@ -367,13 +385,19 @@ class Catalog_search_mysql{
 		$study_fulltext_index='keywords';
 		$study_keywords=str_replace(array('"',"'"), '',$study_keywords);
 		
-		if (strlen($study_keywords)>3)
-		{		
+		if (strlen($study_keywords)>2)
+		{
+			$study_keywords=explode(" ",$study_keywords);
+			foreach($study_keywords as $key=>$keyword){
+				$study_keywords[$key]='+' . '"'.$keyword.'"';
+			}
+			$study_keywords=implode(" ",$study_keywords);
+			
 			//build the sql where using FULLTEXT
 			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
 			return $sql;
 		}
-		else if(strlen($study_keywords)==3)
+		/*else if(strlen($study_keywords)==3)
 		{
 			//sql using REGEX for keywords shorter or equal to 3 characters
 			$study_keywords=sprintf("[[:<:]]%s[[:>:]]",$study_keywords);
@@ -382,7 +406,7 @@ class Catalog_search_mysql{
 			$sql.=sprintf('%s REGEXP (%s)','surveys.abbreviation',$this->ci->db->escape($study_keywords));
 			$sql='('.$sql.')';
 			return $sql;
-		}
+		}*/
 		else
 		{
 			return FALSE;
