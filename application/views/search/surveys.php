@@ -37,7 +37,7 @@
 	}
 
 	//current page url with query strings
-	$page_url=site_url().'/catalogue/';		
+	$page_url=site_url().'/catalog/';		
 	
 	//page querystring for variable sub-search
 	$variable_querystring=get_querystring( array('sk', 'vk', 'vf'));
@@ -52,7 +52,7 @@
         <!-- survey-row -->
         <div class="survey-row featured-study">
             <span class="badge badge-warning featured-study-tag"><?php echo t('featured_study');?></span>
-            <div class="row" data-url="<?php echo site_url('catalogue/'.$featured_studies['id']);?>" title="View study">
+            <div class="row" data-url="<?php echo site_url('catalog/'.$featured_studies['id']);?>" title="View study">
                 <div class="col-2 col-lg-1">
                     <i class="icon-da icon-da-<?php echo $featured_studies['model'];?>" title="<?php echo t("legend_data_".$featured_studies['model']);?>"></i>
                 </div>
@@ -83,7 +83,7 @@
                     <div class="survey-stats">
                         <span><?php echo t('created_on');?>: <?php echo date('M d, Y',$featured_studies['created']);?></span>
                         <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$featured_studies['changed']);?></span>
-                        <span><?php echo t('views');?>: <?php echo (int)$featured_studies['total_views'];?></span>
+                        <span><?php echo t('views');?>: <?php echo (int)$featured_studies['total_views'];?></span>                        
                     </div>
                 </div>
             </div>
@@ -208,6 +208,10 @@
                 <?php if ((int)$row['total_views']>0):?>
                     <span><?php echo t('views');?>: <?php echo (int)$row['total_views'];?></span>
                 <?php endif;?>
+                <?php if(isset($row['rank'])):?>
+                    <span> Score: <?php echo $row['rank'];?></span>
+                <?php endif;?>
+
                 <?php /* ?>
                 <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
                 <?php */?>
@@ -254,7 +258,7 @@
             <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
                 <nav aria-label="Page navigation">
                     <?php
-                    $pager_bar=(pager($surveys['found'],$surveys['limit'],$current_page,5));
+                    $pager_bar=(pager($surveys['found'],$surveys['limit'],$current_page,5,'catalog'));
                     echo $pager_bar;
                     ?>
                 </nav>
