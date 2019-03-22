@@ -9,7 +9,7 @@ $item_limit=0;
         <div class="form-check any">
             <label class="form-check-label" for="type-any" <?php echo t('any');?> >
                 <input class="form-check-input chk-any" id="type-any" type="checkbox" <?php echo $search_options->type!="" ? '' : 'checked="checked"';?>>
-                <small><strong><?php echo t('any');?></strong></small>
+                <span><strong><?php echo t('any');?></strong></span>
             </label>
         </div>
         <div class="items-container  types-items <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
@@ -23,7 +23,7 @@ $item_limit=0;
                                 <?php if($search_options->type!='' && in_array($type['code'],$search_options->type)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <small><?php echo $type['title']; ?> <span>(<?php echo $type['found']; ?>)</span></small>
+                            <span><?php echo $type['title']; ?> <span>(<?php echo $type['found']; ?>)</span></span>
                         </label>
                     </div>
                 <?php endforeach;?>
