@@ -12,7 +12,10 @@
                 <div class="col-12 col-lg-12">
                     <h5>
                         <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
-                            <?php echo $row['nation']. ' - '. $row['title'];?>
+                            <?php if($row['nation']):?>
+                                <?php echo $row['nation']. ' - ';?>    
+                            <?php endif;?>    
+                                <?php echo $row['title'];?>
                         </a>
                     </h5>
 
