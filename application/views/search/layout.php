@@ -16,6 +16,25 @@
     font-weight:normal!important;
 }
 
+.breadcrumb{
+    display:none;
+}
+
+#catalog-search-form{
+    margin-top:50px;
+}
+
+.search-box-container{
+    position:relative;
+}
+
+.clear-search-button {
+    position: absolute;
+    right: 64px;
+    top: 9px;
+    display:none;
+}
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -23,21 +42,28 @@
 
 <div class="container">
 <form method="get" id="catalog-search-form">    
-
-<input type="hidden" name="tab_type" id="tab_type" value=""/>
+    <!--
+<pre>
+<?php //print_r($search_options);?>
+</pre>
+-->
+<input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
+<input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
 
 <!--search bar-->
 <div>
     <!--<h5>Catalog search</h5>-->
     <div class="row mb-5 justify-content-center align-items-center">
-        <div class="input-group col-10">
-            <div class="mr-3 mt-2"><strong>Catalog search</strong></div>
-        <input class="form-control py-2 search-keywords" id="search-keywords" name="sk" value="" >
+        <div class="input-group col-10 search-box-container">            
+        <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
         <span class="input-group-append">
             <button class="btn btn-outline-secondary" type="submit" id="submit_search">
                 <i class="fa fa-search"></i>
             </button>
-            <a class="btn btn-link btn-sm" href="<?php echo site_url('catalogue');?>">Reset</a>
+            <!--<a class="btn btn-link btn-sm" href="<?php echo site_url('catalog');?>">Reset</a>-->
+            <a href="<?php echo site_url('catalog');?>" class="close clear-search-button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
         </span>
         </div>
     </div>
@@ -110,25 +136,32 @@
         $('#catalog-search-form').trigger("reset");
         jQuery.each(State.data.page_state_data.search_options, function( i, field ) {
             elements=$("[name='" + field.name + "']");
-            console.log(elements.prop("tagName"));
-            console.log(elements.length);
             
             if (elements.prop("type")=='checkbox'){
                 named_el=$("[name='" + field.name + "'][value='"+field.value+"']");
                 named_el.prop("checked",true);
             }
             else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
-                console.log(elements);
                 elements.prop("value",field.value);
-                console.log("value updated", field.name, field.value);
             }
-            
+
         });
+    }
+
+    function toggle_reset_search_button()
+    {
+        if (!$("#search-keywords").val()){
+            $(".clear-search-button").hide();
+        }
+        else{
+            $(".clear-search-button").show();
+        }
     }
 
 $(document).ready(function() 
 {	
-    
+    toggle_reset_search_button();
+
     var State=History.getState();
 
     if(!State.data.page_state_data){
@@ -145,11 +178,21 @@ $(document).ready(function()
     }else{
         //load current state
         load_current_state();
+
+        //todo: use cache instead?
+        search();
+
+        toggle_reset_search_button();
     }
     
+
+    function reset_page(){
+        $("#page").val(1);
+    }    
+
     //submit search form
     $(document.body).on("click","#submit_search", function(){                    
-        
+        reset_page();
         search();
         return false;
     });
@@ -159,17 +202,30 @@ $(document).ready(function()
         $( "#search-result-container" ).html('loading, please wait ...');
         let search_state=$("#catalog-search-form").serialize();
 
-        $.get('<?php echo site_url('catalogue/search');?>?'+search_state, function( data ) {
+        $.get('<?php echo site_url('catalog/search');?>?'+search_state, function( data ) {
             $( "#search-result-container" ).html( data );
             let page_state_data={
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
-            History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
-        });
+            History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);            
+        });        
     }
 
     $(document.body).on("click",".dataset-type-tab", function(){
+
+        $( ".chk-type").prop("checked",false);
+        el=$("[name='type[]'][value='"+ $(this).attr("data-value") +"']");
+        el.prop("checked",true);
+        reset_page();
+        $( "#tab_type" ).val($(this).attr("data-value"));
+        
+        window.location.href='<?php echo site_url('catalog');?>?'+$("#catalog-search-form").serialize();
+
+
+        /*
+        NOTE: no need to track tab_type states, simply load the whole page
+
         $( ".chk-type").prop("checked",false);
         el=$("[name='type[]'][value='"+ $(this).attr("data-value") +"']");
         el.prop("checked",true);
@@ -179,16 +235,25 @@ $(document).ready(function()
         $(this).addClass("active");
         search();
         return false;
+        */
+    });
+
+    //pagination link
+    $(document.body).on("click",".pagination .page-link", function(){        
+        $( "#page" ).val($(this).attr("data-page"));
+        search();
+        return false;
     });
 
     $(document.body).on("change",".filters-container .chk, .filters-container select", function(){        
         search();        
     });
     
-    $(document.body).on("keypress",".search-keywords", function(){    
-        var code = e.keyCode || e.which;
+    $(document.body).on("keypress",".search-keywords", function(e){    
+        var code = e.keyCode;
+        toggle_reset_search_button();
         if(code==13){
-            search();
+            $('#submit_search').trigger("click");
             return false;
         }
     });

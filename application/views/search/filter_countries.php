@@ -10,7 +10,7 @@
             <div class="form-check">
                 <label class="form-check-label country any country-any">
                     <input class="form-check-input chk-country-any chk-any"  id="country-any"  <?php echo $search_options->country!="" ? '' : 'checked="checked"';?> type="checkbox" value="">
-                    <small><strong><?php echo t('any');?></span></strong></small>
+                    <span><strong><?php echo t('any');?></span></strong></span>
                 </label>
             </div>
             <?php if($countries):?>
@@ -23,8 +23,8 @@
                                 <?php if($search_options->country!='' && in_array($country['cid'],$search_options->country)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <small><?php echo $country['nation']; ?><span class="count">(<?php echo $country['surveys_found']; ?>)
-                                </span></small>
+                            <span><?php echo $country['nation']; ?><span class="count">(<?php echo $country['surveys_found']; ?>)
+                                </span></span>
                         </label>
                     </div>
                 <?php endforeach;?>
