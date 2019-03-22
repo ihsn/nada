@@ -1359,14 +1359,22 @@ CREATE TABLE `featured_surveys` (
 -- Table structure for table `survey_types`
 --
 
-CREATE  TABLE `survey_types` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
-  `title` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `title_UNIQUE` (`title` ASC) )
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_general_ci;
+CREATE TABLE `survey_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL,
+  `title` varchar(250) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `title_UNIQUE` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'survey','Survey');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'geospatial','Geospatial');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'timeseries','Time series');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'document','Document');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'table','Table');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'image','Photo');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'script','Script');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'visualization','Visualization');
 
 
 -- 
