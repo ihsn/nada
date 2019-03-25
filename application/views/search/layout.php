@@ -30,8 +30,9 @@
 
 .clear-search-button {
     position: absolute;
-    right: 64px;
+    right: 100px;
     top: 9px;
+    z-index:999;
     display:none;
 }
 
@@ -56,6 +57,11 @@
     padding:0px;
 }
 
+.btn-search-submit{
+    padding-left:30px;
+    padding-right:30px;
+}
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -75,10 +81,10 @@
 <div>
     <!--<h5>Catalog search</h5>-->
     <div class="row mb-5 justify-content-center align-items-center">
-        <div class="input-group col-md-10 search-box-container">            
+        <div class="input-group col-md-12 col-xl-10 search-box-container">            
         <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
         <span class="input-group-append">
-            <button class="btn btn-outline-secondary" type="submit" id="submit_search">
+            <button class="btn btn-outline-primary btn-search-submit" type="submit" id="submit_search">
                 <i class="fa fa-search"></i>
             </button>
             <!--<a class="btn btn-link btn-sm" href="<?php echo site_url('catalog');?>">Reset</a>-->

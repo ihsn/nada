@@ -67,7 +67,7 @@ if (!isset($_GET['collection']))
     <div class="active-filters">
         <?php if (is_array($search_options->type)):?>
             <?php foreach($search_options->type as $type):?>                
-                    <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="type" data-value="<?php echo $type;?>"><?php echo $type;?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="type[]" data-value="<?php echo $type;?>"><?php echo $type;?><i class="fa fa-close"></i></span>
             <?php endforeach;?>
         <?php endif;?>
         <?php if (is_array($search_options->country)):?>
@@ -96,7 +96,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->collection)):?>
             <?php foreach($search_options->collection as $collection):?>
                 <?php if (array_key_exists($collection,$repositories)):?>
-                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection[]" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close  remove-filter collection" data-type="collection[]" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fa fa-close"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -127,5 +127,7 @@ if (!isset($_GET['collection']))
             <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo substr($search_options->sid,0,50).'... ';?><i class="fa fa-close"></i></span>
         <?php endif;?>
     </div>
+
+    
 
 </div>
