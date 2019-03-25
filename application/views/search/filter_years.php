@@ -7,7 +7,7 @@
         <form>
             <div class="form-group mb-0">
                 <input type="hidden"/>
-                <?php echo form_dropdown('from', $years, ((isset($search_options->from) && $search_options->from!='') ? $search_options->from : end($years)), 'id="from"  class="form-control"'); ?>
+                <?php echo form_dropdown('from', $years, ((isset($search_options->from) && $search_options->from!='') ? $search_options->from : current($years)), 'id="from"  class="form-control"'); ?>
             </div>
             <p class="mb-0"><?php echo t('and');?></p>
             <div class="form-group">
