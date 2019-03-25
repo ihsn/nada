@@ -35,6 +35,27 @@
     display:none;
 }
 
+
+
+.nav-tabs-auto-overflow {
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: -webkit-box;
+  display: -moz-box;
+}
+.nav-tabs-auto-overflow >li {
+  float: none;
+}
+
+.filters-container{
+    width:100%;
+}
+
+.navbar-toggler-filter,
+.navbar-expand-filters{
+    padding:0px;
+}
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -54,7 +75,7 @@
 <div>
     <!--<h5>Catalog search</h5>-->
     <div class="row mb-5 justify-content-center align-items-center">
-        <div class="input-group col-10 search-box-container">            
+        <div class="input-group col-md-10 search-box-container">            
         <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
         <span class="input-group-append">
             <button class="btn btn-outline-secondary" type="submit" id="submit_search">
@@ -69,7 +90,8 @@
     </div>
 </div>
 
-<ul class="nav nav-tabs mb-5 search-nav-tabs">
+<div>
+<ul class="nav nav-tabs nav-tabs-auto-overflow mb-5 search-nav-tabs =">
     <li class="nav-item">
         <a class="dataset-type-tab nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All</a>
     </li>
@@ -88,20 +110,29 @@
     <?php endforeach;?>
         
     </ul>
-
+</div>
 
 
 
 
 <div class="row">
     <!--left side bar -->
-    <div class="col-3">
+    <div class="col-12 col-lg-3 col-md-4">
 
-        <div class="filters-container">
-            <?php foreach($filters as $filter):?>
-                <?php echo $filter;?>
-            <?php endforeach;?>
-        </div>
+        <nav class="navbar navbar-expand-sm navbar-expand-filters">
+            
+            <button class="navbar-toggler btn-block navbar-toggler-filter" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="btn btn-outline-secondary btn-block" xstyle="font-size:12px"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+                <div class="filters-container">
+                    <?php foreach($filters as $filter):?>
+                        <?php echo $filter;?>
+                    <?php endforeach;?>
+                </div>
+            </div>                        
+        </nav>
 
     </div>
     <!-- end left side bar -->
@@ -109,7 +140,7 @@
 
 
     <!-- listing page -->
-    <div class="col-9">
+    <div class="col-lg-9 col-md-8">
         <div id="search-result-container">
             <?php echo $search_output;?>
         </div>
@@ -125,46 +156,24 @@
 </div>
 
 <script>
-    function load_current_state(){
-
-        var State=History.getState();
-
-        if(!State.data.page_state_data){
-            return false;
-        }
-
-        $('#catalog-search-form').trigger("reset");
-        jQuery.each(State.data.page_state_data.search_options, function( i, field ) {
-            elements=$("[name='" + field.name + "']");
-            
-            if (elements.prop("type")=='checkbox'){
-                named_el=$("[name='" + field.name + "'][value='"+field.value+"']");
-                named_el.prop("checked",true);
-            }
-            else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
-                elements.prop("value",field.value);
-            }
-
-        });
-    }
-
-    function toggle_reset_search_button()
-    {
-        if (!$("#search-keywords").val()){
-            $(".clear-search-button").hide();
-        }
-        else{
-            $(".clear-search-button").show();
-        }
-    }
-
 $(document).ready(function() 
-{	
+{
+    var page_first_load=true;
+
     toggle_reset_search_button();
 
     var State=History.getState();
 
     if(!State.data.page_state_data){
+        
+        console.log("setting first loaded page state");
+        page_first_load=false;
+        let search_state=$("#catalog-search-form").serialize();
+        let page_state_data={
+                'search_options': $("#catalog-search-form").serializeArray(),
+                'search_results': null
+            };
+        History.replaceState({state:search_state,page_state_data}, search_state, "?"+search_state);
         /*//store current page
         let search_state=$("#catalog-search-form").serialize();
         let page_state_data={
@@ -180,7 +189,7 @@ $(document).ready(function()
         load_current_state();
 
         //todo: use cache instead?
-        search();
+        //search();
 
         toggle_reset_search_button();
     }
@@ -193,14 +202,47 @@ $(document).ready(function()
     //submit search form
     $(document.body).on("click","#submit_search", function(){                    
         reset_page();
-        search();
+        change_state();
         return false;
     });
 
+    $(document.body).on("click",".remove-filter", function(){
+
+        name=$(this).attr("data-type");
+        value=$(this).attr("data-value");
+
+        console.log(name, value);
+        el_name="[name='" + name + "']," + "[name='" + name + "[]']";
+        console.log(el_name);
+        elements=$(el_name);
+
+        console.log(elements);
+        window.x=elements;
+
+
+        if (elements.prop("type")=='checkbox'){
+            named_el=$("[name='" + name + "'][value='"+value+"']");
+            console.log(named_el);
+            named_el.prop("checked",false);
+            console.log(named_el);
+        }
+        else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
+            elements.prop("value",'');
+        }
+        
+
+        $(this).hide();
+        change_state();
+        
+    });
+
+
     function search()
     {
+        console.log("Starting search");
         $( "#search-result-container" ).html('loading, please wait ...');
         let search_state=$("#catalog-search-form").serialize();
+        console.log(search_state);
 
         $.get('<?php echo site_url('catalog/search');?>?'+search_state, function( data ) {
             $( "#search-result-container" ).html( data );
@@ -208,8 +250,20 @@ $(document).ready(function()
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
-            History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);            
+            //History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);            
         });        
+    }
+
+    //call this for search
+    function change_state()
+    {
+        console.log("change_state called");        
+        let search_state=$("#catalog-search-form").serialize();
+        let page_state_data={
+                'search_options': $("#catalog-search-form").serializeArray(),
+                'search_results': null
+            };
+        History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
     }
 
     $(document.body).on("click",".dataset-type-tab", function(){
@@ -241,12 +295,12 @@ $(document).ready(function()
     //pagination link
     $(document.body).on("click",".pagination .page-link", function(){        
         $( "#page" ).val($(this).attr("data-page"));
-        search();
+        change_state();
         return false;
     });
 
     $(document.body).on("change",".filters-container .chk, .filters-container select", function(){        
-        search();        
+        change_state();  
     });
     
     $(document.body).on("keypress",".search-keywords", function(e){    
@@ -266,10 +320,67 @@ $(document).ready(function()
         window.data=State.data;
         console.log("loading state");
         console.log(State);
-        $( "#search-result-container" ).html(State.data.search_results);        
+        //$( "#search-result-container" ).html(State.data.search_results);        
 
         load_current_state();
     });
+
+
+
+    function load_current_state(){
+
+        console.log(page_first_load);
+        if(page_first_load==true){
+            console.log("page_first_load==true");
+            page_first_load=false;
+            return;
+        }
+
+        var State=History.getState();
+
+        if(!State.data.page_state_data){
+            console.log("no current state found, exiting");
+            return false;
+        }
+        console.log("load_current_state");
+
+        //$('#catalog-search-form').trigger("reset");
+        reset_all_filters();
+        jQuery.each(State.data.page_state_data.search_options, function( i, field ) {
+            elements=$("[name='" + field.name + "']");
+            
+            if (elements.prop("type")=='checkbox'){
+                named_el=$("[name='" + field.name + "'][value='"+field.value+"']");
+                named_el.prop("checked",true);
+            }
+            else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
+                elements.prop("value",field.value);
+            }
+        });
+
+        //only time search function should be called
+        search();
+    }
+
+
+    function reset_all_filters()
+    {
+        //uncheck all checkboxes
+        $(".filters-container .chk").prop("checked",false);
+
+        //reset  select
+        $(".filter-container .form-control").prop("value",'');
+        }
+
+        function toggle_reset_search_button()
+        {
+        if (!$("#search-keywords").val()){
+            $(".clear-search-button").hide();
+        }
+        else{
+            $(".clear-search-button").show();
+        }
+    }
 });
 </script>
 

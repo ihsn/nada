@@ -27,18 +27,20 @@ if (!isset($_GET['collection']))
 ?>
 <div class="active-filters-container">
     <div class="row mb-3">
-
-        <div class="col-12 col-md-6 col-lg-4 text-center text-md-left">
+        <!--
+        <div class="col-4 col-md-4 text-center text-md-left">
             <div class="search-count font-weight-bold"><?php echo number_format($found). ' '. t('results');//sprintf($items_found,$found,$total);?></div>
         </div>
-
-        <div class="col-12 col-md-6 col-lg-8 mt-2 mt-md-0 text-center text-md-right">
+        -->
+        
+        <div class="col-12 col-md-12 mt-2 mt-md-0 text-center text-md-right">
             <div class="filter-action-bar">
                 <span>
                     <?php if($found>0):?>
+                    <div class="search-count font-weight-bold float-left"><?php echo number_format($found). ' '. t('results');//sprintf($items_found,$found,$total);?></div>
                     <div class="form-inline float-right">
-                     <label for="sort-by-select" class="sort-by-label pr-2">
-                        <span class="sort-by-title">Sort By:&nbsp;</span>
+                     <label for="sort-by-select" class="sort-by-label">
+                        <span class="sort-by-title d-none d-sm-block">Sort By:&nbsp;</span>
                         <select class="form-control form-control-sm sort-dropdown" id="sort-by-select">
                             <option value="relevance"  data-sort="desc">Relevance</option>
                             <option value="popularity"  data-sort="desc">Popularity</option>
@@ -51,8 +53,8 @@ if (!isset($_GET['collection']))
                         </select>
                     </label>
 
-                    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm mr-2"><i class="fa fa-print"></i></a>
-                    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm"><i class="fa fa-file-excel-o"></i></a>
+                    <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm ml-2 mr-2 d-none d-sm-block"><i class="fa fa-print"></i></a>
+                    <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm d-none d-sm-block"><i class="fa fa-file-excel-o"></i></a>
                     </div>
 
                   
@@ -71,7 +73,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->country)):?>
             <?php foreach($search_options->country as $country):?>
                 <?php if (array_key_exists($country,$countries)):?>
-                    <span class="badge badge-default wb-badge-close remove-filter country" data-type="country" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close remove-filter country" data-type="country[]" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?><i class="fa fa-close"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -94,7 +96,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->collection)):?>
             <?php foreach($search_options->collection as $collection):?>
                 <?php if (array_key_exists($collection,$repositories)):?>
-                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection[]" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fa fa-close"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -102,7 +104,7 @@ if (!isset($_GET['collection']))
         <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
             <?php foreach($search_options->dtype as $dtype):?>
                 <?php if (array_key_exists($dtype,$data_access_types)):?>
-                    <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype[]" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?><i class="fa fa-close"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
