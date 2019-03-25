@@ -369,6 +369,47 @@ class Catalog_search_mysql{
 		return $output;
 	}
 
+
+
+	/**
+	 * 
+	 * 
+	 * Parse mysql fulltext search keywords
+	 * 
+	 */
+	function parse_fulltext_keywords($keywords){
+
+		//remove fulltext operators
+		$text = preg_replace('/[+><\(\)~\"@]+/', ' ', $keywords);
+		$text = preg_replace('/[-]+/', '-', $text);
+		$text = preg_replace('/[*]+/', '*', $text);
+
+		//$text=str_replace('++','',$text);
+		//$text=str_replace('--','',$text);
+
+		$prefixes=array(
+			'-',
+			'+'
+		);
+				
+		$words=explode(" ", $text);
+		$output=array();
+
+
+		foreach($words as $word){
+			$prefix=substr($word,0,1);
+			//has prefix?
+			if(in_array($prefix,$prefixes) && strlen(trim($word))>3){
+				$output[]=$word;
+			}else{
+				if (strlen(trim($word))>=3){
+					$output[]='+'.$word;//default AND
+				}
+			}			
+		}
+		return implode("",$output);
+	}
+
 	
 	/**
 	* Build study search
@@ -377,6 +418,10 @@ class Catalog_search_mysql{
 	{
 		//study search keywords
 		$study_keywords=$this->study_keywords;
+
+		if(strlen($study_keywords)<3 || strlen($study_keywords)>100){
+			return false;
+		}
 		
 		//fulltext index name
 		//$study_fulltext_index='surveys.title,surveys.authoring_entity,surveys.nation';
@@ -387,12 +432,14 @@ class Catalog_search_mysql{
 		
 		if (strlen($study_keywords)>2)
 		{
-			$study_keywords=explode(" ",$study_keywords);
+			/*$study_keywords=explode(" ",$study_keywords);
 			foreach($study_keywords as $key=>$keyword){
 				$study_keywords[$key]='+' . '"'.$keyword.'"';
 			}
 			$study_keywords=implode(" ",$study_keywords);
-			
+			*/
+			$study_keywords=$this->parse_fulltext_keywords($study_keywords);
+
 			//build the sql where using FULLTEXT
 			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
 			return $sql;
