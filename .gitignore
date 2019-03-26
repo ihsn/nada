@@ -24,5 +24,6 @@ imports
 files/sessions
 files/public
 files/thumbnails
+vendor
 sample
 system/language/base
