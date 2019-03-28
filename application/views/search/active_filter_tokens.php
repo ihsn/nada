@@ -66,7 +66,8 @@ if (!isset($_GET['collection']))
 
     <div class="active-filters">
         <?php if (is_array($search_options->type)):?>
-            <?php foreach($search_options->type as $type):?>                
+            <?php foreach($search_options->type as $type):?>
+                <?php if ($search_options->tab_type==$type){continue;};?>                
                     <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="type[]" data-value="<?php echo $type;?>"><?php echo $type;?><i class="fa fa-close"></i></span>
             <?php endforeach;?>
         <?php endif;?>

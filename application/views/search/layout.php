@@ -62,6 +62,18 @@
     padding-right:30px;
 }
 
+.lnk-filter-reset{
+    xcolor:blue;
+    xtext-decoration: underline;
+    font-size:small;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.lnk-filter-reset:hover{
+    color:black;
+}
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -103,8 +115,11 @@
     </li>
 
     <?php foreach($tabs['types'] as $tab):?>
+        <?php 
+            $tab_target=site_url("catalog/?tab_type={$tab['code']}");
+        ?>
         <li class="nav-item">
-            <a class="dataset-type-tab nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="#">
+            <a class="dataset-type-tab nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
                 <?php echo $tab['title'];?>
                 <?php if(isset($tabs['search_counts_by_type']) &&  array_key_exists($tab['code'],$tabs['search_counts_by_type'])) :?>
                     <?php  /*<br/><div class="badge badge-secondary">    
@@ -281,21 +296,7 @@ $(document).ready(function()
         $( "#tab_type" ).val($(this).attr("data-value"));
         
         window.location.href='<?php echo site_url('catalog');?>?'+$("#catalog-search-form").serialize();
-
-
-        /*
-        NOTE: no need to track tab_type states, simply load the whole page
-
-        $( ".chk-type").prop("checked",false);
-        el=$("[name='type[]'][value='"+ $(this).attr("data-value") +"']");
-        el.prop("checked",true);
-        $( "#tab_type" ).val($(this).attr("data-value"));
-        window.this_=$(this);
-        $(this).parent().parent().find(".active").removeClass("active");
-        $(this).addClass("active");
-        search();
         return false;
-        */
     });
 
     //pagination link

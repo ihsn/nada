@@ -418,10 +418,6 @@ class Catalog_search_mysql{
 	{
 		//study search keywords
 		$study_keywords=$this->study_keywords;
-
-		if(strlen($study_keywords)<3 || strlen($study_keywords)>100){
-			return false;
-		}
 		
 		//fulltext index name
 		//$study_fulltext_index='surveys.title,surveys.authoring_entity,surveys.nation';
@@ -429,74 +425,58 @@ class Catalog_search_mysql{
 
 		$study_fulltext_index='keywords';
 		$study_keywords=str_replace(array('"',"'"), '',$study_keywords);
-		
-		if (strlen($study_keywords)>2)
-		{
-			/*$study_keywords=explode(" ",$study_keywords);
-			foreach($study_keywords as $key=>$keyword){
-				$study_keywords[$key]='+' . '"'.$keyword.'"';
-			}
-			$study_keywords=implode(" ",$study_keywords);
-			*/
-			$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 
-			//build the sql where using FULLTEXT
-			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
-			return $sql;
+		if(strlen($study_keywords)<3 || strlen($study_keywords)>100){
+			return false;
 		}
-		/*else if(strlen($study_keywords)==3)
-		{
-			//sql using REGEX for keywords shorter or equal to 3 characters
-			$study_keywords=sprintf("[[:<:]]%s[[:>:]]",$study_keywords);
-			$sql=sprintf('%s REGEXP (%s)','surveys.title',$this->ci->db->escape($study_keywords));
-			$sql.=' OR ';
-			$sql.=sprintf('%s REGEXP (%s)','surveys.abbreviation',$this->ci->db->escape($study_keywords));
-			$sql='('.$sql.')';
-			return $sql;
-		}*/
-		else
-		{
-			return FALSE;
+		
+		/*$study_keywords=explode(" ",$study_keywords);
+		foreach($study_keywords as $key=>$keyword){
+			$study_keywords[$key]='+' . '"'.$keyword.'"';
 		}
+		$study_keywords=implode(" ",$study_keywords);
+		*/
+		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
+
+		//build the sql where using FULLTEXT
+		$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
+		return $sql;
 	}
+
+
 			
 	protected function _build_variable_query()
 	{
 		$variable_keywords=trim($this->variable_keywords);
 		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
 	
-		if ($variable_keywords=='')
-		{
+		if ($variable_keywords==''){
 			return FALSE;
 		}
 
-		$tmp_where=NULL;
+		$tmp_where=array();
 		
-		if (strlen($variable_keywords) >3)
-		{
+		if (strlen($variable_keywords) >3){
 			//get fulltext index name
 			$fulltext_index=$this->get_variable_search_field(TRUE);
 
 			//FULLTEXT
 			$tmp_where[]=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($variable_keywords));
 		}	
-		else if (strlen($variable_keywords) ==3)
-		{
-			//get concatenated fields for wild card/regex search
+		/*else if (strlen($variable_keywords) ==3){
 			$regex_fields=$this->get_variable_search_field(FALSE);
-			
-			//REGEXP query 
 			$variable_keywords=sprintf("[[:<:]]%s[[:>:]]",$variable_keywords);
 			$tmp_where[]=sprintf('%s REGEXP (%s)',$regex_fields,$this->ci->db->escape($variable_keywords));
-		}
+		}*/
 				
-		if ($tmp_where!=NULL)
-		{
+		if (!empty($tmp_where)){
 			return '('.implode(' OR ',$tmp_where).')';
 		}
 		
 		return FALSE;
 	}
+
+
 	
 	/**
 	*
