@@ -78,7 +78,11 @@ class Catalog extends MY_Controller {
 
 		//types
 		$types=$this->Search_helper_model->get_dataset_types();
-		$filters['types']=$this->load->view('search/filter_types', array('types'=>$types),true);
+
+		//types filter
+		if(!$active_tab){
+			$filters['types']=$this->load->view('search/filter_types', array('types'=>$types),true);
+		}
 
 		$output['filters']=$filters;
 

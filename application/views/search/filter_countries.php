@@ -3,14 +3,19 @@
 ?>
     <div id="filter-by-country" class="sidebar-filter wb-ihsn-sidebar-filter filter-box filter-by-country">
         <h6 class="togglable"> <i class="fa fa-filter pr-2"></i><?php echo t('filter_by_country');?></h6>
-        <div class="sidebar-filter-index selected-items-count" data-toggle="tooltip" data-placement="top" title="Tooltip for Help">
+        <div class="sidebar-filter-index selected-items-count" data-toggle="tooltip" data-placement="top" title="Countries">
             <?php echo count($countries);?>
         </div>
         <div class="sidebar-filter-entries wb-sidebar-filter-collapse country-items items-container">
-            <div class="form-check">
+            <div class="formx-check">
                 <label class="form-check-label country any country-any">
-                    <input class="form-check-input chk-country-any chk-any"  id="country-any"  <?php echo $search_options->country!="" ? '' : 'checked="checked"';?> type="checkbox" value="">
-                    <span><strong><?php echo t('any');?></span></strong></span>
+                    <!--<input 
+                            class="form-check-input chk-country-any chk-any"  
+                            id="country-any"  <?php echo $search_options->country!="" ? '' : 'checked="checked"';?> 
+                            type="checkbox" value="">
+                    -->        
+                    <span class="lnk-filter-reset"><?php echo t('select_all');?></span> |
+                    <span class="lnk-filter-reset"><?php echo t('clear');?></span>
                 </label>
             </div>
             <?php if($countries):?>
