@@ -80,7 +80,7 @@
             "metadata.document_description.sources.source_doc"=>'text',
 
             "metadata.document_description.keywords"=>'text',
-            "metadata.document_description.topics"=>'text',
+            "metadata.document_description.topics"=>'array',
             "metadata.document_description.audience"=>'text',
             "metadata.document_description.location"=>'text',
             "metadata.document_description.mandate"=>'text',
