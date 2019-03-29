@@ -33,7 +33,7 @@ if(isset($metadata['metadata']['table_description']['file'])){
     $fields=array(
             "metadata.table_description.title_statement.title"=>'text',
             "metadata.table_description.title_statement.idno"=>'text',
-            "metadata.table_description.id_numbers"=>'array_comma',            
+            "metadata.table_description.id_numbers"=>'array',            
             "metadata.table_description.title_statement.sub_title"=>'text',
             "metadata.table_description.title_statement.alternate_title"=>'text',
             "metadata.table_description.title_statement.translated_title"=>'text',
