@@ -247,7 +247,10 @@ class Catalog extends MY_Controller {
 			$data['data_access_types']=$this->Form_model->get_form_list();
 			$data['search_type']='variable';
 			return $data;
+		}
 
+		if($search_options->tab_type!=''){
+			$search_options->type=$search_options->tab_type;
 		}
 
 		$params=array(
@@ -268,6 +271,12 @@ class Catalog extends MY_Controller {
             'country_iso3'=>$search_options->country_iso3,
 		);
 
+		
+
+		/*echo '<pre>';
+		var_dump($search_options);
+		echo '</pre>';
+		*/
 
 		$this->load->library('catalog_search',$params);
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
