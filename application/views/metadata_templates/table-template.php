@@ -47,6 +47,7 @@ if(isset($metadata['metadata']['table_description']['file'])){
 
             "metadata.table_description.version"=>'text',
             "metadata.table_description.data_sources"=>'array',
+            "metadata.table_description.time_periods"=>'array',
             "metadata.table_description.table_series"=>'array',
             "metadata.table_description.ref_country"=>'array',            
             

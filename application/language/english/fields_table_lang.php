@@ -43,9 +43,9 @@ $lang['metadata.table_description.universe']='Universe';
 $lang['metadata.table_description.data_sources']='Data source(s)';
 $lang['metadata.table_description.data_sources.source']='Source';
 
-$lang['metadata.table_description.time_period']='Time period';
-$lang['metadata.table_description.time_period.from']='Start year';
-$lang['metadata.table_description.time_period.to']='End year';
+$lang['metadata.table_description.time_periods']='Time periods';
+$lang['metadata.table_description.time_periods.from']='Start year';
+$lang['metadata.table_description.time_periods.to']='End year';
 
 
 $lang['metadata.table_description.authoring_entity']='Authoring entity';
@@ -82,7 +82,7 @@ $lang['metadata.table_description.table_rows.label']='Label';
 $lang['metadata.table_description.statistics']='Statistics';
 $lang['metadata.table_description.statistics.value']='Value';
 
-$lang['metadata.table_description.unit_observation']='Unit observation';
+$lang['metadata.table_description.unit_observation']='Unit of observation';
 $lang['metadata.table_description.unit_observation.value']='Value';
 
 $lang['metadata.table_description.universe']='Universe';
