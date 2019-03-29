@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Violet\\StreamingJsonEncoder\\' => array($vendorDir . '/violet/streaming-json-encoder/src'),
+    'Slim\\Csrf\\' => array($vendorDir . '/slim/csrf/src'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'Mpdf\\' => array($vendorDir . '/mpdf/mpdf/src'),
