@@ -37,7 +37,9 @@ if(isset($metadata['metadata']['table_description']['file'])){
             "metadata.table_description.title_statement.sub_title"=>'text',
             "metadata.table_description.title_statement.alternate_title"=>'text',
             "metadata.table_description.title_statement.translated_title"=>'text',
-                        
+
+            "metadata.table_description.links"=>'array',
+            
             "metadata.table_description.description"=>'text',
             "metadata.table_description.date_produced"=>'text',
             "metadata.table_description.date_released"=>'text',
@@ -52,28 +54,35 @@ if(isset($metadata['metadata']['table_description']['file'])){
             "metadata.table_description.authoring_entity"=>'array',            
             "metadata.table_description.contributor"=>'array',
             "metadata.table_description.publisher"=>'array',
-            
-            "metadata.table_description.table_columns"=>'array',
-            "metadata.table_description.table_rows"=>'array',
+
+
             "metadata.table_description.statistics"=>'text',
             "metadata.table_description.unit_observation"=>'array_comma',
-
             "metadata.table_description.universe"=>'text',
             "metadata.table_description.data_sources"=>'array',
-            "metadata.table_description.data_years_range"=>'array',
-            "metadata.table_description.data_years_list"=>'array_comma',
 
-            "metadata.table_description.geographic_granularity"=>'text',
-            "metadata.table_description.geographic_units"=>'array',
             "metadata.table_description.languages"=>'array',
-            "metadata.table_description.links"=>'array',
-            "metadata.table_description.publications"=>'array',
             "metadata.table_description.keywords"=>'array',
             "metadata.table_description.themes"=>'array',
             "metadata.table_description.topics"=>'array',
+            
+            "metadata.table_description.geographic_granularity"=>'text',
+            "metadata.table_description.citation"=>'text',
+            
+            "metadata.table_description.table_columns"=>'array',
+            "metadata.table_description.table_rows"=>'array',
+            
+            "metadata.table_description.data_years_range"=>'array',
+            "metadata.table_description.data_years_list"=>'array_comma',
+
+            "metadata.table_description.geographic_units"=>'array',
+            
+            
+            "metadata.table_description.publications"=>'array',
+            
             "metadata.table_description.rights"=>'text',
             "metadata.table_description.license"=>'array',
-            "metadata.table_description.citation"=>'text',
+            
             "metadata.table_description.confidentiality"=>'text',
             "metadata.table_description.notes"=>'text',
             "metadata.table_description.relations"=>'array',
