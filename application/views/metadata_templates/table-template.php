@@ -58,18 +58,17 @@ if(isset($metadata['metadata']['table_description']['file'])){
             "metadata.table_description.publisher"=>'array',
 
             "metadata.table_description.languages"=>'array',
-            "metadata.table_description.keywords"=>'array',
-            "metadata.table_description.themes"=>'array',
-            "metadata.table_description.topics"=>'array',
-            
-            "metadata.table_description.geographic_granularity"=>'text',  
-            
+            "metadata.table_description.geographic_granularity"=>'text',              
             "metadata.table_description.statistics"=>'text',
             "metadata.table_description.unit_observation"=>'array_comma',
             "metadata.table_description.universe"=>'text',
-            
+
             "metadata.table_description.table_columns"=>'array',
             "metadata.table_description.table_rows"=>'array',
+
+            "metadata.table_description.keywords"=>'array',
+            "metadata.table_description.themes"=>'array',
+            "metadata.table_description.topics"=>'array',            
             
             "metadata.table_description.data_years_range"=>'array',
             "metadata.table_description.data_years_list"=>'array_comma',
