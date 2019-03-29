@@ -31,9 +31,9 @@ if(isset($metadata['metadata']['table_description']['file'])){
 <!-- identification section -->
 <?php $output['description']= render_group('description',
     $fields=array(
-            "metadata.table_description.title_statement.idno"=>'text',
-            "metadata.table_description.id_numbers"=>'array_comma',
             "metadata.table_description.title_statement.title"=>'text',
+            "metadata.table_description.title_statement.idno"=>'text',
+            "metadata.table_description.id_numbers"=>'array_comma',            
             "metadata.table_description.title_statement.sub_title"=>'text',
             "metadata.table_description.title_statement.alternate_title"=>'text',
             "metadata.table_description.title_statement.translated_title"=>'text',
@@ -46,11 +46,12 @@ if(isset($metadata['metadata']['table_description']['file'])){
             "metadata.table_description.date_changed"=>'text',
 
             "metadata.table_description.version"=>'text',
+            "metadata.table_description.table_series"=>'array',
             "metadata.table_description.ref_country"=>'array',            
             
             "metadata.table_description.file"=>'array',
 
-            "metadata.table_description.table_series"=>'array',
+            
             "metadata.table_description.authoring_entity"=>'array',            
             "metadata.table_description.contributor"=>'array',
             "metadata.table_description.publisher"=>'array',
