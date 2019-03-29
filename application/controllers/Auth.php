@@ -5,6 +5,7 @@ class Auth extends MY_Controller {
     {
         parent::__construct($skip_auth=TRUE);
 
+		$this->load->library('Nada_csrf');
         $this->load->library('ion_auth');
         $this->load->library('session');
         $this->load->library('form_validation');
@@ -18,7 +19,6 @@ class Auth extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('users');
 
-		$this->load->model('token_model');
 		$this->load->driver('captcha_lib');
 
       	//$this->output->enable_profiler(TRUE);
@@ -70,25 +70,8 @@ class Auth extends MY_Controller {
 	function edit_profile()
 	{
 		$this->disable_page_cache();
-
-		//check if user is logged in
 		$this->_is_logged_in();
-
-		//log
-		$this->db_logger->write_log('profile-edit');
-
-		//create a form token
-		if ($this->input->post("form_token"))
-		{
-			//use the one in the postback
-			$this->form_token=$this->input->post("form_token");
-		}
-		else
-		{
-			//create a new token
-			$this->form_token=$this->token_model->create_token();
-		}
-
+		$csrf=$this->nada_csrf->generate_token();
 
 		//currently logged in user
 		$data['user']= $this->ion_auth->get_user($this->session->userdata('user_id'));
@@ -109,20 +92,18 @@ class Auth extends MY_Controller {
 				'country'      => $this->input->post('country'),
 				);
 			$this->ion_auth->update_user($data['user']->id,$update_data);
-
-			//delete the token so form can't be re-submitted
-			$this->token_model->remove_token($this->input->post('form_token'));
-
         	$this->session->set_flashdata('message', t("profile_updated"));
        		redirect("auth/profile", 'refresh');
 		}
-
+		$data['csrf']=$csrf;
 		$content=$this->load->view('auth/profile_edit',$data,TRUE);
 
 		$this->template->write('title', t('edit_profile'),true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
+
+
 
 	/**
 	* checks if a user is logged in, otherwise redirects to the login page
@@ -243,39 +224,17 @@ class Auth extends MY_Controller {
 	function logout()
 	{
         $this->disable_page_cache();
-
 		$this->data['title'] = t("logout");
-
-		//log
-		$this->db_logger->write_log('logout');
-
-        //log the user out
         $logout = $this->ion_auth->logout();
-
-        //redirect them back to the page they came from
         redirect('', 'refresh');
-    }
+	}
+	
 
     //change password
 	function change_password()
 	{
 		$this->disable_page_cache();
-
-		//log
-		$this->db_logger->write_log('change-pass');
-
-   		//create a form token
-		if ($this->input->post("form_token"))
-		{
-			//use the one in the postback
-			$this->form_token=$this->input->post("form_token");
-		}
-		else
-		{
-			//create a new token
-			$this->form_token=$this->token_model->create_token();
-		}
-
+		$csrf=$this->nada_csrf->generate_token();
 	    $use_complex_password=$this->config->item("require_complex_password");
 
 	    $this->form_validation->set_rules('old', t('old_password'), 'required|max_length[20]|xss_clean');
@@ -285,11 +244,11 @@ class Auth extends MY_Controller {
 
 	    if (!$this->ion_auth->logged_in()) {
 	    	redirect('auth/login', 'refresh');
-	    }
+		}
+		
 	    $user = $this->ion_auth->get_user($this->session->userdata('user_id'));
 
-	    if ($this->form_validation->run() == false) //display the form
-		{
+	    if ($this->form_validation->run() == false){
 	        //set the flash data error message if there is one
 	        $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
 
@@ -310,25 +269,18 @@ class Auth extends MY_Controller {
                                                       	  'type'    => 'hidden',
         												  'value'   => $user->id,
         												 );
-
-        	//render
+			$this->data['csrf']=$csrf;
         	$output=$this->load->view('auth/change_password', $this->data,TRUE);
 
 			$this->template->write('content', $output,true);
 			$this->template->write('title', t('change_password'),true);
 			$this->template->render();
-
 	    }
-	    else
-		{
+	    else{
 	        $identity = $this->session->userdata($this->config->item('identity'));
-
 	        $change = $this->ion_auth->change_password($identity, $this->input->post('old'), $this->input->post('new'));
 
-			//delete the token so form can't be re-submitted
-			$this->token_model->remove_token($this->input->post('form_token'));
-
-    		if ($change) { //if the password was successfully changed
+    		if ($change) {
     			$this->session->set_flashdata('message', t('password_changed_success'));
     			$this->logout();
     		}
@@ -338,6 +290,8 @@ class Auth extends MY_Controller {
     		}
 	    }
 	}
+
+
 
 	//forgot password
 	function forgot_password()
@@ -450,24 +404,12 @@ class Auth extends MY_Controller {
 
     //create a new user
 	function _create_user()
-	{
-        $this->data['title'] = t("register");
-        $content=NULL;
+	{		
+		$this->data['title'] = t("register");		
+		$content=NULL;
 
-		//create a form token
-		if ($this->input->post("form_token"))
-		{
-			//use the one in the postback
-			$this->form_token=$this->input->post("form_token");
-		}
-		else
-		{
-			//create a new token
-			$this->form_token=$this->token_model->create_token();
-		}
-
-	$use_complex_password=$this->config->item("require_complex_password");
-
+		$use_complex_password=$this->config->item("require_complex_password");
+		$csrf=$this->nada_csrf->generate_token();
 
         //validate form input
     	$this->form_validation->set_rules('first_name', t('first_name'), 'trim|required|xss_clean|max_length[50]');
@@ -478,7 +420,8 @@ class Auth extends MY_Controller {
 		$this->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|callback_country_valid');
     	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
-		$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
+		//$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
+		$this->form_validation->set_rules('csrf_token', 'CSRF TOKEN', 'trim|callback_validate_token');
     	$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
 
         if ($this->form_validation->run() === TRUE)
@@ -499,14 +442,7 @@ class Auth extends MY_Controller {
 									 'email'=>$email,
 									 'identity'=>$username
         							);
-
-        	//register the user
         	$this->ion_auth->register($username,$password,$email,$additional_data);
-
-			//delete the token so form can't be re-submitted
-			$this->token_model->remove_token($this->input->post('form_token'));
-
-			//show the success message
 			$content=$this->load->view('auth/create_user_confirm',NULL,TRUE);
 
 			//notify admins
@@ -556,13 +492,16 @@ class Auth extends MY_Controller {
                                                       'type'    => 'password',
                                                       'value'   => $this->form_validation->set_value('password_confirm'),
                                                      );
-            $content=$this->load->view('auth/create_user', $this->data,TRUE);
+			$this->data['csrf']=$csrf;	
+			$content=$this->load->view('auth/create_user', $this->data,TRUE);
 		}
-			//render final output
-			$this->template->write('content', $content,true);
-			$this->template->write('title', $this->data['title'],true);
-			$this->template->render();
+
+		//render final output
+		$this->template->write('content', $content,true);
+		$this->template->write('title', $this->data['title'],true);
+		$this->template->render();
     }
+
 
 
 	/**
@@ -574,8 +513,7 @@ class Auth extends MY_Controller {
 	{
 		$output=$this->captcha_lib->check_answer();
 
-		if ($output===FALSE)
-		{
+		if ($output===FALSE){
 			$this->form_validation->set_message('validate_captcha', t('invalid_captcha'));
 		}
 
@@ -584,18 +522,17 @@ class Auth extends MY_Controller {
 
 	/**
 	*
-	* validate form token. avoids duplicate entries
+	* validate CSRF token
 	*
 	*/
-	function validate_token($str)
-	{
-		$exists=$this->token_model->token_exists($str);
-
-		if ($exists===FALSE)
+	function validate_token()
+	{		
+		if (!$this->nada_csrf->validate_token())
 		{
 			$this->form_validation->set_message('validate_token', t('form_already_saved'));
 			return FALSE;
 		}
+
 		return TRUE;
 	}
 
