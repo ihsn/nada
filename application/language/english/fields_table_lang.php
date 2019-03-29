@@ -12,11 +12,11 @@ $lang['metadata.table_description.title_statement.title']='Title';
 $lang['metadata.table_description.title_statement.sub_title']='Subtitle';
 $lang['metadata.table_description.title_statement.alternate_title']='Subtitle';
 $lang['metadata.table_description.title_statement.translated_title']='Translated title';
-$lang['metadata.table_description.title_statement.idno']='Table ID';
+$lang['metadata.table_description.title_statement.idno']='ID';
 
 $lang['metadata.table_description.description']='Description';
 
-$lang['metadata.table_description.id_numbers']='Table reference number(s)';
+$lang['metadata.table_description.id_numbers']='Reference number(s)';
 $lang['metadata.table_description.id_numbers.type']='Type';
 $lang['metadata.table_description.id_numbers.value']='ID number';
 
