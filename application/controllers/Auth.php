@@ -422,7 +422,7 @@ class Auth extends MY_Controller {
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 		//$this->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
 		$this->form_validation->set_rules('csrf_token', 'CSRF TOKEN', 'trim|callback_validate_token');
-    	$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|max_length[15]|callback_validate_captcha');
+    	$this->form_validation->set_rules($this->captcha_lib->get_question_field(), t('captcha'), 'trim|required|callback_validate_captcha');
 
         if ($this->form_validation->run() === TRUE)
 		{
