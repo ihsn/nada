@@ -203,7 +203,7 @@ $lang['tab_geospatial']="geospatial";
 $lang['tab_image']="Images";
 $lang['tab_script']="Scripts";
 $lang['tab_table']="Tables";
-$lang['tab_timeseries']="Timeseries";
+$lang['tab_timeseries']="Time series";
 $lang['tab_visualization']="Visualizations";
 $lang['tab_survey']="Microdata";
 
