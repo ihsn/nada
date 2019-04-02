@@ -120,7 +120,7 @@
         ?>
         <li class="nav-item">
             <a class="dataset-type-tab nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
-                <?php echo $tab['title'];?>
+                <?php echo t('tab_'.$tab['code']);?>
                 <?php if(isset($tabs['search_counts_by_type']) &&  array_key_exists($tab['code'],$tabs['search_counts_by_type'])) :?>
                     <?php  /*<br/><div class="badge badge-secondary">    
                         <?php echo $tabs['search_counts_by_type'][$tab['code']];?>

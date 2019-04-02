@@ -198,6 +198,15 @@ $lang['metadata_in_json']="JSON";
 $lang['metadata_in_ddi_xml']="DDI Codebook (2.5)";
 $lang['metadata']="Metadata";
 
+$lang['tab_document']="Documents";
+$lang['tab_geospatial']="geospatial";
+$lang['tab_image']="Images";
+$lang['tab_script']="Scripts";
+$lang['tab_table']="Tables";
+$lang['tab_timeseries']="Timeseries";
+$lang['tab_visualization']="Visualizations";
+$lang['tab_survey']="Microdata";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */
