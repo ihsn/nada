@@ -16,8 +16,6 @@ class Dataset_timeseries_model extends Dataset_model {
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('Data_file_model');
-        $this->load->model('Variable_model');
     }
 
     function create_dataset($type,$options)
@@ -50,7 +48,7 @@ class Dataset_timeseries_model extends Dataset_model {
 		$variables=null;
         $variable_groups=null;
 
-        $study_metadata_sections=array('metadata_cration','database_description','additional');
+        $study_metadata_sections=array('metadata_creation','series_description','additional');
 
         /*
         foreach($options as $key=>$value){		
@@ -103,7 +101,7 @@ class Dataset_timeseries_model extends Dataset_model {
 		//set topics
 
         //update related countries
-        $countries=$this->get_country_names($this->get_array_nested_value($options,'database_description/geographic_units'));
+        $countries=$this->get_country_names($this->get_array_nested_value($options,'series_description/geographic_units'));
 		$this->Survey_country_model->update_countries($dataset_id,$countries);
 
 		//set aliases
@@ -286,16 +284,17 @@ class Dataset_timeseries_model extends Dataset_model {
 	function get_core_fields($options)
 	{        
         $output=array();
-        $output['title']=$this->get_array_nested_value($options,'database_description/title');
+        $output['title']=$this->get_array_nested_value($options,'series_description/name');
         $output['idno']=$this->get_array_nested_value($options,'idno');
 
-        $nations=$this->get_array_nested_value($options,'database_description/geographic_units');	
+        $nations=$this->get_array_nested_value($options,'series_description/geographic_units');	
         $output['nation']=$this->get_country_names_string($this->get_country_names($nations));
 
-        $output['abbreviation']=$this->get_array_nested_value($options,'database_description/abbreviation');
+        $output['abbreviation']=$this->get_array_nested_value($options,'series_description/abbreviation');
         
-        $auth_entity=$this->get_array_nested_value($options,'database_description/authoring_entity');
-        $output['authoring_entity']=$this->array_column_to_string($auth_entity,$column_name='name', $max_length=300);
+        //$auth_entity=$this->get_array_nested_value($options,'series_description/authoring_entity');
+        //$output['authoring_entity']=$this->array_column_to_string($auth_entity,$column_name='name', $max_length=300);
+        $output['authoring_entity']='';
 
         $years=$this->get_years($options);
         $output['year_start']=$years['start'];
@@ -345,7 +344,7 @@ class Dataset_timeseries_model extends Dataset_model {
 	function get_years($options)
 	{
 		$years=array();
-        $data_coll=$this->get_array_nested_value($options,'database_description/time_coverage');
+        $data_coll=$this->get_array_nested_value($options,'series_description/series_dates');
 			
         if (is_array($data_coll)){
             //get years from data collection dates				

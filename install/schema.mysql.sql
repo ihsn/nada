@@ -1481,3 +1481,17 @@ CREATE TABLE `filestore` (
 
 
 
+CREATE TABLE `ts_databases` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idno` varchar(150) DEFAULT NULL,
+  `title` varchar(300) DEFAULT NULL,
+  `abstract` text,
+  `published` tinyint(4) DEFAULT NULL,
+  `created` varchar(45) DEFAULT NULL,
+  `changed` varchar(45) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  `metadata` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idno_UNIQUE` (`idno`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

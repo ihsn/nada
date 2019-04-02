@@ -187,6 +187,59 @@ class Datasets extends MY_REST_Controller
 
 	/**
 	 * 
+	 * Create timeseries database
+	 * 
+	 * 
+	 */
+	private function create_timeseries_database($idno=null)
+	{
+		$this->load->model('Timeseries_db_model');
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+						
+			//validate & create dataset
+			$db_id=$this->Timeseries_db_model->create_database($options);
+
+			if(!$db_id){
+				throw new Exception("FAILED_TO_CREATE_DATABASE");
+			}
+
+			$database=$this->Timeseries_db_model->get_row($db_id);
+			
+			$response=array(
+				'status'=>'success',
+				'database'=>$database
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
 	 * 
 	 * Create new study
 	 * @type - survey, timesereis, geospatial
@@ -194,6 +247,10 @@ class Datasets extends MY_REST_Controller
 	 */
 	function create_post($type=null,$idno=null)
 	{
+		if($type=='timeseries-db'){
+			return $this->create_timeseries_database($idno);
+		}
+
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
