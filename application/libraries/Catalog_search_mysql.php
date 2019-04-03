@@ -416,29 +416,18 @@ class Catalog_search_mysql{
 	*/
 	protected function _build_study_query()
 	{
-		//study search keywords
 		$study_keywords=$this->study_keywords;
-		
-		//fulltext index name
-		//$study_fulltext_index='surveys.title,surveys.authoring_entity,surveys.nation';
-		//$study_fulltext_index.=',abbreviation,keywords';
-
-		$study_fulltext_index='keywords';
 		$study_keywords=str_replace(array('"',"'"), '',$study_keywords);
 
 		if(strlen($study_keywords)<3 || strlen($study_keywords)>100){
 			return false;
 		}
 		
-		/*$study_keywords=explode(" ",$study_keywords);
-		foreach($study_keywords as $key=>$keyword){
-			$study_keywords[$key]='+' . '"'.$keyword.'"';
-		}
-		$study_keywords=implode(" ",$study_keywords);
-		*/
+		//fulltext index name
+		$study_fulltext_index='keywords';
+
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 
-		//build the sql where using FULLTEXT
 		$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
 		return $sql;
 	}
