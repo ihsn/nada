@@ -1495,3 +1495,15 @@ CREATE TABLE `ts_databases` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idno_UNIQUE` (`idno`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `survey_search` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `keywords` text,
+  `var_keywords` longtext,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sid_UNIQUE` (`sid`),
+  KEY `idx_sid` (`sid`),
+  FULLTEXT KEY `ft_dataset` (`keywords`,`var_keywords`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

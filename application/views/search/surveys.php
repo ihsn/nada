@@ -64,7 +64,7 @@
                     <div class="study-country">
                         <?php echo $featured_studies['nation']. ',';?>
                         <?php
-                        $survey_year=NULL;
+                        $survey_year=array();
                         $survey_year[$featured_studies['year_start']]=$featured_studies['year_start'];
                         $survey_year[$featured_studies['year_end']]=$featured_studies['year_end'];
                         $survey_year=implode('-',$survey_year);
@@ -162,8 +162,13 @@
         </div>
 
     </div>-->
-  
-<?php foreach($surveys['rows'] as $row): ?>
+<div id="surveys">
+    <span class="result-types-summary">
+        <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
+            <?php echo json_encode($surveys['search_counts_by_type']);?>
+        </span>        
+    </span>
+<?php foreach($surveys['rows'] as $row): ?>    
     <?php if(!isset($row['form_model'])){
         $row['form_model']='data_na';
     }
@@ -186,7 +191,7 @@
                         <?php echo $row['nation']. ',';?>
                 <?php endif;?>
                 <?php 
-                    $survey_year=NULL;
+                    $survey_year=array();
                     $survey_year[$row['year_start']]=$row['year_start'];
                     $survey_year[$row['year_end']]=$row['year_end'];
                     $survey_year=implode('-',$survey_year);
@@ -222,14 +227,23 @@
                 <?php endif;?> 
             </div>
             
-            <?php if ( isset($row['var_found']) ): ?>
+            <?php if ( isset($row['var_found']) ): ?>            
                 <div class="variables-found" style="clear:both;">
+
                         <a class="vsearch" href="<?php echo site_url(); ?>/catalog/vsearch/<?php echo $row['id']; ?>/?<?php echo $variable_querystring; ?>">
-                            <span class="heading-text"><?php echo sprintf(t('variables_keywords_found'),$row['var_found'],$row['varcount']);?></span>
-                            <span class="toggle-arrow">
-                            <i class="toggle-arrow-right fa fa-caret-right" aria-hidden="true"></i>
-                            <i class="toggle-arrow-down fa fa-caret-down" aria-hidden="true"></i>
-                            </span>
+                            
+                        <div class="d-flex">                      
+                            <div class="flex-grow-1">
+                                <div class="heading-text"><?php echo sprintf(t('variables_keywords_found'),$row['var_found'],$row['varcount']);?></div>
+                            </div>
+                            <div class="toggle-arrow-bg">
+                                <span class="toggle-arrow">
+                                    <i class="toggle-arrow-right fa fa-caret-right" aria-hidden="true"></i>
+                                    <i class="toggle-arrow-down fa fa-caret-down" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                            
                         </a>
                         <span class="vsearch-result"></span>
                         <div class="variable-footer">
@@ -243,7 +257,7 @@
     </div>
 
 <?php endforeach;?>
-
+</div>
     <div class="nada-pagination border-top-none">
         <div class="row mt-3 mb-3 d-flex align-items-lg-center">
 

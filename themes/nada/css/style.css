@@ -808,9 +808,12 @@ footer {
   border-bottom: 1px solid #ffffff;
 }
 #surveys .variables-found .vsearch .heading-text{
-  padding: 7px 15px;
+  padding: 8px 15px;
 }
 
+.toggle-arrow-bg{
+  background:#ccc;
+}
 #surveys .variables-found .vsearch .toggle-arrow {
       font-size: 17px;
       padding: 4px 15px;

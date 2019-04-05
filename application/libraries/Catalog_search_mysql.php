@@ -174,7 +174,7 @@ class Catalog_search_mysql{
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end, surveys.thumbnail';
 		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
-		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
 		//add ranking if keywords are not empty
 		if(!empty($study)){
@@ -221,6 +221,7 @@ class Catalog_search_mysql{
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+			$this->ci->db->join('survey_search','surveys.id=survey_search.sid','inner');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -282,6 +283,26 @@ class Catalog_search_mysql{
 
 		if ($result['found']>0){
 			$result['search_counts_by_type']=$this->search_counts_by_type();
+
+
+			//search for variables for SURVEY types
+			$id_list=array_column($this->search_result, "id");
+
+			if(count($id_list)>0){
+				$variables_by_study=$this->search_variable_counts($id_list,$this->study_keywords);
+				if(!empty($variables_by_study)){
+					foreach($this->search_result as $idx=>$row)
+					{
+						if(array_key_exists($row['id'],$variables_by_study)){
+							$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']]['var_found'];
+						}
+					}
+				}
+			}
+
+			$result['rows']=$this->search_result;
+
+
 		}
 
 		return $result;
@@ -339,6 +360,7 @@ class Catalog_search_mysql{
 		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('survey_search','surveys.id=survey_search.sid','inner');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->where('surveys.published',1);
 		$this->ci->db->group_by('surveys.type');	
@@ -424,7 +446,7 @@ class Catalog_search_mysql{
 		}
 		
 		//fulltext index name
-		$study_fulltext_index='keywords';
+		$study_fulltext_index='survey_search.keywords, survey_search.var_keywords';
 
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 
@@ -908,7 +930,7 @@ class Catalog_search_mysql{
 		$result=$this->ci->db->get("variables as v")->result_array();
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();
+		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();
 		$found_rows=$query_found_rows['rowcount'];
 
 		//return $result;
@@ -1021,6 +1043,55 @@ class Catalog_search_mysql{
 		}
 		
 		return FALSE;	
+	}
+
+
+
+
+
+	/**
+	 * 
+	 * Returns variables count by survey
+	 * 
+	 * @id_list = survey id list
+	 * @keywords - search text
+	 * 
+	 **/ 
+	function search_variable_counts($id_list,$keywords)
+	{
+		$keywords=trim($keywords);
+
+		if ($keywords==''){
+			return FALSE;
+		}
+		
+		$where=false;
+		
+		if (strlen($keywords) >=3)
+		{
+			//get fulltext index name
+			$fulltext_index=$this->get_variable_search_field(TRUE);
+			//FULLTEXT
+			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($keywords));
+		}
+		else{
+			return false;
+		}	
+
+		if($where){
+			$sql='select count(*) as var_found,sid from variables v where ';
+			$sql.=$where;
+			$sql.='group by sid;';
+			
+			$result=$this->ci->db->query($sql)->result_array();
+			$output=array();
+
+			foreach($result as $row){
+				$output[$row['sid']]=$row;
+			}
+
+			return $output;
+		}
 	}
 
 }// END Search class

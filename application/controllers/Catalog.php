@@ -288,4 +288,35 @@ class Catalog extends MY_Controller {
 		return $data;
 	}
 
+
+	/**
+	 * 
+	 * 
+	 * Variable search for a single Survey
+	 * 
+	 */
+	function vsearch($sid=NULL)
+	{
+		if ($sid==NULL || !is_numeric($sid)){
+			die(t('error_invalid_parameters'));			
+		}
+
+		$params=array(
+			'study_keywords'=>$this->input->get_post('sk'),
+			'variable_keywords'=>$this->input->get_post('sk'),
+			'variable_fields'=>$this->input->get_post('vf'),
+			'countries'=>$this->input->get_post('country'),
+			'topics'=>$this->input->get_post('topic'),
+			'from'=>$this->input->get_post('from'),
+			'to'=>$this->input->get_post('to'),
+			'sort_by'=>$this->input->get_post('sort_by'),
+			'sort_order'=>$this->input->get_post('sort_order'),
+			'repo'=>$this->input->get_post('repo')
+		);
+		$this->load->library('catalog_search',$params);
+		$data['variables']=$this->catalog_search->v_quick_search($sid);
+
+		$this->load->view("catalog_search/var_quick_list", $data);
+	}
+
 }    

@@ -111,7 +111,7 @@
 <div>
 <ul class="nav nav-tabs nav-tabs-auto-overflow mb-5 search-nav-tabs =">
     <li class="nav-item">
-        <a class="dataset-type-tab nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All</a>
+        <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All <span class="type-count"></span></a>
     </li>
 
     <?php foreach($tabs['types'] as $tab):?>
@@ -119,12 +119,13 @@
             $tab_target=site_url("catalog/?tab_type={$tab['code']}");
         ?>
         <li class="nav-item">
-            <a class="dataset-type-tab nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
+            <a class="dataset-type-tab dataset-type-tab-<?php echo $tab['code'];?> nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
                 <?php echo t('tab_'.$tab['code']);?>
                 <?php if(isset($tabs['search_counts_by_type']) &&  array_key_exists($tab['code'],$tabs['search_counts_by_type'])) :?>
                     <?php  /*<br/><div class="badge badge-secondary">    
                         <?php echo $tabs['search_counts_by_type'][$tab['code']];?>
                     </div> */?>
+                    <span class="type-count badge badge-primary"><?php echo $tabs['search_counts_by_type'][$tab['code']];?></span>
                 <?php endif;?>
             </a>
         </li>
@@ -271,7 +272,21 @@ $(document).ready(function()
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
-            //History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);            
+            //History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
+            
+
+            //reset nav-tabs
+            $(".dataset-type-tab").find(".type-count").html("");
+
+            //update nav-tabs
+            let types_summary=$(".type-summary").attr("data-types");
+            types_summary=JSON.parse(types_summary);
+            jQuery.each(types_summary, function(data_type, counts ) {
+                console.log(data_type,counts);
+                console.log($(".dataset-type-tab-"+data_type));
+                $(".dataset-type-tab-"+data_type).find(".type-count").html(counts);
+            });
+
         });        
     }
 
@@ -287,8 +302,8 @@ $(document).ready(function()
         History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
     }
 
-    $(document.body).on("click",".dataset-type-tab", function(){
-
+    $(document.body).on("click",".dataset-type-tab", function()
+    {
         $( ".chk-type").prop("checked",false);
         el=$("[name='type[]'][value='"+ $(this).attr("data-value") +"']");
         el.prop("checked",true);
@@ -388,7 +403,96 @@ $(document).ready(function()
             $(".clear-search-button").show();
         }
     }
+
+
+
+
+    //show/hide study sub-variable search
+    $(document.body).on("click",".vsearch", function(event){
+        event.stopPropagation();
+		$(this).parent().toggleClass("expand");
+		var result=$(this).parent().find(".vsearch-result");
+		if (result.html()!='' ){
+			result.empty().hide();
+		}
+		else{
+			result.show().html('<span class="fa fa-circle-o-notch fa-spin fa-2x text-primary"></span><span>Loading</span>').load($(this).prop("href"), function(data){
+				
+				//attach compare handlers
+				//variable_compare_handlers();
+			});
+			//result.parent().find(".open-close").prop("src",'images/arrow_down.gif');
+		}
+		//compare_var_summary();
+		return false;
+    })
+
+    //show variable details in a modal dialog
+    $(document.body).on("click",".variables-found .vsearch-result .link", function(event){
+        var row=$(this).closest("tr");
+        window.simple_dialog("dialog_id",row.attr("data-title"),$(this).attr("href"));
+        event.stopPropagation();
+        return false;
+    });
+
+    
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+	// simple dialog
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	window.simple_dialog=function simple_dialog(dialog_id,title,data_url)
+	{
+		if($("#"+dialog_id).length ==0) {
+            $("body").append('<div class="modal fade" id="'+dialog_id+'" tabindex="-1" role="dialog"  aria-hidden="true">\
+                <div class="modal-dialog  modal-lg catalog-modal-dialog" role="document">\
+                <div class="modal-content">\
+                <div class="modal-header">\
+                <h5 class="modal-title" id="'+dialog_id+'Label">'+title+'</h5>\
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">\
+						<span aria-hidden="true">&times;</span>\
+					</button>\
+					</div>\
+					<div class="modal-body">\
+				</div>\
+					<div class="modal-footer">\
+						<button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>\
+					</div>\
+					</div>\
+					</div>\
+					</div>');
+		}
+		else
+		{
+            /********* for jQuery ui modal *******/
+			/*dialog=	$("#"+dialog_id);
+			dialog.html("loading...");
+			dialog.dialog({ title: title});*/
+
+            /********* for Bootstrap modal *********/
+            $('#'+dialog_id+' h5.modal-title').html(title);
+            $('#'+dialog_id+' div.modal-body').html("loading...");
+        }
+        
+        // for jQuery ui modal
+		/*
+		dialog.dialog( "open" ); // for jQuery ui modal
+        //$('#'+dialog_id).load(data_url+'?ajax=1');//load content
+        */
+
+        // for Bootstrap modal
+		$('#'+dialog_id).modal('show');// for Bootstrap modal
+        $('#'+dialog_id+' div.modal-body').load(data_url+'?ajax=1');//load content
+	}//end function
+
+
+
 });
+
+
+
+
+
 </script>
 
 
