@@ -6,24 +6,13 @@
   "type": "object",
   "properties": {
 
-    "idno": {
-      "type": "string",
-      "title": "Unique user defined ID",
-      "description": "Unique user defined ID for the database"      
-    },
-
-    "title": {
-      "type": "string",
-      "title": "Title/Name",
-      "description":"Database Name"
-    },
-
     "published": {
       "type": "integer",
       "title": "Status",
       "description": "0=draft, 1=published",
       "default": 0
     },
+
     "overwrite": {
       "type": "string",
       "description": "Overwrite database if already exists?",            
@@ -38,11 +27,46 @@
       "description": "Database Description",
       "properties": {  
                 
-        "abbreviation": {
-          "type": "string",
-          "title": "Abbreviation/Acronym",
-          "description":"Acronym by which the dataset/database is referred to"
+        "title_statement":{
+          "type":"object",
+          "description":"Study title",
+          
+          "properties":{
+            "idno":{
+              "type":"string",
+              "title":"Unique user defined ID",
+              "description":"The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)"
+            },
+            "title":{
+              "type":"string",
+              "title":"Survey title",
+              "description":"The title is the official name of the survey as it is stated on the questionnaire or as it appears in the design documents. The following items should be noted:\n - Include the reference year(s) of the survey in the title. \n - Do not include the abbreviation of the survey name in the title. \n - As the survey title is a proper noun, the first letter of each word should be capitalized (except for prepositions or other conjunctions).\n - Including the country name in the title is optional.",
+              
+            },
+            "sub_title":{
+              "type":"string",
+              "title":"Survey subtitle",
+              "description":"A short subtitle for the survey"
+              
+            },
+            "alternate_title":{
+              "type":"string",
+              "title":"Abbreviation or Acronym",
+              "description":"The abbreviation of a survey is usually the first letter of each word of the titled survey. The survey reference year(s) may be included."
+              
+            },
+            "translated_title":{
+              "title":"Translated Title",
+              "description":"In countries with more than one official language, a translation of the title may be provided.",
+              "type":"string"              
+            }
+          },
+          "required":[
+            "idno",
+            "title"
+          ]
         },
+
         "authoring_entity": {
           "type": "array",
           "title": "Authoring entity",
@@ -460,24 +484,19 @@
           ]
         },
 
-        "related_links": {
+        "links": {
           "type": "array",
           "title": "Related links",
           "description": "Related links",
           "items": {
             "type": "object",
             "properties": {
-              "type": {
-                "title": "Type",
-                "description": "Type of link e.g. `facebook`, `twitter`,`website`, `other`,",
-                "type": "string"
-              },              
               "uri": {
                 "title": "URI",
                 "type": "string"
               },
-              "note": {
-                "title": "Note",
+              "description": {
+                "title": "Description",
                 "type": "string"
               }
             }
@@ -588,8 +607,12 @@
           "title": "Copyright",
           "type": "string"
         }
-      }
-      },      
+      },
+        "required": [
+          "title_statement"
+        ],
+        "additionalProperties":false
+      }, 
       
       "additional": {
         "type": "object",

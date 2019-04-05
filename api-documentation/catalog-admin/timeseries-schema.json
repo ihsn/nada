@@ -5,16 +5,11 @@
   "description": "Schema for timeseries data type",
   "type": "object",
   "properties": {
-
-    "idno": {
-      "type": "string",
-      "title": "Unique user defined ID",
-      "description": "Unique user defined ID for the dataset"
-    },
+    
     "repositoryid": {
       "type": "string",
-      "title": "Collection ID that owns the dataset",
-      "description": "Abbreviation for the collection that owns the dataset"
+      "title": "Collection ID that owns the series",
+      "description": "Collection that owns the series"
     },
 
     "access_policy": {
@@ -56,15 +51,7 @@
       "title": "Metadata creation",
       "description": "Information on who generated the documentation",
       "properties": {        
-        "title": {
-          "title": "Document title",
-          "description": "Document title",
-          "type": "string"
-        },
-        "idno": {
-          "title": "Unique ID number for the document",
-          "type": "string"
-        },
+        
         "producers": {
           "type": "array",
           "title": "Producers",
@@ -122,7 +109,7 @@
 					"type": "string",
 					"title": "Series Name"
 				},
-				"db_idno": {
+				"database_id": {
 					"type": "string",
 					"title": "Database ID",
 					"description": "Series database ID"
@@ -187,7 +174,13 @@
 						]
 					}
 				},
-				"related_concepts": {
+
+				"statistical_concept": {
+					"type": "string",
+					"title": "Statistical concept"
+				},
+
+				"concepts": {
 					"type": "array",
 					"title": "Related concepts",
 					"description": "Related concepts",
@@ -202,7 +195,12 @@
 								"title": "Definition",
 								"description": "Definition",
 								"type": "string"
-							}
+							},
+							"uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
 						},
 						"required": [
 							"name"
@@ -229,46 +227,104 @@
 					"type": "string",
 					"title": "Breaks in series"
 				},
-				"statistical_concept": {
-					"type": "string",
-					"title": "Statistical concept"
-				},
+				
 				"limitation": {
 					"type": "string",
 					"title": "Limitations  and exceptions"
-				},
-				"topics": {
-					"type": "array",
-					"title": "Topics",
-					"description": "Topics covered by the indicator",
-					"items": {
-						"type": "object",
-						"properties": {
-							"topic": {
-								"title": "Topic",
-								"type": "string"
+				},				
+
+				"themes":{
+					"type":"array",
+					"title":"Themes",
+					"items":{
+						"type":"object",
+						"properties":{
+							"name":{
+								"title":"Name",
+								"type":"string"
 							},
-							"vocabulary": {
-								"title": "Vocabulary",
-								"description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
-								"type": "string"
+							"vocabulary":{
+								"title":"Vocabulary name",
+								"type":"string"
 							},
-							"uri": {
-								"title": "Vocabulary URI",
-								"description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
-								"type": "string"
+							"uri":{
+								"title":"Vocabulary URI",
+								"type":"string"
 							}
-						},
-						"required": [
-							"topic"
-						]
+						}
 					}
 				},
+        "topics": {
+          "type": "array",
+          "title": "Topics",
+          "description": "Topics covered by the table (ideally, the list of topics will be a controlled vocabulary)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Topic",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent topic Identifier",
+                "description":"For subtopics, provide the ID of the parent topic",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id","name"
+            ]
+          }
+        },
+
+        "disciplines": {
+          "type": "array",
+          "title": "Disciplines",
+          "description": "Disciplines e.g. `Social sciences, economics`, `Natural sciences, biology`",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Discipline title or name",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+
+
 				"relevance": {
 					"type": "string",
 					"title": "Relavance"
 				},
-				"series_dates": {
+				"time_periods": {
 					"type": "array",
 					"title": "Series dates",
 					"items": {
@@ -317,13 +373,13 @@
 					"type": "string",
 					"title": "Aggregation method"
 				},
-				"ser_access_license": {
+				"license": {
 					"type": "object",
 					"title": "Access licence",
 					"properties": {
-						"type": {
+						"name": {
 							"type": "string",
-							"title": "License type"
+							"title": "Name"
 						},
 						"uri": {
 							"type": "string",
@@ -344,7 +400,7 @@
 					"type": "string",
 					"title": "Confidentiality note"
 				},
-				"series_links": {
+				"links": {
 					"type": "array",
 					"title": "Series links",
 					"description": "Links to API calls, websites, etc.",
