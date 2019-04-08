@@ -1367,13 +1367,13 @@ CREATE TABLE `survey_types` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'survey','Survey');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'geospatial','Geospatial');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'timeseries','Time series');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'document','Document');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'table','Table');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'image','Photo');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'script','Script');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'visualization','Visualization');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(2,'geospatial','Geospatial');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES2(3,'timeseries','Time series');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(4,'document','Document');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(5,'table','Table');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(6,'image','Photo');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(7,'script','Script');
+INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(8,'visualization','Visualization');
 
 
 -- 
