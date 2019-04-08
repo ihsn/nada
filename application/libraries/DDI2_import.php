@@ -513,7 +513,7 @@ class DDI2_Import{
                 'name'			=> $var_obj->get_name(),
                 'labl'			=> $var_obj->get_label(),
                 'qstn'			=> $var_obj->get_question(),
-                //'catgry'		=> $var_obj->get_categories_str(),
+                'catgry'		=> $var_obj->get_categories_str(),
                 'sid'	        => $sid,
                 'metadata'      => $variable
             );

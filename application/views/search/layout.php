@@ -74,6 +74,14 @@
     color:black;
 }
 
+.type-count{
+    color: #6c757d;
+    background-color: #e9ecef;
+    border-radius: .25rem!important;
+    font-weight:normal;
+    
+}
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -125,7 +133,7 @@
                     <?php  /*<br/><div class="badge badge-secondary">    
                         <?php echo $tabs['search_counts_by_type'][$tab['code']];?>
                     </div> */?>
-                    <span class="type-count badge badge-primary"><?php echo $tabs['search_counts_by_type'][$tab['code']];?></span>
+                    <span class="badge badge-secondary type-count"> <?php echo $tabs['search_counts_by_type'][$tab['code']];?> </span>
                 <?php endif;?>
             </a>
         </li>

@@ -221,7 +221,6 @@ class Catalog_search_mysql{
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-			$this->ci->db->join('survey_search','surveys.id=survey_search.sid','inner');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -360,7 +359,6 @@ class Catalog_search_mysql{
 		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-		$this->ci->db->join('survey_search','surveys.id=survey_search.sid','inner');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->where('surveys.published',1);
 		$this->ci->db->group_by('surveys.type');	
@@ -446,7 +444,7 @@ class Catalog_search_mysql{
 		}
 		
 		//fulltext index name
-		$study_fulltext_index='survey_search.keywords, survey_search.var_keywords';
+		$study_fulltext_index='keywords, var_keywords';
 
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 

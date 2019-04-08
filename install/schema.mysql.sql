@@ -343,8 +343,7 @@ CREATE TABLE `surveys` (
   `link_report` varchar(255) DEFAULT NULL COMMENT 'reports',
   `link_indicator` varchar(255) DEFAULT NULL COMMENT 'indicators',
   `link_questionnaire` varchar(255) DEFAULT NULL,
-  `formid` int(11) DEFAULT NULL,
-  `keywords` text,
+  `formid` int(11) DEFAULT NULL,  
   `link_da` varchar(255) DEFAULT NULL,
   `published` tinyint(4) DEFAULT NULL,
   `total_views` int(11) DEFAULT '0',
@@ -354,16 +353,16 @@ CREATE TABLE `surveys` (
   `changed` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `changed_by` int(11) DEFAULT NULL,
-  `metadata` mediumtext,
-  `variable_data` mediumtext,
   `ts_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `thumbnail` varchar(300) DEFAULT NULL,
+  `metadata` mediumtext,
+  `var_keywords` mediumtext,
+  `keywords` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
   FULLTEXT KEY `ft_titl` (`title`),
-  FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`),
-  FULLTEXT KEY `ft_keywords` (`keywords`)
+  FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
 ) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1494,16 +1493,4 @@ CREATE TABLE `ts_databases` (
   `metadata` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idno_UNIQUE` (`idno`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE `survey_search` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sid` int(11) DEFAULT NULL,
-  `keywords` text,
-  `var_keywords` longtext,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sid_UNIQUE` (`sid`),
-  KEY `idx_sid` (`sid`),
-  FULLTEXT KEY `ft_dataset` (`keywords`,`var_keywords`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
