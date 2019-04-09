@@ -199,7 +199,7 @@ $lang['metadata_in_ddi_xml']="DDI Codebook (2.5)";
 $lang['metadata']="Metadata";
 
 $lang['tab_document']="Documents";
-$lang['tab_geospatial']="geospatial";
+$lang['tab_geospatial']="Geospatial";
 $lang['tab_image']="Images";
 $lang['tab_script']="Scripts";
 $lang['tab_table']="Tables";

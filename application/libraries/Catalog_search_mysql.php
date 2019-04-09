@@ -315,7 +315,7 @@ class Catalog_search_mysql{
 	 */
 	public function search_counts_by_type()
 	{		
-		$type=$this->_build_dataset_type_query();
+		//$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
@@ -328,7 +328,7 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
