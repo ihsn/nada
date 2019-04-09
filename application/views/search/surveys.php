@@ -30,7 +30,7 @@ else{
 }
 ?>
 
-<?php $this->load->view("search/search_header_bar");?>
+<?php $this->load->view("search/search_nav_bar");?>
 <?php //$this->load->view("search/active_filter_tokens");?>
 
 
