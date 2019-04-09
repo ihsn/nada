@@ -278,12 +278,10 @@ class Catalog_search_mysql{
 		$result['limit']=$limit;
 		$result['offset']=$offset;
 		$result['citations']=$this->get_survey_citation();
-		$result['search_counts_by_type']=null;
-
+		//$result['search_counts_by_type']=null;
+		$result['search_counts_by_type']=$this->search_counts_by_type();
+		
 		if ($result['found']>0){
-			$result['search_counts_by_type']=$this->search_counts_by_type();
-
-
 			//search for variables for SURVEY types
 			$id_list=array_column($this->search_result, "id");
 

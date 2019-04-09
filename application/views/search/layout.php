@@ -74,11 +74,11 @@
     color:black;
 }
 
-.type-count{
+.type-count, .type-count-all{
     color: #6c757d;
     display:block;
     font-weight:normal;
-    text-align:center;
+    margin-left:17px;
 }
 
 .search-nav-tabs .nav-link{
@@ -122,8 +122,8 @@
 <div>
 <ul class="nav nav-tabs nav-tabs-auto-overflow mb-5 search-nav-tabs =">
     <li class="nav-item">
-        <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All <span class="type-count"></span>
-        <span class="type-count">&nbsp;</span>
+        <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All         
+        <span class="type-count-all">&nbsp;</span>
         </a>
     </li>
 
@@ -149,8 +149,13 @@
             <a class="dataset-type-tab dataset-type-tab-<?php echo $tab['code'];?> nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
                 <?php echo @$type_icons[$tab['code']];?>
                 <?php echo t('tab_'.$tab['code']);?>
-                <?php if(isset($tabs['search_counts_by_type']) &&  array_key_exists($tab['code'],$tabs['search_counts_by_type'])) :?>                    
-                    <span class="type-count"> <?php echo number_format((int)$tabs['search_counts_by_type'][$tab['code']]);?> </span>
+                <?php if(isset($tabs['search_counts_by_type']) ) :?>
+                    <?php $count=0;
+                        if (array_key_exists($tab['code'],$tabs['search_counts_by_type'])){
+                            $count=$tabs['search_counts_by_type'][$tab['code']];
+                        }
+                    ?>
+                    <span class="type-count"> <?php echo @number_format((int)$count);?> </span>
                 <?php endif;?>
             </a>
         </li>
@@ -283,7 +288,7 @@ $(document).ready(function()
             
 
             //reset nav-tabs
-            $(".dataset-type-tab").find(".type-count").html("");
+            $(".dataset-type-tab").find(".type-count").html("0");
 
             //update nav-tabs
             let types_summary=$(".type-summary").attr("data-types");
