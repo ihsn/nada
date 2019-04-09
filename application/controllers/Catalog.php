@@ -47,6 +47,8 @@ class Catalog extends MY_Controller {
 				break;
 
 			case 'image':
+			case 'visualization':
+			case 'document':
 				$dataset_view='search/images';
 				break;
 		}
@@ -123,8 +125,10 @@ class Catalog extends MY_Controller {
 				break;
 
 			case 'image':
+			case 'visualization':
+			case 'document':
 				$dataset_view='search/images';
-				break;
+			break;
 		}
 
 		$output= $this->_search();

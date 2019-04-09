@@ -8,7 +8,7 @@
 	$pages=ceil($surveys['found']/$surveys['limit']);	
 ?>
 
-<?php $this->load->view("search/active_filter_tokens");?>
+<?php $this->load->view("search/search_nav_bar");?>
 
 
 <?php		
@@ -90,74 +90,7 @@
         <!-- /survey-row -->
     <?php endif;?>
 
-    <div id="sort-results-by" class="sort-results-by catalog-sort-links">
-        <div class="row">
-            <div class="col-12 col-md-3 col-lg-2 text-center text-lg-left">
-                <small><?php echo t('sort_results_by');?>:</small>
-            </div>
-
-            <div class="col-12 col-md-9 col-lg-10 text-center text-lg-left">
-                <small>
-                    <?php if ($search_options->sk!="" || $search_options->vk!=""):?>                    
-                        <span>
-                            <?php echo create_sort_link($sort_by,$sort_order,'rank',t('Relevance'),$page_url,array('sk','vk','vf') ); ?>
-                        </span>|
-                    <?php endif;?>
-
-                    <?php if ($this->config->item("regional_search")=='yes'): ?>
-                        <span>
-                            <?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,array('sk','vk','vf') ); ?></a>
-                        </span>|
-                    <?php endif;?>
-
-                    <span>
-                        <?php echo create_sort_link($sort_by,$sort_order,'proddate',t('year'),$page_url,array('sk','vk','vf') );?>|
-                    <span>
-                        <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,array('sk','vk','vf') ); ?>
-                    </span>|
-                    <span>
-                        <?php echo create_sort_link($sort_by,$sort_order,'popularity',t('popularity'),$page_url,array('sk','vk','vf') ); ?>
-                    </span>
-                    </small>
-                    
-                    <?php if (isset($search_options->vk) && $search_options->vk!=''):?>
-                        <small class="float-right">
-                        <span>
-                            <a href="#" onclick="change_view('v');return false;"><?php echo t('switch_to_variable_view');?></a>
-                        </span>|
-                        <span>
-                            <a class="btn-compare-var" title="<?php echo t('compare_hover_text');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
-                        </span>
-                        </small>                    
-                    <?php endif;?>
-                
-            </div>
-
-        </div> <!-- /row  -->
-    </div>
     
-    <!--<div class="nada-pagination">
-        <div class="row mt-3 mb-3 d-flex align-items-lg-center">
-
-            <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
-                <?php echo sprintf(t('showing_studies'),
-                    (($surveys['limit']*$current_page)-$surveys['limit']+1),
-                    ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
-                    $surveys['found']);
-                ?>
-            </div>
-
-            <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
-                <nav aria-label="Page navigation">
-                    <?php
-                    $pager_bar=(pager($surveys['found'],$surveys['limit'],$current_page,5));
-                    echo $pager_bar;
-                    ?>
-                </nav>
-            </div>
-        </div>
-
-    </div>-->
     
 <span class="result-types-summary">
     <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
