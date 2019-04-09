@@ -45,8 +45,10 @@
 	//page querystring for variable sub-search
 	$search_querystring='?'.get_querystring( array('sk', 'vk', 'vf','view','topic','country'));
 ?>
-<input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
-<input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
+
+<input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>
+<input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
+
 
 <?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
         <!-- survey-row -->
@@ -165,7 +167,7 @@
 <div id="surveys">
     <span class="result-types-summary">
         <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
-            <?php echo json_encode($surveys['search_counts_by_type']);?>
+            <?php //echo json_encode($surveys['search_counts_by_type']);?>
         </span>        
     </span>
 <?php foreach($surveys['rows'] as $row): ?>    

@@ -128,11 +128,9 @@
         ?>
         <li class="nav-item">
             <a class="dataset-type-tab dataset-type-tab-<?php echo $tab['code'];?> nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
+                
                 <?php echo t('tab_'.$tab['code']);?>
-                <?php if(isset($tabs['search_counts_by_type']) &&  array_key_exists($tab['code'],$tabs['search_counts_by_type'])) :?>
-                    <?php  /*<br/><div class="badge badge-secondary">    
-                        <?php echo $tabs['search_counts_by_type'][$tab['code']];?>
-                    </div> */?>
+                <?php if(isset($tabs['search_counts_by_type']) &&  array_key_exists($tab['code'],$tabs['search_counts_by_type'])) :?>                    
                     <span class="badge badge-secondary type-count"> <?php echo $tabs['search_counts_by_type'][$tab['code']];?> </span>
                 <?php endif;?>
             </a>
@@ -189,13 +187,10 @@
 $(document).ready(function() 
 {
     var page_first_load=true;
-
     toggle_reset_search_button();
-
     var State=History.getState();
 
-    if(!State.data.page_state_data){
-        
+    if(!State.data.page_state_data){        
         console.log("setting first loaded page state");
         page_first_load=false;
         let search_state=$("#catalog-search-form").serialize();
@@ -204,23 +199,8 @@ $(document).ready(function()
                 'search_results': null
             };
         History.replaceState({state:search_state,page_state_data}, search_state, "?"+search_state);
-        /*//store current page
-        let search_state=$("#catalog-search-form").serialize();
-        let page_state_data={
-                'search_options': $("#catalog-search-form").serializeArray(),
-                'search_results': $( "#search-result-container" ).html()
-            };
-           History.pushState(null,null, );
-           console.log("loading for the first time");
-           //State.data.page_state_data=page_state_data;
-           */
     }else{
-        //load current state
         load_current_state();
-
-        //todo: use cache instead?
-        //search();
-
         toggle_reset_search_button();
     }
     
@@ -269,9 +249,9 @@ $(document).ready(function()
 
     function search()
     {
-        console.log("Starting search");
+        console.log("Starting search");        
+        search_state=$("#catalog-search-form").serialize();
         $( "#search-result-container" ).html('loading, please wait ...');
-        let search_state=$("#catalog-search-form").serialize();
         console.log(search_state);
 
         $.get('<?php echo site_url('catalog/search');?>?'+search_state, function( data ) {
@@ -290,8 +270,8 @@ $(document).ready(function()
             let types_summary=$(".type-summary").attr("data-types");
             types_summary=JSON.parse(types_summary);
             jQuery.each(types_summary, function(data_type, counts ) {
-                console.log(data_type,counts);
-                console.log($(".dataset-type-tab-"+data_type));
+                //console.log(data_type,counts);
+                //console.log($(".dataset-type-tab-"+data_type));
                 $(".dataset-type-tab-"+data_type).find(".type-count").html(counts);
             });
 
@@ -301,14 +281,27 @@ $(document).ready(function()
     //call this for search
     function change_state()
     {
-        console.log("change_state called");        
+        console.log("change_state called");
         let search_state=$("#catalog-search-form").serialize();
+        
         let page_state_data={
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
         History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
     }
+
+
+    //sort dropdown
+    $(document.body).on("change","#sort-by-select", function()
+    {
+        let sort_order=$(this).find(':selected').data('sort');
+        let sort_by=$(this).val();
+        window.x=$(this);
+        $("#sort_by").val(sort_by);
+        $("#sort_order").val(sort_order);
+        change_state();
+    });
 
     $(document.body).on("click",".dataset-type-tab", function()
     {

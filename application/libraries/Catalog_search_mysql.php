@@ -38,6 +38,7 @@ class Catalog_search_mysql{
 						'rank'=>'rank',
 						'title'=>'title',
 						'country'=>'nation',
+						'nation'=>'nation',
 						'year'=>'year_start',
 						'popularity'=>'total_views',
 						'total_views'=>'total_views'
@@ -101,55 +102,53 @@ class Catalog_search_mysql{
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
 		$sid=$this->_build_sid_query();
-        $countries_iso3=$this->_build_countries_iso3_query();
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
-		$sort_by='title';
+		$countries_iso3=$this->_build_countries_iso3_query();
+		
+		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
 		
 		//order desc by RANK for keyword search
 		if(!empty($study) && empty($this->sort_by)){
-			$this->sort_by='rank';
-			$this->sort_order='desc';
+			$sort_by='rank';
+			$sort_order='desc';
 		}
 
-
-		if (array_key_exists($this->sort_by,$this->sort_allowed_fields)){
-			$sort_by=$this->sort_allowed_fields[$this->sort_by];
-		} 
-		/*else{
-			if ($this->ci->config->item("regional_search")=='yes'){
-				$sort_by='country';
-			}		
-		}*/
-
-		//no sort_by set?
-		
-		
+		if(empty($study) && $this->sort_by=='rank'){
+			$sort_by='title';
+			$sort_order='asc';
+		}
 
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
-		if ($sort_by=='country'){
-			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-		}
-		elseif ($sort_by=='title'){
-			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-		}
-		if ($sort_by=='year'){
-			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-		}
+		switch($sort_by){
 
-		if($sort_by=='rank' && !empty($study)){
-			$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>'desc');
-		}
+			case 'country':
+			case 'nation':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+				break;
+			
+			case 'title':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+				break;
+				break;
 
-		//var_dump($sort_by);
-		//var_dump($sort_order);
+			case 'year':			
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+				break;
+
+			case 'rank':
+				if(!empty($study)){
+					$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>'desc');
+				}
+				break;
+		}
 		
 		//array of all options
 		$where_list=array($type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
@@ -228,6 +227,7 @@ class Catalog_search_mysql{
 			{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
+
 
 			//multi-sort
 			foreach($sort_options as $sort)

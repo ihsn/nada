@@ -63,7 +63,7 @@
                     <div class="study-country">
                         <?php echo $featured_studies['nation']. ',';?>
                         <?php
-                        $survey_year=NULL;
+                        $survey_year=array();
                         $survey_year[$featured_studies['year_start']]=$featured_studies['year_start'];
                         $survey_year[$featured_studies['year_end']]=$featured_studies['year_end'];
                         $survey_year=implode('-',$survey_year);
@@ -158,7 +158,13 @@
         </div>
 
     </div>-->
-  
+    
+<span class="result-types-summary">
+    <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
+        <?php //echo json_encode($surveys['search_counts_by_type']);?>
+    </span>        
+</span>
+
 <?php foreach($surveys['rows'] as $row): ?>
     <?php if(!isset($row['form_model'])){
         $row['form_model']='data_na';
@@ -186,7 +192,7 @@
                         <?php echo $row['nation']. ',';?>
                 <?php endif;?>
                 <?php 
-                    $survey_year=NULL;
+                    $survey_year=array();
                     $survey_year[$row['year_start']]=$row['year_start'];
                     $survey_year[$row['year_end']]=$row['year_end'];
                     $survey_year=implode('-',$survey_year);

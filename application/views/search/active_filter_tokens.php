@@ -32,7 +32,8 @@ if (!isset($_GET['collection']))
             <div class="search-count font-weight-bold"><?php echo number_format($found). ' '. t('results');//sprintf($items_found,$found,$total);?></div>
         </div>
         -->
-        
+
+    
         <div class="col-12 col-md-12 mt-2 mt-md-0 text-center text-md-right">
             <div class="filter-action-bar">
                 <span>
@@ -42,14 +43,14 @@ if (!isset($_GET['collection']))
                      <label for="sort-by-select" class="sort-by-label">
                         <span class="sort-by-title d-none d-sm-block">Sort By:&nbsp;</span>
                         <select class="form-control form-control-sm sort-dropdown" id="sort-by-select">
-                            <option value="relevance"  data-sort="desc">Relevance</option>
-                            <option value="popularity"  data-sort="desc">Popularity</option>
-                            <option value="year" data-sort="desc">Year (Recent &uarr;)</option>
-                            <option value="year" data-sort="asc">Year (Oldest &darr;)</option>
-                            <option value="title" data-sort="asc">Title (A-Z)</option>
-                            <option value="title" data-sort="desc">Title (Z-A)</option>
-                            <option value="country" data-sort="asc" >Country (A-Z)</option>
-                            <option value="country" data-sort="desc">Country (Z-A)</option>                           
+                            <option value="relevance"  data-sort="desc" <?php  echo ($search_options->sort_by=='relevance' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?> >Relevance</option>
+                            <option value="popularity"  data-sort="desc" <?php  echo ($search_options->sort_by=='popularity' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>>Popularity</option>
+                            <option value="year" data-sort="desc" <?php  echo ($search_options->sort_by=='year' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>>Year (Recent &uarr;)</option>
+                            <option value="year" data-sort="asc" <?php  echo ($search_options->sort_by=='year' && $search_options->sort_order=='asc') ? 'selected="selected"' : '' ; ?>>Year (Oldest &darr;)</option>
+                            <option value="title" data-sort="asc" <?php  echo ($search_options->sort_by=='title' && $search_options->sort_order=='asc') ? 'selected="selected"' : '' ; ?>>Title (A-Z)</option>
+                            <option value="title" data-sort="desc" <?php  echo ($search_options->sort_by=='title' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>>Title (Z-A)</option>
+                            <option value="country" data-sort="asc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='asc') ? 'selected="selected"' : '' ; ?>>Country (A-Z)</option>
+                            <option value="country" data-sort="desc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>>Country (Z-A)</option>                           
                         </select>
                     </label>
 

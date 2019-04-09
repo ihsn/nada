@@ -171,7 +171,7 @@ class Catalog extends MY_Controller {
 		$offset=						($search_options->page-1)*$limit;
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('proddate','title','labl','nation','popularity','rank');
+		$allowed_fields = array('year','title','nation','country','popularity','rank');
 		$allowed_order=array('asc','desc');
 
 		//set default sort options, if passed values are not valid
