@@ -85,6 +85,7 @@
     padding-bottom:0px;
 }
 
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 
@@ -245,23 +246,24 @@ $(document).ready(function()
         name=$(this).attr("data-type");
         value=$(this).attr("data-value");
 
-        console.log(name, value);
         el_name="[name='" + name + "']," + "[name='" + name + "[]']";
-        console.log(el_name);
         elements=$(el_name);
 
-        console.log(elements);
-        window.x=elements;
-
-
-        if (elements.prop("type")=='checkbox'){
-            named_el=$("[name='" + name + "'][value='"+value+"']");
-            console.log(named_el);
-            named_el.prop("checked",false);
-            console.log(named_el);
+        if (name=='years'){
+            $("#from").val("");
+            $("#to").val("");
         }
-        else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
-            elements.prop("value",'');
+
+        if (elements.length>0){
+            if (elements.prop("type")=='checkbox'){
+                named_el=$("[name='" + name + "'][value='"+value+"']");
+                console.log(named_el);
+                named_el.prop("checked",false);
+                console.log(named_el);
+            }
+            else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
+                elements.prop("value",'');
+            }
         }
         
 
@@ -273,10 +275,8 @@ $(document).ready(function()
 
     function search()
     {
-        console.log("Starting search");        
         search_state=$("#catalog-search-form").serialize();
-        $( "#search-result-container" ).html('loading, please wait ...');
-        console.log(search_state);
+        $( "#search-result-container" ).html('Loading, please wait ...');
 
         $.get('<?php echo site_url('catalog/search');?>?'+search_state, function( data ) {
             $( "#search-result-container" ).html( data );
@@ -284,23 +284,23 @@ $(document).ready(function()
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
-            //History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
-            
 
             //reset nav-tabs
             $(".dataset-type-tab").find(".type-count").html("0");
 
             //update nav-tabs
             let types_summary=$(".type-summary").attr("data-types");
-            types_summary=JSON.parse(types_summary);
-            jQuery.each(types_summary, function(data_type, counts ) {
-                //console.log(data_type,counts);
-                //console.log($(".dataset-type-tab-"+data_type));
-                $(".dataset-type-tab-"+data_type).find(".type-count").html(counts);
-            });
+
+            if(types_summary){
+                types_summary=JSON.parse(types_summary);
+                jQuery.each(types_summary, function(data_type, counts ) {
+                    $(".dataset-type-tab-"+data_type).find(".type-count").html(counts);
+                });
+            }
 
         });        
     }
+
 
     //call this for search
     function change_state()
