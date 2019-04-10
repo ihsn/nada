@@ -14,8 +14,8 @@
         </tr>
 	<?php foreach($rows as $row):?>
     	<tr>
-        	<td><?php echo $row['surveyid'];?></td>
-            <td><?php echo $row['titl'];?></td>
+        	<td><?php echo $row['idno'];?></td>
+            <td><?php echo $row['title'];?></td>
             <td><?php echo $row['visits'];?></td>
         </tr>
     <?php endforeach;?>    

@@ -34,8 +34,8 @@ class Reports_model extends CI_Model {
 	{
 		$sql='SELECT 
 					s.id as id,
-					s.surveyid as surveyid, 
-					s.titl as titl,
+					s.idno as idno, 
+					s.title as title,
 					count(*) as visits					 
 			FROM sitelogs n
 				  inner join surveys s on n. surveyid=s.id
@@ -46,7 +46,7 @@ class Reports_model extends CI_Model {
 			$sql.='	and (logtime between '.$start.' and '.$end.')';
 		}
 
-		$sql.='	group by s.surveyid, s.titl, s.id';
+		$sql.='	group by s.idno, s.title, s.id';
 		$sql.= ' order by visits desc';			
 
 		$query=$this->db->query($sql)->result_array();
@@ -58,11 +58,11 @@ class Reports_model extends CI_Model {
 	{
 			$sql='SELECT 
 						s.id as id,
-						s.surveyid as survey, 
-						s.titl as title, 
+						s.idno, 
+						s.title as title, 
 						n.section as section,						
 						s.nation as country,
-						s.proddate as year,
+						s.year_start as year,
 						count(*) as visits 
 				FROM sitelogs n
 					  inner join surveys s on n. surveyid=s.id
@@ -72,7 +72,7 @@ class Reports_model extends CI_Model {
 			{
 				$sql.='	and (logtime between '.$start.' and '.$end.')';
 			}						
-			$sql.='	group by s.surveyid, s.id, s.titl, n.section';
+			$sql.='	group by s.idno, s.id, s.title, n.section';
 						
 			return $this->db->query($sql)->result_array();		
 	}	
@@ -88,11 +88,11 @@ class Reports_model extends CI_Model {
 		{
 			$sql='SELECT 
 						s.id as id,
-						s.surveyid as survey,						
-						s.titl as title,
+						s.idno as idno,
+						s.title as title,
 						n.section as section,
 						s.nation as country,
-						s.proddate as year,
+						s.year_start as year,
 						count(*) as visits 
 				FROM sitelogs n
 					  inner join surveys s on n. surveyid=s.id
@@ -105,7 +105,7 @@ class Reports_model extends CI_Model {
 				
 			}
 			
-			$sql.='	group by s.surveyid, s.id, s.titl, n.section';
+			$sql.='	group by s.idno, s.id, s.title, n.section';
 			
 			$rows=$this->db->query($sql)->result_array();		
 			$result[]=$rows;	
@@ -121,31 +121,7 @@ class Reports_model extends CI_Model {
 	**/
 	function downloads_detailed($start=NULL,$end=NULL)
 	{
-		/*
-		#downloads detailed report
-		select
-			sitelogs.id,
-			logtime,
-			ip,
-			sitelogs.surveyid,
-			users.username,
-			users.email,
-			meta.company,
-			meta.country,
-			keyword as downloadid,
-			surveys.titl as survey_title,
-			resources.title as download_title,
-			resources.filename as download_filename
-	
-		from sitelogs
-		inner join surveys on surveys.id =sitelogs.surveyid
-		inner join resources on resources.resource_id=sitelogs.keyword
-		left join users on users.email = sitelogs.username
-		left join meta on users.id=meta.id
-
-		where sitelogs.section like '%download%';
-		*/
-
+		
 		$sql='select
 					sitelogs.id,
 					logtime,
@@ -156,7 +132,7 @@ class Reports_model extends CI_Model {
 					meta.company,
 					meta.country,
 					keyword as downloadid,
-					surveys.titl as survey_title,
+					surveys.title as survey_title,
 					resources.title as download_title,
 					resources.filename as download_filename,
 					forms.model as form_type
@@ -236,7 +212,7 @@ class Reports_model extends CI_Model {
 	{
 		$sql='select
 					p.*,
-					s.titl as survey_title,
+					s.title as survey_title,
 					u.username,
 					u.email,
 					meta.company,
@@ -311,7 +287,7 @@ class Reports_model extends CI_Model {
 	{
 		$sql='select
 				s.id,
-				titl,
+				title,
 				varcount,
 				dirpath,
 				s.formid,
