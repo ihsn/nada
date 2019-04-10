@@ -844,6 +844,31 @@ paths:
                 description: successful operation
             security:
               - ApiKeyAuth: []        
+  /datasets/strip_ddi/{IDNo}/{options}:
+      put:
+        tags:
+          - Survey
+        summary: Strip DDI elements
+        description: Remove metadata from the DDI file
+        operationId: stripDDI
+        parameters:
+          - in: "path"
+            name: IDNo
+            type: string
+            description: "Dataset IDNo"
+          - in: "path"
+            name: options
+            type: string
+            description: Options for removing metadata elements. Valid options are `summary_stats`, `variables`, `keep_basic`
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            responses:
+              '200':
+                description: successful operation
+            security:
+              - ApiKeyAuth: [] 
   /datasets/update_id/{datasetIDNo}/{newId}:
       put:
         tags:
