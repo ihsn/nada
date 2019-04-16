@@ -352,10 +352,10 @@ class Repository_model extends CI_Model {
 			$this->db->where("repositories.ispublished",1);
 		}
 
-		if ($system==FALSE){
+		/*if ($system==FALSE){
 			//show system repositories
 			$this->db->where("repositories.type !=",2);
-		}		
+		}*/		
 		
 		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title'); 
 		$this->db->join('repository_sections', 'repository_sections.id= repositories.section','inner');

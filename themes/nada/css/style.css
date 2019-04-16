@@ -716,7 +716,25 @@ footer {
     margin-left:5px
   }
 
+  .contributing-repos h3{
+    margin-bottom:30px;
+    padding-bottom:10px;
+    border-bottom:1px solid gainsboro;
+  }
 
+  .contributing-repos .collection-container .row{
+    margin-bottom:15px;
+    padding-bottom:15px;
+    border-bottom:1px solid gainsboro;
+  }
+
+  .content-unpublished{
+    padding:15px;
+    color:white;
+    background:red;
+    margin-top:15px;
+    margin-bottom:15px;
+  }
 
 /* ========= MISC =========== */
 /**** data access icons ****/
