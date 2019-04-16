@@ -400,8 +400,9 @@ class Dataset_model extends CI_Model {
 			$pattern='/\b\w{3}\b/';
 			//add underscore as a prefix
 			return preg_replace($pattern, '_${0}', $keywords);
-		}	
-		die();
+		}
+		
+		return $keywords;
 	}
 
 
