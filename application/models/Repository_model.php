@@ -694,7 +694,7 @@ class Repository_model extends CI_Model {
 	**/
 	public function repo_survey_list($repositoryid,$data_access_types=NULL)
 	{
-		$this->db->select('surveys.id,surveys.titl,surveys.nation,surveys.year_start,surveys.year_end,forms.model as da_model,surveys.created,surveys.changed');
+		$this->db->select('surveys.id,surveys.title,surveys.nation,surveys.year_start,surveys.year_end,forms.model as da_model,surveys.created,surveys.changed');
 		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
 		$this->db->join('forms', 'surveys.formid = forms.formid','left');
 		$this->db->where('survey_repos.repositoryid',$repositoryid);
