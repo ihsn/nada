@@ -105,15 +105,11 @@ class DDI2_Import{
             if(!$this->overwrite){
                 throw new Exception("SURVEY_ALREADY_EXISTS: ".$sid);
             }
-                        
-            //check if study is owned by the active repository
-            $owner_repository=$this->ci->Catalog_model->get_study_owner($sid);
             
-            if (!$owner_repository){
-                $owner_repository='central';
-            }
-
-			$this->repositoryid=$owner_repository;
+            //load existing options
+            $dataset_row=$this->ci->dataset_manager->get_row($sid);
+            $this->repositoryid=$dataset_row['repositoryid'];
+            $this->formid=$dataset_row['formid'];
 		}
 
 		$repositoryid=$this->repositoryid;
@@ -459,6 +455,9 @@ class DDI2_Import{
 
     private function import_variables($sid,$data_files, $variable_iterator)
     {
+        //delete existing variables + variables metadata
+        $this->ci->Variable_model->remove_all_variables($sid);
+
         if(!$data_files){
             return 0;
         }
@@ -466,9 +465,6 @@ class DDI2_Import{
         if (!$variable_iterator){
             return 0;
         }
-
-        //delete existing variables + variables metadata
-        $this->ci->Variable_model->remove_all_variables($sid);
 
         $batch_inserts=true; //enable or disable batch inserts
         $batch_insert_size=200; //rows inserted at once

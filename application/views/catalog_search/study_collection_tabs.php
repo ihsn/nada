@@ -66,7 +66,7 @@ else{
     </div>
 </div>
 <?php else: ?>
-<div class="col-12 col-md-8 col-lg-9 mt-3 catalog-container">
+<div class="col-md-12 mt-3">
     <div class="row">
         <div class="col-sm-12">
             <?php if(isset($repo['ispublished']) && intval($repo['ispublished'])===0):?>

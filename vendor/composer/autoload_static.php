@@ -15,6 +15,10 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         array (
             'Violet\\StreamingJsonEncoder\\' => 28,
         ),
+        'S' => 
+        array (
+            'Slim\\Csrf\\' => 10,
+        ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
@@ -40,6 +44,10 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         'Violet\\StreamingJsonEncoder\\' => 
         array (
             0 => __DIR__ . '/..' . '/violet/streaming-json-encoder/src',
+        ),
+        'Slim\\Csrf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/slim/csrf/src',
         ),
         'Psr\\Log\\' => 
         array (

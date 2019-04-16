@@ -15,10 +15,12 @@
 <div class="row">
     <div class="col-12 col-sm-6 col-md-6 col-lg-6">
 <form method="post" autocomplete="off" class="form">
-<input type="hidden" name="form_token" value="<?php echo form_prep($this->form_token); ?>"/>
-      <p><?php echo t('old_password');?>:<br />
+    <input type="hidden" name="<?php echo $this->data['csrf']['keys']['name'];?>" value="<?php echo $this->data['csrf']['name'];?>"/>
+    <input type="hidden" name="<?php echo $this->data['csrf']['keys']['value'];?>" value="<?php echo $this->data['csrf']['value'];?>"/>
+    
+    <p><?php echo t('old_password');?>:<br />
       <?php echo form_input($old_password);?>
-      </p>
+    </p>
       
       <p><?php echo t('new_password');?>:<br />
       <?php echo form_input($new_password);?>
