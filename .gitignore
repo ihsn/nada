@@ -14,7 +14,7 @@ application/cache/*
 application/config/database.php
 application/config/email.php
 *.bak
-logs
+logs/*.php
 cache
 backup/*
 system.old
