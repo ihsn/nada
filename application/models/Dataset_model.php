@@ -320,7 +320,8 @@ class Dataset_model extends CI_Model {
 
 		//keywords
 		if (!isset($data['keywords'])){
-			$data['keywords']=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
+			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
+			$data['keywords']=$this->extract_keywords($data['metadata']);;
 		}
 		
 		//encode json fields
@@ -368,7 +369,7 @@ class Dataset_model extends CI_Model {
 
 		//keywords
 		if (!isset($data['keywords']) && isset($data['metadata'])){
-			$data['keywords']=str_replace("\n","",$this->array_to_plain_text($data['metadata']));
+			$data['keywords']=$this->extract_keywords($data['metadata']);
 		}
 
 		//encode json fields
@@ -388,6 +389,19 @@ class Dataset_model extends CI_Model {
 		}
 
 		return $sid;
+	}
+
+	function extract_keywords($metadata)
+	{
+		$keywords=str_replace("\n","",$this->array_to_plain_text($metadata));
+
+		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
+			//words with length < 3
+			$pattern='/\b\w{3}\b/';
+			//add underscore as a prefix
+			return preg_replace($pattern, '_${0}', $keywords);
+		}	
+		die();
 	}
 
 

@@ -223,15 +223,13 @@ class Catalog_search_mysql{
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
-			if ($repository!='')
-			{
+			if ($repository!=''){
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 
 
 			//multi-sort
-			foreach($sort_options as $sort)
-			{
+			foreach($sort_options as $sort){
 				$this->ci->db->order_by($this->sort_allowed_fields[$sort['sort_by']],$sort['sort_order']);
 			}
 
@@ -244,13 +242,11 @@ class Catalog_search_mysql{
 			$query=$this->ci->db->get();
 		}
 		
-		if ($query)
-		{
+		if ($query){
 			//result to array
 			$this->search_result=$query->result_array();
 		}
-		else
-		{
+		else{
 			//some error occured
 			return FALSE;
 		}
@@ -280,12 +276,13 @@ class Catalog_search_mysql{
 		$result['citations']=$this->get_survey_citation();
 		//$result['search_counts_by_type']=null;
 		$result['search_counts_by_type']=$this->search_counts_by_type();
-		
+
 		if ($result['found']>0){
 			//search for variables for SURVEY types
 			$id_list=array_column($this->search_result, "id");
 
 			if(count($id_list)>0){
+				//search variables and get the counts
 				$variables_by_study=$this->search_variable_counts($id_list,$this->study_keywords);
 				if(!empty($variables_by_study)){
 					foreach($this->search_result as $idx=>$row)
@@ -413,18 +410,27 @@ class Catalog_search_mysql{
 		$words=explode(" ", $text);
 		$output=array();
 
-
 		foreach($words as $word){
 			$prefix=substr($word,0,1);
 			//has prefix?
 			if(in_array($prefix,$prefixes) && strlen(trim($word))>3){
 				$output[]=$word;
 			}else{
-				if (strlen(trim($word))>=3){
+				$word=trim($word);
+
+				//add prefix for 3 letter keywords
+				if(strlen($word)==3){
+					if(isset($this->ci->db->prefix_short_words) && $this->ci->db->prefix_short_words==true){
+						$word='_'.$word;
+					}
+				}
+
+				if (strlen($word)>0){
 					$output[]='+'.$word;//default AND
 				}
 			}			
 		}
+
 		return implode("",$output);
 	}
 
@@ -440,7 +446,7 @@ class Catalog_search_mysql{
 		if(strlen($study_keywords)<3 || strlen($study_keywords)>100){
 			return false;
 		}
-		
+
 		//fulltext index name
 		$study_fulltext_index='keywords, var_keywords';
 
@@ -455,11 +461,16 @@ class Catalog_search_mysql{
 	protected function _build_variable_query()
 	{
 		$variable_keywords=trim($this->variable_keywords);
-		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
-	
-		if ($variable_keywords==''){
-			return FALSE;
+		$variable_keywords=str_replace(array('"',"'"), '',$variable_keywords);
+
+		if(strlen($variable_keywords)<3 || strlen($variable_keywords)>100){
+			return false;
 		}
+
+		$variable_keywords=$this->parse_fulltext_keywords($variable_keywords);
+
+		//cleaned list of variable fields array
+		$variable_fields=$this->variable_fields();		
 
 		$tmp_where=array();
 		
@@ -470,11 +481,6 @@ class Catalog_search_mysql{
 			//FULLTEXT
 			$tmp_where[]=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($variable_keywords));
 		}	
-		/*else if (strlen($variable_keywords) ==3){
-			$regex_fields=$this->get_variable_search_field(FALSE);
-			$variable_keywords=sprintf("[[:<:]]%s[[:>:]]",$variable_keywords);
-			$tmp_where[]=sprintf('%s REGEXP (%s)',$regex_fields,$this->ci->db->escape($variable_keywords));
-		}*/
 				
 		if (!empty($tmp_where)){
 			return '('.implode(' OR ',$tmp_where).')';
@@ -1056,19 +1062,23 @@ class Catalog_search_mysql{
 	function search_variable_counts($id_list,$keywords)
 	{
 		$keywords=trim($keywords);
+		$keywords=str_replace(array('"',"'"), '',$keywords);
 
-		if ($keywords==''){
-			return FALSE;
+		if(strlen($keywords)<3 || strlen($keywords)>100){
+			return false;
 		}
+
+		if(!is_array($id_list) || empty($id_list)){
+			return false;
+		}
+
+		$keywords=$this->parse_fulltext_keywords($keywords);
 		
 		$where=false;
 		
-		if (strlen($keywords) >=3)
-		{
-			//get fulltext index name
+		if (strlen($keywords) >3){
 			$fulltext_index=$this->get_variable_search_field(TRUE);
-			//FULLTEXT
-			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($keywords));
+			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($keywords));			
 		}
 		else{
 			return false;
@@ -1077,6 +1087,7 @@ class Catalog_search_mysql{
 		if($where){
 			$sql='select count(*) as var_found,sid from variables v where ';
 			$sql.=$where;
+			$sql.=' AND sid in ('. implode(",", $id_list). ') ';
 			$sql.='group by sid;';
 			
 			$result=$this->ci->db->query($sql)->result_array();

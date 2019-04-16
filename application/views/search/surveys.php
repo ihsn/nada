@@ -1,4 +1,19 @@
-<?php if (isset($surveys['rows']) && count($surveys['rows'])>0): ?>
+<?php if (isset($surveys['rows']) && count($surveys['rows'])<1): ?>
+    <?php $this->load->view("search/search_nav_bar");?>
+
+    <div id="surveys">
+        <span class="result-types-summary">
+            <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
+                <?php //echo json_encode($surveys['search_counts_by_type']);?>
+            </span>        
+        </span>
+
+        <div class="nada-search-no-result"><?php echo t('search_no_results');?></div>
+        <div><span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span></div>
+    </div>
+    <?php return;?>
+<?php endif; ?>
+
 
 <?php 
 	//current page url
@@ -248,11 +263,3 @@ else{
             <span class="nada-btn">100</span>
         </small>
     </div>
-
-<?php else: //no search results found ?>
-
-	<?php $this->load->view("search/search_nav_bar");?>
-
-	<div class="nada-search-no-result"><?php echo t('search_no_results');?></div>
-    <div><span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span></div>
-<?php endif; ?>
