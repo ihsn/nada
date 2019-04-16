@@ -1,4 +1,18 @@
-<?php if (isset($surveys['rows']) && count($surveys['rows'])>0): ?>
+<?php if (isset($surveys['rows']) && count($surveys['rows'])<1): ?>
+    <?php $this->load->view("search/search_nav_bar");?>
+
+    <div id="surveys">
+        <span class="result-types-summary">
+            <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
+                <?php //echo json_encode($surveys['search_counts_by_type']);?>
+            </span>        
+        </span>
+
+        <div class="nada-search-no-result"><?php echo t('search_no_results');?></div>
+        <div><span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span></div>
+    </div>
+    <?php return;?>
+<?php endif; ?>
 
 <?php 
 	//current page url
@@ -181,44 +195,36 @@
 
 <?php endforeach;?>
 
-    <div class="nada-pagination border-top-none">
-        <div class="row mt-3 mb-3 d-flex align-items-lg-center">
+<div class="nada-pagination border-top-none">
+    <div class="row mt-3 mb-3 d-flex align-items-lg-center">
 
-            <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
-                <?php echo sprintf(t('showing_studies'),
-                    (($surveys['limit']*$current_page)-$surveys['limit']+1),
-                    ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
-                    $surveys['found']);
-                ?>
-            </div>
-
-            <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
-                <nav aria-label="Page navigation">
-                    <?php
-                    $pager_bar=(pager($surveys['found'],$surveys['limit'],$current_page,5));
-                    echo $pager_bar;
-                    ?>
-                </nav>
-            </div>
+        <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
+            <?php echo sprintf(t('showing_studies'),
+                (($surveys['limit']*$current_page)-$surveys['limit']+1),
+                ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
+                $surveys['found']);
+            ?>
         </div>
 
+        <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
+            <nav aria-label="Page navigation">
+                <?php
+                $pager_bar=(pager($surveys['found'],$surveys['limit'],$current_page,5));
+                echo $pager_bar;
+                ?>
+            </nav>
+        </div>
     </div>
 
+</div>
 
-    <div id="items-per-page" class="items-per-page light switch-page-size">
-        <small>
-            <?php echo t('select_number_of_records_per_page');?>:
-            <span class="nada-btn">15</span>
-            <span class="nada-btn">30</span>
-            <span class="nada-btn">50</span>
-            <span class="nada-btn">100</span>
-        </small>
-    </div>
 
-<?php else: //no search results found ?>
-
-	<?php $this->load->view("search/active_filter_tokens");?>
-
-	<div class="nada-search-no-result"><?php echo t('search_no_results');?></div>
-    <div><span class="clear-search"><a href="<?php echo site_url('catalog');?>"><?php echo t('reset_search');?></a></span></div>
-<?php endif; ?>
+<div id="items-per-page" class="items-per-page light switch-page-size">
+    <small>
+        <?php echo t('select_number_of_records_per_page');?>:
+        <span class="nada-btn">15</span>
+        <span class="nada-btn">30</span>
+        <span class="nada-btn">50</span>
+        <span class="nada-btn">100</span>
+    </small>
+</div>
