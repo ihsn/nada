@@ -15,11 +15,11 @@ table td{padding:5px;}
     </tr>
     <tr valign="top">
         <td><?php echo t('study_title');?></td>
-        <td><?php echo $titl;?> - <?php echo $nation;?> - <?php echo $proddate;?></td>
+        <td><?php echo $title;?> - <?php echo $nation;?> - <?php echo $year_start;?></td>
     </tr>
     <tr valign="top">
         <td><?php echo t('study_id');?></td>
-        <td><?php echo $surveyid;?></td>
+        <td><?php echo $idno;?></td>
     </tr>
     <tr valign="top">
         <td><?php echo t('full_name');?></td>

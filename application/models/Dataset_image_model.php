@@ -88,17 +88,14 @@ class Dataset_image_model extends Dataset_model {
 	function get_core_fields($options)
 	{        
         $output=array();
-        $output['title']=$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/headline');
-        $output['idno']=$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/digitalImageGuid');
-
-        //todo
-        $output['nation']='';
-
-        $output['abbreviation']=$this->get_array_nested_value($options,'table_description/title_statement/alternate_title');            
-        $creators=(array)$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/creatorNames');
+        $output['title']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/headline');
+        $output['idno']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/digitalImageGuid');
+        $output['nation']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/countryName');
+        $output['abbreviation']='';
+        $creators=(array)$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/creatorNames');
 		$output['authoring_entity']=implode(",", $creators);
 
-        $date=explode("-",$this->get_array_nested_value($options,'image_description/photoVideoMetadataIPTC/dateCreated'));
+        $date=explode("-",$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/dateCreated'));
 
 		if(is_array($date)){
 			$output['year_start']=(int)$date[0];

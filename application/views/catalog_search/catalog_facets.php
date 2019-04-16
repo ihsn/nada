@@ -30,7 +30,11 @@ if($repo_ref!='central' && $repo_ref)
             </div>-->
             <?php if((string)$active_repo!='' && $active_repo!='central'):?>
             <div class="sidebar-filter wb-ihsn-sidebar-filter filter-box back-to-catalog">
-                <a class="btn-central-catalog back-to-catalog btn btn-primary" href="<?php echo site_url('catalog/central');?>" title="<?php echo t('Return to central catalog');?>"><?php echo t('Central Catalog');?></a>
+                <a class="btn-central-catalog back-to-catalog btn btn-primary btn-block" href="<?php echo site_url('catalog/central');?>" 
+                    title="<?php echo t('Return to central catalog');?>">
+                        <i class="fa fa-chevron-circle-left" aria-hidden="true"></i>
+                        <?php echo t('Central Catalog');?>
+                </a>
             </div>
 
             <?php endif;?>

@@ -265,7 +265,7 @@ class Catalog extends MY_Controller {
 		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('proddate','titl','labl','nation','popularity','rank');
+		$allowed_fields = array('proddate','title','labl','nation','popularity','rank');
 		$allowed_order=array('asc','desc');
 
 		//set default sort options, if passed values are not valid
@@ -856,12 +856,12 @@ class Catalog extends MY_Controller {
 					if ($output['search_type']=='variable')
 					{
 						$rows=$output['rows'];
-						$cols=explode(",",'uid,name,labl,vid,titl,nation');
+						$cols=explode(",",'uid,name,labl,vid,title,nation');
 					}
 					else
 					{
 						$rows=$output['surveys']['rows'];
-						$cols=explode(",",'id,idno,titl,nation,authenty,year_start,year_end,created,changed');
+						$cols=explode(",",'id,idno,title,nation,authoring_entity,year_start,year_end,created,changed');
 					}
 
 					//var_dump($output['surveys']);exit;

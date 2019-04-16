@@ -7,7 +7,7 @@
 <?php if ($rows): ?>
 	<div><?php echo t('total_studies_in_collection');?>: <?php echo count($rows);?></div>
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="grid-table table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th>#</th>
             <th><?php echo t('study_title');?></th>
@@ -23,7 +23,7 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="study-row <?php echo $tr_class; ?>">
             <td><?php echo $k;?></td>
-            <td><a href="<?php echo site_url('admin/catalog/edit/'.$row->id);?>"><?php echo $row->titl;?></a></td>
+            <td><a href="<?php echo site_url('admin/catalog/edit/'.$row->id);?>"><?php echo $row->title;?></a></td>
             <td><?php echo $row->nation; ?></td>
             <td>
 				<?php 

@@ -26,8 +26,7 @@ $options_published=array(
 $sections=$this->data['section_options'];
 $options_section=array();
 
-foreach($sections as $sec)
-{
+foreach($sections as $sec){
 	$options_section[$sec['id']]=$sec['title'];
 }
 ?>

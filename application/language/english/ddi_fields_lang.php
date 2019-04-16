@@ -88,9 +88,10 @@ $lang['metadata.study_desc.study_authorization.agency.abbr']='Abbreviation';
 $lang['metadata.study_desc.study_authorization.authorization_statement']='Authorization Statement';
 $lang['metadata.study_desc.study_info']='Study Scope';
 $lang['metadata.study_desc.study_info.study_budget']='Study Budget';
-$lang['metadata.study_desc.study_info.keywords']='Keyowrds';
+$lang['metadata.study_desc.study_info.keywords']='Keywords';
 $lang['metadata.study_desc.study_info.keywords.keyword']='Keyword';
 $lang['metadata.study_desc.study_info.keywords.uri']='URI';
+$lang['metadata.study_desc.study_info.keywords.vocab']='Vocabulary';
 $lang['metadata.study_desc.study_info.topics']='Topic Classification';
 $lang['metadata.study_desc.study_info.topics.topic']='Topic';
 $lang['metadata.study_desc.study_info.topics.vocab']='Vocabulary';
@@ -287,3 +288,4 @@ $lang['var_qstn_ivulnstr']='Interviewer instructions';
 
 $lang['data_file']='Data file';
 $lang['overview']='Overview';
+$lang['contacts']='Contacts';

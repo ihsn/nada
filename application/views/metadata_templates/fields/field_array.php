@@ -6,8 +6,19 @@
         <?php            
             if(!isset($columns)){
              $columns=array_keys($data[0]);
-            }            
+            }
+
+            //remove empty columns
+            $non_empty_columns=array();            
+            foreach($columns as $column){
+                $column_data=array_filter(array_column($data, $column));
+                if(!empty($column_data)){
+                    $non_empty_columns[]=$column;
+                }
+            }
+            $columns=$non_empty_columns;
         ?>
+        
         <table class="table table-bordered table-striped table-condensed xsl-table table-grid">
             <tr>
                 <?php foreach($columns as $column_name):?>
@@ -18,6 +29,7 @@
             <?php foreach($data as $row):?>
                 <tr>
                     <?php foreach($row as $key=>$value):?>
+                        <?php if(!in_array($key,$columns)){continue;}?>
                         <td>
                             <?php if(is_array($value)):?>
                             <?php echo render_field($field_type='array_comma',$field_name=$name.'.'.$key,$value);?>

@@ -26,18 +26,17 @@ class Captcha_lib_recaptcha extends CI_Driver {
 	
 	public function check_answer()
 	{
-		 $response = $this->CI->recaptcha->recaptcha_check_answer($this->CI->input->server('REMOTE_ADDR'),
-					$this->CI->input->post('recaptcha_challenge_field'),
-					$this->CI->input->post('recaptcha_response_field'),
-					array(),
-					false
-         );
+		 $response = $this->CI->recaptcha->recaptcha_check_answer(
+			 				$this->CI->input->server('REMOTE_ADDR'),
+							$this->CI->input->post($this->get_question_field()),
+							$debug=false
+		 );
 		 
 		 return $response['is_valid'];
 	}
 	
 	public function get_question_field()
 	{
-		return 'recaptcha_response_field';
+		return 'g-recaptcha-response';
 	}
 }	

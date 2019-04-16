@@ -4,6 +4,7 @@
         "mpdf/mpdf": "^7.1",
         "phpmailer/phpmailer": "^5.2.26",
         "violet/streaming-json-encoder": "^1.1",
-        "salsify/json-streaming-parser": "^8.0"
+        "salsify/json-streaming-parser": "^8.0",
+        "slim/csrf": "^0.8.3"
     }
 }

@@ -3,6 +3,7 @@ class Repositories extends MY_Controller {
 
 	var $errors='';
 	var $search_fields=array('username','email','status'); 
+	var $uploaded_thumbnail_path='';
 	
 	
 	function __construct()
@@ -30,21 +31,9 @@ class Repositories extends MY_Controller {
 	
 	//list repositories
 	function index()
-	{			
-		//get array of db rows
+	{					
 		$result['rows']=$this->_search();
-		
-		/*$result['rows']=$this->repository_model->get_repositories($published=FALSE, $system=FALSE);//
-		$repo_sections=$this->repository_model->get_repository_sections();
-		
-		foreach($repo_sections as $section)
-		{
-			$result['sections'][$section['id']]=$section['title'];
-		}*/
-		
-		//load the contents of the page into a variable
-		$content=$this->load->view('repositories/index-default', $result,true);
-	
+		$content=$this->load->view('repositories/index-default', $result,true);	
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('repositories_management'),true);
 	  	$this->template->render();	
@@ -114,7 +103,7 @@ class Repositories extends MY_Controller {
 	*/
 	function add()
 	{
-			$this->edit();
+		$this->edit();
 	}
 		
 	//process thumbnail uploads
@@ -129,16 +118,15 @@ class Repositories extends MY_Controller {
 		$this->load->library('upload', $config);
 		
 		$output=array();		
-		if ( ! $this->upload->do_upload($file_name))
-		{
+		if ( ! $this->upload->do_upload($file_name)){
 			$error = array('error' => $this->upload->display_errors());
 			$output=array(
 				'status'=>'error',
-				'data'=>$error
+				'data'=>$error,
+				'upload_path'=>$config['upload_path']
 			);
 		}
-		else
-		{
+		else{
 			$data = array('upload_data' => $this->upload->data());
 			$output=array(
 				'status'	=>'success',
@@ -149,7 +137,38 @@ class Repositories extends MY_Controller {
 		return $output;
 	}	
 		
-		
+	/**
+	 * 
+	 * 
+	 * Callback for collection thumbnail uploads
+	 * 
+	 */
+	function _thumbnail_upload()
+	{
+		if(!empty($_FILES['thumbnail_file']['name'])) {
+			$thumbnail_storage=$this->config->item('collection_image_path', 'collections');
+
+			if(!file_exists($thumbnail_storage)){
+				$error=t('thumbnail_upload_folder_not_set').': '.$thumbnail_storage;
+				$this->form_validation->set_message('_thumbnail_upload',$error);
+				return false;
+			}
+			
+			$fileupload_output=$this->process_file_uploads('thumbnail_file');
+			
+			if($fileupload_output['status']=='success'){
+				$this->uploaded_thumbnail_path=$fileupload_output['file_name'];
+			}
+			else{
+				$error=t('thumbnail_upload_failed').': '. $fileupload_output['data']['error'];
+				$this->form_validation->set_message('_thumbnail_upload', $error);
+				return false;
+			}
+		}		
+		return true;
+	}
+
+
 	/**
 	* Edit repo
 	*
@@ -159,9 +178,8 @@ class Repositories extends MY_Controller {
 	{
         $this->load->helper('security');
 
-        if (!is_numeric($id)  && $id!==NULL)
-		{
-			show_error('Invalid id provided');exit;		
+        if (!is_numeric($id)  && $id!==NULL){
+			show_error('Invalid ID provided');exit;		
 		}
 
 		//set validation rules
@@ -173,13 +191,12 @@ class Repositories extends MY_Controller {
 		$this->form_validation->set_rules('thumbnail', t('thumbnail'), 'xss_clean|trim|required');
 		$this->form_validation->set_rules('section', t('section'), 'xss_clean|trim|max_length[3]|is_natural');
 		$this->form_validation->set_rules('published', t('published'), 'xss_clean|trim|max_length[1]|is_natural');
+		$this->form_validation->set_rules('thumbnailfile', 'thumbnail_upload', 'callback__thumbnail_upload');
 		
-		if (is_numeric($id))
-		{
+		if (is_numeric($id)){
 			$this->page_title=t('edit_repository');
 		}
-		else
-		{
+		else{
 			$this->page_title=t('create_repository');		
 		}	
 
@@ -202,112 +219,83 @@ class Repositories extends MY_Controller {
 						);
 												
 		//process form
-		if ($this->form_validation->run() == TRUE)
-		{
+		if ($this->form_validation->run() == TRUE){
             $options=array(
-					'group_da_public'=>0,
-					'group_da_licensed'=>0
-				);
-				$post_arr=$_POST;
+				'group_da_public'=>0,
+				'group_da_licensed'=>0
+			);
+			$post_arr=$_POST;
 							
-				//read post values to pass to db
-				foreach($post_arr as $key=>$value)
-				{
-					$options[$key]=$this->input->post($key);
-				}
+			//read post values to pass to db
+			foreach($post_arr as $key=>$value){
+				$options[$key]=$this->input->post($key);
+			}
 
-                //sanitize description html
-                $options['long_text']=$this->sanitize_html_input($options['long_text']);
+			//sanitize description html
+			$options['long_text']=$this->sanitize_html_input($options['long_text']);
 
-            /*echo '<pre>';
-            echo '<textarea style="width:500px;height:400px;">';
-            var_dump($options);
-            echo '</textarea>';
-            die();*/
-
-				//process thumbnail file uploads
-				if(!empty($_FILES['thumbnail_file']['name'])) 
-				{
-					$fileupload_output=$this->process_file_uploads('thumbnail_file');
-					
-					if($fileupload_output['status']=='success')
-					{
-						//update thumbnail path
-						$options['thumbnail']=$fileupload_output['file_name'];
-					}
-				}
+			//process thumbnail file uploads
+			if(!empty($_FILES['thumbnail_file']['name']) && !empty($this->uploaded_thumbnail_path) ){
+					$options['thumbnail']=$this->uploaded_thumbnail_path;
+			}
 								
-				if ($id==NULL)
-				{
-					$db_result=$this->repository_model->insert($options);
-				}
-				else
-				{
-					//update db
-					$db_result=$this->repository_model->update($id,$options);
-				}
+			if ($id==NULL){
+				$db_result=$this->repository_model->insert($options);
+			}
+			else{
+				//update db
+				$db_result=$this->repository_model->update($id,$options);
+			}
 							
-				if ($db_result===TRUE)
-				{
-					if (isset($options['ispublished']) && is_numeric($id))
-					{
-						//update collection studies status
-						$this->publish($id,$options['ispublished']);
-					}
-				
-					//update successful
-					$this->session->set_flashdata('message', t('form_update_success'));
-					
-					//redirect back to the list
-                    if (!$id) {
-                        redirect("admin/repositories", "refresh");
-                    }
-                    else{
-                        redirect("admin/repositories/edit/" . $id, "refresh");
-                    }
-				}
-				else
-				{
-					//update failed
-					$this->form_validation->set_error(t('form_update_fail'));
-				}
+			if ($db_result===TRUE){
+				/*if (isset($options['ispublished']) && is_numeric($id)){
+					//update collection studies status
+					$this->publish($id,$options['ispublished']);
+				}*/
+			
+				//update successful
+				$this->session->set_flashdata('message', t('form_update_success'));
+				redirect("admin/repositories", "refresh");				
+			}
+			else{
+				//update failed
+				$this->form_validation->set_error(t('form_update_fail'));
+			}
 		}
 		else //first time page is loaded or validation failed
 		{
-				if ($id!=NULL)
-				{
-					$row=$this->repository_model->select_single($id);
-					
-					if(!$row)
-					{
-						show_error('ID was not found');
-					} 	
-					
-					$this->row_data=$row;
-					
-					//validate and clean up thumbnails
-					$default_thumb=$this->config->item('collection_default_thumb', 'collections');					
-					$thumb_ext=explode(".",basename($this->row_data['thumbnail']));
-					
-					$thumb_ext=$thumb_ext[count($thumb_ext)-1];
-					
-					if (!in_array($thumb_ext,array('png','gif','jpg'))){
-						$this->row_data['thumbnail']=$default_thumb;
-					}
+			if ($id!=NULL){
+				$row=$this->repository_model->select_single($id);				
+				
+				if(!$row){
+					show_error('ID was not found');
+				} 	
+				
+				$this->row_data=$row;
+				
+				//validate and clean up thumbnails
+				$default_thumb=$this->config->item('collection_default_thumb', 'collections');					
+				$thumb_ext=explode(".",basename($this->row_data['thumbnail']));
+				
+				$thumb_ext=$thumb_ext[count($thumb_ext)-1];
+				
+				if (!in_array($thumb_ext,array('png','gif','jpg'))){
+					$this->row_data['thumbnail']=$default_thumb;
 				}
-		}			
+			}
+		}
 
 		//textboxes
 		$fields=array('repositoryid','title','url','organization','country','thumbnail','weight');
 		
-		foreach($fields as $field)
-		{
-				$this->data[$field]= array(
-							'name'	=> $field,
-							'id'    => $field,
-							'type'  => 'text',
-							'class' => 'form-control',
-							'value' => $this->form_validation->set_value($field,$this->row_data[$field]));
+		foreach($fields as $field){
+			$this->data[$field]= array(
+				'name'	=> $field,
+				'id'    => $field,
+				'type'  => 'text',
+				'class' => 'form-control',
+				'value' => $this->form_validation->set_value($field,$this->row_data[$field])
+			);
 		}
 		
 		$this->data['type']=$this->form_validation->set_value('type',$this->row_data['type']);
@@ -319,15 +307,11 @@ class Repositories extends MY_Controller {
 		//$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
 		$this->data['section']=$this->form_validation->set_value('section',$this->row_data['section']);
 		
-		//show form
 		$content=$this->load->view('repositories/edit',NULL,true);									
-				
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-		
-		//render final output
 	  	$this->template->render();								
 	}
+
 
 
     /**

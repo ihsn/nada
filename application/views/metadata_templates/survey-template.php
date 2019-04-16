@@ -78,7 +78,7 @@
 <!-- producers_sponsors -->
 <?php $output['producers_sponsors']= render_group('producers_sponsors',
     $fields=array(
-            "authoring_entity"=>'array',
+            "metadata.study_desc.authoring_entity"=>'array',
             "metadata.study_desc.production_statement.producers"=>'array',
             "metadata.study_desc.production_statement.funding_agencies"=>'array',
             "metadata.study_desc.oth_id"=>'array'
@@ -200,3 +200,12 @@
 <div class="col-12 col-sm-10 col-lg-10 wb-border-left">
     <?php echo implode('',$output);?>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify-jquery.min.js"></script>
+
+<script>
+    $(function() {
+        $(".metadata-container").linkify();
+    });
+</script>    
