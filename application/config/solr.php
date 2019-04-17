@@ -44,8 +44,33 @@ $config['solr_collection'] = "/solr/nada/";
   **/ 
 
 /*
-    <field name="_text_" type="text_en" multiValued="true" indexed="true" stored="false"/>
-    <field name="_version_" type="plong" indexed="false" stored="false"/>
+    <fieldType name="text_en_var" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.EnglishPossessiveFilterFactory"/>
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.PorterStemFilterFactory"/>
+        <!-- remove all numeric values except when numbers are part of text -->
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\b([0-9]+)\b" replacement="" replace="all" />
+        <!-- remove strings with length <3 -->
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\b\w{1,2}\b" replacement="" replace="all" />        
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.SynonymGraphFilterFactory" expand="true" ignoreCase="true" synonyms="synonyms.txt"/>
+        <filter class="solr.StopFilterFactory" words="lang/stopwords_en.txt" ignoreCase="true"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.EnglishPossessiveFilterFactory"/>
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.PorterStemFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <fieldType name="int" class="solr.TrieIntField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
+
+    <field name="_text_" type="text_en" multiValued="true" indexed="true" stored="false"/>    
     <field name="abstract" type="text_en" indexed="true" stored="false"/>
     <field name="alt_title" type="text_en" indexed="true" stored="false"/>
     <field name="authenty" type="text_en" indexed="true" stored="true"/>
@@ -67,7 +92,6 @@ $config['solr_collection'] = "/solr/nada/";
     <field name="form_model" type="string" indexed="true" stored="true"/>
     <field name="formid" type="int" indexed="true" stored="true"/>
     <field name="ft_keywords" type="text_en" indexed="true" stored="false"/>
-    <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
     <field name="idno" type="text_general" multiValued="false" indexed="true" stored="true"/>
     <field name="idnumber" type="text_general" indexed="true" stored="true"/>
     <field name="ihsn_id" type="int" indexed="true" stored="true"/>
