@@ -179,14 +179,12 @@ class Catalog extends MY_Controller {
 		$allowed_order=array('asc','desc');
 
 		//set default sort options, if passed values are not valid
-		if (!in_array(trim($search_options->sort_by),$allowed_fields))
-		{
+		if (!in_array(trim($search_options->sort_by),$allowed_fields)){
 			$search_options->sort_by='';
 		}
 
 		//default for sort order if no valid values found
-		if (!in_array($search_options->sort_order,$allowed_order))
-		{
+		if (!in_array($search_options->sort_order,$allowed_order)){
 			$search_options->sort_order='';
 		}
 
