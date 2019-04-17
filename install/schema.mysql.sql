@@ -1362,18 +1362,20 @@ CREATE TABLE `survey_types` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(50) NOT NULL,
   `title` varchar(250) DEFAULT NULL,
+  `weight` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `title_UNIQUE` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(1,'survey','Survey');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(2,'geospatial','Geospatial');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES2(3,'timeseries','Time series');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(4,'document','Document');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(5,'table','Table');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(6,'image','Photo');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(7,'script','Script');
-INSERT INTO `survey_types`(`id`,`code`,`title`) VALUES(8,'visualization','Visualization');
+
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(1,'survey','Survey',100);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight` ) VALUES(2,'geospatial','Geospatial',90);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(3,'timeseries','Time series',80);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(4,'document','Document',50);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(5,'table','Table',70);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(6,'image','Photo',40);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(7,'script','Script',30);
+INSERT INTO `survey_types`(`id`,`code`,`title`,`weight`) VALUES(8,'visualization','Visualization',60);
 
 
 -- 

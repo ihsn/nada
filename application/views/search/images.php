@@ -24,6 +24,7 @@
 
 <?php $this->load->view("search/search_nav_bar");?>
 
+<hr/>
 
 <?php		
 	//citations
@@ -107,8 +108,7 @@
     
     
 <span class="result-types-summary">
-    <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>
-        <?php //echo json_encode($surveys['search_counts_by_type']);?>
+    <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>        
     </span>        
 </span>
 
@@ -119,15 +119,17 @@
     ?>
     <div class="survey-row" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
     <div class="row">
-        <div class="col-3">
+        <div class="col-2">
+            <a href="<?php echo site_url('catalog/'.$row['id']); ?>">
             <?php if (!empty($row['thumbnail'])):?>
                 <img src="<?php echo base_url();?>files/thumbnails/<?php echo $row['thumbnail'];?>" class="img-fluid img-thumbnail rounded shadow-sm"/>
             <?php else:?>
                 <img src="<?php echo base_url();?>files/icon-blank.png" class="img-fluid img-thumbnail rounded shadow-sm w-100"/>
-            <?php endif;?>            
-        </div>        
+            <?php endif;?>
+            </a>
+        </div>
         
-        <div class="col-9">
+        <div class="col-10">
             <h5 class="title">
                 <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" >                
                     <?php echo $row['title'];?> <span class="dataset-type-label"><?php echo $row['type'];?></span>                   

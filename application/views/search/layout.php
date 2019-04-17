@@ -85,6 +85,29 @@
     padding-bottom:0px;
 }
 
+#search-keywords {
+    border:1px solid #007bff
+}
+
+ /* Chrome/Opera/Safari */
+#search-keywords::-webkit-input-placeholder {
+  color: #dee2e6;
+}
+
+/* Firefox 19+ */
+#search-keywords::-moz-placeholder { 
+    color: #dee2e6;
+}
+
+/* IE 10+ */
+#search-keywords:-ms-input-placeholder { 
+    color: #dee2e6;
+}
+
+/* Firefox 18- */
+#search-keywords:-moz-placeholder { 
+    color: #dee2e6;
+}
 
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
@@ -132,14 +155,13 @@
         $type_icons=array(
             'survey'=>'<i class="fa fa-database" aria-hidden="true"></i>',
             'geospatial'=>'<i class="fa fa-globe" aria-hidden="true"></i>',
+            'timeseries'=>'<i class="fa fa-clock-o" aria-hidden="true"></i>',
             'document'=>'<i class="fa fa-file-text-o" aria-hidden="true"></i>',
             'table'=>'<i class="fa fa-table" aria-hidden="true"></i>',
-            'visualization'=>'<i class="fa fa-pie-chart" aria-hidden="true"></i>',
-            'timeseries'=>'<i class="fa fa-clock-o" aria-hidden="true"></i>',
+            'visualization'=>'<i class="fa fa-pie-chart" aria-hidden="true"></i>',            
             'script'=>'<i class="fa fa-file-code-o" aria-hidden="true"></i>',
             'image'=>'<i class="fa fa-camera" aria-hidden="true"></i>',
         );
-
     ?>
 
     <?php foreach($tabs['types'] as $tab):?>
