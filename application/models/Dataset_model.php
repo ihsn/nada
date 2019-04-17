@@ -321,7 +321,7 @@ class Dataset_model extends CI_Model {
 		//keywords
 		if (!isset($data['keywords'])){
 			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
-			$data['keywords']=$this->extract_keywords($data['metadata']);;
+			$data['keywords']=$this->extract_keywords($data['metadata'],$type);
 		}
 		
 		//encode json fields
@@ -369,7 +369,7 @@ class Dataset_model extends CI_Model {
 
 		//keywords
 		if (!isset($data['keywords']) && isset($data['metadata'])){
-			$data['keywords']=$this->extract_keywords($data['metadata']);
+			$data['keywords']=$this->extract_keywords($data['metadata'],$type);
 		}
 
 		//encode json fields
@@ -391,9 +391,13 @@ class Dataset_model extends CI_Model {
 		return $sid;
 	}
 
-	function extract_keywords($metadata)
+	function extract_keywords($metadata,$type='')
 	{
-		$keywords=str_replace("\n","",$this->array_to_plain_text($metadata));
+		if($type=='survey'){
+			$type='microdata';
+		}
+		
+		$keywords=$type. ' '.str_replace("\n","",$this->array_to_plain_text($metadata));
 
 		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
 			//words with length < 3
