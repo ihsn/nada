@@ -22,6 +22,9 @@ class Solr_manager{
 
 		log_message('debug', "Solr Class Initialized");
 		//$this->ci->output->enable_profiler(TRUE);
+
+		ini_set('memory_limit','256M'); // This also needs to be increased in some cases. Can be changed to a higher value as per need)
+		ini_set('sqlsrv.ClientBufferMaxKBSize','524288'); // Setting to 512M
 	}
 
 
@@ -719,7 +722,7 @@ class Solr_manager{
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function full_import_variables($start_row=NULL, $limit=100, $loop=TRUE)
+	public function full_import_variables($start_row=NULL, $limit=100, $loop=FALSE)
 	{
 		$this->ci->load->helper('array');
 		$this->ci->load->model("Dataset_model");
@@ -752,10 +755,14 @@ class Solr_manager{
 		//echo "memory usage before=".$this->convert(memory_get_usage())."\r\n";
 
 		$rows=$this->ci->db->get("variables")->result_array();
+
 		
-		foreach($rows as $idx=>$row){
-			$rows[$idx]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
-		}
+		/*foreach($rows as $idx=>$row){
+			$rows[$idx]['metadata']='';
+			if(!empty($row['metadata'])){
+				$rows[$idx]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
+			}
+		}*/
 
 		//echo "DB results loaded= ".date("H:i:s")."\r\n";
 		//echo $this->ci->db->last_query();
@@ -773,11 +780,14 @@ class Solr_manager{
 		//row variable id
 		$last_row_id=$rows[ count($rows)-1]['var_uid'];
 
+		
+
 		//echo "add docs " .date("H:i:s")."\r\n";
 
 		$this->add_documents($rows,$id_prefix='v-');
 		$row_count=count($rows);
 		unset($rows);
+
 
 		if ($loop){
 			//recursively call to fetch next batch of rows
@@ -922,7 +932,7 @@ class Solr_manager{
 		return $output;
 	}
 
-	function get_survey_variables($sid)
+	/*function get_survey_variables($sid)
 	{
 		$this->ci->db->select("uid,name,labl,qstn,catgry");
 		$this->ci->db->where('sid',$sid);
@@ -935,6 +945,51 @@ class Solr_manager{
 			$output[]=implode(" ", array_values($row));
 		}
 		return implode(" ",$output);
+	}*/
+
+	
+	function get_survey_variables($sid)
+	{
+		//max variables to be indexed
+		$max_rows=15000;
+		
+		$limit=500;
+		$chunks=ceil($max_rows/$limit);
+
+		$output=array();
+		$last_row_id=0;
+
+		for($i=1;$i<=$chunks;$i++){
+
+			$chunked_variables=$this->get_survey_variables_chunked($sid,$start_row=$last_row_id,$limit=500);
+
+			if(!count($chunked_variables) > 0){
+				break;
+			}			
+			
+			foreach($chunked_variables as $row){
+				$output[]=implode(" ", array_values($row));
+				$last_row_id=$row['uid'];
+			}
+			unset($chunked_variables);
+
+			if($last_row_id==0){
+				break;
+			}
+		}
+
+		return implode(" ",$output);
+	}
+
+
+	function get_survey_variables_chunked($sid,$start_row=0,$limit=500)
+	{
+		$this->ci->db->select("uid,name,labl,qstn,catgry");
+		$this->ci->db->where('sid',$sid);
+		$this->ci->db->where('uid>',$start_row);
+		$this->ci->db->limit($limit);		
+		$result= $this->ci->db->get("variables")->result_array();		
+		return $result;
 	}
 
 
