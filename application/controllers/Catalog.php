@@ -265,7 +265,7 @@ class Catalog extends MY_Controller {
 		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('proddate','title','labl','nation','popularity','rank');
+		$allowed_fields = array('year','title','labl','nation','popularity','rank');
 		$allowed_order=array('asc','desc');
 
 		//set default sort options, if passed values are not valid
@@ -960,7 +960,7 @@ class Catalog extends MY_Controller {
 			$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
 		}
 
-		$html='<h1>'.$survey['nation'].' - '.$survey['titl'].'</h1><br/><br/>'.$html;
+		$html='<h1>'.$survey['nation'].' - '.$survey['title'].'</h1><br/><br/>'.$html;
 
 		$this->template->add_css('themes/ddibrowser/ddi.css');
 		$this->template->add_meta(sprintf('<link rel="canonical" href="%s" />',js_base_url().'catalog/access_policy/'.$id),NULL,'inline');
