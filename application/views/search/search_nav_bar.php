@@ -54,7 +54,7 @@ else{
     <?php if (!empty(trim($active_filters))):?>
         <div class="active-filters">
             <?php echo $active_filters;?>
-            <a href="<?php echo site_url('catalog');?>" class="btn-reset-search btn btn-outline-primary btn-sm">Reset search</a>
+            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-primary btn-sm">Reset search</a>
         </div>        
     <?php endif;?>
 </div>    
