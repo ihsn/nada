@@ -288,3 +288,4 @@ $lang['var_qstn_ivulnstr']='Interviewer instructions';
 
 $lang['data_file']='Data file';
 $lang['overview']='Overview';
+$lang['contacts']='Contacts';
