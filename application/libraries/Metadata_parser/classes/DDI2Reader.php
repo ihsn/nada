@@ -353,7 +353,7 @@ class DDI2Reader
             'cols' => array(
                 '.' => 'keyword',                
                 '@vocab'=>'vocab',
-                '@uri' => 'uri'
+                '@vocabURI' => 'uri'
             )
         );
 
