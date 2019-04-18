@@ -137,10 +137,30 @@ class Catalog extends MY_Controller {
 	}
 
 
+	/**
+	 * 
+	 * Get page size
+	 * 
+	 */
+	private function get_page_size()
+	{
+		$page_size_min=15;
+		$page_size_max=100;
+
+		$page_size=(int)$this->input->get('ps');
+
+		if($page_size>=$page_size_min && $page_size<=$page_size_max){
+			return $page_size;
+		}
+
+		return 15;//default page size
+	}
+	
+
 	function _search()
 	{
 		//all keys that needs to be persisted
-		$get_keys_array=array('tab_type','sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection');
+		$get_keys_array=array('tab_type','sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection','ps');
 
 		$this->load->helper('security');
 
@@ -150,7 +170,7 @@ class Catalog extends MY_Controller {
 
 		$search_options=new StdClass;
 		$search_options->filter= new StdClass;
-		$limit=15;
+		$limit=$this->get_page_size();
 
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
@@ -172,7 +192,9 @@ class Catalog extends MY_Controller {
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
+		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
+
 
 		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('year','title','nation','country','popularity','rank');

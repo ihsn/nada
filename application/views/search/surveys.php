@@ -86,6 +86,7 @@ else{
 
 <input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>
 <input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
+<input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
 
 
 <?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
@@ -253,13 +254,13 @@ else{
 
     </div>
 
-
+    <!-- set per page items size-->
     <div id="items-per-page" class="items-per-page light switch-page-size">
         <small>
             <?php echo t('select_number_of_records_per_page');?>:
-            <span class="nada-btn">15</span>
-            <span class="nada-btn">30</span>
-            <span class="nada-btn">50</span>
-            <span class="nada-btn">100</span>
+            <span class="nada-btn change-page-size" data-value="15">15</span>
+            <span class="nada-btn change-page-size" data-value="30">30</span>
+            <span class="nada-btn change-page-size" data-value="50">50</span>
+            <span class="nada-btn change-page-size" data-value="100">100</span>
         </small>
     </div>
