@@ -38,20 +38,7 @@ class Catalog extends MY_Controller {
     function index()
     {
 		$active_tab=xss_clean($this->input->get("tab_type"));
-		$dataset_view='search/surveys';
-
-		switch($active_tab){
-			case 'survey':
-				//$dataset_view=
-			case '':
-				break;
-
-			case 'image':
-			case 'visualization':
-			case 'document':
-				$dataset_view='search/images';
-				break;
-		}
+		$dataset_view=$this->get_type_pageview($active_tab);
 
 		$output= $this->_search();		
 		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
@@ -115,21 +102,8 @@ class Catalog extends MY_Controller {
 	 */
 	function search()
 	{
-		$active_tab=xss_clean($this->input->get("tab_type"));
-		$dataset_view='search/surveys';
-
-		switch($active_tab){
-			case 'survey':
-				//$dataset_view=
-			case '':
-				break;
-
-			case 'image':
-			case 'visualization':
-			case 'document':
-				$dataset_view='search/images';
-			break;
-		}
+		$active_tab=xss_clean($this->input->get("tab_type"));		
+		$dataset_view=$this->get_type_pageview($active_tab);
 
 		$output= $this->_search();
 		$output['featured_studies']=null;//$this->get_featured_study($output['surveys']['rows']);
@@ -137,25 +111,6 @@ class Catalog extends MY_Controller {
 	}
 
 
-	/**
-	 * 
-	 * Get page size
-	 * 
-	 */
-	private function get_page_size()
-	{
-		$page_size_min=15;
-		$page_size_max=100;
-
-		$page_size=(int)$this->input->get('ps');
-
-		if($page_size>=$page_size_min && $page_size<=$page_size_max){
-			return $page_size;
-		}
-
-		return 15;//default page size
-	}
-	
 
 	function _search()
 	{
@@ -341,6 +296,103 @@ class Catalog extends MY_Controller {
 		$data['variables']=$this->catalog_search->v_quick_search($sid);
 
 		$this->load->view("catalog_search/var_quick_list", $data);
+	}
+
+
+
+	/**
+	 * 
+	 * Catalog history
+	 * 
+	 */
+	function history()
+	{
+		$this->load->library("pagination");
+		$this->load->model("Catalog_history_model");
+
+		$per_page = $this->input->get("ps");
+
+		if($per_page===FALSE || !is_numeric($per_page)){
+			$per_page=100;
+		}
+
+		$curr_page=$this->input->get('per_page');
+		$filter=array();
+		$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+		$total = $this->Catalog_history_model->search_count;
+
+		if ($curr_page>$total){
+			$curr_page=$total-$per_page;
+			$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+		}
+
+		//set pagination options
+		$base_url = site_url('catalog/history');
+		$config['base_url'] = $base_url;
+		$config['total_rows'] = $total;
+		$config['per_page'] = $per_page;
+		$config['page_query_string'] = TRUE;
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['next_link'] = t('page_next');
+		$config['num_links'] = 5;
+		$config['prev_link'] = t('page_prev');
+		$config['first_link'] = t('page_first');
+		$config['last_link'] = t('last');
+		$config['full_tag_open'] = '<ul class="pagination pagination-md page-nums">' ;
+		$config['full_tag_close'] = '</ul>';
+		
+		$this->pagination->initialize($config);
+		$content=$this->load->view('search/history', $data,true);
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('catalog_history'),true);
+	  	$this->template->render();	
+	}
+
+
+
+	/**
+	 * 
+	 * Get pageview by dataset type
+	 * 
+	 */
+	private function get_type_pageview($type)
+	{
+		//default view
+		$dataset_view='search/surveys';
+
+		switch($type){
+			case 'image':
+			case 'visualization':
+			case 'document':
+			case 'script':
+				$dataset_view='search/images';
+				break;
+			default:
+				$dataset_view='search/surveys';			
+				break;
+		}
+
+		return $dataset_view;
+	}
+
+
+	/**
+	 * 
+	 * Get page size
+	 * 
+	 */
+	private function get_page_size()
+	{
+		$page_size_min=15;
+		$page_size_max=100;
+
+		$page_size=(int)$this->input->get('ps');
+
+		if($page_size>=$page_size_min && $page_size<=$page_size_max){
+			return $page_size;
+		}
+
+		return 15;//default page size
 	}
 
 }    
