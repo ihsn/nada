@@ -263,6 +263,18 @@ $(document).ready(function()
         return false;
     });
 
+
+    //change page size
+    $(document.body).on("click",".change-page-size", function(){                    
+        ps=$(this).attr("data-value");
+        console.log(ps);
+        $("#page").val(1);
+        $("#ps").val(ps);
+        change_state();
+    });
+
+    
+
     $(document.body).on("click",".remove-filter", function(){
 
         name=$(this).attr("data-type");
