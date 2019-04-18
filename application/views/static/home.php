@@ -1,3 +1,17 @@
+<style>
+.dataset-type {
+    border: 1px solid #ced4da;
+    padding: 3px 6px;
+    /*margin-bottom: 5px;*/
+    color: #6c757d;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight:normal;
+}
+.survey-row .survey-stats span{
+    font-size:12px;
+}
+</style>
 <?php
 //get stats
 $survey_count=$this->stats_model->get_survey_count();
@@ -21,7 +35,7 @@ $this->title='Home';
             <?php
             //list of repos
             $data['rows']=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
-            $this->load->view("catalog_search/recent_studies_list",array('rows'=>$latest_surveys));
+            $this->load->view("static/recent_studies_list",array('rows'=>$latest_surveys));
             ?>
 
         </div>
@@ -41,7 +55,7 @@ $this->title='Home';
             <h3 class="mb-0"><?php echo number_format($citation_count);?></h3>
             <p>Citations</p>
             <?php endif;?>
-            <a class="btn btn-primary" href="<?php echo site_url('catalog/central');?>" title="Data catalog">Data Catalog</a>
+            <a class="btn btn-primary btn-block" href="<?php echo site_url('catalog/central');?>" title="Data catalog">Catalog</a>
 
         </div>
         <?php if (isset($popular_surveys) && is_array($popular_surveys) && count($popular_surveys)>0):?>
