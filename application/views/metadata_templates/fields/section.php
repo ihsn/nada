@@ -5,8 +5,8 @@
 <?php endforeach;?>
 
 <?php if (trim($output)!=""):?>
-    <div id="metadata-<?php echo $section_name;?>" class="section-<?php echo $section_name;?>">
-        <h2 class="xsl-subtitle"><?php echo t($section_name);?></h2>
+    <div class="section-<?php echo $section_name;?>">
+        <h2 id="metadata-<?php echo $section_name;?>" class="xsl-subtitle"><?php echo t($section_name);?></h2>
         <?php echo $output;?>
     </div>
 <?php endif;?>
