@@ -207,6 +207,9 @@ $lang['tab_timeseries']="Time series";
 $lang['tab_visualization']="Visualizations";
 $lang['tab_survey']="Microdata";
 
+$lang['from']="From";
+$lang['to']="To";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

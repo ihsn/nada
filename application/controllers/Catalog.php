@@ -40,7 +40,8 @@ class Catalog extends MY_Controller {
 		$active_tab=xss_clean($this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($active_tab);
 
-		$output= $this->_search();		
+		$output= $this->_search();
+		$output['tab_type']=$active_tab;
 		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
 		$output['search_output']=$this->load->view($dataset_view, $output,true);
 
@@ -106,10 +107,10 @@ class Catalog extends MY_Controller {
 		$dataset_view=$this->get_type_pageview($active_tab);
 
 		$output= $this->_search();
+		$output['tab_type']=$active_tab;
 		$output['featured_studies']=null;//$this->get_featured_study($output['surveys']['rows']);
 		$this->load->view($dataset_view, $output);		
 	}
-
 
 
 	function _search()
@@ -346,6 +347,57 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('catalog_history'),true);
 	  	$this->template->render();	
+	}
+
+
+	function export($format='print')
+	{
+		$output= $this->_search();
+
+		switch($format){
+			case 'print':
+				$content=$this->load->view('search/surveys', $output,TRUE);
+				$this->template->set_template('blank');
+				$this->template->write('title', t('studies'),true);
+				$this->template->write('content', $content,true);
+				$this->template->render();
+			break;
+
+			case 'csv':
+				$rows=$output['surveys']['rows'];
+				$cols=explode(",",'id,idno,title,nation,authoring_entity,year_start,year_end,created,changed');
+
+				//var_dump($output['surveys']);exit;
+
+				$filename='search-'.date("m-d-y-his").'.csv';
+				header('Content-Encoding: UTF-8');
+				header( 'Content-Type: text/csv' );
+				header( 'Content-Disposition: attachment;filename='.$filename);
+				$fp = fopen('php://output', 'w');
+
+				echo "\xEF\xBB\xBF"; // UTF-8 BOM
+
+				//add column names
+				fputcsv($fp, $cols);
+
+				foreach($rows as $row){
+					$data=array();
+					foreach($cols as $col){
+						$data[$col]=$row[$col];
+					}
+
+					if( isset($data['changed'])){
+						$data['changed']=date("M-d-y",$data['changed']);
+						$data['created']=date("M-d-y",$data['created']);
+					}
+
+					fputcsv($fp, $data);
+				}
+
+				fclose($fp);
+
+			break;
+		}
 	}
 
 

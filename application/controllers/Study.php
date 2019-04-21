@@ -270,37 +270,31 @@ class Study extends MY_Controller {
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t('microdata_description'),
-						'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
 					),
 					'related_materials'=>array(
 						'label'=>t('related_materials'),
-						'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
 						'url'=>site_url("catalog/$sid/related-materials"),
 						'show_tab'=>(int)$related_resources_count
 					),			
 					'data_dictionary'=>array(
 						'label'=>t('data_dictionary'),
-						'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
 						'url'=>site_url("catalog/$sid/data-dictionary"),
 						'show_tab'=>$has_datafiles
 					),
 					'get_microdata'=>array(
 						'label'=>t('get_microdata'),
-						'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
 						'url'=>site_url("catalog/$sid/get-microdata"),
 						'show_tab'=>1
 					),
 					'related_citations'=>array(
 						'label'=>t('related_citations'),
-						'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
 						'url'=>site_url("catalog/$sid/related-publications"),
 						'show_tab'=>(int)$related_citations_count
 					),
 					'related_datasets'=>array(
 						'label'=>t('related_datasets'),
-						'hover_text'=>'Related datasets',
 						'url'=>site_url("catalog/$sid/related-datasets"),
 						'show_tab'=>count($related_studies)
 					)
@@ -564,7 +558,6 @@ class Study extends MY_Controller {
 
 		if ($allow_download){
 			$this->load->helper('download');
-			log_message('info','Downloading file <em>'.$resource_path.'</em>');
 			$this->db_logger->write_log('download',$survey_id,'resource='.$resource_id);
 			$this->db_logger->increment_study_download_count($survey_id);
 			force_download2($resource_path);

@@ -111,17 +111,30 @@
     
 <span class="result-types-summary">
     <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>        
-    </span>        
+    </span>
 </span>
 
+<?php
+//default
+$thumbnail_col_class='col-3';
+$body_col_class='col-9';
+
+//thumbnail column sizes
+if($tab_type=='document'){
+    $thumbnail_col_class='col-2';
+    $body_col_class='col-10';
+}
+
+?>
+
 <?php foreach($surveys['rows'] as $row): ?>
-    <?php if(!isset($row['form_model'])){
-        $row['form_model']='data_na';
-    }
-    ?>
+    <?php if(!isset($row['form_model'])):?>
+        <?php  $row['form_model']='data_na';?>
+    <?php endif;?>
+
     <div class="survey-row" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
     <div class="row">
-        <div class="col-2">
+        <div class="<?php echo $thumbnail_col_class;?>">
             <a href="<?php echo site_url('catalog/'.$row['id']); ?>">
             <?php if (!empty($row['thumbnail'])):?>
                 <img src="<?php echo base_url();?>files/thumbnails/<?php echo $row['thumbnail'];?>" class="img-fluid img-thumbnail rounded shadow-sm"/>
@@ -131,7 +144,7 @@
             </a>
         </div>
         
-        <div class="col-10">
+        <div class="<?php echo $body_col_class;?>">
             <h5 class="title">
                 <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" >                
                     <?php echo $row['title'];?> <span class="dataset-type-label"><?php echo $row['type'];?></span>                   

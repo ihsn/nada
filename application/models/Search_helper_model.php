@@ -256,7 +256,7 @@ class Search_helper_model extends CI_Model {
 		$max_year=$this->get_max_year();
 
 		$output=array();
-		$output['']=' -- ';
+		$output['']=' ';
 
 
 		foreach (range($max_year, $min_year) as $year){

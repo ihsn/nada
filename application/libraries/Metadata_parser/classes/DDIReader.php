@@ -139,7 +139,7 @@ class DDIReader implements ReaderInterface {
 			}
 			else if(in_array($type, array('table','array')))
 			{
-				$output=NULL;
+				$output=array();
 				foreach($data as $row)
 				{
 					$row_output=array();
