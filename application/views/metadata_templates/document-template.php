@@ -82,7 +82,7 @@
             "metadata.document_description.keywords"=>'text',
             "metadata.document_description.topics"=>'array',
             "metadata.document_description.audience"=>'text',
-            "metadata.document_description.location"=>'text',
+            "metadata.document_description.location"=>'array',
             "metadata.document_description.mandate"=>'text',
             "metadata.document_description.pricing"=>'text',
             "metadata.document_description.relations"=>'array',
