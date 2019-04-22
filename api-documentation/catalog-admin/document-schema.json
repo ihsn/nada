@@ -864,12 +864,14 @@
                   "topic_id"
                 ]
               }
-            }
+            },
+            "additionalProperties": false
           }
         }
 
 
-      }
+      },
+      "additionalProperties": false
     },
 
     "files": {
