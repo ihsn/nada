@@ -410,15 +410,22 @@ class Catalog_search_solr{
 			return;
 		}
 
+
 		//get a select query instance
 		$query = $this->solr_client->createSelect();
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:%s AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
+		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
 
 		//set start and rows param (comparable to SQL limit) using fluent interface
 		$query->setStart(0)->setRows(100);
 
+
+		if ($this->debug){
+			$debug = $query->getDebug();
+		}
+
+	
 		//get grouping component and set a field to group by
 		$groupComponent = $query->getGrouping();
 		$groupComponent->addField('sid'); //group by field
@@ -427,6 +434,17 @@ class Catalog_search_solr{
 
 		//execute search
 		$resultset = $this->solr_client->select($query);
+
+	
+		//get raw query
+		if($this->debug){
+			$request = $this->solr_client->createRequest($query);
+			echo "<HR>";
+			echo $request->getUri();
+			echo "<HR>";
+			//var_dump($resultset->getDebug());
+		}
+	
 
 		//get groups resultset
 		$groups = $resultset->getGrouping();
@@ -968,7 +986,7 @@ class Catalog_search_solr{
 			));
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:%s AND sid:(%s)',$this->study_keywords, $surveyid ) );
+		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$this->study_keywords, $surveyid ) );
 		$query->setStart(0)->setRows(100); //get 0-100 rows
 
 		if($this->debug){
