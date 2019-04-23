@@ -740,8 +740,7 @@ class Solr_manager{
 			labl,
 			catgry,
 			qstn,
-			sid,
-			metadata,
+			sid,			
 			uid as var_uid
 			  ",FALSE);
     	$this->ci->db->limit($limit);
