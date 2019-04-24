@@ -5,6 +5,7 @@ $lang['identification']='Identification';
 $lang['authors']='Authoring information';
 $lang['themes_topics']='Themes and topics';
 $lang['lda_topics']='LDA topics';
+$lang['lda_topics_score']='LDA topics';
 $lang['lda_model']='LDA modl';
 $lang['copyrights']='Disclaimer and copyrights';
 $lang['additional']='Additional information';

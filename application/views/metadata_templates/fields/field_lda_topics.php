@@ -17,7 +17,7 @@
 
             <!-- LDA topics -->
             <?php if(isset($lda_topic['topic_description'])):?>
-                <?php echo render_field($field_type='lda_topics_score_card',$field_name='lda_topics_score',$value=$lda_topic['topic_description']);?>
+                <?php echo render_field($field_type='lda_topics_score_table',$field_name='lda_topics_score',$value=$lda_topic['topic_description']);?>
             <?php endif;?>
 
 
