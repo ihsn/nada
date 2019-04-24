@@ -158,7 +158,7 @@
 
 <?php $output['lda_topics']= render_group('lda_topics',
         $fields=array(  
-        "metadata.document_description.lda_topics"=>"array",
+        "metadata.document_description.lda_topics"=>"lda_topics",
         "metadata.document_description.lda_topics.model_info"=>"array",        
         "metadata.document_description.lda_topics.topic_description"=>"array",
         "metadata.document_description.lda_topics.topic_description.topic_words.word"=>"text",
