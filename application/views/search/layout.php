@@ -328,7 +328,7 @@ $(document).ready(function()
             if(types_summary){
                 types_summary=JSON.parse(types_summary);
                 jQuery.each(types_summary, function(data_type, counts ) {
-                    $(".dataset-type-tab-"+data_type).find(".type-count").html(counts.toLocaleString());
+                    $(".dataset-type-tab-"+data_type).find(".type-count").html(parseInt(counts).toLocaleString());
                 });
             }
 
