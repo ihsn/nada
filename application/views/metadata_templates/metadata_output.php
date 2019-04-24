@@ -23,3 +23,13 @@ if (!isset($exclude_sidebar_items)){
 <div class="col-sm-9 col-lg-10 wb-border-left" >
     <?php echo implode('',$output);?>
 </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify-jquery.min.js"></script>
+
+<script>
+    $(function() {
+        $(".metadata-container").linkify();
+    });
+</script> 
