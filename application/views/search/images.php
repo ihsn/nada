@@ -120,7 +120,7 @@ $thumbnail_col_class='col-3';
 $body_col_class='col-9';
 
 //thumbnail column sizes
-if($tab_type=='document'){
+if(in_array($tab_type,array('document','timeseries','script'))){
     $thumbnail_col_class='col-2';
     $body_col_class='col-10';
 }
