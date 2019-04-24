@@ -417,6 +417,7 @@ class Catalog extends MY_Controller {
 			case 'visualization':
 			case 'document':
 			case 'script':
+			case 'timeseries':
 				$dataset_view='search/images';
 				break;
 			default:
