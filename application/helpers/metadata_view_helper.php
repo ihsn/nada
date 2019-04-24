@@ -13,17 +13,17 @@ if ( ! function_exists('render_field'))
 		switch($type)
 		{
 			case 'text':
-				return render_text($name, $data);
+				return render_text($name, $data,$options);
 				break;
 			case 'array':
 			case 'table':
-				return render_table($name, $data);
+				return render_table($name, $data,$options);
 				break;
 			case 'bounding_box':
-				return render_bounding_box($name, $data);
+				return render_bounding_box($name, $data,$options);
 				break;
             case 'var_category':
-                return render_var_category($name, $data);
+                return render_var_category($name, $data,$options);
                 break;
 			default:				
 				return render_custom($type,$name,$data,$options);
@@ -74,10 +74,10 @@ if ( ! function_exists('render_bounding_box'))
 
 if ( ! function_exists('render_table'))
 {
-	function render_table($name, $data, $columns=array())
+	function render_table($name, $data, $options=array())
 	{
 		$ci =& get_instance();
-		return $ci->load->view('metadata_templates/fields/field_array',array('name'=>$name, 'data'=>$data,'field_columns'=>$columns), TRUE);
+		return $ci->load->view('metadata_templates/fields/field_array',array('name'=>$name, 'data'=>$data, 'options'=>$options), TRUE);
 	}
 }
 

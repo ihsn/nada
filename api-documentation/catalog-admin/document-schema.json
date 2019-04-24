@@ -803,7 +803,7 @@
                     },
                     "nb_topics": {
                       "title": "Number of topics",
-                      "type": "string"
+                      "type": "number"
                     },
                     "description": {
                       "title": "Description",
@@ -831,11 +831,11 @@
                   "properties": {
                     "topic_id": {
                       "title": "Topic identifier",
-                      "type": "string"
+                      "type": ["integer", "string"]
                     },
                     "topic_score": {
                       "title": "Topic score",
-                      "type": "string"
+                      "type": ["number", "string"]
                     },
                     "topic_label": {
                       "title": "Topic label",
