@@ -198,7 +198,7 @@ class Datasets extends MY_REST_Controller
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
-			
+
 			$options['created_by']=$user_id;
 			$options['changed_by']=$user_id;
 			$options['created']=date("U");
@@ -803,7 +803,7 @@ class Datasets extends MY_REST_Controller
 
 			//process file urls
 			$file_url=$this->input->post("file");
-			var_dump($file_url);
+			
 			if(empty($_FILES['file']) && !empty($file_url) && $this->form_validation->valid_url($file_url)) {
 				$uploaded_ddi_path=$temp_upload_folder.'/'.md5($file_url).'.xml';
 				
