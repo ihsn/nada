@@ -141,6 +141,13 @@ class Dataset_timeseries_model extends Dataset_model {
 
 		//set topics
 
+        //update countries field for dataset
+        $dataset_options=array(
+            'nation'=>$core_fields['nation']
+        );
+
+        $this->update_options($sid,$dataset_options);
+
         //update related countries
         $countries=$core_fields['nations'];
 		$this->Survey_country_model->update_countries($sid,$countries);
@@ -310,7 +317,7 @@ class Dataset_timeseries_model extends Dataset_model {
 
         $nations=$this->get_array_nested_value($options,'series_description/geographic_units');	
 
-        if (isset($nations['name'])){
+        if (count($nations)>0 && isset($nations[0]['name'])){
             $nation_names=array_column($nations,"name");
 
             $max_show=3;
