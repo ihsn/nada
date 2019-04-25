@@ -96,12 +96,9 @@ class Timeseries_db_model extends CI_Model {
 
 	function create_database($options)
 	{
-		echo "validating";
 		//validate schema
 		$this->validate_schema($options);	
 		
-		var_dump("VALIDTION");
-
         //get core fields for listing datasets in the catalog
 		$core_fields=$this->get_core_fields($options);
 		
