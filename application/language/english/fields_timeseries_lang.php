@@ -73,9 +73,20 @@ $lang['metadata.series_description.links']='Series links';
 $lang['metadata.series_description.links.type']='Link type';
 $lang['metadata.series_description.links.description']='Description';
 $lang['metadata.series_description.links.uri']='URI';
+
+//tobo removed
+$lang['metadata.series_description.series_links']='Series links';
+$lang['metadata.series_description.series_links.type']='Link type';
+$lang['metadata.series_description.series_links.description']='Description';
+$lang['metadata.series_description.series_links.uri']='URI';
+
+
 $lang['metadata.series_description.api_documentation']='';
 $lang['metadata.series_description.api_documentation.description']='Description';
-$lang['metadata.series_description.api_documentation.uri']='URI';
+
+$lang['metadata.series_description.api_documentation.uri']='Documentation Link';
+$lang['metadata.series_description.api_documentation.url']='Documentation Link';
+
 $lang['metadata.series_description.source']='Original source';
 $lang['metadata.series_description.source_note']='Notes form original source';
 $lang['metadata.series_description.keywords']='';
