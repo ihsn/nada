@@ -291,7 +291,21 @@ class Dataset_model extends CI_Model {
         }
         return $reference;
 	}
-		
+	
+
+	function unset_array_nested_value(&$data, $path, $glue = '/')
+    {
+        $paths = explode($glue, (string) $path);
+        $reference = &$data;
+        foreach ($paths as $key) {
+            if (!array_key_exists($key, $reference)) {
+                return false;
+            }
+            $reference = &$reference[$key];
+        }
+		unset($reference);
+		return true;
+    }
 
 
 	/**
@@ -353,8 +367,10 @@ class Dataset_model extends CI_Model {
 	*
 	* @options - array()
 	*/
-	function update($sid,$options)	
-	{						
+	function update($sid,$type,$options)	
+	{
+		$options['type']=$type;
+						
 		$data=array();
 
 		//default values, if no values are passed in $options
@@ -389,8 +405,6 @@ class Dataset_model extends CI_Model {
 
 		return $sid;
 	}
-
-
 
 	function extract_keywords($metadata,$type='')
 	{
