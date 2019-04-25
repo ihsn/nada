@@ -290,7 +290,8 @@ class Dataset_model extends CI_Model {
             $reference = $reference[$key];
         }
         return $reference;
-    }
+	}
+		
 
 
 	/**
@@ -321,7 +322,7 @@ class Dataset_model extends CI_Model {
 		//keywords
 		if (!isset($data['keywords'])){
 			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
-			$data['keywords']=$this->extract_keywords($data['metadata'],$type);
+			$data['keywords']=$this->extract_keywords($data['metadata'],$type);			
 		}
 		
 		//encode json fields
@@ -352,10 +353,8 @@ class Dataset_model extends CI_Model {
 	*
 	* @options - array()
 	*/
-	function update($sid,$type,$options)	
-	{
-		$options['type']=$type;
-						
+	function update($sid,$options)	
+	{						
 		$data=array();
 
 		//default values, if no values are passed in $options
@@ -391,16 +390,25 @@ class Dataset_model extends CI_Model {
 		return $sid;
 	}
 
+
+
 	function extract_keywords($metadata,$type='')
 	{
 		if($type=='survey'){
 			$type='microdata';
 		}
+
+		//exclude
+		if($type=='document'){
+			if(isset($metadata['document_description']['lda_topics'])){
+				unset($metadata['document_description']['lda_topics']);
+			}
+		}
 		
 		$keywords=$type. ' '.str_replace("\n","",$this->array_to_plain_text($metadata));
 
 		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
-			//words with length < 3
+			//words with length = 3
 			$pattern='/\b\w{3}\b/';
 			//add underscore as a prefix
 			return preg_replace($pattern, '_${0}', $keywords);
@@ -414,12 +422,15 @@ class Dataset_model extends CI_Model {
 	function array_to_plain_text($data)
 	{
 		$output = array();
-        $item = new RecursiveIteratorIterator(new RecursiveArrayIterator($data));
-        foreach($item as $value) {
-            $output[] = $value;
+		$item = new RecursiveIteratorIterator(new RecursiveArrayIterator($data));
+		//,\RecursiveIteratorIterator::SELF_FIRST);
+		
+        foreach($item as $key=>$value) {
+			$output[] = $value;
         }  
         return implode(' ', $output);        
 	}
+
 
 
 	/**
