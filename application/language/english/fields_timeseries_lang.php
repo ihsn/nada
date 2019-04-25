@@ -78,7 +78,9 @@ $lang['metadata.series_description.links.uri']='URI';
 $lang['metadata.series_description.series_links']='Series links';
 $lang['metadata.series_description.series_links.type']='Link type';
 $lang['metadata.series_description.series_links.description']='Description';
-$lang['metadata.series_description.series_links.uri']='URI';
+$lang['metadata.series_description.series_links.url']='Link';
+
+
 
 
 $lang['metadata.series_description.api_documentation']='';
