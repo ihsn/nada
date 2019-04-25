@@ -101,7 +101,7 @@ class Dataset_timeseries_model extends Dataset_model {
 		//set topics
 
         //update related countries
-        $countries=$this->get_country_names($this->get_array_nested_value($options,'series_description/geographic_units'));
+        $countries=$core_fields['nations'];
 		$this->Survey_country_model->update_countries($dataset_id,$countries);
 
 		//set aliases
@@ -123,6 +123,27 @@ class Dataset_timeseries_model extends Dataset_model {
 		$this->db->trans_complete();
 
 		return $dataset_id;
+    }
+
+
+    /**
+     * 
+     * Update all related tables used for facets/filters
+     * 
+     * 
+     */
+    function update_filters($sid, $metadata)
+    {
+        $core_fields=$this->get_core_fields($metadata);
+
+        //update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//set topics
+
+        //update related countries
+        $countries=$core_fields['nations'];
+		$this->Survey_country_model->update_countries($sid,$countries);
     }
 
 
@@ -288,7 +309,27 @@ class Dataset_timeseries_model extends Dataset_model {
         $output['idno']=$this->get_array_nested_value($options,'idno');
 
         $nations=$this->get_array_nested_value($options,'series_description/geographic_units');	
-        $output['nation']=$this->get_country_names_string($this->get_country_names($nations));
+
+        if (isset($nations['name'])){
+            $nation_names=array_column($nations,"name");
+
+            $max_show=3;
+
+            $nation_str='';
+            if (count($nation_names)>$max_show){
+                $nation_str=implode(", ", array_slice($nation_names, 0, $max_show));
+                $nation_str.='...and '. (count($nation_names) - $max_show). ' more';
+            }else{
+                $nation_str=implode(", ", $nation_names);
+            }
+            
+            $output['nation']=$nation_str;//$this->get_country_names_string($this->get_country_names($nations));
+            $output['nations']=$nation_names;
+        }
+        else{
+            $output['nation']='';
+            $output['nations']=array();
+        }    
 
         $output['abbreviation']=$this->get_array_nested_value($options,'series_description/abbreviation');
         

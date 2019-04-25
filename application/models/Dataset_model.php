@@ -104,6 +104,29 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	/**
+	 * 
+	 * returns a list of datasets by type
+	 * 
+	 * 
+	 */
+	function get_list_by_type($dataset_type, $limit=100, $start=0)
+	{
+		$this->db->select('id,idno');
+		$this->db->where('type',$dataset_type);
+
+		if(is_numeric($start)){
+			$this->db->where('id>',$start);
+		}
+
+		if(!empty($limit)){
+			$this->db->limit($limit);
+		}
+
+		return $this->db->get("surveys")->result_array();
+	}
+
+
 	//return IDNO
 	function get_idno($sid)
 	{
@@ -1101,6 +1124,27 @@ class Dataset_model extends CI_Model {
 		}
 
 		return $result;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Re-populate keywords field with updated metadata
+	 * 
+	 * 
+	 */
+	function repopulate_index($sid)
+	{
+		$metadata=$this->get_metadata($sid);
+		$type=$this->get_type($sid);
+
+		$data=array(
+			'keywords'=>$this->extract_keywords($metadata,$type)
+		);
+		
+		$this->db->where('id',$sid);
+		return $this->db->update('surveys',$data);
 	}
 
 	

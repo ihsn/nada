@@ -803,6 +803,7 @@ class Datasets extends MY_REST_Controller
 
 			//process file urls
 			$file_url=$this->input->post("file");
+			var_dump($file_url);
 			if(empty($_FILES['file']) && !empty($file_url) && $this->form_validation->valid_url($file_url)) {
 				$uploaded_ddi_path=$temp_upload_folder.'/'.md5($file_url).'.xml';
 				
@@ -1370,5 +1371,116 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+
+	/**
+	 * 
+	 *  Reload facets/filters
+	 * 
+	 * @sid - study id
+	 * 
+	 */
+	public function refresh_filters_put($idno=null)
+	{		
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$this->dataset_manager->refresh_filters($sid);
+
+			$output=array(
+				'status'=>'success'				
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+	/**
+	 * 
+	 *  Batch Reload facets/filters by dataset type
+	 * 
+	 * @dataset_type - dataset type - microdata, timeseries, etc
+	 * @limit - number of items to process per request
+	 * @start - starting dataset id
+	 * 
+	 */
+	public function batch_refresh_filters_put($dataset_type=null, $limit=100, $start=0)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if ($dataset_type==null){
+				throw new Exception("DATASET_TYPE_IS_REQUIRED");
+			}
+
+			if(!is_numeric($start)){
+				throw new Exception("PARAM:START-INVALID");
+			}
+			
+			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			
+			$output=array();
+			foreach($datasets  as $dataset){
+				$this->dataset_manager->refresh_filters($dataset['id']);
+				$output[]=$dataset['id'];
+				$last_processed=$dataset['id'];
+			}
+			
+			$output=array(
+				'status'=>'success',
+				'datasets_updated'=>$output,
+				'last_processed'=>$last_processed			
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
+	/**
+	 * 
+	 *  Batch repopulate index
+	 * 	 
+	 * @limit - number of items to process per request
+	 * @start - starting dataset id
+	 * 
+	 */
+	public function batch_repopulate_index_put($dataset_type=null, $limit=100, $start=0)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if ($dataset_type==null){
+				throw new Exception("DATASET_TYPE_IS_REQUIRED");
+			}
+
+			if(!is_numeric($start)){
+				throw new Exception("PARAM:START-INVALID");
+			}
+			
+			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			
+			$output=array();
+			foreach($datasets  as $dataset){
+				$this->dataset_manager->repopulate_index($dataset['id']);
+				$output[]=$dataset['id'];
+				$last_processed=$dataset['id'];
+			}
+			
+			$output=array(
+				'status'=>'success',
+				'datasets_updated'=>$output,
+				'last_processed'=>$last_processed			
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
 	}
 }

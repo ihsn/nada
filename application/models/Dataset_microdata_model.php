@@ -98,7 +98,7 @@ class Dataset_microdata_model extends Dataset_model {
         $this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
 
         //get list of countries
-        $countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
+        //$countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
 
 		//update countries
 		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
