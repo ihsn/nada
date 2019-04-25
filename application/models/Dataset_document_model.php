@@ -65,6 +65,7 @@ class Dataset_document_model extends Dataset_model {
 		//set topics
 
         //update related countries
+        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
