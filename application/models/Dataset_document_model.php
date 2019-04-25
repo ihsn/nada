@@ -91,8 +91,11 @@ class Dataset_document_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'document_description/title_statement/title');
         $output['idno']=$this->get_array_nested_value($options,'document_description/title_statement/idno');
 
-        //todo
-        $output['nation']='';
+        $nations=(array)$this->get_array_nested_value($options,'document_description/ref_country');
+        $nations=array_column($nations,'name');
+
+        $output['nations']=$nations;
+        $output['nation']=$this->get_country_names_string($nations);
 
         $output['abbreviation']=$this->get_array_nested_value($options,'document_description/title_statement/alternate_title');            
         $authors=$this->get_array_nested_value($options,'document_description/authors');
@@ -121,6 +124,19 @@ class Dataset_document_model extends Dataset_model {
         return $output;
     }
     
+
+    /**
+     * 
+     * Return a comma separated list of country names
+     */
+    function get_country_names_string($nations)
+    {
+        $nation_str=implode(", ",$nations);
+        if(strlen($nation_str)>150){
+            $nation_str=substr($nation_str,0,145).'...';
+        }
+        return $nation_str;
+    }
 
 
     /**
