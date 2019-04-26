@@ -95,12 +95,12 @@ class Dataset_geospatial_model extends Dataset_model {
 
         //todo
         //$nations=$this->get_array_nested_value($options,'database_description/geographic_units');	
-        $output['nation']='todo';//todo
+        $output['nation']='';//todo
 
         $output['abbreviation']=$this->get_array_nested_value($options,'dataset_description/identification_info/alternate_title');
         
         //$auth_entity=$this->get_array_nested_value($options,'database_description/authoring_entity');
-        $output['authoring_entity']='todo';
+        $output['authoring_entity']='';
 
         $years=$this->get_years($options);
         $output['year_start']=$years['start'];

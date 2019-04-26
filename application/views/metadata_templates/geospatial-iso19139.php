@@ -11,27 +11,54 @@
 <!--<h1>Geospatial metadata</h1>-->
 
 <!-- identification section -->
-<?php $output['identification']= render_group('identification',
+<?php $output['overview']= render_group('overview',
     $fields=array(
             "metadata.dataset_description.identification_info.title"=>'text',
             "metadata.dataset_description.identification_info.alternate_title"=>'text',
-            "metadata.dataset_description.identification_info.date"=>'array',
-            "metadata.dataset_description.identification_info.edition"=>'text',
-
-            "metadata.dataset_description.identification_info.identifier"=>'array',
-            "metadata.dataset_description.identification_info.presentation_form"=>'text',
             "metadata.dataset_description.identification_info.abstract"=>'text',
+            "metadata.dataset_description.identification_info.identifier"=>'array',            
+            "metadata.dataset_description.identification_info.edition"=>'text',
+            "metadata.dataset_description.identification_info.presentation_form"=>'text',
             "metadata.dataset_description.identification_info.purpose"=>'text',
             "metadata.dataset_description.identification_info.credit"=>'text',
-            "metadata.dataset_description.identification_info.status"=>'text',
-            "metadata.dataset_description.identification_info.point_of_contact"=>'array',
+            "metadata.dataset_description.identification_info.status"=>'text',            
             "metadata.dataset_description.identification_info.resource_maintenance.maintenance_frequency"=>'text',
-            "metadata.dataset_description.identification_info.keywords"=>'array',
-            "metadata.dataset_description.identification_info.topics"=>'array',
             "metadata.dataset_description.identification_info.spatial_representation_type"=>'text',
             ),
     $metadata);
 ?>
+
+
+
+<!-- spatial extent -->
+<?php $output['spatial_extent']= render_group('spatial_extent',
+    $fields=array(
+            "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'array',
+            "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'bounding_box',
+            ),
+    $metadata);
+?>
+
+
+<!-- spatial extent -->
+<?php $output['keywords']= render_group('keywords',
+    $fields=array(
+        "metadata.dataset_description.identification_info.keywords"=>'array',
+        "metadata.dataset_description.identification_info.topics"=>'array',
+            ),
+    $metadata);
+?>
+
+<?php $output['contact']= render_group('contact',
+    $fields=array(
+            "metadata.dataset_description.contact"=>'array',
+            "metadata.dataset_description.identification_info.point_of_contact"=>'array',
+            ),
+    $metadata);
+?>
+
+
+
 
 <!-- graphic_overview -->
 <?php $output['graphic_overview']= render_group('graphic_overview',
@@ -55,21 +82,13 @@
 
 
 
-<!-- spatial extent -->
-<?php $output['spatial_extent']= render_group('spatial_extent',
-    $fields=array(
-            "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'array',
-            "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'bounding_box',
-            ),
-    $metadata);
-?>
-
 
 <!-- distribution -->
 <?php $output['distribution']= render_group('distribution',
     $fields=array(
-        "metadata.dataset_description.identification_info.distribution_info.distributors"=>'array',
-        "metadata.dataset_description.identification_info.online_resource"=>'array',
+        "metadata.dataset_description.distribution_info.distributors"=>'array',
+        "metadata.dataset_description.distribution_info.online_resource"=>'array',
+        "metadata.dataset_description.identification_info.date"=>'array'
     ),
     $metadata);
 ?>
@@ -84,7 +103,7 @@
         "metadata.metadata_maintenance.update_frequency"=>'text',
         "metadata.metadata_maintenance.note"=>'text',
         "metadata.metadata_maintenance.contact"=>'text',
-        "metadata.metadata_maintenance.version"=>'text'
+        "metadata.metadata_maintenance.version"=>'text',        
     ),
     $metadata);
 ?>
