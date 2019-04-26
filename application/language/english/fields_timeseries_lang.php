@@ -72,7 +72,10 @@ $lang['metadata.series_description.confidentiality_note']='Confidentiality note'
 $lang['metadata.series_description.links']='Series links';
 $lang['metadata.series_description.links.type']='Link type';
 $lang['metadata.series_description.links.description']='Description';
-$lang['metadata.series_description.links.uri']='URI';
+$lang['metadata.series_description.links.url']='Link';
+$lang['metadata.series_description.links.format']='Format';
+
+
 
 //tobo removed
 $lang['metadata.series_description.series_links']='Series links';
