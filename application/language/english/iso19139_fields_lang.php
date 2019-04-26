@@ -137,6 +137,8 @@ $lang['metadata.dataset_description.distribution_info.online_resource.url']='Lin
 $lang['metadata.dataset_description.distribution_info.online_resource.name']='Resource title';
 $lang['metadata.dataset_description.distribution_info.online_resource.description']='Resource description';
 $lang['metadata.dataset_description.distribution_info.online_resource.format']='Resource format';
+$lang['metadata.dataset_description.distribution_info.online_resource.protocol']='Protocol';
+
 $lang['metadata.dataset_description.data_quality_info']='Data Quality';
 $lang['metadata.dataset_description.data_quality_info.Scope']='Data Quality Scope';
 $lang['metadata.dataset_description.data_quality_info.lineage']='Data Quality Lineage Statement';
