@@ -88,6 +88,10 @@ class DDI2_Import{
 
         $idno=$parser->get_id();
 
+        if (trim($idno)==''){
+            throw new Exception(t('Required IDNo element is not set in the DDI xml file. Fix the DDI and set the codeBook/@ID and/or stdyDscr/citation/titlStmt/IDNo element.'));
+        }
+
         //sanitize ID to remove anything except a-Z1-9 characters
         if ($idno!==$this->sanitize_filename($idno)){
             throw new Exception(t('IDNO_INVALID_FORMAT').': '.$idno);
@@ -207,8 +211,11 @@ class DDI2_Import{
 
         $data_files=array();
         foreach($files as $file){
+            if(trim($file['id'])=='' && trim($file['file_id'])!='' ){
+                $file['id']=$file['file_id'];
+            }
             $data_files[$file['id']]=$file;
-        }
+        } 
         unset($files);
 
         //import data files and update data_files with file db id
