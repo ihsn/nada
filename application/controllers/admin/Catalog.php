@@ -749,11 +749,21 @@ class Catalog extends MY_Controller {
 				'errors'=>$e->GetValidationErrors()
 			);
 
-			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';			
+			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';
+			
+			if ($is_ajax){
+				die (json_encode(array('error'=>$error_str) ));
+			}
+
 			$this->session->set_flashdata('error', $error_str);
 			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
 		catch(Exception $e){
+
+			if ($is_ajax){
+				die (json_encode(array('error'=>$e->getMessage()) ));
+			}
+
 			$this->session->set_flashdata('error', $e->getMessage());
 			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
