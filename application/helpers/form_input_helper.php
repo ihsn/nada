@@ -152,6 +152,7 @@ if ( ! function_exists('my_set_radio'))
         }
     }
 }
+
 if ( ! function_exists('my_set_checkbox'))
 {
     function my_set_checkbox($field,$value)
@@ -169,6 +170,27 @@ if ( ! function_exists('my_set_checkbox'))
 
         if ((string)$request==(string)$value){
             return 'checked="checked"';
+        }
+    }
+}
+
+if ( ! function_exists('my_set_dropdown'))
+{
+    function my_set_dropdown($field,$value)
+    {
+        $request=@$_REQUEST[$field];
+
+        if (is_array($request))
+        {
+            if (in_array($value,$request))
+            {
+                return 'selected="selected"';
+            }
+            return false;
+        }
+
+        if ((string)$request==(string)$value){
+            return 'selected="selected"';
         }
     }
 }

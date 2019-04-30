@@ -137,14 +137,12 @@ input[type="file"] {
 	color:#666666;
 	text-align:right
 }
-.nada-pagination a, .nada-pagination strong {
+.nada-pagination a.page-link {
 	padding:3px;
 	text-decoration:none;
 	font-size:13px;
 	color:#666666;
 	border:1px solid gainsboro;
-	-moz-border-radius: 2px;
-	-webkit-border-radius: 2px;
 	margin:2px;
 }
 .nada-pagination a:hover {
@@ -152,9 +150,7 @@ input[type="file"] {
 	color:white;
 }
 .nada-pagination strong {
-	color:black;
 	font-weight:bold;
-	background:gainsboro;
 }
 
 

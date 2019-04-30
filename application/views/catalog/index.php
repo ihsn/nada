@@ -20,26 +20,31 @@
 <h1 class="page-title">
 	<?php echo t('catalog_maintenance');?>
     <?php if ( isset($this->active_repo->id)):?>
-    	<span class="label label-default active-repo"><?php echo $this->active_repo->title;?></span><span class="link-change"><?php echo anchor('admin/repositories/select',t('change_repo'));?></span>
+    	<span class=""> \ <?php echo $this->active_repo->title;?></span><span class="link-change"><?php echo anchor('admin/repositories/select',t('change_repo'));?></span>
     <?php endif;?>
 </h1>
 
-<?php if (!$rows): ?>
-	<?php echo t('no_records_found');return;?>
-<?php endif;?>
-
 
 <div class="row">
-	<form class="col-md-9"  method="GET" id="catalog-search">
-    <div id="surveys">
-	<?php $this->load->view('catalog/search');?>
-    </div>    
-	</form>
-
-    <div id="side-bar" class="col-md-3">
-	<?php $this->load->view('catalog/index_sidebar'); //right side bar?>
+	<div id="side-bar" class="col-md-3">
+		<?php $this->load->view('catalog/index_sidebar'); //right side bar?>
     </div>
-    
+	<div class="col-md-9">
+		<?php if (!$rows): ?>
+			<div>
+				<?php echo t('no_records_found');?>
+				<a href="<?php echo site_url('admin/catalog');?>" class="btn btn-primary btn-sm">Reset search</a>
+			</div>
+		<?php else:?>
+		<form  method="GET" id="catalog-search">
+			<div id="surveys">
+				<?php $this->load->view('catalog/search');?>
+			</div>    
+		</form>
+		<?php endif;?>
+
+	
+	</div>
 </div> 
 
 
@@ -69,6 +74,8 @@ function toggle_sidebar(e){
 function search()
 {
 	data=$("#form_filter").serialize();
+	$("#form_filter").submit();
+	return;
 	$("#surveys").html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i><?php echo t('js_loading');?>');
 	$.ajax({
 		timeout:1000*120,

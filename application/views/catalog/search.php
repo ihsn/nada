@@ -1,5 +1,6 @@
 <?php if (!$rows): ?>
-	<?php echo t('no_records_found');return;?>
+    <?php echo t('no_records_found');?>
+    <?php return;?>
 <?php endif;?>
 <?php		
 	//pagination 
@@ -48,9 +49,9 @@
 
 <!--search tokens-->
 <?php if ($filters):?>
-	<div class="filter-container">
-    	<div class="filter-infox">Filter: 
-		<?php foreach($filters as $f):?>
+	<div class="filter-container-x" style="padding-15px;margin-bottom:20px;">
+        <div class="filter-infox"><strong><?php echo t('search_results_for');?></strong>
+        <?php foreach($filters as $f):?>            
         	<span class="label label-info filter"><?php echo $f;?></span>
         <?php endforeach;?>
         <a class="btn btn-default btn-xs clear-filter" href="<?php echo site_url('admin/catalog/');?>/?reset=reset"><?php echo t('clear_filter');?></a>
@@ -66,14 +67,14 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 <tr>
 <td>	
 	<span><?php echo t('sort_by');?></span>
-  <ul class="sort_by">
+    <ul class="sort_by">
         <?php if ($this->config->item("regional_search")=='yes'):?>            
-        <li><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$qs_sort); ?></li>
-    <?php endif;?> 
-    <li><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,$qs_sort); ?></li>
-    <li><?php echo create_sort_link($sort_by,$sort_order,'idno',t('surveyid'),$page_url,$qs_sort); ?></li>
-    <li><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,$qs_sort); ?></li>
-  </ul>
+            <li><?php echo create_sort_link($sort_by,$sort_order,'nation',t('country'),$page_url,$qs_sort); ?></li>
+        <?php endif;?> 
+        <li><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url,$qs_sort); ?></li>
+        <li><?php echo create_sort_link($sort_by,$sort_order,'idno',t('idno'),$page_url,$qs_sort); ?></li>
+        <li><?php echo create_sort_link($sort_by,$sort_order,'changed',t('modified'),$page_url,$qs_sort); ?></li>
+    </ul>
 </td>
 <td>
 <div class="nada-pagination">
@@ -82,16 +83,16 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 </td>
 </tr>
 <tr style="background:gainsboro;">
-    <td>
+    <td style="padding:5px;padding-left:0px" class="form-inline">
         <input type="checkbox" value="-1" id="chk_toggle" style="margin-left:8px;"/>
-        <select id="batch_actions" >
+        <select id="batch_actions" class="form-control">
             <option value="-1"><?php echo t('batch_actions');?></option>
             <option value="transfer"><?php echo t('transfer_ownership');?></option>
             <option value="publish"><?php echo t('publish');?></option>
             <option value="unpublish"><?php echo t('unpublish');?></option>
             <option value="delete"><?php echo t('delete');?></option>
         </select>
-        <input class="" type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>
+        <input class="btn btn-secondary btn-sm" type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>
         <span style="padding-right:20px"></span>
         </td>
     <td align="right">
@@ -158,12 +159,13 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                         	<span class="cell-label"><?php echo t('modified_on')?>:</span>
 							<span class="cell-value"><?php echo date($this->config->item('date_format'), $row['changed']); ?></span>
                         </div>
-                        <?php if (isset($row['tags']) &&  count($row['tags']>0)):?>
+                        
+                        <?php if (isset($row['tags']) &&  count($row['tags'])>0):?>
                         <div class="table-row">
                         	<span class="cell-label"><?php echo t('tags');?>:</span>
 							<span class="cell-value">
 								<?php foreach($row['tags'] as $tag):?>
-                                    <span class="label label-tag"><?php echo $tag;?></span>
+                                    <span class="label label-info"><?php echo $tag;?></span>
                                 <?php endforeach;?>
                             </span>
                         </div>                                                            
@@ -210,7 +212,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 <tr>
     <td>
     <?php echo t("select_number_of_records_per_page");?>:
-    <?php echo form_dropdown('pagesize', array(5=>5,10=>10,15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("pagesize",isset($ps) ? $ps : ''),'id="pagesize" style="font-size:10px;"'); ?>
+    <?php echo form_dropdown('pagesize', array(15=>15,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("pagesize",isset($ps) ? $ps : ''),'id="pagesize" style="font-size:10px;"'); ?>
     </td>
     <td>    
         <div class="nada-pagination">
