@@ -55,7 +55,7 @@ class Solr extends MY_Controller {
 	 * */
 	public function full_import_surveys($start_row=NULL, $limit=10, $loop=FALSE)
 	{		
-        $result=$this->solr_manager->full_import_surveys($start_row, $limit, $loop);
+        $result=$this->solr_manager->full_import_surveys($start_row, $limit, false);
         
         var_dump($result);
 
