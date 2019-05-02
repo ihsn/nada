@@ -254,6 +254,7 @@ class Catalog_search_solr{
             'year_end',
             'authoring_entity',
             'rank:score',
+            'thumbnail',
             'varcount'
         ));
 

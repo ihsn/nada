@@ -137,7 +137,7 @@ if(in_array($tab_type,array('document','timeseries','script'))){
         <div class="<?php echo $thumbnail_col_class;?>">
             <a href="<?php echo site_url('catalog/'.$row['id']); ?>">
             <?php if (!empty($row['thumbnail'])):?>
-                <img src="<?php echo base_url();?>files/thumbnails/<?php echo $row['thumbnail'];?>" class="img-fluid img-thumbnail rounded shadow-sm"/>
+                <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" class="img-fluid img-thumbnail rounded shadow-sm"/>
             <?php else:?>
                 <img src="<?php echo base_url();?>files/icon-blank.png" class="img-fluid img-thumbnail rounded shadow-sm w-100"/>
             <?php endif;?>
@@ -164,10 +164,11 @@ if(in_array($tab_type,array('document','timeseries','script'))){
                 <?php echo $survey_year!=0 ? $survey_year : '';?>                
             </div>
             <div class="sub-title">
+                <?php if(isset($row['authoring_entity'])):?>
                 <div>
-                <span class="study-by">
-                    <?php echo $row['authoring_entity'];?>
+                    <span class="study-by"><?php echo $row['authoring_entity'];?></span>
                 </div>
+                <?php endif;?>
                 <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
                     <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
