@@ -74,6 +74,7 @@ class Solr_manager{
 		$this->ci->db->select("
 			1 as doctype,
             surveys.id,
+            surveys.thumbnail as thumbnail,
             surveys.type as dataset_type,
             surveys.id as survey_uid,
             surveys.idno as idno,
@@ -540,7 +541,8 @@ class Solr_manager{
 		//get survey record + study level metadata
 		$this->ci->db->select("1 as doctype,
 				surveys.id as survey_uid,
-				surveys.formid,
+                surveys.formid,
+                surveys.thumbnail,
 				surveys.idno as surveyid,
 				surveys.title,
 				nation,
