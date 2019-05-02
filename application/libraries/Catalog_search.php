@@ -24,6 +24,14 @@ class Catalog_search{
         //default/base search class
         require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
 
+ 
+        $search_provider=$ci->config->item('search_provider');
+
+        //SOLR
+        if ($search_provider=='solr'){
+            $driver='solr';
+        }
+
         switch ($driver) {
             case 'sqlsrv';
                 //extended sqlsrv class
@@ -34,6 +42,10 @@ class Catalog_search{
             case 'mysqli';
                 $this->search_obj= new catalog_search_mysql($params);
                 break;
+            case 'solr';
+                require_once dirname(__FILE__) . '/Catalog_search_solr.php';
+                $this->search_obj= new catalog_search_solr($params);
+                break;    
             default:
                 throw new exception(sprintf("DRIVER [%s] NOT SUPPORTED",$driver));
         }

@@ -172,10 +172,11 @@ else{
                 <?php echo $survey_year!=0 ? $survey_year : '';?>                
             </div>
             <div class="sub-title">
+                <?php if (isset($row['authoring_entity'])):?>
                 <div>
-                <span class="study-by">
-                    <?php echo $row['authoring_entity'];?>
+                    <span class="study-by"><?php echo $row['authoring_entity'];?></span>
                 </div>
+                <?php endif;?>
                 <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
                     <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>

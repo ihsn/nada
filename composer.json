@@ -5,6 +5,8 @@
         "phpmailer/phpmailer": "^5.2.26",
         "violet/streaming-json-encoder": "^1.1",
         "salsify/json-streaming-parser": "^8.0",
-        "slim/csrf": "^0.8.3"
+        "slim/csrf": "^0.8.3",
+        "league/event": "^2.2",
+        "solarium/solarium": "^4.2"
     }
 }
