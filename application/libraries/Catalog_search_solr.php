@@ -145,14 +145,63 @@ class Catalog_search_solr{
 			$search_query[]=$topics;
 		}
 
-		//$sid=$this->_build_sid_query();
 
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-
-		$sort_by='title';
-		if (array_key_exists($this->sort_by,$this->sort_allowed_fields)){
-			$sort_by=$this->sort_by;
+        
+		//sort
+        $sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
+		
+		//order desc by RANK for keyword search
+		if(!empty($study) && empty($this->sort_by)){
+			$sort_by='rank';
+			$sort_order='desc';
 		}
+
+		if(empty($study) && $this->sort_by=='rank'){
+			$sort_by='title';
+			$sort_order='asc';
+		}
+
+        $sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=> (strtolower($sort_order)=='asc') ? $query::SORT_ASC : $query::SORT_DESC);
+        $sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
+		$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+		
+		//multi-column sort
+		switch($sort_by){
+
+			case 'country':
+			case 'nation':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>$query::SORT_DESC);
+				break;
+			
+			case 'title':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>$query::SORT_DESC);
+				break;
+				break;
+
+			case 'year':			
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>$query::SORT_DESC);
+				break;
+
+			case 'rank':
+				if(!empty($study)){
+					$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>$query::SORT_DESC);
+				}
+				break;
+        }
+        
+        //multi-sort
+		foreach($sort_options as $sort){            
+			$query->addSort($this->sort_allowed_fields[$sort['sort_by']], $sort['sort_order']);
+		}
+        //end-sort
+		
 
 		//years filter
 		if ($years)	{
@@ -171,28 +220,7 @@ class Catalog_search_solr{
 		if($countries){
 			$query->createFilterQuery('countries')->setQuery($countries);
 		}
-
-		$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=> (strtolower($sort_order)=='asc') ? $query::SORT_ASC : $query::SORT_DESC);
-
-
-		//multi-column sort
-		if ($sort_by=='nation'){
-			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
-		}
-		elseif ($sort_by=='title'){
-			//$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
-			//$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>$query::SORT_ASC);
-		}
-		if ($sort_by=='year'){
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>$query::SORT_ASC);
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
-		}
-
-		//multi-sort
-		foreach($sort_options as $sort){
-			$query->addSort($this->sort_allowed_fields[$sort['sort_by']], $sort['sort_order']);
-		}
+				
 
         //study search //////////////////////////////////////////////////////////////////////////////////////
         $edismax->setQueryFields("title^2.0 nation^20.0 years^30.0");

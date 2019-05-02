@@ -62,7 +62,8 @@ else{
 	$sort_by=$search_options->sort_by;
 	$sort_order=$search_options->sort_order;
 
-	//set default sort
+    /*
+    //set default sort
 	if(!$sort_by)
 	{
 		if ($this->config->item("regional_search")=='yes'){
@@ -72,7 +73,8 @@ else{
 		{
 			$sort_by='title';
 		}
-	}
+    }
+    */
 
 	//current page url with query strings
 	$page_url=site_url().'/catalog/';		
