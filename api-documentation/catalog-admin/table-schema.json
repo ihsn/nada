@@ -334,6 +334,29 @@
           }
         },
 
+        "table_footnotes": {
+          "type": "array",
+          "title": "Chart footnotes",
+          "description": "Footnotes",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "title": "Footnote number",
+                "description":"Footnote number",
+                "type": "string"
+              },
+              "text": {
+                "title": "Footnote text",
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          } 
+        },
+
         "table_series": {
           "type": "array",
           "title": "Table series",
@@ -814,24 +837,7 @@
           "required": [
             "name"
           ]
-        },
-        "tags": {
-          "type": "array",
-          "title": "Tags",
-          "description": "Tags",
-          "items": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "title": "Tag",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "tag"
-          ]
-        }
+        }        
         
       },
       "additionalProperties": false
@@ -867,6 +873,25 @@
         ]
       }
     },
+
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tag"
+      ]
+    },
+
     "additional": {
       "type": "object",
       "description": "Additional metadata",
