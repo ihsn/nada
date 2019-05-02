@@ -33,7 +33,8 @@ class Catalog_search_solr{
 	//allowed sort options
 	var $sort_allowed_fields=array(
 		'title'=>'title',
-		'nation'=>'nation',
+        'nation'=>'nation',
+        'country'=>'nation',
 		'year'=>'year_start',
 		'popularity'=>'total_views',
 		'rank'=>'score'
