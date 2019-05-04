@@ -106,18 +106,23 @@ class Catalog_search_solr{
 	{
 
         $study=$this->_build_study_query();
-        $variable=$this->_build_variable_query();
         $dataset_types=$this->_build_dataset_type_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
-		$dtype=$this->_build_dtype_query();
-
+        $dtype=$this->_build_dtype_query();
+        
 		$search_query=array();
 		$result=array();
-		$query = $this->solr_client->createSelect();
+        $query = $this->solr_client->createSelect();
+        
+        // get the facetset component
+        $facetSet = $query->getFacetSet();
+
+        //set facet.field
+        $facetSet->createFacetField('dataset_types')->addExcludes(['tag_dataset_type'])->setField('dataset_type');
 
 		//set edismax options
 		$edismax = $query->getEDisMax();		
@@ -125,9 +130,9 @@ class Catalog_search_solr{
 		$query->createFilterQuery('published')->setQuery('published:1');
 		$helper = $query->getHelper();
 
-        //dataset type [type]
+        //dataset type filter
 		if($dataset_types){
-			$query->createFilterQuery('dataset_type')->setQuery($dataset_types);
+            $query->createFilterQuery('dataset_type')->addTag('tag_dataset_type')->setQuery($dataset_types);
 		}
 
 		//SK
@@ -140,12 +145,9 @@ class Catalog_search_solr{
 			$search_query[]='{!join from=sid to=survey_uid}'.$helper->escapeTerm($this->variable_keywords);
 		}
 		
-
-
 		if ($topics){
 			$search_query[]=$topics;
 		}
-
 
         
 		//sort
@@ -265,11 +267,23 @@ class Catalog_search_solr{
 
         $resultset = $this->solr_client->select($query);//->getData();
 
+
+        $facet = $resultset->getFacetSet()->getFacet('dataset_types');
+        //var_dump($facet);
+
+        $dataset_types_facet_counts=array();
+        
+        foreach ($facet as $value => $count) {
+            $dataset_types_facet_counts[$value]=$count;
+        }
+
         //get raw query
         if($this->debug){
             $request = $this->solr_client->createRequest($query);
             $result['request_uri']=$request->getUri();
             $result['debug']=$resultset->getDebug();
+
+            var_dump($result['request_uri']);
         }
 		
 
@@ -310,7 +324,7 @@ class Catalog_search_solr{
 		$result['limit']=$limit;
 		$result['offset']=$offset;
         $result['citations']=$this->get_survey_citation();
-        $result['search_counts_by_type']=$this->search_counts_by_type();
+        $result['search_counts_by_type']=$dataset_types_facet_counts;
         
 		if ($result['found']>0){
 			//search for variables for SURVEY types
@@ -338,87 +352,7 @@ class Catalog_search_solr{
     }
     
 
-    /**
-	 * 
-	 * Get search counts by dataset type
-	 * 
-	 */
-	public function search_counts_by_type()
-	{
-        
-        /*
-		Query to be executed:
-
-		select?fl=dataset_type%2Cid%2Cdoctype&group.field=dataset_type&group.limit=0&group=true&q=*%3A*
-		*/
-
-
-		//get a select query instance
-        $query = $this->solr_client->createSelect();
-        
-        //set edismax options
-        $edismax = $query->getEDisMax();
-        
-        //keywords <N all required, else match percent
-        $edismax->setMinimumMatch("3<90%");
-
-		$query->createFilterQuery('published')->setQuery('published:1');
-        $helper = $query->getHelper();
-        
-        $search_query=array();
-
-		//SK
-		if($this->study_keywords){
-			$search_query[]='_text_:'.$helper->escapeTerm($this->study_keywords);
-		}
-
-		if (count($search_query)>0){
-            $query->setQuery(implode(" AND ",$search_query));
-        }
-
-
-		if ($this->debug){
-			$debug = $query->getDebug();
-		}
-
-        $group_by_field='dataset_type';
-	
-		//get grouping component and set a field to group by
-		$groupComponent = $query->getGrouping();
-		$groupComponent->addField($group_by_field); //group by field
-		$groupComponent->setLimit(0); // maximum number of items per group
-		$groupComponent->setNumberOfGroups(true); // get a group count
-
-		//execute search
-		$resultset = $this->solr_client->select($query);
-
-	
-		//get raw query
-		if($this->debug){
-			$request = $this->solr_client->createRequest($query);
-			echo "<HR>";
-			echo $request->getUri();
-			echo "<HR>";
-			//var_dump($resultset->getDebug());
-		}
-	
-
-		//get groups resultset
-        $groups = $resultset->getGrouping();
-        
-
-        $groups=$resultset->getData();
-        $groups=$groups['grouped'][$group_by_field]['groups'];
-
-        $output=array();
-
-        foreach($groups as $group){
-            $output[$group['groupValue']]=$group['doclist']['numFound'];
-        }
-
-		return $output;
-		
-	}
+    
 
 
 	//find variables by survey list
@@ -723,39 +657,7 @@ class Catalog_search_solr{
 	}
 
 
-	function _build_centers_query()
-	{
-		$centers=$this->center;//must always be an array
-
-		if (!is_array($centers))
-		{
-			return FALSE;
-		}
-
-		$centers_list=array();
-
-		foreach($centers  as $center)
-		{
-			//escape country names for db
-			$centers_list[]=$this->ci->db->escape($center);
-		}
-
-		if ( count($centers_list)>0)
-		{
-			$centers= implode(',',$centers_list);
-		}
-		else
-		{
-			return FALSE;
-		}
-
-		if ($centers!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_centers where id in (%s) )',$centers);
-		}
-
-		return FALSE;
-	}
+	
 
 
 	function _build_collections_query()
