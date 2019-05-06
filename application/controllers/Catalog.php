@@ -25,8 +25,8 @@ class Catalog extends MY_Controller {
 		$this->lang->load('catalog_search');
 
 		//configuration settings
-    }
-    
+	}
+	    
 	
 	/**
 	 * 
@@ -446,6 +446,132 @@ class Catalog extends MY_Controller {
 		}
 
 		return 15;//default page size
+	}
+
+
+	function _remap($method)
+	{
+		$method=strtolower($method);
+
+		if ($method=='search'){
+			$this->_set_active_repo($this->input->get("repo"));
+			$this->search();
+		}
+		else if (in_array(($method), array_map('strtolower', get_class_methods($this))) ){
+		  $uri = $this->uri->segment_array();
+          unset($uri[1]);
+          unset($uri[2]);
+          call_user_func_array(array($this, $method), $uri);
+		}
+		else{
+
+			//get repository id
+			$repo_code=$this->uri->segment(2);
+
+			//set active repos
+			$this->_set_active_repo($method);
+			
+			//valid repo?			
+			if ($this->active_repo || $repo_code=='central'){
+				//about?
+				if ($this->uri->segment(3)=='about'){
+					$this->about_repository();
+					return;
+				}
+				//load the default listing page
+				$this->index();
+			}
+			else{
+				//show_404();
+				$this->index();
+			}
+		}
+	  }
+	  
+
+	private function _set_active_repo($repo)
+	{
+		$this->load->model("repository_model");
+
+		$repo=trim(strtolower($repo));
+		//get an array of all valid repository names from db
+		$repositories=$this->Catalog_model->get_repository_array();
+		$repositories[]='central';
+
+		//repo names to lower case
+		foreach($repositories as $key=>$value){
+			$repositories[$key]=strtolower($value);
+		}
+
+		//check if URI matches to a repository name
+		if (in_array($repo,$repositories)){
+			//repository options
+			if ($repo=='central'){
+				$this->active_repo=null;
+				//$this->active_repo=$this->repository_model->get_central_catalog_array();
+			}
+			else{
+				//set active repo
+				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repo);
+			}
+		}
+	}
+
+
+	function about_repository()
+	{
+		$repositoryid=$this->uri->segment(2);
+		$this->load->model("repository_model");
+		$additional_data=NULL;
+		$repo=NULL;
+
+		//unpublished repos are visible to limited admins or admins only
+		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
+
+		if ($repositoryid=='central')
+		{
+			$this->load->model("repository_model");
+			$this->load->model("repository_sections_model");
+			$collections=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
+			$sections=array();
+
+			foreach($collections as $key=>$collection)
+			{
+				$sections[$collection['section']]=$collection['section_title'];
+			}
+
+			$data['sections']=$sections;
+			$data['rows']=$collections;
+			$data['show_unpublished']=FALSE;
+			$additional_data=$this->load->view("repositories/index_public",$data,TRUE);
+			$repo=array(
+					'repositoryid'	=>'central',
+					'title'			=>t('central_data_catalog')
+			);
+		}
+		else
+		{
+			$repo=$this->repository_model->get_repository_by_repositoryid($repositoryid);
+
+			if (!$repo)
+			{
+				show_404();
+			}
+		}
+
+		$page_data=array(
+			'repo'=>$this->active_repo,
+			'active_tab'=>'about',
+			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
+		);
+
+		$page_data['content']=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
+		$contents=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
+
+		//set page title
+		$this->template->write('title', $repo['title'],true);
+		$this->template->write('content', $contents,true);
+	  	$this->template->render();
 	}
 
 }    
