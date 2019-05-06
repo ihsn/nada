@@ -81,22 +81,53 @@ class Citations extends MY_REST_Controller
 	 * Get a single citation
 	 * 
 	 */
-	function single_get($idno=null)
+	function single_get($id=null)
 	{
 		try{
-			$sid=$this->get_sid_from_idno($idno);
-
-			if(!is_numeric($resource_id)){
-				throw new Exception("MISSING_PARAM: resourceId");
+			if(!is_numeric($id)){
+				throw new Exception("MISSING_PARAM: citationId");
 			}
 			
-			$resource=$this->Resource_model->get_single_resource_by_survey($sid,$resource_id);
+			$citation=$this->Citation_model->select_single($id);
 			
-			if(!$resource){
-				throw new Exception("RESOURCE_NOT_FOUND");
+			if(!$citation){
+				throw new Exception("CITATION_NOT_FOUND");
 			}	
 			
-			$this->set_response($resource, REST_Controller::HTTP_OK);			
+			$this->set_response($citation, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+
+
+	/**
+	 * 
+	 * Get citations by Study
+	 * 
+	 */
+	function by_dataset_get($sid=null)
+	{
+		try{
+			if(!is_numeric($sid)){
+				throw new Exception("MISSING_PARAM: DatasetId");
+			}
+			
+			$citations=$this->Citation_model->get_citations_by_survey($sid);
+			
+			$output=array(
+				'status'=>'success',
+				'found'=>count($citations),
+				'records'=>$citations
+			);
+
+			$this->set_response($citations, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -109,102 +140,7 @@ class Citations extends MY_REST_Controller
 
 
 	
-	/**
-	 * 
-	 * 
-	 * create a new external resource
-	 * 
-	 **/ 
-	function index_post($idno=null)
-	{
-		$options=$this->raw_json_input();
-
-		try{
-			$sid=$this->get_sid_from_idno($idno);
-
-			$options['survey_id']=$sid;
-
-			//get dctype by code
-			if(isset($options['dctype'])){
-				$options['dctype']=$this->Survey_resource_model->get_dctype_label_by_code($options['dctype']);
-			}
-
-			//validate resource
-			if ($this->Survey_resource_model->validate_resource($options)){
-				$resource_id=$this->Survey_resource_model->insert($options);
-				$resource=$this->Survey_resource_model->select_single($resource_id);
-				
-				$response=array(
-					'status'=>'success',
-					'resource'=>$resource
-				);
-
-				$this->set_response($response, REST_Controller::HTTP_OK);
-			}
-		}
-		catch(ValidationException $e){
-			$error_output=array(
-				'message'=>'VALIDATION_ERROR',
-				'errors'=>$e->GetValidationErrors()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}		
-	}
-
-
-	//update an existing resource
-	function index_put($idno=null,$resource_id=null)
-	{
-		$options=$this->raw_json_input();
-
-		try{
-			$sid=$this->get_sid_from_idno($idno);
-
-			if(!is_numeric($resource_id)){
-				throw new Exception("MISSING_PARAM: resourceId");
-			}
-
-			//get dctype by code
-			if(isset($options['dctype'])){
-				$options['dctype']=$this->Survey_resource_model->get_dctype_label_by_code($options['dctype']);
-			}
-			
-			$resource=$this->Resource_model->get_single_resource_by_survey($sid,$resource_id);
-			
-			if(!$resource){
-				throw new Exception("RESOURCE_NOT_FOUND");
-			}
-
-			$options['survey_id']=$sid;
-			$options['resource_id']=$resource_id;
-			
-			//validate resource
-			if ($this->Survey_resource_model->validate_resource($options,$is_new=false)){
-				$this->Survey_resource_model->update($resource_id,$options);
-				$resource=$this->Survey_resource_model->select_single($resource_id);
-				
-				$response=array(
-					'status'=>'success',
-					'resource'=>$resource
-				);
-
-				$this->set_response($response, REST_Controller::HTTP_OK);
-			}
-		}
-		catch(ValidationException $e){
-			$error_output=array(
-				'message'=>'VALIDATION_ERROR',
-				'errors'=>$e->GetValidationErrors()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}		
-	}
+	
 
 
 
