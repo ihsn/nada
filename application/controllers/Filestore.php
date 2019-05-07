@@ -12,11 +12,13 @@ class Filestore extends MY_Controller {
 
     function photo($filename)
     {
+        $filename=urldecode($filename);
         return $this->Filestore_model->photo($filename);
     }
 
     function file($filename)
     {
+        $filename=urldecode($filename);
         return $this->Filestore_model->download($filename,'inline');
     }
 

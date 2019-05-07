@@ -64,18 +64,17 @@ class Filestore extends MY_REST_Controller
 	function index_post()
 	{		
 		try{
-
 			if(!isset($_FILES['file'])){
-                throw new Exception("FILE NOT PROVIDED");
-            }
+				throw new Exception("FILE NOT PROVIDED");
+			}
 
-            $overwrite=$this->input->post("overwrite");
+			$overwrite=$this->input->post("overwrite");
 
-            if($overwrite=='yes'){
-                $overwrite=true;
-            }
-    
-            $result=$this->Filestore_model->upload('file',$overwrite);
+			if($overwrite=='yes'){
+					$overwrite=true;
+			}
+
+			$result=$this->Filestore_model->upload('file',$overwrite);
 
 			$output=array(
 				'status'=>'success',
@@ -91,7 +90,7 @@ class Filestore extends MY_REST_Controller
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-    }
+  }
     
 
 
