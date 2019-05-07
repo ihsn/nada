@@ -732,25 +732,6 @@
           ]
         },
 
-
-        "tags": {
-          "type": "array",
-          "title": "Tags",
-          "description": "Tags",
-          "items": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "title": "Tag",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "tag"
-          ]
-        },
-
         "lda_topics": {
           "type": "array",
           "title": "LDA topics",
@@ -851,6 +832,23 @@
 
       },
       "additionalProperties": false
+    },
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tag"
+      ]
     },
 
     "files": {

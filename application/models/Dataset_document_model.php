@@ -40,7 +40,7 @@ class Dataset_document_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','files','additional');
+        $study_metadata_sections=array('metadata_information','document_description','files','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -62,7 +62,8 @@ class Dataset_document_model extends Dataset_model {
 		//update years
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
 
-		//set topics
+		//update tags
+        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
 
         //update related countries
         $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
@@ -179,6 +180,28 @@ class Dataset_document_model extends Dataset_model {
 
         //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+    }
+
+
+    /**
+     * 
+     * get tags
+     * 
+     **/
+	function get_tags($options)
+	{
+        $tags=$this->get_array_nested_value($options,'tags');
+
+        if(!is_array($tags)){
+           return false;
+        }
+
+        $output=array();
+        foreach($tags as $tag){
+            $output[]=$tag['tag'];
+        }
+
+        return $output;
     }
 
 }

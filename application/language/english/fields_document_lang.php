@@ -152,3 +152,6 @@ $lang['metadata.files']='Files';
 $lang['metadata.files.file_uri']='File';
 $lang['metadata.files.format']='File format';
 $lang['metadata.files.note']='Notes';
+
+$lang['metadata.tags']='Tags';
+$lang['metadata.tags.tag']='Tag';

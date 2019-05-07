@@ -142,7 +142,7 @@
         "metadata.document_description.mandate"=>"text",
         "metadata.document_description.pricing"=>"text",
         "metadata.document_description.relations"=>"array",
-        "metadata.document_description.tags"=>"array",
+        "metadata.tags"=>"array_comma",        
     ),
     $metadata);
     ?>    
@@ -153,7 +153,6 @@
         "metadata.document_description.lda_topics.model_info"=>"array",        
         "metadata.document_description.lda_topics.topic_description"=>"array",
         "metadata.document_description.lda_topics.topic_description.topic_words.word"=>"text",
-        "metadata.files"=>"array"            
     ),
     $metadata);
 ?>
