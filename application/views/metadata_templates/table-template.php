@@ -27,10 +27,35 @@ if(isset($metadata['metadata']['table_description']['file'])){
 }
 ?>
 
+<?php
+    //render location field
+    $download_buttons=render_field(
+        "download_buttons_array",
+        "metadata.files",
+        get_field_value('metadata.files',$metadata), 
+        $options=array(
+            'url_column'=>'file_uri',
+            'title_column'=>'note'
+        )
+    );
+?>    
+
+<?php    
+    $download_buttons_html=render_field(
+        "literal",
+        "",
+        $download_buttons, 
+        $options=array(
+            'css_class'=>'float-md-right',
+            'css_style'=>''
+        )
+    );
+    $output['download_links']=$download_buttons_html;
+?>
 
 <!-- identification section -->
 <?php $output['description']= render_group('description',
-    $fields=array(
+    $fields=array(            
             "metadata.table_description.title_statement.title"=>'text',
             "metadata.table_description.title_statement.idno"=>'text',
             "metadata.table_description.id_numbers"=>'array',            
@@ -69,7 +94,8 @@ if(isset($metadata['metadata']['table_description']['file'])){
 
             "metadata.table_description.keywords"=>'array',
             "metadata.table_description.themes"=>'array',
-            "metadata.table_description.topics"=>'array',            
+            "metadata.table_description.topics"=>'array',
+            "metadata.tags"=>'array_comma',
             
             "metadata.table_description.data_years_range"=>'array',
             "metadata.table_description.data_years_list"=>'array_comma',

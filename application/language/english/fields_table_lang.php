@@ -177,5 +177,5 @@ $lang['metadata.table_description.contacts.email']='Email';
 $lang['metadata.table_description.contacts.telephone']='Telephone';
 $lang['metadata.table_description.contacts.uri']='URI';
 
-$lang['metadata.table_description.tags']='Tags';
-$lang['metadata.table_description.tags.tag']='Tag';
+$lang['metadata.tags']='Tags';
+$lang['metadata.tags.tag']='Tag';

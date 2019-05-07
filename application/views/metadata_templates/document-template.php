@@ -30,11 +30,11 @@
     //render location field
     $download_buttons=render_field(
         "download_buttons_array",
-        "metadata.document_description.location",
-        get_field_value('metadata.document_description.location',$metadata), 
+        "metadata.files",
+        get_field_value('metadata.files',$metadata), 
         $options=array(
-            'url_column'=>'uri',
-            'title_column'=>'name'
+            'url_column'=>'file_uri',
+            'title_column'=>'note'
         )
     );
 ?>    
@@ -52,15 +52,6 @@
     $output['download_links']=$download_buttons_html;
 ?>
 
-<!-- download -->
-<?php $output['download']= render_group('download',
-    $fields=array(
-            "metadata.document_description.version_statement.version"=>'text',
-            "metadata.document_description.version_statement.version_date"=>'text',
-            "metadata.document_description.version_statement.version_notes"=>'text'
-            ),
-    $metadata);
-?>
 
 <!-- identification section -->
 <?php $output['description']= render_group('description',

@@ -863,6 +863,38 @@ class Dataset_model extends CI_Model {
 	}
 
 
+
+
+	/**
+	*
+	* Add/Update tags
+	*
+	* @sid - dataset id
+	* @tags - array - list of tags
+	*
+	**/
+	function update_survey_tags($sid, $tags=array())
+	{
+		$this->load->model("Catalog_tags_model");
+        $this->Catalog_tags_model->delete_survey_tags($sid);
+				
+        if (!is_array($tags)){
+            return;
+        }
+        
+		$data=array();
+		foreach ($tags as $tag){
+            $options=array(
+					'sid'	=>$sid,
+					'tag'	=>$tag
+				);
+            $this->db->insert('survey_tags',$options);
+		}
+	}
+
+
+
+
     
     //encode metadata for db storage
     public function encode_metadata($metadata_array)

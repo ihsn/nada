@@ -45,7 +45,10 @@
                         $max_words=9;
                         $k=0;
                         $word_weights=array_column($row['topic_words'],'weight');
-                        array_multisort($word_weights, SORT_DESC,SORT_NUMERIC,$row['topic_words']);
+
+                        if(count($word_weights)==count($row['topic_words'])){
+                            array_multisort($word_weights, SORT_DESC,SORT_NUMERIC,$row['topic_words']);
+                        }
                     ?>
                     <?php foreach($row['topic_words'] as $topic_word):$k++;?>
                         <?php if($k>$max_words){break;} ?>
