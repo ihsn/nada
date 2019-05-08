@@ -882,7 +882,6 @@ class Dataset_model extends CI_Model {
             return;
         }
         
-		$data=array();
 		foreach ($tags as $tag){
             $options=array(
 					'sid'	=>$sid,

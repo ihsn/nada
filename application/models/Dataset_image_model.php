@@ -64,7 +64,8 @@ class Dataset_image_model extends Dataset_model {
 
 		//set topics
 
-        //update related countries
+        //update tags
+        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
 
 		//set aliases
 
@@ -102,6 +103,28 @@ class Dataset_image_model extends Dataset_model {
 			$output['year_end']=(int)$date[0];			
         }
         
+        return $output;
+    }
+
+
+    /**
+     * 
+     * get tags
+     * 
+     **/
+	function get_tags($options)
+	{
+        $tags=$this->get_array_nested_value($options,'image_description/tags');
+
+        if(!is_array($tags)){
+           return false;
+        }
+
+        $output=array();
+        foreach($tags as $tag){
+            $output[]=$tag['tag'];
+        }
+
         return $output;
     }
     
