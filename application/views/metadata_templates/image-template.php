@@ -110,6 +110,7 @@
         "metadata.image_description.iptc.photoVideoMetadataIPTC.jobid"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.jobtitle"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.keywords"=>"array",
+        "metadata.image_description.tags"=>"array",
         
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr"=>"object",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.linkedRightsExpr"=>"text",
