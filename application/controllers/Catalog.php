@@ -66,6 +66,11 @@ class Catalog extends MY_Controller {
 		$filters['countries']=$this->Search_helper_model->get_active_countries();
 		$filters['countries']=$this->load->view('search/filter_countries', $filters,true);
 
+		//tags
+		$filters['tags']=$this->Search_helper_model->get_active_tags($repo=null,$active_tab);
+		$filters['tags']=$this->load->view('search/filter_tags', $filters,true);
+		
+
 		//types
 		$types=$this->Search_helper_model->get_dataset_types();
 
@@ -144,6 +149,7 @@ class Catalog extends MY_Controller {
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
 		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		$search_options->tag			=xss_clean($this->input->get("tag"));
 		$search_options->sid			=xss_clean($this->input->get("sid"));
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
@@ -242,6 +248,7 @@ class Catalog extends MY_Controller {
 			'topics'=>$search_options->topic,
 			'from'=>$search_options->from,
 			'to'=>$search_options->to,
+			'tags'=>$search_options->tag,
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
 			'repo'=>$search_options->filter->repo,

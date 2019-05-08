@@ -371,6 +371,47 @@ class Search_helper_model extends CI_Model {
 		
 		return $countries;
 	}
+
+	
+	/**
+	 * 
+	 * 
+	 * Get tags
+	 * 
+	 */
+	function get_active_tags($repositoryid=NULL,$data_type=NULL)
+	{
+			$this->db->select('tag, count(tag) as total');
+			$this->db->join('surveys', 'surveys.id=survey_tags.sid','inner');
+			$this->db->order_by('survey_tags.tag','ASC');
+			$this->db->group_by('survey_tags.tag');
+			$this->db->where('surveys.published',1);
+			
+			if($repositoryid!=NULL){
+				$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
+				$this->db->where('survey_repos.repositoryid',$repositoryid);
+			}
+
+			if($data_type!=NULL){
+				$this->db->where('surveys.type',$data_type);
+			}
+			
+			$query=$this->db->get('survey_tags');
+			
+			if(!$query){
+				return FALSE;
+			}
+			
+			$rows=$query->result_array();
+			
+			$tags=array();
+			foreach($rows as $tag)
+			{
+				$tags[$tag['tag']]=$tag;
+			}
+			
+			return $tags;
+	}
 	
 	
 	/**

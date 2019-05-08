@@ -19,6 +19,7 @@ class Catalog_search_mysql{
 	var $variable_keywords='';
 	var $variable_fields=array();
 	var $topics=array();
+	var $tags=array();
 	var $countries=array();
 	var $from=0;
 	var $to=0;
@@ -97,6 +98,7 @@ class Catalog_search_mysql{
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$tags=$this->_build_tags_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
@@ -151,7 +153,7 @@ class Catalog_search_mysql{
 		}
 		
 		//array of all options
-		$where_list=array($type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -315,6 +317,7 @@ class Catalog_search_mysql{
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$tags=$this->_build_tags_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
@@ -323,7 +326,7 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -575,6 +578,33 @@ class Catalog_search_mysql{
 
 		if ($types!=''){
 			return sprintf('(surveys.type in (%s))',$types);
+		}
+		
+		return FALSE;
+	}
+
+
+
+	protected function _build_tags_query()
+	{
+		$tags=(array)$this->tags;//must always be an array
+
+		if (!is_array($tags)){
+			return FALSE;
+		}
+		
+		$tags_list=array();
+				
+		foreach($tags  as $tag){
+			if(!empty($tag)){
+				$tags_list[]=$this->ci->db->escape($tag);
+			}
+		}
+
+		$tags= implode(',',$tags_list);
+
+		if ($tags!=''){
+			return sprintf('surveys.id in (select sid from survey_tags where tag in (%s))',$tags);
 		}
 		
 		return FALSE;
