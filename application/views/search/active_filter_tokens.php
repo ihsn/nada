@@ -1,10 +1,19 @@
-
     <?php if (is_array($search_options->type)):?>
         <?php foreach($search_options->type as $type):?>
             <?php if ($search_options->tab_type==$type){continue;};?>                
                 <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="type[]" data-value="<?php echo $type;?>"><?php echo $type;?><i class="fa fa-close"></i></span>
         <?php endforeach;?>
     <?php endif;?>
+
+
+    <?php if (is_array($search_options->tag)):?>
+        <?php foreach($search_options->tag as $tag):?>
+            <?php if (array_key_exists($tag,$tags)):?>
+                <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="tag[]" data-value="<?php echo $tag;?>"><?php echo $tag;?><i class="fa fa-close"></i></span>
+            <?php endif;?>    
+        <?php endforeach;?>
+    <?php endif;?>
+
     <?php if (is_array($search_options->country)):?>
         <?php foreach($search_options->country as $country):?>
             <?php if (array_key_exists($country,$countries)):?>

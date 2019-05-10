@@ -67,7 +67,7 @@ class Catalog extends MY_Controller {
 		$filters['countries']=$this->load->view('search/filter_countries', $filters,true);
 
 		//tags
-		$filters['tags']=$this->Search_helper_model->get_active_tags($repo=null,$active_tab);
+		$filters['tags']=$this->Search_helper_model->get_active_tags($repo=null,$active_tab);		
 		$filters['tags']=$this->load->view('search/filter_tags', $filters,true);
 		
 
@@ -182,6 +182,8 @@ class Catalog extends MY_Controller {
 		//{
 			$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
 		//}
+
+		$data['tags']=$this->Search_helper_model->get_active_tags($this->active_repo['repositoryid']);
 
 		/*if($this->topic_search=='yes')
 		{
