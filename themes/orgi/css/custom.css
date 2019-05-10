@@ -1,0 +1,23 @@
+/* user defined custom styles or overrides only */
+.site-header.active {
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+.site-header{
+    background:white;
+}
+
+.page-body{
+    margin-top:180px
+}
+
+
+.site-header .nada-sitename{
+    font-size:18px;
+    border-left:none;
+    line-height:125%;
+}
+
+.site-header .nada-logo img{
+    height:80px;
+}
