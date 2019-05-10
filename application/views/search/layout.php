@@ -109,6 +109,53 @@
     color: #dee2e6;
 }
 
+
+.round-bg{
+  display: inline-block;
+  border-radius: 60px!important;
+  box-shadow: 0px 0px 2px #888;
+  padding: 0.5em 0.6em;
+  font-size:25px;
+}
+
+
+.fa-stack { 
+    font-size: 2em;
+    color:#ced4da;
+}
+
+.fa-nada-microdata,.fa-nada-survey{
+    color:#28a745;
+}
+
+.fa-nada-document{
+    color:#6c757d;
+}
+
+.fa-nada-timeseries{
+    color:#1e7e34;
+}
+
+.fa-nada-geospatial{
+    color:#20c997;
+}
+
+.fa-nada-image{
+    color:#17a2b8;
+}
+
+.fa-nada-table{
+    color:#007bff;
+}
+
+.fa-nada-table{
+    color:#ffc107;
+}
+
+
+
+/*i { vertical-align: middle; }*/
+
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
 

@@ -135,7 +135,19 @@ else{
     <?php endif;?>
 
     
-    
+<?php 
+        $type_icons=array(
+            'survey'=>'fa-database',
+            'microdata'=>'fa-database',
+            'geospatial'=>'fa-globe',
+            'timeseries'=>'fa-clock-o',
+            'document'=>'fa-file-text-o',
+            'table'=>'fa-table',
+            'visualization'=>'fa-pie-chart',
+            'script'=>'fa-file-code-o',
+            'image'=>'fa-camera',
+        );
+?>
     
 <div id="surveys">
     <span class="result-types-summary">
@@ -151,7 +163,11 @@ else{
     <div class="survey-row" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
     <div class="row">
         <div class="col-2 col-lg-1">            
-            <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i>
+            <?php /*<i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i>*/?>
+            <span class="fa-stack fa-lg fa-nada-<?php echo $row['type'];?>">
+            <i class="fa fa-circle fa-stack-2x"></i>
+            <i class="fa <?php echo $type_icons[$row['type']];?> fa-stack-1x fa-inverse fa-nada-icon"></i>
+            </span> 
         </div>        
         
         <div class="col-10 col-lg-11">            
