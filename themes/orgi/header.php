@@ -23,7 +23,7 @@
                         <a href="<?php echo site_url();?>" class="g01v1-logo nada-logo">
                             <img title="<?php echo $this->config->item("website_title");?>" src="<?php echo base_url().$bootstrap_theme; ?>/images/orgi_logo.png" class="img-responsive">
                         </a>
-                        <strong><a class="nada-sitename" href="#index.html">Office of the Registrar General <br>& Census commissioner, India</a></strong>
+                        <strong><a class="nada-sitename" href="#index.html">Office of the Registrar General <br>& Census Commissioner, India</a></strong>
                     </div>
                     <?php /**/ ?>
                     
