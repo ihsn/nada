@@ -121,9 +121,9 @@
 
 .fa-stack { 
     font-size: 2em;
-    color:#ced4da;
+    color:#bfbfbf;
 }
-
+/*
 .fa-nada-microdata,.fa-nada-survey{
     color:#28a745;
 }
@@ -151,7 +151,7 @@
 .fa-nada-table{
     color:#ffc107;
 }
-
+*/
 
 
 /*i { vertical-align: middle; }*/
