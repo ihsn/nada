@@ -25,8 +25,7 @@ class Configurations extends MY_Controller {
 	function index()
 	{	
 		$this->form_validation->set_rules('catalog_root', t('catalog_folder'), 'xss_clean|trim|max_length[255]');
-		$this->form_validation->set_rules('ddi_import_folder', t('ddi_import_folder'), 'xss_clean|trim|max_length[255]');
-		$this->form_validation->set_rules('cache_path', t('cache_folder'), 'xss_clean|trim|max_length[255]|callback_check_folder_exists');
+		$this->form_validation->set_rules('ddi_import_folder', t('ddi_import_folder'), 'xss_clean|trim|max_length[255]');		
 		$this->form_validation->set_rules('ddi_import_folder', t('ddi_import_folder'), 'xss_clean|trim|max_length[255]|callback_check_folder_exists');
 		$this->form_validation->set_rules('catalog_root', t('catalog_folder'), 'xss_clean|trim|max_length[255]|callback_check_folder_exists');
 		$this->form_validation->set_rules('website_title', t('website_title'), 'xss_clean|trim|max_length[255]');
@@ -49,7 +48,6 @@ class Configurations extends MY_Controller {
 				$check_if_failed = array(
 					'catalog_root',
 					'ddi_import_folder',
-					'cache_path',
 					'ddi_import_folder',
 					'catalog_root',
 					'website_title',
