@@ -146,7 +146,7 @@ class Users extends MY_Controller {
 	    	$this->form_validation->set_rules('phone1', t('phone'), 'xss_clean|trim|required|max_length[20]');
 		}
 		*/
-		
+
         if ($this->form_validation->run() == true) 
 		{ 
 			//check to see if we are creating the user
@@ -161,22 +161,22 @@ class Users extends MY_Controller {
 									 'active'     => $this->input->post('active'),
 									 'country'     => $this->input->post('country'),
         							'active'     => $this->input->post('active'),
-									'group_id'     => $this->input->post('group_id'),
+									//'group_id'     => $this->input->post('group_id'),
         							);
         	
         	//register the user
-        	$user_created=$this->ion_auth->register($username,$password,$email,$additional_data);
-        	
+			$user_created=$this->ion_auth_model->register($username, $password, $email, $additional_data);
+			
         	if ($user_created)
         	{
 				$data['username']=$username;
         		$data['active']=$additional_data['active'];
-        		$data['group_id']=$additional_data['group_id'];	
+				//$data['group_id']=$additional_data['group_id'];	
 				
         		//get the user data by email
         		$user=$this->ion_auth->get_user_by_email($email);
-        		        				        				
-        		//update user group to ADMIN and ACTIVATE account
+
+				//update user group to ADMIN and ACTIVATE account
         		$this->ion_auth->update_user($user->id, $data);	        	
         	}  
         	
@@ -265,9 +265,8 @@ class Users extends MY_Controller {
 	
 	function edit($id) 
 	{  		
-        $this->data['page_title'] = t("edit_user_account");
-	
-	$use_complex_password=$this->config->item("require_complex_password");
+        $this->data['page_title'] = t("edit_user_account");	
+		$use_complex_password=$this->config->item("require_complex_password");
 	              		
         //validate form input
 		$this->form_validation->set_rules('username', t('username'), 'trim|required|callback_username_exists');
