@@ -119,5 +119,10 @@ $lang['country_mappings']="Country mappings";
 $lang['latest_additions']='Latest additions';
 
 
+$lang['idno']="IDNO";
+$lang['related_datasets']="Related datasets";
+$lang['JSON']="JSON";
+$lang['DDI/XML']="DDI/XML";
+$lang['page not found']='Page not found';
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */
