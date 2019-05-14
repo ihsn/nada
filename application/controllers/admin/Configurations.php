@@ -250,7 +250,7 @@ class Configurations extends MY_Controller {
 		}
 
 		//mail from
-		$email_sender=$this->input->post("email_from");
+		$email_sender=$this->input->post("mail_from");
 
 		if(empty($email_sender)){
 			$email_sender=$this->input->post('smtp_user');
