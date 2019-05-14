@@ -195,6 +195,7 @@ class Catalog extends MY_Controller {
 		$page_data=array(
 			'repo'=>$this->active_repo,
 			'active_tab'=>'catalog',
+			'repositories'=>$data['repositories'],
 			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
 		);
 
