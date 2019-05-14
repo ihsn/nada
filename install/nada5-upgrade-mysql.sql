@@ -176,6 +176,21 @@ CREATE TABLE `survey_locations` (
   SPATIAL KEY `idx_location` (`location`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+CREATE TABLE `variable_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `vgid` varchar(45) DEFAULT NULL,
+  `variables` varchar(5000) DEFAULT NULL,
+  `variable_groups` varchar(500) DEFAULT NULL,
+  `group_type` varchar(45) DEFAULT NULL,
+  `label` varchar(255) DEFAULT NULL,
+  `universe` varchar(255) DEFAULT NULL,
+  `notes` varchar(500) DEFAULT NULL,
+  `txt` varchar(500) DEFAULT NULL,
+  `definition` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 
 --- 
 --- For MYSQL 5.6 or later only
