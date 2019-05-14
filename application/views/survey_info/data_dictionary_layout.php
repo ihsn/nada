@@ -50,7 +50,7 @@
         </form>
         
         <ul class="nada-list-group">
-            <li class="nada-list-group-item nada-list-group-title">Data files</li>
+            <li class="nada-list-group-item nada-list-group-title"><?php echo t('data_files');?></li>
             <?php foreach($files as $file_):?>
                 <li class="nada-list-group-item">
                     <a href="<?php echo site_url("catalog/$sid/data-dictionary/{$file_['file_id']}");?>?file_name=<?php echo html_escape($file_['file_name']);?>"><?php echo wordwrap($file_['file_name'],15,"<BR>");?></a>
