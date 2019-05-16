@@ -4,6 +4,7 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
 
 class Auth extends REST_Controller
 {
+	
 	public function __construct()
 	{
 		parent::__construct();
@@ -18,8 +19,8 @@ class Auth extends REST_Controller
 	*
 	*
 	*/
-    public function login_post()
-    {
+  public function login_post()
+  {
 		$email=$this->input->post("email");
 		$pass=$this->input->post("password");
 		
@@ -45,8 +46,8 @@ class Auth extends REST_Controller
 
 				$options=array(
 					'user_id'=>$user->id,
-					'username'=>$user->username,
-					'api-keys'=>$api_keys
+					'user_name'=>$user->username,
+					'api_keys'=>$api_keys
 				);
 
 				$response=array(
@@ -83,7 +84,7 @@ class Auth extends REST_Controller
 	*
 	*/
 	public function create_api_key_post()
-    {
+  {
 		$email=$this->input->post("email");
 		$pass=$this->input->post("password");
 		$key=$this->input->post("api_key");
@@ -113,8 +114,8 @@ class Auth extends REST_Controller
 
 				$options=array(
 					'user_id'=>$user->id,
-					'username'=>$user->username,
-					'api-keys'=>$api_keys
+					'user_name'=>$user->username,
+					'api_keys'=>$api_keys
 				);
 
 				$response=array(
