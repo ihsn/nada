@@ -187,11 +187,15 @@ class Catalog_search_solr{
 
 		/////////////////// variable search ///////////////////////////////////////////////////////
 		if ($variable!==FALSE){
+			/*
 			//set keyword search query
 			if (count($search_query)>0){
 				$query->setQuery(implode(" AND ",$search_query));
 			}
 
+			//set filter - varcount > 0
+			$query->createFilterQuery('varcount')->setQuery('!varcount:0');
+			
 			$query->setStart($offset)->setRows($limit);
 			$query->setFields(array(
 				'id:survey_uid',
@@ -233,19 +237,6 @@ class Catalog_search_solr{
 				echo '</pre>';
 			}
 
-			/*
-			///////// DEBUG RESULTS //////////////////////////////////////////////			
-			$debugResult = $resultset->getDebug();
-
-			echo '<h1>Debug data</h1>';
-			echo 'Querystring: ' . $debugResult->getQueryString() . '<br/>';
-			echo 'Parsed query: ' . $debugResult->getParsedQuery() . '<br/>';
-			echo 'Query parser: ' . $debugResult->getQueryParser() . '<br/>';
-			echo 'Other query: ' . $debugResult->getOtherQuery() . '<br/>';
-			
-			////////////// END DEBUG ////////////////////////////////////////////
-			*/
-
 			//get the total number of documents found by solr
 			$this->search_found_rows=$resultset->getNumFound();
 
@@ -284,7 +275,8 @@ class Catalog_search_solr{
 			$result['offset']=$offset;
 			$result['citations']=$this->get_survey_citation();
 
-			return $result;
+			return $result;*/
+			throw new exception ("VARIABLE_SEARCH_DISABLED");
 		}
 		else
 		{
@@ -318,7 +310,8 @@ class Catalog_search_solr{
                 'year_start',
                 'year_end',
 				'authoring_entity',
-				'score'
+				'score',
+				'varcount'
 			));
 
 			//enable debugging
@@ -374,6 +367,29 @@ class Catalog_search_solr{
 		$result['offset']=$offset;
 		$result['citations']=$this->get_survey_citation();
 
+
+		if ($result['found']>0){
+			//search for variables for SURVEY types
+			$id_list=array_column($this->search_result, "id");
+
+			if(count($id_list)>0){
+				
+				//search variables and get the counts
+				$variables_by_study=$this->get_var_count_by_surveys($id_list,$this->study_keywords);
+
+				if(!empty($variables_by_study)){
+					foreach($this->search_result as $idx=>$row)
+					{
+						if(array_key_exists($row['id'],$variables_by_study)){
+							$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']];
+						}
+					}
+				}
+			}
+
+			$result['rows']=$this->search_result;
+		}
+
 		return $result;
 	}
 
@@ -390,15 +406,26 @@ class Catalog_search_solr{
 		 ?q=doctype%3A2+AND+text%3Aeducation+AND+sid%3A(590)&wt=json&indent=true&group=true&group.field=sid&group.ngroups=true&group.limit=0
 		*/
 
+		if(empty($variable_keywords)){
+			return;
+		}
+
+
 		//get a select query instance
 		$query = $this->solr_client->createSelect();
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:%s AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
+		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
 
 		//set start and rows param (comparable to SQL limit) using fluent interface
 		$query->setStart(0)->setRows(100);
 
+
+		if ($this->debug){
+			$debug = $query->getDebug();
+		}
+
+	
 		//get grouping component and set a field to group by
 		$groupComponent = $query->getGrouping();
 		$groupComponent->addField('sid'); //group by field
@@ -407,6 +434,17 @@ class Catalog_search_solr{
 
 		//execute search
 		$resultset = $this->solr_client->select($query);
+
+	
+		//get raw query
+		if($this->debug){
+			$request = $this->solr_client->createRequest($query);
+			echo "<HR>";
+			echo $request->getUri();
+			echo "<HR>";
+			//var_dump($resultset->getDebug());
+		}
+	
 
 		//get groups resultset
 		$groups = $resultset->getGrouping();
@@ -948,7 +986,7 @@ class Catalog_search_solr{
 			));
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:%s AND sid:(%s)',$this->variable_keywords, $surveyid ) );
+		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$this->study_keywords, $surveyid ) );
 		$query->setStart(0)->setRows(100); //get 0-100 rows
 
 		if($this->debug){

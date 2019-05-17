@@ -15,12 +15,13 @@ class Solr extends MY_Controller {
     {
 			parent::__construct($skip_auth=TRUE);
 		
-			if(!$this->input->is_cli_request()){
+			/*if(!$this->input->is_cli_request()){
 				die("ERROR_NOT-CLI");
-			}
+			}*/
 
 			$this->load->library('solr_manager');		
 			error_reporting(E_ALL);
+			//$this->output->enable_profiler(TRUE);
     }
 
 
@@ -52,7 +53,7 @@ class Solr extends MY_Controller {
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function full_import_surveys($start_row=NULL, $limit=10, $loop=TRUE)
+	public function full_import_surveys($start_row=NULL, $limit=10, $loop=FALSE)
 	{		
 		$this->solr_manager->full_import_surveys($start_row, $limit, $loop);
 	}
@@ -85,9 +86,12 @@ class Solr extends MY_Controller {
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function full_import_variables($start_row=NULL, $limit=100, $loop=TRUE)
+	public function full_import_variables($start_row=NULL, $limit=100, $loop=FALSE)
 	{
-		$this->solr_manager->full_import_variables($start_row, $limit, $loop);
+		$result=$this->solr_manager->full_import_variables($start_row, $limit, $loop);
+
+		echo '<pre>';
+		print_r($result);
 	}
 
 

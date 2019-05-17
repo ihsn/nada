@@ -151,7 +151,7 @@ function index_datasets(start_row=0, limit=5, processed=0)
 }
 
 
-function index_variables(start_row=0, limit=1000, processed=0)
+function index_variables(start_row=0, limit=5000, processed=0)
 {
     var jqxhr = $.get( "<?php echo site_url('api/solr/full_import_variables/');?>"+start_row + '/'+limit, function(data) {
         console.log(data);

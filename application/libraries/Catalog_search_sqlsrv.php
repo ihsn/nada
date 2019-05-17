@@ -7,7 +7,7 @@
  * @category	Data Catalog Search
  *
  */ 
-class Catalog_search{
+class Catalog_search_sqlsrv{
 	
 	var $ci;
 	
@@ -30,9 +30,9 @@ class Catalog_search{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
-        'titl'=>'titl',
+        'title'=>'title',
         'nation'=>'nation',
-        'proddate'=>'proddate',
+        'year'=>'year_start',
         'popularity'=>'total_views',
         'collection'=>'repositories.repositoryid',
         'rank'=>'k.rank'
@@ -41,7 +41,7 @@ class Catalog_search{
 	var	$sort_allowed_order=array('asc','desc');
 	
 	//default sort
-	var $sort_by='titl';
+	var $sort_by='title';
 	var $sort_order='ASC';
 	var $use_fulltext=TRUE;
 		
@@ -154,7 +154,7 @@ class Catalog_search{
             $study_keywords=trim($this->study_keywords);
 
             if ($study_keywords!=='') {
-                $query_count.='inner join freetexttable(surveys, (ft_keywords), '.  $this->ci->db->escape($study_keywords) . ') k on surveys.id=k.[key]';
+                $query_count.='inner join freetexttable(surveys, (keywords), '.  $this->ci->db->escape($study_keywords) . ') k on surveys.id=k.[key]';
             }
 			
 			if ($repository!='')
@@ -166,7 +166,7 @@ class Catalog_search{
 			{
 				$query_count.='where '.$where;
 			}
-			$query_count.=" GROUP BY surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, link_technical, link_study,proddate, isshared, surveys.repositoryid,varcount \r\n";
+			$query_count.=" GROUP BY surveys.id,surveys.idno,surveys.title,surveys.nation,surveys.authoring_entity, f.model, surveys.year_start, surveys.repositoryid,varcount \r\n";
 			$query_count.=') as result';
 			
 			$query=$this->ci->db->query($query_count);
@@ -230,15 +230,15 @@ class Catalog_search{
 
         //multi-column sort
         if ($sort_by == 'nation') {
-            $sort_options[1] = array('sort_by' => 'proddate', 'sort_order' => 'desc');
-            $sort_options[2] = array('sort_by' => 'titl', 'sort_order' => 'asc');
-        } elseif ($sort_by == 'titl') {
-            $sort_options[1] = array('sort_by' => 'proddate', 'sort_order' => 'desc');
+            $sort_options[1] = array('sort_by' => 'year_start', 'sort_order' => 'desc');
+            $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
+        } elseif ($sort_by == 'title') {
+            $sort_options[1] = array('sort_by' => 'year_start', 'sort_order' => 'desc');
             $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
         }
-        if ($sort_by == 'proddate') {
+        if ($sort_by == 'year') {
             $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
-            $sort_options[2] = array('sort_by' => 'titl', 'sort_order' => 'asc');
+            $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
         }
 
 		//array of all options
@@ -266,9 +266,8 @@ class Catalog_search{
 
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,refno,surveys.surveyid as surveyid,titl,nation,authenty, f.model as form_model,link_report,surveys.year_start,surveys.year_end';
-		$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study,proddate';
-		$study_fields.=', isshared, surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+		$study_fields='surveys.id as id,surveys.idno,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
+		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query
 		$sql='';
@@ -289,7 +288,7 @@ class Catalog_search{
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 			
-			$this->ci->db->group_by('surveys.id,surveys.refno,surveys.surveyid,surveys.titl,surveys.nation,surveys.authenty, f.model,link_report,link_indicator, link_questionnaire, surveys.link_da, link_technical, link_study,proddate, surveys.isshared, surveys.repositoryid,varcount, repositories.title, surveys.created,surveys.year_start,surveys.year_end,surveys.changed,surveys.total_views,surveys.total_downloads');
+			$this->ci->db->group_by('surveys.id,surveys.idno,surveys.title,surveys.nation,surveys.authoring_entity, f.model, surveys.repositoryid,varcount, repositories.title, surveys.created,surveys.year_start,surveys.year_end,surveys.changed,surveys.total_views,surveys.total_downloads');
 			
 			if (trim($this->study_keywords)!=='')
 			{
@@ -402,7 +401,7 @@ class Catalog_search{
 			return FALSE;
 		}
 
-        $this->ci->db->join("freetexttable(surveys, (ft_keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER");
+        $this->ci->db->join("freetexttable(surveys, (keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER",false);
 	}
 	
 			

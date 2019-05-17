@@ -127,7 +127,7 @@ class Citations extends MY_REST_Controller
 				'records'=>$citations
 			);
 
-			$this->set_response($citations, REST_Controller::HTTP_OK);			
+			$this->set_response($output, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
 			$error_output=array(
