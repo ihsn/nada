@@ -288,10 +288,10 @@ class Reports extends MY_Controller {
 		{		    
 		    if ($date_columns_found)
 		    {			
-			foreach($date_columns_found as $col)
-			{
-			    $row[$col]=date("M/d/Y H:i:s");
-			}			
+				foreach($date_columns_found as $col)
+				{
+					$row[$col]=date("M/d/Y H:i:s", $row[$col]);
+				}			
 		    }
 		    
 		    fputcsv($outstream, array_values($row));
