@@ -5,7 +5,8 @@ class DDIReader implements ReaderInterface {
     //private $variable_iterator = NULL;
     private $file;
     private $ddi2reader;
-    private $metadata;
+	private $metadata;
+	private $variable_groups;	
 	private $metadata_short_names=array(
 		"ddi_version"=>"codeBook/@version",
 		"ddi_id"=>"codeBook/@ID",
@@ -73,9 +74,11 @@ class DDIReader implements ReaderInterface {
 
         $this->file=$file;
 		$this->ddi2reader= new DDI2Reader($file);
-		
+
 		$this->metadata=$this->ddi2reader->extract_doc_meta_array();
 		$this->metadata=array_merge($this->metadata,$this->ddi2reader->extract_study_meta_array());
+
+		$this->variable_groups=$this->ddi2reader->extract_var_groups_array();
 
 		//convert NULL To empty string, needed for schema validation
         array_walk_recursive($this->metadata, function(&$item, $key) {
@@ -128,37 +131,37 @@ class DDIReader implements ReaderInterface {
      **/
     public function array_to_string($data,$type='text')
     {
-			if(!$data)
-            {
-                return NULL;
-            }
-            
-            if ($type=='text' || $type=='string')
+		if(!$data)
+		{
+			return NULL;
+		}
+		
+		if ($type=='text' || $type=='string')
+		{
+			return implode("\r\n",$data);
+		}
+		else if(in_array($type, array('table','array')))
+		{
+			$output=array();
+			foreach($data as $row)
 			{
-				return implode("\r\n",$data);
-			}
-			else if(in_array($type, array('table','array')))
-			{
-				$output=NULL;
-				foreach($data as $row)
-				{
-					$row_output=array();
+				$row_output=array();
 
-					foreach($row as $field_name=>$field_value)
-					{
-						if(trim($field_value)!=''){
-							$row_output[]=$field_value;
-						}
+				foreach($row as $field_name=>$field_value)
+				{
+					if(trim($field_value)!=''){
+						$row_output[]=$field_value;
 					}
-					
-					//concat a single row
-					$output[]=implode(", ",$row_output);
 				}
-			
-				//combine all rows with line break
-				return implode("\r\n",$output);
+				
+				//concat a single row
+				$output[]=implode(", ",$row_output);
 			}
 		
+			//combine all rows with line break
+			return implode("\r\n",$output);
+		}
+
 		throw new Exception("TYPE_NOT_SUPPORTED: ".$type);
     }
     
@@ -176,7 +179,12 @@ class DDIReader implements ReaderInterface {
     public function get_variable_iterator()
     {
         return new DdiVariableIterator($this->file);
-    }
+	}
+	
+	public function get_variable_groups()
+	{
+		return $this->variable_groups;
+	}
     
     
     public function get_id(){

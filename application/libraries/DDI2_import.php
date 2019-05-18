@@ -51,6 +51,7 @@ class DDI2_Import{
         $this->ci->load->library('Dataset_manager');
         $this->ci->load->model('Survey_type_model');
         $this->ci->load->model("Variable_model");
+        $this->ci->load->model("Variable_group_model");        
         $this->ci->load->model('Catalog_model');
         $this->catalog_root=get_catalog_root();
 
@@ -228,6 +229,9 @@ class DDI2_Import{
         //import variables
         $variables_imported=$this->import_variables($sid,$data_files, $parser->get_variable_iterator());
 
+        //import variable groups
+        $this->create_update_variable_groups($sid,$parser->get_variable_groups());
+
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
                     
@@ -376,6 +380,17 @@ class DDI2_Import{
     }
 
 
+    private function create_update_variable_groups($sid,$variable_groups)
+    {
+        //delete existing variable groups
+        $this->ci->Variable_group_model->delete($sid);
+        
+        if(is_array($variable_groups)){
+			foreach($variable_groups as $vgroup){
+				$this->ci->Variable_group_model->insert($sid,$vgroup);
+			}
+		}
+    }
 
     private function update_survey_data_files($sid, $files)
     {

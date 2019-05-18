@@ -59,11 +59,31 @@ class Study extends MY_Controller {
 	
 	public function data_dictionary($sid)
 	{
-		$this->load->model("Variable_group_model");
+		$this->load->model("Variable_group_model"); 
 		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
-		$options['variable_groups']=$this->Variable_group_model->select_all($sid);
+		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
         $options['sid']=$sid;
 		$options['content']=$this->load->view('survey_info/data_files',$options,TRUE);
+		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
+		$this->render_page($sid, $content,'data_dictionary');
+	}
+
+
+	public function variable_groups($sid,$vgid=null)
+	{
+		$this->load->model("Variable_group_model"); 
+		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
+		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
+		$options['sid']=$sid;
+
+		if($vgid){
+			$options['variable_group']=$this->Variable_group_model->get_single_group($sid,$vgid);
+			$options['content']=$this->load->view('survey_info/variable_group',$options,TRUE);
+		}
+		else{
+			$options['content']=$this->load->view('survey_info/variable_groups',$options,TRUE);
+		}
+		
 		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
 		$this->render_page($sid, $content,'data_dictionary');
 	}
