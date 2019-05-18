@@ -53,7 +53,7 @@ ALTER TABLE `surveys` DROP `producer`;
 ALTER TABLE `surveys` DROP `sponsor`;
 ALTER TABLE `surveys` DROP `topic`;
 
-UPDATE TABLE `surveys` set type='survey';
+UPDATE TABLE `surveys` set `type`='survey';
 
 ALTER TABLE `variables` ADD `fid` varchar(45) DEFAULT NULL;
 ALTER TABLE `variables` CHANGE `varID` `vid` varchar(45) DEFAULT '';
