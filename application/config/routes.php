@@ -141,7 +141,11 @@ $route['catalog/(:num)/study-description'] = "study/metadata/$1";
 $route['catalog/(:num)/metadata'] = "study/metadata/$1";
 $route['catalog/(:num)/data-dictionary'] = "study/data_dictionary/$1";
 $route['catalog/(:num)/data_dictionary'] = "study/data_dictionary/$1";
+$route['catalog/(:num)/variable-groups'] = "study/variable_groups/$1";
+$route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 
+$route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
+$route['catalog/(:num)/variable_groups/(.*)'] = "study/variable_groups/$1/$2";
 
 //data file page
 $route['catalog/(:num)/data-dictionary/(.*)'] = "study/data_file/$1/$2";

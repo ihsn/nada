@@ -18,6 +18,7 @@ class Dataset_microdata_model extends Dataset_model {
         parent::__construct();
         $this->load->model('Data_file_model');
         $this->load->model('Variable_model');
+        $this->load->model('Variable_group_model');
     }
 
     function create_dataset($type,$options)
@@ -98,7 +99,7 @@ class Dataset_microdata_model extends Dataset_model {
         $this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
 
         //get list of countries
-        $countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
+        //$countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
 
 		//update countries
 		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
@@ -114,9 +115,8 @@ class Dataset_microdata_model extends Dataset_model {
         //variables
         $this->create_update_variables($dataset_id,$variables);
 
-
 		//variable groups?
-		//todo
+		$this->create_update_variable_groups($dataset_id,$variable_groups);
 
 		//complete transaction
 		$this->db->trans_complete();
@@ -217,7 +217,9 @@ class Dataset_microdata_model extends Dataset_model {
         
          //variables
          $this->create_update_variables($sid,$variables);
- 
+
+         //variable groups
+         $this->create_update_variable_groups($sid,$variable_groups);
 		
 		//complete transaction
 		$this->db->trans_complete();
@@ -251,6 +253,19 @@ class Dataset_microdata_model extends Dataset_model {
 
 			//update survey varcount
 			$this->update_varcount($dataset_id);
+		}
+    }
+
+
+    private function create_update_variable_groups($dataset_id,$variable_groups)
+    {
+        //delete existing variable groups
+        $this->Variable_group_model->delete($dataset_id);
+        
+        if(is_array($variable_groups)){
+			foreach($variable_groups as $vgroup){
+					$this->Variable_group_model->insert($dataset_id,$vgroup);
+			}
 		}
     }
 

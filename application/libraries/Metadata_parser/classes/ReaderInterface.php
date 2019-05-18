@@ -24,6 +24,6 @@ interface ReaderInterface{
     public function get_data_files();
     
     //return iterator for variable level metadata
-    public function get_variable_iterator();
+    public function get_variable_iterator();    
 }
 
