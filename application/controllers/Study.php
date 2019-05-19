@@ -37,7 +37,7 @@ class Study extends MY_Controller {
 
 	//study metadata
 	function metadata($sid=NULL)
-	{
+	{$this->load->helper('array');
 		$survey=$this->Dataset_model->get_row_detailed($sid);
 
 		if (!$survey){
@@ -47,7 +47,10 @@ class Study extends MY_Controller {
 		if(!is_array($survey['metadata'])){
 			$survey['metadata']=array($survey['metadata']);
 		}
-				
+
+		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
+		$this->template->add_js($json_ld,'inline');
+		
 		$this->metadata_template->initialize($survey['type'],$survey);
 		$output=$this->metadata_template->render_html();
 

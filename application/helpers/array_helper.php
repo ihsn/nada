@@ -31,8 +31,8 @@ if ( ! function_exists('array_get_value'))
         if(array_key_exists($key,$data)){
             return $data[$key];
         }
+        return false;
     }
-    return false;
 }
 
 
