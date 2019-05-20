@@ -1,102 +1,111 @@
 <?php
 class Catalog extends MY_Controller {
 
-	//active repository object
-	var $active_repo=NULL;
+		//active repository object
+		var $active_repo=NULL;
+
+		//active tab - default ALL
+		var $active_tab=NULL;
+
+		//facets data + count
+		var $facets= array();
 
     public function __construct()
     {
-        parent::__construct($skip_auth=TRUE);
+			parent::__construct($skip_auth=TRUE);
 
-       	$this->template->set_template('default');
-		
-        
-        $this->load->helper('pagination_helper');
-		$this->load->model('Search_helper_model');
-		$this->load->model('Catalog_model');
-		$this->load->model('Vocabulary_model');
-		$this->load->model('Repository_model');
-        $this->load->model('Form_model');
-        
-		//$this->output->enable_profiler(TRUE);
+			$this->template->set_template('default');
+			$this->load->helper('pagination_helper');
+			$this->load->model('Search_helper_model');
+			$this->load->model('Catalog_model');
+			$this->load->model('Vocabulary_model');
+			$this->load->model('Repository_model');
+			$this->load->model('Form_model');
 
-		//language files
-		$this->lang->load('general');
-		$this->lang->load('catalog_search');
+			//$this->output->enable_profiler(TRUE);
 
-		//configuration settings
+			//language files
+			$this->lang->load('general');
+			$this->lang->load('catalog_search');
 	}
-	    
+		 
 	
-	/**
-	 * 
-	 * Load filters/facets, search interface and UI
-	 * 
-	 * calls the /search to load the search results
-	 * 
-	 */
-    function index()
-    {
-		$active_tab=xss_clean($this->input->get("tab_type"));
-		$dataset_view=$this->get_type_pageview($active_tab);
+		private function load_facets_data()
+		{
+				//get years
+				$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
+				$this->facets['years']=$years_range;								
 
-		$output= $this->_search();
-		$output['tab_type']=$active_tab;
-		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
-		$output['search_output']=$this->load->view($dataset_view, $output,true);
-
-		$filters=array();
-
-		//TODO:: active repo?
-		//set/get active repositoryid
-
-		//get years
-		$filters['years']=$this->Search_helper_model->get_years_range();		
-		$filters['years']=$this->load->view('search/filter_years',$filters,true);
-
-		//collections
-		$filters['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
-		$filters['repositories']=$this->load->view('search/filter_collections', $filters,true);
-
-		//data access types
-		$filters['da_types']=$this->Search_helper_model->get_active_data_types();
-		$filters['da_types']=$this->load->view('search/filter_da', $filters,true);
-
-		//countries
-		$filters['countries']=$this->Search_helper_model->get_active_countries();
-		$filters['countries']=$this->load->view('search/filter_countries', $filters,true);
-
-		//tags
-		$filters['tags']=$this->Search_helper_model->get_active_tags($repo=null,$active_tab);		
-		$filters['tags']=$this->load->view('search/filter_tags', $filters,true);
-		
-
-		//types
-		$types=$this->Search_helper_model->get_dataset_types();
-
-		//types filter
-		if(!$active_tab){
-			$filters['types']=$this->load->view('search/filter_types', array('types'=>$types),true);
+				$this->facets['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
+				$this->facets['da_types']=$this->Search_helper_model->get_active_data_types();
+				$this->facets['countries']=$this->Search_helper_model->get_active_countries();
+				$this->facets['tags']=$this->Search_helper_model->get_active_tags($this->active_repo,$this->active_tab);				
+				$this->facets['types']=$this->Search_helper_model->get_dataset_types();
 		}
 
-		$output['filters']=$filters;
+	
+		/**
+		 * 
+		 * Load filters/facets, search interface and UI
+		 * 
+		 * calls the /search to load the search results
+		 * 
+		 */
+		function index()
+    {
+			$this->active_tab=xss_clean($this->input->get("tab_type"));
+			$dataset_view=$this->get_type_pageview($this->active_tab);
+
+			$filters=array();
+
+			//load data for facets
+			$this->load_facets_data();
+
+			$output= $this->_search();
+			$output['tab_type']=$this->active_tab;
+			$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
+			$output['search_output']=$this->load->view($dataset_view, $output,true);
+			
+			$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
+			$filters['repositories']=$this->load->view('search/filter_collections', 
+				array(
+					'repositories'=>$this->facets['repositories'],
+					'search_options'=>$output['search_options']
+				)
+				,true);
+
+			//data access types
+			$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+			
+			//countries			
+			$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
+
+			//tags			
+			$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);			
+			
+			//types filter
+			if(!$this->active_tab){
+				$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
+			}
+
+			$output['filters']=$filters;
 
 
-		//tabs
-		$tabs=array();
+			//tabs
+			$tabs=array();
 
-		$tabs['types']=$types;
-		$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
-		$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
+			$tabs['types']=$this->facets['types'];
+			$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
+			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
 
-		$output['tabs']=$tabs;
+			$output['tabs']=$tabs;
 
-		//search_counts_by_type
+			//search_counts_by_type
 
-        $content=$this->load->view('search/layout',$output,true);
-		$this->template->write('title', 'title',true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+			$content=$this->load->view('search/layout',$output,true);
+			$this->template->write('title', 'title',true);
+			$this->template->write('content', $content,true);
+			$this->template->render();
 	}
 	
 
@@ -108,11 +117,12 @@ class Catalog extends MY_Controller {
 	 */
 	function search()
 	{
-		$active_tab=xss_clean($this->input->get("tab_type"));		
-		$dataset_view=$this->get_type_pageview($active_tab);
+		$this->active_tab=xss_clean($this->input->get("tab_type"));		
+		$dataset_view=$this->get_type_pageview($this->active_tab);
+		$this->load_facets_data();
 
 		$output= $this->_search();
-		$output['tab_type']=$active_tab;
+		$output['tab_type']=$this->active_tab;
 		$output['featured_studies']=null;//$this->get_featured_study($output['surveys']['rows']);
 		$this->load->view($dataset_view, $output);		
 	}
@@ -125,9 +135,10 @@ class Catalog extends MY_Controller {
 
 		$this->load->helper('security');
 
+
 		//get year min/max
-		$data['min_year']=$this->Search_helper_model->get_min_year();
-		$data['max_year']=$this->Search_helper_model->get_max_year();
+		$data['min_year']=$this->facets['years']['min_year'];
+		$data['max_year']=$this->facets['years']['max_year'];
 
 		$search_options=new StdClass;
 		$search_options->filter= new StdClass;

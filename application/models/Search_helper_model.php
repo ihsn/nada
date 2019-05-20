@@ -244,27 +244,52 @@ class Search_helper_model extends CI_Model {
 		return FALSE;
 	}
 
+	
+	/**
+	* Return min/max years 
+	*
+	*/
+	function get_min_max_years($published=1)
+	{
+		$this->db->select_min('year_start','min_year');
+		$this->db->select_max('year_end','max_year');
+		$this->db->where('year_start > 0'); 
+
+		if($published==1 || $published==0){
+			$this->db->where('published',$published); 
+		}
+
+		$result=$this->db->get('surveys')->row_array();
+
+		if ($result){
+			return $result;
+		}
+		
+		return array(
+			'min_year'=>0,
+			'max_year'=>0
+		);
+	}
 
 	/**
 	 * 
 	 * Return years range
 	 * 
 	 */
-	function get_years_range()
+	/*function get_years_range($min_year,$max_year)
 	{		
-		$min_year=$this->get_min_year();
-		$max_year=$this->get_max_year();
-
 		$output=array();
 		$output['']=' ';
 
-
-		foreach (range($max_year, $min_year) as $year){
-      $output[$year]=$year;
+		if (is_int($min_year) && is_int($max_year)){
+			foreach (range($max_year, $min_year) as $year){
+				$output[$year]=$year;
+			}
 		}
 
 		return $output;
-	}
+	}*/
+
 		
 	/**
 	* Get start and End data collection years
