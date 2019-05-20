@@ -194,17 +194,17 @@ class Catalog extends MY_Controller {
 		}
 
 		//log
-		$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
+		if ($this->input->get('sk')){		
+			$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
+		}
 
 		//get list of all repositories
 		$data['repositories']=$this->Search_helper_model->get_repositories_list($published=1);
 
-		//var_dump($search_options->country);
-		//if ($this->regional_search)
-		//{
-			//get country codes
+		//country int code + name
+		if (is_array($search_options->country) && count($search_options->country)>0){						
 			$data['countries']=$this->Search_helper_model->get_countries_list($search_options->country);//$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
-		//}
+		}
 
 		$data['tags']=array();//$this->Search_helper_model->get_active_tags($this->active_repo['repositoryid']);
 
