@@ -32,6 +32,13 @@ class Catalog extends MY_Controller {
 	
 		private function load_facets_data()
 		{
+				$facets=$this->session->userdata('facets');
+
+				if($facets){					
+					$this->facets=$facets;
+					return;
+				}
+
 				//get years
 				$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
 				$this->facets['years']=$years_range;								
@@ -41,6 +48,9 @@ class Catalog extends MY_Controller {
 				$this->facets['countries']=$this->Search_helper_model->get_active_countries();
 				$this->facets['tags']=$this->Search_helper_model->get_active_tags($this->active_repo,$this->active_tab);				
 				$this->facets['types']=$this->Search_helper_model->get_dataset_types();
+
+				$this->session->set_userdata('facets', $this->facets);
+				$this->session->mark_as_temp('facets', 300);
 		}
 
 	
@@ -119,7 +129,7 @@ class Catalog extends MY_Controller {
 	{
 		$this->active_tab=xss_clean($this->input->get("tab_type"));		
 		$dataset_view=$this->get_type_pageview($this->active_tab);
-		$this->load_facets_data();
+		//$this->load_facets_data();
 
 		$output= $this->_search();
 		$output['tab_type']=$this->active_tab;
@@ -137,8 +147,8 @@ class Catalog extends MY_Controller {
 
 
 		//get year min/max
-		$data['min_year']=$this->facets['years']['min_year'];
-		$data['max_year']=$this->facets['years']['max_year'];
+		//$data['min_year']=$this->facets['years']['min_year'];
+		//$data['max_year']=$this->facets['years']['max_year'];
 
 		$search_options=new StdClass;
 		$search_options->filter= new StdClass;
