@@ -16,7 +16,7 @@ $item_limit=0;
             <?php if($tags):?>
                 <?php $k=0;foreach($tags as $tag):$k++; ?>
                     <div class="form-check tag dataset-tag <?php echo $k;?> item inactive">
-                        <label class="form-check-label" for="type-<?php echo form_prep($tag['tag']); ?>" <?php echo form_prep($tag['tag']); ?>>
+                        <label class="form-check-label" for="type-<?php echo form_prep($tag['tag']); ?>" >
                             <input class="form-check-input chk chk-type" type="checkbox" name="tag[]"
                                    value="<?php echo form_prep($tag['tag']); ?>"
                                    id="type-<?php echo form_prep($tag['tag']); ?>"

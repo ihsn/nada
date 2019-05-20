@@ -271,31 +271,12 @@ class Search_helper_model extends CI_Model {
 		);
 	}
 
-	/**
-	 * 
-	 * Return years range
-	 * 
-	 */
-	/*function get_years_range($min_year,$max_year)
-	{		
-		$output=array();
-		$output['']=' ';
-
-		if (is_int($min_year) && is_int($max_year)){
-			foreach (range($max_year, $min_year) as $year){
-				$output[$year]=$year;
-			}
-		}
-
-		return $output;
-	}*/
-
 		
 	/**
 	* Get start and End data collection years
 	*
 	*/
-	function get_collection_years()
+	/*function get_collection_years()
 	{
 		//get start years
 		$sql='select year_start from surveys
@@ -330,7 +311,7 @@ class Search_helper_model extends CI_Model {
 		}
 		
 		return $years;		
-	}
+	}*/
 
 	/**
 	* Topics with survey counts 
@@ -573,9 +554,9 @@ class Search_helper_model extends CI_Model {
 
 
 
-/**
+	/**
 	* 
-	* Returns a list of collections
+	* Returns a list of dataset types
 	*/	
 	function get_dataset_types($repositoryid=null)
 	{
@@ -596,6 +577,55 @@ class Search_helper_model extends CI_Model {
 			$output=array();
 			foreach($result as $row){
 				$output[$row['code']]=$row;
+			}
+			
+			return $output;
+	}
+
+
+	/**
+	* 
+	* Returns a list of collections
+	*/	
+	function get_repositories_list($published=1)
+	{
+			$this->db->select('repositoryid,title');
+			
+			if($published){
+				$this->db->where('ispublished',1);
+			}
+			
+			$result=$this->db->get('repositories')->result_array();
+			
+			$output=array();
+			foreach($result as $row){
+				$output[$row['repositoryid']]=$row['title'];
+			}
+			
+			return $output;
+	}
+
+
+	/**
+	* 
+	* Returns a list of collections
+	*
+	* @countries - array of country integer codes
+	*
+	*/	
+	function get_countries_list($countries)
+	{
+			$this->db->select('countryid,name');
+			
+			if(is_array($countries) && count($countries)>0){
+				$this->db->where_in('countryid',$countries);
+			}
+			
+			$result=$this->db->get('countries')->result_array();
+			
+			$output=array();
+			foreach($result as $row){
+				$output[$row['countryid']]=$row['name'];
 			}
 			
 			return $output;
