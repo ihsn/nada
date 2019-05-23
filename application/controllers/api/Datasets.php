@@ -162,18 +162,13 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("PARAM-MISSING::SID");
 			}
 			
-			$result=$this->dataset_manager->get_row($sid);
+			$idno=$this->dataset_manager->get_idno($sid);
 
-			if($result){
-				$response=array(
-					'status'=>'success',
-					'dataset'=>$result
-				);
+			if(!$idno){
+				throw new Exception("ID_NOT_FOUND");
 			}
-			else{
-				throw new Exception("DATASET_NOT_FOUND");
-			}
-			$this->set_response($response, REST_Controller::HTTP_OK);
+
+			return $this->single_get($idno);
 		}
 		catch(Exception $e){
 			$error_output=array(
