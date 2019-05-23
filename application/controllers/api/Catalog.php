@@ -14,6 +14,24 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Variable_model');
 	}
 
+	/**
+	 * 
+	 * Get page size
+	 * 
+	 */
+	private function get_page_size()
+	{
+		$page_size_min=1;
+		$page_size_max=300;
+
+		$page_size=(int)$this->input->get('ps');
+
+		if($page_size>=$page_size_min && $page_size<=$page_size_max){
+			return $page_size;
+		}
+
+		return 15;//default page size
+	}
 	
 	/**
 	 * 
@@ -22,16 +40,54 @@ class Catalog extends MY_REST_Controller
 	 */
 	function search_get()
 	{
+		$search_options=new StdClass;
+		$limit=$this->get_page_size();
+
+		//page parameters
+		$search_options->collection		=xss_clean($this->input->get("collection"));
+		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
+		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
+		$search_options->vf				=xss_clean($this->input->get("vf"));
+		$search_options->country		=xss_clean($this->input->get("country"));
+		$search_options->view			=xss_clean($this->input->get("view"));
+		$search_options->topic			=xss_clean($this->input->get("topic"));
+		$search_options->from			=xss_clean($this->input->get("from"));
+		$search_options->to				=xss_clean($this->input->get("to"));
+		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
+		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
+		$search_options->page			=(int)xss_clean($this->input->get("page"));
+		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
+		$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		$search_options->tag			=xss_clean($this->input->get("tag"));
+		$search_options->sid			=xss_clean($this->input->get("sid"));
+		$search_options->type			=xss_clean($this->input->get("type"));
+		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
+		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
+		$search_options->ps				=xss_clean($this->input->get("ps"));
+		$offset=						($search_options->page-1)*$limit;
+
+
+		if($search_options->tab_type!=''){
+			$search_options->type=$search_options->tab_type;
+		}
+
 		$params=array(
-				'study_keywords'	=>	$this->security->xss_clean($this->input->get("sk")),
-				'variable_keywords'	=>	$this->security->xss_clean($this->input->get("vk")),
-				'variable_fields'	=>	array('name','labl'),
-				'countries'			=>  $this->security->xss_clean($this->input->get("country")),
-				'from'				=>	$this->security->xss_clean($this->input->get("from")),
-				'to'				=>	$this->security->xss_clean($this->input->get("to")),
-				'collections'		=>	$this->security->xss_clean($this->input->get("collection")),
-				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
-				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
+			'collections'=>$search_options->collection,
+			'study_keywords'=>$search_options->sk,
+			'variable_keywords'=>$search_options->vk,
+			'variable_fields'=>$search_options->vf,
+			'countries'=>$search_options->country,
+			'topics'=>$search_options->topic,
+			'from'=>$search_options->from,
+			'to'=>$search_options->to,
+			'tags'=>$search_options->tag,
+			'sort_by'=>$search_options->sort_by,
+			'sort_order'=>$search_options->sort_order,
+			'repo'=>$search_options->filter->repo,
+			'dtype'=>$search_options->dtype,
+			'sid'=>$search_options->sid,
+			'type'=>$search_options->type,
+            'country_iso3'=>$search_options->country_iso3,
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
