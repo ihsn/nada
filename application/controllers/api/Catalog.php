@@ -98,11 +98,6 @@ class Catalog extends MY_REST_Controller
 		//collections to array
 		$params['collections']=explode(",",$params['collections']);		
 		
-		$limit=15;
-		$page=$this->input->get('page');
-		$page= ($page >0) ? $page : 1;
-		$offset=($page-1)*$limit;
-
 		$this->load->library('catalog_search',$params);
 
 		try{
