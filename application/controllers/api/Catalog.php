@@ -83,7 +83,7 @@ class Catalog extends MY_REST_Controller
 			'tags'=>$search_options->tag,
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
-			'repo'=>$search_options->filter->repo,
+			//'repo'=>$search_options->filter->repo,
 			'dtype'=>$search_options->dtype,
 			'sid'=>$search_options->sid,
 			'type'=>$search_options->type,
