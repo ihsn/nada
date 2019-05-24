@@ -152,6 +152,8 @@ if(isset($metadata['metadata']['table_description']['file'])){
 ?>
 
 <?php 
+    //items not to be included in the left side bar
+    $exclude_sidebar_items=array('download_links');
     //renders html
-    $this->load->view('metadata_templates/metadata_output', array('output'=>$output));
-?>
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'exclude_sidebar_items'=>$exclude_sidebar_items));
+?>    

@@ -100,15 +100,53 @@ class Dataset_script_model extends Dataset_model {
         $auth_entity=$this->get_array_nested_value($options,'project_desc/authoring_entity');
         $output['authoring_entity']=$this->array_column_to_string($auth_entity,$column_name='name', $max_length=300);
 
-        $date=explode("-",$this->get_array_nested_value($options,'project_desc/production_date'));
-
-		if(is_array($date)){
-			$output['year_start']=(int)$date[0];
-			$output['year_end']=(int)$date[0];			
-        }
-        
+        $years=$this->get_years($options);
+        $output['year_start']=$years['start'];
+        $output['year_end']=$years['end'];
         return $output;
     }
+
+    /**
+     * 
+     * get years
+     * 
+     **/
+	function get_years($options)
+	{
+		$years=array();
+        $data_coll=$this->get_array_nested_value($options,'project_desc/production_date');
+			
+        if (is_array($data_coll)){
+            //get years from data collection dates				
+            foreach($data_coll as $date){
+                $year_=substr($date,0,4);
+                if((int)$year_>0){
+                    $years[]=$year_;
+                }					
+            }
+        }
+
+		$start=0;
+		$end=0;
+		
+		if (count($years)>0){
+			$start=min($years);
+			$end=max($years);
+		}
+
+		if ($start==0){
+			$start=$end;
+		}
+
+		if($end==0){
+			$start=$end;
+		}
+
+		return array(
+			'start'=>$start,
+			'end'=>$end
+		);
+	}
     
 
     /**
