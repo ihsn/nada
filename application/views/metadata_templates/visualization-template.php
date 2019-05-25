@@ -17,16 +17,42 @@
 
 
 <?php
-/*
 //convert file links into hyperlnks
-if(isset($metadata['metadata']['visualization_description']['file'])){
-    foreach($metadata['metadata']['visualization_description']['file']  as $idx=>$value){
-        if(isset($metadata['metadata']['visualization_description']['file'][$idx]['filename'])){
-            $metadata['metadata']['visualization_description']['file'][$idx]['filename']='<a href="'.site_url('filestore/file/'.$value['filename']).'">'.$value['filename'].'</a>';
+if(isset($metadata['metadata']['table_description']['file'])){
+    foreach($metadata['metadata']['table_description']['file']  as $idx=>$value){
+        if(isset($metadata['metadata']['table_description']['file'][$idx]['filename'])){
+            $metadata['metadata']['table_description']['file'][$idx]['filename']='<a href="'.site_url('filestore/file/'.$value['filename']).'">'.$value['filename'].'</a>';
         }
     }
-}*/
+}
 ?>
+
+<?php
+    //render location field
+    $download_buttons=render_field(
+        "download_buttons_array",
+        "metadata.files",
+        get_field_value('metadata.files',$metadata), 
+        $options=array(
+            'url_column'=>'file_uri',
+            'title_column'=>'note'
+        )
+    );
+?>    
+
+<?php    
+    $download_buttons_html=render_field(
+        "literal",
+        "",
+        $download_buttons, 
+        $options=array(
+            'css_class'=>'float-md-right',
+            'css_style'=>''
+        )
+    );
+    $output['download_links']=$download_buttons_html;
+?>
+
 
 
 <!-- description section -->
@@ -213,6 +239,8 @@ if(isset($metadata['metadata']['visualization_description']['file'])){
 
 
 <?php 
+    //items not to be included in the left side bar
+    $exclude_sidebar_items=array('download_links');
     //renders html
-    $this->load->view('metadata_templates/metadata_output', array('output'=>$output));
-?>
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'exclude_sidebar_items'=>$exclude_sidebar_items));
+?>    

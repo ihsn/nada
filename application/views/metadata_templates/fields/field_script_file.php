@@ -46,10 +46,12 @@
     </div>
     </div>
 </div>
-<?php endif;?>
+
 
 <script>
 $(document).ready(function()  {
     $('.collapse').collapse()
 });
 </script>
+
+<?php endif;?>
