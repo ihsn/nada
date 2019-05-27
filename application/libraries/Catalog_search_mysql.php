@@ -60,6 +60,7 @@ class Catalog_search_mysql{
 	function __construct($params = array())
 	{
 		$this->ci=& get_instance();
+		$this->ci->load->config('noise_words');
 		
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes')
@@ -402,6 +403,11 @@ class Catalog_search_mysql{
 		$text = preg_replace('/[-]+/', '-', $text);
 		$text = preg_replace('/[*]+/', '*', $text);
 
+		#remove noise words 
+		$noise_words=(array)$this->ci->config->item("noise_words");
+		$text= explode(" ",$text);
+		$words=array_diff($text,$noise_words);
+
 		//$text=str_replace('++','',$text);
 		//$text=str_replace('--','',$text);
 
@@ -410,7 +416,7 @@ class Catalog_search_mysql{
 			'+'
 		);
 				
-		$words=explode(" ", $text);
+		//$words=explode(" ", $text);
 		$output=array();
 
 		foreach($words as $word){
@@ -428,7 +434,7 @@ class Catalog_search_mysql{
 					}
 				}
 
-				if (strlen($word)>0){
+				if (strlen($word)>2){
 					$output[]='+'.$word;//default AND
 				}
 			}			
