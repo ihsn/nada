@@ -98,5 +98,33 @@ class Utils extends REST_Controller
 		return $this->upload->data();		
 	}
 		
-	
+    
+    
+    /**
+	 * 
+	 *  batch delete by type
+	 * 
+	 */
+	public function batch_delete_by_type_delete($type=NULL)
+	{
+		try{
+            
+            $this->db->where('type',$type);
+            $this->db->delete('surveys');
+
+			$response=array(
+				'status'=>'success',
+				'message'=>'DELETED'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}	
 }
