@@ -95,6 +95,19 @@ class Stats_model extends CI_Model {
 	function get_citation_count()
 	{
 		return $this->db->count_all('citations');
-	}	
+	}
+	
+	
+
+	function get_counts_by_type()
+	{
+		$result=$this->db->query('select count(id) as total,type from surveys where published=1 group by type')->result_array();
+		$output=array();
+		foreach($result as $row){
+			$output[$row['type']]=$row['total'];
+		}
+
+		return $output;
+	}
 	
 }
