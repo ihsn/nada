@@ -158,7 +158,9 @@
 
 </style>
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
-
+<!--
+<script src="<?php echo base_url(); ?>/javascript/history/bundled/html4+html5/jquery.history.js"></script>
+-->
 
 
 <div class="container">
@@ -278,6 +280,27 @@
 </div>
 
 <script>
+//translations	
+var i18n=
+{
+'searching':"<?php echo t('js_searching');?>",
+'loading':"<?php echo t('js_loading');?>",
+'invalid_year_range_selected':"<?php echo t('js_invalid_year_range_selected');?>",
+'topic_selected':"<?php echo t('js_topic_selected');?>",
+'topics_selected':"<?php echo t('js_topics_selected');?>",
+'collection_selected':"<?php echo t('js_collection_selected');?>",
+'collections_selected':"<?php echo t('js_collections_selected');?>",
+'country_selected':"<?php echo t('js_country_selected');?>",
+'countries_selected':"<?php echo t('js_countries_selected');?>",
+'cancel':"<?php echo t('cancel');?>",
+'apply_filter':"<?php echo t('apply_filter');?>",
+'clear':"<?php echo t('clear');?>",
+'js_compare_variables_selected':"<?php echo t('variables selected from');?>",
+'js_compare_studies_selected':"<?php echo t('studies');?>",
+'js_compare_variable_select_atleast_2':"<?php echo t('Select two or more variables to compare');?>",
+'selected':"<?php echo t('selected');?>"
+};
+
 $(document).ready(function() 
 {
     var page_first_load=true;
@@ -592,13 +615,147 @@ $(document).ready(function()
 	}//end function
 
 
+    function compare_var_summary(){
+		var sel_items=readCookie("variable-compare");
+		
+		if(sel_items==null || sel_items==''){
+			sel_items=Array();
+		}
+		else{
+			sel_items=sel_items.split(",");
+		}
+								
+		//get unique study count
+		var studies=[];
+		for (var i = 0; i < sel_items.length; i++) {
+			if(sel_items[i].indexOf("/") !== -1){
+				var item=sel_items[i].split("/");
+				if($.inArray(item[0], studies)==-1){
+					studies.push(item[0]);
+				}
+			}
+		}//end-for
+		
+		if(sel_items.length==0){
+			$(".variables-found .var-compare-summary").html( i18n.js_compare_variable_select_atleast_2);
+		}
+		else{				
+			$(".variables-found .var-compare-summary").html( sel_items.length + " " + i18n.js_compare_variables_selected + " " + studies.length + " " + i18n.js_compare_studies_selected);
+		}
+    }
+
+    function update_compare_variable_list(action,value){
+        var sel_items=readCookie("variable-compare");
+        
+        if(sel_items==null || sel_items==''){
+            sel_items=Array();
+        }
+        else{
+            sel_items=sel_items.split(",");
+        }
+
+        switch(action)
+        {
+            case 'add':
+                if($.inArray(value, sel_items)==-1){
+                    sel_items.push(value);
+                }
+                break;
+            
+            case 'remove':
+                var index_matched=$.inArray(value, sel_items);
+                if(index_matched>-1){
+                    sel_items.splice(index_matched,1);
+                }			
+                break;
+            
+            case 'remove-all':
+                eraseCookie("variable-compare");return;
+            break;
+        }
+        
+        //update cookie
+        createCookie("variable-compare",sel_items,1);
+    }
+
+    //compare checkbox click
+
+    //compare button
+    $(document.body).on("click",".btn-compare-var", function(event){
+        event.stopPropagation();
+        var sel_items=readCookie("variable-compare");
+        
+        if(sel_items==null){
+            sel_items=Array();
+        }
+        else{
+            sel_items=sel_items.split(",");
+        }
+        if(sel_items.length>1){
+            window.open(CI.base_url+'/catalog/compare','compare');
+        }
+        else{
+            alert(i18n.js_compare_variable_select_atleast_2);return false;
+        }
+        return false;
+    });
+        
+                
+    $(document.body).on("click",".compare", function(event){
+        var sel_items=readCookie("variable-compare");
+        
+        if(sel_items==null){
+            sel_items=Array();
+        }
+        else{
+            sel_items=sel_items.split(",");
+        }
+
+        if ($(this).prop("checked")){
+            update_compare_variable_list('add',$(this).val());
+        }
+        else{
+            update_compare_variable_list('remove',$(this).val());
+        }
+        
+        compare_var_summary();
+    });
+        
+    //disable even propogations for compare link
+    $(document.body).on("click",".var-quick-list .compare-variable", function(event){
+            event.stopPropagation();
+    });
+
+    //cookie helper functions
+    //source: http://www.quirksmode.org/js/cookies.html
+    function createCookie(name,value,days) {
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime()+(days*24*60*60*1000));
+            var expires = "; expires="+date.toGMTString();
+        }
+        else var expires = "";
+        document.cookie = name+"="+value+expires+"; path=/";
+    }
+
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    function eraseCookie(name) {
+        createCookie(name,"",-1);
+    }
+
 
 });
-
-
-
-
-
+    
 </script>
 
 
