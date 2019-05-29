@@ -126,5 +126,34 @@ class Utils extends REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
+	}
+	
+	
+	/**
+	 * 
+	 *  Get list of IDs by Type
+	 * 
+	 */
+	public function datasets_list_by_type_get($type=NULL)
+	{
+		try{
+            $this->db->select('id,idno,type');
+            $this->db->where('type',$type);
+            $result=$this->db->get('surveys')->result_array();
+
+			$response=array(
+				'status'=>'success',
+				'items'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
 	}	
 }
