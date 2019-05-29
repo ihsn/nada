@@ -155,5 +155,57 @@ class Utils extends REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
+	}
+	
+	
+
+	public function datasets_publish_by_type_get($type=NULL)
+	{
+		try{
+            $options=array(
+				'published'=>1
+			);
+            $this->db->where('type',$type);
+            $result=$this->db->update('surveys',$options);
+
+			$response=array(
+				'status'=>'success',
+				'items'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
 	}	
+
+	public function datasets_unpublish_by_type_get($type=NULL)
+	{
+		try{
+            $options=array(
+				'published'=>0
+			);
+            $this->db->where('type',$type);
+            $result=$this->db->update('surveys',$options);
+
+			$response=array(
+				'status'=>'success',
+				'items'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
 }
