@@ -296,6 +296,7 @@ class Catalog_search_solr{
 			$query->setFields(array(
 				'id:survey_uid',
 				'type:dataset_type',
+				'idno',
 				'title',
 				'nation',
 				'formid',
