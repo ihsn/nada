@@ -909,9 +909,9 @@ class Ion_auth
 		return $this->ci->ion_auth_model->set_api_key($user_id,$token);
 	}
 
-	function delete_api_key($api_key)
+	function delete_api_key($user_id,$api_key)
 	{
-		return $this->ci->ion_auth_model->delete_api_key($api_key);
+		return $this->ci->ion_auth_model->delete_api_key($user_id,$api_key);
 	}
 
 }

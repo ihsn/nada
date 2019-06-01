@@ -1927,13 +1927,10 @@ class Ion_auth_model extends CI_Model
 	}
 
 	//remove api key
-	function delete_api_key($api_key)
+	function delete_api_key($user_id,$api_key)
 	{
-		$options=array(
-			'api_key'=>$api_key
-		);
-
-		$this->db->where("api_key",$api_key);
+		$this->db->where("user_id",$user_id);
+		$this->db->where("key",$api_key);
 		$this->db->delete("api_keys");
 	}
 

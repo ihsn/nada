@@ -39,7 +39,23 @@ class Auth extends MY_Controller {
 		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
 		header( 'Cache-Control: post-check=0, pre-check=0', false );
 		header( 'Pragma: no-cache' );
-    }
+	}
+	
+	function generate_api_key()
+	{
+		$this->_is_logged_in();
+		$this->ion_auth->set_api_key($this->session->userdata('user_id'));
+		redirect("auth/profile", 'refresh');
+	}
+
+
+	function delete_api_key()
+	{
+		$this->_is_logged_in();
+		$this->ion_auth->delete_api_key($this->session->userdata('user_id'),$this->input->get("api_key"));
+		redirect("auth/profile", 'refresh');
+	}
+
 
 	function profile()
 	{
@@ -51,11 +67,11 @@ class Auth extends MY_Controller {
 		$this->load->model('Licensed_model');
 		$this->lang->load("licensed_request");
 
-		//log
-		$this->db_logger->write_log('profile');
-
 		//get user info
 		$data['user']= $this->ion_auth->get_user($this->session->userdata('user_id'));
+
+		//get user api keys
+		$data['api_keys']=$this->ion_auth->get_api_keys($this->session->userdata('user_id'));
 
 		//get user licensed requests
 		$data['lic_requests']=$this->Licensed_model->get_user_requests($data['user']->id);
@@ -315,9 +331,6 @@ class Auth extends MY_Controller {
 	    }
 	    else
 		{
-			//log
-			$this->db_logger->write_log('logout',$this->input->post('email'));
-
 	        //run the forgotten password method to email an activation code to the user
 			$forgotten = $this->ion_auth->forgotten_password($this->input->post('email'));
 
@@ -571,6 +584,7 @@ class Auth extends MY_Controller {
 
 		$this->_create_user();
 	}
+
 
 	//get public site menu
 	function _menu()
