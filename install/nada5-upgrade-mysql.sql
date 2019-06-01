@@ -3,6 +3,7 @@
 ###################################################################################
 
 DROP TABLE `blocks`;
+TRUNCATE TABLE `cache`;
 
 ALTER TABLE `surveys` CHANGE `ddifilename` `metafile` VARCHAR(255) DEFAULT NULL;
 ALTER TABLE `surveys` ADD `metadata` mediumtext;
@@ -53,20 +54,34 @@ ALTER TABLE `surveys` DROP `producer`;
 ALTER TABLE `surveys` DROP `sponsor`;
 ALTER TABLE `surveys` DROP `topic`;
 
-UPDATE TABLE `surveys` set `type`='survey';
+UPDATE `surveys` set `type`='survey';
 
-ALTER TABLE `variables` ADD `fid` varchar(45) DEFAULT NULL;
-ALTER TABLE `variables` CHANGE `varID` `vid` varchar(45) DEFAULT '';
-ALTER TABLE `variables` ADD `metadata` mediumtext;
-ALTER TABLE `variables` CHANGE `surveyid_FK` `sid` int(11) NOT NULL;
-ALTER TABLE `variables` CHANGE `name` `name` varchar(100) DEFAULT '';
-ALTER TABLE `variables` CHANGE `labl` `labl` varchar(255) DEFAULT '';
 
-ALTER TABLE `variables` DROP INDEX `idxSurvey`;
-ALTER TABLE `variables` ADD UNIQUE KEY `idxSurvey` (`vid`,`sid`);
-ALTER TABLE `variables` DROP INDEX `idxsurveyidfk`;
-ALTER TABLE `variables` ADD KEY `idxsurveyidfk` (`sid`);
+DROP TABLE IF EXISTS `variables`;
 
+CREATE TABLE `variables` (
+  `uid` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) NOT NULL,
+  `fid` varchar(45) DEFAULT NULL,
+  `vid` varchar(45) DEFAULT '',
+  `name` varchar(100) DEFAULT '',
+  `labl` varchar(255) DEFAULT '',
+  `qstn` text,
+  `catgry` text,
+  `metadata` mediumtext,
+  PRIMARY KEY (`uid`),
+  UNIQUE KEY `idxSurvey` (`vid`,`sid`),
+  KEY `idxsurveyidfk` (`sid`),
+  FULLTEXT KEY `idx_qstn` (`qstn`),
+  FULLTEXT KEY `idx_labl` (`labl`),
+  FULLTEXT KEY `idxCatgry` (`catgry`),
+  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
+  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
+  FULLTEXT KEY `idx_nm` (`name`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+UPDATE `citations` set ihsn_id=id where ihsn_id is NULL;
 ALTER TABLE `citations` CHANGE `ihsn_id` `uuid` varchar(50) NOT NULL;
 ALTER TABLE `citations` ADD UNIQUE KEY `cit_uuid` (`uuid`);
 ALTER TABLE `citations` ADD `url_status` varchar(50) DEFAULT NULL;
