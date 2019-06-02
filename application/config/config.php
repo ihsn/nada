@@ -681,6 +681,15 @@ $config['filestore_path']='files/public';
 $config['search_provider']='db';
 
 
+/**
+ * 
+ * Maintenance mode
+ * 
+ * @maintenance_mode 1=enable, 0=disable
+ * 
+*/
+$config['maintenance_mode']=0;
+
 
 
 
