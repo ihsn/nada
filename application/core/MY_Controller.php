@@ -29,6 +29,8 @@ class MY_Controller extends CI_Controller
 		
 		//test if application is installed
 		$this->is_app_installed();
+
+		$this->site_maintenance();
 	
 		//switch language
 		$this->_switch_language();
@@ -63,44 +65,37 @@ class MY_Controller extends CI_Controller
 		}
 	}
 
+	
 
 	/**
-	*
-	* Check user has access to the current page
-	**/
-	/*
-	//TODO: Remove later
-	
-	function _has_access()
-	{	
-		$excluded_urls=array('auth','catalog');
-
-		if (in_array($this->uri->segment(1),$excluded_urls) || $this->uri->uri_string()=='')
-		{
-			return FALSE;
+	 * 
+	 * Show offline message during maintenance
+	 * 
+	 * 
+	 */
+	function site_maintenance()
+	{
+		$offline=$this->config->item("maintenance_mode");
+		
+		if($offline!==1){
+			return true;
 		}
 
-		//get currently logged in user
-		$user=$this->ion_auth->current_user();
-		
-		if (!$user)
-		{
-			return FALSE;
-		}
-		
-		//test user has access to the current url
-		$access=$this->ion_auth->has_access($user->id,$this->uri->uri_string());
-		
-		if ($access===FALSE)
-		{
-			show_error("You don't have permissions to access content");
+		$allowed_urls=array('auth');
+
+		if ($this->ion_auth->logged_in() && $this->ion_auth->is_admin()){
+			return true;
 		}
 
-		//check study level permissions
-		$this->acl->check_study_permissions();				
+		if (in_array($this->uri->segment(1), $allowed_urls)){
+			return true;
+		}
+
+		echo $this->load->view('static/offline',null,true);
+		die();
 	}
-	*/
-	
+
+
 
 
 	/**
@@ -129,6 +124,8 @@ class MY_Controller extends CI_Controller
 		  }     
 		} 
 	 }
+
+	 
     
 	/**
 	* Switch site language using cookies
