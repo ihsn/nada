@@ -68,7 +68,7 @@ else{
     </div>
 </div>
 <?php else: ?>
-<div class="col-md-12 mt-3">
+<div class="<?php echo ($active_tab=='citations') ? 'col-md-9' : 'col-sm-12';?> mt-3">
     <div class="row">
         <div class="col-sm-12">
             <?php if(isset($repo['ispublished']) && intval($repo['ispublished'])===0):?>
