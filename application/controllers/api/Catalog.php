@@ -32,6 +32,7 @@ class Catalog extends MY_REST_Controller
 				'collections'		=>	$this->security->xss_clean($this->input->get("collection")),
 				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
 				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
+				'ps'				=>	$this->security->xss_clean($this->input->get("ps"))
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
@@ -42,7 +43,13 @@ class Catalog extends MY_REST_Controller
 		//collections to array
 		$params['collections']=explode(",",$params['collections']);		
 		
+		//default page size
 		$limit=15;
+
+		if (is_numeric($params['ps']) && $params['ps']>0){
+			$limit=$params['ps'];
+		}
+
 		$page=$this->input->get('page');
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$limit;
@@ -55,6 +62,11 @@ class Catalog extends MY_REST_Controller
 			if(isset($result['rows'])){
 				//convert date format
 				array_walk($result['rows'], 'unix_date_to_gmt',array('created','changed'));
+
+				//add study link
+				array_walk($result['rows'], function(&$row) {
+					$row['url'] = site_url('catalog/'.$row['id']);
+				});
 
 				//unset
 				if(isset($result['citations'])){
