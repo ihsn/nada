@@ -240,7 +240,9 @@ if ( ! function_exists('base_url'))
 		$CI =& get_instance();
 		$base_url=$CI->config->slash_item('base_url');
 		
-		if (is_ssl_enabled() && is_ssl_protected(current_url())==TRUE)
+		if (is_ssl_enabled() 
+			//&& is_ssl_protected(current_url())==TRUE
+		)
 		{
 			return $url=str_replace("http:","https:",$base_url);
 		}
