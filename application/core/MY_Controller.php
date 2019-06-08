@@ -46,6 +46,9 @@ class MY_Controller extends CI_Controller
 		   //apply IP restrictions for site administration
 		   $this->apply_ip_restrictions();
 		   
+		   //apply server host name restrictions for site administration
+		   $this->apply_hostname_restrictions();
+		   
 			//check user is logged in or not
 			$this->_auth();
 			
@@ -83,7 +86,9 @@ class MY_Controller extends CI_Controller
 
 		$allowed_urls=array('auth');
 
-		if ($this->ion_auth->logged_in() && $this->ion_auth->is_admin()){
+		if ($this->ion_auth->logged_in() 
+			//&& $this->ion_auth->is_admin()
+		){
 			return true;
 		}
 
@@ -125,6 +130,34 @@ class MY_Controller extends CI_Controller
 		} 
 	 }
 
+	  
+	/**
+	 * 
+	 * Restrict access to site administration based on 
+	 * HOSTNAME used for accessing the site
+	 * 
+	 */
+	 public function apply_hostname_restrictions()
+	 {	 	
+		$http_host=$this->input->server("HTTP_HOST");
+		$allowed_hosts=$this->config->item("admin_allowed_hosts");
+		
+		$http_host=explode(":",$http_host);
+		$http_host=$http_host[0];
+		
+		  if (is_array($allowed_hosts) && count($allowed_hosts)>0)
+		  {
+			  //check host is in the allowed list  
+			  if (!in_array($http_host, $allowed_hosts))
+			  {
+				 //log
+				 $this->db_logger->write_log('blocked',sprintf('site access blocked from ip [%s], using host [%s]',$this->input->ip_address(),$http_host),'host-access-blocked');
+				 
+				 //show page not found  
+				 show_404(); 
+			  }  
+		  }     
+	 } 
 	 
     
 	/**
