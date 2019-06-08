@@ -80,31 +80,7 @@ paths:
         '200':
           description: successful operation
           schema:
-            $ref: '#/definitions/Catalog'
-  /catalog/collections/{repoId}/datasets:
-    get:
-      tags:
-        - Collections
-      summary: List studies by collection
-      description: List all studies in the collection
-      operationId: listCollectionDatasets
-      consumes:
-        - application/json
-      produces:
-        - application/xml
-        - application/json
-      parameters:
-        - name: repoId
-          in: path
-          description: Collection ID
-          required: true
-          type: string
-          format: string        
-      responses:
-        '200':
-          description: successful operation
-          schema:
-            $ref: '#/definitions/Catalog'  
+            $ref: '#/definitions/Collection'
   /catalog/search:
     get:
       tags:
@@ -258,12 +234,37 @@ paths:
           schema:
             $ref: '#/definitions/DataAccessCode'
   
+  /catalog/find_by_id/{id}:
+    get:
+      tags:
+        - Catalog
+        - Metadata
+      summary: Get study by ID
+      description: "Get study level metadata for a dataset. The study data files and variables metadata can be accessed via the following endpoints. \n \n * [Data files](#operation/listDataFiles) - Metadata for data files \n \n * [Variables](#operation/listDataFileVariables) - Metadata for variables"
+      operationId: singleDatasetById
+      consumes:
+        - application/json
+      produces:
+        - application/xml
+        - application/json
+      parameters:
+        - name: ID
+          in: path
+          title: Study unique ID
+          description: Study unique ID number
+          type: string
+          required: true
+      responses:
+        '200':
+          description: successful operation
+          schema:
+              $ref: '../catalog-admin/survey-schema.json'
   /catalog/{idno}:
     get:
       tags:
         - Catalog
         - Metadata
-      summary: Get dataset info
+      summary: Get study by IDNo
       description: "Get study level metadata for a dataset. The study data files and variables metadata can be accessed via the following endpoints. \n \n * [Data files](#operation/listDataFiles) - Metadata for data files \n \n * [Variables](#operation/listDataFileVariables) - Metadata for variables"
       operationId: singleDataset
       consumes:
