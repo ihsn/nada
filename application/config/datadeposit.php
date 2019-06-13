@@ -1,4 +1,7 @@
 <?php
+//enable datadeposit
+$config['datadeposit']['enable_datadeposit']=false;
+
 $config['datadeposit']['mandatory_fields'] = array(
 	'ident_title',
 	'coll_dates',

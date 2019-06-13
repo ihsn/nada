@@ -23,18 +23,18 @@ class Datadeposit extends MY_Controller {
 	{
 		parent::__construct($SKIP, $is_admin);
 
-		$this->load->model('DD_project_model');
+		$this->config->load('datadeposit');
 
+		if ($this->config->item('enable_datadeposit','datadeposit')!==true){
+			show_404();
+		}
+
+		$this->load->model('DD_project_model');
 		$this->load->helper('date');
 		$this->load->language('dd_projects');
 		$this->load->language('dd_help');
 
-		//$this->template->set_template('datadeposit');	
-		$this->config->load('datadeposit');
-
-		//$this->template->add_css('themes/datadeposit/styles.css');
 		$this->template->add_css('themes/datadeposit/data-deposit.css');
-		//$this->template->add_css('themes/datadeposit/forms.css');
 		$this->_get_active_project();
 
 		$this->user_projects = $this->DD_project_model->projects($this->session->userdata('user_id'), 'title', 'asc');
