@@ -4,12 +4,9 @@ trash
 modules/mpdf
 .settings
 datafiles
-*.spc
 -*.zip
 _notes
 backup/*.sql
-database.php
-email.php
 application/cache/*
 application/config/database.php
 application/config/email.php
@@ -24,4 +21,3 @@ imports
 files/sessions
 files/public
 sample
-system/language/base
