@@ -59,7 +59,7 @@
                     <div class="resource-right-col">
                     	<span class="resource-file-size">
 							<?php 
-								$link_text= '<img src="'.get_file_icon($ext).'" alt="'.$ext.'"  title="'.basename($row['filename']).'"/> ';
+								$link_text= '<i alt="'.$ext.'"  title="'.$ext.'" class="fa fa-download" aria-hidden="true"></i>';
 								//$link_text.= strtoupper($ext);
                             	if ($file_size!='')
 								{									
