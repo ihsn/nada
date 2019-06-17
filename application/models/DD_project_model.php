@@ -1,763 +1,924 @@
 <?php
-/**
-* Data deposit projects
-*
-**/
+/*
+ projects
+ --------------------------
+  id            int unsigned  AUTO_INCREMENT NOT NULL,
+  uid           int unsigned                 NOT NULL,
+  created_by    tinytext                     NOT NULL,
+  title         tinytext                     NOT NULL,
+  shortname     VARCHAR(50)                  NOT NULL,
+  created_on    datetime                     NOT NULL,
+  data_type     tinytext                     NOT NULL,
+  last_modified datetime                     NOT NULL,
+  status        VARCHAR(20)                  NOT NULL default 'draft',
+  description   tinytext                     NOT NULL,
+  PRIMARY KEY (id) ENGINE=InnoDB 
+----------------------------
+*/
+
 class DD_project_model extends CI_Model {
-	
-	//database column names
-	var $fields=array(
-		'title',
-		'project_type',
-		'status', 
-		'description',
-		'shortname', 
-		'collaborators', 
-		'access_policy',
-		'library_notes',
-		'submit_contact', 
-		'submit_on_behalf', 
-		'cc',
-		'to_catalog',
-		'access_authority',
-		'submitted_by',
-		'submitted_date',
-		'created',
-		'changed',
-		'created_by',
-		'changed_by',
-		'admin_date',
-		'admin_by',
-		'is_embargoed',
-		'embargoed_notes',
-		'disclosure_risk',
-		'metadata'
-	);
 
-	private $project_types=array(
-		'survey'		=> 'Survey',
-		'geospatial'	=> 'Geospatial'
-	);
-	
-			
-    public function __construct()
-    {
-        parent::__construct();
-		//$this->output->enable_profiler(TRUE);
-    }
-	
+	private $project_valid_fields=array(
+        'title',
+        'shortname',
+        'description',
+        'created_on',
+        'last_modified',
+        'created_by',
+        'status'
+    );
 
-	/**
-	* 
-	*
-	* returns a single row
-	*
-	**/
-	function select_single($id,$user_id=null)
+
+	public function __construct()
 	{
-		$this->db->select("id,project_type,title,description,shortname,created,created_by,changed,changed_by,status,access_policy,library_notes,cc,to_catalog,is_embargoed,embargoed_notes,disclosure_risk");
-		$this->db->where('id', $id); 
-		
-		if($user_id){
-			$this->db->where('created_by',$user_id);
-		}
-		
-		$project=$this->db->get('dd_projects')->row_array();
+		parent::__construct();
+	}
 
+
+	//get project by id
+	public function get_by_id($id)
+	{
+		$q = $this->db->select('*')
+				->from('dd_projects')
+				->where('id',$id);
+
+		$project= $q->get()->row_array();
+		
+		//get project owner 
+		$project['owner']=$this->get_owner($id);
+		
 		//get project collaborators
-		if($project){
-			$project['collaborators']=$this->get_project_collaborators($id);
-		}
-
-		//remove metadata field
-		if(isset($project['metadata'])){
-			unset($project['metadata']);
-		}
-
+		$project['collaborators']=$this->get_collaborators($id);
+		
 		return $project;
 	}
-
-
-	/**
-	* 
-	*
-	* Get project access policy information 
-	*
-	**/
-	function get_access_policy_info($id,$user_id=null)
+        
+	//get project title
+	public function get_title_by_id($id)
 	{
-		$this->db->select("id,access_policy,library_notes,cc,to_catalog,is_embargoed,embargoed_notes,disclosure_risk");
-		$this->db->where('id', $id); 
+		$q = $this->db->select('title')
+				->from('dd_projects')
+				->where('id',$id);
+
+		$project= $q->get()->row_array();
 		
-		if($user_id){
-			$this->db->where('created_by',$user_id);
-		}
+		return $project['title'];
+	}
 		
-		$project=$this->db->get('dd_projects')->row_array();
-		return $project;
-	}
+        
+        
+	public function project_id ($id, $email) {
 
-
-	/**
-	* 
-	* Check if a project exists
-	*
-	* returns true or false
-	*
-	**/
-	function project_exists($id)
-	{
-		$this->db->select("id");
-		$this->db->where('id', $id); 
-		$project=$this->db->get('dd_projects')->row_array();
-
-		if (isset($project['id'])){
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	* 
-	* Return project status
-	*
-	*
-	**/
-	function get_project_status($id)
-	{
-		$this->db->select("status");
-		$this->db->where('id', $id); 
-		$project=$this->db->get('dd_projects')->row_array();
-
-		if (isset($project['status'])){
-			return $project['status'];
-		}
-		return false;
-	}
-
-
-	//get all user created + collobarated projects list
-	function get_user_projects($user_id)
-	{
-		$this->db->select('id,project_type,title,shortname,status,created,changed,created_by,changed_by');
-		$this->db->where('created_by',$user_id);
-		$this->db->or_where('changed_by',$user_id);
-		$this->db->order_by('created','desc');
-		return $this->db->get("dd_projects")->result_array();
-	}
-
-
-	//get all user created + collobarated projects list
-	function get_projects($user_id=null)
-	{
-		$this->db->select('id,project_type,title,shortname,status,created,changed,created_by,changed_by');
-		$this->db->order_by('created','desc');
-		if($user_id){
-			$this->db->where('created_by',$user_id);
-		}
-		return $this->db->get("dd_projects")->result_array();
-	}
-
-
-	function submit_project($project_id)
-	{
-		$options=array(
-			'changed'=>date("U"),
-			'submitted_date'=>date("U")
-		);
-
-		return $this->set_project_status($project_id,'submitted',$options);
-	}
-
-
-	function set_project_status($project_id,$status,$options)
-	{
-		$valid_fields=array('status','changed','submitted_date');
-
-		//default options
-		$data=array(
-			'status'=>$status,
-			'changed'=>date("U"),
-			'submitted_date'=>date("U")
-		);
-
-		//merge with options param
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$data[$key]=$value;
-			}
-		}
-
-		$this->db->where('id',$project_id);
-		$result=$this->db->update('dd_projects',$data);
-
-		return $result;
-	}
-
-
-
-	function set_metadata($project_id,$metadata_json)
-	{
-		$options=array(
-			'metadata'=>base64_encode($metadata_json)
-		);
-
-		$this->db->where('id',$project_id);
-		$this->db->update('dd_projects',$options);
-	}
-
-
-	function get_metadata($project_id)
-	{
-		$this->db->select("metadata");
-		$this->db->where('id',$project_id);
-		$metadata=$this->db->get("dd_projects")->row_array();
-		return base64_decode($metadata['metadata']);
-	}
-
-
-	//encode metadata for db storage
-    public function encode_metadata($metadata_array)
-    {
-        return base64_encode(serialize($metadata_array));
-    }
-
-    //decode metadata to array
-    public function decode_metadata($metadata_encoded)
-    {
-        return unserialize(base64_decode($metadata_encoded));
-    }
-
-	/**
-	* 
-	*	Create project
-	*
-	**/
-	function insert($options)
-	{
-		//allowed fields
-		$valid_fields=$this->fields;
-
-		$options['changed']=date("U");
-		$options['created']=date("U");
-		$options['status']='draft';
-		
-		$data=array();
-
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$data[$key]=$value;
-			}
-		}
-
-		//collaborators
-		if (isset($data['collaborators'])){
-			$data['collaborators']=$this->encode_metadata($data['collaborators']);	
-		}
-		
-		$result=$this->db->insert('dd_projects', $data);
-
-		if ($result===false){
-			throw new MY_Exception($this->db->error());
-		}
+		$q = $this->db->select('dd_projects.*, dd_collaborators.access')
+			->from('dd_projects, dd_collaborators')
+			->where('dd_projects.id = dd_collaborators.pid')
+			->where('dd_collaborators.email', $email)
+			->where('dd_collaborators.pid', $id);
 			
-		$project_id=$this->db->insert_id();
+		$query=$q->get();
 		
-		//collaborators
-		if ($project_id && isset($options['collaborators'])){
-			$this->set_project_collaborators($project_id,$options['collaborators']);
-		}
-
-		//project folder
-		$this->setup_project_folder($project_id);	
-
-		return $project_id;
+		if ($query)
+		{
+			return $query->result();
+		}	
 	}
-
-
-
+	
 	/**
 	* 
-	*	update project
-	*
+	* Returns a string of project owner(s) email addresses
 	**/
-	function update($project_id,$options)
+	public function get_project_owner_email($project_id) 
 	{
-		//allowed fields
-		$valid_fields=$this->fields;
-		$options['created']=date("U");
+		return implode (",",$this->get_owner($project_id));
+	}
+	
+	
+	
+	// exporting
+	public function project_id2 ($id, $email) {
 
-		//unset status field if set
-		if(isset($options['status'])){
-			unset($options['status']);
-		}
-		
-		$data=array();
+		$q = $this->db->select('dd_projects.*, dd_collaborators.access')
+			->from('dd_projects, dd_collaborators')
+			->where('dd_projects.id = dd_collaborators.pid')
+			->where('dd_collaborators.pid', $id);
 
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$data[$key]=$value;
-			}
-		}
-
-		//collaborators
-		if (isset($data['collaborators'])){
-			$data['collaborators']=$this->encode_metadata($data['collaborators']);	
-		}
-		
-		$this->db->where('id',$project_id);
-		$result=$this->db->update('dd_projects', $data);
-
-		if ($result===false){
-			throw new MY_Exception($this->db->error());
-		}
-			
-		//collaborators
-		if (isset($options['collaborators'])){
-			$this->set_project_collaborators($project_id,$options['collaborators']);
-		}
-
-		//project folder
-		//$this->setup_project_folder($project_id);	
-
-		return $result;
+		return $q->get()->result();
 	}
 
+    
 
-
-
-	//set project data files folder path
-	public function setup_project_folder($project_id,$folder_name=null)
+	//project is locked for editing
+	public function is_locked($id, $email) 
 	{
-		//create folder if not already exists
-		if (!$folder_name){
-			$folder_name='P-'.$project_id.'-'.date("U");
-		}
-
-		$this->create_project_folder($folder_name);		
-
-		$options=array(
-			'data_folder_path'=> $folder_name
-		);
-		
-		$this->db->where('id',$project_id);
-		$this->db->update('dd_projects',$options);
-	}
-
-
-	//create new project folder
-	private function create_project_folder($folder_name)
-	{	
-		//full path to the project folder
-		$folder_full_path=$this->get_datadeposit_storage_path().'/'.$folder_name;		
-
-		if(!file_exists($folder_full_path)){
-			mkdir($folder_full_path);
-		}
-
-		if(!file_exists($folder_full_path)){
-			throw new exception("ERROR_CREATING_PROJECT_FOLDER:".$folder_full_path);
-		}
-	}
-
-	//checks if a project folder exists
-	public function project_folder_exists($project_id)
-	{
-		$folder=$this->get_project_path_full($project_id);
-
-		if(!file_exists($folder)){
+		$projects = $this->project_id($id, $email);
+		if (isset($projects[0]->id) && $projects[0]->status=='draft')
+		{
 			return false;
 		}
-
+		
 		return true;
 	}
 
+
+	public function has_access($id, $email) 
+	{
+		$projects = $this->project_id($id, $email);
+		return isset($projects[0]->id);
+	}
 	
-	//partial path to the project folder
-	public function get_project_path_partial($project_id)
+	public function has_access_or_die($id,$email)
 	{
-		$this->db->select("data_folder_path");
-		$this->db->where('id', $project_id); 
-		$row=$this->db->get('dd_projects')->row_array();		
-		return $row['data_folder_path'];
+		if(!$this->has_access($id,$email))
+		{
+			show_error('ACCESS_DENIED');
+		}
 	}
 
-
-
-	//full path to the project folder
-	public function get_project_path_full($project_id)
-	{
-		$this->db->select("data_folder_path");
-		$this->db->where('id', $project_id); 
-		$row=$this->db->get('dd_projects')->row_array();		
-
-		if ($row){
-			$project_folder=$row['data_folder_path'];
-
-			if(empty($project_folder) || trim($project_folder)==""){
-				return false;
-			}
+	public function all_projects() {
+		 return $this->db->get('dd_projects')->result();
+	}
+	
+	public function import_from_project($uid, $from_id, $to_id) {
+		$this->load->model('Study_model');
+		$uid = (int) $uid;
+		$q = $this->db->select('id, email')
+			->from('users')
+			->where('id', $uid);
 			
-			return unix_path($this->get_datadeposit_storage_path().'/'.$row['data_folder_path']);
+		$user = $q->get()->result();
+		if (!$this->has_access($from_id, $user[0]->email) || !$this->has_access($to_id, $user[0]->email)) {
+			return false;
 		}
+		$data   = $this->Study_model->get_study($from_id);
+		$insert = array();
+		foreach((array)$data[0] as $key => $field) {
+			$insert[$key] = $field;
+		}
+		unset($insert['id']);
+		unset($insert['ident_title']);
+		$this->Study_model->update_study($to_id, $insert);
+		return true;
 	}
+		
 
-	//get path to data deposit root folder where all projects are stored
-	public function get_datadeposit_storage_path()
+    //get projects by user
+    public function get_user_projects($uid, $order='created_on', $order_by = 'desc', $limit = 1000, $offset = 0)
+    {
+        return $this->projects($uid,$order, $order_by,$limit,$offset);
+    }
+
+
+
+    /**
+     *
+     * TODO: TOBE removed
+     *
+     * Return a list of projects by user
+	**/
+	public function projects ($uid, $order='created_on', $order_by = 'desc', $limit = 1000, $offset = 0) 
 	{
-		//root storage folder path
-		$storage_folder=$this->config->item("catalog_root");
+		$uid = (int) $uid;
+		$q = $this->db->select('id, email')
+			->from('users')
+			->where('id', $uid);
+			
+		$user = $q->get()->result();
 		
-		if(!$storage_folder){
-			throw new Exception("STORAGE_PATH_NOT_SET:catalog_root");
-		}
+		//return projects owned and collborated by the user
+		$q = $this->db->select('dd_projects.*, dd_collaborators.access')
+			->from('dd_projects')
+			->join('dd_collaborators','dd_collaborators.pid=dd_projects.id','left')
+			->where('dd_collaborators.email', $user[0]->email)
+			->order_by($order, $order_by);
 
-		//data deposit full path
-		$datadeposit_folder=unix_path($storage_folder.'/datadeposits');
-		
-		//make folder if not already exists
-		if(!file_exists($datadeposit_folder)){
-			@mkdir($datadeposit_folder);
-		}
-
-		if(!file_exists($datadeposit_folder)){
-			throw new Exception("DATA_DEPOSIT_STORAGE_FOLDER_MISSING");
-		}
-
-		return $datadeposit_folder;
+	  return $q->get()->result();
 	}
+	
+	
 
-
-	public function set_project_collaborators($project_id,$collaborators)
-	{	
-		//remove all collaborators
-		$this->remove_all_collaborators($project_id);
-		
-		foreach($collaborators as $email){
-			$options=array(
-				'pid'=>$project_id,
-				'email'=>$email
-			);
-			$this->db->insert('dd_collaborators',$options);
+	
+	
+	public function get_collaborators($pid) {
+		$q = $this->db->select('*')
+			->from('dd_collaborators')
+			->where('pid', $pid)
+			->where('access', 'collaborator')
+			->order_by('id');
+		$result = $q->get()->result();
+		$collabs = array();
+		foreach($result as $collab) {
+			$collabs[] = $collab->email;
 		}
+		return $collabs;
 	}
-
-	//remove all collaborators for a project
-	public function remove_all_collaborators($project_id)
+	
+	public function delete_collaborators($pid) {
+		$this->db->where('pid', $pid)
+			->where('access', 'collaborator')
+			->delete('dd_collaborators');	
+	}
+	
+	public function add_collaborator($pid,$email,$access='collaborator')
 	{
-		$this->db->where('pid',$project_id);
+		//if collaborator is owner of the project, don't add
+		if ($this->is_owner($pid,$email))
+		{
+			return FALSE;
+		}
+	
+		$options=array(
+			'pid'		=>	$pid,
+			'email'		=>	$email,
+			'access'	=>	$access
+		);
+		
+		return $this->db->insert('dd_collaborators',$options);	
+	}
+	
+	
+	public function get_owner($pid) {
+		$q = $this->db->select('*')
+			->from('dd_collaborators')
+			->where('pid', $pid)
+			->where('access', 'owner')
+			->order_by('id')
+			->limit(1);
+		$result = $q->get()->result();
+		$collabs = array();
+		foreach($result as $collab) {
+			$collabs[] = $collab->email;
+		}
+		return $collabs;		
+	}
+	
+	public function has_collaborator($pid, $email) {
+		$q = $this->db->select('*')
+			->from('dd_collaborators')
+			->where('pid', $pid)
+			->where('access', 'collaborator')
+			->where('email', $email);
+		$result = $q->get()->result();
+		return sizeof($result);
+	}
+	
+	
+	/**
+	*
+	* Submit project
+	**/	
+	public function submit_project($id, $data)	
+	{
+		$valid_fields=array(
+				'title',
+				'shortname',
+				'description',
+				'access_policy',
+				'to_catalog',
+				'library_notes',
+				'cc',
+				'submitted_on',
+				'is_embargoed',
+				'embargoed',
+				'disclosure_risk',
+				'status'
+		);
+		
+		$options=array();
+		
+		foreach($data as $key=>$value)
+		{
+			if (in_array($key,$valid_fields))
+			{
+				$options[$key]=$value;
+			}
+		}
+		
+		//update project
+		$this->db->where('id', $id);
+		$result=$this->db->update('dd_projects',$options);
+		
+		if (!$result)
+		{
+			return false;
+		}
+		
+		return true;		
+	}
+
+	//update project info
+	public function update ($id, $data) 
+	{
+		$valid_fields=array('title','shortname','description','requested_reopen','requested_when','admin_comments','status','last_modified');
+		
+		$options=array();
+		
+		if (isset($options['status']) && $options['status']=='draft')
+		{
+			//reset reopen request for the project if project status is changed to draft
+			$data['requested_reopen']=0;
+		}
+		
+		foreach($data as $key=>$value)
+		{
+			if (in_array($key,$valid_fields))
+			{
+				$options[$key]=$value;
+			}
+		}
+		
+		if (count($options)==0)
+		{
+			return false;
+		}
+		
+		//update project
+		$this->db->where('id', $id);
+		$result=$this->db->update('dd_projects',$options);
+		
+		if (!$result)
+		{
+			return false;
+		}
+		
+		//don't change collaborators if variable not set
+		if (!isset($data['collaborators']))
+		{
+			return true;
+		}
+		
+		//remove all collaborators except owners
+		$this->delete_collaborators($id);
+		
+		//remove duplicate email addresses
+		$data['collaborators']=array_unique($data['collaborators']);
+				
+		//add collaborators
+		foreach($data['collaborators'] as $email)
+		{
+			if ($email!='')
+			{			
+				$this->add_collaborator($id,$email,$access='collaborator');
+			}
+		}
+		
+		return true;		
+	}
+	
+	
+	public function set_study_id($id,$study_id)
+	{
+		$options=array(
+			'ident_ddp_id'=>$study_id
+		);
+		
+		$this->db->where('id',$id);
+		return $this->db->update('dd_study',$options);		
+	}
+
+	public function get_study_id($id)
+	{
+		$this->db->select('ident_ddp_id');
+		$this->db->where('id',$id);
+		$result=$this->db->get('dd_study')->row_array();
+		
+		if ($result)
+		{
+			return $result['ident_ddp_id'];
+		}
+	}
+
+	
+	//set project data files folder path
+	public function set_project_folder($id,$folder_name)
+	{
+		$options=array(
+			//'id'				=> $id,
+			'data_folder_path'	=> $folder_name
+		);
+		
+		$this->db->where('id',$id);
+		$this->db->update('dd_projects',$options);
+	}
+
+
+
+    public function create_project($options)
+    {
+        //get owner email
+        if (!isset($options['owner_email']))
+        {
+            throw new Exception("OWNER_EMAIL is not set");
+        }
+
+        //return the new project id
+        return $this->insert($options,$options['owner_email']);
+    }
+
+
+
+    //create a new project
+	public function insert ($data,$owner_email) 
+	{
+		$options=array();
+		foreach($data as $key=>$value)
+		{
+			if (in_array($key,$this->project_valid_fields))
+			{
+				$options[$key]=$value;
+			}
+		}
+		
+		$options['data_folder_path']=md5(date("U"));
+		
+		$this->db->trans_start();
+		
+		//create new project record
+		if (!$this->db->insert('dd_projects', $options))
+		{			
+			$this->db->trans_off();
+			return FALSE;
+		}
+		
+		//get newly created project id		
+		$id= $this->db->insert_id();
+		
+		if (!is_numeric($id))
+		{
+			show_error('FAILED_PROJECT_INITIALIZE');
+			return FALSE;
+		}
+		
+		//set project data files folder
+		$this->set_project_folder($id,'P-'.$id.'-'.date("U"));		
+		
+		//add project owner and collaborators/////////////////////
+
+		//add project owner
+		$this->set_owner($id,$owner_email);
+
+        if(!isset($data['collaborators']))
+        {
+            $data['collaborators']=array();
+        }
+
+		//remove duplicate email addresses
+		$data['collaborators']=array_unique($data['collaborators']);
+		
+		//add collaborators
+		foreach($data['collaborators'] as $email)
+		{
+			if ($email!='')
+			{			
+				$this->add_collaborator($id,$email,$access='collaborator');
+			}
+		}
+		
+		//create study description row
+		$study_options=array(
+				'id'          => $id,
+				'ident_title' => $data['title']
+		);
+		
+		$this->db->insert('dd_study',$study_options);
+		
+		$this->db->trans_complete();
+		
+		if ($this->db->trans_status() === FALSE)
+		{
+			show_error("DB_TRANSACTION_FAILED");
+		}
+		
+		return $id;
+	}
+	
+	
+	//assign owner for a project
+	public function set_owner($pid,$email)
+	{
+		//delete existing project owner if any
+		$this->db->where('pid', $pid);
+		$this->db->where('access', 'owner');
 		$this->db->delete('dd_collaborators');
+		
+		//assign owner
+		$options=array(
+			'pid'		=> $pid,
+			'email'		=> $email,
+			'access'	=> 'owner'		
+		);
+		 
+		return $this->db->insert('dd_collaborators',$options);
+	}
+
+	
+	//test if email is owner of the project
+	public function is_owner($pid,$email)
+	{
+		$this->db->select('count(*) as found');
+		$this->db->where('pid', $pid);
+		$this->db->where('access', 'owner');
+		$this->db->where('email', $email);
+		$result=$this->db->get('dd_collaborators')->row_array();
+		
+		if ($result['found']>0)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
 	}
 
 
-	//get project collaborators array
-	public function get_project_collaborators($project_id)
+	public function log_history($data) {
+		$this->db->insert('dd_datadeposit_history', $data);
+		return $this->db->insert_id();
+	}
+	
+	public function write_history($project_id, $status,$comment,$user_identity=NULL) 
 	{
-		$this->db->where('pid',$project_id);
-		$result=(array)$this->db->get('dd_collaborators')->result_array();
+		if (!$user_identity)
+		{
+			$user_identity=$this->session->userdata('email');
+		}
+		
+		$data = array(
+			'project_id'     => (int) $project_id,
+			'user_identity'  => $user_identity,
+			'created_on'     => date('U'),
+			'project_status' => $status,
+			'comments'       => $comment,
+		);
+		$this->log_history($data);
+	}
+	
+	public function history_id($id) {
+		$q = $this->db->select('*')
+			->from('dd_datadeposit_history')
+			->where('project_id', $id)
+			->order_by('created_on', 'desc');
+		return $q->get()->result();
+	}
 
-		$output=array();
-		foreach($result as $row){
-			$output[]=$row['email'];
+	public function delete ($id) {		
+		$this->db->delete('dd_projects', array('id' => $id));
+		// Children tables
+		$this->db->delete('dd_collaborators', array('pid' => $id));
+   	    $this->db->delete('dd_study', array('id' => $id));
+ 		$this->db->delete('dd_datadeposit_history', array('project_id' => $id));
+	    $this->db->delete('dd_project_resources', array('project_id' => $id));
+	}
+	
+	
+	/**
+	*
+	* Get pending tasks by project
+	*
+	**/
+	public function get_pending_tasks($pid)
+	{
+		$output=array(
+			'incomplete_study_fields'	=>0,
+			'attached_files'			=>0,
+			'attached_citations'		=>0
+		);
+		
+		//check all required fields are filled
+		$this->db->select('coverage_country,coll_dates');
+		$this->db->where('id',$pid);
+		$study_row=$this->db->get('dd_study')->row_array();
+		
+		if ($study_row)
+		{
+			foreach($study_row as $key=>$value)
+			{
+				$value=json_decode($value);
+				if(!$value)
+				{
+					$output['incomplete_study_fields']++;
+				}
+			}
 		}
 
+		//check data or other resources are uploaded
+		$this->db->select('count(*) as total');
+		$this->db->where('project_id',$pid);
+		$resources_count=$this->db->get('dd_project_resources')->row_array();
+		
+		if($resources_count)
+		{
+			$output['attached_files']=$resources_count['total'];
+		}
+		
+		//check if citations been attached
+		$this->db->select('count(*) as total');
+		$this->db->where('pid',$pid);
+		$citations_count=$this->db->get('dd_citations')->row_array();
+		
+		if($citations_count)
+		{
+			$output['attached_citations']=$citations_count['total'];
+		}
+		
+		return $output;
+	}
+	
+	
+	public function get_project_fullpath($project_id)
+	{
+		//get root folder path
+		$root_folder=$this->get_datadeposit_root_folder();
+
+		if (!$root_folder)
+		{
+			return FALSE;
+		}
+	
+		//get project folder name
+		$folder_name=$this->get_project_folder_name($project_id);
+		
+		if (!$folder_name)
+		{
+			return FALSE;
+		}
+		
+		return unix_path($root_folder.'/'.$folder_name);
+	}
+	
+	public function get_project_folder_name($project_id)
+	{
+		$this->db->select('data_folder_path');
+		$this->db->where('id',$project_id);
+		$row=$this->db->get('dd_projects')->row_array();
+		
+		if($row)
+		{
+			return $row['data_folder_path'];
+		}
+		
+		return FALSE;
+	}
+	
+	//get path to data deposit root folder where all projects are stored
+	public function get_datadeposit_root_folder()
+	{
+		$ci =& get_instance();
+		
+		//load datadeposit config file
+		$ci->config->load('datadeposit');
+		
+		//load data deposit settings array
+		$datadeposit_configurations = $ci->config->item('datadeposit');
+		
+		//get path to the root folder
+		$root_folder = $datadeposit_configurations['resources'];
+		
+		if (empty($root_folder) || !is_dir($root_folder) || trim($root_folder)=="")
+		{
+			return FALSE;
+		}
+		
+		return $root_folder;
+	}
+
+	public function stats() {
+		$stats = array();
+		$stats['submitted'] = $this->db->where('status', 'submitted')->count_all_results('dd_projects');
+		$stats['requested'] = $this->db->where('requested_reopen', '1')->count_all_results('dd_projects');
+		$stats['processed'] = $this->db->where('status', 'processed')->count_all_results('dd_projects');
+		$stats['draft']     = $this->db->where('status', 'draft')->count_all_results('dd_projects');
+		return $stats;
+	}
+	
+	public function all_projects_by_filter($status=NULL, $order='dd_projects.created_on', $order_by='desc',$search_keywords=NULL)
+	{
+        $order="dd_projects.created_on";
+		$q = $this->db->select('dd_projects.id,dd_projects.title,dd_projects.status,dd_projects.shortname, dd_projects.last_modified, dd_projects.created_on,dd_projects.created_by, dd_tasks.id as task_id,dd_tasks.user_id as task_user_id, users.username as task_user, dd_tasks.status as task_status')
+			->from('dd_projects')
+            ->join('dd_tasks','dd_tasks.project_id=dd_projects.id','left')
+            ->join('users','dd_tasks.user_id=users.id','left')
+			->order_by($order, $order_by);
+
+			if ($status){
+				$this->db->where('dd_projects.status', $status);
+			}
+
+            if($search_keywords)
+            {
+                $keywords_arr=explode(" ",$search_keywords);
+                foreach($keywords_arr as $keyword) {
+                    $escaped_keywords = $this->db->escape('%'.$keyword.'%');
+                    $where = sprintf('(title like %s OR description like %s OR created_by like %s OR shortname like %s)',
+                        $escaped_keywords,
+                        $escaped_keywords,
+                        $escaped_keywords,
+                        $escaped_keywords
+                    );
+                    $this->db->where($where,NULL,FALSE);
+                }
+            }
+
+        $result=$q->get()->result();
+		return $result;
+	}
+
+	public function all_projects_requested_reopen() {
+		$q = $this->db->select('*')
+			->from('dd_projects')
+			->where('requested_reopen', 1);
+		return $q->get()->result();
+	}
+
+
+	private function decode_json_data($data) {
+		return ($data) ? json_decode($data) : null;
+	}
+
+	//get project summary
+	public function get_project_summary($id)
+	{		
+		$ci =& get_instance();
+		
+		$ci->load->model('DD_resource_model');
+		$ci->load->model('DD_study_model');
+		$ci->load->model('DD_citation_model');
+
+		//get request data
+        $data['project'][0] = (object)$this->get_by_id($id);
+		$data['row']     = $ci->DD_study_model->get_study($data['project'][0]->id);
+		$data['files']   = $ci->DD_resource_model->get_project_resources_to_array($id);
+		$data['fields']  = $ci->config->item('datadeposit');
+		$data['citations']=$ci->DD_citation_model->get_citations_by_project($id);
+		
+		//get project owner
+		$data['project'][0]->owner=$this->get_owner($id);
+            
+       //get project collaborators
+        $data['project'][0]->collaborators=$this->get_collaborators($id);
+		
+        $this->_study_grid_ids         = array();
+		$grids                         = array();
+		$grids['methods']              = array(
+			'titles' => array (
+				'Text'           => 'text', 
+				'Vocabulary'     => 'vocab',
+				'Vocabulary URI' => 'uri'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->overview_methods) ? $data['row'][0]->overview_methods : null))
+		);
+		$grids['topic_class']          = array(
+			'titles' => array (
+				'Text'           => 'text', 
+				'Vocabulary'     => 'vocab',
+				'Vocabulary URI' => 'uri'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->scope_class) ? $data['row'][0]->scope_class : null))
+		);
+		$grids['country']              = array(
+			'titles' => array (
+				'Name'           => 'name', 
+				'Abbreviation'   => 'abbr'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->coverage_country) ? $data['row'][0]->coverage_country : null))
+		);
+		$grids['prim_investigator']    = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Affiliation'  => 'affiliation'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_investigator) ? $data['row'][0]->prod_s_investigator : null))
+		);
+		$grids['other_producers']      = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Abbreviation' => 'abbr',
+				'Affiliation'  => 'affiliation',
+				'Role'         => 'role'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_other_prod) ? $data['row'][0]->prod_s_other_prod : null))
+		);
+		$grids['funding']              = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Abbreviation' => 'abbr',
+				'Affiliation'  => 'affiliation',
+				'Role'         => 'role'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_funding) ? $data['row'][0]->prod_s_funding : null))
+		);
+		$grids['acknowledgements']     = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Affiliation'  => 'affiliation',
+				'Role'         => 'role'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_acknowledgements) ? $data['row'][0]->prod_s_acknowledgements : null))
+		);
+		$grids['dates_datacollection'] = array(
+			'titles' => array (
+				'Start'     => 'start', 
+				'End'       => 'end',
+				'Cycle'     => 'cycle'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->coll_dates) ? $data['row'][0]->coll_dates : null))
+		);
+		$grids['time_periods']         = array(
+			'titles' => array (
+				'Start'     => 'start', 
+				'End'       => 'end',
+				'Cycle'     => 'cycle'
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->coll_periods) ? $data['row'][0]->coll_periods : null))
+		);
+		$grids['data_collectors']      = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Abbreviation' => 'abbr',
+				'Affiliation'  => 'affiliation',
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->coll_collectors) ? $data['row'][0]->coll_collectors : null))
+		);
+		$grids['access_authority']     = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Affiliation'  => 'affiliation',
+				'Email'        => 'email',
+				'URI'          => 'uri',
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->access_authority) ? $data['row'][0]->access_authority : null))
+		);
+		$grids['contacts']             = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Affiliation'  => 'affiliation',
+				'Email'        => 'email',
+				'URI'          => 'uri',
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->contacts_contacts) ? $data['row'][0]->contacts_contacts : null))
+			);
+		$grids['impact_wb_lead']    = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Affiliation'  => 'affiliation',
+				'Email'        => 'email',
+				'URI'          => 'uri',
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->impact_wb_lead) ? $data['row'][0]->impact_wb_lead : null))
+		);
+		$grids['impact_wb_members']    = array(
+			'titles' => array (
+				'Name'         => 'name', 
+				'Affiliation'  => 'affiliation',
+				'Email'        => 'email',
+				'URI'          => 'uri',
+			),
+			'data'  => $this->decode_json_data((isset($data['row'][0]->impact_wb_members) ? $data['row'][0]->impact_wb_members : null))
+		);
+
+		// add our grids to the data variable with their html representation
+		foreach ($grids as $grid_id => $grid_data) 
+		{
+			//$data[$grid_id] = $this->_summary_study_grid($grid_id, $grid_data, true);
+			$data[$grid_id] = $this->print_single_grid($grid_data['titles'],$grid_data['data']);
+		}	
+		
+		$content     = $this->load->view('datadeposit/project_review', $data, true);
+		
+		return $content;
+	}
+	
+	
+	private function print_single_grid($columns,$data)
+	{
+		if (!$data)
+		{
+			return;
+		}
+	
+		$output= '<table border="1" class="grid-table">';
+		$output.= '<tr class="grid-table-header">';
+		foreach($columns as $column)
+		{
+			$output.= '<th>'.$column.'</th>';
+		}
+		$output.= '</tr>';
+		
+		//$data=json_decode($data);
+		
+		foreach($data as $row)
+		{
+			$output.= '<tr>';
+			foreach($row as $value)
+			{
+				$output.= '<td>'.$value.'</td>';
+			}
+			$output.= '</tr>';
+		}
+		
+		$output.= '</table>';
+		
 		return $output;
 	}
 
 	
-
-
-	//validate project type
-	public function validate_project_type($type)
-	{		
-		if (!array_key_exists($type,$this->project_types)){
-			$this->form_validation->set_message(__FUNCTION__, 'The %s is not valid. Supported types are: '. implode(", ", array_keys($this->project_types)));
-			return false;
-		}
-		return true;
-	}
-
-
-
-	/**
-	 * 
-	 * 
-	 * Validate resource
-	 * @options - array of resource fields
-	 * @is_new - boolean - if set to true, requires resource_id field to be set
-	 * 
-	 **/
-	function validate_project($options,$is_new=true)
-	{		
-		$this->load->library("form_validation");
-		$this->form_validation->reset_validation();
-		$this->form_validation->set_data($options);
-	
-		//validation rules for updating a record
-		if($is_new){				
-			$this->form_validation->set_rules('title', 'Title', 'xss_clean|trim|max_length[255]|required');
-			$this->form_validation->set_rules('description', 'Description', 'required|xss_clean|trim|max_length[255]');	
-
-			//project type validation rule
-			$this->form_validation->set_rules(
-				'project_type', 
-				'Project Type',
-				array(
-					"required",
-					array('validate_project_type',array($this, 'validate_project_type')),				
-				)		
-			);
-		}
-		else{
-			$this->form_validation->set_rules('title', 'Title', 'xss_clean|trim|max_length[255]');
-			$this->form_validation->set_rules('description', 'Description', 'xss_clean|trim|max_length[255]');
-
-			if(isset($options['project_type'])){
-			//project type validation rule
-			$this->form_validation->set_rules(
-				'project_type', 
-				'Project Type',
-				array(
-					array('validate_project_type',array($this, 'validate_project_type')),				
-				)		
-			);
-			}
-		}
-
-		$this->form_validation->set_rules('shortname', 'Short Name', 'xss_clean|trim|max_length[255]');				
-		$this->form_validation->set_rules('collaborators[]', 'Collaborators', 'xss_clean|trim|max_length[255]|valid_email');
-		
-		
-		if ($this->form_validation->run() == TRUE){
-			return TRUE;
-		}
-		
-		//failed
-		$errors=$this->form_validation->error_array();
-		$error_str=$this->form_validation->error_array_to_string($errors);
-		throw new ValidationException("VALIDATION_ERROR: ".$error_str, $errors);
-	}
-
-
-	/**
-	 * 
-	 * 
-	 *  Delete project and related info
-	 * 
-	 * 
-	 */
-	function delete($id)
-	{
-		//delete collaborators
-		$this->remove_all_collaborators($id);
-
-		//delete project
-		$this->db->where('id', $id); 
-		return $this->db->delete('dd_projects');		
-	}
-	
-
-
-
-
-	/**
-	*
-	* Returns an array of all files in the survey folder
-	*
-	**/
-	function get_files_array($sid)
-	{	
-		$this->load->model('Catalog_model');
-		$this->load->model('Managefiles_model');
-
-		//get survey folder path
-		$folderpath=$this->Catalog_model->get_survey_path_full($sid);
-					
-		//get all survey files
-		$data=$this->get_files_recursive($folderpath,$folderpath);
-		$files=array();
-		
-		if (isset($data['files'])){
-			foreach($data['files'] as $file){				
-				$file_rel_path=$file['relative'].'/'.$file['name'];
-				$files[]=array(					
-					'name'=>$file['name'],
-					'rel_path'=>$file_rel_path,
-					'base64'=>base64_encode($file['name']),
-					'date'=>$file['date'],
-					'fileperms'=>$file['fileperms'],
-					'size'=>$file['size']
-				);
-			}
-		}		
-		return $files;
-	}
-
-
-
-	/**
-	 * 	
-	 *
-	 * upload external resource file
-	 *
-	 * @sid - survey id
-	 * @file_field_name 	- name of POST file variable
-	 *  
-	 **/ 
-	function upload_file($sid,$file_field_name='file')
-	{
-		
-		$this->load->model("Survey_model");
-		$this->load->model("Catalog_model");
-
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
-		
-		if (!file_exists($survey_folder)){
-			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
-		}
-		
-		//upload class configurations for RDF
-		$config['upload_path'] = $survey_folder;
-		$config['overwrite'] = true;
-		$config['encrypt_name']=false;
-		$config['allowed_types'] = str_replace(",","|",$this->config->item("allowed_resource_types"));
-		
-		$this->load->library('upload', $config);
-		//$this->upload->initialize($config);
-
-		//process uploaded rdf file
-		$upload_result=$this->upload->do_upload($file_field_name);
-
-		if (!$upload_result){
-			throw new Exception($this->upload->display_errors());
-		}
-
-		return $this->upload->data();		
-	}
-
-
-
-	/*
-	* Delete a single file
-	*
-	*/
-	function delete_file($sid, $base64_filepath)
-	{
-		//get survey folder path
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
-		
-		if (!file_exists($survey_folder)){
-			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
-		}
-				
-		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.$filepath);
-		
-		//log deletion
-		$this->db_logger->write_log('resource-delete',$fullpath,'external-resource',$sid);
-		
-		if(!file_exists($fullpath)){
-			throw new Exception("FILE_NOT_FOUND: ".urlencode($filepath));
-		}
-		elseif (is_file($fullpath) && file_exists($fullpath)){
-			$isdeleted=silent_unlink($fullpath);
-			
-			if($isdeleted===FALSE){
-				throw new Exception("file_delete_failed");
-			}
-		}
-		return true;
-	}
-
-
-	/**
-	 * 
-	 * Download a file
-	 * 
-	 */
-	function download_file($sid, $base64_filepath)
-	{
-		//get survey folder path
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
-		
-		if (!file_exists($survey_folder)){
-			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
-		}
-		
-		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.$filepath);
-		
-		//log download
-		$this->db_logger->write_log('download',$fullpath,'external-resource');
-		
-		if (is_file($fullpath) && file_exists($fullpath)){
-			$this->load->helper('download');
-			log_message('info','Downloading file <em>'.$fullpath.'</em>');
-			force_download2($fullpath);
-		}
-		else {
-			throw new Exception("FILE_NOT_FOUND: ".urlencode($filepath));
-		}
-	}
-
-
-
-
-	/**
-	*
-	* Return all files including subfolders
-	* 
-	*	@make_relative_to	make the file path relative to this path
-	*/	
-	function get_files_recursive($absolute_path,$make_relative_to)
-	{
-		$dirs = array();
-		$files = array();
-		//traverse folder
-		if ( $handle = @opendir( $absolute_path )){
-			while ( false !== ($file = readdir( $handle ))){
-				if (( $file != "." && $file != ".." )){
-					if ( is_dir( $absolute_path.'/'.$file )){
-						$tmp=$this->get_files_recursive($absolute_path.'/'.$file,$make_relative_to);
-						foreach($tmp['files'] as $arr){
-							if (isset($arr["name"])){
-								$files[]=$arr;
-							}
-						}
-						foreach($tmp['dirs'] as $arr){
-							if (isset($arr["name"])){
-								$dirs[]=$arr;
-							}
-						}
-						$dirs[]=$this->get_file_relative_path($make_relative_to,$absolute_path.'/'.$file);
-					}
-					else{
-						$tmp=get_file_info($absolute_path.'/'.$file, array('name','date','size','fileperms'));
-						$tmp['name']=$file;
-						$tmp['size']=format_bytes($tmp['size']);
-						$tmp['fileperms']=symbolic_permissions($tmp['fileperms']);
-						$tmp['path']=$absolute_path;
-						$tmp['relative']=$this->get_file_relative_path($make_relative_to,$absolute_path);
-						$files[]=$tmp;
-					}
-				}
-			}
-			closedir( $handle );
-			sort( $dirs );
-		}
-		return array('files'=>$files, 'dirs'=>$dirs);
-	}
-
-	/**
-	*
-	* Get file relative path excluding the survey folder path
-	*
-	*/
-	function get_file_relative_path($survey_path,$file_path)
-	{
-		$survey_path=unix_path($survey_path);
-		$file_path=unix_path($file_path);		
-		return str_replace($survey_path,"",$file_path);
-	}
-
 }
+

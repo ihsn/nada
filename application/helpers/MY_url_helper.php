@@ -304,7 +304,9 @@ if ( ! function_exists('site_url'))
 		$url= $CI->config->site_url($uri);
 		$ssl_urls=$CI->config->item("ssl_urls");
 		
-		if (is_ssl_enabled() && is_ssl_protected(current_url())!==FALSE)
+		if (is_ssl_enabled() 
+			//&& is_ssl_protected(current_url())!==FALSE
+		)
 		{
 			return $url=str_replace("http:","https:",$url);
 		}
