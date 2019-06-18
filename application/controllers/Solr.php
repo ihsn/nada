@@ -66,7 +66,7 @@ class Solr extends MY_Controller {
 
 	function dataset_to_json($start_row=NULL, $limit=10, $loop=FALSE)
 	{
-		$result=$this->solr_manager->dataset_to_json($start_row=NULL, $limit=10, $loop=FALSE);
+		$result=$this->solr_manager->dataset_to_json($start_row, $limit, $loop_=FALSE);
 
 		var_dump($result);
 		
