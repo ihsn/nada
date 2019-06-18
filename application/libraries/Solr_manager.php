@@ -1112,13 +1112,13 @@ class Solr_manager{
 			//survey repositories
 			$row['repositories']=$this->get_survey_repositories($row['survey_uid']);
 			//survey years
-            $rows['years']=$this->get_survey_years($row['survey_uid']);
+            $row['years']=$this->get_survey_years($row['survey_uid']);
             
             //metadata
 			//$rows[$key]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
 			
 			//array of variable keywords
-			$rows['var_keywords']=$this->get_survey_variables($row['survey_uid']);
+			$row['var_keywords']=$this->get_survey_variables($row['survey_uid']);
 
 			//row survey id
 			$last_row_id=$row['survey_uid'];
