@@ -1077,7 +1077,8 @@ class Solr_manager{
             surveys.varcount,
             surveys.published,
             surveys.total_views,
-            surveys.keywords,
+			surveys.keywords,
+			surveys.metadata,
             surveys.authoring_entity,
             surveys.total_downloads",FALSE);
         $this->ci->db->join("forms","surveys.formid=forms.formid","left");
@@ -1115,7 +1116,7 @@ class Solr_manager{
             $row['years']=$this->get_survey_years($row['survey_uid']);
             
             //metadata
-			//$rows[$key]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
+			$row['metadata']=$this->ci->Dataset_model->decode_metadata($row['metadata']);
 			
 			//array of variable keywords
 			$row['var_keywords']=$this->get_survey_variables($row['survey_uid']);
