@@ -64,6 +64,17 @@ class Solr extends MY_Controller {
         }
 	}
 
+	function dataset_to_json($start_row=NULL, $limit=10, $loop=FALSE)
+	{
+		$result=$this->solr_manager->dataset_to_json($start_row=NULL, $limit=10, $loop=FALSE);
+
+		var_dump($result);
+		
+		if($loop ==true && $result['last_row_id'] > 0){
+            $this->dataset_to_json($result['last_row_id'], $limit, $loop);
+        }
+	}
+
 
 	/**
 	 *

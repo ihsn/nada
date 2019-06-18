@@ -538,11 +538,13 @@ class Solr_manager{
 	//get a single survey
 	public function get_survey_by_id($id)
 	{
+
 		//get survey record + study level metadata
 		$this->ci->db->select("1 as doctype,
 				surveys.id as survey_uid,
                 surveys.formid,
-                surveys.thumbnail,
+				surveys.thumbnail,
+				surveys.type as dataset_type,
 				surveys.idno as surveyid,
 				surveys.title,
 				nation,
@@ -558,7 +560,7 @@ class Solr_manager{
 				surveys.varcount,
 				surveys.published,
 				surveys.total_views,
-				surveys.metadata,
+				surveys.keywords,
 				surveys.total_downloads",FALSE);
 		$this->ci->db->join("forms","surveys.formid=forms.formid","left");
 		$this->ci->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
@@ -578,12 +580,16 @@ class Solr_manager{
 		$survey['repositories']=$this->get_survey_repositories($survey['survey_uid']);
 		//survey years
 		$survey['years']=$this->get_survey_years($survey['survey_uid']);
+
+		//variable keywords
+		//$survey['var_keywords']=$this->get_survey_variables($survey['survey_uid']);
+
 		//decode metadata and convert to text
-		if($survey['metadata']){
+		/*if($survey['metadata']){
 			$this->ci->load->helper('array');
 			$this->ci->load->model("Dataset_model");
 			$survey['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($survey['metadata']));
-		}
+		}*/
 		return $survey;
 	}
 
@@ -593,8 +599,8 @@ class Solr_manager{
 	public function add_survey($id)
 	{
 		$documents=array();
-		$documents[]=$this->get_survey_by_id($id);
-		$this->add_documents($documents,$commit=true);
+		$documents[]=$this->get_survey_by_id($id);		
+		$this->add_documents($documents,$id_prefix='',$commit=true);
 
 		//delete variables if exist
 		$this->delete_document('sid:'.$id);
@@ -1030,6 +1036,120 @@ class Solr_manager{
 			'citations'=>$citations
 		);
 	}
+
+
+
+
+/**
+	 *
+	 * recursive function to import all surveys
+	 *
+	 * @start_row start importing from a row number or NULL to start from first id
+	 * @limit number of records to read at a time
+	 * @loop whether to recursively call the function till the end of rows
+	 *
+	 * */
+	public function dataset_to_json($start_row=NULL, $limit=10, $loop=TRUE)
+	{
+		$start_time=date("h:i:s");
+        set_time_limit(0);
+        $this->ci->load->model("Dataset_model");
+        $this->ci->load->helper('array');
+
+		//concat('survey-', surveys.id)  as id,
+		$this->ci->db->select("
+			1 as doctype,
+            surveys.id,
+            surveys.thumbnail as thumbnail,
+            surveys.type as dataset_type,
+            surveys.id as survey_uid,
+            surveys.idno as idno,
+            surveys.formid,        
+            forms.model as form_model,
+            surveys.title as title,
+            nation,
+            surveys.year_start,
+            surveys.year_end,
+            surveys.repositoryid as repositoryid,
+            repositories.title as repo_title,
+            surveys.created,
+            surveys.changed,
+            surveys.varcount,
+            surveys.published,
+            surveys.total_views,
+            surveys.keywords,
+            surveys.authoring_entity,
+            surveys.total_downloads",FALSE);
+        $this->ci->db->join("forms","surveys.formid=forms.formid","left");
+        $this->ci->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
+        $this->ci->db->limit($limit);
+        $this->ci->db->order_by('surveys.id ASC');
+
+		if ($start_row){
+			$this->ci->db->where("surveys.id >",$start_row,false);
+		}
+
+		//echo "start time= ".date("H:i:s")."\r\n";		
+
+        $rows=$this->ci->db->get("surveys")->result_array();
+		////echo $this->ci->db->last_query();die();
+		//echo "\r\n".count($rows). "rows found\r\n";
+
+		//echo "finished reading db rows= ".date("H:i:s")."\r\n";
+		//die();
+
+		if (!$rows){
+			return false;
+		}
+
+		$last_row_id=NULL;
+
+		foreach($rows as $key=>$row)
+		{
+			//survey topics
+			//survey countries
+			$row['countries']=$this->get_survey_countries($row['survey_uid']);
+			//survey repositories
+			$row['repositories']=$this->get_survey_repositories($row['survey_uid']);
+			//survey years
+            $rows['years']=$this->get_survey_years($row['survey_uid']);
+            
+            //metadata
+			//$rows[$key]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
+			
+			//array of variable keywords
+			$rows['var_keywords']=$this->get_survey_variables($row['survey_uid']);
+
+			//row survey id
+			$last_row_id=$row['survey_uid'];
+
+			//print_r($row);die();
+
+			//save each document as json file
+			file_put_contents($output_file='imports/'.$row['survey_uid'].'.json',json_encode($row,JSON_PRETTY_PRINT));
+		}
+
+		//echo "finish time= ".date("H:i:s")."\r\n";
+
+		if ($loop==true){
+			//recursively call to fetch next batch of rows
+			$this->full_import_surveys($last_row_id,$limit,$loop);
+		}
+
+		return array(
+			'rows_processed'=>count($rows),
+			'last_row_id'=>$last_row_id,
+			'start_time'=>$start_time,
+			'end_time'=>date("h:i:s")
+		);
+	}
+
+	
+
+
+
+
+
 }// END  class
 
 /* End of file Solr.php */
