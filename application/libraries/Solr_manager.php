@@ -1133,7 +1133,7 @@ class Solr_manager{
 
 		if ($loop==true){
 			//recursively call to fetch next batch of rows
-			$this->full_import_surveys($last_row_id,$limit,$loop);
+			$this->dataset_to_json($last_row_id,$limit,$loop);
 		}
 
 		return array(
