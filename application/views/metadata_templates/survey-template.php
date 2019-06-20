@@ -119,7 +119,7 @@
 <?php $output['data_processing']= render_group('data_processing',
     $fields=array(
             "metadata.study_desc.method.data_collection.cleaning_operations"=>'text',
-            "metadata.study_desc.method.method_notes"=>'text'
+            "metadata.study_desc.method.data_collection.method_notes"=>'text'
             ),
     $metadata);
 ?>
@@ -128,7 +128,8 @@
 <!-- data_appraisal -->
 <?php $output['data_appraisal']= render_group('data_appraisal',
     $fields=array(
-            "metadata.study_desc.method.analysis_info.data_appraisal"=>'text'
+        "metadata.study_desc.method.analysis_info.sampling_error_estimates"=>'text',    
+        "metadata.study_desc.method.analysis_info.data_appraisal"=>'text'
             ),
     $metadata);
 ?>
@@ -138,7 +139,7 @@
 <?php $output['data_access']= render_group('data_access',
     $fields=array(
             "metadata.study_desc.data_access.dataset_use.contact"=>'array',
-            "metadata.study_desc.data_access.dataset_use.conf_dec.txt"=>'text',
+            "metadata.study_desc.data_access.dataset_use.conf_dec"=>'array_comma',
             "metadata.study_desc.data_access.dataset_use.conf_dec.form_url"=>'text',
             "metadata.study_desc.data_access.dataset_use.conditions"=>'text',
             "metadata.study_desc.data_access.dataset_use.cit_req"=>'text',
