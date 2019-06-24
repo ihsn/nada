@@ -7,7 +7,7 @@ class User_groups extends MY_Controller {
 		
 		$this->load->helper(array('form', 'url'));		
 		$this->load->library( array('form_validation','pagination') );
-       	$this->load->model('User_Groups_model');
+       	$this->load->model('User_groups_model');
 		
 		//menu language file
 		$this->lang->load('general');
@@ -18,17 +18,15 @@ class User_groups extends MY_Controller {
 		
 	}
 	
-	public function index() {
-		//get array of db rows		
+	public function index() 
+	{
 		$result['rows']=$this->_search();
-		
-		//load the contents of the page into a variable
 		$content=$this->load->view('user_groups/index', $result,true);
-	
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('user_groups_management'),true);
-	  	$this->template->render();	
+	  	$this->template->render();
 	}
+
 	
 	public function add() {
 		$this->edit();
@@ -38,17 +36,14 @@ class User_groups extends MY_Controller {
 	{
 		$this->html_form_url=site_url().'/admin/user_groups';		
 		
-		if (!is_numeric($id)  && $id!=NULL)
-		{
+		if (!is_numeric($id)  && $id!=NULL){
 			show_error('INVALID ID');
 		}
 		
-		if (is_numeric($id))
-		{
+		if (is_numeric($id)){
 			$this->html_form_url.='/edit/'.$id;
 		}
-		else
-		{
+		else{
 			$this->html_form_url.='/add';
 		}
 		
@@ -56,14 +51,13 @@ class User_groups extends MY_Controller {
 		$content=NULL;
 		
 		//edit page link
-		if ($this->input->post("linktype")==1)
-		{
+		if ($this->input->post("linktype")==1){
 			$this->edit_link($id);return;
 		}
 
 		//validation rules
 		$this->form_validation->set_rules('name', t('name'), 'xss_clean|trim|required|max_length[100]');
-		$this->form_validation->set_rules('description', t('description'), 'xss_clean|trim||max_length[255]');
+		$this->form_validation->set_rules('description', t('description'), 'xss_clean|trim|max_length[255]');
 		$this->form_validation->set_rules('group_type', t('group_type'), 'xss_clean|trim|required|max_length[45]');
 		$this->form_validation->set_rules('access_type', t('access_type'), 'xss_clean|trim|required|max_length[45]');
 				
@@ -80,69 +74,54 @@ class User_groups extends MY_Controller {
 			}
 			
 			//for non-admin accounts force access_type to NONE
-			if ($options['group_type']!='admin')
-			{
+			if ($options['group_type']!='admin'){
 				$options['access_type']='none';
 			}
 
 			//set pid
-			if (!is_numeric($options['pid']))
-			{
+			if (!is_numeric($options['pid'])){
 				$options['pid']=0;
 			}
 
-															
-			if ($id==NULL)
-			{
+			if ($id==NULL){
 				$options['pid']=0;
-				$db_result=$this->User_Groups_model->insert($options);
+				$db_result=$this->User_groups_model->insert($options);
 			}
-			else
-			{
+			else{
 				//update db
-				$db_result=$this->User_Groups_model->update($id,$options);
+				$db_result=$this->User_groups_model->update($id,$options);
 			}
 						
-			if ($db_result===TRUE)
-			{
+			if ($db_result===TRUE){
 				//update successful
 				$this->session->set_flashdata('message', t('form_update_success'));
-				
-				//redirect back to the list
 				redirect("admin/user_groups","refresh");
 			}
-			else
-			{
+			else{
 				//update failed
 				$this->form_validation->set_error(t('form_update_fail'));
 			}
 		}
 		else //loading form the first time
 		{
-				if ( is_numeric($id) )
-				{
+				if ( is_numeric($id) ){
 					//get menu from db
-					$obj=$this->User_Groups_model->select_single($id);
+					$obj=$this->User_groups_model->select_single($id);
 								
-					if (!$obj)
-					{
+					if (!$obj){
 						show_error("INVALID ID");
 					}
 				
-					$obj=(object)$obj;
-				
+					$obj=(object)$obj;				
 				}
 		}
 
 		//show form
 		$content=$this->load->view('user_groups/edit',$obj,true);									
-				
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-		
-		//render final output
 	  	$this->template->render();								
 	}
+	
 	
 	
 	function delete($id)
@@ -202,7 +181,7 @@ class User_groups extends MY_Controller {
 			foreach($delete_arr as $item)
 			{
 				//confirm delete	
-				$this->User_Groups_model->delete($item);
+				$this->User_groups_model->delete($item);
 			}
 
 			//for ajax calls, return output as JSON						
@@ -256,17 +235,17 @@ class User_groups extends MY_Controller {
 		}		
 		
 		//records
-		$rows=$this->User_Groups_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+		$rows=$this->User_groups_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
 
 		//total records in the db
-		$total = $this->User_Groups_model->search_count();
+		$total = $this->User_groups_model->search_count();
 
 		if ($offset>$total)
 		{
 			$offset=$total-$per_page;
 			
 			//search again
-			$rows=$this->User_Groups_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+			$rows=$this->User_groups_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
 		}
 		
 		//set pagination options

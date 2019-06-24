@@ -13,7 +13,7 @@ $options_access=array(
 );
 
 ?>
-<div class="content-container">
+<div class="container-fluid content-container">
 <?php 	$this->load->view('user_groups/navigation_links');  ?>
 
 <h1 class="page-name"><?php echo isset($id) ? t('user_groups_edit') : t('user_groups_add'); ?></h1>
@@ -30,31 +30,29 @@ $options_access=array(
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 <?php echo form_open($this->html_form_url, array('class'=>'form') ); ?>
-    <div class="field">
+    <div class="form-group">
         <label for="name"><?php echo t('name');?><span class="required">*</span></label>
-        <input class="input-flex" name="name" type="text" id="name"  value="<?php echo get_form_value('name',isset($name) ? $name : ''); ?>"/>
+        <input class="form-control" name="name" type="text" id="name"  value="<?php echo get_form_value('name',isset($name) ? $name : ''); ?>"/>
         <input type="hidden" name="pid" value="<?php echo get_form_value('pid',isset($pid) ? $pid : ''); ?>"/>
     </div>
 
- 
-           
-    <div class="field">
+    <div class="form-group">
         <label for="description"><?php echo t('description');?></label>
-        <textarea id="body" class="input-flex"  name="description" rows="10"><?php echo get_form_value('description',isset($description) ? $description : ''); ?></textarea>        
+        <textarea id="body" class="form-control"  name="description" rows="10"><?php echo get_form_value('description',isset($description) ? $description : ''); ?></textarea>        
     </div>
 
-    <div class="field">
+    <div class="form-group">
         <label for="group_type"><?php echo t('group_type');?></label>
         <?php echo form_dropdown('group_type', $options_groups, get_form_value("group_type",isset($group_type) ? $group_type : '')); ?>
     </div>
     
-    <div class="field">
+    <div class="form-group">
         <label for="access_type"><?php echo t('access_type');?></label>
 		<?php echo form_dropdown('access_type', $options_access, get_form_value("access_type",isset($access_type) ? $access_type : '')); ?>
 	</div>
 <?php
  //edit user
-	echo form_submit('submit',t('update'),'id="btnupdate"'); 
+	echo form_submit('submit',t('update'),'id="btnupdate" class="btn btn-primary"'); 
  	echo anchor('admin/user_groups',t('cancel'));	
 ?>
 
