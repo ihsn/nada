@@ -37,7 +37,8 @@ class Study extends MY_Controller {
 
 	//study metadata
 	function metadata($sid=NULL)
-	{$this->load->helper('array');
+	{
+		$this->load->helper('array');
 		$survey=$this->Dataset_model->get_row_detailed($sid);
 
 		if (!$survey){
