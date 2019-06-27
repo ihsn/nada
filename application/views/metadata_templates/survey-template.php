@@ -33,8 +33,7 @@
             "metadata.study_desc.series_name"=>'text',
             "metadata.study_desc.series_info"=>'text',            
             "metadata.study_desc.study_info.abstract"=>'text',
-            "metadata.study_desc.study_info.data_kind"=>'text',
-            "metadata.study_desc.study_info.analysis_unit"=>'text'            
+            "metadata.study_desc.study_info.data_kind"=>'text'            
     ),
     $metadata);
 ?>
