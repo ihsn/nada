@@ -41,15 +41,15 @@ p.msg{font-size:14px;margin-bottom:10px;}
 <?php endif;?>
 <div class="select-repository">
 <?php foreach($repos as $repo):?>
-	<div class="repo-row" data-url="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['repo_id']; ?>" >
+	<div class="repo-row" data-url="<?php echo site_url('/admin/repositories/active/'.$repo['id']);?>" >
 			<div class="thumbnail">
-            	<a href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['repo_id']; ?>">
+            	<a href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['id']; ?>">
                 <img src="<?php echo $repo['thumbnail']; ?>" alt="Collection"/>
             	</a>
             </div>
             <div class="body">
 			<h2 class="repo-title">
-            	<a href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['repo_id']; ?>"><?php echo $repo['title']; ?></a> 
+            	<a href="<?php echo site_url();?>/admin/repositories/active/<?php echo $repo['id']; ?>"><?php echo $repo['title']; ?></a> 
                 <span class="repository-id"> - <?php echo $repo['repositoryid']; ?></span>
             </h2>
             <div class="repo-text"><?php echo $repo['short_text']; ?></div>
