@@ -303,7 +303,11 @@ class Dataset_microdata_model extends Dataset_model {
 	{
 		$output=array();
 
-        $output['title']=$this->get_array_nested_value($options,'study_desc/title_statement/title');
+        $title=array();
+        $title[]=$this->get_array_nested_value($options,'study_desc/title_statement/title');
+        $title[]=$this->get_array_nested_value($options,'study_desc/title_statement/sub_title');
+        $title=array_filter($title);
+        $output['title']=implode(", ",$title);
         $output['idno']=$this->get_array_nested_value($options,'study_desc/title_statement/idno');
 
         $nations=(array)$this->get_array_nested_value($options,'study_desc/study_info/nation');
