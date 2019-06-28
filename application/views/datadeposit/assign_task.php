@@ -8,7 +8,7 @@
     .field-submit{clear:both;margin-top:20px;}
 </style>
 
-<div class="content-container">
+<div class="container-fluid content-container">
 
     <?php if (validation_errors() ) : ?>
         <div class="error">
@@ -53,7 +53,7 @@
 
 
     <div class="field field-submit">
-        <input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
+        <input type="submit" name="submit" id="submit" class="btn btn-primary" value="<?php echo t('submit'); ?>" />
         <?php echo anchor('admin/datadeposit/', t('cancel'));?>
     </div>
     <?php echo form_close();?>

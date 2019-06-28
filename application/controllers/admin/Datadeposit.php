@@ -458,7 +458,7 @@ class Datadeposit extends MY_Controller {
 			foreach($delete_arr as $item)
 			{
 				//log
-				$this->db_logger->write_log('data-deposit',$this->session->userdata('username'). ' deleted project '.$item. ' - '.$this->Projects_model->get_title_by_id($item) ,'delete');
+				$this->db_logger->write_log('data-deposit',$this->session->userdata('username'). ' deleted project '.$item. ' - '.$this->DD_project_model->get_title_by_id($item) ,'delete');
 
 				
 				//delete
