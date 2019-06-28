@@ -2,7 +2,7 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
-class Resources extends REST_Controller
+class Resources extends MY_REST_Controller
 {
 	public function __construct()
 	{

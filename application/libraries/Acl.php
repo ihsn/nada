@@ -444,10 +444,18 @@ class ACL
 		//get licensed request information		
 		$request=$this->ci->Licensed_model->get_request_by_id($request_id);
 		$request_repo='';
-		
-		if ($request['request_type']=='study')
+
+		if (isset($request['surveys']))
 		{
-			$request_repo=$this->get_survey_owner_repos($request['surveyid']);
+			$id_=array_keys($request['surveys']);
+			
+			if(!is_array($id_)){
+				return false;
+			}
+
+			$id_=$id_[0];
+			
+			$request_repo=$this->get_survey_owner_repos($id_);
 		}
 		else
 		{
