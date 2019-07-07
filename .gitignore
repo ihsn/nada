@@ -18,6 +18,5 @@ system.old
 patches
 .idea
 imports
-files/sessions
-files/public
+files
 sample
