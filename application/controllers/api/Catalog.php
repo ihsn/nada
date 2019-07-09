@@ -405,8 +405,13 @@ class Catalog extends MY_REST_Controller
 	 * list study data files
 	 * 
 	 */
-	function datafiles_get($idno=null)
+	function data_files_get($idno=null, $fid=null)
 	{
+		if($fid)
+		{
+			return $this->data_file_single_get($idno, $fid);
+		}
+
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -437,13 +442,98 @@ class Catalog extends MY_REST_Controller
 		}
 	}
 
+
+	/**
+	 * 
+	 * Return a single data file by file ID
+	 * 
+	 */
+	function data_file_single_get($idno=null, $fid=null)
+	{
+
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+
+			$user_id=$this->get_api_user_id();        
+			$survey=$this->Dataset_model->get_row($sid);
+
+			if(!$survey){
+				throw new exception("STUDY_NOT_FOUND");
+			}
+
+			$file=$this->Data_file_model->get_file_by_id($sid,$fid);
+
+			if(!$file){
+				throw new exception("ID-NOT-FOUND");
+			}
+			
+			$response=array(
+				'datafile'=>$file
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * List variables by data file
+	 * 
+	 */
+	function data_file_variables_get($idno=null,$file_id=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$user_id=$this->get_api_user_id();        
+			$survey=$this->Dataset_model->get_row($sid);
+
+			if(!$survey){
+				throw new exception("STUDY_NOT_FOUND");
+			}
+
+			if($file_id==null){
+				throw new exception("FILE-ID-REQUIRED");
+			}
+
+			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
+			
+			$response=array(
+				'total'=> count($survey_variables),
+				'variables'=>$survey_variables
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 	/**
 	 * 
 	 * List dataset variables
 	 * 
 	 */
-	function variables_get($idno=null,$file_id=null)
+	function variables_get($idno=null,$var_id=null)
 	{
+
+		if($var_id){
+			return $this->variable_get($idno, $var_id);
+		}
+
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$user_id=$this->get_api_user_id();        
@@ -459,6 +549,7 @@ class Catalog extends MY_REST_Controller
 			//array_walk($project, 'unix_date_to_gmt_row',array('created','changed','submitted_date','administer_date'));
 
 			$response=array(
+				'total'=> count($survey_variables),
 				'variables'=>$survey_variables
 			);
 

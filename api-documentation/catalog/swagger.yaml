@@ -374,7 +374,7 @@ paths:
           schema:
             $ref: '#/definitions/Catalog'  
 
-  /catalog/{IDNo}/data_files/{fileId}/variables/{varId}:
+  /catalog/{IDNo}/variables/{varId}:
     get:
       tags:
         - Catalog

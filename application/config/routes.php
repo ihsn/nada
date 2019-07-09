@@ -52,28 +52,6 @@ $route['404_override'] = 'page';
 $route['translate_uri_dashes'] = FALSE;
 
 
-//$route['home'] = "page/static_page";
-//$route['using-our-catalog'] = "page/static_page";
-//$route['practices-and-tools'] = "page/static_page";
-//$route['faqs'] = "page/static_page";
-
-
-//ddi browser
-//$route['ddibrowser/(:num)'] = "ddibrowser/index/$1";
-
-//data-catalog page
-//$route['catalog/(:num)/ddibrowser'] = "ddibrowser/$1";
-
-//data deposit api
-//$route['api/datadeposits/(:num)'] = "api/datadeposit/project/$1";
-
-//$route['api/datadeposits/user_projects'] = "api/datadeposit/user_projects";
-
-/*$route['api/datadeposits/(:num)'] = "api/datadeposits/projects/$1";
-$route['api/datadeposits'] = "api/datadeposits/projects";
-$route['api/datadeposits/update/(:num)'] = "api/datadeposits/projects_update/$1";
-*/
-
 
 ///////////////////////// API routes ////////////////////////////////////////
 
@@ -114,6 +92,16 @@ $route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
 
 $route['api/datasets/(:any)/thumbnail'] = "api/datasets/thumbnail/$1";
 
+//public api
+$route['api/catalog/(:any)/data_files/(.*)/variables'] = "api/catalog/data_file_variables/$1/$2";
+$route['api/catalog/(:any)/data_files/(.*)'] = "api/catalog/data_files/$1/$2";
+$route['api/catalog/(:any)/data_files'] = "api/catalog/data_files/$1";
+
+$route['api/catalog/(:any)/variables/(.*)'] = "api/catalog/variables/$1/$2";
+$route['api/catalog/(:any)/variables'] = "api/catalog/variables/$1";
+
+$route['api/catalog/(:any)/variable'] = "api/catalog/variable/$1";
+$route['api/catalog/(:any)/variable/(.*)'] = "api/catalog/variable/$1/$2";
 
 
 //Collections
