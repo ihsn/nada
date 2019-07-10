@@ -61,9 +61,18 @@ class MY_Controller extends CI_Controller
 			}
 			
 			//check user has access to the url
-			if (!$this->acl->user_has_url_access() )
-			{
+			if (!$this->acl->user_has_url_access() ){
 				show_error(t('ACCESS_DENIED'));
+			}
+			
+			if ($this->config->item("otp_verification")===1){
+				if ($this->session->userdata('verify_otp')!==1){
+					//otp expired or not set?
+					if (date("U")>$user->otp_expiry || !$user->otp_code){
+						$this->ion_auth->send_otp_code($user->id);
+					}
+					redirect('auth/verify_code');
+				}
 			}
 		}
 	}

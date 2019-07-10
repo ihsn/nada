@@ -56,6 +56,9 @@ ALTER TABLE `surveys` DROP `topic`;
 
 UPDATE `surveys` set `type`='survey';
 
+ALTER TABLE `users` ADD `otp_code` varchar(45) DEFAULT NULL;
+ALTER TABLE `users` ADD `otp_expiry` int(11) DEFAULT NULL;
+
 
 DROP TABLE IF EXISTS `variables`;
 
