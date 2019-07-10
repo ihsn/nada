@@ -1940,7 +1940,7 @@ class Ion_auth_model extends CI_Model
 	 */
 	function generate_otp_code()
 	{
-		$code=sprintf('%010d', mt_rand(1,9999999999));
+		$code=sprintf('%010d', mt_rand(1,mt_getrandmax()));
 		return $code;
 	}
 
