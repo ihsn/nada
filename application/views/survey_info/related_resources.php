@@ -54,6 +54,7 @@ $fields_arr=array(
                         $url=NULL;
                         $file_size='';
                         $link_text='';
+                        $is_url=false;
 
                         //check file/URL
                         if (substr($row['filename'],0,4)=='www.' 
@@ -62,6 +63,7 @@ $fields_arr=array(
                             || substr($row['filename'],0,6)=='ftp://')
                         {
                             $url=prep_url($row['filename']);
+                            $is_url=true;
                         }
                         elseif (trim($row['filename'])!=='' 
                             && check_resource_file($survey_folder.'/'.$row['filename'])!==FALSE )
@@ -83,7 +85,8 @@ $fields_arr=array(
                                     id="<?php echo $row['resource_id'];?>">
                                     <i class="fa fa-plus-square-o icon-expand" aria-hidden="true"></i>
                                     <i class="fa fa-minus-square-o icon-collapsed" aria-hidden="true"></i>
-                                    <?php echo $row['title'];?>                                 
+                                    <?php echo $row['title'];?> 
+                                    <?php //var_dump($row);?>                                
                                 </span>
                                 </div>
 
@@ -106,7 +109,12 @@ $fields_arr=array(
                                 ?>
                                     <a  target="_blank" 
                                         href="<?php echo $url;?>" 
-                                        title="<?php echo basename($row['filename']);?>" 
+                                        title="<?php echo html_escape(basename($row['filename']));?>"
+                                        data-filename="<?php echo html_escape(basename($row['filename']));?>"
+                                        data-dctype="<?php echo html_escape($row['dctype']);?>"
+                                        data-isurl="<?php echo (int)$is_url;?>"
+                                        data-extension="<?php echo html_escape($ext);?>"
+                                        data-sid="<?php echo $row['survey_id'];?>"
                                         class="download btn btn-outline-primary btn-sm btn-block">
                                             <i class="fa fa-arrow-circle-down" aria-hidden="true"></i> 
                                             <?php echo $download_str;?>

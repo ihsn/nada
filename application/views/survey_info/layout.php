@@ -11,6 +11,12 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 ?>
 
 <div class="page-body-full study-metadata-page">
+	<span 
+		id="dataset-metadata-info" 
+		data-repositoryid="<?php echo $survey['owner_repo']['repositoryid'];?>"
+		data-id="<?php echo $survey['id'];?>"
+		data-idno="<?php echo $survey['idno'];?>"
+	></span>
 
 <div class="container-fluid page-header">
 <div class="container">
@@ -25,12 +31,12 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 <?php 
 	$sub_title=array();
 	if ($survey['nation']!=''){
-		$sub_title[]=$survey['nation'];
+		$sub_title[]='<span id="dataset-country">'.$survey['nation'].'</span>';
 	}
 	$dates=array_unique(array($survey['year_start'],$survey['year_end']));
 	$dates=implode(" - ", $dates);
 	if(!empty($dates)){
-		$sub_title[]=$dates;
+		$sub_title[]='<span id="dataset-year">'.$dates.'</span>';
 	}
 	$sub_title=implode(", ", $sub_title);
 ?>
@@ -59,8 +65,8 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 	</div>
 	<?php endif;?>		
 	<div class="col-md-10">
-		<h1 class="mt-0 mb-1"><?php echo $survey_title;?></h1>
-		<h6 class="sub-title"><?php echo $sub_title;?>
+		<h1 class="mt-0 mb-1" id="dataset-title"><?php echo $survey_title;?></h1>
+		<h6 class="sub-title" id="dataset-sub-title"><?php echo $sub_title;?>
 
 		<?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?>                    
 			<?php foreach($survey['repositories'] as $repository):?>
