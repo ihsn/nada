@@ -745,6 +745,8 @@ class Dataset_model extends CI_Model {
 	*/
 	function set_dataset_owner_repo($sid,$repositoryid)
 	{
+		$this->unset_dataset_owner_repo(($sid));
+		
 		$data=array(
 				'sid'=>$sid,
 				'repositoryid'=>$repositoryid,
@@ -759,6 +761,19 @@ class Dataset_model extends CI_Model {
 		//add new info
 		$this->db->insert('survey_repos',$data);
 		return TRUE;
+	}
+
+	
+
+	/**
+	 * 
+	 * Unset the dataset owner repo
+	 */
+	function unset_dataset_owner_repo($sid)
+	{
+		$this->db->where('isadmin',1);
+		$this->db->where('sid',$sid);
+		$this->db->delete('survey_repos');
 	}
 
 	

@@ -89,7 +89,10 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->db->trans_start();
 				
 		//insert record
-		$dataset_id=$this->insert($type,$options);
+        $dataset_id=$this->insert($type,$options);
+        
+        //set owner repo
+        $this->Dataset_model->set_dataset_owner_repo($dataset_id,$options['repositoryid']); 
 
 		//update years
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
@@ -192,10 +195,13 @@ class Dataset_microdata_model extends Dataset_model {
         }
 
 		//start transaction
-		$this->db->trans_start();
+		$this->db->trans_start(); 
 
 		//update
-		$this->update($sid,$type,$options);
+        $this->update($sid,$type,$options);
+        
+        //set owner repo
+        $this->Dataset_model->set_dataset_owner_repo($sid,$options['repositoryid']); 
 
 		//update years
 		$this->update_years($sid,$options['year_start'],$options['year_end']);
