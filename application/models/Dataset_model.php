@@ -541,6 +541,8 @@ class Dataset_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		$this->delete_storage_folder($id);
+
 		$this->db->where('id', $id); 
 		$deleted=$this->db->delete('surveys');
 		
@@ -591,7 +593,29 @@ class Dataset_model extends CI_Model {
 			$this->db->delete('survey_notes');
 		}		
 	}
-	
+
+
+	function delete_storage_folder($sid)
+	{
+		$dataset_folder=$this->get_storage_fullpath($sid);
+		$catalog_root=get_catalog_root();
+
+		if($catalog_root=='' || $dataset_folder==''){
+			return false;
+		}
+
+		if($catalog_root==$dataset_folder){
+			return false;
+		}
+
+		if (!strpos($dataset_folder, $catalog_root) === 0 ) {
+			return false;
+		}
+		
+		remove_folder($dataset_folder);
+
+		return true;
+	}	
 	
 	
 	//is survey published
