@@ -136,9 +136,101 @@ class Auth extends MY_Controller {
 			redirect("auth/login/?destination=$destination", 'refresh');
     	}
 	}
+	
+	
+	 //log the user in
+    function login() 
+    {	
+		if ($this->ion_auth->logged_in())
+		{
+			redirect($this->config->item('base_url'), 'refresh');
+		}
+	
+		$this->template->set_template('blank');
+		$this->template->add_css('themes/nada3/login.css');
+        $this->data['title'] = t("login");
+		
+		$this->load->library("wb_auth");
+		
+//		if ($this->input->post("submit"))
+//		{
+			$user= new stdclass();
+			$user->upi=$this->input->server("HTTP_SM_USER");
+			$user->fname=$this->input->server("HTTP_FIRSTNAME");
+			$user->lname=$this->input->server("HTTP_LASTNAME");
+			$user->email=$this->input->server("HTTP_MAIL");
+			
+			$additional_data = array(
+									'first_name' => $user->fname,
+        							'last_name'  => $user->lname,
+        							'company'    => 'WB',
+									'email'		=>$user->email,
+									'identity'	=>$user->email
+        							);
+			
+			
+			/*echo '<pre>';
+			var_dump($user);
+			var_dump($_SERVER);
+			exit;
+			*/
+						
+			if (!$user->upi)
+			{
+				show_error('UPI_NOT_FOUND');
+			}
+			
+			//check user is already registered
+			$user_info=$this->ion_auth_model->get_user_by_email($user->email);
+			$user_info=$user_info->result_array();
+			
+			if (is_array($user_info) && count($user_info)>0)
+			{			
+				//login to site			
+				$this->wb_auth->passkey_login($user->email,$user->upi);
+			}
+			else
+			{				
+				//register user if not already registered
+				$this->ion_auth_model->register($user->fname." ".$user->lname, md5(date("U")), $user->email, $additional_data, $group_name='user', $auth_type="passkey");
 
+				//login to site			
+				$this->wb_auth->passkey_login($user->email,$user->upi);
+			}
+			
+			//log
+			$this->db_logger->write_log('login',$this->input->post('email'));
+			
+			
+			$destination=$this->session->userdata("destination");
+
+			if ($destination!="")
+			{
+				redirect($destination, 'refresh');	
+			}
+			else
+			{
+				redirect($this->config->item('base_url'), 'refresh');
+			}
+			return;
+	/*	}
+		else
+		{
+			$content=$this->load->view('auth/auto_login', NULL,TRUE);
+		}	
+*/		
+		//pass data to the site's template
+		$this->template->write('content', $content,true);
+		
+		//set page title
+		$this->template->write('title', t('login'),true);
+
+		//render final output
+		$this->template->render();	
+    }
+	
     //log the user in
-    function login()
+    function alternate() 
     {
 		$this->template->set_template('blank');
         $this->data['title'] = t("login");
@@ -237,12 +329,31 @@ class Auth extends MY_Controller {
     }
 
     //log the user out
-	function logout()
+	function logout() 
 	{
         $this->disable_page_cache();
 		$this->data['title'] = t("logout");
         $logout = $this->ion_auth->logout();
-        redirect('', 'refresh');
+		
+		//redirect to bank's SECUREID logout page
+		redirect('https://wbssoexte.worldbank.org/logout.jsp?TARGET='.site_url(),'refresh');
+		
+        //redirect them back to the page they came from
+        //redirect('', 'refresh');
+    }
+    
+	/**
+	*
+	* Callback function to enforce Alphanumeric passwords 
+	*
+	**/
+	function _password_strength($str)
+	{
+	   if (preg_match('#[0-9]#', $str) && preg_match('#[a-zA-Z]#', $str)) {
+		 return TRUE;
+	   }
+	   $this->form_validation->set_message('_password_strength', t('validation_weak_password') );
+	   return FALSE;
 	}
 	
 
