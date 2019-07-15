@@ -190,6 +190,13 @@ $route['admin/catalog/(:num)/resources/fixlinks'] = "admin/resources/fixlinks/$1
 $route['admin/catalog/(:num)/edit'] = "admin/catalog/edit/$1";
 $route['admin/catalog/(:num)/resources/import'] = "admin/resources/import";
 
+//data deposit
+$route['admin/datadeposit/tasks/info/(.*)'] = "admin/datadeposittasks/info/$1";
+$route['admin/datadeposit/tasks/update/(:num)/(:num)'] = "admin/datadeposittasks/update/$1/$2";
+$route['admin/datadeposit/tasks/delete/(:num)'] = "admin/datadeposittasks/delete/$1";
+
+
+
 //licensed files
 $route['admin/licensed_files/files/(:num)/add'] = "admin/licensed_files/add/$1";
 
