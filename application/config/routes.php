@@ -194,6 +194,7 @@ $route['admin/catalog/(:num)/resources/import'] = "admin/resources/import";
 $route['admin/datadeposit/tasks/info/(.*)'] = "admin/datadeposittasks/info/$1";
 $route['admin/datadeposit/tasks/update/(:num)/(:num)'] = "admin/datadeposittasks/update/$1/$2";
 $route['admin/datadeposit/tasks/delete/(:num)'] = "admin/datadeposittasks/delete/$1";
+$route['admin/datadeposit/tasks/my_tasks'] = "admin/datadeposittasks/my_tasks";
 
 
 
