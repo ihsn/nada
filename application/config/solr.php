@@ -16,9 +16,9 @@
 |
 | 
 */
-$config['solr_host'] = "localhost";
+$config['solr_host'] = "w0lxqw0lxpmeh01";
 $config['solr_port'] = "8983";
-$config['solr_collection'] = "/solr/nada/";
+$config['solr_collection'] = "/solr/microdatalib/";
 
 
 
@@ -42,7 +42,33 @@ $config['solr_collection'] = "/solr/nada/";
   * edit managed-schema  - add following fields
   *
   **/ 
+/*
 
+  <fieldType name="text_en_var" class="solr.TextField" positionIncrementGap="100">
+  <analyzer type="index">
+    <tokenizer class="solr.StandardTokenizerFactory"/>
+    <filter class="solr.StopFilterFactory" words="stopwords_en.txt" ignoreCase="true"/>
+    <filter class="solr.LowerCaseFilterFactory"/>
+    <filter class="solr.EnglishPossessiveFilterFactory"/>
+    <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+    <filter class="solr.PorterStemFilterFactory"/>
+    <!-- remove all numeric values except when numbers are part of text -->
+    <filter class="solr.PatternReplaceFilterFactory" pattern="\b([0-9]+)\b" replacement="" replace="all" />
+    <!-- remove strings with length <3 -->
+    <filter class="solr.PatternReplaceFilterFactory" pattern="\b\w{1,2}\b" replacement="" replace="all" />        
+  </analyzer>
+  <analyzer type="query">
+    <tokenizer class="solr.StandardTokenizerFactory"/>
+    <filter class="solr.SynonymFilterFactory" expand="true" ignoreCase="true" synonyms="synonyms.txt"/>
+    <filter class="solr.StopFilterFactory" words="lang/stopwords_en.txt" ignoreCase="true"/>
+    <filter class="solr.LowerCaseFilterFactory"/>
+    <filter class="solr.EnglishPossessiveFilterFactory"/>
+    <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+    <filter class="solr.PorterStemFilterFactory"/>
+  </analyzer>
+</fieldType>
+
+*/
 /*
     <fieldType name="text_en_var" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
