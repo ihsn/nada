@@ -231,7 +231,7 @@ $config['directory_trigger'] = 'd';
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 1;
+$config['log_threshold'] = 0;
 
 /*
 |--------------------------------------------------------------------------
@@ -678,7 +678,7 @@ $config['filestore_path']='files/public';
 |
 */
 
-$config['search_provider']='db';
+$config['search_provider']='solr';
 
 
 

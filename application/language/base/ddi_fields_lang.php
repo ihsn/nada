@@ -248,7 +248,7 @@ $lang['var_vald']='Valid';
 $lang['var_intrvl']='Interval';
 $lang['var_invd']='Invalid';
 $lang['var_dcml']='Decimal';
-$lang['var_range']='Range';
+$lang['range']='Range';
 $lang['var_catgry']='Categories';
 $lang['var_txt']='Text';
 $lang['var_concept']='Concept';
@@ -288,3 +288,4 @@ $lang['var_qstn_ivulnstr']='Interviewer instructions';
 
 $lang['data_file']='Data file';
 $lang['overview']='Overview';
+$lang['contacts']='Contacts';

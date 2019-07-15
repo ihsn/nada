@@ -77,14 +77,14 @@ class Catalog extends MY_Controller {
 		//get surveys
 		$db_rows=$this->_search();
 
+		//get survey tags
+		$this->catalog_tags=$this->Catalog_model->get_all_survey_tags($this->active_repo->repositoryid);
+
+		//get country list for filter
+		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
+
 		if ($db_rows['rows'])
 		{
-			//get survey tags
-			$this->catalog_tags=$this->Catalog_model->get_all_survey_tags($this->active_repo->repositoryid);
-
-			//get country list for filter
-			$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
-
 			$sid_list=array();
 			foreach($db_rows['rows'] as $row)
 			{
@@ -108,60 +108,16 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
-
-
-
-	//remember search via cookies
-	function _persist_search()
-	{
-		if ($this->input->get('reset'))
-		{
-			//reset cookie
-			$cookie = array(
-			'name'   => 'catalog_search',
-			'value'  => '',
-			'expire' => '86500'
-			);
-
-			$this->input->set_cookie($cookie);
-			return;
-		}
-
-		if ($this->input->server('QUERY_STRING'))
-		{
-			$cookie = array(
-			'name'   => 'catalog_search',
-			'value'  => $this->input->server('QUERY_STRING'),
-			'expire' => '86500'
-			);
-
-			$this->input->set_cookie($cookie);
-			return;
-		}
-
-		//check for search querystring in cookie
-		$search_qs=$this->input->cookie('catalog_search');
-		if ($search_qs!='')
-		{
-			//echo $search_qs;exit;
-			redirect('admin/catalog/?'.$search_qs);exit;
-		}
-	}
-
-
+	
 
 	function search()
 	{
-		$this->_persist_search();
-
-		if (isset($this->active_repo) && $this->active_repo!=null)
-		{
+		if (isset($this->active_repo) && $this->active_repo!=null){
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 
 		$data= $this->_search();
 		$data['active_repo_obj']=$this->active_repo;
-
 		$this->load->view('catalog/search', $data);
 	}
 
@@ -292,104 +248,11 @@ class Catalog extends MY_Controller {
 			}
 		}//endif
 
-
+		$data['total_found']=$total;
 		return $data;
 	}
 
-
-	/**
-	* returns a list of citations without the site template
-	*
-	* NOTE: to be used for loading citations using ajax
-	* TODO://check if not used, remove it
-	*/
-	function getcitations()
-	{
-		$db_rows=$this->_search();
-
-		//get citations
-		$db_rows=$this->_search();
-
-		//hides the search form
-		$db_rows['hide_form']=TRUE;
-
-		//render the page without the template
-		$this->load->view('catalog/index', $db_rows);
-	}
-
-	/**
-	 * Survey - get survey row by id
-	 *
-	 * @return array
-	 **/
-	function survey($id=NULL)
-	{
-		if ( !is_numeric($id) )
-		{
-			show_error('Invalid parameters were passed');
-		}
-
-		$active_repository=FALSE;
-		//get active repository
-		if (isset($this->active_repo) && $this->active_repo!=NULL)
-		{
-			$active_repository=$this->active_repo->repositoryid;
-		}
-
-		//get the survey info from db
-       	$survey_row=$this->Catalog_model->select_single($id,$active_repository);
-
-		//check if survey has citations
-		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
-
-		if (!empty($survey_row) )
-		{
-			$this->load->view('catalog/survey_info', $survey_row);
-		}
-		else
-		{
-			show_error('Survey was not found');
-		}
-	}
-
-
-
-
-	/**
-	 * upload files to survey folder
-	 * used for uploading survey reports,technical docs
-	 *
-	 * TODO: NO LONGER IN USE. REMOVE
-	 *
-	 * @return array
-	 */
-	function __upload_file($key,$destination)
-	{
-		if ($_FILES[$key]['size']==0)
-		{
-			return false;
-		}
-
-		$config['encrypt_name']	 = TRUE;
-		$config['upload_path'] = $destination;
-		$config['allowed_types'] = 'xml';
-		$config['overwrite'] = true;
-
-		$this->load->library('upload', $config);
-
-		if ( ! $this->upload->do_upload($key))
-		{
-			//failed
-			throw new Exception( $this->upload->display_errors() );
-		}
-		else
-		{
-			$data = $this->upload->data();
-			return $data;
-		}
-	}
-
-
+	
 	//return temp upload folder path
 	private function get_temp_upload_folder()
 	{
@@ -422,15 +285,7 @@ class Catalog extends MY_Controller {
 	}
 
 
-	/**
-	 * Upload ddi and rdf files to tmp folder
-	 *
-	 * @return - array of uploaded files
-	 *
-	 **/
-	private function upload_files_to_temp()
-	{
-	}	
+	
 
 
 	function upload()
@@ -749,11 +604,19 @@ class Catalog extends MY_Controller {
 				'errors'=>$e->GetValidationErrors()
 			);
 
-			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';			
+			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';
+			
+			if ($is_ajax){
+				die (json_encode(array('error'=>$error_str) ));
+			}
+
 			$this->session->set_flashdata('error', $error_str);
 			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
 		catch(Exception $e){
+			if ($is_ajax){
+				die (json_encode(array('error'=>$e->getMessage()) ));
+			}
 			$this->session->set_flashdata('error', $e->getMessage());
 			redirect('admin/catalog/edit/'.$id,'refresh');return;
 		}
@@ -1168,17 +1031,7 @@ class Catalog extends MY_Controller {
 	}
 
 
-	/**
-	*
-	* Update survey data collection dates to use the survey_years table
-	*
-	* TODO://REMOVE
-	*/
-	/*
-	function update_years()
-	{
-		$this->Catalog_model->batch_update_collection_dates();
-	}*/
+	
 
 
 

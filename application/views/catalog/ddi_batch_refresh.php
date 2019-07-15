@@ -4,7 +4,9 @@
 <?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
 
 <h1 class="page-title"><?php echo t('ddi_batch_refresh_title');?></h1>
-<p><?php echo t('refresh_ddi_description');?></p>
+<p><?php echo t('refresh_ddi_description');?> <input type="button" class="btn btn-primary" name="refresh" value="<?php echo t('btn_refresh');?>" onclick="batch_import.process();"/></p>
+	
+
 <div>
 
 <?php if ( count($surveys)==0 || $surveys===false) :?>
@@ -23,10 +25,9 @@
     <div id="batch-import-log" ></div>
 </div>
 
-<?php echo form_open_multipart('admin/catalog/batch_refresh', array('class'=>'form')	 );?>
-<input type="button" name="refresh" value="<?php echo t('btn_refresh');?>" onclick="batch_import.process();"/>
+<?php echo form_open_multipart('admin/catalog/batch_refresh', array('class'=>'form'));?>
 
-<table class="grid-table" width="100%" cellspacing="0" cellpadding="0"> 
+<table class="grid-table table table-striped" width="100%" cellspacing="0" cellpadding="0"> 
 <tr align="left" class="header">
 	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
     <th><?php echo t('id');?></th>
@@ -42,7 +43,7 @@
     </tr>
 <?php endforeach;?>
 </table>
-<input type="button" name="refresh" value="<?php echo t('btn_refresh');?>" onclick="batch_import.process();"/>
+<input class="btn btn-primary" type="button" name="refresh" value="<?php echo t('btn_refresh');?>" onclick="batch_import.process();"/>
 <?php echo form_close();?>
 </div>
 

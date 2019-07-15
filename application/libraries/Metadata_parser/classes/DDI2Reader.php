@@ -34,6 +34,7 @@ class DDI2Reader
                 '@ID' => 'id',
                 '@URI' => 'uri',
                 'fileTxt/fileName' => 'filename',
+                'fileTxt/fileName/@ID' => 'file_id',
                 'fileTxt/dimensns/caseQnty' => 'caseQnty',
                 'fileTxt/dimensns/varQnty' => 'varQnty',
                 'fileTxt/fileType' => 'filetype',
@@ -353,7 +354,7 @@ class DDI2Reader
             'cols' => array(
                 '.' => 'keyword',                
                 '@vocab'=>'vocab',
-                '@uri' => 'uri'
+                '@vocabURI' => 'uri'
             )
         );
 

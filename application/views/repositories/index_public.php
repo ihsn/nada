@@ -1,4 +1,3 @@
-
 <?php if ($sections):?>
 <div class="contributing-repos" >
 	<?php foreach($sections as $section_id=>$section): ?>    
@@ -14,7 +13,7 @@
 		?>
 		<?php if (trim($output)!=''):?>
         <div>
-            <h2 class="page-title"><?php echo $section;?></h2>
+            <h3 class="page-title"><?php echo $section;?></h3>
             <?php echo $output;?>
         </div>
 		<?php endif;?>

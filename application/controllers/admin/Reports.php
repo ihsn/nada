@@ -241,7 +241,7 @@ class Reports extends MY_Controller {
 		header("Cache-Control: public"); 
 		header("Content-Description: File Transfer");
 		
-		session_cache_limiter("must-revalidate");
+		//session_cache_limiter("must-revalidate");
         header('Content-Type: text/csv; charset=utf-8');
 		header('Content-Disposition: attachment; filename="'.$filename.'"');
 		
@@ -288,10 +288,10 @@ class Reports extends MY_Controller {
 		{		    
 		    if ($date_columns_found)
 		    {			
-			foreach($date_columns_found as $col)
-			{
-			    $row[$col]=date("M/d/Y H:i:s");
-			}			
+				foreach($date_columns_found as $col)
+				{
+					$row[$col]=date("M/d/Y H:i:s", $row[$col]);
+				}			
 		    }
 		    
 		    fputcsv($outstream, array_values($row));

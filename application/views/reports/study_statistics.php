@@ -14,8 +14,8 @@
 	}
 	else
 	{
-		$img_no='<img src="images/icon_cancel.gif"/>';
-		$img_yes='<img src="images/icon_cancel.gif"/>';
+		$img_no='&#10006;';
+		$img_yes='&#10003;';
 	}	
 ?>
 <?php if ($rows):?>
@@ -39,7 +39,7 @@
     <?php foreach($rows as $row):?>
     	<?php $variable_count+=$row['varcount']; ?>
         <tr>
-            <td style="background-color:#F5F5F5"><?php echo $row['titl'];?></td>
+            <td style="background-color:#F5F5F5"><?php echo $row['title'];?></td>
             <td><?php echo date("m/d/y",$row['changed']);?></td>
             <td><?php echo $row['varcount'];?></td>            
             <td><?php echo ($row['form_type'])=='' ? $img_no : $row['form_type'];?></td>

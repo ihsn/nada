@@ -1,6 +1,6 @@
 <?php $bootstrap_theme = 'themes/'.$this->template->theme();?>
 <div id="filter-by-access" class="sidebar-filter wb-ihsn-sidebar-filter filter-by-access filter-box filter-by-dtype">
-    <h6 class="togglable"> <i class="fa fa-filter pr-2"></i> Filter by Access</h6>
+    <h6 class="togglable"> <i class="fa fa-filter pr-2"></i> <?php echo t('filter_by_data');?></h6>
 
 <!--
     <div class="sidebar-filter-index search-help da-help" data-toggle="tooltip" data-placement="top" title="Tooltip for Help">
@@ -11,7 +11,7 @@
             <div class="form-check filter-da any">
                 <label class="form-check-label">
                     <input type="checkbox" class="form-check-input chk-da-any" id="chk-da-any"  <?php echo $search_options->dtype!="" ? '' : 'checked="checked"';?>>
-                    <small>All</small>
+                    <small><?php echo t('any');?></small>
                 </label>
             </div>
             <?php if (in_array('open',$da_types)):?>

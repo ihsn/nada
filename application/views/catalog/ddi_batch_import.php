@@ -52,7 +52,7 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 <?php endif; ?>
 
 <div>
-	<?php echo sprintf(t('import_ddi_files_found'),count($files));?> <input class="btn btn-default" type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
+	<?php echo sprintf(t('import_ddi_files_found'),count($files));?> <input class="btn btn-primary" type="button" name="import" value="<?php echo t('btn_import');?>" onclick="batch_import.process();"/>
     
     <div>
     

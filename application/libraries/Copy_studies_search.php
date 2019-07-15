@@ -20,7 +20,7 @@ class Copy_studies_search
     {
 	
 		$db_fields=array(
-				'title'			=> 'surveys.titl',
+				'title'			=> 'surveys.title',
 				'nation'		=> 'surveys.nation',
 				'repositoryid'	=> 'survey_repos.repositoryid',
 				'changed'		=> 'surveys.changed'
@@ -29,7 +29,7 @@ class Copy_studies_search
 		$where=$this->build_search_where($search_options);
 		
 		//set Limit clause
-	  	$this->ci->db->select('surveys.id,surveys.titl,surveys.nation,surveys.year_start,surveys.year_end,survey_repos.repositoryid,surveys.proddate,surveys.changed');
+	  	$this->ci->db->select('surveys.id,surveys.title,surveys.nation,surveys.year_start,surveys.year_end,survey_repos.repositoryid,surveys.changed');
 		$this->ci->db->join('forms', 'forms.formid= surveys.formid');
 		$this->ci->db->join('survey_repos', 'survey_repos.sid= surveys.id');
 		$this->ci->db->limit($limit, $offset);
@@ -68,7 +68,7 @@ class Copy_studies_search
 		{
 			if ($key=='keywords' && trim($value)!="" )
 			{
-				$where[]=sprintf(" (surveys.titl like %s OR surveys.surveyid=%s OR surveys.nation like %s or survey_repos.repositoryid like %s)",
+				$where[]=sprintf(" (surveys.title like %s OR surveys.surveyid=%s OR surveys.nation like %s or survey_repos.repositoryid like %s)",
 						$this->ci->db->escape('%'.$value.'%'),
 						$this->ci->db->escape($value),
 						$this->ci->db->escape('%'.$value.'%'),

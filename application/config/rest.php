@@ -293,7 +293,7 @@ $config['rest_ip_blacklist'] = '';
 | if you have any of these features enabled
 |
 */
-$config['rest_database_group'] = 'default';
+$config['rest_database_group'] = 'sqlsrv_dev';
 
 /*
 |--------------------------------------------------------------------------

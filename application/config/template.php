@@ -10,7 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='bootstrap4';
+$template['theme_name']='intranet';
 
 
 /*

@@ -70,11 +70,6 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
             <input class="form-control" name="website_webmaster_email" type="text" id="website_webmaster_email"  value="<?php echo get_form_value('website_webmaster_email',isset($website_webmaster_email) ? $website_webmaster_email : ''); ?>"/>
     </div>    
     <div class="field">
-            <label for="<?php echo 'cache_path'; ?>"><?php echo t('cache_folder');?></label>
-            <input class="form-control" name="cache_path" type="text" id="cache_path"  value="<?php echo get_form_value('cache_path',isset($cache_path) ? $cache_path : ''); ?>"/>
-            <?php echo folder_exists($cache_path);?>
-    </div>
-    <div class="field">
             <label for="<?php echo 'cache_default_expires'; ?>"><?php echo t('cache_expiry');?></label>
             <input class="form-control" name="cache_default_expires" type="text" id="cache_default_expires"  value="<?php echo get_form_value('cache_default_expires',isset($cache_default_expires) ? $cache_default_expires : '7200'); ?>"/>
             <span class="field-note"><?php echo t('cache_default_expires_msg');?></span>
