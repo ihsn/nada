@@ -6,8 +6,8 @@ class Datadeposittasks extends MY_Controller {
 	public function __construct() 
 	{
 		parent::__construct();
-		$this->load->model('dd_project_model');
-        $this->load->model('dd_tasks_model');
+		$this->load->model('DD_project_model');
+        $this->load->model('DD_tasks_model');
 		$this->template->set_template('admin');
 		//$this->_get_active_project();
 		
@@ -17,10 +17,10 @@ class Datadeposittasks extends MY_Controller {
 	public function index()
     {
         //recently completed tasks with in 3 days
-        $options['tasks_completed']=$this->dd_tasks_model->get_tasks_by_status($status=1,$days_offset=3);
+        $options['tasks_completed']=$this->DD_tasks_model->get_tasks_by_status($status=1,$days_offset=3);
 
         //find all pending tasks
-        $options['tasks_pending']=$this->dd_tasks_model->get_tasks_by_status($status=0);
+        $options['tasks_pending']=$this->DD_tasks_model->get_tasks_by_status($status=0);
 
 
 
@@ -42,9 +42,9 @@ class Datadeposittasks extends MY_Controller {
         }
 
         $this->load->model('user_model');
-        $this->load->model('dd_tasks_team_model');
+        $this->load->model('DD_tasks_team_model');
 
-        $data['task']= $this->dd_tasks_model->select_single($task_id);
+        $data['task']= $this->DD_tasks_model->select_single($task_id);
 
         if (!$data['task'])
         {
@@ -52,7 +52,7 @@ class Datadeposittasks extends MY_Controller {
         }
 
         $data['project_id']=$data['task']['project_id'];
-        $data['project']=(object)$this->dd_project_model->get_by_id($data['project_id']);
+        $data['project']=(object)$this->DD_project_model->get_by_id($data['project_id']);
 
         $content=$this->load->view('datadeposit/view_task',$data,true);
 
@@ -64,9 +64,9 @@ class Datadeposittasks extends MY_Controller {
 
     public function update($task_id,$status_code)
     {
-        $this->dd_tasks_model->update_task($task_id,$status_code);
+        $this->DD_tasks_model->update_task($task_id,$status_code);
 
-        $task= $this->dd_tasks_model->select_single($task_id);
+        $task= $this->DD_tasks_model->select_single($task_id);
 
         $task_options=array(
             'assigned_by'=>$task['user_id'],
@@ -76,16 +76,16 @@ class Datadeposittasks extends MY_Controller {
         );
 
         //send email notification
-        $this->dd_tasks_model->send_status_notification($task_options);
+        $this->DD_tasks_model->send_status_notification($task_options);
 
         redirect('admin/datadeposit');
     }
 
     public function delete($task_id)
     {
-        $task= $this->dd_tasks_model->select_single($task_id);
+        $task= $this->DD_tasks_model->select_single($task_id);
 
-        $this->dd_tasks_model->delete($task_id);
+        $this->DD_tasks_model->delete($task_id);
 
         $this->db_logger->write_log('data-deposit',$this->session->userdata('username'). ' deleted task '.$task['project_id'] ,'delete');
         redirect('admin/datadeposit');
@@ -108,8 +108,8 @@ class Datadeposittasks extends MY_Controller {
         $user_id=$this->session->userdata('user_id');
 
         //find tasks assigned to me or I assigned to others
-        $options['tasks']=$this->dd_tasks_model->get_tasks_by_user($user_id);
-        $options['assigner_tasks']=$this->dd_tasks_model->get_tasks_by_assigner($user_id);
+        $options['tasks']=$this->DD_tasks_model->get_tasks_by_user($user_id);
+        $options['assigner_tasks']=$this->DD_tasks_model->get_tasks_by_assigner($user_id);
 
         $content=$this->load->view('datadeposit/my_tasks',$options,true);
 
@@ -128,7 +128,7 @@ class Datadeposittasks extends MY_Controller {
         );
 
         //send email notification
-        $this->dd_tasks_model->send_status_notification($task_options);
+        $this->DD_tasks_model->send_status_notification($task_options);
     }
 
 }	
