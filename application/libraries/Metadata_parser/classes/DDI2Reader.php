@@ -43,6 +43,19 @@ class DDI2Reader
             )
         );
 
+        $xpath_group['codeBook/dataDscr/varGrp'] = array(
+            'label' => 'Variable group',
+            'type' => 'table',
+            'cols' => array(
+                '@ID' => 'vgid',
+                '@type' => 'group_type',
+                '@varGrp' => 'variable_groups',
+                '@var' => 'variables',
+                'labl' => 'label',
+                'defntn' => 'definition'
+            )
+        );
+
         $xpath_group['codeBook/stdyDscr/stdyInfo/sumDscr/collDate'] = array(
             'label' => 'file description',
             'type' => 'table',
@@ -516,6 +529,17 @@ class DDI2Reader
                 break;
 
             } else if ($xml_reader->nodeType == XMLReader::ELEMENT
+            && in_array($xml_reader->localName, array('varGrp'))
+            && in_array($section, array('varGrp'))
+            && $section === $xml_reader->localName
+            ) {
+                $xml_obj = simplexml_load_string($xml_reader->readOuterXML());
+                $parent_path = 'codeBook/' . $xml_obj->getName();
+                $key_values = array();
+                $key_values = $this->get_child_elements_array($xml_obj, $parent_path, $key_values);
+                break;
+
+            } else if ($xml_reader->nodeType == XMLReader::ELEMENT
                 && in_array($xml_reader->localName, array('fileDscr'))
                 && in_array($section, array('fileDscr'))
                 && $section === $xml_reader->localName
@@ -589,6 +613,11 @@ class DDI2Reader
     public function extract_codebook_meta_array()
     {
         return $this->get_ddi_part_array('codeBook');
+    }
+
+    public function extract_var_groups_array()
+    {
+        return $this->read_variable_groups();
     }
 
 
@@ -686,6 +715,36 @@ class DDI2Reader
 
         $this->xml_reader->close();
         return;
+    }
+
+    public function read_variable_groups()
+    {
+        if (!$this->xml_reader) {
+            $this->xml_reader = new XMLReader();
+
+            //read the xml file
+            if (!$this->xml_reader->open($this->xml_file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
+                return false;//can't open the file
+            }
+        }
+
+        $groups=array();
+
+        //read only the DDI docDscr and stdyDscr sections
+        while ($this->xml_reader->read()) {
+            if ($this->xml_reader->nodeType == XMLReader::ELEMENT && $this->xml_reader->localName == "varGrp") {
+                $xml_obj = simplexml_load_string($this->xml_reader->readOuterXML());
+                $parent_path = 'codeBook/dataDscr/' . $xml_obj->getName();
+                //$parent_path='varGrp';
+                $output=array();
+                $var_grp= $this->get_child_elements_array($xml_obj, $parent_path,$output);
+
+                $groups[]=$var_grp['codeBook/dataDscr/varGrp'][0];
+            }
+        }
+
+        $this->xml_reader->close();
+        return $groups;
     }
 
 

@@ -415,7 +415,7 @@ class Breadcrumb
 			break;
 
 			case 'permissions':
-				$breadcrumbs['admin/permissions/manage_group_perm/'.$segments[4]]=t('user_group_permissions');
+				$breadcrumbs['admin/user_groups/']=t('user_groups');
 			break;
 
 			case 'menu':

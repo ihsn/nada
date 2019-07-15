@@ -39,7 +39,23 @@ class Auth extends MY_Controller {
 		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
 		header( 'Cache-Control: post-check=0, pre-check=0', false );
 		header( 'Pragma: no-cache' );
-    }
+	}
+	
+	function generate_api_key()
+	{
+		$this->_is_logged_in();
+		$this->ion_auth->set_api_key($this->session->userdata('user_id'));
+		redirect("auth/profile", 'refresh');
+	}
+
+
+	function delete_api_key()
+	{
+		$this->_is_logged_in();
+		$this->ion_auth->delete_api_key($this->session->userdata('user_id'),$this->input->get("api_key"));
+		redirect("auth/profile", 'refresh');
+	}
+
 
 	function profile()
 	{
@@ -51,11 +67,11 @@ class Auth extends MY_Controller {
 		$this->load->model('Licensed_model');
 		$this->lang->load("licensed_request");
 
-		//log
-		$this->db_logger->write_log('profile');
-
 		//get user info
 		$data['user']= $this->ion_auth->get_user($this->session->userdata('user_id'));
+
+		//get user api keys
+		$data['api_keys']=$this->ion_auth->get_api_keys($this->session->userdata('user_id'));
 
 		//get user licensed requests
 		$data['lic_requests']=$this->Licensed_model->get_user_requests($data['user']->id);
@@ -315,9 +331,6 @@ class Auth extends MY_Controller {
 	    }
 	    else
 		{
-			//log
-			$this->db_logger->write_log('logout',$this->input->post('email'));
-
 	        //run the forgotten password method to email an activation code to the user
 			$forgotten = $this->ion_auth->forgotten_password($this->input->post('email'));
 
@@ -572,6 +585,7 @@ class Auth extends MY_Controller {
 		$this->_create_user();
 	}
 
+
 	//get public site menu
 	function _menu()
 	{
@@ -595,6 +609,77 @@ class Auth extends MY_Controller {
         else {
 			show_404();
 		}
+	}
+
+
+	/**
+	 * 
+	 * Verify OTP code
+	 * 
+	 */
+	function verify_code()
+	{
+		if ($this->config->item("otp_verification")!==1 || !$this->ion_auth->is_admin()){
+			show_404();
+		}
+
+		$this->form_validation->set_rules('code', t('verification_code'), 'trim|required|xss_clean|max_length[10]');
+
+		if ($this->form_validation->run() == false)
+		{
+	    	//set any errors and display the form
+        	$this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+    		$content=$this->load->view('auth/verify_otp', null,true);
+
+			$this->template->write('content', $content,true);
+			$this->template->write('title', t('verify_otp'),true);
+		  	$this->template->render();
+	    }
+	    else
+		{
+			$user=$this->ion_auth->current_user();
+			$code=$this->input->post("code");
+
+			try{							
+				//otp expired or not set?
+				if (date("U")>$user->otp_expiry || !$user->otp_code){
+					throw new Exception("Code has expired");
+				}
+				
+				if($code==$user->otp_code){
+					$this->session->set_userdata("verify_otp",1);
+					$this->session->set_userdata("verified_otp",$code);
+					redirect("admin", 'refresh');
+				}
+				
+				throw new exception("Code verification failed");
+			}
+			catch(Exception $e){
+				$this->db_logger->write_log('otp-error',$e->getMessage(). ' user: '.$user->email);
+				$this->session->set_flashdata('error', $e->getMessage());
+				redirect("auth/verify_code", 'refresh');
+			}			
+	    }
+	}
+
+	/**
+	 * 
+	 * 
+	 * Email new OTP code
+	 * 
+	 */
+	function send_otp_code()
+	{
+		if ($this->config->item("otp_verification")!==1 || !$this->ion_auth->is_admin()){
+			show_404();
+		}
+		
+		$user_id=$this->session->userdata('user_id');
+		$this->ion_auth->send_otp_code($user_id);
+		//write_log($type, $message=NULL, $section=NULL,$surveyid=0)
+		$this->db_logger->write_log('otp','code sent for user:'.$user_id);
+		$this->session->set_flashdata('message', t('Check your email for verification code'));
+		redirect("auth/verify_code", 'refresh');
 	}
 
 }//end-class

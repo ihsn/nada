@@ -127,6 +127,29 @@ CREATE TABLE `variables` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
+
+--
+-- Table structure for table `variable_groups`
+--
+
+DROP TABLE IF EXISTS `variable_groups`;
+
+CREATE TABLE `variable_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `vgid` varchar(45) DEFAULT NULL,
+  `variables` varchar(5000) DEFAULT NULL,
+  `variable_groups` varchar(500) DEFAULT NULL,
+  `group_type` varchar(45) DEFAULT NULL,
+  `label` varchar(255) DEFAULT NULL,
+  `universe` varchar(255) DEFAULT NULL,
+  `notes` varchar(500) DEFAULT NULL,
+  `txt` varchar(500) DEFAULT NULL,
+  `definition` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
 --
 -- Table structure for table `users_groups`
 --
@@ -689,8 +712,10 @@ CREATE TABLE `users` (
   `last_login` int(11) NOT NULL,
   `active` tinyint(3) DEFAULT NULL,
   `authtype` varchar(40) DEFAULT NULL,
+  `otp_code` varchar(45) DEFAULT NULL,
+  `otp_expiry` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

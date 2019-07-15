@@ -27,6 +27,7 @@ class Catalog extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('catalog_search');
 		$this->lang->load('catalog_admin');
+		$this->lang->load('permissions');
 		$this->lang->load('resource_manager');
 
 		//$this->output->enable_profiler(TRUE);
@@ -1876,9 +1877,12 @@ class Catalog extends MY_Controller {
 	{
 		$result=$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
 
-		if ($this->input->get('destination'))
-		{
+		if ($this->input->get('destination')){
 			redirect($this->input->get('destination'));
+		}
+
+		if ($this->input->get("ajax")){
+			echo json_encode(array('status'=>$result));
 		}
 	}
 

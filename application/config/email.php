@@ -2,7 +2,7 @@
 
 //this file overwrites email settings loaded from the database
 
-$config['useragent']        = 'CodeIgniter';              // Mail engine switcher: 'CodeIgniter' or 'PHPMailer'
+$config['useragent']        = 'PHPMailer';              // Mail engine switcher: 'CodeIgniter' or 'PHPMailer'
 $config['protocol']         = 'smtp';                   // 'mail', 'sendmail', or 'smtp'
 $config['mailpath']         = '/usr/sbin/sendmail';
 $config['smtp_host']        = '';
@@ -27,3 +27,85 @@ $config['newline']          = "\n";                     // "\r\n" or "\n" or "\r
 $config['bcc_batch_mode']   = false;
 $config['bcc_batch_size']   = 200;
 $config['encoding']         = '8bit';                   // The body encoding. For CodeIgniter: '8bit' or '7bit'. For PHPMailer: '8bit', '7bit', 'binary', 'base64', or 'quoted-printable'.
+
+/*
+| -------------------------------------------------------------------
+| SSL verification or self-signed certificates
+| -------------------------------------------------------------------
+| If you are using a secure connection for SMTP with a local self signed certificate for the SMTP server,
+| you might not be able to authenticate unless the server certificate is added to your PHP.
+|
+| If the self signed certificate cannot be added to your PHP installation, you can disable
+| ssl certificate verification by enabling the lines below. This is not recommended 
+| and should only be used as a last resort. 
+|
+*/
+
+/*
+$config['smtp_conn_options'] = array(
+    'ssl' => array(
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true
+    )
+);*/
+
+
+/*
+| -------------------------------------------------------------------
+| Example configurations - simple SMTP with authentication enabled
+| -------------------------------------------------------------------
+|
+*/
+/*
+$config['useragent']        = 'PHPMailer';
+$config['protocol']         = 'smtp';
+$config['smtp_host']        = 'your-smtp-server-name';
+$config['smtp_auth']        = true; //authentication is required
+$config['smtp_user']        = 'user@your-domain.com';
+$config['smtp_pass']        = 'password-here';
+$config['smtp_port']        = 25;
+$config['smtp_crypto']      = '';
+*/
+
+/*
+| -------------------------------------------------------------------
+| Example configurations - using GMAIL with SSL on port 465
+| -------------------------------------------------------------------
+|
+| Note: TO use Gmail, first login to your gmail account and then 
+| visit https://myaccount.google.com/lesssecureapps page to enable
+| access by less secure apps. Gmail will not work, unless this is done.
+|
+*/
+/*
+$config['useragent']        = 'PHPMailer';
+$config['protocol']         = 'smtp';
+$config['smtp_host']        = 'smtp.gmail.com';
+$config['smtp_auth']        = true;
+$config['smtp_user']        = 'user@gmail.com';
+$config['smtp_pass']        = 'password';
+$config['smtp_port']        = 465;
+$config['smtp_crypto']      = 'ssl';
+*/
+
+
+/*
+| -------------------------------------------------------------------
+| Example configurations - using GMAIL with TLS on port 587
+| -------------------------------------------------------------------
+|
+| Enable less secure apps - https://myaccount.google.com/lesssecureapps
+| 
+*/
+
+/*
+$config['useragent']        = 'PHPMailer';
+$config['protocol']         = 'smtp';
+$config['smtp_host']        = 'smtp.gmail.com';
+$config['smtp_auth']        = true;
+$config['smtp_user']        = 'user@gmail.com';
+$config['smtp_pass']        = 'password';
+$config['smtp_port']        = 587;
+$config['smtp_crypto']      = 'tls';
+*/

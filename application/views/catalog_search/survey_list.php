@@ -63,7 +63,7 @@
                     <div class="study-country">
                         <?php echo $featured_studies['nation']. ',';?>
                         <?php
-                        $survey_year=NULL;
+                        $survey_year=array();
                         $survey_year[$featured_studies['year_start']]=$featured_studies['year_start'];
                         $survey_year[$featured_studies['year_end']]=$featured_studies['year_end'];
                         $survey_year=implode('-',$survey_year);
@@ -181,7 +181,7 @@
                         <?php echo $row['nation']. ',';?>
                 <?php endif;?>
                 <?php 
-                    $survey_year=NULL;
+                    $survey_year=array();
                     $survey_year[$row['year_start']]=$row['year_start'];
                     $survey_year[$row['year_end']]=$row['year_end'];
                     $survey_year=implode('-',$survey_year);

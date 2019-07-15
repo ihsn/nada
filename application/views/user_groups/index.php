@@ -73,7 +73,7 @@
     </table>
     
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped grid-table" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'name',t('name'),$page_url); ?></th>

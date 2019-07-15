@@ -681,6 +681,32 @@ $config['filestore_path']='files/public';
 $config['search_provider']='solr';
 
 
+/**
+ * 
+ * Maintenance mode
+ * 
+ * @maintenance_mode 1=enable, 0=disable
+ * 
+*/
+$config['maintenance_mode']=0;
+
+
+
+/*
+|--------------------------------------------------------------------------
+| OTP verification for Admin users
+|--------------------------------------------------------------------------
+|
+| This enables One Time Password (OTP) verification for accessing site adminstration.
+|
+| OTP codes are sent via email, make sure the email system works.
+| 
+| expiry time - Codes are valid for 15 minutes only
+| 
+*/
+
+$config['otp_verification']=0;
+
 
 
 

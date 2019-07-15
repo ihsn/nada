@@ -1225,32 +1225,7 @@ class Datasets extends MY_REST_Controller
 			);
 	
 			$this->load->library('Metadata_parser', $parser_params);
-			
-			//parser to read metadata
 			$parser=$this->metadata_parser->get_reader();
-	
-			/*
-			echo "<pre>";
-			//var_dump($parser->get_metadata_array());
-			echo "</pre>";
-	
-			echo '<table>';
-			foreach($parser->get_metadata_array() as $key=>$value){
-			echo '<tr>';
-			echo '<td>'.$key.'</td>';
-			echo '<td><pre>';
-			print_r($value);
-			echo '</pre></td>';
-			echo '</tr>';
-			}
-			echo '</table>';
-	
-			die();*/
-	
-			//echo $parser->get_id();
-			//echo $parser->get_title();
-			//echo $parser->get_years();
-
 			$output=$parser->get_metadata_array();
 		
 			$response=array(
