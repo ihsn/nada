@@ -141,6 +141,9 @@ class Auth extends MY_Controller {
 	 //log the user in
     function login() 
     {	
+		//echo '<pre>';
+		//var_dump($_SERVER);
+
 		if ($this->ion_auth->logged_in())
 		{
 			redirect($this->config->item('base_url'), 'refresh');
@@ -155,7 +158,7 @@ class Auth extends MY_Controller {
 //		if ($this->input->post("submit"))
 //		{
 			$user= new stdclass();
-			$user->upi=$this->input->server("HTTP_SM_USER");
+			$user->upi=$this->input->server("HTTP_UPI");
 			$user->fname=$this->input->server("HTTP_FIRSTNAME");
 			$user->lname=$this->input->server("HTTP_LASTNAME");
 			$user->email=$this->input->server("HTTP_MAIL");
@@ -175,9 +178,9 @@ class Auth extends MY_Controller {
 			exit;
 			*/
 						
-			if (!$user->upi)
+			if (!$user->email)
 			{
-				show_error('UPI_NOT_FOUND');
+				show_error('USER_NOT_FOUND');
 			}
 			
 			//check user is already registered
