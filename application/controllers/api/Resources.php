@@ -2,7 +2,7 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
-class Resources extends REST_Controller
+class Resources extends MY_REST_Controller
 {
 	public function __construct()
 	{
@@ -97,8 +97,12 @@ class Resources extends REST_Controller
 			$options['survey_id']=$sid;
 
 			//get dctype by code
-			if(isset($options['dctype'])){
+			if(isset($options['dctype'])){ 
 				$options['dctype']=$this->Survey_resource_model->get_dctype_label_by_code($options['dctype']);
+			}
+
+			if(isset($options['dcformat'])){ 
+				$options['dcformat']=$this->Survey_resource_model->get_dcformat_label_by_code($options['dcformat']);
 			}
 
 			//validate resource
@@ -242,7 +246,7 @@ class Resources extends REST_Controller
 			$imported_count=$this->Survey_resource_model->import_rdf($sid,$uploaded_path);
 
 			//delete rdf
-			@unlink($uploaded_rdf_path);
+			@unlink($uploaded_path);
 
 			$output=array(
 				'status'=>'success',

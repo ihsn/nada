@@ -13,15 +13,15 @@ class Solr extends MY_Controller {
 
     public function __construct()
     {
-			parent::__construct($skip_auth=TRUE);
-		
-			/*if(!$this->input->is_cli_request()){
-				die("ERROR_NOT-CLI");
-			}*/
+		parent::__construct($skip_auth=false, $isadmin=true);
+	
+		/*if(!$this->input->is_cli_request()){
+			die("ERROR_NOT-CLI");
+		}*/
 
-			$this->load->library('solr_manager');		
-			error_reporting(E_ALL);
-			//$this->output->enable_profiler(TRUE);
+		$this->load->library('solr_manager');		
+		error_reporting(E_ALL);
+		//$this->output->enable_profiler(TRUE);
     }
 
 

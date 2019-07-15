@@ -221,7 +221,7 @@ class Data_file_model extends CI_Model {
 		if($is_new){				
 			#$this->form_validation->set_rules('surveyid', 'IDNO', 'xss_clean|trim|max_length[255]|required');
 			//$this->form_validation->set_rules('file_id', 'File ID', 'required|xss_clean|trim|max_length[50]');	
-			$this->form_validation->set_rules('file_name', 'File name', 'required|xss_clean|trim|max_length[100]');	
+			$this->form_validation->set_rules('file_name', 'File name', 'required|xss_clean|trim|max_length[200]');	
 			$this->form_validation->set_rules('case_count', 'Case count', 'xss_clean|trim|max_length[10]');	
 			$this->form_validation->set_rules('var_count', 'Variable count', 'xss_clean|trim|max_length[10]');	
 

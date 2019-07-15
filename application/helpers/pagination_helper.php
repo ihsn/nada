@@ -22,7 +22,7 @@ if ( ! function_exists('pager'))
         }
 
         $result = range(1, ceil($total_records / $limit));
-        $search_qs='?'.get_querystring( array('ps','sk', 'vk', 'vf','view','topic','country','from','to'));
+        $search_qs='?'.get_querystring( array('ps','sk', 'vk', 'vf','view','topic','country','from','to','collection'));
 
         if (($adjacents = floor($adjacents / 2) * 2 + 1) >= 1)
         {

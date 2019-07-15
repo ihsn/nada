@@ -4,16 +4,14 @@
  * NADA ACL
  * 
  *
- *
- *
- * @subpackage	Libraries
- * @category	Access Control Lists (ACL)
- *
+ * Note: Add this line to application/config/config.php to enable debugging 
+ * $config['acl_debug']=true;
+ * 
  */ 
 class ACL
 {
-	var $debug=FALSE;
-	
+	var $debug=false;
+
 	/**
 	 * Constructor
 	 */
@@ -23,6 +21,10 @@ class ACL
 		$this->ci =& get_instance();
 		$this->ci->load->model('Permissions_model');
 		$this->ci->load->model('repository_model');
+
+		if ($this->ci->config->item('acl_debug')==true){
+			$this->debug=true;
+		}
 	}
 
 	/**
@@ -193,9 +195,9 @@ class ACL
 		if ($this->debug==TRUE)
 		{
 			echo '<pre>';
-			var_dump($repo_id);
-			var_dump($user_id);
-			var_dump($allowed_urls);
+			var_dump('repositoryid:',$repo_id);
+			var_dump('user_id:',$user_id);
+			var_dump('allowed_urls:',$allowed_urls);
 			echo '</pre>';
 		}
 		return FALSE;
@@ -442,10 +444,18 @@ class ACL
 		//get licensed request information		
 		$request=$this->ci->Licensed_model->get_request_by_id($request_id);
 		$request_repo='';
-		
-		if ($request['request_type']=='study')
+
+		if (isset($request['surveys']))
 		{
-			$request_repo=$this->get_survey_owner_repos($request['surveyid']);
+			$id_=array_keys($request['surveys']);
+			
+			if(!is_array($id_)){
+				return false;
+			}
+
+			$id_=$id_[0];
+			
+			$request_repo=$this->get_survey_owner_repos($id_);
 		}
 		else
 		{

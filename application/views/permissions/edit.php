@@ -7,9 +7,8 @@ $(function() {
 	});
 });
 </script>
-<link rel="stylesheet" type="text/css" href="themes/<?php echo $this->template->theme();?>/forms.css" />
 
-<div class="body-container" style="padding:10px;">
+<div class="container body-container" >
 <?php if (!isset($hide_form)):?>
 
 <?php if (validation_errors() ) : ?>
@@ -29,32 +28,32 @@ $(function() {
 
 <?php echo form_open(current_url(), array('class'=> 'form', 'autocomplete'=>'off'));?>    
 
-      <div class="field">
+      <div class="form-group">
 	      <label for="title"><?php echo t('title');?></label>
-	      <?php echo form_input('label', get_form_value('label',isset($label) ? $label : '') ,'style="width:40%"');?>
+	      <?php echo form_input('label', get_form_value('label',isset($label) ? $label : '') ,'class="form-control"');?>
       </div>
       
-      <div class="field">
+      <div class="form-group">
 	      <label for="section"><?php echo t('section');?></label>
-	      <?php echo form_input('section', get_form_value('section',isset($section) ? $section : ''),'style="width:40%"');?>
+	      <?php echo form_input('section', get_form_value('section',isset($section) ? $section : ''),'class="form-control"');?>
       </div>
 
-      <div class="field">
+      <div class="form-group">
 	      <label for="description"><?php echo t('description');?></label>
-	      <?php echo form_input('description', get_form_value('description',isset($description) ? $description : ''),'style="width:40%"');?>
+	      <?php echo form_input('description', get_form_value('description',isset($description) ? $description : ''),'class="form-control"');?>
       </div>
       
-      <div class="field">
+      <div class="form-group">
 	      <label for="weight"><?php echo t('weight');?></label>
-	      <?php echo form_input('weight', get_form_value('weight',isset($weight) ? $weight : ''),'style="width:40%"');?>
+	      <?php echo form_input('weight', get_form_value('weight',isset($weight) ? $weight : ''),'class="form-control"');?>
       </div>
       
- 	<div id="urls" class="field">
+ 	<div id="urls" class="form-group">
 		<label for="url"><?php echo t('urls');?></label>
         <?php $urls=get_form_value('url',isset($urls) ? $urls : array());?>
 		<?php if (count($urls)==0){$urls=array('');}?>
 		<?php $x = true; foreach($urls as $url): ?>
-            <?php echo form_input("url[]", $url, 'class="url" style="width:20%"'); ?>
+            <?php echo form_input("url[]", $url, 'class="form-control url" '); ?>
             <?php if ($x === true): ?>
                     <input type="button" value="+" name="add_url" style="border:1px solid gainsboro;padding:3px 5px 3px 5px;">
             <?php endif; ?>
@@ -63,7 +62,7 @@ $(function() {
        <?php endforeach; ?>
    </div>
    <br />
-        <?php echo form_submit('submit', t('submit'));?>
+        <?php echo form_submit('submit', t('submit'), 'class="btn btn-primary"');?>
         <a href="<?php echo site_url('admin/permissions/manage'); ?>" class="button">Cancel</a>
 
 <?php echo form_close(); ?>

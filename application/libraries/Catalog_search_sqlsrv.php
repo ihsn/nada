@@ -735,9 +735,9 @@ class Catalog_search_sqlsrv{
 	function vsearch($limit = 15, $offset = 0)
 	{
 		//sort allowed fields for the variable view
-		$sortable_fields=array('name','labl','titl','nation');
+		$sortable_fields=array('name','labl','title','nation');
 
-		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'titl';
+		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
 		$variable_keywords=$this->variable_keywords;
@@ -780,7 +780,7 @@ class Catalog_search_sqlsrv{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,  surveys.titl as titl,surveys.nation as nation, v.sid",FALSE);
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,  surveys.title as title,surveys.nation as nation, v.sid",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
@@ -864,7 +864,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-		$this->ci->db->where('s.sid',$surveyid);
+		$this->ci->db->where('v.sid',$surveyid);
 		
 		//get resultset
 		$query=$this->ci->db->get("variables as v");

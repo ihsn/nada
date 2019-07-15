@@ -77,8 +77,6 @@ $use_cdn=false;
 
 <!-- page footer -->
 <?php include_once 'footer.php';?>
-
-<script src="<?php echo base_url().$bootstrap_theme ?>/js/custom.js"></script>
 </body>
 
 </html>

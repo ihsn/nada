@@ -18,6 +18,7 @@ class Dataset_microdata_model extends Dataset_model {
         parent::__construct();
         $this->load->model('Data_file_model');
         $this->load->model('Variable_model');
+        $this->load->model('Variable_group_model');
     }
 
     function create_dataset($type,$options)
@@ -88,7 +89,10 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->db->trans_start();
 				
 		//insert record
-		$dataset_id=$this->insert($type,$options);
+        $dataset_id=$this->insert($type,$options);
+        
+        //set owner repo
+        $this->Dataset_model->set_dataset_owner_repo($dataset_id,$options['repositoryid']); 
 
 		//update years
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
@@ -98,7 +102,7 @@ class Dataset_microdata_model extends Dataset_model {
         $this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
 
         //get list of countries
-        $countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
+        //$countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
 
 		//update countries
 		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
@@ -114,9 +118,8 @@ class Dataset_microdata_model extends Dataset_model {
         //variables
         $this->create_update_variables($dataset_id,$variables);
 
-
 		//variable groups?
-		//todo
+		$this->create_update_variable_groups($dataset_id,$variable_groups);
 
 		//complete transaction
 		$this->db->trans_complete();
@@ -192,10 +195,13 @@ class Dataset_microdata_model extends Dataset_model {
         }
 
 		//start transaction
-		$this->db->trans_start();
+		$this->db->trans_start(); 
 
 		//update
-		$this->update($sid,$type,$options);
+        $this->update($sid,$type,$options);
+        
+        //set owner repo
+        $this->Dataset_model->set_dataset_owner_repo($sid,$options['repositoryid']); 
 
 		//update years
 		$this->update_years($sid,$options['year_start'],$options['year_end']);
@@ -217,7 +223,9 @@ class Dataset_microdata_model extends Dataset_model {
         
          //variables
          $this->create_update_variables($sid,$variables);
- 
+
+         //variable groups
+         $this->create_update_variable_groups($sid,$variable_groups);
 		
 		//complete transaction
 		$this->db->trans_complete();
@@ -255,6 +263,19 @@ class Dataset_microdata_model extends Dataset_model {
     }
 
 
+    private function create_update_variable_groups($dataset_id,$variable_groups)
+    {
+        //delete existing variable groups
+        $this->Variable_group_model->delete($dataset_id);
+        
+        if(is_array($variable_groups)){
+			foreach($variable_groups as $vgroup){
+					$this->Variable_group_model->insert($dataset_id,$vgroup);
+			}
+		}
+    }
+
+
     private function create_update_data_files($dataset_id,$data_files)
     {        
 		if(is_array($data_files)){
@@ -288,7 +309,11 @@ class Dataset_microdata_model extends Dataset_model {
 	{
 		$output=array();
 
-        $output['title']=$this->get_array_nested_value($options,'study_desc/title_statement/title');
+        $title=array();
+        $title[]=$this->get_array_nested_value($options,'study_desc/title_statement/title');
+        $title[]=$this->get_array_nested_value($options,'study_desc/title_statement/sub_title');
+        $title=array_filter($title);
+        $output['title']=implode(", ",$title);
         $output['idno']=$this->get_array_nested_value($options,'study_desc/title_statement/idno');
 
         $nations=(array)$this->get_array_nested_value($options,'study_desc/study_info/nation');

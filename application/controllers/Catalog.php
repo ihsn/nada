@@ -94,13 +94,13 @@ class Catalog extends MY_Controller {
 		$this->template->add_js($embed_js,'embed');
 
 		$this->template->add_js('javascript/datacatalog.js');
-		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
+		//$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
+		//$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
 		$this->template->add_js('javascript/jquery.scrollTo-min.js');
 		$this->template->add_js('javascript/jquery.blockui.js');		
 
@@ -253,15 +253,15 @@ class Catalog extends MY_Controller {
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));
 		$search_options->topic			=xss_clean($this->input->get("topic"));
-		$search_options->from			=xss_clean($this->input->get("from"));
-		$search_options->to				=xss_clean($this->input->get("to"));
+		$search_options->from			=(int)xss_clean($this->input->get("from"));
+		$search_options->to				=(int)xss_clean($this->input->get("to"));
 		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
 		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
 		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
-		$search_options->sid			=xss_clean($this->input->get("sid"));
+		$search_options->sid			=$this->clean_sid(xss_clean($this->input->get("sid")));
         $search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$offset=						($search_options->page-1)*$this->limit;
 
@@ -370,6 +370,24 @@ class Catalog extends MY_Controller {
 		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
 		return $data;
+	}
+
+
+	/**
+	 * 
+	 * Get a comma seperated list of SIDs
+	 * 
+	 */
+	private function clean_sid($sid){
+		$sid_list=explode(",",$sid);
+		
+		$output=array();
+		foreach($sid_list as $id){
+			if(is_numeric($id)){
+				$output[]=$id;
+			}
+		}
+		return implode(",",$output);
 	}
 
 
