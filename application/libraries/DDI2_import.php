@@ -51,6 +51,7 @@ class DDI2_Import{
         $this->ci->load->library('Dataset_manager');
         $this->ci->load->model('Survey_type_model');
         $this->ci->load->model("Variable_model");
+        $this->ci->load->model("Variable_group_model");        
         $this->ci->load->model('Catalog_model');
         $this->catalog_root=get_catalog_root();
 
@@ -88,10 +89,18 @@ class DDI2_Import{
 
         $idno=$parser->get_id();
 
+        if (trim($idno)==''){
+            throw new Exception(t('Required IDNo element is not set in the DDI xml file. Fix the DDI and set the codeBook/@ID and/or stdyDscr/citation/titlStmt/IDNo element.'));
+        }
+
+        if(trim($idno)==''){
+            throw new Exception('CODEBOOK_IDNO_MISSING');
+        }
+
         //sanitize ID to remove anything except a-Z1-9 characters
-        if ($idno!==$this->sanitize_filename($idno)){
+        /*if ($idno!==$this->sanitize_filename($idno)){
             throw new Exception(t('IDNO_INVALID_FORMAT').': '.$idno);
-        }       
+        }*/       
 
         //check if the study already exists, find the sid
         if (!$sid){
@@ -105,19 +114,15 @@ class DDI2_Import{
             if(!$this->overwrite){
                 throw new Exception("SURVEY_ALREADY_EXISTS: ".$sid);
             }
-                        
-            //check if study is owned by the active repository
-            $owner_repository=$this->ci->Catalog_model->get_study_owner($sid);
             
-            if (!$owner_repository){
-                $owner_repository='central';
-            }
-
-			$this->repositoryid=$owner_repository;
+            //load existing options
+            $dataset_row=$this->ci->dataset_manager->get_row($sid);
+            $this->repositoryid=$dataset_row['repositoryid'];
+            $this->formid=$dataset_row['formid'];
 		}
 
 		$repositoryid=$this->repositoryid;
-		$ddi_filename=$idno.".xml";
+        $ddi_filename=$this->sanitize_filename($idno).".xml";
 
         //generate survey folder name hash
         $survey_folder_hash=md5($repositoryid.':'.$idno);
@@ -129,7 +134,7 @@ class DDI2_Import{
         $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
 
 		//target file path
-		$survey_target_filepath=unix_path($survey_folder_path.'/'.$idno.'.xml');
+		$survey_target_filepath=unix_path($survey_folder_path.'/'.$ddi_filename);
 
         //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
         if($this->file_path!==$survey_target_filepath){
@@ -211,8 +216,11 @@ class DDI2_Import{
 
         $data_files=array();
         foreach($files as $file){
+            if(trim($file['id'])=='' && trim($file['file_id'])!='' ){
+                $file['id']=$file['file_id'];
+            }
             $data_files[$file['id']]=$file;
-        }
+        } 
         unset($files);
 
         //import data files and update data_files with file db id
@@ -220,6 +228,9 @@ class DDI2_Import{
 
         //import variables
         $variables_imported=$this->import_variables($sid,$data_files, $parser->get_variable_iterator());
+
+        //import variable groups
+        $this->create_update_variable_groups($sid,$parser->get_variable_groups());
 
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
@@ -369,6 +380,17 @@ class DDI2_Import{
     }
 
 
+    private function create_update_variable_groups($sid,$variable_groups)
+    {
+        //delete existing variable groups
+        $this->ci->Variable_group_model->delete($sid);
+        
+        if(is_array($variable_groups)){
+			foreach($variable_groups as $vgroup){
+				$this->ci->Variable_group_model->insert($sid,$vgroup);
+			}
+		}
+    }
 
     private function update_survey_data_files($sid, $files)
     {
@@ -459,6 +481,9 @@ class DDI2_Import{
 
     private function import_variables($sid,$data_files, $variable_iterator)
     {
+        //delete existing variables + variables metadata
+        $this->ci->Variable_model->remove_all_variables($sid);
+
         if(!$data_files){
             return 0;
         }
@@ -466,9 +491,6 @@ class DDI2_Import{
         if (!$variable_iterator){
             return 0;
         }
-
-        //delete existing variables + variables metadata
-        $this->ci->Variable_model->remove_all_variables($sid);
 
         $batch_inserts=true; //enable or disable batch inserts
         $batch_insert_size=200; //rows inserted at once

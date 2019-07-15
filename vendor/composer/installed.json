@@ -68,6 +68,58 @@
         ]
     },
     {
+        "name": "league/event",
+        "version": "2.2.0",
+        "version_normalized": "2.2.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/thephpleague/event.git",
+            "reference": "d2cc124cf9a3fab2bb4ff963307f60361ce4d119"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/thephpleague/event/zipball/d2cc124cf9a3fab2bb4ff963307f60361ce4d119",
+            "reference": "d2cc124cf9a3fab2bb4ff963307f60361ce4d119",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "henrikbjorn/phpspec-code-coverage": "~1.0.1",
+            "phpspec/phpspec": "^2.2"
+        },
+        "time": "2018-11-26T11:52:41+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.2-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "League\\Event\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Frank de Jonge",
+                "email": "info@frenky.net"
+            }
+        ],
+        "description": "Event package",
+        "keywords": [
+            "emitter",
+            "event",
+            "listener"
+        ]
+    },
+    {
         "name": "mpdf/mpdf",
         "version": "v7.1.7",
         "version_normalized": "7.1.7.0",
@@ -533,6 +585,254 @@
             "fpdi",
             "pdf"
         ]
+    },
+    {
+        "name": "slim/csrf",
+        "version": "0.8.3",
+        "version_normalized": "0.8.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/slimphp/Slim-Csrf.git",
+            "reference": "5f2bcf5d89adf86dc0455a32bea84d912ab466a7"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/slimphp/Slim-Csrf/zipball/5f2bcf5d89adf86dc0455a32bea84d912ab466a7",
+            "reference": "5f2bcf5d89adf86dc0455a32bea84d912ab466a7",
+            "shasum": ""
+        },
+        "require": {
+            "paragonie/random_compat": "^1.1|^2.0|^9.99",
+            "php": ">=5.5.0",
+            "psr/http-message": "^1.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.0",
+            "slim/slim": "~3.0"
+        },
+        "time": "2018-08-22T16:12:18+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Slim\\Csrf\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Josh Lockhart",
+                "email": "hello@joshlockhart.com",
+                "homepage": "http://joshlockhart.com"
+            }
+        ],
+        "description": "Slim Framework 3 CSRF protection middleware",
+        "homepage": "http://slimframework.com",
+        "keywords": [
+            "csrf",
+            "framework",
+            "middleware",
+            "slim"
+        ]
+    },
+    {
+        "name": "solarium/solarium",
+        "version": "4.2.0",
+        "version_normalized": "4.2.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/solariumphp/solarium.git",
+            "reference": "20cf9e906a4e8e4a29c1ff48a2b145fa31d1064d"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/solariumphp/solarium/zipball/20cf9e906a4e8e4a29c1ff48a2b145fa31d1064d",
+            "reference": "20cf9e906a4e8e4a29c1ff48a2b145fa31d1064d",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.0",
+            "symfony/event-dispatcher": "^2.7 || ^3.0 || ^4.0"
+        },
+        "require-dev": {
+            "guzzlehttp/guzzle": "^3.8 || ^6.2",
+            "php-coveralls/php-coveralls": "^1.0",
+            "phpunit/phpunit": "^6.5",
+            "squizlabs/php_codesniffer": "^1.4",
+            "zendframework/zendframework": "^3.0"
+        },
+        "suggest": {
+            "minimalcode/search": "Query builder compatible with Solarium, allows simplified solr-query handling"
+        },
+        "time": "2018-11-24T09:20:30+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "4.1.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Solarium\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "See GitHub contributors",
+                "homepage": "https://github.com/basdenooijer/solarium/contributors"
+            }
+        ],
+        "description": "PHP Solr client",
+        "homepage": "http://www.solarium-project.org",
+        "keywords": [
+            "php",
+            "search",
+            "solr"
+        ]
+    },
+    {
+        "name": "symfony/contracts",
+        "version": "v1.0.2",
+        "version_normalized": "1.0.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/contracts.git",
+            "reference": "1aa7ab2429c3d594dd70689604b5cf7421254cdf"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/contracts/zipball/1aa7ab2429c3d594dd70689604b5cf7421254cdf",
+            "reference": "1aa7ab2429c3d594dd70689604b5cf7421254cdf",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.1.3"
+        },
+        "require-dev": {
+            "psr/cache": "^1.0",
+            "psr/container": "^1.0"
+        },
+        "suggest": {
+            "psr/cache": "When using the Cache contracts",
+            "psr/container": "When using the Service contracts",
+            "symfony/cache-contracts-implementation": "",
+            "symfony/service-contracts-implementation": "",
+            "symfony/translation-contracts-implementation": ""
+        },
+        "time": "2018-12-05T08:06:11+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Contracts\\": ""
+            },
+            "exclude-from-classmap": [
+                "**/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "A set of abstractions extracted out of the Symfony components",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "abstractions",
+            "contracts",
+            "decoupling",
+            "interfaces",
+            "interoperability",
+            "standards"
+        ]
+    },
+    {
+        "name": "symfony/event-dispatcher",
+        "version": "v4.2.5",
+        "version_normalized": "4.2.5.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/event-dispatcher.git",
+            "reference": "ca5af306fbc37f3cf597e91bc9cfa0c7d3f33544"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/ca5af306fbc37f3cf597e91bc9cfa0c7d3f33544",
+            "reference": "ca5af306fbc37f3cf597e91bc9cfa0c7d3f33544",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.1.3",
+            "symfony/contracts": "^1.0"
+        },
+        "conflict": {
+            "symfony/dependency-injection": "<3.4"
+        },
+        "require-dev": {
+            "psr/log": "~1.0",
+            "symfony/config": "~3.4|~4.0",
+            "symfony/dependency-injection": "~3.4|~4.0",
+            "symfony/expression-language": "~3.4|~4.0",
+            "symfony/stopwatch": "~3.4|~4.0"
+        },
+        "suggest": {
+            "symfony/dependency-injection": "",
+            "symfony/http-kernel": ""
+        },
+        "time": "2019-03-30T15:58:42+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "4.2-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Component\\EventDispatcher\\": ""
+            },
+            "exclude-from-classmap": [
+                "/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony EventDispatcher Component",
+        "homepage": "https://symfony.com"
     },
     {
         "name": "violet/streaming-json-encoder",

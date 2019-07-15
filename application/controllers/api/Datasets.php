@@ -1136,37 +1136,10 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("ID_MISSING");
 			}
 
-			$this->load->model("Data_file_model");
-			$this->load->library('DDI2_import');
 
-			//get survey ddi file path by id
-			$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
-
-			if ($ddi_file===FALSE){
-				throw new Exception("DDI_FILE_NOT_FOUND");
-			}
-			
-			$dataset=$this->dataset_manager->get_row($id);
-
-			$params=array(
-				'file_type'=>'survey',
-				'file_path'=>$ddi_file,
-				'user_id'=>$this->get_api_user_id(),
-				'repositoryid'=>$dataset['repositoryid'],
-				'overwrite'=>'yes',
-				'partial'=>$partial
-			);
-					
-			$result=$this->ddi2_import->import($params,$id);
-
-			//reset changed and created dates
-			$update_options=array(
-				'changed'=>$dataset['changed'],
-				'created'=>$dataset['created'],
-				'repositoryid'=>$dataset['repositoryid']
-			);
-
-			$this->dataset_manager->update_options($id,$update_options);
+			$this->load->library('DDI_Utils');
+			$user_id=$this->get_api_user_id();
+			$result=$this->ddi_utils->reload_ddi($id, $user_id, $partial);
 
 			$output=array(
 				'status'=>'success',
@@ -1252,32 +1225,7 @@ class Datasets extends MY_REST_Controller
 			);
 	
 			$this->load->library('Metadata_parser', $parser_params);
-			
-			//parser to read metadata
 			$parser=$this->metadata_parser->get_reader();
-	
-			/*
-			echo "<pre>";
-			//var_dump($parser->get_metadata_array());
-			echo "</pre>";
-	
-			echo '<table>';
-			foreach($parser->get_metadata_array() as $key=>$value){
-			echo '<tr>';
-			echo '<td>'.$key.'</td>';
-			echo '<td><pre>';
-			print_r($value);
-			echo '</pre></td>';
-			echo '</tr>';
-			}
-			echo '</table>';
-	
-			die();*/
-	
-			//echo $parser->get_id();
-			//echo $parser->get_title();
-			//echo $parser->get_years();
-
 			$output=$parser->get_metadata_array();
 		
 			$response=array(
@@ -1301,10 +1249,44 @@ class Datasets extends MY_REST_Controller
 				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-
-		
+		}		
 	}
 
-		
+
+
+	/**
+	*
+	* Strip metadata elements from the DDI
+	*
+	* @strip - 'summary_stats', 'variables', 'keep_basic'
+	*
+	**/
+	function strip_ddi_put($idno=NULL,$strip='')
+	{
+		$this->load->library("DDI_Utils");
+
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$user_id=$this->get_api_user_id();
+			$result=$this->ddi_utils->strip_ddi($sid, $strip, $keep_original=true);
+
+			if($result){
+				$result=$this->ddi_utils->reload_ddi($sid, $user_id, $partial=false);
+			}
+
+			$output=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);	
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()				
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 }

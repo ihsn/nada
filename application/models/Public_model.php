@@ -13,7 +13,7 @@ class Public_model extends CI_Model {
 	*/
 	function select_single($request_id)
 	{
-		$this->db->select('p.*,s.titl,s.surveyid,s.proddate, s.nation, u.username,u.email,m.first_name, m.last_name,m.company, m.phone,m.country',FALSE);
+		$this->db->select('p.*,s.title,s.idno,s.year_start, s.nation, u.username,u.email,m.first_name, m.last_name,m.company, m.phone,m.country',FALSE);
 		$this->db->join('surveys s', 's.id = p.surveyid');
 		$this->db->join('users u', 'u.id = p.userid','left');
 		$this->db->join('meta m', 'u.id = m.user_id','left');
@@ -38,7 +38,7 @@ class Public_model extends CI_Model {
 	**/
 	function get_all_public_use_surveys()
 	{
-		$this->db->select('s.id,s.titl,s.nation,s.year_start,s.year_end');
+		$this->db->select('s.id,s.title,s.nation,s.year_start,s.year_end');
 		$this->db->join('forms', 's.formid = forms.formid','left');
 		$this->db->where('forms.model','public');
 		return $this->db->get('surveys s')->result_array();
@@ -50,7 +50,7 @@ class Public_model extends CI_Model {
 	**/
 	function get_surveys_by_collection($repositoryid)
 	{
-		$this->db->select('s.id,s.titl,s.nation,s.year_start,s.year_end,forms.model');
+		$this->db->select('s.id,s.title,s.nation,s.year_start,s.year_end,forms.model');
 		$this->db->from('surveys s');
 		$this->db->join('survey_repos repos', 's.id = repos.sid','left');
 		$this->db->join('forms', 'forms.formid = s.formid','inner');

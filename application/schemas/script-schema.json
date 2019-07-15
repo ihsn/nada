@@ -11,33 +11,18 @@
       "title": "Collection ID that owns the script",
       "description": "Abbreviation for the collection that owns the script"
     },
-
-    "access_policy": {
-      "type": "string",
-      "title": "Data access policy",
-      "description": "Data access policy for attached microdata resources",
-      "enum": [
-        "direct",
-        "open",
-        "public",
-        "licensed",
-        "remote",
-        "na"
-      ],
-      "default": "na"
-    },
     
-    "data_remote_url": {
-      "type": "string",
-      "title": "Data website URL",
-      "description": "Link to the website where the data is available, this is only needed if `access_policy` is set to `remote`.",
-      "default": ""
-    },
     "published": {
       "type": "integer",
       "title": "Status",
       "description": "Status of the script - 0=draft, 1=published",
       "default": 0
+    },
+    "overwrite": {
+      "type": "string",
+      "description": "Overwrite document if already exists?",            
+      "enum":["yes","no"],
+      "default": "no"
     },
 
     "doc_desc": {      
@@ -147,18 +132,42 @@
         },
 
         "production_date": {
-          "type": "string",
           "title":"Date of production (YYYY-MM-DD)",
-          "description": "Date when the project (dissemination-ready version) was implemented"
-        },
-        "geographic_coverage": {
-          "title": "Geographic coverage",
-          "description": "Information on the geographic areas (if any) covered by the scripts/project. This may be a list of countries, regions, etc",
+          "description": "Date when the project (dissemination-ready version) was implemented",
           "type": "array",
           "items": {
             "type": "string"
             }      
         },
+
+        "geographic_units": {
+          "title": "Geographic locations",
+          "description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Location name",
+                "description": "Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'",
+                "type": "string"
+              },
+              "code": {
+                "title": "Location code",
+                "description": "Code of the geographic unit (for countries, preferred = ISO3 code)",
+                "type": "string"
+              },
+              "type": {
+                "title": "Type",
+                "description": "Type of geographic unit e.g. country, state, region, province etc",
+                "type": "string"
+              }          
+            },
+            "required": [
+              "name"
+            ]
+          }
+        }, 
         "authoring_entity": {
           "type": "array",
           "title": "Authoring entity",
@@ -194,9 +203,9 @@
             ]
           }
         },
-        "contributor": {
+        "contributors": {
           "type": "array",
-          "title": "Contributor(s)",
+          "title": "Contributors",
           "description": "The person, corporate body, or agency who contributed to the project.",
           "items": {
             "type": "object",
@@ -233,10 +242,10 @@
             ]
           }
         },
-        "curator": {
+        "curators": {
           "type": "array",
-          "title": "Contributor(s)",
-          "description": "The person, corporate body, or agency who contributed to the project.",
+          "title": "Curators",
+          "description": "The person, corporate body, or agency who curated to the project.",
           "items": {
             "type": "object",
             "properties": {
@@ -276,23 +285,144 @@
           "type": "string",
           "title": "Abstract"
         }, 
-        "output_type": {
-          "type": "string",
-          "title":"Output type",
-          "description": "Type of output of the script/research project. Example: `On-line interactive data visualization`, `Working paper`"
+
+        "keywords":{
+          "title":"Keywords",
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "name":{
+                "title":"Name",
+                "type":"string"
+              },
+              "vocabulary":{
+                "title":"Vocabulary name",
+                "type":"string"
+              },
+              "uri":{
+                "title":"Vocabulary URI",
+                "type":"string"
+              }
+            }
+          }
         },
-        "publication_url": {
-          "type": "string",
-          "title":"Publication URL",
-          "description": "Link to the publication (output) to which the scripts are related. This will for example be the URL of a PDF working paper."    
+
+        "themes":{
+            "title":"Themes",
+            "type":"array",
+            "items":{
+              "type":"object",
+              "properties":{
+                "name":{
+                  "title":"Name",
+                  "type":"string"
+                },
+                "vocabulary":{
+                  "title":"Vocabulary name",
+                  "type":"string"
+                },
+                "uri":{
+                  "title":"Vocabulary URI",
+                  "type":"string"
+                }
+              }
+            }
         },
-        "doi": {
-          "type": "string",
-          "title":"DOI",
-          "description": "DOI handle"    
+
+        "topics": {
+          "type": "array",
+          "title": "Topics",
+          "description": "Topics covered by the table (ideally, the list of topics will be a controlled vocabulary)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Topic",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent topic Identifier",
+                "description":"For subtopics, provide the ID of the parent topic",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id","name"
+            ]
+          }
+        },
+
+        "disciplines": {
+          "type": "array",
+          "title": "Disciplines",
+          "description": "Disciplines e.g. `Social sciences, economics`, `Natural sciences, biology`",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Discipline title or name",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Website link",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },       
+
+        "output_types":{
+          "title":"Output types",
+          "description": "Type of outputs of the script/research project. Example: `On-line interactive data visualization`, `Working paper`",
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "type":{
+                "title":"Type",
+                "type":"string"
+              },
+              "description":{
+                "title":"Description",
+                "type":"string"
+              },
+              "uri":{
+                "title":"URI",
+                "type":"string"
+              },
+              "doi":{
+                "title":"DOI",
+                "type":"string"
+              }
+            }
+          }
         },
         
-        "repository_url": {
+        "repository_uri": {
             "type": "array",
             "title": "Source code repository",
             "description": "Source code repository",
@@ -318,59 +448,64 @@
                 "name"
               ]
             }
-          },    
+          },
+          
         "project_website": {
-          "type": "string",
-          "description": "Project website link"    
+          "title":"Project website",
+          "description": "Project website link",
+          "type": "array",
+          "items": {
+            "type": "string"
+            }      
         },
+
         "version_statement": {
           "type": "object",
           "title": "Version Statement",
           "description": "Version Statement",
-          "_ddi_xpath":"stdyDscr/citation/verStmt",
           "properties": {
             "version": {
               "title": "Version",
-              "type": "string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/version"
+              "type": "string"
             },
             "version_date": {
               "title": "Version Date",
-              "type": "string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/version/@date"
+              "type": "string"
             },
             "version_resp": {
               "title": "Version Responsibility Statement",
               "description":"The organization or person responsible for the version of the work",
-              "type": "string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/verResp"
+              "type": "string"
             },
             "version_notes": {
               "title": "Version Notes",
-              "type": "string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/notes"
+              "type": "string"
             }
           }
         },
         
         "language": {
-          "type": "object",
+          "type": "array",
           "title": "Language",
           "description": "Documentation language e.g. English, French, etc.",          
-          "properties": {
-            "name": {
-              "title": "Name",
-              "type": "string"
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "code": {
+                "title": "Code",
+                "type": "string"              
+              }
             },
-            "code": {
-              "title": "Code",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "name"
-          ]
+            "required": [
+              "name"
+            ]
+          }  
         },
+
         "methods": {
           "type": "array",
           "title":"Methods or algorithms applied",
@@ -440,36 +575,32 @@
 
        
         "license": {
-          "type": "object",
-          "title": "License",
-          "description": "License",
-            "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
-              },
-              "URI": {
-                "title": "URI",
-                "type": "string"
-              }
-          },
-          "required": [
-            "name"
-          ]
-        },
-
-
-
-
-        
-        "pub_research": {
           "type": "array",
-          "title": "Published research",
-          "description": "Published research",
+          "title": "License",          
           "items": {
             "type": "object",
             "properties": {
-              "submit_date": {
+              "name": {
+                "title": "License",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        
+        "review_process": {
+          "type": "array",
+          "title": "Review process",
+          "description": "Review process",
+          "items": {
+            "type": "object",
+            "properties": {
+              "submission_date": {
                 "title": "Date submitted",
                 "type": "string"
               },
@@ -481,63 +612,18 @@
                 "title": "Review status",
                 "type": "string"
               },
-              "review_date": {
-                "title": "Review status",
-                "type": "string"
-              },
-              "approval_date": {
-                "title": "Approval date",
-                "type": "string"
-              },
               "approval_authority": {
                 "title": "Approval authority",
                 "type": "string"
               },
-              "pub_date": {
-                "title": "Date published",
+              "approval_date": {
+                "title": "Date of approval",
                 "type": "string"
               }
             }
-          },
-          "required": [
-            "name"
-          ]
+          }
         }, 
-        
-        
-        "data_included": {
-          "type": "boolean",
-          "description": "Is data included with the script?"    
-        },
-        "data_url": {
-          "type": "string",
-          "description": "Link to an external website where data is available"    
-        },
-        "contact": {
-          "type": "array",
-          "title": "Contact",
-          "description": "Contact",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
-              },
-              "affiliation": {
-                "title": "Affiliation",
-                "type": "string"
-              },
-              "URI": {
-                "title": "URI",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "name"
-          ]
-        },
+                        
         "disclaimer": {
           "title": "Disclaimer",
           "type": "string"
@@ -548,13 +634,13 @@
         },        
         "citation_requirement": {
           "type": "string",
-          "description": "Citation requirements"    
+          "description": "Citation requirements"
         },   
         
-        "data_desc": {
+        "datasets": {
           "type": "array",
-          "title": "Data description",
-          "description": "Contributors",
+          "title": "Datasets",
+          "description": "Datasets used by script",
           "items": {
             "type": "object",
             "properties": {
@@ -574,8 +660,9 @@
                 "title": "Data access policy",
                 "type": "string"
               },
-              "URI": {
-                "title": "URL",
+              "uri": {
+                "title": "URI",
+                "description": "Link to the website",
                 "type": "string"
               }
             }
@@ -583,48 +670,9 @@
           "required": [
             "name"
           ]
-        },
+        },        
 
-        "review_process": {
-          "type": "array",
-          "title": "Project Review Process",
-          "description": "Project review process that led to the publishing of the scripts",
-          "items": {
-            "type": "object",
-            "properties": {
-              "submit_date": {
-                "title": "Submission date",
-                "type": "string"
-              },
-              "reviewer": {
-                "title": "Reviewer name",
-                "type": "string"
-              },
-              "status": {
-                "title": "Status of review",
-                "type": "string"
-              },
-              "review_date": {
-                "title": "Date of review",
-                "type": "string"
-              },
-              "approval_date": {
-                "title": "Date of final approval",
-                "type": "string"
-              },
-              "authority": {
-                "title": "Authority",
-                "description":"Identification of the person or organization having formally approved the scripts/project after comlpetion of the review process",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "reviewer"
-          ]
-        },
-
-        "sponsor": {
+        "sponsors": {
           "type": "array",
           "title": "Sponsor / Funding agency",
           "description": "The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
@@ -642,6 +690,10 @@
               "role": {
                 "title": "Role",
                 "type": "string"
+              },
+              "grant_no":{
+                "title": "Grant number",
+                "type": "string"
               }
             }
           },
@@ -649,6 +701,7 @@
             "name"
           ]
         },
+
         "acknowledgements": {
           "type": "array",
           "title": "Other Identifications /Acknowledgments",
@@ -732,10 +785,10 @@
         },
 
 
-        "script_files": {
+        "scripts": {
           "type": "array",
           "title": "Script files",
-          "description": "Script files",
+          "description": "Description of each script file",
           "items": {
             "type": "object",
             "properties": {

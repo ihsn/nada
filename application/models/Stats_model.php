@@ -11,16 +11,9 @@ class Stats_model extends CI_Model {
 	*
 	* Return top N popular surveys
 	*/	
-	function get_popular_surveys($limit=10,$start=NULL, $end=NULL)
+	function get_popular_surveys($limit=10)
 	{
-		if (!is_numeric($start) || !is_numeric($end))
-		{
-			$start=strtotime("-3 weeks");
-			$end=date("U");
-		}
-	
-		if (!is_numeric($limit))
-		{
+		if (!is_numeric($limit)){
 			$limit=10;
 		}
 		
@@ -29,34 +22,20 @@ class Stats_model extends CI_Model {
 				s.title as title,
 				s.authoring_entity,
 				s.nation,
-				count(*) as visits';
-				
-		$fields_group_by='s.id,
-				s.idno, 
-				s.title,
-				s.authoring_entity,
-				s.nation';
-				
+				s.total_views as visits';
+								
 		$this->db->select($fields);
-		$this->db->join('surveys s', 's.id= n.surveyid','inner');
 		$this->db->limit($limit);
-		$this->db->group_by($fields_group_by); 
-		$this->db->where('logtype','survey');
-		$this->db->where('s.published',1);
-
-		if (is_numeric($start) && is_numeric($end) ) 
-		{
-			$this->db->where('(logtime between '.$start.' and '.$end.')');
-		}
-		
-		$query=$this->db->get('sitelogs n');
+		$this->db->where('s.published',1);		
+		$query=$this->db->get('surveys s');
 				
-		if ($query)
-		{
+		if ($query){
 			return $query->result_array();
-		}	
+		}
+
 		return FALSE;
 	}
+	
 
 	function get_latest_surveys($limit=10)
 	{

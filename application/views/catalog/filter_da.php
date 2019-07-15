@@ -53,4 +53,3 @@ $da_types=(array)$this->input->get('dtype');
 		</table>
     </div>
 </div>
-</div>

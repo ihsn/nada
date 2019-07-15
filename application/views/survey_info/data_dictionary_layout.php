@@ -16,7 +16,7 @@
         border: 1px solid #ddd;
         border-left:0px;
         border-right:0px;
-        font-size: 12px;
+        font-size: small;
         border-bottom: 1px solid gainsboro;
         word-wrap: break-word;
         padding: 5px;
@@ -29,10 +29,38 @@
         border-top:0px;
     }
 
+    .variable-groups-sidebar
+    .nada-list-vgroup {
+        padding-inline-start: 0px;
+        font-size:small;
+        list-style-type: none;
+    }
+
+    .nada-list-vgroup {
+        list-style-type: none;
+    }
+
+    .nada-list-subgroup{
+        padding-left:10px;
+    }
+    
     .table-variable-list .var-breadcrumb{
         display:none;
     }
 
+    .nada-list-subgroup .nada-list-vgroup-item {
+        padding-left: 24px;
+        position: relative;
+        list-style:none;
+    }
+
+    .nada-list-subgroup .nada-list-vgroup-item:before {
+        position: absolute;
+        font-family: 'FontAwesome';
+        top: 0;
+        left: 10px;
+        content: "\f105";
+    }
 
 </style>
 
@@ -50,13 +78,21 @@
         </form>
         
         <ul class="nada-list-group">
-            <li class="nada-list-group-item nada-list-group-title">Data files</li>
+            <li class="nada-list-group-item nada-list-group-title"><?php echo t('data_files');?></li>
             <?php foreach($files as $file_):?>
                 <li class="nada-list-group-item">
                     <a href="<?php echo site_url("catalog/$sid/data-dictionary/{$file_['file_id']}");?>?file_name=<?php echo html_escape($file_['file_name']);?>"><?php echo wordwrap($file_['file_name'],15,"<BR>");?></a>
                 </li>
             <?php endforeach;?>
         </ul>
+
+        <?php if(isset($variable_groups_html)):?>
+        <div class="variable-groups-sidebar">
+            <div class="nada-list-group-item nada-list-group-title"><?php echo t('variable_groups');?></div>
+            <?php echo $variable_groups_html;?>
+        </div>
+        <?php endif;?>
+
     </div>
 
     <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">

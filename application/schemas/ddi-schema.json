@@ -1543,7 +1543,25 @@
       "items":{
         "type":"object",
         "properties":{
-          "type":{
+          "vgid":{
+            "title":"Variable Group ID",
+            "description":"Unique ID for the variable group e.g. VG1",
+            "type":"string",
+            "maxLength": 45
+          },
+          "variables":{
+            "title":"Variables",
+            "description":"List of variables for the group seperated by space e.g. V1 V2 V3",
+            "type":"string",
+            "maxLength": 5000
+          },
+          "variable_groups":{
+            "title":"Variable groups",
+            "description":"List of sub-groups e.g. VG2 VG3 VG4",
+            "type":"string",
+            "maxLength": 1000
+          },
+          "group_type":{
             "title":"Type",
             "type":"string",
             "enum":[
@@ -1561,30 +1579,40 @@
               "file",
               "randomized",
               "other"
-            ]
+            ],
+            "maxLength": 45
           },
           "label":{
             "title":"Label",
-            "type":"string"
+            "type":"string",
+            "maxLength": 255
           },
           "universe":{
             "title":"Universe",
-            "type":"string"
+            "type":"string",
+            "maxLength": 255
           },
           "notes":{
             "title":"Notes",
-            "type":"string"
+            "type":"string",
+            "maxLength": 500
           },
           "txt":{
             "title":"Text",
-            "type":"string"
+            "type":"string",
+            "maxLength": 500
           },
           "definition":{
             "title":"Definition",
-            "type":"string"
+            "type":"string",
+            "maxLength": 500
           }
-        }
-      }
+        },
+        "required":[
+          "vgid"
+        ]
+      },
+      "additionalProperties":false
     }
   }
 }

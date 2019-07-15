@@ -1,3 +1,8 @@
+<style>
+	.repo-thumbnail{
+		max-width:150px;
+	}
+	</style>
 <?php
 $repository_types=array(
 	'0'=>'Internal',
@@ -89,11 +94,11 @@ $repository_types=array(
     <!-- grid -->
     <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
-            <th>ID</th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
-            <!--<th><?php echo create_sort_link($sort_by,$sort_order,'type',t('type'),$page_url); ?></th>-->
-            <th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
-            <th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
+				<th>&nbsp;</th>			
+				<th>ID</th>
+				<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
+				<th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
+				<th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -101,7 +106,8 @@ $repository_types=array(
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="repo-row <?php echo $tr_class; ?>">
-            <td><?php echo strtoupper($row->repositoryid);?></td>
+						<td><div class="thumb"><a href="<?php echo site_url('catalog/'.$row->repositoryid.'/about');?>"><img class="img-thumbnail repo-thumbnail" src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></div></td>
+						<td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <!--<td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>-->
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>

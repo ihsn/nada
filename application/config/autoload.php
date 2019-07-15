@@ -59,7 +59,8 @@ $autoload['libraries'] = array(
 							'DB_Logger',
 							'MY_Exception',
 							'ion_auth',
-							'breadcrumb'
+							'breadcrumb',
+							'events'
 							);
 
 /*

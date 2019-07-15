@@ -29,6 +29,8 @@ class MY_Controller extends CI_Controller
 		
 		//test if application is installed
 		$this->is_app_installed();
+
+		$this->site_maintenance();
 	
 		//switch language
 		$this->_switch_language();
@@ -44,6 +46,9 @@ class MY_Controller extends CI_Controller
 		   //apply IP restrictions for site administration
 		   $this->apply_ip_restrictions();
 		   
+		   //apply server host name restrictions for site administration
+		   $this->apply_hostname_restrictions();
+		   
 			//check user is logged in or not
 			$this->_auth();
 			
@@ -56,51 +61,55 @@ class MY_Controller extends CI_Controller
 			}
 			
 			//check user has access to the url
-			if (!$this->acl->user_has_url_access() )
-			{
+			if (!$this->acl->user_has_url_access() ){
 				show_error(t('ACCESS_DENIED'));
+			}
+			
+			if ($this->config->item("otp_verification")===1){
+				if ($this->session->userdata('verify_otp')!==1){
+					//otp expired or not set?
+					if (date("U")>$user->otp_expiry || !$user->otp_code){
+						$this->ion_auth->send_otp_code($user->id);
+					}
+					redirect('auth/verify_code');
+				}
 			}
 		}
 	}
 
+	
 
 	/**
-	*
-	* Check user has access to the current page
-	**/
-	/*
-	//TODO: Remove later
-	
-	function _has_access()
-	{	
-		$excluded_urls=array('auth','catalog');
-
-		if (in_array($this->uri->segment(1),$excluded_urls) || $this->uri->uri_string()=='')
-		{
-			return FALSE;
+	 * 
+	 * Show offline message during maintenance
+	 * 
+	 * 
+	 */
+	function site_maintenance()
+	{
+		$offline=$this->config->item("maintenance_mode");
+		
+		if($offline!==1){
+			return true;
 		}
 
-		//get currently logged in user
-		$user=$this->ion_auth->current_user();
-		
-		if (!$user)
-		{
-			return FALSE;
-		}
-		
-		//test user has access to the current url
-		$access=$this->ion_auth->has_access($user->id,$this->uri->uri_string());
-		
-		if ($access===FALSE)
-		{
-			show_error("You don't have permissions to access content");
+		$allowed_urls=array('auth');
+
+		if ($this->ion_auth->logged_in() 
+			//&& $this->ion_auth->is_admin()
+		){
+			return true;
 		}
 
-		//check study level permissions
-		$this->acl->check_study_permissions();				
+		if (in_array($this->uri->segment(1), $allowed_urls)){
+			return true;
+		}
+
+		echo $this->load->view('static/offline',null,true);
+		die();
 	}
-	*/
-	
+
+
 
 
 	/**
@@ -129,6 +138,36 @@ class MY_Controller extends CI_Controller
 		  }     
 		} 
 	 }
+
+	  
+	/**
+	 * 
+	 * Restrict access to site administration based on 
+	 * HOSTNAME used for accessing the site
+	 * 
+	 */
+	 public function apply_hostname_restrictions()
+	 {	 	
+		$http_host=$this->input->server("HTTP_HOST");
+		$allowed_hosts=$this->config->item("admin_allowed_hosts");
+		
+		$http_host=explode(":",$http_host);
+		$http_host=$http_host[0];
+		
+		  if (is_array($allowed_hosts) && count($allowed_hosts)>0)
+		  {
+			  //check host is in the allowed list  
+			  if (!in_array($http_host, $allowed_hosts))
+			  {
+				 //log
+				 $this->db_logger->write_log('blocked',sprintf('site access blocked from ip [%s], using host [%s]',$this->input->ip_address(),$http_host),'host-access-blocked');
+				 
+				 //show page not found  
+				 show_404(); 
+			  }  
+		  }     
+	 } 
+	 
     
 	/**
 	* Switch site language using cookies

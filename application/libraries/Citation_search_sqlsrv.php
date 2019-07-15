@@ -202,7 +202,7 @@ class Citation_search_sqlsrv{
 							if (trim($keywords)==""){break;}
 							
 							$freetext_join=sprintf('freetexttable (citations,(ft_keywords),%s,%d) as KEY_TBL',$this->ci->db->escape($keywords),$limit);
-							$this->ci->db->join($freetext_join, 'citations.id = KEY_TBL.[KEY]','inner');
+							$this->ci->db->join($freetext_join, 'citations.id = KEY_TBL.KEY','inner');
 							$this->sort_on_rank=true;
 							
 							break;
