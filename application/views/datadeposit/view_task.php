@@ -1,6 +1,3 @@
-<?php //var_dump($task);?>
-<?php //var_dump($project);?>
-
 <style>
     .table-form td{padding:5px;vertical-align: top;}
     .label-0{background-color:orange}
@@ -15,7 +12,7 @@ $task_codes=array(
 
 ?>
 
-<div class="content-container">
+<div class="content-container container-fluid">
 
     <?php if (validation_errors() ) : ?>
         <div class="error">
@@ -34,12 +31,12 @@ $task_codes=array(
     <?php echo form_open_multipart('', array('class'=>'form') ); ?>
 
 
-    <table class="table-form">
+    <table class="table-form table table-striped">
 
         <tr>
             <td><label>Project:</label></td>
             <td>
-                <a href="<?php echo $project->id;?>"><?php echo $project->title;?></a>
+                <a href="<?php echo site_url('admin/datadeposit/id/'.$project->id);?>"><?php echo $project->title;?></a>
             </td>
         </tr>
 

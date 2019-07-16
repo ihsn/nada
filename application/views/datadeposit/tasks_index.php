@@ -12,11 +12,11 @@ $task_codes=array(
 
 ?>
 
-<div class="content-container">
+<div class="content-container container-fluid">
 
     <h1 class="page-title"><?php echo t('Active tasks'); ?></h1>
 
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="grid-table table table-striped" width="100%" cellspacing="0" cellpadding="0">
 
         <tr class="header">
             <th>Title</th>
@@ -44,7 +44,7 @@ $task_codes=array(
     <br/>
 
     <h1>Recently completed tasks</h1>
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="grid-table  table table-striped" width="100%" cellspacing="0" cellpadding="0">
 
         <tr class="header">
             <th>Title</th>

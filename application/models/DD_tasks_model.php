@@ -199,7 +199,7 @@ class dd_tasks_model extends CI_Model {
         $assigner_email=$data['task_user']->email;
         $assigned_to_email=$data['assignee']->email;
         $subject='[task notification] - '. $data['project']->title;
-        $message=$this->load->view('emails/email_task_info',$data,TRUE);
+        $message=$this->load->view('datadeposit/emails/email_task_info',$data,TRUE);
 
         /*if ($task_options['status']==0) {
 
