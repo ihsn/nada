@@ -86,15 +86,6 @@ function pre_system_url_check()
 	$proxy_ssl_header=$config["proxy_ssl_header"];
 	$proxy_ssl_header_value=$config["proxy_ssl_header_value"];
 	
-	/*
-	$test_port='80, 80';
-	if($_SERVER['HTTPS']=="on")
-	{
-		$test_port=$proxy_ssl_header_value;
-	}
-	$_SERVER[$proxy_ssl_header]=$test_port;//$proxy_ssl_header_value;
-	*/
-
 	if (!$enable_ssl && !$proxy_ssl)
 	{
 		return FALSE;
@@ -152,30 +143,10 @@ function pre_system_url_check()
 	if($is_https===FALSE)
 	{	
 		//if url first segment has AUTH redirect to HTTPS		
-		if (current($segments)=='auth')
-		{
+		//if (current($segments)=='auth'){
 			//redirect to SSL page
 			header("Location:$redirect");
-		}		
-	}
-	//if non-ssl pages are viewed using HTTPS, force them to use http instead
-	else if($is_https===TRUE)
-	{
-		if (current($segments)!='auth')
-		{
-			if ($http_port!=80)
-			{
-				$http_port=':'.$http_port;
-			}
-			else if($http_port==80)
-			{
-				$http_port='';
-			}
-			
-			//redirect to NON-SSL page			
-			$redirect= "http://".$_SERVER['HTTP_HOST'].$http_port._request_uri();
-			header("Location:$redirect");
-		}
+		//}		
 	}
 }
 
