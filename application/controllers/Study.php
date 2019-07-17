@@ -38,6 +38,7 @@ class Study extends MY_Controller {
 	//study metadata
 	function metadata($sid=NULL)
 	{
+		$this->load->helper('array');
 		$survey=$this->Dataset_model->get_row_detailed($sid);
 
 		if (!$survey){
@@ -47,7 +48,10 @@ class Study extends MY_Controller {
 		if(!is_array($survey['metadata'])){
 			$survey['metadata']=array($survey['metadata']);
 		}
-				
+
+		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
+		$this->template->add_js($json_ld,'inline');
+		
 		$this->metadata_template->initialize($survey['type'],$survey);
 		$output=$this->metadata_template->render_html();
 
@@ -59,9 +63,31 @@ class Study extends MY_Controller {
 	
 	public function data_dictionary($sid)
 	{
+		$this->load->model("Variable_group_model"); 
 		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
+		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
         $options['sid']=$sid;
 		$options['content']=$this->load->view('survey_info/data_files',$options,TRUE);
+		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
+		$this->render_page($sid, $content,'data_dictionary');
+	}
+
+
+	public function variable_groups($sid,$vgid=null)
+	{
+		$this->load->model("Variable_group_model"); 
+		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
+		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
+		$options['sid']=$sid;
+
+		if($vgid){
+			$options['variable_group']=$this->Variable_group_model->get_single_group($sid,$vgid);
+			$options['content']=$this->load->view('survey_info/variable_group',$options,TRUE);
+		}
+		else{
+			$options['content']=$this->load->view('survey_info/variable_groups',$options,TRUE);
+		}
+		
 		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
 		$this->render_page($sid, $content,'data_dictionary');
 	}
@@ -524,7 +550,7 @@ class Study extends MY_Controller {
 		if ($allow_download){
 			$this->load->helper('download');
 			log_message('info','Downloading file <em>'.$resource_path.'</em>');
-			$this->db_logger->write_log('download',$survey_id,'resource='.$resource_id);
+			$this->db_logger->write_log('download',basename($resource_path),($resource_is_microdata ? 'microdata': 'resource'),$survey_id);
 			$this->db_logger->increment_study_download_count($survey_id);
 			force_download2($resource_path);
 		}

@@ -20,9 +20,8 @@ if ( ! function_exists('filter'))
 	{
 		$ci =& get_instance();
 		$allowed=array(
-					'titl',
-					'surveyid',
-					'producer',
+					'title',
+					'idno',
 					'published',
 					'tag',
 					'nation'
@@ -46,7 +45,7 @@ if ( ! function_exists('filter'))
 			}
 			else
 			{
-				$result[]=$key.': '.$value.']';
+				$result[]=$key.': '.$value.'';
 			}	
 		}
 		

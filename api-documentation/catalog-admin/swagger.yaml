@@ -8,6 +8,7 @@ info:
 
     To use the API, you will require the '`API-KEY'`, see the section
     `Authentication` 
+
   version: 5.0
   title: NADA
   license:
@@ -15,6 +16,8 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 basePath: /index.php/api/
 tags:
+  - name: API keys
+    description: The API requires `API-KEY` for all endpoints and will only work for 'ADMIN' user accounts only. To generate the API keys, use `auth/login` method.  
   - name: Datasets
     description: Datasets represent all types of data such as Microdata, Timeseries, Geospatail, Scripts, etc.
   - name: External resources
@@ -24,6 +27,9 @@ tags:
   - name: Filestore
     description: File storage for uploading and viewing images and other document types.  
 x-tagGroups:
+  - name: Authentication
+    tags: 
+      - API keys
   - name: Catalog administration
     tags:
       - Collections
@@ -42,6 +48,80 @@ x-tagGroups:
 schemes:
   - http
 paths:
+  /auth/login:
+      post:
+        tags:
+          - API keys
+        summary: Get API Keys
+        description: Get user API keys
+        operationId: getApiKey
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "formData"
+            name: "email"
+            type: string
+            description: "User email address"
+            required: true
+          - in: "formData"
+            name: "password"
+            type: string
+            description: "Password"
+            required: true
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: The user ID
+                user_name:
+                  type: string
+                  description: The user name
+                api_keys:
+                  type: array
+                  description: API keys
+  /auth/create_api_key:
+      post:
+        tags:
+          - API keys
+        summary: Create API key
+        description: Create a new API key
+        operationId: createApiKey
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "formData"
+            name: "email"
+            type: string
+            description: "User email address"
+            required: true
+          - in: "formData"
+            name: "password"
+            type: string
+            description: "Password"
+            required: true
+        responses:
+          '200':
+            description: successful operation            
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: The user ID
+                user_name:
+                  type: string
+                  description: The user name
+                api_keys:
+                  type: array
+                  description: API keys
   /collections:
       get:
         tags:
@@ -1617,8 +1697,9 @@ definitions:
         readOnly: true
       dctype:
         type: string
+        example: doc/adm
         description:
-          Document types for external resource
+          Document types for external resource e.g. `doc/adm`
           
           * `doc/adm` - Document, Administrative [doc/adm]
           
@@ -1650,37 +1731,55 @@ definitions:
           
           * `vid` - Video [vid]
           
-          * `web` - Web Site [web]
-
-        enum:
-          - doc/adm
-          - doc/anl
-          - doc/oth
-          - doc/qst
-          - doc/ref
-          - doc/rep
-          - doc/tec
-          - aud
-          - dat
-          - map
-          - dat/micro
-          - pic
-          - prg
-          - tbl
-          - vid
-          - web
+          * `web` - Web Site [web]        
 
       dcformat:
         type: string
-        description: Document format
-        enum:
-          - pdf
-          - word
-          - txt
-          - csv
-          - dta
-          - spss
-          - zip
+        example: application/zip
+        description: Document file format e.g. `application/zip`
+
+          * `application/x-compressed` - Compressed, Generic
+
+          * `application/zip` - Compressed, ZIP
+          
+          * `application/x-cspro` - Data, CSPro
+          
+          * `application/dbase` - Data, dBase
+          
+          * `application/msaccess` - Data, Microsoft Access
+          
+          * `application/x-sas` - Data, SAS
+          
+          * `application/x-spss` - Data, SPSS
+          
+          * `application/x-stata` - Data, Stata
+          
+          * `text` - Document, Generic
+          
+          * `text/html` - Document, HTML
+          
+          * `application/msexcel` - Document, Microsoft Excel
+          
+          * `application/mspowerpoint` - Document, Microsoft PowerPoint
+          
+          * `application/msword` - Document, Microsoft Word
+          
+          * `application/pdf` - Document, PDF
+          
+          * `application/postscript` - Document, Postscript
+          
+          * `text/plain` - Document, Plain
+          
+          * `text/wordperfect` - Document, WordPerfect
+          
+          * `image/gif` - Image, GIF
+          
+          * `image/jpeg` - Image, JPEG
+          
+          * `image/png` - Image, PNG
+          
+          * `image/tiff` - Image, TIFF
+
       title:
         type: string
       author:
@@ -1713,6 +1812,9 @@ definitions:
       changed:
         type: string
         format: date-time
+    required:
+      - title
+      - filename
     xml:
       name: Resource
   VariableList:
@@ -1814,6 +1916,3 @@ definitions:
         type: string
       message:
         type: string
-externalDocs:
-  description: Find out more about Swagger
-  url: 'http://swagger.io'

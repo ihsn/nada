@@ -1,118 +1,449 @@
 <?php
 /**
-* Data deposit projects
+* External resources for surveys
 *
 **/
 class DD_resource_model extends CI_Model {
 	
-	//database column names
-	var $fields=array(
-		'pid',
-		'title',
-		'resource_type', 
-		'description',
-		'filename', 		
-		'created',
-		'changed',
-		'created_by',
-		'changed_by'
-	);
-
-	private $resource_types=array(
-		'questionnaire'	=>'Questionnaire',
-		'report'		=>'Report',
-		'microdata'		=>'Microdata file',
-		'other'			=>'Other'
-	);
+	//database allowed column names
+	var $allowed_fields=array('dctype','title','author', 'dcdate','country', 'language', 'contributor','publisher','toc', 'abstract', 'filename','dcformat','description');
+	
+	//surveyid of the survey to show external resources
+	var $surveyid;
 	
 			
     public function __construct()
     {
-		parent::__construct();
-		$this->load->model('DD_project_model');
+        // model constructor
+        parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
+		
+	/**
+	* searche database
+	* 
+	* 	NOTE: search parameters such as keywords are accessed directly from 
+	*	POST/GET variables
+	**/
+    function search($limit = NULL, $offset = NULL)
+    {
+		$this->search_count=$this->search_count();
+		
+		if ($this->search_count==0)
+		{
+			//no point in searching
+			return NULL;
+		}
+
+		//sort
+		$sort_order=$this->input->get('sort_order');
+		$sort_by=$this->input->get('sort_by');
+		
+		$this->db->start_cache();		
+		
+		//select survey fields
+		$this->db->select('*');
+		
+		//build search using the parameters passed to the GET/POST variables
+		$where=$this->_build_search_query();
+
+		$where_clause='';
+		
+		if ($where!=NULL){
+			foreach($where['field'] as $field)
+			{
+				if ( trim($where_clause)!='')
+				{	//$this->db->or_like($field,$where['keywords']);
+					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}
+				else
+				{
+					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}	
+			}	
+		}
+		
+		if ( trim($where_clause)!='')
+		{
+			$where_clause='('.$where_clause.') AND survey_id='.$this->surveyid;
+		}
+		else
+		{
+			$where_clause='survey_id='.$this->db->escape($this->surveyid);
+		}
+		
+		//$this->db->like('surveyid',1);
+		$this->db->where($where_clause, NULL, FALSE);
+
+		//set order by
+		if ($sort_by!='' && $sort_order!=''){
+			$this->db->order_by($sort_by, $sort_order); 
+		}
+		
+	  	$this->db->limit($limit, $offset);
+		$this->db->from('resources');
+		$this->db->stop_cache();
+
+        $result= $this->db->get()->result_array();		
+		return $result;
+    }
+	
+	//builds where clause using the variables from GET
+	function _build_search_query()
+	{		
+		$fields=$this->input->get("field");
+		$keywords=$this->input->get("keywords");
+		
+		$allowed_fields=$this->allowed_fields;
+		
+		if ($keywords=='')
+		{
+			return NULL;
+		}
+		
+		if ($fields=='')
+		{
+			return NULL;
+		}
+		else if ($fields=='all')
+		{			
+			$where['field']=$allowed_fields;
+			$where['keywords']=$keywords;
+			
+			return $where;
+		}
+		else if (in_array($fields, $allowed_fields) )
+		{
+			$where['field']=array($fields);
+			$where['keywords']=$keywords;
+			
+			return $where;
+		}
+		
+		return NULL;
+	}
+
+	//returns the search result count  	
+    function search_count()
+    {
+        //build search using the parameters passed to the GET/POST variables
+		$where=$this->_build_search_query();
+
+		$where_clause='';
+		
+		if ($where!=NULL){
+			foreach($where['field'] as $field)
+			{
+				if ( trim($where_clause)!='')
+				{	//$this->db->or_like($field,$where['keywords']);
+					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}
+				else
+				{
+					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}	
+			}	
+		}
+		
+		if ( trim($where_clause)!='')
+		{
+			$where_clause='('.$where_clause.') AND survey_id='.$this->surveyid;
+		}
+		else
+		{
+			$where_clause='survey_id='.$this->db->escape($this->surveyid);
+		}
+		//print $where_clause;
+		//$this->db->like('surveyid',1);
+		$this->db->where($where_clause,NULL,FALSE);
+		$result=$this->db->count_all_results('resources');
+		return $result;
+    }
+
+
+	function insert_project_resource($pid,$data) 
+	{		
+			$allowed_fields=array('project_id','title','author','created','description','filename','filesize','dctype','dcformat');
+			
+			$options=array();
+			foreach($data as $key=>$value)
+			{
+				if(in_array($key,$allowed_fields))
+				{
+					$options[$key]=$value;
+				}	
+			}
+	
+			//check resource already exists for the project
+			$resource_id=$this->resource_exists($pid,$data['filename']);
+			if (!$resource_id)
+			{
+				//insert new
+				return $this->db->insert('dd_project_resources', $options);
+			}
+			else //update resource
+			{
+				$options['description']='found andu dpate';
+				return $this->update_project_resource($resource_id,$options);
+			}	
+	}
+	
+	
+	//check if a resource already exists for a project
+	function resource_exists($pid,$filename)
+	{
+		$this->db->where('project_id',$pid);
+		$this->db->where('filename',$filename);
+		$this->db->select('id');
+		$this->db->limit(1);
+		$query=$this->db->get('dd_project_resources')->row_array();
+		
+		if ($query)
+		{
+			return $query['id'];
+		}
+		
+		return FALSE;
+	}
+	
+	function update_project_resource($id, $data) 
+	{
+		return $this->db->where('id', $id)
+				->update('dd_project_resources', $data);
+	}
+	
+	function get_project_resources_to_array($pid) 
+	{
+		$result = $this->get_project_resources($pid);
+		$list=array();
+		foreach($result as $row)
+		{
+			$list[] = $row;
+		}
+		return $list;
+	}
+	
+	function delete_project_resource($fid) {
+		$this->db->delete('dd_project_resources', array('id' => $fid));
+		$file = $this->get_project_resource($fid);
+	}
+	
+	function get_project_resources($pid) {
+		$q= $this->db->select('*')
+			->from('dd_project_resources')
+			->where('project_id', $pid);
+		return $q->get()->result_array();
+	}
+	
+	function get_project_resource($id) {
+		$q = $this->db->select('*')
+			->from('dd_project_resources')
+			->where('id', $id);
+	
+		return $q->get()->result();
+	}
 	
 
 	/**
-	* 
+	* returns resource filenames by survey id
 	*
+	*
+	**/
+	function get_survey_resource_files($surveyid){
+		$this->db->select("resource_id,filename,title");
+		$this->db->where('survey_id', $surveyid); 
+		return $this->db->get('resources')->result_array();
+	}
+	
+	
+	/**
 	* returns a single row
 	*
-	**/
-	function select_single($id)
-	{
-		$this->db->where('id', $id); 
-		$result=$this->db->get('dd_resources')->row_array();
-
-		return $result;
-	}
-
-	/**
-	 * 
-	 * 
-	 * Get a single resource by project ID and resource ID
-	 * 
-	 */
-	function get_project_single_resource($project_id,$resource_id)
-	{
-		$this->db->select('*');
-		$this->db->where('pid',$project_id);
-		$this->db->where('id',$resource_id);
-		return $this->db->get("dd_resources")->row_array();
-	}
-
-	//get resources by project
-	function get_project_resources($project_id)
-	{
-		$this->db->select('*');
-		$this->db->where('pid',$project_id);
-		return $this->db->get("dd_resources")->result_array();
-	}
-
-	function delete($resource_id)
-	{
-		//remove attached file
-		$this->delete_resource_file($resource_id);
-
-		//remove from db
-		$this->db->where('id', $resource_id); 
-		return $this->db->delete('dd_resources');
-	}
-
-
-	/**
-	* 
-	*	Create resource
 	*
 	**/
-	function insert($options)
+	function select_single($id){
+		$this->db->where('resource_id', $id); 
+		return $this->db->get('resources')->row_array();
+	}
+
+	function delete($id)
 	{
-		//allowed fields
-		$valid_fields=$this->fields;
+		$this->db->where('resource_id', $id); 
+		return $this->db->delete('resources');
+	}
+	
+	/**
+	*
+	* Delete all resources by survey id
+	**/
+	function delete_all_survey_resources($survey_id)
+	{
+		$this->db->where('survey_id', $survey_id); 
+		return $this->db->delete('resources');
+	}
+	
+	/**
+	* returns DC Types
+	*
+	*
+	**/
+	function get_dc_types(){
+		$result= $this->db->get('dctypes')->result_array();
 
-		$options['changed']=date("U");
-		$options['created']=date("U");
+		$list=array();
+		foreach($result as $row)
+		{
+			$list[$row['title']]=$row['title'];
+		}
 		
-		$data=array();
+		return $list;
+	}
+	
+	function get_study_types() {
+		$result = $this->db->get('dd_study_type')->result_array();
+		$list   = array();
+		foreach ($result as $row) {
+			$list[preg_replace('#\[.*?\]#', '', $row['studytype'])] = preg_replace('#\[.*?\]#', '', $row['studytype']);
+		}
+		return $list;
+	}
+	
 
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$data[$key]=$value;
+	function get_kind_of_data() {
+		$result = $this->db->get('dd_kind_of_data')->result_array();
+		$list   = array();
+		foreach ($result as $row) {
+			$list[$row['kindofdata']] = $row['kindofdata'];
+		}
+		return $list;
+	}
+
+	/**
+	* returns DC Formats
+	*
+	*
+	**/
+	function get_dc_formats(){
+		$result= $this->db->get('dcformats')->result_array();
+
+		$list=array();
+		foreach($result as $row)
+		{
+			$list[$row['title']]=$row['title'];
+		}
+		
+		return $list;
+	}
+	
+	/**
+	* overview_methods
+	*
+	*
+	**/
+	function get_overview_methods(){
+		$result= $this->db->get('dd_overview_methods')->result_array();
+
+		$list=array();
+		foreach($result as $row)
+		{
+			$list[$row['method']]=$row['method'];
+		}
+		
+		return $list;
+	}
+	
+	/**
+	* Returns the type ID by type-name
+	*
+	*/
+	function get_dctype_id_by_name($type_name)
+	{
+		$type_arr=explode(' ', $type_name);
+		
+		$type=NULL;
+		
+		if (!$type_arr)
+		{
+			return 0;
+		}
+		
+		foreach($type_arr as $str)
+		{
+			$str=trim($str);
+			if ($str[0]=='[' && $str[strlen($str)-1]==']')
+			{
+				$type=$str;
 			}
 		}
 		
-		$result=$this->db->insert('dd_resources', $data);
-
-		if ($result===false){
-			throw new MY_Exception($this->db->error());
+		//Type not found
+		if ($type==NULL)
+		{
+			return 0;
 		}
-			
-		$resource_id=$this->db->insert_id();
-		return $resource_id;
+		
+		//search db
+		$this->db->select('id'); 
+		$this->db->like('title', $type); 
+		$result= $this->db->get('dctypes')->row_array();
+		
+		if ($result)
+		{
+			return $result['id'];
+		}
+		else
+		{
+			return 0;
+		}	
 	}
+	
+	/**
+	* Returns the DC Format ID by Format-name
+	*
+	*/
+	function get_dcformat_id_by_name($type_name)
+	{
+		$type_arr=explode(' ', $type_name);
 
-
+		if (!$type_arr)
+		{
+			return 0;
+		}
+		
+		$type=NULL;
+		foreach($type_arr as $str)
+		{
+			$str=trim($str);
+			if (isset($str[0]))
+			{
+				if ($str[0]=='[' && $str[strlen($str)-1]==']')
+				{
+					$type=$str;
+				}
+			}
+		}
+		
+		//Type not found
+		if ($type==NULL)
+		{
+			return 0;
+		}
+		
+		//search db
+		$this->db->select('id'); 
+		$this->db->like('title', $type); 
+		$result= $this->db->get('dcformats')->row_array();
+		
+		if ($result)
+		{
+			return $result['id'];
+		}
+		else
+		{
+			return 0;
+		}	
+	}
+	
 	/**
 	* update external resource
 	*
@@ -121,311 +452,156 @@ class DD_resource_model extends CI_Model {
 	**/
 	function update($resource_id,$options)
 	{
-		$valid_fields=$this->fields;		
+		//allowed fields
+		$valid_fields=array(
+			//'resource_id',
+			//'survey_id',
+			'dctype',
+			'title',
+			'subtitle',
+			'author',
+			'dcdate',
+			'country',
+			'language',
+			//'id_number',
+			'contributor',
+			'publisher',
+			'rights',
+			'description',
+			'abstract',
+			'toc',
+			'subjects',
+			'filename',
+			'dcformat',
+			'changed');
+
+		//add date modified
 		$options['changed']=date("U");
+					
+		//remove slash before the file path otherwise can't link the path to the file
+		if (isset($options['filename']))
+		{
+			if (substr($options['filename'],0,1)=='/')
+			{
+				$options['filename']=substr($options['filename'],1,255);
+			}
+		}
+		
+		//pk field name
+		$key_field='resource_id';
+		
+		$update_arr=array();
+
+		//build update statement
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$valid_fields) )
+			{
+				$update_arr[$key]=$value;
+			}
+		}
+		
+		//update db
+		$this->db->where($key_field, $resource_id);
+		$result=$this->db->update('resources', $update_arr); 
+		
+		return $result;		
+	}
+	
+	
+	/**
+	* add external resource
+	*
+	*	resource_id		int
+	* 	options			array
+	**/
+	function insert($options)
+	{
+		//allowed fields
+		$valid_fields=array(
+			//'resource_id',
+			'survey_id',
+			'dctype',
+			'title',
+			'subtitle',
+			'author',
+			'dcdate',
+			'country',
+			'language',
+			//'id_number',
+			'contributor',
+			'publisher',
+			'rights',
+			'description',
+			'abstract',
+			'toc',
+			'subjects',
+			'filename',
+			'dcformat',
+			'changed');
+
+		//add date modified
+		$options['changed']=date("U");
+
+		//remove slash before the file path otherwise can't link the path to the file
+		if (isset($options['filename']))
+		{
+			if (substr($options['filename'],0,1)=='/')
+			{
+				$options['filename']=substr($options['filename'],1,255);
+			}
+		}
+		
+		if (isset($options['type']))
+		{
+			$options['dctype']=$options['type'];
+		}
+		if (isset($options['format']))
+		{
+			$options['dcformat']=$options['format'];
+		}
 		
 		$data=array();
-
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
+		//build update statement
+		foreach($options as $key=>$value)
+		{
+			if (in_array($key,$valid_fields) )
+			{
 				$data[$key]=$value;
 			}
 		}
 		
-		$this->db->where('id', $resource_id);
-		$result=$this->db->update('dd_resources', $data);
-
-		if ($result===false){
-			throw new MY_Exception($this->db->error());
-		}
+		//insert record into db
+		$result=$this->db->insert('resources', $data); 
 		
-		return $result;
+		return $result;		
 	}
 	
 	
-
-	//validate resource type
-	public function validate_resource_type($type)
-	{		
-		if (!array_key_exists($type,$this->resource_types)){
-			$this->form_validation->set_message(__FUNCTION__, 'The %s is not valid. Supported types are: '. implode(", ", array_keys($this->resource_types)));
-			return false;
-		}
-		return true;
-	}
-
-
-
 	/**
-	 * 
-	 * 
-	 * Validate resource
-	 * @options - array of resource fields
-	 * 
-	 **/
-	function validate_resource($options,$is_new=true)
-	{		
-		$this->load->library("form_validation");
-		$this->form_validation->reset_validation();
-		$this->form_validation->set_data($options);
-	
-		if($is_new){
-			//validation rules for adding new record				
-			$this->form_validation->set_rules('title', 'Title', 'xss_clean|trim|max_length[255]|required');
-
-			//project type validation rule
-			$this->form_validation->set_rules(
-				'resource_type', 
-				'Resource Type',
-				array(
-					"required",
-					array('validate_resource_type',array($this, 'validate_resource_type')),				
-				)				
-			);
-		}
-		elseif ($is_new==false){
-			//for updating - only validate fields that are filled in
-			$this->form_validation->set_rules('title', 'Title', 'xss_clean|trim|max_length[255]');
-			
-			if (isset($options['resource_type'])){
-				//project type validation rule
-				$this->form_validation->set_rules(
-					'resource_type', 
-					'Resource Type',
-					array(
-						array('validate_resource_type',array($this, 'validate_resource_type')),				
-					)				
-				);
-			}
-		}
-		
-		if ($this->form_validation->run() == TRUE){
-			return TRUE;
-		}
-		
-		//failed
-		$errors=$this->form_validation->error_array();
-		$error_str=$this->form_validation->error_array_to_string($errors);
-		throw new ValidationException("VALIDATION_ERROR: ".$error_str, $errors);
-	}
-
-
-
-	function get_resource_filename($resource_id)
-	{
-		$row=$this->select_single($resource_id);
-		
-		if (!isset($row['filename'])){
-			throw new Exception("RESOURCE_NOT_FOUND");
-		}
-
-		return $row['filename'];
-	}
-
-	function delete_resource_file($resource_id)
-	{
-		$resource_file=$this->get_resource_filename($resource_id);
-		$storage_path=$this->DD_project_model->get_datadeposit_storage_path();
-		$resource_fullpath=unix_path($storage_path.'/'.$resource_file);
-
-		if (file_exists($resource_fullpath)){
-			unlink($resource_fullpath);
-		}
-		
-		return true;
-	}
-
-
-	/**
-	 * 	
-	 *
-	 * upload external resource file
-	 *
-	 * @id - project id
-	 * @file_field_name 	- name of POST file variable
-	 *  
-	 **/ 
-	function upload_file($pid,$file_field_name='file')
-	{
-		if(!$this->DD_project_model->project_folder_exists($pid)){
-			//try creating the folder
-			$this->DD_project_model->setup_project_folder($pid);
-		}
-
-		$resource_folder=$this->DD_project_model->get_project_path_full($pid);
-
-		if (!file_exists($resource_folder)){
-			throw new Exception('PROJECT_STORAGE_FOLDER_NOT_FOUND');
-		}
-		
-		//upload class configurations for RDF
-		$config['upload_path'] = $resource_folder;
-		$config['overwrite'] = false;
-		$config['encrypt_name']=false;
-		$config['allowed_types'] = str_replace(",","|",$this->config->item("allowed_resource_types"));
-		
-		$this->load->library('upload', $config);
-		$upload_result=$this->upload->do_upload($file_field_name);
-
-		if (!$upload_result){
-			throw new Exception($this->upload->display_errors('',''));
-		}
-
-		return $this->upload->data();		
-	}
-
-
-	/**
-	 * 
-	 * 
-	 * Check if a resource file already exists
-	 * 
-	 * 
-	 */
-	function resource_file_exists($project_id,$filename)
-	{	
-		$this->db->select("id");
-		$this->db->where('pid',$project_id);
-		$this->db->where('filename',$filename);
-		$result=$this->db->get("dd_resources")->row_array();
-
-		if(isset($result['id'])){
-			return $result['id'];
-		}
-
-		return false;
-	}
-
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	
-
-	
-
-
-	/*
-	* Delete a single file
 	*
+	* Get a resource by filepath
+	*
+	* @filepath	relative path to the resource
 	*/
-	function delete_file($sid, $base64_filepath)
+	function get_resources_by_filepath($filepath)
 	{
-		//get survey folder path
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
-		
-		if (!file_exists($survey_folder)){
-			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
-		}
-				
-		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.$filepath);
-		
-		//log deletion
-		$this->db_logger->write_log('resource-delete',$fullpath,'external-resource',$sid);
-		
-		if(!file_exists($fullpath)){
-			throw new Exception("FILE_NOT_FOUND: ".urlencode($filepath));
-		}
-		elseif (is_file($fullpath) && file_exists($fullpath)){
-			$isdeleted=silent_unlink($fullpath);
-			
-			if($isdeleted===FALSE){
-				throw new Exception("file_delete_failed");
-			}
-		}
-		return true;
+		$this->db->where('filename', $filepath); 
+		return $this->db->get('resources')->result_array();
 	}
-
-
-	/**
-	 * 
-	 * Download a file
-	 * 
-	 */
-	function download_file($sid, $base64_filepath)
-	{
-		//get survey folder path
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
-		
-		if (!file_exists($survey_folder)){
-			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
-		}
-		
-		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.$filepath);
-		
-		//log download
-		$this->db_logger->write_log('download',$fullpath,'external-resource');
-		
-		if (is_file($fullpath) && file_exists($fullpath)){
-			$this->load->helper('download');
-			log_message('info','Downloading file <em>'.$fullpath.'</em>');
-			force_download2($fullpath);
-		}
-		else {
-			throw new Exception("FILE_NOT_FOUND: ".urlencode($filepath));
-		}
-	}
-
-
-
-
+	
 	/**
 	*
-	* Return all files including subfolders
-	* 
-	*	@make_relative_to	make the file path relative to this path
-	*/	
-	function get_files_recursive($absolute_path,$make_relative_to)
-	{
-		$dirs = array();
-		$files = array();
-		//traverse folder
-		if ( $handle = @opendir( $absolute_path )){
-			while ( false !== ($file = readdir( $handle ))){
-				if (( $file != "." && $file != ".." )){
-					if ( is_dir( $absolute_path.'/'.$file )){
-						$tmp=$this->get_files_recursive($absolute_path.'/'.$file,$make_relative_to);
-						foreach($tmp['files'] as $arr){
-							if (isset($arr["name"])){
-								$files[]=$arr;
-							}
-						}
-						foreach($tmp['dirs'] as $arr){
-							if (isset($arr["name"])){
-								$dirs[]=$arr;
-							}
-						}
-						$dirs[]=$this->get_file_relative_path($make_relative_to,$absolute_path.'/'.$file);
-					}
-					else{
-						$tmp=get_file_info($absolute_path.'/'.$file, array('name','date','size','fileperms'));
-						$tmp['name']=$file;
-						$tmp['size']=format_bytes($tmp['size']);
-						$tmp['fileperms']=symbolic_permissions($tmp['fileperms']);
-						$tmp['path']=$absolute_path;
-						$tmp['relative']=$this->get_file_relative_path($make_relative_to,$absolute_path);
-						$files[]=$tmp;
-					}
-				}
-			}
-			closedir( $handle );
-			sort( $dirs );
-		}
-		return array('files'=>$files, 'dirs'=>$dirs);
-	}
-
-	/**
+	* Get a resource by filepath
 	*
-	* Get file relative path excluding the survey folder path
-	*
+	* @filepath	relative path to the resource
 	*/
-	function get_file_relative_path($survey_path,$file_path)
+	function get_survey_resources_by_filepath($surveyid,$filepath)
 	{
-		$survey_path=unix_path($survey_path);
-		$file_path=unix_path($file_path);		
-		return str_replace($survey_path,"",$file_path);
+		$this->db->where('survey_id', $surveyid); 
+		$this->db->where('filename', $filepath); 		
+		return $this->db->get('resources')->result_array();
 	}
-
+		
 }
+?>

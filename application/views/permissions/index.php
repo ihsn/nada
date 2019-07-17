@@ -1,13 +1,6 @@
-<?php
-/*
-* List all permissions
-*/
-?>
-
-
 <style type="text/css">
 .caption{
-font-weight:bold;padding-left:20px;
+	font-weight:bold;padding-left:20px;
 }
 .description{
 	color:#666666;padding-left:20px;
@@ -18,8 +11,9 @@ font-weight:bold;padding-left:20px;
 .group-name{font-weight:bold;}
 </style>
 
+<div class="container-fluid">
 <?php $this->load->view('permissions/links');?>
-<h1>Manage Permissions</h1>
+<h1><?php echo t('manage_permissions');?></h1>
 
 <?php if (validation_errors() ) : ?>
     <div class="error">
@@ -35,7 +29,7 @@ font-weight:bold;padding-left:20px;
 
 <form method="post">
 
-<table class="grid-table">
+<table class="grid-table table trable-striped">
 <?php foreach ($permissions as $group_name=>$perm_group):?>
 	<tr>
         <td colspan="3" class="header">
@@ -71,3 +65,4 @@ font-weight:bold;padding-left:20px;
 </table>
 
 </form>
+		</div>

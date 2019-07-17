@@ -15,6 +15,27 @@ class Catalog extends MY_REST_Controller
 	}
 
 	
+	function index_get($idno=null,$id_type='idno')
+	{
+		if($idno!=null){
+			return $this->record_get($idno,$id_type);
+		}
+	}
+
+	/**
+	 * 
+	 * 
+	 * Get a single record by ID
+	 * 
+	 */
+	function find_by_id_get($id=null)
+	{
+		if($id!=null){
+			return $this->record_get($id,$id_type='id');
+		}
+	}
+
+	
 	/**
 	 * 
 	 * Search catalog
@@ -32,6 +53,8 @@ class Catalog extends MY_REST_Controller
 				'collections'		=>	$this->security->xss_clean($this->input->get("collection")),
 				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
 				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
+				'ps'				=>	$this->security->xss_clean($this->input->get("ps")),
+				'sid'				=>	$this->security->xss_clean($this->input->get("sid"))
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
@@ -42,7 +65,13 @@ class Catalog extends MY_REST_Controller
 		//collections to array
 		$params['collections']=explode(",",$params['collections']);		
 		
+		//default page size
 		$limit=15;
+
+		if (is_numeric($params['ps']) && $params['ps']>0){
+			$limit=$params['ps'];
+		}
+
 		$page=$this->input->get('page');
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$limit;
@@ -55,6 +84,11 @@ class Catalog extends MY_REST_Controller
 			if(isset($result['rows'])){
 				//convert date format
 				array_walk($result['rows'], 'unix_date_to_gmt',array('created','changed'));
+
+				//add study link
+				array_walk($result['rows'], function(&$row) {
+					$row['url'] = site_url('catalog/'.$row['id']);
+				});
 
 				//unset
 				if(isset($result['citations'])){
@@ -88,10 +122,16 @@ class Catalog extends MY_REST_Controller
 	 * @copy of datasets/single_get
 	 * 
 	 */
-	function record_get($idno=null)
+	function record_get($idno=null,$id_type='idno')
 	{
 		try{
-			$sid=$this->get_sid_from_idno($idno);
+			if($id_type=='id'){
+				$sid=$idno;
+			}
+			else{
+				$sid=$this->get_sid_from_idno($idno);
+			}
+
 			$result=$this->Dataset_model->get_row($sid);
 			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
 				
@@ -314,7 +354,6 @@ class Catalog extends MY_REST_Controller
 	 */
 	private function get_countries_id($countries,$delimited='|')
 	{
-
 		if(trim($countries)==''){
 			return false;
 		}
@@ -327,8 +366,6 @@ class Catalog extends MY_REST_Controller
 		$this->db->or_where_in('alias',$countries);
 		$this->db->or_where_in('iso',$countries);
 		$result=$this->db->get("countries")->result_array();
-		//echo $this->db->last_query();
-		//var_dump($result);
 		$output=array();
 
 		foreach($result as $row){
@@ -368,8 +405,13 @@ class Catalog extends MY_REST_Controller
 	 * list study data files
 	 * 
 	 */
-	function datafiles_get($idno=null)
+	function data_files_get($idno=null, $fid=null)
 	{
+		if($fid)
+		{
+			return $this->data_file_single_get($idno, $fid);
+		}
+
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -400,13 +442,98 @@ class Catalog extends MY_REST_Controller
 		}
 	}
 
+
+	/**
+	 * 
+	 * Return a single data file by file ID
+	 * 
+	 */
+	function data_file_single_get($idno=null, $fid=null)
+	{
+
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+
+			$user_id=$this->get_api_user_id();        
+			$survey=$this->Dataset_model->get_row($sid);
+
+			if(!$survey){
+				throw new exception("STUDY_NOT_FOUND");
+			}
+
+			$file=$this->Data_file_model->get_file_by_id($sid,$fid);
+
+			if(!$file){
+				throw new exception("ID-NOT-FOUND");
+			}
+			
+			$response=array(
+				'datafile'=>$file
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * List variables by data file
+	 * 
+	 */
+	function data_file_variables_get($idno=null,$file_id=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$user_id=$this->get_api_user_id();        
+			$survey=$this->Dataset_model->get_row($sid);
+
+			if(!$survey){
+				throw new exception("STUDY_NOT_FOUND");
+			}
+
+			if($file_id==null){
+				throw new exception("FILE-ID-REQUIRED");
+			}
+
+			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
+			
+			$response=array(
+				'total'=> count($survey_variables),
+				'variables'=>$survey_variables
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 	/**
 	 * 
 	 * List dataset variables
 	 * 
 	 */
-	function variables_get($idno=null,$file_id=null)
+	function variables_get($idno=null,$var_id=null)
 	{
+
+		if($var_id){
+			return $this->variable_get($idno, $var_id);
+		}
+
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$user_id=$this->get_api_user_id();        
@@ -422,6 +549,7 @@ class Catalog extends MY_REST_Controller
 			//array_walk($project, 'unix_date_to_gmt_row',array('created','changed','submitted_date','administer_date'));
 
 			$response=array(
+				'total'=> count($survey_variables),
 				'variables'=>$survey_variables
 			);
 
@@ -472,6 +600,98 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+
+
+	/**
+	 * 
+	 * 
+	 * Get all Collections
+	 * 
+	 * 
+	 */
+	function collections_get($repo_id=null)
+	{	
+		if($repo_id){
+			return $this->single_collection_get($repo_id);
+		}
+
+		try{			
+			$repos=$this->Repository_model->select_all($published=1);
+
+			$output=array();
+			$fields=array(
+				'id'=>'id',
+				'repositoryid'=>'repositoryid',
+				'title'=>'title',
+				'thumbnail'=>'thumbnail',
+				'short_text'=>'short_text',
+				'long_text'=>'long_text',
+			);
+
+			foreach($repos as $row){
+				$tmp=array();
+				foreach($fields as $idx=>$name){
+					$tmp[$name]=$row[$idx];
+				}
+
+				$output[]=$tmp;
+			}
+
+			$response=array(
+				'status'=>'success',
+				'total'=>count($repos),
+				'collections'=>$output
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	
+
+	/**
+	 * 
+	 * Get a single collection
+	 * 
+	 */
+	function single_collection_get($repo_id=null)
+	{
+		try{
+			if(!($repo_id)){
+				throw new Exception("MISSING_PARAM: repositoryId");
+			}			
+			
+			$repo=$this->Repository_model->get_repository_by_repositoryid($repo_id);
+			
+			if(!$repo){
+				throw new Exception("REPOSITORY-NOT-FOUND");
+			}
+
+			$repo=array(
+				'id'=>$repo['id'],
+				'repositoryid'=>$repo['repositoryid'],
+				'title'=>$repo['title'],
+				'short_text'=>$repo['short_text'],
+				'long_text'=>$repo['long_text'],
+				'thumbnail'=>$repo['thumbnail']
+			);
+			
+			$this->set_response($repo, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
 	}
 
 

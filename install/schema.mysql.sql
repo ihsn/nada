@@ -26,7 +26,7 @@ CREATE TABLE `repositories` (
   `group_da_licensed` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Ind_unq` (`repositoryid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8;
 
 
 
@@ -42,7 +42,7 @@ CREATE TABLE `lic_files` (
   `file_path` varchar(255) NOT NULL,
   `changed` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 
 
 --
@@ -59,7 +59,7 @@ CREATE TABLE `site_menu` (
   `depth` int(11) DEFAULT NULL,
   `module` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=36 DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `site_menu`
@@ -91,7 +91,7 @@ CREATE TABLE `vocabularies` (
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`vid`),
   UNIQUE KEY `idx_voc_title` (`title`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -122,9 +122,32 @@ CREATE TABLE `variables` (
   FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
   FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
   FULLTEXT KEY `idx_nm` (`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+
+
+--
+-- Table structure for table `variable_groups`
+--
+
+DROP TABLE IF EXISTS `variable_groups`;
+
+CREATE TABLE `variable_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `vgid` varchar(45) DEFAULT NULL,
+  `variables` varchar(5000) DEFAULT NULL,
+  `variable_groups` varchar(500) DEFAULT NULL,
+  `group_type` varchar(45) DEFAULT NULL,
+  `label` varchar(255) DEFAULT NULL,
+  `universe` varchar(255) DEFAULT NULL,
+  `notes` varchar(500) DEFAULT NULL,
+  `txt` varchar(500) DEFAULT NULL,
+  `definition` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 --
@@ -140,7 +163,7 @@ CREATE TABLE `users_groups` (
   `group_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_group_UNQ` (`user_id`,`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=148 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=148 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +181,7 @@ CREATE TABLE `survey_relationships` (
   `pair_id` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_pair` (`pair_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='related surveys e.g. parent, child, sibling, related';
+) DEFAULT CHARSET=utf8 COMMENT='related surveys e.g. parent, child, sibling, related';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -175,7 +198,7 @@ CREATE TABLE `survey_tags` (
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_tag` (`sid`,`tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -195,7 +218,7 @@ CREATE TABLE `meta` (
   `phone` varchar(20) DEFAULT NULL,
   `country` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -212,7 +235,7 @@ CREATE TABLE `login_attempts` (
   `login` varchar(100) NOT NULL,
   `time` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -228,7 +251,7 @@ CREATE TABLE `repository_sections` (
   `title` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `weight` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -254,7 +277,7 @@ CREATE TABLE `survey_topics` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `Idx_uniq` (`tid`,`sid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -271,7 +294,7 @@ CREATE TABLE `survey_citations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Idx_s_c` (`sid`,`citationid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -286,7 +309,7 @@ CREATE TABLE `dcformats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -312,7 +335,7 @@ CREATE TABLE `group_repo_access` (
   `repo_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `grp_repo_UNIQUE` (`group_id`,`repo_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -364,7 +387,7 @@ CREATE TABLE `surveys` (
   FULLTEXT KEY `ft_titl` (`title`),
   FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`),
   FULLTEXT KEY `ft_keywords` (`keywords`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -379,7 +402,7 @@ CREATE TABLE `dctypes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -404,7 +427,7 @@ CREATE TABLE `da_collections` (
   `title` varchar(255) DEFAULT NULL,
   `description` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='data access by collection/set';
+) DEFAULT CHARSET=utf8 COMMENT='data access by collection/set';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -423,7 +446,7 @@ CREATE TABLE `cache` (
   `expiry` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid_UNIQUE` (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -441,7 +464,7 @@ CREATE TABLE `forms` (
   `path` varchar(255) DEFAULT '',
   `iscustom` char(2) DEFAULT '0',
   PRIMARY KEY (`formid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -492,7 +515,7 @@ CREATE TABLE `lic_requests` (
   `expiry_date` int(11) DEFAULT NULL,
   `additional_info` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -546,7 +569,7 @@ CREATE TABLE `citations` (
   UNIQUE KEY `uid_UNIQUE` (`uuid`),
   FULLTEXT KEY `ft_citations` (`title`,`subtitle`,`alt_title`,`authors`,`editors`,`translators`),
   FULLTEXT KEY `ft_cit2` (`title`,`subtitle`,`authors`,`organization`,`abstract`,`keywords`,`notes`,`doi`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 
@@ -565,7 +588,7 @@ CREATE TABLE `permission_urls` (
   `permission_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `url_UNIQUE` (`url`)
-) ENGINE=InnoDB AUTO_INCREMENT=150 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=150 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -591,7 +614,7 @@ CREATE TABLE `survey_aliases` (
   `alternate_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_id` (`alternate_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Other codeBook IDs for the survey';
+) DEFAULT CHARSET=utf8;
 
 
 
@@ -625,7 +648,7 @@ CREATE TABLE `resources` (
   `dcformat` varchar(255) DEFAULT NULL,
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`resource_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -645,7 +668,7 @@ CREATE TABLE `lic_files_log` (
   `created` int(11) NOT NULL,
   `username` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='licensed files download log';
+) DEFAULT CHARSET=utf8 COMMENT='licensed files download log';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -663,7 +686,7 @@ CREATE TABLE `terms` (
   `pid` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`tid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -689,8 +712,10 @@ CREATE TABLE `users` (
   `last_login` int(11) NOT NULL,
   `active` tinyint(3) DEFAULT NULL,
   `authtype` varchar(40) DEFAULT NULL,
+  `otp_code` varchar(45) DEFAULT NULL,
+  `otp_expiry` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -707,7 +732,7 @@ CREATE TABLE `survey_countries` (
   `country_name` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sid_iso_UNIQUE` (`sid`,`country_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -725,7 +750,7 @@ CREATE TABLE `country_aliases` (
   `alias` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ix_alias_uniq` (`countryid`,`alias`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -743,7 +768,7 @@ CREATE TABLE `group_permissions` (
   `permission_id` int(11) NOT NULL COMMENT 'permissions bit value',
   PRIMARY KEY (`id`),
   UNIQUE KEY `grp_perms_UNIQUE` (`group_id`,`permission_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=340 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=340 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -769,7 +794,7 @@ CREATE TABLE `survey_repos` (
   `repositoryid` varchar(255) NOT NULL,
   `isadmin` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -794,7 +819,7 @@ CREATE TABLE `repo_perms_urls` (
   `repo_pg_id` int(11) DEFAULT NULL COMMENT 'repo permission group id',
   `url` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8 COMMENT='list of URLs defining a permission group for collections';
+) AUTO_INCREMENT=69 DEFAULT CHARSET=utf8 COMMENT='list of URLs defining a permission group for collections';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -832,7 +857,7 @@ CREATE TABLE `menus` (
   `pid` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_url` (`url`)
-) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -860,7 +885,7 @@ CREATE TABLE `url_mappings` (
   `source` varchar(255) DEFAULT NULL,
   `target` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -881,7 +906,7 @@ CREATE TABLE `groups` (
   `weight` int(11) DEFAULT '0',
   `is_collection_group` tinyint(4) DEFAULT '0' COMMENT 'does group control collection access? 1=yes',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -914,7 +939,7 @@ CREATE TABLE `survey_relationship_types` (
   `rel_dir` tinyint(4) DEFAULT NULL,
   `rel_cordinality` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -943,7 +968,7 @@ CREATE TABLE `lic_requests_history` (
   `description` text,
   `created` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -961,7 +986,7 @@ CREATE TABLE `da_collection_surveys` (
   `sid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unq_coll_sid` (`cid`,`sid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -978,7 +1003,7 @@ CREATE TABLE `tags` (
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `tag_UNIQUE` (`tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -997,7 +1022,7 @@ CREATE TABLE `permissions` (
   `section` varchar(45) DEFAULT NULL,
   `weight` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=72 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1024,7 +1049,7 @@ CREATE TABLE `survey_years` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_sid_year` (`sid`,`data_coll_year`),
   KEY `idx_sid` (`sid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1041,7 +1066,7 @@ CREATE TABLE `region_countries` (
   `region_id` int(11) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1071,7 +1096,7 @@ CREATE TABLE `survey_notes` (
   `created` int(11) DEFAULT NULL,
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 
 
 
@@ -1091,7 +1116,7 @@ CREATE TABLE `citation_authors` (
   `author_type` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_cit_auth` (`cid`,`author_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1108,7 +1133,7 @@ CREATE TABLE `countries` (
   `iso` varchar(3) NOT NULL,
   PRIMARY KEY (`countryid`),
   UNIQUE KEY `iso_UNIQUE` (`iso`)
-) ENGINE=InnoDB AUTO_INCREMENT=241 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=241 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1134,7 +1159,7 @@ CREATE TABLE `repo_perms_groups` (
   `description` varchar(255) DEFAULT NULL,
   `weight` int(11) DEFAULT '0',
   PRIMARY KEY (`repo_pg_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='Permission group names';
+) AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='Permission group names';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1160,7 +1185,7 @@ CREATE TABLE `user_repo_permissions` (
   `repo_id` int(11) DEFAULT NULL,
   `repo_pg_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='set user permission for a collection';
+) DEFAULT CHARSET=utf8 COMMENT='set user permission for a collection';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1181,7 +1206,7 @@ CREATE TABLE `lic_file_downloads` (
   `lastdownloaded` int(11) DEFAULT NULL,
   `requestid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1198,7 +1223,7 @@ CREATE TABLE `regions` (
   `title` varchar(45) DEFAULT NULL,
   `weight` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1225,7 +1250,7 @@ CREATE TABLE `ci_sessions` (
   `last_activity` int(11) DEFAULT '0',
   `user_data` text,
   PRIMARY KEY (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1245,7 +1270,7 @@ CREATE TABLE `public_requests` (
   `request_type` varchar(45) DEFAULT 'study',
   `collectionid` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 
 
 --
@@ -1268,7 +1293,7 @@ CREATE TABLE `sitelogs` (
   `username` varchar(100) DEFAULT NULL,
    `useragent` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1287,7 +1312,7 @@ CREATE TABLE `configurations` (
   `helptext` varchar(255) DEFAULT NULL,
   `item_group` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1352,7 +1377,7 @@ CREATE TABLE `featured_surveys` (
   `weight` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_repo` (`repoid`,`sid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 --
@@ -1363,8 +1388,8 @@ CREATE  TABLE `survey_types` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `title` VARCHAR(255) NOT NULL ,
   PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `title_UNIQUE` (`title` ASC) )
-ENGINE = InnoDB
+  UNIQUE INDEX `title_UNIQUE` (`title` ASC) 
+)
 DEFAULT CHARACTER SET = utf8
 COLLATE = utf8_general_ci;
 
@@ -1379,7 +1404,7 @@ CREATE TABLE `survey_lic_requests` (
   `sid` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `uq_survey_requests` (`request_id`,`sid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 
@@ -1402,7 +1427,7 @@ CREATE TABLE `data_files` (
   `notes` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_file` (`sid`,`file_id`)  
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 
@@ -1420,9 +1445,11 @@ CREATE TABLE `api_keys` (
   `is_private_key` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_UNIQUE` (`key`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-
+--
+-- API Logs table
+--
 CREATE TABLE `api_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uri` varchar(255) NOT NULL,
@@ -1435,7 +1462,7 @@ CREATE TABLE `api_logs` (
   `authorized` varchar(1) NOT NULL,
   `response_code` smallint(3) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 
@@ -1457,7 +1484,7 @@ CREATE TABLE `survey_locations` (
   `location` geometry NOT NULL,
   PRIMARY KEY (`id`),
   SPATIAL KEY `idx_location` (`location`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `filestore` (
@@ -1469,7 +1496,4 @@ CREATE TABLE `filestore` (
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_filestore_file` (`file_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-
-
-
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

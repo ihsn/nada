@@ -26,14 +26,13 @@ $site_navigation_menu=get_site_menu();
 <!DOCTYPE html>
 <html>
   <head>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	  <base href="<?php echo js_base_url(); ?>">
+	  <title><?php echo $title; ?></title>
 
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<base href="<?php echo js_base_url(); ?>">
-	<title><?php echo $title; ?></title>
-	
-  <link rel="stylesheet" href="<?php echo base_url()?>themes/base/css/font-awesome.min.css">
+    <link rel="stylesheet" href="<?php echo base_url()?>themes/nada/css/font-awesome.min.css">
 
     <!-- Bootstrap -->
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -42,47 +41,44 @@ $site_navigation_menu=get_site_menu();
 
     <!--bootstrap toggle button-->
     <link href="<?php echo base_url(); ?>javascript/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/style.css">
+      <!--[if lt IE 8]>
+        <style>
+        .btn-group > .btn-mini + .dropdown-toggle{border:0px solid red;padding:4px;vertical-align:top}
+        </style>
+      <![endif]-->    
+      <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+      <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
 
+    <script src="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/jquery/jquery-3.2.1.min.js"></script>
+    <script src="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/js/bootstrap.min.js"></script>
 
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/style.css">
-    <!--[if lt IE 8]>
-      <style>
-      .btn-group > .btn-mini + .dropdown-toggle{border:0px solid red;padding:4px;vertical-align:top}
-      </style>
-    <![endif]-->    
-    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <!--bootstrap toggle button-->
+    <script src="<?php echo base_url(); ?>javascript/bootstrap-toggle/js/bootstrap-toggle.min.js"></script>
+    
+    <script type="text/javascript"> 
+        var CI = {'base_url': '<?php echo site_url(); ?>'}; 
+    </script> 
 
-	<script src="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/jquery/jquery-3.2.1.min.js"></script>
-  <script src="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/js/bootstrap.min.js"></script>
+    <?php if (isset($_styles) ){ echo $_styles;} ?>
+    <?php if (isset($_scripts) ){ echo $_scripts;} ?>
 
-  <!--bootstrap toggle button-->
-  <script src="<?php echo base_url(); ?>javascript/bootstrap-toggle/js/bootstrap-toggle.min.js"></script>
+    <script>
+    $(document).ready(function()  {
+      /*global ajax error handler */
+      $( document ).ajaxError(function(event, jqxhr, settings, exception) {
+        if(jqxhr.status==401){
+          window.location=CI.base_url+'/auth/login/?destination=admin/';
+        }
+      });
+    });
+    </script>
 
-
-        
-  <script type="text/javascript"> 
-   		var CI = {'base_url': '<?php echo site_url(); ?>'}; 
-	</script> 
-
-	<?php if (isset($_styles) ){ echo $_styles;} ?>
-  <?php if (isset($_scripts) ){ echo $_scripts;} ?>
-
-	<script type="text/javascript">
-	$(document).ready(function()  {
-		/*global ajax error handler */
-		$( document ).ajaxError(function(event, jqxhr, settings, exception) {
-			if(jqxhr.status==401){
-				window.location=CI.base_url+'/auth/login/?destination=admin/';
-			}
-		});
-	});
-	</script>
-
-  </head>
-  <body>
+</head>
+<body>
   
 <div class="navbar navbar-inverse navbar-fixed-top">
 <div class="navbar-inner">

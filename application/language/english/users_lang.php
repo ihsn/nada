@@ -90,5 +90,12 @@ $lang['assigned_user_groups']="Global user roles";
 $lang['manage_permissions']="Manage permissions";
 $lang['permissions_per_collection']="Permissions per collection";
 
+
+$lang['api_keys']="API keys";
+$lang['no_api_keys_found']="No API keys found.";
+$lang['generate_api_key']="Generate API key";
+
+
+
 /* End of file users_lang.php */
 /* Location: ./application/language/english/users_lang.php */

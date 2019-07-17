@@ -156,6 +156,8 @@ $lang['relationship_type']="Relationship type";
 $lang['draft']="Draft";
 $lang['confirm_unpublish_records']="Are you sure you want to unpublish records?";
 $lang['confirm_unpublish']="Confirm unpublish";
+$lang['idno']="Study ID";
+$lang['search_results_for']="Search results for:";
 
 $lang['tab_overview']="Overview";
 $lang['tab_manage_files']="Files";

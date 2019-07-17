@@ -6,7 +6,6 @@ $lang['repositories']="Collections";
 $lang['repositoryid']="Collection Identification";
 $lang['organization']="Organization";
 $lang['country']="Country";
-$lang['scan_interval_in_days']="Scan interval (days)";
 $lang['published']="Published";
 $lang['draft']="Draft";
 $lang['status']="Status";
@@ -14,9 +13,6 @@ $lang['select_repo_type']="Select collection type";
 $lang['thumbnail']="Thumbnail";
 $lang['short_description']="Short description";
 $lang['long_description']="Long description (this will become the collection about page)";
-$lang['internal']="Internal";
-$lang['external']="External";
-$lang['scan']="Scan";
 $lang['manage_repository_users']="Manage collection access";
 $lang['manage_users']="Manage users";
 $lang['msg_select_active_repo']="Click the collection you like to manage for your current session.";
@@ -50,6 +46,8 @@ $lang['user']="User";
 $lang['none']="None";
 $lang['confirm_collection_status_change']="Are you sure you want to continue? This will change the status of all studies beloging to this collection.";
 $lang['section'] = 'Section';
+$lang['thumbnail_upload_folder_not_set']='Thumbnail upload folder not found or writable';
+$lang['thumbnail_upload_failed']='Thumbnail upload error';
 
 /* End of file collection_lang.php */
 /* Location: ./application/language/english/collection_lang.php */

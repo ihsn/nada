@@ -469,7 +469,7 @@ class Template {
     * NOTE: This function does NOT check for existence of .js file
     *
     * @access  public
-    * @param   string   script to import or embed
+    * @param   string   script to import or embed or inline
     * @param   string  'import' to load external file or 'embed' to add as-is
     * @param   boolean  TRUE to use 'defer' attribute, FALSE to exclude it
     * @return  TRUE on success, FALSE otherwise
@@ -504,6 +504,10 @@ class Template {
             $js .= $script;
             $js .= '</script>';
             break;
+
+         case 'inline':            
+            $js = $script;
+            break;   
             
          default:
             $success = FALSE;

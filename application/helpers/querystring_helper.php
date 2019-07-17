@@ -130,10 +130,8 @@ if ( ! function_exists('create_sort_link'))
 	function create_sort_link($sort_by,$sort_order,$field,$label,$page_url,$querystring_keys='')
 	{
 
-        $img_sort_asc='<i class="fa fa-caret-up mr-2"></i>';
-        $img_sort_desc='<i class="fa fa-caret-down mr-2"></i>';
-        //$img_sort_asc='<img src="images/arrow-desc.png" alt="DESC" border="0"/>';
-		//$img_sort_desc='<img src="images/arrow-asc.png" alt="ASC" border="0"/>';
+        $img_sort_asc='<i class="glyphicon glyphicon-arrow-up mr-2"></i>';
+        $img_sort_desc='<i class="glyphicon glyphicon-arrow-down mr-2"></i>';
 
 		$additional_querystring='';
 		if  (is_array($querystring_keys ) )

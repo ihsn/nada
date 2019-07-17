@@ -241,6 +241,7 @@ $lang['metadata.study_desc.data_access.dataset_use.deposit_req']='Deposit requir
 $lang['metadata.study_desc.data_access.dataset_use.conditions']='Conditions';
 $lang['metadata.study_desc.data_access.dataset_use.disclaimer']='Disclaimer';
 $lang['metadata.study_desc.data_access.notes']='Notes';
+$lang['metadata.study_desc.method.data_collection.method_notes']='Other Processing';
 
 
 
@@ -248,7 +249,7 @@ $lang['var_vald']='Valid';
 $lang['var_intrvl']='Interval';
 $lang['var_invd']='Invalid';
 $lang['var_dcml']='Decimal';
-$lang['var_range']='Range';
+$lang['range']='Range';
 $lang['var_catgry']='Categories';
 $lang['var_txt']='Text';
 $lang['var_concept']='Concept';

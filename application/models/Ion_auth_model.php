@@ -1927,15 +1927,38 @@ class Ion_auth_model extends CI_Model
 	}
 
 	//remove api key
-	function delete_api_key($api_key)
+	function delete_api_key($user_id,$api_key)
 	{
-		$options=array(
-			'api_key'=>$api_key
-		);
-
-		$this->db->where("api_key",$api_key);
+		$this->db->where("user_id",$user_id);
+		$this->db->where("key",$api_key);
 		$this->db->delete("api_keys");
 	}
 
+	/**
+	 * 
+	 * Generate a new OTP code
+	 */
+	function generate_otp_code()
+	{
+		$code=sprintf('%010d', mt_rand(1,mt_getrandmax()));
+		return $code;
+	}
 
+	function store_otp_code($user_id)
+	{
+		$code=$this->generate_otp_code();
+
+		$expiry_time=new DateTime();
+		$expiry_time->modify("15 minutes");		
+
+		$options=array(
+			'otp_code'=>$code,
+			'otp_expiry'=>$expiry_time->format("U")
+		);
+
+		$this->db->where('id',$user_id);
+		$this->db->update('users',$options);
+
+		return $code;
+	}
 }
