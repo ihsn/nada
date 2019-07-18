@@ -10,7 +10,7 @@ $citation_count=$this->stats_model->get_citation_count();
 $popular_surveys=$this->stats_model->get_popular_surveys(5);
 
 //get top n recent acquisitions
-$latest_surveys=$this->stats_model->get_latest_surveys(5);	
+$latest_surveys=$this->stats_model->get_latest_surveys(6);	
 
 $this->title='Home';
 ?>
@@ -121,6 +121,11 @@ $this->title='Home';
                 
             </div>
         </form>
+
+        <div style="color: #0071bc;margin-top: 10px;"> 
+			<a href="https://microdata.worldbank.org/index.php/catalog"><i class="fa fa-list"></i> Browse Catalog </a> 
+		</div>
+
         <div>        
         </div>
     </div>
@@ -150,35 +155,70 @@ $this->title='Home';
 
 <?php
 $collections=array(
-    'findex'=>array(
-        'title'=> 'Global Financial Inclusion (Global Findex) Database',
-        'url'=>site_url('catalog/findex'),
+    'eap'=>array(
+        'title'=> 'East Asia and Pacific',
+        'url'=>site_url('catalog/eap'),
         'description'=>'The Global Findex is the first public database of indicators that measures people\'s use of financial services across economies and over time. Based on over 150,000 interviews across more than 140 economies, the database can be used to develop a deeper understanding of how people save, borrow, make payments, and manage risk.',
         'thumb'=>base_url().'files/public/collections/findex-sm.jpg'
     ),
-    'lsms'=>array(
-        'title'=> 'Living Standards Measurement Study (LSMS)',
-        'url'=>site_url('catalog/findex'),
+    'eca'=>array(
+        'title'=> 'Europe and Central Asia',
+        'url'=>site_url('catalog/eca'),
         'description'=>'The LSMS is a research project that was initiated in 1980. It is a response to a perceived need for policy relevant data that would allow policy makers to move beyond simply measuring rates of unemployment, poverty and health care use, for example, to understanding the determinants of these observed social sector outcomes.',
         'thumb'=>base_url().'files/public/collections/lsms-sm.jpg'
     ),
-    'ipums'=>array(
-        'title'=> 'Integrated Public Use Microdata Series (IPUMS)',
-        'url'=>site_url('catalog/findex'),
+    'lac'=>array(
+        'title'=> 'Latin America and the Caribbean',
+        'url'=>site_url('catalog/lac'),
         'description'=>'IPUMS provides census and survey data from around the world integrated across time and space. IPUMS integration and documentation makes it easy to study change, conduct comparative research, merge information across data types, and analyze individuals within family and community context. Data and services available free of charge.',
         'thumb'=>base_url().'files/public/collections/ipums-sm.jpg'
     ),
-    'mics'=>array(
-        'title'=> 'UNICEF Multiple Indicator Cluster Surveys (MICS)',
-        'url'=>site_url('catalog/findex'),
+    'mena'=>array(
+        'title'=> 'Middle East and North Africa',
+        'url'=>site_url('catalog/mena'),
         'description'=>'UNICEF supports countries to collect data on the situation of children and women through the Multiple Indicator Cluster Survey (MICS) program. MICS is designed to collect statistically sound, internationally comparable data on child-related indicators.',
         'thumb'=>base_url().'files/public/collections/mics-sm.jpg'
+    ),
+    'sar'=>array(
+        'title'=> 'South Asia',
+        'url'=>site_url('catalog/sar'),
+        'description'=>'The LSMS is a research project that was initiated in 1980. It is a response to a perceived need for policy relevant data that would allow policy makers to move beyond simply measuring rates of unemployment, poverty and health care use, for example, to understanding the determinants of these observed social sector outcomes.',
+        'thumb'=>base_url().'files/public/collections/lsms-sm.jpg'
+    ),
+    'afr'=>array(
+        'title'=> 'Sub-Saharan Africa',
+        'url'=>site_url('catalog/afr'),
+        'description'=>'IPUMS provides census and survey data from around the world integrated across time and space. IPUMS integration and documentation makes it easy to study change, conduct comparative research, merge information across data types, and analyze individuals within family and community context. Data and services available free of charge.',
+        'thumb'=>base_url().'files/public/collections/ipums-sm.jpg'
     )
 
 );
-
 ?>
 
+
+
+<!-- featured collections -->
+<div class="container">
+<div class="col-md-12" style="padding-top:50px;padding-bottom:10px;">
+        <h1 class="text-center">Regional collections</h1>       
+    </div>
+<div class="row">
+    <?php foreach($collections as $repoid=>$collection):?>
+        <div class="col">
+        <div class="card card-collection"  style="margin-bottom:20px;margin-top:10px;">
+        <a href="<?php echo $collection['url'];?>">
+            <img src="<?php echo $collection['thumb'];?>" class="img-fluid xcard-img-top" xstyle="height: 180px; width: 100%; display: block;"/>
+        </a>
+        <div class="card-body"  style="padding:10px 0px;">
+            <h5 class="card-title"><a href="<?php echo $collection['url'];?>"><?php echo $collection['title'];?></a></h5>
+        </div>
+        </div>
+        </div>
+<?php endforeach;?>
+</div>
+</div>
+
+<?php /*?>
 <!-- featured collections -->
 <div class="container">
 <div class="row">
@@ -203,7 +243,7 @@ $collections=array(
 <?php endforeach;?>
 </div>
 </div>
-
+<?php */ ?>
 
 <?php /*
 <div class="container-fluid" style="padding-top:30px;padding-bottom:40px;background:#f7f7f9;">
@@ -253,7 +293,20 @@ $collections=array(
 
 <div class="row justify-content-md-center">  
     
-    <div class="col-md-3 text-center" >
+<div class="col text-center" >
+        
+        <a href="<?php echo site_url('datadeposit');?>">
+        <div class="icon-x">
+            <i class="fa fa-upload" aria-hidden="true"></i>
+        </div>
+       <h5>Deposit Data</h5>
+       <p>Deposit microdata or metadata</p>
+        </a>
+    
+    </div>
+
+    <div class="col text-center" >
+        
         <a href="<?php echo base_url();?>api-documentation/catalog">
         <div class="icon-x">
             <i class="fa fa-rocket" aria-hidden="true"></i>
@@ -261,22 +314,27 @@ $collections=array(
        <h5>API</h5>
        <p>Search, browse and export metadata using our API</p>
         </a>
+    
     </div>
-    <div class="col-md-3 text-center" >
-    <a href="<?php echo site_url('knowledge-base');?>">
-    <div class="icon-x"><i class="fa fa-universal-access" aria-hidden="true"></i></div>
-      <h5>Knowledge base</h5>
-      <p>Find answers to common questions</p>
+<!--
+    <div class="col text-center" >
+    
+        <a href="<?php echo site_url('knowledge-base');?>">
+        <div class="icon-x"><i class="fa fa-universal-access" aria-hidden="true"></i></div>
+        <h5>Knowledge base</h5>
+        <p>Find answers to common questions</p>
+        </a>
     </div>
-</a>
-    <div class="col-md-3 text-center" >
-    <a href="<?php echo site_url('terms-of-use');?>">   
-    <div class="icon-x"><i class="fa fa-file-text-o" aria-hidden="true"></i></div>
-        <h5>Terms of use</h5>
-        <p>Find out how you can use microdata</p>
+    -->
+
+    <div class="col text-center" >
+        <a href="<?php echo site_url('terms-of-use');?>">   
+        <div class="icon-x"><i class="fa fa-file-text-o" aria-hidden="true"></i></div>
+            <h5>Terms of use</h5>
+            <p>Find out how you can use microdata</p>
+        </div>
+        </a>    
     </div>
-</a>    
-</div>
 
 </div>
 </div>
@@ -308,58 +366,23 @@ $collections=array(
         <div class="row ">
         <?php /* for($i=0;$i<3;$i++): */?>
             <div class="col-md-12">
+            <h4>Specialized collections</h4>
+
+            <ul class="list-group list-group-flush">
+
+            <?php foreach($collections as $repoid=>$collection):?>
+                <li class="list-group-item"><a href=""><?php echo $collection['title'];?> <i class="fa fa-angle-right" aria-hidden="true"></i></a></li>
+            <?php endforeach;?>
+            <?php foreach($collections as $repoid=>$collection):?>
+                <li class="list-group-item"><a href=""><?php echo $collection['title'];?> <i class="fa fa-angle-right" aria-hidden="true"></i></a></li>
+            <?php endforeach;?>
+
             
-            <div class="xcard" style="margin-bottom:15px;">
-            <div class="row no-gutters">
-            <div class="col-auto">
-                <img src="http://www.ihsn.org/sites/default/files/styles/thumbnail/public/resources/quick-guide-data-archivist.gif?itok=3pw5WawG" style="max-width:100px;border:1px solid gainsboro;" class="img-fluid mr-3" alt="">
-            </div>
-            <div class="col">
-                <div class="card-block" style="margin-top:0px;padding-top:0px;">
-                    <h5 class="card-title"><a href="http://www.ihsn.org/quick-reference-guide-for-data-archivists" target="_blank">Quick reference Guide for Data Archivists</a></h5>
-                    <p class="card-text">Formulation of microdata dissemination policies and protocols</p>
-                </div>
-            </div>
-            </div>
-            </div>
+                
+            </ul>
 
-
-
- 	    <div class="xcard" style="margin-bottom:15px;">
-            <div class="row no-gutters">
-            <div class="col-auto">
-                <img src="http://ihsn.org/sites/default/files/styles/thumbnail/public/resources/IHSNWP5.JPG?itok=luH-B293" style="max-width:100px;border:1px solid gainsboro;" class="img-fluid mr-3" alt="">
-            </div>
-            <div class="col">
-                <div class="card-block" style="margin-top:0px;padding-top:0px;">
-                    <h5 class="card-title"><a href="http://ihsn.org/dissemination-of-microdata-files" target="_blank">Dissemination of Microdata Files</a></h5>
-                    <p class="card-text">Formulation of microdata dissemination policies and protocols</p>
-                </div>
-            </div>
-            </div>
-            </div>
-
-
-
- 	    <div class="xcard" style="margin-bottom:15px;">
-            <div class="row no-gutters">
-            <div class="col-auto">
-                <img src="http://ihsn.org/sites/default/files/styles/thumbnail/public/resources/IHSNWP5.JPG?itok=luH-B293" style="max-width:100px;border:1px solid gainsboro;" class="img-fluid mr-3" alt="">
-            </div>
-            <div class="col">
-                <div class="card-block" style="margin-top:0px;padding-top:0px;">
-                    <h5 class="card-title"><a href="http://ihsn.org/principles-and-good-practice-for-preserving-data" target="_blank">Preserving Data</a></h5>
-                    <p class="card-text">Principles and standards of good practice as applied to data preservation.</p>
-                </div>
-            </div>
-            </div>
-            </div>
-
-
-
-
-
-            </div>
+            <div>
+           
         <?php /* endfor;*/?>
         </div>        
     </div>
