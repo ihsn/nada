@@ -328,10 +328,10 @@ $collections=array(
     -->
 
     <div class="col text-center" >
-        <a href="<?php echo site_url('terms-of-use');?>">   
+        <a href="https://spappscsec.worldbank.org/sites/ppf3/Pages/previewpage.aspx?DocID=18ec8892-2cd1-458f-8797-50a83313dcac" target="_blank">
         <div class="icon-x"><i class="fa fa-file-text-o" aria-hidden="true"></i></div>
-            <h5>Terms of use</h5>
-            <p>Find out how you can use microdata</p>
+            <h5>Data Access Policy</h5>
+            <p>World Bank Access to Information Policy</p>
         </div>
         </a>    
     </div>
