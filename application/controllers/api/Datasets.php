@@ -1136,10 +1136,37 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("ID_MISSING");
 			}
 
+			$this->load->model("Data_file_model");
+			$this->load->library('DDI2_import');
 
-			$this->load->library('DDI_Utils');
-			$user_id=$this->get_api_user_id();
-			$result=$this->ddi_utils->reload_ddi($id, $user_id, $partial);
+			//get survey ddi file path by id
+			$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
+
+			if ($ddi_file===FALSE){
+				throw new Exception("DDI_FILE_NOT_FOUND");
+			}
+			
+			$dataset=$this->dataset_manager->get_row($id);
+
+			$params=array(
+				'file_type'=>'survey',
+				'file_path'=>$ddi_file,
+				'user_id'=>$this->get_api_user_id(),
+				'repositoryid'=>$dataset['repositoryid'],
+				'overwrite'=>'yes',
+				'partial'=>$partial
+			);
+					
+			$result=$this->ddi2_import->import($params,$id);
+
+			//reset changed and created dates
+			$update_options=array(
+				'changed'=>$dataset['changed'],
+				'created'=>$dataset['created'],
+				'repositoryid'=>$dataset['repositoryid']
+			);
+
+			$this->dataset_manager->update_options($id,$update_options);
 
 			$output=array(
 				'status'=>'success',
