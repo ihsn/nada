@@ -550,7 +550,7 @@ class Study extends MY_Controller {
 		if ($allow_download){
 			$this->load->helper('download');
 			log_message('info','Downloading file <em>'.$resource_path.'</em>');
-			$this->db_logger->write_log('download',$survey_id,'resource='.$resource_id);
+			$this->db_logger->write_log('download',basename($resource_path),($resource_is_microdata ? 'microdata': 'resource'),$survey_id);
 			$this->db_logger->increment_study_download_count($survey_id);
 			force_download2($resource_path);
 		}

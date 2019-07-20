@@ -1,5 +1,5 @@
 <?php if (isset($_GET['print']) && $_GET['print'] == 'yes'): ?>
-<script type="text/javascript" src="<?php// echo site_url(); ?>/../javascript/jquery.js"></script>
+<script type="text/javascript" src="<?php echo site_url(); ?>javascript/jquery.js"></script>
 <?php endif; ?>
 
 <?php $message=$this->session->flashdata('message');?>
@@ -12,7 +12,7 @@
 	<div id="tabs">
         <ul>
             <li><a href="<?php echo current_url();?>#tab-review"><?php echo t('review');?></a></li>
-            <li<?php //echo $active_tab_class ?>><a href="<?php echo current_url();?>#tab-submit"><?php echo t('submit');?></a></li>
+            <li><a href="<?php echo current_url();?>#tab-submit"><?php echo t('submit');?></a></li>
         </ul>
         <div id="tab-review">
         

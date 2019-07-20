@@ -44,8 +44,9 @@ if (!array_key_exists($filter,$status_codes))
 .task-team-container .person:hover{background:#dcdcdc;}
 </style>
 
-<h1 class="page-title">Data Deposit Projects</h1>
+<div class="container-fluid">
 
+<h1 class="page-title">Data Deposit Projects</h1>
 
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
@@ -132,74 +133,4 @@ Total projects found: <span><?php echo count($projects);?></span>
     <?php endforeach; ?>
   </tbody>
 </table>
-
-<?php /*
-
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".task-assign-modal">Small modal</button>
-
-
-<div class="modal fade task-assign-modal " tabindex="-1" role="dialog" id="assigntask-modal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Assign task</h4>
-            </div>
-            <div class="modal-body" xxstyle="height:200px;overflow: auto;">
-
-                <div class="task-team-container">
-                    <?php foreach($tasks_team as $user):$user=(object)$user;?>
-                        <div class="person">
-                        <label for="user_<?php echo $user->id;?>">
-                            <input class="input-radio" id="user_<?php echo $user->id;?>" name="user_id" type="radio" value="<?php echo $user->id;?>">
-                            <h4><?php echo $user->first_name;?> <?php echo $user->last_name;?></h4>
-                            <span class="email"><?php echo $user->email;?></span>
-                        </label>
-                            <button type="button" class="btn btn-default btn-assign" data-dismiss="modal">Assign</button>
-                        </div>
-                <?php endforeach;?>
-            </div>
-
-
-            </div>
-            <!--<div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-            </div>-->
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-*/?>
-
-<!--
-<script type="text/javascript">
-
-    $(".assign").click(function(e) {
-        window.assign_button_clicked=$(this);
-        $('#assigntask-modal').modal('show');
-        return false;
-    });
-
-    /*$('#assigntask-modal').on('hide.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        window.button_=button;
-
-        console.log(event.relatedTarget);
-
-        console.log(button);
-        return;
-        var recipient = button.data('whatever') // Extract info from data-* attributes
-        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this)
-        modal.find('.modal-title').text('New message to ' + recipient)
-        modal.find('.modal-body input').val(recipient)
-    })*/
-
-    $(".btn-assign").click(function(e){
-        console.log("assigned project to"+ window.assign_button_clicked.data("id"));
-
-    });
-
-</script>
--->
+</div>

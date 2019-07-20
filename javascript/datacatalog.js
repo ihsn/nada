@@ -155,7 +155,7 @@ function bindBehaviors(e)
 	});
 	
 	//page navigation
-	$(".pager a.page").unbind("click").click(function(event){
+	$(".nada-pagination a.page-link").unbind("click").click(function(event){
 		$("#page").val( $(this).attr("data-page") );
 		hash_changed();
 		return false;

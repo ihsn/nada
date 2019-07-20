@@ -22,10 +22,7 @@ class Datadeposittasks extends MY_Controller {
         //find all pending tasks
         $options['tasks_pending']=$this->DD_tasks_model->get_tasks_by_status($status=0);
 
-
-
         $content=$this->load->view('datadeposit/tasks_index',$options,true);
-
         $this->template->write('content', $content,true);
         $this->template->write('title', t('View task Info'),true);
         $this->template->render();
@@ -116,19 +113,6 @@ class Datadeposittasks extends MY_Controller {
         $this->template->write('content', $content,true);
         $this->template->write('title', t('View task Info'),true);
         $this->template->render();
-    }
-
-    function test_notifications()
-    {
-        $task_options=array(
-            'assigned_by'=>1,
-            'assigned_to'=>11,
-            'project_id'=>81,
-            'status'=>0
-        );
-
-        //send email notification
-        $this->DD_tasks_model->send_status_notification($task_options);
     }
 
 }	
