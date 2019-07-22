@@ -678,7 +678,7 @@ $config['filestore_path']='files/public';
 |
 */
 
-$config['search_provider']='db';
+$config['search_provider']='solr';
 
 
 /**

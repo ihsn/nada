@@ -1,6 +1,6 @@
 <?php
 //enable datadeposit
-$config['datadeposit']['enable_datadeposit']=false;
+$config['datadeposit']['enable_datadeposit']=true;
 
 $config['datadeposit']['mandatory_fields'] = array(
 	'ident_title',
@@ -40,5 +40,5 @@ $config['datadeposit']['resources'] = 'datafiles';
 $config['datadeposit']['recommended'] = array_combine($config['datadeposit']['recommended_fields'], $config['datadeposit']['recommended_fields2']);
 
 //enable/disable operational_information and impact evaluation fields
-$config['datadeposit']['additional_fields']=false;
+$config['datadeposit']['additional_fields']=true;
 
