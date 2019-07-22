@@ -86,9 +86,9 @@
             <?php endforeach;?>
         </ul>
 
-        <?php if($variable_groups_html):?>
+        <?php if(isset($variable_groups_html)):?>
         <div class="variable-groups-sidebar">
-            <div class="nada-list-group-item nada-list-group-title">Variable groups</div>
+            <div class="nada-list-group-item nada-list-group-title"><?php echo t('variable_groups');?></div>
             <?php echo $variable_groups_html;?>
         </div>
         <?php endif;?>

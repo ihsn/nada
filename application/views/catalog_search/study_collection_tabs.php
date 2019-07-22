@@ -83,9 +83,11 @@ else{
             <ul class="nav nav-tabs wb-nav-tab-space mb-5" role="tablist">
 
                 <?php if (isset($repo) && isset($repo['repositoryid']) && $repo['repositoryid']=='central'):?>
+                    <?php /* ?>
                     <li class="nav-item tab-about">
                         <a class="nav-link <?php echo ($active_tab=='about') ? $active_class : '' ?>"   href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>/about" role="presentation"><?php echo t('tab_collections');?></a>
                     </li>
+                    <?php */?>
                 <?php else:?>
                     <li class="nav-item tab-about">
                         <a class="nav-link <?php echo ($active_tab=='about') ? $active_class : '' ?>"  href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>/about" role="presentation"><?php echo t('tab_about');?></a>

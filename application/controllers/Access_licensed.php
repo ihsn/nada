@@ -126,94 +126,83 @@ class Access_licensed extends MY_Controller {
 	*/
 	function track($request_id)
 	{
-		if (!is_numeric($request_id))
-		{
-			show_404();
-		}
+			if (!is_numeric($request_id)){
+				show_404();
+			}
 		
-		//get user info
-		$user=$this->ion_auth->current_user();
-		
-		//get request from db
-		$data=$this->Licensed_model->get_request_by_id($request_id);
-		
-		//find approved surveys with files for this request
-		$data['surveys_with_files']=$this->Licensed_model->get_request_approved_surveys($request_id);
-		
-		if ($data===FALSE)
-		{
-			show_404();
-		}
+			//get user info
+			$user=$this->ion_auth->current_user();
+			
+			//get request from db
+			$data=$this->Licensed_model->get_request_by_id($request_id);
+			
+			//find approved surveys with files for this request
+			$data['surveys_with_files']=$this->Licensed_model->get_request_approved_surveys($request_id);
+			
+			if ($data===FALSE){
+				show_404();
+			}
 				
-		//user can only view his requests
-		if ($data['userid']!=$user->id)
-		{
-			show_404();
-		}
-		
-		$contents=$this->load->view('access_licensed/request_status', $data,true);				
-		
-		if ($data['status']=='APPROVED')
-		{		
-			$contents.=$this->_get_licensed_files($request_id);
-		}
-		
-		if ($this->input->get("print")=='yes' || $this->input->get("ajax"))
-		{
-			$this->template->set_template('blank');	
-		}
-		else
-		{		
-			$this->template->set_template('default');
-		}
+			//user can only view his requests
+			if ($data['userid']!=$user->id){
+				show_404();
+			}
+			
+			$contents=$this->load->view('access_licensed/request_status', $data,true);				
+			
+			if ($data['status']=='APPROVED'){		
+				$contents.=$this->_get_licensed_files($request_id);
+			}
+			
+			if ($this->input->get("print")=='yes' || $this->input->get("ajax")){
+				$this->template->set_template('blank');	
+			}
+			else{
+				$this->template->set_template('default');
+			}
 
-		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.accordion.min.js');
-
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();
+			$this->template->write('content', $contents,true);
+			$this->template->render();
 	}
+
+
 	
 	//returns a list of downloadable files for the request
 	function _get_licensed_files($request_id)
 	{				
-		$this->load->helper('file');
-		$this->load->helper("resource_helper");
-		$this->load->model("Resource_model");
-		
-		$request=$this->Licensed_model->get_request_by_id($request_id);		
-		$sid=$this->input->get("sid");
-		
-		//request has no surveys attached
-		if (!isset($request['surveys']) || count($request['surveys'])==0)
-		{
-			return FALSE;
-		}
-		
-		if (!is_numeric($sid))
-		{
-			$first_survey=reset($request['surveys']);
-			$sid=$first_survey['id'];
-		}
-		
-		//survey must be part of the request
-		if (!array_key_exists($sid,$request['surveys']))
-		{
-			show_error("INVALID-REQUEST");
-		}
-		
-		//get files by request id and survey id
-		$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
-		$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
-		$data['request']=$request;
-		$data['survey_folder']=$this->Dataset_model->get_storage_fullpath($sid);
-		$data['sid']=$sid;
-		$data['request_id']=$request_id;
-		
-		return $this->load->view("access_licensed/track_request_downloads",$data,TRUE);
+			$this->load->helper('file');
+			$this->load->helper("resource_helper");
+			$this->load->model("Resource_model");
+			
+			$request=$this->Licensed_model->get_request_by_id($request_id);		
+			$sid=$this->input->get("sid");
+			
+			//request has no surveys attached
+			if (!isset($request['surveys']) || count($request['surveys'])==0){
+				return FALSE;
+			}
+			
+			if (!is_numeric($sid)){
+				$first_survey=reset($request['surveys']);
+				$sid=$first_survey['id'];
+			}
+			
+			//survey must be part of the request
+			if (!array_key_exists($sid,$request['surveys'])){
+				show_error("INVALID-REQUEST");
+			}
+			
+			//get files by request id and survey id
+			$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
+			$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
+			$data['request']=$request;
+			$data['survey_folder']=$this->Dataset_model->get_storage_fullpath($sid);
+			$data['sid']=$sid;
+			$data['request_id']=$request_id;
+			
+			return $this->load->view("access_licensed/track_request_downloads",$data,TRUE);
 	}
+	
 
 	/**
 	* return resources by request id
@@ -348,7 +337,7 @@ class Access_licensed extends MY_Controller {
 		
 		//log
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->db_logger->write_log('survey',$file_id,'licensed-download',$fileinfo['survey_id']);
+		$this->db_logger->write_log('download',$fileinfo['filename'],'microdata',$fileinfo['survey_id']);
 		
 		force_download2($file_path);
 	}

@@ -89,20 +89,20 @@ if (!isset($_GET['collection']))
 
         <?php if ($search_options->from!='' && $search_options->to!=''):?>
             <?php if ( $search_options->from!=$min_year || $search_options->to!=$max_year ):?>
-                <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo $search_options->from;?>-<?php echo $search_options->to;?><i class="fa fa-close"></i></span>
+                <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo html_escape($search_options->from);?>-<?php echo html_escape($search_options->to);?><i class="fa fa-close"></i></span>
             <?php endif;?>
         <?php endif;?>
 
         <?php if (isset($search_options->sk) && $search_options->sk!=''):?>
-            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sk" data-value=""><?php echo substr($search_options->sk,0,50);?><i class="fa fa-close"></i></span>
+            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sk" data-value=""><?php echo html_escape(substr($search_options->sk,0,50));?><i class="fa fa-close"></i></span>
         <?php endif;?>
 
         <?php if (isset($search_options->vk) && $search_options->vk!=''):?>
-            <span class="badge badge-default wb-badge-close country remove-filter vk" data-type="vk" data-value=""><?php echo substr($search_options->vk,0,50);?><i class="fa fa-close"></i></span>
+            <span class="badge badge-default wb-badge-close country remove-filter vk" data-type="vk" data-value=""><?php echo html_escape(substr($search_options->vk,0,50));?><i class="fa fa-close"></i></span>
         <?php endif;?>
 
         <?php if (isset($search_options->sid) && $search_options->sid!=''):?>
-            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo substr($search_options->sid,0,50).'... ';?><i class="fa fa-close"></i></span>
+            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo html_escape(substr($search_options->sid,0,50)).'... ';?><i class="fa fa-close"></i></span>
         <?php endif;?>
     </div>
 

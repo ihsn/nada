@@ -5,7 +5,7 @@
 ?>
 <style type="text/css">
 .caption{
-font-weight:bold;padding-left:20px;
+    font-weight:bold;padding-left:20px;
 }
 .description{
 	color:#666666;padding-left:20px;
@@ -14,8 +14,10 @@ font-weight:bold;padding-left:20px;
 .grid-table .br td{border:0px;}
 .h1{margin-top:20px;}
 .active-group{background:gainsboro;padding:5px;}
-.group-name{font-weight:bold;}
+.group-name{font-weight:bold;padding:5px;}
 </style>
+
+<div class="container-fluid">
 
 <?php if (validation_errors() ) : ?>
     <div class="error">
@@ -34,7 +36,7 @@ font-weight:bold;padding-left:20px;
 
 <form method="post">
 <input type="hidden" name="group_id" value="<?php echo $group_id;?>"/>
-<table class="grid-table">
+<table class="grid-table table table-striped">
 <?php foreach ($permissions as $group_name=>$perm_group):?>
 	<tr>
         <td colspan="2" class="header">
@@ -75,7 +77,8 @@ font-weight:bold;padding-left:20px;
     <?php endforeach;?>
 </table>
 
-<div style="text-align:right;">
-<input type="submit" value="<?php echo t('apply_changes');?>" name="submit"/>
+<div style="margin-top:20px;">
+<input class="btn btn-primary" type="submit" value="<?php echo t('apply_changes');?>" name="submit"/>
 </div>
 </form>
+</div>

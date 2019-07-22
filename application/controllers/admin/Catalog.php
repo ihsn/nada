@@ -27,6 +27,7 @@ class Catalog extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load('catalog_search');
 		$this->lang->load('catalog_admin');
+		$this->lang->load('permissions');
 		$this->lang->load('resource_manager');
 
 		//$this->output->enable_profiler(TRUE);
@@ -1139,7 +1140,7 @@ class Catalog extends MY_Controller {
 		try
 		{
 			//upload the ddi
-			$upload_result=$this->__upload_file($key='userfile',$destination=$tmp_path);
+			$upload_result=$this->upload_ddi_file($key='userfile',$destination=$tmp_path);
 
 			if(!$upload_result){				
 				$error = $this->upload->display_errors();
@@ -1876,9 +1877,12 @@ class Catalog extends MY_Controller {
 	{
 		$result=$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
 
-		if ($this->input->get('destination'))
-		{
+		if ($this->input->get('destination')){
 			redirect($this->input->get('destination'));
+		}
+
+		if ($this->input->get("ajax")){
+			echo json_encode(array('status'=>$result));
 		}
 	}
 
@@ -1960,6 +1964,35 @@ class Catalog extends MY_Controller {
 		$this->Data_file_resources_model->batch_update($sid, $file_id, $options);
 
 		redirect('admin/catalog/attach_data_file_resources/'.$sid.'/'.$file_id);
+	}
+
+
+	/**
+	 *
+	 * Upload ddi file for ddi replace
+	 * 
+	 * @return array
+	 */
+	private function upload_ddi_file($key,$destination)
+	{
+		if ($_FILES[$key]['size']==0)
+		{
+			return false;
+		}
+		$config['encrypt_name']	 = TRUE;
+		$config['upload_path'] = $destination;
+		$config['allowed_types'] = 'xml';
+		$config['overwrite'] = true;
+		$this->load->library('upload', $config);
+		if ( ! $this->upload->do_upload($key))
+		{
+			throw new Exception( $this->upload->display_errors() );
+		}
+		else
+		{
+			$data = $this->upload->data();
+			return $data;
+		}
 	}
 
 

@@ -611,4 +611,75 @@ class Auth extends MY_Controller {
 		}
 	}
 
+
+	/**
+	 * 
+	 * Verify OTP code
+	 * 
+	 */
+	function verify_code()
+	{
+		if ($this->config->item("otp_verification")!==1 || !$this->ion_auth->is_admin()){
+			show_404();
+		}
+
+		$this->form_validation->set_rules('code', t('verification_code'), 'trim|required|xss_clean|max_length[10]');
+
+		if ($this->form_validation->run() == false)
+		{
+	    	//set any errors and display the form
+        	$this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+    		$content=$this->load->view('auth/verify_otp', null,true);
+
+			$this->template->write('content', $content,true);
+			$this->template->write('title', t('verify_otp'),true);
+		  	$this->template->render();
+	    }
+	    else
+		{
+			$user=$this->ion_auth->current_user();
+			$code=$this->input->post("code");
+
+			try{							
+				//otp expired or not set?
+				if (date("U")>$user->otp_expiry || !$user->otp_code){
+					throw new Exception("Code has expired");
+				}
+				
+				if($code==$user->otp_code){
+					$this->session->set_userdata("verify_otp",1);
+					$this->session->set_userdata("verified_otp",$code);
+					redirect("admin", 'refresh');
+				}
+				
+				throw new exception("Code verification failed");
+			}
+			catch(Exception $e){
+				$this->db_logger->write_log('otp-error',$e->getMessage(). ' user: '.$user->email);
+				$this->session->set_flashdata('error', $e->getMessage());
+				redirect("auth/verify_code", 'refresh');
+			}			
+	    }
+	}
+
+	/**
+	 * 
+	 * 
+	 * Email new OTP code
+	 * 
+	 */
+	function send_otp_code()
+	{
+		if ($this->config->item("otp_verification")!==1 || !$this->ion_auth->is_admin()){
+			show_404();
+		}
+		
+		$user_id=$this->session->userdata('user_id');
+		$this->ion_auth->send_otp_code($user_id);
+		//write_log($type, $message=NULL, $section=NULL,$surveyid=0)
+		$this->db_logger->write_log('otp','code sent for user:'.$user_id);
+		$this->session->set_flashdata('message', t('Check your email for verification code'));
+		redirect("auth/verify_code", 'refresh');
+	}
+
 }//end-class

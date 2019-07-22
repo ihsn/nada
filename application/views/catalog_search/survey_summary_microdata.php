@@ -80,7 +80,12 @@ td.caption{
 					?>
 						<a  target="_blank" 
 							href="<?php echo $url;?>" 
-							title="<?php echo basename($row['filename']);?>" 
+							title="<?php echo basename($row['filename']);?>"
+							title="<?php echo html_escape(basename($row['filename']));?>"
+							data-filename="<?php echo html_escape(basename($row['filename']));?>"
+							data-dctype="<?php echo html_escape($row['dctype']);?>"
+							data-extension="<?php echo html_escape($ext);?>"
+							data-sid="<?php echo $row['survey_id'];?>" 
 							class="download btn btn-outline-primary btn-sm">
 								<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> 
 								<?php echo $download_str;?>
