@@ -243,11 +243,28 @@ class Citation_search_sqlsrv{
 							break;
 						
 						case 'url_status':
-                        if ($keywords!="")
-                        {
-                            $this->ci->db->where_in ('citations.url_status',$keywords);
-                        }
-                        break;	
+							if ($keywords!="")
+							{
+								$this->ci->db->where_in ('citations.url_status',$keywords);
+							}
+							break;	
+						
+						case 'ctype':
+							if (is_array($keywords)){                            
+								$this->ci->db->where_in ('citations.ctype',$keywords);
+							}
+							break; 
+						
+						case 'from':                        
+							if (strlen($keywords)==4 && is_numeric($keywords)){
+								$this->ci->db->where ('citations.pub_year >=',intval($keywords),false);
+							}
+							break;  
+                    	case 'to':                        
+							if (strlen($keywords)==4 && is_numeric($keywords)){
+								$this->ci->db->where ('citations.pub_year <=',intval($keywords),false);
+							}
+							break;    
 					}
 				}
 			}

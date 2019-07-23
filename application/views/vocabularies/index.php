@@ -1,4 +1,4 @@
-<div class="content-container">
+<div class="content-container container">
 
 <div class="text-right page-links">
 	<a href="<?php echo site_url(); ?>/admin/vocabularies/add" class="btn btn-default">

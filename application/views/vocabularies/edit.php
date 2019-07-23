@@ -3,7 +3,7 @@
     width:500px;
 }
 </style>
-<div class='container-fluid vocabularies-edit-page'>
+<div class='container vocabularies-edit-page'>
     <div class="text-right page-links">
         <a href="<?php echo site_url(); ?>/admin/vocabularies" class="btn btn-default"> <span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('home');?></a> 
     </div>

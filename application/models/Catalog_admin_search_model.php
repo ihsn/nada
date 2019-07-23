@@ -185,30 +185,28 @@ class Catalog_admin_search_model extends CI_Model {
 		$tags=$this->get_param('tag');
 		
 		$tags_sql=NULL;
-		
-		if (is_array($tags))
-		{
+		$tags_sub_query=NULL;
+
+		if (is_array($tags)){
 			foreach($tags as $key=>$value)
 			{
-				if (trim($value)!='')
-				{
+				if (trim($value)!=''){
 					$tags_sql[$key]=sprintf('tag=%s',$this->db->escape($value));
 				}	
 			}
 			
-			if ( is_array($tags_sql) && count($tags_sql)>0)
-			{
+			if ( is_array($tags_sql) && count($tags_sql)>0){
 				$tags_sub_query='select sid from survey_tags where '.implode(' OR ',$tags_sql);
 			}	
 		
-			if ( trim($where_clause)!='')
-			{	
-				$where_clause.= sprintf(' AND surveys.id in (%s)',$tags_sub_query);
-			}
-			else
-			{
-				$where_clause.= sprintf('  surveys.id in (%s)',$tags_sub_query);
-			}
+			if ( !empty($tags_sub_query)){
+				if ( trim($where_clause)!=''){	
+					$where_clause.= sprintf(' AND surveys.id in (%s)',$tags_sub_query);
+				}
+				else{
+					$where_clause.= sprintf('  surveys.id in (%s)',$tags_sub_query);
+				}
+			}	
 		}		
 		
 		$active_repo_filter='';
