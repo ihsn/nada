@@ -708,7 +708,26 @@ $config['maintenance_mode']=0;
 $config['otp_verification']=0;
 
 
+/*
+|--------------------------------------------------------------------------
+| Import access policy from DDI
+|--------------------------------------------------------------------------
+|
+| Enable importing Access Policy from DDI field study_desc/data_access/dataset_use/conditions
+|
+| Support access policy values are:
+|
+|   Open data access [open]
+|   Direct data access [direct]
+|   Public use data files [public]
+|   Licensed data files [licensed]
+|   Data not available [data_na]
+| 
+|   The part in the bracket is the code and must match.
+| 
+*/
 
+$config['enable_access_policy_import']=false;
 
 /*
 |--------------------------------------------------------------------------
