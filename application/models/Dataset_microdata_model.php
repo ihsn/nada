@@ -327,7 +327,7 @@ class Dataset_microdata_model extends Dataset_model {
         if($this->config->item("enable_access_policy_import"))
         {
             $access_conditions=$this->get_array_nested_value($options,'study_desc/data_access/dataset_use/conditions');
-            if(!isset($options['access_policy']) || $options['access_policy']=='na'){
+            if(!isset($options['access_policy'])){
 
                 $access_policy=$this->get_access_policy_code($access_conditions);
 
@@ -335,13 +335,13 @@ class Dataset_microdata_model extends Dataset_model {
                     $options['access_policy']=$access_policy;
                 }
             }
+        }
 
-            if(isset($options['access_policy'])){
-                $formid=$this->Form_model->get_formid_by_name($options['access_policy']);
+        if(isset($options['access_policy'])){
+            $formid=$this->Form_model->get_formid_by_name($options['access_policy']);
 
-                if($formid){
-                    $output['formid']=$formid;
-                }
+            if($formid){
+                $output['formid']=$formid;
             }
         }
 
