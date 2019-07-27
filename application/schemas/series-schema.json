@@ -6,24 +6,20 @@
 	"definitions": {
 		"series": {
 			"type": "object",
-			"properties": {
-				"fid": {
-					"type": "string",
-					"title": "File or database ID",
-					"description": "File to which the series belongs"
-				},
-				"vid": {
+			"properties": {				
+				"idno": {
 					"type": "string",
 					"title": "Series unique ID",
-					"description": "Unique series ID e.g. V1, V2"
+					"description": "Unique series ID"
 				},
 				"name": {
 					"type": "string",
-					"title": "Series name"
+					"title": "Series Name"
 				},
-				"labl": {
+				"db_idno": {
 					"type": "string",
-					"title": "Series label"
+					"title": "Database ID",
+					"description": "Series database ID"
 				},
 				"aliases": {
 					"type": "array",
@@ -399,10 +395,8 @@
 				}
 			},
 			"required": [
-				"fid",
-				"vid",
-				"name",
-				"labl"
+				"idno",
+				"name"
 			]
 		}
 	},

@@ -19,8 +19,8 @@ class Study extends MY_Controller {
 		$this->load->helper("metadata_view");
 		$this->load->helper('array');
 		$this->lang->load('general');
-		$this->lang->load('ddibrowser');
 		$this->lang->load("catalog_search");
+		$this->lang->load('ddibrowser');
 		$this->load->helper('catalog');
 		//$this->output->enable_profiler(TRUE);
 
@@ -56,7 +56,7 @@ class Study extends MY_Controller {
 		$output=$this->metadata_template->render_html();
 
 		$output=$this->load->view('survey_info/metadata', array('content'=>$output), TRUE);
-		$this->render_page($sid, $output, $active_tab='study_description');
+		$this->render_page($sid, $output, $active_tab='description');
 	}
 
 
@@ -254,7 +254,7 @@ class Study extends MY_Controller {
 
 
 	
-	private function render_page($sid, $content, $active_tab='study_description')
+	private function render_page($sid, $content, $active_tab='description')
 	{
 		$this->db_logger->increment_study_view_count($sid);
 
@@ -266,9 +266,10 @@ class Study extends MY_Controller {
             echo $content;return;
         }
 
-        $survey=$this->Dataset_model->get_row($sid);
-        $data_access_type=$survey['data_access_type'];
-		$published=$survey['published'];
+		$dataset=$this->Dataset_model->get_row($sid);
+		$dataset_type=$dataset['type'];
+        $data_access_type=$dataset['data_access_type'];
+		$published=$dataset['published'];
 		
 		$has_datafiles=$this->Dataset_model->has_datafiles($sid);
 
@@ -288,49 +289,83 @@ class Study extends MY_Controller {
 		//formatted related studies
 		$related_studies_formatted=$this->load->view('survey_info/related_studies',array('related_studies'=>$related_studies),true);
 
-		$page_tabs=array(
-			'study_description'=>array(
-				'label'=>'Study description',
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/study-description"),
-                'show_tab'=>1
-			),
-			'related_materials'=>array(
-				'label'=>t('related_materials'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/related-materials"),
-                'show_tab'=>(int)$related_resources_count
-			),			
-			'data_dictionary'=>array(
-				'label'=>t('data_dictionary'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/data-dictionary"),
-                'show_tab'=>$has_datafiles
-			),
-			'get_microdata'=>array(
-				'label'=>t('get_microdata'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/get-microdata"),
-                'show_tab'=>1
-			),
-			'related_citations'=>array(
-				'label'=>t('related_citations'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/related-publications"),
-                'show_tab'=>(int)$related_citations_count
-			),
-			'related_datasets'=>array(
-				'label'=>t('related_datasets'),
-				'hover_text'=>'Related datasets',
-				'url'=>site_url("catalog/$sid/related-datasets"),
-                'show_tab'=>count($related_studies)
-			),
-		);
+		switch($dataset_type){
+
+			case 'survey':
+			case 'microdata':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t('microdata_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					),			
+					'data_dictionary'=>array(
+						'label'=>t('data_dictionary'),
+						'url'=>site_url("catalog/$sid/data-dictionary"),
+						'show_tab'=>$has_datafiles
+					),
+					'get_microdata'=>array(
+						'label'=>t('get_microdata'),
+						'url'=>site_url("catalog/$sid/get-microdata"),
+						'show_tab'=>1
+					),
+					'related_citations'=>array(
+						'label'=>t('related_citations'),
+						'url'=>site_url("catalog/$sid/related-publications"),
+						'show_tab'=>(int)$related_citations_count
+					),
+					'related_datasets'=>array(
+						'label'=>t('related_datasets'),
+						'url'=>site_url("catalog/$sid/related-datasets"),
+						'show_tab'=>count($related_studies)
+					)
+				);
+				break;
+			
+			case 'image':
+			case 'document':
+			case 'timeseries':
+			case 'table':
+			case 'script':
+			case 'geospatial':
+			case 'visualization':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					),			
+					'related_citations'=>array(
+						'label'=>t('related_citations'),
+						'url'=>site_url("catalog/$sid/related-publications"),
+						'show_tab'=>(int)$related_citations_count
+					),
+					'related_datasets'=>array(
+						'label'=>t('related_datasets'),
+						'url'=>site_url("catalog/$sid/related-datasets"),
+						'show_tab'=>count($related_studies)
+					)
+				);
+			break;
+
+			default:
+				show_error('DATASET-TYPE-NOT-SUPPORTED: '. $dataset_type);
+		}
 
 		$options=array(
 			'published'=>$published,
 			'sid'=>$sid,
-			'dataset_type'=>$survey['type'],
+			'dataset_type'=>$dataset['type'],
 			'survey'=>$this->get_survey_info($sid),
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,
@@ -339,7 +374,7 @@ class Study extends MY_Controller {
 			'has_related_materials'=>$related_resources_count,
             'has_citations'=>$related_citations_count,
             'has_data_dictionary'=>$has_datafiles,
-			'survey_title'=>$survey['title'],
+			'survey_title'=>$dataset['title'],
 			'related_studies_count'=>count($related_studies),
 			'related_studies_formatted'=>$related_studies_formatted
 		);

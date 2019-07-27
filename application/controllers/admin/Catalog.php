@@ -377,6 +377,7 @@ class Catalog extends MY_Controller {
 			//import rdf
 			$rdf_result=$this->upload_rdf_file($result['sid']);
 
+			$this->events->emit('db.after.update', 'surveys', $result['sid'],'refresh');
 			$this->session->set_flashdata('success', $result);
 			redirect('admin/catalog/edit/'.$result['sid'],'refresh');return;
 		}
@@ -967,6 +968,7 @@ class Catalog extends MY_Controller {
 				{
 					//delete survey and related data from other tables
 					$this->Catalog_model->delete($item);
+					$this->events->emit('db.after.delete', 'surveys', $item,'delete');
 
 					//log deletion
 					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
@@ -1505,16 +1507,7 @@ class Catalog extends MY_Controller {
 				{
 					//publish/unpublish a study
 					$result=$this->Catalog_model->publish_study($item,$publish);
-
-					/*if ($result)
-					{
-						$this->session->set_flashdata('message', t('form_update_success'));
-					}
-					else
-					{
-						$this->session->set_flashdata('error', t('form_update_failed'));
-					}*/
-
+					$this->events->emit('db.after.update', 'surveys', $item,'publish');
 					//log
 					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
 					$this->db_logger->write_log('study-published',$survey_name,'catalog',$item);

@@ -6,27 +6,27 @@
 
 if ( ! function_exists('render_field'))
 {
-	function render_field($type, $name, $data)
+	function render_field($type, $name, $data, $options=array())
 	{
 		$ci =& get_instance();
 
 		switch($type)
 		{
 			case 'text':
-				return render_text($name, $data);
+				return render_text($name, $data,$options);
 				break;
 			case 'array':
 			case 'table':
-				return render_table($name, $data);
+				return render_table($name, $data,$options);
 				break;
 			case 'bounding_box':
-				return render_bounding_box($name, $data);
+				return render_bounding_box($name, $data,$options);
 				break;
             case 'var_category':
-                return render_var_category($name, $data);
+                return render_var_category($name, $data,$options);
                 break;
 			default:				
-				return render_custom($type,$name,$data);
+				return render_custom($type,$name,$data,$options);
 		}
 		
 	}
@@ -34,13 +34,13 @@ if ( ! function_exists('render_field'))
 
 if ( ! function_exists('render_custom'))
 {
-	function render_custom($type,$name, $data)
+	function render_custom($type,$name, $data,$options=array())
 	{
 		$ci =& get_instance();
 		$custom_field='application/views/metadata_templates/fields/field_'.$type.'.php';
 		$view_file='metadata_templates/fields/field_'.$type;
 		if (file_exists($custom_field)){
-			return $ci->load->view($view_file,array('name'=>$name, 'data'=>$data), TRUE);
+			return $ci->load->view($view_file,array('name'=>$name, 'data'=>$data,'options'=>$options), TRUE);
 		}
 		else{
 			return render_table($name,$data);
@@ -74,10 +74,10 @@ if ( ! function_exists('render_bounding_box'))
 
 if ( ! function_exists('render_table'))
 {
-	function render_table($name, $data, $columns=array())
+	function render_table($name, $data, $options=array())
 	{
 		$ci =& get_instance();
-		return $ci->load->view('metadata_templates/fields/field_array',array('name'=>$name, 'data'=>$data,'field_columns'=>$columns), TRUE);
+		return $ci->load->view('metadata_templates/fields/field_array',array('name'=>$name, 'data'=>$data, 'options'=>$options), TRUE);
 	}
 }
 
@@ -104,10 +104,17 @@ function get_field_value($name,$data)
 
 if ( ! function_exists('render_group'))
 {
-	function render_group($name, $fields, $metadata)
+	function render_group($name, $fields, $metadata,$options=array())
 	{
 		$ci =& get_instance();
-		return $ci->load->view('metadata_templates/fields/section',array('section_name'=>$name, 'metadata'=>$metadata,'fields'=>$fields), TRUE);
+		return $ci->load->view('metadata_templates/fields/section',
+			array(
+				'section_name'=>$name, 
+				'metadata'=>$metadata,
+				'fields'=>$fields,
+				'options'=>$options
+			)
+			, TRUE);
 	}
 }
 
@@ -148,7 +155,7 @@ function get_string_value($data,$type='text')
     }
     else if(in_array($type, array('table','array')))
     {
-        $output=NULL;
+        $output=array();
         foreach($data as $row)
         {
             $row_output=array();

@@ -104,13 +104,41 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	/**
+	 * 
+	 * returns a list of datasets by type
+	 * 
+	 * 
+	 */
+	function get_list_by_type($dataset_type, $limit=100, $start=0)
+	{
+		$this->db->select('id,idno');
+		$this->db->where('type',$dataset_type);
+
+		if(is_numeric($start)){
+			$this->db->where('id>',$start);
+		}
+
+		if(!empty($limit)){
+			$this->db->limit($limit);
+		}
+
+		return $this->db->get("surveys")->result_array();
+	}
+
+
 	//return IDNO
 	function get_idno($sid)
 	{
 		$this->db->select("idno");
 		$this->db->where("id",$sid);
-        $survey=$this->db->get("surveys")->row_array();
-        return $survey;
+		$result=$this->db->get("surveys")->row_array();
+		
+		if($result){
+			return $result['idno'];
+		}
+
+        return false;
 	}
 
 
@@ -153,7 +181,7 @@ class Dataset_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
-		$this->db->select("id,repositoryid,type,idno,title,year_start, year_end,nation,published,created, changed, varcount, total_views, total_downloads, surveys.formid,forms.model as data_access_type,link_da as remote_data_url, link_study, link_questionnaire, link_indicator, link_technical, link_report");		
+		$this->db->select("id,repositoryid,type,idno,title,year_start, year_end,nation,published,created, changed, varcount, total_views, total_downloads, surveys.formid,forms.model as data_access_type,link_da as remote_data_url, thumbnail, link_study, link_indicator, link_report");
 		$this->db->join('forms','surveys.formid=forms.formid','left');
 		$this->db->where("id",$sid);
 		
@@ -290,6 +318,21 @@ class Dataset_model extends CI_Model {
             $reference = $reference[$key];
         }
         return $reference;
+	}
+	
+
+	function unset_array_nested_value(&$data, $path, $glue = '/')
+    {
+        $paths = explode($glue, (string) $path);
+        $reference = &$data;
+        foreach ($paths as $key) {
+            if (!array_key_exists($key, $reference)) {
+                return false;
+            }
+            $reference = &$reference[$key];
+        }
+		unset($reference);
+		return true;
     }
 
 
@@ -320,7 +363,8 @@ class Dataset_model extends CI_Model {
 
 		//keywords
 		if (!isset($data['keywords'])){
-			$data['keywords']=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
+			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
+			$data['keywords']=$this->extract_keywords($data['metadata'],$type);			
 		}
 		
 		//encode json fields
@@ -368,7 +412,7 @@ class Dataset_model extends CI_Model {
 
 		//keywords
 		if (!isset($data['keywords']) && isset($data['metadata'])){
-			$data['keywords']=str_replace("\n","",$this->array_to_plain_text($data['metadata']));
+			$data['keywords']=$this->extract_keywords($data['metadata'],$type);
 		}
 
 		//encode json fields
@@ -390,17 +434,45 @@ class Dataset_model extends CI_Model {
 		return $sid;
 	}
 
+	function extract_keywords($metadata,$type='')
+	{
+		if($type=='survey'){
+			$type='microdata';
+		}
+
+		//exclude
+		if($type=='document'){
+			if(isset($metadata['document_description']['lda_topics'])){
+				unset($metadata['document_description']['lda_topics']);
+			}
+		}
+		
+		$keywords=$type. ' '.str_replace("\n","",$this->array_to_plain_text($metadata));
+
+		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
+			//words with length = 3
+			$pattern='/\b\w{3}\b/';
+			//add underscore as a prefix
+			return preg_replace($pattern, '_${0}', $keywords);
+		}
+		
+		return $keywords;
+	}
+
 
 
 	function array_to_plain_text($data)
 	{
 		$output = array();
-        $item = new RecursiveIteratorIterator(new RecursiveArrayIterator($data));
-        foreach($item as $value) {
-            $output[] = $value;
+		$item = new RecursiveIteratorIterator(new RecursiveArrayIterator($data));
+		//,\RecursiveIteratorIterator::SELF_FIRST);
+		
+        foreach($item as $key=>$value) {
+			$output[] = $value;
         }  
         return implode(' ', $output);        
 	}
+
 
 
 	/**
@@ -835,6 +907,37 @@ class Dataset_model extends CI_Model {
 	}
 
 
+
+
+	/**
+	*
+	* Add/Update tags
+	*
+	* @sid - dataset id
+	* @tags - array - list of tags
+	*
+	**/
+	function update_survey_tags($sid, $tags=array())
+	{
+		$this->load->model("Catalog_tags_model");
+        $this->Catalog_tags_model->delete_survey_tags($sid);
+				
+        if (!is_array($tags)){
+            return;
+        }
+        
+		foreach ($tags as $tag){
+            $options=array(
+					'sid'	=>$sid,
+					'tag'	=>$tag
+				);
+            $this->db->insert('survey_tags',$options);
+		}
+	}
+
+
+
+
     
     //encode metadata for db storage
     public function encode_metadata($metadata_array)
@@ -1096,6 +1199,27 @@ class Dataset_model extends CI_Model {
 		}
 
 		return $result;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Re-populate keywords field with updated metadata
+	 * 
+	 * 
+	 */
+	function repopulate_index($sid)
+	{
+		$metadata=$this->get_metadata($sid);
+		$type=$this->get_type($sid);
+
+		$data=array(
+			'keywords'=>$this->extract_keywords($metadata,$type)
+		);
+		
+		$this->db->where('id',$sid);
+		return $this->db->update('surveys',$data);
 	}
 
 	

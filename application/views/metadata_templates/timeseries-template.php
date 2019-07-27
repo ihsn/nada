@@ -17,97 +17,120 @@
 
 
 <!-- identification section -->
-<?php $output['identification']= render_group('identification',
+<?php $output['overview']= render_group('overview',
     $fields=array(
-            "titl"=>'text',
-            "abbreviation"=>'text',
-            "metadata.database_description.title"=>"text",
-            "metadata.database_description.abbreviation"=>"text",
-            "metadata.database_description.authoring_entity"=>"array",
-            "metadata.database_description.abstract"=>"text",
-            "metadata.database_description.url"=>"text",
-            "metadata.database_description.type"=>"text",
+        "metadata.series_description.idno"=>"text",
+        "metadata.series_description.name"=>"text",
+        "metadata.series_description.database_id"=>"text",
+        "metadata.series_description.aliases"=>"array",        
+        "metadata.series_description.measurement_unit"=>"text",
+        "metadata.series_description.periodicity"=>"text",
+        "metadata.series_description.base_period"=>"text",        
+        "metadata.series_description.definition_short"=>"text",
+        "metadata.series_description.definition_long"=>"text",
+        "metadata.series_description.definition_references"=>"array",
+        "metadata.series_description.concepts"=>"array",
+        "metadata.series_description.concepts.name"=>"text",
+        "metadata.series_description.concepts.definition"=>"text",
+        "metadata.series_description.concepts.uri"=>"text",
+        "metadata.series_description.methodology"=>"text",
+        "metadata.series_description.imputation"=>"text",
+        "metadata.series_description.quality_checks"=>"text",
+        "metadata.series_description.quality_note"=>"text",
+        "metadata.series_description.series_break"=>"text",
+        "metadata.series_description.limitation"=>"text",
+        "metadata.series_description.themes"=>"array",
+        "metadata.series_description.themes.name"=>"text",
+        "metadata.series_description.themes.vocabulary"=>"text",
+        "metadata.series_description.themes.uri"=>"text",
+        "metadata.series_description.topics"=>"array",
+        "metadata.series_description.topics.id"=>"text",
+        "metadata.series_description.topics.name"=>"text",
+        "metadata.series_description.topics.parent_id"=>"text",
+        "metadata.series_description.topics.vocabulary"=>"text",
+        "metadata.series_description.topics.uri"=>"text",
+        "metadata.series_description.disciplines"=>"array",
+        "metadata.series_description.disciplines.name"=>"text",
+        "metadata.series_description.disciplines.vocabulary"=>"text",
+        "metadata.series_description.disciplines.uri"=>"text",
+        "metadata.series_description.relevance"=>"text",
+        "metadata.series_description.time_periods"=>"array",
+        "metadata.series_description.time_periods.start"=>"text",
+        "metadata.series_description.time_periods.end"=>"text",
 
-            "metadata.database_description.doi"=>"text",
-            "metadata.database_description.date_created"=>"text",
-            "metadata.database_description.revision_dates"=>"array",
-            "metadata.database_description.date_published"=>"text",
-            "metadata.database_description.update_frequency"=>"text",
-            "metadata.database_description.update_schedule"=>"array",
-            "metadata.database_description.time_coverage"=>"array",
-            "metadata.database_description.periodicity"=>"array",
-            "metadata.database_description.themes"=>"array",
-            "metadata.database_description.topics"=>"array",
-            "metadata.database_description.keywords"=>"array",
-
-            "metadata.database_description.geographic_coverage_note"=>"text",
-            "metadata.database_description.bbox"=>"bounding_box",
-            "metadata.database_description.geographic_granularity"=>"text",
-            "metadata.database_description.geographic_area_count"=>"text",
-            "metadata.database_description.sponsors"=>"array",
-            "metadata.database_description.acknowledgements"=>"text",
-            "metadata.database_description.contacts"=>"array",
-            "metadata.database_description.languages"=>"array",
-            "metadata.database_description.access_options"=>"array",
-            "metadata.database_description.license"=>"array",
-            "metadata.database_description.citation"=>"text",
-            "metadata.database_description.notes"=>"text",
-            "metadata.database_description.disclaimer"=>"text",
-            "metadata.database_description.copyright"=>"text",
+        "metadata.series_description.aggregation_method"=>"text",
+        "metadata.series_description.source"=>"text",
+        "metadata.series_description.source_note"=>"text",
+        "metadata.series_description.keywords"=>"array",
+        "metadata.series_description.notes"=>"array",
+        "metadata.series_description.related_indicators"=>"array",
+        "metadata.series_description.related_indicators.code"=>"text",
+        "metadata.series_description.related_indicators.label"=>"text",
+        "metadata.series_description.related_indicators.uri"=>"text",
+        "metadata.series_description.compliance"=>"array",
+        "metadata.series_description.series_groups"=>"array",
+        "metadata.additional"=>"object",
 
     ),
     $metadata);
 ?>
 
 
-<!-- version -->
-<?php $output['version']= render_group('version',
+<?php $output['api_documentation']= render_group('api_documentation',
     $fields=array(
-            "metadata.databased_description.version"=>'text',
-            "metadata.databased_description.date"=>'text',
-            "metadata.databased_description.responsibility"=>'text',
-            "metadata.databased_description.notes"=>'text'
-            ),
+        "metadata.series_description.api_documentation.description"=>"text",
+        "metadata.series_description.api_documentation.url"=>"text",
+    ),
     $metadata);
 ?>
 
 
-
-<!-- contacts -->
-<?php $output['contacts']= render_group('contacts',
+<?php $output['links']= render_group('links',
     $fields=array(
-            "metadata.database_description.contact"=>'array'
-            ),
+        "metadata.series_description.series_links"=>"array",
+        "metadata.series_description.links"=>"array"
+    ),
     $metadata);
 ?>
 
-<!-- metadata_production -->
+
+<?php $output['geographic_units']= render_group('geographic_units',
+    $fields=array(
+        "metadata.series_description.geographic_units"=>"array",
+        "metadata.series_description.geographic_units.name"=>"text",
+        "metadata.series_description.geographic_units.code"=>"text",
+        "metadata.series_description.geographic_units.type"=>"text",
+    ),
+    $metadata);
+?>
+
+
+<?php $output['license_rights']= render_group('license_rights',
+    $fields=array(
+        "metadata.series_description.license.name"=>"text",
+        "metadata.series_description.license.uri"=>"text",
+        "metadata.series_description.confidentiality"=>"text",
+        "metadata.series_description.confidentiality_status"=>"text",
+        "metadata.series_description.confidentiality_note"=>"text",
+    ),
+    $metadata);
+?>
+
+        
+
+
+
 <?php $output['metadata_production']= render_group('metadata_production',
     $fields=array(
-            "metadata.metadata_creation.idno"=>'text',
-            "metadata.metadata_creation.producers"=>'array',
-            "metadata.metadata_creation.prod_date"=>'text',
-            "metadata.metadata_creation.version"=>'text'
-            ),
+        "metadata.metadata_creation.producers"=>"array",
+        "metadata.metadata_creation.prod_date"=>"text",
+        "metadata.metadata_creation.version"=>"text",
+    ),
     $metadata);
 ?>
 
-<!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2 d-none d-sm-block">
-<div class="navbar-collapse sticky-top">
 
-    <ul class="navbar-nav flex-column wb--full-width">
-    <?php foreach($output as $key=>$value):?>            
-        <?php if(trim($value)!==""):?>    
-        <li class="nav-item">
-            <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
-        </li>
-        <?php endif;?>
-    <?php endforeach;?>
-    </ul>
-</div>
-</div>
-<!--metadata content-->
-<div class="col-12 col-sm-10 col-lg-10 wb-border-left">
-    <?php echo implode('',$output);?>
-</div>
+<?php 
+    //renders html
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output));
+?>

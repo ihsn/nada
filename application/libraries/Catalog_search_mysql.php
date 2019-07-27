@@ -14,15 +14,17 @@ class Catalog_search_mysql{
 	
 	var $errors=array();
 	
-	//search fields
+	//search fields	
 	var $study_keywords='';
 	var $variable_keywords='';
 	var $variable_fields=array();
 	var $topics=array();
+	var $tags=array();
 	var $countries=array();
 	var $from=0;
 	var $to=0;
 	var $repo='';
+	var $type=array();
 	//var $center=array();
 	var $collections=array();
 	var $dtype=array();//data access type
@@ -34,8 +36,10 @@ class Catalog_search_mysql{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
+						'rank'=>'rank',
 						'title'=>'title',
 						'country'=>'nation',
+						'nation'=>'nation',
 						'year'=>'year_start',
 						'popularity'=>'total_views',
 						'total_views'=>'total_views'
@@ -56,6 +60,7 @@ class Catalog_search_mysql{
 	function __construct($params = array())
 	{
 		$this->ci=& get_instance();
+		$this->ci->load->config('noise_words');
 		
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes')
@@ -88,56 +93,68 @@ class Catalog_search_mysql{
 
 	//perform the search
 	public function search($limit=15, $offset=0)
-	{
+	{		
+		$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$tags=$this->_build_tags_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
 		$sid=$this->_build_sid_query();
-        $countries_iso3=$this->_build_countries_iso3_query();
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
+		$countries_iso3=$this->_build_countries_iso3_query();
 		
-		$sort_by='title';
-		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
-		{
-			$sort_by=$this->sort_allowed_fields[$this->sort_by];
-		} 
-		else
-		{
-			if ($this->ci->config->item("regional_search")=='yes')
-			{
-				$sort_by='country';
-			}		
+		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
+		
+		//order desc by RANK for keyword search
+		if(!empty($study) && empty($this->sort_by)){
+			$sort_by='rank';
+			$sort_order='desc';
+		}
+
+		if(empty($study) && $this->sort_by=='rank'){
+			$sort_by='title';
+			$sort_order='asc';
 		}
 
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
-		if ($sort_by=='country')
-		{
-			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-		}
-		elseif ($sort_by=='title')
-		{
-			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-		}
-		if ($sort_by=='year')
-		{
-			$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+		switch($sort_by){
+
+			case 'country':
+			case 'nation':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+				break;
+			
+			case 'title':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+				break;
+				break;
+
+			case 'year':			
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
+				break;
+
+			case 'rank':
+				if(!empty($study)){
+					$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>'desc');
+				}
+				break;
 		}
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -157,9 +174,14 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end, surveys.thumbnail';
 		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
-		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
+
+		//add ranking if keywords are not empty
+		if(!empty($study)){
+			$study_fields.=', '.$study. ' as rank';
+		}
 
 		//build final search sql query
 		$sql='';
@@ -204,14 +226,13 @@ class Catalog_search_mysql{
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
-			if ($repository!='')
-			{
+			if ($repository!=''){
 				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 			}
 
+
 			//multi-sort
-			foreach($sort_options as $sort)
-			{
+			foreach($sort_options as $sort){
 				$this->ci->db->order_by($this->sort_allowed_fields[$sort['sort_by']],$sort['sort_order']);
 			}
 
@@ -224,29 +245,28 @@ class Catalog_search_mysql{
 			$query=$this->ci->db->get();
 		}
 		
-		if ($query)
-		{
+		if ($query){
 			//result to array
 			$this->search_result=$query->result_array();
 		}
-		else
-		{
+		else{
 			//some error occured
 			return FALSE;
 		}
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();		
+		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',false)->row_array();		
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
 		$this->ci->db->select('count(*) as rowcount');
 		$this->ci->db->where('published',1);
-		if($repository!='')
-		{
+
+		if($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','inner');
 			$this->ci->db->where($repository);
 		}
+
 		$query_total_surveys=$this->ci->db->get('surveys')->row_array();
 		$this->total_surveys=$query_total_surveys['rowcount'];		
 
@@ -256,84 +276,229 @@ class Catalog_search_mysql{
 		$result['total']=$this->total_surveys;
 		$result['limit']=$limit;
 		$result['offset']=$offset;
-		$result['citations']=$this->get_survey_citation();		
+		$result['citations']=$this->get_survey_citation();
+		//$result['search_counts_by_type']=null;
+		$result['search_counts_by_type']=$this->search_counts_by_type();
+
+		if ($result['found']>0){
+			//search for variables for SURVEY types
+			$id_list=array_column($this->search_result, "id");
+
+			if(count($id_list)>0){
+				//search variables and get the counts
+				$variables_by_study=$this->search_variable_counts($id_list,$this->study_keywords);
+				if(!empty($variables_by_study)){
+					foreach($this->search_result as $idx=>$row)
+					{
+						if(array_key_exists($row['id'],$variables_by_study)){
+							$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']]['var_found'];
+						}
+					}
+				}
+			}
+
+			$result['rows']=$this->search_result;
+
+
+		}
+
 		return $result;
 	}
+
+
+	/**
+	 * 
+	 * Get search counts by dataset type
+	 * 
+	 */
+	public function search_counts_by_type()
+	{		
+		//$type=$this->_build_dataset_type_query();
+		$study=$this->_build_study_query();
+		$variable=$this->_build_variable_query();
+		$topics=$this->_build_topics_query();
+		$countries=$this->_build_countries_query();
+		$tags=$this->_build_tags_query();
+		$collections=$this->_build_collections_query();
+		$years=$this->_build_years_query();		
+		$repository=$this->_build_repository_query();
+		$dtype=$this->_build_dtype_query();
+		$sid=$this->_build_sid_query();
+        $countries_iso3=$this->_build_countries_iso3_query();
+		
+		//array of all options
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		
+		//create combined where clause
+		$where='';
+		
+		foreach($where_list as $stmt)
+		{
+			if ($where=='')
+			{
+				$where=$stmt;
+			}
+			else
+			{
+				if ($stmt!==FALSE) {
+					$where.="\r\n".' AND '. $stmt;
+				}
+			}
+		}
+		
+		//study fields returned by the select statement
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end';
+		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
+		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+
+		//build final search sql query
+		$sql='';
+			
+		//study search
+		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->where('surveys.published',1);
+		$this->ci->db->group_by('surveys.type');	
+		
+		if ($repository!=''){
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+		}
+		
+		if ($where!='') {
+			$this->ci->db->where($where,FALSE,FALSE);
+		}
+	
+		$query=$this->ci->db->get();
+		$output=array();
+				
+		if ($query){
+			$query=$query->result_array();
+
+			foreach($query as $row){
+				$output[$row['type']]=$row['total'];
+			}
+		}
+		else{
+			//some error occured
+			return FALSE;
+		}
+		
+		return $output;
+	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * Parse mysql fulltext search keywords
+	 * 
+	 */
+	function parse_fulltext_keywords($keywords){
+
+		//remove fulltext operators
+		$text = preg_replace('/[+><\(\)~\"@]+/', ' ', $keywords);
+		$text = preg_replace('/[-]+/', '-', $text);
+		$text = preg_replace('/[*]+/', '*', $text);
+
+		#remove noise words 
+		$noise_words=(array)$this->ci->config->item("noise_words");
+		$text= explode(" ",$text);
+		$words=array_diff($text,$noise_words);
+
+		//$text=str_replace('++','',$text);
+		//$text=str_replace('--','',$text);
+
+		$prefixes=array(
+			'-',
+			'+'
+		);
+				
+		//$words=explode(" ", $text);
+		$output=array();
+
+		foreach($words as $word){
+			$prefix=substr($word,0,1);
+			//has prefix?
+			if(in_array($prefix,$prefixes) && strlen(trim($word))>3){
+				$output[]=$word;
+			}else{
+				$word=trim($word);
+
+				//add prefix for 3 letter keywords
+				if(strlen($word)==3){
+					if(isset($this->ci->db->prefix_short_words) && $this->ci->db->prefix_short_words==true){
+						$word='_'.$word;
+					}
+				}
+
+				if (strlen($word)>2){
+					$output[]='+'.$word;//default AND
+				}
+			}			
+		}
+
+		return implode("",$output);
+	}
+
 	
 	/**
 	* Build study search
 	*/
 	protected function _build_study_query()
 	{
-		//study search keywords
 		$study_keywords=$this->study_keywords;
-		
-		//fulltext index name
-		//$study_fulltext_index='surveys.title,surveys.authoring_entity,surveys.nation';
-		//$study_fulltext_index.=',abbreviation,keywords';
-
-		$study_fulltext_index='keywords';
 		$study_keywords=str_replace(array('"',"'"), '',$study_keywords);
-		
-		if (strlen($study_keywords)>3)
-		{		
-			//build the sql where using FULLTEXT
-			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
-			return $sql;
+
+		if(strlen($study_keywords)<3 || strlen($study_keywords)>100){
+			return false;
 		}
-		else if(strlen($study_keywords)==3)
-		{
-			//sql using REGEX for keywords shorter or equal to 3 characters
-			$study_keywords=sprintf("[[:<:]]%s[[:>:]]",$study_keywords);
-			$sql=sprintf('%s REGEXP (%s)','surveys.title',$this->ci->db->escape($study_keywords));
-			$sql.=' OR ';
-			$sql.=sprintf('%s REGEXP (%s)','surveys.abbreviation',$this->ci->db->escape($study_keywords));
-			$sql='('.$sql.')';
-			return $sql;
-		}
-		else
-		{
-			return FALSE;
-		}
+
+		//fulltext index name
+		$study_fulltext_index='keywords, var_keywords';
+
+		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
+
+		$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
+		return $sql;
 	}
+
+
 			
 	protected function _build_variable_query()
 	{
 		$variable_keywords=trim($this->variable_keywords);
-		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
-	
-		if ($variable_keywords=='')
-		{
-			return FALSE;
+		$variable_keywords=str_replace(array('"',"'"), '',$variable_keywords);
+
+		if(strlen($variable_keywords)<3 || strlen($variable_keywords)>100){
+			return false;
 		}
 
-		$tmp_where=NULL;
+		$variable_keywords=$this->parse_fulltext_keywords($variable_keywords);
+
+		//cleaned list of variable fields array
+		$variable_fields=$this->variable_fields();		
+
+		$tmp_where=array();
 		
-		if (strlen($variable_keywords) >3)
-		{
+		if (strlen($variable_keywords) >3){
 			//get fulltext index name
 			$fulltext_index=$this->get_variable_search_field(TRUE);
 
 			//FULLTEXT
 			$tmp_where[]=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($variable_keywords));
 		}	
-		else if (strlen($variable_keywords) ==3)
-		{
-			//get concatenated fields for wild card/regex search
-			$regex_fields=$this->get_variable_search_field(FALSE);
-			
-			//REGEXP query 
-			$variable_keywords=sprintf("[[:<:]]%s[[:>:]]",$variable_keywords);
-			$tmp_where[]=sprintf('%s REGEXP (%s)',$regex_fields,$this->ci->db->escape($variable_keywords));
-		}
 				
-		if ($tmp_where!=NULL)
-		{
+		if (!empty($tmp_where)){
 			return '('.implode(' OR ',$tmp_where).')';
 		}
 		
 		return FALSE;
 	}
+
+
 	
 	/**
 	*
@@ -397,6 +562,60 @@ class Catalog_search_mysql{
 		
 		return $output;
 	}
+
+
+	protected function _build_dataset_type_query()
+	{
+		$types=(array)$this->type;//must always be an array
+
+		if (!is_array($types)){
+			return FALSE;
+		}
+		
+		$types_list=array();
+				
+		foreach($types  as $type){
+			if(!empty($type)){
+				$types_list[]=$this->ci->db->escape($type);
+			}
+		}
+
+		$types= implode(',',$types_list);
+
+		if ($types!=''){
+			return sprintf('(surveys.type in (%s))',$types);
+		}
+		
+		return FALSE;
+	}
+
+
+
+	protected function _build_tags_query()
+	{
+		$tags=(array)$this->tags;//must always be an array
+
+		if (!is_array($tags)){
+			return FALSE;
+		}
+		
+		$tags_list=array();
+				
+		foreach($tags  as $tag){
+			if(!empty($tag)){
+				$tags_list[]=$this->ci->db->escape($tag);
+			}
+		}
+
+		$tags= implode(',',$tags_list);
+
+		if ($tags!=''){
+			return sprintf('surveys.id in (select sid from survey_tags where tag in (%s))',$tags);
+		}
+		
+		return FALSE;
+	}
+
 
 	/**
 	*
@@ -749,7 +968,7 @@ class Catalog_search_mysql{
 		$result=$this->ci->db->get("variables as v")->result_array();
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();
+		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();
 		$found_rows=$query_found_rows['rowcount'];
 
 		//return $result;
@@ -862,6 +1081,60 @@ class Catalog_search_mysql{
 		}
 		
 		return FALSE;	
+	}
+
+
+
+
+
+	/**
+	 * 
+	 * Returns variables count by survey
+	 * 
+	 * @id_list = survey id list
+	 * @keywords - search text
+	 * 
+	 **/ 
+	function search_variable_counts($id_list,$keywords)
+	{
+		$keywords=trim($keywords);
+		$keywords=str_replace(array('"',"'"), '',$keywords);
+
+		if(strlen($keywords)<3 || strlen($keywords)>100){
+			return false;
+		}
+
+		if(!is_array($id_list) || empty($id_list)){
+			return false;
+		}
+
+		$keywords=$this->parse_fulltext_keywords($keywords);
+		
+		$where=false;
+		
+		if (strlen($keywords) >3){
+			$fulltext_index=$this->get_variable_search_field(TRUE);
+			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($keywords));			
+		}
+		else{
+			return false;
+		}	
+
+		if($where){
+			$sql='select count(*) as var_found,sid from variables v where ';
+			$sql.=$where;
+			$sql.=' AND sid in ('. implode(",", $id_list). ') ';
+			$sql.='group by sid;';
+			
+			$result=$this->ci->db->query($sql)->result_array();
+			$output=array();
+
+			foreach($result as $row){
+				$output[$row['sid']]=$row;
+			}
+
+			return $output;
+		}
 	}
 
 }// END Search class

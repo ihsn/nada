@@ -42,10 +42,15 @@ ALTER TABLE `surveys` DROP `countryid`;
 ALTER TABLE `surveys` DROP INDEX `idx_srvy_unq`;
 ALTER TABLE `surveys` ADD UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`);
 ALTER TABLE `surveys` DROP INDEX `ft_all`;
-ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`);
+#ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`);
 ALTER TABLE `surveys` DROP INDEX `ft_titl`;
 ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_titl` (`title`);
-ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_keywords` (`keywords`);
+
+ALTER TABLE `surveys` ADD `var_keywords` mediumtext DEFAULT NULL;
+ALTER TABLE `surveys` 
+DROP INDEX `ft_keywords` ,
+ADD FULLTEXT INDEX `ft_keywords` (`keywords` ASC, `var_keywords` ASC);
+
 
 ALTER TABLE `surveys` DROP `refno`;
 ALTER TABLE `surveys` DROP `sername`;
@@ -208,6 +213,23 @@ CREATE TABLE `variable_groups` (
   `definition` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `ts_databases` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idno` varchar(150) DEFAULT NULL,
+  `title` varchar(300) DEFAULT NULL,
+  `abstract` text,
+  `published` tinyint(4) DEFAULT NULL,
+  `created` varchar(45) DEFAULT NULL,
+  `changed` varchar(45) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  `metadata` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idno_UNIQUE` (`idno`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 
 
 --- 

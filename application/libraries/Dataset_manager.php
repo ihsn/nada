@@ -82,6 +82,12 @@ class Dataset_manager{
     }
 
 
+    function get_list_by_type($dataset_type, $limit, $start)
+    {
+        return $this->ci->Dataset_model->get_list_by_type($dataset_type, $limit, $start);
+    }
+
+
     /**
      * 
      * Return a single row with minimum fields
@@ -102,6 +108,37 @@ class Dataset_manager{
     {
         return $this->ci->Dataset_model->get_metadata($sid);
     }
+
+
+    /**
+     * 
+     * 
+     * Reload facets/filters data
+     * 
+     */
+    function refresh_filters($sid)
+    {
+        $dataset=$this->get_row($sid);
+        $metadata=$this->get_metadata($sid);
+        $type=$dataset['type'];
+
+        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_filters($sid,$metadata);
+    }
+
+
+    /**
+     * 
+     * 
+     * Repopulate dataset index
+     * 
+     */
+    function repopulate_index($sid)
+    {
+        return $this->ci->Dataset_model->repopulate_index($sid);
+    }
+
+
+
 
     function validate_options($options)
     {

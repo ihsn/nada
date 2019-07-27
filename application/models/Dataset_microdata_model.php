@@ -114,7 +114,10 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->create_update_variable_groups($dataset_id,$variable_groups);
 
 		//complete transaction
-		$this->db->trans_complete();
+        $this->db->trans_complete();
+        
+
+        $this->index_variable_data($dataset_id);
 
 		return $dataset_id;
     }
@@ -220,10 +223,77 @@ class Dataset_microdata_model extends Dataset_model {
          $this->create_update_variable_groups($sid,$variable_groups);
 		
 		//complete transaction
-		$this->db->trans_complete();
+        $this->db->trans_complete();
+        
+        //concat variable metadata into a single field for study+variable search
+        $this->index_variable_data($sid);
 
 		return $sid;
-	}
+    }
+    
+
+    /**
+     * 
+     * 
+     * Store all variables text into a single field
+     * 
+     */
+    function index_variable_data($sid)
+    {
+        $total_vars=$this->Variable_model->get_variables_count($sid);
+        $include_categories=true;
+
+        if($total_vars>8000){
+            $include_categories=false;
+        }
+
+        $variables=$this->variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories);
+        
+        $output=[];
+        foreach($variables as $variable){
+            $tmp=array();
+            
+            foreach($variable as $key=>$value){
+                $tmp[]=$value;
+            }
+
+            $output[]=implode(" ",$tmp);
+        }
+
+        $output=implode(" ",$output);
+
+        $options=array(
+            'var_keywords'=>$output
+        );
+
+        $this->db->where('id',$sid);
+        $this->db->update("surveys",$options);
+    }
+
+
+    /**
+     * 
+     * Read variables in chunks
+     * 
+     */
+    private function variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories=true)
+    {
+        $this->db->select("uid,name,labl,qstn");
+        
+        if($include_categories){
+            $this->db->select("catgry");
+        }
+
+        if($limit>0){
+            $this->db->limit($limit);
+        }
+
+        $this->db->where('sid',$sid);
+        $this->db->order_by('uid');
+        $this->db->where('uid>=',$start_id);
+        return $this->db->get('variables')->result_array();
+    }
+
 
     
     private function create_update_variables($dataset_id,$variables)
@@ -243,7 +313,10 @@ class Dataset_microdata_model extends Dataset_model {
 
 			$result=array();
 			foreach($variables as $variable){
-				$variable['fid']=$variable['file_id'];
+                $variable['fid']=$variable['file_id'];
+                $variable['qstn']=$this->variable_question_to_str($variable);
+                $variable['catgry']=$this->variable_categories_to_str($variable);
+
 				//all fields are stored as metadata
 				$variable['metadata']=$variable;
 				$variable_id=$this->Variable_model->insert($dataset_id,$variable);
@@ -252,6 +325,46 @@ class Dataset_microdata_model extends Dataset_model {
 			//update survey varcount
 			$this->update_varcount($dataset_id);
 		}
+    }
+
+    /**
+     * 
+     * Get variable literal + pre/post + interviewer instructions as text
+     * 
+     */
+    private function variable_question_to_str($variable)
+    {
+        $qstn_fields=array(
+            'var_qstn_preqtxt',
+            'var_qstn_qstnlit',
+            'var_qstn_postqtxt',
+            'var_qstn_ivulnstr'
+        );
+
+        $output=[];
+        foreach($qstn_fields as $field){
+            if(isset($variable[$field])){
+                $output[]=$variable[$field];
+            }            
+        }
+        
+        return implode("\r\n",$output);
+    }
+
+    /**
+     * 
+     *  Get variable categories as string 
+     * 
+     * 
+     */
+    private function variable_categories_to_str($categories)
+    {
+        if(!is_array($categories)){
+            return null;
+        }
+
+        $categories=array_column($categories,"labl");
+        return implode(" ",$categories);
     }
 
 
@@ -268,6 +381,11 @@ class Dataset_microdata_model extends Dataset_model {
     }
 
 
+    /**
+     * 
+     * Create data files for Surveys
+     * 
+     */
     private function create_update_data_files($dataset_id,$data_files)
     {        
 		if(is_array($data_files)){

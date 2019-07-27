@@ -366,8 +366,7 @@ CREATE TABLE `surveys` (
   `link_report` varchar(255) DEFAULT NULL COMMENT 'reports',
   `link_indicator` varchar(255) DEFAULT NULL COMMENT 'indicators',
   `link_questionnaire` varchar(255) DEFAULT NULL,
-  `formid` int(11) DEFAULT NULL,
-  `keywords` text,
+  `formid` int(11) DEFAULT NULL,  
   `link_da` varchar(255) DEFAULT NULL,
   `published` tinyint(4) DEFAULT NULL,
   `total_views` int(11) DEFAULT '0',
@@ -377,16 +376,16 @@ CREATE TABLE `surveys` (
   `changed` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `changed_by` int(11) DEFAULT NULL,
-  `metadata` mediumtext,
-  `variable_data` mediumtext,
   `ts_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `thumbnail` varchar(300) DEFAULT NULL,
+  `metadata` mediumtext,
+  `var_keywords` mediumtext,
+  `keywords` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
   FULLTEXT KEY `ft_titl` (`title`),
-  FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`),
-  FULLTEXT KEY `ft_keywords` (`keywords`)
+  FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1380,18 +1379,30 @@ CREATE TABLE `featured_surveys` (
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
+
+
+
 --
 -- Table structure for table `survey_types`
 --
 
-CREATE  TABLE `survey_types` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
-  `title` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `title_UNIQUE` (`title` ASC) 
-)
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_general_ci;
+CREATE TABLE `survey_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL,
+  `title` varchar(250) DEFAULT NULL,
+  `weight` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `title_UNIQUE` (`code`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(1,'survey','Survey',100);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(2,'geospatial','Geospatial',90);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(3,'timeseries','Time series',80);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(4,'document','Document',50);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(5,'table','Table',70);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(6,'image','Photo',40);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(7,'script','Script',30);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(8,'visualization','Visualization',60);
 
 
 -- 
@@ -1496,4 +1507,25 @@ CREATE TABLE `filestore` (
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_filestore_file` (`file_name`)
+<<<<<<< HEAD
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+=======
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE `ts_databases` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idno` varchar(150) DEFAULT NULL,
+  `title` varchar(300) DEFAULT NULL,
+  `abstract` text,
+  `published` tinyint(4) DEFAULT NULL,
+  `created` varchar(45) DEFAULT NULL,
+  `changed` varchar(45) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  `metadata` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idno_UNIQUE` (`idno`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+>>>>>>> one-search

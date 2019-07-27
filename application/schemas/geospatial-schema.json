@@ -70,10 +70,7 @@
 						"type": "string"
 					}
 				}
-			},
-			"required": [
-				"name"
-			]
+			}			
 		},
 		"date": {
 			"type": "array",
@@ -199,10 +196,7 @@
 						"type": "string"
 					}
 				}
-			},
-			"required": [
-				"url"
-			]
+			}
 		}
 	},
 	"properties": {

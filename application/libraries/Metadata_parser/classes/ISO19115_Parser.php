@@ -387,11 +387,11 @@ class ISO19115_Parser
             ),
 
             //recheck https://project-open-data.cio.gov/v1.1/metadata-resources/
-            'ident_modified' => array(
+            /*'ident_modified' => array(
                 'type'=>'text',
                 'is_repeated'=>false,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency/gmd:userDefinedMaintenanceFrequency/gts:TM_PeriodDuration'
-            ),
+            ),*/
 
             'ident_dates' =>array(
                 'type'=>'complex',
@@ -569,7 +569,11 @@ class ISO19115_Parser
                 'xpath'=>$root_tag.'/gmd:contact/gmd:CI_ResponsibleParty',
                 'is_repeated'=>true,
                 'items'=>array(
-                    'org_name'=> array(
+                    'person_name'=> array(
+                        'type'=>'text',
+                        'xpath'=>'gmd:individualName'
+                    ),
+                    'organisation'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:organisationName'
                     ),
@@ -659,7 +663,7 @@ class ISO19115_Parser
                         'type'=>'text',
                         'xpath'=>'gmd:distributorFormat'
                     ),
-                    'resource_url'=> array(
+                    'url'=> array(
                         'type'=>'array',
                         'xpath'=>'gmd:distributorTransferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:linkage',
                     ),
@@ -679,10 +683,10 @@ class ISO19115_Parser
                         'type'=>'array',
                         'xpath'=>'gmd:distributorTransferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:description',
                     ),
-                    'function'=> array(
+                    /*'function'=> array(
                         'type'=>'array',
                         'xpath'=>'gmd:distributorTransferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:function',
-                    )
+                    )*/
                 )
             ),
 
@@ -696,7 +700,7 @@ class ISO19115_Parser
                         'xpath'=>'gmd:distributionFormat/gmd:MD_Format/gmd:name',
                         'is_repeated'=>true
                     ),
-                    'resource_url'=> array(
+                    'url'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine//gmd:linkage',
                         'is_repeated'=>true
@@ -716,11 +720,11 @@ class ISO19115_Parser
                         'xpath'=>'gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine//gmd:description',
                         'is_repeated'=>true
                     ),
-                    'function'=> array(
+                    /*'function'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine//gmd:function',
                         'is_repeated'=>true
-                    ),
+                    ),*/
                 )
             ),
 
@@ -810,7 +814,6 @@ class ISO19115_Parser
 
     private function xpath_query($xpath,$is_repeated=false)
     {
-        //echo $xpath;
         $result = $this->xml_obj->xpath($xpath);
 
         if (!$result) {

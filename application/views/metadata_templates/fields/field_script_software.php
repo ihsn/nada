@@ -13,7 +13,7 @@
 <div class="field field-<?php echo $name;?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value">
-    <div id="accordion-sofware-items">
+    <div id="accordion-software-items">
         <?php $k=0;foreach($data as $row):$k++;?>
             <div class="card">
             <div class="card-header" id="software-<?php echo $k;?>">
@@ -27,7 +27,11 @@
                 <div class="card-body" style="padding:15px;">
                     <?php foreach($template as $field_name=>$field_type):?>
                         <?php $value=get_field_value($field_name,$row); ?>
-                        <?php echo render_field($field_type,'software.'.$field_name,$value);?>
+                        <?php if($field_name=='library'):?>
+                            <?php echo render_field('array_comma','metadata.project_desc.software.'.$field_name,$value);?>
+                        <?php else:?>
+                            <?php echo render_field($field_type,'metadata.project_desc.software.'.$field_name,$value);?>
+                        <?php endif;?>    
                     <?php endforeach;?>        
                 </div>
             </div>

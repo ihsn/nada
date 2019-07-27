@@ -40,7 +40,7 @@ class Dataset_document_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','files','additional');
+        $study_metadata_sections=array('metadata_information','document_description','files','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -62,9 +62,11 @@ class Dataset_document_model extends Dataset_model {
 		//update years
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
 
-		//set topics
+		//update tags
+        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
 
         //update related countries
+        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
@@ -91,8 +93,11 @@ class Dataset_document_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'document_description/title_statement/title');
         $output['idno']=$this->get_array_nested_value($options,'document_description/title_statement/idno');
 
-        //todo
-        $output['nation']='';
+        $nations=(array)$this->get_array_nested_value($options,'document_description/ref_country');
+        $nations=array_column($nations,'name');
+
+        $output['nations']=$nations;
+        $output['nation']=$this->get_country_names_string($nations);
 
         $output['abbreviation']=$this->get_array_nested_value($options,'document_description/title_statement/alternate_title');            
         $authors=$this->get_array_nested_value($options,'document_description/authors');
@@ -122,6 +127,19 @@ class Dataset_document_model extends Dataset_model {
     }
     
 
+    /**
+     * 
+     * Return a comma separated list of country names
+     */
+    function get_country_names_string($nations)
+    {
+        $nation_str=implode(", ",$nations);
+        if(strlen($nation_str)>150){
+            $nation_str=substr($nation_str,0,145).'...';
+        }
+        return $nation_str;
+    }
+
 
     /**
      * 
@@ -141,6 +159,49 @@ class Dataset_document_model extends Dataset_model {
 			'start'=>$start,
 			'end'=>$end
 		);
-	}
+    }
+    
+
+
+    /**
+     * 
+     * Update all related tables used for facets/filters
+     * 
+     * 
+     */
+    function update_filters($sid, $metadata)
+    {
+        $core_fields=$this->get_core_fields($metadata);
+
+        //update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//set topics
+
+        //update related countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+    }
+
+
+    /**
+     * 
+     * get tags
+     * 
+     **/
+	function get_tags($options)
+	{
+        $tags=$this->get_array_nested_value($options,'tags');
+
+        if(!is_array($tags)){
+           return false;
+        }
+
+        $output=array();
+        foreach($tags as $tag){
+            $output[]=$tag['tag'];
+        }
+
+        return $output;
+    }
 
 }

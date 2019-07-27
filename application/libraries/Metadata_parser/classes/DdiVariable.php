@@ -129,11 +129,12 @@ class DdiVariable{
     public function get_categories_str()
     {
         $categories=$this->get_categories();
-        if(!is_array($categories))
-        {
+        
+        if(!is_array($categories)){
             return null;
         }
-        $categories=array_column($categories,"value");
+
+        $categories=array_column($categories,"labl");
         return implode(" ",$categories);
     }
 

@@ -1,3 +1,15 @@
+<style>
+	.metadata-sidebar-container .nav .active{
+		background:#e9ecef;		
+	}
+	.study-metadata-page .page-header .nav-tabs .active a {
+		background: white;
+		font-weight: bold;
+		border-top: 2px solid #0071bc;
+		border-left:1px solid gainsboro;
+		border-right:1px solid gainsboro;
+	}	
+</style>
 <?php
 /*
  * survey info page template
@@ -186,8 +198,9 @@ $tab_urls['related_citations']=array(
 		'related_publications'
 );
 
-$tab_urls['study_description']=array(
+$tab_urls['description']=array(
 		'study-description',
+		'description',
 		'overview',
 		'sampling',
 		'datacollection',
@@ -196,7 +209,7 @@ $tab_urls['study_description']=array(
 );
 
 if (!$page_tabs['related_materials'] && in_array($tab,$tab_urls['related_materials'])){
-	$active_tab='study-description';
+	$active_tab='description';
 }
 
 //enable disable right side bar for related studies
@@ -216,13 +229,13 @@ else{
 		<?php if ($tab['show_tab']==0){continue;};?>
 		<?php if($tab_name=='get_microdata'):?>
 			<li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?>" >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab" data-id="related-materials" title="<?php echo $tab['hover_text'];?>">
+				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab" data-id="related-materials" >
 					<span class="get-microdata icon-da-<?php echo $data_access_type;?>"></span> <?php echo $tab['label'];?>
 				</a>
 			</li>                            
 		<?php else:?>
 			<li class="nav-item tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>"  >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab"  data-id="related-materials" title="<?php echo $tab['hover_text'];?>"><?php echo $tab['label'];?></a>
+				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab"  data-id="related-materials" ><?php echo $tab['label'];?></a>
 			</li>
 		<?php endif;?>
 	<?php endforeach;?>
@@ -252,8 +265,8 @@ else{
   	
     <?php if(in_array($active_tab,array('data-dictionary'))):?>
     <?php 
-    $section='test';
-    $sidebar='side bar content';
+    	$section='test';
+    	$sidebar='side bar content';
     ?>
     <div style="overflow:hidden;clear:both">
         <div class="tab-sidebar sidebar-<?php echo $section;?>"><?php echo isset($sidebar) ? $sidebar : ''; ?></div>
@@ -284,6 +297,12 @@ else{
 			$(".show-datafiles").hide();
 			return false;
 		});
+
+		//setup bootstrap scrollspy
+		$("body").attr('data-spy', 'scroll');
+		$("body").attr('data-target', '#dataset-metadata-sidebar');
+		$("body").attr('data-offset', '0');
+		$("body").scrollspy('refresh');
 
 	});	
 	

@@ -98,5 +98,114 @@ class Utils extends REST_Controller
 		return $this->upload->data();		
 	}
 		
+    
+    
+    /**
+	 * 
+	 *  batch delete by type
+	 * 
+	 */
+	public function batch_delete_by_type_delete($type=NULL)
+	{
+		try{
+            
+            $this->db->where('type',$type);
+            $this->db->delete('surveys');
+
+			$response=array(
+				'status'=>'success',
+				'message'=>'DELETED'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
 	
+	
+	/**
+	 * 
+	 *  Get list of IDs by Type
+	 * 
+	 */
+	public function datasets_list_by_type_get($type=NULL)
+	{
+		try{
+            $this->db->select('id,idno,type');
+            $this->db->where('type',$type);
+            $result=$this->db->get('surveys')->result_array();
+
+			$response=array(
+				'status'=>'success',
+				'items'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
+	
+	
+
+	public function datasets_publish_by_type_get($type=NULL)
+	{
+		try{
+            $options=array(
+				'published'=>1
+			);
+            $this->db->where('type',$type);
+            $result=$this->db->update('surveys',$options);
+
+			$response=array(
+				'status'=>'success',
+				'items'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}	
+
+	public function datasets_unpublish_by_type_get($type=NULL)
+	{
+		try{
+            $options=array(
+				'published'=>0
+			);
+            $this->db->where('type',$type);
+            $result=$this->db->update('surveys',$options);
+
+			$response=array(
+				'status'=>'success',
+				'items'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
 }

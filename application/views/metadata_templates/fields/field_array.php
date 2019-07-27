@@ -1,3 +1,19 @@
+<?php
+/**
+ * 
+ * Table field
+ *
+ *  options
+ * 
+ *  - hide_column_headings - hide column headings 
+ */
+
+ $hide_column_headings=false;
+
+ if(isset($options['hide_column_headings'])){
+     $hide_column_headings=$options['hide_column_headings'];
+ }
+?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
 <div class="table-responsive field field-<?php echo $name;?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
@@ -20,11 +36,13 @@
         ?>
         
         <table class="table table-bordered table-striped table-condensed xsl-table table-grid">
+            <?php if($hide_column_headings!==true):?>
             <tr>
                 <?php foreach($columns as $column_name):?>
                     <th><?php echo t($name.'.'.$column_name);?></th>
                 <?php endforeach;?>
             </tr>
+            <?php endif;?>
             
             <?php foreach($data as $row):?>
                 <tr>

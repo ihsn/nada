@@ -40,7 +40,7 @@ class Dataset_table_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','table_description','files','additional');
+        $study_metadata_sections=array('metadata_information','table_description','files','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -60,11 +60,16 @@ class Dataset_table_model extends Dataset_model {
         }
 
 		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        
+        //update tags
+        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
+
 
 		//set topics
 
         //update related countries
+        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
@@ -91,8 +96,11 @@ class Dataset_table_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'table_description/title_statement/title');
         $output['idno']=$this->get_array_nested_value($options,'table_description/title_statement/idno');
 
-        //todo
-        $output['nation']='';
+        $nations=(array)$this->get_array_nested_value($options,'table_description/ref_country');
+        $nations=array_column($nations,'name');
+
+        $output['nations']=$nations;
+        $output['nation']=$this->get_country_names_string($nations);
 
         $output['abbreviation']=$this->get_array_nested_value($options,'table_description/title_statement/alternate_title');            
         
@@ -104,6 +112,20 @@ class Dataset_table_model extends Dataset_model {
         $output['year_end']=$years['end'];
         
         return $output;
+    }
+
+
+    /**
+     * 
+     * Return a comma separated list of country names
+     */
+    function get_country_names_string($nations)
+    {
+        $nation_str=implode(", ",$nations);
+        if(strlen($nation_str)>150){
+            $nation_str=substr($nation_str,0,145).'...';
+        }
+        return $nation_str;
     }
     
 
@@ -126,6 +148,28 @@ class Dataset_table_model extends Dataset_model {
 			'start'=>$start,
 			'end'=>$end
 		);
-	}
+    }
+    
+
+    /**
+     * 
+     * get tags
+     * 
+     **/
+	function get_tags($options)
+	{
+        $tags=$this->get_array_nested_value($options,'tags');
+
+        if(!is_array($tags)){
+           return false;
+        }
+
+        $output=array();
+        foreach($tags as $tag){
+            $output[]=$tag['tag'];
+        }
+
+        return $output;
+    }
 
 }

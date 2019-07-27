@@ -1,28 +1,28 @@
 [
     {
         "name": "justinrainbow/json-schema",
-        "version": "5.2.7",
-        "version_normalized": "5.2.7.0",
+        "version": "5.2.8",
+        "version_normalized": "5.2.8.0",
         "source": {
             "type": "git",
             "url": "https://github.com/justinrainbow/json-schema.git",
-            "reference": "8560d4314577199ba51bf2032f02cd1315587c23"
+            "reference": "dcb6e1006bb5fd1e392b4daa68932880f37550d4"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/8560d4314577199ba51bf2032f02cd1315587c23",
-            "reference": "8560d4314577199ba51bf2032f02cd1315587c23",
+            "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/dcb6e1006bb5fd1e392b4daa68932880f37550d4",
+            "reference": "dcb6e1006bb5fd1e392b4daa68932880f37550d4",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.3"
         },
         "require-dev": {
-            "friendsofphp/php-cs-fixer": "^2.1",
+            "friendsofphp/php-cs-fixer": "~2.2.20",
             "json-schema/json-schema-test-suite": "1.2.0",
             "phpunit/phpunit": "^4.8.35"
         },
-        "time": "2018-02-14T22:26:30+00:00",
+        "time": "2019-01-14T23:55:14+00:00",
         "bin": [
             "bin/validate-json"
         ],
@@ -121,17 +121,17 @@
     },
     {
         "name": "mpdf/mpdf",
-        "version": "v7.1.7",
-        "version_normalized": "7.1.7.0",
+        "version": "v7.1.9",
+        "version_normalized": "7.1.9.0",
         "source": {
             "type": "git",
             "url": "https://github.com/mpdf/mpdf.git",
-            "reference": "ac60286a7dc5250c293afebd2bd9414e58a02466"
+            "reference": "a0fc1215d2306aa3b4ba6e97bd6ebe4bab6a88fb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/mpdf/mpdf/zipball/ac60286a7dc5250c293afebd2bd9414e58a02466",
-            "reference": "ac60286a7dc5250c293afebd2bd9414e58a02466",
+            "url": "https://api.github.com/repos/mpdf/mpdf/zipball/a0fc1215d2306aa3b4ba6e97bd6ebe4bab6a88fb",
+            "reference": "a0fc1215d2306aa3b4ba6e97bd6ebe4bab6a88fb",
             "shasum": ""
         },
         "require": {
@@ -154,7 +154,7 @@
             "ext-xml": "Needed mainly for SVG manipulation",
             "ext-zlib": "Needed for compression of embedded resources, such as fonts"
         },
-        "time": "2018-11-29T18:21:32+00:00",
+        "time": "2019-02-06T13:32:19+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -191,17 +191,17 @@
     },
     {
         "name": "myclabs/deep-copy",
-        "version": "1.8.1",
-        "version_normalized": "1.8.1.0",
+        "version": "1.9.1",
+        "version_normalized": "1.9.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/myclabs/DeepCopy.git",
-            "reference": "3e01bdad3e18354c3dce54466b7fbe33a9f9f7f8"
+            "reference": "e6828efaba2c9b79f4499dae1d66ef8bfa7b2b72"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/3e01bdad3e18354c3dce54466b7fbe33a9f9f7f8",
-            "reference": "3e01bdad3e18354c3dce54466b7fbe33a9f9f7f8",
+            "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/e6828efaba2c9b79f4499dae1d66ef8bfa7b2b72",
+            "reference": "e6828efaba2c9b79f4499dae1d66ef8bfa7b2b72",
             "shasum": ""
         },
         "require": {
@@ -215,7 +215,7 @@
             "doctrine/common": "^2.6",
             "phpunit/phpunit": "^7.1"
         },
-        "time": "2018-06-11T23:09:50+00:00",
+        "time": "2019-04-07T13:18:21+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

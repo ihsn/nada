@@ -37,17 +37,17 @@ class Stats_model extends CI_Model {
 	}
 	
 
+	
 	function get_latest_surveys($limit=10)
 	{
-		$this->db->select("surveys.id,surveys.title,surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created");
+		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created");
 		$this->db->join("forms", "surveys.formid=forms.formid","left");
 		$this->db->where("surveys.published", 1); 
 		$this->db->order_by("surveys.created", "desc"); 
 		$this->db->limit($limit);
 		$query=$this->db->get("surveys");
 
-		if ($query)
-		{
+		if ($query){
 			return $query->result_array();
 		}	
 		return FALSE;
@@ -82,8 +82,7 @@ class Stats_model extends CI_Model {
 		$this->db->where('surveys.published',1);
 		$query=$this->db->get('surveys')->row_array();
 		
-		if ($query)
-		{
+		if ($query){
 			return $query['total'];
 		}
 		
@@ -97,6 +96,19 @@ class Stats_model extends CI_Model {
 	function get_citation_count()
 	{
 		return $this->db->count_all('citations');
-	}	
+	}
+	
+	
+
+	function get_counts_by_type()
+	{
+		$result=$this->db->query('select count(id) as total,type from surveys where published=1 group by type')->result_array();
+		$output=array();
+		foreach($result as $row){
+			$output[$row['type']]=$row['total'];
+		}
+
+		return $output;
+	}
 	
 }

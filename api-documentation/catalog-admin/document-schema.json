@@ -683,28 +683,7 @@
           "title": "Audience",
           "type": "string",
           "description":"A category of user for whom the resource is intended."
-        },
-        "location": {
-          "type": "array",
-          "title": "Location(s)",
-          "description": "Physical or electroninc locations of a resource",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
-              },
-              "uri": {
-                "title": "URI",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "name"
-          ]
-        },
+        },        
 
         "mandate": {
           "title": "Audience",
@@ -753,25 +732,6 @@
           ]
         },
 
-
-        "tags": {
-          "type": "array",
-          "title": "Tags",
-          "description": "Tags",
-          "items": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "title": "Tag",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "tag"
-          ]
-        },
-
         "lda_topics": {
           "type": "array",
           "title": "LDA topics",
@@ -803,7 +763,7 @@
                     },
                     "nb_topics": {
                       "title": "Number of topics",
-                      "type": "string"
+                      "type": "number"
                     },
                     "description": {
                       "title": "Description",
@@ -831,11 +791,11 @@
                   "properties": {
                     "topic_id": {
                       "title": "Topic identifier",
-                      "type": "string"
+                      "type": ["integer", "string"]
                     },
                     "topic_score": {
                       "title": "Topic score",
-                      "type": "string"
+                      "type": ["number", "string"]
                     },
                     "topic_label": {
                       "title": "Topic label",
@@ -864,12 +824,31 @@
                   "topic_id"
                 ]
               }
-            }
+            },
+            "additionalProperties": false
           }
         }
 
 
-      }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tag"
+      ]
     },
 
     "files": {

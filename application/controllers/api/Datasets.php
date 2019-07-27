@@ -162,18 +162,66 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("PARAM-MISSING::SID");
 			}
 			
-			$result=$this->dataset_manager->get_row($sid);
+			$idno=$this->dataset_manager->get_idno($sid);
 
-			if($result){
-				$response=array(
-					'status'=>'success',
-					'dataset'=>$result
-				);
+			if(!$idno){
+				throw new Exception("ID_NOT_FOUND");
 			}
-			else{
-				throw new Exception("DATASET_NOT_FOUND");
+
+			return $this->single_get($idno);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * Create timeseries database
+	 * 
+	 * 
+	 */
+	private function create_timeseries_database($idno=null)
+	{
+		$this->load->model('Timeseries_db_model');
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+						
+			//validate & create dataset
+			$db_id=$this->Timeseries_db_model->create_database($options);
+
+			if(!$db_id){
+				throw new Exception("FAILED_TO_CREATE_DATABASE");
 			}
+
+			$database=$this->Timeseries_db_model->get_row($db_id);
+			
+			$response=array(
+				'status'=>'success',
+				'database'=>$database
+			);
+
 			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -194,6 +242,10 @@ class Datasets extends MY_REST_Controller
 	 */
 	function create_post($type=null,$idno=null)
 	{
+		if($type=='timeseries-db'){
+			return $this->create_timeseries_database($idno);
+		}
+
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -746,6 +798,7 @@ class Datasets extends MY_REST_Controller
 
 			//process file urls
 			$file_url=$this->input->post("file");
+			
 			if(empty($_FILES['file']) && !empty($file_url) && $this->form_validation->valid_url($file_url)) {
 				$uploaded_ddi_path=$temp_upload_folder.'/'.md5($file_url).'.xml';
 				
@@ -1315,5 +1368,203 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+
+	/**
+	 * 
+	 *  Reload facets/filters
+	 * 
+	 * @sid - study id
+	 * 
+	 */
+	public function refresh_filters_put($idno=null)
+	{		
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$this->dataset_manager->refresh_filters($sid);
+
+			$output=array(
+				'status'=>'success'				
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+	/**
+	 * 
+	 *  Batch Reload facets/filters by dataset type
+	 * 
+	 * @dataset_type - dataset type - microdata, timeseries, etc
+	 * @limit - number of items to process per request
+	 * @start - starting dataset id
+	 * 
+	 */
+	public function batch_refresh_filters_put($dataset_type=null, $limit=100, $start=0)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if ($dataset_type==null){
+				throw new Exception("DATASET_TYPE_IS_REQUIRED");
+			}
+
+			if(!is_numeric($start)){
+				throw new Exception("PARAM:START-INVALID");
+			}
+			
+			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			
+			$output=array();
+			foreach($datasets  as $dataset){
+				$this->dataset_manager->refresh_filters($dataset['id']);
+				$output[]=$dataset['id'];
+				$last_processed=$dataset['id'];
+			}
+			
+			$output=array(
+				'status'=>'success',
+				'datasets_updated'=>$output,
+				'last_processed'=>$last_processed			
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
+	/**
+	 * 
+	 *  Batch repopulate index
+	 * 	 
+	 * @limit - number of items to process per request
+	 * @start - starting dataset id
+	 * 
+	 */
+	public function batch_repopulate_index_put($dataset_type=null, $limit=100, $start=0)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if ($dataset_type==null){
+				throw new Exception("DATASET_TYPE_IS_REQUIRED");
+			}
+
+			if(!is_numeric($start)){
+				throw new Exception("PARAM:START-INVALID");
+			}
+			
+			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			
+			$output=array();
+			foreach($datasets  as $dataset){
+				$this->dataset_manager->repopulate_index($dataset['id']);
+				$output[]=$dataset['id'];
+				$last_processed=$dataset['id'];
+			}
+			
+			$output=array(
+				'status'=>'success',
+				'datasets_updated'=>$output,
+				'last_processed'=>$last_processed			
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
+
+	function import_geospatial_post()
+	{
+		$overwrite=$this->input->post("overwrite");
+		$repositoryid=$this->input->post("repositoryid");
+		$dataset_type='geospatial';
+
+		if (!$repositoryid){
+			$repositoryid='central';
+		}
+
+		try{
+					
+			//process form
+			$temp_upload_folder=get_catalog_root().'/tmp';
+			
+			if (!file_exists($temp_upload_folder)){
+				@mkdir($temp_upload_folder);
+			}
+			
+			if (!file_exists($temp_upload_folder)){
+				show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
+			}
+
+			//process file urls
+			$file_url=$this->input->post("file");
+			
+			if(empty($_FILES['file']) && !empty($file_url) && $this->form_validation->valid_url($file_url)) {
+				$uploaded_file_path=$temp_upload_folder.'/'.md5($file_url).'.xml';
+				
+				//download file from URL 
+				$file_content=@file_get_contents($file_url);
+				if($file_content===FALSE){
+					throw new Exception("FAILED-TO-READ-FILE-URL");
+				}
+
+				if (!file_exists($uploaded_file_path)){
+					//save to tmp 		
+					if (file_put_contents($uploaded_file_path,$file_content)===FALSE){
+						throw new Exception("FILE-UPLOAD-VIA-URL-FAILED");
+					}
+				}
+			}
+			//process file uploads
+			else{
+				$uploaded_file_path=$this->process_file_upload($temp_upload_folder,$allowed_file_types='xml',$file_field_name='file');
+			}
+
+			$options=array();
+			$user_id=$this->get_api_user_id();
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+			$options['published']=$this->input->post("published");			
+			$options['overwrite']=$overwrite;
+			$options['repositoryid']=$repositoryid;
+		
+			$this->load->library('Geospatial_import');
+			$result=$this->geospatial_import->import($uploaded_file_path, $options);
+			unlink($uploaded_file_path);
+			
+			$response=array(
+				'status'=>'success',
+				'dataset'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
 	}
 }

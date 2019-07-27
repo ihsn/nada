@@ -483,12 +483,36 @@ paths:
               $ref: 'geospatial-schema.json'
         security:
           - ApiKeyAuth: []                      
+  /datasets/create/timeseries-db:
+      post:
+        tags:
+          - Timeseries
+        summary: Create timeseries database
+        description: Create a new timeseries database
+        operationId: createTimseriesDb
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'timeseries-db-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'timeseries-db-schema.json'
+        security:
+          - ApiKeyAuth: []
   /datasets/create/timeseries:
       post:
         tags:
           - Timeseries
-        summary: Create timeseries dataset
-        description: Create a new timeseries project
+        summary: Create timeseries
+        description: Create a new timeseries
         operationId: createTimseries
         consumes:
           - application/json
@@ -506,7 +530,7 @@ paths:
             schema:
               $ref: 'timeseries-schema.json'
         security:
-          - ApiKeyAuth: []
+          - ApiKeyAuth: []        
   /datasets/create/image:
       post:
         tags:
@@ -628,7 +652,6 @@ paths:
       get:
         tags:
           - Survey
-          - Timeseries
         summary: List data files
         description: List data files by IDNO
         operationId: listDatasetDatafiles
@@ -653,7 +676,6 @@ paths:
       post:
         tags:
           - Survey
-          - Timeseries
         summary: Create data file
         description: Create a new data file for  a study
         operationId: createStudyDatafile
@@ -684,7 +706,6 @@ paths:
       delete:
         tags:
           - Survey
-          - Timeseries
         summary: Batch delete variables
         description: Batch delete all variables from a datafile or Dataset. Set the '`fileId`' param to '`ALL`' to delete all variables from all datafiles in the Dataset.
         operationId: deleteDatafileVariables
@@ -714,7 +735,6 @@ paths:
       get:
         tags:
           - Survey
-          - Timeseries
         summary: List variables
         description: List variables for a dataset. Variables can be returned for the datasets or filtered by '`fileId`'. To get the full metadata for a variable, use the endpoint '`dataset/variable`'.
         operationId: listDatasetVariables
@@ -783,7 +803,6 @@ paths:
       get:
         tags:
           - Survey
-          - Timeseries
         summary: Get variable
         description: Get a single variable with full metadata
         operationId: getDatasetVariable
@@ -811,43 +830,7 @@ paths:
               $ref: 'variable-schema.json'
         security:
           - ApiKeyAuth: []             
-  /dataset/series/{datasetIDNo}/{fileId}:
-      post:
-        tags:
-          - Timeseries
-        summary: Add series
-        description: Add series for timeseries
-        operationId: AddTimeSeries
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - name: datasetIDNo
-            in: path
-            description: Dataset user defined IDNo
-            required: true
-            type: string
-            format: string
-          - name: fileId
-            in: path
-            description: File ID - user defined unique file identifier
-            required: true
-            type: string
-            format: string  
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: 'series-schema.json'
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: 'series-schema.json'
-        security:
-          - ApiKeyAuth: []   
-  # import DDI                       
+                  
   /datasets/import_ddi:
       post:
         tags:
