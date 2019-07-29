@@ -18,6 +18,7 @@
                     <span class="lnk-filter-reset"><?php echo t('clear');?></span>
                 </label>
             </div>
+            
             <?php if($countries):?>
             <?php $k=0;foreach($countries as $country):$k++; ?>
                     <div class="form-check">
@@ -28,11 +29,12 @@
                                 <?php if($search_options->country!='' && in_array($country['cid'],$search_options->country)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <span><?php echo $country['nation']; ?><span class="count">(<?php echo $country['surveys_found']; ?>)
+                            <span><?php echo $country['nation']; ?><span class="count"> (<?php echo $country['surveys_found']; ?>)
                                 </span></span>
                         </label>
                     </div>
                 <?php endforeach;?>
             <?php endif;?>
+
         </div>
     </div>

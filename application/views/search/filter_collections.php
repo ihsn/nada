@@ -23,7 +23,7 @@ $item_limit=0;
                                 <?php if($search_options->collection!='' && in_array($repo['repositoryid'],$search_options->collection)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <small><?php echo $repo['title']; ?> <span>(<?php echo $repo['surveys_found']; ?>)</span></small>
+                            <?php echo $repo['title']; ?> <span> <span class="count">(<?php echo $repo['surveys_found']; ?>)</span></span>
                         </label>
                     </div>
                 <?php endforeach;?>

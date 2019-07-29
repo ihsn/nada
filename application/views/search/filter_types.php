@@ -23,7 +23,7 @@ $item_limit=0;
                                 <?php if($search_options->type!='' && in_array($type['code'],$search_options->type)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <span><?php echo $type['title']; ?> <span>(<?php echo $type['found']; ?>)</span></span>
+                            <span><?php echo $type['title']; ?> <span class="count">(<?php echo $type['found']; ?>)</span></span>
                         </label>
                     </div>
                 <?php endforeach;?>

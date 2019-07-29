@@ -118,6 +118,10 @@
   font-size:25px;
 }
 
+.count{
+    color:gray;
+    font-size:smaller;
+}
 
 .fa-stack { 
     font-size: 2em;
@@ -157,7 +161,11 @@
 /*i { vertical-align: middle; }*/
 
 </style>
+<!--
 <script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/history.js/1.8/bundled/html4+html5/jquery.history.min.js"></script>
+
 <!--
 <script src="<?php echo base_url(); ?>/javascript/history/bundled/html4+html5/jquery.history.js"></script>
 -->
@@ -175,15 +183,13 @@
 
 <!--search bar-->
 <div>
-    <!--<h5>Catalog search</h5>-->
     <div class="row mb-5 justify-content-center align-items-center">
-        <div class="input-group col-md-12 col-xl-10 search-box-container">            
+        <div class="input-group col-md-12 search-box-container">            
         <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
         <span class="input-group-append">
             <button class="btn btn-outline-primary btn-search-submit" type="submit" id="submit_search">
                 <i class="fa fa-search"></i>
             </button>
-            <!--<a class="btn btn-link btn-sm" href="<?php echo site_url('catalog');?>">Reset</a>-->
             <a href="<?php echo site_url('catalog');?>" class="close clear-search-button" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </a>
@@ -192,7 +198,9 @@
     </div>
 </div>
 
-<div>
+<?php if($data_types_nav_bar==true):?>
+<!-- data types nav tabs -->
+<div class="search-nav-tabs-container">
 <ul class="nav nav-tabs nav-tabs-auto-overflow mb-5 search-nav-tabs">
     <li class="nav-item">
         <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All         
@@ -235,8 +243,8 @@
         
     </ul>
 </div>
-
-
+<!-- end data types nav tabs -->
+<?php endif;?>
 
 
 <div class="row">
