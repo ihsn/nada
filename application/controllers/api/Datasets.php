@@ -16,6 +16,7 @@ class Datasets extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
+
 	
 	/**
 	 * 
@@ -283,6 +284,7 @@ class Datasets extends MY_REST_Controller
 			);
 
 			$this->dataset_manager->update_options($dataset_id,$update_options);
+			$this->events->emit('db.after.update', 'surveys', $dataset_id,'import');
 
 			$response=array(
 				'status'=>'success',
@@ -952,6 +954,7 @@ class Datasets extends MY_REST_Controller
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$this->dataset_manager->delete($sid);
+			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
 			$response=array(
 				'status'=>'success',
@@ -973,6 +976,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$this->dataset_manager->delete($sid);
+			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
 			$response=array(
 				'status'=>'success',
@@ -1008,6 +1012,7 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("MISSING_PARAMS");
 			}
 			$this->dataset_manager->set_publish_status($sid,$publish_status);
+			$this->events->emit('db.after.update', 'surveys', $sid,'publish');
 			$this->set_response('UPDATED', REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -1054,6 +1059,7 @@ class Datasets extends MY_REST_Controller
 
 			//transfer ownership
 			$this->Catalog_model->transfer_ownership($repositoryid,$sid);
+			$this->events->emit('db.after.update', 'surveys', $sid);
 			$this->set_response(t('msg_study_ownership_has_changed'), REST_Controller::HTTP_OK);		
 		}
 		catch(Exception $e){
@@ -1062,7 +1068,8 @@ class Datasets extends MY_REST_Controller
 	}
 
 	//list data access types
-	function list_data_access_types_get(){
+	function list_data_access_types_get()
+	{
 		$this->load->model("Form_model");
 		$types=$this->Form_model->data_access_types_list();
 		$this->set_response($types, REST_Controller::HTTP_OK);		
@@ -1220,6 +1227,7 @@ class Datasets extends MY_REST_Controller
 			);
 
 			$this->dataset_manager->update_options($id,$update_options);
+			$this->events->emit('db.after.update', 'surveys', $id,'refresh');
 
 			$output=array(
 				'status'=>'success',
