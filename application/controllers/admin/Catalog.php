@@ -591,6 +591,7 @@ class Catalog extends MY_Controller {
 			);
 
 			$this->Dataset_model->update_options($id,$update_options);
+			$this->events->emit('db.after.update', 'surveys', $id,'refresh');
 
 			if ($is_ajax){
 				die (json_encode(array('success'=>'UPDATED: '.$id) ));

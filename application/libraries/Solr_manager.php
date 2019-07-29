@@ -581,7 +581,7 @@ class Solr_manager{
 		$survey['years']=$this->get_survey_years($survey['survey_uid']);
 
 		//variable keywords
-		//$survey['var_keywords']=$this->get_survey_variables($survey['survey_uid']);
+		$survey['var_keywords']=$this->get_survey_variables($survey['survey_uid']);
 
 		//decode metadata and convert to text
 		/*if($survey['metadata']){
@@ -614,7 +614,7 @@ class Solr_manager{
 		set_time_limit(0);
 
 		$this->ci->db->select("2 as doctype,
-			concat('v-',uid)  as id,
+			uid as id,
 			vid,
 			name,
 			labl,
@@ -641,8 +641,7 @@ class Solr_manager{
 
 		//row variable id
 		$last_row_id=$rows[ count($rows)-1]['var_uid'];
-
-		$this->add_documents($rows);
+		$this->add_documents($rows,'v-');
 		unset($rows);
 
 		if ($loop){
@@ -656,7 +655,7 @@ class Solr_manager{
 	public function add_citation($id_array)
 	{
 		$this->ci->db->select("3 as doctype,
-						concat('cit-',id) as id,
+						id,
 						id as citation_id,
 						title,
 						subtitle,
@@ -674,7 +673,7 @@ class Solr_manager{
 			return false;
 		}
 
-		$this->add_documents($rows);
+		$this->add_documents($rows,$_prefix='cit-');
 	}
 
 
