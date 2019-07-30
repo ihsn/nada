@@ -364,7 +364,9 @@ class Catalog_search_sqlsrv{
 		$result['total']=$this->total_surveys;
 		$result['limit']=$limit;
 		$result['offset']=$offset;
-		$result['citations']=$this->get_survey_citation();
+		if ($limit<=100){
+			$result['citations']=$this->get_survey_citation();
+		}
 		return $result;
 	}
 
