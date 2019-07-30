@@ -7,18 +7,19 @@
             <?php echo count($countries);?>
         </div>
         <div class="sidebar-filter-entries wb-sidebar-filter-collapse country-items items-container">
-            <div class="formx-check">
-                <label class="form-check-label country any country-any">
-                    <!--<input 
+        <div class="lnk-filter-reset text-right"><?php echo t('clear');?></div>
+            <!--
+            <div class="form-check">
+                <label class="form-check-label country any country-any form-check-any">
+                    <input 
                             class="form-check-input chk-country-any chk-any"  
                             id="country-any"  <?php echo $search_options->country!="" ? '' : 'checked="checked"';?> 
                             type="checkbox" value="">
-                    -->        
-                    <span class="lnk-filter-reset"><?php echo t('select_all');?></span> |
-                    <span class="lnk-filter-reset"><?php echo t('clear');?></span>
+                       
+                    <span class="lnk-filter-all"><?php echo t('all');?></span>                    
                 </label>
             </div>
-            
+            -->
             <?php if($countries):?>
             <?php $k=0;foreach($countries as $country):$k++; ?>
                     <div class="form-check">

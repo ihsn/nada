@@ -729,6 +729,8 @@ $config['otp_verification']=0;
 
 $config['enable_access_policy_import']=false;
 
+$config['data_types_nav_bar']=false;
+
 /*
 |--------------------------------------------------------------------------
 | NADA fallback configurations

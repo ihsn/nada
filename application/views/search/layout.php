@@ -62,18 +62,6 @@
     padding-right:30px;
 }
 
-.lnk-filter-reset{
-    xcolor:blue;
-    xtext-decoration: underline;
-    font-size:small;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.lnk-filter-reset:hover{
-    color:black;
-}
-
 .type-count, .type-count-all{
     color: #6c757d;
     display:block;
@@ -122,6 +110,23 @@
     color:gray;
     font-size:smaller;
 }
+
+.sidebar-filter .form-check-input{
+    margin-top:.25rem;
+}
+
+.lnk-filter-all,
+.lnk-filter-reset{
+    color:#007bff;
+    font-size:small;
+    cursor:pointer;
+}
+
+.lnk-filter-all:hover,
+.lnk-filter-reset:hover{
+    color:black;
+}
+
 
 .fa-stack { 
     font-size: 2em;
@@ -458,8 +463,15 @@ $(document).ready(function()
         return false;
     });
 
+    //check/select filter
     $(document.body).on("change",".filters-container .chk, .filters-container select", function(){        
         change_state();  
+    });
+
+    //clear filter
+    $(document.body).on("click",".filters-container .lnk-filter-reset", function(){        
+        $(this).closest(".items-container").find(".chk").prop("checked",false);
+        change_state();
     });
     
     $(document.body).on("keypress",".search-keywords", function(e){    

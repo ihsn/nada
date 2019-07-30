@@ -6,12 +6,12 @@ $item_limit=0;
     <div class="sidebar-filter-index selected-items-count" data-toggle="tooltip" data-placement="top" title="Tooltip for Help"><?php echo count($types);?></div>
 
     <div class="sidebar-filter-entries wb-sidebar-filter-collapse types-container">
-        <div class="form-check any">
+        <!--<div class="form-check any">
             <label class="form-check-label" for="type-any" <?php echo t('any');?> >
                 <input class="form-check-input chk-any" id="type-any" type="checkbox" <?php echo $search_options->type!="" ? '' : 'checked="checked"';?>>
                 <span><strong><?php echo t('any');?></strong></span>
             </label>
-        </div>
+        </div>-->
         <div class="items-container  types-items <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
             <?php if($types):?>
                 <?php $k=0;foreach($types as $type):$k++; ?>
