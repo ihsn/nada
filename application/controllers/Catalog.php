@@ -11,111 +11,119 @@ class Catalog extends MY_Controller {
 		var $facets= array();
 
     public function __construct()
-    {
-			parent::__construct($skip_auth=TRUE);
+	{
+		parent::__construct($skip_auth=TRUE);
 
-			$this->template->set_template('default');
-			$this->load->helper('pagination_helper');
-			$this->load->model('Search_helper_model');
-			$this->load->model('Catalog_model');
-			$this->load->model('Vocabulary_model');
-			$this->load->model('Repository_model');
-			$this->load->model('Form_model');
+		$this->template->set_template('default');
+		$this->load->helper('pagination_helper');
+		$this->load->model('Search_helper_model');
+		$this->load->model('Catalog_model');
+		$this->load->model('Vocabulary_model');
+		$this->load->model('Repository_model');
+		$this->load->model('Form_model');
 
-			//$this->output->enable_profiler(TRUE);
+		//$this->output->enable_profiler(TRUE);
 
-			//language files
-			$this->lang->load('general');
-			$this->lang->load('catalog_search');
+		//language files
+		$this->lang->load('general');
+		$this->lang->load('catalog_search');
+
+		//configuration settings
+		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
+		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
+		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
+		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
+		$this->data_types_nav_bar=$this->config->item("data_types_nav_bar");
 	}
 		 
 	
-		private function load_facets_data()
-		{
-				//$facets=$this->session->userdata('facets');
+	private function load_facets_data()
+	{
+		//get years
+		$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
+		$this->facets['years']=$years_range;
 
-				/*if($facets){					
-					$this->facets=$facets;
-					return;
-				}*/
+		$repo_id=null;
 
-				//get years
-				$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
-				$this->facets['years']=$years_range;								
-
-				$this->facets['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
-				$this->facets['da_types']=$this->Search_helper_model->get_active_data_types();
-				$this->facets['countries']=$this->Search_helper_model->get_active_countries();
-				$this->facets['tags']=$this->Search_helper_model->get_active_tags($this->active_repo,$this->active_tab);				
-				$this->facets['types']=$this->Search_helper_model->get_dataset_types();
-
-				//$this->session->set_userdata('facets', $this->facets);
-				//$this->session->mark_as_temp('facets', 300);
+		if(isset($this->active_repo['repositoryid'])){
+			$repo_id=$this->active_repo['repositoryid'];
 		}
 
+
+		$this->facets['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
+		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types();
+		$this->facets['countries']=$this->Search_helper_model->get_active_countries();
+		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types();
+	}
+
 	
-		/**
-		 * 
-		 * Load filters/facets, search interface and UI
-		 * 
-		 * calls the /search to load the search results
-		 * 
-		 */
-		function index()
+	/**
+	 * 
+	 * Load filters/facets, search interface and UI
+	 * 
+	 * calls the /search to load the search results
+	 * 
+	 */
+	function index()
     {
-			$this->active_tab=xss_clean($this->input->get("tab_type"));
-			$dataset_view=$this->get_type_pageview($this->active_tab);
+		$this->active_tab=xss_clean($this->input->get("tab_type"));
+		$dataset_view=$this->get_type_pageview($this->active_tab);
 
-			$filters=array();
+		$filters=array();
 
-			//load data for facets
-			$this->load_facets_data();
+		//load data for facets
+		$this->load_facets_data();
 
-			$output= $this->_search();
-			$output['tab_type']=$this->active_tab;
-			$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
-			$output['search_output']=$this->load->view($dataset_view, $output,true);
-			
-			$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
-			$filters['repositories']=$this->load->view('search/filter_collections', 
-				array(
-					'repositories'=>$this->facets['repositories'],
-					'search_options'=>$output['search_options']
-				)
-				,true);
+		$output= $this->_search();
+		$output['tab_type']=$this->active_tab;
+		
+		//enable/disable types navbar tabs
+		$output['data_types_nav_bar']=$this->data_types_nav_bar;
 
-			//data access types
-			$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
-			
-			//countries			
-			$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
+		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
+		$output['search_output']=$this->load->view($dataset_view, $output,true);
+		
+		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
+		$filters['repositories']=$this->load->view('search/filter_collections', 
+			array(
+				'repositories'=>$this->facets['repositories'],
+				'search_options'=>$output['search_options']
+			)
+			,true);
 
-			//tags			
-			$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);			
-			
-			//types filter
-			if(!$this->active_tab){
-				$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
-			}
+		//data access types
+		$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+		
+		//countries			
+		$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
 
-			$output['filters']=$filters;
+		//tags			
+		$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);			
+		
+		//types filter
+		if(!$this->active_tab){
+			$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
+		}
+
+		$output['filters']=$filters;
 
 
-			//tabs
-			$tabs=array();
+		//tabs
+		$tabs=array();
 
-			$tabs['types']=$this->facets['types'];
-			$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
-			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
+		$tabs['types']=$this->facets['types'];
+		$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
+		$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
 
-			$output['tabs']=$tabs;
+		$output['tabs']=$tabs;
 
-			//search_counts_by_type
+		//search_counts_by_type
 
-			$content=$this->load->view('search/layout',$output,true);
-			$this->template->write('title', 'title',true);
-			$this->template->write('content', $content,true);
-			$this->template->render();
+		$content=$this->load->view('search/layout',$output,true);
+		$this->template->write('title', 'title',true);
+		$this->template->write('content', $content,true);
+		$this->template->render();
 	}
 	
 
@@ -283,12 +291,6 @@ class Catalog extends MY_Controller {
             'country_iso3'=>$search_options->country_iso3,
 		);
 
-		
-
-		/*echo '<pre>';
-		var_dump($search_options);
-		echo '</pre>';
-		*/
 
 		$this->load->library('catalog_search',$params);
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
@@ -503,7 +505,7 @@ class Catalog extends MY_Controller {
 			//set active repos
 			$this->_set_active_repo($method);
 			
-			//valid repo?			
+			//valid repo?
 			if ($this->active_repo || $repo_code=='central'){
 				//about?
 				if ($this->uri->segment(3)=='about'){
@@ -701,4 +703,8 @@ class Catalog extends MY_Controller {
 	}
 
 
+	function collection($repoid)
+	{
+		echo $repoid;
+	}
 }    
