@@ -279,6 +279,12 @@ paths:
           description: Study unique ID number
           type: string
           required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false
       responses:
         '200':
           description: successful operation
@@ -304,7 +310,13 @@ paths:
           title: Study unique ID
           description: Study unique ID number
           type: string
-          required: true    
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -335,7 +347,13 @@ paths:
           title: File ID
           description: File ID number
           type: string
-          required: true   
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -367,7 +385,13 @@ paths:
           title: File ID
           description: File ID number
           type: string
-          required: true    
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -393,7 +417,13 @@ paths:
           title: Study unique ID
           description: Study unique ID number
           type: string
-          required: true   
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -424,7 +454,13 @@ paths:
           title: Variable ID
           description: Variable ID
           type: string
-          required: true    
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation

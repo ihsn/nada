@@ -12,6 +12,7 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Dataset_model');
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');
+		$this->load->library('Dataset_manager');
 	}
 
 	
@@ -384,13 +385,31 @@ class Catalog extends MY_REST_Controller
 
 	
 	
+	/**
+	 * 
+	 * 
+	 * Return ID by IDNO
+	 * 
+	 * 
+	 * @idno 		- ID | IDNO
+	 * @id_format 	- ID | IDNO
+	 * 
+	 * Note: to use ID instead of IDNO, must pass id_format in querystring
+	 * 
+	 */
 	private function get_sid_from_idno($idno=null)
-	{
+	{		
 		if(!$idno){
 			throw new Exception("IDNO-NOT-PROVIDED");
 		}
 
-		$sid=$this->Dataset_model->find_by_idno($idno);
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			return $idno;
+		}
+
+		$sid=$this->dataset_manager->find_by_idno($idno);
 
 		if(!$sid){
 			throw new Exception("IDNO-NOT-FOUND");
@@ -398,7 +417,6 @@ class Catalog extends MY_REST_Controller
 
 		return $sid;
 	}
-
 
 	/**
 	 * 
