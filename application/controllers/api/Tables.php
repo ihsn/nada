@@ -281,7 +281,10 @@ class Tables extends MY_REST_Controller
 			$table_features=(array)$this->Data_table_model->get_features_by_table($table_id);
 
 			//flip keys with values for looking up features by names e.g. sex instead of feature_1
-			$features_flip=array_flip($features);						
+			$features_flip=array();
+			if(count($table_features)>0){
+				$features_flip=array_flip($features);
+			}
 
 			$csv_path=$uploaded_file['full_path'];
 			$csv=Reader::createFromPath($csv_path,'r');
@@ -290,7 +293,7 @@ class Tables extends MY_REST_Controller
 			$header=$csv->getHeader();
 			$records= $csv->getRecords();
 
-			$chunk_size =15000;
+			$chunk_size =10000;
 			$chunked_rows=array();
 			$k=1;
 			$total=0;
@@ -318,7 +321,7 @@ class Tables extends MY_REST_Controller
 					set_time_limit(0);
 				}
 
-				$k++;
+				$k++;				
 			}
 
 			if(count($chunked_rows)>0){
