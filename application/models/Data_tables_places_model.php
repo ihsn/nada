@@ -33,19 +33,24 @@ class Data_tables_places_model extends CI_Model {
 				'parent_type'=> 'state'
 			),
 			'subdistrict'=>array(
-				'name'=>'District',
+				'name'=>'Subdistrict',
 				'lvl'=>3,
-				'parent_type'=> 'state'
+				'parent_type'=> 'district'
 			),
 			'town'=> array(
-				'name'=>'District',
-				'lvl'=>3,
-				'parent_type'=> 'state'
+				'name'=>'Town',
+				'lvl'=>4,
+				'parent_type'=> 'subdistrict'
 			),
 			'village'=> array(
 				'name'=>'Village',
-				'lvl'=>3,
-				'parent_type'=> 'state'
+				'lvl'=>5,
+				'parent_type'=> 'subdistrict'
+            ),
+            'ward'=> array(
+				'name'=>'Ward',
+				'lvl'=>6,
+				'parent_type'=> 'town'
 			)
         );
         
@@ -62,20 +67,190 @@ class Data_tables_places_model extends CI_Model {
 	}
 
 
+    //0=national, 1=state, 2=district, 3=sub-district, 4=town/village, 5=ward
+    function get_geo_levels($name=null)
+    {
+        $geo_levels=array(
+            'national'=>array(
+                'code'=>0
+            ),
+            'state'=>array(
+                'code'=>1
+            ),
+            'district'=>array(
+                'code'=>2
+            ),
+            'subdistrict'=>array(
+                'code'=>3
+            ),
+            'town'=>array(
+                'code'=>4
+            ),
+            'village'=>array(
+                'code'=>5
+            ),
+            'ward'=>array(
+                'code'=>6
+            )
+        );
 
-/**
- * 
- * 
- * @region_type - national, state, district, subdistrict, etc
- * @uid - user defined region id
- * @name - region name
- * 
- * to find the parent by uid, need
- * 
- * @parent_type - state, district
- * @parent_uid - parent UID - 001, 00005
- * 
- */
+        if($name){
+            var_dump($name);
+            if(array_key_exists($name,$geo_levels)){
+                return $geo_levels[$name];
+            }
+            return false;
+        }
+
+        return $geo_levels;
+    }
+
+    /**
+	 * 
+	 * Return geo levels
+	 * 
+	 * 
+	 */
+	function get_geo_mappings($geo_name=null)
+	{
+		$geo_names=array(
+			'national'=> array(
+				'name'=>'National',
+				'code'=>false
+            ),
+            'state'=> array(
+				'name'=>'District',
+				'code'=>'geo_1'
+			),
+			'district'=> array(
+				'name'=>'District',
+				'code'=>'geo_2'
+			),
+			'subdistrict'=> array(
+				'name'=>'Subdistrict',
+				'code'=>'geo_3',
+				'parent_type'=> 'state'
+			),
+			'town'=>array(
+				'name'=>'Town',
+				'code'=>'geo_4',
+				'parent_type'=> 'subdistrict'
+			),
+			'village'=> array(
+				'name'=>'Village',
+				'code'=>'geo_4',
+				'parent_type'=> 'subdistrict'
+			),
+			
+            'ward'=> array(
+				'name'=>'Ward',
+				'code'=>'geo_5',
+				'parent_type'=> 'town'
+			)
+        );
+        
+        if($geo_name){
+            if(array_key_exists($geo_name,$geo_names)){
+                return $geo_names[$geo_name];
+            }
+            else{
+                throw new Exception("Geo type not defined");
+            }
+        }
+
+		return $geo_names;
+    }
+    
+    function get_geo_fieldname($geo_name)
+    {
+        $geo_field=$this->get_geo_mappings($geo_name);
+
+        if(isset($geo_field['code']))
+        {
+            return $geo_field['code'];
+        }
+
+        return false;
+    }
+
+
+    /**
+     * 
+     * 
+     * Batch create regions
+     * 
+     * @data array of $uid and $name
+     * 
+     */
+    function batch_create_regions($region_type,$data,$parent_type=NULL,$parent_uid=NULL)
+    {    
+        $region=$this->get_regions($region_type);
+
+        if(!$region){
+            throw new Exception("REGION-NOT-FOUND:: ",$region_type);
+        }
+
+        $pid=NULL;
+
+        //get parent ID
+        if(isset($region['parent_type'])){
+            if (!$parent_type || !$parent_uid){
+                throw new exception("Parent type and UID is required");
+            }
+
+            $parent=$this->find_region($parent_type,$parent_uid);
+
+            if($parent){
+                $pid=$parent['id'];
+            }
+            else{
+                throw new Exception("Parent not found:: ". $parent_type.':'.$parent_uid);                
+            }
+        }
+
+        $batch_data=array();
+
+        foreach($data as $row)
+        {
+            $options=array(
+                'lvl'=>$region['lvl'],
+                'uid'=>$row['uid'],
+                'name'=>$row['name'],
+                'pid'=>$pid,
+                'place_type'=>$region_type
+            );
+
+            $batch_data[]=$options;
+        }    
+
+        
+        $result=$this->db->insert_batch('data_tables_places',$batch_data);
+
+        if(!$result){
+            $error=$this->db->error();
+            if(isset($error['message'])){
+                throw new Exception($error['message']);
+            }else{
+                throw new Exception('db-error:: '.$this->db->last_query());
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * 
+     * 
+     * @region_type - national, state, district, subdistrict, etc
+     * @uid - user defined region id
+     * @name - region name
+     * 
+     * to find the parent by uid, need
+     * 
+     * @parent_type - state, district
+     * @parent_uid - parent UID - 001, 00005
+     * 
+     */
     function create_region($region_type,$uid,$name,$parent_type=NULL,$parent_uid=NULL)
     {    
         $region=$this->get_regions($region_type);
@@ -84,7 +259,8 @@ class Data_tables_places_model extends CI_Model {
             'lvl'=>$region['lvl'],
             'uid'=>$uid,
             'name'=>$name,
-            'pid'=>0
+            'pid'=>0,
+            'place_type'=>$region_type
         );
 
         //get parent ID

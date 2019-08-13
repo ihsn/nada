@@ -2,244 +2,39 @@
 class Data_table_model extends CI_Model {
 
     private $db_fields=array(
-		'id',
-		'sid',
-		'file_id',
-		'file_name',
-		'description', 
-		'case_count',
-		'var_count',
-		'producer',
-		'data_checks',
-		'missing_data',
-		'version',
-		'notes'
-	);
+        'dataset',
+        'table_id',
+        'geo_level',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_4',
+        'geo_5',
+        'indicator',
+        'value',
+        'feature_1',
+        'feature_2',
+        'feature_3',
+        'feature_4',
+        'feature_5',
+        'feature_6',
+        'feature_7',
+        'feature_8',
+        'feature_9'
+    );
+
+    private $geo_fields=array();
 
     public function __construct()
     {
         parent::__construct();
+        $this->load->model("Data_tables_places_model");
+        $this->geo_fields=$this->Data_tables_places_model->get_geo_mappings();
 		//$this->output->enable_profiler(TRUE);
     }
 
 
-    /////////////////////// states /////////////////////////////////////////
-
-
-    function create_state($uid,$name)
-    {
-        if($this->state_exists($name)){
-            return false;
-        }
-
-        $options=array(
-            'uid'=>$uid,
-            'name'=>$name
-        );
-
-        $result=$this->db->insert('region_states', $options);
-
-        echo $this->db->last_qury();
-        return $result;
-    }
-
-    function state_exists($name)
-    {
-        $this->db->select("*");
-        $this->db->where("name",$name);
-        return $this->db->get("region_states")->row_array();
-    }
-
-
-    /////////////////////// districts /////////////////////////////////////////
-
-    function create_district($uid,$state_name,$name)
-    {
-        //district?
-        $district=$this->district_exists($state_name,$name);
-
-        if($district){
-            return true;
-        }
-
-        $state=$this->state_exists($state_name);
-                
-        $options=array(
-            'uid'=>$uid,
-            'state_uid'=>$state['uid'],
-            'name'=>$name
-        );
-
-        return $this->db->insert('region_districts', $options);
-    }
-
-
-    function district_exists($state_name,$name)
-    {
-        //get state id
-        $state=$this->state_exists($state_name);
-
-        if(!$state){
-            throw new Exception("STATE_NOT_FOUND: ". $state_name );
-        }
-        
-        $this->db->select("*");
-        $this->db->where("name",$name);
-        $this->db->where("state_uid",$state['uid']);
-        return $this->db->get("region_districts")->row_array();
-    }
-
-/////////////////////// sub-districts /////////////////////////////////////////    
-
-    function create_subdistrict($uid,$state_name,$district_name,$subdistrict_name)
-    {        
-        /*
-        $district=$this->district_exists($state_name,$district_name);
-
-        if(!$district){
-            throw new Exception("DISTRICT_NOT_FOUND: ". $district_name );
-        }
-        */
-
-        $subdistrict=$this->subdistrict_exists($state_name,$district_name, $subdistrict_name);
-
-        if($subdistrict){
-            return false;
-        }
-
-        $district=$this->district_exists($state_name,$district_name);
-
-        if(!$district){
-            throw new Exception("DISTRICT_NOT_FOUND: ". $district_name );
-        }
-                
-        $options=array(
-            'uid'=>$uid,
-            'district_uid'=>$district['uid'],
-            'name'=>$subdistrict_name
-        );
-
-        return $this->db->insert('region_sub_districts', $options);
-    }
-
-
-    function subdistrict_exists($state_name,$district_name, $subdistrict_name)
-    {
-        //get district code
-        $district=$this->district_exists($state_name,$district_name);
-
-        if(!$district){
-            throw new Exception("DISTRICT_NOT_FOUND: ". $district_name );
-        }
-
-        $this->db->select("*");
-        $this->db->where("name",$subdistrict_name);
-        $this->db->where("district_uid",$district['uid']);
-        return $this->db->get("region_sub_districts")->row_array();
-    }
-
-
-/////////////////////// towns /////////////////////////////////////////    
-
-    function create_town($uid,$state_name,$district_name,$town_name)
-    {        
-        $town=$this->town_exists($state_name,$district_name,$town_name);
-
-        if($town || $this->town_uid_exists($uid)){
-            return false;
-        }
-
-        $district=$this->district_exists($state_name,$district_name);
-
-        if(!$district){
-            throw new Exception("DISTRICT_NOT_FOUND: ". $district_name);
-        }
-
-                
-        $options=array(
-            'uid'=>$uid,
-            'district_uid'=>$district['uid'],
-            'name'=>$town_name
-        );
-
-        return $this->db->insert('region_towns', $options);
-    }
-
-
-    function town_exists($state_name,$district_name,$town_name)
-    {
-        //get state id
-        $district=$this->district_exists($state_name,$district_name);
-
-        if(!$district){
-            throw new Exception("DISTRICT_NOT_FOUND: ". $district_name );
-        }
-
-        $this->db->select("*");
-        $this->db->where("name",$town_name);
-        $this->db->where("district_uid",$district['uid']);
-        return $this->db->get("region_towns")->row_array();
-    }
     
-    function town_uid_exists($town_uid)
-    {
-        $this->db->select("*");
-        $this->db->where("uid",$town_uid);        
-        return $this->db->get("region_towns")->row_array();
-    }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-    function create_region($region_type,$uid,$state_name=null, $district_name=null, $subdistrict_name=null, $town_name=null)
-    {    
-        switch(trim(strtolower($region_type)))
-        {
-            case 'state':
-                return $this->create_state($uid,$state_name);
-            break;
-
-            case 'district':
-                return $this->create_district($uid,$state_name,$district_name);
-            break;
-
-            case 'tehsil / sub-district':
-            case 'subdistrict':
-                return $this->create_subdistrict($uid,$state_name,$district_name,$subdistrict_name);
-            break;
-
-            case 'town':
-                return $this->create_town($uid,$state_name,$district_name,$town_name);
-            break;
-
-            default:
-                return false;
-        }    
-    }
-
-
-    function create_region_x($region_type,$code,$name, $pid)
-    {
-        $options=array(
-            'region_type'=>$region_type,
-            'code'=>$code,
-            'name'=>$name,
-            'pid'=>$pid
-        );
-
-        return $this->db->insert('region_codes', $options);
-    }
-
-
-    function region_exists($region_type,$name)
-    {
-        $this->db->select("*");
-        $this->db->where("region_type",$region_type);
-        $this->db->where("name",$name);
-        return $this->db->get("region_codes")->row_array();
-    }
-
 
     /*
 
@@ -265,6 +60,7 @@ CREATE TABLE `census_table` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
     */
+    /*
     function insert_table($table_id,$options)
     {
         $valid_fields=array(
@@ -283,12 +79,6 @@ CREATE TABLE `census_table` (
             'feature_4',
             'feature_5'
         );
-        /*
-        $options['state_name'],
-        $options['district_name'],
-        $options['subdistrict_name'],
-        $options['town_name']
-        */
 
         if(isset($options['features'])){
             $k=1;
@@ -312,57 +102,48 @@ CREATE TABLE `census_table` (
         return $this->db->insert('census_table', $data);
 
     }
+    */
+
+    //map geo fields
+    function transform_geo_fields($row)
+    {
+
+        //set geo_level
+        if(!is_numeric($row['geo_level'])){
+            $geo_level=$this->Data_tables_places_model->get_geo_levels($row['geo_level']);
+            $row['geo_level']=$geo_level['code'];
+        }
+
+        foreach($this->geo_fields as $geo_name=>$geo_field){
+            if(isset($row[$geo_name])){
+                if($geo_field['code']!=false){
+                    $row[$geo_field['code']]=(int)$row[$geo_name];
+                }
+            }
+        }
+
+        return $row;
+    }
+
+    function transform_feature_fields($row)
+    {
+
+    }
 
 
     public function table_batch_insert($rows)
     {
-        $valid_fields=array(
-            'table_id',
-            'census',
-            'geo_level',
-            'state_code',
-            'district_code',
-            'subdistrict_code',
-            'town_code',
-            'indicator',
-            'value',
-            'feature_1',
-            'feature_2',
-            'feature_3',
-            'feature_4',
-            'feature_5'
-        );
-
-        /*$required=array(
-            'table_id',
-            'census',
-            'scst',
-            'geo_level',
-            'state_code',
-            'district_code',
-            'subdistrict_code',
-            'town_code',
-            'residence',
-            'value',
-            'feature_1',
-            'feature_2',
-            'feature_3',
-            'feature_4',
-            'feature_5'
-        );*/
-
         //remove fields that are not in the valid_fields list
         foreach($rows as $key=>$row)
         {
-            $rows[$key]=array_intersect_key($row,array_flip($valid_fields));
-            if(!isset($row['table_id'])){
-                throw new Exception("MISSING::TABLE_ID");
-            }            
+            $row=$this->transform_geo_fields($row);
+            //$row=$this->transform_feature_fields($row);
+            $rows[$key]=array_intersect_key($row,array_flip($this->db_fields));
         }
 
-        $result= $this->db->insert_batch('census_table', $rows);
+        $result= $this->db->insert_batch('data_tables', $rows);
 
-        if ($result===false){
+        if (!$result){
 			$error=$this->db->error();
 			throw new Exception(implode(", ",$error));			
         }
@@ -376,7 +157,7 @@ CREATE TABLE `census_table` (
    function truncate_table($table_id=null)
    {
        $this->db->where("table_id",$table_id);
-       return $this->db->delete("census_table");
+       return $this->db->delete("data_table");
    }
 
    
@@ -524,6 +305,8 @@ CREATE TABLE `census_table` (
    } 
 
 
+
+
     /**
      * 
      * parse value formats
@@ -558,6 +341,8 @@ CREATE TABLE `census_table` (
        return $output;
    }
 
+
+
    function apply_feature_filter($feature_name,$value)
    {
         $parsed_val=$this->parse_filter_value($value);
@@ -586,7 +371,6 @@ CREATE TABLE `census_table` (
    
    function create_table($options)
    {
-
         //indicators
         $indicators=array();
 
@@ -594,10 +378,8 @@ CREATE TABLE `census_table` (
             $indicators=$options['indicators'];
             unset($options['indicators']);
         }
-
     
         $code_list=array();
-
 
         //features
         for($i=1;$i<=9;$i++)
@@ -619,7 +401,7 @@ CREATE TABLE `census_table` (
         //create feature codes        
         foreach($code_list as $code){
             if(!$this->codelist_exists($code['feature_name'], $code['code'])){
-                $this->db->insert("census_table_codelist",$code);
+                $this->db->insert("data_tables_codelist",$code);
             }
         }        
         
@@ -630,19 +412,30 @@ CREATE TABLE `census_table` (
                 $indicator['table_id']=$options['table_id'];
 
                 if (!$this->indicator_exists($options['table_id'],$indicator['code'])){
-                    $this->db->insert('census_table_indicators',$indicator);
+                    $this->db->insert('data_tables_indicators',$indicator);
                 }
             }            
         }
 
+
+        //table type valid fields
+        $type_fields=array('table_id','title','description','feature_1','feature_2','feature_3','feature_4','feature_5','feature_6','feature_7','feature_8','feature_9');
+
+        $type_options=array();
+        foreach($options as $key=>$value){
+			if (in_array($key,$type_fields) ){
+				$type_options[$key]=$value;
+			}
+		}
+
         //table type        
-        if ($this->table_type_exists($options['table_id']))
+        if ($this->table_type_exists($type_options['table_id']))
         {
-            $this->db->where('table_id',$options['table_id']);
-            $result=$this->db->update("census_table_types",$options);
+            $this->db->where('table_id',$type_options['table_id']);
+            $result=$this->db->update("data_tables_types",$type_options);
         }else{
             //create table type
-            $result=$this->db->insert("census_table_types",$options);
+            $result=$this->db->insert("data_tables_types",$type_options);
         }
 
         return $result;
@@ -651,9 +444,9 @@ CREATE TABLE `census_table` (
 
    function table_type_exists($table_id)
    {
-    $this->db->select("id");
-    $this->db->where("table_id",$table_id);    
-    return $this->db->get("census_table_types")->row_array();
+        $this->db->select("id");
+        $this->db->where("table_id",$table_id);    
+        return $this->db->get("data_tables_types")->row_array();
    }
 
 
@@ -663,7 +456,7 @@ CREATE TABLE `census_table` (
        $this->db->select("*");
        $this->db->where("feature_name",$feature_name);
        $this->db->where("code",$code);
-       return $this->db->get("census_table_codelist")->result_array();
+       return $this->db->get("data_tables_codelist")->result_array();
    }
 
 
@@ -673,7 +466,7 @@ CREATE TABLE `census_table` (
         $this->db->select("*");
         $this->db->where("table_id",$table_id);
         $this->db->where("code",$code);
-        return $this->db->get("census_table_indicators")->result_array();
+        return $this->db->get("data_tables_indicators")->result_array();
     }
 
 
@@ -684,7 +477,7 @@ CREATE TABLE `census_table` (
      */
     function get_tables_w_count()
     {
-        return $this->db->query("select table_id,count(table_id) as total from census_table group by table_id")->result_array();        
+        return $this->db->query("select table_id,count(table_id) as total from data_tables group by table_id")->result_array();        
     } 
     
     
@@ -700,7 +493,7 @@ CREATE TABLE `census_table` (
         //table type
         $this->db->select("*");
         $this->db->where("table_id",$table_id);        
-        $table_type=$this->db->get("census_table_types")->row_array();
+        $table_type=$this->db->get("data_tables_types")->row_array();
 
         if(!$table_type){
             throw new Exception("TABLE_NOT_FOUND");
@@ -744,7 +537,7 @@ CREATE TABLE `census_table` (
         //table type
         $this->db->select("*");
         $this->db->where("table_id",$table_id);        
-        $table_type=$this->db->get("census_table_types")->row_array();
+        $table_type=$this->db->get("data_tables_types")->row_array();
 
         if(!$table_type){
             throw new Exception("TABLE_NOT_FOUND");
@@ -771,7 +564,7 @@ CREATE TABLE `census_table` (
     {
         $this->db->select("code,label");
         $this->db->where("feature_name",$feature_name);        
-        return $this->db->get("census_table_codelist")->result_array();
+        return $this->db->get("data_tables_codelist")->result_array();
     }
 
 
@@ -779,14 +572,23 @@ CREATE TABLE `census_table` (
     {
         $this->db->select("code,label,measurement_unit");
         $this->db->where("table_id",$table_id);        
-        return $this->db->get("census_table_indicators")->result_array();
+        return $this->db->get("data_tables_indicators")->result_array();
     }
 
 
     function delete_table_data($table_id)
     {
         $this->db->where('table_id',$table_id);
-        return $this->db->delete('census_table');
+        return $this->db->delete('data_tables');
+    }
+
+
+    function get_db_error()
+    {
+        $error=$this->db->error();
+        if(is_array($error)){
+            return implode(", ",$error);
+        }		
     }
 	
 }    

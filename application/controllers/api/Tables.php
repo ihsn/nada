@@ -2,13 +2,15 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
-class Data extends MY_REST_Controller
+use League\Csv\Reader;
+
+class Tables extends MY_REST_Controller
 {
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->helper("date");        
-		$this->load->model("Census_table_model");
+		$this->load->model("Data_table_model");
 		$this->load->model("Data_tables_places_model");        
 	}
 
@@ -149,6 +151,7 @@ class Data extends MY_REST_Controller
 	function insert_post()
 	{
 		$this->is_admin_or_die();
+
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -177,12 +180,13 @@ class Data extends MY_REST_Controller
 				$result=$this->Census_table_model->insert_table($row['table_id'],$row);
 			}*/
 
-			$result=$this->Census_table_model->table_batch_insert($options);
+			$result=$this->Data_table_model->table_batch_insert($options);
 
 
 			$response=array(
                 'status'=>'success',
-                "output"=>$result
+				"output"=>$result,
+				'query'=>$this->db->last_query()
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -198,7 +202,143 @@ class Data extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'sql'=>$this->db->last_query()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Error $e){
+			$error_output=array(
+				'status'=>'Error',
 				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+	
+
+	/**
+	 * 
+	 * upload file	 
+	 * 
+	 **/ 
+	private function upload_file()
+	{		
+		if(!isset($_FILES['file'])){
+			throw new Exception("FILE NOT PROVIDED");
+		}
+
+		$overwrite=$this->input->post("overwrite");
+
+		if($overwrite=='yes'){
+			$overwrite=true;
+		}
+
+		$file_name=$_FILES['file'];
+		$this->load->library('upload');
+	
+		$config['upload_path'] = 'datafiles/tmp/';
+		$config['overwrite'] = $overwrite;
+		$config['encrypt_name']=false;
+		$config['allowed_types'] = 'txt|csv';
+		
+		$this->upload->initialize($config);
+		
+		$upload_result=$this->upload->do_upload('file');
+
+		if(!$upload_result){
+			$error = $this->upload->display_errors();            
+			throw new Exception("UPLOAD_FAILED::".$upload_path. ' - error:: '.$error);
+		}
+
+		$upload_data = $this->upload->data();			
+		return $upload_data;
+    }
+
+	/**
+	 * 
+	 * 
+	 * Create table row	 
+	 * 
+	 */
+	function import_post()
+	{
+		$this->is_admin_or_die();
+
+		try{
+			$uploaded_file=$this->upload_file();
+			$user_id=$this->get_api_user_id();
+
+			if (!isset($uploaded_file['full_path']) ){
+				throw new Exception("File not uploaded");
+			}
+
+			if (!file_exists($uploaded_file['full_path'])){
+				throw new Exception("Uploaded file was not found");
+			}
+			
+			$table_id=$this->input->post('table_id');
+			$table_features=(array)$this->Data_table_model->get_features_by_table($table_id);
+
+			//flip keys with values for looking up features by names e.g. sex instead of feature_1
+			$features_flip=array_flip($features);						
+
+			$csv_path=$uploaded_file['full_path'];
+			$csv=Reader::createFromPath($csv_path,'r');
+			$csv->setHeaderOffset(0);
+
+			$header=$csv->getHeader();
+			$records= $csv->getRecords();
+
+			$chunk_size =15000;
+			$chunked_rows=array();
+			$k=1;
+			$total=0;
+			$start_time=date("H:i:s");
+
+			foreach($records as $row){
+
+				$row['table_id']=$table_id;
+				$row['dataset']=$table_id;
+
+				//feature mapping - map e.g. sex to feature_1
+				foreach($features_flip as $feature_name=>$feature_num){
+					if(isset($row[$feature_name])){
+						$row[$feature_num]=$row[$feature_name];
+					}
+				}
+
+				$total++;
+				$chunked_rows[]=$row;
+
+				if($k>=$chunk_size){
+					$result=$this->Data_table_model->table_batch_insert($chunked_rows);
+					$k=1;
+					$chunked_rows=array();
+					set_time_limit(0);
+				}
+
+				$k++;
+			}
+
+			if(count($chunked_rows)>0){
+				$result=$this->Data_table_model->table_batch_insert($chunked_rows);
+			}
+			
+			$response=array(
+                'status'=>'success',
+				"output"=>$total,
+				'start'=>$start_time,
+				'end'=>date("H:i:s")
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'sql'=>$this->db->last_query()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -237,6 +377,59 @@ class Data extends MY_REST_Controller
 	}
 
 
+	//function batch_create_regions($region_type,$data,$parent_type=NULL,$parent_uid=NULL)
+	function batch_create_region_post($region_type=NULL)
+	{
+		//$this->is_admin_or_die();
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			//var_dump($options);
+			//die();
+			
+			$params=array('data','parent_type','parent_uid');
+
+			foreach($params as $param){
+				if(!array_key_exists($param,$options)){
+					$options[$param]=null;
+				}
+			}
+
+			
+            $result=$this->Data_tables_places_model->batch_create_regions(
+				$region_type,
+				$options['data'],
+				$options['parent_type'],
+				$options['parent_uid']
+			);			
+
+			$response=array(
+                'status'=>'success',
+				'result'=>$options,
+				//'query'=>$this->db->last_query()
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'query_options'=>$options
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 	/**
 	 * 
@@ -257,6 +450,9 @@ class Data extends MY_REST_Controller
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
+
+			//var_dump($options);
+			//die();
 			
 			$params=array('uid','name','parent_type','parent_uid');
 
@@ -265,6 +461,8 @@ class Data extends MY_REST_Controller
 					$options[$param]=null;
 				}
 			}
+
+			
 
             $result=$this->Data_tables_places_model->create_region(
 				$region_type,
@@ -277,7 +475,7 @@ class Data extends MY_REST_Controller
 			$response=array(
                 'status'=>'success',
 				'result'=>$options,
-				'query'=>$this->db->last_query()
+				//'query'=>$this->db->last_query()
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -347,56 +545,7 @@ class Data extends MY_REST_Controller
 
 
 
-    /**
-	 * 
-	 * 
-	 * Create regions
-	 * 
-	 */
-	function old_create_region_post()
-	{
-		$this->is_admin_or_die();
-
-		try{
-			$options=$this->raw_json_input();
-            $user_id=$this->get_api_user_id();			
-
-            $result=$this->Census_regions_model->create_region(                
-                $options['region_type'],
-				$options['uid'],
-				$options['name'],
-                $options['state_code'],
-                $options['district_code'],
-                $options['subdistrict_code'],
-                $options['town_code']
-			);
-			
-
-			$response=array(
-                'status'=>'success',
-                'result'=>$result
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(ValidationException $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'errors'=>$e->GetValidationErrors()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-
-
+    
 	function create_table_post()
 	{
 		$this->is_admin_or_die();
@@ -405,14 +554,15 @@ class Data extends MY_REST_Controller
 			$options=$this->raw_json_input();
             $user_id=$this->get_api_user_id();			
 
-            $result=$this->Census_table_model->create_table(                
+            $result=$this->Data_table_model->create_table(                
                 $options
 			);
 			
 
 			$response=array(
                 'status'=>'success',
-                'result'=>$result
+				'result'=>$result,
+				'query'=>$this->Data_table_model->get_db_error()				
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
