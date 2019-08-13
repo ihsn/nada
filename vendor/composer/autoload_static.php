@@ -8,6 +8,7 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -34,6 +35,7 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         'L' => 
         array (
             'League\\Event\\' => 13,
+            'League\\Csv\\' => 11,
         ),
         'J' => 
         array (
@@ -83,6 +85,10 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         'League\\Event\\' => 
         array (
             0 => __DIR__ . '/..' . '/league/event/src',
+        ),
+        'League\\Csv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/csv/src',
         ),
         'JsonStreamingParser\\Test\\' => 
         array (

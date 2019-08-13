@@ -15,6 +15,7 @@ return array(
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'Mpdf\\' => array($vendorDir . '/mpdf/mpdf/src'),
     'League\\Event\\' => array($vendorDir . '/league/event/src'),
+    'League\\Csv\\' => array($vendorDir . '/league/csv/src'),
     'JsonStreamingParser\\Test\\' => array($vendorDir . '/salsify/json-streaming-parser/tests'),
     'JsonStreamingParser\\' => array($vendorDir . '/salsify/json-streaming-parser/src'),
     'JsonSchema\\' => array($vendorDir . '/justinrainbow/json-schema/src/JsonSchema'),
