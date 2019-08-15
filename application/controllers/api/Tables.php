@@ -56,7 +56,7 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-            $result=$this->Census_table_model->get_table_info($table_id);
+            $result=$this->Data_table_model->get_table_info($table_id);
 			
 			$response=array(
 				'status'=>'success',
