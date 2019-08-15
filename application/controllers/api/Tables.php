@@ -19,9 +19,9 @@ class Tables extends MY_REST_Controller
 	{
 		try{
 			$options=$this->raw_json_input();
-            $user_id=$this->get_api_user_id();			
+            $user_id=$this->get_api_user_id();
 
-            $result=$this->Census_table_model->get_tables_w_count();
+            $result=$this->Data_table_model->get_tables_w_count();
 			
 			$response=array(
                 'status'=>'success',
@@ -115,7 +115,7 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$result=$this->Census_table_model->get_table_data($table_id,$limit,$options);
+			$result=$this->Data_table_model->get_table_data($table_id,$limit,$options);
 			
 			if(isset($options['flat_output']))
 			{
@@ -134,7 +134,8 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage()
+				'message'=>$e->getMessage(),
+				'error'=>$this->Data_table_model->get_db_error()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -282,8 +283,8 @@ class Tables extends MY_REST_Controller
 
 			//flip keys with values for looking up features by names e.g. sex instead of feature_1
 			$features_flip=array();
-			if(count($table_features)>0){
-				$features_flip=array_flip($features);
+			if(!empty($table_features)){
+				$features_flip=array_flip($table_features);
 			}
 
 			$csv_path=$uploaded_file['full_path'];
@@ -293,11 +294,14 @@ class Tables extends MY_REST_Controller
 			$header=$csv->getHeader();
 			$records= $csv->getRecords();
 
-			$chunk_size =10000;
+			$chunk_size =5000;
 			$chunked_rows=array();
 			$k=1;
 			$total=0;
 			$start_time=date("H:i:s");
+
+			//delete existing table data
+			$this->Data_table_model->delete_table_data($table_id);
 
 			foreach($records as $row){
 
@@ -319,6 +323,7 @@ class Tables extends MY_REST_Controller
 					$k=1;
 					$chunked_rows=array();
 					set_time_limit(0);
+					//break;
 				}
 
 				$k++;				

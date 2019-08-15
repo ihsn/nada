@@ -107,7 +107,10 @@ CREATE TABLE `census_table` (
     //map geo fields
     function transform_geo_fields($row)
     {
-
+        if(!isset($row['geo_level'])){
+            throw new Exception("geo_level not set");
+        }
+        
         //set geo_level
         if(!is_numeric($row['geo_level'])){
             $geo_level=$this->Data_tables_places_model->get_geo_levels($row['geo_level']);
@@ -187,11 +190,11 @@ CREATE TABLE `census_table` (
         $table_fields=array(
             'table_id',            
             'geo_level',
-            'state_code',
-            'district_code',
-            'subdistrict_code',
-            'town_code',
-            'ward_code',
+            'geo_1',
+            'geo_2',
+            'geo_3',
+            'geo_4',
+            'geo_5',
             'indicator',
             'value'            
         );   
@@ -199,11 +202,11 @@ CREATE TABLE `census_table` (
 
        $region_fields=array(
            'geo_level',
-           'state_code',
-           'district_code',
-           'subdistrict_code',
-           'town_code',
-           'ward_code'
+           'geo_1',
+           'geo_2',
+           'geo_3',
+           'geo_4',
+           'geo_5'
        );
                             
        //features
@@ -249,11 +252,10 @@ CREATE TABLE `census_table` (
        }
        
        $this->db->where("table_id",$table_id);
-
+       
        if($limit >0){
            $this->db->limit($limit);
        }
-
 
        //which fields to output
        if(isset($options['fields'])){
@@ -297,8 +299,13 @@ CREATE TABLE `census_table` (
             }
         }
 
-       
-        $output['data']=$this->db->get("census_table")->result_array();
+        $result=$this->db->get("data_tables");
+
+        if(!$result){
+            throw new exception("DB ERROR");
+        }
+
+        $output['data']=$result->result_array();
         $output['query']=$this->db->last_query();
 
         return $output;
@@ -400,7 +407,8 @@ CREATE TABLE `census_table` (
             
         //create feature codes        
         foreach($code_list as $code){
-            if(!$this->codelist_exists($code['feature_name'], $code['code'])){
+            $code['table_id']=$options['table_id'];
+            if(!$this->codelist_exists($options['table_id'],$code['feature_name'], $code['code'])){
                 $this->db->insert("data_tables_codelist",$code);
             }
         }        
@@ -451,9 +459,10 @@ CREATE TABLE `census_table` (
 
 
    //check if feature name + code combination already exists
-   function codelist_exists($feature_name, $code)
+   function codelist_exists($table_id,$feature_name, $code)
    {
        $this->db->select("*");
+       $this->db->where("table_id",$table_id);
        $this->db->where("feature_name",$feature_name);
        $this->db->where("code",$code);
        return $this->db->get("data_tables_codelist")->result_array();
@@ -514,7 +523,7 @@ CREATE TABLE `census_table` (
 
         $features=array();
         foreach($features_list as $feature){
-            $features[$feature]=$this->get_feature_code_list($table_type[$feature]);
+            $features[$feature]=$this->get_feature_code_list($table_id,$table_type[$feature]);
         }
 
         $table_type['features_codelist']=$features;
@@ -560,9 +569,10 @@ CREATE TABLE `census_table` (
 
 
 
-    function get_feature_code_list($feature_name)
+    function get_feature_code_list($table_id,$feature_name)
     {
         $this->db->select("code,label");
+        $this->db->where("table_id",$table_id);
         $this->db->where("feature_name",$feature_name);        
         return $this->db->get("data_tables_codelist")->result_array();
     }
