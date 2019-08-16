@@ -509,8 +509,21 @@ CREATE TABLE `census_table` (
 
     function get_tables_list()
     {
+        $counts=$this->get_tables_w_count();
+        $output=array();
+
+        foreach($counts as $row){
+            $output[$row['table_id']]['records']=$row['total'];
+        }
+
         $this->db->select("table_id,title");
-        return $this->db->get("data_tables_types")->result_array();
+        $result= $this->db->get("data_tables_types")->result_array();
+
+        foreach($result as $row){
+            $output[$row['table_id']]['title']=$row['title'];
+        }
+
+        return $output;
     } 
     
     
