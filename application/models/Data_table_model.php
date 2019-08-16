@@ -397,9 +397,9 @@ CREATE TABLE `census_table` (
         //indicators
         $indicators=array();
 
-        if(isset($options['indicators'])){
-            $indicators=$options['indicators'];
-            unset($options['indicators']);
+        if(isset($options['indicator'])){
+            $indicators=$options['indicator'];
+            unset($options['indicator']);
         }
     
         $code_list=array();
