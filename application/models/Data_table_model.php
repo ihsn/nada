@@ -539,7 +539,7 @@ CREATE TABLE `census_table` (
 
         $features=array();
         foreach($features_list as $feature){
-            $features[$feature]=$this->get_feature_code_list($table_id,$table_type[$feature]);
+            $features[$table_type[$feature]]=$this->get_feature_code_list($table_id,$table_type[$feature]);
         }
 
         $table_type['features_codelist']=$features;
