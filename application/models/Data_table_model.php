@@ -504,6 +504,14 @@ CREATE TABLE `census_table` (
     {
         return $this->db->query("select table_id,count(table_id) as total from data_tables group by table_id")->result_array();        
     } 
+
+
+
+    function get_tables_list()
+    {
+        $this->db->select("table_id,title");
+        return $this->db->get("data_tables_types")->result_array();
+    } 
     
     
 
