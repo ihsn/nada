@@ -21,7 +21,7 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
             $user_id=$this->get_api_user_id();
 
-            $result=$this->Data_table_model->get_tables_w_count();
+            $result=$this->Data_table_model->get_tables_list();
 			
 			$response=array(
                 'status'=>'success',
@@ -99,11 +99,12 @@ class Tables extends MY_REST_Controller
 	function data_get($table_id=null,$limit=null)
 	{
 		try{
-
+			$debug=$this->input->get("debug");			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
 			
 			$options=array();
+			$options['flat_output']=true;
 			foreach(array_keys($get_params) as $param){
 				$options[$param]=$this->input->get($param,true);
 			}
@@ -125,8 +126,12 @@ class Tables extends MY_REST_Controller
 				$response=array(
 					'status'=>'success',
 					'count'=>@count($result['data']),
-					'result'=>$result
+					'result'=>$result['data']
 				);
+
+				if($debug==true){
+					$response['query']=$result['query'];
+				}
 			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -294,7 +299,7 @@ class Tables extends MY_REST_Controller
 			$header=$csv->getHeader();
 			$records= $csv->getRecords();
 
-			$chunk_size =5000;
+			$chunk_size =15000;
 			$chunked_rows=array();
 			$k=1;
 			$total=0;
