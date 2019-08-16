@@ -95,7 +95,6 @@ class Data_tables_places_model extends CI_Model {
         );
 
         if($name){
-            var_dump($name);
             if(array_key_exists($name,$geo_levels)){
                 return $geo_levels[$name];
             }
@@ -103,6 +102,20 @@ class Data_tables_places_model extends CI_Model {
         }
 
         return $geo_levels;
+    }
+
+
+    function get_geo_codes_list()
+    {
+        $names=$this->get_geo_mappings();
+
+        $output=array();
+        foreach($names as $name=>$row){
+            if($row['code']==false){continue;}
+            $output[$row['code']]=$name;
+        }
+
+        return $output;
     }
 
     /**

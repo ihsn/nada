@@ -187,16 +187,17 @@ CREATE TABLE `census_table` (
 	 */
    function get_table_data($table_id,$limit=1000,$options)
    {
+       //alias=>name
         $table_fields=array(
-            'table_id',            
-            'geo_level',
-            'geo_1',
-            'geo_2',
-            'geo_3',
-            'geo_4',
-            'geo_5',
-            'indicator',
-            'value'            
+            'table_id'=>'table_id',            
+            //'geo_level',
+            //'geo_1',
+            //'geo_2',
+            //'geo_3',
+            //'geo_4',
+            //'geo_5',
+            'indicator'=>'indicator',
+            'value'=>'value'
         );   
 
 
@@ -206,9 +207,16 @@ CREATE TABLE `census_table` (
            'geo_2',
            'geo_3',
            'geo_4',
-           'geo_5'
+           'ward'
        );
-                            
+
+       //geo fields       
+       $geo_fields=$this->Data_tables_places_model->get_geo_codes_list();
+       $table_fields[]='geo_level';
+       foreach($geo_fields as $geo_field_num=>$geo_code){
+        $table_fields[$geo_field_num] =$geo_code;
+       }
+
        //features
 
        //get features list for the table
@@ -256,6 +264,9 @@ CREATE TABLE `census_table` (
        if($limit >0){
            $this->db->limit($limit);
        }
+       else{
+           $this->db->limit(10);
+       }
 
        //which fields to output
        if(isset($options['fields'])){
@@ -271,7 +282,12 @@ CREATE TABLE `census_table` (
             }
         }
 
-        $this->db->select(implode(",",$table_fields));
+        $table_fields_=array();
+        foreach($table_fields as $alias=>$column_name)
+        {
+            $this->db->select($alias .' as '. $column_name);    
+        }
+        //$this->db->select(implode(",",$table_fields));
 
         //feature fields to include
         if(isset($options['fields'])){
