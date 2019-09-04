@@ -20,7 +20,8 @@ class Data_table_model extends CI_Model {
         'feature_6',
         'feature_7',
         'feature_8',
-        'feature_9'
+        'feature_9',
+        'feature_10',
     );
 
     private $geo_fields=array();
@@ -213,6 +214,7 @@ CREATE TABLE `census_table` (
        //geo fields       
        $geo_fields=$this->Data_tables_places_model->get_geo_codes_list();
        $table_fields[]='geo_level';
+
        foreach($geo_fields as $geo_field_num=>$geo_code){
         $table_fields[$geo_field_num] =$geo_code;
        }
@@ -246,6 +248,15 @@ CREATE TABLE `census_table` (
                 $this->db->where($region,$options[$region]);
             }
        }*/
+
+       //filter by geo fields. switch fields from the format state=01 to geo_1=01
+       foreach($geo_fields as $geo_field_num=>$geo_code){
+           if(isset($options[$geo_code])){
+            $options[$geo_field_num]=$options[$geo_code];
+           }
+       }
+
+
 
        //apply region filter
        foreach($region_fields as $region){
@@ -443,7 +454,7 @@ CREATE TABLE `census_table` (
 
 
         //table type valid fields
-        $type_fields=array('table_id','title','description','feature_1','feature_2','feature_3','feature_4','feature_5','feature_6','feature_7','feature_8','feature_9');
+        $type_fields=array('table_id','title','description','feature_1','feature_2','feature_3','feature_4','feature_5','feature_6','feature_7','feature_8','feature_9','feature_10');
 
         $type_options=array();
         foreach($options as $key=>$value){
@@ -507,9 +518,12 @@ CREATE TABLE `census_table` (
 
 
 
-    function get_tables_list()
+    function get_tables_list($options=array())
     {
-        $counts=$this->get_tables_w_count();
+        $counts=array();
+        if(!isset($options['ignorecounts'])){
+            $counts=$this->get_tables_w_count();
+        }
         $output=array();
 
         foreach($counts as $row){

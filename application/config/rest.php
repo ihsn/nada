@@ -190,6 +190,8 @@ $config['auth_override_class_method']['auth']['*'] = 'none';
 $config['auth_override_class_method']['tables']['index'] = 'none';
 $config['auth_override_class_method']['tables']['info'] = 'none';
 $config['auth_override_class_method']['tables']['data'] = 'none';
+$config['auth_override_class_method']['tables']['search_place'] = 'none';
+
 
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method']['wildcard_test_cases']['*'] = 'basic';

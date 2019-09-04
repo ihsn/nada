@@ -18,10 +18,18 @@ class Tables extends MY_REST_Controller
 	function index_get()
 	{
 		try{
-			$options=$this->raw_json_input();
-            $user_id=$this->get_api_user_id();
+			//$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			$get_params=array();
+			parse_str($_SERVER['QUERY_STRING'], $get_params);
+			
+			$options=array();
+			foreach(array_keys($get_params) as $param){
+				$options[$param]=$this->input->get($param,true);
+			}
 
-            $result=$this->Data_table_model->get_tables_list();
+            $result=$this->Data_table_model->get_tables_list($options);
 			
 			$response=array(
                 'status'=>'success',
@@ -127,11 +135,11 @@ class Tables extends MY_REST_Controller
 					'status'=>'success',
 					'count'=>@count($result['data']),
 					'result'=>$result['data']
-				);
-
-				if($debug==true){
-					$response['query']=$result['query'];
-				}
+				);				
+			}
+			
+			if($debug==true){
+				$response['query']=$result['query'];
 			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -768,6 +776,54 @@ class Tables extends MY_REST_Controller
 			$response=array(
 				'status'=>'success',				
                 'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * Search for States, districts, towns, etc
+	 * 
+	 * geo_level - state, district, etc
+	 * state - state name
+	 * district - district name
+	 * subdistrict
+	 * town
+	 * village
+	 * 
+	 */
+	function search_place_get()
+	{
+		try{
+			//$options=$this->raw_json_input();
+
+			$get_params=array();
+			parse_str($_SERVER['QUERY_STRING'], $get_params);
+			
+			$options=array();
+			foreach(array_keys($get_params) as $param){
+				$options[$param]=$this->input->get($param,true);
+			}
+
+			$this->load->model("Data_tables_places_model");
+			$result=$this->Data_tables_places_model->search($options);
+			
+			$response=array(
+				'status'=>'success',				
+				'result'=>$result,
+				'query'=>$this->db->last_query()
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);

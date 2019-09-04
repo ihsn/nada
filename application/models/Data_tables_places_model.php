@@ -662,4 +662,102 @@ CREATE TABLE `census_table` (
         $this->db->where("district_uid",$district_code);
         return $this->db->get("region_towns")->result_array();
     }
+
+
+
+    /**
+     * 
+     * 
+     * Search places
+     * 
+     */
+    function search($options)
+    {
+
+        $geo_fields=array(
+            'state',
+            'district',
+            'subdistrict',
+            'town',
+            'village'
+        );
+
+        $states=array();
+        $output=array();
+
+        //search states
+        if(isset($options['state'])){
+            $this->db->select('*');
+            $this->db->where('place_type','state');
+            $this->db->like('name',$options['state'],'after');
+            $this->db->limit(50);
+            $states=$this->db->get("data_tables_places")->result_array();
+            $output['states']=$states;
+        }
+
+
+        if(isset($options['district'])){
+            $this->db->select('*');
+            $this->db->where('place_type','district');
+            $this->db->like('name',$options['district'],'after');
+            if(count($states)>0){
+                $this->db->where_in('pid',array_column($states,'id'));
+            }
+            $this->db->limit(50);
+            $districts=$this->db->get("data_tables_places")->result_array();        
+            $output['districts']=$districts;
+        }
+
+
+        if(isset($options['subdistrict'])){
+            $this->db->select('*');
+            $this->db->where('place_type','subdistrict');
+            $this->db->like('name',$options['subdistrict'],'after');
+            if(count($districts)>0){
+                $this->db->where_in('pid',array_column($districts,'id'));
+            }
+            $this->db->limit(50);
+            $subdistricts=$this->db->get("data_tables_places")->result_array();        
+            $output['subdistricts']=$subdistricts;
+        }
+
+        if(isset($options['village'])){
+            $this->db->select('*');
+            $this->db->where('place_type','village');
+            $this->db->like('name',$options['village'],'after');
+            if(count($subdistricts)>0){
+                $this->db->where_in('pid',array_column($subdistricts,'id'));
+            }
+            $this->db->limit(50);
+            $villages=$this->db->get("data_tables_places")->result_array();
+            $output['villages']=$villages;
+        }
+
+        if(isset($options['town'])){
+            $this->db->select('*');
+            $this->db->where('place_type','town');
+            $this->db->like('name',$options['town'],'after');
+            if(count($subdistricts)>0){
+                $this->db->where_in('pid',array_column($subdistricts,'id'));
+            }
+            $this->db->limit(50);
+            $towns=$this->db->get("data_tables_places")->result_array();
+            $output['towns']=$towns;
+        }
+
+
+
+        
+        /*foreach($geo_fields as $field){
+            if(array_key_exists($field,$options)){
+                $this->db->like('name',$options['state'],'after');
+            }
+        }*/
+        
+        
+        //select * from data_tables_places where name like 'Jaw%' and place_type='subdistrict';
+
+
+        return $output;
+    }
 }    
