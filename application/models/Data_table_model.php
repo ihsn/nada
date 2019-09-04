@@ -416,7 +416,7 @@ CREATE TABLE `census_table` (
         $code_list=array();
 
         //features
-        for($i=1;$i<=9;$i++)
+        for($i=1;$i<=10;$i++)
         {
             $feature='feature_'.$i;
             
@@ -562,7 +562,7 @@ CREATE TABLE `census_table` (
         //features
         $features_list=array();
 
-        for($i=1;$i<=9;$i++)
+        for($i=1;$i<=10;$i++)
         {
             $feature='feature_'.$i;            
             if(isset($table_type[$feature])){
@@ -606,7 +606,7 @@ CREATE TABLE `census_table` (
         //features
         $features_list=array();
 
-        for($i=1;$i<=9;$i++)
+        for($i=1;$i<=10;$i++)
         {
             $feature='feature_'.$i;            
             if(isset($table_type[$feature])){
