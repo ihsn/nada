@@ -404,7 +404,12 @@ CREATE TABLE `census_table` (
     
    
    function create_table($options)
-   {
+   {       
+        $table_id=$options['table_id'];
+
+        //remove table definition if already exists
+        $this->delete_table_type($table_id);
+
         //indicators
         $indicators=array();
 
@@ -517,6 +522,20 @@ CREATE TABLE `census_table` (
     } 
 
 
+    function get_table_count($table_id)
+    {
+        $this->db->select('count(table_id) as total');
+        $this->db->where('table_id',$table_id);        
+        $result= $this->db->get('data_tables')->row_array();
+
+        if($result){
+            return $result['total'];
+        }
+
+        return false;
+    }
+
+
 
     function get_tables_list($options=array())
     {
@@ -558,6 +577,8 @@ CREATE TABLE `census_table` (
         if(!$table_type){
             throw new Exception("TABLE_NOT_FOUND");
         }
+
+        $table_type['rows_count']=$this->get_table_count($table_id);
 
         //features
         $features_list=array();
@@ -642,6 +663,23 @@ CREATE TABLE `census_table` (
         $this->db->where('table_id',$table_id);
         return $this->db->delete('data_tables');
     }
+
+
+    function delete_table_type($table_id)
+    {
+        //table codelist
+        $this->db->where('table_id',$table_id);
+        $this->db->delete('data_tables_codelist');
+
+        //table type
+        $this->db->where('table_id',$table_id);
+        $this->db->delete('data_tables_types');
+
+        //table indicators
+        $this->db->where('table_id',$table_id);
+        $this->db->delete('data_tables_indicators');        
+    }
+
 
 
     function get_db_error()
