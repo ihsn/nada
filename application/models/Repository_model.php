@@ -882,10 +882,10 @@ class Repository_model extends CI_Model {
 	{
 		$this->db->select('count(surveys.id) as total');
 		$this->db->join('surveys','surveys.id=survey_repos.sid');
-		$this->db->join('forms','surveys.formid=forms.formid');
+		//$this->db->join('forms','surveys.formid=forms.formid');
 		$this->db->where('survey_repos.repositoryid',$repositoryid);
 		$this->db->where('survey_repos.isadmin',1);
-		$this->db->where_in('forms.model',array('public','direct','licensed'));
+		//$this->db->where_in('forms.model',array('public','direct','licensed'));
 
 		$row=$this->db->get('survey_repos')->row_array();
 		return $row['total'];
@@ -956,14 +956,14 @@ class Repository_model extends CI_Model {
 		$this->db->select('count(distinct survey_repos.sid) as total');
 		$this->db->join('survey_repos','survey_repos.sid=resources.survey_id');
 		$this->db->join('surveys','surveys.id=resources.survey_id');
-		$this->db->join('forms','surveys.formid=forms.formid');
+		//$this->db->join('forms','surveys.formid=forms.formid');
 		$this->db->where("survey_repos.repositoryid",$repositoryid);
 		$this->db->where('survey_repos.isadmin',1);
-		$this->db->where_in('forms.model',array('public','direct','licensed'));
+		//$this->db->where_in('forms.model',array('public','direct','licensed'));
 
 		if($resource_type=='microdata')
 		{
-			$this->db->where_in('forms.model',array('public','direct','licensed'));
+			//$this->db->where_in('forms.model',array('public','direct','licensed'));
 			$this->db->where(" (dctype like '%dat/micro]%' OR dctype like '%dat]%') ",NULL,FALSE);
 		}
 		else //if ($resource_type=='questionnaire')

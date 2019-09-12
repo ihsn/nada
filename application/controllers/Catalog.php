@@ -339,7 +339,7 @@ class Catalog extends MY_Controller {
 			$data=array_merge($search_result,$data);
 			$data['current_page']=$search_options->page;
 			$data['search_options']=$search_options;
-			$data['data_access_types']=$this->Form_model->get_form_list();
+			$data['data_access_types']=array();//$this->Form_model->get_form_list();
 			$data['search_type']='variable';
 			return $data;
 
@@ -366,7 +366,7 @@ class Catalog extends MY_Controller {
 		$data['surveys']=$this->catalog_search->search($this->limit,$offset);
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
-		$data['data_access_types']=$this->Form_model->get_form_list();
+		$data['data_access_types']=array();//$this->Form_model->get_form_list();
 		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
 		return $data;

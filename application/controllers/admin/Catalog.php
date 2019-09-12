@@ -1596,8 +1596,12 @@ class Catalog extends MY_Controller {
 		$this->load->model('Catalog_notes_model');
 		$this->load->model('Catalog_tags_model');
 		$this->load->model('Survey_alias_model');
+		$this->load->model('Data_classification_model');
+		$this->load->model('License_model');
+		
 		$this->load->library('catalog_admin');
 		$this->load->library('chicago_citation');
+		
 		//$this->load->library('ion_auth');
 
 		$this->load->library("catalog_admin");
@@ -1685,14 +1689,23 @@ class Catalog extends MY_Controller {
 		//pdf documentation for study
 		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
+		//data classifications
+		$survey_row['data_classifications'] = $this->Data_classification_model->get_list();
+
+		//licenses
+		$licenses = $this->License_model->get_list();
+		$licenses=array_merge(array('0'=>'--SELECT--'),$licenses);
+		$survey_row['licenses']=$licenses;
+
+		/*
 		//data access form list
 		$this->load->model('Form_model');
 		$this->forms_list=array('0'=>'---');
 
 		//create a list of choices for the drop down
 		foreach($this->Form_model->get_all()  as $value){
-			$this->forms_list[$value['formid']]=t($value['fname']);
-		}
+			$this->forms_list[$value['formid']]=t($value['fname']); 
+		}*/
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
 		$this->template->write('content', $content,true);
@@ -1722,7 +1735,7 @@ class Catalog extends MY_Controller {
 		$ajax=$this->input->get_post('ajax');
 
 		//allowed fields
-		$allowed_keys=array('published','formid','link_indicator','link_study','link_da');
+		$allowed_keys=array('published','formid','link_indicator','link_study','link_da','license_id','classification_id');
 
 		foreach($allowed_keys as $key)
 		{

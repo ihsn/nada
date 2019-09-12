@@ -11,11 +11,6 @@ class Survey_model extends CI_Model {
 					'nation',
 					'dirpath',
 					'metafile',
-					//'link_technical', 
-					//'link_study',
-					//'link_report',
-					//'link_indicator',
-					//'link_questionnaire',
 					'year_start',
 					'year_end',
 					'link_da',
@@ -29,7 +24,8 @@ class Survey_model extends CI_Model {
 					'changed',
 					'created_by',
 					'changed_by',
-					'formid',
+					'license_id',
+					'classification_id',
                     'metadata'
 					);
 
@@ -59,8 +55,8 @@ class Survey_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
-		$this->db->select("id,type,idno,title,year_start as year,nation,published,created, changed, varcount, total_views, total_downloads, surveys.formid,forms.model as data_access_type");		
-		$this->db->join('forms','surveys.formid=forms.formid','left');
+		$this->db->select("id,type,idno,title,year_start as year,nation,published,created, changed, varcount, total_views, total_downloads, surveys.license_id,classification_id");		
+		//$this->db->join('forms','surveys.formid=forms.formid','left');
         $this->db->where("id",$sid);
 		$survey=$this->db->get("surveys")->row_array();
 		$survey=$this->decode_encoded_fields($survey);		
@@ -70,8 +66,8 @@ class Survey_model extends CI_Model {
 	//return survey with metadata and other fields
 	function get_row_detailed($sid)
 	{
-		$this->db->select("surveys.*, forms.model as data_access_type");		
-		$this->db->join('forms','surveys.formid=forms.formid','left');
+		$this->db->select("surveys.*");
+		//$this->db->join('forms','surveys.formid=forms.formid','left');
         $this->db->where("id",$sid);
         $survey=$this->db->get("surveys")->row_array();		
 		$survey=$this->decode_encoded_fields($survey);		

@@ -319,7 +319,8 @@ class Catalog_model extends CI_Model {
 		$fields=$this->study_fields;
 		
 		//form fields
-		$fields[]='surveys.formid, forms.model as model';
+		//$fields[]='surveys.formid, forms.model as model';
+		$fields[]='surveys.license_id, surveys.classification_id';
 		
 		//notes
 		//$fields[]='notes.admin_notes as admin_notes';
@@ -329,7 +330,7 @@ class Catalog_model extends CI_Model {
 		$fields=implode(",",$fields);	
 		
 		$this->db->select($fields);
-		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		//$this->db->join('forms', 'forms.formid= surveys.formid','left');
 		//$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 		
 		if (is_numeric($id))
@@ -682,7 +683,7 @@ class Catalog_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array('link_technical', 'link_study', 'link_report', 
 							'link_indicator','link_questionnaire',
-							'isshared','formid','changed','isdeleted','link_da','published');
+							'isshared','formid','changed','isdeleted','link_da','published','license_id','classification_id');
 		
 		//pk field name
 		$key_field='id';
