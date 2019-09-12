@@ -12,6 +12,7 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Dataset_model');
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');
+		$this->load->library('Dataset_manager');
 	}
 
 	/**
@@ -33,26 +34,48 @@ class Catalog extends MY_REST_Controller
 		return 15;//default page size
 	}
 	
-	function index_get($idno=null,$id_type='idno')
-	{
-		if($idno!=null){
-			return $this->record_get($idno,$id_type);
-		}
-	}
-
 	/**
 	 * 
-	 * 
-	 * Get a single record by ID
+	 * Get a single dataset
+	 * @copy of datasets/single_get
 	 * 
 	 */
-	function find_by_id_get($id=null)
-	{
-		if($id!=null){
-			return $this->record_get($id,$id_type='id');
+	function index_get($idno=null)
+	{	
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+
+			$result=$this->Dataset_model->get_row($sid);
+			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
+				
+			if(!$result){
+				throw new Exception("DATASET_NOT_FOUND");
+			}
+
+			$result['metadata']=$this->Dataset_model->get_metadata($sid);
+			
+			$response=array(
+				'status'=>'success',
+				'dataset'=>$result
+			);			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Error $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
-
+	
 	
 	/**
 	 * 
@@ -172,45 +195,7 @@ class Catalog extends MY_REST_Controller
 		}		
 	}
 
-	/**
-	 * 
-	 * Get a single dataset
-	 * @copy of datasets/single_get
-	 * 
-	 */
-	function record_get($idno=null,$id_type='idno')
-	{
-		try{
-			if($id_type=='id'){
-				$sid=$idno;
-			}
-			else{
-				$sid=$this->get_sid_from_idno($idno);
-			}
-
-			$result=$this->Dataset_model->get_row($sid);
-			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
-				
-			if(!$result){
-				throw new Exception("DATASET_NOT_FOUND");
-			}
-
-			$result['metadata']=$this->Dataset_model->get_metadata($sid);
-			
-			$response=array(
-				'status'=>'success',
-				'dataset'=>$result
-			);			
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
+	
 
 
 	/**
@@ -440,13 +425,34 @@ class Catalog extends MY_REST_Controller
 
 	
 	
+	/**
+	 * 
+	 * 
+	 * Return ID by IDNO
+	 * 
+	 * 
+	 * @idno 		- ID | IDNO
+	 * @id_format 	- ID | IDNO
+	 * 
+	 * Note: to use ID instead of IDNO, must pass id_format in querystring
+	 * 
+	 */
 	private function get_sid_from_idno($idno=null)
-	{
+	{		
 		if(!$idno){
 			throw new Exception("IDNO-NOT-PROVIDED");
 		}
 
-		$sid=$this->Dataset_model->find_by_idno($idno);
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			if(!is_numeric($idno)){
+				throw new Exception("INVALID-IDNO-FORMAT");
+			}
+			return $idno;
+		}
+
+		$sid=$this->dataset_manager->find_by_idno($idno);
 
 		if(!$sid){
 			throw new Exception("IDNO-NOT-FOUND");
@@ -454,7 +460,6 @@ class Catalog extends MY_REST_Controller
 
 		return $sid;
 	}
-
 
 	/**
 	 * 
@@ -599,7 +604,7 @@ class Catalog extends MY_REST_Controller
 				throw new exception("STUDY_NOT_FOUND");
 			}
 
-			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
+			$survey_variables=$this->Variable_model->list_by_dataset($sid);
 			
 			//format dates
 			//array_walk($project, 'unix_date_to_gmt_row',array('created','changed','submitted_date','administer_date'));

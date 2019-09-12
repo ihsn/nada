@@ -174,7 +174,7 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end, surveys.thumbnail';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, license_id, classification_id,surveys.year_start,surveys.year_end, surveys.thumbnail';
 		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
@@ -191,7 +191,7 @@ class Catalog_search_mysql{
 			//variable search
 			$this->ci->db->select('SQL_CALC_FOUND_ROWS '.$study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+			//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 			$this->ci->db->join('variables v','surveys.id=v.sid','inner');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
@@ -222,7 +222,7 @@ class Catalog_search_mysql{
 			//study search
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+			//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -789,7 +789,7 @@ class Catalog_search_mysql{
 	*/	
 	function get_variable_search_field($is_fulltext=TRUE)
 	{
-		$index=NULL;
+		$index=array();
 		
 		$variable_fields=$this->variable_fields();
 		
@@ -811,7 +811,7 @@ class Catalog_search_mysql{
 			$index[]='catgry';
 		}
 		
-		if ($index==NULL)
+		if (empty($index))
 		{
 			$index[]='name,labl,qstn,catgry';
 		}
@@ -960,7 +960,7 @@ class Catalog_search_mysql{
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,  surveys.title as title,surveys.nation, v.sid",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
-		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		

@@ -669,10 +669,28 @@ class Datasets extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * Return ID by IDNO
+	 * 
+	 * 
+	 * @idno 		- ID | IDNO
+	 * @id_format 	- ID | IDNO
+	 * 
+	 * Note: to use ID instead of IDNO, must pass id_format in querystring
+	 * 
+	 */
 	private function get_sid_from_idno($idno=null)
-	{
+	{		
 		if(!$idno){
 			throw new Exception("IDNO-NOT-PROVIDED");
+		}
+
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			return $idno;
 		}
 
 		$sid=$this->dataset_manager->find_by_idno($idno);

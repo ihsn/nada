@@ -181,8 +181,8 @@ class Dataset_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
-		$this->db->select("id,repositoryid,type,idno,title,year_start, year_end,nation,published,created, changed, varcount, total_views, total_downloads, surveys.formid,forms.model as data_access_type,link_da as remote_data_url, thumbnail, link_study, link_indicator, link_report");
-		$this->db->join('forms','surveys.formid=forms.formid','left');
+		$this->db->select("id,repositoryid,type,idno,title,year_start, year_end,nation,published,created, changed, varcount, total_views, total_downloads, surveys.license_id, surveys.classification_id,link_da as remote_data_url, link_study, link_indicator, link_technical, link_report");
+		//$this->db->join('forms','surveys.formid=forms.formid','left');
 		$this->db->where("id",$sid);
 		
 		$survey=$this->db->get("surveys")->row_array();
@@ -197,8 +197,8 @@ class Dataset_model extends CI_Model {
 	//return survey with metadata and other fields
 	function get_row_detailed($sid)
 	{
-		$this->db->select("surveys.*, forms.model as data_access_type");		
-		$this->db->join('forms','surveys.formid=forms.formid','left');
+		$this->db->select("surveys.*");
+		//$this->db->join('forms','surveys.formid=forms.formid','left');
         $this->db->where("id",$sid);
         $data=$this->db->get("surveys")->row_array();		
 		$data=$this->decode_encoded_fields($data);		

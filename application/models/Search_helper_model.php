@@ -476,6 +476,8 @@ class Search_helper_model extends CI_Model {
 	 */
 	function get_active_data_types($repositoryid=null)
 	{
+		return false;
+		
 		if ($repositoryid=='central' || trim($repositoryid)=='')
 		{
 			$this->db->select('surveys.formid,forms.model');

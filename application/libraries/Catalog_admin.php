@@ -413,7 +413,7 @@ class Catalog_Admin
 		}
 
 		//study data access model
-		$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
+		//$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
 
 		//get study resources count  grouped by resource type
 		$resources=$this->ci->resource_model->get_grouped_resources_count($sid);
@@ -423,7 +423,7 @@ class Catalog_Admin
 			$warnings[]='warning_study_has_no_external_resources';
 		}
 
-		if(in_array($study_da_model,array('public','licensed','direct')))
+		/*if(in_array($study_da_model,array('public','licensed','direct')))
 		{
 			//has microdata assigned for puf/lic/direct?
 			$has_microdata=FALSE;
@@ -448,7 +448,7 @@ class Catalog_Admin
 			{
 				$warnings[]='warning_study_has_no_questionnaire';
 			}
-		}
+		}*/
 
 		//pdf documentation?
 		$has_pdf=$this->get_study_pdf($sid);

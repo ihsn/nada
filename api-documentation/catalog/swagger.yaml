@@ -233,38 +233,13 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/DataAccessCode'
-  
-  /catalog/find_by_id/{id}:
-    get:
-      tags:
-        - Catalog
-        - Metadata
-      summary: Get study by ID
-      description: "Get study level metadata for a dataset. The study data files and variables metadata can be accessed via the following endpoints. \n \n * [Data files](#operation/listDataFiles) - Metadata for data files \n \n * [Variables](#operation/listDataFileVariables) - Metadata for variables"
-      operationId: singleDatasetById
-      consumes:
-        - application/json
-      produces:
-        - application/xml
-        - application/json
-      parameters:
-        - name: ID
-          in: path
-          title: Study unique ID
-          description: Study unique ID number
-          type: string
-          required: true
-      responses:
-        '200':
-          description: successful operation
-          schema:
-              $ref: '../catalog-admin/survey-schema.json'
+    
   /catalog/{idno}:
     get:
       tags:
         - Catalog
         - Metadata
-      summary: Get study by IDNo
+      summary: Get study information
       description: "Get study level metadata for a dataset. The study data files and variables metadata can be accessed via the following endpoints. \n \n * [Data files](#operation/listDataFiles) - Metadata for data files \n \n * [Variables](#operation/listDataFileVariables) - Metadata for variables"
       operationId: singleDataset
       consumes:
@@ -279,6 +254,12 @@ paths:
           description: Study unique ID number
           type: string
           required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false
       responses:
         '200':
           description: successful operation
@@ -304,7 +285,13 @@ paths:
           title: Study unique ID
           description: Study unique ID number
           type: string
-          required: true    
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -335,7 +322,13 @@ paths:
           title: File ID
           description: File ID number
           type: string
-          required: true   
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -367,7 +360,13 @@ paths:
           title: File ID
           description: File ID number
           type: string
-          required: true    
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -393,7 +392,13 @@ paths:
           title: Study unique ID
           description: Study unique ID number
           type: string
-          required: true   
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
@@ -424,7 +429,13 @@ paths:
           title: Variable ID
           description: Variable ID
           type: string
-          required: true    
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
       responses:
         '200':
           description: successful operation
