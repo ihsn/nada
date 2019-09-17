@@ -127,7 +127,7 @@ class Catalog extends MY_Controller {
 		$this->template->add_js('javascript/jquery.history.min.js');		
 
 		$content=$this->load->view('search/layout',$output,true);
-		$this->template->write('title', 'title',true);
+		$this->template->write('title', t('data_catalog'),true);
 		$this->template->write('content', $content,true);
 		$this->template->render();
 	}
