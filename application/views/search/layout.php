@@ -168,14 +168,8 @@
 
 </style>
 <!--
-<script src="http://browserstate.github.io/history.js/scripts/bundled/html4+html5/jquery.history.js"></script>
--->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/history.js/1.8/bundled/html4+html5/jquery.history.min.js"></script>
-
-<!--
-<script src="<?php echo base_url(); ?>/javascript/history/bundled/html4+html5/jquery.history.js"></script>
 -->
-
 
 <div class="container">
 <form method="get" id="catalog-search-form">    
@@ -305,8 +299,7 @@ var i18n=
 'selected':"<?php echo t('selected');?>"
 };
 
-$(document).ready(function() 
-{
+$(document).ready(function() {
     var page_first_load=true;
     toggle_reset_search_button();
     var State=History.getState();
@@ -381,8 +374,7 @@ $(document).ready(function()
     });
 
 
-    function search()
-    {
+    function search(){
         search_state=$("#catalog-search-form").serialize();
         $( "#search-result-container" ).html('Loading, please wait ...');
 
@@ -411,8 +403,7 @@ $(document).ready(function()
 
 
     //call this for search
-    function change_state()
-    {
+    function change_state(){
         console.log("change_state called");
         let search_state=$("#catalog-search-form").serialize();
         
@@ -425,8 +416,7 @@ $(document).ready(function()
 
 
     //sort dropdown
-    $(document.body).on("change","#sort-by-select", function()
-    {
+    $(document.body).on("change","#sort-by-select", function(){
         let sort_order=$(this).find(':selected').data('sort');
         let sort_by=$(this).val();
         window.x=$(this);
@@ -435,8 +425,7 @@ $(document).ready(function()
         change_state();
     });
 
-    $(document.body).on("click",".dataset-type-tab", function()
-    {
+    $(document.body).on("click",".dataset-type-tab", function(){
         $( ".chk-type").prop("checked",false);
         el=$("[name='type[]'][value='"+ $(this).attr("data-value") +"']");
         el.prop("checked",true);
@@ -490,10 +479,7 @@ $(document).ready(function()
 
 
     function load_current_state(){
-
-        console.log(page_first_load);
         if(page_first_load==true){
-            console.log("page_first_load==true");
             page_first_load=false;
             return;
         }
@@ -501,12 +487,9 @@ $(document).ready(function()
         var State=History.getState();
 
         if(!State.data.page_state_data){
-            console.log("no current state found, exiting");
             return false;
         }
-        console.log("load_current_state");
 
-        //$('#catalog-search-form').trigger("reset");
         reset_all_filters();
         jQuery.each(State.data.page_state_data.search_options, function( i, field ) {
             elements=$("[name='" + field.name + "']");
@@ -525,17 +508,15 @@ $(document).ready(function()
     }
 
 
-    function reset_all_filters()
-    {
+    function reset_all_filters(){
         //uncheck all checkboxes
         $(".filters-container .chk").prop("checked",false);
 
         //reset  select
         $(".filter-container .form-control").prop("value",'');
-        }
+    }
 
-        function toggle_reset_search_button()
-        {
+    function toggle_reset_search_button(){
         if (!$("#search-keywords").val()){
             $(".clear-search-button").hide();
         }
@@ -543,8 +524,6 @@ $(document).ready(function()
             $(".clear-search-button").show();
         }
     }
-
-
 
 
     //show/hide study sub-variable search
@@ -575,14 +554,11 @@ $(document).ready(function()
         return false;
     });
 
-    
-
 
     /////////////////////////////////////////////////////////////////////////////////////////////
 	// simple dialog
 	/////////////////////////////////////////////////////////////////////////////////////////////
-	window.simple_dialog=function simple_dialog(dialog_id,title,data_url)
-	{
+	window.simple_dialog=function simple_dialog(dialog_id,title,data_url){
 		if($("#"+dialog_id).length ==0) {
             $("body").append('<div class="modal fade" id="'+dialog_id+'" tabindex="-1" role="dialog"  aria-hidden="true">\
                 <div class="modal-dialog  modal-lg catalog-modal-dialog" role="document">\
@@ -654,6 +630,7 @@ $(document).ready(function()
 			$(".variables-found .var-compare-summary").html( sel_items.length + " " + i18n.js_compare_variables_selected + " " + studies.length + " " + i18n.js_compare_studies_selected);
 		}
     }
+
 
     function update_compare_variable_list(action,value){
         var sel_items=readCookie("variable-compare");
@@ -768,5 +745,3 @@ $(document).ready(function()
 });
     
 </script>
-
-

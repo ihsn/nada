@@ -115,17 +115,16 @@ class Catalog extends MY_Controller {
 
 		$output['filters']=$filters;
 
-
 		//tabs
 		$tabs=array();
-
 		$tabs['types']=$this->facets['types'];
 		$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
 		$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
 
 		$output['tabs']=$tabs;
 
-		//search_counts_by_type
+		//load js
+		$this->template->add_js('javascript/jquery.history.min.js');		
 
 		$content=$this->load->view('search/layout',$output,true);
 		$this->template->write('title', 'title',true);
