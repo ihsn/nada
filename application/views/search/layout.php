@@ -16,10 +16,6 @@
     font-weight:normal!important;
 }
 
-.breadcrumb{
-    display:none;
-}
-
 #catalog-search-form{
     margin-top:50px;
 }
@@ -75,6 +71,11 @@
 
 #search-keywords {
     border:1px solid #007bff
+}
+
+.search-count{
+    font-size:1.5rem;
+    color:#343a40;
 }
 
  /* Chrome/Opera/Safari */
@@ -186,22 +187,6 @@
 <input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
 <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
 
-<!--search bar-->
-<div>
-    <div class="row mb-5 justify-content-center align-items-center">
-        <div class="input-group col-md-12 search-box-container">            
-        <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
-        <span class="input-group-append">
-            <button class="btn btn-outline-primary btn-search-submit" type="submit" id="submit_search">
-                <i class="fa fa-search"></i>
-            </button>
-            <a href="<?php echo site_url('catalog');?>" class="close clear-search-button" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </a>
-        </span>
-        </div>
-    </div>
-</div>
 
 <?php if($data_types_nav_bar==true):?>
 <!-- data types nav tabs -->
@@ -256,6 +241,8 @@
     <!--left side bar -->
     <div class="col-12 col-lg-3 col-md-4">
 
+    <?php echo $collection_info;?>
+
         <nav class="navbar navbar-expand-sm navbar-expand-filters">
             
             <button class="navbar-toggler btn-block navbar-toggler-filter" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -279,6 +266,10 @@
     <!-- listing page -->
     <div class="col-lg-9 col-md-8">
         <div id="search-result-container">
+
+            <!--search bar-->
+            <?php echo $this->load->view('search/keyword_search_box',null);?>
+
             <?php echo $search_output;?>
         </div>
     </div>

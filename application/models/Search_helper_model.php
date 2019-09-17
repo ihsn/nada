@@ -570,7 +570,7 @@ class Search_helper_model extends CI_Model {
 
 			//filter by repository
 			if (trim($repositoryid)!=='' && $repositoryid!='central'){
-				$this->db->join('survey_repos sr', 'sr.sid=surveys.sid','inner');
+				$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
 				$this->db->where('sr.repositoryid',$repositoryid);	
 			}
 

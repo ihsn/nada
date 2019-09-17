@@ -49,12 +49,11 @@ class Catalog extends MY_Controller {
 			$repo_id=$this->active_repo['repositoryid'];
 		}
 
-
 		$this->facets['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
-		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types();
-		$this->facets['countries']=$this->Search_helper_model->get_active_countries();
+		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
+		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
-		$this->facets['types']=$this->Search_helper_model->get_dataset_types();
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
 	}
 
 	
@@ -75,7 +74,7 @@ class Catalog extends MY_Controller {
 		//load data for facets
 		$this->load_facets_data();
 
-		$output= $this->_search();
+		$output= $this->_search();		
 		$output['tab_type']=$this->active_tab;
 		
 		//enable/disable types navbar tabs
@@ -85,12 +84,20 @@ class Catalog extends MY_Controller {
 		$output['search_output']=$this->load->view($dataset_view, $output,true);
 		
 		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
-		$filters['repositories']=$this->load->view('search/filter_collections', 
-			array(
-				'repositories'=>$this->facets['repositories'],
-				'search_options'=>$output['search_options']
-			)
-			,true);
+		
+		if(!isset($this->active_repo_id)){
+			$filters['repositories']=$this->load->view('search/filter_collections', 
+				array(
+					'repositories'=>$this->facets['repositories'],
+					'search_options'=>$output['search_options']
+				)
+				,true);
+		}
+
+		//collection info box
+		if(isset($this->active_repo_id)){
+			$output['collection_info']=$this->load->view('search/collection_info',array('repo'=>$this->active_repo),true);
+		}
 
 		//data access types
 		$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
@@ -159,7 +166,6 @@ class Catalog extends MY_Controller {
 		//$data['max_year']=$this->facets['years']['max_year'];
 
 		$search_options=new StdClass;
-		$search_options->filter= new StdClass;
 		$limit=$this->get_page_size();
 
 		//page parameters
@@ -175,17 +181,16 @@ class Catalog extends MY_Controller {
 		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
 		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
-		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
-		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
+		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
 		$search_options->tag			=xss_clean($this->input->get("tag"));
 		$search_options->sid			=xss_clean($this->input->get("sid"));
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
+		$search_options->repo			=xss_clean($this->active_repo['repositoryid']);
 		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
-
 
 		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('year','title','nation','country','popularity','rank');
@@ -216,6 +221,9 @@ class Catalog extends MY_Controller {
 
 		$data['tags']=array();//$this->Search_helper_model->get_active_tags($this->active_repo['repositoryid']);
 
+		$data['active_repo']=$this->active_repo;
+		$data['active_repo_id']=$this->active_repo_id;
+
 		/*if($this->topic_search=='yes')
 		{
 			//get vocabulary id from config
@@ -239,7 +247,7 @@ class Catalog extends MY_Controller {
 
 
 		//which view to use for display
-		if ($search_options->vk!='' && $search_options->view=='v')
+		/*if ($search_options->vk!='' && $search_options->view=='v')
 		{
 			//variable search
 			$params=array(
@@ -253,7 +261,7 @@ class Catalog extends MY_Controller {
 				'to'=>$search_options->to,
 				'sort_by'=>$search_options->sort_by,
 				'sort_order'=>$search_options->sort_order,
-				'repo'=>$search_options->filter->repo,
+				'repo'=>$search_options->repo,
 				'dtype'=>$search_options->dtype
 			);
 
@@ -266,7 +274,7 @@ class Catalog extends MY_Controller {
 			$data['data_access_types']=array();//$this->Form_model->get_form_list();
 			$data['search_type']='variable';
 			return $data;
-		}
+		}*/
 
 		if($search_options->tab_type!=''){
 			$search_options->type=$search_options->tab_type;
@@ -284,7 +292,7 @@ class Catalog extends MY_Controller {
 			'tags'=>$search_options->tag,
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
-			'repo'=>$search_options->filter->repo,
+			'repo'=>$search_options->repo,
 			'dtype'=>$search_options->dtype,
 			'sid'=>$search_options->sid,
 			'type'=>$search_options->type,
@@ -542,11 +550,13 @@ class Catalog extends MY_Controller {
 			//repository options
 			if ($repo=='central'){
 				$this->active_repo=null;
+				$this->active_repo_id=null;
 				//$this->active_repo=$this->repository_model->get_central_catalog_array();
 			}
 			else{
 				//set active repo
 				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repo);
+				$this->active_repo_id=$this->active_repo['repositoryid'];
 			}
 		}
 	}
