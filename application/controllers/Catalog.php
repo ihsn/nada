@@ -21,6 +21,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Vocabulary_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
+		$this->load->model('License_model');
 
 		//$this->output->enable_profiler(TRUE);
 
@@ -51,6 +52,7 @@ class Catalog extends MY_Controller {
 
 		$this->facets['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
 		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
+		$this->facets['licenses']=$this->Search_helper_model->get_active_licenses($repo_id);		
 		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
 		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
@@ -100,7 +102,14 @@ class Catalog extends MY_Controller {
 		}
 
 		//data access types
-		$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+
+		//licenses
+		$filters['licenses']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['licenses'], 
+				'filter_id'=>'license'
+			),true);
 		
 		//countries			
 		$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
@@ -181,7 +190,8 @@ class Catalog extends MY_Controller {
 		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
-		$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		//$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		$search_options->license		=xss_clean($this->input->get("license"));
 		$search_options->tag			=xss_clean($this->input->get("tag"));
 		$search_options->sid			=xss_clean($this->input->get("sid"));
 		$search_options->type			=xss_clean($this->input->get("type"));
@@ -292,7 +302,8 @@ class Catalog extends MY_Controller {
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
 			'repo'=>$search_options->repo,
-			'dtype'=>$search_options->dtype,
+			//'dtype'=>$search_options->dtype,
+			'license'=>$search_options->license,
 			'sid'=>$search_options->sid,
 			'type'=>$search_options->type,
             'country_iso3'=>$search_options->country_iso3,
@@ -303,7 +314,8 @@ class Catalog extends MY_Controller {
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
-		$data['data_access_types']=array();//$this->Form_model->get_form_list();
+		//$data['data_access_types']=array();//$this->Form_model->get_form_list();
+		$data['licenses']=$this->License_model->get_list();
 		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
 		return $data;

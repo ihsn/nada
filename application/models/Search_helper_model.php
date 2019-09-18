@@ -517,6 +517,40 @@ class Search_helper_model extends CI_Model {
 		
 		return $types;
 	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * List of data licenses
+	 *
+	 */
+	function get_active_licenses($repositoryid=null)
+	{
+		$this->db->select('surveys.license_id, licenses.code, licenses.title, count(surveys.license_id) as found');
+		$this->db->join('licenses','licenses.id=surveys.license_id','inner');	
+		$this->db->where('surveys.published',1);
+		$this->db->group_by('surveys.license_id, licenses.code, licenses.title');
+
+		if (trim($repositoryid)!=='' && $repositoryid!='central'){
+			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+
+		$result=$this->db->get('surveys')->result_array();
+
+		if (!$result){
+			return FALSE;
+		}
+		
+		$types=array();
+		foreach($result as $row){
+			$types[(string)$row['license_id']]=$row;
+		}
+		
+		return $types;
+	}
 	
 	
 

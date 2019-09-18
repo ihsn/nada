@@ -25,7 +25,7 @@ class Catalog_search_mysql{
 	var $to=0;
 	var $repo='';
 	var $type=array();
-	//var $center=array();
+	var $license=array();
 	var $collections=array();
 	var $dtype=array();//data access type
     var $sid=''; //comma separated list of survey IDs
@@ -104,6 +104,7 @@ class Catalog_search_mysql{
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
+		$license=$this->_build_license_query();
 		$sid=$this->_build_sid_query();
 		$countries_iso3=$this->_build_countries_iso3_query();
 		
@@ -154,7 +155,7 @@ class Catalog_search_mysql{
 		}
 		
 		//array of all options
-		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$license,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -192,6 +193,7 @@ class Catalog_search_mysql{
 			$this->ci->db->select('SQL_CALC_FOUND_ROWS '.$study_fields.',varcount, count(*) as var_found',FALSE);
 			$this->ci->db->from('surveys');
 			//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+			$this->ci->db->join('licenses','surveys.license_id=licenses.id','left');
 			$this->ci->db->join('variables v','surveys.id=v.sid','inner');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
@@ -223,6 +225,7 @@ class Catalog_search_mysql{
 			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
 			$this->ci->db->from('surveys');
 			//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+			$this->ci->db->join('licenses','surveys.license_id=licenses.id','left');
 			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 			$this->ci->db->where('surveys.published',1);
 			
@@ -322,12 +325,13 @@ class Catalog_search_mysql{
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
-		$dtype=$this->_build_dtype_query();
+		//$dtype=$this->_build_dtype_query();
+		$license=$this->_build_license_query();
 		$sid=$this->_build_sid_query();
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$license,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -347,7 +351,7 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, forms.model as form_model,surveys.year_start,surveys.year_end';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity, license_id,licenses.code as license_code,surveys.year_start,surveys.year_end';
 		//$study_fields.=',link_indicator, link_questionnaire, link_technical, link_study';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
@@ -357,7 +361,8 @@ class Catalog_search_mysql{
 		//study search
 		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
 		$this->ci->db->from('surveys');
-		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('licenses','surveys.license_id=licenses.id','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->where('surveys.published',1);
 		$this->ci->db->group_by('surveys.type');	
@@ -1078,6 +1083,34 @@ class Catalog_search_mysql{
 		if ($types_str!='')
 		{
 			return sprintf(' forms.formid in (%s)',$types_str);
+		}
+		
+		return FALSE;	
+	}
+
+
+	function _build_license_query()
+	{
+		$licenses=$this->license;
+
+		if (!is_array($licenses) || count($licenses)<1)
+		{
+			return FALSE;
+		}
+
+		foreach($licenses as $key=>$value)
+		{
+			if (!is_numeric($value))
+			{
+				unset($licenses[$key]);
+			}
+		}
+		
+		$types_str=implode(",",$licenses);
+
+		if ($types_str!='')
+		{
+			return sprintf(' licenses.id in (%s)',$types_str);
 		}
 		
 		return FALSE;	

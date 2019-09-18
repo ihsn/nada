@@ -1684,12 +1684,16 @@ class Catalog extends MY_Controller {
 		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
 		//data classifications
-		$survey_row['data_classifications'] = $this->Data_classification_model->get_list();
+		$data_classifications = $this->Data_classification_model->get_list();
+		$data_classifications=array('0'=>'--SELECT--') + $data_classifications;
+		$survey_row['data_classifications'] = $data_classifications;
 
 		//licenses
 		$licenses = $this->License_model->get_list();
-		$licenses=array_merge(array('0'=>'--SELECT--'),$licenses);
+		$licenses=array('0'=>'--SELECT--') + $licenses;
 		$survey_row['licenses']=$licenses;
+
+		
 
 		/*
 		//data access form list
@@ -1731,30 +1735,24 @@ class Catalog extends MY_Controller {
 		//allowed fields
 		$allowed_keys=array('published','formid','link_indicator','link_study','link_da','license_id','classification_id');
 
-		foreach($allowed_keys as $key)
-		{
-			$options=array();
-			$options['id']=$id;
-			if ($this->input->post($key)!=FALSE)
-			{
-					$options[$key]=$this->input->post($key);
-					$result=$this->Catalog_model->update_survey_options($options);
-
-					if ($result)
-					{
-						$this->session->set_flashdata('message', t('form_update_success'));
-					}
-					else
-					{
-						$this->session->set_flashdata('error', t('form_update_failed'));
-					}
+		$options=array();
+		foreach($_POST as $key=>$value){
+			if (in_array($key,$allowed_keys)){
+				$options[$key]=$this->input->post($key);
 			}
 		}
+		
+		$options['id']=$id;
+		$result=$this->Catalog_model->update_survey_options($options);
 
+		if ($result){
+			$this->session->set_flashdata('message', t('form_update_success'));
+		}
+		else{
+			$this->session->set_flashdata('error', t('form_update_failed'));
+		}
 		//$this->events->emit('db.after.update', 'surveys', $id,'atomic');
-
 		redirect('admin/catalog/edit/'.$id);
-
 	}
 
 

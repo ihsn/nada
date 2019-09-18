@@ -53,6 +53,14 @@
         <?php endforeach;?>
     <?php endif;?>
 
+    <?php if (isset($search_options->license) && is_array($search_options->license)):?>
+        <?php foreach($search_options->license as $license_id):?>
+            <?php if (array_key_exists($license_id,$licenses)):?>
+                <span class="badge badge-default wb-badge-close remove-filter dtype license" data-type="license[]" data-value="<?php echo $license_id;?>"><?php echo $licenses[$license_id];?><i class="fa fa-close"></i></span>
+            <?php endif;?>
+        <?php endforeach;?>
+    <?php endif;?>
+
     <?php if ($search_options->from!='' && $search_options->to!=''):?>
             <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo $search_options->from;?>-<?php echo $search_options->to;?><i class="fa fa-close"></i></span>
     <?php endif;?>
