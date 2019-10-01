@@ -31,8 +31,6 @@
     display:none;
 }
 
-
-
 .nav-tabs-auto-overflow {
   overflow-x: auto;
   overflow-y: hidden;

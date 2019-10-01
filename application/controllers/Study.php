@@ -21,7 +21,7 @@ class Study extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load("catalog_search");
 		$this->lang->load('ddibrowser');
-		$this->load->helper('catalog');
+		//$this->load->helper('catalog');
 		//$this->output->enable_profiler(TRUE);
 
 		if ($this->ion_auth->logged_in()){

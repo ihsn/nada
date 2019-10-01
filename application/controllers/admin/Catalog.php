@@ -20,7 +20,7 @@ class Catalog extends MY_Controller {
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
-		$this->load->helper("catalog");
+		//$this->load->helper("catalog");
 		$this->template->set_template('admin');
 
 		//load language file
@@ -1581,10 +1581,7 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		$this->acl->user_has_study_access($id);
 
-		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
 		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-		//$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
 		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
 		$this->load->model('Citation_model');
 		$this->load->model('Catalog_notes_model');
@@ -1693,9 +1690,6 @@ class Catalog extends MY_Controller {
 		$licenses=array('0'=>'--SELECT--') + $licenses;
 		$survey_row['licenses']=$licenses;
 
-		
-
-		/*
 		//data access form list
 		$this->load->model('Form_model');
 		$this->forms_list=array('0'=>'---');
@@ -1703,7 +1697,7 @@ class Catalog extends MY_Controller {
 		//create a list of choices for the drop down
 		foreach($this->Form_model->get_all()  as $value){
 			$this->forms_list[$value['formid']]=t($value['fname']); 
-		}*/
+		}
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
 		$this->template->write('content', $content,true);

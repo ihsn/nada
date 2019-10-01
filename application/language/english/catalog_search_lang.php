@@ -211,6 +211,7 @@ $lang['from']="From";
 $lang['to']="To";
 
 $lang['filter_by_tag']="Tags";
+$lang['filter_by_license']="License";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

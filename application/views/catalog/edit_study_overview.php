@@ -115,14 +115,18 @@ $selected_page=$this->uri->segment(5);
 	                <?php endif;?>
             </td>
 		</tr>
-		<!--
+		
 		<tr>
 			<td><?php echo t('data_access');?></td>
 			<td>
 				<div class="collapsible">
 				<div class="box-caption">
 						<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-						<?php echo $this->forms_list[$formid];?>
+						<?php if(isset($formid)):?>
+							<?php echo $this->forms_list[$formid];?>
+						<?php else:?>
+							<?php echo t('msg_select_data_access_type');?>
+						<?php endif;?>
 				</div>
 
 				<div class="box-body collapse">
@@ -162,40 +166,7 @@ $selected_page=$this->uri->segment(5);
 
 			</td>
 		</tr>
-		-->
-
-		<!-- data classification -->
-		<tr>
-			<td><?php echo t('data_classification');?></td>
-			<td>
-				<div class="collapsible">
-					<div class="box-caption">
-							<span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-							<?php echo $data_classifications[$classification_id];?>
-					</div>
-
-					<div class="box-body collapse">
-					<form method="post" id="form-data_classification" action="<?php echo site_url('/admin/catalog/update');?>">
-						
-						<input type="hidden" name="sid" value="<?php echo $id;?>"/>
-
-						<div class="field"> 
-							<label><?php echo t('msg_select_data_access_type');?></label>
-							<?php echo form_dropdown('classification_id', $data_classifications, get_form_value("classification_id",isset($classification_id) ? $classification_id : ''),'id="classification_id"'); ?>
-						</div>
-
-						<div class="field">
-							<input type="submit" value="<?php echo t('update');?>" name="submit" class="btn btn-default"/>
-							<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle btn btn-link"/>
-						</div>
-					</form>
-					</div>
-				</div>
-			</td>
-		</tr>
-
-
-
+		
 		<!-- license -->
 		<tr>
 			<td><?php echo t('license');?></td>
@@ -211,26 +182,8 @@ $selected_page=$this->uri->segment(5);
 								<input type="hidden" name="sid" value="<?php echo $id;?>"/>
 
 						<div class="field"> 
-							<label><?php echo t('msg_select_data_access_type');?></label>
+							<label><?php echo t('select_license');?></label>
 							<?php echo form_dropdown('license_id', $licenses, get_form_value("license_id",isset($license_id) ? $license_id : ''),'id="license_id"'); ?>
-						</div>
-
-						<div class="field link-da">
-								<label for="link_da"><?php echo t('remote_data_access_url');?></label>
-								<input name="link_da" type="text" id="link_da" class="input-flex" value="<?php echo get_form_value('link_da',isset($link_da) ? $link_da : ''); ?>"/>
-						</div>
-
-						<div class="study-microdata model-<?php echo $license_id;?>">
-						<?php if (count($microdata_files)>0):?>
-							<div class="microdata-applies-to"><?php echo t('data_selection_apply_to_files');?></div>
-							<ul>
-								<?php foreach($microdata_files as $mf):?>
-								<li><?php echo basename($mf['filename']);?></li>
-								<?php endforeach;?>
-							</ul>
-						<?php else:?>
-							<div class="no-microdata-assigned"><?php echo sprintf(t('study_no_data_files_assigned'),'');?></div>
-						<?php endif;?>
 						</div>
 
 						<div class="field">

@@ -169,7 +169,15 @@ else{
         <div class="col-10 col-lg-11">            
             <h5 class="title">
                 <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" >                
-                    <?php echo $row['title'];?> <span class="dataset-type-label"><?php echo $row['type'];?></span>                   
+                    <?php echo $row['title'];?> 
+                    <?php /*?>
+                    <?php if(isset($licenses) && !empty($row['license_id'])):?>
+                    <span class="dataset-license-label ">
+                        <?php //echo $row['type'];?>                        
+                        <?php echo $licenses[$row['license_id']];?>
+                    </span>
+                    <?php endif;?>
+                    <?php */ ?>
                 </a>
             </h5>
             
@@ -195,8 +203,7 @@ else{
                     <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
             </div>
-            <div class="survey-stats">
-                <!--<span><?php echo $row['form_model'];?></span>-->
+            <div class="survey-stats">                
                 <span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span>
                 <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
                 <?php if ((int)$row['total_views']>0):?>
@@ -206,6 +213,13 @@ else{
                     <span> Score: <?php echo $row['rank'];?></span>
                 <?php endif;?>
 
+                <?php if(isset($licenses) && !empty($row['license_id'])):?>
+                    <span class="dataset-license-labelz ">
+                        <i class="fa fa-cog"></i>
+                        <?php echo $licenses[$row['license_id']];?>
+                    </span>
+                <?php endif;?>
+                
                 <?php /* ?>
                 <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
                 <?php */?>

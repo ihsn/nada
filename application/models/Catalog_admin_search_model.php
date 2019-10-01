@@ -79,8 +79,8 @@ class Catalog_admin_search_model extends CI_Model {
 		$this->db->select(implode(",", $this->study_fields));
 		
 		//form fields
-		//$this->db->select('forms.model as form_model, forms.path as form_path');
-		//$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		$this->db->select('forms.model as form_model, forms.path as form_path');
+		$this->db->join('forms', 'forms.formid= surveys.formid','left');
 		
 		if ($this->active_repo!=NULL && $this->active_repo!='central') 
 		{

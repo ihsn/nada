@@ -82,6 +82,7 @@ class Dataset_model extends CI_Model {
 		$this->load->model("Survey_country_model");
 		$this->load->model("Vocabulary_model");
 		$this->load->model("Term_model");
+		$this->load->model("License_model");
 
 	}
 	
@@ -181,8 +182,11 @@ class Dataset_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
-		$this->db->select("id,repositoryid,type,idno,title,year_start, year_end,nation,published,created, changed, varcount, total_views, total_downloads, surveys.license_id, surveys.classification_id,link_da as remote_data_url, link_study, link_indicator, link_technical, link_report");
-		//$this->db->join('forms','surveys.formid=forms.formid','left');
+		$this->db->select("id,repositoryid,type,idno,title,year_start, 
+			year_end,nation,published,created, changed, varcount, total_views, total_downloads, 
+			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, license_id,
+			thumbnail, link_study, link_indicator, link_report");
+		$this->db->join('forms','surveys.formid=forms.formid','left');
 		$this->db->where("id",$sid);
 		
 		$survey=$this->db->get("surveys")->row_array();
@@ -191,17 +195,23 @@ class Dataset_model extends CI_Model {
 			$survey=$this->decode_encoded_fields($survey);
 		}
 
+		//license info
+		$survey['license_info']=$this->License_model->get_single($survey['license_id']);
+
         return $survey;
 	}
 
 	//return survey with metadata and other fields
 	function get_row_detailed($sid)
 	{
-		$this->db->select("surveys.*");
-		//$this->db->join('forms','surveys.formid=forms.formid','left');
+		$this->db->select("surveys.*, forms.model as data_access_type");		
+		$this->db->join('forms','surveys.formid=forms.formid','left');
         $this->db->where("id",$sid);
         $data=$this->db->get("surveys")->row_array();		
-		$data=$this->decode_encoded_fields($data);		
+		$data=$this->decode_encoded_fields($data);
+		
+		//license info
+		$data['license_info']=$this->License_model->get_single($data['license_id']);
 
 		return $data;		
 	}
