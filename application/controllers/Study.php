@@ -271,6 +271,8 @@ class Study extends MY_Controller {
         $data_access_type=$dataset['data_access_type'];
 		$published=$dataset['published'];
 		
+		$dataset_type=$dataset['type']; 
+		$published=$dataset['published'];		
 		$has_datafiles=$this->Dataset_model->has_datafiles($sid);
 
         //get citations count for the survey
@@ -370,6 +372,7 @@ class Study extends MY_Controller {
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,
 			'data_access_type'=>$data_access_type,
+			'license_info'=>$dataset['license_info'],
 			'body'=>$content,
 			'has_related_materials'=>$related_resources_count,
             'has_citations'=>$related_citations_count,

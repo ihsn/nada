@@ -1,5 +1,4 @@
 <style>
- 
  .search-nav-tabs .nav-item .active{   
     background-color: transparent;
     border:0px;
@@ -133,43 +132,7 @@
     font-size: 2em;
     color:#bfbfbf;
 }
-/*
-.fa-nada-microdata,.fa-nada-survey{
-    color:#28a745;
-}
-
-.fa-nada-document{
-    color:#6c757d;
-}
-
-.fa-nada-timeseries{
-    color:#1e7e34;
-}
-
-.fa-nada-geospatial{
-    color:#20c997;
-}
-
-.fa-nada-image{
-    color:#17a2b8;
-}
-
-.fa-nada-table{
-    color:#007bff;
-}
-
-.fa-nada-table{
-    color:#ffc107;
-}
-*/
-
-
-/*i { vertical-align: middle; }*/
-
 </style>
-<!--
-<script src="https://cdnjs.cloudflare.com/ajax/libs/history.js/1.8/bundled/html4+html5/jquery.history.min.js"></script>
--->
 
 <div class="container">
 <form method="get" id="catalog-search-form">    
@@ -230,7 +193,9 @@
     <!--left side bar -->
     <div class="col-12 col-lg-3 col-md-4">
 
-    <?php echo $collection_info;?>
+        <?php if(isset($collection_info)):?>
+            <?php echo $collection_info;?>
+        <?php endif;?>
 
         <nav class="navbar navbar-expand-sm navbar-expand-filters">
             
@@ -255,7 +220,7 @@
     <!-- listing page -->
     <div class="col-lg-9 col-md-8">
         <!--search bar-->
-        <?php echo $this->load->view('search/keyword_search_box',null);?>
+        <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
         <div id="search-result-container">
             <?php echo $search_output;?>

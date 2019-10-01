@@ -4,6 +4,8 @@ class Catalog extends MY_Controller {
 		//active repository object
 		var $active_repo=NULL;
 
+		var $active_repo_id=NULL;
+
 		//active tab - default ALL
 		var $active_tab=NULL;
 
@@ -102,7 +104,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//data access types
-		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+		$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
 
 		//licenses
 		$filters['licenses']=$this->load->view('search/facet', 
@@ -131,6 +133,7 @@ class Catalog extends MY_Controller {
 		$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
 
 		$output['tabs']=$tabs;
+		$output['facets']=$this->facets;
 
 		//load js
 		$this->template->add_js('javascript/jquery.history.min.js');		
@@ -168,7 +171,6 @@ class Catalog extends MY_Controller {
 
 		$this->load->helper('security');
 
-
 		//get year min/max
 		//$data['min_year']=$this->facets['years']['min_year'];
 		//$data['max_year']=$this->facets['years']['max_year'];
@@ -190,7 +192,7 @@ class Catalog extends MY_Controller {
 		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
-		//$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		$search_options->dtype			=xss_clean($this->input->get("dtype"));
 		$search_options->license		=xss_clean($this->input->get("license"));
 		$search_options->tag			=xss_clean($this->input->get("tag"));
 		$search_options->sid			=xss_clean($this->input->get("sid"));
@@ -302,7 +304,7 @@ class Catalog extends MY_Controller {
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
 			'repo'=>$search_options->repo,
-			//'dtype'=>$search_options->dtype,
+			'dtype'=>$search_options->dtype,
 			'license'=>$search_options->license,
 			'sid'=>$search_options->sid,
 			'type'=>$search_options->type,
@@ -314,7 +316,7 @@ class Catalog extends MY_Controller {
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
-		//$data['data_access_types']=array();//$this->Form_model->get_form_list();
+		$data['data_access_types']=$this->Form_model->get_form_list();
 		$data['licenses']=$this->License_model->get_list();
 		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
@@ -460,7 +462,7 @@ class Catalog extends MY_Controller {
 	 * Get pageview by dataset type
 	 * 
 	 */
-	private function get_type_pageview($type)
+	private function get_type_pageview($type) 
 	{
 		//default view
 		$dataset_view='search/surveys';
@@ -723,9 +725,4 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
-
-	function collection($repoid)
-	{
-		echo $repoid;
-	}
 }    
