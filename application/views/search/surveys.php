@@ -210,7 +210,7 @@ else{
                     <span><?php echo t('views');?>: <?php echo (int)$row['total_views'];?></span>
                 <?php endif;?>
                 <?php if(isset($row['rank'])):?>
-                    <span> Score: <?php echo $row['rank'];?></span>
+                    <span> Score: <?php echo round($row['rank'],2);?></span>
                 <?php endif;?>
 
                 <?php if(isset($licenses) && !empty($row['license_id'])):?>
