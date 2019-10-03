@@ -1680,11 +1680,6 @@ class Catalog extends MY_Controller {
 		//pdf documentation for study
 		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
-		//data classifications
-		$data_classifications = $this->Data_classification_model->get_list();
-		$data_classifications=array('0'=>'--SELECT--') + $data_classifications;
-		$survey_row['data_classifications'] = $data_classifications;
-
 		//licenses
 		$licenses = $this->License_model->get_list();
 		$licenses=array('0'=>'--SELECT--') + $licenses;
