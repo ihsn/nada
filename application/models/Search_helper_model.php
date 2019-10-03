@@ -526,7 +526,7 @@ class Search_helper_model extends CI_Model {
 	 */
 	function get_active_licenses($repositoryid=null)
 	{
-		$this->db->select('surveys.license_id, licenses.code, licenses.title, licenses.thumbnail, count(surveys.license_id) as found');
+		$this->db->select('surveys.license_id, licenses.code, licenses.title, count(surveys.license_id) as found');
 		$this->db->join('licenses','licenses.id=surveys.license_id','inner');	
 		$this->db->where('surveys.published',1);
 		$this->db->group_by('surveys.license_id, licenses.code, licenses.title');
