@@ -174,7 +174,7 @@ $selected_page=$this->uri->segment(5);
 				<div class="collapsible">
 					<div class="box-caption">
 							<span class="glyphicon glyphicon-copyright-mark" aria-hidden="true"></span>
-							<?php echo $licenses[$license_id];?>
+							<?php echo isset($licenses[$license_id]) ? $licenses[$license_id] : '';?>
 					</div>
 
 					<div class="box-body collapse">
