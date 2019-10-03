@@ -78,7 +78,7 @@ class Catalog extends MY_Controller {
 		//load data for facets
 		$this->load_facets_data();
 
-		$output= $this->_search();		
+		$output= $this->_search();
 		$output['tab_type']=$this->active_tab;
 		
 		//enable/disable types navbar tabs

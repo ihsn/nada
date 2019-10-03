@@ -279,7 +279,7 @@ class Catalog_search_sqlsrv{
 
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,surveys.idno,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
-		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
+		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
 		//build final search sql query
 		$sql='';
@@ -382,7 +382,7 @@ class Catalog_search_sqlsrv{
 		}
 
 		$result['search_counts_by_type']=array();
-		/*$result['search_counts_by_type']=$this->search_counts_by_type();
+		//$result['search_counts_by_type']=$this->search_counts_by_type();
 		
 		if ($result['found']>0){
 			//search for variables for SURVEY types
@@ -402,7 +402,7 @@ class Catalog_search_sqlsrv{
 			}
 
 			$result['rows']=$this->search_result;
-		}*/
+		}
 
 		return $result;
 	}
@@ -1099,15 +1099,16 @@ class Catalog_search_sqlsrv{
 		
 		$where=false;
 		
-		if (strlen($keywords) >3){
+		if (strlen($keywords) >=3){
 			$fulltext_index=$this->get_variable_search_field(TRUE);
-			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($keywords));			
+			$where=sprintf('(freetext((%s),%s) )', $fulltext_index,$this->ci->db->escape($keywords));
 		}
 		else{
 			return false;
 		}	
 
-		if($where){
+		if($where)
+		{
 			$sql='select count(*) as var_found,sid from variables v where ';
 			$sql.=$where;
 			$sql.=' AND sid in ('. implode(",", $id_list). ') ';
