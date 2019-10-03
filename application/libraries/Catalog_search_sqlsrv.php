@@ -281,6 +281,11 @@ class Catalog_search_sqlsrv{
 		$study_fields='surveys.id as id,surveys.idno,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
+		//add ranking if keywords are not empty
+		if(!empty($this->study_keywords)){
+			$study_fields.=', k.rank';
+		}
+
 		//build final search sql query
 		$sql='';
 		$sql_array=array();
@@ -672,7 +677,7 @@ class Catalog_search_sqlsrv{
 		
 		if ($index==NULL)
 		{
-			$index[]='name,labl,qstn';
+			$index[]='name,labl,qstn,catgry';
 		}
 
 		if ($is_fulltext==TRUE)	
