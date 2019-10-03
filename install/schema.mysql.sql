@@ -366,7 +366,8 @@ CREATE TABLE `surveys` (
   `link_report` varchar(255) DEFAULT NULL COMMENT 'reports',
   `link_indicator` varchar(255) DEFAULT NULL COMMENT 'indicators',
   `link_questionnaire` varchar(255) DEFAULT NULL,
-  `formid` int(11) DEFAULT NULL,  
+  `formid` int(11) DEFAULT NULL,
+  `license_id` int(11) DEFAULT NULL,
   `link_da` varchar(255) DEFAULT NULL,
   `published` tinyint(4) DEFAULT NULL,
   `total_views` int(11) DEFAULT '0',
@@ -1507,11 +1508,7 @@ CREATE TABLE `filestore` (
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_filestore_file` (`file_name`)
-<<<<<<< HEAD
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-=======
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-
 
 
 CREATE TABLE `ts_databases` (
@@ -1528,4 +1525,34 @@ CREATE TABLE `ts_databases` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idno_UNIQUE` (`idno`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
->>>>>>> one-search
+
+
+CREATE TABLE `licenses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(45) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `url` varchar(300) DEFAULT NULL,
+  `license_text` varchar(5000) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `code_UNIQUE` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+
+
+LOCK TABLES `licenses` WRITE;
+/*!40000 ALTER TABLE `licenses` DISABLE KEYS */;
+INSERT INTO `licenses` (id,code,title) VALUES 
+(9,'cc_by_40','CC-BY 4.0'),
+(10,'other_cc','Other CC'),
+(11,'custom','Custom'),
+(12,'data_na','Data not available'),
+(13,'esri','ESRI Enterprise License Agreement'),
+(14,'na','License not applicable'),
+(15,'external','License specified externally'),
+(16,'odbl','Open Database License (ODBL)'),
+(17,'licensed','Licensed Research Data'),
+(18,'public','Public Research Data');
+/*!40000 ALTER TABLE `licenses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
