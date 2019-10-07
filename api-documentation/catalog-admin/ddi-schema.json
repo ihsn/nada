@@ -63,28 +63,28 @@
           "type":"object",
           "title":"Version Statement",
           "description":"Version Statement",
-          "_ddi_xpath":"stdyDscr/citation/verStmt",
+          "_ddi_xpath":"docDscr/citation/verStmt",
           "properties":{
             "version":{
               "title":"Version",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/version"
+              "_ddi_xpath":"docDscr/citation/verStmt/version"
             },
             "version_date":{
               "title":"Version Date",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/version/@date"
+              "_ddi_xpath":"docDscr/citation/verStmt/version/@date"
             },
             "version_resp":{
               "title":"Version Responsibility Statement",
               "description":"The organization or person responsible for the version of the work",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/verResp"
+              "_ddi_xpath":"docDscr/citation/verStmt/verResp"
             },
             "version_notes":{
               "title":"Version Notes",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/notes"
+              "_ddi_xpath":"docDscr/citation/verStmt/notes"
             }
           }
         }
@@ -256,6 +256,11 @@
                     "title":"Abbreviation",
                     "type":"string"
                   },
+                  "grant":{
+                    "title":"Grant Number",
+                    "type":"string",
+                    "_ddi_xpath":"stdyDscr/citation/prodStmt/grantNo"
+                  },
                   "role":{
                     "title":"Role",
                     "type":"string"
@@ -265,12 +270,7 @@
                   "name"
                 ]
               }
-            },
-            "grant_no":{
-              "title":"Grant number",
-              "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/prodStmt/grantNo"
-            }
+            }            
           }
         },
         "distribution_statement":{
