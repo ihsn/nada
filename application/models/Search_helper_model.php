@@ -614,11 +614,11 @@ class Search_helper_model extends CI_Model {
 	*/	
 	function get_dataset_types($repositoryid=null)
 	{
-			$this->db->select('survey_types.code,survey_types.title,count(*) as found');
+			$this->db->select('survey_types.code,survey_types.title, survey_types.weight, count(*) as found');
 			$this->db->join('surveys s', 's.type=survey_types.code','inner');
 			$this->db->where('s.published',1);
 			$this->db->order_by('survey_types.weight','desc');
-			$this->db->group_by('survey_types.code, survey_types.title');
+			$this->db->group_by('survey_types.code, survey_types.title, survey_types.weight');
 
 			//filter by repository
 			if (trim($repositoryid)!=='' && $repositoryid!='central'){
