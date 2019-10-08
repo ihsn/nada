@@ -184,10 +184,22 @@ li.nav-item.dropdown .fa {
 .togglable {
   cursor: pointer;
   transition: all .25s; }
-  .togglable:hover {
-    color: #0071bc; }
-  .togglable .fa-filter:hover {
-    color: #0071bc; }
+
+.togglable:hover {
+  color: #0071bc; }
+
+.togglable .fa-filter:hover {
+  color: #0071bc; }
+
+.sidebar-filter .icon-collapsed{
+    display:none;
+}
+.sidebar-filter .collapsed .icon-collapsed{
+    display:block;
+}
+.sidebar-filter .collapsed .icon-expanded{
+    display:none;
+}
 
 .wb-sidebar-filter-collapse {
   display: none; }

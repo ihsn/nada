@@ -4,7 +4,7 @@
 
 <title><?php echo $title; ?></title>
 <!--<base href="<?php echo base_url(); ?>">-->
-<meta name="description" content="Central Microdata Catalog">
+<meta name="description" content="Data Catalog">
 
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/font-awesome.min.css">
 
@@ -17,14 +17,6 @@
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v03212019">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v03212019">
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<!--<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>-->
-
-
-<!--    <script src="//code.jquery.com/jquery-migrate-3.0.1.min.js"></script>-->
-
 <?php if($use_cdn):?>
     <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
@@ -35,13 +27,6 @@
     <script src="<?php echo base_url().$bootstrap_theme ?>/js/bootstrap.min.js"></script>
 <?php endif;?>
 
-<script src="<?php echo base_url().$bootstrap_theme ?>/js/script.js"></script>
-
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<!--<script src="--><?php //echo base_url().$bootstrap_theme ?><!--/js/ie10-viewport-bug-workaround.js"></script>-->
-<!-- tooltips  -->
-
-<script type="text/javascript" src="<?php echo base_url();?>javascript/jquery.ba-bbq.js"></script>
 <script type="text/javascript">
     var CI = {'base_url': '<?php echo site_url(); ?>'};
 

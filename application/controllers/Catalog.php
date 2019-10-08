@@ -52,7 +52,7 @@ class Catalog extends MY_Controller {
 			$repo_id=$this->active_repo['repositoryid'];
 		}
 
-		$this->facets['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
+		$this->facets['repositories']=$this->Search_helper_model->get_active_repositories();
 		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
 		$this->facets['licenses']=$this->Search_helper_model->get_active_licenses($repo_id);		
 		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
@@ -90,12 +90,19 @@ class Catalog extends MY_Controller {
 		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
 		
 		if(!isset($this->active_repo_id)){
-			$filters['repositories']=$this->load->view('search/filter_collections', 
+			/*$filters['repositories']=$this->load->view('search/filter_collections', 
 				array(
 					'repositories'=>$this->facets['repositories'],
 					'search_options'=>$output['search_options']
 				)
 				,true);
+			*/	
+			
+			$filters['repositories']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['repositories'], 
+				'filter_id'=>'collection'
+			),true);
 		}
 
 		//collection info box
@@ -104,7 +111,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//data access types
-		$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
 
 		//licenses
 		$filters['licenses']=$this->load->view('search/facet', 
@@ -112,16 +119,47 @@ class Catalog extends MY_Controller {
 				'items'=>$this->facets['licenses'], 
 				'filter_id'=>'license'
 			),true);
+
+
+		//licenses
+		$filters['da_types']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['da_types'], 
+				'filter_id'=>'dtype'
+			),true);	
+
+		/*echo '<pre>';
+		var_dump(	$this->facets['countries']);
+		die();*/
+
+		//countries
+		$filters['countries']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['countries'], 
+				'filter_id'=>'country'
+			),true);		
 		
 		//countries			
-		$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
+		//$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
 
 		//tags			
-		$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);			
+		//$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);
+
+		//tags
+		$filters['tags']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['tags'], 
+				'filter_id'=>'tag'
+			),true);
 		
 		//types filter
 		if(!$this->active_tab){
-			$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
+			//$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
+			$filters['types']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['types'], 
+				'filter_id'=>'type'
+			),true);
 		}
 
 		$output['filters']=$filters;

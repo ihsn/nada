@@ -31,15 +31,29 @@ items=array(
 */
 
 ?>
+
 <div id="filter-by-<?php echo $filter_id;?>" class="sidebar-filter wb-ihsn-sidebar-filter filter-box filter-by-<?php echo $filter_id;?>">
-    <h6 class="togglable"> <i class="fa fa-filter pr-2"></i><?php echo t('filter_by_'.$filter_id);?></h6>
+    
+        <h6 class="togglable"> 
+            <div 
+            class=" <?php echo $filter_collapse ? 'collapsed' :'';?>" 
+            data-toggle="collapse" 
+            href="#facet-<?php echo $filter_id;?>" role="button" aria-expanded="false" aria-controls="facet-<?php echo $filter_id;?>">
+                <i class="fa fa-filter pr-2"></i>
+                <?php echo t('filter_by_'.$filter_id);?>
+                <span class="float-right" >
+                <i class="icon-toggle icon-collapsed float-right fa fa-chevron-down"></i>
+                <i class="icon-toggle icon-expanded float-right fa fa-chevron-up"></i>
+                </span>
+</div>
+        </h6> 
     
     <?php if(isset($filter_total) && $filter_total>0):?> 
     <div class="sidebar-filter-index selected-items-count" data-toggle="tooltip" data-placement="top" title="Tooltip for Help"><?php echo $filter_total;?></div>
     <?php endif;?>
 
-    <div class="sidebar-filter-entries <?php echo $filter_collapse ? 'wb-sidebar-filter-collapse' :'';?> <?php echo $filter_id;?>-container items-container">
-        <div class="lnk-filter-reset text-right"><?php echo t('clear');?></div>
+    <div id="facet-<?php echo $filter_id;?>" class="sidebar-filter-entries <?php echo $filter_collapse ? 'collapse' :'';?> <?php echo $filter_id;?>-container items-container">
+        <!--<div class="lnk-filter-reset text-right"><?php echo t('clear');?></div>-->
         <div class="items-container  collection-items <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
             <?php if($items):?>
                 <?php $k=0;foreach($items as $item_key=>$item):$k++; ?>
@@ -51,7 +65,10 @@ items=array(
                                 <?php if($search_options->{$filter_id}!='' && in_array($item_key,$search_options->{$filter_id})):?>
                                     checked="checked"
                                 <?php endif;?>>                                
-                                <?php echo $item['title']; ?> <span> <span class="count">(<?php echo $item['found']; ?>)</span></span>
+                                <?php echo $item['title']; ?> 
+                                <?php if(isset($item['found'])):?>
+                                    <span class="count">(<?php echo $item['found']; ?>)</span>
+                                <?php endif;?>
                         </label>
                     </div>
                 <?php endforeach;?>
