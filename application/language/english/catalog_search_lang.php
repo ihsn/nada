@@ -10,6 +10,7 @@ $lang['link_export_search']="Export search result";
 $lang['link_search_help']="Search help";
 $lang['rss_feed']="RSS feed";
 $lang['filter_by_access']="Data access";
+$lang['filter_by_dtype']="Data access";
 $lang['filter_by_type']="Types";
 $lang['select_all']="Select all";
 $lang['filter_by_country']="Countries";

@@ -511,7 +511,7 @@ class Search_helper_model extends CI_Model {
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 
-		$this->db->group_by('surveys.formid, forms.model');
+		$this->db->group_by('surveys.formid, forms.model, forms.fname');
 		$query=$this->db->get('surveys');
 	
 		
