@@ -1391,19 +1391,19 @@
                         "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec"
                       },
                       "required":{
-                        "type":"integer",
+                        "type":"string",
                         "title":"Is signing of a confidentiality declaration required?",
                         "description":"Is signing of a confidentiality declaration required",
                         "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@required"
                       },
                       "form_url":{
-                        "type":"integer",
+                        "type":"string",
                         "title":"Confidentiality declaration form URL",
                         "description":"Provide a URN or URL for online access to a confidentiality declaration form.",
                         "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@URI"
                       },
                       "form_id":{
-                        "type":"integer",
+                        "type":"string",
                         "title":"Form ID",
                         "description":"Indicates the number or ID of the form that the user must fill out",
                         "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@formNo"
@@ -1425,17 +1425,17 @@
                         "description":"Confidentiality declaration text"
                       },
                       "required":{
-                        "type":"integer",
+                        "type":"string",
                         "title":"Indicate if special permissions are required to access a resource",
                         "description":"Indicate if special permissions are required to access a resource"
                       },
                       "form_url":{
-                        "type":"integer",
+                        "type":"string",
                         "title":"Form URL",
                         "description":"Link to the form URL"
                       },
                       "form_id":{
-                        "type":"integer",
+                        "type":"string",
                         "title":"Form ID",
                         "description":"Indicates the number or ID of the form that the user must fill out"
                       }
