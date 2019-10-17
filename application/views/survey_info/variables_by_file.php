@@ -58,18 +58,18 @@
 
         <div class="container-fluid" id="datafile-container">        
         <h4><?php echo t('data_file');?>: <?php echo $file['file_name'];?></h4>
-        <table class="data-file-bg1">
-            <?php if($file['description']!=''):?>
+        
+        <?php if($file['description']!=''):?>
+            <p><?php echo nl2br($file['description']);?></p>
+        <?php endif;?>
+    
+        <table class="data-file-bg1">            
             <tr>
-                <td colspan="2"><?php echo $file['description'];?></td>
-            </tr>
-            <?php endif;?>
-            <tr>
-                <td><?php echo t('cases');?></td>
+                <td><?php echo t('cases');?>: </td>
                 <td><?php echo $file['case_count'];?></td>
             </tr>
             <tr>
-                <td><?php echo t('variables');?></td>
+                <td><?php echo t('variables');?>: </td>
                 <td><?php echo $file['var_count'];?></td>
             </tr>
         </table>

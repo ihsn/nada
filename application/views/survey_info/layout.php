@@ -85,18 +85,37 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 	
 
 		<div class="dataset-footer-bar mt-2">					
-            <span class="mr-3 link-col float-left">
-				<small><?php echo t('last_modified');?> 
-				<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
-			</small>
-            </span>
-
+			
+			<span class="mr-3 link-col float-left">
+				<small>
+					<?php echo t('created_on');?> 
+					<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
+				</small>
+			</span>
+			
+			<span class="mr-3 link-col float-left">
+				<small>
+					<?php echo t('last_modified');?> 
+					<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
+				</small>
+			</span>
+			
             <?php if ((int)$survey['total_views']>0):?>
             <span class="mr-3 link-col float-left">
                 <small>
 				<i class="fa fa-eye" aria-hidden="true"></i> 
 				<?php echo t('page_views');?> 
 				<strong><?php echo $survey['total_views'];?></strong>
+			</small>
+            </span>
+			<?php endif;?>
+
+			<?php if ((int)$survey['total_downloads']>0):?>
+            <span class="mr-3 link-col float-left">
+                <small>
+				<i class="fa fa-eye" aria-hidden="true"></i> 
+				<?php echo t('download');?> 
+				<strong><?php echo $survey['total_downloads'];?></strong>
 			</small>
             </span>
 			<?php endif;?>
@@ -112,22 +131,24 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			<?php endif;?>
 
 			<?php if($survey['link_study']!=''): ?>
-				<span class="mr-3 link-col badge badge-light float-left">
+				<span class="mr-3 link-col  float-left">
+				<small>
 				<a  target="_blank" href="<?php echo html_escape($survey['link_study']);?>" title="<?php echo t('link_study_website_hover');?>">
 				<i class="fa fa-globe" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
 				</a>
+				</small>
 				</span>
 			<?php endif; ?>
 		
-
 			<?php if($survey['link_indicator']!=''): ?>
-				<span class="mr-3 link-col badge badge-light float-left">
-				<a target="_blank"  href="<?php echo html_escape($survey['link_indicator']);?>" title="<?php echo t('link_indicators_hover');?>">
-				<i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>
-				</a>
+				<span class="mr-3 link-col float-left">
+					<small>
+						<a target="_blank"  href="<?php echo html_escape($survey['link_indicator']);?>" title="<?php echo t('link_indicators_hover');?>">
+							<i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>					
+						</a>
+					</small>
 				</span>
 			<?php endif; ?>
-
 
 			<span class="mr-3 link-col  float-left">
 				<small><i class="fa fa-download" aria-hidden="true"> </i> <?php echo t('metadata');?></small>
