@@ -146,8 +146,6 @@ $config['survey']=array(
     'study_desc/study_info/quality_statement/standard_compliance_desc'=>array('xpath'=>'codeBook/stdyDscr/stdyInfo/qualityStatement/standardsCompliance/complianceDescription', 'transform_callback'=>'none'),
     'study_desc/study_info/quality_statement/other_quality_statement'=>array('xpath'=>'codeBook/stdyDscr/stdyInfo/qualityStatement/otherQualityStatement', 'transform_callback'=>'none'),
 
-    'study_desc/study_info/study_scope'=>array('xpath'=>'codeBook/stdyDscr/stdyInfo/notes', 'transform_callback'=>'none'),
-
     #ex-post-evaluation
     'study_desc/study_info/ex_post_evaluation/completion_date'=>array('xpath'=>'codeBook/stdyDscr/stdyInfo/exPostEvaluation/@completionDate', 'transform_callback'=>'none'),
     'study_desc/study_info/ex_post_evaluation/type'=>array('xpath'=>'codeBook/stdyDscr/stdyInfo/exPostEvaluation/@type', 'transform_callback'=>'none'),
