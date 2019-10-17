@@ -40,6 +40,11 @@ $lang['my_projects_title'] = 'My Projects';
 $lang['manage_projects'] = 'Manage Projects'; 
 $lang['disclosure_risk'] = 'Disclosure Risk';
 
+$lang['key_variables'] = 'Key variables';
+$lang['key_variables_help'] = 'Describe all key variables';
+$lang['sensitive_variables'] = 'Sensitive variables';
+$lang['sensitive_variables_help'] = 'Describe all sensitive variables';
+
 $lang['notes_to_library'] = 'Notes to library';
 
 $lang['identification'] = "Identification";

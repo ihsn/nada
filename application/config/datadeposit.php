@@ -1,6 +1,9 @@
 <?php
 //enable datadeposit
-$config['datadeposit']['enable_datadeposit']=false;
+$config['datadeposit']['enable_datadeposit']=true;
+
+//Show metadata sections expanded or collapsed?
+$config['datadeposit']['sections_collapsed']=true;
 
 $config['datadeposit']['mandatory_fields'] = array(
 	'ident_title',

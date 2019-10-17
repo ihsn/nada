@@ -8,6 +8,15 @@ left:0px;
 }
 </style>
 <![endif]-->
+<style>
+    .dd_required{
+        font-style:italic;
+        color:red;
+        font-size:12px;
+        font-weight:normal;
+        margin-left:20px;
+    }
+</style>
 <?php 
   	$section_actions='';
    $section_actions.='<span class="dd-icon show-help" title="'.t('show_help_tooltip').'"><span class="icon-help"></span>Help</span>';
@@ -20,7 +29,16 @@ left:0px;
 
 <?php 
     $dup=str_replace(array_keys($map), array_values($map), current($fields));
-    $show_additional_fields=$this->config->item('additional_fields','datadeposit');
+    $show_additional_fields=$this->config->item('additional_fields','datadeposit'); 
+    $sections_collapsed=$this->config->item('sections_collapsed','datadeposit'); 
+
+    //collapsed by default
+    $field_toggle_class='field-collapsed';
+
+    if($sections_collapsed===false){
+        $field_toggle_class='field-expanded';
+    }
+    
 ?>
 <script type="text/javascript">
 
@@ -239,7 +257,7 @@ $(function() {
 <div class="dd-edit-study-description">
 
 <?php echo form_open("datadeposit/study/{$project[0]->id}", "id='form'"); ?>
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
 
     <div id="Identification" class="section-header">
     	<div class="section-title"><?php echo t('identification');?></div>
@@ -295,7 +313,7 @@ $(function() {
 </div>
 
 
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
 
     <div id="Identification" class="section-header">
         <div class="section-title"><?php echo t('versions');?></div>
@@ -339,7 +357,7 @@ $(function() {
 </div>
 
 
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
 	<div id="Overview" class="section-header">
 		<div class="section-title"><?php echo t('overview');?></div>
 
@@ -372,7 +390,7 @@ $(function() {
     
 </div>
 
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Scope"  class="section-header">
         <div class="section-title"><?php echo t('scope');?></div>
 
@@ -387,7 +405,7 @@ $(function() {
     </div>
 </div>
 
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Coverage"  class="section-header">
         <div class="section-title"><?php echo t('coverage');?></div>
 
@@ -420,7 +438,7 @@ $(function() {
                 
                 
 
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Producers_Sponsers"  class="section-header">
         <div class="section-title"><?php echo t('producers_and_sponsors');?></div>
 
@@ -464,7 +482,7 @@ $(function() {
 </div>
 
 
-<div class="dd-study-section field-collapsed">
+<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Sampling" class="section-header">
             <div class="section-title"><?php echo t('sampling');?></div>
 
@@ -506,7 +524,7 @@ $(function() {
 
 
 
-	<div class="dd-study-section field-collapsed">
+	<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Data_Collection"  class="section-header">
         <div class="section-title"><?php echo t('data_collection');?></div>
 
@@ -581,7 +599,7 @@ $(function() {
 </div>
 
 
-	<div class="dd-study-section field-collapsed">
+	<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Data_Processing"  class="section-header">
         <div class="section-title"><?php echo t('data_processing');?></div>
 
@@ -606,7 +624,7 @@ $(function() {
 </div>
 
 
-	<div class="dd-study-section field-collapsed">
+	<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Data_Appraisal"  class="section-header">
         <div class="section-title"><?php echo t('data_appraisal');?></div>
 
@@ -631,7 +649,7 @@ $(function() {
                 </div>
 </div>
 
-	<div class="dd-study-section field-collapsed">
+	<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Data_Access"  class="section-header">
         <div class="section-title"><?php echo t('data_access');?></div>
 
@@ -673,7 +691,7 @@ $(function() {
 
 
 
-	<div class="dd-study-section field-collapsed">
+	<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Disclaimer"  class="section-header">
         <div class="section-title"><?php echo t('disclaimer_and_copyright');?></div>
 
@@ -700,7 +718,7 @@ $(function() {
 
 
     <?php if($show_additional_fields):?>    
-    <div class="dd-study-section field-collapsed" >
+    <div class="dd-study-section <?php echo $field_toggle_class;?>" >
     <div id="Operational-Information"  class="section-header">
         <div class="section-title"><?php echo t('operational_information');?></div>
 
@@ -791,7 +809,7 @@ $(function() {
     <?php endif;?>
 
     <?php if($show_additional_fields):?>    
-	<div class="dd-study-section field-collapsed" >
+	<div class="dd-study-section <?php echo $field_toggle_class;?>" >
         <div id="Impact-Evaluation"  class="section-header">
             <div class="section-title"><?php echo t('impact-evaluation');?></div>
         </div>   
@@ -874,7 +892,7 @@ $(function() {
     </div>
     <?php endif;?>
 
-	<div class="dd-study-section field-collapsed">
+	<div class="dd-study-section <?php echo $field_toggle_class;?>">
     <div id="Contacts"  class="section-header">
         <div class="section-title"><?php echo t('contacts');?></div>
      </div>
@@ -906,6 +924,12 @@ window.dd={
 		'recommended_fields': <?php echo json_encode($merged['recommended_fields']);?>,
 		'mandatory_fields': <?php echo json_encode($merged['mandatory_fields']);?>
 };
+
+//highlight mandatory fields
+$.each(dd.mandatory_fields, function(key,value){
+		$("#"+value).closest("label").append(' <span class="dd_required"><?php echo t('Required');?></span>');
+        $("#"+value).closest("label").prepend("* ");
+});
 
 //expand all
 $(document.body).on("click",".dd-actions-container .expand-all", function (e){
