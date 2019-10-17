@@ -50,8 +50,9 @@
     <?php if(isset($variable['metadata']['var_sumstat'])):?>
     <div class="float-left">
         <?php foreach($variable['metadata']['var_sumstat'] as $sumstat): $sumstat=(object)$sumstat; ?>
-            <div class="fld-inline sum-stat sum-stat-<?php echo $sumstat->type;?>">
-                <span class="fld-name sum-stat-type"><?php echo t($sumstat->type);?></span>
+            <?php $wgtd=isset($sumstat->wgtd) && $sumstat->wgtd=='wgtd' ? '_wgtd' : '';?>
+            <div class="fld-inline sum-stat sum-stat-<?php echo $sumstat->type;?>-<?php echo $wgtd;?>">
+                <span class="fld-name sum-stat-type"><?php echo t('var_'.$sumstat->type. $wgtd);?>: </span>
                 <span class="fld-value sum-stat-value"><?php echo $sumstat->value;?></span>
             </div>
         <?php endforeach;?>
@@ -59,14 +60,14 @@
     <?php endif;?>
     <!--other stats-->
     <?php
-    $stat_keys=array("var_intrvl","var_dcml","var_loc_start_pos","var_loc_end_pos");
+    $stat_keys=array("var_intrvl","var_dcml","var_loc_start_pos","var_loc_end_pos","loc_width");
     ?>
 
     <?php foreach($stat_keys as $stat_key):?>
-        <?php if (array_key_exists($stat_key,$variable['metadata'])):?>
+        <?php if (array_key_exists($stat_key,$variable['metadata']) && !empty($variable['metadata'][$stat_key])):?>
         <?php $stat=$variable['metadata'][$stat_key];?>
         <div class="fld-inline sum-stat sum-stat-<?php echo $stat_key;?>">
-            <span class="fld-name sum-stat-type"><?php echo t($stat_key);?></span>
+            <span class="fld-name sum-stat-type"><?php echo t($stat_key);?>: </span>
             <span class="fld-value sum-stat-value"><?php echo $stat;?></span>
         </div>
         <?php endif;?>
@@ -74,21 +75,42 @@
 
     <?php if (isset($variable['metadata']['var_val_range'])):?>
     <div class="fld-inline sum-stat sum-stat-range">
-        <span class="fld-name sum-stat-type"><?php echo t('range');?></span>
-        <?php foreach($variable['metadata']['var_val_range'] as $range):?>
-            <?php  $range=(object)$range;?>
+        <span class="fld-name sum-stat-type"><?php echo t('var_range');?>: </span>
+            <?php $range=$variable['metadata']['var_val_range'];?>
+            <?php  $range=(object)$range; ?>
             <span class="fld-value sum-stat-value">
-            <?php echo $range->min;?> - <?php echo $range->max;?>
+            <?php echo @$range->min;?> - <?php echo @$range->max;?>
         </span>
-        <?php endforeach;?>
-        <?php endif;?>
     </div>
-    <div class="clear"></div>
+    <?php endif;?>
+    
+    <?php if (isset($variable['metadata']['var_format'])):?>
+    <div class="fld-inline sum-stat var-format">
+        <span class="fld-name var-format-fld"><?php echo t('var_format');?>: </span>
+        <?php $format=$variable['metadata']['var_format'];?>
+        <?php  $format=(object)$format; ?>
+        <span class="fld-value format-value"><?php echo @$format->type;?></span>
+    </div>
+    <?php endif;?>
 
-    <!--<h2 class="xsl-subtitle">Questions and instructions</h2>
-    <div><?php echo render_text('var_qstn_qstnlit', get_field_value('var_qstn_qstnlit',$variable['metadata']));?></div>
-    <div><?php echo render_var_category('var_catgry', get_field_value('var_catgry',$variable['metadata']));?></div>
--->
+    <?php if (isset($variable['metadata']['var_is_wgt'])  && $variable['metadata']['var_is_wgt']=='wgt' ):?>
+    <div class="fld-inline sum-stat var_is_wgt">
+        <span class="fld-name var-fld-var_is_wgt"><?php echo t('var_is_wgt');?>: </span>
+        <?php $var_is_wgt=$variable['metadata']['var_is_wgt'];?>
+        <span class="fld-value var_is_wgt-value"><?php echo t('yes');?></span>
+    </div>
+    <?php endif;?>
+
+    <?php if (isset($variable['metadata']['var_wgt'])):?>
+    <div class="fld-inline sum-stat var_wgt">
+        <span class="fld-name var-fld-var_wgt"><?php echo t('var_wgt');?>: </span>
+        <?php $var_wgt=$variable['metadata']['var_wgt'];?>
+        <span class="fld-value var_wgt-value"><a href="<?php echo site_url('catalog/'.$file['sid'].'/variable/'.$file['file_id'].'/'.$var_wgt);?>"><?php echo $var_wgt;?></a></span>
+    </div>
+    <?php endif;?>
+    
+
+    <div class="clear"></div>
 
     <!-- data_collection -->
     <?php echo render_group('questions_n_instructions',
@@ -125,7 +147,7 @@
     <?php echo render_group('imputation_n_derivation',
         $fields=array(
             "var_imputation"=>'text',
-            "var_codeinstr"=>'text'
+            "var_codinstr"=>'text'
         ),
         $variable['metadata']);
     ?>
