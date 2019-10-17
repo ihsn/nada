@@ -97,6 +97,10 @@
 					"value": {
 						"type": "string",
 						"title": "Value"
+					},
+					"wgtd": {
+						"type": "string",
+						"title": "Weighted"
 					}
 				}
 			}
@@ -134,7 +138,11 @@
 								"value": {
 									"type": "string",
 									"title": "Value"
-								}								
+								},
+								"wgtd": {
+									"type": "string",
+									"title": "Weighted"
+								}									
 							}
 						}
 					}
