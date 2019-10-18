@@ -236,7 +236,7 @@ class Catalog_search_mysql{
 		}
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('SELECT FOUND_ROWS() as rowcount',FALSE)->row_array();		
+		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();		
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
@@ -274,6 +274,8 @@ class Catalog_search_mysql{
 
 		$study_fulltext_index='keywords';
 		$study_keywords=str_replace(array('"',"'"), '',$study_keywords);
+
+		$study_keywords=$this->parse_keywords($study_keywords);
 		
 		if (strlen($study_keywords)>3)
 		{		
@@ -295,6 +297,25 @@ class Catalog_search_mysql{
 		{
 			return FALSE;
 		}
+	}
+
+	function parse_keywords($keywords)
+	{
+		$output=[];
+		$op=array('+','-','~','>');
+		
+		$keywords_arr=explode(" ",$keywords);
+		foreach($keywords_arr as $keyword){
+			if(!in_array(substr($keyword,0,1),$op)){
+				$keyword=str_replace($op,"",$keyword);
+				$output[]='+'.$keyword;
+			}else{
+				$output[]=$keyword;
+			}
+			
+		}
+
+		return implode(" ",$output);
 	}
 			
 	protected function _build_variable_query()
