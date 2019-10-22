@@ -30,6 +30,7 @@ left:0px;
 <?php 
     $dup=str_replace(array_keys($map), array_values($map), current($fields));
     $show_additional_fields=$this->config->item('additional_fields','datadeposit'); 
+    $show_help_text=$this->config->item('show_help','datadeposit'); 
     $sections_collapsed=$this->config->item('sections_collapsed','datadeposit'); 
 
     //collapsed by default
@@ -1058,6 +1059,12 @@ $(window).scroll(function() {
 
 $('#toTop').click(function() {
 $('body,html').animate({scrollTop:0},'fast');
-});	
+});
+
+<?php if($show_help_text==true):?>
+jQuery(document).ready(function(){
+    $(".dd-edit-study-description .HelpMsg").show();
+});
+<?php endif;?>
 
 </script>
