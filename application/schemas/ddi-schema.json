@@ -784,13 +784,7 @@
                   "_ddi_xpath":"stdyDscr/stdyInfo/qualityStatement/otherQualityStatement"
                 }
               }
-            },
-            "study_scope":{
-              "title":"Survey scope",
-              "description":"Description of scope",
-              "type":"string",
-              "_ddi_xpath":"stdyDscr/stdyInfo/notes"
-            },
+            },            
             "ex_post_evaluation":{
               "title":"Ex-Post Evaluation",
               "description":"This structure consists of two parts, standardsCompliance and otherQualityStatements. In standardsCompliance list all specific standards complied with during the execution of this study. Note the standard name and producer and how the study complied with the standard. Enter any additional quality statements in otherQualityStatements.",
