@@ -479,7 +479,7 @@
             },
             "agency":{
               "type":"array",
-              "title":"Funding Agency/Sponsor",
+              "title":"Authorizing Agency",
               "description":"The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
               "_ddi_xpath":"stdyDscr/studyAuthorization/authorizingAgency",
               "items":{
@@ -976,7 +976,7 @@
                   "type":"object",
                   "properties":{
                     "type":{
-                      "title":"Response Rate",
+                      "title":"Training type",
                       "description":"The percentage of sample members who provided information",
                       "type":"string",
                       "_ddi_xpath":"stdyDscr/method/dataColl/collectorTraining/@type"
