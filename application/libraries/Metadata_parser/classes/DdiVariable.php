@@ -29,10 +29,13 @@ class DdiVariable
             $metadata=$this->variable_metadata;
         }
 
-        $element=get_array_nested_value($metadata,$path);
-
+        $element=NULL;
         $output=NULL;
 
+        if(isset($metadata[$path])){
+            $element=$metadata[$path];
+        }
+        
         //attributes/non-array
         if(!empty($element) && !is_array($element)){
             return $element;
