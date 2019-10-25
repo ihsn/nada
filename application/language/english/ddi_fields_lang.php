@@ -267,6 +267,9 @@ $lang['var_security']='Security';
 $lang['var_notes']='Notes';
 $lang['weighted']='Weighted';
 $lang['var_format']='Format';
+$lang['var_mean_wgtd']='Mean (weighted)';
+$lang['var_stdev_wgtd']='Standard deviation (weighted)';
+
 
 $lang['var_min']='Minimum';
 $lang['var_max']='Maximum';
