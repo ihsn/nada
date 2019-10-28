@@ -664,7 +664,29 @@ $config['citations_storage_path']='datafiles/citations'; //don't add a trailing 
 $config['filestore_path']='files/public';
 
 
+$config['userdata_path']='userdata';
 
+
+/*
+|--------------------------------------------------------------------------
+| Catalog entries sort order
+|--------------------------------------------------------------------------
+|
+| Set default sort for catalog results
+|
+| catalog_default_sort_by       Sort by field
+| 
+|   valid values are:   
+|   'proddate','title','labl','nation','popularity','rank'
+|
+|
+| catalog_default_sort_order    Sort order
+|
+| valid values are: 'desc', 'asc'
+|
+*/
+$config['catalog_default_sort_by']='';
+$config['catalog_default_sort_order']='';
 
 /*
 |--------------------------------------------------------------------------
