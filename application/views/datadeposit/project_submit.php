@@ -87,8 +87,21 @@ $to_catalog_options=array(
 
     <div class="field">
         <label for="title"><?php echo t('disclosure_risk'); ?></label>
-    	<input name="disclosure_risk" type="text" id="ccsubmit" class="input-flex" value="<?php echo get_form_value('disclosure_risk',@$project[0]->disclosure_risk); ?>"/>
-        <div class="description" ><?php echo t('disclosure_risk_help'); ?></div>        
+    	<textarea name="disclosure_risk" id="ccsubmit" class="input-flex"><?php echo get_form_value('disclosure_risk',@$project[0]->disclosure_risk); ?></textarea>
+        <div class="description" ><?php echo t('disclosure_risk_help'); ?></div>
+    </div>
+
+
+	<div class="field">
+        <label for="title"><?php echo t('key_variables'); ?></label>
+    	<textarea name="key_variables" id="key_variables" class="input-flex"><?php echo get_form_value('key_variables',@$project[0]->key_variables); ?></textarea>
+        <div class="description" ><?php echo t('key_variables_help'); ?></div>
+    </div>
+
+	<div class="field">
+        <label for="title"><?php echo t('sensitive_variables'); ?></label>
+    	<textarea name="sensitive_variables" id="sensitive_variables" class="input-flex"><?php echo get_form_value('sensitive_variables',@$project[0]->sensitive_variables); ?></textarea>
+        <div class="description" ><?php echo t('sensitive_variables_help'); ?></div>
     </div>
 
     <div class="field">

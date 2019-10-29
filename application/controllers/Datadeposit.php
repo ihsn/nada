@@ -558,6 +558,8 @@ class Datadeposit extends MY_Controller {
 		}
 			
 		$this->form_validation->set_rules('disclosure_risk', 'Disclosure Risk', 'xss_clean|trim|max_length[255]');
+		$this->form_validation->set_rules('key_variables', 'Key variables', 'xss_clean|trim|max_length[500]');
+		$this->form_validation->set_rules('sensitive_variables', 'Sensitive variables', 'xss_clean|trim|max_length[500]');
 		$this->form_validation->set_rules('access_authority', 'Access Authority', 'xss_clean|trim|max_length[255]');
 		$this->form_validation->set_rules('library_notes', 'Library Notes', 'xss_clean|trim|max_length[255]');
 		
@@ -583,6 +585,8 @@ class Datadeposit extends MY_Controller {
 			'is_embargoed'     => ($this->input->post('is_embargoed'))     ? 1: 0,
 			'embargoed'        => ($this->input->post('embargoed'))        ? $this->input->post('embargoed') : null,
 			'disclosure_risk'  => ($this->input->post('disclosure_risk'))  ? $this->input->post('disclosure_risk') : null,
+			'sensitive_variables'  => ($this->input->post('sensitive_variables'))  ? $this->input->post('sensitive_variables') : null,
+			'key_variables'  => ($this->input->post('key_variables'))  ? $this->input->post('key_variables') : null,
 			'status'  		   => 'submitted',
 			//'access_authority' => ($this->input->post('access_authority'))  ? $this->input->post('access_authority') : null
 		);

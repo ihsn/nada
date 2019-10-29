@@ -101,9 +101,11 @@ class Study extends MY_Controller {
 			return $this->variable($sid,$file_id,$var_id);
 		}
 
-		$this->lang->load('ddi_fields');		
+		$this->lang->load('ddi_fields');
+		$this->load->model("Variable_group_model");
         $options['sid']=$sid;
 		$options['file_id']=$file_id;
+		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
 		$options['file_list']=$this->Data_file_model->get_all_by_survey($sid);
         $options['file']=$this->Data_file_model->get_file_by_id($sid,$file_id);
         $options['variables']=$this->Variable_model->get_all_by_file($sid, $file_id);

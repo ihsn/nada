@@ -2,6 +2,12 @@
 //enable datadeposit
 $config['datadeposit']['enable_datadeposit']=true;
 
+//Show metadata sections expanded or collapsed?
+$config['datadeposit']['sections_collapsed']=true;
+
+//Show help text for form fields?
+$config['datadeposit']['show_help']=false;
+
 $config['datadeposit']['mandatory_fields'] = array(
 	'ident_title',
 	'coll_dates',

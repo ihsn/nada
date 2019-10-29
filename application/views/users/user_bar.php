@@ -15,7 +15,7 @@ if ($languages!==FALSE)
 	{
 		foreach($languages as $language)
 		{
-			$lang_ul.='<li> '.anchor('switch_language/'.$language.'/?destination=catalog', strtoupper(t(strtolower($language)))).' </li>';
+			$lang_ul.='<span class="lang-label"> '.anchor('switch_language/'.$language.'/?destination=catalog', strtoupper(t(strtolower($language)))).' </span>';
 		}
 	}
 }
@@ -47,6 +47,11 @@ $user=$this->session->userdata('username');
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/logout"><?php echo t('logout');?></a>
                 </div>
+                <?php if($lang_ul!=''):?>
+                <span class="lang-container">
+                    <?php echo $lang_ul; ?>
+                </span>
+                <?php endif;?>
             </div>
             </div>
 
@@ -54,6 +59,7 @@ $user=$this->session->userdata('username');
     <?php else: ?>
         <div class="col-12 mt-2 mb-2 wb-login-link login-bar">
             <div class="float-right">
+            
             <div class="dropdown ml-auto">
                 <a class="dropdown-toggle small" href="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('login');?></a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
@@ -62,7 +68,12 @@ $user=$this->session->userdata('username');
                 <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'): ?>
                     <a class="dropdown-toggle small" href="<?php echo site_url(); ?>/auth/register" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('register');?></a>
                 <?php endif; ?>
-                <?php echo $lang_ul; ?>
+
+                <?php if($lang_ul!=''):?>
+                <span class="lang-container">
+                    <?php echo $lang_ul; ?>
+                </span>
+                <?php endif;?>
             </div>
             </div>
         </div>

@@ -1334,4 +1334,35 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+
+
+
+	/**
+	 * 
+	 * 
+	 * Return datasets list with tags
+	 * 
+	 */
+	function tags_get($idno=null)
+	{
+		try{
+			$result=$this->dataset_manager->get_dataset_with_tags($idno);
+			$response=array(
+				'status'=>'success',
+				'found'=>count($result),
+				'records'=>$result
+			);		
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 }

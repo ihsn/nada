@@ -30,10 +30,11 @@
             "metadata.study_desc.study_info.nation"=>'nation',
             "metadata.study_desc.study_info.nation"=>'array',
             "metadata.study_desc.geog_units"=>'array',
-            "metadata.study_desc.series_name"=>'text',
-            "metadata.study_desc.series_info"=>'text',            
+            "metadata.study_desc.series_statement.series_name"=>'text',
+            "metadata.study_desc.series_statement.series_info"=>'text',            
             "metadata.study_desc.study_info.abstract"=>'text',
-            "metadata.study_desc.study_info.data_kind"=>'text'            
+            "metadata.study_desc.study_info.data_kind"=>'text',
+            "metadata.study_desc.study_info.analysis_unit"=>'text'
     ),
     $metadata);
 ?>
@@ -53,7 +54,7 @@
 <!-- scope -->
 <?php $output['scope']= render_group('scope',
     $fields=array(
-            "metadata.study_desc.study_notes"=>'text',
+            "metadata.study_desc.study_info.notes"=>'text',
             "metadata.study_desc.study_info.topics"=>'array',
             "metadata.study_desc.study_info.keywords"=>'array'
             ),
@@ -66,8 +67,7 @@
     $fields=array(
             "metadata.study_desc.study_info.geog_coverage"=>'text',
             "metadata.study_desc.study_info.geog_coverage_notes"=>'text',
-            "metadata.study_desc.study_info.geog_unit"=>'text',
-            "metadata.study_desc.study_info.analysis_unit"=>'text',
+            "metadata.study_desc.study_info.geog_unit"=>'text',            
             "metadata.study_desc.study_info.universe"=>'text'
             ),
     $metadata);
@@ -107,8 +107,18 @@
             "metadata.study_desc.method.data_collection.sources.data_source"=>'text',
             "metadata.study_desc.method.data_collection.coll_mode"=>'text',
             "metadata.study_desc.method.data_collection.act_min"=>'text',
-            "metadata.study_desc.method.data_collection.research_instrument"=>'text',
+            "metadata.study_desc.method.data_collection.coll_situation"=>'text',            
+            //"metadata.study_desc.method.data_collection.research_instrument"=>'text',
             "metadata.study_desc.method.data_collection.data_collectors"=>'array',
+            ),
+    $metadata);
+?>
+
+
+<!-- questionnaires -->
+<?php $output['questionnaires']= render_group('questionnaires',
+    $fields=array(
+            "metadata.study_desc.method.data_collection.research_instrument"=>'text',
             ),
     $metadata);
 ?>
@@ -138,6 +148,7 @@
 <?php $output['data_access']= render_group('data_access',
     $fields=array(
             "metadata.study_desc.data_access.dataset_use.contact"=>'array',
+            "metadata.study_desc.distribution_statement.contact"=>'array',
             "metadata.study_desc.data_access.dataset_use.conf_dec"=>'array_comma',
             "metadata.study_desc.data_access.dataset_use.conf_dec.form_url"=>'text',
             "metadata.study_desc.data_access.dataset_use.conditions"=>'text',
@@ -160,14 +171,6 @@
     $metadata);
 ?>
 
-
-<!-- contacts -->
-<?php $output['contacts']= render_group('contacts',
-    $fields=array(
-            "metadata.study_desc.distribution_statement.contact"=>'array'
-            ),
-    $metadata);
-?>
 
 <!-- metadata_production -->
 <?php $output['metadata_production']= render_group('metadata_production',
@@ -199,6 +202,7 @@
 <!--metadata content-->
 <div class="col-12 col-sm-10 col-lg-10 wb-border-left">
     <?php echo implode('',$output);?>
+    <?php //echo html_entity_decode(implode('',$output));?>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify.min.js"></script>

@@ -1099,6 +1099,30 @@ class Dataset_model extends CI_Model {
 	}
 
 	
+	/**
+	 * 
+	 * Return a list of datasets with tags
+	 * 
+	 */
+	public function get_dataset_with_tags($idno=NULL)
+	{
+		$this->db->select("surveys.idno,surveys.id,survey_tags.tag");
+		$this->db->join('surveys','surveys.id=survey_tags.sid','inner');
+
+		if(!empty($idno)){
+			$this->db->where('surveys.idno',$idno);
+		}
+		
+		$result=$this->db->get("survey_tags")->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['idno']][]=$row['tag'];
+		}
+
+		return $output;
+	}
+
 
 }//end-class
 	

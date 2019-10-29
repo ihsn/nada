@@ -548,7 +548,7 @@ class Catalog extends MY_REST_Controller
 				throw new exception("STUDY_NOT_FOUND");
 			}
 
-			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
+			$survey_variables=$this->Variable_model->list_by_dataset($sid);
 			
 			//format dates
 			//array_walk($project, 'unix_date_to_gmt_row',array('created','changed','submitted_date','administer_date'));
