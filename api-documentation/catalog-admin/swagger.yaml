@@ -1012,7 +1012,34 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []  
+          - ApiKeyAuth: []
+
+
+  /datasets/tags/{datasetIDNo}:
+      get:
+        tags:
+          - Survey
+          - Timeseries
+          - Document
+          - Table
+          - Geospatial
+        summary: List tags
+        description: List datasets with tags  
+        operationId: datasetTagsByIDNo
+        parameters:
+          - in: "path"
+            name: "datasetIDNo"
+            title: (Optional) IDNO
+            type: string
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []          
           
   /datasets/{datasetIDNo}/resources:
       get:
@@ -1299,6 +1326,34 @@ paths:
             $ref: '#/definitions/ResourceFile'
       security:
         - ApiKeyAuth: []
+    get:
+      tags:
+        - External resources
+      summary: Download file
+      description: Download an external resource file
+      operationId: downloadDatasetFile
+      consumes:
+        - application/json
+      produces:
+        - application/octet
+      parameters:
+        - name: datasetIDNo
+          in: path
+          description: Dataset IDNo
+          required: true
+          type: string
+          format: string
+        - name: filename
+          in: path
+          description: Base64 encoded file name
+          required: true
+          type: string
+          format: string
+      responses:
+        '200':
+          description: External resource file in binary format (PDF, ZIP, etc)
+      security:
+        - ApiKeyAuth: []      
 
   /citations:
       get:
