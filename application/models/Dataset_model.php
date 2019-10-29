@@ -1103,8 +1103,12 @@ class Dataset_model extends CI_Model {
 	 * 
 	 * Return a list of datasets with tags
 	 * 
+	 * @idno - Survey IDNO
+	 * @format - flat, distinct
+	 * 	flat - survey info is repeated for each tag
+	 *  distinct - tags are returned in an array format
 	 */
-	public function get_dataset_with_tags($idno=NULL)
+	public function get_dataset_with_tags($idno=NULL,$format='flat')
 	{
 		$this->db->select("surveys.idno,surveys.id,survey_tags.tag");
 		$this->db->join('surveys','surveys.id=survey_tags.sid','inner');
@@ -1114,6 +1118,10 @@ class Dataset_model extends CI_Model {
 		}
 		
 		$result=$this->db->get("survey_tags")->result_array();
+
+		if ($format=='flat'){
+			return $result;
+		}
 		
 		$output=array();
 		foreach($result as $row){
