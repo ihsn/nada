@@ -38,7 +38,8 @@ class Translate extends MY_Controller {
 		{
 			show_error('INVALID_LANGUAGE');
 		}
-		
+
+		$data['edit_file_fullpath']=$this->translator->translation_file_path($language,$translation_file);
 		
 		$data['save_status']=NULL;
 		
@@ -57,13 +58,14 @@ class Translate extends MY_Controller {
 		
 		//check if base translation file exists
 		$data['template_file']=$this->translator->load($this->base_lang.'/'.$translation_file);				
-		$data['edit_file']=$this->translator->load($language.'/'.$translation_file);
+		//$data['edit_file']=$this->translator->load($language.'/'.$translation_file);
+		$data['edit_file']=$this->lang->load($translation_file, $language, true);
 		
-		if ($data['edit_file']===false)
+		if (!is_array($data['edit_file']))
 		{
 			$data['edit_file']=array();
 		}
-		
+
 		$content=$this->load->view("translator/edit",$data,true);
 		
 		//set page options and render output
@@ -81,8 +83,8 @@ class Translate extends MY_Controller {
 		}
 		
 		//save the file
-		$output_file=APPPATH.'language/'.$language.'/'.$translation_file.'_lang.php';
-		
+		$output_file=$this->translator->translation_file_path($language,$translation_file,true);
+
 		$data['language']=$language;
 		$data['template_file']=$this->translator->load($this->base_lang.'/'.$translation_file);
 		$data['fill_missing']=false;

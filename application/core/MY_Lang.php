@@ -55,6 +55,7 @@ class MY_Lang extends CI_Lang {
 			return;
 		}
 
+		$config =& get_config();
 		$langfile = str_replace('.php', '', $langfile);
 
 		if ($add_suffix === TRUE)
@@ -65,8 +66,7 @@ class MY_Lang extends CI_Lang {
 		$langfile .= '.php';
 
 		if (empty($idiom) OR ! preg_match('/^[a-z_-]+$/i', $idiom))
-		{
-			$config =& get_config();
+		{			
 			$idiom = empty($config['language']) ? 'english' : $config['language'];
 		}
 
@@ -82,23 +82,31 @@ class MY_Lang extends CI_Lang {
 			include($basepath);
 		}
 
+
+		if(empty($alt_path))
+		{
+			//set alt_path to user_data folder
+			$alt_path=empty($config['userdata_path']) ? '' : $config['userdata_path'];
+		}
+
 		// Do we have an alternative path to look in?
 		if ($alt_path !== '')
 		{
-			$alt_path .= 'language/'.$idiom.'/'.$langfile;
+			$alt_path .= '/language/'.$idiom.'/'.$langfile;
 			if (file_exists($alt_path))
 			{
 				include($alt_path);
 				$found = TRUE;
 			}
 		}
-		else
+				
+		if($found!==TRUE)
 		{
 			foreach (get_instance()->load->get_package_paths(TRUE) as $package_path)
 			{
 				$package_path .= 'language/'.$idiom.'/'.$langfile;
 				if ($basepath !== $package_path && file_exists($package_path))
-				{
+				{					
 					include($package_path);
 					$found = TRUE;
 					break;
