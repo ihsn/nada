@@ -1359,4 +1359,31 @@ class Datasets extends MY_REST_Controller
 		}
 	}
 
+
+	/**
+	 * 
+	 * 
+	 * Return datasets aliases
+	 * 
+	 */
+	function aliases_get($idno=null)
+	{
+		try{
+			$result=$this->dataset_manager->get_dataset_aliases($idno);
+			$response=array(
+				'status'=>'success',
+				'found'=>count($result),
+				'records'=>$result
+			);		
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 }

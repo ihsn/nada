@@ -1040,7 +1040,33 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []          
-          
+
+  /datasets/aliases/{datasetIDNo}:
+      get:
+        tags:
+          - Survey
+          - Timeseries
+          - Document
+          - Table
+          - Geospatial
+        summary: List aliases
+        description: List dataset aliases
+        operationId: datasetAliasesByIDNo
+        parameters:
+          - in: "path"
+            name: "datasetIDNo"
+            title: (Optional) IDNO
+            type: string
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []          
+           
   /datasets/{datasetIDNo}/resources:
       get:
         tags:

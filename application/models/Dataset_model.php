@@ -1132,5 +1132,27 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	/**
+	 * 
+	 * Return a list of datasets with aliases
+	 * 
+	 * @idno - Survey IDNO
+	 */
+	public function get_dataset_aliases($idno=NULL)
+	{
+		$this->db->select("surveys.idno,surveys.id,survey_aliases.alternate_id as alias");
+		$this->db->join('surveys','surveys.id=survey_aliases.sid','inner');
+
+		if(!empty($idno)){
+			$this->db->or_where('surveys.idno',$idno);
+			$this->db->or_where('survey_aliases.alternate_id',$idno);
+		}
+		
+		$result=$this->db->get("survey_aliases")->result_array();
+
+		return $result;
+	}
+
+
 }//end-class
 	

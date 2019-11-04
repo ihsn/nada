@@ -170,6 +170,12 @@ class Dataset_manager{
         return $this->ci->Dataset_model->get_dataset_with_tags($idno);
     }
 
+
+    function get_dataset_aliases($idno=null)
+    {
+        return $this->ci->Dataset_model->get_dataset_aliases($idno);
+    }
+
 }
 
 /* End of file Dataset_manager.php */
