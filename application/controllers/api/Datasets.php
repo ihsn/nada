@@ -203,17 +203,11 @@ class Datasets extends MY_REST_Controller
 			$options['created']=date("U");
 			$options['changed']=date("U");
 			
-			/* 
-			* TODO: move to create_dataset ------ need this
-
-			//get sid for idno if already exists
-			$sid=$this->Dataset_model->find_by_idno($idno);
-
-			if(isset($options['overwrite']) && $options['overwrite']=='yes' && $sid>0){
-				return $this->update_post($type,$idno);
+			//set default repository if not set
+			if(!isset($options['repositoryid'])){
+				$options['repositoryid']='central';
 			}
-			*/
-			
+
 			//validate & create dataset
 			$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 

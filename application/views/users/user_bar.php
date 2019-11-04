@@ -20,13 +20,6 @@ if ($languages!==FALSE)
 	}
 }
 
-$site_url=site_url();
-
-if ($this->config->item("proxy_ssl")===TRUE)
-{
-	$site_url=str_replace("http:","https:",$site_url);
-}
-
 $user=$this->session->userdata('username');
 ?>
 <div class="row">
@@ -40,12 +33,12 @@ $user=$this->session->userdata('username');
 
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
                     <?php if ($this->ion_auth->is_admin()): ?>
-                        <a class="dropdown-item small" href="<?php echo $site_url; ?>/admin"><?php echo t('site_administration');?></a>
+                        <a class="dropdown-item small" href="<?php echo site_url('admin'); ?>"><?php echo t('site_administration');?></a>
                     <?php endif;?>
-                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/profile"><?php echo t('profile');?></a>
-                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/change_password"><?php echo t('password');?></a>
+                    <a class="dropdown-item small" href="<?php echo site_url('auth/profile'); ?>"><?php echo t('profile');?></a>
+                    <a class="dropdown-item small" href="<?php echo site_url('auth/change_password'); ?>"><?php echo t('password');?></a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/logout"><?php echo t('logout');?></a>
+                    <a class="dropdown-item small" href="<?php echo site_url('auth/logout'); ?>"><?php echo t('logout');?></a>
                 </div>
                 <?php if($lang_ul!=''):?>
                 <span class="lang-container">
@@ -63,10 +56,10 @@ $user=$this->session->userdata('username');
             <div class="dropdown ml-auto">
                 <a class="dropdown-toggle small" href="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('login');?></a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
-                    <a class="dropdown-item small" href="<?php echo site_url(); ?>/auth/login"><?php echo t('login');?></a>
+                    <a class="dropdown-item small" href="<?php echo site_url('auth/login'); ?>"><?php echo t('login');?></a>
                 </div>
                 <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'): ?>
-                    <a class="dropdown-toggle small" href="<?php echo site_url(); ?>/auth/register" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('register');?></a>
+                    <a class="dropdown-toggle small" href="<?php echo site_url('auth/register'); ?>" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle-o fa-lg"></i><?php echo t('register');?></a>
                 <?php endif; ?>
 
                 <?php if($lang_ul!=''):?>
