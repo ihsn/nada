@@ -550,7 +550,7 @@ class Datadeposit extends MY_Controller {
 		
 		
 		$this->form_validation->set_rules('access_policy', 'Access Policy', 'xss_clean|trim|max_length[255]|required');
-		$this->form_validation->set_rules('to_catalog', 'Choose Catalog', 'xss_clean|trim|max_length[255]|required');
+		$this->form_validation->set_rules('to_catalog', 'Choose Catalog', 'xss_clean|trim|max_length[255]');
 		
 		if ($this->input->post('is_embargoed'))
 		{

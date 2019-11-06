@@ -40,6 +40,43 @@ $config['datadeposit']['recommended_fields2'] = array(
 	'IE Project ID'
 );
 
+
+/**
+ * 
+ * Data access options
+ * 
+ * 
+ */
+$config['datadeposit']['access_policy_options']=array(
+	''					=>	'--',
+	'Direct Access'		=>	'Direct Access',
+	'Public Use Files'	=>	'Public Use Files',
+	'Licensed Access'	=>	'Licensed Access',
+	'Data Enclave'		=>	'Data Enclave',
+	'Not Defined'		=>	'Not Defined'
+);
+
+
+
+/**
+ * 
+ * Catalog publishing options
+ * 
+ */
+$config['datadeposit']['to_catalog_options']=array(
+	''					=>	'--',
+	'Internal'			=>	'Internal',
+	'External'			=>	'External',
+);
+
+/**
+ * 
+ *  To disable catalog publishing options, set the options to false
+ * 
+ */
+//$config['datadeposit']['to_catalog_options']=false;
+
+
 //folder for storing project files
 $config['datadeposit']['resources'] = 'datafiles';
 
