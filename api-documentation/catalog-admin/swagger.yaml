@@ -1013,6 +1013,33 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []
+  
+  /datasets/generate_pdf/{datasetIDNo}:
+      put:
+        tags:
+          - Survey
+        summary: Generate PDF
+        description: Generate PDF documentation for surveys
+        operationId: generatePDF
+        parameters:
+          - in: "path"
+            name: "datasetIDNo"
+            type: string
+            requried: true
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: "#/definitions/GeneratePDF"  
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []        
 
 
   /datasets/tags/{datasetIDNo}:
@@ -1076,9 +1103,7 @@ paths:
         operationId: listStudyResources
         consumes:
           - application/json
-          - application/xml
         produces:
-          - application/xml
           - application/json
         parameters:
           - name: datasetIDNo
@@ -1805,7 +1830,32 @@ definitions:
         type: string
         description: File creation date
     xml:
-      name: ResourceFile    
+      name: ResourceFile
+  GeneratePDF:
+    type: object
+    properties:
+      variable_toc:
+        type: integer
+        description: Include table of contents for variables?   `0`=No, `1`=Yes
+      variable_description:
+        type: integer
+        description: Generate variable descriptions?  `0`=No, `1`=Yes
+      include_resources:
+        type: integer
+        description: Include external resources? `0`=No, `1`=Yes
+      language:
+        type: string
+        description: 
+          Set the language for the PDF report e.g. `en' for English
+
+          * `en` - English
+
+          * `fr` - French
+
+          * `ar` - Arabic
+        
+    xml:
+      name: generatePDF        
   Resource:
     type: object
     properties:
