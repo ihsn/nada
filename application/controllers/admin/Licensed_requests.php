@@ -408,7 +408,7 @@ class Licensed_requests extends MY_Controller {
 		{
 			//add to request history if email was sent
 			$this->Licensed_model->add_request_history($requestid,$options);
-			echo '<div class="success">'.sprintf(t('email_sent')).'</div>';
+			echo '<div class="success">'.t('email_sent').'</div>';
 		}
 		else
 		{
