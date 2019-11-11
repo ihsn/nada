@@ -5,12 +5,12 @@ class Reports extends MY_Controller {
     {
         parent::__construct();
 		
-	//set template to admin 
-	$this->template->set_template('admin');
+		//set template to admin 
+		$this->template->set_template('admin');
       	$this->load->model('Reports_model');
 		
-	$this->lang->load("reports");	
-	//$this->output->enable_profiler(TRUE);
+		$this->lang->load("reports");	
+		//$this->output->enable_profiler(TRUE);
     }
  
 	function index()
