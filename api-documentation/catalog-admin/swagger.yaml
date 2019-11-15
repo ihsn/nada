@@ -9,7 +9,7 @@ info:
     To use the API, you will require the '`API-KEY'`, see the section
     `Authentication` 
 
-  version: 5.0
+  version: "5"
   title: NADA
   license:
     name: Apache 2.0
@@ -56,6 +56,7 @@ paths:
         description: Get user API keys
         operationId: getApiKey
         consumes:
+          - application/x-www-form-urlencoded
           - application/json
         produces:
           - application/json
@@ -85,6 +86,8 @@ paths:
                 api_keys:
                   type: array
                   description: API keys
+                  items:
+                    type: string
   /auth/create_api_key:
       post:
         tags:
@@ -93,6 +96,7 @@ paths:
         description: Create a new API key
         operationId: createApiKey
         consumes:
+          - application/x-www-form-urlencoded
           - application/json
         produces:
           - application/json
@@ -122,6 +126,8 @@ paths:
                 api_keys:
                   type: array
                   description: API keys
+                  items:
+                    type: string
   /collections:
       get:
         tags:
@@ -302,6 +308,7 @@ paths:
         operationId: attachThumbnail
         consumes:
           - application/json
+          - multipart/form-data
         produces:
           - application/json
         parameters:
@@ -483,36 +490,12 @@ paths:
               $ref: 'geospatial-schema.json'
         security:
           - ApiKeyAuth: []                      
-  /datasets/create/timeseries-db:
-      post:
-        tags:
-          - Timeseries
-        summary: Create timeseries database
-        description: Create a new timeseries database
-        operationId: createTimseriesDb
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: 'timeseries-db-schema.json'
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: 'timeseries-db-schema.json'
-        security:
-          - ApiKeyAuth: []
   /datasets/create/timeseries:
       post:
         tags:
           - Timeseries
-        summary: Create timeseries
-        description: Create a new timeseries
+        summary: Create timeseries dataset
+        description: Create a new timeseries project
         operationId: createTimseries
         consumes:
           - application/json
@@ -530,7 +513,7 @@ paths:
             schema:
               $ref: 'timeseries-schema.json'
         security:
-          - ApiKeyAuth: []        
+          - ApiKeyAuth: []
   /datasets/create/image:
       post:
         tags:
@@ -652,6 +635,7 @@ paths:
       get:
         tags:
           - Survey
+          - Timeseries
         summary: List data files
         description: List data files by IDNO
         operationId: listDatasetDatafiles
@@ -676,6 +660,7 @@ paths:
       post:
         tags:
           - Survey
+          - Timeseries
         summary: Create data file
         description: Create a new data file for  a study
         operationId: createStudyDatafile
@@ -706,6 +691,7 @@ paths:
       delete:
         tags:
           - Survey
+          - Timeseries
         summary: Batch delete variables
         description: Batch delete all variables from a datafile or Dataset. Set the '`fileId`' param to '`ALL`' to delete all variables from all datafiles in the Dataset.
         operationId: deleteDatafileVariables
@@ -731,13 +717,14 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []   
-  /datasets/variables/{IDNo}/{fileId}:
+  /datasets/variables/{IDNo}:
       get:
         tags:
           - Survey
+          - Timeseries
         summary: List variables
         description: List variables for a dataset. Variables can be returned for the datasets or filtered by '`fileId`'. To get the full metadata for a variable, use the endpoint '`dataset/variable`'.
-        operationId: listDatasetVariables
+        operationId: listVariables
         consumes:
           - application/json
         produces:
@@ -749,12 +736,6 @@ paths:
             required: true
             type: string
             format: string
-          - name: fileId
-            in: path
-            description: File ID - user defined unique file identifier
-            required: false
-            type: string
-            format: string  
         responses:
           '200':
             description: successful operation
@@ -764,45 +745,80 @@ paths:
                 $ref: '#/definitions/VariableList'
         security:
           - ApiKeyAuth: []
-      post:
-        tags:
-          - Survey
-        summary: Create variable
-        description: Create a new variable for a data file. To create multiple variables at once, pass them as a list of variables.
-        operationId: createDatasetVariable
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - name: IDNo
-            in: path
-            description: Dataset IDNo
-            required: true
-            type: string
-            format: string
-          - name: fileId
-            in: path
-            description: File ID - user defined unique file identifier
-            required: true
-            type: string
-            format: string  
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: 'variable-schema.json'
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: 'variable-schema.json'
-        security:
-          - ApiKeyAuth: []
+  /datasets/variables/{IDNo}/{fileId}:
+    get:
+      tags:
+        - Survey
+        - Timeseries
+      summary: List variables by file
+      description: List variables for a dataset. Variables can be returned for the datasets or filtered by '`fileId`'. To get the full metadata for a variable, use the endpoint '`dataset/variable`'.
+      operationId: listDatasetVariables
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: IDNo
+          in: path
+          description: Dataset IDNo
+          required: true
+          type: string
+          format: string
+        - name: fileId
+          in: path
+          description: File ID - user defined unique file identifier
+          required: true
+          type: string
+          format: string  
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: "array"
+            items:
+              $ref: '#/definitions/VariableList'
+      security:
+        - ApiKeyAuth: []    
+    post:
+      tags:
+        - Survey
+      summary: Create variable
+      description: Create a new variable for a data file. To create multiple variables at once, pass them as a list of variables.
+      operationId: createDatasetVariable
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: IDNo
+          in: path
+          description: Dataset IDNo
+          required: true
+          type: string
+          format: string
+        - name: fileId
+          in: path
+          description: File ID - user defined unique file identifier
+          required: true
+          type: string
+          format: string  
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'variable-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'variable-schema.json'
+      security:
+        - ApiKeyAuth: []
   /datasets/variable/{IDNo}/{varId}:
       get:
         tags:
           - Survey
+          - Timeseries
         summary: Get variable
         description: Get a single variable with full metadata
         operationId: getDatasetVariable
@@ -830,7 +846,44 @@ paths:
               $ref: 'variable-schema.json'
         security:
           - ApiKeyAuth: []             
-                  
+  /dataset/series/{datasetIDNo}/{fileId}:
+      post:
+        tags:
+          - Timeseries
+        summary: Add series
+        description: Add series for timeseries
+        operationId: AddTimeSeries
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: datasetIDNo
+            in: path
+            description: Dataset user defined IDNo
+            required: true
+            type: string
+            format: string
+          - name: fileId
+            in: path
+            description: File ID - user defined unique file identifier
+            required: true
+            type: string
+            format: string  
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'series-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'series-schema.json'
+        security:
+          - ApiKeyAuth: []   
+  
+  # import DDI                       
   /datasets/import_ddi:
       post:
         tags:
@@ -898,15 +951,16 @@ paths:
             type: integer
             format: byte
             description: Set project publish status. 0=draft, 1=published                
-            consumes:
-              - multipart/form-data
-            produces:
-              - application/json
-            responses:
-              '200':
-                description: successful operation
-            security:
-              - ApiKeyAuth: []        
+        consumes:
+          - multipart/form-data
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+
   /datasets/strip_ddi/{IDNo}/{options}:
       put:
         tags:
@@ -919,19 +973,22 @@ paths:
             name: IDNo
             type: string
             description: "Dataset IDNo"
+            required: true
           - in: "path"
             name: options
             type: string
+            required: true
             description: Options for removing metadata elements. Valid options are `summary_stats`, `variables`, `keep_basic`
-            consumes:
-              - application/json
-            produces:
-              - application/json
-            responses:
-              '200':
-                description: successful operation
-            security:
-              - ApiKeyAuth: [] 
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+          
   /datasets/update_id/{datasetIDNo}/{newId}:
       put:
         tags:
@@ -943,18 +1000,20 @@ paths:
           - in: "path"
             name: "datasetIDNo"
             type: string
+            requried: true
           - in: "path"
             name: "newId"
             type: numeric                       
-            consumes:
-              - application/json
-            produces:
-              - application/json
-            responses:
-              '200':
-                description: successful operation
-            security:
-              - ApiKeyAuth: []   
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+          
   /datasets/{datasetIDNo}/resources:
       get:
         tags:

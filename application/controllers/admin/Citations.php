@@ -968,7 +968,7 @@ class Citations extends MY_Controller {
 					KEY_TBL.*
 					FROM surveys
 					INNER JOIN
-						freetexttable (surveys,(ft_keywords),%s,100) as KEY_TBL
+						freetexttable (surveys,(keywords),%s,100) as KEY_TBL
 					ON surveys.id=KEY_TBL.[KEY]
 					WHERE KEY_TBL.RANK >=10
 					ORDER BY KEY_TBL.RANK DESC;",$this->db->escape($keywords));
