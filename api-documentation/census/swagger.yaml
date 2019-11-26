@@ -1,0 +1,617 @@
+swagger: '2.0'
+info:
+  description: >-
+    CENSUS API
+
+
+    To use the API, you will require the '`API-KEY'`, see the section
+    `Authentication` 
+  version: 5.0
+  title: CENSUS
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+basePath: /index.php/api/
+tags:
+  - name: Tables
+    description: Tables api
+x-tagGroups:
+  - name: Tables 
+    tags:
+      - Tables
+schemes:
+  - http
+paths:
+  /tables:
+      get:
+        tags:
+          - Tables
+        summary: List all tables
+        description: Returns a list of all tables
+        operationId: listTables
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        responses:
+          '200':
+            description: successful operation            
+        security:
+          - ApiKeyAuth: []   
+  /tables/info/{tableId}:
+      get:
+        tags:
+          - Tables
+        summary: Get table info
+        description: Returns table defintion, features, indicators
+        operationId: tableInfo
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation            
+        security:
+          - ApiKeyAuth: []               
+  /tables/insert:      
+      post:
+        tags:
+          - Tables
+        summary: Insert table data
+        description: Insert data to table
+        operationId: postTable
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'census-table-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'census-table-schema.json'
+        security:
+          - ApiKeyAuth: []  
+  /tables/create:
+      post:
+        tags:
+          - Tables
+        summary: Create new table
+        description: Create new table type
+        operationId: createTableType
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'census-table_type-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'census-table_type-schema.json'
+        security:
+          - ApiKeyAuth: [] 
+  /tables/data/{tableId}:
+      get:
+        tags:
+          - Tables
+        summary: Get table data
+        description: Get table data
+        operationId: getTableData
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "limit"
+            type: integer
+            required: false  
+          - in: "query"
+            name: "geo_level"
+            type: string
+            required: false
+          - in: "query"
+            name: "state_code"
+            type: string
+            required: false
+          - in: "query"
+            name: "district_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "subdistrict_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "town_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "ward_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "indicator"
+            type: integert
+            required: false      
+          - in: "query"
+            name: "<name of feature>"
+            title: "Feature name e.g. urbanrural=1&roof=2"
+            type: string
+            required: false 
+          - in: "query"
+            name: "fields"
+            title: "comma seperated field names for output"
+            type: string
+            required: false                      
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []                        
+            
+###############################################################
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    name: X-API-KEY
+    in: header
+definitions:
+  CollectionList:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      repositoryid:
+        type: string
+      title:
+        type: string  
+      ispublished:
+        type: byte
+        description:
+          Set status to draft or published
+
+          * `0` = draft
+
+          * `1` = published
+        enum:
+          - (0) draft
+          - (1) published
+    xml:
+      name: CollectionList
+
+  Table:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      table_id:
+        type: string
+        required: true
+        title: "Table unique IDNo"        
+      title:
+        type: string 
+        required: true
+        description: Table Title 
+      description:
+        required: true
+        type: string 
+        description: A short description
+      unit_observation:
+        type: string 
+        required: true
+        description: Unit of observation
+      features:
+        type: array
+        required: true
+        description: Features - up to 5
+        items:
+          type: string
+
+        
+    xml:
+      name: Collection    
+  DatasetList:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      type:
+        type: string
+        enum:
+          - survey
+          - geospatial
+          - timeseries
+      idno:
+        type: string
+      repositoryid:
+        type: string
+      title:
+        type: string  
+      geog_coverage:
+        type: string
+      year_start:
+        type: integer
+      year_end:
+        type: integer  
+      authoring_entity:
+        type: array
+        items:
+          type: string
+      published:
+        type: byte
+        description:
+          Set status to draft or published
+
+          * `0` = draft
+
+          * `1` = published
+        enum:
+          - (0) draft
+          - (1) published
+      created:
+        type: string
+        format: date-time
+        readOnly: true         
+      changed:
+        type: string
+        format: date-time
+        readOnly: true           
+    xml:
+      name: Dataset
+  ProjectAccessPolicy:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      access_policy:
+        type: string
+        description:
+          Select the access policy suitable for your data.
+          
+          * `direct` - Direct access
+
+          * `public` - Public access
+          
+          * `licensed` - Licensed access, require users to register and submit request for access
+          
+          * `enclave` - Data Enclave
+          
+          * `remote` - Date available from remote repository
+          
+          * `other` - Other
+
+        enum:
+          - open
+          - direct
+          - public
+          - licensed
+          - enclave
+          - remote
+          - other
+      to_catalog:
+        type: string
+        description:
+          
+          Select catalog for publishing the data
+
+          * `internal` - Internal catalog
+          
+          * `external` -External public catalog
+        enum:
+          - internal
+          - external  
+      is_embargoed:
+        type: boolean
+        description: Is the data embargoed?
+        enum:
+          - 0 [No]
+          - 1 [Yes]
+      embargoed_notes:
+        type: string
+        description: indicate the terms of the embargo e.g. time period and any other special instructions.
+      disclosure_risk: 
+        type: string      
+        description: Safeguarding the identity and privacy of respondents that have provided the data is important. If the data files you are depositing contain any identifying variables (e.g., names, official ID numbers, precise GIS coordinates, etc) or any variables deemed otherwise sensitive in your study setting (e.g., ethnicity, tribe, religion, etc) please list these below so that access to these can be suppressed. 
+      library_notes: 
+        type: string      
+        description: Notes for the deposit reviewers
+      cc:
+        type: string
+        description: Enter the email addresses seperated by semicolon(;) of additional people you would like to receive a summary copy of your submission.
+      created:
+        type: string
+        format: date-time
+        readOnly: true         
+      changed:
+        type: string
+        format: date-time
+        readOnly: true     
+    xml:
+      name: MetadataSchema    
+  MetadataSchema:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      project_type:
+        type: string
+        enum:
+          - survey
+          - geospatial
+      other_fields:
+        type: object
+        description: Schema for one of the supported types    
+    xml:
+      name: MetadataSchema
+  ResourceFile:
+    type: object
+    properties:
+      name:
+        type: string
+        format: string
+      base64:
+        type: string
+        description: Filename base64 encoded
+      date:
+        type: string
+        description: File creation date
+    xml:
+      name: ResourceFile    
+  Resource:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      dataset_id:
+        type: integer
+        format: int64
+        description: Dataset ID
+        readOnly: true
+      dctype:
+        type: string
+        description:
+          Document types for external resource
+          
+          * `doc/adm` - Document, Administrative [doc/adm]
+          
+          * `doc/anl` - Document, Analytical [doc/anl]
+          
+          * `doc/oth` - Document, Other [doc/oth]
+          
+          * `doc/qst` - Document, Questionnaire [doc/qst]
+          
+          * `doc/ref` - Document, Reference [doc/ref]
+          
+          * `doc/rep` - Document, Report [doc/rep]
+          
+          * `doc/tec` - Document, Technical [doc/tec]
+          
+          * `aud` - Audio [aud]
+          
+          * `dat` - Database [dat]
+          
+          * `map` - Map [map]
+          
+          * `dat/micro` - Microdata File [dat/micro]
+          
+          * `pic` - Photo [pic]
+          
+          * `prg` - Program [prg]
+          
+          * `tbl` - Table [tbl]
+          
+          * `vid` - Video [vid]
+          
+          * `web` - Web Site [web]
+
+        enum:
+          - doc/adm
+          - doc/anl
+          - doc/oth
+          - doc/qst
+          - doc/ref
+          - doc/rep
+          - doc/tec
+          - aud
+          - dat
+          - map
+          - dat/micro
+          - pic
+          - prg
+          - tbl
+          - vid
+          - web
+
+      dcformat:
+        type: string
+        description: Document format
+        enum:
+          - pdf
+          - word
+          - txt
+          - csv
+          - dta
+          - spss
+          - zip
+      title:
+        type: string
+      author:
+        type: string
+      dcdate:
+        type: string
+        format: string
+      country:
+        type: string
+      language:
+        type: string
+      contributor:
+        type: string
+      publisher:
+        type: string
+      rights:
+        type: string
+      description:
+        type: string
+      abstract: 
+        type: string
+      toc:
+        type: string            
+      filename:
+        type: string
+        description: Provide file name or URL. For uploading files, use the '`upload file`' endpoint and make sure the file name is exactly the same.
+      created:
+        type: string
+        format: date-time
+      changed:
+        type: string
+        format: date-time
+    xml:
+      name: Resource
+  VariableList:
+    type: object
+    properties:
+      sid:
+        type: integer
+        format: integer
+      fid:
+        type: string
+        description: File user defined ID
+      vid:
+        type: string
+        description: Variable user defined ID
+      name:
+        type: string
+        description: Variable name
+      label:
+        type: string
+        description: Variable label
+    xml:
+      name: ResourceFile        
+  DatasetOptions:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      access_policy:
+        type: string
+        description:
+          Select the access policy suitable for your data.
+          
+          * `direct` - Direct access
+
+          * `public` - Public access
+          
+          * `licensed` - Licensed access, require users to register and submit request for access
+          
+          * `enclave` - Data Enclave
+          
+          * `remote` - Date available from remote repository
+          
+          * `other` - Other
+
+        enum:
+          - open
+          - direct
+          - public
+          - licensed
+          - enclave
+          - remote
+          - other  
+      data_remote_url:
+        type: string
+        format: string
+        description: Link to the website where the data is available for  'Data available from remote repository'
+      published:
+        type: integer
+        format: byte
+        description: Set project publish status. 0=draft, 1=published      
+      tags:
+        type: array
+        items:
+          type: string
+      aliases:
+        type: array
+        items:
+          type: string    
+      owner_collection:
+        type: string
+        description: Collection that owns the dataset
+      linked_collections:
+        type: array
+        description: Display in other collections
+        items:
+          type: string
+      link_study:
+        type: string
+        format: string
+        description: URL for study website
+      link_indicator:
+        type: string
+        format: string
+        description: URL to the indicators website
+    xml:
+      name: datasetOptions
+  
+  
+  
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'

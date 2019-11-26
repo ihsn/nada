@@ -14,6 +14,7 @@ return array(
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'Mpdf\\' => array($vendorDir . '/mpdf/mpdf/src'),
+    'MongoDB\\' => array($vendorDir . '/mongodb/mongodb/src'),
     'League\\Event\\' => array($vendorDir . '/league/event/src'),
     'League\\Csv\\' => array($vendorDir . '/league/csv/src'),
     'JsonStreamingParser\\Test\\' => array($vendorDir . '/salsify/json-streaming-parser/tests'),

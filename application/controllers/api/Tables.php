@@ -10,8 +10,8 @@ class Tables extends MY_REST_Controller
 	{
 		parent::__construct();
 		$this->load->helper("date");        
+		$this->load->model("Data_table_mongo_model");
 		$this->load->model("Data_table_model");
-		$this->load->model("Data_tables_places_model");        
 	}
 
 	//list all tables with count
@@ -29,7 +29,7 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-            $result=$this->Data_table_model->get_tables_list($options);
+            $result=$this->Data_table_mongo_model->get_tables_list($options);
 			
 			$response=array(
                 'status'=>'success',
@@ -64,7 +64,7 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-            $result=$this->Data_table_model->get_table_info($table_id);
+            $result=$this->Data_table_mongo_model->get_table_info($table_id);
 			
 			$response=array(
 				'status'=>'success',
@@ -124,7 +124,7 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$result=$this->Data_table_model->get_table_data($table_id,$limit,$options);
+			$result=$this->Data_table_mongo_model->get_table_data($table_id,$limit,$options);
 			
 			if(isset($options['flat_output']))
 			{
@@ -162,13 +162,17 @@ class Tables extends MY_REST_Controller
 	 * Create table row	 
 	 * 
 	 */
-	function insert_post()
+	function insert_post($table_id=NULL)
 	{
 		$this->is_admin_or_die();
 
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
+
+			if(!$table_id){
+				throw new Exception("MISSING_REQUIRED_PARAM:: table_id");
+			}
 
 			//check if a single row input is provided or a list of rows
 			$key=key($options);
@@ -181,7 +185,7 @@ class Tables extends MY_REST_Controller
 				$options=$tmp_options;
 			}
 			
-            //validate all rows
+            //validate all rowsxxxxxxx
             /*
 			foreach($options as $key=>$row){
 				$this->Census_table_model->validate_table($row);
@@ -194,13 +198,12 @@ class Tables extends MY_REST_Controller
 				$result=$this->Census_table_model->insert_table($row['table_id'],$row);
 			}*/
 
-			$result=$this->Data_table_model->table_batch_insert($options);
+			$result=$this->Data_table_mongo_model->table_batch_insert($table_id,$options);   
 
 
 			$response=array(
                 'status'=>'success',
-				"output"=>$result,
-				'query'=>$this->db->last_query()
+				"output"=>$result				
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -280,27 +283,30 @@ class Tables extends MY_REST_Controller
 		$this->is_admin_or_die();
 
 		try{
-			$uploaded_file=$this->upload_file();
+			//$uploaded_file=$this->upload_file();
 			$user_id=$this->get_api_user_id();
+			$options=$this->raw_json_input();
 
-			if (!isset($uploaded_file['full_path']) ){
-				throw new Exception("File not uploaded");
+			if (!isset($options['file_path']) ){
+				throw new Exception("File_path not provided");
 			}
 
-			if (!file_exists($uploaded_file['full_path'])){
-				throw new Exception("Uploaded file was not found");
+			if (!file_exists('datafiles/'.$options['file_path'])){
+				throw new Exception("file_path was not found");
 			}
 			
-			$table_id=$this->input->post('table_id');
-			$table_features=(array)$this->Data_table_model->get_features_by_table($table_id);
+			$table_id=$options['table_id'];
+			
+			/*$table_features=(array)$this->Data_table_model->get_features_by_table($table_id);
 
 			//flip keys with values for looking up features by names e.g. sex instead of feature_1
 			$features_flip=array();
 			if(!empty($table_features)){
 				$features_flip=array_flip($table_features);
 			}
+			*/
 
-			$csv_path=$uploaded_file['full_path'];
+			$csv_path='datafiles/'.$options['file_path'];
 			$csv=Reader::createFromPath($csv_path,'r');
 			$csv->setHeaderOffset(0);
 
@@ -314,25 +320,16 @@ class Tables extends MY_REST_Controller
 			$start_time=date("H:i:s");
 
 			//delete existing table data
-			$this->Data_table_model->delete_table_data($table_id);
+			//$this->Data_table_model->delete_table_data($table_id);
 
 			foreach($records as $row){
 
-				$row['table_id']=$table_id;
-				$row['dataset']=$table_id;
-
-				//feature mapping - map e.g. sex to feature_1
-				foreach($features_flip as $feature_name=>$feature_num){
-					if(isset($row[$feature_name])){
-						$row[$feature_num]=$row[$feature_name];
-					}
-				}
-
+				$row=array_map('intval', $row);
 				$total++;
 				$chunked_rows[]=$row;
 
 				if($k>=$chunk_size){
-					$result=$this->Data_table_model->table_batch_insert($chunked_rows);
+					$result=$this->Data_table_mongo_model->table_batch_insert($table_id,$chunked_rows);
 					$k=1;
 					$chunked_rows=array();
 					set_time_limit(0);
@@ -343,7 +340,7 @@ class Tables extends MY_REST_Controller
 			}
 
 			if(count($chunked_rows)>0){
-				$result=$this->Data_table_model->table_batch_insert($chunked_rows);
+				$result=$this->Data_table_mongo_model->table_batch_insert($table_id,$chunked_rows);
 			}
 			
 			$response=array(
@@ -575,15 +572,11 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
             $user_id=$this->get_api_user_id();			
 
-            $result=$this->Data_table_model->create_table(                
-                $options
-			);
-			
+            $result=$this->Data_table_mongo_model->create_table($options['table_id'],$options);			
 
 			$response=array(
                 'status'=>'success',
-				'result'=>$result,
-				'query'=>$this->Data_table_model->get_db_error()				
+				'result'=>$result							
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
