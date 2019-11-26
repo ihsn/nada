@@ -344,7 +344,7 @@ $config['rest_enable_keys'] = TRUE;
 | column name to match e.g. my_key
 |
 */
-$config['rest_key_column'] = 'api_key';
+$config['rest_key_column'] = 'key';
 
 /*
 |--------------------------------------------------------------------------
