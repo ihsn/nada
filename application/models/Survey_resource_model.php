@@ -760,7 +760,7 @@ class Survey_resource_model extends CI_Model {
 			}
 			
 			//check if the resource file already exists
-			$resource_exists=$this->Resource_model->get_resources_by_filepath($insert_data['filename']);
+			$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
 			
 			if (!$resource_exists)
 			{										
