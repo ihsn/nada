@@ -49,9 +49,9 @@
 
 <?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
         <!-- survey-row -->
-        <div class="survey-row featured-study">
+        <div class="survey-row featured-study" data-url="<?php echo site_url('catalog/'.$featured_studies['id']);?>">
             <span class="badge badge-warning featured-study-tag"><?php echo t('featured_study');?></span>
-            <div class="row" data-url="<?php echo site_url('catalog/'.$featured_studies['id']);?>" title="View study">
+            <div class="row" title="View study">
                 <div class="col-2 col-lg-1">
                     <i class="icon-da icon-da-<?php echo $featured_studies['model'];?>" title="<?php echo t("legend_data_".$featured_studies['model']);?>"></i>
                 </div>
