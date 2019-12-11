@@ -1592,7 +1592,7 @@ class Datadeposit extends MY_Controller {
 		$message            = '';
 		$data['fields']     = $this->config->item('datadeposit');
 		$data['project']    = $this->DD_project_model->project_id($id, $this->session->userdata('email'));
-		$data['studytype']  = $this->DD_resource_model->get_study_types();
+		$data['studytype']  = $this->config->item('study_types','datadeposit');
 		$data['kindofdata'] = $this->DD_resource_model->get_kind_of_data();
 		$data['projects']   = $this->DD_project_model->projects($this->session->userdata('user_id'));
 		$data['methods']    = $this->DD_resource_model->get_overview_methods();
