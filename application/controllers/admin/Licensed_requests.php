@@ -7,16 +7,13 @@ class Licensed_requests extends MY_Controller {
         parent::__construct();   
        	
         $this->load->helper(array('url'));		
-		$this->load->library( array('pagination') );
-		
-        $this->load->model('Licensed_model');
-		//$this->load->model('Catalog_model');
-       	
-       	$this->template->set_template('admin');
-		
+		$this->load->library( array('pagination') );		
+        $this->load->model('Licensed_model');       	
+       	$this->template->set_template('admin');		
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
 		$this->lang->load('catalog_admin');
+
 		//$this->output->enable_profiler(TRUE);
 		
 		//set active repo from querystring param
@@ -62,7 +59,12 @@ class Licensed_requests extends MY_Controller {
 		$this->template->write('title', t('title_licensed_request'),true);				
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
-    }
+	}
+	
+	function export()
+	{
+		return $this->Licensed_model->export_to_csv();
+	}
 	
 	function edit($id)
 	{			
@@ -93,24 +95,16 @@ class Licensed_requests extends MY_Controller {
 			}
 		}
 			
-			/*
-			echo '<pre>';
-			print_r($result);
-			exit;
-			*/
-		
 		//history
 		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
 		$result['email_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='email');
 		$result['forward_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='forward');
-		
-		
+				
 		//monitoring information
 		$result['download_log']=$this->monitor($id,TRUE);
 		
     	//show listing
 		$content=$this->load->view('access_licensed/edit', $result,true);
-		    	
 		$this->template->write('title', t('title_licensed_request'),true);				
 		$this->template->write('content', $content,true);
 	  	$this->template->render();		
@@ -192,9 +186,6 @@ class Licensed_requests extends MY_Controller {
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|xss_clean|callback__status_check');
 		$this->form_validation->set_rules('comments', 'Comments', 'trim|xss_clean');		
 		$this->form_validation->set_rules('ip_limit', 'IP address', 'trim|xss_clean|callback__valid_ip');		
-		/*if ($this->input->post("ip_limit")!=''){
-		
-		}*/
 
 		$post=$_POST;
 		foreach($post as $key=>$value)
@@ -530,7 +521,7 @@ class Licensed_requests extends MY_Controller {
 			$offset=$total-$per_page;
 			
 			//search again
-			$rows=$this->Licensed_model->search_requests($per_page, $offset,$filter, $sort_by, $sort_order);
+			$rows=$this->Licensed_model->search_requests($per_page, $offset,$search_options, $sort_by, $sort_order);
 		}
 		
 		//set pagination options

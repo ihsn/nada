@@ -124,6 +124,7 @@ $lang['related_datasets']="Related datasets";
 $lang['JSON']="JSON";
 $lang['DDI/XML']="DDI/XML";
 $lang['page not found']='Page not found';
+$lang['export_to_csv']="Export to CSV";
 
 $lang['translate']="Translate";
 

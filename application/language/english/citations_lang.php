@@ -101,7 +101,6 @@ $lang['allowed_file_types']="Allowed file types";
 $lang['attach_file']="Attach file";
 $lang['max_upload_limit']="Max upload limit";
 $lang['export_citations']="Export citations";
-$lang['export_to_csv']="Export to CSV";
 $lang['sort']="Sort";
 $lang['published-status-1']="Published"; 
 $lang['published-status-0']="Draft";
