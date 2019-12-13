@@ -10,7 +10,7 @@
     }
 
     .var-breadcrumb li{display:inline;}
-    
+    .variables-container .bar-container {min-width:150px;}
 </style>
 
 <?php /* ?>
@@ -65,13 +65,12 @@
     ?>
         
     <div class="col-md-6">
-    
         <?php foreach($stat_keys as $stat_key):?>
-            <?php if (array_key_exists($stat_key,$variable['metadata']) && !empty($variable['metadata'][$stat_key])):?>
+            <?php if (array_key_exists($stat_key,$variable['metadata']) && $variable['metadata'][$stat_key]!==null ):?>
             <?php $stat=$variable['metadata'][$stat_key];?>
             <div class="fld-inline sum-stat sum-stat-<?php echo $stat_key;?>">
                 <span class="fld-name sum-stat-type"><?php echo t($stat_key);?>: </span>
-                <span class="fld-value sum-stat-value"><?php echo $stat;?></span>
+                <span class="fld-value sum-stat-value"><?php echo t($stat);?></span>
             </div>
             <?php endif;?>
         <?php endforeach;?>
@@ -92,7 +91,7 @@
             <span class="fld-name var-format-fld"><?php echo t('var_format');?>: </span>
             <?php $format=$variable['metadata']['var_format'];?>
             <?php  $format=(object)$format; ?>
-            <span class="fld-value format-value"><?php echo @$format->type;?></span>
+            <span class="fld-value format-value"><?php echo t(@$format->type);?></span>
         </div>
         <?php endif;?>
 
