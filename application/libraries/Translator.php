@@ -162,32 +162,38 @@ class Translator{
 	}
 
 
+	/**
+	 * 
+	 * Return the translation file full path
+	 * 
+	 * 
+	 */
 	function translation_file_path($language,$translation_file,$ignore_exists=false)
-	{
-		$user_data=$this->ci->config->item('userdata_path').'/language/'.$language.'/'.$translation_file.'_lang.php';
+	{		
+		$user_data=$this->ci->config->item('userdata_path');
 
-		//return file path even if the file does not exist
-		if($ignore_exists==true && !empty($user_data)){
-			return $user_data;
+		//file path based on userdata folder
+		if($ignore_exists==true && !empty($user_data) && file_exists($user_data) ){
+			$user_data_lang_folder=$user_data.'/language/';//.$language.'/'.$translation_file.'_lang.php';
+			$user_data_file=$user_data.'/language/'.$language.'/'.$translation_file.'_lang.php';
+			
+			if(file_exists($user_data_lang_folder)){
+				return $user_data_file;
+			}
 		}
 
-		if(file_exists($user_data))
-		{
-			return $user_data;
-		}
-
-		$fullpath=APPPATH.'/language/'.$language.'/'.$translation_file.'_lang.php';
+		$fullpath=APPPATH.'language/'.$language.'/'.$translation_file.'_lang.php';
 
 		//return file path even if the file does not exist
 		if($ignore_exists==true && !empty($fullpath)){
-			return $user_data;
+			return $fullpath;
 		}
 
 		if (file_exists($fullpath))
 		{
 			return $fullpath;
 		}
-		
+
 		return false;
 	}
 

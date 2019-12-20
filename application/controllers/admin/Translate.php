@@ -39,8 +39,7 @@ class Translate extends MY_Controller {
 			show_error('INVALID_LANGUAGE');
 		}
 
-		$data['edit_file_fullpath']=$this->translator->translation_file_path($language,$translation_file);
-		
+		$data['edit_file_fullpath']=$this->translator->translation_file_path($language,$translation_file, true);		
 		$data['save_status']=NULL;
 		
 		if ($this->input->post('save'))
@@ -81,7 +80,7 @@ class Translate extends MY_Controller {
 		{
 			return FALSE;
 		}
-		
+
 		//save the file
 		$output_file=$this->translator->translation_file_path($language,$translation_file,true);
 
@@ -110,6 +109,12 @@ class Translate extends MY_Controller {
 		//save file
 		$file_contents="<?php \n"; 
 		$file_contents.=$output;
+
+		//create language folder if not exists
+		if(!file_exists(dirname($output_file))){
+			mkdir(dirname($output_file), 0755, true);
+		}
+		
 		$result=@file_put_contents($output_file, $file_contents);
 		
 		if (!$result)
