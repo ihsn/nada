@@ -33,11 +33,14 @@ class Data_table_mongo_model extends CI_Model {
 
     private $geo_fields=array();
 
+    //table type object holds table definition[features, codelists, etc]
+    private $table_type_obj=null;
+
     public function __construct()
     {
         parent::__construct();
-        $this->load->model("Data_tables_places_model");
-        $this->geo_fields=$this->Data_tables_places_model->get_geo_mappings();
+        //$this->load->model("Data_tables_places_model");
+        //$this->geo_fields=$this->Data_tables_places_model->get_geo_mappings();
 		//$this->output->enable_profiler(TRUE);
     }
 
@@ -66,11 +69,6 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         return $row;
-    }
-
-    function transform_feature_fields($row)
-    {
-
     }
 
 
@@ -113,7 +111,51 @@ class Data_table_mongo_model extends CI_Model {
        return $this->db->delete("data_table");
    }
 
+
    
+   function get_tables_list($options=array()) 
+   {
+       $database = (new MongoDB\Client)->census;
+       $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
+
+       $output=array();
+       foreach ($cursor as $collection) {
+           $output[]=$collection;
+       }
+
+       return $output;
+   } 
+   
+   
+
+   /**
+    * 
+    * Return table type information
+    * 
+    * 
+    */
+   function get_table_info($table_id)
+   {
+       $database = (new MongoDB\Client)->census;
+       $collection_info = $database->command(['collStats' => $table_id, 'scale'=> 1024*1024 ]);
+       $result= $collection_info->toArray()[0];
+       $result['table_type']=$this->get_table_type($table_id);
+       return $result;
+   }
+
+   function get_table_type($table_id){
+       $collection = (new MongoDB\Client)->census->{'table_types'};
+       $result = $collection->findOne(
+           [
+               'table_id'=>$table_id
+           ]
+       );
+       return $result;
+   }
+
+
+
+
    /**
 	 * 
 	 * 
@@ -141,6 +183,44 @@ class Data_table_mongo_model extends CI_Model {
             $limit=100;
         }
 
+        //get table type info
+        $this->table_type_obj= $this->get_table_type($table_id);
+
+        $features=$this->get_features_by_table($table_id);
+
+        $features=array_flip($features); //turn feature names (e.g. age) into keys
+
+        //geo fields + others
+        $geo_features=array(
+            'scst'=>'scst',
+            'state'=> 'state',
+            'geo_level'=>'geo_level',
+            'indicator'=>'indicator'
+        );
+
+        $features=array_merge($features,$geo_features);
+
+
+        $feature_filters=array();
+
+        //see if any key matches with the feature name
+        foreach($options as $key=>$value)
+        {
+            if(array_key_exists($key,$features)){
+                 $feature_filters[$key]=$value; //age=something
+            }
+        }
+        
+        $tmp_feature_filters=array();
+
+        //filter by features - uses feature_1, feature_2,... for searching
+        foreach($feature_filters as $feature_key=>$value){
+            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
+        }
+
+        $feature_filters=$tmp_feature_filters;
+
+
         $collection = (new MongoDB\Client)->census->{$table_id};
         /*
         $cursor = $collection->find(
@@ -162,10 +242,17 @@ class Data_table_mongo_model extends CI_Model {
             ]
         );
         */
+
+        $filter=array( 
+           //'age'=>2,
+            'age'=>array(
+                '$in'=>array(2)
+            ),
+
+        );
         
         $cursor = $collection->find(
-            [
-            ],
+            $feature_filters,
             [
                 'projection'=>[
                     '_id'=>0
@@ -173,11 +260,17 @@ class Data_table_mongo_model extends CI_Model {
                 'limit' => $limit
             ]
         );
+
         $output=array();
+        $output['features']=$features;        
+        $output['feature_filters']=$feature_filters;
+        $output['found']=$collection->count($feature_filters);
+        $output['total']=$collection->count();
         $output['data']=array();
         foreach ($cursor as $document) {
             $output['data'][]= $document;
         }
+        
         return $output;
    } 
 
@@ -224,24 +317,32 @@ class Data_table_mongo_model extends CI_Model {
    {
         $parsed_val=$this->parse_filter_value($value);
 
-        $wheres=array();
+        $output=array();
+        $values=array();
 
         foreach($parsed_val as $val){
             if($val['type']=='range'){
                 $start=(int)$val['start'];
                 $end=(int)$val['end'];
-                $wheres[]="($feature_name BETWEEN  $start AND $end)";
-                //$this->db->where("($feature_name BETWEEN $start AND $end)");
+               
+               return array(
+                        '$gte' => $start,
+                        '$lte' => $end
+                );
+
+
             }else if($val['type']=='value'){
-                //$this->db->where($feature_name,$val['value']);
-                $wheres[]=$feature_name." = ".$this->db->escape($val['value']);
+                //$wheres[]=$feature_name." = ".$this->db->escape($val['value']);
+                $values[]=is_numeric($val['value']) ? (int)$val['value']: $val['value'];
             }        
         }
 
-        if(count($wheres)>0){
-            $this->db->where("(".implode(" OR ", $wheres).")",false, false);
+        if (count($values)>0){
+            return 
+                array(
+                    '$in'=>$values
+            );
         }
-        
    }
 
     
@@ -353,35 +454,6 @@ class Data_table_mongo_model extends CI_Model {
 
 
 
-    function get_tables_list($options=array())
-    {
-        $database = (new MongoDB\Client)->census;
-        $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
-
-        $output=array();
-        foreach ($cursor as $collection) {
-            $output[]=$collection;
-        }
-
-        return $output;
-    } 
-    
-    
-
-    /**
-     * 
-     * Return table type information
-     * 
-     * 
-     */
-    function get_table_info($table_id)
-    {
-        $collection = (new MongoDB\Client)->census->table_types;
-        $document = $collection->findOne(['_id' => $table_id]);        
-        return $document;
-    }
-
-
     /**
      * 
      * 
@@ -390,23 +462,20 @@ class Data_table_mongo_model extends CI_Model {
      */
     function get_features_by_table($table_id)
     {
-        //table type
-        $this->db->select("*");
-        $this->db->where("table_id",$table_id);        
-        $table_type=$this->db->get("data_tables_types")->row_array();
-
-        if(!$table_type){
-            throw new Exception("TABLE_NOT_FOUND");
+       
+        if($this->table_type_obj==null){
+            $this->table_type_obj=$this->get_table_type($table_id);
         }
 
+       
         //features
         $features_list=array();
 
         for($i=1;$i<=10;$i++)
         {
             $feature='feature_'.$i;            
-            if(isset($table_type[$feature])){
-                $features_list[$feature]=$table_type[$feature];
+            if(isset($this->table_type_obj[$feature])){
+                $features_list[$feature]=$this->table_type_obj[$feature]['feature_name'];
             }
         }
 

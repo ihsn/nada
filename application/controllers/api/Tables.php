@@ -19,7 +19,7 @@ class Tables extends MY_REST_Controller
 	{
 		try{
 			//$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id();
+			$user_id=$this->get_api_user_id(); 
 			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
@@ -64,7 +64,18 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-            $result=$this->Data_table_mongo_model->get_table_info($table_id);
+			$result=$this->Data_table_mongo_model->get_table_info($table_id);
+
+			$result=array(
+				'storageUnit'=>'M',
+				'size'=>$result['size'],
+				'count'=>$result['count'],
+				'storageSize'=>$result['storageSize'],
+				'nindexes'=>$result['nindexes'],
+				//'indexes'=>$result['indexDetails'],
+				'indexNames'=>array_keys((array)$result['indexDetails']),
+				'result_'=>$result['table_type']
+			);
 			
 			$response=array(
 				'status'=>'success',
@@ -126,7 +137,7 @@ class Tables extends MY_REST_Controller
 
 			$result=$this->Data_table_mongo_model->get_table_data($table_id,$limit,$options);
 			
-			if(isset($options['flat_output']))
+			/*if(isset($options['flat_output']))
 			{
 				$response=$result['data'];
 			}
@@ -136,7 +147,13 @@ class Tables extends MY_REST_Controller
 					'count'=>@count($result['data']),
 					'result'=>$result['data']
 				);				
-			}
+			}*/
+
+			$response=array(
+				'status'=>'success',
+				'count'=>@count($result['data']),
+				'result'=>$result
+			);
 			
 			if($debug==true){
 				$response['query']=$result['query'];
