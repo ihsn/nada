@@ -1,0 +1,31 @@
+language: php
+
+matrix:
+    include:
+        -   php: 7.1
+        -   php: 7.2
+        -   php: 7.3
+        -   php: 7.4snapshot
+            env: PHP_CS_FIXER_IGNORE_ENV=1
+        -   php: nightly
+            env: PHP_CS_FIXER_IGNORE_ENV=1
+    fast_finish: true
+    allow_failures:
+        - php: nightly
+
+cache:
+    directories:
+        - vendor/
+        - tools/
+
+before_script:
+    - composer install --optimize-autoloader --no-suggest --quiet
+
+script:
+  - make phpcs
+  - mkdir -p build/logs
+  - if [[ "$TRAVIS_PHP_VERSION" == '7.1' ]]; then make test-coverage  ; fi
+  - if [[ "$TRAVIS_PHP_VERSION" != '7.1' ]]; then make test ; fi
+
+after_script:
+ - if [[ "$TRAVIS_PHP_VERSION" == '7.1' ]]; then php vendor/bin/php-coveralls -v ; fi

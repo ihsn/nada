@@ -16,6 +16,7 @@ namespace League\Csv;
 use Generator;
 use SplFileObject;
 use function filter_var;
+use function get_class;
 use function mb_strlen;
 use function rawurlencode;
 use function sprintf;
@@ -87,6 +88,13 @@ abstract class AbstractCsv implements ByteSequence
      * @var SplFileObject|Stream
      */
     protected $document;
+
+    /**
+     * Tells whether the Input BOM must be included or skipped.
+     *
+     * @var bool
+     */
+    protected $is_input_bom_included = false;
 
     /**
      * New instance.
@@ -248,6 +256,14 @@ abstract class AbstractCsv implements ByteSequence
     }
 
     /**
+     * Tells whether the BOM can be stripped if presents.
+     */
+    public function isInputBOMIncluded(): bool
+    {
+        return $this->is_input_bom_included;
+    }
+
+    /**
      * Retuns the CSV document as a Generator of string chunk.
      *
      * @param int $length number of bytes read
@@ -257,7 +273,7 @@ abstract class AbstractCsv implements ByteSequence
     public function chunk(int $length): Generator
     {
         if ($length < 1) {
-            throw new Exception(sprintf('%s() expects the length to be a positive integer %d given', __METHOD__, $length));
+            throw new InvalidArgument(sprintf('%s() expects the length to be a positive integer %d given', __METHOD__, $length));
         }
 
         $input_bom = $this->getInputBOM();
@@ -310,9 +326,12 @@ abstract class AbstractCsv implements ByteSequence
         if (null !== $filename) {
             $this->sendHeaders($filename);
         }
-        $input_bom = $this->getInputBOM();
+
         $this->document->rewind();
-        $this->document->fseek(strlen($input_bom));
+        if (!$this->is_input_bom_included) {
+            $this->document->fseek(strlen($this->getInputBOM()));
+        }
+
         echo $this->output_bom;
 
         return strlen($this->output_bom) + $this->document->fpassthru();
@@ -330,7 +349,7 @@ abstract class AbstractCsv implements ByteSequence
     protected function sendHeaders(string $filename)
     {
         if (strlen($filename) != strcspn($filename, '\\/')) {
-            throw new Exception('The filename cannot contain the "/" and "\\" characters.');
+            throw new InvalidArgument('The filename cannot contain the "/" and "\\" characters.');
         }
 
         $flag = FILTER_FLAG_STRIP_LOW;
@@ -371,7 +390,7 @@ abstract class AbstractCsv implements ByteSequence
             return $this;
         }
 
-        throw new Exception(sprintf('%s() expects delimiter to be a single character %s given', __METHOD__, $delimiter));
+        throw new InvalidArgument(sprintf('%s() expects delimiter to be a single character %s given', __METHOD__, $delimiter));
     }
 
     /**
@@ -394,7 +413,7 @@ abstract class AbstractCsv implements ByteSequence
             return $this;
         }
 
-        throw new Exception(sprintf('%s() expects enclosure to be a single character %s given', __METHOD__, $enclosure));
+        throw new InvalidArgument(sprintf('%s() expects enclosure to be a single character %s given', __METHOD__, $enclosure));
     }
 
     /**
@@ -417,7 +436,31 @@ abstract class AbstractCsv implements ByteSequence
             return $this;
         }
 
-        throw new Exception(sprintf('%s() expects escape to be a single character or the empty string %s given', __METHOD__, $escape));
+        throw new InvalidArgument(sprintf('%s() expects escape to be a single character or the empty string %s given', __METHOD__, $escape));
+    }
+
+    /**
+     * Enables BOM Stripping.
+     *
+     * @return static
+     */
+    public function skipInputBOM(): self
+    {
+        $this->is_input_bom_included = false;
+
+        return $this;
+    }
+
+    /**
+     * Disables skipping Input BOM.
+     *
+     * @return static
+     */
+    public function includeInputBOM(): self
+    {
+        $this->is_input_bom_included = true;
+
+        return $this;
     }
 
     /**
@@ -444,7 +487,7 @@ abstract class AbstractCsv implements ByteSequence
     public function addStreamFilter(string $filtername, $params = null): self
     {
         if (!$this->document instanceof Stream) {
-            throw new Exception('The stream filter API can not be used');
+            throw new UnavailableFeature('The stream filter API can not be used with a '.get_class($this->document).' instance.');
         }
 
         $this->document->appendFilter($filtername, $this->stream_filter_mode, $params);

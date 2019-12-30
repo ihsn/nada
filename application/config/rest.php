@@ -190,6 +190,7 @@ $config['auth_override_class_method']['auth']['*'] = 'none';
 $config['auth_override_class_method']['tables']['index'] = 'none';
 $config['auth_override_class_method']['tables']['info'] = 'none';
 $config['auth_override_class_method']['tables']['data'] = 'none';
+$config['auth_override_class_method']['tables']['geosearch'] = 'none';
 $config['auth_override_class_method']['tables']['search_place'] = 'none';
 
 

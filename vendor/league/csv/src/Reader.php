@@ -28,6 +28,7 @@ use function array_filter;
 use function array_pad;
 use function array_slice;
 use function array_unique;
+use function count;
 use function gettype;
 use function is_array;
 use function iterator_count;
@@ -74,6 +75,11 @@ class Reader extends AbstractCsv implements Countable, IteratorAggregate, JsonSe
      * {@inheritdoc}
      */
     protected $stream_filter_mode = STREAM_FILTER_READ;
+
+    /**
+     * @var bool
+     */
+    protected $is_empty_records_included = false;
 
     /**
      * {@inheritdoc}
@@ -137,8 +143,8 @@ class Reader extends AbstractCsv implements Countable, IteratorAggregate, JsonSe
     protected function setHeader(int $offset): array
     {
         $header = $this->seekRow($offset);
-        if (false === $header || [] === $header) {
-            throw new Exception(sprintf('The header record does not exist or is empty at offset: `%s`', $offset));
+        if (false === $header || [] === $header || [null] === $header) {
+            throw new SyntaxError(sprintf('The header record does not exist or is empty at offset: `%s`', $offset));
         }
 
         if (0 === $offset) {
@@ -175,7 +181,7 @@ class Reader extends AbstractCsv implements Countable, IteratorAggregate, JsonSe
             return EmptyEscapeParser::parse($this->document);
         }
 
-        $this->document->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY);
+        $this->document->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD);
         $this->document->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
         $this->document->rewind();
 
@@ -263,17 +269,33 @@ class Reader extends AbstractCsv implements Countable, IteratorAggregate, JsonSe
     public function getRecords(array $header = []): Iterator
     {
         $header = $this->computeHeader($header);
-        $normalized = static function ($record): bool {
-            return is_array($record) && $record != [null];
+        $normalized = function ($record): bool {
+            return is_array($record) && ($this->is_empty_records_included || $record != [null]);
         };
-        $bom = $this->getInputBOM();
-        $document = $this->getDocument();
 
+        $bom = '';
+        if (!$this->is_input_bom_included) {
+            $bom = $this->getInputBOM();
+        }
+
+        $document = $this->getDocument();
         $records = $this->stripBOM(new CallbackFilterIterator($document, $normalized), $bom);
         if (null !== $this->header_offset) {
             $records = new CallbackFilterIterator($records, function (array $record, int $offset): bool {
                 return $offset !== $this->header_offset;
             });
+        }
+
+        if ($this->is_empty_records_included) {
+            $normalized_empty_records = static function (array $record): array {
+                if ([null] === $record) {
+                    return [];
+                }
+
+                return $record;
+            };
+
+            return $this->combineHeader(new MapIterator($records, $normalized_empty_records), $header);
         }
 
         return $this->combineHeader($records, $header);
@@ -298,7 +320,7 @@ class Reader extends AbstractCsv implements Countable, IteratorAggregate, JsonSe
             return $header;
         }
 
-        throw new Exception('The header record must be empty or a flat array with unique string values');
+        throw new SyntaxError('The header record must be empty or a flat array with unique string values');
     }
 
     /**
@@ -368,12 +390,46 @@ class Reader extends AbstractCsv implements Countable, IteratorAggregate, JsonSe
         }
 
         if (null !== $offset && 0 > $offset) {
-            throw new Exception(__METHOD__.'() expects 1 Argument to be greater or equal to 0');
+            throw new InvalidArgument(__METHOD__.'() expects 1 Argument to be greater or equal to 0');
         }
 
         $this->header_offset = $offset;
         $this->resetProperties();
 
         return $this;
+    }
+
+    /**
+     * Enable skipping empty records.
+     */
+    public function skipEmptyRecords(): self
+    {
+        if ($this->is_empty_records_included) {
+            $this->is_empty_records_included = false;
+            $this->nb_records = -1;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Disable skipping empty records.
+     */
+    public function includeEmptyRecords(): self
+    {
+        if (!$this->is_empty_records_included) {
+            $this->is_empty_records_included = true;
+            $this->nb_records = -1;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Tells whether empty records are skipped by the instance.
+     */
+    public function isEmptyRecordsIncluded(): bool
+    {
+        return $this->is_empty_records_included;
     }
 }

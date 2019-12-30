@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Allow for a new document after the current PR#61
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+
+## [v8.1.0](https://github.com/salsify/jsonstreamingparser/releases/tag/v8.1)
+### Added
+- Added `ParserAwareInterface` to expose `setParser()` method
 
 ## [v8.0.0](https://github.com/salsify/jsonstreamingparser/releases/tag/v8.0)
 ### Added

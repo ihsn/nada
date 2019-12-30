@@ -4,34 +4,7 @@
   "description": "",
   "type": "object",
   "definitions":{
-    "feature": {
-      "type": "object",
-      "description": "Feature name",
-      "properties": {
-        "feature_name":{
-          "type": "string",
-          "title": "Feature name"
-        },
-        "code_list": {
-          "type": "array",
-          "title": "Feature code list",
-          "items": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "title": "Code",
-                "type": "integer"
-              },
-              "label": {
-                "title": "Label",
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    
+
     "indicator": {
       "type": "array",
       "title": "Indicator",
@@ -52,6 +25,38 @@
           }
         },
         "required":["code","label","measurement_unit"]
+      }
+    },
+
+    "feature": {
+      "type": "array",
+      "title": "Feature",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name":{
+            "type": "string",
+            "title": "Feature name"
+          },
+          "code_list": {
+            "type": "array",
+            "title": "Feature code list",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "title": "Code",
+                  "type": "integer"
+                },
+                "label": {
+                  "title": "Label",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required":["name"]
       }
     }
   
@@ -80,62 +85,21 @@
         "title":"Indicators"
       },
 
-      "feature_1": {
+      "features": {
         "allOf": [ 
           {"$ref":"#/definitions/feature"}
         ],
-        "title":"Feature"
+        "title":"Features"
       },
 
-      "feature_2": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-
-      "feature_3": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-      "feature_4": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-      "feature_5": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-      "feature_6": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-      "feature_7": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-      "feature_8": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
-      },
-      "feature_9": {
-        "allOf": [ 
-          {"$ref":"#/definitions/feature"}
-        ],
-        "title":"Feature"
+      "geo_features": {
+        "type": "array",
+        "title": "List of Geographic features",
+        "description": "Names of all geographic fields e.g. geo_level, state, district, subdistrict, village etc.",
+        "items": {
+          "type": "string"          
+        }
       }
-      
-  }
+  },
+  "required":["table_id","title"]
 }

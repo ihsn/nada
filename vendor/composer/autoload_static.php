@@ -19,7 +19,7 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         ),
         'S' => 
         array (
-            'Symfony\\Contracts\\' => 18,
+            'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Component\\EventDispatcher\\' => 34,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
@@ -56,9 +56,9 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         array (
             0 => __DIR__ . '/..' . '/violet/streaming-json-encoder/src',
         ),
-        'Symfony\\Contracts\\' => 
+        'Symfony\\Contracts\\EventDispatcher\\' => 
         array (
-            0 => __DIR__ . '/..' . '/symfony/contracts',
+            0 => __DIR__ . '/..' . '/symfony/event-dispatcher-contracts',
         ),
         'Symfony\\Component\\EventDispatcher\\' => 
         array (

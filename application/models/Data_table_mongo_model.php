@@ -461,22 +461,16 @@ class Data_table_mongo_model extends CI_Model {
      * 
      */
     function get_features_by_table($table_id)
-    {
-       
+    {       
         if($this->table_type_obj==null){
             $this->table_type_obj=$this->get_table_type($table_id);
         }
 
-       
         //features
         $features_list=array();
 
-        for($i=1;$i<=10;$i++)
-        {
-            $feature='feature_'.$i;            
-            if(isset($this->table_type_obj[$feature])){
-                $features_list[$feature]=$this->table_type_obj[$feature]['feature_name'];
-            }
+        foreach($this->table_type_obj['features'] as $feature){
+            $features_list[$feature['feature_name']]=$feature['feature_name'];
         }
 
         return $features_list;        
@@ -525,5 +519,65 @@ class Data_table_mongo_model extends CI_Model {
             return implode(", ",$error);
         }		
     }
+
+
+    function geo_search($options)
+   {
+        $limit=100;
+
+        //geo fields + others
+        $features=array(
+            'level'=>'level',
+            'state'=> 'state',
+            'district'=> 'district',
+            'subdistrict'=> 'subdistrict',
+            'town_village'=>'town_village',
+            'ward'=> 'ward',
+            'areaname'=> 'areaname',
+        );
+
+        //see if any key matches with the feature name
+        foreach($options as $key=>$value)
+        {
+            if(array_key_exists($key,$features)){
+                 $feature_filters[$key]=$value; //age=something
+            }
+        }
+        
+        $tmp_feature_filters=array();
+
+        //filter by features - uses feature_1, feature_2,... for searching
+        foreach($feature_filters as $feature_key=>$value){
+            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
+        }
+
+        $feature_filters=$tmp_feature_filters;
+
+
+        $collection = (new MongoDB\Client)->census->{"geo_codes"};
+        
+        $cursor = $collection->find(
+            $feature_filters,
+            [
+                'projection'=>[
+                    '_id'=>0
+                ],
+                'limit' => $limit
+            ]
+        );
+
+        $output=array();
+        $output['features']=$features;        
+        $output['feature_filters']=$feature_filters;
+        $output['found']=$collection->count($feature_filters);
+        $output['total']=$collection->count();
+        $output['data']=array();
+
+        foreach ($cursor as $document) {
+            $output['data'][]= $document;
+        }
+        
+        return $output;
+   } 
 	
 }    

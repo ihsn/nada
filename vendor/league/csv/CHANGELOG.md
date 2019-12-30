@@ -2,6 +2,74 @@
 
 All Notable changes to `Csv` will be documented in this file
 
+## 9.5.0 - 2019-12-15
+
+### Added
+
+- Improve package exception throwing by adding new exceptions classes that extends 
+the `League\Csv\Exception` exception marker class [#360](https://github.com/thephpleague/csv/issues/360), [#361](https://github.com/thephpleague/csv/issues/360)
+feature proposed and developed by [Darren Miller](https://github.com/dmlogic)
+    - `League\Csv\UnavailableFeature`
+    - `League\Csv\InvalidArgument`
+    - `League\Csv\SyntaxError`
+    
+### Deprecated
+
+- Nothing
+
+### Fixed
+
+- bug fix `bom_match` function see issue [#363](https://github.com/thephpleague/csv/issues/363) resolved based on PR from [Jerry Martinez](https://github.com/jmwebservices)
+- bug fix `delemiter_detect` function see issue [#366](https://github.com/thephpleague/csv/issues/366)
+
+### Removed
+
+- Nothing
+
+## 9.4.1 - 2019-10-17
+
+### Added
+
+- Nothing
+
+### Deprecated
+
+- Nothing
+
+### Fixed
+
+- bug fix the escape mechanism polyfill  [#358](https://github.com/thephpleague/csv/pull/358) fix provided by [on2](https://github.com/on2)
+
+### Removed
+
+- Nothing
+
+## 9.4.0 - 2019-10-02
+
+### Added
+
+- Adding support for controlling empty record presence in `Reader::getRecords` return value.
+    - `Reader::includeEmptyRecords`
+    - `Reader::skipEmptyRecords`
+    - `Reader::isEmptyRecordsIncluded`
+
+- Adding support for controlling Input BOM usage in the library:
+    - `AbstractCsv::skipInputBOM`
+    - `AbstractCsv::includeInputBOM`
+    - `AbstractCsv::isInputBOMIncluded`
+
+### Deprecated
+
+- Nothing
+
+### Fixed
+
+- `EmptyEscapeParser::parse` no longer auto skip empty records
+
+### Removed
+
+- Nothing
+
 ## 9.3.0 - 2019-07-30
 
 ### Added

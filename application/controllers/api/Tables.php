@@ -202,7 +202,7 @@ class Tables extends MY_REST_Controller
 				$options=$tmp_options;
 			}
 			
-            //validate all rowsxxxxxxx
+            //validate all rows
             /*
 			foreach($options as $key=>$row){
 				$this->Census_table_model->validate_table($row);
@@ -327,6 +327,20 @@ class Tables extends MY_REST_Controller
 			$csv=Reader::createFromPath($csv_path,'r');
 			$csv->setHeaderOffset(0);
 
+			$delimiters=array(
+				'tab'=>"\t",
+				','=>',',
+				';'=>';'
+			);
+
+			if (isset($options['delimiter']) && array_key_exists($options['delimiter'],$delimiters)){
+				$csv->setDelimiter($delimiters[$options['delimiter']]);
+			}
+
+			
+			//var_dump($csv->getDelimiter());
+			//die();
+
 			$header=$csv->getHeader();
 			$records= $csv->getRecords();
 
@@ -339,9 +353,16 @@ class Tables extends MY_REST_Controller
 			//delete existing table data
 			//$this->Data_table_model->delete_table_data($table_id);
 
-			foreach($records as $row){
+			$intval_func= function($value){
+				if (is_numeric($value)){
+					return intval($value);
+				}
 
-				$row=array_map('intval', $row);
+				return $value;
+			};
+
+			foreach($records as $row){
+				$row=array_map($intval_func, $row);
 				$total++;
 				$chunked_rows[]=$row;
 
@@ -386,7 +407,7 @@ class Tables extends MY_REST_Controller
 	 * Return geo levels
 	 * 
 	 * 
-	 */
+	 */ 
 	function geo_levels_get()
 	{
 		//$this->is_admin_or_die();
@@ -848,4 +869,49 @@ class Tables extends MY_REST_Controller
 	}
 
 
+
+
+	/**
+	 * 
+	 * 
+	 * Search for States, districts, towns, etc
+	 * 
+	 * geo_level - state, district, etc
+	 * state - state name
+	 * district - district name
+	 * subdistrict
+	 * town
+	 * village
+	 * 
+	 */
+	function geosearch_get()
+	{
+		try{
+			//$options=$this->raw_json_input();
+
+			$get_params=array();
+			parse_str($_SERVER['QUERY_STRING'], $get_params);
+			
+			$options=array();
+			foreach(array_keys($get_params) as $param){
+				$options[$param]=$this->input->get($param,true);
+			}
+
+			$result=$this->Data_table_mongo_model->geo_search($options);
+			
+			$response=array(
+				'status'=>'success',				
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 }	

@@ -22,6 +22,8 @@ namespace League\Csv {
     use function count;
     use function is_array;
     use function iterator_to_array;
+    use function rsort;
+    use function strlen;
     use function strpos;
     use const COUNT_RECURSIVE;
 
@@ -33,8 +35,11 @@ namespace League\Csv {
     function bom_match(string $str): string
     {
         static $list;
+        if (null === $list) {
+            $list = (new ReflectionClass(ByteSequence::class))->getConstants();
 
-        $list = $list ?? (new ReflectionClass(ByteSequence::class))->getConstants();
+            rsort($list);
+        }
 
         foreach ($list as $sequence) {
             if (0 === strpos($str, $sequence)) {
@@ -58,22 +63,40 @@ namespace League\Csv {
      */
     function delimiter_detect(Reader $csv, array $delimiters, int $limit = 1): array
     {
-        $found = array_unique(array_filter($delimiters, static function (string $value): bool {
-            return 1 == strlen($value);
-        }));
-        $stmt = (new Statement())->limit($limit)->where(static function (array $record): bool {
-            return count($record) > 1;
-        });
-        $reducer = static function (array $result, string $delimiter) use ($csv, $stmt): array {
-            $result[$delimiter] = count(iterator_to_array($stmt->process($csv->setDelimiter($delimiter)), false), COUNT_RECURSIVE);
-
-            return $result;
+        $delimiter_filter = static function (string $value): bool {
+            return 1 === strlen($value);
         };
-        $delimiter = $csv->getDelimiter();
-        $header_offset = $csv->getHeaderOffset();
+
+        $record_filter = static function (array $record): bool {
+            return count($record) > 1;
+        };
+
+        $stmt = (new Statement())->limit($limit);
+
+        $delimiter_stats = static function (array $stats, string $delimiter) use ($csv, $stmt, $record_filter): array {
+            $csv->setDelimiter($delimiter);
+            $found_records = array_filter(
+                iterator_to_array($stmt->process($csv), false),
+                $record_filter
+            );
+
+            $stats[$delimiter] = count($found_records, COUNT_RECURSIVE);
+
+            return $stats;
+        };
+
+        $current_delimiter = $csv->getDelimiter();
+        $current_header_offset = $csv->getHeaderOffset();
         $csv->setHeaderOffset(null);
-        $stats = array_reduce($found, $reducer, array_fill_keys($delimiters, 0));
-        $csv->setHeaderOffset($header_offset)->setDelimiter($delimiter);
+
+        $stats = array_reduce(
+            array_unique(array_filter($delimiters, $delimiter_filter)),
+            $delimiter_stats,
+            array_fill_keys($delimiters, 0)
+        );
+
+        $csv->setHeaderOffset($current_header_offset);
+        $csv->setDelimiter($current_delimiter);
 
         return $stats;
     }

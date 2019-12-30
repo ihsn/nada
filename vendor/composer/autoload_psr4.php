@@ -7,7 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Violet\\StreamingJsonEncoder\\' => array($vendorDir . '/violet/streaming-json-encoder/src'),
-    'Symfony\\Contracts\\' => array($vendorDir . '/symfony/contracts'),
+    'Symfony\\Contracts\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher-contracts'),
     'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
     'Solarium\\' => array($vendorDir . '/solarium/solarium/src'),
     'Slim\\Csrf\\' => array($vendorDir . '/slim/csrf/src'),

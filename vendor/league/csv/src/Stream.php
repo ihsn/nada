@@ -121,20 +121,20 @@ class Stream implements SeekableIterator
     /**
      * New instance.
      *
-     * @param resource $resource stream type resource
+     * @param resource $stream stream type resource
      */
-    public function __construct($resource)
+    public function __construct($stream)
     {
-        if (!is_resource($resource)) {
-            throw new TypeError(sprintf('Argument passed must be a stream resource, %s given', gettype($resource)));
+        if (!is_resource($stream)) {
+            throw new TypeError(sprintf('Argument passed must be a stream resource, %s given', gettype($stream)));
         }
 
-        if ('stream' !== ($type = get_resource_type($resource))) {
+        if ('stream' !== ($type = get_resource_type($stream))) {
             throw new TypeError(sprintf('Argument passed must be a stream resource, %s resource given', $type));
         }
 
-        $this->is_seekable = stream_get_meta_data($resource)['seekable'];
-        $this->stream = $resource;
+        $this->is_seekable = stream_get_meta_data($stream)['seekable'];
+        $this->stream = $stream;
     }
 
     /**
@@ -243,7 +243,7 @@ class Stream implements SeekableIterator
             return;
         }
 
-        throw new Exception(sprintf('unable to locate filter `%s`', $filtername));
+        throw new InvalidArgument(sprintf('unable to locate filter `%s`', $filtername));
     }
 
     /**
@@ -264,18 +264,18 @@ class Stream implements SeekableIterator
     protected function filterControl(string $delimiter, string $enclosure, string $escape, string $caller): array
     {
         if (1 !== strlen($delimiter)) {
-            throw new Exception(sprintf('%s() expects delimiter to be a single character', $caller));
+            throw new InvalidArgument(sprintf('%s() expects delimiter to be a single character', $caller));
         }
 
         if (1 !== strlen($enclosure)) {
-            throw new Exception(sprintf('%s() expects enclosure to be a single character', $caller));
+            throw new InvalidArgument(sprintf('%s() expects enclosure to be a single character', $caller));
         }
 
         if (1 === strlen($escape) || ('' === $escape && 70400 <= PHP_VERSION_ID)) {
             return [$delimiter, $enclosure, $escape];
         }
 
-        throw new Exception(sprintf('%s() expects escape to be a single character', $caller));
+        throw new InvalidArgument(sprintf('%s() expects escape to be a single character', $caller));
     }
 
     /**
@@ -305,7 +305,7 @@ class Stream implements SeekableIterator
      *
      * @see http://php.net/manual/en/splfileobject.fputcsv.php
      *
-     * @return int|bool
+     * @return int|false
      */
     public function fputcsv(array $fields, string $delimiter = ',', string $enclosure = '"', string $escape = '\\')
     {
@@ -393,7 +393,7 @@ class Stream implements SeekableIterator
     /**
      * Retrieves the current line as a CSV Record.
      *
-     * @return array|bool
+     * @return array|false
      */
     protected function getCurrentRecord()
     {
@@ -492,7 +492,7 @@ class Stream implements SeekableIterator
      *
      * @see http://php.net/manual/en/splfileobject.fwrite.php
      *
-     * @return int|bool
+     * @return int|false
      */
     public function fwrite(string $str, int $length = null)
     {

@@ -1,0 +1,68 @@
+version:
+    '9.0':
+        Getting Started:
+            Overview: '/9.0/'
+            Installation: '/9.0/installation/'
+            Upgrading from 8.x: '/9.0/upgrading/'
+        Connections Settings:
+            Overview: '/9.0/connections/'
+            Document Loading: '/9.0/connections/instantiation/'
+            Characters Controls: '/9.0/connections/controls/'
+            BOM Sequences: '/9.0/connections/bom/'
+            Stream Filters: '/9.0/connections/filters/'
+            Document output: '/9.0/connections/output/'
+        Inserting Records:
+            Writer Connection: '/9.0/writer/'
+            Bundled Helpers: '/9.0/writer/helpers/'
+        Selecting Records:
+            Reader Connection: '/9.0/reader/'
+            Constraint Builder: '/9.0/reader/statement/'
+            Result Set: '/9.0/reader/resultset/'
+        Interoperability:
+            Overview : '/9.0/interoperability/'
+            Document Encoding : '/9.0/interoperability/encoding/'
+            RFC4180 Field : '/9.0/interoperability/rfc4180-field/'
+            Force Enclosure : '/9.0/interoperability/enclose-field/'
+            Formula Injection : '/9.0/interoperability/escape-formula-injection/'
+        Converting Records:
+            Overview: '/9.0/converter/'
+            Charset Converter: '/9.0/converter/charset/'
+            XML Converter: '/9.0/converter/xml/'
+            HTML Converter: '/9.0/converter/html/'
+    '8.0':
+        Getting Started:
+            Overview: '/8.0/'
+            Installation: '/8.0/installation/'
+            Upgrading from 7.x: '/8.0/upgrading/'
+        The API:
+            Instantiation: '/8.0/instantiation/'
+            CSV Properties: '/8.0/properties/'
+            Basic Usage: '/8.0/basic-usage/'
+            Extracting Data: '/8.0/reading/'
+            Inserting Data: '/8.0/inserting/'
+            Converting Data: '/8.0/converting/'
+            Query Filters: '/8.0/query-filtering/'
+            Stream Filters: '/8.0/filtering/'
+            BOM Handling: '/8.0/bom/'
+    '7.0':
+        Getting Started:
+            Overview: '/7.0/'
+            Installation: '/7.0/installation/'
+            Upgrading from 6.x: '/7.0/upgrading/'
+        The API:
+            Instantiation: '/7.0/instantiation/'
+            CSV Properties: '/7.0/properties/'
+            Basic Usage: '/7.0/basic-usage/'
+            Extracting Data: '/7.0/reading/'
+            Inserting Data: '/7.0/inserting/'
+            Converting Data: '/7.0/converting/'
+            Query Filters: '/7.0/query-filtering/'
+            Stream Filters: '/7.0/filtering/'
+            BOM Handling: '/7.0/bom/'
+upgrading:
+    'Upgrading guide':
+        Release Notes: '/releases/'
+        From 8.x to 9.x: '/9.0/upgrading/'
+        From 7.x to 8.x: '/8.0/upgrading/'
+        From 6.x to 7.x: '/7.0/upgrading/'
+        From 5.x to 6.x: '/upgrading/6.0/'
