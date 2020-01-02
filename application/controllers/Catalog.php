@@ -94,13 +94,6 @@ class Catalog extends MY_Controller {
 		$this->template->add_js($embed_js,'embed');
 
 		$this->template->add_js('javascript/datacatalog.js');
-		//$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
 		$this->template->add_js('javascript/jquery.scrollTo-min.js');
 		$this->template->add_js('javascript/jquery.blockui.js');		
 
