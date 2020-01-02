@@ -21,6 +21,8 @@
 			'Embargoed'			=> ($project[0]->is_embargoed==="1") ? "Yes": "No",
 			'Embargoed notes'	=> nl2br($project[0]->embargoed),
 			'Disclosure risk'	=> nl2br($project[0]->disclosure_risk),
+			'Key variables'		=> nl2br($project[0]->key_variables),
+			'Sensitive variables'	=> nl2br($project[0]->sensitive_variables),
 			'Access policy'		=> nl2br($project[0]->access_policy),
 			'Notes'				=> nl2br($project[0]->library_notes),
 			'Status'			=> strtoupper($project[0]->status)

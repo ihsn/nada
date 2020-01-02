@@ -877,11 +877,34 @@ class Ion_auth
 	}
 	
 	
-	 function get_groups_by_user($id=FALSE)
-	 {
-	 	return $this->ci->ion_auth_model->get_groups_by_user($id);
-	 }
+	function get_groups_by_user($id=FALSE)
+	{
+		$groups= $this->ci->ion_auth_model->get_groups_by_user($id);
 
+		if($groups){
+			return $groups;
+		}
+
+		//if no user group set, set the default group to USER
+		$user_group=$this->ci->ion_auth->get_groupid_by_name('user');
+		
+		if(!$user_group){
+			return false;
+		}
+		
+		return array($user_group);			
+	}
+
+
+	/**
+	 * 
+	 * Return user group id by name
+	 * 
+	 */
+	function get_groupid_by_name($name)
+	{
+		return $this->ci->ion_auth_model->get_groupid_by_name($name);
+	}
 
 	/**
 	*

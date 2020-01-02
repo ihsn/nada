@@ -70,7 +70,8 @@
 		
         <?php if (isset($active_lang_file)):?>
         <div class="edit-lang-info">
-        	File: <span class="lang-name"><?php echo $language;?></span> / <span class="lang-file-name"><?php echo $active_lang_file;?></span>
+          File: <span class="lang-name"><?php echo $language;?></span> / <span class="lang-file-name"><?php echo $active_lang_file;?></span>
+            <span style="color:gray;font-size:smaller;"><?php echo $edit_file_fullpath;?></span>
         </div>
         <?php endif;?>
         

@@ -1161,7 +1161,15 @@ a.active.page-link {
   color: #721c24;
 }
 
-
+.lang-container{
+  font-size:smaller;
+  padding-left:15px;
+}
+.lang-container .lang-label{
+  border-left:1px solid gainsboro;
+  padding-left:5px;
+  padding-right:5px;
+}
 
 
 

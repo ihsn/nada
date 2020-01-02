@@ -311,6 +311,27 @@ class Country_model extends CI_Model {
 		
 		return false;
 	}
+
+
+	/**
+	*
+	* Return country system name
+	*
+	**/
+	function get_country_system_name($name)
+	{
+		$this->db->select('name, alias');
+		$this->db->join('country_aliases', 'countries.countryid= country_aliases.countryid','left');
+		$this->db->where('name',$name);
+		$this->db->or_where('alias',$name);
+		$country=$this->db->get('countries')->result_array();
+		
+		if (!$country){
+			return false;
+		}
+
+		return $country[0]['name'];		
+	}
 	
 	
 	

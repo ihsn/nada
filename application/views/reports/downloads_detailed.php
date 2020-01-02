@@ -25,12 +25,7 @@
             <?php endif;?>
         <tr>
             <td style="padding-left:20px;">
-				<?php echo $row['download_title'];?>
-                <?php if ($row['download_filename']!='')
-					{
-						echo ' ('.$row['download_filename'].')';
-					}
-				?>	
+				<?php echo $row['download_filename'];?>                
             </td>            
             <td><?php echo date("m/d/y",$row['logtime']);?></td>
             <td><?php echo $row['username'];?></td>

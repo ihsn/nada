@@ -110,7 +110,12 @@ class Public_model extends CI_Model {
 		{
 			return TRUE;
 		}
-				
+		
+		if (!is_array($survey_collections))
+		{
+			return FALSE;
+		}
+		
 		foreach($survey_collections as $collection)
 		{
 			//check if user has access to collection's data

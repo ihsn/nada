@@ -94,13 +94,6 @@ class Catalog extends MY_Controller {
 		$this->template->add_js($embed_js,'embed');
 
 		$this->template->add_js('javascript/datacatalog.js');
-		//$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.dialog.js');
 		$this->template->add_js('javascript/jquery.scrollTo-min.js');
 		$this->template->add_js('javascript/jquery.blockui.js');		
 
@@ -266,8 +259,14 @@ class Catalog extends MY_Controller {
 		$offset=						($search_options->page-1)*$this->limit;
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('year','title','labl','nation','popularity','rank');
+		$allowed_fields = array('proddate','title','labl','nation','popularity','rank');
 		$allowed_order=array('asc','desc');
+
+		//load default sort options from config if not set
+		if(empty($search_options->sort_by)){
+			$search_options->sort_by=$this->config->item("catalog_default_sort_by");
+			$search_options->sort_order=$this->config->item("catalog_default_sort_order");
+		}
 
 		//set default sort options, if passed values are not valid
 		if (!in_array(trim($search_options->sort_by),$allowed_fields))

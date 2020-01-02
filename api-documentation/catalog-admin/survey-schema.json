@@ -24,9 +24,9 @@
               "public",
               "licensed",
               "remote",
-              "na"
+              "data_na"
             ],
-            "default": "na"
+            "default": "data_na"
           },
           "published": {
             "type": "integer",
