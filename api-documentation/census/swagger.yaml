@@ -1,0 +1,322 @@
+swagger: '2.0'
+info:
+  description: >-
+    CENSUS API
+
+
+    To use the API, you will require the '`API-KEY'`, see the section
+    `Authentication` 
+  version: "5.0"
+  title: CENSUS
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+basePath: /index.php/api/
+tags:
+  - name: Tables
+    description: Tables api
+x-tagGroups:
+  - name: Tables 
+    tags:
+      - Tables
+  - name: Geographic codes 
+    tags:
+      - Geo codes
+schemes:
+  - http
+paths:
+  /tables:
+      get:
+        tags:
+          - Tables
+        summary: List all tables
+        description: Returns a list of all tables
+        operationId: listTables
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        responses:
+          '200':
+            description: successful operation            
+        security:
+          - ApiKeyAuth: []   
+  /tables/info/{tableId}:
+      get:
+        tags:
+          - Tables
+        summary: Get table info
+        description: Returns table defintion, features, indicators
+        operationId: tableInfo
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation            
+        security:
+          - ApiKeyAuth: []               
+  /tables/insert:      
+      post:
+        tags:
+          - Tables
+        summary: Insert table data
+        description: Insert data to table
+        operationId: postTable
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'census-table-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'census-table-schema.json'
+        security:
+          - ApiKeyAuth: []  
+  /tables/create:
+      post:
+        tags:
+          - Tables
+        summary: Create new table
+        description: Create new table type
+        operationId: createTableType
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'census-table_type-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'census-table_type-schema.json'
+        security:
+          - ApiKeyAuth: [] 
+  /tables/data/{tableId}:
+      get:
+        tags:
+          - Tables
+        summary: Get table data
+        description: Get table data
+        operationId: getTableData
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "limit"
+            type: integer
+            required: true  
+          - in: "query"
+            name: "geo_level"
+            type: string
+            required: false
+          - in: "query"
+            name: "state_code"
+            type: string
+            required: false
+          - in: "query"
+            name: "district_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "subdistrict_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "town_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "ward_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "indicator"
+            type: integer
+            required: false      
+          - in: "query"
+            name: "<name of feature>"
+            type: string
+            required: false 
+          - in: "query"
+            name: "fields"
+            type: string
+            required: false                      
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []                        
+  /tables/import:
+      post:
+        tags:
+          - Tables
+        summary: Import CSV
+        description: Import CSV for table data. This only works for uploaded CSV files using the `upload` endpoint
+        operationId: importCsv
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: "#/definitions/CsvImport"        
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+  
+  /tables/geocodes/:
+      get:
+        tags:
+          - Geo codes
+        summary: Get geo codes
+        description: Get geo codes
+        operationId: getGeocodes
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "query"
+            name: "geo_level"
+            type: string
+            required: false
+          - in: "query"
+            name: "state_code"
+            type: string
+            required: false
+          - in: "query"
+            name: "district_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "subdistrict_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "town_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "ward_code"
+            type: string
+            required: false      
+          - in: "query"
+            name: "name"
+            type: string
+            required: false                      
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+###############################################################
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    name: X-API-KEY
+    in: header
+definitions:
+  CsvImport:
+    type: object
+    properties:
+      table_id:
+        type: string
+      file_path:
+        type: string
+        description: File name for uploaded CSV file
+        example: "table-name.csv"
+      delimiter:
+        type: string  
+        description: CSV delimiter - default is Comma(,)
+        example: "tab"
+    required:
+      - table_id
+      - file_path 
+    xml:
+      name: CsvImport
+
+  Table:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      table_id:
+        type: string
+        required: true
+        title: "Table unique IDNo"        
+      title:
+        type: string 
+        required: true
+        description: Table Title 
+      description:
+        required: true
+        type: string 
+        description: A short description
+      unit_observation:
+        type: string 
+        required: true
+        description: Unit of observation
+      features:
+        type: array
+        required: true
+        description: Features - up to 5
+        items:
+          type: string
+    xml:
+      name: table
+      
+  
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string

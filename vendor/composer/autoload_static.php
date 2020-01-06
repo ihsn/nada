@@ -8,6 +8,8 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
+        '3a37ebac017bc098e9a86b35401e7a68' => __DIR__ . '/..' . '/mongodb/mongodb/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -17,7 +19,7 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         ),
         'S' => 
         array (
-            'Symfony\\Contracts\\' => 18,
+            'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Component\\EventDispatcher\\' => 34,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
@@ -30,10 +32,12 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         'M' => 
         array (
             'Mpdf\\' => 5,
+            'MongoDB\\' => 8,
         ),
         'L' => 
         array (
             'League\\Event\\' => 13,
+            'League\\Csv\\' => 11,
         ),
         'J' => 
         array (
@@ -52,9 +56,9 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         array (
             0 => __DIR__ . '/..' . '/violet/streaming-json-encoder/src',
         ),
-        'Symfony\\Contracts\\' => 
+        'Symfony\\Contracts\\EventDispatcher\\' => 
         array (
-            0 => __DIR__ . '/..' . '/symfony/contracts',
+            0 => __DIR__ . '/..' . '/symfony/event-dispatcher-contracts',
         ),
         'Symfony\\Component\\EventDispatcher\\' => 
         array (
@@ -80,9 +84,17 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         array (
             0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
         ),
+        'MongoDB\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mongodb/mongodb/src',
+        ),
         'League\\Event\\' => 
         array (
             0 => __DIR__ . '/..' . '/league/event/src',
+        ),
+        'League\\Csv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/csv/src',
         ),
         'JsonStreamingParser\\Test\\' => 
         array (

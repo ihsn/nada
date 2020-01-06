@@ -187,6 +187,12 @@ $config['auth_library_function'] = '';
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
+$config['auth_override_class_method']['tables']['index'] = 'none';
+$config['auth_override_class_method']['tables']['info'] = 'none';
+$config['auth_override_class_method']['tables']['data'] = 'none';
+$config['auth_override_class_method']['tables']['geosearch'] = 'none';
+$config['auth_override_class_method']['tables']['search_place'] = 'none';
+
 
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method']['wildcard_test_cases']['*'] = 'basic';
@@ -293,7 +299,11 @@ $config['rest_ip_blacklist'] = '';
 | if you have any of these features enabled
 |
 */
+<<<<<<< HEAD
 $config['rest_database_group'] = 'sqlsrv_dev';
+=======
+$config['rest_database_group'] = '';
+>>>>>>> data-tables-api-mongo
 
 /*
 |--------------------------------------------------------------------------

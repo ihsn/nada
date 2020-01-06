@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Census table type schema",
+  "description": "",
+  "type": "object",
+  "definitions":{
+
+    "indicator": {
+      "type": "array",
+      "title": "Indicator",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "measurement_unit": {
+            "title": "Unit of Measurement",
+            "type": "string"
+          }
+        },
+        "required":["code","label","measurement_unit"]
+      }
+    },
+
+    "feature": {
+      "type": "array",
+      "title": "Feature",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name":{
+            "type": "string",
+            "title": "Feature name"
+          },
+          "code_list": {
+            "type": "array",
+            "title": "Feature code list",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "title": "Code",
+                  "type": "integer"
+                },
+                "label": {
+                  "title": "Label",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required":["name"]
+      }
+    }
+  
+    
+  },
+    "properties": {                
+      "table_id": {
+        "type": "string",
+        "description": "Table ID number"
+      },
+
+      "title": {
+        "type": "string",
+        "description": "Table title"
+      },
+
+      "description": {
+        "type": "string",
+        "description": "Table description"
+      },
+      
+      "indicators": {
+        "allOf": [ 
+          {"$ref":"#/definitions/indicator"}
+        ],
+        "title":"Indicators"
+      },
+
+      "features": {
+        "allOf": [ 
+          {"$ref":"#/definitions/feature"}
+        ],
+        "title":"Features"
+      },
+
+      "geo_features": {
+        "type": "array",
+        "title": "List of Geographic features",
+        "description": "Names of all geographic fields e.g. geo_level, state, district, subdistrict, village etc.",
+        "items": {
+          "type": "string"          
+        }
+      }
+  },
+  "required":["table_id","title"]
+}
