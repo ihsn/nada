@@ -121,7 +121,16 @@ class Dataset_microdata_model extends Dataset_model {
 
 
 
-    function update_dataset($sid,$type,$options)
+    /**
+     * 
+     * Update dataset
+     * 
+     * @merge_metadata - boolean
+     *  true  - merge/update individual values
+     *  false - replace all metadata with new values (no merge)
+     * 
+     */
+    function update_dataset($sid,$type,$options, $merge_metadata=false)
 	{
 		//need this to validate IDNO for uniqueness
 		$options['sid']=$sid;
@@ -144,14 +153,17 @@ class Dataset_microdata_model extends Dataset_model {
 			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
         }
         
-        $dataset=$this->get_row_detailed($sid);
-        $metadata=$dataset['metadata'];
+        //merge/replace metadata
+        if ($merge_metadata==true){
+            $dataset=$this->get_row_detailed($sid);
+            $metadata=$dataset['metadata'];
 
-        if(is_array($metadata)){
-            unset($metadata['idno']);
-            
-            //replace metadata with new options
-            $options=array_replace_recursive($metadata,$options);
+            if(is_array($metadata)){
+                unset($metadata['idno']);
+                
+                //replace metadata with new options
+                $options=array_replace_recursive($metadata,$options);
+            }
         }
         
         $options['changed']=date("U");
@@ -312,8 +324,10 @@ class Dataset_microdata_model extends Dataset_model {
         $nations=$this->get_country_names($nations);//get names only
 
         $output['nations']=$nations;
-        $output['nation']=$this->get_country_names_string($nations);
+        $nation_str=$this->get_country_names_string($nations);        
+        $nation_system_name=$this->Country_model->get_country_system_name($nation_str);
 
+        $output['nation']=($nation_system_name!==false) ? $nation_system_name : $nation_str;
         $output['abbreviation']=$this->get_array_nested_value($options,'study_desc/title_statement/alternate_title');
         
         $auth_entity=$this->get_array_nested_value($options,'study_desc/authoring_entity');

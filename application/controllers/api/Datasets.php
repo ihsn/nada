@@ -203,17 +203,11 @@ class Datasets extends MY_REST_Controller
 			$options['created']=date("U");
 			$options['changed']=date("U");
 			
-			/* 
-			* TODO: move to create_dataset ------ need this
-
-			//get sid for idno if already exists
-			$sid=$this->Dataset_model->find_by_idno($idno);
-
-			if(isset($options['overwrite']) && $options['overwrite']=='yes' && $sid>0){
-				return $this->update_post($type,$idno);
+			//set default repository if not set
+			if(!isset($options['repositoryid'])){
+				$options['repositoryid']='central';
 			}
-			*/
-			
+
 			//validate & create dataset
 			$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 
@@ -1355,6 +1349,152 @@ class Datasets extends MY_REST_Controller
 				'records'=>$result
 			);		
 			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Return datasets aliases
+	 * 
+	 */
+	function aliases_get($idno=null)
+	{
+		try{
+			$result=$this->dataset_manager->get_dataset_aliases($idno);
+			$response=array(
+				'status'=>'success',
+				'found'=>count($result),
+				'records'=>$result
+			);		
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+
+	/**
+	 * 
+	 * 
+	 * Generate PDF report
+	 * 
+	 * @IDNO - Survey IDNO
+	 * 
+	 */
+	function generate_pdf_post($idno=null)
+	{
+		$this->load->helper('url_filter');
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			//get sid from idno
+			$sid=$this->get_sid_from_idno($idno);
+
+			$dataset=$this->dataset_manager->get_row($sid);
+
+			if($dataset['type']!='survey'){
+				throw new Exception("PDF can only be generated for Surveys only");
+			}
+
+			$pdf_options=array(
+				'publisher'=> $dataset['authoring_entity'],
+				'website_title'=> $this->config->item("website_title"),
+				'study_title'=> $dataset['title'],
+				'website_url'=> site_url(),
+				'toc_variable'=> isset($options['variable_toc']) ? (int)$options['variable_toc'] : 1,
+				'data_dic_desc'=> isset($options['variable_description']) ? (int)$options['variable_description']: 1,
+				'ext_resources'=> isset($options['include_resources']) ? (int)$options['include_resources'] : 1,
+				'report_lang'=> isset($options['language']) ? $options['language'] : 'en'
+			);
+
+			//include external resources in the report?
+			if($pdf_options['ext_resources']===1){
+				$this->load->helper('Resource_helper');
+				$this->load->model('Resource_model');
+				
+				$survey_resources=array();
+				$survey_resources['resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);
+				$survey_resources['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
+
+				$pdf_options['ext_resources_html']=$this->load->view('ddibrowser/report_external_resource',$survey_resources,TRUE);
+			}
+
+			$log_threshold= $this->config->item("log_threshold");
+			$this->config->set_item("log_threshold",0);	//disable logging temporarily
+			
+			$report_link='';		
+			$params=array('codepage'=>$pdf_options['report_lang']);
+
+			$this->load->library('pdf_report',$params);// e.g. 'codepage' = 'zh-CN';
+			$this->load->library('DDI_Browser','','DDI_Browser');
+				
+			//get ddi file path from db
+			$ddi_file=$this->Catalog_model->get_survey_ddi_path($sid);
+			$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
+			
+			if ($ddi_file===FALSE || !file_exists($ddi_file)){
+				throw new Exception('FILE_NOT_FOUND: '. $ddi_file);
+			}
+		
+			//output report file name
+			$report_file=unix_path($survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$sid.'.pdf');
+						
+			if ($report_link=='')
+			{			
+				//change error logging to 0	
+				$log_threshold= $this->config->item("log_threshold");
+				$this->config->set_item("log_threshold",0);
+
+				$start_time=date("H:i:s",date("U"));
+
+				//write PDF report to a file
+				$this->pdf_report->generate($report_file,$ddi_file,$pdf_options);
+				$end_time=date("H:i:s",date("U"));
+				
+				//log
+				$this->db_logger->write_log('survey','report generated '.$start_time.' -  '. $end_time,'ddi-report',$sid);
+
+				//reset threshold level			
+				$this->config->set_item("log_threshold",$log_threshold);
+				
+				$report_link=$report_file;
+			}
+			
+			$response=array(
+				'status'=>  'success',
+				'options'=> $pdf_options,
+				'dataset_id'=>$dataset['id'],
+				'dataset_variables'=>$dataset['varcount'],
+				'output'=>  $report_file
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
 			$error_output=array(

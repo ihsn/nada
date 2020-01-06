@@ -26,7 +26,7 @@ class Study extends MY_Controller {
 
 		if ($this->ion_auth->logged_in()){
 			$this->user=$this->ion_auth->current_user();
-		}
+		}		
 	}
 	
 	function index()
@@ -55,12 +55,18 @@ class Study extends MY_Controller {
 		$this->metadata_template->initialize($survey['type'],$survey);
 		$output=$this->metadata_template->render_html();
 
+		//set page description meta tag
+		$meta_description=$this->generate_survey_abstract($survey['metadata']);
+
+		if(!empty($meta_description)){
+			$this->template->add_meta($name="description", $meta_description,$type='pair');
+		}
+
 		$output=$this->load->view('survey_info/metadata', array('content'=>$output), TRUE);
 		$this->render_page($sid, $output, $active_tab='study_description');
 	}
 
 
-	
 	public function data_dictionary($sid)
 	{
 		$this->load->model("Variable_group_model"); 
@@ -176,7 +182,7 @@ class Study extends MY_Controller {
 			$content=$this->load->view('survey_info/'.$variable_template,$options,TRUE);
 			return $this->render_page($sid, $content,'data_dictionary');
 		}
-		
+
 		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
 		$options['content']=$this->load->view('survey_info/'.$variable_template,$options,TRUE);
 		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
@@ -346,6 +352,8 @@ class Study extends MY_Controller {
 			'related_studies_formatted'=>$related_studies_formatted
 		);
 		
+		
+		$this->template->write('title', $this->generate_survey_title($survey),true);
 		$this->template->add_variable("body_class","container-fluid-n");
 		$html= $this->load->view('survey_info/layout',$options,true); 
 		$this->template->write('survey_title', "survey title",true);
@@ -707,6 +715,33 @@ class Study extends MY_Controller {
 		$output=$this->load->view('ddibrowser/review_study',$data,TRUE);
 		return $output;
 	}
+
+
+	private function generate_survey_title($surveyObj)
+	{
+		$title=array();
+		$title[]=$surveyObj['nation'];
+		$title[]=$surveyObj['title'];
+		return implode(" - ", $title);
+	}
+
+
+	private function generate_survey_abstract($survey_metadata=null)
+	{	
+		$meta_fields=array(
+			'study_desc/study_info/abstract',
+			'study_desc/series_statement/series_info',
+			'study_desc/study_info/notes'
+		);
+		
+		foreach($meta_fields as $meta_field){
+			$abstract=get_array_nested_value($survey_metadata,$meta_field);
+			if (!empty($abstract)){
+				return str_replace(array('"',"\r\n","\r","\n"), " ", $abstract);
+			}
+		}
+	}
+
 
 }
 /* End of file study.php */

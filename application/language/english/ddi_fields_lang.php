@@ -269,6 +269,9 @@ $lang['weighted']='Weighted';
 $lang['var_format']='Format';
 $lang['var_mean_wgtd']='Mean (weighted)';
 $lang['var_stdev_wgtd']='Standard deviation (weighted)';
+$lang['contin']='Continuous';
+$lang['discrete']='Discrete';
+$lang['numeric']='Numeric';
 
 
 $lang['var_min']='Minimum';

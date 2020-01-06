@@ -7,22 +7,8 @@
 <?php endif; ?>
 
 <?php 
-
-$access_policy_options=array(
-						''					=>	'--',
-						'Direct Access'		=>	'Direct Access',
-						'Public Use Files'	=>	'Public Use Files',
-						'Licensed Access'	=>	'Licensed Access',
-						'Data Enclave'		=>	'Data Enclave',
-						'Not Defined'		=>	'Not Defined'
-					);
-
-$to_catalog_options=array(
-						''					=>	'--',
-						'Internal'			=>	'Internal',
-						'External'			=>	'External',
-					);
-
+$access_policy_options=$this->config->item('access_policy_options','datadeposit');
+$to_catalog_options=$this->config->item('to_catalog_options','datadeposit');
 ?>
 
 <?php if (validation_errors() ) : ?>
@@ -51,20 +37,22 @@ $to_catalog_options=array(
 
     <div class="field">
         <label for="accesspolicy">            
-            Choose an appropriate access policy <span class="required">*</span>
-        </label>        
+			<?php echo t('choose_access_policy'); ?>
+        </label><br/>
 		<?php echo form_dropdown('access_policy', $access_policy_options, set_value('access_policy', @$project[0]->access_policy));?>
         <div class="description"><?php echo t('suggested_access_policy_help'); ?></div>
     </div>
 
 
+	<?php if(is_array($to_catalog_options)):?>
     <div class="field">
         <label for="to_catalog">            
             <?php echo t('catalog_to_publish'); ?> <span class="required">*</span>
-        </label>
+        </label><br/>
     	<?php echo form_dropdown('to_catalog', $to_catalog_options, set_value('to_catalog', @$project[0]->to_catalog));?>
         <div class="description" ><?php echo t('catalog_to_publish_help'); ?></div>    		
-    </div>
+	</div>
+	<?php endif;?>
     
     <div class="field">
     	<div class="fieldset-embargoed">

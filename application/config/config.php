@@ -664,7 +664,20 @@ $config['citations_storage_path']='datafiles/citations'; //don't add a trailing 
 $config['filestore_path']='files/public';
 
 
-$config['userdata_path']='userdata';
+/*
+|--------------------------------------------------------------------------
+| User data folder
+|--------------------------------------------------------------------------
+|
+| For storing user customizations and overrides.
+| 
+| Override language translations: 
+| For personalizing translations for your language, copy the language folder (e.g. application/language/english) and copy
+|  to [user_datapath/language/english] folder. 
+|
+|
+*/
+$config['userdata_path']='userdata'; //relative or absolute path
 
 
 /*

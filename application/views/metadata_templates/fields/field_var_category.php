@@ -55,6 +55,7 @@
                 $max_value_wgtd=max($stats_col_wgtd);
                 $sum_cases_wgtd=array_sum($stats_col_wgtd);
             }
+
             ?>
 
             <table class="table table-stripped xsl-table">
@@ -101,7 +102,7 @@
                                 <div class="progress">
                                     <div class="progress-bar" role="progressbar" style="width: <?php echo $percent_wgtd;?>%;" aria-valuenow="<?php echo $percent_wgtd;?>;" aria-valuemin="0" aria-valuemax="100"></div>
                                     <span class="progress-text"><?php echo $percent_wgtd;?>%</span>
-                                </div>                                
+                                </div>
                                 <?php endif;?>
                             </td>
                             <?php else:?>
@@ -116,9 +117,9 @@
                             <td class="bar-container">
                                 <?php if(is_numeric($cat->stats_non_wgtd_value)):?>
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: <?php echo $percent;?>%;" aria-valuenow="<?php echo $percent;?>;" aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress-bar" role="progressbar" style="width: <?php echo $width;?>%;" aria-valuenow="<?php echo $width;?>;" aria-valuemin="0" aria-valuemax="100"></div>
                                     <span class="progress-text"><?php echo $percent;?>%</span>
-                                </div>                                
+                                </div>
                                 <?php endif;?>
                             </td>
                             <?php else:?>

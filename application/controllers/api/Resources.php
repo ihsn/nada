@@ -11,7 +11,7 @@ class Resources extends MY_REST_Controller
 		$this->load->model('Dataset_model');
 		$this->load->model("Resource_model");	//todo to be deleted
 		$this->load->model("Survey_resource_model");	
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 	}
 	
 
@@ -89,6 +89,7 @@ class Resources extends MY_REST_Controller
 	 **/ 
 	function index_post($idno=null)
 	{
+		$this->is_admin_or_die();		
 		$options=$this->raw_json_input();
 
 		try{
@@ -134,6 +135,7 @@ class Resources extends MY_REST_Controller
 	//update an existing resource
 	function index_put($idno=null,$resource_id=null)
 	{
+		$this->is_admin_or_die();
 		$options=$this->raw_json_input();
 
 		try{
@@ -187,7 +189,8 @@ class Resources extends MY_REST_Controller
 
 	//delete a single resource by resource id
 	function index_delete($idno=null,$resource_id=null)
-	{			
+	{
+		$this->is_admin_or_die();
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -213,7 +216,8 @@ class Resources extends MY_REST_Controller
 
 	//delete all resources by study
 	public function delete_all_delete($idno=null)
-	{		
+	{	
+		$this->is_admin_or_die();	
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$this->Survey_resource_model->delete_all_survey_resources($sid);
@@ -233,6 +237,7 @@ class Resources extends MY_REST_Controller
 	//import rdf file
 	public function import_rdf_post($idno=NULL)
 	{
+		$this->is_admin_or_die();
 		$this->load->model("Survey_model");	
 		
 		try {
@@ -261,9 +266,7 @@ class Resources extends MY_REST_Controller
 				'message'=>$e->getMessage()
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-
-		
+		}		
 	}
 
 	/**
@@ -273,6 +276,7 @@ class Resources extends MY_REST_Controller
 	 */
 	function fix_links_put($idno=null)
 	{
+		$this->is_admin_or_die();
 		$this->load->model("Survey_resource_model");		
 		try{
 			$sid=$this->get_sid_from_idno($idno);
@@ -284,6 +288,47 @@ class Resources extends MY_REST_Controller
 		}
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Download file
+	 * 
+	 */
+	function download_get($dataset_idno=null,$resource_id=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($dataset_idno);
+			$user_id=$this->get_api_user_id();
+
+			if(!$resource_id){
+				throw new Exception("PARAM_NOT_SET: resource_id");
+			}
+
+			$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
+			
+			if(!$resource){
+				throw new Exception("RESOURCE_NOT_FOUND");
+			}			
+
+			$allow_download=$this->Survey_resource_model->user_has_download_access($user_id,$sid,$resource);
+
+			if($allow_download!==true){
+				throw new Exception("You don't have permissions to access the file.");
+			}
+
+			$resource_filename=$this->Survey_resource_model->get_resource_filename($resource_id);
+			return $this->Survey_resource_model->download_file($sid,base64_encode($resource_filename));	
+		}
+		catch(Exception $e){
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 
