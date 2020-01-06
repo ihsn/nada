@@ -245,6 +245,12 @@ class Catalog extends MY_Controller {
 		$allowed_fields = array('year','title','nation','country','popularity','rank');
 		$allowed_order=array('asc','desc');
 
+		//load default sort options from config if not set
+		if(empty($search_options->sort_by)){
+			$search_options->sort_by=$this->config->item("catalog_default_sort_by");
+			$search_options->sort_order=$this->config->item("catalog_default_sort_order");
+		}
+
 		//set default sort options, if passed values are not valid
 		if (!in_array(trim($search_options->sort_by),$allowed_fields)){
 			$search_options->sort_by='';

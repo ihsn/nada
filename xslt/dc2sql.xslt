@@ -73,7 +73,7 @@ License:
 									<xsl:value-of select="dc:description"/>
 							</xsl:variable>
 							<xsl:variable name="abstract">
-									<xsl:value-of select="dc:abstract"/>
+									<xsl:value-of select="dcterms:abstract"/>
 							</xsl:variable>
 							<xsl:variable name="toc">
 									<xsl:value-of select="dcterms:tableOfContents"/>

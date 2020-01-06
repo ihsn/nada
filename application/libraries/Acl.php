@@ -119,7 +119,9 @@ class ACL
 						'admin/licensed_requests/*',
 						'admin/resources/*',
 						'admin/pdf_generator/*',
-						'admin/catalog_notes/*'
+						'admin/catalog_notes/*',
+						'datadeposit',
+						'datadeposit/*'
 		);
 		
 		$allowed_urls=array_merge($allowed_urls,$excluded_urls);

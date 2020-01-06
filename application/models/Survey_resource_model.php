@@ -28,7 +28,6 @@ class Survey_resource_model extends CI_Model {
 		parent::__construct();
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
-
 		//$this->output->enable_profiler(TRUE);
     }
 	
@@ -588,38 +587,66 @@ class Survey_resource_model extends CI_Model {
 	*
 	* Check user has access to resource file
 	*
-	* checks PUF, LIC, and by collection
+	* @resource_obj - resource record 
+	* 
+	* 
 	**/
-	function user_has_download_access($user_id,$survey_id,$resource_id)
+	function user_has_download_access($user_id,$survey_id,$resource_obj) 
 	{
-		//get survey data access
+		$this->load->model("Licensed_model");
+		$this->load->model("Public_model");
+
+		$microdata_types=array('[dat/micro]','[dat]');
+		$resource_is_microdata=false;
+
+		foreach($microdata_types as $type){
+			if (stripos($resource_obj['dctype'],$type)!==FALSE){
+				$resource_is_microdata=TRUE;	
+			}
+		}
+
+		if ($resource_is_microdata===false){
+			return true;
+		}
+		
 		$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
-		
-		if ($data_access_type=='licensed')
-		{
-			//get files request info with requests status
-			$req_entries=$this->Licensed_model->get_requests_by_file($resource_id,$user_id);
-			
-			if (!$req_entries)
-			{
-				return FALSE;
-			}
-			
-			foreach($req_entries as $req)
-			{
-				if($req['req_status']=='APPROVED' && $req['expiry']> date("U") && $req['downloads'] < $req['download_limit'])
-				{
-					//allow download
-					//var_dump($req);exit;
-					return TRUE;
+
+		switch($data_access_type){
+			case 'direct':
+			case 'open':
+				return true;
+				break;
+		 	case 'licensed':
+				$req_entries=$this->Licensed_model->get_requests_by_file($resource_obj['resource_id'],$user_id);
+
+				if (!$req_entries){
+					return false;
 				}
-			}
-		}
-		else if ($data_access_type=='public')
-		{
-		
-		}
-		
+				
+				foreach($req_entries as $req){
+					if(strtoupper(trim($req['status']))=='APPROVED' 
+						&& $req['expiry']> date("U") 
+						&& $req['downloads'] < $req['download_limit'])
+					{
+						return true;
+					}
+				}
+			
+				return false;
+				break;
+
+			case 'public':
+				$puf_request=$this->Public_model->check_user_has_data_access($user_id,$survey_id);
+
+				if ($puf_request===FALSE){
+					return false;
+				}
+				
+				return true;
+				break;
+			default:
+				return false;	
+		}		
 	}
 	
 	
@@ -652,6 +679,23 @@ class Survey_resource_model extends CI_Model {
 	}
 
 	
+	/**
+	 * 
+	 * Get the resource filename
+	 * 
+	 */
+	function get_resource_filename($resource_id)
+	{
+		$resource=$this->select_single($resource_id);
+		
+		if (!$resource)
+		{
+			return FALSE;
+		}
+		
+		return $resource['filename'];
+	}
+
 	
 	function get_resource_download_path($resource_id)
 	{
@@ -760,7 +804,7 @@ class Survey_resource_model extends CI_Model {
 			}
 			
 			//check if the resource file already exists
-			$resource_exists=$this->Resource_model->get_resources_by_filepath($insert_data['filename']);
+			$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
 			
 			if (!$resource_exists)
 			{										

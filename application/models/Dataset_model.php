@@ -182,10 +182,13 @@ class Dataset_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
-		$this->db->select("id,repositoryid,type,idno,title,year_start, 
-			year_end,nation,published,created, changed, varcount, total_views, total_downloads, 
-			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, license_id,
-			thumbnail, link_study, link_indicator, link_report");
+		$this->db->select("id,repositoryid,type,idno,title,year_start,
+			year_end,nation,published,authoring_entity,
+			created, changed, varcount, 
+			total_views, total_downloads, surveys.formid,forms.model as data_access_type,
+			link_da as remote_data_url, link_study, link_questionnaire, 
+			link_indicator, link_technical, link_report");
+
 		$this->db->join('forms','surveys.formid=forms.formid','left');
 		$this->db->where("id",$sid);
 		
@@ -1233,6 +1236,60 @@ class Dataset_model extends CI_Model {
 	}
 
 	
+	/**
+	 * 
+	 * Return a list of datasets with tags
+	 * 
+	 * @idno - Survey IDNO
+	 * @format - flat, distinct
+	 * 	flat - survey info is repeated for each tag
+	 *  distinct - tags are returned in an array format
+	 */
+	public function get_dataset_with_tags($idno=NULL,$format='flat')
+	{
+		$this->db->select("surveys.idno,surveys.id,survey_tags.tag");
+		$this->db->join('surveys','surveys.id=survey_tags.sid','inner');
+
+		if(!empty($idno)){
+			$this->db->where('surveys.idno',$idno);
+		}
+		
+		$result=$this->db->get("survey_tags")->result_array();
+
+		if ($format=='flat'){
+			return $result;
+		}
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['idno']][]=$row['tag'];
+		}
+
+		return $output;
+	}
+
+
+	/**
+	 * 
+	 * Return a list of datasets with aliases
+	 * 
+	 * @idno - Survey IDNO
+	 */
+	public function get_dataset_aliases($idno=NULL)
+	{
+		$this->db->select("surveys.idno,surveys.id,survey_aliases.alternate_id as alias");
+		$this->db->join('surveys','surveys.id=survey_aliases.sid','inner');
+
+		if(!empty($idno)){
+			$this->db->or_where('surveys.idno',$idno);
+			$this->db->or_where('survey_aliases.alternate_id',$idno);
+		}
+		
+		$result=$this->db->get("survey_aliases")->result_array();
+
+		return $result;
+	}
+
 
 }//end-class
 	

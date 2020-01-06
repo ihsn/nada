@@ -505,13 +505,14 @@ class DDI2_Import{
             $fid=$data_files[$var_obj->get_file_id()]['id'];
             
             if(!$fid){
-                throw new exception("FILE_NOT_FOUND: ".$file_id);
+                throw new exception("var @files attribute not set.");
             }
             
             //transform fields to map to variable fields and validate
-            $variable=$this->map_variable_fields($var_obj->get_metadata_array());
-            $variable['fid']=$variable['file_id'];            
-
+            //$variable=$this->map_variable_fields($var_obj->get_metadata_array());
+            $variable=$var_obj->get_metadata_array();
+            $variable['fid']=$variable['file_id'];   
+            
             try{
                 $this->ci->Variable_model->validate_variable($variable);
             }

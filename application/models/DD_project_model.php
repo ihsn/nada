@@ -280,6 +280,8 @@ class DD_project_model extends CI_Model {
 				'is_embargoed',
 				'embargoed',
 				'disclosure_risk',
+				'key_variables',
+				'sensitive_variables',
 				'status'
 		);
 		

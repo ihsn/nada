@@ -41,6 +41,7 @@ class Catalog_search_mysql{
 						'country'=>'nation',
 						'nation'=>'nation',
 						'year'=>'year_start',
+						'proddate'=>'year_start',
 						'popularity'=>'total_views',
 						'total_views'=>'total_views'
 					);
@@ -111,49 +112,41 @@ class Catalog_search_mysql{
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
 		
-		//order desc by RANK for keyword search
-		if(!empty($study) && empty($this->sort_by)){
-			$sort_by='rank';
-			$sort_order='desc';
-		}
-
-		if(empty($study) && $this->sort_by=='rank'){
-			$sort_by='title';
-			$sort_order='asc';
+		$sort_by='title';
+		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
+		{
+			$sort_by=$this->sort_allowed_fields[$this->sort_by];
+		} 
+		else
+		{
+			if ($this->ci->config->item("regional_search")=='yes')
+			{
+				$sort_by='nation';
+			}		
 		}
 
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
-		switch($sort_by){
-
-			case 'country':
-			case 'nation':
-				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
-				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-				break;
-			
-			case 'title':
-				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>'desc');
-				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
-				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-				break;
-				break;
-
-			case 'year':			
-				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>'asc');
-				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>'desc');
-				break;
-
-			case 'rank':
-				if(!empty($study)){
-					$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>'desc');
-				}
-				break;
+		if ($sort_by=='nation')
+		{
+			$sort_options[1]=array('sort_by'=>'year_start', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'total_views', 'sort_order'=>'desc');
 		}
-		
+		elseif ($sort_by=='title')
+		{
+			$sort_options[1]=array('sort_by'=>'year_start', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'total_views', 'sort_order'=>'desc');
+		}
+		if ($sort_by=='year_start')
+		{
+			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
+			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'total_views', 'sort_order'=>'desc');
+		}
+
 		//array of all options
 		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$license,$sid,$countries_iso3);
 		
@@ -207,7 +200,7 @@ class Catalog_search_mysql{
 			//multi-sort
 			foreach($sort_options as $sort)
 			{
-				$this->ci->db->order_by($this->sort_allowed_fields[$sort['sort_by']],$sort['sort_order']);
+				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
 			}
 			
 			$this->ci->db->limit($limit,$offset);
@@ -233,8 +226,9 @@ class Catalog_search_mysql{
 
 
 			//multi-sort
-			foreach($sort_options as $sort){
-				$this->ci->db->order_by($this->sort_allowed_fields[$sort['sort_by']],$sort['sort_order']);
+			foreach($sort_options as $sort)
+			{
+				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
 			}
 
 			$this->ci->db->limit($limit,$offset);
@@ -256,7 +250,7 @@ class Catalog_search_mysql{
 		}
 		
 		//get total search result count
-		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',false)->row_array();		
+		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();		
 		$this->search_found_rows=$query_found_rows['rowcount'];
 		
 		//get total surveys in db
@@ -465,7 +459,6 @@ class Catalog_search_mysql{
 		$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
 		return $sql;
 	}
-
 
 			
 	protected function _build_variable_query()

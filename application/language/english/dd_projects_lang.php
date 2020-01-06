@@ -35,10 +35,16 @@ $lang['submit'] = "Submit";
 $lang['request_reopen'] = 'Request Reopen';
 
 $lang['catalog_to_publish'] = 'Choose a catalog to publish in';
+$lang['choose_access_policy'] = 'Choose an appropriate access policy';
 $lang['notes_to_embargoed'] = 'Notes to embargoed';
 $lang['my_projects_title'] = 'My Projects';
 $lang['manage_projects'] = 'Manage Projects'; 
 $lang['disclosure_risk'] = 'Disclosure Risk';
+
+$lang['key_variables'] = 'Key variables';
+$lang['key_variables_help'] = 'Describe all key variables';
+$lang['sensitive_variables'] = 'Sensitive variables';
+$lang['sensitive_variables_help'] = 'Describe all sensitive variables';
 
 $lang['notes_to_library'] = 'Notes to library';
 

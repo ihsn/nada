@@ -664,7 +664,42 @@ $config['citations_storage_path']='datafiles/citations'; //don't add a trailing 
 $config['filestore_path']='files/public';
 
 
+/*
+|--------------------------------------------------------------------------
+| User data folder
+|--------------------------------------------------------------------------
+|
+| For storing user customizations and overrides.
+| 
+| Override language translations: 
+| For personalizing translations for your language, copy the language folder (e.g. application/language/english) and copy
+|  to [user_datapath/language/english] folder. 
+|
+|
+*/
+$config['userdata_path']='userdata'; //relative or absolute path
 
+
+/*
+|--------------------------------------------------------------------------
+| Catalog entries sort order
+|--------------------------------------------------------------------------
+|
+| Set default sort for catalog results
+|
+| catalog_default_sort_by       Sort by field
+| 
+|   valid values are:   
+|   'proddate','title','labl','nation','popularity','rank'
+|
+|
+| catalog_default_sort_order    Sort order
+|
+| valid values are: 'desc', 'asc'
+|
+*/
+$config['catalog_default_sort_by']='';
+$config['catalog_default_sort_order']='';
 
 /*
 |--------------------------------------------------------------------------
@@ -678,7 +713,7 @@ $config['filestore_path']='files/public';
 |
 */
 
-$config['search_provider']='db';
+$config['search_provider']='solr';
 
 
 /**

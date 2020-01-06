@@ -1501,7 +1501,7 @@ class Ion_auth_model extends CI_Model
 	{
 		$this->db->select('id');
 		$this->db->where('name',$name);
-		$result=$this->db->get('user_groups')->row_array();
+		$result=$this->db->get('groups')->row_array();
 
 		if($result){
 			return $result['id'];

@@ -1,4 +1,4 @@
-<style>    
+<style>
     .data-file-bg1 tr,.data-file-bg1 td {vertical-align: top;}
     .data-file-bg1 .col-1{width:100px;}
     .data-file-bg1 {margin-bottom:20px;}
@@ -16,7 +16,7 @@
         border: 1px solid #ddd;
         border-left:0px;
         border-right:0px;
-        font-size: 12px;
+        font-size: small;
         border-bottom: 1px solid gainsboro;
         word-wrap: break-word;
         padding: 5px;
@@ -27,6 +27,39 @@
     .nada-list-group-title{
         font-weight:bold;
         border-top:0px;
+    }
+
+    .variable-groups-sidebar
+    .nada-list-vgroup {
+        padding-inline-start: 0px;
+        font-size:small;
+        list-style-type: none;
+    }
+
+    .nada-list-vgroup {
+        list-style-type: none;
+    }
+
+    .nada-list-subgroup{
+        padding-left:10px;
+    }
+    
+    .table-variable-list .var-breadcrumb{
+        display:none;
+    }
+
+    .nada-list-subgroup .nada-list-vgroup-item {
+        padding-left: 24px;
+        position: relative;
+        list-style:none;
+    }
+
+    .nada-list-subgroup .nada-list-vgroup-item:before {
+        position: absolute;
+        font-family: 'FontAwesome';
+        top: 0;
+        left: 10px;
+        content: "\f105";
     }
 
 </style>
@@ -52,24 +85,32 @@
                 </li>
             <?php endforeach;?>
         </ul>
+
+        <?php if(isset($variable_groups_html)):?>
+        <div class="variable-groups-sidebar">
+            <div class="nada-list-group-item nada-list-group-title"><?php echo t('variable_groups');?></div>
+            <?php echo $variable_groups_html;?>
+        </div>
+        <?php endif;?>
+
     </div>
 
     <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">
 
         <div class="container-fluid" id="datafile-container">        
         <h4><?php echo t('data_file');?>: <?php echo $file['file_name'];?></h4>
-        <table class="data-file-bg1">
-            <?php if($file['description']!=''):?>
+        
+        <?php if($file['description']!=''):?>
+            <p><?php echo nl2br($file['description']);?></p>
+        <?php endif;?>
+    
+        <table class="data-file-bg1">            
             <tr>
-                <td colspan="2"><?php echo $file['description'];?></td>
-            </tr>
-            <?php endif;?>
-            <tr>
-                <td><?php echo t('cases');?></td>
+                <td><?php echo t('cases');?>: </td>
                 <td><?php echo $file['case_count'];?></td>
             </tr>
             <tr>
-                <td><?php echo t('variables');?></td>
+                <td><?php echo t('variables');?>: </td>
                 <td><?php echo $file['var_count'];?></td>
             </tr>
         </table>

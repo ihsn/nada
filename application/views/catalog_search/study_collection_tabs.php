@@ -30,7 +30,7 @@ else{
     <div class="row">
         <div class="col">
             <!-- Nav tabs -->
-            <ul class="nav nav-tabs wb-nav-tab-space mb-5" role="tablist">
+            <ul class="nav nav-tabs wb-nav-tab-space mb-5 catalog-tabs" role="tablist">
                 <?php if (isset($repo) && isset($repo['repositoryid']) && $repo['repositoryid']=='central'):?>
                     <?php if(isset($repositories) && count($repositories)>0):?>
                     <li class="nav-item tab-about">
@@ -80,7 +80,7 @@ else{
     <div class="row">
         <div class="col-sm-12">
             <!-- Nav tabs -->
-            <ul class="nav nav-tabs wb-nav-tab-space mb-5" role="tablist">
+            <ul class="nav nav-tabs wb-nav-tab-space mb-5 catalog-tabs" role="tablist">
 
                 <?php if (isset($repo) && isset($repo['repositoryid']) && $repo['repositoryid']=='central'):?>
                     <?php /* ?>
