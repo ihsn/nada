@@ -1682,7 +1682,7 @@ class Catalog extends MY_Controller {
 
 		//licenses
 		$licenses = $this->License_model->get_list();
-		$licenses=array('0'=>'--SELECT--') + $licenses;
+		$licenses=array_combine(array('0'=>'--SELECT--'), (array)$licenses);
 		$survey_row['licenses']=$licenses;
 
 		//data access form list
