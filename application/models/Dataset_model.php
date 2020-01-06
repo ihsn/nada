@@ -185,7 +185,8 @@ class Dataset_model extends CI_Model {
 		$this->db->select("id,repositoryid,type,idno,title,year_start,
 			year_end,nation,published,authoring_entity,
 			created, changed, varcount, 
-			total_views, total_downloads, surveys.formid,forms.model as data_access_type,
+			total_views, total_downloads, 
+			surveys.formid,forms.model as data_access_type, license_id,
 			link_da as remote_data_url, link_study, link_questionnaire, 
 			link_indicator, link_technical, link_report");
 

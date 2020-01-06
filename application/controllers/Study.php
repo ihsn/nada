@@ -391,7 +391,7 @@ class Study extends MY_Controller {
 		);
 		
 		
-		$this->template->write('title', $this->generate_survey_title($survey),true);
+		$this->template->write('title', $this->generate_survey_title($dataset),true);
 		$this->template->add_variable("body_class","container-fluid-n");
 		$html= $this->load->view('survey_info/layout',$options,true); 
 		$this->template->write('survey_title', "survey title",true);

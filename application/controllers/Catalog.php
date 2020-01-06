@@ -37,6 +37,7 @@ class Catalog extends MY_Controller {
 		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
 		$this->data_types_nav_bar=$this->config->item("data_types_nav_bar");
+		$this->search_box_orientation=$this->config->item("search_box_orientation")== FALSE ? 'default' : $this->config->item("search_box_orientation");
 	}
 		 
 	
@@ -83,6 +84,7 @@ class Catalog extends MY_Controller {
 		
 		//enable/disable types navbar tabs
 		$output['data_types_nav_bar']=$this->data_types_nav_bar;
+		$output['search_box_orientation']=$this->search_box_orientation;
 
 		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
 		$output['search_output']=$this->load->view($dataset_view, $output,true);

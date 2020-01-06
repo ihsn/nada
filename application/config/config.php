@@ -713,7 +713,7 @@ $config['catalog_default_sort_order']='';
 |
 */
 
-$config['search_provider']='solr';
+$config['search_provider']='db';
 
 
 /**
@@ -764,7 +764,10 @@ $config['otp_verification']=0;
 
 $config['enable_access_policy_import']=false;
 
-$config['data_types_nav_bar']=false;
+$config['data_types_nav_bar']=true;
+
+//catalog search box location
+$config['search_box_orientation']='inline'; //inline, default
 
 /*
 |--------------------------------------------------------------------------
