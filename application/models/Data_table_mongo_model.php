@@ -183,6 +183,8 @@ class Data_table_mongo_model extends CI_Model {
             $limit=100;
         }
 
+        $limit=intval($limit);
+
         //get table type info
         $this->table_type_obj= $this->get_table_type($table_id);
 
@@ -194,6 +196,7 @@ class Data_table_mongo_model extends CI_Model {
         $geo_features=array(
             'scst'=>'scst',
             'state'=> 'state',
+            'district'=> 'district',
             'geo_level'=>'geo_level',
             'indicator'=>'indicator'
         );
@@ -261,16 +264,35 @@ class Data_table_mongo_model extends CI_Model {
             ]
         );
 
+        $geo_features=array(
+            'state',
+            'district'
+        );
+
         $output=array();
+        $geo_codes=array();
         $output['features']=$features;        
         $output['feature_filters']=$feature_filters;
         $output['found']=$collection->count($feature_filters);
         $output['total']=$collection->count();
+        $output['geo_codes']=array();
         $output['data']=array();
+        
+
         foreach ($cursor as $document) {
             $output['data'][]= $document;
+            foreach($geo_features as $geo_feature_name){
+                if (isset($document[$geo_feature_name])){
+                    $geo_codes[$geo_feature_name][]=$document[$geo_feature_name];
+                }
+            }
         }
         
+        foreach($geo_codes as $geo_feature_name_=>$geo_values){
+            $geo_codes[$geo_feature_name_]=array_values(array_unique($geo_values));
+        }
+
+        $output['geo_codes']=$geo_codes;
         return $output;
    } 
 
@@ -464,6 +486,10 @@ class Data_table_mongo_model extends CI_Model {
     {       
         if($this->table_type_obj==null){
             $this->table_type_obj=$this->get_table_type($table_id);
+        }
+
+        if(!$this->table_type_obj['features']){
+            return array();
         }
 
         //features
