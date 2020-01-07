@@ -541,15 +541,15 @@ class Search_helper_model extends CI_Model {
 	/**
 	 * 
 	 * 
-	 * List of data licenses
+	 * List of data classifications
 	 *
 	 */
-	function get_active_licenses($repositoryid=null)
+	function get_active_data_classifications($repositoryid=null)
 	{
-		$this->db->select('surveys.license_id, licenses.code, licenses.title, count(surveys.license_id) as found');
-		$this->db->join('licenses','licenses.id=surveys.license_id','inner');	
+		$this->db->select('surveys.data_class_id as id, data_classifications.code, data_classifications.title, count(surveys.data_class_id) as found');
+		$this->db->join('data_classifications','data_classifications.id=surveys.data_class_id','inner');	
 		$this->db->where('surveys.published',1);
-		$this->db->group_by('surveys.license_id, licenses.code, licenses.title');
+		$this->db->group_by('surveys.data_class_id, data_classifications.code, data_classifications.title');
 
 		if (trim($repositoryid)!=='' && $repositoryid!='central'){
 			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
@@ -564,7 +564,7 @@ class Search_helper_model extends CI_Model {
 		
 		$types=array();
 		foreach($result as $row){
-			$types[(string)$row['license_id']]=$row;
+			$types[(string)$row['id']]=$row;
 		}
 		
 		return $types;

@@ -490,36 +490,12 @@ paths:
               $ref: 'geospatial-schema.json'
         security:
           - ApiKeyAuth: []                      
-  /datasets/create/timeseries-db:
-      post:
-        tags:
-          - Timeseries
-        summary: Create timeseries database
-        description: Create a new timeseries database
-        operationId: createTimseriesDb
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: 'timeseries-db-schema.json'
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: 'timeseries-db-schema.json'
-        security:
-          - ApiKeyAuth: []
   /datasets/create/timeseries:
       post:
         tags:
           - Timeseries
-        summary: Create timeseries
-        description: Create a new timeseries
+        summary: Create timeseries dataset
+        description: Create a new timeseries project
         operationId: createTimseries
         consumes:
           - application/json
@@ -537,7 +513,7 @@ paths:
             schema:
               $ref: 'timeseries-schema.json'
         security:
-          - ApiKeyAuth: []        
+          - ApiKeyAuth: []
   /datasets/create/image:
       post:
         tags:
@@ -659,6 +635,7 @@ paths:
       get:
         tags:
           - Survey
+          - Timeseries
         summary: List data files
         description: List data files by IDNO
         operationId: listDatasetDatafiles
@@ -683,6 +660,7 @@ paths:
       post:
         tags:
           - Survey
+          - Timeseries
         summary: Create data file
         description: Create a new data file for  a study
         operationId: createStudyDatafile
@@ -713,6 +691,7 @@ paths:
       delete:
         tags:
           - Survey
+          - Timeseries
         summary: Batch delete variables
         description: Batch delete all variables from a datafile or Dataset. Set the '`fileId`' param to '`ALL`' to delete all variables from all datafiles in the Dataset.
         operationId: deleteDatafileVariables
@@ -742,6 +721,7 @@ paths:
       get:
         tags:
           - Survey
+          - Timeseries
         summary: List variables
         description: List variables for a dataset. Variables can be returned for the datasets or filtered by '`fileId`'. To get the full metadata for a variable, use the endpoint '`dataset/variable`'.
         operationId: listVariables

@@ -5,7 +5,7 @@ class Study extends MY_Controller {
 
     public function __construct()
     {
-        parent::__construct($skip_auth=TRUE);
+        parent::__construct($skip_auth=TRUE); 
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
 		$this->load->model("Survey_type_model");
@@ -380,7 +380,10 @@ class Study extends MY_Controller {
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,
 			'data_access_type'=>$data_access_type,
-			'license_info'=>$dataset['license_info'],
+			'data_classification'=> array(
+					'data_class_code'=>$dataset['data_class_code'],
+					'data_class_title'=>$dataset['data_class_title']
+				),
 			'body'=>$content,
 			'has_related_materials'=>$related_resources_count,
             'has_citations'=>$related_citations_count,
