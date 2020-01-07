@@ -5,6 +5,7 @@ class License_model extends CI_Model {
     {
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
+		throw new Exception("License_model::TO BE REMOVED");
     }
 	
   	

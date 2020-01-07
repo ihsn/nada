@@ -62,7 +62,7 @@ items=array(
                             <input class="form-check-input chk chk-<?php echo $filter_id;?>" type="checkbox" name="<?php echo $filter_id;?>[]"
                                    value="<?php echo form_prep($item_key); ?>"
                                    id="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>"
-                                <?php if($search_options->{$filter_id}!='' && in_array($item_key,$search_options->{$filter_id})):?>
+                                <?php if(isset($search_options->{$filter_id}) && is_array($search_options->{$filter_id}) && in_array($item_key,$search_options->{$filter_id})):?>
                                     checked="checked"
                                 <?php endif;?>>                                
                                 <?php echo $item['title']; ?> 

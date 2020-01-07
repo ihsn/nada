@@ -5,7 +5,6 @@
         <?php endforeach;?>
     <?php endif;?>
 
-
     <?php if (is_array($search_options->tag)):?>
         <?php foreach($search_options->tag as $tag):?>
             <?php //if (array_key_exists($tag,$tags)):?>
@@ -53,10 +52,10 @@
         <?php endforeach;?>
     <?php endif;?>
 
-    <?php if (isset($search_options->license) && is_array($search_options->license)):?>
-        <?php foreach($search_options->license as $license_id):?>
-            <?php if (array_key_exists($license_id,$licenses)):?>
-                <span class="badge badge-default wb-badge-close remove-filter dtype license" data-type="license[]" data-value="<?php echo $license_id;?>"><?php echo $licenses[$license_id];?><i class="fa fa-close"></i></span>
+    <?php if (isset($search_options->data_class) && is_array($search_options->data_class)):?>
+        <?php foreach($search_options->data_class as $data_class):?> 
+            <?php if (array_key_exists($data_class,$data_classifications)):?>
+                <span class="badge badge-default badge-secondary wb-badge-close remove-filter data_class" data-type="data_class[]" data-value="<?php echo $data_class;?>"><?php echo $data_classifications[$data_class];?><i class="fa fa-close"></i></span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
@@ -75,8 +74,4 @@
 
     <?php if (isset($search_options->sid) && $search_options->sid!=''):?>
         <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo substr($search_options->sid,0,50).'... ';?><i class="fa fa-close"></i></span>
-    <?php endif;?>   
-
-
-    
-
+    <?php endif;?>

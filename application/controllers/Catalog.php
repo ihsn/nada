@@ -23,7 +23,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Vocabulary_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
-		$this->load->model('License_model');
+		$this->load->model('Data_classification_model');
 
 		//$this->output->enable_profiler(TRUE);
 
@@ -55,7 +55,7 @@ class Catalog extends MY_Controller {
 
 		$this->facets['repositories']=$this->Search_helper_model->get_active_repositories();
 		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
-		$this->facets['licenses']=$this->Search_helper_model->get_active_licenses($repo_id);		
+		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
 		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
 		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
@@ -115,15 +115,15 @@ class Catalog extends MY_Controller {
 		//data access types
 		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
 
-		//licenses
-		$filters['licenses']=$this->load->view('search/facet', 
+		//data classifications
+		$filters['data_class']=$this->load->view('search/facet', 
 			array(
-				'items'=>$this->facets['licenses'], 
-				'filter_id'=>'license'
+				'items'=>$this->facets['data_class'], 
+				'filter_id'=>'data_class'
 			),true);
 
 
-		//licenses
+		//data types
 		$filters['da_types']=$this->load->view('search/facet', 
 			array(
 				'items'=>$this->facets['da_types'], 
@@ -163,6 +163,10 @@ class Catalog extends MY_Controller {
 				'filter_id'=>'type'
 			),true);
 		}
+
+		/*echo '<pre>';
+		var_dump(	$this->facets);
+		die();*/
 
 		$output['filters']=$filters;
 
@@ -207,7 +211,7 @@ class Catalog extends MY_Controller {
 	function _search()
 	{
 		//all keys that needs to be persisted
-		$get_keys_array=array('tab_type','sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection','ps');
+		$get_keys_array=array('tab_type','sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection','ps','data_class');
 
 		$this->load->helper('security');
 
@@ -233,7 +237,7 @@ class Catalog extends MY_Controller {
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
 		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
-		$search_options->license		=xss_clean($this->input->get("license"));
+		$search_options->data_class		=xss_clean($this->input->get("data_class"));
 		$search_options->tag			=xss_clean($this->input->get("tag"));
 		$search_options->sid			=xss_clean($this->input->get("sid"));
 		$search_options->type			=xss_clean($this->input->get("type"));
@@ -351,7 +355,7 @@ class Catalog extends MY_Controller {
 			'sort_order'=>$search_options->sort_order,
 			'repo'=>$search_options->repo,
 			'dtype'=>$search_options->dtype,
-			'license'=>$search_options->license,
+			'data_class'=>$search_options->data_class,
 			'sid'=>$search_options->sid,
 			'type'=>$search_options->type,
             'country_iso3'=>$search_options->country_iso3,
@@ -363,7 +367,7 @@ class Catalog extends MY_Controller {
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
 		$data['data_access_types']=$this->Form_model->get_form_list();
-		$data['licenses']=$this->License_model->get_list();
+		$data['data_classifications']=$this->Data_classification_model->get_list();
 		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
 		return $data;
