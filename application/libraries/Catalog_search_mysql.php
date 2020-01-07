@@ -25,7 +25,7 @@ class Catalog_search_mysql{
 	var $to=0;
 	var $repo='';
 	var $type=array();
-	var $license=array();
+	var $data_class=array();
 	var $collections=array();
 	var $dtype=array();//data access type
     var $sid=''; //comma separated list of survey IDs
@@ -104,7 +104,7 @@ class Catalog_search_mysql{
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
-		$license=$this->_build_license_query();
+		$data_classification=$this->_build_data_classification_query();
 		$sid=$this->_build_sid_query();
 		$countries_iso3=$this->_build_countries_iso3_query();
 		
@@ -155,7 +155,7 @@ class Catalog_search_mysql{
 		}
 		
 		//array of all options
-		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$license,$sid,$countries_iso3);
+		$where_list=array($tags,$type,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -176,7 +176,7 @@ class Catalog_search_mysql{
 		
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity';
-		$study_fields.=',forms.model as form_model, license_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
+		$study_fields.=',forms.model as form_model, data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
 		$study_fields.=',surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
 		//add ranking if keywords are not empty
@@ -324,12 +324,12 @@ class Catalog_search_mysql{
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
-		$license=$this->_build_license_query();
+		$data_classification=$this->_build_data_classification_query();
 		$sid=$this->_build_sid_query();
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$license,$sid,$countries_iso3);
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3);
 		
 		//create combined where clause
 		$where='';
@@ -349,7 +349,7 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity,forms.model as form_model,license_id,surveys.year_start,surveys.year_end';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity,forms.model as form_model,data_class_id,surveys.year_start,surveys.year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query
@@ -1081,24 +1081,24 @@ class Catalog_search_mysql{
 	}
 
 
-	function _build_license_query()
+	function _build_data_classification_query()
 	{
-		$licenses=$this->license;
+		$data_classifications=$this->data_class;
 
-		if (!is_array($licenses) || count($licenses)<1){
+		if (!is_array($data_classifications) || count($data_classifications)<1){
 			return FALSE;
 		}
 
-		foreach($licenses as $key=>$value){
+		foreach($data_classifications as $key=>$value){
 			if (!is_numeric($value)){
-				unset($licenses[$key]);
+				unset($data_classifications[$key]);
 			}
 		}
 		
-		$types_str=implode(",",$licenses);
+		$types_str=implode(",",$data_classifications);
 
 		if ($types_str!=''){
-			return sprintf(' surveys.license_id in (%s)',$types_str);
+			return sprintf(' surveys.data_class_id in (%s)',$types_str);
 		}
 		
 		return FALSE;	
