@@ -384,7 +384,7 @@ class Tables extends MY_REST_Controller
 				$chunked_rows[]=$row;
 
 				if($k>=$chunk_size){
-					$result=$this->Data_table_mongo_model->table_batch_insert($table_id,$chunked_rows);
+					$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$chunked_rows);
 					$k=1;
 					$chunked_rows=array();
 					set_time_limit(0);
@@ -395,7 +395,7 @@ class Tables extends MY_REST_Controller
 			}
 
 			if(count($chunked_rows)>0){
-				$result=$this->Data_table_mongo_model->table_batch_insert($table_id,$chunked_rows);
+				$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$chunked_rows);
 			}
 			
 			$response=array(
