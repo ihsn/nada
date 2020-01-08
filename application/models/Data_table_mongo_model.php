@@ -4,7 +4,7 @@ use JsonSchema\SchemaStorage;
 use JsonSchema\Validator;
 use JsonSchema\Constraints\Factory;
 use JsonSchema\Constraints\Constraint;
-
+use League\Csv\Reader;
 
 class Data_table_mongo_model extends CI_Model {
 
@@ -571,6 +571,62 @@ class Data_table_mongo_model extends CI_Model {
    } 
 
 
+   function import_csv($db_id,$table_id,$csv_path,$delimeter='')
+   {       
+        $csv=Reader::createFromPath($csv_path,'r');
+        $csv->setHeaderOffset(0);
+
+        $delimiters=array(
+            'tab'=>"\t",
+            ','=>',',
+            ';'=>';'
+        );
+
+        if (!empty($delimiter) && array_key_exists($delimiter,$delimiters)){
+            $csv->setDelimiter($delimiters[$delimiter]);
+        }
+
+        $header=$csv->getHeader();
+        $records= $csv->getRecords();
+
+        $chunk_size =15000;
+        $chunked_rows=array();
+        $k=1;
+        $total=0;        
+
+        //delete existing table data
+        //$this->Data_table_model->delete_table_data($table_id);
+
+        $intval_func= function($value){
+            if (is_numeric($value)){
+                return intval($value);
+            }
+
+            return $value;
+        };
+
+        foreach($records as $row){
+            $row=array_map($intval_func, $row);
+            $total++;
+            $chunked_rows[]=$row;
+
+            if($k>=$chunk_size){
+                $result=$this->table_batch_insert($db_id,$table_id,$chunked_rows);
+                $k=1;
+                $chunked_rows=array();
+                set_time_limit(0);
+                //break;
+            }
+
+            $k++;				
+        }
+
+        if(count($chunked_rows)>0){
+            $result=$this->table_batch_insert($db_id,$table_id,$chunked_rows);
+        }
+
+        return $total;
+   }
 
    
    private function get_db_name($db_id){
@@ -578,7 +634,7 @@ class Data_table_mongo_model extends CI_Model {
     }
 
     private function get_table_name($table_id){
-        return 'table_'.$table_id;
+        return strtolower('table_'.$table_id);
     }
 
 	

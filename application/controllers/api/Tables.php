@@ -2,8 +2,6 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
-use League\Csv\Reader;
-
 class Tables extends MY_REST_Controller
 {
 	public function __construct()
@@ -263,7 +261,7 @@ class Tables extends MY_REST_Controller
 	 * upload file	 
 	 * 
 	 **/ 
-	private function upload_file()
+	private function upload_file($upload_path='datafiles')
 	{		
 		if(!isset($_FILES['file'])){
 			throw new Exception("FILE NOT PROVIDED");
@@ -275,10 +273,14 @@ class Tables extends MY_REST_Controller
 			$overwrite=true;
 		}
 
+		if(!file_exists($upload_path)){
+			mkdir($upload_path,0777,true);
+		}
+
 		$file_name=$_FILES['file'];
 		$this->load->library('upload');
 	
-		$config['upload_path'] = 'datafiles/tmp/';
+		$config['upload_path'] = $upload_path;
 		$config['overwrite'] = $overwrite;
 		$config['encrypt_name']=false;
 		$config['allowed_types'] = 'txt|csv';
@@ -294,7 +296,51 @@ class Tables extends MY_REST_Controller
 
 		$upload_data = $this->upload->data();			
 		return $upload_data;
+	}
+	
+
+	function upload_post($db_id,$table_id)
+	{
+		try{			
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			$uploaded_file=$this->upload_file('datafiles/'.$db_id);			
+			$user_id=$this->get_api_user_id();			
+
+			if (!file_exists($uploaded_file['full_path'])){
+				throw new Exception("file was not uploaded");
+			}
+
+			//drop existing table
+			$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
+
+			//import csv
+			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file['full_path']);
+
+			$response=array(
+                'status'=>'success',				
+				'upload'=>$uploaded_file,
+				'rows_imported'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'files'=>$_FILES
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
     }
+
 
 	/**
 	 * 
@@ -339,68 +385,18 @@ class Tables extends MY_REST_Controller
 				$features_flip=array_flip($table_features);
 			}
 			*/
-
-			$csv_path='datafiles/'.$options['file_path'];
-			$csv=Reader::createFromPath($csv_path,'r');
-			$csv->setHeaderOffset(0);
-
-			$delimiters=array(
-				'tab'=>"\t",
-				','=>',',
-				';'=>';'
-			);
-
-			if (isset($options['delimiter']) && array_key_exists($options['delimiter'],$delimiters)){
-				$csv->setDelimiter($delimiters[$options['delimiter']]);
-			}
-
 			
-			//var_dump($csv->getDelimiter());
-			//die();
-
-			$header=$csv->getHeader();
-			$records= $csv->getRecords();
-
-			$chunk_size =15000;
-			$chunked_rows=array();
-			$k=1;
-			$total=0;
 			$start_time=date("H:i:s");
 
-			//delete existing table data
-			//$this->Data_table_model->delete_table_data($table_id);
+			//drop existing table
+			$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
 
-			$intval_func= function($value){
-				if (is_numeric($value)){
-					return intval($value);
-				}
-
-				return $value;
-			};
-
-			foreach($records as $row){
-				$row=array_map($intval_func, $row);
-				$total++;
-				$chunked_rows[]=$row;
-
-				if($k>=$chunk_size){
-					$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$chunked_rows);
-					$k=1;
-					$chunked_rows=array();
-					set_time_limit(0);
-					//break;
-				}
-
-				$k++;				
-			}
-
-			if(count($chunked_rows)>0){
-				$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$chunked_rows);
-			}
+			//import csv
+			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,'datafiles/'.$options['file_path']);
 			
 			$response=array(
                 'status'=>'success',
-				"output"=>$total,
+				"result"=>$result,
 				'start'=>$start_time,
 				'end'=>date("H:i:s")
 			);
@@ -410,8 +406,7 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'sql'=>$this->db->last_query()
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
