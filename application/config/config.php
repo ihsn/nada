@@ -767,7 +767,7 @@ $config['enable_access_policy_import']=false;
 $config['data_types_nav_bar']=true;
 
 //catalog search box location
-$config['search_box_orientation']='inline'; //inline, default
+$config['search_box_orientation']='default'; //inline, default
 
 /*
 |--------------------------------------------------------------------------

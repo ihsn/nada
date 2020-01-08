@@ -299,11 +299,7 @@ $config['rest_ip_blacklist'] = '';
 | if you have any of these features enabled
 |
 */
-<<<<<<< HEAD
-$config['rest_database_group'] = 'sqlsrv_dev';
-=======
 $config['rest_database_group'] = '';
->>>>>>> data-tables-api-mongo
 
 /*
 |--------------------------------------------------------------------------

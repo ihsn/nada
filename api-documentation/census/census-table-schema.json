@@ -8,40 +8,35 @@
     "type": "object",
     "properties": {    
 
-      "census": {
-        "type": "integer",
-        "title": "Census year"      
-      },
-      
-      "table_id": {
-        "type": "string",
-        "description": "Table ID number"
-      },
-
       "geo_level": {
         "type": "string",
         "description": "Geographic level `0=national`, `1=state`, `2=district`, `3=sub-district`, `4=town/village`, `5=ward`"
       },
 
-      "state_code": {
+      "state": {
         "type": "string",
         "description": "State code "
       },
 
-      "district_code": {
+      "district": {
         "type": "string",
         "description": "District code "
       },
 
-      "subdistrict_code": {
+      "subdistrict": {
         "type": "string",
         "description": "Subdistrict code "
       },
 
-      "town_code": {
+      "town": {
         "type": "string",
         "description": "Town code "
-      },      
+      },
+
+      "block": {
+        "type": "string",
+        "description": "Block code "
+      },
 
       "value": {
         "type": "string",
@@ -51,32 +46,11 @@
       "indicator": {
         "type": "integer",
         "description": "Indicator"
-      },
-
-      "feature_1": {
-        "type": "integer",
-        "description": "Feature"
-      },
-      "feature_2": {
-        "type": "integer",
-        "description": "Feature"
-      },
-      "feature_3": {
-        "type": "integer",
-        "description": "Feature"
-      },
-      "feature_4": {
-        "type": "integer",
-        "description": "Feature"
-      },
-      "feature_5": {
-        "type": "integer",
-        "description": "Feature"
       }
       
   },
   "required": [
-    "census","table_id","geo_level","state_code","district_code","subdistrict_code","town_code","indicator","value"
+    "geo_level","indicator","value"
   ]
 }
 }

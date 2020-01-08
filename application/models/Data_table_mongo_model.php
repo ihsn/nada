@@ -8,29 +8,6 @@ use JsonSchema\Constraints\Constraint;
 
 class Data_table_mongo_model extends CI_Model {
 
-    private $db_fields=array(
-        'dataset',
-        'table_id',
-        'geo_level',
-        'geo_1',
-        'geo_2',
-        'geo_3',
-        'geo_4',
-        'geo_5',
-        'indicator',
-        'value',
-        'feature_1',
-        'feature_2',
-        'feature_3',
-        'feature_4',
-        'feature_5',
-        'feature_6',
-        'feature_7',
-        'feature_8',
-        'feature_9',
-        'feature_10',
-    );
-
     private $geo_fields=array();
 
     //table type object holds table definition[features, codelists, etc]
@@ -72,35 +49,20 @@ class Data_table_mongo_model extends CI_Model {
     }
 
 
-    public function table_batch_insert($table_id,$rows)
+    public function table_batch_insert($db_id,$table_id,$rows)
     {
-        //remove fields that are not in the valid_fields list
-        foreach($rows as $key=>$row)
-        {
-            //$row=$this->transform_geo_fields($row);
-            //$row=$this->transform_feature_fields($row);
-            //$rows[$key]=array_intersect_key($row,array_flip($this->db_fields));
-
-            if(isset($row['age'])){
-                $rows[$key]['age']=intval($row['age']);
-            }
-        }
-
-        //$result= $this->db->insert_batch('data_tables', $rows);
-
-
-        $collection = (new MongoDB\Client)->census->{$table_id};
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
 
         $insertManyResult = $collection->insertMany($rows);        
         $inserted_count=$insertManyResult->getInsertedCount();
-               
         
         if (!$inserted_count){
-			throw new Exception($insertManyResult);			
+			throw new Exception($insertManyResult);
         }
         
         return $inserted_count;
     }
+
 
 
 
@@ -113,9 +75,9 @@ class Data_table_mongo_model extends CI_Model {
 
 
    
-   function get_tables_list($options=array()) 
+   function get_tables_list($db_id,$options=array()) 
    {
-       $database = (new MongoDB\Client)->census;
+       $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
        $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
 
        $output=array();
@@ -134,17 +96,18 @@ class Data_table_mongo_model extends CI_Model {
     * 
     * 
     */
-   function get_table_info($table_id)
+   function get_table_info($db_id,$table_id)
    {
-       $database = (new MongoDB\Client)->census;
-       $collection_info = $database->command(['collStats' => $table_id, 'scale'=> 1024*1024 ]);
+       $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
+       $collection_info = $database->command(['collStats' => $this->get_table_name($table_id), 'scale'=> 1024*1024 ]);
        $result= $collection_info->toArray()[0];
-       $result['table_type']=$this->get_table_type($table_id);
+       $result['table_type']=$this->get_table_type($db_id,$table_id);
        return $result;
    }
 
-   function get_table_type($table_id){
-       $collection = (new MongoDB\Client)->census->{'table_types'};
+   function get_table_type($db_id,$table_id)
+   {
+       $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{'table_types'};
        $result = $collection->findOne(
            [
                'table_id'=>$table_id
@@ -177,7 +140,7 @@ class Data_table_mongo_model extends CI_Model {
 	 * 
 	 * 
 	 */
-   function get_table_data($table_id,$limit=100,$options)
+   function get_table_data($db_id,$table_id,$limit=100,$options)
    {
         if (!$limit){
             $limit=100;
@@ -186,9 +149,9 @@ class Data_table_mongo_model extends CI_Model {
         $limit=intval($limit);
 
         //get table type info
-        $this->table_type_obj= $this->get_table_type($table_id);
+        $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
-        $features=$this->get_features_by_table($table_id);
+        $features=$this->get_features_by_table($db_id,$table_id);
 
         $features=array_flip($features); //turn feature names (e.g. age) into keys
 
@@ -224,7 +187,7 @@ class Data_table_mongo_model extends CI_Model {
         $feature_filters=$tmp_feature_filters;
 
 
-        $collection = (new MongoDB\Client)->census->{$table_id};
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
         /*
         $cursor = $collection->find(
             [
@@ -369,7 +332,7 @@ class Data_table_mongo_model extends CI_Model {
 
     
    
-   function create_table($table_id,$options)
+   function create_table($db_id,$table_id,$options)
    {
         //schema file name
         $schema_name='census-table_type';
@@ -378,10 +341,10 @@ class Data_table_mongo_model extends CI_Model {
         $this->validate_schema($schema_name,$options);
     
         //remove table definition if already exists
-        $this->delete_table_type($table_id);
+        $this->delete_table_type($db_id,$table_id);
 
         $options['_id']=$table_id;
-        $collection = (new MongoDB\Client)->census->table_types;
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->table_types;
         $result = $collection->insertOne($options);        
         $inserted_count=$result->getInsertedCount();
         
@@ -482,10 +445,10 @@ class Data_table_mongo_model extends CI_Model {
      * Get features array - id, name 
      * 
      */
-    function get_features_by_table($table_id)
+    function get_features_by_table($db_id,$table_id)
     {       
         if($this->table_type_obj==null){
-            $this->table_type_obj=$this->get_table_type($table_id);
+            $this->table_type_obj=$this->get_table_type($db_id,$table_id);
         }
 
         if(!$this->table_type_obj['features']){
@@ -522,16 +485,17 @@ class Data_table_mongo_model extends CI_Model {
     }
 
 
-    function delete_table_data($table_id)
+    function delete_table_data($db_id,$table_id)
     {
-        $this->db->where('table_id',$table_id);
-        return $this->db->delete('data_tables');
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $result = $collection->drop();
+        return $result;
     }
 
 
-    function delete_table_type($table_id)
+    function delete_table_type($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->census->table_types;
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->table_types;
         $result = $collection->deleteOne(['_id' => $table_id]);
         return $result->getDeletedCount();
     }
@@ -605,5 +569,17 @@ class Data_table_mongo_model extends CI_Model {
         
         return $output;
    } 
+
+
+
+   
+   private function get_db_name($db_id){
+    return 'db_'.$db_id;
+    }
+
+    private function get_table_name($table_id){
+        return 'table_'.$table_id;
+    }
+
 	
 }    

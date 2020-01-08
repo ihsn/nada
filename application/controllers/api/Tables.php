@@ -15,7 +15,7 @@ class Tables extends MY_REST_Controller
 	}
 
 	//list all tables with count
-	function index_get()
+	function index_get($db_id)
 	{
 		try{
 			//$options=$this->raw_json_input();
@@ -29,7 +29,7 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-            $result=$this->Data_table_mongo_model->get_tables_list($options);
+            $result=$this->Data_table_mongo_model->get_tables_list($db_id,$options);
 			
 			$response=array(
                 'status'=>'success',
@@ -115,7 +115,7 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * 
 	 */
-	function data_get($table_id=null,$limit=null)
+	function data_get($db_id=null,$table_id=null,$limit=null)
 	{
 		try{
 			$debug=$this->input->get("debug");			
@@ -131,11 +131,15 @@ class Tables extends MY_REST_Controller
 			//$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
 			if(!$table_id){
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$result=$this->Data_table_mongo_model->get_table_data($table_id,$limit,$options);
+			$result=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$options);
 			
 			/*if(isset($options['flat_output']))
 			{
@@ -179,7 +183,7 @@ class Tables extends MY_REST_Controller
 	 * Create table row	 
 	 * 
 	 */
-	function insert_post($table_id=NULL)
+	function insert_post($db_id=NULL, $table_id=NULL)
 	{
 		$this->is_admin_or_die();
 
@@ -187,8 +191,12 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
-			if(!$table_id){
-				throw new Exception("MISSING_REQUIRED_PARAM:: table_id");
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
 			}
 
 			//check if a single row input is provided or a list of rows
@@ -215,8 +223,7 @@ class Tables extends MY_REST_Controller
 				$result=$this->Census_table_model->insert_table($row['table_id'],$row);
 			}*/
 
-			$result=$this->Data_table_mongo_model->table_batch_insert($table_id,$options);   
-
+			$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$options);   
 
 			$response=array(
                 'status'=>'success',
@@ -312,7 +319,17 @@ class Tables extends MY_REST_Controller
 				throw new Exception("file_path was not found");
 			}
 			
+			$db_id=$options['db_id'];
 			$table_id=$options['table_id'];
+
+
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
+			}
 			
 			/*$table_features=(array)$this->Data_table_model->get_features_by_table($table_id);
 
@@ -602,19 +619,27 @@ class Tables extends MY_REST_Controller
 
 
     
-	function create_table_post()
+	function create_table_post($db_id=NULL, $table_id=NULL)
 	{
 		$this->is_admin_or_die();
 
 		try{
 			$options=$this->raw_json_input();
-            $user_id=$this->get_api_user_id();			
+			$user_id=$this->get_api_user_id();
+			
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
 
-            $result=$this->Data_table_mongo_model->create_table($options['table_id'],$options);			
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
+			}
+
+            $result=$this->Data_table_mongo_model->create_table($db_id,$table_id,$options);			
 
 			$response=array(
                 'status'=>'success',
-				'result'=>$result							
+				'result'=>$result
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -637,15 +662,24 @@ class Tables extends MY_REST_Controller
 	}
 
 
-	function delete_delete($table_id=null)
+	function delete_delete($db_id=null,$table_id=null)
 	{
 		$this->is_admin_or_die();
 		
 		try{
 			$options=$this->raw_json_input();
-            $user_id=$this->get_api_user_id();			
+			$user_id=$this->get_api_user_id();
+			
 
-            $result=$this->Census_table_model->delete_table_data($table_id);
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
+			}
+
+            $result=$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
 			
 
 			$response=array(

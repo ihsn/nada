@@ -63,6 +63,10 @@
     
   },
     "properties": {                
+      "db_id": {
+        "type": "string",
+        "description": "Database ID"
+      },
       "table_id": {
         "type": "string",
         "description": "Table ID number"
@@ -101,5 +105,5 @@
         }
       }
   },
-  "required":["table_id","title"]
+  "required":["db_id","table_id","title"]
 }
