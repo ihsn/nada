@@ -45,6 +45,11 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
+	function list_get($db_id)
+	{
+		$this->index_get($db_id);
+	}
+
 
 	/**
 	 * 
@@ -52,17 +57,21 @@ class Tables extends MY_REST_Controller
 	 * Get table summary
 	 * 
 	 */
-	function info_get($table_id=null)
+	function info_get($db_id=null,$table_id=null)
 	{
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();			
 			
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
 			if(!$table_id){
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$result=$this->Data_table_mongo_model->get_table_info($table_id);
+			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
 			$result=array(
 				'storageUnit'=>'M',

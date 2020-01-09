@@ -187,7 +187,7 @@ $config['auth_library_function'] = '';
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
-$config['auth_override_class_method']['tables']['index'] = 'none';
+$config['auth_override_class_method']['tables']['list'] = 'none';
 $config['auth_override_class_method']['tables']['info'] = 'none';
 $config['auth_override_class_method']['tables']['data'] = 'none';
 $config['auth_override_class_method']['tables']['geosearch'] = 'none';
