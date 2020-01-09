@@ -98,6 +98,7 @@ class Data_table_mongo_model extends CI_Model {
     */
    function get_table_info($db_id,$table_id)
    {
+       $table_id=strtolower($table_id);
        $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
        $collection_info = $database->command(['collStats' => $this->get_table_name($table_id), 'scale'=> 1024*1024 ]);
        $result= $collection_info->toArray()[0];
