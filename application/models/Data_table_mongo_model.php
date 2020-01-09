@@ -102,7 +102,7 @@ class Data_table_mongo_model extends CI_Model {
        $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
        $collection_info = $database->command(['collStats' => $this->get_table_name($table_id), 'scale'=> 1024*1024 ]);
        $result= $collection_info->toArray()[0];
-       $result['table_type']=$this->get_table_type($db_id,$table_id);
+       $result['table_type']=$this->get_table_type($db_id,$table_id);       
        return $result;
    }
 
@@ -111,9 +111,10 @@ class Data_table_mongo_model extends CI_Model {
        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{'table_types'};
        $result = $collection->findOne(
            [
-               'table_id'=>$table_id
+               '_id'=>$table_id
            ]
        );
+       
        return $result;
    }
 
@@ -154,8 +155,10 @@ class Data_table_mongo_model extends CI_Model {
         //get table type info
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
+        $fields=$this->get_table_field_names($db_id,$table_id);
+        
+        /*
         $features=$this->get_features_by_table($db_id,$table_id);
-
         $features=array_flip($features); //turn feature names (e.g. age) into keys
 
         //geo fields + others
@@ -168,6 +171,9 @@ class Data_table_mongo_model extends CI_Model {
         );
 
         $features=array_merge($features,$geo_features);
+        */
+
+        $features=$fields;
 
 
         $feature_filters=array();
@@ -468,6 +474,29 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         return $features_list;        
+    }
+
+    /**
+     * 
+     * 
+     * Get features array - id, name 
+     * 
+     */
+    function get_table_field_names($db_id,$table_id)
+    {
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $result = $collection->findOne();
+
+        $output=array();
+
+        if($result){
+
+            foreach (array_keys((array)$result) as $key){
+                $output[$key]=$key;
+            }
+        }
+
+        return $output;
     }
 
 
