@@ -148,6 +148,8 @@ class Data_table_mongo_model extends CI_Model {
 
         $limit=intval($limit);
 
+        $table_id=strtolower($table_id);
+
         //get table type info
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
@@ -334,6 +336,8 @@ class Data_table_mongo_model extends CI_Model {
    
    function create_table($db_id,$table_id,$options)
    {
+        $table_id=strtolower($table_id);
+
         //schema file name
         $schema_name='census-table_type';
 
