@@ -1,20 +1,20 @@
 swagger: '2.0'
 info:
   description: >-
-    CENSUS API
+    DATA Tables API
 
 
     To use the API, you will require the '`API-KEY'`, see the section
     `Authentication` 
   version: "5.0"
-  title: CENSUS
+  title: DATA Tables
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 basePath: /index.php/api/
 tags:
   - name: Tables
-    description: Tables api
+    description: Data Tables
 x-tagGroups:
   - name: Tables 
     tags:
@@ -189,6 +189,40 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []                        
+  /tables/upload:
+      post:
+        tags:
+          - Tables
+        summary: Upload CSV
+        description: Upload and import CSV file
+        operationId: uploadCsv
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            description: Database ID
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            description: Table ID
+            type: string
+            format: string
+            required: true  
+          - in: "formData"
+            name: "file"
+            type: file
+            description: "CSV file"
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
   /tables/import:
       post:
         tags:
