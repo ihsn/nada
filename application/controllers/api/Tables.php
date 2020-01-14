@@ -7,7 +7,7 @@ class Tables extends MY_REST_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->helper("date");        
+		$this->load->helper("date");
 		$this->load->model("Data_table_mongo_model");
 		$this->load->model("Data_table_model");
 	}
@@ -276,12 +276,6 @@ class Tables extends MY_REST_Controller
 			throw new Exception("FILE NOT PROVIDED");
 		}
 
-		$overwrite=$this->input->post("overwrite");
-
-		if($overwrite=='yes'){
-			$overwrite=true;
-		}
-
 		if(!file_exists($upload_path)){
 			mkdir($upload_path,0777,true);
 		}
@@ -290,9 +284,9 @@ class Tables extends MY_REST_Controller
 		$this->load->library('upload');
 	
 		$config['upload_path'] = $upload_path;
-		$config['overwrite'] = $overwrite;
+		$config['overwrite'] = true;
 		$config['encrypt_name']=false;
-		$config['allowed_types'] = 'txt|csv';
+		$config['allowed_types'] = 'txt|csv|zip';
 		
 		$this->upload->initialize($config);
 		
@@ -319,22 +313,37 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: tableId");
 			}
 
-			$uploaded_file=$this->upload_file('datafiles/'.$db_id);			
+			$uploaded_file=$this->upload_file('datafiles/'.$db_id);
+			$uploaded_file_path=$uploaded_file['full_path'];
+
 			$user_id=$this->get_api_user_id();			
 
-			if (!file_exists($uploaded_file['full_path'])){
+			if (!file_exists($uploaded_file_path)){
 				throw new Exception("file was not uploaded");
+			}
+
+			if($this->is_zip_file($uploaded_file_path)){
+				$unzip_path='datafiles/'.$db_id.'/'.$table_id;
+				$uploaded_file_path=$this->get_file_from_zip($uploaded_file_path,$unzip_path);
 			}
 
 			//drop existing table
 			$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
 
 			//import csv
-			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file['full_path']);
+			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file_path);
+
+			//remove uploaded files
+			$files=array($uploaded_file_path, $uploaded_file['full_path']);
+			foreach($files as $file){
+				if (!empty($file) && file_exists($file)){
+					unlink($file);
+				}
+			}
 
 			$response=array(
-                'status'=>'success',				
-				'upload'=>$uploaded_file,
+                'status'=>'success',
+				'file_path'=>$uploaded_file_path,
 				'rows_imported'=>$result
 			);
 
@@ -348,7 +357,72 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-    }
+	}
+
+	function file_ext_get()
+	{
+		try{			
+
+			$file=$this->input->get("file");
+
+			$response=array(
+                'status'=>'success',
+				'file_path'=>$this->is_zip_file($file),				
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'files'=>$_FILES
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+	
+
+	
+	private function is_zip_file($file_name)
+	{
+		$file_ext=pathinfo($file_name,PATHINFO_EXTENSION);
+
+		if ($file_ext=='zip'){
+			return true;
+		}
+
+		return false;
+	}
+
+	private function unzip_file($zip_file,$output_path)
+	{
+		$zip = new ZipArchive;
+		if ($zip->open($zip_file) === TRUE) {
+			$zip->extractTo($output_path);
+			$zip->close();
+		} else {
+			throw new Exception("Failed to unzip file: ". $zip_file);
+		}
+	}
+
+	private function get_file_from_zip($zip_file, $output_path)
+	{
+		$this->unzip_file($zip_file,$output_path);
+
+		$base_name=pathinfo($zip_file,PATHINFO_FILENAME);
+
+		$files=array(
+			$output_path.'/'.$base_name.'.csv',
+			$output_path.'/'.$base_name.'.txt'
+		);
+
+		foreach($files as $file){
+			if(file_exists($file)){
+				return $file;
+			}
+		}
+	}
 
 
 	/**
