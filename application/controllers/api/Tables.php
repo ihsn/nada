@@ -414,7 +414,9 @@ class Tables extends MY_REST_Controller
 
 		$files=array(
 			$output_path.'/'.$base_name.'.csv',
-			$output_path.'/'.$base_name.'.txt'
+			$output_path.'/'.$base_name.'.txt',
+			$output_path.'/'.$base_name.'.CSV',
+			$output_path.'/'.$base_name.'.TXT'
 		);
 
 		foreach($files as $file){
@@ -422,6 +424,8 @@ class Tables extends MY_REST_Controller
 				return $file;
 			}
 		}
+
+		throw new Exception("CSV file not found in ZIP");
 	}
 
 
