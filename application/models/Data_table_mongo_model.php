@@ -97,8 +97,7 @@ class Data_table_mongo_model extends CI_Model {
                 'count'=>$coll_stats['count'],
                 'storageSize'=>$coll_stats['storageSize'],
                 'nindexes'=>$coll_stats['nindexes'],
-                'indexNames'=>array_keys((array)$coll_stats['indexDetails']),
-                'scaleFactor'=>$coll_stats['scaleFactor'],
+                'indexNames'=>array_keys((array)$coll_stats['indexDetails'])
             );
        }
 
