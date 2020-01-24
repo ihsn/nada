@@ -52,10 +52,17 @@ class Data_table_mongo_model extends CI_Model {
     public function table_batch_insert($db_id,$table_id,$rows)
     {
         $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $insertManyResult = null;
 
-        $insertManyResult = $collection->insertMany($rows);        
+        try {
+            $insertManyResult = $collection->insertMany($rows);
+        } catch (\MongoDB\Driver\Exception\Exception $e) {
+            throw new Exception("ERROR::". utf8_encode($e->getMessage()));            
+        }
+
         $inserted_count=$insertManyResult->getInsertedCount();
         
+
         if (!$inserted_count){
 			throw new Exception($insertManyResult);
         }
@@ -82,12 +89,35 @@ class Data_table_mongo_model extends CI_Model {
 
        $output=array();
        foreach ($cursor as $collection) {
-           $output[]=$collection;
+            $coll_stats=$this->get_collection_info($this->get_db_name($db_id),$collection['name']);
+            $output[]=array(
+                'name'=>$collection['name'],
+                'storageUnit'=>'M',
+                'size'=>$coll_stats['size'],
+                'count'=>$coll_stats['count'],
+                'storageSize'=>$coll_stats['storageSize'],
+                'nindexes'=>$coll_stats['nindexes'],
+                'indexNames'=>array_keys((array)$coll_stats['indexDetails']),
+                'scaleFactor'=>$coll_stats['scaleFactor'],
+            );
        }
 
        return $output;
    } 
    
+
+   /**
+    * 
+    * Return collection info
+    * 
+    * 
+    */
+    function get_collection_info($db_name,$table_name)
+    {
+        $database = (new MongoDB\Client)->{$db_name};
+        $collection_info = $database->command(['collStats' => $table_name, 'scale'=> 1024*1024 ]);
+        return $collection_info->toArray()[0];
+    }
    
 
    /**
@@ -99,9 +129,7 @@ class Data_table_mongo_model extends CI_Model {
    function get_table_info($db_id,$table_id)
    {
        $table_id=strtolower($table_id);
-       $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
-       $collection_info = $database->command(['collStats' => $this->get_table_name($table_id), 'scale'=> 1024*1024 ]);
-       $result= $collection_info->toArray()[0];
+       $result= $this->get_collection_info($this->get_db_name($db_id),$this->get_table_name($table_id));
        $result['table_type']=$this->get_table_type($db_id,$table_id);       
        return $result;
    }
@@ -118,6 +146,13 @@ class Data_table_mongo_model extends CI_Model {
        return $result;
    }
 
+
+   function get_database_info($db_id)
+   {
+       $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
+       $db_info = $database->command(['dbStats' => 1, 'scale'=> 1024*1024 ]);
+       return $db_info->toArray()[0];
+   }
 
 
 
@@ -143,12 +178,12 @@ class Data_table_mongo_model extends CI_Model {
 	 * 
 	 */
    function get_table_data($db_id,$table_id,$limit=100,$options)
-   {
-        if (!$limit){
+   {    
+        $limit=intval($limit);    
+        
+        if ($limit<0 || $limit>10000){
             $limit=100;
         }
-
-        $limit=intval($limit);
 
         $table_id=strtolower($table_id);
 
@@ -156,7 +191,7 @@ class Data_table_mongo_model extends CI_Model {
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
         $fields=$this->get_table_field_names($db_id,$table_id);
-        
+
         /*
         $features=$this->get_features_by_table($db_id,$table_id);
         $features=array_flip($features); //turn feature names (e.g. age) into keys
@@ -186,6 +221,8 @@ class Data_table_mongo_model extends CI_Model {
             }
         }
         
+
+
         $tmp_feature_filters=array();
 
         //filter by features - uses feature_1, feature_2,... for searching
@@ -218,13 +255,6 @@ class Data_table_mongo_model extends CI_Model {
         );
         */
 
-        $filter=array( 
-           //'age'=>2,
-            'age'=>array(
-                '$in'=>array(2)
-            ),
-
-        );
         
         $cursor = $collection->find(
             $feature_filters,
@@ -245,6 +275,8 @@ class Data_table_mongo_model extends CI_Model {
         $geo_codes=array();
         $output['features']=$features;        
         $output['feature_filters']=$feature_filters;
+        $output['rows_count']=0;
+        $output['limit']=$limit;
         $output['found']=$collection->count($feature_filters);
         $output['total']=$collection->count();
         $output['geo_codes']=array();
@@ -265,6 +297,7 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         $output['geo_codes']=$geo_codes;
+        $output['rows_count']=count($output['data']);
         return $output;
    } 
 
@@ -545,9 +578,9 @@ class Data_table_mongo_model extends CI_Model {
     }
 
 
-    function geo_search($options)
+    function geo_search($db_id,$options)
    {
-        $limit=100;
+        $limit=1000;
 
         //geo fields + others
         $features=array(
@@ -559,6 +592,8 @@ class Data_table_mongo_model extends CI_Model {
             'ward'=> 'ward',
             'areaname'=> 'areaname',
         );
+
+        $feature_filters=array();
 
         //see if any key matches with the feature name
         foreach($options as $key=>$value)
@@ -578,7 +613,7 @@ class Data_table_mongo_model extends CI_Model {
         $feature_filters=$tmp_feature_filters;
 
 
-        $collection = (new MongoDB\Client)->census->{"geo_codes"};
+        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{"table_geo_codes"};
         
         $cursor = $collection->find(
             $feature_filters,
@@ -605,7 +640,7 @@ class Data_table_mongo_model extends CI_Model {
    } 
 
 
-   function import_csv($db_id,$table_id,$csv_path,$delimeter='')
+   function import_csv($db_id,$table_id,$csv_path,$delimiter='')
    {       
         $csv=Reader::createFromPath($csv_path,'r');
         $csv->setHeaderOffset(0);
@@ -619,6 +654,7 @@ class Data_table_mongo_model extends CI_Model {
         if (!empty($delimiter) && array_key_exists($delimiter,$delimiters)){
             $csv->setDelimiter($delimiters[$delimiter]);
         }
+        
 
         $header=$csv->getHeader();
         $records= $csv->getRecords();
@@ -626,8 +662,8 @@ class Data_table_mongo_model extends CI_Model {
         $chunk_size =15000;
         $chunked_rows=array();
         $k=1;
-        $total=0;        
-
+        $total=0;
+        
         //delete existing table data
         //$this->Data_table_model->delete_table_data($table_id);
 
@@ -637,10 +673,12 @@ class Data_table_mongo_model extends CI_Model {
             }
 
             return $value;
+            //return utf8_encode($value);
         };
 
         foreach($records as $row){
-            $row=array_map($intval_func, $row);
+
+            $row=array_map($intval_func, $row);            
             $total++;
             $chunked_rows[]=$row;
 
@@ -669,6 +707,169 @@ class Data_table_mongo_model extends CI_Model {
 
     private function get_table_name($table_id){
         return strtolower('table_'.$table_id);
+    }
+
+
+    /**
+     * 
+     * Get population by age ranges
+     * 
+     * {
+     *   "age_group": "0-4",
+     *   "literate_male": 0,
+     *   "illiterate_male": 58632074,
+     *   "literate_female": 0,
+     *   "illiterate_female": 54174704,
+     *   "total_male": 58632074,
+     *   "total_female": 54174704,
+     *   "sex_ratio": 1.0822776992007193
+     *   },
+     * 
+     * 
+     * 
+     * 
+     */
+    function population_by_age($db_id,$table_id,$options=null)
+    {
+        $options=null;
+        //default
+        if(!$options){
+            $options=array(
+                'geo_level'=>0,
+                'age'=>'0-100',
+                'sex'=>'1,2',
+                'scst'=>'0',
+                'urbrur'=>'0',
+                'fields'=>'age,sex,literacy,value'
+            );
+        }
+
+        //var_dump($options);
+        //die();
+        
+        $data=$this->get_table_data($db_id,$table_id,$limit=1000,$options);
+//return $data;
+        $data=$data['data'];
+
+        $age_groups=array();			
+        for ($i=0; $i<=100; $i+=5) {
+            $age_range=$i.'-'.($i+4);
+            for($x=$i;$x<=$i+4;$x++){
+                $age_groups[$x]=$age_range;
+            }
+        }
+
+        //initialize output
+        $output=array();
+        foreach(array_values($age_groups) as $age_group){
+            $output[$age_group]=array(
+                'age_group'=>$age_group, 
+                'literate_male'=>0, 
+                'illiterate_male'=>0, 
+                'literate_female'=>0, 
+                'illiterate_female'=>0, 
+                'total_male'=>0,
+                'total_female'=>0, 
+                'male'=>0,
+                'female'=>0,
+                'sex_ratio'=>0            
+            );
+        }
+
+        //age_group, literate_male, illiterate_male, literate_female, illiterate_female, total_male,total_female, sex_ratio
+        //0-4      , literacy=1,sex=1, 
+
+        //$output=array();        
+        foreach($data as $row)
+        {
+            if(!isset($row['age'])){
+                throw new Exception("AGE NOT FOUND");
+            }
+
+            //skip invalid age groups
+            if (!isset($age_groups[$row['age']])){
+                continue;
+            }
+
+            //get age group e.g. 0-4
+            $age_group=$age_groups[$row['age']];
+
+            if (isset($row['literacy'])){
+                //male
+                if($row['sex']==1){
+                    //literate_male
+                    if($row['literacy']==1){
+                        $output[$age_group]['literate_male']+=$row['value'];
+                    }else{
+                        //illiterate male
+                        $output[$age_group]['illiterate_male']+=$row['value'];
+                    }
+                }else{
+                    //literate_female
+                    if($row['literacy']==1){
+                        $output[$age_group]['literate_female']+=$row['value'];
+                    }else{
+                    //illiterate female
+                        $output[$age_group]['illiterate_female']+=$row['value'];
+                    }
+                }
+            }
+            else{
+                
+                if($row['sex']==1){
+                    //male
+                    $output[$age_group]['male']+=$row['value'];
+                }else{
+                   // var_dump($row);die();
+                    //female
+                    $output[$age_group]['female']+=$row['value'];
+                }            
+            }
+
+        }
+
+        //return $output;
+
+        if (isset($row['literacy'])){
+            foreach($output as $key=> $row)
+            {
+                //total male
+                $total_male=$row['literate_male'] + $row['illiterate_male'];
+                $output[$key]['total_male']=$total_male;
+
+                //total female
+                $total_female=$row['literate_female'] + $row['illiterate_female'];
+                $output[$key]['total_female']=$total_female;
+
+                //sex ratio
+                $output[$key]['sex_ratio']=$total_male/$total_female;
+            }
+        }
+        /*else{
+            foreach($output as $key=> $row)
+            {
+                //total male
+                $output[$key]['total_male']=$row['male'];
+
+                //total female
+                $output[$key]['total_female']=$row['female'];
+
+                //sex ratio
+                //$output[$key]['sex_ratio']=(int)$row['male']/ (int)$row['female'];
+            }
+        }*/
+
+       
+        return $output;
+
+        $output_idx=array();
+        
+        foreach($output as $row)
+        {
+            $output_idx[]=$row;
+        }
+
+        return $output_idex;
     }
 
 	

@@ -104,6 +104,48 @@ class Tables extends MY_REST_Controller
 	/**
 	 * 
 	 * 
+	 * Get a list of all databases
+	 * 
+	 */
+	function databases_get()
+	{
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();			
+			
+
+			$databases=array(
+				'2001',
+				'2011'
+			);
+
+			$output=array();
+			foreach($databases as $db){
+				$output[$db]=$this->Data_table_mongo_model->get_database_info($db);
+			}
+			
+			$response=array(
+				'status'=>'success',
+                'result'=>$output
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+
+	/**
+	 * 
+	 * 
 	 * Get table data
 	 * 
 	 * Filters
@@ -146,28 +188,10 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$result=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$options);
+			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$options);
 			
-			/*if(isset($options['flat_output']))
-			{
-				$response=$result['data'];
-			}
-			else{
-				$response=array(
-					'status'=>'success',
-					'count'=>@count($result['data']),
-					'result'=>$result['data']
-				);				
-			}*/
-
-			$response=array(
-				'status'=>'success',
-				'count'=>@count($result['data']),
-				'result'=>$result
-			);
-			
-			if($debug==true){
-				$response['query']=$result['query'];
+			if(isset($options['flat_output'])){
+				//$response=$response['data'];
 			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -331,7 +355,7 @@ class Tables extends MY_REST_Controller
 			$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
 
 			//import csv
-			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file_path);
+			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file_path, $this->input->post("delimiter"));
 
 			//remove uploaded files
 			$files=array($uploaded_file_path, $uploaded_file['full_path']);
@@ -903,7 +927,7 @@ class Tables extends MY_REST_Controller
 	 * Get population by age table
 	 * 
 	 */
-	function population_by_age_get()
+	function population_by_age_get($db_id,$table_id)
 	{
 		try{
 			//$options=$this->raw_json_input();
@@ -916,9 +940,7 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-
-			$this->load->model("Census_table_utils_model");
-			$result=$this->Census_table_utils_model->population_by_age($options);
+			$result=$this->Data_table_mongo_model->population_by_age($db_id,$table_id,$options);
 			
 			$response=array(
 				'status'=>'success',				
@@ -993,14 +1015,17 @@ class Tables extends MY_REST_Controller
 	 * Search for States, districts, towns, etc
 	 * 
 	 * geo_level - state, district, etc
-	 * state - state name
-	 * district - district name
+	 * state - state code
+	 * district - district code
 	 * subdistrict
 	 * town
 	 * village
+	 * areaname - text search
+	 * 
+	 * {$text:{$search:"Haniya"}, level:"state"}
 	 * 
 	 */
-	function geosearch_get()
+	function geosearch_get($db_id=null)
 	{
 		try{
 			//$options=$this->raw_json_input();
@@ -1013,14 +1038,9 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-			$result=$this->Data_table_mongo_model->geo_search($options);
-			
-			$response=array(
-				'status'=>'success',				
-				'result'=>$result
-			);
+			$result=$this->Data_table_mongo_model->geo_search($db_id,$options);
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+			$this->set_response($result, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
