@@ -82,7 +82,7 @@ class Data_table_mongo_model extends CI_Model {
 
 
    
-   function get_tables_list($db_id,$options=array()) 
+   function get_tables_list($db_id,$options=array())
    {
        $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
        $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
@@ -90,7 +90,7 @@ class Data_table_mongo_model extends CI_Model {
        $output=array();
        foreach ($cursor as $collection) {
             $coll_stats=$this->get_collection_info($this->get_db_name($db_id),$collection['name']);
-            $output[]=array(
+            $output[$collection['name']]=array(
                 'name'=>$collection['name'],
                 'storageUnit'=>'M',
                 'size'=>$coll_stats['size'],
@@ -143,6 +143,37 @@ class Data_table_mongo_model extends CI_Model {
        );
        
        return $result;
+   }
+
+
+   function get_table_types_list($db_id)
+   {
+       $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{'table_types'};
+
+       $projection_options=[
+            '_id'=>1,
+            'title'=>1, 
+            'description'=>1,
+            'dataset'=>1,
+       ];
+
+       $result = $collection->find(
+           [
+               //'_id'=>$table_id
+           ],
+           [    
+               'projection'=>$projection_options
+           ]           
+       );
+       
+       $output=array();
+       foreach($result as $item){
+        $output['table_'.$item['_id']]=$item;
+       }
+
+       return $output;
+
+
    }
 
 

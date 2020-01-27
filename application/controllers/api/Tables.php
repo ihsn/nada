@@ -13,7 +13,7 @@ class Tables extends MY_REST_Controller
 	}
 
 	//list all tables with count
-	function index_get($db_id)
+	function index_get($db_id=null)
 	{
 		try{
 			//$options=$this->raw_json_input();
@@ -27,11 +27,13 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-            $result=$this->Data_table_mongo_model->get_tables_list($db_id,$options);
+			$table_types=$this->Data_table_mongo_model->get_table_types_list($db_id);
+			$table_storage_info=$this->Data_table_mongo_model->get_tables_list($db_id,$options);						
 			
 			$response=array(
                 'status'=>'success',
-                'result'=>$result
+				'tables'=>$table_types,
+				'tables_storage'=>$table_storage_info
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -45,7 +47,7 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
-	function list_get($db_id)
+	function list_get($db_id=null)
 	{
 		$this->index_get($db_id);
 	}
