@@ -107,6 +107,18 @@
               </v-text-field>
             </div>
 
+            <template>
+            <div>
+              <vue-tags-input
+                v-model="state"
+                :tags="states"
+                :autocomplete-items="autocompleteItems"
+                :add-only-from-autocomplete="true"
+                @tags-changed="update"
+              />
+            </div>
+          </template>
+
             <div>
             <v-text-field
             label="State"
@@ -163,38 +175,41 @@
 
   <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/@johmun/vue-tags-input/dist/vue-tags-input.js"></script>
   
+
   
   <script>
 
-Vue.component('feature-component', {
-    props: ["feature"],
-    template: `        
-        <div>
-        <div><strong>{{feature.feature_label}}</strong> [<small>{{feature.feature_name}} </small>]</div>
-            
-        <table class="table table-sm table-hover">
-        <!-- feature code lists -->
-        <tr v-for="code in feature.code_list">
-          <td><input type="checkbox" :value="code.code" v-model='code.isSelected'/></td>
-          <td>{{code.code}}</td>
-          <td>{{code.label}} </td>
-        </tr>
-        <!-- end feature code lists -->
-        </table>
-        </div>
-        `
-        ,
-    watch: {
-        person: {
-            handler: function(newValue) {
-                console.log("Person with ID:" + newValue.id + " modified")
-                console.log("New age: " + newValue.age)
-            },
-            deep: true
-        }
-    }
-});
+  Vue.component('feature-component', {
+      props: ["feature"],
+      template: `        
+          <div>
+          <div><strong>{{feature.feature_label}}</strong> [<small>{{feature.feature_name}} </small>]</div>
+              
+          <table class="table table-sm table-hover">
+          <!-- feature code lists -->
+          <tr v-for="code in feature.code_list">
+            <td><input type="checkbox" :value="code.code" v-model='code.isSelected'/></td>
+            <td>{{code.code}}</td>
+            <td>{{code.label}} </td>
+          </tr>
+          <!-- end feature code lists -->
+          </table>
+          </div>
+          `
+          ,
+      watch: {
+          person: {
+              handler: function(newValue) {
+                  console.log("Person with ID:" + newValue.id + " modified")
+                  console.log("New age: " + newValue.age)
+              },
+              deep: true
+          }
+      }
+  });
+
 
     new Vue({
   el: '#app',
@@ -203,7 +218,10 @@ Vue.component('feature-component', {
     databases: null,
     tables:[],
     tables_storage:null,
-    states:null,
+    states:[],
+    autocompleteItems: [],
+    debounce: null,
+    state:'',
     drawer:null,
     selected_table:null,
     selected_table_options:{
@@ -275,6 +293,7 @@ Vue.component('feature-component', {
     xselected_table: function (new_, old_) {
       this.selected = 'Waiting for you to stop typing...'      
     },
+    state: 'initItems',
     selected_table: {
             handler: function(newValue) {
                 console.log("Person with ID:" + newValue + " modified")
@@ -344,7 +363,49 @@ Vue.component('feature-component', {
         })
     
     
-    }
+    },
+
+
+
+    update(newStates) {
+      this.autocompleteItems = [];
+      this.states = newStates;
+    },
+    initItems() {
+      if (this.state.length < 2) return;
+      const url = `${this.api_base_url}tables/geosearch/2011?areaname=${this.state}&limit=6`;
+
+      console.log(url);
+
+      let vm=this;
+
+      clearTimeout(this.debounce);
+      this.debounce = setTimeout(() => {
+        
+        $.ajax
+        ({
+            type: "GET",
+            //the url where you want to sent the userName and password to
+            url:  `${this.api_base_url}tables/geosearch/2011?level=state&areaname=${vm.state}&limit=6`,
+            contentType: 'application/json',
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+              vm.autocompleteItems = data.data.map(a => {
+                return { text: a.areaname };
+              });
+            },
+            error: function(e){
+                console.log(e);
+                alert("failed" + e);
+            }
+        })
+
+
+      }, 600);
+    },
+
+
 
   }
 })
