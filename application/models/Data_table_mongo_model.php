@@ -655,14 +655,6 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         $feature_filters=$tmp_feature_filters;
-        /*if(isset($options[$text_search_field])){
-            $feature_filters[]=$this->text_search($options[$text_search_field]);
-        }*/
-
-
-        echo '<pre>';
-        print_r($feature_filters);
-        echo '</pre>';
 
         $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{"table_geo_codes"};
         
