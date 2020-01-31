@@ -370,6 +370,15 @@ class Data_table_mongo_model extends CI_Model {
 
 
 
+   function text_search($keywords)
+   {
+        /*return array(
+            '$text'=> array('$search'=> $keywords)
+        );*/
+
+        return array('$search' => $keywords);
+   }
+
    function apply_feature_filter($feature_name,$value)
    {
         $parsed_val=$this->parse_filter_value($value);
@@ -619,9 +628,10 @@ class Data_table_mongo_model extends CI_Model {
             'district'=> 'district',
             'subdistrict'=> 'subdistrict',
             'town_village'=>'town_village',
-            'ward'=> 'ward',
-            'areaname'=> 'areaname',
+            'ward'=> 'ward',            
         );
+
+        $text_search_field='areaname';
 
         $feature_filters=array();
 
@@ -640,8 +650,19 @@ class Data_table_mongo_model extends CI_Model {
             $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
         }
 
-        $feature_filters=$tmp_feature_filters;
+        if(isset($options[$text_search_field])){
+            $tmp_feature_filters['$text']=$this->text_search($options[$text_search_field]);
+        }
 
+        $feature_filters=$tmp_feature_filters;
+        /*if(isset($options[$text_search_field])){
+            $feature_filters[]=$this->text_search($options[$text_search_field]);
+        }*/
+
+
+        echo '<pre>';
+        print_r($feature_filters);
+        echo '</pre>';
 
         $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{"table_geo_codes"};
         

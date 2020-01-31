@@ -94,20 +94,33 @@
 
             <h2>Table: {{selected_table_id}}</h2>
 
+            <pre>
+            selectedTableOptions
+            </pre>
+
+            <div style="background:gainsboro;padding:15px;">
+              <v-text-field
+                label="API URL"
+                placeholder="API URL"
+                v-model="GetApiUrl"
+              >
+              </v-text-field>
+            </div>
+
             <div>
             <v-text-field
-            label="Regular"
-            placeholder="Placeholder"
+            label="State"
+            placeholder="State name"
           ></v-text-field>
 
           <v-text-field
-            label="Regular"
-            placeholder="Placeholder"
+            label="District"
+            placeholder="District"
           ></v-text-field>
 
           <v-text-field
-            label="Regular"
-            placeholder="Placeholder"
+            label="Subdistrict"
+            placeholder="Subdistrict"
           ></v-text-field>
             </div>
 
@@ -122,7 +135,7 @@
               <th>Measurement unit</th>
             </tr>
             <tr v-for="indicator in selected_table.result_.indicator">                        
-              <td><input type="checkbox" v-model='indicator.code'/></td>
+              <td><input type="checkbox" :value="indicator.code" v-model='indicator.isSelected'/></td>
               <td>{{indicator.code}}</td>
               <td>{{indicator.label}}</td>
               <td>{{indicator.measurement_unit}}</td>
@@ -132,21 +145,10 @@
             <h6>Features</h6>
             <!-- features info -->
             
-            <div v-for="feature in selected_table.result_.features">
-              
-              <div><strong>{{feature.feature_label}}</strong> [<small>{{feature.feature_name}} </small>]</div>
-            
-                <table class="table table-sm table-hover">
-                <!-- feature code lists -->
-                <tr v-for="code in feature.code_list">
-                  <td><input type="checkbox" v-model='code.code'/></td>
-                  <td>{{code.code}}</td>
-                  <td>{{code.label}} </td>
-                </tr>
-                <!-- end feature code lists -->
-                </table>
-            </div>
+          
+            <feature-component :feature="feature" v-for="feature in selected_table.result_.features"></feature-component>
 
+<pre>{{selected_table.result_.features}}</pre>
           </v-col>
         </v-row>
       </div>
@@ -164,6 +166,36 @@
   
   
   <script>
+
+Vue.component('feature-component', {
+    props: ["feature"],
+    template: `        
+        <div>
+        <div><strong>{{feature.feature_label}}</strong> [<small>{{feature.feature_name}} </small>]</div>
+            
+        <table class="table table-sm table-hover">
+        <!-- feature code lists -->
+        <tr v-for="code in feature.code_list">
+          <td><input type="checkbox" :value="code.code" v-model='code.isSelected'/></td>
+          <td>{{code.code}}</td>
+          <td>{{code.label}} </td>
+        </tr>
+        <!-- end feature code lists -->
+        </table>
+        </div>
+        `
+        ,
+    watch: {
+        person: {
+            handler: function(newValue) {
+                console.log("Person with ID:" + newValue.id + " modified")
+                console.log("New age: " + newValue.age)
+            },
+            deep: true
+        }
+    }
+});
+
     new Vue({
   el: '#app',
   vuetify: new Vuetify(),
@@ -174,6 +206,12 @@
     states:null,
     drawer:null,
     selected_table:null,
+    selected_table_options:{
+        'indicators':[],
+        'features':[],
+        'state':'',
+        'geo_level':''
+    },
     selected_table_toggle:false,
     selected_table_id:null,
     ajax_completed:false,
@@ -186,13 +224,65 @@
   computed: {    
     tablesFound(){
       return this.tables.length;
+    },
+
+    GetApiUrl(){
+      data=this.selectedTableOptions;
+      options={}
+      for(item in data){
+        option=data[item];
+        console.log(item);
+        options[item]=option.join(",");
+      }
+      return this.api_base_url + 'tables/data/2011/' + this.selected_table_id + '/?' + $.param(options);
+    },
+    selectedTableOptions()
+    {
+      options={};
+      for(feature_idx in this.selected_table.result_.features){
+        feature=this.selected_table.result_.features[feature_idx];
+        
+        for(code_idx in feature["code_list"]){
+          code=feature["code_list"][code_idx];
+          console.log(code);
+          if (code["isSelected"]!== undefined && code["isSelected"]==true){
+            if(options[feature["feature_name"]]== undefined){
+              options[feature["feature_name"]]=[];
+            }            
+            options[feature["feature_name"]].push(code["code"]);
+          }
+        }        
+      }
+
+      for(indicator_idx in this.selected_table.result_.indicator){
+        indicator=this.selected_table.result_.indicator[indicator_idx];
+        console.log("indicator");
+        console.log(indicator);
+
+        if (indicator["isSelected"]!== undefined && indicator["isSelected"]==true){
+            if(options["indicator"]== undefined){
+              options["indicator"]=[];
+            }            
+            options["indicator"].push(indicator["code"]);
+          }        
+      }
+
+      return options;
     }
   },
   watch: {
     // whenever question changes, this function will run
-    selected_table: function (new_, old_) {
+    xselected_table: function (new_, old_) {
       this.selected = 'Waiting for you to stop typing...'      
-    }
+    },
+    selected_table: {
+            handler: function(newValue) {
+                console.log("Person with ID:" + newValue + " modified")
+                console.log(newValue)
+            },
+            deep: true
+        }
+    
   },
   methods: {
     getDatabases: function () {
@@ -215,6 +305,13 @@
               vm.ajax_completed=true;
               console.log(data);
               console.log(vm.selected_table_id);
+
+              vm.selected_table_options.features={};
+              for(feature in vm.selected_table.result_.features){
+                console.log(feature);
+                vm.selected_table_options.features[vm.selected_table.result_.features[feature]["feature_name"]]=[];
+              }
+
               //vm.resetState();
             },
             error: function(e){
