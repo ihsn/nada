@@ -379,6 +379,13 @@ class Data_table_mongo_model extends CI_Model {
         return array('$search' => $keywords);
    }
 
+   function regex_search($keywords)
+   {
+        return array(
+            '$regex'=>  '/^'.$keywords.'/'
+        );
+   }
+
    function apply_feature_filter($feature_name,$value)
    {
         $parsed_val=$this->parse_filter_value($value);
@@ -651,7 +658,8 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         if(isset($options[$text_search_field])){
-            $tmp_feature_filters['$text']=$this->text_search($options[$text_search_field]);
+            //$tmp_feature_filters['$text']=$this->text_search($options[$text_search_field]);
+            $tmp_feature_filters['areaname']=$this->regex_search($options[$text_search_field]);
         }
 
         $feature_filters=$tmp_feature_filters;
