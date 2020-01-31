@@ -381,9 +381,7 @@ class Data_table_mongo_model extends CI_Model {
 
    function regex_search($keywords)
    {
-        return array(
-            '$regex'=>  '/^'.$keywords.'/'
-        );
+        return new \MongoDB\BSON\Regex('^'.$keywords, 'i');
    }
 
    function apply_feature_filter($feature_name,$value)
