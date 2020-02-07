@@ -95,7 +95,7 @@
             <h2>Table: {{selected_table_id}}</h2>
 
             <pre>
-            selectedTableOptions
+            {{states}}
             </pre>
 
             <div style="background:gainsboro;padding:15px;">
@@ -112,9 +112,21 @@
               <vue-tags-input
                 v-model="state"
                 :tags="states"
-                :autocomplete-items="autocompleteItems"
+                :autocomplete-items="autocompleteStates"
                 :add-only-from-autocomplete="true"
-                @tags-changed="update"
+                @tags-changed="updateStates"
+              />
+            </div>
+          </template>
+
+          <template>
+          <div>
+          <vue-tags-input
+                v-model="district"
+                :tags="districts"
+                :autocomplete-items="autocompleteDistricts"
+                :add-only-from-autocomplete="true"
+                @tags-changed="updateDistricts"
               />
             </div>
           </template>
@@ -218,10 +230,14 @@
     databases: null,
     tables:[],
     tables_storage:null,
-    states:[],
-    autocompleteItems: [],
-    debounce: null,
     state:'',
+    states:[],
+    autocompleteStates: [],
+    district:'',
+    districts:[],
+    autocompleteDistricts: [],
+    debounce: null,
+    
     drawer:null,
     selected_table:null,
     selected_table_options:{
@@ -233,7 +249,6 @@
     selected_table_toggle:false,
     selected_table_id:null,
     ajax_completed:false,
-    districts:null,
     api_base_url:'https://dev.ihsn.org/orgi/digital-library/index.php/api/'
 	},
   mounted: function() {
@@ -293,7 +308,8 @@
     xselected_table: function (new_, old_) {
       this.selected = 'Waiting for you to stop typing...'      
     },
-    state: 'initItems',
+    state: 'fetchStates',
+    district: 'fetchDistricts',
     selected_table: {
             handler: function(newValue) {
                 console.log("Person with ID:" + newValue + " modified")
@@ -367,11 +383,15 @@
 
 
 
-    update(newStates) {
-      this.autocompleteItems = [];
+    updateStates(newStates) {
+      this.autocompleteStates = [];
       this.states = newStates;
     },
-    initItems() {
+    updateDistricts(newDistricts) {
+      this.autocompleteDistricts = [];
+      this.districts = newDistricts;
+    },
+    fetchStates() {
       if (this.state.length < 2) return;
       const url = `${this.api_base_url}tables/geosearch/2011?areaname=${this.state}&limit=6`;
 
@@ -391,8 +411,49 @@
             dataType: 'json',
             async: false,
             success: function (data) {
-              vm.autocompleteItems = data.data.map(a => {
-                return { text: a.areaname };
+              vm.autocompleteStates = data.data.map(a => {
+                return { text: a.areaname, id:a.state };
+              });
+            },
+            error: function(e){
+                console.log(e);
+                alert("failed" + e);
+            }
+        })
+      }, 600);
+    },
+
+    fetchDistricts() {
+      if (this.district.length < 2) return;
+      var url = `${this.api_base_url}tables/geosearch/2011?level=district&areaname=${this.district}&limit=6`;      
+
+      //filter by states if any selected
+      if (this.states.length > 0){
+        states_list=[];
+        for(idx in this.states){
+          states_list.push(this.states[idx]["id"]);
+        }
+        url+="&state="+states_list.join(",");
+      }
+
+      console.log(url);
+
+      let vm=this;
+
+      clearTimeout(this.debounce);
+      this.debounce = setTimeout(() => {
+        
+        $.ajax
+        ({
+            type: "GET",
+            //the url where you want to sent the userName and password to
+            url:  url,
+            contentType: 'application/json',
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+              vm.autocompleteDistricts = data.data.map(a => {
+                return { text: a.areaname, id:a.district };
               });
             },
             error: function(e){
@@ -404,8 +465,6 @@
 
       }, 600);
     },
-
-
 
   }
 })
