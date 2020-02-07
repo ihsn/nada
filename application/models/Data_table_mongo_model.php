@@ -211,7 +211,7 @@ class Data_table_mongo_model extends CI_Model {
    {    
         $limit=intval($limit);    
         
-        if ($limit<0 || $limit>10000){
+        if ($limit<=0 || $limit>10000){
             $limit=100;
         }
 
