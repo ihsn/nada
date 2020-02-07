@@ -721,7 +721,7 @@ class Data_table_mongo_model extends CI_Model {
 
         $intval_func= function($value){
             if (is_numeric($value)){
-                return intval($value);
+                return $value + 0;
             }
 
             return $value;
