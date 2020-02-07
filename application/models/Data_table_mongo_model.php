@@ -207,9 +207,10 @@ class Data_table_mongo_model extends CI_Model {
 	 * 
 	 * 
 	 */
-   function get_table_data($db_id,$table_id,$limit=100,$options)
+   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options)
    {    
-        $limit=intval($limit);    
+        $limit=intval($limit);
+        $offset=intval($offset);
         
         if ($limit<=0 || $limit>10000){
             $limit=100;
@@ -292,7 +293,8 @@ class Data_table_mongo_model extends CI_Model {
                 'projection'=>[
                     '_id'=>0
                 ],
-                'limit' => $limit
+                'limit' => $limit,
+                'skip'  => $offset
             ]
         );
 
@@ -307,6 +309,7 @@ class Data_table_mongo_model extends CI_Model {
         $output['feature_filters']=$feature_filters;
         $output['rows_count']=0;
         $output['limit']=$limit;
+        $output['offset']=$offset;
         $output['found']=$collection->count($feature_filters);
         $output['total']=$collection->count();
         $output['geo_codes']=array();
@@ -796,7 +799,7 @@ class Data_table_mongo_model extends CI_Model {
         //var_dump($options);
         //die();
         
-        $data=$this->get_table_data($db_id,$table_id,$limit=1000,$options);
+        $data=$this->get_table_data($db_id,$table_id,$limit=1000,$offset=0,$options);
 //return $data;
         $data=$data['data'];
 

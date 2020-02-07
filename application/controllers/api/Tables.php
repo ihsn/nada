@@ -166,7 +166,7 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * 
 	 */
-	function data_get($db_id=null,$table_id=null,$limit=null)
+	function data_get($db_id=null,$table_id=null,$limit=100,$offset=0)
 	{
 		try{
 			$debug=$this->input->get("debug");			
@@ -190,7 +190,7 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$options);
+			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options);
 			
 			if(isset($options['flat_output'])){
 				//$response=$response['data'];
