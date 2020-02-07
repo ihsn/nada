@@ -117,6 +117,33 @@ class Data_table_mongo_model extends CI_Model {
         $collection_info = $database->command(['collStats' => $table_name, 'scale'=> 1024*1024 ]);
         return $collection_info->toArray()[0];
     }
+
+
+    /**
+    * 
+    * 
+    * 
+    * 
+    */
+   function get_table_features_list($db_id,$table_id,$features=array())
+   {
+       $table_id=strtolower($table_id);       
+       $table=$this->get_table_type($db_id,$table_id);
+       
+       if(empty($features)){
+        return $table['features'];
+       }
+
+       $output=array();
+       
+       foreach($table['features'] as $key=>$feature){
+           if(in_array($feature['feature_name'],$features)){               
+               $output[]=$feature;
+           }
+       }
+
+       return $output;
+   }
    
 
    /**
@@ -207,7 +234,7 @@ class Data_table_mongo_model extends CI_Model {
 	 * 
 	 * 
 	 */
-   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options)
+   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options,$labels=array())
    {    
         $limit=intval($limit);
         $offset=intval($offset);
@@ -218,30 +245,14 @@ class Data_table_mongo_model extends CI_Model {
 
         $table_id=strtolower($table_id);
 
+        $labels=array_filter($labels);
+
         //get table type info
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
         $fields=$this->get_table_field_names($db_id,$table_id);
 
-        /*
-        $features=$this->get_features_by_table($db_id,$table_id);
-        $features=array_flip($features); //turn feature names (e.g. age) into keys
-
-        //geo fields + others
-        $geo_features=array(
-            'scst'=>'scst',
-            'state'=> 'state',
-            'district'=> 'district',
-            'geo_level'=>'geo_level',
-            'indicator'=>'indicator'
-        );
-
-        $features=array_merge($features,$geo_features);
-        */
-
         $features=$fields;
-
-
         $feature_filters=array();
 
         //see if any key matches with the feature name
@@ -308,11 +319,12 @@ class Data_table_mongo_model extends CI_Model {
         $output['features']=$features;        
         $output['feature_filters']=$feature_filters;
         $output['rows_count']=0;
+        $output['labels']=$labels;
         $output['limit']=$limit;
         $output['offset']=$offset;
         $output['found']=$collection->count($feature_filters);
         $output['total']=$collection->count();
-        $output['geo_codes']=array();
+        $output['codelist']=array();
         $output['data']=array();
         
 
@@ -324,12 +336,33 @@ class Data_table_mongo_model extends CI_Model {
                 }
             }
         }
-        
-        foreach($geo_codes as $geo_feature_name_=>$geo_values){
-            $geo_codes[$geo_feature_name_]=array_values(array_unique($geo_values));
+
+        if (is_array($labels) && !empty($labels)){
+            
+            //get codelists for features
+            $output['codelist']=$this->get_table_features_list($db_id,$table_id,$labels);
+
+            //codelists for geocodes
+            foreach($geo_codes as $geo_feature_name_=>$geo_values)
+            {
+                /*if (!in_array(trim($geo_feature_name_),$labels)){
+                    continue;
+                }*/
+
+                $geo_codes[$geo_feature_name_]=array_values(array_unique($geo_values));
+
+                $params_=array();
+                $params_['level']=$geo_feature_name_;
+                $params_[$geo_feature_name_]=implode(",",array_values(array_unique($geo_values)));
+                $labels=$this->geo_search($db_id,$params_,$fields=implode(",",array('areaname',$geo_feature_name_)));
+                $output['codelist'][$geo_feature_name_]=array(
+                    'feature_name'=>$geo_feature_name_,
+                    'code_list'=>$labels['data']
+                );
+            }
         }
 
-        $output['geo_codes']=$geo_codes;
+        //$output['codelist']=$geo_codes;
         $output['rows_count']=count($output['data']);
         return $output;
    } 
@@ -625,9 +658,14 @@ class Data_table_mongo_model extends CI_Model {
     }
 
 
-    function geo_search($db_id,$options)
+    function geo_search($db_id,$options,$fields='')
    {
-        $limit=1000;
+        /*return array(
+            'options'=>$options,
+            'fields'=>$fields
+        );*/
+
+        $limit=100;
 
         //geo fields + others
         $features=array(
@@ -636,8 +674,25 @@ class Data_table_mongo_model extends CI_Model {
             'district'=> 'district',
             'subdistrict'=> 'subdistrict',
             'town_village'=>'town_village',
-            'ward'=> 'ward',            
+            'ward'=> 'ward',
         );
+
+        $fields=explode(",",$fields);
+
+        $projection=[
+            '_id'=>0
+        ];
+
+        //set projection fields
+        foreach($fields as $field){
+            if (array_key_exists($field,$features)){
+                $projection[$field]=1;
+            }
+            if ($field=='areaname'){
+                $projection[$field]=1;
+            }
+        }
+
 
         $text_search_field='areaname';
 
@@ -670,9 +725,10 @@ class Data_table_mongo_model extends CI_Model {
         $cursor = $collection->find(
             $feature_filters,
             [
-                'projection'=>[
+                /*'projection'=>[
                     '_id'=>0
-                ],
+                ],*/
+                'projection'=>$projection,
                 'limit' => $limit
             ]
         );

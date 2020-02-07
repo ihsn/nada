@@ -190,7 +190,9 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options);
+			$labels=explode(",",$this->input->get("labels"));
+
+			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options,$labels);
 			
 			if(isset($options['flat_output'])){
 				//$response=$response['data'];
@@ -1040,7 +1042,9 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-			$result=$this->Data_table_mongo_model->geo_search($db_id,$options);
+			$fields=$this->input->get("fields");
+
+			$result=$this->Data_table_mongo_model->geo_search($db_id,$options,$fields);
 
 			$this->set_response($result, REST_Controller::HTTP_OK);
 		}
