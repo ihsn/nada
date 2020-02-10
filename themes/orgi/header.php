@@ -8,6 +8,21 @@
         <?php $this->load->view('users/user_bar'); ?>
         <!--  /***** Login Bar Close *****/ -->
         <div class="row">
+
+            <div class="col-4">
+                <div class="navbar-brand ">
+                    <a href="<?php echo site_url();?>" class="g01v1-logo nada-logo">
+                        <img title="<?php echo $this->config->item("website_title");?>" src="<?php echo base_url().$bootstrap_theme; ?>/images/orgi_logo.png" class="img-responsive">
+                    </a>
+                    <strong><a class="nada-sitename" href="#index.html">Office of the Registrar General <br>& Census Commissioner, India</a></strong>
+                </div>
+            </div>
+
+            <div class="col-8">
+                <?php require_once 'menu.php' ?>
+            </div>
+
+
             <div class="col-12">
                 <nav class="navbar navbar-expand-md navbar-light rounded navbar-toggleable-md wb-navbar">
                     
@@ -18,14 +33,14 @@
                      * 
                      */
                     ?>
-                    <?php /**/ ?>
-                    <div class="navbar-brand">
+                    <?php /* ?>
+                    <div class="navbar-brand ">
                         <a href="<?php echo site_url();?>" class="g01v1-logo nada-logo">
                             <img title="<?php echo $this->config->item("website_title");?>" src="<?php echo base_url().$bootstrap_theme; ?>/images/orgi_logo.png" class="img-responsive">
                         </a>
                         <strong><a class="nada-sitename" href="#index.html">Office of the Registrar General <br>& Census Commissioner, India</a></strong>
                     </div>
-                    <?php /**/ ?>
+                    <?php */ ?>
                     
 
                     <?php /**
@@ -44,11 +59,14 @@
                     </button>
 
                     <!-- Start menus -->
+                    <?php /* ?>
                     <div class="navbar-collapse collapse" id="containerNavbar" aria-expanded="false">
                         <?php if ($menu_horizontal===TRUE):?>
-                            <?php echo isset($sidebar) ? $sidebar : '';?>
+                            <?php //echo isset($sidebar) ? $sidebar : '';?>
+                            <?php //require_once 'menu.php' ?>
                         <?php endif;?>
                     </div>
+                    <?php */?>
                     <!-- Close Menus -->
 
                 </nav>
