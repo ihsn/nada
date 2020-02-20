@@ -213,6 +213,8 @@ class Data_table_mongo_model extends CI_Model {
 
 
 
+
+
    /**
 	 * 
 	 * 
@@ -254,25 +256,54 @@ class Data_table_mongo_model extends CI_Model {
 
         $features=$fields;
         $feature_filters=array();
+        $filter_options=array();
 
         //see if any key matches with the feature name
         foreach($options as $key=>$value)
         {
             if(array_key_exists($key,$features)){
-                 $feature_filters[$key]=$value; //age=something
+                 $filter_options[$key]=$value; //age=something
             }
         }
         
-
-
         $tmp_feature_filters=array();
 
+        $filter_query=array();
+
         //filter by features - uses feature_1, feature_2,... for searching
-        foreach($feature_filters as $feature_key=>$value){
+        foreach($filter_options as $feature_key=>$value){
             $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
         }
 
-        $feature_filters=$tmp_feature_filters;
+        $feature_filters=array(
+            '$and'=> array()
+        );
+
+        foreach($tmp_feature_filters as $feature_key=>$filter){
+            $feature_filters['$and'][]['$or']=$filter;
+        }
+
+        /*
+        $feature_filters_example=array(
+
+            '$and'=> array(
+                array(
+                '$or'=> array(
+                    array( 
+                        'sex' => array( '$in' => array(1) ), 
+                        'age'=> array(
+                            '$gte' => 10,
+                            '$lte' => 15                    
+                        )
+                    ) 
+                )
+                )
+            )
+        );
+        */
+
+
+        //return $feature_filters;
 
 
         $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
@@ -427,12 +458,23 @@ class Data_table_mongo_model extends CI_Model {
         $output=array();
         $values=array();
 
+        /*
+        //output format
+        array( 
+            'sex' => array( '$in' => array(1) ), 
+            'age'=> array(
+                '$gte' => 10,
+                '$lte' => 15                    
+            )
+        ) 
+        */
+
         foreach($parsed_val as $val){
             if($val['type']=='range'){
                 $start=(int)$val['start'];
                 $end=(int)$val['end'];
-               
-               return array(
+            
+            $output[][$feature_name]= array(
                         '$gte' => $start,
                         '$lte' => $end
                 );
@@ -445,9 +487,50 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         if (count($values)>0){
-            return 
-                array(
-                    '$in'=>$values
+
+            $values_in=array();
+            $values_nin=array();
+            foreach($values as $value){
+                if (empty($value)){$continue;}
+
+                if (substr($value,0,1)=='!'){
+                    $nin_=substr($value,1,strlen($value));
+                    if (is_numeric($nin_)){
+                        $nin_=$nin_+0;
+                    }
+                    $values_nin[]=$nin_;
+
+                }
+                else{
+                    $values_in[]=$value;
+                }
+            }
+
+            if (count($values_in)>0){
+                $output[][$feature_name]= 
+                    array(
+                        '$in'=>$values_in
+                );
+            }
+            if (count($values_nin)>0){
+                $output[][$feature_name]= 
+                    array(
+                        '$nin'=>$values_nin
+                );
+            }
+        }
+
+        return $output;
+
+        
+        if (count($output)==1){
+            return $output[0];
+        }
+        else if (count($output)>1){
+            return $output;
+            return array(
+                '$and' => 
+                    array('$or'=>$output)
             );
         }
    }
