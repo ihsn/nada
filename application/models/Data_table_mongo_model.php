@@ -796,12 +796,23 @@ class Data_table_mongo_model extends CI_Model {
             $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
         }
 
-        if(isset($options[$text_search_field])){
-            //$tmp_feature_filters['$text']=$this->text_search($options[$text_search_field]);
-            $tmp_feature_filters['areaname']=$this->regex_search($options[$text_search_field]);
+
+        if(isset($options[$text_search_field])){            
+            $tmp_feature_filters[$text_search_field][][$text_search_field]=$this->regex_search($options[$text_search_field]);
         }
 
-        $feature_filters=$tmp_feature_filters;
+
+        $feature_filters=array(
+            '$and'=> array()
+        );
+
+        foreach($tmp_feature_filters as $feature_key=>$filter){
+            $feature_filters['$and'][]['$or']=$filter;
+        }
+
+        //return $feature_filters;
+
+        //$feature_filters=$tmp_feature_filters;
 
         $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{"table_geo_codes"};
         
