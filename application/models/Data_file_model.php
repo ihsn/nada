@@ -117,7 +117,8 @@ class Data_file_model extends CI_Model {
     function get_all_by_survey($sid)
     {
         $this->db->select("*");
-        $this->db->where("sid",$sid);
+		$this->db->where("sid",$sid);
+		$this->db->order_by('file_name');
         return $this->db->get("data_files")->result_array();
     }
 
