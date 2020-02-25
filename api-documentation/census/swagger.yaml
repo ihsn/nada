@@ -147,7 +147,11 @@ paths:
           - in: "path"
             name: "limit"
             type: integer
-            required: true  
+            required: true
+          - in: "path"
+            name: "offset"
+            type: integer
+            required: false
           - in: "query"
             name: "geo_level"
             type: string
@@ -183,7 +187,14 @@ paths:
           - in: "query"
             name: "fields"
             type: string
+            description: A comma seperated list of fields to output
             required: false                      
+          - in: "query"
+            name: "format"
+            type: string
+            description: Output format - json, csv
+            required: false
+
         responses:
           '200':
             description: successful operation
