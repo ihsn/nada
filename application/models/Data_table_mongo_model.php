@@ -243,7 +243,7 @@ class Data_table_mongo_model extends CI_Model {
         
         if ($limit<=0 || $limit>10000){
             $limit=100;
-        }
+        }        
 
         $table_id=strtolower($table_id);
 
@@ -275,13 +275,19 @@ class Data_table_mongo_model extends CI_Model {
             $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
         }
 
-        $feature_filters=array(
-            '$and'=> array()
-        );
+        $feature_filters=array();
 
-        foreach($tmp_feature_filters as $feature_key=>$filter){
-            $feature_filters['$and'][]['$or']=$filter;
+        if (!empty($tmp_feature_filters)){
+
+            $feature_filters=array(
+                '$and'=> array()
+            );
+
+            foreach($tmp_feature_filters as $feature_key=>$filter){
+                $feature_filters['$and'][]['$or']=$filter;
+            }
         }
+        
 
         /*
         $feature_filters_example=array(
@@ -328,13 +334,17 @@ class Data_table_mongo_model extends CI_Model {
         );
         */
 
-        
+        if (!isset($options['fields'])){
+            $options['fields']="";
+        }
+
+        //which fields to display
+        $output_fields=$this->get_projection_fields($options['fields']);
+
         $cursor = $collection->find(
             $feature_filters,
             [
-                'projection'=>[
-                    '_id'=>0
-                ],
+                'projection'=>$output_fields,
                 'limit' => $limit,
                 'skip'  => $offset
             ]
@@ -347,10 +357,15 @@ class Data_table_mongo_model extends CI_Model {
 
         $output=array();
         $geo_codes=array();
-        $output['features']=$features;        
-        $output['feature_filters']=$feature_filters;
+
+        if (isset($options['debug'])){
+            $output['options']=$options;
+            $output['features']=$features;        
+            $output['feature_filters']=$feature_filters;        
+            $output['labels']=$labels;
+        }
+
         $output['rows_count']=0;
-        $output['labels']=$labels;
         $output['limit']=$limit;
         $output['offset']=$offset;
         $output['found']=$collection->count($feature_filters);
@@ -360,7 +375,9 @@ class Data_table_mongo_model extends CI_Model {
         
 
         foreach ($cursor as $document) {
-            $output['data'][]= $document;
+            //convert to array from mongodb object
+            $output['data'][]= iterator_to_array($document);            
+            
             foreach($geo_features as $geo_feature_name){
                 if (isset($document[$geo_feature_name])){
                     $geo_codes[$geo_feature_name][]=$document[$geo_feature_name];
@@ -391,12 +408,30 @@ class Data_table_mongo_model extends CI_Model {
                     'code_list'=>$labels['data']
                 );
             }
+        }else{
+            unset($output['codelist']);
         }
 
         //$output['codelist']=$geo_codes;
         $output['rows_count']=count($output['data']);
         return $output;
    } 
+
+   function get_projection_fields($fields)
+   {
+        $fields=explode(",",$fields);
+        $fields=array_filter($fields);
+
+        $output=array(
+            '_id'=>0
+        );
+
+        foreach($fields as $field){            
+            $output[$field]=1;
+        }
+
+        return $output;
+   }
 
 
 
