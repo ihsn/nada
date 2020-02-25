@@ -107,6 +107,9 @@ class Study extends MY_Controller {
 			return $this->variable($sid,$file_id,$var_id);
 		}
 
+		$offset=(int)$this->input->get("offset");
+		$limit=300;
+
 		$this->lang->load('ddi_fields');
 		$this->load->model("Variable_group_model");
         $options['sid']=$sid;
@@ -114,7 +117,21 @@ class Study extends MY_Controller {
 		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
 		$options['file_list']=$this->Data_file_model->get_all_by_survey($sid);
         $options['file']=$this->Data_file_model->get_file_by_id($sid,$file_id);
-        $options['variables']=$this->Variable_model->get_all_by_file($sid, $file_id);
+		$options['variables']=$this->Variable_model->paginate_file_variables($sid, $file_id,$limit,$offset);
+		$options['file_variables_count']=$this->Variable_model->get_file_variables_count($sid,$file_id);
+
+		//variable pagination
+		$this->load->library('pagination');
+
+		$config['base_url'] = current_url();
+		$config['total_rows'] = $options['file_variables_count'];
+		$config['per_page'] = $limit;
+		$config['page_query_string'] = TRUE;
+		$config['reuse_query_string'] = TRUE;
+		$config['query_string_segment'] = 'offset';
+				
+		$this->pagination->initialize($config);
+		$options['variable_pagination']=$this->pagination->create_links();
 
         if (!$options['file']){
             show_404();

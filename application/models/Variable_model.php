@@ -151,18 +151,48 @@ class Variable_model extends CI_Model {
      */
     function get_all_by_file($sid, $file_id)
     {
-        //get fid for file
-        //$fid=$this->Data_file_model->get_fid_by_fileid($sid,$file_id);
-
-        /*if(!$fid){
-            return false;
-        }*/
-
         $this->db->select("uid,vid,name,labl,qstn");
         $this->db->where("sid",$sid);
         $this->db->where("fid",$file_id);
         $this->db->order_by("uid");
         return $this->db->get("variables")->result_array();
+    }
+
+    /**
+     * 
+     * Paginate variables by data
+     * 
+     * @sid - int - dataset ID
+     * @file_id - string - File ID using the format - F1, F2
+     * @limit - number of records
+     * @offset - starting row position
+     * 
+     */
+    function paginate_file_variables($sid, $file_id, $limit=null,$offset=0)
+    {
+        $this->db->select("uid,vid,name,labl,qstn");
+        $this->db->where("sid",$sid);
+        $this->db->where("fid",$file_id);
+        $this->db->order_by("uid");
+
+        if (is_numeric($limit) && $limit>0){
+            $this->db->limit($limit, (int)$offset);
+        }
+
+        return $this->db->get("variables")->result_array();
+    }
+
+    /**
+     * 
+     * Get variables count by a data file
+     * 
+     */
+    function get_file_variables_count($sid, $file_id)
+    {
+        $this->db->where("sid",$sid);
+        $this->db->where("fid",$file_id);
+        $this->db->from("variables");
+        return $this->db->count_all_results(); 
     }
 
 
