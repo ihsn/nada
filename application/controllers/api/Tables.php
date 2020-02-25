@@ -169,12 +169,11 @@ class Tables extends MY_REST_Controller
 	function data_get($db_id=null,$table_id=null,$limit=100,$offset=0)
 	{
 		try{
-			$debug=$this->input->get("debug");			
+			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
 			
-			$options=array();
-			$options['flat_output']=true;
+			$options=array();			
 			foreach(array_keys($get_params) as $param){
 				$options[$param]=$this->input->get($param,true);
 			}
@@ -194,8 +193,9 @@ class Tables extends MY_REST_Controller
 
 			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options,$labels);
 			
-			if(isset($options['flat_output'])){
-				//$response=$response['data'];
+			if(isset($options['format']) && $options['format']=='csv'){
+				header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
+				$response=$response['data'];
 			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
