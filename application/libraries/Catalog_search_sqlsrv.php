@@ -25,7 +25,7 @@ class Catalog_search_sqlsrv{
 	var $dtype=array();//data access type
 	var $collections=array();
 	var $tags=array();
-	var $license=array();
+	var $data_class=array();
 	var $sid='';
 	var $country_iso3='';
 
@@ -111,7 +111,7 @@ class Catalog_search_sqlsrv{
 		$collections=$this->_build_collections_query();
 		$tags=$this->_build_tags_query();
 		$countries_iso3=$this->_build_countries_iso3_query();
-		$license=$this->_build_license_query();
+		$data_class=$this->_build_data_class_query();
 		$sid=$this->_build_sid_query();
 
 		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
@@ -119,7 +119,7 @@ class Catalog_search_sqlsrv{
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$dtype,$collections,$tags,$countries_iso3,$license);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$dtype,$collections,$tags,$countries_iso3,$data_class);
 		
 		if ($repository!='')
 		{
@@ -224,7 +224,7 @@ class Catalog_search_sqlsrv{
         $years = $this->_build_years_query();
         $repository = $this->_build_repository_query();
 		$collections = $this->_build_collections_query();
-		$license=$this->_build_license_query();
+		$data_class=$this->_build_data_class_query();
 		$sid=$this->_build_sid_query();
         $countries_iso3=$this->_build_countries_iso3_query();
 		$tags=$this->_build_tags_query();
@@ -254,7 +254,7 @@ class Catalog_search_sqlsrv{
         }
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections, $tags,$license,$sid,$countries_iso3);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections, $tags,$data_class,$sid,$countries_iso3);
 
         //show only publshed studies
         $where_list[]='surveys.published=1';
@@ -1014,12 +1014,12 @@ class Catalog_search_sqlsrv{
 		$years=$this->_build_years_query();		
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
-		$license=$this->_build_license_query();
+		$data_class=$this->_build_data_class_query();
 		$sid=$this->_build_sid_query();
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$license,$sid,$countries_iso3,$tags);
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$tags);
 		
 		//create combined where clause
 		$where='';
@@ -1039,7 +1039,7 @@ class Catalog_search_sqlsrv{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity,forms.model as form_model,license_id,surveys.year_start,surveys.year_end';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity,forms.model as form_model,data_class_id,surveys.year_start,surveys.year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query
@@ -1130,24 +1130,24 @@ class Catalog_search_sqlsrv{
 		}
 	}
 
-	function _build_license_query()
+	function _build_data_class_query()
 	{
-		$licenses=$this->license;
+		$data_classs=$this->data_class;
 
-		if (!is_array($licenses) || count($licenses)<1){
+		if (!is_array($data_classs) || count($data_classs)<1){
 			return FALSE;
 		}
 
-		foreach($licenses as $key=>$value){
+		foreach($data_classs as $key=>$value){
 			if (!is_numeric($value)){
-				unset($licenses[$key]);
+				unset($data_classs[$key]);
 			}
 		}
 		
-		$types_str=implode(",",$licenses);
+		$types_str=implode(",",$data_classs);
 
 		if ($types_str!=''){
-			return sprintf(' surveys.license_id in (%s)',$types_str);
+			return sprintf(' surveys.data_class_id in (%s)',$types_str);
 		}
 		
 		return FALSE;	

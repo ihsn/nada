@@ -167,23 +167,23 @@ $selected_page=$this->uri->segment(5);
 			</td>
 		</tr>
 		
-		<!-- license -->
+		<!-- data classification -->
 		<tr>
-			<td><?php echo t('license');?></td>
+			<td><?php echo t('data_classification');?></td>
 			<td>
 				<div class="collapsible">
 					<div class="box-caption">
 							<span class="glyphicon glyphicon-copyright-mark" aria-hidden="true"></span>
-							<?php echo isset($licenses[$license_id]) ? $licenses[$license_id] : '';?>
+							<?php echo isset($data_classifications[$data_class_id]) ? $data_classifications[$data_class_id] : '';?>
 					</div>
 
 					<div class="box-body collapse">
-					<form method="post" id="form-license" action="<?php echo site_url('/admin/catalog/update');?>">
+					<form method="post" id="form-data-classification" action="<?php echo site_url('/admin/catalog/update');?>">
 								<input type="hidden" name="sid" value="<?php echo $id;?>"/>
 
 						<div class="field"> 
-							<label><?php echo t('select_license');?></label>
-							<?php echo form_dropdown('license_id', $licenses, get_form_value("license_id",isset($license_id) ? $license_id : ''),'id="license_id"'); ?>
+							<label><?php echo t('select_data_classification');?></label>
+							<?php echo form_dropdown('data_class_id', $data_classifications, get_form_value("data_class_id",isset($data_class_id) ? $data_class_id : ''),'id="data_class_id"'); ?>
 						</div>
 
 						<div class="field">

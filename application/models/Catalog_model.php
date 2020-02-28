@@ -318,8 +318,8 @@ class Catalog_model extends CI_Model {
 		//study fields
 		$fields=$this->study_fields;
 		
-		//license + data access type fields
-		$fields[]='surveys.formid, forms.model as model, surveys.license_id';		
+		//Data access type + data classication fields
+		$fields[]='surveys.formid, forms.model as model, surveys.data_class_id';		
 		
 		//notes
 		//$fields[]='notes.admin_notes as admin_notes';
@@ -677,7 +677,7 @@ class Catalog_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array('link_technical', 'link_study', 'link_report', 
 							'link_indicator','link_questionnaire',
-							'isshared','formid','changed','isdeleted','link_da','published','license_id');
+							'isshared','formid','changed','isdeleted','link_da','published','data_class_id');
 		
 		//pk field name
 		$key_field='id';

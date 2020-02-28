@@ -1588,7 +1588,6 @@ class Catalog extends MY_Controller {
 		$this->load->model('Catalog_tags_model');
 		$this->load->model('Survey_alias_model');
 		$this->load->model('Data_classification_model');
-		$this->load->model('License_model');
 		
 		$this->load->library('catalog_admin');
 		$this->load->library('chicago_citation');
@@ -1680,10 +1679,10 @@ class Catalog extends MY_Controller {
 		//pdf documentation for study
 		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
-		//licenses
-		$licenses = $this->License_model->get_list();
-		$licenses=array('0'=>'--SELECT--') + $licenses;
-		$survey_row['licenses']=$licenses;
+		//Data classifications
+		$data_classfications = $this->Data_classification_model->get_list();
+		$data_classfications=array('0'=>'--SELECT--') + (array)$data_classfications;
+		$survey_row['data_classifications']=$data_classfications;
 
 		//data access form list
 		$this->load->model('Form_model');
@@ -1722,7 +1721,7 @@ class Catalog extends MY_Controller {
 		$ajax=$this->input->get_post('ajax');
 
 		//allowed fields
-		$allowed_keys=array('published','formid','link_indicator','link_study','link_da','license_id','classification_id');
+		$allowed_keys=array('published','formid','link_indicator','link_study','link_da','license_id','data_class_id');
 
 		$options=array();
 		foreach($_POST as $key=>$value){

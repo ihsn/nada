@@ -9,9 +9,9 @@ $lang['msg_website_redirect']="You are being redirected to the website:";
 $lang['link_export_search']="Export search result";
 $lang['link_search_help']="Search help";
 $lang['rss_feed']="RSS feed";
-$lang['filter_by_access']="Data access";
-$lang['filter_by_dtype']="Data access";
-$lang['filter_by_type']="Types";
+
+$lang['filter_by_dtype']="License";
+$lang['filter_by_type']="Dataset Type";
 $lang['select_all']="Select all";
 $lang['filter_by_country']="Countries";
 $lang['filter_by_topic']="Topics";
@@ -212,7 +212,12 @@ $lang['from']="From";
 $lang['to']="To";
 
 $lang['filter_by_tag']="Tags";
-$lang['filter_by_license']="License";
+
+
+$lang['data_classification']="Data classification";
+$lang['select_data_classification']="Select data classification";
+$lang['filter_by_data_class']="Data classifications";
+
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

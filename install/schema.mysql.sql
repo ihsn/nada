@@ -1528,12 +1528,12 @@ CREATE TABLE `ts_databases` (
 
 
 CREATE TABLE `data_classifications` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `code` varchar(45) DEFAULT NULL,
   `title` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code_UNIQUE` (`code`)
-) AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 
 
 LOCK TABLES `data_classifications` WRITE;
