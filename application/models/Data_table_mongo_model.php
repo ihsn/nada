@@ -326,7 +326,7 @@ class Data_table_mongo_model extends CI_Model {
         //return $feature_filters;
 
 
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         /*
         $cursor = $collection->find(
             [
@@ -702,7 +702,7 @@ class Data_table_mongo_model extends CI_Model {
      */
     function get_table_field_names($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $result = $collection->findOne();
 
         $output=array();
@@ -819,7 +819,7 @@ class Data_table_mongo_model extends CI_Model {
 
         //$feature_filters=$tmp_feature_filters;
 
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{"table_geo_codes"};
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,"geo_codes")};
         
         $cursor = $collection->find(
             $feature_filters,
