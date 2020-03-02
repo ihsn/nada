@@ -13,45 +13,48 @@ class Data_table_mongo_model extends CI_Model {
     //table type object holds table definition[features, codelists, etc]
     private $table_type_obj=null;
 
+
+    private $db_name;
+
     public function __construct()
     {
         parent::__construct();
         //$this->load->model("Data_tables_places_model");
         //$this->geo_fields=$this->Data_tables_places_model->get_geo_mappings();
-		//$this->output->enable_profiler(TRUE);
-    }
-
-
-    
-
-    //map geo fields
-    function transform_geo_fields($row)
-    {
-        if(!isset($row['geo_level'])){
-            throw new Exception("geo_level not set");
-        }
+        //$this->output->enable_profiler(TRUE);
         
-        //set geo_level
-        if(!is_numeric($row['geo_level'])){
-            $geo_level=$this->Data_tables_places_model->get_geo_levels($row['geo_level']);
-            $row['geo_level']=$geo_level['code'];
-        }
-
-        foreach($this->geo_fields as $geo_name=>$geo_field){
-            if(isset($row[$geo_name])){
-                if($geo_field['code']!=false){
-                    $row[$geo_field['code']]=(int)$row[$geo_name];
-                }
-            }
-        }
-
-        return $row;
+        //tood: use a config value to set current database
+        $this->db_name='nada_db';
     }
+
+
+    /**
+     * 
+     * Set database for the application
+     * 
+     */
+    function set_database($database_name)
+    {
+        $this->db_name=$database_name;
+    }
+
+
+
+    private function get_db_name()
+    {
+        return $this->db_name;
+    }
+    
+    private function get_table_name($db_id,$table_id)
+    {
+        return 'table_'.$db_id.'_'.strtolower($table_id);
+    }
+    
 
 
     public function table_batch_insert($db_id,$table_id,$rows)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $insertManyResult = null;
 
         try {
@@ -72,16 +75,7 @@ class Data_table_mongo_model extends CI_Model {
 
 
 
-
-   //delete all rows by table ID
-   function truncate_table($table_id=null)
-   {
-       $this->db->where("table_id",$table_id);
-       return $this->db->delete("data_table");
-   }
-
-
-   
+   //todo: new database name scheming 
    function get_tables_list($db_id,$options=array())
    {
        $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
@@ -160,16 +154,38 @@ class Data_table_mongo_model extends CI_Model {
        return $result;
    }
 
+   /**
+    * 
+    * Return the table definition
+    *
+    */
    function get_table_type($db_id,$table_id)
    {
        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{'table_types'};
        $result = $collection->findOne(
            [
-               '_id'=>$table_id
+               '_id'=>$this->get_table_name($db_id,$table_id)
            ]
        );
        
        return $result;
+   }
+
+
+   /**
+    * 
+    * Check if a table definition exists
+    *
+    */
+   function table_type_exists($db_id,$table_id)
+   {
+       $type=$this->get_table_type($db_id,$table_id);
+
+       if(empty($type) ){
+           return false;
+       };
+
+       return true;
    }
 
 
@@ -199,8 +215,6 @@ class Data_table_mongo_model extends CI_Model {
        }
 
        return $output;
-
-
    }
 
 
@@ -585,9 +599,9 @@ class Data_table_mongo_model extends CI_Model {
         //remove table definition if already exists
         $this->delete_table_type($db_id,$table_id);
 
-        $options['_id']=$table_id;
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->table_types;
-        $result = $collection->insertOne($options);        
+        $options['_id']=$this->get_table_name($db_id,$table_id);
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->table_types;
+        $result = $collection->insertOne($options);
         $inserted_count=$result->getInsertedCount();
         
         if (!$inserted_count){
@@ -626,34 +640,7 @@ class Data_table_mongo_model extends CI_Model {
 	}
 
 
-   function table_type_exists($table_id)
-   {
-        $this->db->select("id");
-        $this->db->where("table_id",$table_id);    
-        return $this->db->get("data_tables_types")->row_array();
-   }
-
-
-   //check if feature name + code combination already exists
-   function codelist_exists($table_id,$feature_name, $code)
-   {
-       $this->db->select("*");
-       $this->db->where("table_id",$table_id);
-       $this->db->where("feature_name",$feature_name);
-       $this->db->where("code",$code);
-       return $this->db->get("data_tables_codelist")->result_array();
-   }
-
-
-    //check if indicator code already exists
-    function indicator_exists($table_id,$code)
-    {
-        $this->db->select("*");
-        $this->db->where("table_id",$table_id);
-        $this->db->where("code",$code);
-        return $this->db->get("data_tables_indicators")->result_array();
-    }
-
+   
 
     /**
      * 
@@ -733,26 +720,9 @@ class Data_table_mongo_model extends CI_Model {
 
 
 
-    function get_feature_code_list($table_id,$feature_name)
-    {
-        $this->db->select("code,label");
-        $this->db->where("table_id",$table_id);
-        $this->db->where("feature_name",$feature_name);        
-        return $this->db->get("data_tables_codelist")->result_array();
-    }
-
-
-    function get_indicator_codelist($table_id)
-    {
-        $this->db->select("code,label,measurement_unit");
-        $this->db->where("table_id",$table_id);        
-        return $this->db->get("data_tables_indicators")->result_array();
-    }
-
-
     function delete_table_data($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{$this->get_table_name($table_id)};
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $result = $collection->drop();
         return $result;
     }
@@ -760,8 +730,8 @@ class Data_table_mongo_model extends CI_Model {
 
     function delete_table_type($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->table_types;
-        $result = $collection->deleteOne(['_id' => $table_id]);
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->table_types;
+        $result = $collection->deleteOne(['_id' => $this->get_table_name($db_id,$table_id) ]);
         return $result->getDeletedCount();
     }
 
@@ -938,14 +908,7 @@ class Data_table_mongo_model extends CI_Model {
    }
 
    
-   private function get_db_name($db_id){
-    return 'db_'.$db_id;
-    }
-
-    private function get_table_name($table_id){
-        return strtolower('table_'.$table_id);
-    }
-
+   
 
     /**
      * 

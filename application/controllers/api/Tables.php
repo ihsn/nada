@@ -6,7 +6,7 @@ class Tables extends MY_REST_Controller
 {
 	public function __construct()
 	{
-		parent::__construct();
+		parent::__construct(); 
 		$this->load->helper("date");
 		$this->load->model("Data_table_mongo_model");
 		$this->load->model("Data_table_model");
