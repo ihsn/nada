@@ -78,12 +78,12 @@ class Data_table_mongo_model extends CI_Model {
    //todo: new database name scheming 
    function get_tables_list($db_id,$options=array())
    {
-       $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
+       $database = (new MongoDB\Client)->{$this->get_db_name()};
        $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
 
        $output=array();
        foreach ($cursor as $collection) {
-            $coll_stats=$this->get_collection_info($this->get_db_name($db_id),$collection['name']);
+            $coll_stats=$this->get_collection_info($this->get_db_name(),$collection['name']);
             $output[$collection['name']]=array(
                 'name'=>$collection['name'],
                 'storageUnit'=>'M',
@@ -149,7 +149,7 @@ class Data_table_mongo_model extends CI_Model {
    function get_table_info($db_id,$table_id)
    {
        $table_id=strtolower($table_id);
-       $result= $this->get_collection_info($this->get_db_name($db_id),$this->get_table_name($table_id));
+       $result= $this->get_collection_info($this->get_db_name(),$this->get_table_name($db_id,$table_id));
        $result['table_type']=$this->get_table_type($db_id,$table_id);       
        return $result;
    }
@@ -191,19 +191,27 @@ class Data_table_mongo_model extends CI_Model {
 
    function get_table_types_list($db_id)
    {
-       $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{'table_types'};
+       $collection = (new MongoDB\Client)->{$this->get_db_name()}->{'table_types'};
 
        $projection_options=[
             '_id'=>1,
+            'db_id'=>1,
+            'table_id'=>1,
             'title'=>1, 
             'description'=>1,
             'dataset'=>1,
        ];
 
+       $filter_options=array();
+
+       if (!empty($db_id)){
+           $filter_options=array(
+               'db_id' => $db_id
+           );
+       }
+
        $result = $collection->find(
-           [
-               //'_id'=>$table_id
-           ],
+           $filter_options,
            [    
                'projection'=>$projection_options
            ]           
@@ -211,22 +219,75 @@ class Data_table_mongo_model extends CI_Model {
        
        $output=array();
        foreach($result as $item){
-        $output['table_'.$item['_id']]=$item;
+            $output[$item['_id']]=$item;
        }
 
        return $output;
    }
 
 
-   function get_database_info($db_id)
+   function get_database_info()
    {
-       $database = (new MongoDB\Client)->{$this->get_db_name($db_id)};
+       $database = (new MongoDB\Client)->{$this->get_db_name()};
        $db_info = $database->command(['dbStats' => 1, 'scale'=> 1024*1024 ]);
        return $db_info->toArray()[0];
    }
 
 
+   function get_collection_indexes($db_id,$table_id)
+   {
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
 
+        $indexes=array();
+        foreach ($collection->listIndexes() as $index) {
+            $indexes[$index->getName()]=$index->getKey();
+        }
+
+       // var_dump($indexes);
+        return $indexes;
+   }
+
+
+   /**
+    * 
+    * Create index on a collection
+    *
+    * @index_options - comma seperated list of field names
+    *
+    */
+   function create_collection_index($db_id,$table_id,$index_options)
+   {
+        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+
+        $index_options=array_filter(explode(",",$index_options));
+        
+        if(empty($index_options)){
+            return false;
+        }
+
+        $indexes=array();
+        foreach($index_options as $index){
+            $indexes[$index]=1;
+        }
+
+        $result= $collection->createIndex($indexes);
+        return $result;
+   }
+
+
+   /**
+    * 
+    * Delete index on a collection
+    *
+    * @index_name - name of index
+    *
+    */
+    function delete_collection_index($db_id,$table_id,$index_name)
+    {
+         $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};          
+         $result= $collection->dropIndex($index_name);
+         return $result;
+    }
 
 
    /**

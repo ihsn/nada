@@ -17,7 +17,7 @@ class Tables extends MY_REST_Controller
 	{
 		try{
 			//$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id(); 
+			//$user_id=$this->get_api_user_id(); 
 			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
@@ -113,18 +113,133 @@ class Tables extends MY_REST_Controller
 	{
 		try{
 			$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id();			
+			$user_id=$this->get_api_user_id();
 			
-
-			$databases=array(
-				'2001',
-				'2011'
+			$output=$this->Data_table_mongo_model->get_database_info();
+			
+			$response=array(
+				'status'=>'success',
+                'result'=>$output
 			);
 
-			$output=array();
-			foreach($databases as $db){
-				$output[$db]=$this->Data_table_mongo_model->get_database_info($db);
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Get list of indexes for a table
+	 * 
+	 */
+	function indexes_get($db_id=null,$table_id=null)
+	{
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
 			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+			
+			$output=$this->Data_table_mongo_model->get_collection_indexes($db_id,$table_id);
+			
+			$response=array(
+				'status'=>'success',
+                'result'=>$output
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Create index for a collection 
+	 * 
+	 */
+	function indexes_post($db_id=null,$table_id=null)
+	{
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			$index_fields=isset($options['index_fields']) ? $options['index_fields'] : '';
+
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+
+			if(!$index_fields){
+				throw new Exception("MISSING_PARAM:: index_fields");
+			}
+			
+			$output=$this->Data_table_mongo_model->create_collection_index($db_id,$table_id,$index_fields);
+			
+			$response=array(
+				'status'=>'success',
+                'result'=>$output
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * Create index for a collection 
+	 * 
+	 */
+	function indexes_delete($db_id=null,$table_id=null,$index_name=null)
+	{
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+
+			if(!$index_name){
+				throw new Exception("MISSING_PARAM:: index_name");
+			}
+			
+			$output=$this->Data_table_mongo_model->delete_collection_index($db_id,$table_id,$index_name);
 			
 			$response=array(
 				'status'=>'success',
