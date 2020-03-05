@@ -650,6 +650,7 @@ class Data_table_mongo_model extends CI_Model {
    function create_table($db_id,$table_id,$options)
    {
         $table_id=strtolower($table_id);
+        $db_id=strtolower($db_id);
 
         //schema file name
         $schema_name='census-table_type';
@@ -659,6 +660,9 @@ class Data_table_mongo_model extends CI_Model {
     
         //remove table definition if already exists
         $this->delete_table_type($db_id,$table_id);
+
+        $options['db_id']=$db_id;
+        $options['table_id']=$table_id;
 
         $options['_id']=$this->get_table_name($db_id,$table_id);
         $collection = (new MongoDB\Client)->{$this->get_db_name()}->table_types;
