@@ -47,7 +47,7 @@ class Data_table_mongo_model extends CI_Model {
     
     private function get_table_name($db_id,$table_id)
     {
-        return 'table_'.$db_id.'_'.strtolower($table_id);
+        return strtolower('table_'.$db_id.'_'.$table_id);
     }
     
 
