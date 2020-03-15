@@ -64,7 +64,7 @@ class Data_table_mongo_model extends CI_Model {
         $insertManyResult = null;
 
         try {
-            $insertManyResult = $collection->insertMany($rows);
+            $insertManyResult = $collection->insertMany($rows,array('ordered' => false));
         } catch (\MongoDB\Driver\Exception\Exception $e) {
             throw new Exception("ERROR::". utf8_encode($e->getMessage()));            
         }
