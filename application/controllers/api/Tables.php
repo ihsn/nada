@@ -393,8 +393,7 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'sql'=>$this->db->last_query()
+				'message'=>$e->getMessage()				
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
