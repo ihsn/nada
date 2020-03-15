@@ -132,29 +132,6 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
             </span>
 			<?php endif;?>
 			
-			<span class="mr-3 link-col  float-left">
-				<!--<small><i class="fa fa-download" aria-hidden="true"> </i> <?php echo t('metadata');?></small>-->
-				<?php if($survey['type']=='survey'):?>
-					<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" title="<?php echo t('metadata_in_ddi_xml');?>">
-						<span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
-					</a>
-				<?php endif;?>
-
-				<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" title="<?php echo t('metadata_in_json');?>">
-					<span class="badge badge-info"><?php echo t('JSON');?></span>
-				</a>
-
-
-				<?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
-				<?php if (file_exists($report_file)):?>
-					<a href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('pdf');?>" >
-						<span class="badge badge-success"><?php echo t('PDF');?></span>
-					</a>
-				<?php endif;?>
-
-			</span>	
-
-			<?php /* ?>
 			<?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
 			<?php if (file_exists($report_file)):?>
 				<span class="mr-3 link-col float-left">
@@ -164,7 +141,7 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 					</small>
 				</span>            
 			<?php endif;?>
-			<?php */?>
+			
 
 			<?php if($survey['link_study']!=''): ?>
 				<span class="mr-3 link-col  float-left">
