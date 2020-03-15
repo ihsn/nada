@@ -19,12 +19,14 @@ class Data_table_mongo_model extends CI_Model {
     public function __construct()
     {
         parent::__construct();
+        $this->config->load('mongo');
+
         //$this->load->model("Data_tables_places_model");
         //$this->geo_fields=$this->Data_tables_places_model->get_geo_mappings();
         //$this->output->enable_profiler(TRUE);
         
         //tood: use a config value to set current database
-        $this->db_name='nada_db';
+        $this->db_name=$this->config->item("mongodb_database");
     }
 
 
@@ -42,6 +44,10 @@ class Data_table_mongo_model extends CI_Model {
 
     private function get_db_name()
     {
+        if(empty($this->db_name)){
+            throw new Exception("MongoDB Database not set, check application config for mongo.");
+        }
+        
         return $this->db_name;
     }
     

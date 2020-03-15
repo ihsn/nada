@@ -10,4 +10,4 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 
-$config['mongodb_dsn'] = FALSE;
+$config['mongodb_database'] = 'nada_db';
