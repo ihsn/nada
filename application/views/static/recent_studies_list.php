@@ -1,3 +1,8 @@
+<style>
+    .recent-studies-list-home h5 {
+        margin-bottom:0px;
+    }
+</style>
 <h3><?php echo t('latest_additions');?></h3>
 <?php if (isset($rows) && count($rows)>0): ?>
 
@@ -7,20 +12,21 @@
     foreach($rows as $row):
     $counter++; ?>
 
-        <div class="survey-row">
+        <div class="survey-row recent-studies-list-home">
             <div class="row">
                 <div class="col-12 col-lg-12">                    
                     <h5>
                         <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >                            
-                            <?php if($row['nation']):?>
-                                <?php echo $row['nation']. ' - ';?>    
-                            <?php endif;?>
                             <?php echo $row['title'];?>
                         </a>
                         <?php if(isset($row['type'])):?>
                             <span class="dataset-type"><?php echo $row['type']?></span>
                         <?php endif;?>
                     </h5>
+
+                    <?php if($row['nation']):?>
+                        <strong><?php echo $row['nation'];?></strong>
+                    <?php endif;?>
 
                     <?php if (isset($row['authoring_entity']) && $row['authoring_entity']!=''):?>
                         <div class="sub-title"><?php echo $row['authoring_entity'];?></div>
