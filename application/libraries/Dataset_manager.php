@@ -202,6 +202,11 @@ class Dataset_manager{
         return $this->ci->Dataset_microdata_model->remove_datafile_variables($sid,$file_id);
     }
 
+    function index_variable_data($sid)
+    {
+        return $this->ci->Dataset_microdata_model->index_variable_data($sid);
+    }
+
     function get_dataset_with_tags($idno=null)
     {
         return $this->ci->Dataset_model->get_dataset_with_tags($idno);

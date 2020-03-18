@@ -234,6 +234,9 @@ class DDI2_Import{
 
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
+
+        //index variable keywords
+        $this->ci->dataset_manager->index_variable_data($sid);
                     
         return array(
             'sid'=>$sid,
