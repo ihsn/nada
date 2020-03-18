@@ -13,6 +13,7 @@ class Data_table_mongo_model extends CI_Model {
     //table type object holds table definition[features, codelists, etc]
     private $table_type_obj=null;
 
+    private $mongo_client;
 
     private $db_name;
 
@@ -27,8 +28,47 @@ class Data_table_mongo_model extends CI_Model {
         
         //tood: use a config value to set current database
         $this->db_name=$this->config->item("mongodb_database");
+
+        $this->mongo_client=$this->get_db_connection();
     }
 
+
+    function get_db_connection()
+    {
+        $username=$this->config->item("mongodb_username");
+        $password=$this->config->item("mongodb_password");
+        $host=$this->config->item("mongodb_host");
+        $port=$this->config->item("mongodb_port");
+
+        $user_pass_str='';
+
+        if(!empty($username) && !empty($password)){
+            $user_pass_str=$username.':'.$password.'@';
+        }
+
+        return new MongoDB\Client(
+            "mongodb://${user_pass_str}${host}:${port}", 
+            array("db" => $this->get_db_name()));
+    }
+
+    function get_mongo_manager()
+    {
+        $username=$this->config->item("mongodb_username");
+        $password=$this->config->item("mongodb_password");
+        $host=$this->config->item("mongodb_host");
+        $port=$this->config->item("mongodb_port");
+
+        $user_pass_str='';
+
+        if(!empty($username) && !empty($password)){
+            $user_pass_str=$username.':'.$password.'@';
+        }
+
+        $manager = new MongoDB\Driver\Manager("mongodb://${user_pass_str}${host}:${port}", 
+            array("db" => $this->get_db_name()));
+    
+        return $manager;
+    }
 
     /**
      * 
@@ -60,7 +100,7 @@ class Data_table_mongo_model extends CI_Model {
 
     public function table_batch_insert($db_id,$table_id,$rows)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $insertManyResult = null;
 
         try {
@@ -84,7 +124,7 @@ class Data_table_mongo_model extends CI_Model {
    //todo: new database name scheming 
    function get_tables_list($db_id,$options=array())
    {
-       $database = (new MongoDB\Client)->{$this->get_db_name()};
+       $database=$this->mongo_client->{$this->get_db_name()};
        $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
 
        $output=array();
@@ -113,9 +153,60 @@ class Data_table_mongo_model extends CI_Model {
     */
     function get_collection_info($db_name,$table_name)
     {
-        $database = (new MongoDB\Client)->{$db_name};
+        $database = $this->mongo_client->{$db_name};
         $collection_info = $database->command(['collStats' => $table_name, 'scale'=> 1024*1024 ]);
         return $collection_info->toArray()[0];
+    }
+
+
+    /**
+    * 
+    * Rename collectinon
+    * 
+    * 
+    */
+    function rename_collection($old_name, $new_name)
+    {
+        /*
+        $manager = $this->get_mongo_manager();
+        $command = new MongoDB\Driver\Command(array(
+            'renameCollection' => 'nada_db.table_2020_abc_x',
+            'to' => 'nada_db.table_2020_abc_xy'
+        ));
+        
+        try {
+            $cursor = $manager->executeCommand('admin', $command);
+        } catch(MongoDB\Driver\Exception $e) {
+            echo $e->getMessage(), "xxxxxxx\n";
+            exit;
+        }
+        
+        return "done";
+        $response = $cursor->toArray()[0];
+        
+        return ($response);
+        */
+
+        $db_name=$this->get_db_name();
+     
+        //enable admin priviledges
+        $admin = $this->mongo_client->admin;
+     
+        /*$result= ($admin->command(array(
+            'renameCollection' => 'nada_db.table_2020_abc_new_YYYYY',
+            'to' => 'nada_db.table_2020_abc_new_CC'
+        )));
+
+        return ($result);
+        die();
+        */
+     
+        $result= $admin->command(array(
+            'renameCollection'=> $db_name.'.'.$old_name,
+            'to'=> $db_name.'.'.$new_name)
+        );
+        //return $result;
+        return $result->toArray()[0];
     }
 
 
@@ -167,7 +258,7 @@ class Data_table_mongo_model extends CI_Model {
     */
    function get_table_type($db_id,$table_id)
    {
-       $collection = (new MongoDB\Client)->{$this->get_db_name($db_id)}->{'table_types'};
+       $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};
        $result = $collection->findOne(
            [
                '_id'=>$this->get_table_name($db_id,$table_id)
@@ -197,8 +288,7 @@ class Data_table_mongo_model extends CI_Model {
 
    function get_table_types_list($db_id)
    {
-       $collection = (new MongoDB\Client)->{$this->get_db_name()}->{'table_types'};
-
+      $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
        $projection_options=[
             '_id'=>1,
             'db_id'=>1,
@@ -234,7 +324,7 @@ class Data_table_mongo_model extends CI_Model {
 
    function get_database_info()
    {
-       $database = (new MongoDB\Client)->{$this->get_db_name()};
+       $database=$this->mongo_client->{$this->get_db_name()};
        $db_info = $database->command(['dbStats' => 1, 'scale'=> 1024*1024 ]);
        return $db_info->toArray()[0];
    }
@@ -242,7 +332,7 @@ class Data_table_mongo_model extends CI_Model {
 
    function get_collection_indexes($db_id,$table_id)
    {
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
 
         $indexes=array();
         foreach ($collection->listIndexes() as $index) {
@@ -263,7 +353,7 @@ class Data_table_mongo_model extends CI_Model {
     */
    function create_collection_index($db_id,$table_id,$index_options)
    {
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
 
         $index_options=array_filter(explode(",",$index_options));
         
@@ -290,9 +380,9 @@ class Data_table_mongo_model extends CI_Model {
     */
     function delete_collection_index($db_id,$table_id,$index_name)
     {
-         $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};          
-         $result= $collection->dropIndex($index_name);
-         return $result;
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};          
+        $result= $collection->dropIndex($index_name);
+        return $result;
     }
 
 
@@ -393,7 +483,7 @@ class Data_table_mongo_model extends CI_Model {
         //return $feature_filters;
 
 
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         /*
         $cursor = $collection->find(
             [
@@ -671,7 +761,7 @@ class Data_table_mongo_model extends CI_Model {
         $options['table_id']=$table_id;
 
         $options['_id']=$this->get_table_name($db_id,$table_id);
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->table_types;
+        $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};
         $result = $collection->insertOne($options);
         $inserted_count=$result->getInsertedCount();
         
@@ -773,7 +863,7 @@ class Data_table_mongo_model extends CI_Model {
      */
     function get_table_field_names($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        $collection = $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $result = $collection->findOne();
 
         $output=array();
@@ -793,7 +883,7 @@ class Data_table_mongo_model extends CI_Model {
 
     function delete_table_data($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $result = $collection->drop();
         return $result;
     }
@@ -801,7 +891,7 @@ class Data_table_mongo_model extends CI_Model {
 
     function delete_table_type($db_id,$table_id)
     {
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->table_types;
+        $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};
         $result = $collection->deleteOne(['_id' => $this->get_table_name($db_id,$table_id) ]);
         return $result->getDeletedCount();
     }
@@ -890,7 +980,7 @@ class Data_table_mongo_model extends CI_Model {
 
         //$feature_filters=$tmp_feature_filters;
 
-        $collection = (new MongoDB\Client)->{$this->get_db_name()}->{$this->get_table_name($db_id,"geo_codes")};
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,"geo_codes")};
         
         $cursor = $collection->find(
             $feature_filters,

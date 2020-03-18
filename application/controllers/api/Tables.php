@@ -639,6 +639,56 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	
+	/**
+	 * 
+	 * 
+	 * Rename collection	 
+	 * 
+	 */
+	function rename_collection_post()
+	{
+		$this->is_admin_or_die();
+
+		try{
+			$user_id=$this->get_api_user_id();
+			$options=$this->raw_json_input();
+
+			if (!isset($options['rename_collections']) && !is_array($options['rename_collections']) ){
+				throw new Exception("rename_collections not provided or is not an array");
+			}
+
+			$result=array();
+			foreach($options['rename_collections'] as $rename_collection){
+
+				if (!isset($rename_collection['old'])){
+					throw new exception("Missing Param:: old");
+				}
+				
+				if (!isset($rename_collection['new'])){
+					throw new exception("Missing Param:: new");
+				}
+
+				$result[]=$this->Data_table_mongo_model->rename_collection($rename_collection['old'], $rename_collection['new']);
+				//$result[]=$rename_collection;
+			}
+			
+			$response=array(
+                'status'=>'success',
+				"result"=>$result,
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
     }
 	
 
