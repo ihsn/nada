@@ -40,15 +40,9 @@ class Data_table_mongo_model extends CI_Model {
         $host=$this->config->item("mongodb_host");
         $port=$this->config->item("mongodb_port");
 
-        /*$user_pass_str='';
-
-        if(!empty($username) && !empty($password)){
-            $user_pass_str=$username.':'.$password.'@';
-        }
-        */
 
 	return new MongoDB\Client(
-           "mongodb://${user_pass_str}${host}:${port}",
+           "mongodb://${host}:${port}",
 	    array("username" => $username, "password" => $password, "db"=> $this->get_db_name(), 'authSource' => $this->get_db_name() ));
 
     }
