@@ -290,8 +290,7 @@ class Data_table_mongo_model extends CI_Model {
             'db_id'=>1,
             'table_id'=>1,
             'title'=>1, 
-            'description'=>1,
-            'dataset'=>1,
+            'description'=>1
        ];
 
        $filter_options=array();
@@ -753,8 +752,8 @@ class Data_table_mongo_model extends CI_Model {
         //remove table definition if already exists
         $this->delete_table_type($db_id,$table_id);
 
-        $options['db_id']=$db_id;
-        $options['table_id']=$table_id;
+        $options['db_id']=(string)$db_id;
+        $options['table_id']=(string)$table_id;
 
         $options['_id']=$this->get_table_name($db_id,$table_id);
         $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};

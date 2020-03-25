@@ -28,7 +28,26 @@ class Tables extends MY_REST_Controller
 			}
 
 			$table_types=$this->Data_table_mongo_model->get_table_types_list($db_id);
-			$table_storage_info=$this->Data_table_mongo_model->get_tables_list($db_id,$options);						
+			$table_storage_info=$this->Data_table_mongo_model->get_tables_list($db_id,$options);
+
+			$output=array();
+
+			foreach($table_types as $table_id=>$table)
+			{
+				if (array_key_exists($table_id,$table_storage_info)){
+					$table_types[$table_id]['rows_count']=$table_storage_info[$table_id]['count'];
+					$table_types[$table_id]['storage_size']=$table_storage_info[$table_id]['storageSize'].'M';
+				}
+
+				$table_types[$table_id]['_links']= array(
+					"info" => array(
+						"href" => site_url('/api/tables/info/'.$table['db_id'].'/'.$table['table_id'])
+					),
+					"data" => array(
+						"href" => site_url('/api/tables/data/'.$table['db_id'].'/'.$table['table_id'])
+					)
+				);
+			}
 			
 			$response=array(
                 'status'=>'success',
