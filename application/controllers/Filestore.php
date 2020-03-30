@@ -19,7 +19,7 @@ class Filestore extends MY_Controller {
     function file($filename)
     {
         $filename=urldecode($filename);
-        return $this->Filestore_model->download($filename,'inline');
+        return $this->Filestore_model->download($filename);
     }
 
 }
