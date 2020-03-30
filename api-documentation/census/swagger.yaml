@@ -55,13 +55,20 @@ paths:
           - application/json
         parameters:
           - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
         responses:
           '200':
-            description: successful operation            
+            description: successful operation
+            schema:
+              $ref: "#/definitions/Table"
         security:
           - ApiKeyAuth: []               
   /tables/insert/{dbId}/{tableId}:      
@@ -98,7 +105,7 @@ paths:
               $ref: 'census-table-schema.json'
         security:
           - ApiKeyAuth: []  
-  /tables/create:
+  /tables/create_table:
       post:
         tags:
           - Tables
@@ -257,6 +264,100 @@ paths:
         security:
           - ApiKeyAuth: []
   
+  /tables/indexes/{dbId}/{tableId}:
+      get:
+        tags:
+          - Tables
+        summary: Get table indexes
+        description: Returns a list of table indexes
+        operationId: tableIndexes
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []   
+      post:
+        tags:
+          - Tables
+        summary: Create table index
+        description: Create a new index
+        operationId: tableIndex
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+          - in: body
+            name: index_fields
+            description: A comma seperated list of fields for creating new index e.g. `state, district, urbrur`
+            schema:
+              type: object
+              required:
+                - index_fields
+              properties:
+                index_fields:
+                  type: string                
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+      delete:
+        tags:
+          - Tables
+        summary: Delete table index
+        description: Delete a table index - `tables/indexes/{dbId}/{tableId}/{indexName}`
+        operationId: tableIndexesDelete
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "indexName"
+            type: string
+            format: string
+            required: true  
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []   
   /tables/geocodes/:
       get:
         tags:
@@ -357,7 +458,7 @@ definitions:
       features:
         type: array
         required: true
-        description: Features - up to 5
+        description: Features
         items:
           type: string
     xml:
