@@ -214,7 +214,7 @@ class Filestore_model extends CI_Model {
             return force_download_inline($file_path,null,true);
         }
 
-        force_download($file_path,null);
+        force_download($file_path,null,true);
     }
 
 
