@@ -618,6 +618,16 @@ class Data_table_mongo_model extends CI_Model {
        $values=explode(",",$value);
 
        foreach($values as $val){
+
+            //check for values enclosed in quotes e.g. "0-4"
+            if (substr($val,0,1)=='"'){
+                $output[]=array(
+                    'type'=>'value',
+                    'value'=>str_replace('"','',$val)
+                );
+                continue;
+            }
+            
             $range=explode("-",$val);
 
             if(count($range)==2){
