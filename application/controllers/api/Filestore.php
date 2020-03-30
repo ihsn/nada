@@ -23,7 +23,8 @@ class Filestore extends MY_REST_Controller
 		try{
 			$files_count=$this->Filestore_model->get_file_counts();
 			$response=array(
-				'total'=>$files_count
+				'total'=>$files_count,
+				'files'=>$this->Filestore_model->select_all() //top 1000 only
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
