@@ -356,7 +356,7 @@ class Tables extends MY_REST_Controller
 		// Tells to the browser that a file is returned, with its name : $filename.csv
 		//header("Content-disposition: attachment; filename=$filename.csv");
 		// Tells to the browser that the content is a csv file
-		//header("Content-Type: text/csv");
+		header("Content-Type: text/plain");
 
 		// I open PHP memory as a file
 		$fp = fopen("php://output", 'w');
