@@ -330,11 +330,11 @@ class Tables extends MY_REST_Controller
 			if(isset($options['format']) && $options['format']=='csv'){
 
 				if ($this->input->get("disposition")=='inline'){
-					header('Content-Disposition: inline');	
+					$this->export_data_to_csv($response['data']);
+					die();
 				}
-				else{
-					header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
-				}
+				
+				header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
 				$response=$response['data'];
 			}
 
@@ -351,6 +351,29 @@ class Tables extends MY_REST_Controller
 	}
 
 
+	private function export_data_to_csv($data,$filename='export',$delimiter = ',',$enclosure = '"')
+	{
+		// Tells to the browser that a file is returned, with its name : $filename.csv
+		//header("Content-disposition: attachment; filename=$filename.csv");
+		// Tells to the browser that the content is a csv file
+		//header("Content-Type: text/csv");
+
+		// I open PHP memory as a file
+		$fp = fopen("php://output", 'w');
+
+		// Insert the UTF-8 BOM in the file
+		//fputs($fp, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+
+		// I add the array keys as CSV headers
+		fputcsv($fp,array_keys($data[0]),$delimiter,$enclosure);
+
+		// Add all the data in the file
+		foreach ($data as $fields) {
+			fputcsv($fp, $fields,$delimiter,$enclosure);
+		}
+
+		fclose($fp);
+	}
 
 	/**
 	 * 
