@@ -328,7 +328,13 @@ class Tables extends MY_REST_Controller
 			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options,$labels);
 			
 			if(isset($options['format']) && $options['format']=='csv'){
-				header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
+
+				if ($this->input->get("disposition")=='inline'){
+					header('Content-Disposition: inline');	
+				}
+				else{
+					header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
+				}
 				$response=$response['data'];
 			}
 
