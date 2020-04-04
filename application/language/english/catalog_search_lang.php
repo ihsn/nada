@@ -11,7 +11,7 @@ $lang['link_search_help']="Search help";
 $lang['rss_feed']="RSS feed";
 
 $lang['filter_by_dtype']="License";
-$lang['filter_by_type']="Dataset Type";
+$lang['filter_by_type']="Data Type";
 $lang['select_all']="Select all";
 $lang['filter_by_country']="Countries";
 $lang['filter_by_topic']="Topics";
