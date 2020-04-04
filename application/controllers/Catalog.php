@@ -12,6 +12,9 @@ class Catalog extends MY_Controller {
 		//facets data + count
 		var $facets= array();
 
+		//enable filters
+		var $enabled_filters=array();
+
     public function __construct()
 	{
 		parent::__construct($skip_auth=TRUE);
@@ -24,6 +27,9 @@ class Catalog extends MY_Controller {
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
 		$this->load->model('Data_classification_model');
+
+		//todo - set which filters to enable
+		//$this->enabled_filters=array();
 
 		//$this->output->enable_profiler(TRUE);
 
@@ -134,12 +140,14 @@ class Catalog extends MY_Controller {
 		var_dump(	$this->facets['countries']);
 		die();*/
 
-		//countries
-		$filters['countries']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['countries'], 
-				'filter_id'=>'country'
-			),true);		
+		if ( in_array('countries',$this->enabled_filters)){		
+			//countries
+			$filters['countries']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['countries'], 
+					'filter_id'=>'country'
+				),true);
+		}
 		
 		//countries			
 		//$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
@@ -525,8 +533,11 @@ class Catalog extends MY_Controller {
 			case 'timeseries':
 				$dataset_view='search/images';
 				break;
+			case 'table':
+				$dataset_view='search/tables';
+				break;	
 			default:
-				$dataset_view='search/surveys';			
+				$dataset_view='search/surveys';
 				break;
 		}
 

@@ -125,10 +125,20 @@
     color:black;
 }
 
-
 .fa-stack { 
     font-size: 2em;
     color:#bfbfbf;
+}
+
+.collapsed .icon-expanded{
+    display:none;
+}
+.collapsed .icon-collapsed{
+    display:inherit;
+}
+
+.icon-collapsed{
+    display:none;
 }
 </style>
 
