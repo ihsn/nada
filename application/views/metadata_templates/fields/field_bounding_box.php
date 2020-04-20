@@ -13,20 +13,27 @@
     'east'=>'East',
     'west'=>'West',
     'north'=>'North',
-    'south'=>'South',
+    'south'=>'South'
   );
 ?>
 
+<?php if (empty($data)){return;}?>
 
-<div class="row extent-geographic-element">
-<?php foreach($data as $row):?>
-<?php foreach($row as $key=>$value):?>
-	<div class="col-3 col-md-1">
-	<div><?php echo $columns[$key];?></div>
-	<div><?php echo $value;?></div>
-</div>
-<?php endforeach;?>
-<?php endforeach;?>
+<div class="extent-geographic-container mt-2">
+<table class="table table-bordered table-striped table-condensed xsl-table table-grid">
+  <tr>
+    <?php foreach($columns as $col_key=>$col_label):?>
+      <th><?php echo $col_label;?></th>
+    <?php endforeach;?>
+  </tr>
+  <?php foreach($data as $row):?>    
+    <tr>
+      <?php foreach($columns as $col_key=>$col_label):?>
+        <td><?php echo isset($row[$col_key]) ? $row[$col_key] : 'x';?></td>    
+      <?php endforeach;?>
+    </tr>
+  <?php endforeach;?>
+  </table>
 </div>
 
 
