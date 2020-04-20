@@ -1,3 +1,5 @@
+<?php if (isset($data) && is_array($data) && count($data)>0 ):?>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
   integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
   crossorigin=""/>
@@ -16,8 +18,6 @@
     'south'=>'South'
   );
 ?>
-
-<?php if (empty($data)){return;}?>
 
 <div class="extent-geographic-container mt-2">
 <table class="table table-bordered table-striped table-condensed xsl-table table-grid">
@@ -64,9 +64,4 @@
 </script>
 
 
-<?php return;?>
-
-
-
-
-
+  <?php endif;?>
