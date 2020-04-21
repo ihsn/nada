@@ -25,6 +25,11 @@ class Catalog extends MY_REST_Controller
 	function index_get($idno=null)
 	{	
 		try{
+
+			if(empty($idno)){
+				return $this->search_get();
+			}
+
 			$sid=$this->get_sid_from_idno($idno);
 
 			$result=$this->Dataset_model->get_row($sid);
@@ -77,7 +82,14 @@ class Catalog extends MY_REST_Controller
 				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
 				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
 				'ps'				=>	$this->security->xss_clean($this->input->get("ps")),
-				'sid'				=>	$this->security->xss_clean($this->input->get("sid"))
+				'sid'				=>	$this->security->xss_clean($this->input->get("sid")),
+				'topics'			=>  $this->security->xss_clean($this->input->get("topic")),
+				'tags'				=>  $this->security->xss_clean($this->input->get("tag")),
+				'sort_by'			=>  $this->security->xss_clean($this->input->get("sort_by")),
+				'sort_order'		=>  $this->security->xss_clean($this->input->get("sort_order")),
+				'type'				=>  $this->security->xss_clean($this->input->get("type")),
+				'country_iso3'		=>  $this->security->xss_clean($this->input->get("country_iso3")),
+				'created'			=>  $this->security->xss_clean($this->input->get("created")),
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
@@ -102,16 +114,30 @@ class Catalog extends MY_REST_Controller
 		$this->load->library('catalog_search',$params);
 
 		try{
-			$result=$this->catalog_search->search($limit,$offset);
+			$result=$this->catalog_search->search($limit,$offset);			
 
 			if(isset($result['rows'])){
+				
+				$iso3_codes=array();
+
+				if ($this->input->get("inc_iso")){
+					//iso3 codes
+					$iso3_codes=$this->Dataset_model->get_dataset_country_codes(array_column($result['rows'],'id') );	
+				}
+				
 				//convert date format
 				array_walk($result['rows'], 'unix_date_to_gmt',array('created','changed'));
-
-				//add study link
-				array_walk($result['rows'], function(&$row) {
-					$row['url'] = site_url('catalog/'.$row['id']);
-				});
+				
+				foreach($result['rows'] as $idx=>$row)
+				{
+					//add study link
+					$result['rows'][$idx]['url'] = site_url('catalog/'.$row['id']);
+					
+					//attach iso3 codes to study
+					if (isset($iso3_codes[$row['id']])){
+						$result['rows'][$idx]['iso3'] = implode(",",$iso3_codes[$row['id']]);
+					}
+				}
 
 				//unset
 				if(isset($result['citations'])){

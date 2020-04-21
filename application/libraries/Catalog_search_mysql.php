@@ -27,7 +27,8 @@ class Catalog_search_mysql{
 	var $collections=array();
 	var $dtype=array();//data access type
     var $sid=''; //comma separated list of survey IDs
-    var $country_iso3=''; //comma seperated list country iso3 codes
+	var $country_iso3=''; //comma seperated list country iso3 codes	
+	var $created='';
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -98,6 +99,7 @@ class Catalog_search_mysql{
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
 		$sid=$this->_build_sid_query();
+		$created=$this->_build_created_query();
         $countries_iso3=$this->_build_countries_iso3_query();
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		
@@ -137,7 +139,7 @@ class Catalog_search_mysql{
 		}
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created);
 		
 		//create combined where clause
 		$where='';
@@ -550,6 +552,33 @@ class Catalog_search_mysql{
 		
 		return FALSE;
 	}
+
+	protected function _build_created_query()
+	{
+		$created_range=explode("-",$this->created);
+		
+		if(empty($created_range)){
+			return false;
+		}
+
+		$created_start=strtotime($created_range[0]);
+		$created_end= isset($created_range[1]) ? strtotime($created_range[1]) : null;
+		
+		$query=null;
+		if (!empty($created_start)){
+			$query[]=sprintf('surveys.created > %s ',$created_start);
+		}
+
+		if (!empty($created_end)){
+			$query[]=sprintf('surveys.created < %s ',$created_end);
+		}
+
+		if (!empty($query)){
+			return "(" . implode (" AND ",$query) . ")";
+		}
+	}
+
+	
 
 	protected function _build_collections_query()
 	{	

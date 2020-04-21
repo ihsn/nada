@@ -24,6 +24,7 @@ class Catalog_search_sqlsrv{
 	var $repo='';
 	var $dtype=array();//data access type
 	var $collections=array();
+	var $created='';
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -105,13 +106,14 @@ class Catalog_search_sqlsrv{
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
+		$created=$this->_build_created_query();
 
 		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections);
+		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections,$created);
 		
 		if ($repository!='')
 		{
@@ -215,7 +217,8 @@ class Catalog_search_sqlsrv{
         $countries = $this->_build_countries_query();
         $years = $this->_build_years_query();
         $repository = $this->_build_repository_query();
-        $collections = $this->_build_collections_query();
+		$collections = $this->_build_collections_query();
+		$created=$this->_build_created_query();
 
         //RANK sort is only available when search study keywords
         if(!trim($this->study_keywords)){
@@ -242,7 +245,7 @@ class Catalog_search_sqlsrv{
         }
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created);
 
         //show only publshed studies
         $where_list[]='surveys.published=1';
@@ -574,6 +577,31 @@ class Catalog_search_sqlsrv{
 		}
 		
 		return FALSE;
+	}
+
+	protected function _build_created_query()
+	{
+		$created_range=explode("-",$this->created);
+		
+		if(empty($created_range)){
+			return false;
+		}
+
+		$created_start=strtotime($created_range[0]);
+		$created_end= isset($created_range[1]) ? strtotime($created_range[1]) : null;
+		
+		$query=null;
+		if (!empty($created_start)){
+			$query[]=sprintf('surveys.created > %s ',$created_start);
+		}
+
+		if (!empty($created_end)){
+			$query[]=sprintf('surveys.created < %s ',$created_end);
+		}
+
+		if (!empty($query)){
+			return "(" . implode (" AND ",$query) . ")";
+		}
 	}
 	
 	
