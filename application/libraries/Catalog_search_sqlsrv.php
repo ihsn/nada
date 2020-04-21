@@ -7,7 +7,7 @@
  * @category	Data Catalog Search
  *
  */ 
-class Catalog_search_sqlsrv{
+class Catalog_search_sqlsrv{ 
 	
 	var $ci;
 	
@@ -23,6 +23,7 @@ class Catalog_search_sqlsrv{
 	var $to=0;
 	var $repo='';
 	var $dtype=array();//data access type
+	var $sid=''; //comma separated list of survey IDs
 	var $collections=array();
 	var $created='';
 
@@ -106,6 +107,7 @@ class Catalog_search_sqlsrv{
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$collections=$this->_build_collections_query();
+		$sid=$this->_build_sid_query();
 		$created=$this->_build_created_query();
 
 		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
@@ -113,7 +115,7 @@ class Catalog_search_sqlsrv{
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$dtype,$collections,$created);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created);
 		
 		if ($repository!='')
 		{
@@ -218,6 +220,7 @@ class Catalog_search_sqlsrv{
         $years = $this->_build_years_query();
         $repository = $this->_build_repository_query();
 		$collections = $this->_build_collections_query();
+		$sid=$this->_build_sid_query();
 		$created=$this->_build_created_query();
 
         //RANK sort is only available when search study keywords
@@ -245,7 +248,7 @@ class Catalog_search_sqlsrv{
         }
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created);
 
         //show only publshed studies
         $where_list[]='surveys.published=1';
@@ -409,6 +412,27 @@ class Catalog_search_sqlsrv{
         $this->ci->db->join("freetexttable(surveys, (keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER",false);
 	}
 	
+
+	protected function _build_sid_query()
+	{
+		$sid=explode(",",$this->sid);
+		
+		$sid_list=array();
+		foreach($sid as $item)
+		{
+			if (is_numeric($item))
+			{
+				$sid_list[]=$item;
+			}	
+		}
+		
+		if (count($sid_list)>0)
+		{		
+			return sprintf('surveys.id in (%s)',implode(",",$sid_list));
+		}
+		
+		return FALSE;
+	}
 			
 	function _build_variable_query()
 	{
@@ -602,6 +626,8 @@ class Catalog_search_sqlsrv{
 		if (!empty($query)){
 			return "(" . implode (" AND ",$query) . ")";
 		}
+
+		return false;
 	}
 	
 	

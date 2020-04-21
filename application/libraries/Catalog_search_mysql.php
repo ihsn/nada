@@ -576,6 +576,8 @@ class Catalog_search_mysql{
 		if (!empty($query)){
 			return "(" . implode (" AND ",$query) . ")";
 		}
+
+		return false;
 	}
 
 	
