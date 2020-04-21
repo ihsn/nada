@@ -683,51 +683,36 @@ class Licensed_model extends CI_Model {
 					}	
 				}
 			}
-		}
-		
-		$sub_query="select request_id from survey_lic_requests
-						inner join survey_repos on survey_lic_requests.sid=survey_repos.sid";
-		
-		if ($repositoryid!==NULL && $repositoryid!='central')
-		{				
-			$sub_query.=sprintf(" where survey_repos.repositoryid=%s and survey_repos.isadmin=1",$this->db->escape($repositoryid));
-		}
-		
-		$sub_query=sprintf('lic_requests.id IN (%s)',$sub_query);
-		
+		}		
+
 		//set Limit clause
-	  	$this->db->select('lic_requests.*,users.username');
+	  	$this->db->select('lic_requests.request_title,lic_requests.id, lic_requests.userid, lic_requests.created, lic_requests.status,users.username');
 		$this->db->join($this->tables['users'], $this->tables['users'].'.id = lic_requests.userid');
+		$this->db->join('survey_lic_requests', 'survey_lic_requests.id = lic_requests.id');
+		$this->db->join('survey_repos', 'survey_lic_requests.sid = survey_repos.sid');
+		$this->db->group_by('lic_requests.request_title,lic_requests.id, lic_requests.userid, lic_requests.created, lic_requests.status,users.username');
+
 		$this->db->limit($limit, $offset);
 		$this->db->from('lic_requests');
-		$this->db->where($sub_query, NULL, FALSE);
 
-		if (count($where)>0)
-		{
+		if (count($where)>0){
 			$this->db->where(implode(" AND ",$where));
 		}
-		
-		//$where_=implode(" AND ",$where_);		
-		//$this->db->where($where_,NULL,FALSE);
 		
 		$this->db->stop_cache();
 
 		//set default sort order, if invalid fields are set
-		if (!array_key_exists($sort_by,$db_fields))
-		{
+		if (!array_key_exists($sort_by,$db_fields)){
 			$sort_by='title';
 			$sort_order='ASC';
 		}
 		
 		//must be set outside the start_cache...stop_cache to produce correct count_all_results query
-		if ($sort_by!='' && $sort_order!='')
-		{
+		if ($sort_by!='' && $sort_order!=''){
 			$this->db->order_by($db_fields[$sort_by], $sort_order); 
 		}
 				
         $result= $this->db->get()->result_array();
-		
-		//echo $this->db->last_query();
 		return $result;
     }
 	
