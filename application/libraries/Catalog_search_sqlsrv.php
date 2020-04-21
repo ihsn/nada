@@ -612,12 +612,20 @@ class Catalog_search_sqlsrv{
 		}
 
 		$created_start=strtotime($created_range[0]);
-		$created_end= isset($created_range[1]) ? strtotime($created_range[1]) +86399 : $created_start + 86399;
-		
-		$query=null;
-		if (!empty($created_start)){
-			$query[]=sprintf('surveys.created >= %s ',$created_start);
+
+		if (empty($created_start)){
+			return false;
 		}
+
+		if (isset($created_range[1]) && strtotime($created_range[1])){
+			$created_end= + strtotime($created_range[1]) + 86399;
+		}
+		else{
+			$created_end= $created_start + 86399;
+		}		
+
+		$query=null;
+		$query[]=sprintf('surveys.created >= %s ',$created_start);
 
 		if (!empty($created_end)){
 			$query[]=sprintf('surveys.created < %s ',$created_end);
