@@ -974,7 +974,7 @@ class Data_table_mongo_model extends CI_Model {
 
 
         $feature_filters=array(
-            '$and'=> array()
+            //'$and'=> array()
         );
 
         foreach($tmp_feature_filters as $feature_key=>$filter){
