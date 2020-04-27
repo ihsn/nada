@@ -919,7 +919,7 @@ class Data_table_mongo_model extends CI_Model {
             'fields'=>$fields
         );*/
 
-        $limit=100;
+        $limit=50;
 
         //geo fields + others
         $features=array(

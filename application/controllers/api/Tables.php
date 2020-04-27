@@ -943,6 +943,10 @@ class Tables extends MY_REST_Controller
 
 			$result=$this->Data_table_mongo_model->geo_search($db_id,$options,$fields);
 
+			if (strtolower($this->input->get("codelists"))==='true'){
+				$result['codelist']=$this->geosearch_codelists($db_id,$result['data']);	
+			}
+			
 			$this->set_response($result, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -952,5 +956,73 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+	private function geosearch_codelists($db_id,$places)
+	{
+		$places_map=array(            
+            'state'=> 'state',
+            'district'=> 'district',
+            'subdistrict'=> 'subdistrict',
+			'town'=>'town_village',
+			'village'=>'town_village',
+            'ward'=> 'ward',
+        );
+
+		$codelist=array();
+
+		foreach($places as $place){
+			
+			$codelist['state'][]=$place['state'];
+			$codelist['district'][]=$place['district'];
+			$codelist['subdistrict'][]=$place['subdistrict'];
+			
+			//$codelist['town_village'][]=$place['town_village'];
+			$codelist['ward'][]=$place['ward'];
+			
+			if ($place['level']=='town'){
+				$codelist['town'][]=$place['town_village'];
+			}else if ($place['level']=='village'){
+				$codelist['village'][]=$place['town_village'];
+			}
+		}
+
+		//return $codelist;
+
+		$output=array();
+
+		foreach($codelist as $place_type=>$values){
+			
+			$values=array_filter(array_unique($values));
+
+			if (empty($values) && count($values)<1 ){
+				continue;
+			}
+
+			/*echo $place_type;
+			var_dump($values);
+			continue;*/
+
+			$options=array(
+				'level'=>$place_type
+			);
+
+			$options[$places_map[$place_type]]=implode(",",$values);
+						
+			$result=$this->Data_table_mongo_model->geo_search(
+				$db_id,
+				$options,
+				$fields=implode(",",array('areaname','level', $places_map[$place_type])) );
+
+
+			if (isset($result['data'])){
+				foreach($result['data'] as $code_row){
+					$output[$code_row['level']][$code_row[$places_map[$place_type]]]=$code_row['areaname'];
+				}
+			}
+		}
+
+		return $output;
 	}
 }	
