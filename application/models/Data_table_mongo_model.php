@@ -647,15 +647,17 @@ class Data_table_mongo_model extends CI_Model {
    }
 
 
-
    function text_search($keywords)
-   {
-        /*return array(
-            '$text'=> array('$search'=> $keywords)
-        );*/
-
+   {        
+        /* format for text search
+        return ['$text' => ['$search' => "jammu"]];
+        */
+        
+        //always enclose in quotes for phrase queries
+        $keywords='"'.str_replace('"','',trim($keywords)).'"';
         return array('$search' => $keywords);
    }
+   
 
    function regex_search($keywords)
    {
@@ -969,7 +971,8 @@ class Data_table_mongo_model extends CI_Model {
 
 
         if(isset($options[$text_search_field])){            
-            $tmp_feature_filters[$text_search_field][][$text_search_field]=$this->regex_search($options[$text_search_field]);
+            //$tmp_feature_filters[$text_search_field][][$text_search_field]=$this->regex_search($options[$text_search_field]);
+            $tmp_feature_filters[$text_search_field][]['$text']=$this->text_search($options[$text_search_field]);
         }
 
 
