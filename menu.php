@@ -1,6 +1,6 @@
 <?php
 
-$menu=file_get_contents("menu.json"); //https://dev.ihsn.org/orgi/website/entity/menu/main/tree?_format=json
+$menu=file_get_contents("menu.json"); //http://census.ihsn.org/entity/menu/main/tree?_format=json
 
 $menu=json_decode($menu,true);
 ?>
@@ -117,7 +117,7 @@ $menu=json_decode($menu,true);
 
 echo '<div  id="containerNavbar" aria-expanded="false">';
 echo '<ul id="site-menu" class="sf-menu ">';
-foreach($menu as $items){
+/*foreach($menu as $items){
     if ($items['link']['enabled']==false){continue;}
     //var_dump($items['link']);
 
@@ -138,12 +138,34 @@ foreach($menu as $items){
         echo "</ul>";
     }
     echo "</li>";
-}
+}*/
+menu_subtree($menu);
 echo '</ul>';
 echo '</div>';
 
+
+function menu_subtree($menu)
+{
+	foreach($menu as $items){
+		if ($items['link']['enabled']==false){continue;}
+		//var_dump($items['link']);
+	
+		$url=get_site_link($items['link']['url']);
+	
+		echo "<li>";
+		echo '<a href="'.$url.'">'.$items['link']['title'].'</a>';
+		
+		if (isset($items['subtree']) && count($items['subtree']) > 0){
+			echo '<ul>';
+			menu_subtree($items['subtree']);
+			echo "</ul>";
+		}
+		echo "</li>";
+	}
+}
+
 function get_site_link($link){
-    $website_url='https://dev.ihsn.org';
+    $website_url='http://census.ihsn.org';
 
     $url=$link;
 
