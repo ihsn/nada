@@ -16,7 +16,7 @@
 
 <?php 
 	//current page url
-	$page_url=site_url().$this->uri->uri_string();
+	$page_url=site_url().$this->uri->uri_string(); 
 	
 	//total pages
 	$pages=ceil($surveys['found']/$surveys['limit']);	
@@ -38,7 +38,7 @@
 	$sort_order=$search_options->sort_order;
 
 	//set default sort
-	if(!$sort_by)
+	/*if(!$sort_by)
 	{
 		if ($this->config->item("regional_search")=='yes')
 		{
@@ -48,7 +48,7 @@
 		{
 			$sort_by='title';
 		}
-	}
+	}*/
 
 	//current page url with query strings
 	$page_url=site_url().'/catalog/';		
