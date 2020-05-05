@@ -60,9 +60,10 @@
 	$search_querystring='?'.get_querystring( array('sk', 'vk', 'vf','view','topic','country'));
 ?>
 
-<input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
-<input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
+<input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>
+<input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
 <input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
+<input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id);?>"/>
 
 <?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
         <!-- survey-row -->
