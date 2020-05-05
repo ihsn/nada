@@ -95,6 +95,14 @@ class Catalog extends MY_Controller {
 		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
 		$output['search_output']=$this->load->view($dataset_view, $output,true);
 		
+
+		//tags
+		$filters['tags']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['tags'], 
+				'filter_id'=>'tag'
+			),true);
+			
 		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
 		
 		if(!isset($this->active_repo_id)){
@@ -155,12 +163,7 @@ class Catalog extends MY_Controller {
 		//tags			
 		//$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);
 
-		//tags
-		$filters['tags']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['tags'], 
-				'filter_id'=>'tag'
-			),true);
+		
 		
 		//types filter
 		if(!$this->active_tab){
