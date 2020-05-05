@@ -1,5 +1,15 @@
 <style>
-    
+    .site-header .nada-sitename{
+        padding-left:0px;
+        margin-left:0px;
+        color:black;
+        font-size:18px;
+        font-family:'Fira Sans', Helvetica Neue, Arial, Sans-serif;
+    }
+    .site-logo{
+        max-width:70px;
+        max-height:70px;
+    }
     </style>
 <header class="site-header fixed-top">
 
@@ -12,9 +22,13 @@
             <div class="col-4">
                 <div class="navbar-brand ">
                     <a href="<?php echo site_url();?>" class="g01v1-logo nada-logo">
-                        <img title="<?php echo $this->config->item("website_title");?>" src="<?php echo base_url().$bootstrap_theme; ?>/images/orgi_logo.png" class="img-responsive">
+                        <?php /* 
+                            <img title="<?php echo $this->config->item("website_title");?>" src="<?php echo base_url().$bootstrap_theme; ?>/images/orgi_logo.png" class="img-responsive"> 
+                        */?>
+                        <img title="<?php echo $this->config->item("website_title");?>" src="http://census.ihsn.org/themes/corporate_lite/logo.svg" class="img-responsive site-logo">
+                        
                     </a>
-                    <strong><a class="nada-sitename" href="#index.html">Office of the Registrar General <br>& Census Commissioner, India</a></strong>
+                    <strong><a class="nada-sitename" href="#index.html">Census Data Dissemination <br/>Platform</a></strong>
                 </div>
             </div>
 
