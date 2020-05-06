@@ -89,9 +89,17 @@ class Resources extends MY_REST_Controller
 	 **/ 
 	function index_post($idno=null)
 	{
-		$this->is_admin_or_die();		
-		$options=$this->raw_json_input();
 
+		$this->is_admin_or_die();
+
+		//multipart/form-data
+		$options=$this->input->post(null, true);
+
+		//raw json input
+		if (empty($options)){
+			$options=$this->raw_json_input();
+		}
+				
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -108,12 +116,27 @@ class Resources extends MY_REST_Controller
 
 			//validate resource
 			if ($this->Survey_resource_model->validate_resource($options)){
+
+				$upload_result=null;
+
+				if(!empty($_FILES)){
+					//upload file?
+					$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
+
+					$uploaded_file_name=$upload_result['file_name'];
+					$uploaded_path=$upload_result['full_path'];
+				
+					//set filename to uploaded file
+					$options['filename']=$uploaded_file_name;
+				}
+
 				$resource_id=$this->Survey_resource_model->insert($options);
 				$resource=$this->Survey_resource_model->select_single($resource_id);
 				
 				$response=array(
 					'status'=>'success',
-					'resource'=>$resource
+					'resource'=>$resource,
+					'uploaded_file'=>$upload_result
 				);
 
 				$this->set_response($response, REST_Controller::HTTP_OK);
