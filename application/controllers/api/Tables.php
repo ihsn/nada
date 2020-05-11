@@ -944,7 +944,7 @@ class Tables extends MY_REST_Controller
 			$result=$this->Data_table_mongo_model->geo_search($db_id,$options,$fields);
 
 			if (strtolower($this->input->get("codelists"))==='true'){
-				$result['codelist']=$this->geosearch_codelists($db_id,$result['data']);	
+				$result['codelist']=$this->geosearch_codelists($db_id,$result['data']);
 			}
 			
 			$this->set_response($result, REST_Controller::HTTP_OK);
@@ -1014,7 +1014,10 @@ class Tables extends MY_REST_Controller
 				$db_id,
 				$options,
 				$fields=implode(",",array('areaname','level', $places_map[$place_type])) );
-
+			
+			if ($this->input->get("debug")){
+				$output['query'][]=$result;
+			}
 
 			if (isset($result['data'])){
 				foreach($result['data'] as $code_row){
