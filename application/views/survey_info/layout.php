@@ -10,15 +10,18 @@
 	border-right:1px solid gainsboro;
 }
 
+.field-metadata__table_description__ref_country .field-value,
 .field-metadata__study_desc__study_info__nation .field-value{
 	max-height:350px;
 	overflow:auto;
 }
+.field-metadata__table_description__ref_country .field-value  ::-webkit-scrollbar,
 .field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 7px;
 }
 
+.field-metadata__table_description__ref_country .field-value  ::-webkit-scrollbar-thumb,
 .field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background-color: rgba(0, 0, 0, .5);
