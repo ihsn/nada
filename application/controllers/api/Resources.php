@@ -89,7 +89,6 @@ class Resources extends MY_REST_Controller
 	 **/ 
 	function index_post($idno=null)
 	{
-
 		$this->is_admin_or_die();
 
 		//multipart/form-data
@@ -122,15 +121,35 @@ class Resources extends MY_REST_Controller
 				if(!empty($_FILES)){
 					//upload file?
 					$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
-
 					$uploaded_file_name=$upload_result['file_name'];
-					$uploaded_path=$upload_result['full_path'];
 				
 					//set filename to uploaded file
 					$options['filename']=$uploaded_file_name;
 				}
 
-				$resource_id=$this->Survey_resource_model->insert($options);
+				//check if resource already exists
+				$resource_exists=false;
+								
+				if (!empty($options['filename'])){
+					$resource_exists=$this->Survey_resource_model->get_survey_resources_by_filepath($sid,$options['filename']);
+				}					
+
+				$overwrite=isset($options["overwrite"]) ? $options["overwrite"] : false;
+
+				if($resource_exists){
+					if ($overwrite == 'yes'){
+						//update existing
+						$resource_id=$this->Survey_resource_model->update($resource_exists[0]['resource_id'],$options);
+					}
+					else{
+						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");						
+					}
+				}
+				else{
+					//insert new resource
+					$resource_id=$this->Survey_resource_model->insert($options);
+				}
+
 				$resource=$this->Survey_resource_model->select_single($resource_id);
 				
 				$response=array(
