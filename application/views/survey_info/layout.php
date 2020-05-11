@@ -9,6 +9,21 @@
 	border-left:1px solid gainsboro;
 	border-right:1px solid gainsboro;
 }
+
+.field-metadata__study_desc__study_info__nation .field-value{
+	max-height:350px;
+	overflow:auto;
+}
+.field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+
+.field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
 </style>
 <?php
 /*
@@ -250,8 +265,8 @@ else{
 	<?php foreach($page_tabs as $tab_name=>$tab):?>
 		<?php if ($tab['show_tab']==0){continue;};?>
 		<?php if($tab_name=='get_microdata'):?>
-			<li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?>" >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab" data-id="related-materials" >
+			<li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" >
+				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase " role="tab" data-id="related-materials" >
 					<span class="get-microdata icon-da-<?php echo $data_access_type;?>"></span> <?php echo $tab['label'];?>
 				</a>
 			</li>                            

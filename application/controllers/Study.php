@@ -200,7 +200,7 @@ class Study extends MY_Controller {
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 
         if (!$options['resources']){
-            $content="Documentation is not available";
+            $content=t("No resources are available");
         }
         else{
             $content=$this->load->view('survey_info/related_resources',$options,TRUE);
@@ -247,7 +247,18 @@ class Study extends MY_Controller {
 		$this->load->driver('data_access',array('adapter'=>$data_access_type));
 
 		if ($this->data_access->is_supported($data_access_type)){
-			$content=$this->data_access->process_form($sid,$user=$this->ion_auth->current_user());
+			#$this->load->helper('array');
+			$survey=$this->Dataset_model->get_row_detailed($sid);
+
+			if(!is_array($survey['metadata'])){
+				$survey['metadata']=array($survey['metadata']);
+			}
+		
+			$this->metadata_template->initialize($survey['type'],$survey);
+			$access_policy_html=$this->metadata_template->render_section_html('data_access');
+
+			$content=$this->data_access->process_form($sid,$user=$this->ion_auth->current_user(), $access_policy_html);
+
 			if($content==''){
 				$content='NOT_DATA_AVAILABLE';
 			}
@@ -256,7 +267,6 @@ class Study extends MY_Controller {
 			$content="Data Access Not Available";
 		}
 
-		$options['sid']=$sid;
 		$this->render_page($sid, $content,'get_microdata');
 	}
 
@@ -308,17 +318,17 @@ class Study extends MY_Controller {
 						'label'=>t('microdata_description'),
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
-					),
-					'related_materials'=>array(
-						'label'=>t('related_materials'),
-						'url'=>site_url("catalog/$sid/related-materials"),
-						'show_tab'=>(int)$related_resources_count
-					),			
+					),							
 					'data_dictionary'=>array(
 						'label'=>t('data_dictionary'),
 						'url'=>site_url("catalog/$sid/data-dictionary"),
 						'show_tab'=>$has_datafiles
 					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					),	
 					'get_microdata'=>array(
 						'label'=>t('get_microdata'),
 						'url'=>site_url("catalog/$sid/get-microdata"),

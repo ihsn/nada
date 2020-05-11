@@ -25,7 +25,7 @@ class Data_access_direct extends CI_Driver {
 		$this->CI->lang->load('direct_access_terms');		
 	}
 	
-	function process_form($sid,$user=FALSE)
+	function process_form($sid,$user=FALSE, $additional_html='')
 	{
 		if ($this->CI->input->post("accept"))
 		{
@@ -33,7 +33,8 @@ class Data_access_direct extends CI_Driver {
 			$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);
 			$result['sid']=$sid;
 			$result['storage_path']=$this->CI->Dataset_model->get_storage_fullpath($sid);
-			return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);		
+			$output=$this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);
+			return $additional_html . $output;
 		}
 		
 		//show the Terms and Conditions form

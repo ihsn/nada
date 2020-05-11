@@ -220,7 +220,7 @@ $lang['visualization_description']="Visualization Description";
 $lang['microdata_description']="Study Description";
 $lang['data_dictionary']="Data Description";
 $lang['get_microdata']="Get Microdata";
-$lang['related_materials']="Documentation";
+$lang['related_materials']="Resources";
 $lang['related_citations']="Related Publications";
 
 /* End of file ddibrowser_lang.php */

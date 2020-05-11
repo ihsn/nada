@@ -15,7 +15,7 @@
  }
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
-<div class="table-responsive field field-<?php echo $name;?>">
+<div class="table-responsive field field-<?php echo str_replace(".","__",$name);?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value">                
         <?php if (isset($data[0]) && is_array($data[0])):?>
