@@ -156,7 +156,11 @@ function menu_subtree($menu)
 		if($url!=''){
 			echo '<a href="'.$url.'">'.$items['link']['title'].'</a>';
 		}else{
-			echo '<span>'.$items['link']['title'] .'</span>';
+			echo '<span class="sf-with-ul">'.$items['link']['title'];
+			/*if (isset($items['link']['has_children'])){
+				echo '<span class="sf-sub-indicator"> »</span>';
+			}*/
+			echo '</span>';
 		}
 		
 		if (isset($items['subtree']) && count($items['subtree']) > 0){
