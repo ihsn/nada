@@ -209,6 +209,7 @@ ul.sf-menu li > span {
     text-transform: uppercase;
     padding-left:15px;
     line-height:25px;
+    color:white;
 }
 
 
