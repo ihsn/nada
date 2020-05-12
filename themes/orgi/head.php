@@ -205,6 +205,12 @@ ul.sf-menu li > span {
 
 }
 
+ul.sf-menu li > span {
+    text-transform: uppercase;
+    padding-left:15px;
+    line-height:25px;
+}
+
 
 ul.sf-menu li a:hover, 
 ul.sf-menu > li > a.is-active:hover {

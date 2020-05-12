@@ -153,7 +153,11 @@ function menu_subtree($menu)
 		$url=get_site_link($items['link']['url']);
 	
 		echo "<li>";
-		echo '<a href="'.$url.'">'.$items['link']['title'].'</a>';
+		if($url!=''){
+			echo '<a href="'.$url.'">'.$items['link']['title'].'</a>';
+		}else{
+			echo '<span>'.$items['link']['title'] .'</span>';
+		}
 		
 		if (isset($items['subtree']) && count($items['subtree']) > 0){
 			echo '<ul>';
@@ -165,6 +169,11 @@ function menu_subtree($menu)
 }
 
 function get_site_link($link){
+
+	if ($link==''){
+		return '';
+	}
+
     $website_url='http://census.ihsn.org';
 
     $url=$link;
