@@ -415,7 +415,7 @@ class Search_helper_model extends CI_Model {
 	{
 			$this->db->select('tag as id, tag as title, count(tag) as found');
 			$this->db->join('surveys', 'surveys.id=survey_tags.sid','inner');
-			$this->db->order_by('survey_tags.tag','ASC');
+			$this->db->order_by('survey_tags.tag','DESC');
 			$this->db->group_by('survey_tags.tag');
 			$this->db->where('surveys.published',1);
 			

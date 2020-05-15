@@ -4,6 +4,9 @@
     }
 </style>
 <h3><?php echo t('latest_additions');?></h3>
+<?php
+    $regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
+?>
 <?php if (isset($rows) && count($rows)>0): ?>
 
     <?php
@@ -24,7 +27,7 @@
                         <?php endif;?>
                     </h5>
 
-                    <?php if($row['nation']):?>
+                    <?php if($row['nation'] && $regional_search===true) :?>
                         <strong><?php echo $row['nation'];?></strong>
                     <?php endif;?>
 

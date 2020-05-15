@@ -19,7 +19,7 @@
         <!--  /***** Login Bar Close *****/ -->
         <div class="row">
 
-            <div class="col-4">
+            <div class="col-md-4">
                 <div class="navbar-brand ">
                     <a href="<?php echo site_url();?>" class="g01v1-logo nada-logo">
                         <?php /* 
@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div class="col-8">
+            <div class="col-md-8 ">
                 <?php require_once 'menu.php' ?>
             </div>
 
