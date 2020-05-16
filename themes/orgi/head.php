@@ -27,6 +27,7 @@
 
 <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/superfish/1.7.10/js/superfish.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.hoverintent/1.10.1/jquery.hoverIntent.min.js"></script>
 
 
 <?php if($use_cdn):?>
@@ -124,7 +125,7 @@
                     if (expandUp) {
                         $u.css('margin-top',baseline - (menuHeight + offsetTop));
                     }
-                    $u.css('display','none');
+                    //$u.css('display','none');
                 });
             };
         
@@ -158,7 +159,7 @@
 
 
     jQuery('#site-menu').superfish({
-      delay:       1000,                            // one second delay on mouseout
+      delay:       1300,                            // one second delay on mouseout
       animation:   {opacity:'show',height:'show'},  // fade-in and slide-down animation
       speed:       'fast',                          // faster animation speed
       cssArrows:  true                            // disable generation of arrow mark-up
@@ -171,7 +172,7 @@
   });
 </script>
 
-
+<?php //return;?>
 <style>
 .sfHover,
 .sfHover li, 
@@ -280,4 +281,5 @@ ul.sf-menu .sf-sub-indicator:after {
     top: 0;
 }
 */
+
 </style>
