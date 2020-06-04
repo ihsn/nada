@@ -111,6 +111,22 @@ $lang['legend_data_enclave']="Data enclave";
 $lang['legend_data_open']="Open data access";
 $lang['legend_data_remote']="Data available from external repository";
 $lang['legend_data_data_na']="No microdata is available";
+$lang['legend_data_cc40']="Creative commons 4.0";
+$lang['legend_data_research']="Research microdata";
+$lang['legend_data_research_public']="Public research microdata";
+$lang['legend_data_research_license']="Research microdata with license";
+$lang['legend_data_research_public_lic']="Public research microdata with license";
+
+$lang['data_class_public']="Public";
+$lang['data_class_official']="Official";
+$lang['data_class_confidential']="Confidential";
+
+$lang['license']='License';
+
+$lang['data_class_note_public']="This dataset is classified as Public under the Access to Information Classification Policy. Staff and external Users can access this dataset.";
+$lang['data_class_note_official']="This dataset is classified as Official under the Access to Information Classification Policy. Access to data is limited to Staff only.";
+$lang['data_class_note_confidential']="This dataset is classified as Confidential under the Access to Information Classification Policy. Access to data is limited to Staff only.";
+
 $lang['no_variables_to_compare']="You have not selected any variables to compare. Please go back and select some variables and then run the comparison again.";
 $lang['refno']="Reference ID";
 $lang['accesspolicy']="Access Policy";

@@ -265,12 +265,12 @@ $(document).ready(function() {
     if(!State.data.page_state_data){        
         console.log("setting first loaded page state");
         page_first_load=false;
-        let search_state=$("#catalog-search-form").serialize();
+        let search_state=$("#catalog-search-form :input[value!='']").serialize();
         let page_state_data={
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
-        History.replaceState({state:search_state,page_state_data}, search_state, "?"+search_state);
+        History.replaceState({state:search_state,page_state_data}, document.title, "?"+search_state);
     }else{
         load_current_state();
         toggle_reset_search_button();
@@ -363,13 +363,13 @@ $(document).ready(function() {
     //call this for search
     function change_state(){
         console.log("change_state called");
-        let search_state=$("#catalog-search-form").serialize();
-        
+        let search_state=$("#catalog-search-form :input[value!='']").serialize(); //don't include empty        
         let page_state_data={
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
-        History.pushState({state:search_state,page_state_data}, search_state, "?"+search_state);
+            
+        History.pushState({state:search_state,page_state_data}, document.title + '/search - ' + search_state, "?"+search_state);
     }
 
 

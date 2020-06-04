@@ -86,7 +86,7 @@ span.link-change{font-size:10px;padding-left:5px;}
 .survey-options{float:right;}
 .survey-options .label{font-weight:normal;}
 .apply-filter:hover{cursor:pointer;}
-.table-row{font-size:smaller;color:#333333;line-height:150%;clear:both;overflow:auto;}
+.table-row{font-size:smaller;color:#333333;line-height:150%;clear:both;overflow:hidden;}
 .table-row .cell-label{display:block;width:100px;float:left;}
 .table-row .cell-value{display:block;float:left}
 .filter-info{display:inline;padding:5px;}
@@ -115,4 +115,120 @@ span.link-change{font-size:10px;padding-left:5px;}
 .survey-row .data-access-direct{background: url(themes/admin20/data-access.gif) no-repeat 0% 0%;}
 .survey-row .data-access-open{background: url(themes/admin20/data-access.gif) no-repeat 0% 100%;}
 
+
+/**** data access icons ****/
+.icon-da-data_enclave {
+  background: url('themes/nada/images/custom-policy-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+.icon-da-direct {
+  background: url('themes/nada/images/direct-download-32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+.icon-da-open {
+  background: url('themes/nada/images/open-data-32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+.icon-da-public {
+  background: url('themes/nada/images/public-use-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+.icon-da-licensed {
+  background: url('themes/nada/images/licensed-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+.icon-da-remote{
+  background: url('themes/nada/images/external-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research{
+  background: url('themes/nada/images/public-use-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_public{
+  background: url('themes/nada/images/research-public-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_license{
+  background: url('themes/nada/images/licensed-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_public_lic{
+  background: url('themes/nada/images/research-public-lic-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-cc40{
+  background: url('themes/nada/images/ccby40-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-data_na,
+.icon-da-{
+  background: url('themes/nada/images/not-available-round-32x32.svg') no-repeat 0 2px;
+  display: inline-block;
+  background-size: 18px;    
+}
+
+/* catalog listing page */
+.survey-row .icon-da
+{
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+  background-size: 48px;
+}
+
+
+.filter-da .icon-da{
+	width:20px;
+	height:20px;
+	background-size:16px;
+}
 </style>

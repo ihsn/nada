@@ -14,6 +14,7 @@ class Catalog extends MY_Controller {
       	parent::__construct();
      	$this->load->model('Catalog_model');
 		$this->load->model('Licensed_model');
+		$this->load->model('Form_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Citation_model');
 		$this->load->model('Catalog_admin_search_model');
@@ -84,10 +85,13 @@ class Catalog extends MY_Controller {
 		//get country list for filter
 		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
 
+		//data access types
+		$this->data_access_types=$this->Form_model->get_all();
+
 		if ($db_rows['rows'])
 		{
 			$sid_list=array();
-			foreach($db_rows['rows'] as $row)
+			foreach($db_rows['rows'] as $row) 
 			{
 				$sid_list[]=$row['id'];
 			}
