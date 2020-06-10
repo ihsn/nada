@@ -139,6 +139,7 @@ $lang['metadata.project_desc.contacts.uri']='URI';
 $lang['metadata.project_desc.contacts.phone']='Phone number';
 $lang['metadata.project_desc.scripts']='Script files';
 $lang['metadata.project_desc.scripts.file_name']='File name';
+$lang['metadata.project_desc.scripts.zip_package']='Zip archive';
 $lang['metadata.project_desc.scripts.title']='Title';
 $lang['metadata.project_desc.scripts.authors']='Authors';
 $lang['metadata.project_desc.scripts.authors.name']='Person or Organization name';
@@ -151,7 +152,7 @@ $lang['metadata.project_desc.scripts.description']='Description';
 $lang['metadata.project_desc.scripts.methods']='Methods';
 $lang['metadata.project_desc.scripts.dependencies']='Dependencies';
 $lang['metadata.project_desc.scripts.instructions']='Instructions or note for running the script';
-$lang['metadata.project_desc.scripts.source_code_repo']='Source code repositor';
+$lang['metadata.project_desc.scripts.source_code_repo']='Source code repository';
 $lang['metadata.project_desc.scripts.notes']='Notes';
 
 

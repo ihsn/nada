@@ -29,7 +29,11 @@ if (!isset($exclude_sidebar_items)){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify-jquery.min.js"></script>
 
 <script>
-    $(function() {
-        $(".metadata-container").linkify();
+    $(function() {        
+        $(".metadata-container").linkify(
+            linkify.options.defaults.validate = function (text, type) {
+                return type !== 'url' || /^(http|ftp)s?:\/\//.test(text) || text.slice(0,3) === 'www';
+            }
+        );
     });
 </script> 

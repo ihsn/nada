@@ -51,6 +51,10 @@ class Study extends MY_Controller {
 
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
+
+		if($survey['type']=='script'){			
+			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);
+		}
 		
 		$this->metadata_template->initialize($survey['type'],$survey);
 		$output=$this->metadata_template->render_html();
@@ -352,6 +356,18 @@ class Study extends MY_Controller {
 			case 'timeseries':
 			case 'table':
 			case 'script':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					//hide related materials
+					'related_materials'=>array(
+						'show_tab'=> 0
+					)
+				);
+				break;
 			case 'geospatial':
 			case 'visualization':
 				$page_tabs=array(
