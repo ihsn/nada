@@ -286,6 +286,42 @@
           "title": "Abstract"
         }, 
 
+        "process":{
+          "title":"Process",
+          "description": "A description, following a logical sequence, of the various phases of the project implementation. This field may be used to document explorations steps that may have resulted in dead ends, to document intermediary steps at which a project may have been reviewed and approved, etc.",
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "id_number":{
+                "title":"Number",
+                "type":"string",
+                "description": "A sequential number of the phase (typically 1, 2, …, N)"
+              },
+              "name":{
+                "title":"Name",
+                "description": "A short name for the implementation phase",
+                "type":"string"
+              },
+              "date_start":{
+                "title":"Start date",
+                "description":"Start date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
+                "type":"string"
+              },
+              "date_end":{
+                "title":"End date",
+                "description":"End date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
+                "type":"string"
+              },
+              "description":{
+                "title":"Description",
+                "type":"string",
+                "description": "Description of the implementation phase"
+              }
+            }
+          }
+        },
+
         "keywords":{
           "title":"Keywords",
           "type":"array",
@@ -794,6 +830,11 @@
             "properties": {
               "file_name": {
                 "title": "File name",
+                "type": "string"
+              },
+              "zip_package": {
+                "title": "Zip file",
+                "description": "Provide the name of the zip file, if the file is included in a zip",
                 "type": "string"
               },
               "title": {
