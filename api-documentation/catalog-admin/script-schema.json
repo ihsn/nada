@@ -395,6 +395,23 @@
             ]
           }
         },
+        "tags": {
+          "type": "array",
+          "title": "Tags",
+          "description": "Tags",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tag": {
+                "title": "Tag",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
         "disciplines": {
           "type": "array",
           "title": "Disciplines",
