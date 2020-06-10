@@ -4,14 +4,12 @@
   "title": "Script Schema [DRAFT]",
   "description": "Schema for Script data type",
   "type": "object",
-  "properties": {    
-
+  "properties": {
     "repositoryid": {
       "type": "string",
       "title": "Collection ID that owns the script",
       "description": "Abbreviation for the collection that owns the script"
     },
-    
     "published": {
       "type": "integer",
       "title": "Status",
@@ -20,16 +18,18 @@
     },
     "overwrite": {
       "type": "string",
-      "description": "Overwrite document if already exists?",            
-      "enum":["yes","no"],
+      "description": "Overwrite document if already exists?",
+      "enum": [
+        "yes",
+        "no"
+      ],
       "default": "no"
     },
-
-    "doc_desc": {      
+    "doc_desc": {
       "type": "object",
       "title": "Document Description",
       "description": "Document Description",
-      "properties": {        
+      "properties": {
         "title": {
           "title": "Document title",
           "description": "Document title",
@@ -82,47 +82,45 @@
       },
       "additionalProperties": false
     },
-
     "project_desc": {
       "type": "object",
       "title": "Project Description",
       "description": "Project Description",
-      "properties": {  
-
+      "properties": {
         "title_statement": {
           "type": "object",
           "description": "Study title",
-          "_ddi_xpath":"stdyDscr/citation/titlStmt",
+          "_ddi_xpath": "stdyDscr/citation/titlStmt",
           "properties": {
             "idno": {
               "type": "string",
               "title": "Unique user defined ID",
               "description": "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)",
-              "_ddi_xpath":"stdyDscr/citation/titlStmt/IDNo"
+              "_ddi_xpath": "stdyDscr/citation/titlStmt/IDNo"
             },
             "title": {
               "type": "string",
               "title": "Survey title",
               "description": "The title is the official name of the survey as it is stated on the questionnaire or as it appears in the design documents. The following items should be noted:\n - Include the reference year(s) of the survey in the title. \n - Do not include the abbreviation of the survey name in the title. \n - As the survey title is a proper noun, the first letter of each word should be capitalized (except for prepositions or other conjunctions).\n - Including the country name in the title is optional.",
-              "_ddi_xpath":"stdyDscr/citation/titlStmt/titl"
+              "_ddi_xpath": "stdyDscr/citation/titlStmt/titl"
             },
             "sub_title": {
               "type": "string",
               "title": "Survey subtitle",
               "description": "A short subtitle for the survey",
-              "_ddi_xpath":"stdyDscr/citation/titlStmt/subTitl"
+              "_ddi_xpath": "stdyDscr/citation/titlStmt/subTitl"
             },
             "alternate_title": {
               "type": "string",
               "title": "Abbreviation or Acronym",
               "description": "The abbreviation of a survey is usually the first letter of each word of the titled survey. The survey reference year(s) may be included.",
-              "_ddi_xpath":"stdyDscr/citation/titlStmt/altTitl"
+              "_ddi_xpath": "stdyDscr/citation/titlStmt/altTitl"
             },
             "translated_title": {
               "title": "Translated Title",
               "description": "In countries with more than one official language, a translation of the title may be provided.",
               "type": "string",
-              "_ddi_xpath":"stdyDscr/citation/titlStmt/parTitl"
+              "_ddi_xpath": "stdyDscr/citation/titlStmt/parTitl"
             }
           },
           "required": [
@@ -130,16 +128,14 @@
             "title"
           ]
         },
-
         "production_date": {
-          "title":"Date of production (YYYY-MM-DD)",
+          "title": "Date of production (YYYY-MM-DD)",
           "description": "Date when the project (dissemination-ready version) was implemented",
           "type": "array",
           "items": {
             "type": "string"
-            }      
+          }
         },
-
         "geographic_units": {
           "title": "Geographic locations",
           "description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
@@ -161,13 +157,13 @@
                 "title": "Type",
                 "description": "Type of geographic unit e.g. country, state, region, province etc",
                 "type": "string"
-              }          
+              }
             },
             "required": [
               "name"
             ]
           }
-        }, 
+        },
         "authoring_entity": {
           "type": "array",
           "title": "Authoring entity",
@@ -178,12 +174,12 @@
               "name": {
                 "title": "Agency Name",
                 "type": "string",
-                "description":"Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+                "description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
               },
               "role": {
                 "title": "Role",
                 "type": "string",
-                "description":"Title of the person (if any) responsible for the work's substantive and intellectual content."
+                "description": "Title of the person (if any) responsible for the work's substantive and intellectual content."
               },
               "affiliation": {
                 "title": "Affiliation",
@@ -191,11 +187,11 @@
               },
               "abbreviation": {
                 "title": "Abbreviation",
-                "description":"Abbreviation"
+                "description": "Abbreviation"
               },
               "email": {
                 "title": "Email",
-                "description":"Email"
+                "description": "Email"
               }
             },
             "required": [
@@ -213,12 +209,12 @@
               "name": {
                 "title": "Agency Name",
                 "type": "string",
-                "description":"Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+                "description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
               },
               "role": {
                 "title": "Role",
                 "type": "string",
-                "description":"Title of the person (if any) responsible for the work's substantive and intellectual content."
+                "description": "Title of the person (if any) responsible for the work's substantive and intellectual content."
               },
               "affiliation": {
                 "title": "Affiliation",
@@ -226,15 +222,15 @@
               },
               "abbreviation": {
                 "title": "Abbreviation",
-                "description":"Abbreviation"
+                "description": "Abbreviation"
               },
               "email": {
                 "title": "Email",
-                "description":"Email"
+                "description": "Email"
               },
               "url": {
                 "title": "URL",
-                "description":"URL"
+                "description": "URL"
               }
             },
             "required": [
@@ -252,12 +248,12 @@
               "name": {
                 "title": "Agency Name",
                 "type": "string",
-                "description":"Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+                "description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
               },
               "role": {
                 "title": "Role",
                 "type": "string",
-                "description":"Title of the person (if any) responsible for the work's substantive and intellectual content."
+                "description": "Title of the person (if any) responsible for the work's substantive and intellectual content."
               },
               "affiliation": {
                 "title": "Affiliation",
@@ -265,107 +261,103 @@
               },
               "abbreviation": {
                 "title": "Abbreviation",
-                "description":"Abbreviation"
+                "description": "Abbreviation"
               },
               "email": {
                 "title": "Email",
-                "description":"Email"
+                "description": "Email"
               },
               "url": {
                 "title": "URL",
-                "description":"URL"
+                "description": "URL"
               }
             },
             "required": [
               "name"
             ]
           }
-        },        
+        },
         "abstract": {
           "type": "string",
           "title": "Abstract"
-        }, 
-
-        "process":{
-          "title":"Process",
+        },
+        "process": {
+          "title": "Process",
           "description": "A description, following a logical sequence, of the various phases of the project implementation. This field may be used to document explorations steps that may have resulted in dead ends, to document intermediary steps at which a project may have been reviewed and approved, etc.",
-          "type":"array",
-          "items":{
-            "type":"object",
-            "properties":{
-              "id_number":{
-                "title":"Number",
-                "type":"string",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id_number": {
+                "title": "Number",
+                "type": "string",
                 "description": "A sequential number of the phase (typically 1, 2, …, N)"
               },
-              "name":{
-                "title":"Name",
+              "name": {
+                "title": "Name",
                 "description": "A short name for the implementation phase",
-                "type":"string"
+                "type": "string"
               },
-              "date_start":{
-                "title":"Start date",
-                "description":"Start date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
-                "type":"string"
+              "date_start": {
+                "title": "Start date",
+                "description": "Start date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
+                "type": "string"
               },
-              "date_end":{
-                "title":"End date",
-                "description":"End date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
-                "type":"string"
+              "date_end": {
+                "title": "End date",
+                "description": "End date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
+                "type": "string"
               },
-              "description":{
-                "title":"Description",
-                "type":"string",
+              "description": {
+                "title": "Description",
+                "type": "string",
                 "description": "Description of the implementation phase"
               }
             }
           }
         },
-
-        "keywords":{
-          "title":"Keywords",
-          "type":"array",
-          "items":{
-            "type":"object",
-            "properties":{
-              "name":{
-                "title":"Name",
-                "type":"string"
+        "keywords": {
+          "title": "Keywords",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
               },
-              "vocabulary":{
-                "title":"Vocabulary name",
-                "type":"string"
+              "vocabulary": {
+                "title": "Vocabulary name",
+                "type": "string"
               },
-              "uri":{
-                "title":"Vocabulary URI",
-                "type":"string"
+              "uri": {
+                "title": "Vocabulary URI",
+                "type": "string"
               }
             }
           }
         },
-
-        "themes":{
-            "title":"Themes",
-            "type":"array",
-            "items":{
-              "type":"object",
-              "properties":{
-                "name":{
-                  "title":"Name",
-                  "type":"string"
-                },
-                "vocabulary":{
-                  "title":"Vocabulary name",
-                  "type":"string"
-                },
-                "uri":{
-                  "title":"Vocabulary URI",
-                  "type":"string"
-                }
+        "themes": {
+          "title": "Themes",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "type": "string"
               }
             }
+          }
         },
-
         "topics": {
           "type": "array",
           "title": "Topics",
@@ -383,7 +375,7 @@
               },
               "parent_id": {
                 "title": "Parent topic Identifier",
-                "description":"For subtopics, provide the ID of the parent topic",
+                "description": "For subtopics, provide the ID of the parent topic",
                 "type": "string"
               },
               "vocabulary": {
@@ -398,11 +390,11 @@
               }
             },
             "required": [
-              "id","name"
+              "id",
+              "name"
             ]
           }
         },
-
         "disciplines": {
           "type": "array",
           "title": "Disciplines",
@@ -429,72 +421,68 @@
               "name"
             ]
           }
-        },       
-
-        "output_types":{
-          "title":"Output types",
+        },
+        "output_types": {
+          "title": "Output types",
           "description": "Type of outputs of the script/research project. Example: `On-line interactive data visualization`, `Working paper`",
-          "type":"array",
-          "items":{
-            "type":"object",
-            "properties":{
-              "type":{
-                "title":"Type",
-                "type":"string"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "type": "string"
               },
-              "description":{
-                "title":"Description",
-                "type":"string"
+              "description": {
+                "title": "Description",
+                "type": "string"
               },
-              "uri":{
-                "title":"URI",
-                "type":"string"
+              "uri": {
+                "title": "URI",
+                "type": "string"
               },
-              "doi":{
-                "title":"DOI",
-                "type":"string"
+              "doi": {
+                "title": "DOI",
+                "type": "string"
               }
             }
           }
         },
-        
         "repository_uri": {
-            "type": "array",
-            "title": "Source code repository",
-            "description": "Source code repository",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "title": "Repository name",
-                  "type": "string",
-                  "description":"Name of the repository where code is hosted. e.g. `Github`, `Bitbucket`, etc."
-                },
-                "type": {
-                  "title": "Type",
-                  "type": "string",
-                  "description":"Repo type e.g. `git`, `svn`, `other`"
-                },
-                "uri": {
-                  "title": "URI",
-                  "description":"URI"
-                }
+          "type": "array",
+          "title": "Source code repository",
+          "description": "Source code repository",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Repository name",
+                "type": "string",
+                "description": "Name of the repository where code is hosted. e.g. `Github`, `Bitbucket`, etc."
               },
-              "required": [
-                "name"
-              ]
-            }
-          },
-          
+              "type": {
+                "title": "Type",
+                "type": "string",
+                "description": "Repo type e.g. `git`, `svn`, `other`"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "URI"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
         "project_website": {
-          "title":"Project website",
+          "title": "Project website",
           "description": "Project website link",
           "type": "array",
           "items": {
             "type": "string"
-            }      
+          }
         },
-
         "version_statement": {
           "type": "object",
           "title": "Version Statement",
@@ -510,7 +498,7 @@
             },
             "version_resp": {
               "title": "Version Responsibility Statement",
-              "description":"The organization or person responsible for the version of the work",
+              "description": "The organization or person responsible for the version of the work",
               "type": "string"
             },
             "version_notes": {
@@ -519,11 +507,10 @@
             }
           }
         },
-        
         "language": {
           "type": "array",
           "title": "Language",
-          "description": "Documentation language e.g. English, French, etc.",          
+          "description": "Documentation language e.g. English, French, etc.",
           "items": {
             "type": "object",
             "properties": {
@@ -533,18 +520,17 @@
               },
               "code": {
                 "title": "Code",
-                "type": "string"              
+                "type": "string"
               }
             },
             "required": [
               "name"
             ]
-          }  
+          }
         },
-
         "methods": {
           "type": "array",
-          "title":"Methods or algorithms applied",
+          "title": "Methods or algorithms applied",
           "description": "Methods or algorithms used",
           "items": {
             "type": "object",
@@ -562,8 +548,7 @@
           "required": [
             "name"
           ]
-        },    
-       
+        },
         "software": {
           "type": "array",
           "title": "Software",
@@ -583,8 +568,8 @@
                 "title": "Libraries or packages used",
                 "description": "Libraries or packages used",
                 "type": "array",
-                "items":{
-                  "type":"string"
+                "items": {
+                  "type": "string"
                 }
               }
             }
@@ -595,24 +580,21 @@
         },
         "technology_environment": {
           "title": "Technology environment",
-          "description":"Notes about specific technology environment for the project",
+          "description": "Notes about specific technology environment for the project",
           "type": "string"
         },
         "technology_requirements": {
           "title": "Technology requirements",
-          "description":"Any specific software/hardware or other requirements",
+          "description": "Any specific software/hardware or other requirements",
           "type": "string"
         },
-        
         "reproduction_instructions": {
           "type": "string",
-          "description": "Reproduction instructions"    
-        }, 
-
-       
+          "description": "Reproduction instructions"
+        },
         "license": {
           "type": "array",
-          "title": "License",          
+          "title": "License",
           "items": {
             "type": "object",
             "properties": {
@@ -627,8 +609,6 @@
             }
           }
         },
-
-        
         "review_process": {
           "type": "array",
           "title": "Review process",
@@ -658,8 +638,7 @@
               }
             }
           }
-        }, 
-                        
+        },
         "disclaimer": {
           "title": "Disclaimer",
           "type": "string"
@@ -667,12 +646,11 @@
         "confidentiality": {
           "title": "Confidentiality",
           "type": "string"
-        },        
+        },
         "citation_requirement": {
           "type": "string",
           "description": "Citation requirements"
-        },   
-        
+        },
         "datasets": {
           "type": "array",
           "title": "Datasets",
@@ -706,8 +684,7 @@
           "required": [
             "name"
           ]
-        },        
-
+        },
         "sponsors": {
           "type": "array",
           "title": "Sponsor / Funding agency",
@@ -727,7 +704,7 @@
                 "title": "Role",
                 "type": "string"
               },
-              "grant_no":{
+              "grant_no": {
                 "title": "Grant number",
                 "type": "string"
               }
@@ -737,7 +714,6 @@
             "name"
           ]
         },
-
         "acknowledgements": {
           "type": "array",
           "title": "Other Identifications /Acknowledgments",
@@ -763,7 +739,6 @@
             "name"
           ]
         },
-                
         "related_projects": {
           "type": "array",
           "title": "Related projects/scripts",
@@ -789,7 +764,6 @@
             "name"
           ]
         },
-
         "contacts": {
           "type": "array",
           "title": "Contacts",
@@ -819,8 +793,6 @@
             "name"
           ]
         },
-
-
         "scripts": {
           "type": "array",
           "title": "Script files",
@@ -902,16 +874,13 @@
                 "title": "Notes",
                 "type": "string"
               }
-              
             }
-          },
-          "required": [
-            "title"
-          ]
+            ,
+            "required": [
+              "title"
+            ]
+          }
         }
-        
-        
-
       }
     }
   }
