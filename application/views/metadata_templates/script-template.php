@@ -35,6 +35,12 @@
     .metadata-content-body{
         border-left:1px solid gainsboro;
     }
+
+    .metadata-container .badge{
+        border-radius: .25rem !important;
+        font-size:100%;
+        font-weight:normal;
+    }
     
 </style>
 
@@ -54,18 +60,18 @@
             "metadata.project_desc.title_statement.translated_title"=>'text',
 
             "metadata.project_desc.production_date"=>'array',
-            "metadata.project_desc.geographic_units"=>'array',
+            "metadata.project_desc.geographic_units"=>'array_badge',
             "metadata.project_desc.authoring_entity"=>'array',
             "metadata.project_desc.contributors"=>'array',
             "metadata.project_desc.curators" =>'array',
             "metadata.project_desc.abstract" =>'text',
             "metadata.project_desc.process"=>'array',
-            "metadata.project_desc.keywords" =>'array',
-            "metadata.project_desc.themes" =>'array',
+            "metadata.project_desc.keywords" =>'array_badge',
+            "metadata.project_desc.themes" =>'array_badge',
             "metadata.project_desc.topics" =>'array',
             "metadata.project_desc.tags" =>'array_badge',
             "metadata.project_desc.disciplines" =>'array',        
-            "metadata.project_desc.output_types" =>'text',
+            "metadata.project_desc.output_types" =>'script_output_type',
             "metadata.project_desc.repository_url" =>'array',
             "metadata.project_desc.project_website" =>'text'            
         ),
@@ -76,10 +82,10 @@
         "metadata.project_desc.version_statement.version_notes"=>'text'
         ),
         'language'=> array(
-            "metadata.project_desc.language" =>'array'
+            "metadata.project_desc.language" =>'array_badge'
         ),
         'methods'=>array(
-            "metadata.project_desc.methods"=>'array',
+            "metadata.project_desc.methods"=>'array_badge',
         ),
         'software'=>array(
             "metadata.project_desc.software"=>'array',
@@ -96,7 +102,7 @@
             "metadata.project_desc.acknowledgements"=>'array',
         ),        
         'datasets' => array(
-            "metadata.project_desc.datasets"=>'array',
+            "metadata.project_desc.datasets"=>'script_datasets',
         ),        
         'related_projects' => array(
             "metadata.project_desc.related_projects"=>'array',
