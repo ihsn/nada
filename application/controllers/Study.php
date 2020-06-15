@@ -228,10 +228,12 @@ class Study extends MY_Controller {
 
 	
 	public function get_microdata($sid)
-	{
-		//get study data access type
-		$data_access_type=$this->Catalog_model->get_survey_form_model($sid);
-				
+	{		
+		$this->load->model("Form_model");		
+
+		$form_obj=$this->Form_model->get_form_by_survey($sid);
+		$data_access_type=$form_obj['form_type'];
+
 		if($data_access_type=='data_enclave'){
 			$data_access_type='enclave';
 		}
@@ -240,6 +242,7 @@ class Study extends MY_Controller {
 
 		if ($this->data_access->is_supported($data_access_type)){
 			$content=$this->data_access->process_form($sid,$user=$this->ion_auth->current_user());
+
 			if($content==''){
 				$content='NOT_DATA_AVAILABLE';
 			}
@@ -248,7 +251,6 @@ class Study extends MY_Controller {
 			$content="Data Access Not Available";
 		}
 
-		$options['sid']=$sid;
 		$this->render_page($sid, $content,'get_microdata');
 	}
 
@@ -372,10 +374,7 @@ class Study extends MY_Controller {
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,
 			'data_access_type'=>$data_access_type,
-			'data_classification'=> array(
-					'data_class_code'=>$dataset['data_class_code'],
-					'data_class_title'=>$dataset['data_class_title']
-				),
+			'data_classification'=> $dataset['data_class_code'],
 			'body'=>$content,
 			'has_related_materials'=>$related_resources_count,
             'has_citations'=>$related_citations_count,
@@ -384,7 +383,7 @@ class Study extends MY_Controller {
 			'related_studies_count'=>count($related_studies),
 			'related_studies_formatted'=>$related_studies_formatted
 		);
-		
+
 		$this->template->add_variable("body_class","container-fluid-n");
 		$html= $this->load->view('survey_info/layout',$options,true); 
 		$this->template->write('survey_title', "survey title",true);
@@ -508,9 +507,12 @@ class Study extends MY_Controller {
 		$this->load->model('Resource_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Public_model');
+		$this->load->model('Form_model');
 
 		$resource=$this->Resource_model->select_single($resource_id);
-		$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+		#$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+		$form_obj=$this->Form_model->get_form_by_survey($survey_id);
+		$data_access_type=$form_obj['form_type'];
 
 		if ($resource===FALSE){
 			show_error(t('RESOURCE_NOT_FOUND'));
@@ -569,10 +571,7 @@ class Study extends MY_Controller {
 				show_error("RESOURCE_NOT_AVAILABLE.");
 			}
 		}
-		else if($data_access_type=='direct' || $data_access_type=='open'){
-			$allow_download=TRUE;
-		}
-		else if($data_access_type=='data_na' ){
+		else if($data_access_type=='direct' || $data_access_type=='open' || $data_access_type=='data_na' ){
 			$allow_download=TRUE;
 		}
 		else if ($data_access_type=='public' && !$resource_is_microdata){
