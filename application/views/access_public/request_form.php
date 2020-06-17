@@ -7,8 +7,10 @@
 <style>
 .public-use td{border:1px solid gainsboro;padding:5px;}
 </style>
-
-<h1 class="page-title"><?php echo t('application_for_access_to_public_use_dataset');?></h1>
+<pre>
+  <?php print_r($form_obj);?>
+</pre>
+<h1 class="page-title"><?php echo t('application_for_access_to_dataset_'.$form_obj['model']);?></h1>
 <div style="font-style:italic;color:red;"><?php echo t('fields_marked_mandatory');?></div>
 
 <?php if (validation_errors() ) : ?>
@@ -69,7 +71,7 @@
         </div>
         <div>
           <div style="margin-top:5px;font-weight:bold;"><?php echo t('terms_and_conditions');?></div>
-			<div class="bull-list"><?php echo t('terms_text');?></div>
+			<div class="bull-list"><?php echo t('terms_text_'.$form_obj['model']);?></div>
         </div></td>
     </tr>
     <tr class="border">
