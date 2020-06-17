@@ -7,9 +7,6 @@
 <style>
 .public-use td{border:1px solid gainsboro;padding:5px;}
 </style>
-<pre>
-  <?php print_r($form_obj);?>
-</pre>
 <h1 class="page-title"><?php echo t('application_for_access_to_dataset_'.$form_obj['model']);?></h1>
 <div style="font-style:italic;color:red;"><?php echo t('fields_marked_mandatory');?></div>
 

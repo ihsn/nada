@@ -7,6 +7,8 @@ $lang['login_to_access_data_text']="To access data for this study, user must be 
 
 $lang['application_for_access_to_dataset_research']="Application for Access to Research Dataset";
 $lang['application_for_access_to_public_use_dataset']="Application for Access to a Public Use Dataset";
+$lang['application_for_access_to_dataset_public']="Application for Access to a Public Use Dataset";
+
 
 $lang['fields_marked_mandatory']="Fields marked with * are mandatory.";
 $lang['msg_information_confidential']="The information provided on this page will be kept confidential and will be used for internal purposes only.";
