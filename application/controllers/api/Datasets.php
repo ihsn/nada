@@ -328,28 +328,29 @@ class Datasets extends MY_REST_Controller
 			//get existing metadata
 			$metadata=$this->dataset_manager->get_metadata($sid);
 
-			//replace metadata with new options
-			$options=array_replace_recursive($metadata,$options);
-
 			//unset($metadata['idno']);
 
 			//replace metadata with new options
-			$options=array_replace_recursive($metadata,$options);
+			//$options=array_replace_recursive($metadata,$options);
+						
 
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
 			
-			//validate & update dataset
-			//$dataset_id=$this->dataset_manager->create_dataset($sid,$type,$options);
-			$dataset_id=$this->dataset_manager->create_dataset($type,$options);
+			//validate & update dataset			
+			if ($type=='survey'){
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_data=true);
+			}
+			else{
+				$dataset_id=$this->dataset_manager->create_dataset($sid,$type,$options);
+			}
 
 			//load updated dataset
 			$dataset=$this->dataset_manager->get_row($dataset_id);
 
 			$response=array(
 				'status'=>'success',
-				'dataset'=>$dataset,
-				'options'=>$options
+				'dataset'=>$dataset				
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
