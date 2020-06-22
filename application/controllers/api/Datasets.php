@@ -325,15 +325,6 @@ class Datasets extends MY_REST_Controller
 			//load dataset
 			$dataset=$this->dataset_manager->get_row($sid);
 
-			//get existing metadata
-			$metadata=$this->dataset_manager->get_metadata($sid);
-
-			//unset($metadata['idno']);
-
-			//replace metadata with new options
-			//$options=array_replace_recursive($metadata,$options);
-						
-
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
 			
@@ -342,7 +333,14 @@ class Datasets extends MY_REST_Controller
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_data=true);
 			}
 			else{
-				$dataset_id=$this->dataset_manager->create_dataset($sid,$type,$options);
+				//get existing metadata
+				$metadata=$this->dataset_manager->get_metadata($sid);
+
+				//unset($metadata['idno']);
+
+				//replace metadata with new options
+				$options=array_replace_recursive($metadata,$options);
+				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 			}
 
 			//load updated dataset

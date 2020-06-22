@@ -128,23 +128,29 @@ class Dataset_microdata_model extends Dataset_model {
      * 
      * Update dataset
      * 
+     * @merge_metadata - boolean
+     *  true  - merge/update individual values
+     *  false - replace all metadata with new values (no merge)
      * 
      */
-    function update_dataset($sid,$type,$options)
+    function update_dataset($sid,$type,$options, $merge_metadata=false)
 	{
 		//need this to validate IDNO for uniqueness
         $options['sid']=$sid;
         
-        //merge/replace metadata        
-        $metadata=$this->get_row($sid);
-        $metadata=array_merge($metadata,$this->get_metadata($sid));
+        //merge/replace metadata
+        if ($merge_metadata==true){
+            $metadata=$this->get_row($sid);
+            $metadata=array_merge($metadata,$this->get_metadata($sid));
 
-        if(is_array($metadata)){
-            unset($metadata['idno']);            
-            //replace metadata with new options
-            $options=array_replace_recursive($metadata,$options);
+            if(is_array($metadata)){
+                unset($metadata['idno']);
+                
+                //replace metadata with new options
+                $options=array_replace_recursive($metadata,$options);
+            }
         }
-        
+
 		//validate schema
 		$this->validate_schema($type,$options);
 
@@ -159,6 +165,7 @@ class Dataset_microdata_model extends Dataset_model {
 		if(is_numeric($new_id) && $sid!=$new_id ){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
         }
+                
 
         $options['changed']=date("U");
 				
@@ -177,9 +184,6 @@ class Dataset_microdata_model extends Dataset_model {
             unset($options['study_desc']);
         }
         
-        /*
-        //excluded from metadata update
-
         if(isset($options['data_files'])){
             $data_files=$options['data_files'];
             unset($options['data_files']);
@@ -193,7 +197,7 @@ class Dataset_microdata_model extends Dataset_model {
         if(isset($options['variable_groups'])){
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
-        }*/
+        }
 
 		//start transaction
 		$this->db->trans_start(); 
@@ -220,19 +224,19 @@ class Dataset_microdata_model extends Dataset_model {
         //todo
 
 		 //data files
-        // $this->create_update_data_files($sid,$data_files);
+         $this->create_update_data_files($sid,$data_files);
         
          //variables
-         //$this->create_update_variables($sid,$variables);
+         $this->create_update_variables($sid,$variables);
 
          //variable groups
-         //$this->create_update_variable_groups($sid,$variable_groups);
+         $this->create_update_variable_groups($sid,$variable_groups);
 		
 		//complete transaction
         $this->db->trans_complete();
         
         //concat variable metadata into a single field for study+variable search
-        //$this->index_variable_data($sid);
+        $this->index_variable_data($sid);
 
 		return $sid;
     }
