@@ -28,9 +28,13 @@
                     }
                 ?>
                 <li>
-                    <a href="<?php echo $row['uri'];?>" target="_blank">
+                    <?php if(isset($row['uri'])):?>
+                        <a href="<?php echo $row['uri'];?>" target="_blank">
+                            <?php echo implode(", ", $link_text);?>
+                        </a>
+                    <?php else:?>
                         <?php echo implode(", ", $link_text);?>
-                    </a>
+                    <?php endif;?>
                 </li>
             <?php endforeach;?>
         </ul>
