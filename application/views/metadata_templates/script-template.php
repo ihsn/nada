@@ -46,7 +46,7 @@
 
 
     <div class="col">
-        <h2><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.title','.');?></h2>
+        <h4><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.title','.');?></h4>
         <h6><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.sub_title','.');?></h6>
 
         <?php if ($translated_title=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.translated_title','.')):?>
