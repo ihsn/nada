@@ -45,74 +45,116 @@
 </style>
 
 
+    <div class="col">
+        <h2><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.title','.');?></h2>
+        <h6><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.sub_title','.');?></h6>
 
+        <?php if ($translated_title=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.translated_title','.')):?>
+        <div>(<?php echo $translated_title?>)</div>
+        <?php endif;?>
 
+        
+        <?php 
+            $abbr=array();
+            $abbr[]=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.alternate_title','.');        
+            $prod_dates=get_array_nested_value ($metadata, 'metadata.project_desc.production_date','.');
+            $abbr[]= implode(" - ", $prod_dates);
+            $abbr= implode(", ", array_filter($abbr));
+        ?>
+
+        <?php if (!empty($abbr)):?>
+        <div>
+            <?php echo $abbr;?>
+        </div>
+        <?php endif;?>
+
+        <?php if($idno=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.idno','.')):?>
+            <div><?php echo $idno;?></div>
+        <?php endif;?>    
+        
+        <?php if($abstract=get_array_nested_value ($metadata, 'metadata.project_desc.abstract','.')):?>
+            <p class="mt-2"><?php echo $abstract;?></p>
+        <?php endif;?>
+
+    </div>
 <?php 
 
     //rendered html for all sections
     $output=array();
 
     $template=array(
-        'identification'=>array(
-            "metadata.project_desc.title_statement.title"=>'text',
-            "metadata.project_desc.title_statement.sub_title" =>'text',
-            "metadata.project_desc.title_statement.alternate_title"=>'text',
-            "metadata.project_desc.title_statement.translated_title"=>'text',
+        ''=>array(
+            //"metadata.project_desc.title_statement.title"=>'text',
+            //"metadata.project_desc.title_statement.sub_title" =>'text',
+            //"metadata.project_desc.title_statement.alternate_title"=>'text',
+            //"metadata.project_desc.title_statement.translated_title"=>'text',
 
-            "metadata.project_desc.production_date"=>'array',
-            "metadata.project_desc.geographic_units"=>'array_badge',
+            //"metadata.project_desc.production_date"=>'array',            
             "metadata.project_desc.authoring_entity"=>'array',
             "metadata.project_desc.contributors"=>'array',
             "metadata.project_desc.curators" =>'array',
-            "metadata.project_desc.abstract" =>'text',
-            "metadata.project_desc.process"=>'array',
-            "metadata.project_desc.keywords" =>'array_badge',
-            "metadata.project_desc.themes" =>'array_badge',
-            "metadata.project_desc.topics" =>'array',
-            "metadata.project_desc.tags" =>'array_badge',
-            "metadata.project_desc.disciplines" =>'array',        
-            "metadata.project_desc.output_types" =>'script_output_type',
-            "metadata.project_desc.repository_url" =>'array',
-            "metadata.project_desc.project_website" =>'text'            
-        ),
-        'version'=>array(
-            "metadata.project_desc.version_statement.version"=>'text',
-            "metadata.project_desc.version_statement.version_date"=>'text',
-            "metadata.project_desc.version_statement.version_resp"=>'text',
-        "metadata.project_desc.version_statement.version_notes"=>'text'
-        ),
-        'language'=> array(
+            "metadata.project_desc.sponsors"=>'array',
+            "metadata.project_desc.acknowledgements"=>'array',
             "metadata.project_desc.language" =>'array_badge'
+        ),
+        
+        'process'=>array(
+            "metadata.project_desc.process"=>'array',
+            "metadata.project_desc.output_types" =>'script_output_type',
+            "metadata.project_desc.project_website" =>'text',            
+        ),
+
+        'software'=>array(
+            "metadata.project_desc.software"=>'array',
+            "metadata.project_desc.license"=>'array',
+            "metadata.project_desc.repository_url" =>'array',
+        ),        
+
+
+        'scripts'=> array(
+            "metadata.project_desc.scripts"=>'script_file',
+            "metadata.project_desc.technology_environment"=>'text',
+            "metadata.project_desc.technology_requirements"=>'text',
+            "metadata.project_desc.reproduction_instructions"=>'text'
         ),
         'methods'=>array(
             "metadata.project_desc.methods"=>'array_badge',
         ),
-        'software'=>array(
-            "metadata.project_desc.software"=>'array',
-            "metadata.project_desc.technology_environment"=>'text',
-            "metadata.project_desc.technology_requirements"=>'text',
-            "metadata.project_desc.reproduction_instructions"=>'text',
-            "metadata.project_desc.license"=>'array',
+        
+        'datasets' => array(
+            "metadata.project_desc.datasets"=>'script_datasets',
+            "metadata.project_desc.geographic_units"=>'array',
+            "metadata.project_desc.keywords" =>'array_badge',
+            "metadata.project_desc.themes" =>'array_badge',
+            "metadata.project_desc.topics" =>'array',
+            "metadata.project_desc.tags" =>'array_badge',
+            "metadata.project_desc.disciplines" =>'array',   
             "metadata.project_desc.review_process"=>'array',
             "metadata.project_desc.disclaimer"=>'text',
             "metadata.project_desc.confidentiality"=>'text',
             "metadata.project_desc.citation_requirement"=>'text',
 
-            "metadata.project_desc.sponsors"=>'array',
-            "metadata.project_desc.acknowledgements"=>'array',
-        ),        
-        'datasets' => array(
-            "metadata.project_desc.datasets"=>'script_datasets',
-        ),        
+            
+        ),  
+
+        /*'version'=>array(
+            "metadata.project_desc.version_statement.version"=>'text',
+            "metadata.project_desc.version_statement.version_date"=>'text',
+            "metadata.project_desc.version_statement.version_resp"=>'text',
+            "metadata.project_desc.version_statement.version_notes"=>'text'
+        ),*/
+
+        /*'language'=> array(
+            "metadata.project_desc.language" =>'array_badge'
+        ),*/
+        
+              
         'related_projects' => array(
             "metadata.project_desc.related_projects"=>'array',
         ),
         'contacts' => array(
             "metadata.project_desc.contacts"=>'array'
         ),
-        'scripts'=>array(
-            "metadata.project_desc.scripts"=>'script_file',
-        ),        
         
         'metadata_production'=>array(
             "metadata.doc_desc.idno"=>'text',
@@ -124,8 +166,6 @@
 ?>
 
 <?php
-
-$output=array(); 
 foreach($template as $section=>$fields){
     $output[$section]=render_group($section,$fields,$metadata, array('resources'=>$metadata['resources']));
 }
@@ -133,6 +173,6 @@ foreach($template as $section=>$fields){
 
 <?php 
     //renders html
-    $this->load->view('metadata_templates/metadata_output', array('output'=>$output));
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'hide_sidebar'=>true));
 ?>
 

@@ -175,6 +175,7 @@ $lang['metadata_production']='Metadata production';
 $lang['language']='Language';
 $lang['related_projects']='Related projects';
 $lang['contacts']='Contacts';
+$lang['process']='Process';
 
 
 
