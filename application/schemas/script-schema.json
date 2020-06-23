@@ -450,6 +450,10 @@
                 "title": "Type",
                 "type": "string"
               },
+              "title": {
+                "title": "Title",
+                "type": "string"
+              },
               "description": {
                 "title": "Description",
                 "type": "string"
