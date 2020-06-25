@@ -29,8 +29,6 @@ class Dataset_model extends CI_Model {
 		'year_end',
 		'link_da',
 		'published',
-		'created',
-		'changed',
 		'varcount',
 		'total_views',
 		'total_downloads',
@@ -1285,6 +1283,32 @@ class Dataset_model extends CI_Model {
 
 		return $result;
 	}
+
+
+	/**
+	 * 
+	 * Merge and replace nested metadata elements
+	 * 
+	 * @metadata - original metadata array
+	 * @replace - partial metadata array
+	 * 
+	 */
+	function array_merge_replace_metadata($metadata, $replace)
+    {
+        $metadata=array_replace_recursive($metadata,$replace);
+        $metadata_indexed_fields=array_indexed_elements($metadata);
+
+        foreach($metadata_indexed_fields as $path){
+            if ($replace_value=get_array_nested_value($replace,$path,"/")){
+                set_array_nested_value($metadata,$path,$replace_value,"/");
+            }
+        }
+
+        return $metadata;
+	}
+	
+
+	
 
 
 }//end-class

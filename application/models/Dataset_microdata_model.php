@@ -124,6 +124,8 @@ class Dataset_microdata_model extends Dataset_model {
 
 
 
+    
+
     /**
      * 
      * Update dataset
@@ -147,7 +149,9 @@ class Dataset_microdata_model extends Dataset_model {
                 unset($metadata['idno']);
                 
                 //replace metadata with new options
-                $options=array_replace_recursive($metadata,$options);
+                //$options=array_replace_recursive($metadata,$options);
+                $options=$this->array_merge_replace_metadata($metadata,$options);
+                $options=array_remove_nulls($options);
             }
         }
 
