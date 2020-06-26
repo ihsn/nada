@@ -28,7 +28,7 @@ class Tables extends MY_REST_Controller
 			}
 
 			$table_types=$this->Data_table_mongo_model->get_table_types_list($db_id);
-			$table_storage_info=$this->Data_table_mongo_model->get_tables_list($db_id,$options);
+			$table_storage_info=$this->Data_table_mongo_model->get_tables_list();
 
 			$output=array();
 
@@ -52,6 +52,42 @@ class Tables extends MY_REST_Controller
 			$response=array(
                 'status'=>'success',
 				'tables'=>$table_types,
+				//'tables_storage'=>$table_storage_info
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Return a list of all collections in the database
+	 * 
+	 * 
+	 */
+	function collection_tables_get()
+	{
+		try{
+			$get_params=array();
+			parse_str($_SERVER['QUERY_STRING'], $get_params);
+			
+			$options=array();
+			foreach(array_keys($get_params) as $param){
+				$options[$param]=$this->input->get($param,true);
+			}
+
+			$table_storage_info=$this->Data_table_mongo_model->get_tables_list();
+
+			
+			$response=array(
+                'status'=>'success',
 				'tables_storage'=>$table_storage_info
 			);
 
@@ -310,6 +346,14 @@ class Tables extends MY_REST_Controller
 			$options=array();			
 			foreach(array_keys($get_params) as $param){
 				$options[$param]=$this->input->get($param,true);
+			}
+
+			if ($this->input->get("offset") > 1){
+				$offset=(int)$this->input->get("offset");
+			}
+
+			if ($this->input->get("limit") > 1){
+				$limit=(int)$this->input->get("limit");
 			}
 
 			//$options=$this->raw_json_input();

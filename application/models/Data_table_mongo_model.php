@@ -117,8 +117,8 @@ class Data_table_mongo_model extends CI_Model {
 
 
 
-   //todo: new database name scheming 
-   function get_tables_list($db_id,$options=array())
+   //return storage info for all tables (collections) in db
+   function get_tables_list()
    {
        $database=$this->mongo_client->{$this->get_db_name()};
        $cursor = $database->command(['listCollections' => 1, 'nameOnly'=> true ]);
@@ -559,7 +559,11 @@ class Data_table_mongo_model extends CI_Model {
         if (is_array($labels) && !empty($labels)){
             
             //get codelists for features
-            $output['codelist']=$this->get_table_features_list($db_id,$table_id,$labels);
+            $feature_code_lists=$this->get_table_features_list($db_id,$table_id,$labels);
+
+            foreach($feature_code_lists as $code_list_){
+                $output['codelist'][$code_list_['feature_name']]=$code_list_;
+            }
 
             //include indicator code list?
             if (in_array('indicator',$labels)){
@@ -587,14 +591,25 @@ class Data_table_mongo_model extends CI_Model {
                     'code_list'=>$labels['data']
                 );
             }
+
         }else{
             unset($output['codelist']);
+        }
+
+        $indicators= json_decode(json_encode($output['codelist']['indicator']),true);
+
+        $new=array();
+        foreach($indicators['code_list'] as $indicator){
+            $new[$indicator['code']]=$indicator['label'];
         }
 
         //$output['codelist']=$geo_codes;
         $output['rows_count']=count($output['data']);
         return $output;
    } 
+
+
+   
 
    function get_projection_fields($fields)
    {
