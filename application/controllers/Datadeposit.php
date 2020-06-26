@@ -1563,7 +1563,8 @@ class Datadeposit extends MY_Controller {
 	}
 
 	
-	public function import_from_project() {
+	public function import_from_project() 
+	{
 		$from = (int)$this->input->get('from');
 		$to   = (int)$this->input->get('to');
 		$insert = $this->DD_project_model->import_from_project($this->session->userdata('user_id'), $from, $to); 

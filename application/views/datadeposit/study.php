@@ -45,65 +45,24 @@ left:0px;
 
 
 $(function() {
-	// Import Metadata //
-	$('#import_metadata-xxxx').change(function() {
-		mandatory=<?php echo json_encode($dup);?>;
-		var len=mandatory.length;
-		var completed=0;
-		$.each(mandatory, function(index, value) {
-			val=$('input[name*="'+value+'"]').val();
-			if (val != undefined && val != "" && val != '[]' && val != null && val != "--" && val !='0000-00-00') {
-				completed++;
-			}
-		});
-		if (completed > 1) {
-			if (confirm("<?php echo t('confirm_metadata_import'); ?>")) {
-				$.get("<?php echo site_url('datadeposit/import_from_project/'); ?>?from="+$('select :selected').val()+"&to=<?php echo $this->uri->segment(3);?>", null, function(data) {
-					if (data == 'fail') {
-						alert("<?php echo t('fail_import');?>");
-					} else if (data == 'success') {
-						alert("<?php echo t('success_import');?>");
-						$('.changedInput').removeClass('changedInput');
-						document.location.href="<?php echo current_url();?>";
-					}
-				});
-			}
-		}
-	});
-
     // Import Metadata button//
     $(document.body).on("click","#btn-import-metadata", function (e){
         //no project selected
         if (!$('#user-projects-list :selected').val()){
             alert('No project selected!');return;
         }
-
-    //$('#import_metadata').change(function() {
-        <?php
-        $dup = str_replace(array_keys($map), array_values($map), current($fields));
-        ?>
-        mandatory=<?php echo json_encode($dup);?>;
-        var len=mandatory.length;
-        var completed=0;
-        $.each(mandatory, function(index, value) {
-            val=$('input[name*="'+value+'"]').val();
-            if (val != undefined && val != "" && val != '[]' && val != null && val != "--" && val !='0000-00-00') {
-                completed++;
-            }
-        });
-        if (completed > 1) {
-            if (confirm("<?php echo t('confirm_metadata_import'); ?>")) {
-                $.get("<?php echo site_url('datadeposit/import_from_project/'); ?>?from="+$('#user-projects-list :selected').val()+"&to=<?php echo $this->uri->segment(3);?>", null, function(data) {
-                    if (data == 'fail') {
-                        alert("<?php echo t('fail_import');?>");
-                    } else if (data == 'success') {
-                        alert("<?php echo t('success_import');?>");
-                        $('.changedInput').removeClass('changedInput');
-                        document.location.href="<?php echo current_url();?>";
-                    }
-                });
-            }
+        if (confirm("<?php echo t('confirm_metadata_import'); ?>")) {
+            $.get("<?php echo site_url('datadeposit/import_from_project/'); ?>?from="+$('#user-projects-list :selected').val()+"&to=<?php echo $this->uri->segment(3);?>", null, function(data) {
+                if (data == 'fail') {
+                    alert("<?php echo t('fail_import');?>");
+                } else if (data == 'success') {
+                    alert("<?php echo t('success_import');?>");
+                    $('.changedInput').removeClass('changedInput');
+                    document.location.href="<?php echo current_url();?>";
+                }
+            });
         }
+
     });
 
 	/* Cleanup Text Boxes */
