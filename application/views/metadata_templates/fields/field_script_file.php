@@ -28,7 +28,7 @@
         <?php $k=0;foreach($data as $script):$k++;?>
             <div class="card">
             <div class="card-header" id="script-<?php echo $k;?>">
-                <h5 class="mt-1 mb-0 accordion-title float-left" 
+                <h6 class="mt-1 mb-0 accordion-title float-left" 
                     data-toggle="collapse" 
                     data-target="#script-body-<?php echo $k;?>" 
                     aria-expanded="true" 
@@ -36,7 +36,7 @@
                     >                
                     <i class="fa" aria-hidden="true"></i>
                     <?php echo $script['title'];?>
-                </h5>
+                </h6>
                 <?php if (isset($script['file_name'])):?> 
                     <?php if (isset($options['resources']) && array_key_exists($script['file_name'],$options['resources'])):?>                        
                         <?php 

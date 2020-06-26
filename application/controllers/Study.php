@@ -53,7 +53,7 @@ class Study extends MY_Controller {
 		$this->template->add_js($json_ld,'inline');
 
 		if($survey['type']=='script'){			
-			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);
+			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);			
 		}
 		
 		$this->metadata_template->initialize($survey['type'],$survey);
@@ -313,8 +313,10 @@ class Study extends MY_Controller {
 		//formatted related studies
 		$related_studies_formatted=$this->load->view('survey_info/related_studies',array('related_studies'=>$related_studies),true);
 
-		switch($dataset_type){
+		//default layout template view
+		$display_layout='survey_info/layout';
 
+		switch($dataset_type){
 			case 'survey':
 			case 'microdata':
 				$page_tabs=array(
@@ -356,6 +358,7 @@ class Study extends MY_Controller {
 			case 'timeseries':
 			case 'table':
 			case 'script':
+				$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -422,7 +425,7 @@ class Study extends MY_Controller {
 		
 		$this->template->write('title', $this->generate_survey_title($dataset),true);
 		$this->template->add_variable("body_class","container-fluid-n");
-		$html= $this->load->view('survey_info/layout',$options,true); 
+		$html= $this->load->view($display_layout,$options,true); 
 		$this->template->write('survey_title', "survey title",true);
 		$this->template->write('content', $html,true);
 		$this->template->render();
