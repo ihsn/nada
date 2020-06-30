@@ -192,6 +192,23 @@
               "email": {
                 "title": "Email",
                 "description": "Email"
+              },
+              "author_id":{
+                "type": "array",
+                "title": "Author ID",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "title": "Type",
+                      "description": "Author identifier type e.g. ORCID"
+                    },
+                    "id": {
+                      "title": "Identifier",
+                      "description": "Author identifier"
+                    }
+                  }
+                }
               }
             },
             "required": [
@@ -287,29 +304,24 @@
           "type": "array",
           "items": {
             "type": "object",
-            "properties": {
-              "id_number": {
-                "title": "Number",
-                "type": "string",
-                "description": "A sequential number of the phase (typically 1, 2, …, N)"
-              },
+            "properties": {              
               "name": {
-                "title": "Name",
+                "title": "Phase name",
                 "description": "A short name for the implementation phase",
                 "type": "string"
               },
               "date_start": {
-                "title": "Start date",
+                "title": "Phase start date",
                 "description": "Start date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
                 "type": "string"
               },
               "date_end": {
-                "title": "End date",
+                "title": "Phase end date",
                 "description": "End date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
                 "type": "string"
               },
               "description": {
-                "title": "Description",
+                "title": "Phase description",
                 "type": "string",
                 "description": "Description of the implementation phase"
               }
@@ -439,8 +451,8 @@
             ]
           }
         },
-        "output_types": {
-          "title": "Output types",
+        "output": {
+          "title": "Output",
           "description": "Type of outputs of the script/research project. Example: `On-line interactive data visualization`, `Working paper`",
           "type": "array",
           "items": {
@@ -456,6 +468,10 @@
               },
               "description": {
                 "title": "Description",
+                "type": "string"
+              },
+              "abstract": {
+                "title": "Abstract",
                 "type": "string"
               },
               "uri": {
@@ -630,6 +646,10 @@
             }
           }
         },
+        "copyright": {
+          "title": "Copyright",
+          "type": "string"
+        },
         "review_process": {
           "type": "array",
           "title": "Review process",
@@ -672,6 +692,10 @@
           "type": "string",
           "description": "Citation requirements"
         },
+        "data_statement": {
+          "type": "string",
+          "description": "Data statement"
+        },        
         "datasets": {
           "type": "array",
           "title": "Datasets",
@@ -693,6 +717,10 @@
               },
               "access_type": {
                 "title": "Data access policy",
+                "type": "string"
+              },
+              "license": {
+                "title": "License",
                 "type": "string"
               },
               "uri": {
@@ -894,6 +922,23 @@
               "notes": {
                 "title": "Notes",
                 "type": "string"
+              },
+              "license": {
+                "type": "array",
+                "title": "License",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "title": "License",
+                      "type": "string"
+                    },
+                    "uri": {
+                      "title": "URI",
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
             ,
