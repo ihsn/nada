@@ -171,13 +171,21 @@
             }
           }
         },
-		"review_process": {
+		"approval_process": {
           "type": "array",
-          "title": "Review process",
+          "title": "Approval process",
           "description": "A description of the project output review process",
           "items": {
             "type": "object",
             "properties": {
+              "approval_phase": {
+                "title": "A name of the approval phase",
+                "type": "string"
+              },
+              "approval_authority": {
+                "title": "Approval authority",
+                "type": "string"
+              },
               "submission_date": {
                 "title": "Date submitted",
                 "type": "string"
@@ -188,10 +196,6 @@
               },
               "review_status": {
                 "title": "Review status",
-                "type": "string"
-              },
-              "approval_authority": {
-                "title": "Approval authority",
                 "type": "string"
               },
               "approval_date": {
