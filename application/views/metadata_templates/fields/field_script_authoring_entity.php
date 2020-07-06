@@ -9,21 +9,14 @@
  */
 
  $hide_column_headings=false;
- $hide_field_title=false;
 
  if(isset($options['hide_column_headings'])){
      $hide_column_headings=$options['hide_column_headings'];
  }
- 
- if(isset($options['hide_field_title'])){
-    $hide_field_title=$options['hide_field_title'];
- }
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
 <div class="table-responsive field field-<?php echo str_replace(".","__",$name);?>">
-    <?php if ($hide_field_title!=true):?>
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
-    <?php endif;?>
     <div class="field-value">                
         <?php if (isset($data[0]) && is_array($data[0])):?>
         <?php            
@@ -56,8 +49,22 @@
                     <?php foreach($row as $key=>$value):?>
                         <?php if(!in_array($key,$columns)){continue;}?>
                         <td>
+                            <?php if($key=='author_id'):?>
+                                <?php foreach($value as $author_row):?>
+                                    <div>
+                                    <?php
+                                        $author_id_row=array();
+                                        $author_id_row[]=isset($author_row['type']) ? $author_row['type'] : null;
+                                        $author_id_row[]=isset($author_row['id']) ? $author_row['id'] : null;
+                                        echo implode(": ",array_filter($author_id_row));
+                                    ?>
+                                    </div>
+                                <?php endforeach;?>
+                                <?php continue;?>
+                            <?php endif;?>
+
                             <?php if(is_array($value)):?>
-                            <?php echo render_field($field_type='array_comma',$field_name=$name.'.'.$key,$value, array('hide_column_headings'=>true));?>
+                                <?php echo render_field($field_type='array_comma',$field_name=$name.'.'.$key,$value, array('hide_column_headings'=>true));?>
                             <?php else:?>
                                 <?php echo $value;?>
                             <?php endif;?>    

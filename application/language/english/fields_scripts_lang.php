@@ -36,6 +36,7 @@ $lang['metadata.project_desc.geographic_units.code']='Code';
 $lang['metadata.project_desc.geographic_units.type']='Type';
 $lang['metadata.project_desc.authoring_entity']='Authoring entity';
 $lang['metadata.project_desc.authoring_entity.name']='Agency Name';
+$lang['metadata.project_desc.authoring_entity.author_id']='Author ID';
 $lang['metadata.project_desc.authoring_entity.role']='Role';
 $lang['metadata.project_desc.authoring_entity.affiliation']='Affiliation';
 $lang['metadata.project_desc.authoring_entity.abbreviation']='Abbreviation';
@@ -73,11 +74,12 @@ $lang['metadata.project_desc.disciplines']='Disciplines';
 $lang['metadata.project_desc.disciplines.name']='Discipline title or name';
 $lang['metadata.project_desc.disciplines.vocabulary']='Vocabulary';
 $lang['metadata.project_desc.disciplines.uri']='URI';
-$lang['metadata.project_desc.output_types']='Output';
-$lang['metadata.project_desc.output_types.type']='Type';
-$lang['metadata.project_desc.output_types.description']='Description';
-$lang['metadata.project_desc.output_types.uri']='URI';
-$lang['metadata.project_desc.output_types.doi']='DOI';
+$lang['metadata.project_desc.output']='Output';
+$lang['metadata.project_desc.output.type']='Type';
+$lang['metadata.project_desc.output.title']='Title';
+$lang['metadata.project_desc.output.description']='Description';
+$lang['metadata.project_desc.output.uri']='URI';
+$lang['metadata.project_desc.output.doi']='DOI';
 $lang['metadata.project_desc.repository_uri']='Source code repository';
 $lang['metadata.project_desc.repository_uri.name']='Repository name';
 $lang['metadata.project_desc.repository_uri.type']='Type';
@@ -137,7 +139,7 @@ $lang['metadata.project_desc.contacts.name']='Name';
 $lang['metadata.project_desc.contacts.affiliation']='Affiliation';
 $lang['metadata.project_desc.contacts.uri']='URI';
 $lang['metadata.project_desc.contacts.phone']='Phone number';
-$lang['metadata.project_desc.scripts']='Script files';
+$lang['metadata.project_desc.scripts']='Scripts';
 $lang['metadata.project_desc.scripts.file_name']='File name';
 $lang['metadata.project_desc.scripts.zip_package']='Zip archive';
 $lang['metadata.project_desc.scripts.title']='Title';
@@ -177,7 +179,12 @@ $lang['related_projects']='Related projects';
 $lang['contacts']='Contacts';
 $lang['process']='Process';
 
+$lang['metadata.project_desc.process.name']='Name';
+$lang['metadata.project_desc.process.date_start']='Start date';
+$lang['metadata.project_desc.process.date_end']='End date';
+$lang['metadata.project_desc.process.description']='Description';
 
 
+$lang['metadata.project_desc.tags']='Tags';
 
 	

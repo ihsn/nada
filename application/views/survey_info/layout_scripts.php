@@ -27,6 +27,9 @@
   background-color: rgba(0, 0, 0, .5);
   box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
+.btn-xs{
+	font-size:12px;
+}
 </style>
 <?php
 /*

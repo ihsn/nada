@@ -161,9 +161,11 @@ if ( ! function_exists('is_simple_indexed_array'))
 
         if ($indexed==true){
             foreach($arr as $key=>$value){
-                foreach($value as $child){
-                    if (is_array($child)){
-                        return false;
+                if (is_array($value)){
+                    foreach($value as $child){
+                        if (is_array($child)){
+                            return false;
+                        }
                     }
                 }
             }        

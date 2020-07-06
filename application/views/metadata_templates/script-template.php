@@ -87,9 +87,9 @@
         'Overview'=>array(
             "metadata.project_desc.abstract"=>'text',
             "metadata.project_desc.keywords" =>'array_badge',
-            "metadata.project_desc.output_types" =>'script_output_type',
+            "metadata.project_desc.output" =>'script_output_type',
 
-            "metadata.project_desc.authoring_entity"=>'array',
+            "metadata.project_desc.authoring_entity"=>'script_authoring_entity',
             "metadata.project_desc.contributors"=>'array',
             "metadata.project_desc.curators" =>'array',
             "metadata.project_desc.sponsors"=>'array',
@@ -120,7 +120,7 @@
             "metadata.project_desc.repository_url" =>'array',
 
 
-            "metadata.project_desc.scripts"=>'script_file',
+            "metadata.project_desc.scripts"=>'script_file_v2',
             "metadata.project_desc.technology_environment"=>'text',
             "metadata.project_desc.technology_requirements"=>'text',
             "metadata.project_desc.reproduction_instructions"=>'text'

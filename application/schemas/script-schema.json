@@ -168,7 +168,10 @@
 				"description": "Digital Object Identifier (DOI) of the output",
                 "type": "string"
               }
-            }
+            },
+            "required": [
+              "title"
+            ]
           }
         },
 		"approval_process": {
