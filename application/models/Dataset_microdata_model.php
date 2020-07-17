@@ -36,15 +36,15 @@ class Dataset_microdata_model extends Dataset_model {
 		}
 
 		//validate IDNO field
-        $id=$this->find_by_idno($core_fields['idno']); 
+        $dataset_id=$this->find_by_idno($core_fields['idno']); 
 
 		//overwrite?
-		if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
+		/*if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
 			return $this->update_dataset($id,$type,$options);
-		}
+		}*/
 
-		if(is_numeric($id) ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$id);
+		if(is_numeric($dataset_id) && isset($options['overwrite']) && $options['overwrite']!=='yes'){
+			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
         }
         
         //split parts of the metadata
@@ -79,9 +79,15 @@ class Dataset_microdata_model extends Dataset_model {
 
 		//start transaction
 		$this->db->trans_start();
-				
-		//insert record
-        $dataset_id=$this->insert($type,$options);
+
+        if (!empty($dataset_id)){
+            //update/replace existing study
+            $this->update($dataset_id,$type,$options);
+        }
+        else{
+		    //insert record
+            $dataset_id=$this->insert($type,$options);
+        }
         
         //set owner repo
         $this->Dataset_model->set_dataset_owner_repo($dataset_id,$options['repositoryid']); 
@@ -116,7 +122,6 @@ class Dataset_microdata_model extends Dataset_model {
 		//complete transaction
         $this->db->trans_complete();
         
-
         $this->index_variable_data($dataset_id);
 
 		return $dataset_id;
@@ -163,8 +168,7 @@ class Dataset_microdata_model extends Dataset_model {
 		//if IDNO is changed, it should not be an existing IDNO
 		if(is_numeric($new_id) && $sid!=$new_id ){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
-        }
-                
+        }                
 
         $options['changed']=date("U");
 				
