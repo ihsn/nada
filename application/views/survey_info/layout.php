@@ -112,7 +112,7 @@
 			<span class="mr-3 link-col float-left">
 				<small>
 					<?php echo t('created_on');?> 
-					<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
+					<strong><?php echo date("F d, Y",$survey['created']);?></strong>
 				</small>
 			</span>
 			
