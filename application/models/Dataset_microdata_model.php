@@ -105,13 +105,13 @@ class Dataset_microdata_model extends Dataset_model {
 
 
         //data files
-        $this->create_update_data_files($dataset_id,$data_files);
+        $this->create_update_data_files($dataset_id,$data_files, $remove_existing=true);
         
         //variables
-        $this->create_update_variables($dataset_id,$variables);
+        $this->create_update_variables($dataset_id,$variables, $remove_existing=true);
 
 		//variable groups?
-		$this->create_update_variable_groups($dataset_id,$variable_groups);
+		$this->create_update_variable_groups($dataset_id,$variable_groups, $remove_existing=true);
 
 		//complete transaction
         $this->db->trans_complete();
@@ -142,14 +142,9 @@ class Dataset_microdata_model extends Dataset_model {
         
         //merge/replace metadata
         if ($merge_metadata==true){
-            $metadata=$this->get_row($sid);
-            $metadata=array_merge($metadata,$this->get_metadata($sid));
-
+            $metadata=$this->get_metadata($sid);
             if(is_array($metadata)){
-                unset($metadata['idno']);
-                
-                //replace metadata with new options
-                //$options=array_replace_recursive($metadata,$options);
+                unset($metadata['idno']);                
                 $options=$this->array_merge_replace_metadata($metadata,$options);
                 $options=array_remove_nulls($options);
             }
@@ -310,10 +305,14 @@ class Dataset_microdata_model extends Dataset_model {
 
 
     
-    private function create_update_variables($dataset_id,$variables)
-    {        
+    private function create_update_variables($dataset_id,$variables, $remove_existing=false)
+    {
+        if ($remove_existing==true){
+            $this->Variable_model->remove_all_variables($dataset_id);
+        }
+        
         if(is_array($variables)){
-			foreach($variables as $variable){
+			foreach($variables as $variable){ 
 				//validate file_id exists
 				$fid=$this->Data_file_model->get_fid_by_fileid($dataset_id,$variable['file_id']);
 		
@@ -382,10 +381,11 @@ class Dataset_microdata_model extends Dataset_model {
     }
 
 
-    private function create_update_variable_groups($dataset_id,$variable_groups)
+    private function create_update_variable_groups($dataset_id,$variable_groups, $remove_existing=false)
     {
-        //delete existing variable groups
-        $this->Variable_group_model->delete($dataset_id);
+        if($remove_existing){
+            $this->Variable_group_model->delete($dataset_id);
+        }
         
         if(is_array($variable_groups)){
 			foreach($variable_groups as $vgroup){
@@ -400,8 +400,12 @@ class Dataset_microdata_model extends Dataset_model {
      * Create data files for Surveys
      * 
      */
-    private function create_update_data_files($dataset_id,$data_files)
-    {        
+    private function create_update_data_files($dataset_id,$data_files, $remove_existing=false)
+    {
+        if ($remove_existing==true){
+            $this->Data_file_model->remove_all_files($dataset_id);
+        }
+
 		if(is_array($data_files)){
 			//create each data file
 			foreach($data_files as $data_file){					
@@ -514,6 +518,8 @@ class Dataset_microdata_model extends Dataset_model {
         if(!is_array($nations)){
             return false;
         }
+
+        $nation_names=array();
 
         foreach($nations as $nation){
             $nation_names[]=$nation['name'];
