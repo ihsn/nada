@@ -216,13 +216,17 @@ class Data_table_mongo_model extends CI_Model {
    {
        $table_id=strtolower($table_id);       
        $table=$this->get_table_type($db_id,$table_id);
+
+       if(empty($table)){
+           return array();
+       }
        
        if(empty($features)){
         return $table['features'];
        }
 
        $output=array();
-       
+
        foreach($table['features'] as $key=>$feature){
            if(in_array($feature['feature_name'],$features)){               
                $output[]=$feature;
@@ -596,12 +600,14 @@ class Data_table_mongo_model extends CI_Model {
             unset($output['codelist']);
         }
 
+
+        /*
         $indicators= json_decode(json_encode($output['codelist']['indicator']),true);
 
         $new=array();
         foreach($indicators['code_list'] as $indicator){
             $new[$indicator['code']]=$indicator['label'];
-        }
+        }*/
 
         //$output['codelist']=$geo_codes;
         $output['rows_count']=count($output['data']);
