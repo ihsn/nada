@@ -317,3 +317,4 @@ $lang['overview']='Overview';
 $lang['contacts']='Contacts';
 
 $lang['others']='Others';
+$lang['producer']='Producer';

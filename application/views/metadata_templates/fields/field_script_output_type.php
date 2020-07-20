@@ -22,7 +22,12 @@
         <ul>
             <?php foreach($data as $row):?>
                 <?php 
-                    $link_text=array($row['title']);
+                    $link_text=array();
+                    
+                    if (isset($row['title'])){
+                        $link_text['title']=$row['title'];
+                    }
+
                     if (!empty($row['doi'])){
                         $link_text[]=' (DOI '.$row['doi'].')';
                     }

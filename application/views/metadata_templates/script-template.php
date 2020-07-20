@@ -44,7 +44,7 @@
     
 </style>
 
-
+<?php /* ?>
     <div class="col">
         <h4><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.title','.');?></h4>
         <h6><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.sub_title','.');?></h6>
@@ -77,56 +77,70 @@
         <?php endif;?>
 
     </div>
+<?php */ ?>    
 <?php 
 
     //rendered html for all sections
     $output=array();
 
     $template=array(
-        ''=>array(
+        'Overview'=>array(
+            "metadata.project_desc.abstract"=>'text',
+            "metadata.project_desc.keywords" =>'array_badge',
+            "metadata.project_desc.output" =>'script_output_type',
+
+            "metadata.project_desc.authoring_entity"=>'script_authoring_entity',
+            "metadata.project_desc.contributors"=>'array',
+            "metadata.project_desc.curators" =>'array',
+            "metadata.project_desc.sponsors"=>'array',
+            "metadata.project_desc.acknowledgements"=>'array',
+            "metadata.project_desc.topics" =>'array',
+
             //"metadata.project_desc.title_statement.title"=>'text',
             //"metadata.project_desc.title_statement.sub_title" =>'text',
             //"metadata.project_desc.title_statement.alternate_title"=>'text',
             //"metadata.project_desc.title_statement.translated_title"=>'text',
 
             //"metadata.project_desc.production_date"=>'array',            
-            "metadata.project_desc.authoring_entity"=>'array',
-            "metadata.project_desc.contributors"=>'array',
-            "metadata.project_desc.curators" =>'array',
-            "metadata.project_desc.sponsors"=>'array',
-            "metadata.project_desc.acknowledgements"=>'array',
-            "metadata.project_desc.language" =>'array_badge'
+            
+            "metadata.project_desc.language" =>'array_badge',
+            "metadata.project_desc.process"=>'array'
+            
         ),
         
-        'process'=>array(
-            "metadata.project_desc.process"=>'array',
-            "metadata.project_desc.output_types" =>'script_output_type',
+        /*'process'=>array(
+            
             "metadata.project_desc.project_website" =>'text',            
-        ),
+        ),*/
 
-        'software'=>array(
+        'Methods, software and scripts'=>array(
+            "metadata.project_desc.methods"=>'array_badge',
             "metadata.project_desc.software"=>'array',
             "metadata.project_desc.license"=>'array',
             "metadata.project_desc.repository_url" =>'array',
+
+
+            "metadata.project_desc.scripts"=>'script_file_v2',
+            "metadata.project_desc.technology_environment"=>'text',
+            "metadata.project_desc.technology_requirements"=>'text',
+            "metadata.project_desc.reproduction_instructions"=>'text'
+            
         ),        
 
 
         'scripts'=> array(
-            "metadata.project_desc.scripts"=>'script_file',
-            "metadata.project_desc.technology_environment"=>'text',
-            "metadata.project_desc.technology_requirements"=>'text',
-            "metadata.project_desc.reproduction_instructions"=>'text'
+            
         ),
         'methods'=>array(
-            "metadata.project_desc.methods"=>'array_badge',
+            
         ),
         
         'datasets' => array(
             "metadata.project_desc.datasets"=>'script_datasets',
             "metadata.project_desc.geographic_units"=>'array',
-            "metadata.project_desc.keywords" =>'array_badge',
+            
             "metadata.project_desc.themes" =>'array_badge',
-            "metadata.project_desc.topics" =>'array',
+            
             "metadata.project_desc.tags" =>'array_badge',
             "metadata.project_desc.disciplines" =>'array',   
             "metadata.project_desc.review_process"=>'array',

@@ -33,13 +33,6 @@
  * survey info page template
  *
  **/?>
-<?php
-$country_name='';
-if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
-	$country_name=$survey['nation']. ' - ';
-}
-?>
-
 <div class="page-body-full study-metadata-page">
 	<span 
 		id="dataset-metadata-info" 
@@ -119,7 +112,7 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 			<span class="mr-3 link-col float-left">
 				<small>
 					<?php echo t('created_on');?> 
-					<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
+					<strong><?php echo date("F d, Y",$survey['created']);?></strong>
 				</small>
 			</span>
 			
