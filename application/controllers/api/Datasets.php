@@ -16,7 +16,34 @@ class Datasets extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		//session user id
+		if ($this->session->userdata('user_id'))
+		{
+			//var_dump($this->session->userdata('user_id'));
+			return true;
+		}
 
+		parent::_auth_override_check();
+	}
+
+
+	//override to support sessions
+	function get_api_user_id()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
+		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->_apiuser->user_id;
+		}
+
+		return false;
+	}
 	
 	/**
 	 * 
@@ -327,19 +354,34 @@ class Datasets extends MY_REST_Controller
 
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
+
+			//default to merge metadata and update partial metadata
+			$merge_metadata=true;
+
+			if(isset($options['merge_options'])){
+				if($options['merge_options']=='replace'){
+					$merge_metadata=false;//replace instead of merge
+				}
+			}
+
+			//merge dataset cataloging options
+        	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
 			if ($type=='survey'){
-				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_data=true);
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{
 				//get existing metadata
 				$metadata=$this->dataset_manager->get_metadata($sid);
 
 				//unset($metadata['idno']);
-
+				
 				//replace metadata with new options
-				$options=array_replace_recursive($metadata,$options);
+				if($merge_metadata==true){
+					$options=array_replace_recursive($metadata,$options);
+				}
+
 				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 			}
 
