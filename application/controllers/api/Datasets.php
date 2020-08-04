@@ -1545,6 +1545,32 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 *  Repopulate index for a single study
+	 * 	 
+	 * 
+	 */
+	public function repopulate_index_get($idno=null)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			$sid=$this->get_sid_from_idno($idno);
+						
+			$result=$this->dataset_manager->repopulate_index($sid);
+			
+			$output=array(
+				'status'=>'success',
+				'result'=>$result				
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
 
 	function import_geospatial_post()
 	{
@@ -1794,6 +1820,38 @@ class Datasets extends MY_REST_Controller
 				'errors'=>$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * Return indexed keywords for the study
+	 * 
+	 */
+	function keywords_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->get_keywords($sid);			
+				
+			if(!$result){
+				throw new Exception("DATASET_NOT_FOUND");
+			}
+
+			$response=array(
+				'status'=>'success',
+				'keywords'=>$result
+			);			
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
