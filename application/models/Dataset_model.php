@@ -239,8 +239,6 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	
-
     //returns survey metadata array
     function get_metadata($sid)
     {
@@ -252,10 +250,23 @@ class Dataset_model extends CI_Model {
             return $this->decode_metadata($survey['metadata']);
         }
 	}
+
+	/**
+	 * 
+	 * Return survey keywords
+	 * 
+	 */
+	function get_keywords($sid)
+	{
+		$this->db->select("keywords");
+		$this->db->where("id",$sid);
+		return $this->db->get("surveys")->row_array();
+	}
+
 	
 	public function set_metadata($sid, $metadata)
 	{
-		return $this->update($sid, array('metadata'=>$metadata));
+		return $this->update_options($sid, array('metadata'=>$metadata));
 	}	
 	
 	
@@ -732,7 +743,7 @@ class Dataset_model extends CI_Model {
 			'published'=>$status
 		);
 		
-		$this->update($sid,$options);
+		$this->update_options($sid,$options);
 	}
 	
 	
@@ -996,7 +1007,8 @@ class Dataset_model extends CI_Model {
 			'formid'=>$da_type,
 			'link_da'=>$da_link
 		);
-		return $this->update($sid,$options);
+
+		return $this->update_options($sid,$options);
 	}
 
 
@@ -1012,21 +1024,13 @@ class Dataset_model extends CI_Model {
 	//validate survey IDNO
 	public function validate_survey_idno($idno)
 	{	
-		var_dump($idno);
-		
 		$sid=null;
 		if(array_key_exists('sid',$this->form_validation->validation_data)){
 			$sid=$this->form_validation->validation_data['sid'];
 		}
 
-		var_dump($sid);
-		echo "=======";
-
 		//check if the survey id already exists
 		$id=$this->find_by_idno($idno);	
-
-		var_dump($id);
-		echo "=======";
 
 		if (is_numeric($id) && $id!=$sid ) {
 			$this->form_validation->set_message(__FUNCTION__, 'The ID should be unique.' );
