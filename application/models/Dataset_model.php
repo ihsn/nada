@@ -467,11 +467,25 @@ class Dataset_model extends CI_Model {
 		
 		$keywords=$type. ' '.str_replace(array("\n","\r")," ",$this->array_to_plain_text($metadata));
 
+		$noise_words=explode(",",
+			'about,after,all,also,an,and,another,any,are,as,at,be,because,been,before,
+			being,between,both,but,by,came,can,come,could,did,do,each,for,from,get,
+			got,has,had,he,have,her,here,him,himself,his,how,if,in,into,is,it,like,
+			make,many,me,might,more,most,much,must,my,never,now,of,on,only,or,other,
+			our,out,over,said,same,see,should,since,some,still,such,take,than,that,
+			the,their,them,then,there,these,they,this,those,through,to,too,under,up,
+			very,was,way,we,well,were,what,where,which,while,who,with,would,you,your,a,
+			b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,$,1,2,3,4,5,6,7,8,9,0,_'
+		);
+		$noise_words=array_map('trim',$noise_words);
+
+		$keywords= preg_replace('/\b('.implode('|',$noise_words).')\b/i','',$keywords);
+
 		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
 			//words with length = 3
 			$pattern='/\b\w{3}\b/';
 			//add underscore as a prefix
-			return preg_replace($pattern, '_${0}', $keywords);
+			$keywords= preg_replace($pattern, '_${0}', $keywords);
 		}
 		
 		return $keywords;
