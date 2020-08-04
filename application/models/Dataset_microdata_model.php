@@ -263,14 +263,21 @@ class Dataset_microdata_model extends Dataset_model {
         $variables=$this->variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories);
         
         $output=[];
+        $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit');
+
+        if($include_categories==false){
+            $exclude_columns[]="catgry";
+        }
+        
         foreach($variables as $variable){
             $tmp=array();
-            
-            foreach($variable as $key=>$value){
-                $tmp[]=$value;
+            foreach($variable['metadata'] as $key=>$value){
+                if(!in_array($key,$exclude_columns)){
+                    $tmp[]=$value;
+                }
             }
-
-            $output[]=implode(" ",$tmp);
+            
+            $output[]=$this->array_to_plain_text($tmp);
         }
 
         $output=implode(" ",$output);
@@ -291,11 +298,12 @@ class Dataset_microdata_model extends Dataset_model {
      */
     private function variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories=true)
     {
-        $this->db->select("uid,name,labl,qstn");
+        //$this->db->select("uid,name,labl,qstn");
+        $this->db->select("metadata");
         
-        if($include_categories){
-            $this->db->select("catgry");
-        }
+        /*if($include_categories){
+            //$this->db->select("catgry");
+        }*/
 
         if($limit>0){
             $this->db->limit($limit);
@@ -304,7 +312,18 @@ class Dataset_microdata_model extends Dataset_model {
         $this->db->where('sid',$sid);
         $this->db->order_by('uid');
         $this->db->where('uid>=',$start_id);
-        return $this->db->get('variables')->result_array();
+        $result=$this->db->get('variables')->result_array();
+
+        foreach($result as $index=>$row)
+        {
+            $result[$index]['metadata']=$this->decode_metadata($row['metadata']);
+
+            if(!$include_categories){
+                unset($result[$index]['metadata']['catgry']);
+            }
+        }
+
+        return $result;
     }
 
 
