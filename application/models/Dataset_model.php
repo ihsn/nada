@@ -258,7 +258,7 @@ class Dataset_model extends CI_Model {
 	 */
 	function get_keywords($sid)
 	{
-		$this->db->select("keywords");
+		$this->db->select("keywords,var_keywords");
 		$this->db->where("id",$sid);
 		return $this->db->get("surveys")->row_array();
 	}
@@ -564,7 +564,8 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function has_datafiles($sid){
+	function has_datafiles($sid)
+	{
 		$this->db->select('id');
 		$this->db->from('data_files');
 		$this->db->where('sid',$sid);

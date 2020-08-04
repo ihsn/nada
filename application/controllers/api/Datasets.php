@@ -1849,7 +1849,7 @@ class Datasets extends MY_REST_Controller
 
 			$response=array(
 				'status'=>'success',
-				'keywords'=>$result
+				'result'=>$result
 			);			
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
