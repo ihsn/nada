@@ -29,7 +29,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Data_classification_model');
 
 		//todo - set which filters to enable
-		//$this->enabled_filters=array();
+		$this->enabled_filters=array('countries');
 
 		//$this->output->enable_profiler(TRUE);
 
@@ -789,4 +789,20 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
+
+	function study($codebookid=NULL)
+	{		
+		if ($codebookid==NULL){
+			show_404();
+		}
+
+		$sid=$this->Catalog_model->get_survey_uid($codebookid);
+
+		if ($sid){
+			redirect('catalog/'.$sid);
+		}
+		else{
+			show_404();
+		}
+	}
 }    
