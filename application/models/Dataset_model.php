@@ -1228,26 +1228,6 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	/**
-	 * 
-	 * 
-	 * Re-populate keywords field with updated metadata
-	 * 
-	 * 
-	 */
-	function repopulate_index($sid)
-	{
-		$metadata=$this->get_metadata($sid);
-		$type=$this->get_type($sid);
-
-		$data=array(
-			'keywords'=>$this->extract_keywords($metadata,$type)
-		);
-		
-		$this->db->where('id',$sid);
-		return $this->db->update('surveys',$data);
-	}
-
 	
 	/**
 	 * 
