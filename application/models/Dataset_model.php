@@ -465,7 +465,7 @@ class Dataset_model extends CI_Model {
 			}
 		}
 		
-		$keywords=$type. ' '.str_replace("\n","",$this->array_to_plain_text($metadata));
+		$keywords=$type. ' '.str_replace(array("\n","\r")," ",$this->array_to_plain_text($metadata));
 
 		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
 			//words with length = 3
