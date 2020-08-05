@@ -91,8 +91,11 @@ class Dataset_image_model extends Dataset_model {
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/headline');
         $output['idno']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/digitalImageGuid');
-        $output['nation']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/countryName');
+        
+        $locations=$this->get_country_names($this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/locationsShown'));
+        $output['nation']=$this->get_country_names_string($locations);
         $output['abbreviation']='';
+        
         $creators=(array)$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/creatorNames');
 		$output['authoring_entity']=implode(",", $creators);
 
@@ -104,6 +107,41 @@ class Dataset_image_model extends Dataset_model {
         }
         
         return $output;
+    }
+
+
+    /**
+     * 
+     * Return an array of country names
+     * 
+     */
+	function get_country_names($nations)
+	{
+        if(!is_array($nations)){
+            return false;
+        }
+
+        $nation_names=array();
+
+        foreach($nations as $nation){
+            if(isset($nation['countryName'])){
+                $nation_names[]=$nation['countryName'];
+            }
+        }	
+        return $nation_names;	
+    }
+    
+    /**
+     * 
+     * Return a comma separated list of country names
+     */
+    function get_country_names_string($nations)
+    {
+        $nation_str=implode(", ",$nations);
+        if(strlen($nation_str)>150){
+            $nation_str=substr($nation_str,0,145).'...';
+        }
+        return $nation_str;
     }
 
 
