@@ -60,7 +60,10 @@ class Dataset_image_model extends Dataset_model {
         }
 
 		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        
+        //countries
+        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set topics
 
@@ -92,8 +95,13 @@ class Dataset_image_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/headline');
         $output['idno']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/digitalImageGuid');
         
-        $locations=$this->get_country_names($this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/locationsShown'));
-        $output['nation']=$this->get_country_names_string($locations);
+        //extract country names from the location element
+        $nations=$this->get_country_names($this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/locationsShown'));    
+        $output['nations']=$nations;
+        $nation_str=$this->get_country_names_string($nations);        
+        $nation_system_name=$this->Country_model->get_country_system_name($nation_str);
+        $output['nation']=($nation_system_name!==false) ? $nation_system_name : $nation_str;
+        
         $output['abbreviation']='';
         
         $creators=(array)$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/creatorNames');
