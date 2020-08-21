@@ -30,8 +30,7 @@
     "data_remote_url": {
       "type": "string",
       "title": "Data website URL",
-      "description": "Link to the website where the data is available, this is only needed if `access_policy` is set to `remote`.",
-      "default": 0
+      "description": "Link to the website where the data is available, this is only needed if `access_policy` is set to `remote`."
     },
     "published": {
       "type": "integer",
