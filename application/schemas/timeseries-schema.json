@@ -725,7 +725,6 @@
 		}
 	  },    
 	  "required": [
-		"idno",
 		"series_description"
 	  ]
 	}
