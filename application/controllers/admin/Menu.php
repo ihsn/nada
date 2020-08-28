@@ -485,11 +485,8 @@ class Menu extends MY_Controller {
 		}
 
 		//load javascript/css for the JQuery Sortable
-		$this->template->add_css('javascript/jquery/themes/base/jquery.ui.theme.css');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.core.min.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.widget.min.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.mouse.min.js');		
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.sortable.js');
+		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');
 
 		//get array of all published menu items
 		$data['rows']=$this->Menu_model->select_all('weight','ASC');

@@ -16,10 +16,10 @@ class Reports extends MY_Controller {
 	function index()
 	{	
 		$this->template->set_template('admin');		
+		
 		//javascript/css needed for showing the date picker
-		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.datepicker.js');	
+		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');	
 		
 		//show the view with report options		
 		$this->template->write_view('content', 'reports/index', NULL, TRUE);			

@@ -252,10 +252,6 @@ class Resources extends MY_Controller {
 			$this->js_files=implode(' ', $files_array);
 		}
 		
-		//js and css for auto complete field
-		$this->template->add_css('javascript/autocomplete/jquery.autocomplete.css');
-		$this->template->add_js('javascript/autocomplete/jquery.autocomplete.pack.js');		
-
 		//check id
 		if (!is_numeric($id) && $id!='add')
 		{

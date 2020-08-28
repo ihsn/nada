@@ -53,7 +53,7 @@ $site_navigation_menu=get_site_menu();
         <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
       <![endif]-->
 
-    <script src="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/jquery/jquery-3.2.1.min.js"></script>
+    <script src="<?php echo base_url(); ?>javascript/jquery/jquery.js"></script>
     <script src="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/js/bootstrap.min.js"></script>
 
     <!--bootstrap toggle button-->

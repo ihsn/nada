@@ -94,7 +94,6 @@ class Catalog extends MY_Controller {
 		$this->template->add_js($embed_js,'embed');
 
 		$this->template->add_js('javascript/datacatalog.js');
-		$this->template->add_js('javascript/jquery.scrollTo-min.js');
 		$this->template->add_js('javascript/jquery.blockui.js');		
 
 		//page description metatags

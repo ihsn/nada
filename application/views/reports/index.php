@@ -1,5 +1,4 @@
 <style>
-/*to be moved to external style sheet*/
 .report-table{border-collapse:collapse;border:1px solid gainsboro;}
 .report-table tr th{background-color:gainsboro;border-bottom:2px solid gainsboro;font-weight:bold;padding:5px;}
 .report-table td{border-bottom:1px solid gainsboro;padding:5px;}

@@ -1587,11 +1587,6 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		$this->acl->user_has_study_access($id);
 
-		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-		//$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
 		$this->load->model('Citation_model');
 		$this->load->model('Catalog_notes_model');
 		$this->load->model('Catalog_tags_model');
