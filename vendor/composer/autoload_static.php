@@ -4,20 +4,24 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
+class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     );
 
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
         'V' => 
         array (
             'Violet\\StreamingJsonEncoder\\' => 28,
         ),
         'S' => 
         array (
-            'Symfony\\Contracts\\' => 18,
+            'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Component\\EventDispatcher\\' => 34,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
@@ -26,6 +30,7 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'M' => 
         array (
@@ -48,13 +53,17 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
     );
 
     public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
         'Violet\\StreamingJsonEncoder\\' => 
         array (
             0 => __DIR__ . '/..' . '/violet/streaming-json-encoder/src',
         ),
-        'Symfony\\Contracts\\' => 
+        'Symfony\\Contracts\\EventDispatcher\\' => 
         array (
-            0 => __DIR__ . '/..' . '/symfony/contracts',
+            0 => __DIR__ . '/..' . '/symfony/event-dispatcher-contracts',
         ),
         'Symfony\\Component\\EventDispatcher\\' => 
         array (
@@ -75,6 +84,10 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Mpdf\\' => 
         array (
@@ -102,30 +115,11 @@ class ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece
         ),
     );
 
-    public static $classMap = array (
-        'EasyPeasyICS' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/EasyPeasyICS.php',
-        'FPDF_TPL' => __DIR__ . '/..' . '/setasign/fpdi/fpdf_tpl.php',
-        'FPDI' => __DIR__ . '/..' . '/setasign/fpdi/fpdi.php',
-        'FilterASCII85' => __DIR__ . '/..' . '/setasign/fpdi/filters/FilterASCII85.php',
-        'FilterASCIIHexDecode' => __DIR__ . '/..' . '/setasign/fpdi/filters/FilterASCIIHexDecode.php',
-        'FilterLZW' => __DIR__ . '/..' . '/setasign/fpdi/filters/FilterLZW.php',
-        'PHPMailer' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
-        'PHPMailerOAuth' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauth.php',
-        'PHPMailerOAuthGoogle' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauthgoogle.php',
-        'POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.pop3.php',
-        'SMTP' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.smtp.php',
-        'fpdi_pdf_parser' => __DIR__ . '/..' . '/setasign/fpdi/fpdi_pdf_parser.php',
-        'ntlm_sasl_client_class' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/ntlm_sasl_client.php',
-        'pdf_context' => __DIR__ . '/..' . '/setasign/fpdi/pdf_context.php',
-        'phpmailerException' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
-    );
-
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit4b9569c966d6a1d4516363e7ff8c8ece::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }

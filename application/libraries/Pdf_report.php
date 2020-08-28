@@ -25,6 +25,10 @@ class PDF_Report{
 		}
 			
 		$this->ci->load->library('my_mpdf',array('codepage'=>$codepage));
+
+		//to use core fonts only - works only for latin languages
+		//$this->ci->load->library('my_mpdf',array('codepage'=>$codepage, 'mode'=>'c'));
+
 		$this->ci->load->helper('xslt_helper');
 		$this->ci->lang->load("ddibrowser");
     }

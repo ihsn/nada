@@ -13,7 +13,7 @@
  *
  * @return void
  */
-function __autoload($className)
+spl_autoload_register(function ($className)
 {
     $className = ltrim($className, '\\');
     $fileName  = '';
@@ -26,7 +26,7 @@ function __autoload($className)
     if (stream_resolve_include_path($fileName)) {
         require_once $fileName;
     }
-}
+});
 
 // support running this tool from git checkout
 if (is_dir(__DIR__ . '/../src/JsonSchema')) {
@@ -37,7 +37,7 @@ $arOptions = array();
 $arArgs = array();
 array_shift($argv);//script itself
 foreach ($argv as $arg) {
-    if ($arg{0} == '-') {
+    if ($arg[0] == '-') {
         $arOptions[$arg] = true;
     } else {
         $arArgs[] = $arg;
@@ -95,7 +95,7 @@ function getUrlFromPath($path)
         //already an URL
         return $path;
     }
-    if ($path{0} == '/') {
+    if ($path[0] == '/') {
         //absolute path
         return 'file://' . $path;
     }
@@ -200,7 +200,7 @@ if ($pathSchema === null) {
         exit(6);
     }
 }
-if ($pathSchema{0} == '/') {
+if ($pathSchema[0] == '/') {
     $pathSchema = 'file://' . $pathSchema;
 }
 
