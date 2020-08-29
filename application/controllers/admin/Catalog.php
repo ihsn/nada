@@ -1644,7 +1644,7 @@ class Catalog extends MY_Controller {
 		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 
 		//formatted list of data files
-		$survey_row['data_files']=$this->catalog_admin->get_formatted_data_files($id);
+		//$survey_row['data_files']=$this->catalog_admin->get_formatted_data_files($id);
 
 		//get all study notes
 		$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);
