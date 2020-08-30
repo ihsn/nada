@@ -41,7 +41,7 @@ class Data_access_licensed extends CI_Driver {
 
 		if(!$survey)
 		{
-			show_ERROR("INVALID_STUDY_ID");
+			show_error("INVALID_STUDY_ID");
 		}
 
 		if ($this->CI->input->get("request")=="new")
