@@ -110,14 +110,16 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
                     <div class="by-collection <?php echo (count($collection['studies'])>10 ? 'study-scroll' : '');?>">
                     <div class="study-set">
                     <?php if (isset($collection['description'])):?>
-                    <p class="about-set"><?php echo $collection['description'];?></p>
+                      <!--<p class="about-set"><?php echo $collection['description'];?></p>-->
                     <?php endif;?>
                     
-                    <table class="grid-table  studies-<?php echo $collection['cid'];?>">
+                    <table class="table table-striped grid-table  studies-<?php echo $collection['cid'];?>">
                     <tr class="header">
-                        <td colspan="2"><span class="select-all">Select all</span> | <span class="clear-all">Clear</span></td>
+                        <td colspan="2"><span class="btn btn-sm btn-link select-all">
+                            <?php echo t('link_select_all');?></span> | 
+                            <span class="btn btn-sm btn-link clear-all"><?php echo t('clear');?></span></td>
                     </tr>
-					      <?php $k=1;foreach($collection['studies'] as $survey):?>
+					          <?php $k=1;foreach($collection['studies'] as $survey):?>
                     <tr class="study-row">
                         <td><?php //echo $k++;?><input type="checkbox" name="sid[]" value="<?php echo $survey['id'];?>" <?php if ($ds==$collection['cid'] && in_array($survey['id'],$selected_surveys)){ echo 'checked="checked"';} ?>/></td>
                         <td><?php echo $survey['nation'];?> - <?php echo $survey['title'];?> <?php echo $survey['year_start'];?></td>
@@ -163,31 +165,11 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
       <input class="form-control" type="text" id="org_rec" name="org_rec"   value="<?php echo get_form_value('org_rec',isset($org_rec) ? $org_rec: ''); ?>"  maxlength="100" />
       <?php //echo t('rec_org_refers');?>
       </td>      
-    </tr>
-    <?php /* ?>
-    <tr class="border" valign="top">
-    <td><span class="field-caption"><?php echo t('org_type');?></span></td>
-    <td><?php echo form_dropdown('org_type', $options_org_type, get_form_value('org_type',isset($org_type) ? $org_type : ''));?>
-      <br />
-      <br />
-		<span class="field-caption"><?php print t('other');?></span><br/>
-		<input type="text" id="orgtype_other" name="orgtype_other"   value="<?php echo get_form_value('orgtype_other',isset($orgtype_other) ? $orgtype_other : ''); ?>" style="width:200px" maxlength="100" /></td>
-  	</tr>
-  <tr class="border">
-    <td><span class="field-caption"><span class="required">*</span> <?php print t('post_add');?></span></td>
-    <td><input type="text" id="address" name="address"  value="<?php echo get_form_value('address',isset($address) ? $address : ''); ?>" style="width:200px" maxlength="100" /></td>
-  </tr>
-	<?php */ ?>
+    </tr>   
   <tr class="border" >
     <td  class="no-wrap"><span class="field-caption"><span class="required">*</span> <?php print t('telephone');?></span></td>
     <td><input class="form-control" type="text" id="tel" name="tel"   value="<?php echo get_form_value('tel',isset($tel) ? $tel : ''); ?>"  maxlength="100" /></td>
-  </tr>
-  <?php /*?>
-  <tr class="border">
-    <td><span class="field-caption"><?php print t('fax');?></span></td>
-    <td><input type="text" id="fax" name="fax"   value="<?php echo get_form_value('fax',isset($fax) ? $fax : ''); ?>" style="width:200px" maxlength="100" /></td>
-  </tr>
-  <?php */ ?>
+  </tr>  
   <tr class="border">
     <td colspan="2">
     	<div class="field-caption"><span class="required">*</span> <?php print t('intended_use');?></div>
@@ -202,27 +184,16 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
     <td><span class="field-caption"><span class="required">*</span> <?php print t('expected_completion');?></span></td>
     <td><input class="form-control" class="form-control" type="text" id="compdate" name="compdate"   value="<?php echo get_form_value('compdate',isset($compdate) ? $compdate : ''); ?>"  maxlength="100" /></td>
   </tr>
- <?php /* ?>
-  <tr class="border">
-    <td colspan="2">
-    	<div style="font-weight:bold;"><?php print t('data_matching');?></div>
-        <?php print t('merge_dataset');?>    
-        <?php echo form_dropdown('datamatching', $options_datamatching, isset($datamaching) ? $datamatching : '');?>
-      </td>
-  </tr>
-  <tr class="border">
-    <td colspan="2"><span class="field-caption"><?php print t('other_data_merge');?></span><br />
-    <textarea id="mergedatasets" name="mergedatasets" style="width:98%" rows="10"><?php echo get_form_value('mergedatasets',isset($mergedatasets) ? $mergedatasets : ''); ?></textarea></td>
-  </tr>
-  <?php  */ ?>
   <tr class="border">
     <td colspan="2">
     	<div class="field-caption"><span class="required">*</span> <?php print t('research_team');?></div>
       	<div class="field-notes"><?php print t('provide_names');?></div>
     <textarea id="team" name="team" class="form-control"  rows="10"><?php echo get_form_value('team',isset($team) ? $team : ''); ?></textarea></td>
   </tr>
+
+  <?php if (isset($form_options['dataset_access']) && $form_options['dataset_access']!=false ):?>
   <tr class="border">
-    <td colspan="2"><div class="field-caption"><span class="required">*</span> <?php print t('ident_needed');?></div>
+    <td colspan="2"><div class="field-caption"><?php print t('ident_needed');?></div>
 	<p><?php print t('da_website');?></p>
 
 	<p><?php echo t('this_request');?></p>
@@ -236,11 +207,10 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
       <input class="form-check-input-x" type="radio" name="dataset_access" id="access_subset" value="subset" <?php echo get_form_value('dataset_access',isset($dataset_access) ? $dataset_access: '')=='subset' ? 'checked="checked"' : ''; ?>/>
       <label class="form-check-label" style="display:inline"  for="access_subset"><?php print t('subset_data');?></label>
     </div>
-    
-    
     </td>
-    
   </tr>
+  <?php endif;?>
+
   <tr class="border">
     <td colspan="2">
         <div>
@@ -262,6 +232,7 @@ $selected_surveys=isset($_POST['sid']) ? (array)$_POST['sid'] : array();
 <script type="text/javascript">
 $(document).ready(function() 
 {	
+  $(".by-collection").hide();
 	$(".access_type").click(function() {
 		$(".by-collection").hide();
 		$(this).closest(".collection-container").find(".by-collection").show();
