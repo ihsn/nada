@@ -612,8 +612,10 @@ class Licensed_model extends CI_Model {
 	 */
 	function select_all($limit=null,$offset=0)
 	{
-		$this->db->select('users.username, users.email,lic_requests.*');
+		$this->db->select('users.username, users.email,surveys.id as survey_id, surveys.title as study_title, lic_requests.*');
 		$this->db->join('users', 'users.id = lic_requests.userid');
+		$this->db->join('survey_lic_requests', 'survey_lic_requests.request_id = lic_requests.id');
+		$this->db->join('surveys', 'surveys.id = survey_lic_requests.sid');
 
 		if($limit>0){
 			$this->db->limit($limit, $offset);
