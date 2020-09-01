@@ -239,8 +239,6 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	
-
     //returns survey metadata array
     function get_metadata($sid)
     {
@@ -252,10 +250,23 @@ class Dataset_model extends CI_Model {
             return $this->decode_metadata($survey['metadata']);
         }
 	}
+
+	/**
+	 * 
+	 * Return survey keywords
+	 * 
+	 */
+	function get_keywords($sid)
+	{
+		$this->db->select("keywords,var_keywords");
+		$this->db->where("id",$sid);
+		return $this->db->get("surveys")->row_array();
+	}
+
 	
 	public function set_metadata($sid, $metadata)
 	{
-		return $this->update($sid, array('metadata'=>$metadata));
+		return $this->update_options($sid, array('metadata'=>$metadata));
 	}	
 	
 	
@@ -454,13 +465,27 @@ class Dataset_model extends CI_Model {
 			}
 		}
 		
-		$keywords=$type. ' '.str_replace("\n","",$this->array_to_plain_text($metadata));
+		$keywords=$type. ' '.str_replace(array("\n","\r")," ",$this->array_to_plain_text($metadata));
+
+		$noise_words=explode(",",
+			'about,after,all,also,an,and,another,any,are,as,at,be,because,been,before,
+			being,between,both,but,by,came,can,come,could,did,do,each,for,from,get,
+			got,has,had,he,have,her,here,him,himself,his,how,if,in,into,is,it,like,
+			make,many,me,might,more,most,much,must,my,never,now,of,on,only,or,other,
+			our,out,over,said,same,see,should,since,some,still,such,take,than,that,
+			the,their,them,then,there,these,they,this,those,through,to,too,under,up,
+			very,was,way,we,well,were,what,where,which,while,who,with,would,you,your,a,
+			b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,$,1,2,3,4,5,6,7,8,9,0,_'
+		);
+		$noise_words=array_map('trim',$noise_words);
+
+		$keywords= preg_replace('/\b('.implode('|',$noise_words).')\b/i','',$keywords);
 
 		if(isset($this->db->prefix_short_words) && $this->db->prefix_short_words==true){
 			//words with length = 3
 			$pattern='/\b\w{3}\b/';
 			//add underscore as a prefix
-			return preg_replace($pattern, '_${0}', $keywords);
+			$keywords= preg_replace($pattern, '_${0}', $keywords);
 		}
 		
 		return $keywords;
@@ -539,7 +564,8 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function has_datafiles($sid){
+	function has_datafiles($sid)
+	{
 		$this->db->select('id');
 		$this->db->from('data_files');
 		$this->db->where('sid',$sid);
@@ -732,7 +758,7 @@ class Dataset_model extends CI_Model {
 			'published'=>$status
 		);
 		
-		$this->update($sid,$options);
+		$this->update_options($sid,$options);
 	}
 	
 	
@@ -996,7 +1022,8 @@ class Dataset_model extends CI_Model {
 			'formid'=>$da_type,
 			'link_da'=>$da_link
 		);
-		return $this->update($sid,$options);
+
+		return $this->update_options($sid,$options);
 	}
 
 
@@ -1012,21 +1039,13 @@ class Dataset_model extends CI_Model {
 	//validate survey IDNO
 	public function validate_survey_idno($idno)
 	{	
-		var_dump($idno);
-		
 		$sid=null;
 		if(array_key_exists('sid',$this->form_validation->validation_data)){
 			$sid=$this->form_validation->validation_data['sid'];
 		}
 
-		var_dump($sid);
-		echo "=======";
-
 		//check if the survey id already exists
 		$id=$this->find_by_idno($idno);	
-
-		var_dump($id);
-		echo "=======";
 
 		if (is_numeric($id) && $id!=$sid ) {
 			$this->form_validation->set_message(__FUNCTION__, 'The ID should be unique.' );
@@ -1208,26 +1227,6 @@ class Dataset_model extends CI_Model {
 		return $result;
 	}
 
-
-	/**
-	 * 
-	 * 
-	 * Re-populate keywords field with updated metadata
-	 * 
-	 * 
-	 */
-	function repopulate_index($sid)
-	{
-		$metadata=$this->get_metadata($sid);
-		$type=$this->get_type($sid);
-
-		$data=array(
-			'keywords'=>$this->extract_keywords($metadata,$type)
-		);
-		
-		$this->db->where('id',$sid);
-		return $this->db->update('surveys',$data);
-	}
 
 	
 	/**

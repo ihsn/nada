@@ -16,7 +16,34 @@ class Datasets extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		//session user id
+		if ($this->session->userdata('user_id'))
+		{
+			//var_dump($this->session->userdata('user_id'));
+			return true;
+		}
 
+		parent::_auth_override_check();
+	}
+
+
+	//override to support sessions
+	function get_api_user_id()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
+		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->_apiuser->user_id;
+		}
+
+		return false;
+	}
 	
 	/**
 	 * 
@@ -327,19 +354,34 @@ class Datasets extends MY_REST_Controller
 
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
+
+			//default to merge metadata and update partial metadata
+			$merge_metadata=true;
+
+			if(isset($options['merge_options'])){
+				if($options['merge_options']=='replace'){
+					$merge_metadata=false;//replace instead of merge
+				}
+			}
+
+			//merge dataset cataloging options
+        	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
 			if ($type=='survey'){
-				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_data=true);
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{
 				//get existing metadata
 				$metadata=$this->dataset_manager->get_metadata($sid);
 
 				//unset($metadata['idno']);
-
+				
 				//replace metadata with new options
-				$options=array_replace_recursive($metadata,$options);
+				if($merge_metadata==true){
+					$options=array_replace_recursive($metadata,$options);
+				}
+
 				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 			}
 
@@ -1503,6 +1545,32 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 *  Repopulate index for a single study
+	 * 	 
+	 * 
+	 */
+	public function repopulate_index_get($idno=null)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			$sid=$this->get_sid_from_idno($idno);
+						
+			$result=$this->dataset_manager->repopulate_index($sid);
+			
+			$output=array(
+				'status'=>'success',
+				'result'=>$result				
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
 
 	function import_geospatial_post()
 	{
@@ -1752,6 +1820,38 @@ class Datasets extends MY_REST_Controller
 				'errors'=>$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * Return indexed keywords for the study
+	 * 
+	 */
+	function keywords_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->get_keywords($sid);			
+				
+			if(!$result){
+				throw new Exception("DATASET_NOT_FOUND");
+			}
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);			
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(

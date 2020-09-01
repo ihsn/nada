@@ -27,7 +27,17 @@
 <?php */?>
 
 <?php
-    //render location field
+//replace files->file_uri with resource download link 
+foreach($metadata['metadata']['files'] as $file_idx => $file){
+    if (array_key_exists($file['file_uri'], $metadata['resources'])){
+        $resource=$metadata['resources'][$file['file_uri']];
+        $metadata['metadata']['files'][$file_idx]['file_uri']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".urlencode($resource['filename']) );
+    }
+}
+?>
+
+<?php
+    //render files field
     $download_buttons=render_field(
         "download_buttons_array",
         "metadata.files",

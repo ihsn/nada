@@ -26,7 +26,7 @@
     <div class="field-value">
 
 
-
+    <?php /* ?>
     <?php
         $zip_packages=array_filter(array_unique(array_column($data,'zip_package')));
     ?>
@@ -59,43 +59,79 @@
             </div>        
 
     <?php endif;?>
+    <?php */ ?>
 
 
 
     <div id="accordion-script-files">
+        
+        
+        <table class="tablex table-sm">
+            <thead class="border-bottom">
+            <tr>
+                <td><input type="checkbox" class="checkbox_toggle mr-2" id="script_chk_toggle" /> </td>
+                <td>
+                    <label for="script_chk_toggle" class="my-0">Select/Deselect</label>
+                    <span class="ml-5 script_download_selection"></span>
+                    <button 
+                        type="button" 
+                        class="script_batch_download btn btn-primary btn-sm mr-2 float-right">
+                        <i class="fa fa-download" aria-hidden="true"></i>  Download selected files
+                    </button>
+                </td>
+            </tr>
+            </thead>
         <?php $k=0;foreach($data as $script):$k++;?>
-            <div class="card">
-            
-                <h6 class="mt-1 border-bottom pl-2 pb-2 pt-2" >
-                    <?php echo $script['title'];?>
-                </h6>                
-            
+            <tr class="script-file-container border-top">
+                <td style="vertical-align:top"><input type="checkbox" class="mr-2 chk_script_download" id="chk_<?php echo $k;?>" /></td>
+                <td>
+                    <div class="mb-0" >
+                        <label class="my-0 font-weight-bold" for="chk_<?php echo $k;?>"><?php echo $script['title'];?></label>
+                    </div>                
+                
+                <div id="script-body-<?php echo $k;?>" xclass="collapse show" aria-labelledby="script-<?php echo $k;?>" data-parent="#accordion-script-files">
+                    <div class="card-bodyx" style="padding:15px;padding-left:0px;">
+                        <?php foreach($script_file_template as $field_name=>$field_type):?>
+                            <?php $value=get_field_value($field_name,$script); ?>
+                            <?php //echo render_field($field_type,'metadata.project_desc.scripts.'.$field_name,$value);?>
+                            <?php //var_dump($field_name);?>
+                            <?php //var_dump($value);?>
 
-            <div id="script-body-<?php echo $k;?>" xclass="collapse show" aria-labelledby="script-<?php echo $k;?>" data-parent="#accordion-script-files">
-                <div class="card-body" style="padding:15px;padding-top:0px;">
-                    <?php foreach($script_file_template as $field_name=>$field_type):?>
-                        <?php $value=get_field_value($field_name,$script); ?>
-                        <?php //echo render_field($field_type,'metadata.project_desc.scripts.'.$field_name,$value);?>
-                        <?php //var_dump($field_name);?>
-
-                        <?php if(empty($value)){continue;}?>
-                        <div class="row">
-                            <div class="col-md-2">
-                                <strong><?php echo t('metadata.project_desc.scripts.'.$field_name);?></strong>
+                            <?php if(empty($value) || $value==''){continue;}?>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="text-secondary"><?php echo t('metadata.project_desc.scripts.'.$field_name);?></div>
+                                </div>
+                                <div class="col">
+                                    <?php if($field_name=='zip_package' || $field_name=='file_name'):?>
+                                        <?php if (isset($options['resources']) &&                 
+                                                array_key_exists($value,$options['resources'])):?>                        
+                                            <?php 
+                                                $resource = $options['resources'][$value];
+                                            ?>
+                                            <a class="download_script download_<?php echo $field_name;?>" href="<?php echo site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}");?>" >
+                                            <i class="fa fa-download" aria-hidden="true"></i> <?php print_r($value);?>
+                                            </a>
+                                        <?php else:?>
+                                            <?php echo $value;?>
+                                        <?php endif;?>
+                                    <?php elseif(is_array($value)):?>
+                                        <?php echo render_field($field_type,'metadata.project_desc.scripts.'.$field_name,$value,array('hide_field_title'=>true));?>
+                                    <?php else:?>
+                                        <?php print_r($value);?>
+                                    <?php endif;?>
+                                </div>
                             </div>
-                            <div class="col">
-                                <?php if(is_array($value)):?>
-                                    <?php echo render_field($field_type,'metadata.project_desc.scripts.'.$field_name,$value,array('hide_field_title'=>true));?>
-                                <?php else:?>
-                                    <?php print_r($value);?>
-                                <?php endif;?>
-                            </div>
-                        </div>
-                    <?php endforeach;?>        
+                        <?php endforeach;?>        
+                    </div>
                 </div>
-            </div>
-            </div>
+                </div>
+                </td>
+            </tr>
         <?php endforeach;?>
+        </table>
+
+        
     </div>
     </div>
 </div>
@@ -103,8 +139,56 @@
 
 <script>
 $(document).ready(function()  {
-    $('.collapse').collapse()
+    $('.collapse').collapse();
+    script_selection_status();
 });
+
+
+$( "#script_chk_toggle" ).on( "click", function(e) {
+   var $toggle=$(this).prop("checked");
+   $(".chk_script_download").prop( "checked", $toggle);
+   script_selection_status();
+});
+
+
+$( ".chk_script_download" ).on( "click", function(e) {
+    script_selection_status();
+});
+
+$( ".script_batch_download" ).on( "click", function(e) {
+    download_script_files();
+});
+
+function script_selection_status(){
+    var $selection=$('.chk_script_download:checked').length;
+
+    if ($selection>0){
+        //$(".script_download_selection").html($selection + " files selected");
+        $(".script_batch_download").show();
+    }else{
+        $(".script_download_selection").html("");
+        $(".script_batch_download").hide();
+    }
+}
+
+function download_script_files()
+{
+    var links = [];
+    $(".chk_script_download:checked").each(function() {
+        links.push( $(this).closest(".script-file-container").find(".download_script").attr("href"));
+    });
+
+    //unique urls
+    links = $.grep(links, function(v, k){
+        return $.inArray(v ,links) === k;
+    });
+
+    //start downloads
+    for(i=0;i<links.length;i++){
+        console.log(links[i]);
+        window.open(links[i]);
+    };
+}
 </script>
 
 <?php endif;?>

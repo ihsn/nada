@@ -313,7 +313,7 @@ class Dataset_timeseries_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'series_description/name');
-        $output['idno']=$this->get_array_nested_value($options,'idno');
+        $output['idno']=$this->get_array_nested_value($options,'series_description/idno');
 
         $nations=$this->get_array_nested_value($options,'series_description/geographic_units');	
 

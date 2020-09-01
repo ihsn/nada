@@ -135,7 +135,21 @@ class Dataset_manager{
      */
     function repopulate_index($sid)
     {
-        return $this->ci->Dataset_model->repopulate_index($sid);
+        //return $this->ci->Dataset_model->repopulate_index($sid);
+
+        $metadata=$this->ci->Dataset_model->get_metadata($sid);
+		$type=$this->ci->Dataset_model->get_type($sid);
+
+		$data=array(
+			'keywords'=>$this->ci->Dataset_model->extract_keywords($metadata,$type)
+		);
+
+		if($type=='survey'){
+			$this->ci->Dataset_microdata_model->index_variable_data($sid);
+		}
+		
+		$this->ci->db->where('id',$sid);
+		return $this->ci->db->update('surveys',$data);
     }
 
 
