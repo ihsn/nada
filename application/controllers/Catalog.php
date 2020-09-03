@@ -64,7 +64,7 @@ class Catalog extends MY_Controller {
 		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
 		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
-		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id); 
 	}
 
 	
@@ -374,6 +374,7 @@ class Catalog extends MY_Controller {
 
 
 		$this->load->library('catalog_search',$params);
+		$data['is_regional_search']=$this->regional_search;
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;

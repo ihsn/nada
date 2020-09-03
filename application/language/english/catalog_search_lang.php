@@ -218,6 +218,7 @@ $lang['data_classification']="Data classification";
 $lang['select_data_classification']="Select data classification";
 $lang['filter_by_data_class']="Data classifications";
 
+$lang['Photo']='Image';
 
 $lang['geospatial_description']="Description";
 $lang['timeseries_description']="Timeseries Description";
