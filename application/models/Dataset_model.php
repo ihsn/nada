@@ -600,7 +600,7 @@ class Dataset_model extends CI_Model {
 		}
 
 		if($end==0){
-			$start=$end;
+			$end=$start;
 		}
 
 		//build an array of years range
@@ -1307,7 +1307,32 @@ class Dataset_model extends CI_Model {
 	}
 	
 
-	
+	function refresh_year_facets($start_row=NULL, $limit=1000)
+	{		
+		$this->db->select("id,year_start,year_end");
+		$this->db->limit($limit);
+        $this->db->order_by('id ASC');
+
+		if ($start_row){
+			$this->db->where("id >",$start_row,false);
+		}
+
+		$rows=$this->db->get("surveys")->result_array();
+		
+		$last_row_id=null;
+		foreach($rows as $row){
+			$this->update_years($row['id'], $row['year_start'], $row['year_end']);
+			$last_row_id=$row['id'];
+		}
+
+		return array(
+			'last_row_id'=>$last_row_id,
+			'processed'=>count($rows),
+			'start'=>$start_row,
+			'limit'=>$limit
+		);
+		
+	}	
 
 
 }//end-class

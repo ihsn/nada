@@ -1460,6 +1460,32 @@ class Datasets extends MY_REST_Controller
 
 	/**
 	 * 
+	 *  Reload year facets
+	 * 
+	 * @sid - study id
+	 * 
+	 */
+	public function refresh_year_facets_get($start_row=NULL, $limit=1000)
+	{		        
+        try{
+			$output=$this->Dataset_model->refresh_year_facets($start_row, $limit);
+			$output=array(
+                'status'=>'success',
+                'result'=>$output
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+            $error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
+		}
+    }
+
+	/**
+	 * 
 	 *  Batch Reload facets/filters by dataset type
 	 * 
 	 * @dataset_type - dataset type - microdata, timeseries, etc
