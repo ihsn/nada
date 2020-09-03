@@ -1493,7 +1493,7 @@ class Datasets extends MY_REST_Controller
 	 * @start - starting dataset id
 	 * 
 	 */
-	public function batch_refresh_filters_put($dataset_type=null, $limit=100, $start=0)
+	public function batch_refresh_filters_get($dataset_type=null, $limit=100, $start=0)
 	{		
 		try{
 			$user_id=$this->get_api_user_id();
