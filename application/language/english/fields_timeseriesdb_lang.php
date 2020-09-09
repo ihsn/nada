@@ -10,6 +10,7 @@ $lang['metadata.database_description.authoring_entity']='Authoring entity';
 $lang['metadata.database_description.authoring_entity.name']='Name';
 $lang['metadata.database_description.authoring_entity.role']='Role';
 $lang['metadata.database_description.authoring_entity.affiliation']='Affiliation';
+$lang['metadata.database_description.authoring_entity.abbreviation']='Abbreviation';
 
 
 $lang['metadata.database_description.abstract']='Abstract';
