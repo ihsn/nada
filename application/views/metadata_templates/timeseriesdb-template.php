@@ -91,6 +91,6 @@
 
 <script>
     $(function() {
-        $(".metadata-container").linkify();
+        $(".study-metadata").linkify();
     });
 </script>
