@@ -676,7 +676,7 @@
 						  },
 						  "vector": {
 							"title": "Vector",
-							"type": "object"
+							"type": "array"
 						  }
 						}
 					  },
