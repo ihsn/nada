@@ -430,6 +430,18 @@ class Dataset_timeseries_model extends Dataset_model {
 			'start'=>$start,
 			'end'=>$end
 		);
-	}
+    }
+    
+
+    function get_timeseries_db_id($sid)
+    {
+        $metadata=$this->get_metadata($sid);
+
+        if(isset($metadata['series_description']['database_id'])){
+            return $metadata['series_description']['database_id'];
+        }
+
+        return false;
+    }
 
 }
