@@ -561,6 +561,26 @@ background: white;
 .alias{text-transform:uppercase;font-size:12px;color:gray;}
 
 .featured_survey label{font-weight:normal;}
+
+.label-tag{
+	color:black;
+	background:transparent;
+	border:1px solid gainsboro;
+	margin-right:2px;
+	font-weight:normal;
+}
+
+.label-tag-error{
+	background:red;
+	color:white;
+}
+
+.label-tag-error a{
+	color:white;
+	font-weight:normal;
+	font-size:10px;
+}
+
 </style>
 
 <div class="container-fluid study-edit-page">
@@ -595,14 +615,16 @@ background: white;
 			<!-- Nav tabs -->
 			<ul class="nav nav-tabs" role="tablist">
 				<li role="presentation" <?php echo $selected_page=='' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" aria-controls="home" role="tab" ><?php echo t('tab_overview');?></a></li>
+				<li role="presentation" <?php echo $selected_page=='metadata' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>" aria-controls="metadata-editor" role="tab" ><?php echo t('Metadata');?> </a></li>
 				<li role="presentation" <?php echo $selected_page=='files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/files');?>" aria-controls="profile" role="tab" ><?php echo t('tab_manage_files');?> <span class="badge badge-light"><?php echo count($files);?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='resources' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/resources');?>" aria-controls="resources" role="tab" ><?php echo t('tab_resources');?> <span class="badge badge-light"><?php echo $resources['total'];?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='citations' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/citations');?>" aria-controls="settings" role="tab" ><?php echo t('tab_citations');?> <span class="badge badge-light"><?php echo is_array($selected_citations) ? count($selected_citations) : '';?></span></a></li>
 
-				<li role="presentation" <?php echo $selected_page=='data-files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/data-files');?>" aria-controls="data-files" role="tab" ><?php echo t('tab_data_files');?> <span class="badge badge-light"><?php echo $data_files['total'];?></span></a></li>
+				<!--<li role="presentation" <?php echo $selected_page=='data-files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/data-files');?>" aria-controls="data-files" role="tab" ><?php echo t('tab_data_files');?> <span class="badge badge-light"><?php echo $data_files['total'];?></span></a></li>-->
 
 				<li role="presentation" <?php echo $selected_page=='notes' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/notes');?>" aria-controls="settings" role="tab" ><?php echo t('tab_notes');?> <span class="badge badge-light"><?php echo is_array($study_notes) && count($study_notes) >0 ? count($study_notes) : '';?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='related-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/related-data');?>" aria-controls="settings" role="tab" ><?php echo t('tab_related_data');?> <span class="badge badge-light"><?php echo is_array($related_studies) ? count($related_studies) : '';?></span></a></li>
+				
 			</ul>
 
 		</div>
@@ -635,6 +657,9 @@ background: white;
 				break;
 				case 'files':
 					echo $files_formatted;
+				break;
+				case 'metadata':
+					echo $metadata_editor;
 				break;
 				default:
 					$this->load->view('catalog/edit_study_overview');
