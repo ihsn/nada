@@ -464,7 +464,7 @@
 							}
 						},
 						"required": [
-							"code"
+							"name"
 						]
 					}
 				},

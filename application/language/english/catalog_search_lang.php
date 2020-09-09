@@ -222,6 +222,7 @@ $lang['Photo']='Image';
 
 $lang['geospatial_description']="Description";
 $lang['timeseries_description']="Timeseries Description";
+$lang['timeseries_db']="Timeseries Database";
 $lang['document_description']="Document Description";
 $lang['table_description']="Table Description";
 $lang['image_description']="Image Description";

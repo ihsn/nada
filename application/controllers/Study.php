@@ -13,7 +13,9 @@ class Study extends MY_Controller {
         $this->load->model("Citation_model");
 		$this->load->model("Data_file_model");
 		$this->load->model("Related_study_model");
-        $this->load->model("Variable_model");
+		$this->load->model("Variable_model");
+		$this->load->model("Timeseries_db_model");
+		
 		$this->load->library("Metadata_template");
 		$this->load->helper("resource_helper");
 		$this->load->helper("metadata_view");
@@ -52,8 +54,8 @@ class Study extends MY_Controller {
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
 
-		if($survey['type']=='script'){			
-			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);			
+		if( in_array($survey['type'], array('script', 'document'))){
+			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);	    		
 		}
 		
 		$this->metadata_template->initialize($survey['type'],$survey);
@@ -275,6 +277,18 @@ class Study extends MY_Controller {
 	}
 
 
+	public function timeseries_db($sid)
+	{
+		$database=$this->Timeseries_db_model->get_database_by_series_id($sid);
+
+		if (empty($database)){
+			show_error("Timeseries database does not exist");
+		}
+
+		$this->metadata_template->initialize('timeseriesdb',$database);
+		$output=$this->metadata_template->render_html();
+		$this->render_page($sid, $output,'timeseries_db');
+	}
 	
 	private function render_page($sid, $content, $active_tab='description')
 	{
@@ -356,6 +370,24 @@ class Study extends MY_Controller {
 			case 'image':
 			case 'document':
 			case 'timeseries':
+				$display_layout='survey_info/layout_scripts';
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'timeseries_db'=>array(
+						'label'=>t('timeseries_db'),
+						'url'=>site_url("catalog/$sid/timeseries-db"),
+						'show_tab'=>1
+					),
+					//hide related materials
+					'related_materials'=>array(
+						'show_tab'=> 0
+					)
+				);
+				break;
 			case 'table':
 			case 'script':
 				$display_layout='survey_info/layout_scripts';
