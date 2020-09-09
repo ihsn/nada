@@ -85,3 +85,12 @@
     //renders html
     $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'hide_sidebar'=>true));
 ?>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify-jquery.min.js"></script>
+
+<script>
+    $(function() {
+        $(".metadata-container").linkify();
+    });
+</script>
