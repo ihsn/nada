@@ -107,17 +107,9 @@ class Install extends CI_Controller {
 			}
 
 			//exit if already installed	
-			$is_installed=$this->is_already_installed();
+			$this->is_already_installed();
 
-			//check if the database already exists or create a new one
-			$created=$this->_create_database();
-
-			if ($created===FALSE)
-			{
-				$this->session->set_flashdata('message', t('database_creation_failed'));
-				redirect('install');
-			}
-			
+			//else, create tables
 			redirect ('install/installing/create_tables');
 		}		
 		else if ($step=='create_tables')
@@ -388,26 +380,6 @@ class Install extends CI_Controller {
 	}
 	
 	
-	//create database if not already exists
-	function _create_database()
-	{
-		//list of databases on the server
-		$dbs = $this->dbutil->list_databases();
-
-		//check if database already exists
-		foreach($dbs as $db)
-		{
-			if (strtolower($db)==strtolower($this->db->database)){
-				return TRUE;
-			}
-		}
-		
-		//try creating the database
-		if ($this->dbforge->create_database($this->db->database)){
-			return TRUE;
-		}
-		return FALSE;
-	}
 	
 	/**
 	*
