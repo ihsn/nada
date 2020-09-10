@@ -97,6 +97,12 @@
 				<div class="collection badge badge-light"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
 			<?php endforeach;?>                    
 		<?php endif;?>
+				
+		<?php if($survey['type']=='timeseries' && isset($survey['metadata']['series_description']['database_id'])):?>
+			<span class="timeseries-db font-weight-normal">
+				(<a href="<?php echo site_url('catalog/'.$survey['id'].'/timeseries-db');?>"><?php echo $survey['metadata']['series_description']['database_id'];?></a>)
+			</span>
+		<?php endif;?>
 
 		</h6>
 					

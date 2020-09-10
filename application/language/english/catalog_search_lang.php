@@ -221,8 +221,8 @@ $lang['filter_by_data_class']="Data classifications";
 $lang['Photo']='Image';
 
 $lang['geospatial_description']="Description";
-$lang['timeseries_description']="Timeseries Description";
-$lang['timeseries_db']="Timeseries Database";
+$lang['timeseries_description']="Series Description";
+$lang['timeseries_db']="Source Database";
 $lang['document_description']="Document Description";
 $lang['table_description']="Table Description";
 $lang['image_description']="Image Description";
