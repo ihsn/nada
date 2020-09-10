@@ -318,7 +318,7 @@ $config['rest_keys_table'] = 'api_keys';
 |   CREATE TABLE `keys` (
 |       `id` INT(11) NOT NULL AUTO_INCREMENT,
 |       `user_id` INT(11) NOT NULL,
-|       `key` VARCHAR(40) NOT NULL,
+|       `api_key` VARCHAR(40) NOT NULL,
 |       `level` INT(2) NOT NULL,
 |       `ignore_limits` TINYINT(1) NOT NULL DEFAULT '0',
 |       `is_private_key` TINYINT(1)  NOT NULL DEFAULT '0',
@@ -339,7 +339,7 @@ $config['rest_enable_keys'] = TRUE;
 | column name to match e.g. my_key
 |
 */
-$config['rest_key_column'] = 'key';
+$config['rest_key_column'] = 'api_key';
 
 /*
 |--------------------------------------------------------------------------
