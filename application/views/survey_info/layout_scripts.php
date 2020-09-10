@@ -99,8 +99,8 @@
 		<?php endif;?>
 				
 		<?php if($survey['type']=='timeseries' && isset($survey['metadata']['series_description']['database_id'])):?>
-			<span class="timeseries-db font-weight-normal">
-				(<a href="<?php echo site_url('catalog/'.$survey['id'].'/timeseries-db');?>"><?php echo $survey['metadata']['series_description']['database_id'];?></a>)
+			<span class="timeseries-db font-weight-normal text-secondary" style="font-size:smaller">
+				(<?php echo t('timeseries_db').': ';?><a href="<?php echo site_url('catalog/'.$survey['id'].'/timeseries-db');?>"><?php echo $survey['metadata']['series_description']['database_id'];?></a>)
 			</span>
 		<?php endif;?>
 
