@@ -334,7 +334,7 @@ CREATE TABLE surveys (
   repositoryid varchar(128) NOT NULL,
   title varchar(255) DEFAULT '',
   abbreviation varchar(45) DEFAULT NULL,
-  authoring_entity text,
+  authoring_entity varchar(max) DEFAULT NULL,
   nation varchar(150) DEFAULT '',
   year_start int DEFAULT '0',
   year_end int DEFAULT '0',
@@ -1232,12 +1232,10 @@ INSERT INTO configurations VALUES ('year_search_weight','1',NULL,NULL,NULL);
 -- create a unique index or use the PK
 CREATE UNIQUE INDEX pk_idx_surveys ON dbo.surveys(id);
 
-go
 
 -- create a fulltext catalog if not created already
 CREATE FULLTEXT CATALOG ft AS DEFAULT;
 
-go
 
 --drop existing fulltext index
 DROP FULLTEXT INDEX ON surveys;
@@ -1248,7 +1246,7 @@ CREATE FULLTEXT INDEX ON surveys
   keywords		Language 1033
  ) 
 KEY INDEX pk_idx_surveys ; 
-GO
+
 
 
 
@@ -1357,9 +1355,9 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_data_files on [dbo].[data_files](
 --
 CREATE TABLE api_keys (
   id int NOT NULL identity(1,1),
-  key varchar(40) NOT NULL,
-  level int(2) NOT NULL,
-  ignore_limits tinyint(1) NOT NULL DEFAULT '0',
+  api_key varchar(40) NOT NULL,
+  level int NOT NULL,
+  ignore_limits tinyint NOT NULL DEFAULT '0',
   ip_addresses text,
   date_created int NOT NULL,
   user_id int DEFAULT NULL,
@@ -1368,7 +1366,7 @@ CREATE TABLE api_keys (
 );
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys on [dbo].[api_keys](
-	[key] ASC
+	[api_key] ASC
 );
 
 
@@ -1385,7 +1383,7 @@ CREATE TABLE api_logs (
   time int NOT NULL,
   rtime float DEFAULT NULL,
   authorized varchar(1) NOT NULL,
-  response_code smallint(3) DEFAULT '0',
+  response_code smallint DEFAULT '0',
   PRIMARY KEY (id)
 );
 
@@ -1421,10 +1419,9 @@ CREATE TABLE filestore (
   file_name varchar(255) DEFAULT NULL,
   file_path varchar(500) DEFAULT NULL,
   file_ext varchar(10) DEFAULT NULL,
-  is_image tinyint(4) DEFAULT NULL,
+  is_image tinyint DEFAULT NULL,
   changed int DEFAULT NULL,
-  PRIMARY KEY (id),
-  UNIQUE KEY idx_filestore_file (file_name)
+  PRIMARY KEY (id)  
 );
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_filestore on [dbo].[filestore](	
