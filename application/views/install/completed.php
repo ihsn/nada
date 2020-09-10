@@ -2,7 +2,7 @@
 <h1><?php echo t('install_completed');?></h1>
 <p style="margin-top:10px;"><?php echo t('install_completed_tasks_summary');?></p>
 
-<table cellpadding="3" cellspacing="0" class="grid-table">
+<table cellpadding="3" cellspacing="0" class="grid-table table table-sm table-striped">
 <tr class="header">
 <th><?php echo t('task');?></th>
 <th><?php echo t('status');?></th>
@@ -22,7 +22,7 @@
 </table>
 </div>
 
-<div style="padding-left:10px;">
- 	<b><a class="button" href="<?php echo site_url();?>"><?php echo t('click_here_to_launch_application');?></a></b>
+<div class="p-3 ">
+ 	<a class="btn btn-success rounded" href="<?php echo site_url();?>"><?php echo t('click_here_to_launch_application');?></a>
 </div>     
      

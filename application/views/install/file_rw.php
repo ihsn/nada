@@ -8,7 +8,7 @@
 ?>
 	
 <h1><?php echo t('folder_permissions');?></h1>
-<table cellpadding="3" cellspacing="0" class="grid-table">
+<table cellpadding="3" cellspacing="0" class="grid-table table table-sm table-striped table-bordered">
 <tr class="header">
 <th><?php echo t('folder');?></th>
 <th><?php echo t('read_write');?></th>

@@ -140,6 +140,8 @@ class Install extends CI_Controller {
 			redirect('install/create_user');						
 		}			
 	}
+
+	
 	
 	/**
 	 * 
@@ -224,51 +226,43 @@ class Install extends CI_Controller {
 		$this->data['first_name']          = array('name'   => 'first_name',
 												  'id'      => 'first_name',
 												  'type'    => 'text',
-												  'value'   => $this->form_validation->set_value('first_name'),
-												  'class'=>'input-fixed300'
+												  'value'   => $this->form_validation->set_value('first_name')
 												 );
 		$this->data['last_name']           = array('name'   => 'last_name',
 												  'id'      => 'last_name',
 												  'type'    => 'text',
-												  'value'   => $this->form_validation->set_value('last_name'),
-												  'class'=>'input-fixed300'
+												  'value'   => $this->form_validation->set_value('last_name')												  
 												 );
 		$this->data['email']              = array('name'    => 'email',
 												  'id'      => 'email',
 												  'type'    => 'text',
-												  'value'   => $this->form_validation->set_value('email'),
-												  'class'=>'input-fixed300'
+												  'value'   => $this->form_validation->set_value('email')
 												 );
 		$this->data['username']           = array('name'    => 'username',
 												  'id'      => 'username',
 												  'type'    => 'text',
-												  'value'   => $this->form_validation->set_value('username'),
-												  'class'=>'input-fixed300'
+												  'value'   => $this->form_validation->set_value('username')
 												 );
 
 		$this->data['company']            = array('name'    => 'company',
 												  'id'      => 'company',
 												  'type'    => 'text',
-												  'value'   => $this->form_validation->set_value('company'),
-												  'class'=>'input-fixed300'
+												  'value'   => $this->form_validation->set_value('company')
 												 );
 		$this->data['phone1']             = array('name'    => 'phone1',
 												  'id'      => 'phone1',
 												  'type'    => 'text',
-												  'value'   => $this->form_validation->set_value('phone1'),
-												  'class'=>'input-fixed300'
+												  'value'   => $this->form_validation->set_value('phone1')
 												 );
 		$this->data['password']           = array('name'    => 'password',
 												  'id'      => 'password',
 												  'type'    => 'password',
-												  'value'   => $this->form_validation->set_value('password'),
-												  'class'=>'input-fixed200'
+												  'value'   => $this->form_validation->set_value('password')
 												 );
 		$this->data['password_confirm']   = array('name'    => 'password_confirm',
 												  'id'      => 'password_confirm',
 												  'type'    => 'password',
-												  'value'   => $this->form_validation->set_value('password_confirm'),
-												  'class'=>'input-fixed200'
+												  'value'   => $this->form_validation->set_value('password_confirm')
 												 );
 		$this->data['active']=$this->form_validation->set_value('active',1);
 		
@@ -343,26 +337,9 @@ class Install extends CI_Controller {
 		}
 				
 		//test database connection only if everything else above has failed
-		switch($this->db->dbdriver)
-		{
-			case 'mysql':
-				$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
-				break;
-			case 'mysqli':
-				$conn_id = @mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);
-				break;	
-			case 'postgre':
-				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
-				break;
-			case 'sqlsrv':
-				$auth_info = array( "UID"=>$this->db->username,"PWD"=>$this->db->password);
-				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
-				break;
-			default:
-				show_error('INSTALLER::database not supported');
-		}
+		$connected=$this->_test_connection();
 
-		if (!$conn_id ) 
+		if (!$connected) 
         {
             //cannot connect to database server
 			show_error('Failed to connect to database, check database settings');
@@ -392,24 +369,20 @@ class Install extends CI_Controller {
 			case 'postgre':
 				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
 			break;
-			case 'sqlsrv':
-				$auth_info = array( "UID"=>$this->db->username,"PWD"=>$this->db->password);
+			case 'sqlsrv':				
+				$auth_info = array( "UID"=>$this->db->username,"PWD"=>$this->db->password, "Database"=>$this->db->database);
 				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
 			break;
 			default:
 				show_error('INSTALLER::database not supported');
 		}
 
-		//return false;
-		//$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
-        
         if (! $conn_id ) 
         {
             return FALSE;
         } 
         else 
         {
-			//mysql_close($conn_id);
             return TRUE;
         }
 	}
@@ -424,15 +397,13 @@ class Install extends CI_Controller {
 		//check if database already exists
 		foreach($dbs as $db)
 		{
-			if (strtolower($db)==strtolower($this->db->database))
-			{
+			if (strtolower($db)==strtolower($this->db->database)){
 				return TRUE;
 			}
 		}
 		
 		//try creating the database
-		if ($this->dbforge->create_database($this->db->database))
-		{
+		if ($this->dbforge->create_database($this->db->database)){
 			return TRUE;
 		}
 		return FALSE;
