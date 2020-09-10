@@ -98,15 +98,14 @@
 			<?php endforeach;?>                    
 		<?php endif;?>
 				
-		<?php if($survey['type']=='timeseries' && isset($survey['metadata']['series_description']['database_id'])):?>
+		<?php if($survey['type']=='timeseries' && !empty($survey['timeseries_db_title'])):?>
 			<span class="timeseries-db font-weight-normal text-secondary" style="font-size:smaller">
-				(<?php echo t('timeseries_db').': ';?><a href="<?php echo site_url('catalog/'.$survey['id'].'/timeseries-db');?>"><?php echo $survey['metadata']['series_description']['database_id'];?></a>)
+				(<?php echo t('timeseries_db').': ';?><a href="<?php echo site_url('catalog/'.$survey['id'].'/timeseries-db');?>"><?php echo $survey['timeseries_db_title'];?></a>)
 			</span>
 		<?php endif;?>
 
 		</h6>
-					
-
+		
 		<div class="producers mb-3">
 		<?php if (isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
 			<?php echo $survey['authoring_entity'];?>

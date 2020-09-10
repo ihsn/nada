@@ -453,8 +453,7 @@ class Study extends MY_Controller {
 			'related_studies_count'=>count($related_studies),
 			'related_studies_formatted'=>$related_studies_formatted
 		);
-		
-		
+
 		$this->template->write('title', $this->generate_survey_title($dataset),true);
 		$this->template->add_variable("body_class","container-fluid-n");
 		$html= $this->load->view($display_layout,$options,true); 
@@ -468,7 +467,7 @@ class Study extends MY_Controller {
 
 	/**
 	*
-	* Get survey basic informatoin
+	* Get study metadata and other info
 	**/
 	private function get_survey_info($id)
 	{
@@ -487,6 +486,18 @@ class Study extends MY_Controller {
 
 		if (!$survey['owner_repo']){
 			$survey['owner_repo']=$this->Repository_model->get_central_catalog_array();
+		}
+
+		if($survey['type']=='timeseries'){
+			$survey['timeseries_db']=$this->Timeseries_db_model->get_database_by_series_id($id);
+
+			if (!empty($survey['timeseries_db'])){
+				$survey['timeseries_db_title']=null;
+				if (isset($survey['timeseries_db']['metadata']['database_description']['title_statement']['title'])){
+					$survey['timeseries_db_title']=$survey['timeseries_db']['metadata']['database_description']['title_statement']['title'];
+				}
+			}
+
 		}
 
 		return $survey;
