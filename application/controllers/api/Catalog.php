@@ -365,11 +365,13 @@ class Catalog extends MY_REST_Controller
 	 */
 	private function get_countries_id($countries,$delimited='|')
 	{
-		if(trim($countries)==''){
+		if(empty($countries)){
 			return false;
 		}
 
-		$countries=explode($delimited,$countries);
+		if(!is_array($countries)){
+			$countries=explode($delimited,$countries);
+		}
 
 		//map iso2 to iso3
 		$countries=$this->map_iso2_to_iso3($countries);
