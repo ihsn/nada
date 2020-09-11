@@ -1361,7 +1361,7 @@ CREATE TABLE api_keys (
   ip_addresses text,
   date_created int NOT NULL,
   user_id int DEFAULT NULL,
-  is_private_key int NOT NULL,
+  is_private_key int NOT NULL DEFAULT '0',
   PRIMARY KEY (id),
 );
 
