@@ -54,7 +54,7 @@ class Study extends MY_Controller {
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
 
-		if( in_array($survey['type'], array('script', 'document'))){
+		if( in_array($survey['type'], array('script', 'document','table'))){
 			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);	    		
 		}
 		
