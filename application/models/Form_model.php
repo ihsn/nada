@@ -15,10 +15,22 @@ class Form_model extends CI_Model {
 		return $this->db->get('forms')->row_array();
 	}
 	
+
 	//return all forms
 	function get_all()
 	{
-		return $this->db->get('forms')->result_array();
+		$query= $this->db->get('forms')->result_array();
+
+		$result=array();
+
+		if($query){
+			foreach($query as $row){
+				$result[$row['model']]=$row;
+			}
+			return $result;
+		}
+		
+		return FALSE;
 	}
 
 	/**

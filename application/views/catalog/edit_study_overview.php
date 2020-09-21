@@ -52,12 +52,6 @@ $selected_page=$this->uri->segment(5);
                 </div>
             </td>
         </tr>
- <?php /* ?>
-       <tr>
-            <td><?php echo t('producer');?></td>
-            <td><?php echo $authoring_entity; ?></td>
-		</tr>
-<?php */ ?>		
         <tr>
             <td><?php echo t('folder');?></td>
             <td><?php echo $dirpath;?></td>
@@ -76,20 +70,6 @@ $selected_page=$this->uri->segment(5);
             </td>
         </tr>
 			
-			<!--
-        <tr>
-            <td><?php echo t('Status');?></td>
-            <td>
-                <div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
-                <?php if (!$published):?>
-                    <span class="btn btn-warning publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('draft');?></span>
-                <?php else:?>
-                    <span class="btn btn-success publish" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></span>
-                <?php endif;?>
-                </div>
-            </td>
-        </tr>
-			-->
         <tr>
             <td><?php echo t('metadata_in_pdf');?></td>
             <td>
@@ -104,7 +84,7 @@ $selected_page=$this->uri->segment(5);
                     <?php endif;?>
                 </span>
 
-								<?php if ($pdf_documentation['status']=='na'):?>
+				<?php if ($pdf_documentation['status']=='na'):?>
 	            		<span class="label label-warning"  title="<?php echo t('pdf_not_generated');?>"><i class="glyphicon glyphicon-exclamation-sign"></i> <?php echo t('pdf_not_generated');?></span>
 	                <?php else:?>
 	                	<?php if ($pdf_documentation['status']=='uptodate'):?>
@@ -112,16 +92,26 @@ $selected_page=$this->uri->segment(5);
 	                    <?php else:?>
 	                    	<span class="label label-warning" title="<?php echo t('pdf_outdated');?>"><i class="glyphicon glyphicon-exclamation-sign"></i> <?php echo t('pdf_outdated');?></span>
 	                    <?php endif;?>
-	                <?php endif;?>
+	            <?php endif;?>
             </td>
 		</tr>
 		
+		<?php /* ?>
 		<tr>
 			<td><?php echo t('data_access');?></td>
 			<td>
 				<div class="collapsible">
 				<div class="box-caption">
 						<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+
+						<?php if (isset($data_class_id)):?>
+							<?php foreach($data_classifications as $data_class_row):?>
+								<?php if ($data_class_row['id']==$data_class_id) :?>
+									<span class="" style="margin-right:15px;"><?php echo  $data_class_row['title'];?></span>
+								<?php endif;?>
+							<?php endforeach;?>
+						<?php endif;?>
+
 						<?php if(isset($formid)):?>
 							<?php echo $this->forms_list[$formid];?>
 						<?php else:?>
@@ -130,7 +120,7 @@ $selected_page=$this->uri->segment(5);
 				</div>
 
 				<div class="box-body collapse">
-					<form method="post" id="da-form" action="<?php echo site_url();?>/admin/catalog/update">
+					<form method="post" id="da-form" action="<?php echo site_url('admin/catalog/update');?>">
 							<input type="hidden" name="sid" value="<?php echo $id;?>"/>
 
 					<div class="field"> 
@@ -166,9 +156,10 @@ $selected_page=$this->uri->segment(5);
 
 			</td>
 		</tr>
+		<?php */?>
 		
 		<!-- data classification -->
-		<tr>
+		<?php /* ?> <tr>
 			<td><?php echo t('data_classification');?></td>
 			<td>
 				<div class="collapsible">
@@ -195,12 +186,29 @@ $selected_page=$this->uri->segment(5);
 				</div>
 			</td>
 		</tr>
+		<?php */ ?>
+
+
+		<!-- data classification -->
+		<tr>
+			<td><?php echo t('data_access');?></td>
+			<td>
+				<div class="collapsiblex">
+					<div class="box-caption">
+					</div>
+
+					<div class="box-body collapsex">
+						<?php $this->load->view('catalog/data_access',null);?>
+					</div>
+				</div>
+			</td>
+		</tr>
 
         <tr>
             <td><?php echo t('indicator_database');?></td>
             <td>
 
-							<div class="collapsible">
+				<div class="collapsible">
                   <div class="box-caption">
 										<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                       <?php if ($link_indicator):?>

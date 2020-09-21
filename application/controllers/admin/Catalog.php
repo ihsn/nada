@@ -1600,6 +1600,9 @@ class Catalog extends MY_Controller {
 
 		$this->load->library("catalog_admin");
 
+		//load data classification + license options
+		$this->config->load('data_access');		
+
 		$active_repository=FALSE;
 
 		//get active repository
@@ -1684,9 +1687,11 @@ class Catalog extends MY_Controller {
 		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
 		//Data classifications
-		$data_classfications = $this->Data_classification_model->get_list();
-		$data_classfications=array('0'=>'--SELECT--') + (array)$data_classfications;
+		$data_classfications = $this->Data_classification_model->get_all();
+		//$data_classfications=array('0'=>'--SELECT--') + (array)$data_classfications;
 		$survey_row['data_classifications']=$data_classfications;
+
+		$survey_row['data_access_options']=$this->config->item("data_access_options");
 
 		//data access form list
 		$this->load->model('Form_model');
@@ -1696,6 +1701,8 @@ class Catalog extends MY_Controller {
 		foreach($this->Form_model->get_all()  as $value){
 			$this->forms_list[$value['formid']]=t($value['fname']); 
 		}
+
+		$survey_row['data_access_types']=$this->Form_model->get_all();
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
 		$this->template->write('content', $content,true);
