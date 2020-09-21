@@ -76,7 +76,7 @@ class Catalog extends MY_Controller {
 		$filters=array();
 
 		//load data for facets
-		$this->load_facets_data();
+		//$this->load_facets_data();
 
 		$output= $this->_search();
 		$output['tab_type']=$this->active_tab;
@@ -212,6 +212,9 @@ class Catalog extends MY_Controller {
 		$get_keys_array=array('tab_type','sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection','ps','data_class');
 
 		$this->load->helper('security');
+
+		//load data for facets
+		$this->load_facets_data();
 
 		//get year min/max
 		//$data['min_year']=$this->facets['years']['min_year'];
@@ -358,8 +361,8 @@ class Catalog extends MY_Controller {
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
-		$data['data_access_types']=$this->Form_model->get_form_list();
-		$data['data_classifications']=$this->Data_classification_model->get_list();
+		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
+		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
 		$data['sid']=$search_options->sid;
 		$data['search_type']='study';
 		return $data;

@@ -47,7 +47,9 @@
     <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
         <?php foreach($search_options->dtype as $dtype):?>
             <?php if (array_key_exists($dtype,$data_access_types)):?>
-                <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype[]" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?><i class="fa fa-close"></i></span>
+                <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype[]" data-value="<?php echo $dtype;?>">
+                    <?php echo $data_access_types[$dtype]['title'];?><i class="fa fa-close"></i>
+                </span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
@@ -55,7 +57,9 @@
     <?php if (isset($search_options->data_class) && is_array($search_options->data_class)):?>
         <?php foreach($search_options->data_class as $data_class):?> 
             <?php if (array_key_exists($data_class,$data_classifications)):?>
-                <span class="badge badge-default badge-secondary wb-badge-close remove-filter data_class" data-type="data_class[]" data-value="<?php echo $data_class;?>"><?php echo $data_classifications[$data_class];?><i class="fa fa-close"></i></span>
+                <span class="badge badge-default badge-secondary wb-badge-close remove-filter data_class" data-type="data_class[]" data-value="<?php echo $data_class;?>">
+                    <?php echo $data_classifications[$data_class]['title'];?><i class="fa fa-close"></i>
+                </span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>

@@ -1,225 +1,222 @@
 <?php 
-if(!isset($active_tab)){
-    $active_tab=$this->uri->segment(3);
-}
+	$sub_title=array();
+	if ($survey['nation']!=''){
+		$sub_title[]='<span id="dataset-country">'.$survey['nation'].'</span>';
+	}
 
-$survey_id=$survey['id'];
-$active_tab_class="active";
+    $dates=array_unique(array($survey['year_start'],$survey['year_end']));
+	$dates=implode(" - ", $dates);
+
+    if(!empty($dates)){
+		$sub_title[]='<span id="dataset-year">'.$dates.'</span>';
+	}
+	$sub_title=implode(", ", $sub_title);
 ?>
 
+<div class="row">
+	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
+		<?php 
+			$thumbnail=$survey['owner_repo']['thumbnail'];
+			if(isset($survey['thumbnail']) && trim($survey['thumbnail'])!='' && file_exists('files/thumbnails/'.$survey['thumbnail'])){
+				$thumbnail='files/thumbnails/'.$survey['thumbnail'];
+			}
+		?>
+		<div class="col-md-2">
+			<div class="collection-thumb-container">
+				<a href="<?php echo site_url('catalog/'.$survey['owner_repo']['repositoryid']);?>">
+				<img  src="<?php echo base_url().$thumbnail;?>" class="mr-3 img-fluid img-thumbnail" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
+				</a>
+			</div>		
+		</div>
+	<?php endif;?>
 
-<div class="row wb-tab-heading mt-lg-3 mb-3 study-metadata-info-bar">
-        <!-- tab-heading -->
+	<div class="col">
+		
+		<div>
+		    <h1 class="mt-0 mb-1" id="dataset-title"><?php echo $survey_title;?></h1>
+            <div class="clearfix">
+		        <h6 class="sub-title float-left" id="dataset-sub-title"><?php echo $sub_title;?></h6>
+                <?php if(isset($data_access_type) && $data_access_type!='data_na'):?>
+                <a  
+                    href="<?php echo site_url("catalog/$sid/get-microdata");?>" 
+                    class="get-microdata-btn badge badge-primary wb-text-link-uppercase float-left ml-3" 
+                    title="<?php echo t('get_microdata');?>">					
+                    <span class="fa fa-download"></span>
+                    <?php echo t('get_microdata');?>
+                </a>
+                <?php endif;?>
+            </div>
+		</div>
 
-            <div class="col-12 col-sm-10">
+		<div class="row">
+		
+            <div class="col pr-5">
 
-              <div class="row">
-				  <!-- collection logo -->
-                <div class="col-12 col-sm-2 d-flex justify-content-center pt-2">					  
-                    <?php if ($survey['owner_repo']['thumbnail']!=''):?>
-                    <div class="collection-thumb-container">
-                        <a href="<?php echo site_url('catalog/'.$survey['owner_repo']['repositoryid']);?>">
-                        <img src="<?php echo $survey['owner_repo']['thumbnail'];?>" class="wb-table-img" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
-                        </a>
+                <div class="row mt-4 mb-2 pb-2  border-bottom">
+                    <div class="col-md-2">
+                        <?php echo t('refno');?>
                     </div>
-                    <?php endif;?>
-				</div>
-				<!-- end collection logo -->
+                    <div class="col">
+                        <div class="study-idno">
+                            <?php echo $survey['idno'];?>
+                        </div>
+                    </div>
+                </div>
+		
+                <?php if (isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
+                <div class="row mb-2 pb-2  border-bottom">
+                    <div class="col-md-2">
+                        <?php echo t('producers');?>
+                    </div>
+                    <div class="col">
+                        <div class="producers">
+                            <?php echo $survey['authoring_entity'];?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif;?>
 
-                <div class="col-12 col-sm-10">
-                <table class="table table-sm wb-table-space survey-info" cellspacing="0">
-                    <tr>
-                        <td class="label"><?php echo t('refno');?></td>
-                        <td class="value"><?php echo $survey['idno'];?></td>
-                    </tr>
-                    <tr>
-                        <td class="label"><?php echo t('year');?></td>
-                        <td class="value">
-                        <?php 
-                            $dates=array_unique(array($survey['year_start'],$survey['year_end']));                    
-                                /*if ($year_start==$year_end){
-                                    echo $year_start;
-                                }
-                                else{
-                                    if ($year_start!=''){
-                                        $dates[]=$year_start;
-                                    }
-                                    if ($year_end!=''){
-                                        $dates[]=$year_end;
-                                    }*/
-                                    echo implode(" - ", $dates);
-                                ?>
-                        </td>
-                    </tr>
-                    <?php if ($survey['nation']!=''):?>
-                    <tr>
-                        <td class="label"><?php echo t('country');?></td>
-                        <td class="value"><?php echo $survey['nation'];?></td>
-                    </tr>
-                    <?php endif;?>
-                    <?php if (isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
-                    <tr valign="top">
-                        <td class="label"><?php echo t('producers');?></td>
-                        <td class="value">                            
-                                <?php foreach($survey['authoring_entity'] as $pi):?>
-                                <div>
-                                    <?php 
-                                    $auth=array();
-                                    foreach($pi as $key=>$value){
-                                        $auth[]=$value;
-                                    }                    
-                                    echo implode(", " ,array_filter($auth));
-                                    ?>
-                                </div>
-                            <?php endforeach;?>                                
-                        </td>
-                    </tr>
-                    <?php endif;?>
-                    <?php if (isset($survey['fundag'])):?>
-                    <tr valign="top">
-                        <td class="label"><?php echo t('sponsors');?></td>
-                        <td class="value">
-                        <?php foreach($survey['fundag'] as $agency):?>
-                            <div>
-                                <?php 
-                                $ag=array();
-                                foreach($agency as $key=>$value){
-                                    if($value){
-                                        $ag[]=trim($value);
-                                    }    
-                                }                    
-                                echo implode(", " ,array_filter($ag));
-                                ?>
-                            </div>
-                        <?php endforeach;?>
-                    </td>
-                    </tr>
-                    <?php endif;?>
-                    
-                    <?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?>
-                    <tr valign="top">
-                        <td class="label"><?php echo t('collections');?></td>
-                        <td class="value">
-                        <?php foreach($survey['repositories'] as $repository):?>
-                            <div class="collection"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
-                        <?php endforeach;?>
-                        </td>
-                    </tr>
-                    <?php endif;?>
+                <?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?> 
+                <div class="row  border-bottom mb-2 pb-2 mt-2">
+                    <div class="col-md-2">
+                        <?php echo t('collections');?>
+                    </div>
+                    <div class="col">
+                        <div class="collections">           
+                            <?php foreach($survey['repositories'] as $repository):?>
+                                <div class="collection"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
+                            <?php endforeach;?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif;?>
 
-                    <?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
-                    <?php if (file_exists($report_file)):?>
-                    <tr>    
-                        <td class="label"><?php echo t('metadata');?></td>
-                        <td class="value links">            
-                            <span class="link-col sep">
-                                <a href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('pdf');?>" >
-                                <i class="fa fa-file-pdf-o" aria-hidden="true"> </i> <?php echo t('documentation_in_pdf');?>
-                                </a> 
-                            </span>            
-                        </td>
-                    </tr>
-                    <?php endif;?>
-                    
-                    
-                    <tr>
-                    <td></td>
-                    <td class="study-links">
-                            
-                            <?php if($survey['link_study']!=''): ?>
-                                <span class="link-col">
-                                    <a  target="_blank" href="<?php echo html_escape($survey['link_study']);?>" title="<?php echo t('link_study_website_hover');?>">
-                                    <i class="fa fa-globe" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
+                <div class="row border-bottom mb-2 pb-2 mt-2">
+                    <div class="col-md-2">
+                        <?php echo t('metadata');?>
+                    </div>
+                    <div class="col">
+                        <div class="metadata">
+                            <!--metadata-->
+                            <span class="mr-2 link-col">
+                                <?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
+                                <?php if (file_exists($report_file)):?>
+                                    <a href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('documentation_in_pdf');?>" >
+                                        <span class="badge badge-success"><i class="fa fa-file-pdf-o" aria-hidden="true"> </i> <?php echo t('documentation_in_pdf');?></span>
                                     </a>
-                                    </span>
-                            <?php endif; ?>
+                                <?php endif;?>
                             
+                                <?php if($survey['type']=='survey'):?>
+                                    <a href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" title="<?php echo t('metadata_in_ddi_xml');?>">
+                                        <span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
+                                    </a>
+                                <?php endif;?>
 
-                            <?php if($survey['link_indicator']!=''): ?>
-                                <span class="link-col">
-                                <a target="_blank"  href="<?php echo html_escape($survey['link_indicator']);?>" title="<?php echo t('link_indicators_hover');?>">
-                                <i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>
+                                <a href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" title="<?php echo t('metadata_in_json');?>">
+                                    <span class="badge badge-info"><?php echo t('JSON');?></span>
                                 </a>
-                                </span>
-                            <?php endif; ?>                            
-                                                        
-
-                            <?php if($survey['link_questionnaire']!=''): ?>
-                                <span class="link-col">
-                                <a target="_blank"  href="<?php echo html_escape($survey['link_questionnaire']);?>" >
-                                <i class="fa fa-file-o" aria-hidden="true"> </i> <?php echo t('link_questionnaires');?>
-                                </a>
-                                </span>
-                            <?php endif; ?>
-
-                            <?php if($survey['link_report']!=''): ?>
-                                <span class="link-col">
-                                <a target="_blank"  href="<?php echo html_escape($survey['link_report']);?>" >
-                                <i class="fa fa-book" aria-hidden="true"> </i>  <?php echo t('link_reports');?>
-                                </a>
-                                </span>
-                            <?php endif; ?>
-                            
-                        </td>
-                    </tr>
-                                        
-                </table>
+                            </span>	
+                            <!--end-metadata-->
+                        </div>
+                    </div>
                 </div>
 
-              </div> <!-- /row  -->
-                
-
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs wb-nav-tab-space flex-wrap" role="tablist">
-                    <?php foreach($page_tabs as $tab_name=>$tab):?>
-                        <?php if ($tab['show_tab']==0){continue;};?>
-                        <?php if($tab_name=='get_microdata'):?>
-                            <li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?>" >
-                                <a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab" data-id="related-materials" title="<?php echo $tab['hover_text'];?>">
-                                    <span class="get-microdata icon-da-<?php echo $data_access_type;?>"></span> <?php echo $tab['label'];?>
+                <?php if($survey['link_study']!='' || $survey['link_indicator']!=''): ?>
+                <div class="row  border-bottom  mb-2 pb-2 mt-2">
+                    <div class="col-md-2">
+                        
+                    </div>
+                    <div class="col">
+                        <div class="study-links link-col">
+                            <?php if($survey['link_study']!=''): ?>						
+                                <a  target="_blank" href="<?php echo html_escape($survey['link_study']);?>" title="<?php echo t('link_study_website_hover');?>">
+                                    <span class="mr-2">
+                                        <i class="fa fa-globe" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
+                                    </span>
                                 </a>
-                            </li>                            
-                        <?php else:?>
-                            <li class="nav-item tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>"  >
-                                <a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab"  data-id="related-materials" title="<?php echo $tab['hover_text'];?>"><?php echo $tab['label'];?></a>
-                            </li>
-                        <?php endif;?>
-                    <?php endforeach;?>
-                    
-                    <!--review-->
-                    <?php if(isset($page_tabs['review_study']) && $page_tabs['review_study']===TRUE):?>                    
-                        <li class="nav-item tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" >
-                            <a href="<?php echo site_url('catalog/'.$survey_id.'/review');?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab=='review') ? $active_tab_class : '';?>" role="tab"  data-id="review">
-                                <?php echo t('review_study');?>
-                            </a>
-                        </li>
-                    <?php endif;?>
-                </ul>
+                            <?php endif; ?>
 
-                
-                <!-- /Nav tabs -->
+                            <?php if($survey['link_indicator']!=''): ?>
+                                <a target="_blank"  href="<?php echo html_escape($survey['link_indicator']);?>" title="<?php echo t('link_indicators_hover');?>">
+                                    <span>
+                                        <i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>
+                                    </span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
-              </div>  
+                <?php if (!empty($data_classification)):?>
+                <div class="row  mb-2 pb-2 mt-2">
+                    <div class="col-md-2">
+                        <?php echo t('data_access');?>
+                    </div>
+                    <div class="col">
+                        <span class="data-classification">
+                            <?php echo t('data_class_note_'.$data_classification);?>
+                        </span>
+                    </div>
+                </div>
+                <?php endif;?>
 
-            <div class="col-12 col-sm-2 wb-study-statistics-box pb-2 hidden-sm-down">
-              
-            <div class="pt-3 mb-4">
-                <small><?php echo t('created_on');?></small><br/>
-                <strong class="value"><?php echo date("M d, Y",$survey['created']);?></strong>
-            </div>
+		    <?php if(isset($data_access_type) && $data_access_type!='data_na'):?>
+			<div class="row  mb-2 pb-2 mt-2">
+				<div class="col-md-2">
+					<?php echo t('license');?>
+				</div>
+				<div class="col">
+					<span class="license">
+						<a href="<?php echo site_url('licenses/'.$data_access_type);?>">
+						<?php echo t('legend_data_'.$data_access_type);?> <i class="fa fa-info-circle" aria-hidden="true"></i>
+						</a>
+					<span>
+				</div>
+			
+                <?php /*
+                <a href="<?php echo site_url("catalog/$sid/get-microdata");?>" class="get-microdata-btn badge badge-primary wb-text-link-uppercase" title="<?php echo t('get_microdata');?>">					
+                    <span class="fa fa-download"></span>
+                    <?php echo t('get_microdata');?>
+                </a>
+                */ ?>
+		
+			</div>
+		    <?php endif;?>
+	    </div>
+	
+	</div>
 
-            <div class="mb-4">
-                <small><?php echo t('last_modified');?></small><br/>
-                <strong><?php echo date("M d, Y",$survey['changed']);?></strong>
-            </div>
+	</div>
 
-            <?php if ((int)$survey['total_views']>0):?>
-            <div class="mb-4">
-                <small><?php echo t('page_views');?></small><br/>
-                <strong><?php echo $survey['total_views'];?></strong>
-            </div>
-            <?php endif;?>
+    <div class="col-md-2 border-left">
+		<!--right-->
+		<div class="study-header-right-bar">
+				<div class="stat">
+					<div class="stat-label"><?php echo t('created_on');?> </div>
+					<div class="stat-value"><?php echo date("M d, Y",$survey['created']);?></div>
+				</div>
 
-            </div>
-        <!-- /tab-heading -->
-    </div>
+				<div class="stat">
+					<div class="stat-label"><?php echo t('last_modified');?> </div>
+					<div class="stat-value"><?php echo date("M d, Y",$survey['changed']);?></div>
+				</div>
+				
+				<?php if ((int)$survey['total_views']>0):?>
+					<div class="stat">
+						<div class="stat-label"><?php echo t('page_views');?> </div>
+						<div class="stat-value"><?php echo $survey['total_views'];?></div>
+					</div>
+				<?php endif;?>
+
+				<?php if ((int)$survey['total_downloads']>0):?>
+					<div class="stat">
+						<div class="stat-label"><?php echo t('downloads');?> </div>
+						<div class="stat-value"><?php echo $survey['total_downloads'];?></div>
+					</div>				
+				<?php endif;?>
+		</div>		
+		<!--end-right-->
+	</div>
+
+</div>
