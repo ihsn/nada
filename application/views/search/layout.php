@@ -1,10 +1,10 @@
 <style>
+ .breadcrumb{display:none;}
  .search-nav-tabs .nav-item .active{   
     background-color: transparent;
     border:0px;
     border-bottom: 3px solid red;    
 }
-
 
 .dataset-type-label{
     text-transform: uppercase;

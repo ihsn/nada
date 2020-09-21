@@ -133,12 +133,17 @@ class Datasets extends MY_REST_Controller
 
 			$options=array(				
 				'repositoryid'			=> array_get_value($input,'owner_collection'),
-				'formid'				=> $this->dataset_manager->get_data_access_type_id(array_get_value($input,'access_policy')),
+				'formid'				=> array_get_value($input,'access_policy'),
 				'link_da'				=> array_get_value($input,'data_remote_url'),
 				'published'				=> array_get_value($input,'published'),
 				'link_study'			=> array_get_value($input,'link_study'),
-				'link_indicator'		=> array_get_value($input,'link_indicator')
+				'link_indicator'		=> array_get_value($input,'link_indicator'),
+				'thumbnail'				=> array_get_value($input,'thumbnail')
 			);
+
+			if(!empty($options['formid'])){
+				$options['formid']=$this->dataset_manager->get_data_access_type_id($options['formid']);
+			}
 
 			//remove options not set
 			foreach($options as $key=>$value){
@@ -148,7 +153,7 @@ class Datasets extends MY_REST_Controller
 			}
 
 			//validate
-			$this->dataset_manager->validate_options($options);
+			//$this->dataset_manager->validate_options($options);
 			
 			//update
 			$this->dataset_manager->update_options($sid,$options);
@@ -1222,6 +1227,34 @@ class Datasets extends MY_REST_Controller
 			);
 
 			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	function thumbnail_delete($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+
+			$options=array(				
+				'thumbnail'	=> null,
+			);
+
+			//update
+			$this->dataset_manager->update_options($sid,$options);
+
+			$response=array(
+				'status'=>'success'				
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(

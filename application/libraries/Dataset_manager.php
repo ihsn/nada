@@ -157,8 +157,9 @@ class Dataset_manager{
 
     function validate_options($options)
     {
-        return $this->ci->validate_options($options);
+        return $this->ci->Dataset_model->validate_options($options);
     }
+    
 
     public function get_data_access_type_id($name)
     {
