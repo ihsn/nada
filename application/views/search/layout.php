@@ -140,6 +140,14 @@
 .icon-collapsed{
     display:none;
 }
+
+.study-idno{
+    color:gray;
+    font-size:12px;
+}
+
+h5{margin:0px;}
+
 </style>
 
 <div class="container">
