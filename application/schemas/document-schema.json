@@ -864,6 +864,9 @@
 
 
       },
+      "required":[
+        "title_statement"
+      ], 
       "additionalProperties": false
     },
     "tags": {
@@ -915,5 +918,8 @@
       ]
     }
     }
-  }
+  },
+  "required":[
+    "document_description"
+  ]
 }
