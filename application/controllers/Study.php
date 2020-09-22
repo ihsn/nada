@@ -369,6 +369,24 @@ class Study extends MY_Controller {
 			
 			case 'image':
 			case 'document':
+				$display_layout='survey_info/layout_scripts';
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'timeseries_db'=>array(
+						'label'=>t('timeseries_db'),
+						'url'=>site_url("catalog/$sid/timeseries-db"),
+						'show_tab'=>0
+					),
+					//hide related materials
+					'related_materials'=>array(
+						'show_tab'=> 0
+					)
+				);
+				break;
 			case 'timeseries':
 				$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
