@@ -376,14 +376,10 @@ class Study extends MY_Controller {
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
 					),
-					'timeseries_db'=>array(
-						'label'=>t('timeseries_db'),
-						'url'=>site_url("catalog/$sid/timeseries-db"),
-						'show_tab'=>0
-					),
-					//hide related materials
 					'related_materials'=>array(
-						'show_tab'=> 0
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
 					)
 				);
 				break;
