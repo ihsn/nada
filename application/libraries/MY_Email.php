@@ -10,6 +10,9 @@
  * This class is intended to be compatible with CI 3.1.x.
  */
 
+use PHPMailer\PHPMailer\PHPMailer;
+
+
 class MY_Email extends CI_Email {
 
     public $phpmailer;  // This property has been made public for testing purposes.
@@ -593,9 +596,10 @@ class MY_Email extends CI_Email {
 
             if (!is_object($this->phpmailer)) {
 
+                /*
                 // Try to autoload the PHPMailer if there is already a registered autoloader.
                 $phpmailer_class_exists = class_exists('PHPMailer', true);
-
+                
                 // No? Search for autoloader at some fixed places.
                 if (!$phpmailer_class_exists && defined('COMMONPATH')) {
 
@@ -614,6 +618,7 @@ class MY_Email extends CI_Email {
                 if (!$phpmailer_class_exists) {
                     throw new Exception('The file PHPMailerAutoload.php can not be found.');
                 }
+                */
 
                 $this->phpmailer = new PHPMailer();
 
@@ -921,7 +926,7 @@ class MY_Email extends CI_Email {
         $this->properties['newline'] = $newline;
 
         if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->LE = $newline;
+            $this->phpmailer->set("CRLF", $newline);
         }
 
         return $this;

@@ -1,5 +1,5 @@
 <?php if (isset($_GET['print']) && $_GET['print'] == 'yes'): ?>
-<script type="text/javascript" src="<?php echo site_url(); ?>javascript/jquery.js"></script>
+<script type="text/javascript" src="<?php echo site_url(); ?>javascript/jquery/jquery.js"></script>
 <?php endif; ?>
 
 <?php $message=$this->session->flashdata('message');?>

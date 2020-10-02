@@ -3,7 +3,7 @@
 .always-visible{padding:10px;}
 .field-expanded legend, .field-collapsed legend, .always-visible legend{background:white;padding-left:5px;padding-right:5px;font-weight:bold; cursor:pointer}
 .field-collapsed{background:none; border:0px;border-top:1px solid gainsboro;margin-top:5px;margin-bottom:5px;}
-.field-collapsed legend {background-image:url(images/next.gif); background-position:left top; padding-left:20px;background-repeat:no-repeat;}
+.field-collapsed legend {padding-left:20px;background-repeat:no-repeat;}
 .field-collapsed .form-group{display:none;}
 .form{ max-width:800px;}
 </style>
@@ -133,10 +133,10 @@ function toggle_file_url(field_show,field_hide){
 }
 
 //auto complete
-$(document).ready(function(){
+/*$(document).ready(function(){
     var data = "<?php echo $this->js_files;?>".split(" ");
 	$("#url").autocomplete(data);
-});
+});*/
 
 //expand/collapse
 $(document).ready(function() {

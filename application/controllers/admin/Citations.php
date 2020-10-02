@@ -160,8 +160,6 @@ class Citations extends MY_Controller {
 
     function edit($id=NULL)
     {
-        $this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-        $this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
         $this->template->add_js('javascript/underscore-min.js');
         $this->template->add_js('javascript/jquery.highlight.js');
 
@@ -685,9 +683,6 @@ class Citations extends MY_Controller {
 	**/
 	function import()
 	{
-		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
-
 		$this->form_validation->set_rules('citation_string', t('citation_string'), 'xss_clean|trim|required');
 		$string=$this->input->post("citation_string");
 

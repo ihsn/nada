@@ -62,6 +62,11 @@
         content: "\f105";
     }
 
+    .var-id {
+        word-break: break-word!important;
+        overflow-wrap: break-word!important;
+    }
+
 </style>
 
 <div class="row">
@@ -86,7 +91,7 @@
             <?php endforeach;?>
         </ul>
 
-        <?php if(isset($variable_groups_html)):?>
+        <?php if(isset($variable_groups_html) && !empty($variable_groups_html)):?>
         <div class="variable-groups-sidebar">
             <div class="nada-list-group-item nada-list-group-title"><?php echo t('variable_groups');?></div>
             <?php echo $variable_groups_html;?>
@@ -129,7 +134,7 @@
                     <div class="icon-toggle"><i class="collapased_ fa fa-angle-down" aria-hidden="true"></i><i class="expanded_ fa fa-angle-up" aria-hidden="true"></i></div>            
                         <div class="col-md-3">
                             <div class="var-td p-1">
-                            <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
+                            <a class="var-id text-break" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
                             </div>
                         </div>
                         <div class="col">
@@ -145,8 +150,17 @@
                     </div>                
                 <?php endforeach;?>
             </div>
-            
-            <div><?php echo t('total');?>: <?php echo count($variables);?></div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <?php echo t('total');?>: <?php echo $file_variables_count;?>
+                </div>
+                <div class="col-md-9">
+                    <div class="pagination float-right">
+                        <?php echo $variable_pagination;?>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

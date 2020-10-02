@@ -2,7 +2,7 @@
 
 //require_once(APPPATH."../modules/mpdf/mpdf_source.php");
 
-require_once 'vendor/autoload.php';
+//require_once 'vendor/autoload.php';
 
 //$mpdf = new \Mpdf\Mpdf();
 

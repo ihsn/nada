@@ -1,7 +1,7 @@
 <?php
 	//other settings
 	echo '<h1>'.t('other_php_settings').'</h1>';
-	echo '<table cellpadding="3" cellspacing="0" class="grid-table">';
+	echo '<table cellpadding="3" cellspacing="0" class="grid-table table table-sm table-striped table-bordered">';
 	
 	echo '<tr class="header">';
 	echo '<th>'.t('setting').'</th>';

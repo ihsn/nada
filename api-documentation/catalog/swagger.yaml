@@ -91,7 +91,6 @@ paths:
       consumes:
         - application/json
       produces:
-        - application/xml
         - application/json
       parameters:
         - name: sk
@@ -114,11 +113,21 @@ paths:
           title: Country name
           description: "Provide country name or ISO 3 code. For country names and codes, see endpoint `/api/catalog/country_codes`. For searching multiple countries, provide names separated by pipe(|). \n \n Example `Afghanistan|Indonesia` or `afg|ind` or `afghanistan|ind`"
           type: string
+        - name: inc_iso
+          in: path
+          title: Include ISO codes
+          description: Set the parameter value to true to include the ISO3 country codes for the results
+          type: boolean
         - name: collection
           in: path
           title: Filter by collections
           description: Filter results by one or more collections. For filtering multiples, use format `collection1, collection2`
           type: string
+        - name: created
+          in: path
+          title: Filter by date created
+          description: Filter results by date of creation. Use the date format YYYY-MM-DD. Examples, `2020/04/01` returns records created on and after that date. To specify a date range, use the format `2020/04/01-2020/04/20`
+          type: string  
         - name: dtype
           in: path
           title: Data access type

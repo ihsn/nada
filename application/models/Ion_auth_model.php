@@ -1907,7 +1907,7 @@ class Ion_auth_model extends CI_Model
 
 		$output=array();
 		foreach($result as $row){
-			$output[]=$row['key'];
+			$output[]=$row['api_key'];
 		}
 
 		return $output;
@@ -1930,7 +1930,7 @@ class Ion_auth_model extends CI_Model
 
 		$options=array(
 			'user_id'=>$user_id,
-			'key'=>$key,
+			'api_key'=>$key,
 			'date_created'=>date("U"),
 			'level'=>0,
 			'ignore_limits'=>1
@@ -1943,7 +1943,7 @@ class Ion_auth_model extends CI_Model
 	function delete_api_key($user_id,$api_key)
 	{
 		$this->db->where("user_id",$user_id);
-		$this->db->where("key",$api_key);
+		$this->db->where("api_key",$api_key);
 		$this->db->delete("api_keys");
 	}
 

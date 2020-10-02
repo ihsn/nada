@@ -25,6 +25,11 @@ class Catalog extends MY_REST_Controller
 	function index_get($idno=null)
 	{	
 		try{
+
+			if(empty($idno)){
+				return $this->search_get();
+			}
+
 			$sid=$this->get_sid_from_idno($idno);
 
 			$result=$this->Dataset_model->get_row($sid);
@@ -77,7 +82,14 @@ class Catalog extends MY_REST_Controller
 				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
 				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
 				'ps'				=>	$this->security->xss_clean($this->input->get("ps")),
-				'sid'				=>	$this->security->xss_clean($this->input->get("sid"))
+				'sid'				=>	$this->security->xss_clean($this->input->get("sid")),
+				'topics'			=>  $this->security->xss_clean($this->input->get("topic")),
+				'tags'				=>  $this->security->xss_clean($this->input->get("tag")),
+				'sort_by'			=>  $this->security->xss_clean($this->input->get("sort_by")),
+				'sort_order'		=>  $this->security->xss_clean($this->input->get("sort_order")),
+				'type'				=>  $this->security->xss_clean($this->input->get("type")),
+				'country_iso3'		=>  $this->security->xss_clean($this->input->get("country_iso3")),
+				'created'			=>  $this->security->xss_clean($this->input->get("created")),
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
@@ -102,16 +114,30 @@ class Catalog extends MY_REST_Controller
 		$this->load->library('catalog_search',$params);
 
 		try{
-			$result=$this->catalog_search->search($limit,$offset);
+			$result=$this->catalog_search->search($limit,$offset);			
 
 			if(isset($result['rows'])){
+				
+				$iso3_codes=array();
+
+				if ($this->input->get("inc_iso")){
+					//iso3 codes
+					$iso3_codes=$this->Dataset_model->get_dataset_country_codes(array_column($result['rows'],'id') );	
+				}
+				
 				//convert date format
 				array_walk($result['rows'], 'unix_date_to_gmt',array('created','changed'));
-
-				//add study link
-				array_walk($result['rows'], function(&$row) {
-					$row['url'] = site_url('catalog/'.$row['id']);
-				});
+				
+				foreach($result['rows'] as $idx=>$row)
+				{
+					//add study link
+					$result['rows'][$idx]['url'] = site_url('catalog/'.$row['id']);
+					
+					//attach iso3 codes to study
+					if (isset($iso3_codes[$row['id']])){
+						$result['rows'][$idx]['iso3'] = implode(",",$iso3_codes[$row['id']]);
+					}
+				}
 
 				//unset
 				if(isset($result['citations'])){
@@ -339,11 +365,16 @@ class Catalog extends MY_REST_Controller
 	 */
 	private function get_countries_id($countries,$delimited='|')
 	{
-		if(trim($countries)==''){
+		if(empty($countries)){
 			return false;
 		}
 
-		$countries=explode($delimited,$countries);
+		if(!is_array($countries)){
+			$countries=explode($delimited,$countries);
+		}
+
+		//map iso2 to iso3
+		$countries=$this->map_iso2_to_iso3($countries);
 
 		$this->db->select("countries.countryid");
 		$this->db->join('country_aliases','country_aliases.countryid=countries.countryid','left');
@@ -700,4 +731,275 @@ class Catalog extends MY_REST_Controller
 	}
 
 
+
+	/**
+	 * 
+	 * Map iso2 country codes to iso3
+	 * 
+	 */
+	private function map_iso2_to_iso3($countries = array() )
+	{
+		$iso2_codes=array(
+			'af'=>'afg',
+			'al'=>'alb',
+			'dz'=>'dza',
+			'as'=>'asm',
+			'ad'=>'and',
+			'ao'=>'ago',
+			'ai'=>'aia',
+			'aq'=>'ata',
+			'ag'=>'atg',
+			'ar'=>'arg',
+			'am'=>'arm',
+			'aw'=>'abw',
+			'au'=>'aus',
+			'at'=>'aut',
+			'az'=>'aze',
+			'bs'=>'bhs',
+			'bh'=>'bhr',
+			'bd'=>'bgd',
+			'bb'=>'brb',
+			'by'=>'blr',
+			'be'=>'bel',
+			'bz'=>'blz',
+			'bj'=>'ben',
+			'bm'=>'bmu',
+			'bt'=>'btn',
+			'bo'=>'bol',
+			'bq'=>'bes',
+			'ba'=>'bih',
+			'bw'=>'bwa',
+			'bv'=>'bvt',
+			'br'=>'bra',
+			'io'=>'iot',
+			'bn'=>'brn',
+			'bg'=>'bgr',
+			'bf'=>'bfa',
+			'bi'=>'bdi',
+			'cv'=>'cpv',
+			'kh'=>'khm',
+			'cm'=>'cmr',
+			'ca'=>'can',
+			'ky'=>'cym',
+			'cf'=>'caf',
+			'td'=>'tcd',
+			'cl'=>'chl',
+			'cn'=>'chn',
+			'cx'=>'cxr',
+			'cc'=>'cck',
+			'co'=>'col',
+			'km'=>'com',
+			'cd'=>'cod',
+			'cg'=>'cog',
+			'ck'=>'cok',
+			'cr'=>'cri',
+			'hr'=>'hrv',
+			'cu'=>'cub',
+			'cw'=>'cuw',
+			'cy'=>'cyp',
+			'cz'=>'cze',
+			'ci'=>'civ',
+			'dk'=>'dnk',
+			'dj'=>'dji',
+			'dm'=>'dma',
+			'do'=>'dom',
+			'ec'=>'ecu',
+			'eg'=>'egy',
+			'sv'=>'slv',
+			'gq'=>'gnq',
+			'er'=>'eri',
+			'ee'=>'est',
+			'sz'=>'swz',
+			'et'=>'eth',
+			'fk'=>'flk',
+			'fo'=>'fro',
+			'fj'=>'fji',
+			'fi'=>'fin',
+			'fr'=>'fra',
+			'gf'=>'guf',
+			'pf'=>'pyf',
+			'tf'=>'atf',
+			'ga'=>'gab',
+			'gm'=>'gmb',
+			'ge'=>'geo',
+			'de'=>'deu',
+			'gh'=>'gha',
+			'gi'=>'gib',
+			'gr'=>'grc',
+			'gl'=>'grl',
+			'gd'=>'grd',
+			'gp'=>'glp',
+			'gu'=>'gum',
+			'gt'=>'gtm',
+			'gg'=>'ggy',
+			'gn'=>'gin',
+			'gw'=>'gnb',
+			'gy'=>'guy',
+			'ht'=>'hti',
+			'hm'=>'hmd',
+			'va'=>'vat',
+			'hn'=>'hnd',
+			'hk'=>'hkg',
+			'hu'=>'hun',
+			'is'=>'isl',
+			'in'=>'ind',
+			'id'=>'idn',
+			'ir'=>'irn',
+			'iq'=>'irq',
+			'ie'=>'irl',
+			'im'=>'imn',
+			'il'=>'isr',
+			'it'=>'ita',
+			'jm'=>'jam',
+			'jp'=>'jpn',
+			'je'=>'jey',
+			'jo'=>'jor',
+			'kz'=>'kaz',
+			'ke'=>'ken',
+			'ki'=>'kir',
+			'kp'=>'prk',
+			'kr'=>'kor',
+			'kw'=>'kwt',
+			'kg'=>'kgz',
+			'la'=>'lao',
+			'lv'=>'lva',
+			'lb'=>'lbn',
+			'ls'=>'lso',
+			'lr'=>'lbr',
+			'ly'=>'lby',
+			'li'=>'lie',
+			'lt'=>'ltu',
+			'lu'=>'lux',
+			'mo'=>'mac',
+			'mg'=>'mdg',
+			'mw'=>'mwi',
+			'my'=>'mys',
+			'mv'=>'mdv',
+			'ml'=>'mli',
+			'mt'=>'mlt',
+			'mh'=>'mhl',
+			'mq'=>'mtq',
+			'mr'=>'mrt',
+			'mu'=>'mus',
+			'yt'=>'myt',
+			'mx'=>'mex',
+			'fm'=>'fsm',
+			'md'=>'mda',
+			'mc'=>'mco',
+			'mn'=>'mng',
+			'me'=>'mne',
+			'ms'=>'msr',
+			'ma'=>'mar',
+			'mz'=>'moz',
+			'mm'=>'mmr',
+			'na'=>'nam',
+			'nr'=>'nru',
+			'np'=>'npl',
+			'nl'=>'nld',
+			'nc'=>'ncl',
+			'nz'=>'nzl',
+			'ni'=>'nic',
+			'ne'=>'ner',
+			'ng'=>'nga',
+			'nu'=>'niu',
+			'nf'=>'nfk',
+			'mp'=>'mnp',
+			'no'=>'nor',
+			'om'=>'omn',
+			'pk'=>'pak',
+			'pw'=>'plw',
+			'ps'=>'pse',
+			'pa'=>'pan',
+			'pg'=>'png',
+			'py'=>'pry',
+			'pe'=>'per',
+			'ph'=>'phl',
+			'pn'=>'pcn',
+			'pl'=>'pol',
+			'pt'=>'prt',
+			'pr'=>'pri',
+			'qa'=>'qat',
+			'mk'=>'mkd',
+			'ro'=>'rou',
+			'ru'=>'rus',
+			'rw'=>'rwa',
+			're'=>'reu',
+			'bl'=>'blm',
+			'sh'=>'shn',
+			'kn'=>'kna',
+			'lc'=>'lca',
+			'mf'=>'maf',
+			'pm'=>'spm',
+			'vc'=>'vct',
+			'ws'=>'wsm',
+			'sm'=>'smr',
+			'st'=>'stp',
+			'sa'=>'sau',
+			'sn'=>'sen',
+			'rs'=>'srb',
+			'sc'=>'syc',
+			'sl'=>'sle',
+			'sg'=>'sgp',
+			'sx'=>'sxm',
+			'sk'=>'svk',
+			'si'=>'svn',
+			'sb'=>'slb',
+			'so'=>'som',
+			'za'=>'zaf',
+			'gs'=>'sgs',
+			'ss'=>'ssd',
+			'es'=>'esp',
+			'lk'=>'lka',
+			'sd'=>'sdn',
+			'sr'=>'sur',
+			'sj'=>'sjm',
+			'se'=>'swe',
+			'ch'=>'che',
+			'sy'=>'syr',
+			'tw'=>'twn',
+			'tj'=>'tjk',
+			'tz'=>'tza',
+			'th'=>'tha',
+			'tl'=>'tls',
+			'tg'=>'tgo',
+			'tk'=>'tkl',
+			'to'=>'ton',
+			'tt'=>'tto',
+			'tn'=>'tun',
+			'tr'=>'tur',
+			'tm'=>'tkm',
+			'tc'=>'tca',
+			'tv'=>'tuv',
+			'ug'=>'uga',
+			'ua'=>'ukr',
+			'ae'=>'are',
+			'gb'=>'gbr',
+			'um'=>'umi',
+			'us'=>'usa',
+			'uy'=>'ury',
+			'uz'=>'uzb',
+			'vu'=>'vut',
+			've'=>'ven',
+			'vn'=>'vnm',
+			'vg'=>'vgb',
+			'vi'=>'vir',
+			'wf'=>'wlf',
+			'eh'=>'esh',
+			'ye'=>'yem',
+			'zm'=>'zmb',
+			'zw'=>'zwe',
+			'ax'=>'ala'
+		);
+		
+		$output=array();
+		foreach($countries as $country){
+			if( strlen($country)==2 && array_key_exists($country, $iso2_codes)){
+				$output[]=$iso2_codes[$country];
+			}
+			else{
+				$output[]=$country;
+			}
+		}
+		return $output;
+	}
 }

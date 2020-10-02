@@ -1160,5 +1160,32 @@ class Dataset_model extends CI_Model {
 	}
 
 
+
+	/**
+	 * 
+	 * Return a list of country codes for a single or multiple datasets
+	 * 
+	 * @sid - single or array of sid
+	 */
+	public function get_dataset_country_codes($sid)
+	{
+		if(empty($sid)){
+			return false;
+		}
+
+		$this->db->select("survey_countries.sid,countries.iso");
+		$this->db->join('survey_countries','survey_countries.cid=countries.countryid','inner');
+		$this->db->where_in('survey_countries.sid', $sid);
+		$result= $this->db->get("countries")->result_array();
+
+		$output=array();
+		foreach($result as $row){
+			$output[$row['sid']][]=$row['iso'];
+		}
+		
+		return $output;
+	}
+
+
 }//end-class
 	

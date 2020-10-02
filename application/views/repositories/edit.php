@@ -51,16 +51,7 @@ foreach($sections as $sec){
 <?php
 	//form action url
 	$uri_arr=$this->uri->segment_array();
-
-	$form_action_url=site_url().'/admin/repositories/'.$this->uri->segment(3).'/';
-	if ($this->uri->segment(3)=='add')
-	{
-		$form_action_url.='/add';
-	}
-	else
-	{
-		$form_action_url.=$this->uri->segment(4);
-	}
+	$form_action_url=current_url();
 ?>
 <?php echo form_open_multipart($form_action_url, array('class'=>'form') ); ?>
 	<input type="hidden" name="id" value="<?php echo get_form_value('id',isset($id) ? $id : ''); ?>"/>

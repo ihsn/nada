@@ -1,6 +1,4 @@
 <?php
-	$this->load->database();
-
 	$extensions=array('xslt','xml');
 	if(phpversion() >= 5) {
 		$extensions=array(
@@ -20,7 +18,7 @@
 	$no='<span class="red" style="background:none;color:red;">'.t('no').'</span>';
 	
 	echo '<h1>'.t('required_php_extensions').'</h1>';
-	echo '<table cellpadding="0" cellspacing="0" class="grid-table">';
+	echo '<table cellpadding="0" cellspacing="0" class="grid-table table table-sm table-striped table-bordered">';
 	echo '<tr class="header">';
 	echo '<th>'.t('extensions').'</th>';
 	echo '<th>'.t('enabled').'</th>';

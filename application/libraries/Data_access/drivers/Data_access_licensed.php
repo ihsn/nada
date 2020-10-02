@@ -12,6 +12,7 @@
 class Data_access_licensed extends CI_Driver {
 
 	protected $CI;
+	private $licensed_access_config;
 
 	/**
 	 * Constructor
@@ -20,6 +21,8 @@ class Data_access_licensed extends CI_Driver {
 	{
 		$this->CI =& get_instance();
 		$this->CI->load->library('Bulk_data_access');
+		$this->CI->load->config("data_access");
+		$this->licensed_access_config=$this->CI->config->item('licensed_access');
 	}
 
 	function process_form($sid,$user=FALSE)
@@ -41,7 +44,7 @@ class Data_access_licensed extends CI_Driver {
 
 		if(!$survey)
 		{
-			show_ERROR("INVALID_STUDY_ID");
+			show_error("INVALID_STUDY_ID");
 		}
 
 		if ($this->CI->input->get("request")=="new")
@@ -114,7 +117,7 @@ class Data_access_licensed extends CI_Driver {
 		//$this->form_validation->set_rules('address', t('postal_address'), 'trim|required|xss_clean|max_length[255]');
 		$this->CI->form_validation->set_rules('tel', t('telephone'), 'trim|required|xss_clean|max_length[14]');
 		$this->CI->form_validation->set_rules('datause', t('intended_use_of_data'), 'trim|required|xss_clean|max_length[1000]');
-		$this->CI->form_validation->set_rules('dataset_access', t('dataset_access'), 'trim|required|xss_clean|max_length[15]');
+		//$this->CI->form_validation->set_rules('dataset_access', t('dataset_access'), 'trim|required|xss_clean|max_length[15]');
 
 		//optional fields
 		//$this->form_validation->set_rules('org_type', t('org_type'), 'trim|xss_clean|max_length[45]');
@@ -196,6 +199,8 @@ class Data_access_licensed extends CI_Driver {
 			$data->collections=$collections;
 			$data->bulk_access=TRUE;
 		}
+
+		$data->form_options=$this->licensed_access_config;
 
 		//load the contents of the page into a variable
 		return $this->CI->load->view('access_licensed/request_form', $data,TRUE);

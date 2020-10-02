@@ -639,10 +639,8 @@ class Datadeposit extends MY_Controller {
 	
 	public function submit_review($id) 
 	{
-		$this->template->add_css('javascript/jquery/themes/base/jquery.ui.all.css');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.core.min.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.widget.min.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.tabs.min.js');
+		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');
 
 		$this->load->model('DD_resource_model');
 		$this->load->model('DD_study_model');
@@ -1563,7 +1561,8 @@ class Datadeposit extends MY_Controller {
 	}
 
 	
-	public function import_from_project() {
+	public function import_from_project() 
+	{
 		$from = (int)$this->input->get('from');
 		$to   = (int)$this->input->get('to');
 		$insert = $this->DD_project_model->import_from_project($this->session->userdata('user_id'), $from, $to); 

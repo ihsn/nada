@@ -117,9 +117,34 @@ class Data_file_model extends CI_Model {
     function get_all_by_survey($sid)
     {
         $this->db->select("*");
-        $this->db->where("sid",$sid);
-        return $this->db->get("data_files")->result_array();
-    }
+		$this->db->where("sid",$sid);
+		$this->db->order_by('file_name');
+		$files=$this->db->get("data_files")->result_array();
+
+		if(empty($files)){
+			return false;
+		}
+		
+		//add file_id as key
+		$output=array();
+		foreach($files as $file){
+			$output[$file['file_id']]=$file;
+		}
+
+		//apply sorting to keep files in the order - F1, F2...F9, F10, F11
+		$file_keys = array_keys($output);
+  		natsort($file_keys);
+
+		$sorted_files=array();
+
+  		foreach ($file_keys as $key_){
+			$sorted_files[$key_] = $output[$key_];
+		}
+
+  		return $sorted_files;
+	}
+	
+	
 
 	/**
 	*

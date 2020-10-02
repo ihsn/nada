@@ -1587,11 +1587,6 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		$this->acl->user_has_study_access($id);
 
-		//$this->template->add_css('javascript/jquery/themes/ui-lightness/jquery-ui-1.7.2.custom.css');
-		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-		//$this->template->add_js('javascript/jquery/ui/ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery-ui-1.7.2.custom.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
 		$this->load->model('Citation_model');
 		$this->load->model('Catalog_notes_model');
 		$this->load->model('Catalog_tags_model');
@@ -1649,7 +1644,7 @@ class Catalog extends MY_Controller {
 		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
 
 		//formatted list of data files
-		$survey_row['data_files']=$this->catalog_admin->get_formatted_data_files($id);
+		//$survey_row['data_files']=$this->catalog_admin->get_formatted_data_files($id);
 
 		//get all study notes
 		$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);

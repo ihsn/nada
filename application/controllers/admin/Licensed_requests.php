@@ -70,13 +70,8 @@ class Licensed_requests extends MY_Controller {
 	{			
 		$this->acl->user_has_lic_request_access($id);
 		
-		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.position.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.widget.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.button.js');
-		//$this->template->add_js('javascript/jquery/ui/jquery.ui.tabs.js');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.datepicker.js');	
+		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');		
 		
 		//get licensed request information		
 		$result=$this->Licensed_model->get_request_by_id($id);

@@ -784,12 +784,12 @@ class Users extends MY_Controller {
 			//remove all existing user roles for all collections
 			$this->ion_auth_model->delete_user_collection_roles_all($user_id);
 
-			var_dump($collection_roles);
-			
 			//add roles per collection
-			foreach($collection_roles as $collection_id=>$collection_roles)
-			{	
-				$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
+			if (!empty($collection_roles)){				
+				foreach($collection_roles as $collection_id=>$collection_roles)
+				{	
+					$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
+				}
 			}
 			
 			$data['message']=t('form_update_success');

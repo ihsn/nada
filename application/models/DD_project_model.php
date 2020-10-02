@@ -134,29 +134,37 @@ class DD_project_model extends CI_Model {
 		}
 	}
 
-	public function all_projects() {
+	public function all_projects() 
+	{
 		 return $this->db->get('dd_projects')->result();
 	}
 	
-	public function import_from_project($uid, $from_id, $to_id) {
-		$this->load->model('Study_model');
+	public function import_from_project($uid, $from_id, $to_id) 
+	{
+		$ci =& get_instance();
+		$ci->load->model('DD_study_model');
 		$uid = (int) $uid;
+
 		$q = $this->db->select('id, email')
 			->from('users')
 			->where('id', $uid);
 			
 		$user = $q->get()->result();
+		
 		if (!$this->has_access($from_id, $user[0]->email) || !$this->has_access($to_id, $user[0]->email)) {
 			return false;
 		}
-		$data   = $this->Study_model->get_study($from_id);
+
+		$data   = $this->DD_study_model->get_study($from_id);
 		$insert = array();
+		
 		foreach((array)$data[0] as $key => $field) {
 			$insert[$key] = $field;
 		}
+		
 		unset($insert['id']);
 		unset($insert['ident_title']);
-		$this->Study_model->update_study($to_id, $insert);
+		$this->DD_study_model->update_study($to_id, $insert);
 		return true;
 	}
 		
