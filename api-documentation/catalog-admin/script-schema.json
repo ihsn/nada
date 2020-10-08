@@ -122,16 +122,16 @@
             "title"
           ]
         },
-		"abstract": {
+        "abstract": {
           "type": "string",
           "title": "Abstract"
         },
-		"review_board": {
+        "review_board": {
           "type": "string",
           "title": "Institutional review board",
           "description": "Information on whether and when the project was submitted, reviewed, and approved by an institutional review board (or independent ethics committee, ethical review board (ERB), research ethics board, or equivalent)."
         },
-		"output": {
+        "output": {
           "title": "Output",
           "description": "Description of outputs of the research project",
           "type": "array",
@@ -145,27 +145,32 @@
               },
               "title": {
                 "title": "Title",
-				"description": "Title of the output",
+                "description": "Title of the output",
+                "type": "string"
+              },
+              "authors": {
+                "title": "Authors",
+                "description": "Authors",
                 "type": "string"
               },
               "description": {
                 "title": "Description",
-				"description": "Brief description of the output; for articles and working papers, this can include the bibliographic citation.",
+                "description": "Brief description of the output; for articles and working papers, this can include the bibliographic citation.",
                 "type": "string"
               },
               "abstract": {
                 "title": "Abstract",
-				"description": "Abstract (for papers, articles, books)",
+                "description": "Abstract (for papers, articles, books)",
                 "type": "string"
               },
               "uri": {
                 "title": "URI",
-				"description": "On-line location of the output",
+                "description": "On-line location of the output",
                 "type": "string"
               },
               "doi": {
                 "title": "DOI",
-				"description": "Digital Object Identifier (DOI) of the output",
+                "description": "Digital Object Identifier (DOI) of the output",
                 "type": "string"
               }
             },
@@ -174,7 +179,7 @@
             ]
           }
         },
-		"approval_process": {
+        "approval_process": {
           "type": "array",
           "title": "Approval process",
           "description": "A description of the project output review process",
@@ -208,7 +213,7 @@
             }
           }
         },
-		"project_website": {
+        "project_website": {
           "title": "Project website",
           "description": "Project website link",
           "type": "array",
@@ -216,7 +221,7 @@
             "type": "string"
           }
         },
-		"language": {
+        "language": {
           "type": "array",
           "title": "Language",
           "description": "Documentation language e.g. English, French, etc.",
@@ -245,7 +250,7 @@
             "type": "string"
           }
         },
-		"version_statement": {
+        "version_statement": {
           "type": "object",
           "title": "Version statement",
           "description": "Version statement",
@@ -269,30 +274,30 @@
             }
           }
         },
-		"errata": {
+        "errata": {
           "type": "object",
           "title": "Errata",
           "description": "List of corrected errors in data, scripts or output",
           "properties": {
             "erratum_date": {
               "title": "Date of erratum",
-			  "description": "Date when the erratum was reported or published",
+              "description": "Date when the erratum was reported or published",
               "type": "string"
             },
             "erratum_description": {
               "title": "Description of the erratum",
-			  "description": "A description of the erratum, with information on which data, scripts, or output were impacted",
+              "description": "A description of the erratum, with information on which data, scripts, or output were impacted",
               "type": "string"
             }
           }
         },
-		"process": {
+        "process": {
           "title": "Process",
           "description": "A description, following a logical sequence, of the various phases of the research project implementation. This field may be used to document explorations steps that may have resulted in dead ends, to document intermediary steps at which a project may have been reviewed and approved, etc.",
           "type": "array",
           "items": {
             "type": "object",
-            "properties": {              
+            "properties": {
               "name": {
                 "title": "Phase name",
                 "description": "A short name for the implementation phase",
@@ -345,7 +350,7 @@
                 "title": "Email",
                 "description": "Email"
               },
-              "author_id":{
+              "author_id": {
                 "type": "array",
                 "title": "Author ID",
                 "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
@@ -408,7 +413,7 @@
             ]
           }
         },
-		"sponsors": {
+        "sponsors": {
           "type": "array",
           "title": "Sponsors / Funding agencies",
           "description": "The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
@@ -476,34 +481,34 @@
             ]
           }
         },
-		"reviews_comments": {
+        "reviews_comments": {
           "type": "object",
           "title": "Reviews and comments",
           "description": "List and description of reviews and comments received on the project",
           "properties": {
             "comment_date": {
               "title": "Date of the comment",
-			  "description": "Date when the comment was provided",
+              "description": "Date when the comment was provided",
               "type": "string"
             },
             "comment_by": {
               "title": "Provider of the comment",
-			  "description": "Name and title of the comment provider (individual or organization)",
+              "description": "Name and title of the comment provider (individual or organization)",
               "type": "string"
             },
             "comment_description": {
               "title": "Description of the comment",
-			  "description": "A description of the comment",
+              "description": "A description of the comment",
               "type": "string"
             },
-			"comment_response": {
+            "comment_response": {
               "title": "Response on the comment",
-			  "description": "Response by the primary investigator or research team on the comment",
+              "description": "Response by the primary investigator or research team on the comment",
               "type": "string"
             }
           }
         },
-		"acknowledgements": {
+        "acknowledgements": {
           "type": "array",
           "title": "Other acknowledgments",
           "description": "Acknowledgments of persons or organizations (other than sponsors) who contributed to the project.",
@@ -528,7 +533,12 @@
             "name"
           ]
         },
-		"related_projects": {
+        "acknowledgement_statement": {
+          "title": "Acknowledgement statement",
+          "description": "Acknowledgement statement",
+          "type": "string"
+        },
+        "related_projects": {
           "type": "array",
           "title": "Related research projects",
           "description": "A list and bried description of related research projects",
@@ -553,7 +563,7 @@
             "name"
           ]
         },
-		"geographic_units": {
+        "geographic_units": {
           "title": "Geographic locations",
           "description": "List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic coverahe of the research project.",
           "type": "array",
@@ -719,7 +729,7 @@
             ]
           }
         },
-		"license": {
+        "license": {
           "type": "array",
           "title": "License",
           "description": "Overall statement on license. Note: information on license specific to scripts and/or datasets should be provided in the documentation of scripts and datasets.",
@@ -751,7 +761,7 @@
           "type": "string",
           "description": "Reproduction instructions"
         },
-		"methods": {
+        "methods": {
           "type": "array",
           "title": "Methods or algorithms applied",
           "description": "Methods or algorithms applied",
@@ -801,7 +811,7 @@
             "name"
           ]
         },
-		"scripts": {
+        "scripts": {
           "type": "array",
           "title": "Script files",
           "description": "Description of each script file",
@@ -899,17 +909,16 @@
                   }
                 }
               }
-            }
-            ,
+            },
             "required": [
               "title"
             ]
           }
         },
-		"data_statement": {
+        "data_statement": {
           "type": "string",
           "description": "Overall statement on data used by the project. More detailed description of the datasets should be provided in the 'datasets' field."
-        },        
+        },
         "datasets": {
           "type": "array",
           "title": "Datasets",
@@ -923,7 +932,7 @@
               },
               "idno": {
                 "title": "Dataset ID",
-				"description": "unique ID of the dataset",
+                "description": "unique ID of the dataset",
                 "type": "string"
               },
               "note": {
@@ -939,7 +948,7 @@
                 "title": "License",
                 "type": "string"
               },
-			  "license_uri": {
+              "license_uri": {
                 "title": "License URI",
                 "type": "string"
               },
@@ -969,6 +978,10 @@
                 "title": "Affiliation",
                 "type": "string"
               },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              },
               "uri": {
                 "title": "URI",
                 "type": "string"
@@ -983,7 +996,7 @@
             "name"
           ]
         },
-		"tags": {
+        "tags": {
           "type": "array",
           "title": "Tags (user-defined)",
           "description": "Tags",
