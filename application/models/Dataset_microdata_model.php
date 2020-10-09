@@ -27,6 +27,10 @@ class Dataset_microdata_model extends Dataset_model {
 		//validate schema
         $this->validate_schema($type,$options);
 
+        if (!isset($options['overwrite'])){
+            $options['overwrite']='no';
+        }
+
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($type,$options);
         $options=array_merge($options,$core_fields);
