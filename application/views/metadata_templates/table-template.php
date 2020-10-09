@@ -21,10 +21,14 @@ if(isset($metadata['resources'])){
     foreach($metadata['metadata']['files'] as $file_idx => $file){
         if (array_key_exists($file['file_uri'], $metadata['resources'])){
             $resource=$metadata['resources'][$file['file_uri']];
-            $metadata['metadata']['files'][$file_idx]['file_uri']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            if($this->form_validation->valid_url($file['file_uri'])){
+                $metadata['metadata']['files'][$file_idx]['file_uri']=$file['file_uri'];
+            }else{
+                $metadata['metadata']['files'][$file_idx]['file_uri']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            }            
         }
     }
-}
+} 
 ?>
 
 <?php
