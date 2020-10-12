@@ -1573,9 +1573,14 @@ class Catalog extends MY_Controller {
 		}
 		
 		$template_path="application/metadata_editor_templates/{$type}_form_template.json";
+		$schema_path="application/schemas/{$type}-schema.json";
 
 		if(!file_exists($template_path)){
 			show_error('Template not found::'. $template_path);
+		}
+
+		if(!file_exists($schema_path)){
+			show_error('Schema not found::'. $schema_path);
 		}
 		
 		$options['sid']=null;
@@ -1585,6 +1590,7 @@ class Catalog extends MY_Controller {
 
 		$options['type']=$type;
 		$options['metadata_template']=file_get_contents($template_path);
+		$options['metadata_schema']=file_get_contents($schema_path);
 		$options['post_url']=site_url('api/datasets/create/'.$type);
 		$options['metadata']=array();
 		$options['metadata']['merge_options']='replace';

@@ -111,6 +111,43 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 * Check if a study IDNO exists
+	 * 
+	 */
+	function check_idno_get($idno=null)
+	{
+		try{
+			$sid=$this->dataset_manager->find_by_idno($idno);
+			
+			if ($sid){
+				$response=array(
+					'status'=>'success',
+					'idno'=>$idno,
+					'id'=>$sid
+				);			
+				$this->set_response($response, REST_Controller::HTTP_OK);
+			}
+			else{
+				$response=array(
+					'status'=>'error',
+					'idno'=>$idno,
+					'message'=>'IDNO NOT FOUND'
+				);
+				$this->set_response($response, REST_Controller::HTTP_NOT_FOUND);
+			}
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 
 
 	/**
@@ -323,14 +360,14 @@ class Datasets extends MY_REST_Controller
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
-				'errors'=>$e->GetValidationErrors()
+				'errors'=>(array)$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage()
+				'message'=>$e->getMessage() 
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
