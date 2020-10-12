@@ -21,9 +21,12 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 -->
     <script src="https://cdn.jsdelivr.net/npm/vue-scrollto"></script>
+    <!--
+        <script src="https://unpkg.com/vee-validate@latest"></script>
+-->
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.4.0/vee-validate.full.min.js" integrity="sha512-owFJQZWs4l22X0UAN9WRfdJrN+VyAZozkxlNtVtd9f/dGd42nkS+4IBMbmVHdmTd+t6hFXEVm65ByOxezV/Qxg==" crossorigin="anonymous"></script>
     
-
 
     <script>
     console.log(deepdash.eachDeep); // --> all the methods just work
@@ -31,6 +34,9 @@
 
     <script>
         let form_template=<?php echo $metadata_template;?>;
+
+        //json schema
+        let metadata_schema=<?php echo $metadata_schema;?>;
     </script>
 
     <?php //die();?>
@@ -52,7 +58,7 @@
         }
 
         .metadata-form-container .form-field-textarea{
-            height:200px;            
+            height:auto;
         }
 
         .grid-button-delete,
@@ -93,16 +99,28 @@
             border:1px solid #0062cc;
         }
 
-        .form-section{
-            background:#607D8B;
-            color:white;
-            padding:10px;
+        .form-section {
+            background: #F1F1F1;
+            color: #2196F3;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
         }
 
         .sidebar{            
             overflow-y: scroll;
             height:100%;           
-            padding-top:10px; 
+            border:1px solid gainsboro;
+        }
+
+        .sidebar-content{
+            padding:15px;
+        }
+
+        .sidebar-header{
+            padding:10px;
+            background: #F1F1F1;
+            border-bottom:1px solid gainsboro;            
         }
 
         .main-content{
@@ -125,12 +143,14 @@
         .field-type-nested_array{
             margin:15px;
         }
+
+        
     </style>
 </head>
 
 <body>
 
-<div id="app" class="container">
+<div id="app" class="container-fluid">
 
 <!-- Modal -->
 <div class="modal fade" id="app_dialog" tabindex="-1" role="dialog" aria-labelledby="DialogBox" aria-hidden="true">
@@ -148,7 +168,9 @@
             <div style="color:red;">
                 <div style="font-weight:bold;">{{dialog_box_option.errors.message}}</div>
                 <li v-for="error in dialog_box_option.errors.errors">
-                    {{ error.message }}
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span v-if="error.message">{{ error.message }}</span>
+                    <span v-if="!error.message">{{ error }}</span>
                 </li>
             </div>
             <div class="mt-3" style="font-weight:bold">Error:</div>
@@ -164,27 +186,75 @@
 </div>
 
 
-    <div class="row" style="margin-top:30px;">
+    <div class="container-fluidx" style="margin-top:30px;">
         <div class="col-md-6"><h2 style="margin:0px;">Edit metadata <sup style="color:red;font-size:12px;">[beta]</sup></h2></div>
-        <div class="col-md-6" style="text-align:right;"><button type="button" class="btn btn-primary" @click="saveForm">Save</button></div>
+        <!--<div class="col-md-6" style="text-align:right;"><button type="button" class="btn btn-primary" @click="saveForm">Save</button></div>-->
     </div>
 
     <div class="container-fluidx xh-100" >
-            <div class="xbg-light-2">                
-                <div class="main-content" id="main-content">
+
+        <div class="col-md-9 xbg-light-2">
+            <div class="main-content" id="main-content">                
+                <validation-observer ref="form" v-slot="{ invalid }">                
                     <metadata-form :field="form_template" :items="form_template.items" :depth="0" :css_class="'metadata-form-container'"></metadata-form>
+                </validation-observer>
+            </div>
+        </div>
+
+        <div class="col-md-3 sidebar-container h-100" style="margin-top:9px;">
+
+            <div class="sidebar" style="margin-bottom:15px;">
+                <div  class="sidebar-header" >Save</div>                
+                <div class="sidebar-content">
+                        <button type="button" class="btn btn-primary btn-block" @click="saveForm">Save</button>
+                        <a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-block" >Cancel</a>                
+                </div>                
+            </div>
+
+            <div v-if="form_errors.length>0" class="sidebar" style="margin-bottom:15px;">
+                <div  class="sidebar-header" >Validation</div>                
+                <div class="sidebar-content">
+                                
+                    <div  > 
+                        <div style="color:red;">
+                            <div style="font-weight:bold;">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Errors saving form
+                            </div>
+                            <li v-for="error in form_errors">
+                                <span v-if="error.message">
+                                 {{ error.message }}
+                                 <span class="label label-warning">{{error.property}}{{error.dataPath}}</span>
+                                </span>
+                                <span v-if="!error.message">{{ error }}</span>
+                            </li>
+                        </div>
+                        <pre style="max-height:200px;overflow:auto;">{{form_errors}}</pre> 
+                    </div>        
+                </div>                
+            </div>
+
+            
+
+                        
+            <div class="sidebar" @tree-node-click="treeNodeClickHandler()">
+                <div class="sidebar-header">Outline</div>
+                <div class="sidebar-content">
+                <form-tree  
+                    :node="form_template" 
+                    :title="form_template.title"  
+                    :depth="0" 
+                    :css_class="'lvl-0'"                    
+                    @tree-node-click="treeNodeClickHandler()"                    
+                ></form-tree>
+                <pre style="overflow:auto;height:200px;border:1px solid red;">{{formData}}</pre>
                 </div>
             </div>
+        </div>
+
     </div>
 
-    <div  class="ml-auto p-2 bd-highlight row" style="margin-top:15px;">
-            <div class="col-md-3"></div>
-            <div class="col-md-3">
-                <button type="button" class="btn btn-primary btn-block" @click="saveForm">Save</button>
-            </div>
-            <div class="col-md-3"><a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-block" >Cancel</a></div>
-            <div class="col-md-3"></div>            
-    </div>
+    
 
     
 
@@ -192,14 +262,10 @@
 
 
     <script>
-
-       
-
         Vue.use(Vuex)
         Vue.use(VueDeepSet)        
 
-
-        window.bus = new Vue()
+        window.bus = new Vue();
 
         Vue.mixin({
             methods: {
@@ -211,313 +277,19 @@
         
         <?php 
             //tree view component
-            echo $this->load->view("metadata_editor/vue-form-tree",null,true);
+            echo $this->load->view("metadata_editor/vue-form-tree.js",null,true);
+
+            //metadata form component
+            echo $this->load->view("metadata_editor/vue-metadata-form-component.js",null,true);
+
+            //metadata form component
+            echo $this->load->view("metadata_editor/vue-grid-component.js",null,true);
+
+            //nested
+            echo $this->load->view("metadata_editor/vue-grid-component.js",null,true);
         ?>
 
-        //Metadata Form ///////////////////////////////////////////////////
-        Vue.component('metadata-form', {
-            props: ['title', 'items', 'depth', 'css_class','path', 'field'],
-            data() {
-                return {
-                    showChildren: true
-                }
-            },
-            methods: {
-                toggleChildren() {
-                    this.showChildren = !this.showChildren;
-                },
-                toggleNode(event){
-                    alert("event toggleNode");
-                }
-            },
-            computed: {
-                toggleClasses() {
-                    return {
-                        'fa-angle-down': !this.showChildren,
-                        'fa-angle-up': this.showChildren
-                    }
-                },
-                hasChildrenClass() {
-                    return {
-                        'has-children': this.nodes
-                    }
-                },
-                formData () {
-                    return this.$deepModel('formData')
-                }
-            },
-            template: `
-                <div :class="'metadata-form ' + css_class + ' ' + 'field-type-' + field.type" >
-                    <div v-if="depth>0" class="label-wrapper" @click="toggleChildren">
-
-                        <div v-if="field.type=='section'" class="tree-node form-section" :class="hasChildrenClass">                            
-                            {{ title }}
-                            <span class="float-right section-toggle-icon"><i class="fas" :class="toggleClasses"></i></span>
-                        </div>
-
-                        <div v-if="field.type=='array'">
-                            <div class="form-group form-field form-field-table">
-                                <label :for="'field-' + normalizeClassID(path)">{{title}}</label>
-                                <grid-component
-                                    :id="'field-' + normalizeClassID(path)" 
-                                    :value="formData[field.key]"                                         
-                                    :columns="field.props"
-                                    :path="field.key">
-                                </grid-component>  
-                            </div>    
-                        </div>
-
-                        <div v-if="field.type=='nested_array'">
-                            <label :for="'field-' + normalizeClassID(field.key)">{{title}}</label>
-                            <nested-section 
-                                :value="formData[field.key]"                                         
-                                :columns="field.props"
-                                :path="field.key">
-                            </nested-section>  
-                        </div>
-
-                        <div v-if="field.type=='textarea'">
-
-                            <div class="form-group form-field" :class="['field-' + field.key, field.class] ">
-                                <label :for="'field-' + normalizeClassID(field.key)">{{title}}</label>
-                                <textarea
-                                    v-model="formData[field.key]"        
-                                    class="form-control form-field-textarea" 
-                                    :id="'field-' + normalizeClassID(field.key)"                                     
-                                ></textarea>
-                                <small class="help-text form-text text-muted">{{field.help_text}}</small>                            
-                            </div>
-
-                        </div> 
-
-
-                        <div v-if="field.type=='dropdown'">
-
-                            <div class="form-group form-field" :class="['field-' + field.key, field.class] ">
-                                <label :for="'field-' + normalizeClassID(field.key)">{{title}}</label>
-                                <select 
-                                    v-model="formData[field.key]" 
-                                    class="form-control form-field-dropdown"
-                                    :id="'field-' + normalizeClassID(field.key)" 
-                                >
-                                    <option value="">Select</option>
-                                    <option v-for="(option_key,option_value) in field.enum" v-bind:value="option_value">
-                                        {{ option_key }}
-                                    </option>
-                                </select>
-                                <small class="help-text form-text text-muted">{{formData[field.key]}}</small>
-                                <small class="help-text form-text text-muted">{{field.help_text}}</small>
-                            </div>
-
-                        </div>  
-
-                        <div v-if="field.type=='text' || field.type=='string' ">
-
-                            <div class="form-group form-field" :class="['field-' + field.key, field.class] ">
-                                <label :for="'field-' + normalizeClassID(field.key)">
-                                    {{title}} 
-                                    <span class="small" v-if="field.help_text" role="button" data-toggle="collapse" :data-target="'#field-toggle-' + normalizeClassID(field.key)" ><i class="far fa-question-circle"></i></span>
-                                    <span v-if="field.required==true" class="required-label"> * </span>
-                                </label>
-                                <input type="text"
-                                    v-model="formData[field.key]"
-                                    class="form-control" 
-                                    :id="'field-' + normalizeClassID(field.key)"                                     
-                                >
-                                <small :id="'field-toggle-' + normalizeClassID(field.key)" class="collapse help-text form-text text-muted">{{field.help_text}}</small>                            
-                            </div>
-
-                        </div>  
-
-
-                        
-                    </div>
-                    <metadata-form
-                        v-show="showChildren" 
-                        v-for="item in items" 
-                            :items="item.items" 
-                            :title="item.title"
-                            :depth="depth + 1"
-                            :path="item.key"
-                            :field="item"
-                            :css_class="'lvl-' + depth" 
-                    >
-                    </metadata-form>
-                </div>
-            `
-        })
-
-        Vue.component('grid-component', {
-            props:['value','columns','path'],
-            data: function () {    
-                return {
-                    field_data: this.value,
-                    key_path: this.path,
-                    store: this.$store
-                }
-            },
-            watch: { 
-                field_data: function(newVal, oldVal) {
-                    console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-                    //console.log(this.key_path);                    
-                    this.$vueSet (this.$store.state.formData, this.key_path, newVal);
-                }
-            
-            },
-            
-            mounted: function () {
-                //set data to array if empty or not set
-                if (!this.field_data){
-                    this.field_data=[];
-                    this.field_data.push({});
-                }
-            },
-            computed: {
-                localColumns(){
-                    return this.columns;
-                }
-            },  
-            template: `
-                    <!--vuejs template for grid -->
-
-                    <div class="grid-component">
-
-                    <table class="table table-striped table-sm">
-                        <thead class="thead-light">
-                        <tr>
-                            <th v-for="(column,idx_col) in columns" scope="col">
-                                {{column.title}}
-                            </th>
-                            <th scope="col">               
-                            </th>
-                        </tr>
-                        </thead>
-
-                        <!--start-v-for-->
-                        <tbody>
-                        <tr  v-for="(item,index) in field_data">
-                            <td v-for="(column,idx_col) in localColumns" scope="row">
-                                <div>
-                                    <input  
-                                        v-model="field_data[index][column.key]" 
-                                        class="form-control form-control-sm"  
-                                        type="text" >
-                                </div>
-                            </td>
-                            <td scope="row">        
-                                <button type="button"  class="btn btn-sm btn-danger grid-button-delete float-right" v-on:click="remove(index)"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
-                        <!--end-v-for -->
-                        </tbody>
-                    </table>
-
-                    <div class="d-flex justify-content-center">
-                        <button type="button" class="btn btn-light btn-block btn-sm" @click="addRow" >Add row</button>    
-                    </div>
-
-                    </div>  `,
-            methods:{
-                countRows: function(){
-                    return this.field_data.length;
-                },
-                addRow: function (){    
-                    this.field_data.push({});
-                    this.$emit('adding-row', this.field_data);
-                },
-                remove: function (index){
-                    this.field_data.splice(index,1);
-                }  
-            }
-        })
-
-        Vue.component('nested-section', {
-            props:['value','columns','path'],
-            data: function () {    
-                return {
-                    field_data: this.value,
-                    key_path: this.path
-                }
-            },
-            watch: { 
-                field_data: function(newVal, oldVal) {
-                    //console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-                    //console.log(this.key_path);
-                    this.$vueSet (this.$store.state.formData, this.key_path, newVal);
-                }
-            },
-            mounted: function () {
-                //set data to array if empty or not set
-                if (!this.field_data){
-                    this.field_data=[{}];
-                    
-                }
-            },
-            computed: {
-                localColumns(){
-                    return this.columns;
-                }
-            },  
-            template: `
-                    <div class="nested-section">                                            
-                        <template  v-for="(item,index) in field_data">
-                            <div v-for="(column,idx_col) in localColumns" scope="row">
-                                
-                                    <div  v-if="column.type!=='array'">
-
-                                        <div class="form-group form-field" :class="['field-' + column.key] ">
-                                            <label :for="'field-' + normalizeClassID(path + '-' + column.key)">
-                                                {{column.title}} 
-                                                <span class="small" v-if="column.help_text" role="button" data-toggle="collapse" :data-target="'#field-toggle-' + normalizeClassID(path + ' ' + column.key)" ><i class="far fa-question-circle"></i></span>
-                                                <span v-if="column.required==true" class="required-label"> * </span>
-                                            </label>
-                                            <input type="text"
-                                                v-model="field_data[index][column.key]"
-                                                class="form-control" 
-                                                :id="'field-' + normalizeClassID(path + '-' + column.key)"                                     
-                                            >
-                                            <small :id="'field-toggle-' + normalizeClassID(path + '-' + column.key)" class="collapse help-text form-text text-muted">{{column.help_text}}</small>                            
-                                        </div>
-                                        
-                                    </div>
-
-                                    <div v-if="column.type=='array'">
-                                        <div class="form-group form-field form-field-table">
-                                            <label :for="'field-' + path">{{column.title}}</label>                                      
-                                            <grid-component 
-                                                :value="field_data[index][column.key]"   
-                                                :columns="column.props"
-                                                :path="path + '['+index+']'+ column.key"
-                                                >
-                                            </grid-component>  
-                                        </div>
-                                    </div>
-                                
-                            </div>    
-                            <div>        
-                                <button type="button"  class="btn btn-sm btn-danger float-right" v-on:click="remove(index)"><i class="fa fa-trash-o" aria-hidden="true"></i></button>
-                            </div>
-                        </template>
-
-                    <div class="d-flex justify-content-center">
-                        <button type="button" class="btn btn-light btn-block btn-sm" @click="addRow" >Add row</button>    
-                    </div>
-
-                    </div>  `,
-            methods:{
-                countRows: function(){
-                    return this.field_data.length;
-                },
-                addRow: function (){    
-                    this.field_data.push({});
-                    this.$emit('adding-row', this.field_data);
-                },
-                remove: function (index){
-                    this.field_data.splice(index,1);
-                }    
-            }
-        })
-
+        
         <?php if (empty($metadata)):?>
             var project_metadata={};
         <?php else:?>
@@ -541,24 +313,8 @@
             mutations: VueDeepSet.extendMutation({
                 // other mutations
                 data_model (state,data) {
-                    //state.formData=JSON.parse(JSON.stringify(data));
-
-                    /*state.formData=data;
-                    this.store.state.formData["study_desc"]["authoring_entity"]=[{
-                        "name": "Partners for Health Reformplus Project",
-                        "affiliation": "PdHRplus XYXYXYXYYX"
-                    }];
-
-                    var author={
-                        "name": "Partners for Health Reformplus Project",
-                        "affiliation": "PdHRplus XYXYXYXYYX"
-                    };
-                */
-                    //this.$vuexSet (this.$store.state.formData, 'study_desc.authoring_entity[0]', author);
-
-                    this.$vuexSet('testing',"another value");
-                    console.log("value added");
-                    
+                    //this.$vuexSet('testing',"another value");
+                    console.log("value added");                    
                 }
             })
             /*: {
@@ -569,18 +325,79 @@
             //mutations: VueDeepSet.extendMutation()
         })
 
+
+        // Add a rule.
+  VeeValidate.extend('secret', {
+    validate: value => value === 'example',
+    message: 'This is not the magic word'
+  });
+
+  
+  const isUniqueIDNO = (value) => {
+    
+        let url='<?php echo site_url('/api/datasets/check_idno/');?>' + value;
+        
+        return axios.get(url)
+        .then(function (response) {
+            console.log(response);
+            return {
+                valid: response.status==404,
+                data:{
+                    message: 'IDNO exists'
+                }
+            }
+        })
+        .catch(function (error) {                        
+            console.log(error);                      
+            return {
+                valid: error.response.status==404,//valid if statuscode==404
+                data:{
+                    message: 'IDNO not found'
+                }
+            }
+        });        
+  };
+
+  VeeValidate.extend('idno', {
+    validate: isUniqueIDNO,
+    getMessage: (field, params, data) => {
+        return data.message;
+    },
+    message: 'Please enter a unique value.'
+  });
+
+  VeeValidate.extend('required', {
+    validate (value) {
+        return {
+            required: true,
+            valid: ['', null, undefined].indexOf(value) === -1
+        };        
+    },
+    computesRequired: true,
+    message: 'This is a required field'
+  });
+
+        Vue.component('ValidationProvider', VeeValidate.ValidationProvider);
+        Vue.component('ValidationObserver', VeeValidate.ValidationObserver);
+
+
+
         var app = new Vue({
             el: '#app',
             store,
+            schema_validator: null,
             data:{
+                email:'',
                 obj:{},
                 dataset_id:project_sid,
                 form_template: form_template,
+                metadata_schema: metadata_schema,
                 dialog_box_option:{
                     'title': '',
                     'content': '',
                     'erorrs': {}                    
-                }
+                },
+                form_errors:[]
             },
             mounted: function () {
                 console.log(this.form_template);
@@ -590,6 +407,13 @@
                     $("#field-"+node_id).focus();
                 });
 
+                //initialize schema validator
+                var ajv = Ajv({
+                    allErrors : true
+                });
+
+                this.schema_validator= ajv.compile(this.metadata_schema);
+                
                 /*for (let i = 0; i < form_template.array_elements.length; i++) {
                     console.log(form_template.array_elements[i]);
                     this.$vuexSet(form_template.array_elements[i],[{}]);
@@ -602,7 +426,18 @@
                 },
                 activeNode (){
                     return this.$deepModel('active_node')
-                }
+                },
+                /*formValidationErrors(){
+                    form_data=JSON.parse(JSON.stringify(this.formData))
+                    this.removeEmpty(form_data);
+                    valid=this.validateData(form_data);
+
+                    if(valid!==true){
+                        console.log(valid);
+                        return valid;                        
+                    }
+                }*/
+                
             },
             methods: {    
                 scrollToElement: function(container,element,duration){
@@ -612,15 +447,19 @@
                         offset: -100,
                         force: true,
                         cancelable: true,
+
                         onStart: function(element) {
                         // scrolling started
                         },
+
                         onDone: function(element) {
                         // scrolling is done
                         },
+
                         onCancel: function() {
                         // scrolling has been interrupted
                         },
+
                         x: false,
                         y: true
                     }
@@ -664,6 +503,8 @@
                     vm=this;
                     $.each(obj, function(key, value){
                         if (value === "" || value === null || ($.isArray(value) && value.length === 0) ){
+                            delete obj[key];
+                        } else if (JSON.stringify(value) == '[{}]'){
                             delete obj[key];
                         } else if (Object.prototype.toString.call(value) === '[object Object]') {
                             vm.removeEmpty(value);
@@ -710,8 +551,33 @@
                         // always executed
                         console.log("request completed");
                     });
-                },                
-                saveForm: function(){                    
+                },
+                setErrors: function(errors){
+                    this.form_errors=[];
+                    
+                },
+                validateData: function(data){         
+                    
+                    if (this.schema_validator == undefined){
+                        return true;
+                    }
+                    
+                    if (!this.schema_validator(data)){
+                        return this.schema_validator.errors
+                    }
+
+                    return true;                    
+                },
+                saveForm: function(){
+                    this.$refs.form.validate().then(success => {
+                        if (!success) {
+                        return;
+                    }
+
+                    alert('Form has been submitted!');
+                    });
+                    return;
+
                     vm=this;
                     let url='<?php echo $post_url;?>';
                     
@@ -719,6 +585,13 @@
                     console.log(form_data);
                     vm.removeEmpty(form_data);
                     console.log(form_data);
+
+                    validation_errors=this.validateData(form_data);
+
+                    if(validation_errors!==true){
+                        vm.form_errors=validation_errors;
+                        return false;
+                    }
 
                     /*if (!vm.project_sid){
                         vm.removeEmpty(form_data);
@@ -765,3 +638,4 @@
 </body>
 
 </html>
+
