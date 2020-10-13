@@ -572,13 +572,7 @@
           "title": "Sources",
           "description": "Description of sources used. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. ",
           "_ddi_xpath":"stdyDscr/method/dataColl/sources",
-            "properties": {
-              "data_source":{
-                "type":"array",
-                "title":"Data Sources",
-                "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
-                "_ddi_xpath":"stdyDscr/method/dataColl/sources/dataSrc"
-              },
+            "properties": {              
               "source_origin":{
                 "type":"string",
                 "title":"Origin of Source",
@@ -598,6 +592,33 @@
                 "_ddi_xpath":"stdyDscr/method/dataColl/sources/srcDocu"
               }                
             }
+        },
+
+        "data_source":{
+          "type":"array",
+          "title":"Data Sources",
+          "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Dataset name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Link to the dataset",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",                
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         },
                 
         "keywords":{
@@ -731,6 +752,20 @@
             "name"
           ]
         },
+        "reproducibility": {
+          "title": "Reproducibility",
+          "type": "object",
+          "properties":{
+            "note": {
+              "title": "Note",
+              "type": "string"
+            },
+            "uri": {
+              "title": "URI",
+              "type": "string"
+            }
+          }          
+        },        
 
         "lda_topics": {
           "type": "array",
