@@ -44,7 +44,11 @@
                         <?php echo implode(", ", $link_text);?>
                     <?php endif;?>
                     <?php if(isset($row['description'])):?>
-                        <div><?php echo nl2br($row['description']);?></div>
+                        <p><?php echo nl2br($row['description']);?></p>
+                    <?php endif;?>
+
+                    <?php if(isset($row['abstract'])):?>
+                        <p><?php echo nl2br($row['abstract']);?></p>
                     <?php endif;?>
                 </li>
             <?php endforeach;?>
