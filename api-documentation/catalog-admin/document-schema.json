@@ -594,7 +594,7 @@
             }
         },
 
-        "data_source":{
+        "data_sources":{
           "type":"array",
           "title":"Data Sources",
           "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
