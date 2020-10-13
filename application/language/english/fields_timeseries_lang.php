@@ -73,6 +73,7 @@ $lang['metadata.series_description.links']='Series links';
 $lang['metadata.series_description.links.type']='Link type';
 $lang['metadata.series_description.links.description']='Description';
 $lang['metadata.series_description.links.url']='Link';
+$lang['metadata.series_description.links.uri']='Link';
 $lang['metadata.series_description.links.format']='Format';
 
 
@@ -93,8 +94,8 @@ $lang['metadata.series_description.api_documentation.uri']='Documentation Link';
 $lang['metadata.series_description.api_documentation.url']='Documentation Link';
 
 $lang['metadata.series_description.source']='Original source';
-$lang['metadata.series_description.source_note']='Notes form original source';
-$lang['metadata.series_description.keywords']='';
+$lang['metadata.series_description.source_note']='Notes from original source';
+$lang['metadata.series_description.keywords']='Keywords';
 $lang['metadata.series_description.keywords.name']='Keyword';
 $lang['metadata.series_description.keywords.vocabulary']='Vocabulary';
 $lang['metadata.series_description.keywords.uri']='URI';
