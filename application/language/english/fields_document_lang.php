@@ -149,9 +149,9 @@ $lang['metadata.document_description.lda_topics.topic_description.topic_words']=
 $lang['metadata.document_description.lda_topics.topic_description.topic_words.word']='Word';
 
 $lang['metadata.document_description.reproducibility.statement']='Statement';
-$lang['metadata.document_description.reproducibility.statement.links']='Links';
-$lang['metadata.document_description.reproducibility.statement.links.uri']='Link';
-$lang['metadata.document_description.reproducibility.statement.links.description']='Description';
+$lang['metadata.document_description.reproducibility.links']='Links';
+$lang['metadata.document_description.reproducibility.links.uri']='Link';
+$lang['metadata.document_description.reproducibility.links.description']='Description';
 
 
 $lang['metadata.files']='Files';
