@@ -148,6 +148,7 @@ $lang['metadata.document_description.lda_topics.topic_description.topic_label']=
 $lang['metadata.document_description.lda_topics.topic_description.topic_words']='Topic words';
 $lang['metadata.document_description.lda_topics.topic_description.topic_words.word']='Word';
 
+$lang['reproduciblity']='Reproduciblity';
 $lang['metadata.document_description.reproducibility.statement']='Reproduciblity';
 $lang['metadata.document_description.reproducibility.links']='Links';
 $lang['metadata.document_description.reproducibility.links.uri']='Link';
