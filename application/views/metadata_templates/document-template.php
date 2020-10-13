@@ -74,6 +74,11 @@ if(isset($metadata['resources'])){
     $fields=array(
         "metadata.document_description.title_statement.idno"=>"text",
         "metadata.document_description.title_statement.title"=>"text",
+        
+
+        "metadata.document_description.journal"=>"text",
+        "metadata.document_description.date_published"=>"text",
+
         "metadata.document_description.title_statement.sub_title"=>"text",
         "metadata.document_description.title_statement.alternate_title"=>"text",
         "metadata.document_description.title_statement.abbreviated_title"=>"text",
@@ -90,7 +95,7 @@ if(isset($metadata['resources'])){
         "metadata.document_description.date_created"=>"text",
         "metadata.document_description.date_available"=>"text",
         "metadata.document_description.date_modified"=>"text",
-        "metadata.document_description.date_published"=>"text",
+        
         
         //"metadata.document_description.id_numbers"=>"object",
         "metadata.document_description.id_numbers.type"=>"text",
@@ -102,20 +107,15 @@ if(isset($metadata['resources'])){
         "metadata.document_description.chapter"=>"text",
         "metadata.document_description.edition"=>"text",
         "metadata.document_description.institution"=>"text",
-        "metadata.document_description.journal"=>"text",
+        
         "metadata.document_description.volume"=>"text",
         "metadata.document_description.issue"=>"text",
         "metadata.document_description.pages"=>"text",
-
-
-        "metadata.document_description.reproducibility.statement"=>"text",
-        "metadata.document_description.reproducibility.links"=>"array",
-
-
-
     ),
     $metadata);
     ?>
+
+ 
 
 <?php $output['series']= render_group('series',
     $fields=array(
@@ -136,6 +136,15 @@ if(isset($metadata['resources'])){
         ),
         $metadata);
         ?>
+
+<!--  reproducibility section -->
+<?php $output['reproducibility']= render_group('reproducibility',
+    $fields=array(
+        "metadata.document_description.reproducibility.statement"=>"text",
+        "metadata.document_description.reproducibility.links"=>"array",
+    ),
+    $metadata);
+    ?>   
     
     <?php $output['copyrights']= render_group('copyrights',
         $fields=array(  
