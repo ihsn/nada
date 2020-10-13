@@ -111,8 +111,8 @@ class Timeseries_db_model extends CI_Model {
 	function get_core_fields($options)
 	{        
         $output=array();
-        $output['title']=$this->get_array_nested_value($options,'title');
-        $output['idno']=$this->get_array_nested_value($options,'idno');
+        $output['title']=$this->get_array_nested_value($options,'database_description/title_statement/title');
+        $output['idno']=$this->get_array_nested_value($options,'database_description/title_statement/idno');
         return $output;
 	}
 	
