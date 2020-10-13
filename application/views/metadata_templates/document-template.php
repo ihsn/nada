@@ -106,6 +106,13 @@ if(isset($metadata['resources'])){
         "metadata.document_description.volume"=>"text",
         "metadata.document_description.issue"=>"text",
         "metadata.document_description.pages"=>"text",
+
+
+        "metadata.document_description.reproducibility.statement"=>"text",
+        "metadata.document_description.reproducibility.links"=>"array",
+
+
+
     ),
     $metadata);
     ?>
