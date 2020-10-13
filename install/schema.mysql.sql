@@ -139,17 +139,15 @@ CREATE TABLE `variables` (
   `labl` varchar(255) DEFAULT '',
   `qstn` text,
   `catgry` text,
-  `metadata` mediumtext,
+  `keywords` text,
+  `metadata` mediumtext,  
   PRIMARY KEY (`uid`),
   UNIQUE KEY `idxSurvey` (`vid`,`sid`),
   KEY `idxsurveyidfk` (`sid`),
-  FULLTEXT KEY `idx_qstn` (`qstn`),
-  FULLTEXT KEY `idx_labl` (`labl`),
-  FULLTEXT KEY `idxCatgry` (`catgry`),
-  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
-  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
-  FULLTEXT KEY `idx_nm` (`name`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`,`catgry`),
+  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`,`keywords`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 /*!40101 SET character_set_client = @saved_cs_client */;
 

@@ -807,7 +807,7 @@ class Catalog_search_mysql{
 		
 		if (empty($index))
 		{
-			$index[]='name,labl,qstn,catgry';
+			$index[]='name,labl,qstn,catgry,keywords';
 		}
 
 		if ($is_fulltext==TRUE)	
@@ -835,7 +835,7 @@ class Catalog_search_mysql{
 		if (!is_array($vf))
 		{
 			//default search field if nothing is selected
-			return array('labl,qstn,catgry');
+			return array('labl,qstn,catgry,keywords');
 		}
 		
 		$tmp=NULL;
