@@ -756,13 +756,29 @@
           "title": "Reproducibility",
           "type": "object",
           "properties":{
-            "note": {
-              "title": "Note",
+            "statement": {
+              "title": "Statement",
               "type": "string"
             },
-            "uri": {
-              "title": "URI",
-              "type": "string"
+            "links": {
+              "title": "Link",
+              "type": "array",
+              "items":{
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "title": "URI",
+                    "type": "string"
+                  },
+                  "description": {
+                    "title": "Description",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                "uri"
+              ]
+              }
             }
           }          
         },        
