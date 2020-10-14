@@ -375,7 +375,31 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []                        
+          - ApiKeyAuth: []   
+  /datasets/replace_idno:
+    post:
+      tags:
+        - Datasets
+      summary: Replace IDNO
+      description: Replace Study IDNO
+      operationId: replaceIdno
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          type: string
+          format: string
+          required: true
+          schema:
+            $ref: '#/definitions/ReplaceIdno'
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []                                          
   /datasets/create/survey/{IDNo}:
       post:
         tags:
@@ -2032,7 +2056,18 @@ definitions:
         type: string
         description: Variable label
     xml:
-      name: ResourceFile        
+      name: ResourceFile
+  ReplaceIdno:
+    type: object
+    properties:
+      old_idno:
+        type: string
+        description: Old IDNO for study      
+      new_idno:
+        type: string
+        description: New IDNO for study        
+    xml:
+      name: ReplaceIdno              
   DatasetOptions:
     type: object
     properties:

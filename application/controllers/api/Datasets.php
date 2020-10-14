@@ -149,6 +149,60 @@ class Datasets extends MY_REST_Controller
 
 
 
+	/**
+	 * 
+	 * Replace study IDNO
+	 * 
+	 */
+	function replace_idno_post()
+	{
+		try{
+			$input=$this->raw_json_input();			
+
+				
+			$old_idno=array_get_value($input,'old_idno');
+			$new_idno=array_get_value($input,'new_idno');
+
+			if (empty($old_idno) || empty($new_idno)){
+				throw new Exception("OLD_IDNO and NEW_IDNO parameters not set");
+			}
+			
+			$sid=$this->Dataset_model->get_id_by_idno($old_idno);
+
+			if(!$sid){
+				throw new Exception("OLD_IDNO was not found");
+			}
+
+			if($new_sid=$this->Dataset_model->get_id_by_idno($new_idno)){
+				throw new Exception("NEW_IDNO already in use: ".$new_sid);
+			}
+
+			$options=array(
+				'idno'=>$new_idno
+			);
+			
+			$this->Dataset_model->update_options($sid,$options);
+
+			$response=array(
+				'status'=>'success',
+				'new_idno'=>$new_idno,
+				'id'=>$sid
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
 
 	/**
 	 * 

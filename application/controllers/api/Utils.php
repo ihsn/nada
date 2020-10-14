@@ -211,7 +211,15 @@ class Utils extends REST_Controller
 
 
 
-
+	/**
+	 * 
+	 * Repopulate variable fields for indexing
+	 * 
+	 *  fields added to index:
+	 * 	- var_notes
+	 *  - var_txt
+	 * 
+	 */
 	public function variable_index_repopulate_get($start=0,$limit=10)
 	{
 		try{
