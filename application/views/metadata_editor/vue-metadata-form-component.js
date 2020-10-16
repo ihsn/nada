@@ -12,6 +12,12 @@ Vue.component('metadata-form', {
         },
         toggleNode(event){
             alert("event toggleNode");
+        },
+        showFieldError(field,error){
+            //field_parts=field.split("-");
+            //field_name=field_parts[field_parts.length-1];
+            //return error.replace(field,field_name);
+            return error.replace(field,'');
         }
     },
     computed: {
@@ -104,13 +110,13 @@ Vue.component('metadata-form', {
                             <span v-if="field.required==true" class="required-label"> * </span>
                         </label>
                         
-                        <validation-provider :rules="field.class" data-vv-delay="9000" vv-delay="9000"  v-slot="{ errors }">
+                        <validation-provider :rules="field.rules" data-vv-delay="9000" vv-delay="9000"  v-slot="{ errors }">
                         <input type="text"
                             v-model="formData[field.key]"
                             class="form-control" 
                             :id="'field-' + normalizeClassID(field.key)"                                     
                         >
-                        <span v-if="errors[0]" class="error">{{ errors[0] }}</span>
+                        <span v-if="errors[0]" class="error">{{ showFieldError('field-' + normalizeClassID(field.key),errors[0]) }}</span>
                       </validation-provider>
 
                         <!--<input type="text"

@@ -47,9 +47,10 @@
             background:#e9ecef!important;
         }
         .metadata-form-container .field-type-section{
-            border:1px solid #e9ecef;
-            margin-bottom:3px;
-            background:white;
+            border:0px;
+            margin-bottom:5px;
+            background:#f3f3f3;
+            padding-bottom:5px;
         }
 
         .metadata-form-container .required-label{
@@ -58,7 +59,7 @@
         }
 
         .metadata-form-container .form-field-textarea{
-            height:auto;
+            min-height:200px;
         }
 
         .grid-button-delete,
@@ -100,9 +101,9 @@
         }
 
         .form-section {
-            background: #F1F1F1;
-            color: #2196F3;
-            font-size: 20px;
+            background: #03A9F4;
+            color: #ffffff;
+            font-size: 16px;
             font-weight: bold;
             padding: 10px;
         }
@@ -142,8 +143,18 @@
 
         .field-type-nested_array{
             margin:15px;
+        }        
+
+        .error{
+            background:transparent;
+            color:red;
+            border:0px;
         }
 
+        .grid-component{
+            background:white;
+            padding:5px;
+        }
         
     </style>
 </head>
@@ -187,7 +198,29 @@
 
 
     <div class="container-fluidx" style="margin-top:30px;">
-        <div class="col-md-6"><h2 style="margin:0px;">Edit metadata <sup style="color:red;font-size:12px;">[beta]</sup></h2></div>
+        <div class="col-md-6">
+            <h2 style="margin:0px;">Edit metadata <sup style="color:red;font-size:12px;">[beta]</sup></h2>
+
+            <div class="btn-toolbar">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-sliders-h"></i> Options <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">All fields</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Recommended fields</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Mandatory fields</a></li>
+                    </ul>
+                </div>
+
+                <div class="btn-group" role="group" aria-label="...">
+                <button type="button" class="btn btn-default"><i class="far fa-copy"></i> Import</button>                
+                </div>
+            </div>
+
+        </div>
         <!--<div class="col-md-6" style="text-align:right;"><button type="button" class="btn btn-primary" @click="saveForm">Save</button></div>-->
     </div>
 

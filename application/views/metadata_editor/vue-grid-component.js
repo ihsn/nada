@@ -33,7 +33,6 @@ Vue.component('grid-component', {
             <!--vuejs template for grid -->
 
             <div class="grid-component">
-
             <table class="table table-striped table-sm">
                 <thead class="thead-light">
                 <tr>
@@ -50,10 +49,18 @@ Vue.component('grid-component', {
                 <tr  v-for="(item,index) in field_data">
                     <td v-for="(column,idx_col) in localColumns" scope="row">
                         <div>
-                            <input  
-                                v-model="field_data[index][column.key]" 
-                                class="form-control form-control-sm"  
-                                type="text" >
+
+                        <validation-provider 
+                                :rules="column.rules" 
+                                v-slot="{ errors }">
+                            
+                            <input type="text"
+                                v-model="field_data[index][column.key]"
+                                class="form-control form-control-sm"                                 
+                            >
+                            <span v-if="errors[0]" class="error">{{ errors[0] }}</span>
+                        </validation-provider>
+                            
                         </div>
                     </td>
                     <td scope="row">        
@@ -65,7 +72,7 @@ Vue.component('grid-component', {
             </table>
 
             <div class="d-flex justify-content-center">
-                <button type="button" class="btn btn-light btn-block btn-sm" @click="addRow" >Add row</button>    
+                <button type="button" class="btn btn-primary btn-block btn-sm" @click="addRow" >Add row</button>    
             </div>
 
             </div>  `,
