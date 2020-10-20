@@ -1345,8 +1345,6 @@ class Dataset_model extends CI_Model {
 	{
 		$folder_path=$this->setup_folder($repositoryid, $idno);
 		
-		var_dump($folder_path);
-
 		$options=array(
 			'idno'=>$idno,
 			'type'=>$type,
