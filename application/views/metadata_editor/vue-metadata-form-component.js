@@ -52,7 +52,9 @@ Vue.component('metadata-form', {
                             :id="'field-' + normalizeClassID(path)" 
                             :value="formData[field.key]"                                         
                             :columns="field.props"
-                            :path="field.key">
+                            :path="field.key"
+                            :field="field"
+                            >
                         </grid-component>  
                     </div>    
                 </div>
@@ -110,13 +112,18 @@ Vue.component('metadata-form', {
                             <span v-if="field.required==true" class="required-label"> * </span>
                         </label>
                         
-                        <validation-provider :rules="field.rules" data-vv-delay="9000" vv-delay="9000"  v-slot="{ errors }">
+                        <validation-provider 
+                            :rules="field.rules" 
+                            :debounce=500
+                            v-slot="{ errors }"                            
+                            :name="field.title"
+                            >
                         <input type="text"
                             v-model="formData[field.key]"
-                            class="form-control" 
+                            class="form-control"                            
                             :id="'field-' + normalizeClassID(field.key)"                                     
                         >
-                        <span v-if="errors[0]" class="error">{{ showFieldError('field-' + normalizeClassID(field.key),errors[0]) }}</span>
+                        <span v-if="errors[0]" class="error">{{errors[0]}}</span>
                       </validation-provider>
 
                         <!--<input type="text"

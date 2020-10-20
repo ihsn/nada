@@ -1,6 +1,6 @@
 //vue grid component
 Vue.component('grid-component', {
-    props:['value','columns','path'],
+    props:['value','columns','path', 'field'],
     data: function () {    
         return {
             field_data: this.value,
@@ -31,13 +31,13 @@ Vue.component('grid-component', {
     },  
     template: `
             <!--vuejs template for grid -->
-
             <div class="grid-component">
             <table class="table table-striped table-sm">
                 <thead class="thead-light">
                 <tr>
                     <th v-for="(column,idx_col) in columns" scope="col">
                         {{column.title}}
+                        <span v-if="column.rules" class="required-label"> * </span>
                     </th>
                     <th scope="col">               
                     </th>
@@ -52,7 +52,9 @@ Vue.component('grid-component', {
 
                         <validation-provider 
                                 :rules="column.rules" 
-                                v-slot="{ errors }">
+                                :name="field.title + '.' + column.title"
+                                v-slot="{ errors }"                                
+                                >
                             
                             <input type="text"
                                 v-model="field_data[index][column.key]"
@@ -72,7 +74,7 @@ Vue.component('grid-component', {
             </table>
 
             <div class="d-flex justify-content-center">
-                <button type="button" class="btn btn-primary btn-block btn-sm" @click="addRow" >Add row</button>    
+                <button type="button" class="btn btn-link btn-block btn-sm" @click="addRow" ><i class="fas fa-plus-square"></i> Add row</button>    
             </div>
 
             </div>  `,

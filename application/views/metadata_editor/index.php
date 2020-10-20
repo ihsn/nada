@@ -189,7 +189,7 @@
 
                 </div>
 
-            </div>
+            </div> 
             <div class="col-md-9 h-100  bg-light-2">                
                 <div class="main-content" id="main-content">
 

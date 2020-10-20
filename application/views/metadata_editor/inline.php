@@ -4,6 +4,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/vuex@3.4.0/dist/vuex.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
     <!--<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>-->
     
     <script src="https://cdn.jsdelivr.net/npm/vue-deepset@0.6.3/vue-deepset.min.js"></script>
@@ -33,6 +34,7 @@
     </script>
 
     <script>
+        let sid='<?php echo $sid;?>';
         let form_template=<?php echo $metadata_template;?>;
 
         //json schema
@@ -62,16 +64,20 @@
             min-height:200px;
         }
 
-        .grid-button-delete,
+        /*.grid-button-delete,
         .section-toggle-icon
         {
             margin-top:4px;
-        }
+        }*/
 
         .form-field-table{
             margin-top: 20px;
             margin-bottom: 20px;
             margin-right: 15px
+        }
+
+        .form-field-table th{
+            font-size:12px;
         }
 
         .metadata-form-container .form-field{
@@ -103,14 +109,20 @@
         .form-section {
             background: #03A9F4;
             color: #ffffff;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             padding: 10px;
         }
 
+        label{
+            font-size: 14px;
+                font-weight: bold;
+                margin-bottom: .1rem;
+            }
+        
+
         .sidebar{            
             overflow-y: scroll;
-            height:100%;           
             border:1px solid gainsboro;
         }
 
@@ -155,13 +167,20 @@
             background:white;
             padding:5px;
         }
+
+        html,body {
+            height: 100%;
+        }
+        .container-fluid {
+        height: 100vh;
+        }
         
     </style>
 </head>
 
 <body>
 
-<div id="app" class="container-fluid">
+<div id="app" class="container-fluid mt-5">
 
 <!-- Modal -->
 <div class="modal fade" id="app_dialog" tabindex="-1" role="dialog" aria-labelledby="DialogBox" aria-hidden="true">
@@ -197,13 +216,40 @@
 </div>
 
 
-    <div class="container-fluidx" style="margin-top:30px;">
-        <div class="col-md-6">
-            <h2 style="margin:0px;">Edit metadata <sup style="color:red;font-size:12px;">[beta]</sup></h2>
+    <div class="container-fluid-x">
+        
+        <!--<div class="col-md-6" style="text-align:right;"><button type="button" class="btn btn-primary" @click="saveForm">Save</button></div>-->
+    </div>
 
-            <div class="btn-toolbar">
+
+
+    
+    <div class="container-fluid h-100 d-flex flex-column" >
+
+        <div class="row flex-fill" style="min-height:0">
+
+            <div class="col-md-2 sidebar-container  mh-100" style="overflow-y: scroll;" >
+            
+                <nav class="nav nav-pills flex-column">
+                <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-chart-bar"></i> Overview</a>
+                <a class="nav-link active" href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>"><i class="fas fa-bars"></i> Metadata</a>
+                
+                <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-file-alt"></i> Files</a>
+                <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-file-medical-alt"></i> Resources</a>
+                <a class="nav-link disabled" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" tabindex="-1" aria-disabled="true"><i class="fas fa-book"></i> Citations</a>
+                </nav>
+
+                
+            
+            </div>
+
+            <div class="col mh-100" style="overflow-y: scroll;">
+
+            <div>
+                <h3 style="margin:0px;">Metadata</h3>
+            
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-sliders-h"></i> Options <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
@@ -216,17 +262,37 @@
                 </div>
 
                 <div class="btn-group" role="group" aria-label="...">
-                <button type="button" class="btn btn-default"><i class="far fa-copy"></i> Import</button>                
+                    <button type="button" class="btn btn-default btn-sm"><i class="far fa-copy"></i> Import</button>                
                 </div>
+
+                <div class="float-right">
+                    <button type="button" class="btn btn-primary btn-sm" @click="saveForm">Save</button>
+                    <a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-sm" >Cancel</a>
+                </div>
+                <div v-if="form_errors.length>0 || schema_errors.length>0" style="margin-bottom:15px;" class="pl-2">
+                    <div style="color:red;font-weight:bold;">Please correct the following errors:</div>
+                        <div style="color:red;" v-if="form_errors.length>0">
+                            <div v-for="error in form_errors">
+                                <span v-if="error.message">
+                                    <i class="fas fa-times-circle"></i> {{ error.message }}
+                                    <span class="label label-warning">{{error.property}}{{error.dataPath}}</span>
+                                </span>
+                                <span v-if="!error.message"><i class="fas fa-times-circle"></i> {{ error }}</span>
+                            </div>
+                        </div>
+                        <div style="color:red;" v-if="schema_errors.length>0">
+                            <div v-for="error in schema_errors">
+                                <span v-if="error.message">
+                                    <i class="fas fa-times-circle"></i> {{ error.message }}
+                                    <span class="label label-warning">{{error.property}}{{error.dataPath}}</span>
+                                </span>
+                                <span v-if="!error.message"><i class="fas fa-times-circle"></i> {{ error }}</span>
+                            </div>
+                        </div>
+                </div>
+            
             </div>
 
-        </div>
-        <!--<div class="col-md-6" style="text-align:right;"><button type="button" class="btn btn-primary" @click="saveForm">Save</button></div>-->
-    </div>
-
-    <div class="container-fluidx xh-100" >
-
-        <div class="col-md-9 xbg-light-2">
             <div class="main-content" id="main-content">                
                 <validation-observer ref="form" v-slot="{ invalid }">                
                     <metadata-form :field="form_template" :items="form_template.items" :depth="0" :css_class="'metadata-form-container'"></metadata-form>
@@ -234,57 +300,9 @@
             </div>
         </div>
 
-        <div class="col-md-3 sidebar-container h-100" style="margin-top:9px;">
-
-            <div class="sidebar" style="margin-bottom:15px;">
-                <div  class="sidebar-header" >Save</div>                
-                <div class="sidebar-content">
-                        <button type="button" class="btn btn-primary btn-block" @click="saveForm">Save</button>
-                        <a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-block" >Cancel</a>                
-                </div>                
-            </div>
-
-            <div v-if="form_errors.length>0" class="sidebar" style="margin-bottom:15px;">
-                <div  class="sidebar-header" >Validation</div>                
-                <div class="sidebar-content">
-                                
-                    <div  > 
-                        <div style="color:red;">
-                            <div style="font-weight:bold;">
-                                <i class="fas fa-exclamation-triangle"></i> 
-                                Errors saving form
-                            </div>
-                            <li v-for="error in form_errors">
-                                <span v-if="error.message">
-                                 {{ error.message }}
-                                 <span class="label label-warning">{{error.property}}{{error.dataPath}}</span>
-                                </span>
-                                <span v-if="!error.message">{{ error }}</span>
-                            </li>
-                        </div>
-                        <pre style="max-height:200px;overflow:auto;">{{form_errors}}</pre> 
-                    </div>        
-                </div>                
-            </div>
-
             
-
-                        
-            <div class="sidebar" @tree-node-click="treeNodeClickHandler()">
-                <div class="sidebar-header">Outline</div>
-                <div class="sidebar-content">
-                <form-tree  
-                    :node="form_template" 
-                    :title="form_template.title"  
-                    :depth="0" 
-                    :css_class="'lvl-0'"                    
-                    @tree-node-click="treeNodeClickHandler()"                    
-                ></form-tree>
-                <pre style="overflow:auto;height:200px;border:1px solid red;">{{formData}}</pre>
-                </div>
-            </div>
+            
         </div>
-
     </div>
 
     
@@ -334,7 +352,9 @@
         <?php else:?>
             var project_sid=<?php echo isset($survey['id']) ? $survey['id'] : 'null';?>;
         <?php endif;?>
-
+        
+        let project_idno='<?php echo isset($survey['idno']) ? $survey['idno'] : '';?>';
+        let project_type='<?php echo isset($survey['type']) ? $survey['type'] : '';?>';
 
         var store = new Vuex.Store({
             state: {
@@ -365,14 +385,24 @@
     message: 'This is not the magic word'
   });
 
-  
+
   const isUniqueIDNO = (value) => {
-    
-        let url='<?php echo site_url('/api/datasets/check_idno/');?>' + value;
+        let sid='<?php echo $sid;?>';
+        let url='<?php echo site_url('/api/datasets/check_idno/');?>' + value + '/' + sid;
         
         return axios.get(url)
         .then(function (response) {
             console.log(response);
+            
+            if (response.status==200 && response.data.id==sid){
+                return {
+                    valid: true,
+                    data:{
+                        message: 'IDNO is valid'
+                    }
+                }
+            }
+
             return {
                 valid: response.status==404,
                 data:{
@@ -391,6 +421,7 @@
         });        
   };
 
+  
   VeeValidate.extend('idno', {
     validate: isUniqueIDNO,
     getMessage: (field, params, data) => {
@@ -406,8 +437,8 @@
             valid: ['', null, undefined].indexOf(value) === -1
         };        
     },
-    computesRequired: true,
-    message: 'This is a required field'
+    computesRequired: true
+    //message: 'This is a required field'
   });
 
         Vue.component('ValidationProvider', VeeValidate.ValidationProvider);
@@ -423,6 +454,8 @@
                 email:'',
                 obj:{},
                 dataset_id:project_sid,
+                dataset_idno:project_idno,
+                dataset_type:project_type,
                 form_template: form_template,
                 metadata_schema: metadata_schema,
                 dialog_box_option:{
@@ -430,7 +463,8 @@
                     'content': '',
                     'erorrs': {}                    
                 },
-                form_errors:[]
+                form_errors:[],
+                schema_errors:[]
             },
             mounted: function () {
                 console.log(this.form_template);
@@ -602,27 +636,52 @@
                     return true;                    
                 },
                 saveForm: function(){
-                    this.$refs.form.validate().then(success => {
-                        if (!success) {
-                        return;
-                    }
-
-                    alert('Form has been submitted!');
-                    });
-                    return;
-
                     vm=this;
-                    let url='<?php echo $post_url;?>';
+                    this.$refs.form.validateWithInfo().then(({ isValid, errors, $refs })=> {
+                        console.log('isValid', isValid); // false
+                        console.log(errors);
+                        window.xhref=$refs;
+                        vm.form_errors=Object.values(errors).flat();
+                        return;
+                    });
+
+                    /*this.$refs.form.validate().then(success => {
+                        if (!success) {
+                            window.xhref=this.$refs;
+                            console.log(this.$refs.form.errors);
+                            return;
+                        }
+
+                        alert('Form has been submitted!');
+                    });*/
+                    
+                    let url=CI.base_url + '/api/datasets/update/'+vm.dataset_type+'/' + vm.dataset_idno;
                     
                     form_data=JSON.parse(JSON.stringify(vm.formData))
                     console.log(form_data);
                     vm.removeEmpty(form_data);
                     console.log(form_data);
 
-                    validation_errors=this.validateData(form_data);
+                    validation_result=this.validateData(form_data);
+                    console.log(validation_result);
 
-                    if(validation_errors!==true){
-                        vm.form_errors=validation_errors;
+                    //remove additionalProperties not supported by schema
+                    validation_errors=[];
+                    if(validation_result!==true){
+                        for (let i = 0; i < validation_result.length; i++) {
+                            if (validation_result[i]['keyword'] == "additionalProperties"){
+                                elem_path=validation_result[i].dataPath + '.' + validation_result[i].params.additionalProperty
+                                if(elem_path[0]=='.'){
+                                    elem_path=elem_path.substring(1);
+                                }
+                                _.unset(form_data, elem_path);
+                            }else{
+                                validation_errors.push( validation_result[i]);
+                            }                            
+                        }                        
+                    }
+
+                    if (validation_errors.length>0){       
                         return false;
                     }
 
@@ -640,14 +699,18 @@
                     .then(function (response) {
                         console.log(response);
                         vm.dataset_id=response.data.dataset.id;
+                        vm.dataset_idno=response.data.dataset.idno;
                         alert("Your changes were saved");
                     })
                     .catch(function (error) {
                         console.log(error);
-                        console.log(error.response.data);
+                        vm.schema_errors=error.response.data.errors;
+                        
+                        /*console.log(error.response.data);
                         vm.dialog_box_option.title=error;
                         vm.dialog_box_option.errors=error.response.data;
                         $('#app_dialog').modal('show');
+                        */
                     })
                     .then(function () {
                         // always executed

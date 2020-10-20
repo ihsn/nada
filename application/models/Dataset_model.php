@@ -380,7 +380,7 @@ class Dataset_model extends CI_Model {
 		}
 
 		//keywords
-		if (!isset($data['keywords'])){
+		if (isset($data['metadata']) && !isset($data['keywords'])){
 			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
 			$data['keywords']=$this->extract_keywords($data['metadata'],$type);			
 		}
@@ -1330,10 +1330,46 @@ class Dataset_model extends CI_Model {
 			'processed'=>count($rows),
 			'start'=>$start_row,
 			'limit'=>$limit
-		);
-		
+		);		
 	}	
 
+
+	/**
+	 * 
+	 * 
+	 * Create a new empty project
+	 * 
+	 * 
+	 */
+	function create_new($idno, $type, $repositoryid, $title, $created_by)
+	{
+		$folder_path=$this->setup_folder($repositoryid, $idno);
+		
+		var_dump($folder_path);
+
+		$options=array(
+			'idno'=>$idno,
+			'type'=>$type,
+			'repositoryid'=>$repositoryid,
+			'title'=>$title,
+			'created_by'=>$created_by,
+			'published'=>0,
+			'dirpath'=>$folder_path
+		);
+
+		return $this->insert($type,$options);
+	}
+
+	
+
+	function GUID()
+	{
+		if (function_exists('com_create_guid') === true){
+			return trim(com_create_guid(), '{}');
+		}
+
+		return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
+	}
 
 }//end-class
 	

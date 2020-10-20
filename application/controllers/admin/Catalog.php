@@ -21,7 +21,7 @@ class Catalog extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin');
+		$this->template->set_template('admin'); 
 		$this->load->library("Dataset_manager");
 
 		//load language file
@@ -1564,6 +1564,7 @@ class Catalog extends MY_Controller {
 
 	function create($type=null)
 	{
+		$this->template->set_template('admin5'); 
 		if(!$type){
 			$type=$this->input->get("type");
 		}
@@ -1571,6 +1572,17 @@ class Catalog extends MY_Controller {
 		if(!$type){
 			show_error("Type not set");
 		}
+
+		$sid=$this->Dataset_model->create_new(
+			$idno=$this->Dataset_model->GUID(), 
+			$type, 
+			$repositoryid='central', 
+			$title='untitled', 
+			$created_by=1
+		);
+
+		redirect("admin/catalog/edit/".$sid);
+		return;
 		
 		$template_path="application/metadata_editor_templates/{$type}_form_template.json";
 		$schema_path="application/schemas/{$type}-schema.json";
@@ -1603,7 +1615,7 @@ class Catalog extends MY_Controller {
 	}
 
 	function metadata_editor($id=null)
-	{
+	{		
 		$this->acl->user_has_study_access($id);
 
 		//get the survey info from db
@@ -1612,11 +1624,16 @@ class Catalog extends MY_Controller {
 		if (!$survey){
 			show_error('Survey was not found');
 		}
-
+				 
 		$template_path="application/metadata_editor_templates/{$survey['type']}_form_template.json";
+		$schema_path="application/schemas/{$survey['type']}-schema.json";
 
 		if(!file_exists($template_path)){
 			show_error('Template not found::'. $template_path);
+		}
+
+		if(!file_exists($schema_path)){
+			show_error('Schema not found::'. $schema_path);
 		}
 
 		$metadata_subset=array(
@@ -1625,16 +1642,33 @@ class Catalog extends MY_Controller {
 			'published'=>$survey['published']			
 		);
 		
+
+		$metadata=$this->dataset_manager->get_metadata($id);
+
 		$options['sid']=$id;
 		$options['survey']=$survey;
 		$options['type']=$survey['type'];
 		$options['metadata_template']=file_get_contents($template_path);
 		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);
-		$options['metadata']=array_merge($metadata_subset,$this->dataset_manager->get_metadata($id));
+
+		if (!empty($metadata)){
+			$options['metadata']=$this->dataset_manager->get_metadata($id);//array_merge($metadata_subset,$this->dataset_manager->get_metadata($id));
+		}else{
+			$options['metadata']=null;
+		}
+
+		$options['metadata_template']=file_get_contents($template_path);
+		$options['metadata_schema']=file_get_contents($schema_path);
+		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);
+		//$options['metadata']=array();
 		$options['metadata']['merge_options']='replace';
+		$options['metadata']['document_description']['broken']='test';
 				
 		//render
-		return $this->load->view('metadata_editor/index',$options,true);
+		$this->template->set_template('admin5');
+		$content= $this->load->view('metadata_editor/inline',$options,true);
+		$this->template->write('content', $content,true);
+		$this->template->render();
 	}
 
 	/**
@@ -1652,9 +1686,9 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		$this->acl->user_has_study_access($id);
 
-		/*if ($this->uri->segment(5)=='metadata'){
+		if ($this->uri->segment(5)=='metadata'){
 			return $this->metadata_editor($id);
-		}*/
+		}
 
 		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
 		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
@@ -1766,12 +1800,6 @@ class Catalog extends MY_Controller {
 		//create a list of choices for the drop down
 		foreach($this->Form_model->get_all()  as $value){
 			$this->forms_list[$value['formid']]=t($value['fname']); 
-		}
-
-		//metadata editing?
-		if ($this->uri->segment(5)=='metadata'){
-			echo $this->metadata_editor($id);
-			die();
 		}
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);

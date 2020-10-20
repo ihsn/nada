@@ -131,7 +131,7 @@ class Datasets extends MY_REST_Controller
 			}
 			else{
 				$response=array(
-					'status'=>'error',
+					'status'=>'not-found',
 					'idno'=>$idno,
 					'message'=>'IDNO NOT FOUND'
 				);
@@ -464,7 +464,7 @@ class Datasets extends MY_REST_Controller
         	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
-			if ($type=='survey'){
+			if ($type=='survey' || $type=='document'){
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{

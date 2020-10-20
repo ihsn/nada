@@ -8,57 +8,6 @@
     "items": [
         {
             "type": "section",
-            "id": "catalog_options",
-            "title": "Catalog options",
-            "class": "mandatory recommended",
-            "expanded": true,
-            "items": [                
-                {
-                    "key": "repositoryid",
-                    "title": "Collection ID",
-                    "type": "text",
-                    "class": "required",
-                    "required": true,
-                    "help_text": "Collection ID"
-                },
-                {
-                    "key": "published",
-                    "title": "Status",
-                    "type": "dropdown",
-                    "class": "required",
-                    "required": true,
-                    "help_text": "Set publish status",
-                    "enum": {
-                        "1": "Publish",
-                        "0": "Draft"
-                    }
-                },
-                {
-                    "key": "overwrite",
-                    "title": "Overwrite",
-                    "required": true,
-                    "help_text": "Overwrite if project already exists?",
-                    "type": "dropdown",
-                    "enum": {
-                        "yes": "Yes",
-                        "no": "No"
-                    }
-                },
-                {
-                    "key": "access_policy",
-                    "title": "Data access",
-                    "required": true,
-                    "help_text": "Set data access type",
-                    "type": "dropdown",
-                    "enum": {
-                        "data_na": "Data not available",
-                        "direct": "Direct download"
-                    }
-                }
-            ]
-        },
-        {
-            "type": "section",
             "id": "identification",
             "title": "Identification",
             "class": "mandatory recommended",
