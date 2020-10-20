@@ -284,24 +284,26 @@
         },
 
         "id_numbers": {
-          "type": "object",
+          "type": "array",
           "title": "Identifier numbers",
-          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",          
-          "properties": {
-            "type": {
-              "title": "Type",
-              "description":"ID number type such as  ISSN, ISBN, DOI",
-              "type": "string"
+          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "description":"ID number type such as  ISSN, ISBN, DOI"
+              },
+              "value": {
+                "title": "ID number",
+                "type": "string"               
+              }
             },
-            "value": {
-              "title": "ID number",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "type","value"
-          ]
-        },        
+            "required": [
+              "type","value"
+            ]
+          }
+        },      
 
         "publication_frequency": {
           "type": "string",
