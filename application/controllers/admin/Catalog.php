@@ -16,6 +16,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Licensed_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Citation_model');
+		$this->load->model('Search_helper_model');
 		$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
@@ -84,6 +85,9 @@ class Catalog extends MY_Controller {
 
 		//get country list for filter
 		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
+
+		//data types
+		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid); 
 
 		if ($db_rows['rows'])
 		{

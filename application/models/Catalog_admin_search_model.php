@@ -10,6 +10,7 @@ class Catalog_admin_search_model extends CI_Model {
 	
 	//fields for the study description
 	var $study_fields=array(
+					'surveys.type',
 					'surveys.id',
 					'surveys.repositoryid',
 					'idno',
@@ -206,7 +207,29 @@ class Catalog_admin_search_model extends CI_Model {
 					$where_clause.= sprintf('  surveys.id in (%s)',$tags_sub_query);
 				}
 			}	
-		}		
+		}
+		
+		
+		//data types
+		//search tags
+		$types=$this->get_param('type');
+
+		if(!empty($types) &&  count($types)>0)
+		{
+			foreach($types as $key=>$value){
+				$types[$key]= "'" . $value . "'";
+			}
+			
+			if ( trim($where_clause)!='')
+			{	
+				$where_clause.= ' AND ' . '(surveys.type in ('.implode(",",$types).') )';
+			}
+			else
+			{
+				$where_clause.= '(surveys.type in ('.implode(",",$types).') )';
+			}			
+		}
+			
 		
 		$active_repo_filter='';
 		
