@@ -30,8 +30,30 @@
     
 
     <script>
-    console.log(deepdash.eachDeep); // --> all the methods just work
+        console.log(deepdash.eachDeep); // --> all the methods just work
+
+/*
+        //initialize schema validator
+        var ajv = Ajv({
+                allErrors : true
+            });
+
+        survey_schema=<?php echo file_get_contents('application/schemas/survey-schema.json');?>;
+        ddi_schema=<?php echo file_get_contents('application/schemas/ddi-schema.json');?>;
+        datafile_schema=<?php echo file_get_contents('application/schemas/datafile-schema.json');?>;  
+        variable_schema=<?php echo file_get_contents('application/schemas/variable-schema.json');?>;    
+        ajv.addSchema(ddi_schema,'http://ihsn.org/schemas/ddi-schema.json');
+        ajv.addSchema(datafile_schema,'http://ihsn.org/schemas/datafile-schema.json');
+        ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');
+        //ajv.addSchema(survey_schema,'survey-schema');
+
+        var validate_x = ajv.compile(survey_schema);
+*/
+
+
+
     </script>
+
 
     <script>
         let sid='<?php echo $sid;?>';
@@ -266,7 +288,7 @@
                 </div>
 
                 <div class="float-right">
-                    <button type="button" class="btn btn-primary btn-sm" @click="saveForm">Save</button>
+                    <button type="button" class="btn btn-primary btn-sm" @click="submitForm">Save</button>
                     <a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-sm" >Cancel</a>
                 </div>
                 <div v-if="form_errors.length>0 || schema_errors.length>0" style="margin-bottom:15px;" class="pl-2">
@@ -479,7 +501,21 @@
                     allErrors : true
                 });
 
-                this.schema_validator= ajv.compile(this.metadata_schema);
+                if (vm.dataset_type=='survey'){
+                    survey_schema=<?php echo file_get_contents('application/schemas/survey-schema.json');?>;
+                    ddi_schema=<?php echo file_get_contents('application/schemas/ddi-schema.json');?>;
+                    datafile_schema=<?php echo file_get_contents('application/schemas/datafile-schema.json');?>;  
+                    variable_schema=<?php echo file_get_contents('application/schemas/variable-schema.json');?>;    
+                    ajv.addSchema(ddi_schema,'http://ihsn.org/schemas/ddi-schema.json');
+                    ajv.addSchema(datafile_schema,'http://ihsn.org/schemas/datafile-schema.json');
+                    ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');
+                    //ajv.addSchema(survey_schema,'survey-schema');
+
+                    this.schema_validator= ajv.compile(survey_schema);
+                }
+                else{
+                    this.schema_validator= ajv.compile(this.metadata_schema);
+                }
                 
                 /*for (let i = 0; i < form_template.array_elements.length; i++) {
                     console.log(form_template.array_elements[i]);
@@ -635,25 +671,21 @@
 
                     return true;                    
                 },
-                saveForm: function(){
+                submitForm: function(){
                     vm=this;
+                    vm.form_errors=[];
+                    vm.schema_errors=[];
                     this.$refs.form.validateWithInfo().then(({ isValid, errors, $refs })=> {
                         console.log('isValid', isValid); // false
                         console.log(errors);
-                        window.xhref=$refs;
-                        vm.form_errors=Object.values(errors).flat();
-                        return;
+                        vm.form_errors=Object.values(errors).flat();                                                
+                        if (vm.form_errors=='' || vm.form_errors.length==0){
+                            vm.saveForm();
+                        }                    
                     });
-
-                    /*this.$refs.form.validate().then(success => {
-                        if (!success) {
-                            window.xhref=this.$refs;
-                            console.log(this.$refs.form.errors);
-                            return;
-                        }
-
-                        alert('Form has been submitted!');
-                    });*/
+                },
+                saveForm: function(){
+                    vm=this;
                     
                     let url=CI.base_url + '/api/datasets/update/'+vm.dataset_type+'/' + vm.dataset_idno;
                     
@@ -681,7 +713,8 @@
                         }                        
                     }
 
-                    if (validation_errors.length>0){       
+                    if (validation_errors.length>0){   
+                        vm.schema_errors=validation_errors;    
                         return false;
                     }
 

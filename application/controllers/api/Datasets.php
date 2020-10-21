@@ -464,7 +464,7 @@ class Datasets extends MY_REST_Controller
         	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
-			if ($type=='survey' || $type=='document'){
+			if ($type=='survey' || $type=='document' || $type=='table'){
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{
@@ -691,6 +691,7 @@ class Datasets extends MY_REST_Controller
 	function variables_post($idno=null,$file_id=null,$type='survey')
 	{
 		try{
+			$options=array();
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 

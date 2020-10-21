@@ -19,7 +19,8 @@
                     "type": "text",
                     "class": "required",
                     "required": true,
-                    "help_text": "help text for idno"
+                    "help_text": "help text for idno",
+                    "rules":"required|idno|alpha_dash|min:5|max:80"
                 },
                 {
                     "key": "study_desc.title_statement.title",
@@ -27,7 +28,8 @@
                     "type": "text",
                     "class": "required",
                     "required": true,
-                    "help_text": "help text for title"
+                    "help_text": "help text for title",
+                    "rules":"required|max:300"
                 },
                 {
                     "key": "study_desc.title_statement.sub_title",
@@ -175,7 +177,9 @@
                         "name": {
                             "key": "name",
                             "title": "Name",
-                            "type": "text"
+                            "type": "text",
+                            "rules":"required",
+                            "name": "Country name"
                         },
                         "abbreviation": {
                             "key": "abbreviation",

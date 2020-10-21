@@ -16,7 +16,7 @@
 ?>
 
 <?php
-if(isset($metadata['resources'])){
+if(isset($metadata['resources']) && isset($metadata['metadata']['files'])){
     //replace files->file_uri with resource download link 
     foreach($metadata['metadata']['files'] as $file_idx => $file){
         if (array_key_exists($file['file_uri'], $metadata['resources'])){

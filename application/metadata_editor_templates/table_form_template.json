@@ -120,9 +120,12 @@
         "items": [
             {
                 "key": "table_description.title_statement.idno",
-                "title": "Unique user defined ID",
+                "title": "IDNO",
                 "help_text": "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)",
-                "type": "text"
+                "type": "text",
+                "rules": "required|idno|alpha_dash|min:5|max:80",
+                "required": true,
+                "name": "idno"
             },
             {
                 "key": "table_description.title_statement.table_number",
@@ -132,7 +135,10 @@
             {
                 "key": "table_description.title_statement.title",
                 "title": "Table Title",
-                "type": "text"
+                "type": "text",
+                "rules": "required|max:300",
+                "required": true,
+                "name": "title"
             },
             {
                 "key": "table_description.title_statement.sub_title",
