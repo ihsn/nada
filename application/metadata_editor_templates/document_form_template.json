@@ -278,6 +278,38 @@
                         }
                     }
                 },
+
+                {
+                    "key": "document_description.contributors",
+                    "title": "Contributors",
+                    "help_text": "Document contributors",
+                    "type": "array",
+                    "props": {
+                        "first_name": {
+                            "key": "first_name",
+                            "title": "First Name",
+                            "type": "text",
+                            "help_text": "First name"
+                        },
+                        "initial": {
+                            "key": "initial",
+                            "title": "Initial",
+                            "type": "text",
+                            "help_text": "Name initial"
+                        },
+                        "last_name": {
+                            "key": "last_name",
+                            "title": "Last name",
+                            "type": "text",
+                            "help_text": "Last name"
+                        },
+                        "affiliation": {
+                            "key": "affiliation",
+                            "title": "Affiliation",
+                            "type": "text"
+                        }
+                    }
+                },
                                 
                 {
                     "key": "document_description.languages",
