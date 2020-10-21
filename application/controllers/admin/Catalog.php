@@ -1647,9 +1647,7 @@ class Catalog extends MY_Controller {
 
 		$options['sid']=$id;
 		$options['survey']=$survey;
-		$options['type']=$survey['type'];
-		$options['metadata_template']=file_get_contents($template_path);
-		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);
+		$options['type']=$survey['type'];		
 
 		if (!empty($metadata)){
 			$options['metadata']=$this->dataset_manager->get_metadata($id);//array_merge($metadata_subset,$this->dataset_manager->get_metadata($id));
@@ -1661,8 +1659,7 @@ class Catalog extends MY_Controller {
 		$options['metadata_schema']=file_get_contents($schema_path);
 		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);
 		//$options['metadata']=array();
-		$options['metadata']['merge_options']='replace';
-		$options['metadata']['document_description']['broken']='test';
+		$options['metadata']['merge_options']='replace';		
 				
 		//render
 		$this->template->set_template('admin5');
