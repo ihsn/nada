@@ -607,7 +607,7 @@
                     $.each(obj, function(key, value){
                         if (value === "" || value === null || ($.isArray(value) && value.length === 0) ){
                             delete obj[key];
-                        } else if (JSON.stringify(value) == '[{}]'){
+                        } else if (JSON.stringify(value) == '[{}]' || JSON.stringify(value) == '[[]]'){
                             delete obj[key];
                         } else if (Object.prototype.toString.call(value) === '[object Object]') {
                             vm.removeEmpty(value);
