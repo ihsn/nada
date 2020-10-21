@@ -766,15 +766,13 @@ class Users extends MY_Controller {
 	
 	function permissions($user_id)
 	{
-		if(!is_numeric($user_id))
-		{
+		if(!is_numeric($user_id)){
 			show_404();
 		}
 		
 		$data=array();
 		
-		if ($this->input->post("submit"))
-		{
+		if ($this->input->post("submit")){
 			//update user global roles
 			$this->ion_auth_model->update_user_global_roles($user_id,$this->input->post("global_role"));
 			
@@ -783,18 +781,16 @@ class Users extends MY_Controller {
 			
 			//remove all existing user roles for all collections
 			$this->ion_auth_model->delete_user_collection_roles_all($user_id);
-
-			var_dump($collection_roles);
 			
-			//add roles per collection
-			foreach($collection_roles as $collection_id=>$collection_roles)
-			{	
-				$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
+			if (!empty($collection_roles)){
+				//add roles per collection
+				foreach($collection_roles as $collection_id=>$collection_roles){	
+					$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
+				}
 			}
 			
 			$data['message']=t('form_update_success');
-			if($this->input->get('destination'))
-			{
+			if($this->input->get('destination')){
 				redirect($this->input->get('destination'));return;
 			}
 			redirect('admin/users');
@@ -805,16 +801,13 @@ class Users extends MY_Controller {
 		$user_group_access_types=(array)$this->ion_auth_model->get_user_account_type($user_id);
 		
 		//we can have only one type of user group access
-		if (in_array('unlimited',$user_group_access_types))
-		{
+		if (in_array('unlimited',$user_group_access_types)){
 			$user_group_access_type='unlimited';
 		}
-		else if (in_array('limited',$user_group_access_types))
-		{
+		else if (in_array('limited',$user_group_access_types)){
 			$user_group_access_type='limited';
 		}
-		else
-		{
+		else{
 			$user_group_access_type='none';
 		}
 	
