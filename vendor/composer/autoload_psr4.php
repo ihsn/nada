@@ -21,4 +21,5 @@ return array(
     'JsonStreamingParser\\' => array($vendorDir . '/salsify/json-streaming-parser/src'),
     'JsonSchema\\' => array($vendorDir . '/justinrainbow/json-schema/src/JsonSchema'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
+    'Adbar\\' => array($vendorDir . '/adbario/php-dot-notation/src'),
 );
