@@ -1289,4 +1289,37 @@ class Repository_model extends CI_Model {
 		return $query->result_array();
 
 	}
+
+
+	/**
+	* Returns the active repo for the current logged in user
+	**/
+	function user_active_repo()
+	{
+		$repoid=$this->input->cookie('active_repo',TRUE);
+		
+		if (!is_numeric($repoid)){
+			return FALSE;
+		}
+
+		return $repoid;		
+	}
+	
+	
+	/**
+	* set active repo for the session
+	**/
+	function set_active_repo($repoid)
+	{
+		$this->input->set_cookie($name='active_repo', $value=$repoid, $expire=865000, $domain='', $path='/', $prefix='', $secure=FALSE);
+		return TRUE;
+	}
+	
+	/**
+	*Clear active repo from user session
+	**/
+	function clear_active_repo()
+	{
+		$this->input->set_cookie($name='active_repo', $value='', $expire=0, $domain='', $path='/', $prefix='', $secure=FALSE);
+	}
 }

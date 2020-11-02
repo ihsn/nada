@@ -1,19 +1,13 @@
 <style>
 .description{color:gray;font-size:11px;}
+.user-role{
+  text-transform:capitalize;
+}
+.user_groups{
+  padding-left:20px;
+}
 </style>
-<?php
-	//get all groups/roles
-	$user_groups=$this->ion_auth_model->get_user_groups();
-	$user_group_options=array();
-	foreach($user_groups as $group)
-	{
-		$user_group_options[$group['id']]=$group['name'];
-	}
-	//countries			
-	$options_country=$this->ion_auth_model->get_all_countries();
-?>
-
-<div class='content-fluid users-edit-page'>
+<div class='container-fluid users-edit-page'>
 
 <div class="row">
 <div class="col-md-6">
@@ -97,15 +91,20 @@
 
     
     <div class="form-group">
-        <label for="user_groups"><?php echo t('assigned_user_groups');?> (<a href="<?php echo site_url('admin/users/permissions/'.$this->uri->segment(4));?>"><?php echo t('manage_permissions');?></a>)</label>
+        <label for="user_groups">
+          <?php echo t('User roles');?> 
+        </label>
         <div class="user_groups">
-        <ul>
-        <?php foreach($user_groups as $group):?>
-        	<?php if (isset($groups) && count($groups)>0 && in_array($group['id'],$groups)):?>
-            <li class="role"><?php echo $group['name'];?></li>
-            <?php endif;?>
-		<?php endforeach;?>
-        </ul>
+        <?php foreach($roles as $role): $role_selected=false;?>
+        	<?php if (isset($user_role) && count($user_role)>0 && in_array($role['id'],$user_role)):?>
+          <?php $role_selected=true;?>
+          <?php endif;?>
+            <div class="checkbox">
+            <label class="user-role">
+              <input type="checkbox" <?php echo $role_selected ? 'checked="checked"' : '';?> name="role[]" value="<?php echo $role['id'];?>"> <?php echo t($role['name']);?>
+            </label>
+          </div>
+	  	  <?php endforeach;?>
         </div>        
     </div>
 

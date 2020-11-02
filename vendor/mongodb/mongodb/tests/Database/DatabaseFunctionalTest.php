@@ -100,6 +100,22 @@ class DatabaseFunctionalTest extends FunctionalTestCase
         $this->assertTrue($commandResult->ismaster);
     }
 
+    public function testCommandDoesNotInheritReadPreference()
+    {
+        if (! $this->isReplicaSet()) {
+            $this->markTestSkipped('Test only applies to replica sets');
+        }
+
+        $this->database = new Database($this->manager, $this->getDatabaseName(), ['readPreference' => new ReadPreference(ReadPreference::RP_SECONDARY)]);
+
+        $command = ['ping' => 1];
+
+        $cursor = $this->database->command($command);
+
+        $this->assertInstanceOf(Cursor::class, $cursor);
+        $this->assertTrue($cursor->getServer()->isPrimary());
+    }
+
     public function testCommandAppliesTypeMapToCursor()
     {
         $command = ['isMaster' => 1];

@@ -22,9 +22,9 @@ cache:
 
 env:
   global:
-    - DRIVER_VERSION=1.7.0
+    - DRIVER_VERSION=1.8.0
     - SERVER_DISTRO=enterprise-ubuntu1604
-    - SERVER_VERSION=4.2.0
+    - SERVER_VERSION=4.4.0
     - DEPLOYMENT=STANDALONE
     - COMPOSER_OPTIONS=
 
@@ -50,8 +50,6 @@ jobs:
 
     # Test remaining supported PHP versions
     - stage: Test
-      php: "5.6"
-    - stage: Test
       php: "7.0"
     - stage: Test
       php: "7.1"
@@ -62,8 +60,12 @@ jobs:
 
     # Test against lowest supported dependencies
     - stage: Test
-      php: "5.6"
+      php: "7.0"
+      dist: trusty
       env:
+        - SERVER_DISTRO=enterprise-ubuntu1404
+        - SERVER_VERSION=3.0.15
+        - DEPLOYMENT=STANDALONE_OLD
         - COMPOSER_OPTIONS=--prefer-lowest
 
       # Test older standalone server versions (3.0-4.0)
@@ -82,16 +84,26 @@ jobs:
     - stage: Test
       php: "7.0"
       env:
-        - SERVER_VERSION=3.4.21
+        - SERVER_VERSION=3.4.24
         - DEPLOYMENT=STANDALONE_OLD
     - stage: Test
       php: "7.0"
       env:
-        - SERVER_VERSION=3.6.13
+        - SERVER_VERSION=3.6.19
     - stage: Test
       php: "7.3"
       env:
-        - SERVER_VERSION=4.0.12
+        - SERVER_VERSION=4.0.19
+    - stage: Test
+      php: "7.3"
+      env:
+        - SERVER_VERSION=4.2.8
+
+    # Test upcoming server version
+    #- stage: Test
+    #  php: "7.3"
+    #  env:
+    #    - SERVER_VERSION=4.5.0
 
     # Test other server configurations
     - stage: Test
@@ -124,7 +136,7 @@ jobs:
     - stage: Test
       php: "7.3"
       env:
-        - DRIVER_BRANCH="v1.7"
+        - DRIVER_BRANCH="v1.8"
 
     # Test next minor release for driver
     - stage: Test

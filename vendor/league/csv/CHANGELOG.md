@@ -2,6 +2,24 @@
 
 All Notable changes to `Csv` will be documented in this file
 
+## 9.6.1 - 2020-09-05
+
+### Added 
+
+- None
+
+### Deprecated
+
+- None
+
+### Fixed
+
+- BOM sequence processing fix [#394](https://github.com/thephpleague/csv/issues/394)
+
+### Removed
+
+- None
+
 ## 9.6.0 - 2020-03-17
 
 ### Added

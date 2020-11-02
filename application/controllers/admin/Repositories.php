@@ -573,8 +573,10 @@ class Repositories extends MY_Controller {
 		$this->lang->load('collection');
 		$this->page_title=t('select_active_repository');
 		
-		//get array of repos user has access to
-		$data['repos']=$this->acl->get_user_repositories();
+		$data['repos']=$this->Repository_model->select_all();
+		
+		array_unshift($data['repos'], $this->Repository_model->get_central_catalog_array()	);
+
 		$content=$this->load->view('repositories/select_active_repo',$data,TRUE);
 		
 		$this->template->write('content', $content,true);
@@ -592,7 +594,7 @@ class Repositories extends MY_Controller {
 			show_error("INVALID_ID");
 		}
 		
-		$result=$this->acl->set_active_repo($repositoryid);
+		$result=$this->Repository_model->set_active_repo($repositoryid);
 		
 		if ($result)
 		{

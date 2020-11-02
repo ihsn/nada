@@ -129,7 +129,10 @@ class Site_Menu
 	function get_collections_submenu()
 	{
 		//get active users repositories
-		$repos=$this->ci->acl->get_user_repositories();
+		$repos=$this->ci->Repository_model->select_all();
+		
+		//add central collection
+		array_unshift($repos, $this->ci->Repository_model->get_central_catalog_array()	);
 		
 		$output='<ul class="dropdown-menu rounded-0x">';
 		

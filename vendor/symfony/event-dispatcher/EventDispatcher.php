@@ -55,12 +55,12 @@ class EventDispatcher implements EventDispatcherInterface
         if (\is_object($event)) {
             $eventName = $eventName ?? \get_class($event);
         } elseif (\is_string($event) && (null === $eventName || $eventName instanceof ContractsEvent || $eventName instanceof Event)) {
-            @trigger_error(sprintf('Calling the "%s::dispatch()" method with the event name as the first argument is deprecated since Symfony 4.3, pass it as the second argument and provide the event object as the first argument instead.', EventDispatcherInterface::class), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s::dispatch()" method with the event name as the first argument is deprecated since Symfony 4.3, pass it as the second argument and provide the event object as the first argument instead.', EventDispatcherInterface::class), \E_USER_DEPRECATED);
             $swap = $event;
             $event = $eventName ?? new Event();
             $eventName = $swap;
         } else {
-            throw new \TypeError(sprintf('Argument 1 passed to "%s::dispatch()" must be an object, %s given.', EventDispatcherInterface::class, \is_object($event) ? \get_class($event) : \gettype($event)));
+            throw new \TypeError(sprintf('Argument 1 passed to "%s::dispatch()" must be an object, "%s" given.', EventDispatcherInterface::class, \is_object($event) ? \get_class($event) : \gettype($event)));
         }
 
         if (null !== $this->optimized && null !== $eventName) {

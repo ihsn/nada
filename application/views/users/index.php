@@ -1,7 +1,14 @@
 <div class="container-fluid page-users-index">
   <?php if (!isset($hide_form)):?>
   <div class="page-links text-right"> 
-    <a href="<?php echo site_url();?>/admin/users/add" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('create_user_account');?></a> 
+    <a href="<?php echo site_url('admin/users/add');?>" class="btn btn-default">
+      <span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> 
+      <?php echo t('create_user_account');?>
+    </a>
+    <a href="<?php echo site_url('admin/permissions/roles');?>" class="btn btn-default">
+      <i class="fa fa-users" aria-hidden="true"></i>       
+      <?php echo t('User Roles');?>
+    </a> 
   </div>
 
   <?php $message=$this->session->flashdata('message');?>
@@ -76,7 +83,7 @@
             <th><?php echo create_sort_link($sort_by,$sort_order,'username',t('username'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'email',t('email'),$page_url); ?></th>  
             <th><?php echo create_sort_link($sort_by,$sort_order,'group_name',t('group'),$page_url); ?></th>
-			<th><?php echo create_sort_link($sort_by,$sort_order,'active',t('status'),$page_url); ?></th>
+			      <th><?php echo create_sort_link($sort_by,$sort_order,'active',t('status'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'country',t('country'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'created_on',t('join_date'),$page_url); ?></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'last_login',t('last_login'),$page_url); ?></th>			
@@ -111,8 +118,7 @@
             <?php endif; ?>
             <td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> |
-            	<a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a> | 
-                <a href="<?php echo site_url('admin/users/permissions/'.$row->id);?>"><?php echo t('permissions');?></a>
+            	<a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a>
             </td>
         </tr>
     <?php endforeach;?>

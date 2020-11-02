@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    '7e9bd612cc444b3eed788ebbe46263a0' => $vendorDir . '/laminas/laminas-zendframework-bridge/src/autoload.php',
     '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     'd767e4fc2dc52fe66584ab8c6684783e' => $vendorDir . '/adbario/php-dot-notation/src/helpers.php',
     '9e4824c5afbdc1482b6025ce3d4dfde8' => $vendorDir . '/league/csv/src/functions_include.php',

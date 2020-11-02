@@ -7,6 +7,7 @@ namespace Composer\Autoload;
 class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
 {
     public static $files = array (
+        '7e9bd612cc444b3eed788ebbe46263a0' => __DIR__ . '/..' . '/laminas/laminas-zendframework-bridge/src/autoload.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
@@ -14,6 +15,10 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
     );
 
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
         'V' => 
         array (
             'Violet\\StreamingJsonEncoder\\' => 28,
@@ -29,6 +34,7 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+            'PackageVersions\\' => 16,
         ),
         'M' => 
         array (
@@ -39,12 +45,15 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
         array (
             'League\\Event\\' => 13,
             'League\\Csv\\' => 11,
+            'Laminas\\ZendFrameworkBridge\\' => 28,
+            'Laminas\\Permissions\\Acl\\' => 24,
         ),
         'J' => 
         array (
             'JsonStreamingParser\\Test\\' => 25,
             'JsonStreamingParser\\' => 20,
             'JsonSchema\\' => 11,
+            'Jean85\\' => 7,
         ),
         'D' => 
         array (
@@ -57,6 +66,10 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
     );
 
     public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
         'Violet\\StreamingJsonEncoder\\' => 
         array (
             0 => __DIR__ . '/..' . '/violet/streaming-json-encoder/src',
@@ -85,6 +98,10 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
+        'PackageVersions\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/composer/package-versions-deprecated/src/PackageVersions',
+        ),
         'Mpdf\\' => 
         array (
             0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
@@ -101,6 +118,14 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
         array (
             0 => __DIR__ . '/..' . '/league/csv/src',
         ),
+        'Laminas\\ZendFrameworkBridge\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/laminas/laminas-zendframework-bridge/src',
+        ),
+        'Laminas\\Permissions\\Acl\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/laminas/laminas-permissions-acl/src',
+        ),
         'JsonStreamingParser\\Test\\' => 
         array (
             0 => __DIR__ . '/..' . '/salsify/json-streaming-parser/tests',
@@ -112,6 +137,10 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
         'JsonSchema\\' => 
         array (
             0 => __DIR__ . '/..' . '/justinrainbow/json-schema/src/JsonSchema',
+        ),
+        'Jean85\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/jean85/pretty-package-versions/src',
         ),
         'DeepCopy\\' => 
         array (
@@ -125,19 +154,12 @@ class ComposerStaticInit39db157d8d3e1615400633b188fe7e7e
 
     public static $classMap = array (
         'EasyPeasyICS' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/EasyPeasyICS.php',
-        'FPDF_TPL' => __DIR__ . '/..' . '/setasign/fpdi/fpdf_tpl.php',
-        'FPDI' => __DIR__ . '/..' . '/setasign/fpdi/fpdi.php',
-        'FilterASCII85' => __DIR__ . '/..' . '/setasign/fpdi/filters/FilterASCII85.php',
-        'FilterASCIIHexDecode' => __DIR__ . '/..' . '/setasign/fpdi/filters/FilterASCIIHexDecode.php',
-        'FilterLZW' => __DIR__ . '/..' . '/setasign/fpdi/filters/FilterLZW.php',
         'PHPMailer' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
         'PHPMailerOAuth' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauth.php',
         'PHPMailerOAuthGoogle' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmaileroauthgoogle.php',
         'POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.pop3.php',
         'SMTP' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.smtp.php',
-        'fpdi_pdf_parser' => __DIR__ . '/..' . '/setasign/fpdi/fpdi_pdf_parser.php',
         'ntlm_sasl_client_class' => __DIR__ . '/..' . '/phpmailer/phpmailer/extras/ntlm_sasl_client.php',
-        'pdf_context' => __DIR__ . '/..' . '/setasign/fpdi/pdf_context.php',
         'phpmailerException' => __DIR__ . '/..' . '/phpmailer/phpmailer/class.phpmailer.php',
     );
 

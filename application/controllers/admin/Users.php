@@ -34,29 +34,23 @@ class Users extends MY_Controller {
     }
 	
 	function index()
-	{			
+	{
+		$this->acl_manager->has_access_or_die('user', 'view');
+
 		//get array of db rows		
 		$result['rows']=$this->_search();
 		
 		$user_id_arr=array();
-		foreach($result['rows'] as $row)
-		{
+		foreach($result['rows'] as $row){
 			$user_id_arr[]=$row['id'];
 		}
 				
 		//get user groups 
-		$result['user_groups']=$this->User_model->get_user_groups($user_id_arr);
-		
-		//load the contents of the page into a variable
+		$result['user_groups']=$this->User_model->get_user_roles($user_id_arr);
+
 		$content=$this->load->view('users/index', $result,true);
-
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-		
-		//set page title
 		$this->template->write('title', t('title_user_management'),true);
-
-		//render final output
 	  	$this->template->render();	
 	}
 	
@@ -127,7 +121,8 @@ class Users extends MY_Controller {
 	
 	function add() 
 	{  
-        $this->data['page_title'] = t("create_user_account");
+		$this->acl_manager->has_access_or_die('user', 'create');
+		$this->data['page_title'] = t("create_user_account");
               		
         //validate form input
 		$this->form_validation->set_rules('username', t('username'), 'xss_clean|max_length[20]|required|callback_username_exists');
@@ -159,9 +154,9 @@ class Users extends MY_Controller {
         							 'company'    => $this->input->post('company'),
         							 'phone'      => $this->input->post('phone1'),// .'-'. $this->input->post('phone2') .'-'. $this->input->post('phone3'),
 									 'active'     => $this->input->post('active'),
-									 'country'     => $this->input->post('country'),
-        							'active'     => $this->input->post('active'),
-									//'group_id'     => $this->input->post('group_id'),
+									 'country'    => $this->input->post('country'),
+        							 'active'     => $this->input->post('active'),
+									 'role_id'    => $this->input->post('role')
         							);
         	
         	//register the user
@@ -171,7 +166,7 @@ class Users extends MY_Controller {
         	{
 				$data['username']=$username;
         		$data['active']=$additional_data['active'];
-				//$data['group_id']=$additional_data['group_id'];	
+				$data['role_id']=$additional_data['role_id'];	
 				
         		//get the user data by email
         		$user=$this->ion_auth->get_user_by_email($email);
@@ -241,31 +236,29 @@ class Users extends MY_Controller {
 													  'class'	=> 'form-control'
                                                      );
             $this->data['active']=$this->form_validation->set_value('active',1);
-			$this->data['groups']=array();
 			
-			//load user group selection from POST
-			if ($this->input->post('group_id'))
-			{
-				$this->data['groups']=$this->input->post('group_id');
+			$this->data['roles']=array();
+
+			if($this->input->post('role')){
+				$this->data['user_role']=$this->input->post('role');
 			}
 			
+			$this->data['roles']= $this->acl_manager->get_roles();//full list of roles
+			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
+			
             $content=$this->load->view('users/create', $this->data,TRUE);
-			
-			//pass data to the site's template
 			$this->template->write('content', $content,true);
-			
-			//set page title
 			$this->template->write('title', $this->data['page_title'],true);
-	
-			//render final output
 			$this->template->render();	
-
 		}
     }	
 	
+
+
 	function edit($id) 
 	{  		
-        $this->data['page_title'] = t("edit_user_account");	
+		$this->acl_manager->has_access_or_die('user', 'edit');
+		$this->data['page_title'] = t("edit_user_account");	
 		$use_complex_password=$this->config->item("require_complex_password");
 	              		
         //validate form input
@@ -284,28 +277,26 @@ class Users extends MY_Controller {
 				
         if ($this->form_validation->run() == true) 
 		{ 
-        	$data = array(
-						'username' => $this->input->post('username'),
-						'email' 	=> $this->input->post('email'),
-						'first_name' => $this->input->post('first_name'),
-						'last_name'  => $this->input->post('last_name'),
-						'company'    => $this->input->post('company'),
-						'phone'      => $this->input->post('phone1'),
-						'active'     => $this->input->post('active'),
-						//'group_id'     => $this->input->post('group_id'),
-						'country'     => $this->input->post('country'),
-        				);
+			$data = array(
+				'username' => $this->input->post('username'),
+				'email' 	=> $this->input->post('email'),
+				'first_name' => $this->input->post('first_name'),
+				'last_name'  => $this->input->post('last_name'),
+				'company'    => $this->input->post('company'),
+				'phone'      => $this->input->post('phone1'),
+				'active'     => $this->input->post('active'),
+				'role_id'     => $this->input->post('role'),
+				'country'     => $this->input->post('country'),
+			);
 						
 			//change password, if not empty
-			if ($this->input->post("password") )
-			{
-					$data['password']=$this->input->post('password');
+			if ($this->input->post("password") ){
+				$data['password']=$this->input->post('password');
 			}
-			
+
         	//update user 
         	$this->ion_auth->update_user($id,$data);
         	
-        	//redirect them back to the admin page
         	$this->session->set_flashdata('message', "User updated");
        		redirect("admin/users", 'refresh');
 		} 
@@ -315,18 +306,13 @@ class Users extends MY_Controller {
 	        
 			//get user id
 			$db_data=$this->ion_auth->get_user($id);
-			
-			if (!$db_data)
-			{
+
+			if (!$db_data){
 				show_404();
 			}
 			
 			//load data from post-back. need this for loading user group selection, 
-			//other values are populated on postback
-			if($this->input->post('id'))
-			{
-				$db_data->groups=$this->input->post('group_id');
-			}
+			//other values are populated on postback			
 			
 			//set the flash data error message if there is one
 	        $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
@@ -386,22 +372,30 @@ class Users extends MY_Controller {
 													  'value'   => $this->form_validation->set_value('password_confirm'),
 													  'class'	=> 'form-control'													  
                                                      );
-			$this->data['country']=$db_data->country;										 
-            //$this->data['group_id']	=$this->form_validation->set_value('group_id',$db_data->group_id);
-            $this->data['active']	=$this->form_validation->set_value('active',$db_data->active);
-			$this->data['groups']=$db_data->groups;
-													 
-            $content=$this->load->view('users/edit', $this->data,TRUE);
+			$this->data['country']=$db_data->country;
 			
-			//pass data to the site's template
-			$this->template->write('content', $content,true);
-			
-			//set page title
-			$this->template->write('title', $this->data['page_title'],true);
-	
-			//render final output
-			$this->template->render();	
+			if($this->input->post('id')){
+				$db_data->user_role=$this->input->post('role');
+			}else{				
+				if (isset($db_data->groups) && count($db_data->groups) >0){
+					$db_data->user_role=array_keys($db_data->groups);
+				}
+			}
 
+            $this->data['active']= $this->form_validation->set_value('active',$db_data->active);
+			
+			$this->data['user_role']=array();
+			if(isset($db_data->user_role)){
+				$this->data['user_role']= $db_data->user_role;//roles assigned to user
+			}
+
+			$this->data['roles']= $this->acl_manager->get_roles();//full list of roles
+			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
+
+			$content=$this->load->view('users/edit', $this->data,TRUE);						
+			$this->template->write('content', $content,true);
+			$this->template->write('title', $this->data['page_title'],true);
+			$this->template->render();	
 		}
     }	
 	
@@ -586,6 +580,8 @@ class Users extends MY_Controller {
 	*/
 	function delete($id)
 	{			
+		$this->acl_manager->has_access_or_die('user', 'delete');
+
 		//array of id to be deleted
 		$delete_arr=array();
 	
@@ -680,8 +676,9 @@ class Users extends MY_Controller {
 	**/
 	function batch_import()
 	{	
-		if ($this->input->post("csv"))
-		{
+		$this->acl_manager->has_access_or_die('user', 'add');
+
+		if ($this->input->post("csv")){
 			$this->_do_batch_import($this->input->post("csv"));
 		}
 		
@@ -739,12 +736,16 @@ class Users extends MY_Controller {
 
 	/**
 	*
-	*Impersonate as other users
+	* Impersonate as other users
+	* 
+	* TODO: remove
 	*/
 	function impersonate()
 	{
-		//get admin accounts with limited access
-		$data['users']=$this->ion_auth_model->get_limited_admins();		
+		show_error('This feature has been removed');
+
+		/*//get admin accounts with limited access
+		$data['roles']=$this->acl_manager->get_roles();
 		
 		if($this->input->post("user"))
 		{
@@ -755,100 +756,20 @@ class Users extends MY_Controller {
 		$content=$this->load->view('users/impersonate',$data,TRUE);
 		$this->template->write('content', $content,true);
 		$this->template->render();	
+		*/
 	}
 	
 	function exit_impersonate()
 	{
-		$this->ion_auth_model->exit_impersonate();
+		show_error('disabled');
+		/*$this->ion_auth_model->exit_impersonate();
 		redirect("admin");	
+		*/
 	}
 	
 	
-	function permissions($user_id)
-	{
-		if(!is_numeric($user_id)){
-			show_404();
-		}
-		
-		$data=array();
-		
-		if ($this->input->post("submit")){
-			//update user global roles
-			$this->ion_auth_model->update_user_global_roles($user_id,$this->input->post("global_role"));
-			
-			//update user per collection roles	
-			$collection_roles=$this->input->post("collection_role");
-			
-			//remove all existing user roles for all collections
-			$this->ion_auth_model->delete_user_collection_roles_all($user_id);
-			
-			if (!empty($collection_roles)){
-				//add roles per collection
-				foreach($collection_roles as $collection_id=>$collection_roles){	
-					$this->ion_auth_model->insert_user_collection_roles($user_id,$collection_id,$collection_roles);
-				}
-			}
-			
-			$data['message']=t('form_update_success');
-			if($this->input->get('destination')){
-				redirect($this->input->get('destination'));return;
-			}
-			redirect('admin/users');
-		}
-		
-		$this->load->model('repository_model');
 	
-		$user_group_access_types=(array)$this->ion_auth_model->get_user_account_type($user_id);
-		
-		//we can have only one type of user group access
-		if (in_array('unlimited',$user_group_access_types)){
-			$user_group_access_type='unlimited';
-		}
-		else if (in_array('limited',$user_group_access_types)){
-			$user_group_access_type='limited';
-		}
-		else{
-			$user_group_access_type='none';
-		}
-	
-		
-		//$data['global_roles']=$this->ion_auth_model->get_limited_global_roles();
-		
-		$data['global_roles']['user']=$this->ion_auth_model->get_user_groups(NULL,'user');
-		$data['global_roles']['reviewer']=$this->ion_auth_model->get_user_groups(NULL,'reviewer');
-		$data['global_roles']['limited']=$this->ion_auth_model->get_user_groups('limited');
-		$data['global_roles']['unlimited']=$this->ion_auth_model->get_user_groups('unlimited');
-		//$data['global_roles']=array_merge($data['global_roles'],$this->ion_auth_model->get_user_groups('unlimited'));
-		//$data['global_roles']=array_merge($data['global_roles'],$this->ion_auth_model->get_user_groups('limited'));
-		
-		$data['collections']=$this->repository_model->select_all();
-		$data['collection_roles']=$this->repository_model->get_repo_permission_groups();
-		$data['assigned_roles']['collections']=$this->ion_auth_model->get_user_repo_groups($user_id);
-		$data['assigned_roles']['global']=$this->ion_auth_model->get_groups_by_user($user_id);;
-		$data['user_id']=$user_id;
-		$data['user_group_access_type']=$user_group_access_type;
-		$data['user']=$this->ion_auth_model->get_user($user_id);
-		$data['destination']=$this->input->get('destination');
-				
-		if(!$data['destination'])
-		{
-			$data['destination']='admin/users';
-		}
-		
-		//assign empty arrays for collections with no user groups assigned
-		foreach($data['collections'] as $collection)
-		{
-			if (!array_key_exists($collection['id'],$data['assigned_roles']['collections']))
-			{
-				$data['assigned_roles']['collections'][$collection['id']]=array();
-			}
-		}
-		
-		$content=$this->load->view('users/permissions',$data,TRUE);
-		$this->template->write('content', $content,true);
-		$this->template->render();	
-	}
 }
 
 /* End of file users.php */
-/* Location: ./system/application/controllers/users.php */
+/* Location: ./application/controllers/users.php */

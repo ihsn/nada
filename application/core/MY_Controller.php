@@ -37,12 +37,12 @@ class MY_Controller extends CI_Controller
 		$this->lang->load("general");
 		$this->load->model('Permissions_model');
 			
-		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl'));	
+		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl_manager'));	
 		$this->is_admin=$is_admin;
 		
 		//require authentication for protected pages e.g. admin	
-		if ($skip===FALSE)
-		{
+		if ($skip===FALSE){
+		   
 		   //apply IP restrictions for site administration
 		   $this->apply_ip_restrictions();
 		   
@@ -55,15 +55,14 @@ class MY_Controller extends CI_Controller
 			//get user object with all user info
 			$user=$this->ion_auth->current_user();
 		
-			if (!$user)
-			{
+			if (!$user){
 				return FALSE;
 			}
 			
 			//check user has access to the url
-			if (!$this->acl->user_has_url_access() ){
+			/*if (!$this->acl->user_has_url_access() ){
 				show_error(t('ACCESS_DENIED'));
-			}
+			}*/
 			
 			if ($this->config->item("otp_verification")===1){
 				if ($this->session->userdata('verify_otp')!==1){
@@ -217,7 +216,7 @@ class MY_Controller extends CI_Controller
 			//redirect them to the login page
 			redirect("auth/login/?destination=$destination", 'refresh');
     	}
-    	elseif (!$this->ion_auth->is_admin() && $this->is_admin==TRUE ) 
+    	elseif (!$this->ion_auth->can_access_site_admin() && $this->is_admin==TRUE ) 
 		{
 			log_message('error', 'MY_CONTROLLER::_auth::access denied for user: '.$this->ion_auth->current_user_identity());
 			show_error("access_denied");

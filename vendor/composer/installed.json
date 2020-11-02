@@ -51,18 +51,142 @@
         ]
     },
     {
-        "name": "justinrainbow/json-schema",
-        "version": "5.2.9",
-        "version_normalized": "5.2.9.0",
+        "name": "composer/package-versions-deprecated",
+        "version": "1.11.99",
+        "version_normalized": "1.11.99.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/justinrainbow/json-schema.git",
-            "reference": "44c6787311242a979fa15c704327c20e7221a0e4"
+            "url": "https://github.com/composer/package-versions-deprecated.git",
+            "reference": "c8c9aa8a14cc3d3bec86d0a8c3fa52ea79936855"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/44c6787311242a979fa15c704327c20e7221a0e4",
-            "reference": "44c6787311242a979fa15c704327c20e7221a0e4",
+            "url": "https://api.github.com/repos/composer/package-versions-deprecated/zipball/c8c9aa8a14cc3d3bec86d0a8c3fa52ea79936855",
+            "reference": "c8c9aa8a14cc3d3bec86d0a8c3fa52ea79936855",
+            "shasum": ""
+        },
+        "require": {
+            "composer-plugin-api": "^1.1.0 || ^2.0",
+            "php": "^7 || ^8"
+        },
+        "replace": {
+            "ocramius/package-versions": "1.11.99"
+        },
+        "require-dev": {
+            "composer/composer": "^1.9.3 || ^2.0@dev",
+            "ext-zip": "^1.13",
+            "phpunit/phpunit": "^6.5 || ^7"
+        },
+        "time": "2020-08-25T05:50:16+00:00",
+        "type": "composer-plugin",
+        "extra": {
+            "class": "PackageVersions\\Installer",
+            "branch-alias": {
+                "dev-master": "1.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "PackageVersions\\": "src/PackageVersions"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Marco Pivetta",
+                "email": "ocramius@gmail.com"
+            },
+            {
+                "name": "Jordi Boggiano",
+                "email": "j.boggiano@seld.be"
+            }
+        ],
+        "description": "Composer plugin that provides efficient querying for installed package versions (no runtime IO)",
+        "funding": [
+            {
+                "url": "https://packagist.com",
+                "type": "custom"
+            },
+            {
+                "url": "https://github.com/composer",
+                "type": "github"
+            },
+            {
+                "url": "https://tidelift.com/funding/github/packagist/composer/composer",
+                "type": "tidelift"
+            }
+        ]
+    },
+    {
+        "name": "jean85/pretty-package-versions",
+        "version": "1.5.1",
+        "version_normalized": "1.5.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/Jean85/pretty-package-versions.git",
+            "reference": "a917488320c20057da87f67d0d40543dd9427f7a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/Jean85/pretty-package-versions/zipball/a917488320c20057da87f67d0d40543dd9427f7a",
+            "reference": "a917488320c20057da87f67d0d40543dd9427f7a",
+            "shasum": ""
+        },
+        "require": {
+            "composer/package-versions-deprecated": "^1.8.0",
+            "php": "^7.0|^8.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^6.0|^8.5|^9.2"
+        },
+        "time": "2020-09-14T08:43:34+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Jean85\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Alessandro Lai",
+                "email": "alessandro.lai85@gmail.com"
+            }
+        ],
+        "description": "A wrapper for ocramius/package-versions to get pretty versions strings",
+        "keywords": [
+            "composer",
+            "package",
+            "release",
+            "versions"
+        ]
+    },
+    {
+        "name": "justinrainbow/json-schema",
+        "version": "5.2.10",
+        "version_normalized": "5.2.10.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/justinrainbow/json-schema.git",
+            "reference": "2ba9c8c862ecd5510ed16c6340aa9f6eadb4f31b"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/2ba9c8c862ecd5510ed16c6340aa9f6eadb4f31b",
+            "reference": "2ba9c8c862ecd5510ed16c6340aa9f6eadb4f31b",
             "shasum": ""
         },
         "require": {
@@ -73,7 +197,7 @@
             "json-schema/json-schema-test-suite": "1.2.0",
             "phpunit/phpunit": "^4.8.35"
         },
-        "time": "2019-09-25T14:49:45+00:00",
+        "time": "2020-05-27T16:41:55+00:00",
         "bin": [
             "bin/validate-json"
         ],
@@ -119,18 +243,129 @@
         ]
     },
     {
-        "name": "league/csv",
-        "version": "9.6.0",
-        "version_normalized": "9.6.0.0",
+        "name": "laminas/laminas-permissions-acl",
+        "version": "2.7.2",
+        "version_normalized": "2.7.2.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/thephpleague/csv.git",
-            "reference": "7351a74625601914409b42b32cabb91a93773b7b"
+            "url": "https://github.com/laminas/laminas-permissions-acl.git",
+            "reference": "d8cd35ed94eef5d3d2533af4a72cf1c2932084bb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/csv/zipball/7351a74625601914409b42b32cabb91a93773b7b",
-            "reference": "7351a74625601914409b42b32cabb91a93773b7b",
+            "url": "https://api.github.com/repos/laminas/laminas-permissions-acl/zipball/d8cd35ed94eef5d3d2533af4a72cf1c2932084bb",
+            "reference": "d8cd35ed94eef5d3d2533af4a72cf1c2932084bb",
+            "shasum": ""
+        },
+        "require": {
+            "laminas/laminas-zendframework-bridge": "^1.0",
+            "php": "^5.6 || ^7.0"
+        },
+        "replace": {
+            "zendframework/zend-permissions-acl": "^2.7.1"
+        },
+        "require-dev": {
+            "laminas/laminas-coding-standard": "~1.0.0",
+            "laminas/laminas-servicemanager": "^2.7.5 || ^3.0.3",
+            "phpunit/phpunit": "^5.7.27 || ^6.5.8 || ^7.1.5"
+        },
+        "suggest": {
+            "laminas/laminas-servicemanager": "To support Laminas\\Permissions\\Acl\\Assertion\\AssertionManager plugin manager usage"
+        },
+        "time": "2020-09-22T14:08:17+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Laminas\\Permissions\\Acl\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "description": "Provides a lightweight and flexible access control list (ACL) implementation for privileges management",
+        "homepage": "https://laminas.dev",
+        "keywords": [
+            "acl",
+            "laminas"
+        ],
+        "funding": [
+            {
+                "url": "https://funding.communitybridge.org/projects/laminas-project",
+                "type": "community_bridge"
+            }
+        ]
+    },
+    {
+        "name": "laminas/laminas-zendframework-bridge",
+        "version": "1.1.1",
+        "version_normalized": "1.1.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/laminas/laminas-zendframework-bridge.git",
+            "reference": "6ede70583e101030bcace4dcddd648f760ddf642"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/laminas/laminas-zendframework-bridge/zipball/6ede70583e101030bcace4dcddd648f760ddf642",
+            "reference": "6ede70583e101030bcace4dcddd648f760ddf642",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^5.6 || ^7.0 || ^8.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5 || ^8.1 || ^9.3",
+            "squizlabs/php_codesniffer": "^3.5"
+        },
+        "time": "2020-09-14T14:23:00+00:00",
+        "type": "library",
+        "extra": {
+            "laminas": {
+                "module": "Laminas\\ZendFrameworkBridge"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "src/autoload.php"
+            ],
+            "psr-4": {
+                "Laminas\\ZendFrameworkBridge\\": "src//"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "description": "Alias legacy ZF class names to Laminas Project equivalents.",
+        "keywords": [
+            "ZendFramework",
+            "autoloading",
+            "laminas",
+            "zf"
+        ],
+        "funding": [
+            {
+                "url": "https://funding.communitybridge.org/projects/laminas-project",
+                "type": "community_bridge"
+            }
+        ]
+    },
+    {
+        "name": "league/csv",
+        "version": "9.6.1",
+        "version_normalized": "9.6.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/thephpleague/csv.git",
+            "reference": "634322df4aed210fdfbb7c94e434dc860da733d9"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/thephpleague/csv/zipball/634322df4aed210fdfbb7c94e434dc860da733d9",
+            "reference": "634322df4aed210fdfbb7c94e434dc860da733d9",
             "shasum": ""
         },
         "require": {
@@ -140,17 +375,18 @@
         },
         "require-dev": {
             "ext-curl": "*",
+            "ext-dom": "*",
             "friendsofphp/php-cs-fixer": "^2.16",
             "phpstan/phpstan": "^0.12.0",
             "phpstan/phpstan-phpunit": "^0.12.0",
             "phpstan/phpstan-strict-rules": "^0.12.0",
-            "phpunit/phpunit": "^8.0"
+            "phpunit/phpunit": "^8.5"
         },
         "suggest": {
             "ext-dom": "Required to use the XMLConverter and or the HTMLConverter classes",
             "ext-iconv": "Needed to ease transcoding CSV using iconv stream filters"
         },
-        "time": "2020-03-17T15:15:35+00:00",
+        "time": "2020-09-05T08:40:12+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -251,36 +487,37 @@
     },
     {
         "name": "mongodb/mongodb",
-        "version": "1.6.0",
-        "version_normalized": "1.6.0.0",
+        "version": "1.7.1",
+        "version_normalized": "1.7.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/mongodb/mongo-php-library.git",
-            "reference": "dc43ba25fb593d6a2988e6a535b6f5386eda5b15"
+            "reference": "b35af66631a11ee730ff1fde295f71e89f01f121"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/dc43ba25fb593d6a2988e6a535b6f5386eda5b15",
-            "reference": "dc43ba25fb593d6a2988e6a535b6f5386eda5b15",
+            "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/b35af66631a11ee730ff1fde295f71e89f01f121",
+            "reference": "b35af66631a11ee730ff1fde295f71e89f01f121",
             "shasum": ""
         },
         "require": {
             "ext-hash": "*",
             "ext-json": "*",
-            "ext-mongodb": "^1.7",
-            "php": "^5.6 || ^7.0"
+            "ext-mongodb": "^1.8",
+            "jean85/pretty-package-versions": "^1.2",
+            "php": "^7.0"
         },
         "require-dev": {
-            "phpunit/phpunit": "^5.7.27 || ^6.4 || ^8.3",
-            "sebastian/comparator": "^1.0 || ^2.0 || ^3.0",
-            "squizlabs/php_codesniffer": "^3.4",
+            "phpunit/phpunit": "^6.4 || ^8.3",
+            "sebastian/comparator": "^2.0 || ^3.0",
+            "squizlabs/php_codesniffer": "^3.5, <3.5.5",
             "symfony/phpunit-bridge": "^4.4@dev"
         },
-        "time": "2020-02-04T18:16:35+00:00",
+        "time": "2020-09-22T13:26:09+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "1.6.x-dev"
+                "dev-master": "1.7.x-dev"
             }
         },
         "installation-source": "dist",
@@ -304,10 +541,6 @@
             {
                 "name": "Jeremy Mikola",
                 "email": "jmikola@gmail.com"
-            },
-            {
-                "name": "Katherine Walker",
-                "email": "katherine.walker@mongodb.com"
             }
         ],
         "description": "MongoDB driver library",
@@ -321,17 +554,17 @@
     },
     {
         "name": "mpdf/mpdf",
-        "version": "v7.1.9",
-        "version_normalized": "7.1.9.0",
+        "version": "v8.0.7",
+        "version_normalized": "8.0.7.0",
         "source": {
             "type": "git",
             "url": "https://github.com/mpdf/mpdf.git",
-            "reference": "a0fc1215d2306aa3b4ba6e97bd6ebe4bab6a88fb"
+            "reference": "7daf07f15334ed59a276bd52131dcca48794cdbd"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/mpdf/mpdf/zipball/a0fc1215d2306aa3b4ba6e97bd6ebe4bab6a88fb",
-            "reference": "a0fc1215d2306aa3b4ba6e97bd6ebe4bab6a88fb",
+            "url": "https://api.github.com/repos/mpdf/mpdf/zipball/7daf07f15334ed59a276bd52131dcca48794cdbd",
+            "reference": "7daf07f15334ed59a276bd52131dcca48794cdbd",
             "shasum": ""
         },
         "require": {
@@ -339,14 +572,15 @@
             "ext-mbstring": "*",
             "myclabs/deep-copy": "^1.7",
             "paragonie/random_compat": "^1.4|^2.0|9.99.99",
-            "php": "^5.6 || ~7.0.0 || ~7.1.0 || ~7.2.0 || ~7.3.0",
+            "php": "^5.6 || ~7.0.0 || ~7.1.0 || ~7.2.0 || ~7.3.0 || ~7.4.0",
             "psr/log": "^1.0",
-            "setasign/fpdi": "1.6.*"
+            "setasign/fpdi": "^2.1"
         },
         "require-dev": {
             "mockery/mockery": "^0.9.5",
+            "mpdf/qrcode": "^1.0.0",
             "phpunit/phpunit": "^5.0",
-            "squizlabs/php_codesniffer": "^2.7.0",
+            "squizlabs/php_codesniffer": "^3.5.0",
             "tracy/tracy": "^2.4"
         },
         "suggest": {
@@ -354,7 +588,7 @@
             "ext-xml": "Needed mainly for SVG manipulation",
             "ext-zlib": "Needed for compression of embedded resources, such as fonts"
         },
-        "time": "2019-02-06T13:32:19+00:00",
+        "time": "2020-07-15T09:48:00+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -387,25 +621,31 @@
             "pdf",
             "php",
             "utf-8"
+        ],
+        "funding": [
+            {
+                "url": "https://www.paypal.me/mpdf",
+                "type": "custom"
+            }
         ]
     },
     {
         "name": "myclabs/deep-copy",
-        "version": "1.9.5",
-        "version_normalized": "1.9.5.0",
+        "version": "1.10.1",
+        "version_normalized": "1.10.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/myclabs/DeepCopy.git",
-            "reference": "b2c28789e80a97badd14145fda39b545d83ca3ef"
+            "reference": "969b211f9a51aa1f6c01d1d2aef56d3bd91598e5"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/b2c28789e80a97badd14145fda39b545d83ca3ef",
-            "reference": "b2c28789e80a97badd14145fda39b545d83ca3ef",
+            "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/969b211f9a51aa1f6c01d1d2aef56d3bd91598e5",
+            "reference": "969b211f9a51aa1f6c01d1d2aef56d3bd91598e5",
             "shasum": ""
         },
         "require": {
-            "php": "^7.1"
+            "php": "^7.1 || ^8.0"
         },
         "replace": {
             "myclabs/deep-copy": "self.version"
@@ -415,7 +655,7 @@
             "doctrine/common": "^2.6",
             "phpunit/phpunit": "^7.1"
         },
-        "time": "2020-01-17T21:11:47+00:00",
+        "time": "2020-06-29T13:22:24+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -437,6 +677,12 @@
             "duplicate",
             "object",
             "object graph"
+        ],
+        "funding": [
+            {
+                "url": "https://tidelift.com/funding/github/packagist/myclabs/deep-copy",
+                "type": "tidelift"
+            }
         ]
     },
     {
@@ -682,29 +928,28 @@
     },
     {
         "name": "salsify/json-streaming-parser",
-        "version": "v8.1.0",
-        "version_normalized": "8.1.0.0",
+        "version": "v8.2.0",
+        "version_normalized": "8.2.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/salsify/jsonstreamingparser.git",
-            "reference": "0e5b5cb12611fe5376af653b360e12e8c6c6f3bd"
+            "reference": "4ae5394136a037e09402ba8b48dbf4e20475e69d"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/salsify/jsonstreamingparser/zipball/0e5b5cb12611fe5376af653b360e12e8c6c6f3bd",
-            "reference": "0e5b5cb12611fe5376af653b360e12e8c6c6f3bd",
+            "url": "https://api.github.com/repos/salsify/jsonstreamingparser/zipball/4ae5394136a037e09402ba8b48dbf4e20475e69d",
+            "reference": "4ae5394136a037e09402ba8b48dbf4e20475e69d",
             "shasum": ""
         },
         "require": {
             "ext-ctype": "*",
             "ext-mbstring": "*",
-            "php": "^7.1"
+            "php": ">=7.1"
         },
         "require-dev": {
-            "ext-json": "*",
-            "satooshi/php-coveralls": "~2.0"
+            "ext-json": "*"
         },
-        "time": "2019-10-13T13:40:17+00:00",
+        "time": "2020-05-22T20:10:04+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -752,35 +997,43 @@
     },
     {
         "name": "setasign/fpdi",
-        "version": "1.6.2",
-        "version_normalized": "1.6.2.0",
+        "version": "v2.3.4",
+        "version_normalized": "2.3.4.0",
         "source": {
             "type": "git",
             "url": "https://github.com/Setasign/FPDI.git",
-            "reference": "a6ad58897a6d97cc2d2cd2adaeda343b25a368ea"
+            "reference": "2b5fb811c04f937ef257ef3f798cebeded33c136"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Setasign/FPDI/zipball/a6ad58897a6d97cc2d2cd2adaeda343b25a368ea",
-            "reference": "a6ad58897a6d97cc2d2cd2adaeda343b25a368ea",
+            "url": "https://api.github.com/repos/Setasign/FPDI/zipball/2b5fb811c04f937ef257ef3f798cebeded33c136",
+            "reference": "2b5fb811c04f937ef257ef3f798cebeded33c136",
             "shasum": ""
         },
-        "suggest": {
-            "setasign/fpdf": "FPDI will extend this class but as it is also possible to use \"tecnickcom/tcpdf\" as an alternative there's no fixed dependency configured.",
-            "setasign/fpdi-fpdf": "Use this package to automatically evaluate dependencies to FPDF.",
-            "setasign/fpdi-tcpdf": "Use this package to automatically evaluate dependencies to TCPDF."
+        "require": {
+            "ext-zlib": "*",
+            "php": "^5.6 || ^7.0"
         },
-        "time": "2017-05-11T14:25:49+00:00",
+        "conflict": {
+            "setasign/tfpdf": "<1.31"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~5.7",
+            "setasign/fpdf": "~1.8",
+            "setasign/tfpdf": "1.31",
+            "squizlabs/php_codesniffer": "^3.5",
+            "tecnickcom/tcpdf": "~6.2"
+        },
+        "suggest": {
+            "setasign/fpdf": "FPDI will extend this class but as it is also possible to use TCPDF or tFPDF as an alternative. There's no fixed dependency configured."
+        },
+        "time": "2020-08-27T06:55:47+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
-            "classmap": [
-                "filters/",
-                "fpdi.php",
-                "fpdf_tpl.php",
-                "fpdi_pdf_parser.php",
-                "pdf_context.php"
-            ]
+            "psr-4": {
+                "setasign\\Fpdi\\": "src/"
+            }
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
@@ -791,6 +1044,11 @@
                 "name": "Jan Slabon",
                 "email": "jan.slabon@setasign.com",
                 "homepage": "https://www.setasign.com"
+            },
+            {
+                "name": "Maximilian Kresse",
+                "email": "maximilian.kresse@setasign.com",
+                "homepage": "https://www.setasign.com"
             }
         ],
         "description": "FPDI is a collection of PHP classes facilitating developers to read pages from existing PDF documents and use them as templates in FPDF. Because it is also possible to use FPDI with TCPDF, there are no fixed dependencies defined. Please see suggestions for packages which evaluates the dependencies automatically.",
@@ -799,6 +1057,12 @@
             "fpdf",
             "fpdi",
             "pdf"
+        ],
+        "funding": [
+            {
+                "url": "https://tidelift.com/funding/github/packagist/setasign/fpdi",
+                "type": "tidelift"
+            }
         ]
     },
     {
@@ -915,21 +1179,21 @@
     },
     {
         "name": "symfony/event-dispatcher",
-        "version": "v4.4.5",
-        "version_normalized": "4.4.5.0",
+        "version": "v4.4.15",
+        "version_normalized": "4.4.15.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/event-dispatcher.git",
-            "reference": "4ad8e149799d3128621a3a1f70e92b9897a8930d"
+            "reference": "e17bb5e0663dc725f7cdcafc932132735b4725cd"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/4ad8e149799d3128621a3a1f70e92b9897a8930d",
-            "reference": "4ad8e149799d3128621a3a1f70e92b9897a8930d",
+            "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/e17bb5e0663dc725f7cdcafc932132735b4725cd",
+            "reference": "e17bb5e0663dc725f7cdcafc932132735b4725cd",
             "shasum": ""
         },
         "require": {
-            "php": "^7.1.3",
+            "php": ">=7.1.3",
             "symfony/event-dispatcher-contracts": "^1.1"
         },
         "conflict": {
@@ -943,6 +1207,7 @@
             "psr/log": "~1.0",
             "symfony/config": "^3.4|^4.0|^5.0",
             "symfony/dependency-injection": "^3.4|^4.0|^5.0",
+            "symfony/error-handler": "~3.4|~4.4",
             "symfony/expression-language": "^3.4|^4.0|^5.0",
             "symfony/http-foundation": "^3.4|^4.0|^5.0",
             "symfony/service-contracts": "^1.1|^2",
@@ -952,7 +1217,7 @@
             "symfony/dependency-injection": "",
             "symfony/http-kernel": ""
         },
-        "time": "2020-02-04T09:32:40+00:00",
+        "time": "2020-09-18T14:07:46+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -983,35 +1248,53 @@
             }
         ],
         "description": "Symfony EventDispatcher Component",
-        "homepage": "https://symfony.com"
+        "homepage": "https://symfony.com",
+        "funding": [
+            {
+                "url": "https://symfony.com/sponsor",
+                "type": "custom"
+            },
+            {
+                "url": "https://github.com/fabpot",
+                "type": "github"
+            },
+            {
+                "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                "type": "tidelift"
+            }
+        ]
     },
     {
         "name": "symfony/event-dispatcher-contracts",
-        "version": "v1.1.7",
-        "version_normalized": "1.1.7.0",
+        "version": "v1.1.9",
+        "version_normalized": "1.1.9.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/event-dispatcher-contracts.git",
-            "reference": "c43ab685673fb6c8d84220c77897b1d6cdbe1d18"
+            "reference": "84e23fdcd2517bf37aecbd16967e83f0caee25a7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/event-dispatcher-contracts/zipball/c43ab685673fb6c8d84220c77897b1d6cdbe1d18",
-            "reference": "c43ab685673fb6c8d84220c77897b1d6cdbe1d18",
+            "url": "https://api.github.com/repos/symfony/event-dispatcher-contracts/zipball/84e23fdcd2517bf37aecbd16967e83f0caee25a7",
+            "reference": "84e23fdcd2517bf37aecbd16967e83f0caee25a7",
             "shasum": ""
         },
         "require": {
-            "php": "^7.1.3"
+            "php": ">=7.1.3"
         },
         "suggest": {
             "psr/event-dispatcher": "",
             "symfony/event-dispatcher-implementation": ""
         },
-        "time": "2019-09-17T09:54:03+00:00",
+        "time": "2020-07-06T13:19:58+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
                 "dev-master": "1.1-dev"
+            },
+            "thanks": {
+                "name": "symfony/contracts",
+                "url": "https://github.com/symfony/contracts"
             }
         },
         "installation-source": "dist",
@@ -1043,6 +1326,20 @@
             "interfaces",
             "interoperability",
             "standards"
+        ],
+        "funding": [
+            {
+                "url": "https://symfony.com/sponsor",
+                "type": "custom"
+            },
+            {
+                "url": "https://github.com/fabpot",
+                "type": "github"
+            },
+            {
+                "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                "type": "tidelift"
+            }
         ]
     },
     {
