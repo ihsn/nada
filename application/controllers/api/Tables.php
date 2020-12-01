@@ -49,8 +49,14 @@ class Tables extends MY_REST_Controller
 				);
 			}
 			
+			foreach($table_storage_info as $table_id=>$table){
+				if (!array_key_exists($table_id,$table_types)){
+					$table_types[$table_id]=$table;
+				}
+			}
+			
 			$response=array(
-                'status'=>'success',
+                		'status'=>'success',
 				'tables'=>$table_types,
 				//'tables_storage'=>$table_storage_info
 			);
