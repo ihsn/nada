@@ -123,7 +123,7 @@ $this->title='Home';
         </form>
 
         <div style="color: #0071bc;margin-top: 10px;"> 
-			<a href="https://microdata.worldbank.org/index.php/catalog"><i class="fa fa-list"></i> Browse Catalog </a> 
+			<a href="<?php echo site_url('catalog');?>"><i class="fa fa-list"></i> Browse Catalog </a> 
 		</div>
 
         <div>        
