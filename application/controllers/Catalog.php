@@ -254,7 +254,7 @@ class Catalog extends MY_Controller {
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
-		$search_options->repo			=xss_clean($this->active_repo['repositoryid']);
+		$search_options->repo			=xss_clean($this->active_repo_id);
 		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
 
