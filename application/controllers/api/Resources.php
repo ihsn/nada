@@ -389,5 +389,38 @@ class Resources extends MY_REST_Controller
 
 		return $sid;
 	}
+
+
+	/**
+	 * 
+	 * 
+	 * List external resources links by study IDNO
+	 * 
+	 * 
+	 */
+	public function download_links_post()
+	{
+		$this->is_admin_or_die();
+		$options=$this->raw_json_input();
+		
+		try {
+			
+			$resources=$this->Survey_resource_model->find_resources_by_study($options['idno_list']);
+
+			$output=array(
+				'status'=>'success',
+				'resources'=>$resources
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
 	
 }
