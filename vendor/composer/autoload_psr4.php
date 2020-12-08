@@ -24,5 +24,6 @@ return array(
     'JsonStreamingParser\\' => array($vendorDir . '/salsify/json-streaming-parser/src'),
     'JsonSchema\\' => array($vendorDir . '/justinrainbow/json-schema/src/JsonSchema'),
     'Jean85\\' => array($vendorDir . '/jean85/pretty-package-versions/src'),
+    'Doctrine\\Inflector\\' => array($vendorDir . '/doctrine/inflector/lib/Doctrine/Inflector'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
 );
