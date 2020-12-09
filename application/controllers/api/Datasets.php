@@ -76,6 +76,11 @@ class Datasets extends MY_REST_Controller
 		}
 	}
 
+	function index_delete($idno=null)
+	{
+		return $this->delete_delete($idno);
+	}
+
 
 	/**
 	 * 
