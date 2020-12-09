@@ -36,7 +36,7 @@ class Catalog_search_mysql{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
-						'rank'=>'rank',
+						'rank'=>'rank_',
 						'title'=>'title',
 						'country'=>'nation',
 						'nation'=>'nation',
@@ -174,7 +174,7 @@ class Catalog_search_mysql{
 
 		//add ranking if keywords are not empty
 		if(!empty($study)){
-			$study_fields.=', '.$study. ' as rank';
+			$study_fields.=', '.$study. ' as rank_';
 		}
 
 		//build final search sql query

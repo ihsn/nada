@@ -55,6 +55,7 @@ class ComposerStaticInitfd39bed98b52691930e680b7ad307ab7
         ),
         'D' => 
         array (
+            'Doctrine\\Inflector\\' => 19,
             'DeepCopy\\' => 9,
         ),
     );
@@ -131,6 +132,10 @@ class ComposerStaticInitfd39bed98b52691930e680b7ad307ab7
         'Jean85\\' => 
         array (
             0 => __DIR__ . '/..' . '/jean85/pretty-package-versions/src',
+        ),
+        'Doctrine\\Inflector\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Inflector',
         ),
         'DeepCopy\\' => 
         array (
