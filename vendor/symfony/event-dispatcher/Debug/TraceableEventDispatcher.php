@@ -145,13 +145,13 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
         if (\is_object($event)) {
             $eventName = $eventName ?? \get_class($event);
         } else {
-            @trigger_error(sprintf('Calling the "%s::dispatch()" method with the event name as first argument is deprecated since Symfony 4.3, pass it second and provide the event object first instead.', EventDispatcherInterface::class), E_USER_DEPRECATED);
+            @trigger_error(sprintf('Calling the "%s::dispatch()" method with the event name as first argument is deprecated since Symfony 4.3, pass it second and provide the event object first instead.', EventDispatcherInterface::class), \E_USER_DEPRECATED);
             $swap = $event;
             $event = $eventName ?? new Event();
             $eventName = $swap;
 
             if (!$event instanceof Event) {
-                throw new \TypeError(sprintf('Argument 1 passed to "%s::dispatch()" must be an instance of %s, %s given.', EventDispatcherInterface::class, Event::class, \is_object($event) ? \get_class($event) : \gettype($event)));
+                throw new \TypeError(sprintf('Argument 1 passed to "%s::dispatch()" must be an instance of "%s", "%s" given.', EventDispatcherInterface::class, Event::class, \is_object($event) ? \get_class($event) : \gettype($event)));
             }
         }
 
@@ -196,7 +196,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
         $hash = 1 <= \func_num_args() && null !== ($request = func_get_arg(0)) ? spl_object_hash($request) : null;
         $called = [];
         foreach ($this->callStack as $listener) {
-            list($eventName, $requestHash) = $this->callStack->getInfo();
+            [$eventName, $requestHash] = $this->callStack->getInfo();
             if (null === $hash || $hash === $requestHash) {
                 $called[] = $listener->getInfo($eventName);
             }
@@ -228,7 +228,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
 
         if (null !== $this->callStack) {
             foreach ($this->callStack as $calledListener) {
-                list(, $requestHash) = $this->callStack->getInfo();
+                [, $requestHash] = $this->callStack->getInfo();
 
                 if (null === $hash || $hash === $requestHash) {
                     $calledListeners[] = $calledListener->getWrappedListener();

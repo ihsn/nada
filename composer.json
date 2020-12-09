@@ -1,7 +1,7 @@
 {    
     "require": {
         "justinrainbow/json-schema": "^5.2",
-        "mpdf/mpdf": "^7.1",
+        "mpdf/mpdf": "^8.0",
         "phpmailer/phpmailer": "^5.2.26",
         "violet/streaming-json-encoder": "^1.1",
         "salsify/json-streaming-parser": "^8.0",

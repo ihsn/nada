@@ -66,10 +66,12 @@
      <!-- tables -->
      <div class="row-container" v-for="(table, index) in tables">
               <div class="row-body">
-                  <h6 v-on:click="tableInfo(table.dataset,table._id)">{{table.title}}</h6>
-                  <h6>{{table.dataset}} {{table.description}} <span>{{table._id}}</span></h6>
-                  {{selected_table_id}}
-                  
+                  <h6 v-on:click="tableInfo(table.db_id,table.table_id)">{{table.title}}</h6>
+                  <div>
+                    <span>{{table.dataset}} {{table.description}}</span> 
+                    <span>{{table.db_id}}/{{table.table_id}}</span>
+                    <span>{{table.storage_size}}</span>
+                  </div>
               </div>
             </div>  
             <!--end tables-->
@@ -249,7 +251,7 @@
     selected_table_toggle:false,
     selected_table_id:null,
     ajax_completed:false,
-    api_base_url:'https://dev.ihsn.org/orgi/digital-library/index.php/api/'
+    api_base_url:'http://digital-library.census.ihsn.org/index.php/api/'
 	},
   mounted: function() {
     this.getTablesList();
@@ -336,7 +338,7 @@
             async: false,
             success: function (data) {
               vm.selected_table=data.result;
-              vm.selected_table_id=data.result.result_._id;
+              vm.selected_table_id=data.result.result_.table_id;
               vm.ajax_completed=true;
               console.log(data);
               console.log(vm.selected_table_id);

@@ -38,6 +38,18 @@
             "type": "string",
             "title": "Feature name"
           },
+          "data_type":{
+            "type": "string",
+            "title": "Data type",
+            "enum_":[
+              "integer",
+              "double",
+              "string",
+              "boolean",
+              "date"
+            ],
+            "description":"Data type for the feature. <br><br> `integer` - Numeric values with no floating point values <br><br> `double` - Numeric values with floating point values <br><br> `string` - Text data <br><br> `date` - Date in ISO formats **YYYY-mm-dd** OR **YYYY-mm-ddTHH:MM:ss** or Unix epoch format **integer** "
+          },
           "code_list": {
             "type": "array",
             "title": "Feature code list",

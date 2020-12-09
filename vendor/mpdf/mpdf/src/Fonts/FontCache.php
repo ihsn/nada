@@ -28,11 +28,7 @@ class FontCache
 
 	public function jsonHas($filename)
 	{
-		if (isset($this->memoryCache[$filename]) || $this->has($filename)) {
-			return true;
-		}
-
-		return false;
+		return (isset($this->memoryCache[$filename]) || $this->has($filename));
 	}
 
 	public function load($filename)
@@ -57,9 +53,7 @@ class FontCache
 
 	public function binaryWrite($filename, $data)
 	{
-		$handle = fopen($this->tempFilename($filename), 'wb');
-		fwrite($handle, $data);
-		fclose($handle);
+		return $this->cache->write($filename, $data);
 	}
 
 	public function jsonWrite($filename, $data)
