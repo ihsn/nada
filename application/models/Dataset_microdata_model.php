@@ -78,7 +78,12 @@ class Dataset_microdata_model extends Dataset_model {
         if(isset($options['variable_groups'])){
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
-        }		
+        }
+        
+        if(isset($options['additional'])){
+            $options['metadata']['additional']=$options['additional'];
+            unset($options['additional']);
+        }
                 
 
 		//start transaction
@@ -204,6 +209,11 @@ class Dataset_microdata_model extends Dataset_model {
         if(isset($options['variable_groups'])){
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
+        }
+
+        if(isset($options['additional'])){
+            $options['metadata']['additional']=$options['additional'];
+            unset($options['additional']);
         }
 
 		//start transaction
