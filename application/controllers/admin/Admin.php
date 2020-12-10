@@ -73,14 +73,11 @@ class Admin extends MY_Controller {
 	**/
 	function _repository_stats()
 	{
-		//$user_repos=$this->acl->get_user_repositories();
 
 		$repos=$this->Repository_model->select_all();
+		array_unshift($repos, $this->Repository_model->get_central_catalog_array()	);
 
-		//array_unshift($user_repos, $this->Repository_model->get_central_catalog_array()	);
-
-		foreach($repos as $key=>$repo)
-		{
+		foreach($repos as $key=>$repo){
 			$repos[$key]['stats']=$this->Repository_model->get_summary_stats($repo['repositoryid']);
 		}
 
