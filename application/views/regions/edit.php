@@ -80,7 +80,7 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
 
     <div class="field" id="country-selection">
         <label for="pid"><?php echo t('Select Countries');?><span class="required">*</span> 
-        	<span class"selected-container">
+        	<span class="selected-container">
 				<?php echo t('selected');?>: <span class="selected"><?php echo count($countries);?></span>
                 <span class="clear-all"><?php echo t('clear');?></span>
             </span>

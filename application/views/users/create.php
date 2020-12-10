@@ -1,15 +1,4 @@
-<?php
-	//get all groups/roles
-	$user_groups=$this->ion_auth_model->get_user_groups();
-	$user_group_options=array();
-	foreach($user_groups as $group)
-	{
-		$user_group_options[$group['id']]=$group['description'];
-	}
-	//countries			
-	$options_country=$this->ion_auth_model->get_all_countries();
-?>
-<div class='content-container users-create-page'>
+<div class='container-fluid users-create-page'>
 
 <div class="row">
 <div class="col-md-6">
@@ -27,22 +16,8 @@
         
     <?php $message=$this->session->flashdata('message');?>
     <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
-	
-     <?php
-	
-		$form_action_url=site_url().'/admin/users';
-		if($this->uri->segment(3)=='add')
-		{
-			$form_action_url.='/add';
-		}
-		else
-		{
-			$form_action_url.='/edit/'.$this->uri->segment(4);
-		}
-	
-	?>
-    
-    <?php echo form_open($form_action_url, array('class'=>'form register','autocomplete'=>'off'));?>
+	     
+    <?php echo form_open(site_url('admin/users/add'), array('class'=>'form register','autocomplete'=>'off'));?>
     
      <div class="form-group">
 	      <label for="username"><?php echo t('username');?><span class="required">*</span></label>
@@ -93,22 +68,24 @@
            <span style="padding-right:10px;"><?php echo form_radio('active', '1', $active==1);?> <?php echo t('user_active');?> </span>
            <span><?php echo form_radio('active', '0', $active!=1);?> <?php echo t('user_blocked');?> </span>
       </div>
-
-	<?php /* ?>
+    
     <div class="form-group">
-        <label for="user_groups"><?php echo t('select_user_group');?></label>
+        <label for="user_groups">
+          <?php echo t('User roles');?> 
+        </label>
         <div class="user_groups">
-        <?php foreach($user_groups as $group):?>
-        	<?php $checked=(in_array($group['id'],$groups)) ? 'checked="checked"' : '';?>
-        	<div class="group">
-	            <label for="group_id-<?php echo $group['id'];?>" style="font-weight:normal;">
-				<input <?php echo $checked;?> type="checkbox" id="group_id-<?php echo $group['id'];?>" name="group_id[]" value="<?php echo $group['id'];?>"/> <?php echo $group['name'];?> <span class="description">[<?php echo $group['description'];?>]</span>
-                </label>
-            </div>    
-		<?php endforeach;?>
+        <?php foreach($roles as $role): $role_selected=false;?>
+        	<?php if (isset($user_role) && count($user_role)>0 && in_array($role['id'],$user_role)):?>
+          <?php $role_selected=true;?>
+          <?php endif;?>
+            <div class="checkbox">
+            <label class="user-role">
+              <input type="checkbox" <?php echo $role_selected ? 'checked="checked"' : '';?> name="role[]" value="<?php echo $role['id'];?>"> <?php echo t($role['name']);?>
+            </label>
+          </div>
+	  	  <?php endforeach;?>
         </div>        
     </div>
-	<?php */ ?>
     
     <div class="form-group">
         <?php echo form_submit('submit', t('create'),array('class'=>'btn btn-primary'));?>

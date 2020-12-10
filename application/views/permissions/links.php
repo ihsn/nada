@@ -1,18 +1,10 @@
-<?php
-/**
-* permissions navigation bar
-*/
-?>
-<div class="page-links">
-    <a href="<?php echo site_url(); ?>/admin/user_groups" class="btn btn-default">
-        <i class="fa fa-users" aria-hidden="true"></i> <?php echo t('user_groups');?>
-    </a> 
-    <a href="<?php echo site_url(); ?>/admin/permissions/add" class="btn btn-default">
-        <i class="fa fa-user-plus" aria-hidden="true"></i>
-        <?php echo t('add_permission_url');?>
+<div class="page-links text-right"> 
+    <a href="<?php echo site_url('admin/users');?>" class="btn btn-default">
+    <i class="fa fa-user" aria-hidden="true"></i>
+      <?php echo t('users');?>
     </a>
-    <a href="<?php echo site_url(); ?>/admin/permissions/manage" class="btn btn-default">        
-        <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-        <?php echo t('manage_permissions');?>
-    </a>     
-</div>
+    <a href="<?php echo site_url('admin/permissions/roles');?>" class="btn btn-default">
+      <i class="fa fa-users" aria-hidden="true"></i>       
+      <?php echo t('User Roles');?>
+    </a> 
+  </div>

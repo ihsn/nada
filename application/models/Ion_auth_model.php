@@ -874,22 +874,20 @@ class Ion_auth_model extends CI_Model
 	    
 		$update_needed=false;
 
-		$groups=array();
+		$roles=array();
 		
-		//user group IDs
-		if (isset($data['group_id']))
-		{
-			if(is_array($data['group_id']))
-			{
-				$groups=$data['group_id'];
+		//user role IDs
+		if (isset($data['role_id']) || array_key_exists('role_id',$data))
+		{			
+			if(is_array($data['role_id'])){
+				$roles=$data['role_id'];
 			}
-			else
-			{
-				$groups[]=$data['group_id'];
+			else{
+				$roles[]=$data['role_id'];
 			}	
-			unset($data['group_id']);
+			unset($data['role_id']);
 		}
-		
+				
 		
 	    if (!empty($this->columns))
 	    {						
@@ -919,31 +917,30 @@ class Ion_auth_model extends CI_Model
 			}
 	
 			$this->db->where($this->ion_auth->_extra_where);
-	
 			$this->db->update($this->tables['users'], $data, array('id' => $id));
         }
 
-		/*
-		//user group membership
+		
+		//user role membership
 
-		//remove any existing group memberships
+		//remove any existing user roles
 		$this->db->query(sprintf('delete from %s where user_id=%d',
-							$this->tables['user_groups'], 
+							'user_roles', 
 							(int)$id ));
 
-        //update user group info
-		if (is_array($groups) && count($groups)>0)
+        //update user roles info
+		if (is_array($roles) && count($roles)>0)
 		{
-			foreach($groups as $group)
+			foreach($roles as $role_id)
 			{
 				$options=array(
-						'group_id'	=> $group,
+						'role_id'	=> $role_id,
 						'user_id'	=> $id 
 						);
-				$this->db->insert($this->tables['user_groups'],$options);
+				$this->db->insert('user_roles',$options);
 			}
 		}
-		*/
+		
 		    
 		if ($this->db->trans_status() === FALSE)
 		{
@@ -1183,27 +1180,8 @@ class Ion_auth_model extends CI_Model
 	*/
 	function is_admin($userid)
 	{	
-		$this->db->select("count(*) as admin_groups_count");
-		$this->db->join($this->tables['user_groups'], $this->tables['users'].'.id = '.$this->tables['user_groups'].'.user_id', 'inner');
-		$this->db->join($this->tables['groups'], $this->tables['groups'].'.id = '.$this->tables['user_groups'].'.group_id', 'inner');		
-		$this->db->where($this->tables['users'].".id",$userid);
-		$this->db->where($this->tables['groups'].".group_type",'admin');
-		
-		$query=$this->db->get($this->tables['users']);
-		
-		if ($query)
-		{
-			$groups=$query->row_array();
-			
-			if ($groups)
-			{
-				if ($groups['admin_groups_count']>0)
-				{
-					return TRUE;
-				}	
-			}
-		}
-		return FALSE;
+		$user=$this->get_user($userid);
+		return $this->acl_manager->user_is_admin($user);
 	}
 	
 	/**
@@ -1211,7 +1189,7 @@ class Ion_auth_model extends CI_Model
 	* Checks if user has access to a URL
 	* TODO:REMOVE. moved to acl class
 	**/	
-	function has_access($userid,$url)
+	/*function has_access($userid,$url)
 	{
 		$this->db->select("user_permissions.*");
 		$this->db->join($this->tables['permissions'], $this->tables['permissions'].'.roleid = '.$this->tables['users'].'.group_id', 'left');
@@ -1255,7 +1233,7 @@ class Ion_auth_model extends CI_Model
 			
 		}
 		return FALSE;
-	}
+	}*/
 	
 	
 	/**
@@ -1476,25 +1454,12 @@ class Ion_auth_model extends CI_Model
 	public function get_groups_by_user($id=FALSE)
 	{
 		//if no id was passed use the current users id
-		if (!$id)  
-		{
+		if (!$id)  {
 			$id = $this->session->userdata('user_id');
 		}
 		
-		$this->db->flush_cache();
-	    $this->db->select('group_id');
-		$this->db->where('user_id', $id);
-		$query = $this->db->get($this->tables['user_groups']);
-
-		//all user groups
-		$rows = $query->result_array();
-		$groups=array();
-		foreach($rows as $group)
-		{
-			$groups[]=$group['group_id'];
-		}
-		
-		return $groups;
+		$roles=$this->acl_manager->get_user_roles($id);
+		return $roles;
 	}
 
 	function get_groupid_by_name($name)
@@ -1747,8 +1712,10 @@ class Ion_auth_model extends CI_Model
 			return array('none');
 		}
 		
+		var_dump(array_keys($user_groups));
+		die();
 		$this->db->select('access_type');
-		$this->db->where_in('id',$user_groups);
+		$this->db->where_in('id',array_keys($user_groups));
 		$query=$this->db->get('groups');
 		
 		if (!$query)

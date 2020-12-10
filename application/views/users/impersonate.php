@@ -3,7 +3,7 @@
 </style>
 <div class='content-container'>
 
-	<h1><?php echo t('impersonate_user'); ?></h1>
+	<h1><?php echo t('Impersonate role'); ?></h1>
 
 	<?php if (validation_errors() ) : ?>
         <div class="error">
@@ -19,12 +19,12 @@
 	
     <?php echo form_open();?>
     
-    <div class=""><?php echo t('impersonate_msg');?>:</div>
-    <?php foreach($users as $user):?>
+    <div class="impersonate-text"><?php echo t('impersonate_msg');?>:</div>
+    <?php foreach($roles as $role): if ($role['id'] <=2) {continue;}?>
     	<div class="user-row">
-		<input type="radio" name="user" value="<?php echo $user['id'];?>"/>
-		<span class="user-name"><?php echo $user['first_name']," ",$user['last_name'];?></span>
-        <span class="email"><?php echo $user['email'];?></span>
+		<input type="radio" name="role_id" value="<?php echo $role['id'];?>"/>
+        <span class="user-name"><?php echo $role['name'];?></span>
+        <span class="role-description"><?php echo $role['description'];?></span>
         </div>
     <?php endforeach;?>
      

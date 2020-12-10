@@ -21,6 +21,7 @@ if ($languages!==FALSE)
 }
 
 $user=$this->session->userdata('username');
+
 ?>
 <div class="row">
     <?php if ($user!=''): ?>
@@ -32,7 +33,7 @@ $user=$this->session->userdata('username');
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
-                    <?php if ($this->ion_auth->is_admin()): ?>
+                    <?php if ($this->ion_auth->can_access_site_admin()): ?>
                         <a class="dropdown-item small" href="<?php echo site_url('admin'); ?>"><?php echo t('site_administration');?></a>
                     <?php endif;?>
                     <a class="dropdown-item small" href="<?php echo site_url('auth/profile'); ?>"><?php echo t('profile');?></a>

@@ -372,7 +372,7 @@ class Breadcrumb
 			return;
 		}
 		
-		$active_repo=$this->ci->acl->get_repo($this->ci->acl->user_active_repo());
+		$active_repo=$this->ci->Repository_model->user_active_repo(); 
 		
 		if (!$active_repo)
 		{
@@ -822,5 +822,4 @@ class Breadcrumb
 		
 		return FALSE;
 	}
-	
 }

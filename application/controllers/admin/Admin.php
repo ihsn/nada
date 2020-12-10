@@ -5,19 +5,18 @@ class Admin extends MY_Controller {
     {
         parent::__construct();
        	$this->load->model('Dashboard_model');
-    		$this->load->model('Repository_model');
-    		$this->template->set_template('admin');
-    		$this->load->driver('cache', array('adapter' => 'dummy', 'backup' => 'file'));
+		$this->load->model('Repository_model');
+		$this->template->set_template('admin');
+		$this->load->driver('cache', array('adapter' => 'dummy', 'backup' => 'file'));
 
-    		$this->lang->load("general");
-    		$this->lang->load("dashboard");
-    		//$this->output->enable_profiler(TRUE);
+		$this->lang->load("general");
+		$this->lang->load("dashboard");
+		//$this->output->enable_profiler(TRUE);
     }
 
 	function index()
 	{
 		$this->load->helper('date_helper');
-
 		$data['title']=t('Dashboard');
 		$data['recent_studies']=$this->_get_recent_studies();
 		$data['cache_files']=$this->_cache_file_count();
@@ -74,16 +73,18 @@ class Admin extends MY_Controller {
 	**/
 	function _repository_stats()
 	{
-		$user_repos=$this->acl->get_user_repositories();
+		//$user_repos=$this->acl->get_user_repositories();
+
+		$repos=$this->Repository_model->select_all();
 
 		//array_unshift($user_repos, $this->Repository_model->get_central_catalog_array()	);
 
-		foreach($user_repos as $key=>$repo)
+		foreach($repos as $key=>$repo)
 		{
-			$user_repos[$key]['stats']=$this->Repository_model->get_summary_stats($repo['repositoryid']);
+			$repos[$key]['stats']=$this->Repository_model->get_summary_stats($repo['repositoryid']);
 		}
 
-		return $user_repos;
+		return $repos;
 	}
 
 }
