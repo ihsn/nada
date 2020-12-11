@@ -367,7 +367,7 @@ class Catalog extends MY_Controller {
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
 		
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$uploaded_ddi_path;
 		$params=array(
@@ -465,7 +465,7 @@ class Catalog extends MY_Controller {
 
 		//get survey info
 		$survey=$this->Dataset_model->get_row($sid);
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 
 		if (!$survey){
 			show_error("SURVEY_NOT_FOUND");
@@ -579,7 +579,7 @@ class Catalog extends MY_Controller {
 			}
 		}
 		
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 		$dataset=$this->Dataset_model->get_row($id);
 
 		$params=array(
@@ -801,7 +801,7 @@ class Catalog extends MY_Controller {
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
 		
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$ddi_file;
 		$params=array(
