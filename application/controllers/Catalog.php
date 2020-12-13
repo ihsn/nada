@@ -648,7 +648,7 @@ class Catalog extends MY_Controller {
 		$repo=NULL;
 
 		//unpublished repos are visible to limited admins or admins only
-		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
+		//$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
 
 		if ($repositoryid=='central')
 		{
