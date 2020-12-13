@@ -52,10 +52,10 @@ if ( ! function_exists('render_custom'))
  
 if ( ! function_exists('render_text'))
 {
-	function render_text($name, $data)
+	function render_text($name, $data, $options)
 	{
 		$ci =& get_instance();
-		return $ci->load->view('metadata_templates/fields/field_text',array('name'=>$name, 'data'=>$data), TRUE);
+		return $ci->load->view('metadata_templates/fields/field_text',array('name'=>$name, 'data'=>$data, 'options'=>$options), TRUE);
 	}
 }
 
@@ -117,6 +117,24 @@ if ( ! function_exists('render_group'))
 			, TRUE);
 	}
 }
+
+
+if ( ! function_exists('render_columns'))
+{
+	function render_columns($name, $fields, $metadata,$options=array())
+	{
+		$ci =& get_instance();
+		return $ci->load->view('metadata_templates/fields/bootstrap_columns',
+			array(
+				'section_name'=>$name, 
+				'metadata'=>$metadata,
+				'fields'=>$fields,
+				'options'=>$options
+			)
+			, TRUE);
+	}
+}
+
 
 
 if ( ! function_exists('render_var_category'))
