@@ -194,7 +194,15 @@
             height: 100%;
         }
         .container-fluid {
-        height: 100vh;
+            height: 100vh;
+        }
+
+        .nav-link{
+            color:black;
+        }
+        .nav-active{
+            font-weight:bold;
+            color:#007bff;
         }
         
     </style>
@@ -254,7 +262,7 @@
             
                 <nav class="nav nav-pills flex-column">
                 <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-chart-bar"></i> Overview</a>
-                <a class="nav-link active" href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>"><i class="fas fa-bars"></i> Metadata</a>
+                <a class="nav-link nav-active" href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>"><i class="fas fa-bars"></i> Metadata</a>
                 
                 <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-file-alt"></i> Files</a>
                 <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-file-medical-alt"></i> Resources</a>
@@ -265,9 +273,9 @@
             
             </div>
 
-            <div class="col mh-100" style="overflow-y: scroll;">
+            <div class="col mh-100" >
 
-            <div>
+            <div class="border-bottom py-2">
                 <h3 style="margin:0px;">Metadata</h3>
             
                 <div class="btn-group">
