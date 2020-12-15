@@ -769,6 +769,19 @@ $config['data_types_nav_bar']=true;
 //catalog search box location
 $config['search_box_orientation']='default'; //inline, default
 
+
+/*
+|--------------------------------------------------------------------------
+| Google Maps API key
+|--------------------------------------------------------------------------
+|
+| API key for Google maps
+| 
+| 
+*/
+
+$config['google_maps_api_key']='';
+
 /*
 |--------------------------------------------------------------------------
 | NADA fallback configurations
