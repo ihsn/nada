@@ -216,12 +216,6 @@ class Acl_manager
 		return false;
 	}
 
-
-	function has_access($resource,$privilege=null, $user=null)
-	{
-		throw new Exception("Access denied");
-	}
-
 	private function is_admin_role($roles)
 	{
 		foreach($roles as $role){
@@ -261,12 +255,22 @@ class Acl_manager
 
 	function has_access_or_die($resource,$privilege, $user=null, $repositoryid=null)
 	{
+		try{
+			$this->has_access($resource, $privilege,$user,$repositoryid);
+		}
+		catch(Exception $e){
+			die($e->getMessage());
+		}	
+	}
+
+	function has_access($resource,$privilege, $user=null, $repositoryid=null)
+	{
 		if(empty($user)){
 			$user=$this->current_user();
 		}
 
 		if(!$user){
-			die("acl_manager::User not set");
+			throw new Exception("acl_manager::User not set");
 		}
 
 		//get user roles
@@ -318,7 +322,7 @@ class Acl_manager
 			}
 		}
 		catch(Exception $e){
-			show_error('Access denied:: '. $e->getMessage());
+			throw new Exception('Access denied:: '. $e->getMessage());
 		}
 		
 
@@ -330,9 +334,9 @@ class Acl_manager
 			$debug_info[]=print_r($permissions, true);
 			$debug_info[]='</pre>';
 			
-			show_error(implode("\n", $debug_info));
+			throw new Exception(implode("\n", $debug_info));
 		}else{
-			show_error('Access denied for resource:: '.$resource);
+			throw new Exception('Access denied for resource:: '.$resource);
 		}
 	}
 

@@ -925,9 +925,6 @@ class Datasets extends MY_REST_Controller
 	 **/ 
 	function import_post($type)
 	{
-		$this->load->library('ion_auth');
-		$this->load->library('acl');
-
 		$overwrite=$this->input->post("overwrite")=='yes' ? TRUE : FALSE;
 		$repositoryid=$this->input->post("repositoryid");
 		//$survey_type='geospatial';
@@ -943,7 +940,8 @@ class Datasets extends MY_REST_Controller
 
 		try{
 			//user has permissions on the repo or die
-			$this->acl->user_has_repository_access($repositoryid,$this->get_api_user_id());
+			//$this->acl->user_has_repository_access($repositoryid,$this->get_api_user_id());
+			$this->acl_manager->has_access('study', 'create',$this->api_user(),$repositoryid);
 					
 			//process form
 			$temp_upload_folder=get_catalog_root().'/tmp';
