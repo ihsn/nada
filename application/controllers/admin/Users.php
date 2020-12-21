@@ -17,7 +17,7 @@ class Users extends MY_Controller {
 		$this->lang->load('users');
 		
 		//set template to admin
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		//$this->output->enable_profiler(TRUE);
 		$this->disable_page_cache();

@@ -3,9 +3,9 @@
     width:500px;
 }
 </style>
-<div class='container vocabularies-edit-page'>
+<div class='container-fluid vocabularies-edit-page'>
     <div class="text-right page-links">
-        <a href="<?php echo site_url(); ?>/admin/vocabularies" class="btn btn-default"> <span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('home');?></a> 
+        <a href="<?php echo site_url(); ?>/admin/vocabularies" class="btn btn-outline-primary btn-sm"> <span class="fas fa-home" aria-hidden="true"></span> <?php echo t('home');?></a> 
     </div>
 	<h1><?php echo $page_title; ?></h1>
 	<?php if (validation_errors() ) : ?>
@@ -27,8 +27,8 @@
         <input class="form-control" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($title) ? $title : ''); ?>"/>
     </div>
 
-      <?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary','id'=>'btnupdate'));?>
-      <?php echo anchor('admin/vocabularies', t('cancel'),array('class'=>'btn btn-default'));?>
+      <?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary btn-sm','id'=>'btnupdate'));?>
+      <?php echo anchor('admin/vocabularies', t('cancel'),array('class'=>'btn btn-secondary btn-sm'));?>
       
     <?php echo form_close();?>
 

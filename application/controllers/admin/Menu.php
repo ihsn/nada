@@ -16,7 +16,7 @@ class Menu extends MY_Controller {
 		$this->lang->load('menu');
 		
 		//set default template
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		//$this->output->enable_profiler(TRUE);
 	}

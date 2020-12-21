@@ -2,6 +2,17 @@
 #breadcrumb{
 	margin-left:16px;
 	margin-bottom:25px;
+	color:gray;
+}
+
+#breadcrumb a{
+	font-size:14px;
+}
+
+.table-sm td,
+.table-sm th
+{
+	font-size:smaller;
 }
 
 .sidebar-nav {
@@ -19,24 +30,6 @@
 		padding: 10px 25px
 }
 
-.btn-nada, .btn-primary{
-	background:#0188ca;	
-	border-color:#0188ca;
-}
-
-.btn-nada:hover,
-.btn-primary:hover,
-.page-links .btn:hover
-{
-	background:#00b6f5;
-	border-color:#00b6f5;
-	color:white;
-}
-
-.page-links .btn-default{
-	border-color:#0188ca;
-	color:#0188ca;
-}
 
 .table .header th{
 	background:#ddd;

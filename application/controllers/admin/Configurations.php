@@ -8,7 +8,7 @@ class Configurations extends MY_Controller {
 		$this->load->helper(array('form', 'url'));		
 		$this->load->library( array('form_validation','pagination') );
        	$this->load->model('Configurations_model');		
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		$this->lang->load("configurations");
 		
