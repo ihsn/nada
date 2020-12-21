@@ -93,8 +93,14 @@ $lang['metadata.series_description.api_documentation.description']='Description'
 $lang['metadata.series_description.api_documentation.uri']='Documentation Link';
 $lang['metadata.series_description.api_documentation.url']='Documentation Link';
 
-$lang['metadata.series_description.source']='Original source';
-$lang['metadata.series_description.source_note']='Notes from original source';
+$lang['metadata.series_description.sources']='Original sources';
+$lang['metadata.series_description.sources.id']='Source ID';
+$lang['metadata.series_description.sources.name']='Name';
+$lang['metadata.series_description.sources.organization']='Organization';
+$lang['metadata.series_description.sources.type']='Type';
+$lang['metadata.series_description.sources.note']='Note';
+
+$lang['metadata.series_description.source_notes']='Notes from original sources';
 $lang['metadata.series_description.keywords']='Keywords';
 $lang['metadata.series_description.keywords.name']='Keyword';
 $lang['metadata.series_description.keywords.vocabulary']='Vocabulary';
