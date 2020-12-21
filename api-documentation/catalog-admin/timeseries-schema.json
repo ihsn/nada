@@ -436,13 +436,44 @@
 						}
 					}
 				},
-				"source": {
+				"sources":{
+					"type":"array",
+					"title":"Sources",
+					"description":"Sources",
+					"items": {
+					  "type": "object",
+					  "properties": {
+						"id": {
+						  "title": "Source ID",
+						  "type": "string"
+						},
+						"name": {
+						  "title": "Name",
+						  "description": "Source name",
+						  "type": "string"
+						},
+						"organization": {
+						  "title": "Organization",                
+						  "type": "string"
+						},
+						"type": {
+							"title": "Source type",                
+							"type": "string"
+						},
+						"note": {
+							"title": "Note",                
+							"type": "string"
+						}
+					  },
+					  "required": [
+						"name"
+					  ]
+					}
+				  },
+
+				"sources_note": {
 					"type": "string",
-					"title": "Original source"
-				},
-				"source_note": {
-					"type": "string",
-					"title": "Notes form original source"
+					"title": "Notes form original sources"
 				},
 				"keywords": {
 					"type": "array",
