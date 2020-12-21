@@ -33,7 +33,7 @@
 <form autocomplete="off">
 
 	<!-- batch operations -->
-    <table width="100%">
+    <table width="100%" class="mb-2">
         <tr>
             <td>
                 <select id="batch_actions">
@@ -46,7 +46,7 @@
     </table>
     
     <!-- grid -->
-    <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
+    <table class="grid-table table table-sm table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
