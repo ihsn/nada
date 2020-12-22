@@ -389,48 +389,29 @@ class Acl_manager
 	}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-	//need reviewing
-
-	
-
-	
-	
+	//todo: remove everything below
 
 	/**
 	* Return Repo object with basic info - repositoryid, title
 	**/
-	function get_repo($id)
+	/*function get_repo($id)
 	{
 		//get repo info
 		$this->ci->db->select("repositoryid,id,title");
 		$this->ci->db->where("id",$id);
 		$query=$this->ci->db->get("repositories");
 
-		if (!$query)
-		{
+		if (!$query){
 			return FALSE;
 		}
 		
 		$result=$query->row_array();
 		
-		if ($result)
-		{
+		if ($result){
 			return (object)$result;
 		}
 		return FALSE;
-	}
+	}*/
 	
 	
 	
@@ -440,17 +421,17 @@ class Acl_manager
 	*
 	* Return user groups
 	**/
-	function get_user_groups($user_id)
+	/*function get_user_groups($user_id)
 	{
 		return $this->ci->ion_auth->get_groups_by_user($user_id);		
-	}
+	}*/
 
 
 	/**
 	*
 	* Check if user has UNLIMITED access
 	**/
-	function user_has_unlimited_access($user_id=NULL)
+	/*function user_has_unlimited_access($user_id=NULL)
 	{
 		if($user_id==NULL)
 		{
@@ -471,7 +452,7 @@ class Acl_manager
 
 	function has_unlimited_access($groups){
 		return true;
-	}
+	}*/
 
 	
 		
