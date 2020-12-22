@@ -20,12 +20,12 @@ class Licensed_requests extends MY_Controller {
 		if ($this->input->get("collection"))
 		{
 			$repo_uid=$this->repository_model->get_repositoryid_uid($this->input->get("collection"));
-			$repo_obj=$this->acl->get_repo($repo_uid);
+			$repo_obj=$this->Repository_model->select_single($repo_uid); 
 		}
 		else
 		{
 			//set active repo
-			$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+			$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo());
 		}	
 
 		if (!$repo_obj)
@@ -42,7 +42,7 @@ class Licensed_requests extends MY_Controller {
 		}
 		
 		//set active repo
-		$this->acl->set_active_repo($this->active_repo->id);
+		$this->Repository_model->set_active_repo($this->active_repo->id);
 		
 		//set collection sticky bar options
 		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
@@ -51,7 +51,7 @@ class Licensed_requests extends MY_Controller {
     
     public function index()
     {    	
-		$this->acl->user_has_lic_request_view_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('licensed_request', 'view',null,$this->active_repo->repositoryid);
 		
     	$content=NULL;
 		$result['rows']=$this->_search();

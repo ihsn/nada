@@ -36,7 +36,7 @@ class Catalog extends MY_Controller {
 		//$this->acl->clear_active_repo();
 
 		//set active repo
-		$repo_obj=$this->acl_manager->get_repo($this->Repository_model->user_active_repo());
+		$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo()); 
 
 		if (!$repo_obj){
 			//set active repo to CENTRAL
@@ -674,12 +674,11 @@ class Catalog extends MY_Controller {
 	* Upload files to the IMPORTS folder
 	**/
 	function process_batch_uploads()
-	{		
+	{
 		//import folder path
 		$import_folder=$this->config->item('ddi_import_folder');
 
-		if (!file_exists($import_folder))
-		{
+		if (!file_exists($import_folder)){
 			show_error('FOLDER-NOT-SET');
 		}
 
@@ -750,9 +749,14 @@ class Catalog extends MY_Controller {
 				}
 			}
 		}
+		
+		$options=array(
+			'repositories'=>$this->Repository_model->select_all(),
+			'files'=>$files['files'],
+			'active_repository'=>$this->active_repo->repositoryid
+		);
 
-		$files['active_repo']=$this->active_repo;
-		$content=$this->load->view('catalog/ddi_batch_import', $files, true);
+		$content=$this->load->view('catalog/ddi_batch_import', $options, true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
@@ -781,22 +785,10 @@ class Catalog extends MY_Controller {
 		$repositoryid=$this->input->post("repositoryid");
 
 		//validate if user has access to the selected repository
-		$user_repositories=$this->acl->get_user_repositories();
-
-		$user_repo_access=FALSE;
-		foreach($user_repositories as $repo){
-			if ($repo["repositoryid"]==$repositoryid){
-				$user_repo_access=TRUE;
-				break;
-			}
-		}
-
-		if ($user_repo_access===FALSE){
-			//show_error("REPO_ACCESS_DENIED");
+		if (!$this->acl_manager->has_access('study', 'create',$repositoryid)){
 			echo json_encode(array('error'=>t('REPO_ACCESS_DENIED')) );
 			exit;
 		}
-
 		
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
@@ -1313,25 +1305,21 @@ class Catalog extends MY_Controller {
 		//$this->acl->user_has_repository_access($this->active_repo->id);
 		$this->acl_manager->has_access_or_die('study', 'transfer_ownership',null,$this->active_repo->repositoryid);
 
-		if ($surveyid==NULL && !$this->input->post("sid"))
-		{
+		if ($surveyid==NULL && !$this->input->post("sid")){
 			show_error("PARAM_MISSING");
 		}
 
 		//active repositoryid
 		$active_repo=$this->active_repo->repositoryid;
 
-		if (!$active_repo)
-		{
+		if (!$active_repo){
 			show_error("NO_ACTIVE_REPO_SET");
 		}
 
-		if ($this->input->post("sid"))
-		{
+		if ($this->input->post("sid")){
 			$surveys_arr=$this->input->post("sid");
 		}
-		else
-		{
+		else{
 			$surveys_arr=explode(",",$surveyid);
 		}
 
@@ -1340,11 +1328,9 @@ class Catalog extends MY_Controller {
 		//get survey info by id
 		foreach($surveys_arr as $id)
 		{
-			if (is_numeric($id))
-			{
+			if (is_numeric($id)){
 				$survey_row=$this->Catalog_model->get_survey($id);
-				if ($survey_row)
-				{
+				if ($survey_row){
 					$surveys[$id]=$this->Catalog_model->get_survey($id);
 				}
 			}
@@ -1356,23 +1342,18 @@ class Catalog extends MY_Controller {
 			$repositoryid=$this->input->post("repositoryid");
 
 			//validate repository
-			if ($repositoryid=='central')
-			{
+			if ($repositoryid=='central'){
 				$exists=true;
 			}
-			else
-			{
+			else{
 				$exists=$this->Catalog_model->repository_exists($repositoryid);
 			}
 
-			if (!$exists)
-			{
+			if (!$exists){
 				$this->form_validation->set_error(t('error_no_collection_selected'));
 			}
-			else
-			{
-				foreach($surveys as $key=>$value)
-				{
+			else{
+				foreach($surveys as $key=>$value){
 					//transfer ownership
 					$this->Catalog_model->transfer_ownership($repositoryid,$key);
 				}
@@ -1381,7 +1362,12 @@ class Catalog extends MY_Controller {
 			}
 		}
 
-		$content=$this->load->view('catalog/transfer_ownership',array('surveys'=>$surveys),TRUE);
+		$options=array(
+			'repositories'=>$this->Repository_model->select_all(),
+			'surveys'=>$surveys
+		);
+
+		$content=$this->load->view('catalog/transfer_ownership',$options,TRUE);
 		$this->template->write('content', $content,true);
   		$this->template->render();
 	}
