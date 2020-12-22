@@ -75,7 +75,11 @@ class Repository_model extends CI_Model {
 	**/
 	function select_single($id)
 	{
-		$this->db->where('id', $id); 
+		if (!is_numeric($id)){
+			$this->db->where('repositoryid', $id);
+		}else{
+			$this->db->where('id', $id); 
+		}
 		return $this->db->get('repositories')->row_array();
 	}
 	
@@ -1355,7 +1359,7 @@ class Repository_model extends CI_Model {
 			array(
 				"required",
 				"alpha_dash",
-				"max_length[10]",
+				"max_length[30]",
 				"xss_clean",
 				array(
 					'validate_repository_id_format_check',
@@ -1505,6 +1509,31 @@ class Repository_model extends CI_Model {
 	}	
 
 
+	function rename_repository($old_repositoryid, $new_repositoryid)
+	{
+		$options=array(
+			'repositoryid'=>$new_repositoryid
+		);
+
+		//rename repositoryid
+		$this->db->where("repositoryid",$old_repositoryid);
+		$result=$this->db->update("repositories",$options);
+
+		//replace related survey_repos table
+		return $this->rename_survey_repos($old_repositoryid, $new_repositoryid);
+	}
+
+	function rename_survey_repos($old_repositoryid, $new_repositoryid)
+	{
+		$options=array(
+			'repositoryid'=>$new_repositoryid
+		);
+
+		$this->db->where("repositoryid",$old_repositoryid);
+		return $this->db->update("survey_repos",$options);
+	}
+
+	
 	
 
 }
