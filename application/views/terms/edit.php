@@ -5,7 +5,7 @@
 </style>
 <div class='container-fluid terms-edit-page'>
     <div class="text-right page-links">
-        <a href="<?php echo site_url(); ?>/admin/vocabularies" class="btn btn-default"><span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('vocabularies');?></a>
+        <a href="<?php echo site_url(); ?>/admin/vocabularies" class="btn btn-outline-primary btn-sm"><span class="fas fa-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('vocabularies');?></a>
     </div>
 	<h1><?php echo $page_title; ?></h1>
 	<?php if (validation_errors() ) : ?>
@@ -46,8 +46,8 @@
         <?php	echo form_dropdown(array('class'=>'form-control','name'=>'pid'), $this->term_tree, $pid);?>
     </div>    
 
-      <?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary','id'=>'btnupdate')); ?>
-      <?php echo anchor('admin/terms/'.$this->uri->segment(3), t('cancel'),array('class'=>'btn btn-default') );?>
+      <?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary btn-sm','id'=>'btnupdate')); ?>
+      <?php echo anchor('admin/terms/'.$this->uri->segment(3), t('cancel'),array('class'=>'btn btn-secondary btn-sm') );?>
       
     <?php echo form_close();?>
 

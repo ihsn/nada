@@ -1,11 +1,11 @@
 <div class="body-container" style="padding:10px;">
 
-<h1 class="page-title"><?php echo t('translate');?></h1>
+<h3 class="page-title mt-5"><?php echo t('translate');?></h3>
 
 Template language set to: BASE
-<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
+<table class="table table-striped table-sm" width="100%" cellspacing="0" cellpadding="0">
 	<tr class="header">
-        <th><?php echo t('language');?></th>
+        <th><?php echo t('Language');?></th>
         <th><?php echo t('actions');?></th>
     </tr>
 	<?php $tr_class=""; ?>

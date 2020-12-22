@@ -3,6 +3,7 @@ class Repository_model extends CI_Model {
  
     public function __construct()
     {
+		$this->load->library("form_validation");
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
@@ -74,7 +75,11 @@ class Repository_model extends CI_Model {
 	**/
 	function select_single($id)
 	{
-		$this->db->where('id', $id); 
+		if (!is_numeric($id)){
+			$this->db->where('repositoryid', $id);
+		}else{
+			$this->db->where('id', $id); 
+		}
 		return $this->db->get('repositories')->row_array();
 	}
 	
@@ -228,6 +233,11 @@ class Repository_model extends CI_Model {
 		
 		//insert record into db
 		$result=$this->db->insert('repositories', $data); 
+
+		if (!$result){
+			$error=$this->db->error();
+			throw new Exception(implode(", ",$error));			
+        }
 		
 		return $result;	
 	}
@@ -1225,4 +1235,208 @@ class Repository_model extends CI_Model {
 	{
 		$this->input->set_cookie($name='active_repo', $value='', $expire=0, $domain='', $path='/', $prefix='', $secure=FALSE);
 	}
+
+	/**
+	 * 
+	 * 
+	 * Validate repository options
+	 * 
+	 */
+	function validate($options)
+	{				
+		$this->form_validation->reset_validation();
+		$this->form_validation->set_data($options);
+	
+		//set validation rules
+		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
+		$this->form_validation->set_rules('short_text', t('short_text'), 'xss_clean|trim|required|max_length[500]');
+		$this->form_validation->set_rules('long_text', t('long_text'), 'trim|xss_clean|required|max_length[1000]');
+		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|trim|max_length[3]|is_natural');
+		$this->form_validation->set_rules('section', t('section'), 'xss_clean|trim|max_length[3]|is_natural');
+		$this->form_validation->set_rules('ispublished', t('published'), 'required|xss_clean|trim|max_length[1]|is_natural');			
+			
+		//repositoryid validation rule
+		$this->form_validation->set_rules(
+			'repositoryid', 
+			t('repositoryid'),
+			array(
+				"required",
+				"alpha_dash",
+				"max_length[30]",
+				"xss_clean",
+				array(
+					'validate_repository_id_format_check',
+					array($this, 'validate_repository_id_format_check')
+				),
+				array(
+					'validate_repository_id_check',
+					array($this, 'validate_repository_id_check')
+				)				
+			)		
+		);
+
+		//file upload
+		/*$this->form_validation->set_rules(
+			'thumbnail', 
+			t('thumbnail'),
+			array(						
+				array(
+					'validate_thumbnail_upload',
+					array($this, 'validate_thumbnail_upload')
+				),				
+			)		
+		);*/
+		
+		if ($this->form_validation->run() == TRUE){
+			return TRUE;
+		}
+		
+		//failed
+		$errors=$this->form_validation->error_array();
+		$error_str=$this->form_validation->error_array_to_string($errors);
+		throw new ValidationException("VALIDATION_ERROR: ".$error_str, $errors);
+	}
+
+	
+
+	/**
+     *
+     * The repository ID call back to validate ID is not numeric
+     */
+    function validate_repository_id_format_check($repositoryid)
+    {
+        if (is_numeric($repositoryid))
+        {
+            $this->form_validation->set_message('validate_repository_id_format_check', t('callback_error_repositoryid_is_numeric'));
+            return FALSE;
+        }
+        return TRUE;
+	}
+
+
+	/**
+     *
+     * Check if repository ID already exists?
+     */
+	public function validate_repository_id_check($repositoryid)
+	{	
+		$repo_pk_id=null;
+		if(array_key_exists('id',$this->form_validation->validation_data)){
+			$repo_pk_id=$this->form_validation->validation_data['id'];
+		}
+
+		//check if already exists
+		$id=$this->get_repositoryid_uid($repositoryid);	
+
+		if (is_numeric($id) && $id!=$repo_pk_id) {
+			$this->form_validation->set_message(__FUNCTION__, 'The ID should be unique.' );
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Callback for handling thumbnail upload
+	 * 
+	 */
+	function validate_thumbnail_upload()
+	{
+		if(!empty($_FILES['thumbnail']['name'])) {
+			$thumbnail_storage=$this->get_collection_storage_path();	
+
+			if(!file_exists($thumbnail_storage)){
+				$error=t('thumbnail_upload_folder_not_set').': '.$thumbnail_storage;
+				$this->form_validation->set_message('validate_thumbnail_upload',$error);
+				return false;
+			}
+			
+			$fileupload_output=$this->upload_thumbnail('thumbnail', $thumbnail_storage);
+			
+			if($fileupload_output['status']=='success'){
+				$this->uploaded_thumbnail_path=$fileupload_output['file_name'];
+			}
+			else{
+				$error=t('thumbnail_upload_failed').': '. $fileupload_output['data']['error']. ' upload folder: '.$thumbnail_storage;
+				$this->form_validation->set_message('validate_thumbnail_upload', $error);
+				return false;
+			}
+		}		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * Return collections storage path for thumbnails
+	 * 
+	 */
+	function get_collection_storage_path()
+	{
+		$this->load->config("collections");
+		$thumbnail_storage=$this->config->item('collection_image_path');		
+		return $thumbnail_storage;
+	}
+
+	//process thumbnail uploads
+	function upload_thumbnail($file_name, $upload_path=NULL)
+	{
+		if (!$upload_path){
+			$upload_path=$this->get_collection_storage_path();
+		}
+
+		if(!file_exists($upload_path)){
+			$error=t('thumbnail_upload_folder_not_set').': '.$upload_path;
+			throw new exception($error);
+		}
+
+		$config['upload_path'] = $upload_path;
+		$config['allowed_types'] = 'gif|jpg|png';
+		$config['max_size']	= '300';
+		$config['overwrite']=true;
+		$config['file_ext_tolower']=true;
+		//$config['max_width']  = '300';
+		//$config['max_height']  = '300';
+
+		$this->load->library('upload', $config);
+
+		$upload_result=$this->upload->do_upload($file_name);
+
+		if (!$upload_result){
+			throw new Exception($this->upload->display_errors());
+		}
+
+		$data= $this->upload->data();
+		$data['rel_path']=$upload_path. '/' . $data['file_name'];
+		return $data;
+	}	
+
+
+	function rename_repository($old_repositoryid, $new_repositoryid)
+	{
+		$options=array(
+			'repositoryid'=>$new_repositoryid
+		);
+
+		//rename repositoryid
+		$this->db->where("repositoryid",$old_repositoryid);
+		$result=$this->db->update("repositories",$options);
+
+		//replace related survey_repos table
+		return $this->rename_survey_repos($old_repositoryid, $new_repositoryid);
+	}
+
+	function rename_survey_repos($old_repositoryid, $new_repositoryid)
+	{
+		$options=array(
+			'repositoryid'=>$new_repositoryid
+		);
+
+		$this->db->where("repositoryid",$old_repositoryid);
+		return $this->db->update("survey_repos",$options);
+	}
+
+	
+	
+
 }

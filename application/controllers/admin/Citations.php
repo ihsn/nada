@@ -8,7 +8,7 @@ class Citations extends MY_Controller {
     {
         parent::__construct();
 
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		$this->load->model('Citation_model');
 		$this->load->model('Resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );

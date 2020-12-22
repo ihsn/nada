@@ -1,3 +1,14 @@
+<style>
+.description{color:gray;font-size:11px;}
+.user-role{
+  text-transform:capitalize;
+}
+.user_groups{
+  padding-left:20px;
+}
+label{font-weight:bold;}
+.user-role{font-weight:normal;}
+</style>
 <div class='container-fluid users-create-page'>
 
 <div class="row">

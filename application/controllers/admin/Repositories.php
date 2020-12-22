@@ -248,11 +248,6 @@ class Repositories extends MY_Controller {
 			}
 							
 			if ($db_result===TRUE){
-				/*if (isset($options['ispublished']) && is_numeric($id)){
-					//update collection studies status
-					$this->publish($id,$options['ispublished']);
-				}*/
-			
 				//update successful
 				$this->session->set_flashdata('message', t('form_update_success'));
 				redirect("admin/repositories", "refresh");				
@@ -303,8 +298,6 @@ class Repositories extends MY_Controller {
 		$this->data['long_text']=$this->form_validation->set_value('long_text',$this->row_data['long_text']);
 		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
-		//$this->data['group_da_public']=$this->form_validation->set_value('group_da_public',$this->row_data['group_da_public']);
-		//$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
 		$this->data['section']=$this->form_validation->set_value('section',$this->row_data['section']);
 		
 		$content=$this->load->view('repositories/edit',NULL,true);									
@@ -351,16 +344,6 @@ class Repositories extends MY_Controller {
         libxml_use_internal_errors($libxml_error_setting);
 
         return wp_kses($html, $allowed_tags);
-        /*die();
-        $doc = new DOMDocument();
-        $doc->loadHTML($string);
-
-        $doc->removeChild($doc->firstChild);
-        echo $doc->saveXML();
-
-           echo str_replace("<body>","",$doc->saveHTML());
-        */
-
     }
 	
 	/**
@@ -497,8 +480,7 @@ class Repositories extends MY_Controller {
 		else
 		{
 			//ask for confirmation
-			$content=$this->load->view('repositories/delete', NULL,true);
-			
+			$content=$this->load->view('repositories/delete', NULL,true);			
 			$this->template->write('content', $content,true);
 	  		$this->template->render();
 		}		
@@ -515,27 +497,20 @@ class Repositories extends MY_Controller {
 	**/
 	function users($id=NULL)
 	{
-			show_error("feature no longer supported");
-/*		if (!is_numeric($id))
-		{
-			show_error("INVALID_ID");
-		}
-*/
+		show_error("feature no longer supported");
+
 		//get all repos
 		$repos=$this->repository_model->get_repositories();
 		
 		//get repository info from db
 		$repo=$this->repository_model->select_single($id);
 		
-		if (!$repo)
-		{
-			//show_error("NOT-FOUND");
+		if (!$repo){
 			$repo=current($repos);
 		}
 		
 		//get a list of all catalog-admins
 		$users=$this->ion_auth_model->get_admin_users('catalog-admin');
-		//$users=$this->repository_model->get_catalog_admins($id);
 				
 		//get user for the current repository
 		$repo_users=$this->repository_model->get_repository_admins($repo['id']);
@@ -617,9 +592,6 @@ class Repositories extends MY_Controller {
 		$this->Repository_model->clear_active_repo();
 	}
 	
-	
-	
-	
 	//publish/unpublish repository
 	function publish($id,$status)
 	{
@@ -633,12 +605,8 @@ class Repositories extends MY_Controller {
 		);
 		
 		$this->Repository_model->update($id,$options);
-
-        //publish/unpublish studies in the collection based on the publish status of the collection
-		//$this->Repository_model->update_repo_studies_status($id,$status);
 	}
-	
-	
+		
 
 	//change repo weight
 	function weight($id,$weight)
@@ -657,7 +625,8 @@ class Repositories extends MY_Controller {
 	
 	/**
 	*
-	*Show collection history
+	* Show collection history
+	*
 	**/
 	function history($repositoryid)
 	{

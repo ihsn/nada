@@ -18,14 +18,17 @@
         cursor:pointer;
     }
 
+    .page-link{
+        display:inline;
+    }
+
     .label-user{background:#f7af73;}
     .has-survey{color:green;}
     .no-survey{color:red;}
-    .has-flag{background:#f59443;}
-    .has-note{background:pink;}
+   
     .label-delete{background:gainsboro;}
 
-    .citation-title{font-size:14px;}
+    
     .citation-dated{font-size:12px;color:gray;padding-right:10px;}
 
     .citation-authors{color:gray;font-size:smaller;}
@@ -33,26 +36,8 @@
     .citation-content-container {border-left:1px solid gainsboro;padding-left:10px;}
     .citation-search{margin-bottom:10px;}
 
-    .search-filters .filter-header{
-        border-bottom:1px solid gainsboro;
-        position:relative;
-        padding-bottom:5px;
-    }
-
-    .search-filters .clear-all-filters{position:absolute;right:0px;top:0px;font-size:11px;}
-    .search-filters .clear-all-filters:hover {cursor:pointer; color:maroon;}
-    .sort_by_container{padding-left:20px;font-size:12px;}
-
-    .items-count{font-size:10px;color: gray;}
-    .label-url_status-0,
-    .label-url_status-2,
-    .label-url_status-3{
-        background:red;
-    }
-
-    .label-url_status-1{
-        background:green;
-    }
+    
+    
     
 </style>
 
@@ -72,15 +57,15 @@ $publish_options=array(
 ?>
 
 
-<div class="container-fluid citations-index-page">
+<div class="container-fluid content-fluid citations-index-page">
     <?php if (!isset($hide_form)):?>
-    <div class="pull-right page-links">
-        <a href="<?php echo site_url(); ?>/admin/citations/add" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('add_new_citation');?></a>
-        <a href="<?php echo site_url(); ?>/admin/citations/import" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('import_citation');?></a>
-        <a href="<?php echo site_url(); ?>/citations/export_all" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('export_to_csv');?></a>
+    <div class="page-links text-right m-4 pb-4">
+        <a href="<?php echo site_url(); ?>/admin/citations/add" class="btn btn-outline-primary btn-sm"><i class="fa fa-plus-circle" aria-hidden="true">&nbsp;</i><?php echo t('add_new_citation');?></a>
+        <a href="<?php echo site_url(); ?>/admin/citations/import" class="btn btn-outline-primary btn-sm"><i class="fa fa-arrow-circle-down" aria-hidden="true">&nbsp;</i></span><?php echo t('import_citation');?></a>
+        <a href="<?php echo site_url(); ?>/citations/export_all" class="btn btn-outline-primary btn-sm"><i class="fa fa-arrow-circle-right" aria-hidden="true">&nbsp;</i><?php echo t('export_to_csv');?></a>
     </div>    
 
-    <h1 class="page-title"><?php echo t('title_citations');?></h1>
+    <h1 class="page-title mb-3"><?php echo t('title_citations');?></h1>
 
     <?php $message=$this->session->flashdata('message');?>
     <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
@@ -89,19 +74,21 @@ $publish_options=array(
 
         <div class="col-md-2">
 
-            <div class="search-filters" >
+            <div class="card search-filters" >
 
-                <div class="filter-header">
-                    <h2>Refine by</h2>
-                    <div class="clear-all-filters btn btn-link">Clear all</div>
+                <div class="col form-row">
+                    <h6 class="col form-row mt-1">Refine by</h6>
+                    <h6 class="col form-row d-flex justify-content-end clear-all-filters btn btn-link">Clear all</h6>
                 </div>
+                
+                <hr>
 
                 <?php if (count($citation_flags)>0):?>
                     <div class="filter">
-                        <h3>Flags</h3>
+                        <h6 class="col form-row">Flags</h6>
                         <?php foreach($citation_flags as $flag_value):?>
                             <?php if($flag_value['flag']!=''):?>
-                                <div>
+                                <div class="col form-row" >
                                     <label for="flag-<?php echo $flag_value['flag'];?>">
                                         <input id="flag-<?php echo $flag_value['flag'];?>" type="checkbox" name="flag[]" value="<?php echo $flag_value['flag'];?>" <?php echo my_set_checkbox('flag', $flag_value['flag']); ?>/>
                                         <?php echo t($flag_value['flag']);?> <span class="items-count">[<?php echo $flag_value['total'];?>]</span>
@@ -110,33 +97,34 @@ $publish_options=array(
                         <?php endforeach;?>
                     </div>
                 <?php endif;?>
-
+            <hr>                           
                 <?php if(count($citation_creators)>0):?>
                     <div class="filter">
-                        <h3>By User</h3>
+                    <h6 class="col form-row">By User</h6>
                         <?php foreach($citation_creators as $creator):?>
-                            <div>
+                            <div class="col form-row">
                                 <label class="no-bold" for="user-<?php echo $creator['id'];?>"><input id="user-<?php echo $creator['id'];?>" type="checkbox" name="user[]" value="<?php echo $creator['id'];?>" <?php echo my_set_checkbox('user', $creator['id']); ?>/> <?php echo $creator['username'];?></label></div>
                         <?php endforeach;?>
                     </div>
                 <?php endif;?>
-
+                <hr> 
                 <div class="filter">
-                    <h3>Status</h3>
-                    <div><label for="published-all"><input id="published-all" type="radio" name="published" value="" <?php echo my_set_radio('published', ""); ?>/> All</label></div>
+                <h6 class="col form-row">Status</h6>
+                    <div class="col form-row">
+                    <label for="published-all"><input id="published-all" type="radio" name="published" value="" <?php echo my_set_radio('published', ""); ?>/> All</label></div>
                     <?php foreach($citation_publish_stats as $row):?>
-                        <div><label for="published-<?php echo $row['published'];?>">
+                        <div class="col form-row"><label for="published-<?php echo $row['published'];?>">
                                 <input id="published-<?php echo $row['published'];?>" type="radio" name="published" value="<?php echo $row['published'];?>" <?php echo my_set_radio('published', 1); ?>/>
                                 <?php echo t('published-status-'.$row['published']);?> <span class="items-count">[<?php echo $row['total'];?>]</span>
                             </label>
                         </div>
                     <?php endforeach;?>
                 </div>
-
+                <hr> 
                 <div class="filter">
-                    <h3>Other options</h3>
+                <h6 class="col form-row">Other options</h6>
                     <!--<div><label for="opt-no_surveys_attached"><input id="opt-no_surveys_attached" type="checkbox" name="no_survey_attached" value="1" <?php echo my_set_checkbox('no_survey_attached', 1); ?>/> has no surveys</label></div>-->
-                    <div><label for="opt-has_notes"><input id="opt-has_notes" type="checkbox" name="has_notes" value="1" <?php echo my_set_checkbox('has_notes', 1); ?>/> has notes</label></div>
+                    <div class="col form-row text-capitalize"><label for="opt-has_notes "><input id="opt-has_notes" type="checkbox" name="has_notes" value="1" <?php echo my_set_checkbox('has_notes', 1); ?>/> has notes</label></div>
                 </div>
 
                 <!--url status codes-->
@@ -164,18 +152,22 @@ $publish_options=array(
         <div class="citation-content-container col-md-10">
 
             <form class="form-horizontal top-margin-15" method="GET" id="citation-search">
-                <div class="form-group">
-                	<div class="col-md-6">
-                        <input class="citation-search form-control" type="text" size="60" name="keywords" id="keywords" value="<?php echo form_prep(get_form_value("keywords",$this->keywords)); ?>"/>
+                <div class="row form-group">
+                	<div class="col-md-auto">
+                    
+                        <input class="citation-search form-control-sm" type="text" size="60" name="keywords" id="keywords" value="<?php echo form_prep(get_form_value("keywords",$this->keywords)); ?>"/>
                         <input type="hidden" name="sort_by" value="rank" id="sort_by"/>
                         <input type="hidden" name="sort_order" value="DESC" id="sort_order"/>
                 	</div>
-                <input type="submit" value="<?php echo t('search');?>" name="search" class="btn btn-primary"/>
+                    <div class="form-group-sm">
+                    <input type="submit" value="<?php  echo t('search');?>" name="search" class="btn btn-primary btn-sm"/>
                 <?php if ($this->keywords!==FALSE && $this->keywords!==''): ?>
-                    <a href="<?php echo site_url();?>/admin/citations/?reset=1" class="btn btn-default"><?php echo t('reset');?></a>
+                    <a href="<?php echo site_url();?>/admin/citations/?reset=1" class="btn btn-secondary btn-sm"><?php echo t('reset');?></a>
                 <?php endif; ?>
                 <?php endif; ?>
                 </div>
+                </div>
+                
 
                 <?php if ($rows): ?>
                 <?php
@@ -228,21 +220,21 @@ $publish_options=array(
                     <div class="row citation-options">
                     <div class="col-md-5">
                     <div class="input-group">
-                        <select id="batch_actions_cit" class="form-control form-control-sm">
+                        <select id="batch_actions_cit" class="form-control-sm">
                             <option value="-1"><?php echo t('batch_actions');?></option>
                             <option value="delete"><?php echo t('delete');?></option>
                             <!--<option value="validate_url"><?php echo t('validate_publication_links');?></option>-->
                         </select>
                         <span class="input-group-btn">
-                            <input type="button" id="batch_actions_apply_cit" name="batch_actions_apply" value="<?php echo t('apply');?>" class="btn btn-default"/>
+                            <input type="button" id="batch_actions_apply_cit" name="batch_actions_apply" value="<?php echo t('apply');?>" class=" ml-3 btn btn-primary btn-sm"/>
                         </span>
                     </div>                    
                     </div>
 
 	    <div class="col-md-6">        	
         	 <div class="form-inline">
-             <label><span><?php echo t('sort');?>:</span></label>
-                <select id="select_sort_by" class="form-control">
+             <label><span class="col"><?php echo t('sort');?>:</span></label>
+                <select id="select_sort_by" class="form-control-sm">
                     <option value="rank" data-sort_by="rank" data-sort_order="DESC" <?php echo ($sort_=='rank_desc') ? 'selected="selected"' : "";?> ><?php echo t('Relevance');?></option>
                     <option value="title"  data-sort_by="title" data-sort_order="ASC" <?php echo ($sort_=='title_asc') ? 'selected="selected"' : "";?> ><?php echo t('Title ascending');?></option>
                     <option value="title"  data-sort_by="title" data-sort_order="DESC" <?php echo ($sort_=='title_desc') ? 'selected="selected"' : "";?> ><?php echo t('Title descending');?></option>
@@ -259,13 +251,13 @@ $publish_options=array(
         </div>
         </div>
                             </td>
-                            <td align="right">
-                                <div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+                            <td class="text-right">
+                                <div class="nada-pagination small"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
                             </td>
                         </tr>
                     </table>
 
-                    <table class="table table-striped table-bordered citation-resultset" width="100%" cellspacing="0" cellpadding="0">
+                    <table class="table table-striped table-bordered citation-resultset table-sm" width="100%" cellspacing="0" cellpadding="0">
                         <thead>
                         <tr class="header">
                             <th><input type="checkbox" value="-1" id="chkBox_toggle"/></th>
@@ -330,9 +322,9 @@ $publish_options=array(
                                 <td nowrap="nowrap"><?php echo $row->pub_year; ?>&nbsp;</td>
                                 <td nowrap="nowrap">
                                     <?php if($row->survey_count > 0):?>
-                                        <span class="has-survey" title="<?php echo $row->survey_count;?>"><span class="glyphicon glyphicon-th-large" aria-hidden="true"></span><?php //echo $row->survey_count;?></span>
+                                        <span class="has-survey" title="<?php echo $row->survey_count;?>"><i class="fa fa-th-large" aria-hidden="true" style="color:green;"></i><?php //echo $row->survey_count;?></span>
                                     <?php else:?>
-                                        <span class="no-survey" title="<?php echo $row->survey_count;?>"><span class="glyphicon glyphicon-th-large" aria-hidden="true"></span><?php //echo $row->survey_count;?></span>
+                                        <span class="no-survey" title="<?php echo $row->survey_count;?>"><i class="fa fa-th-large" aria-hidden="true" style="color:red;"></i><?php //echo $row->survey_count;?></span>
                                     <?php endif;?>
                                 </td>
                                 <!--
@@ -340,25 +332,25 @@ $publish_options=array(
                                     <span class="url_status-<?php echo $row->url_status;?>"><span class="glyphicon glyphicon-globe" aria-hidden="true" title="<?php echo t('url-status-'.$row->url_status);?>" ></span></span>
                                 </td>
                                 -->
-                                <td>
+                                <td nowrap="nowrap">
                                     <?php if (trim($row->notes)!==''):?>
-                                        <span class="has-note"><span class="glyphicon glyphicon-comment" aria-hidden="true" title="<?php echo $row->notes;?>" ></span></span>
-                                    <?php endif;?>
-                                </td>
-                                <td>
-                                    <?php if (trim($row->flag)!==''):?>
-                                        <a class="has-flag" href="<?php echo site_url(); ?>/admin/citations/?flag[]=<?php echo $row->flag; ?>"><span class="glyphicon glyphicon-tag ico-white" title="<?php echo $row->flag;?>" ></span></a>
+                                        <span class="has-note"><i class="fa fa-comment" aria-hidden="true" title="<?php echo $row->notes;?>" ></i></span>
                                     <?php endif;?>
                                 </td>
                                 <td nowrap="nowrap">
+                                    <?php if (trim($row->flag)!==''):?>
+                                        <a class="has-flag" href="<?php echo site_url(); ?>/admin/citations/?flag[]=<?php echo $row->flag; ?>"><i class="fa fa-tag" aria-hidden="true" title="<?php echo $row->flag;?>" ></i></a>
+                                    <?php endif;?>
+                                </td>
+                                <td class="nowrap">
                                     <span class="toggle_publish <?php echo ($row->published==1 ? 'published' : 'draft'); ?>" data-id="<?php echo $row->id;?>">
-                                        <span title="Published" class="label-published" data-published="1" ><span class="glyphicon glyphicon-ok-sign"></span><?php //echo t('published');?></span>
-                                        <span title="Draft" class="label-draft" data-published="0"><span class="glyphicon glyphicon-minus-sign"></span><?php //echo t('draft');?></span>
+                                        <span title="Published" class="label-published" data-published="1" ><i class="fa fa-check-circle" aria-hidden="true" style="color:green;"></i><?php //echo t('published');?></span>
+                                        <span title="Draft" class="label-draft" data-published="0"><i class="fa fa-minus-circle" aria-hidden="true" style="color:red;"></i><?php //echo t('draft');?></span>
                                     </span>
                                 </td>
                                 <td>
                                     <a title="<?php echo t('delete');?>" class="delete-record" href="<?php echo current_url();?>/delete/<?php echo $row->id;?>/?destination=<?php echo $this->uri->uri_string();?>">
-                                        <span class="glyphicon glyphicon-trash"></span>
+                                    <i class="far fa-trash-alt"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -368,24 +360,24 @@ $publish_options=array(
                     <table width="100%">
                         <tr>
                             <td>
-                                <div class="field">
+                                <div class="field small">
 								<?php echo t("select_number_of_records_per_page");?>:
                                 <?php echo form_dropdown('ps', array(5=>5,10=>10,20=>20,30=>30,50=>50,100=>100,500=>t('ALL')), get_form_value("ps",$this->per_page),'id="ps"'); ?>
                                 </div>
                             </td>
                             <td>
-                                <div class="nada-pagination pull-right">
+                                <div class="nada-pagination text-right small">
                                     <em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
                                 </div>
                             </td>
                         </tr>
                     </table>
 
-                    <div class="icon-legend">
+                    <div class="icon-legend small">
                         <!--<span class="glyphicon glyphicon-user"> </span> <?php echo t('icon_user');?>-->
-                        <span class="glyphicon glyphicon-th-large"> </span> <?php echo t('icon_related_study');?>
-                        <span class="glyphicon glyphicon-comment"> </span> <?php echo t('icon_note');?>
-                        <span class="glyphicon glyphicon-tag"> </span> <?php echo t('icon_flag');?>
+                        <i class="fa fa-th-large" aria-hidden="true" style="color:red;"></i> <?php echo t('icon_related_study');?>
+                        <i class="fa fa-comment" aria-hidden="true"></i> <?php echo t('icon_note');?>
+                        <i class="fa fa-tag" aria-hidden="true" style="color:#007bff;">&nbsp; </i><?php echo t('icon_flag');?>
                         <!--<span class="glyphicon glyphicon-globe"> </span> <?php echo t('publication_link_status');?>-->
                     </div>
                     <?php else: ?>
@@ -393,10 +385,12 @@ $publish_options=array(
                             <?php echo t('no_records_found');?>
                         </div>
                     <?php endif; ?>
+                <div class="mb-5"></div>
                 </form>
         </div>
 
     </div>
+    
     <script type='text/javascript' >
         //checkbox select/deselect
         jQuery(document).ready(function(){
