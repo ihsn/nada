@@ -180,7 +180,7 @@ $config['survey']=array(
     'study_desc/method/data_collection/sampling_procedure'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampProc', 'transform_callback'=>'none'),
 
     #sample frame
-    'study_desc/method/data_collection/sample_frame/name'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame', 'transform_callback'=>'none'),
+    'study_desc/method/data_collection/sample_frame/name'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/sampleFrameName', 'transform_callback'=>'none'),
     #todo - needs mapping
     'study_desc/method/data_collection/sample_frame/valid_period'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/validPeriod', 'transform_callback'=>'none','type'=>'array'),
     'study_desc/method/data_collection/sample_frame/custodian'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/custodian', 'transform_callback'=>'none'),
@@ -189,7 +189,7 @@ $config['survey']=array(
     #sample frame > frame unit
     'study_desc/method/data_collection/sample_frame/frame_unit/is_primary'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/frameUnit/@isPrimary', 'transform_callback'=>'none'),
     'study_desc/method/data_collection/sample_frame/frame_unit/unit_type'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/frameUnit/unitType', 'transform_callback'=>'none'),
-    'study_desc/method/data_collection/sample_frame/frame_unit/num_of_units'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/frameUnit/@numberOfUnits', 'transform_callback'=>'none'),
+    'study_desc/method/data_collection/sample_frame/frame_unit/num_of_units'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/frameUnit/unitType/@numberOfUnits', 'transform_callback'=>'none'),
 
     #todo - mapping needed
     'study_desc/method/data_collection/sample_frame/reference_period'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampleFrame/referencePeriod', 'transform_callback'=>'none','type'=>'array'),
