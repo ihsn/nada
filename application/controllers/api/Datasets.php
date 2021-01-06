@@ -469,15 +469,13 @@ class Datasets extends MY_REST_Controller
         	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
-			if ($type=='survey' || $type=='document' || $type=='table'){
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image'){
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{
 				//get existing metadata
 				$metadata=$this->dataset_manager->get_metadata($sid);
 
-				//unset($metadata['idno']);
-				
 				//replace metadata with new options
 				if($merge_metadata==true){
 					$options=array_replace_recursive($metadata,$options);

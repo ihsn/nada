@@ -81,6 +81,75 @@ class Dataset_image_model extends Dataset_model {
     }
 
 
+    function update_dataset($sid,$type,$options, $merge_metadata=false)
+	{
+        //need this to validate IDNO for uniqueness
+        $options['sid']=$sid;
+        
+        //merge/replace metadata
+        if ($merge_metadata==true){
+            $metadata=$this->get_metadata($sid);
+            if(is_array($metadata)){
+                unset($metadata['idno']);                
+                $options=$this->array_merge_replace_metadata($metadata,$options);
+                $options=array_remove_nulls($options);
+            }
+        }
+
+        //validate schema
+        $this->validate_schema($type,$options);
+
+        //get core fields for listing datasets in the catalog
+        $core_fields=$this->get_core_fields($options);
+        $options=array_merge($options,$core_fields);
+		
+		//validate IDNO field
+		$new_id=$this->find_by_idno($core_fields['idno']);
+
+		//if IDNO is changed, it should not be an existing IDNO
+		if(is_numeric($new_id) && $sid!=$new_id ){
+			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
+        }                
+
+        $options['changed']=date("U");
+        
+        //fields to be stored as metadata
+        $study_metadata_sections=array('metadata_information','image_description','files','additional');
+
+        foreach($study_metadata_sections as $section){		
+			if(array_key_exists($section,$options)){
+                $options['metadata'][$section]=$options[$section];
+                unset($options[$section]);
+            }
+        }                
+
+		//start transaction
+		$this->db->trans_start();
+        
+        $this->update($sid,$type,$options);
+        
+		//update years
+        $this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+        
+        //countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+
+		//set topics
+
+        //update tags
+        $this->update_survey_tags($sid, $this->get_tags($options['metadata']));
+
+		//set aliases
+
+		//set geographic locations (bounding box)
+
+		//complete transaction
+		$this->db->trans_complete();
+
+		return $sid;
+    }
+
+
     /**
 	 * 
 	 * get core fields 

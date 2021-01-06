@@ -842,6 +842,11 @@ class Dataset_model extends CI_Model {
 		$options=array();
 
 		foreach($topics as $topic){
+			
+			if (!isset($topic['vocab'])){
+				continue;//skip if no vocab is set
+			}
+
 			$vocab=$this->Vocabulary_model->get_vocabulary_by_title($topic['vocab']);
 
 			$topic_title=explode("[",$topic['topic']);
