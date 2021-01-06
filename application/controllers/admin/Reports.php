@@ -272,16 +272,22 @@ class Reports extends MY_Controller {
 			$date_type_idx[]=$idx;			
 		    }*/
 		    
-		    if (in_array($col,$date_columns))
-		    {
-			$date_columns_found[]=$col;			
+		    if (in_array($col,$date_columns)){
+				$date_columns_found[]=$col;			
 		    }
 		}
 
         //UTF8 BOM
         echo "\xEF\xBB\xBF";
 
-		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');	
+		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');
+		
+		//get data format
+		$date_format=$this->config->item('date_format_long');
+
+		if(!$date_format){
+			$date_format="Y/M/d H:i:s";
+		}
 	            
 		//data rows
 		foreach($rows as $row)
@@ -290,7 +296,7 @@ class Reports extends MY_Controller {
 		    {			
 				foreach($date_columns_found as $col)
 				{
-					$row[$col]=date("M/d/Y H:i:s", $row[$col]);
+					$row[$col]=date($date_format, $row[$col]); 
 				}			
 		    }
 		    
