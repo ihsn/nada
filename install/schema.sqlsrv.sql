@@ -101,23 +101,47 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_vocabularies on [dbo].[vocabularies](
 
 CREATE TABLE variables (
   uid int NOT NULL IDENTITY(1,1),
-  varID varchar(45) DEFAULT '',
-  name varchar(45) DEFAULT '',
-  labl varchar(245) DEFAULT '',
+  sid int NOT NULL,
+  fid varchar(45) DEFAULT '',
+  vid varchar(45) DEFAULT '',
+  name varchar(100) DEFAULT '',
+  labl varchar(255) DEFAULT '',
   qstn text,
   catgry text,
-  surveyid_FK int NOT NULL,
+  metadata text,
   PRIMARY KEY (uid)
 ) ;
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_variables on [dbo].[variables](
-	[varID] ASC,
-	[surveyid_FK] ASC
+	[vid] ASC,
+	[sid] ASC
 );
 
 CREATE INDEX IX_var_sidfk on [dbo].[variables](
-	[surveyid_FK] ASC
+	[sid] ASC
 );
+
+
+
+--
+-- Table structure for table variable_groups
+--
+
+CREATE TABLE variable_groups (
+  id int NOT NULL IdENTITY(1,1),
+  sid int DEFAULT NULL,
+  vgid varchar(45) DEFAULT NULL,
+  variables varchar(5000) DEFAULT NULL,
+  variable_groups varchar(500) DEFAULT NULL,
+  group_type varchar(45) DEFAULT NULL,
+  label varchar(255) DEFAULT NULL,
+  universe varchar(255) DEFAULT NULL,
+  notes varchar(500) DEFAULT NULL,
+  txt varchar(500) DEFAULT NULL,
+  definition varchar(500) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
 
 
 --
@@ -242,29 +266,13 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_topics on [dbo].[survey_topics](
 
 
 --
--- Table structure for table blocks
---
-
-CREATE TABLE blocks (
-  bid int NOT NULL IDENTITY(1,1),
-  title varchar(255) DEFAULT NULL,
-  body text,
-  region varchar(255) DEFAULT NULL,
-  weight int DEFAULT NULL,
-  published int DEFAULT NULL,
-  pages text,
-  PRIMARY KEY (bid)
-) ;
-
-
---
 -- Table structure for table survey_citations
 --
 
 CREATE TABLE survey_citations (
-  sid int DEFAULT NULL,
-  citationid int DEFAULT NULL,
   id int NOT NULL IDENTITY(1,1),
+  sid int DEFAULT NULL,
+  citationid int DEFAULT NULL,  
   PRIMARY KEY (id)
 ) ;
 
@@ -321,94 +329,44 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_grp_repo_access on [dbo].[group_repo_access]
 
 CREATE TABLE surveys (
   id int NOT NULL IDENTITY(1,1),
+  idno varchar(200) NOT NULL,
+  type varchar(15) DEFAULT NULL,
   repositoryid varchar(128) NOT NULL,
-  surveyid varchar(200) DEFAULT NULL,
-  titl varchar(255) DEFAULT '',
-  titlstmt text,
-  authenty varchar(max) DEFAULT NULL,
-  geogcover varchar(255) DEFAULT NULL,
-  nation varchar(100) DEFAULT '',
-  topic text,
-  scope text,
-  sername varchar(255) DEFAULT NULL,
-  producer varchar(max) DEFAULT NULL,
-  sponsor varchar(max) DEFAULT NULL,
-  refno varchar(255) DEFAULT NULL,
-  proddate varchar(45) DEFAULT NULL,
-  varcount decimal(10,0) DEFAULT NULL,
-  ddifilename varchar(255) DEFAULT NULL,
+  title varchar(255) DEFAULT '',
+  abbreviation varchar(45) DEFAULT NULL,
+  authoring_entity varchar(max) DEFAULT NULL,
+  nation varchar(150) DEFAULT '',
+  year_start int DEFAULT '0',
+  year_end int DEFAULT '0',
+  metafile varchar(255) DEFAULT NULL,
   dirpath varchar(255) DEFAULT NULL,
+  varcount int DEFAULT '0',
   link_technical varchar(255) DEFAULT NULL,
   link_study varchar(255) DEFAULT NULL,
   link_report varchar(255) DEFAULT NULL,
   link_indicator varchar(255) DEFAULT NULL,
-  ddi_sh char(2) DEFAULT NULL,
-  formid int DEFAULT NULL,
-  isshared int NOT NULL DEFAULT '1',
-  isdeleted int NOT NULL DEFAULT '0',
-  changed int DEFAULT NULL,
-  created int DEFAULT NULL,
   link_questionnaire varchar(255) DEFAULT NULL,
-  countryid int DEFAULT NULL,
-  data_coll_start int DEFAULT NULL,
-  data_coll_end int DEFAULT NULL,
-  abbreviation varchar(45) DEFAULT NULL,
-  kindofdata varchar(255) DEFAULT NULL,
-  keywords text,
-  ie_program varchar(255) DEFAULT NULL,
-  ie_project_id varchar(255) DEFAULT NULL,
-  ie_project_name varchar(255) DEFAULT NULL,
-  ie_project_uri varchar(255) DEFAULT NULL,
-  ie_team_leaders text,
-  project_id varchar(255) DEFAULT NULL,
-  project_name varchar(255) DEFAULT NULL,
-  project_uri varchar(255) DEFAULT NULL,
+  formid int DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
-  published tinyint DEFAULT NULL,
-  ft_keywords text,
+  published tinyint DEFAULT NULL,  
   total_views int DEFAULT '0',
   total_downloads int DEFAULT '0',
   stats_last_updated int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  created int DEFAULT NULL,
+  created_by int DEFAULT NULL,
+  changed_by int DEFAULT NULL,
+  thumbnail varchar(300) DEFAULT NULL,
+  metadata text,
+  variable_data text,
+  keywords text,  
   PRIMARY KEY (id)
 );
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_surveys on [dbo].[surveys](
-	[surveyid] ASC,
+	[id] ASC,
 	[repositoryid] ASC
 );
-
-
----------------------------------------------------------
--- trigger to populate fulltext field for SURVEYS
----------------------------------------------------------
-
-create TRIGGER surveys_ft
-ON surveys
-AFTER INSERT, UPDATE 
-AS
-BEGIN
-
-UPDATE surveys
-SET ft_keywords = ISNULL(cast(titlstmt as varchar(max)),'')
-					+ ' ' + ISNULL(nation,'') 
-					+ ' ' + ISNULL(link_da,'')
-					+ ' ' + ISNULL(surveyid,'')
-					+ ' ' + ISNULL(authenty,'')
-					+ ' ' + ISNULL(geogcover,'')
-					+ ' ' + ISNULL(cast(scope as varchar(max)),'')
-					+ ' ' + ISNULL(sername,'')
-					+ ' ' + ISNULL(producer,'')
-					+ ' ' + ISNULL(sponsor,'')
-					+ ' ' + ISNULL(abbreviation,'')
-					+ ' ' + ISNULL(kindofdata,'')
-					+ ' ' + ISNULL(cast(keywords as varchar(max)),'')
-					+ ' ' + ISNULL(project_name,'')
-					+ ' ' + ISNULL(project_id,'')
-					
-WHERE id IN (SELECT id FROM INSERTED)
-
-END;
-
 
 
 --
@@ -478,8 +436,14 @@ CREATE TABLE forms (
 -- Dumping data for table forms
 --
 set IDENTITY_INSERT forms ON;
-INSERT INTO forms (formid,fname,model,path,iscustom)
-VALUES (2,'Public use files','public','orderform.php','1'),(1,'Direct access','direct','direct.php','1'),(3,'Licensed data files','licensed','licensed.php','1'),(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),(5,'Data available from external repository','remote','remote','1'),(6,'Data not available','data_na','data_na','1');
+INSERT INTO forms (formid,fname,model,path,iscustom) VALUES 
+(2,'Public use files','public','orderform.php','1'),
+(1,'Direct access','direct','direct.php','1'),
+(3,'Licensed data files','licensed','licensed.php','1'),
+(4,'Data accessible only in data enclave','data_enclave','Application for Access to a Data Enclave.pdf','0'),
+(5,'Data available from external repository','remote','remote','1'),
+(6,'Data not available','data_na','data_na','1'),
+(7,'Open access','open','open','1');
 set IDENTITY_INSERT forms OFF;
 
 
@@ -524,6 +488,7 @@ CREATE TABLE lic_requests (
 
 CREATE TABLE citations (
   id int NOT NULL IDENTITY(1,1),
+  uuid varchar(50) NOT NULL,
   title varchar(255) NOT NULL,
   subtitle varchar(255) DEFAULT NULL,
   alt_title varchar(255) DEFAULT NULL,
@@ -557,7 +522,11 @@ CREATE TABLE citations (
   flag varchar(45) DEFAULT NULL,
   owner varchar(255) DEFAULT NULL,
   country varchar(100) DEFAULT NULL,
-  ihsn_id varchar(50) DEFAULT NULL,
+  url_status varchar(50) DEFAULT NULL,
+  created_by int DEFAULT NULL,
+  changed_by int DEFAULT NULL,
+  attachment varchar(300) DEFAULT NULL,
+  lang varchar(50) DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
@@ -680,6 +649,8 @@ CREATE TABLE users (
   last_login int NOT NULL,
   active tinyint DEFAULT NULL,
   authtype varchar(40) DEFAULT NULL,
+  otp_code varchar(45) DEFAULT NULL,
+  otp_expiry int DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
@@ -787,15 +758,7 @@ VALUES (5,2,'admin/catalog/copy_ddi'),(6,2,'admin/catalog/copy_study'),(7,2,'adm
 (71,1,'admin/catalog/refresh/*');
 set IDENTITY_INSERT repo_perms_urls OFF;
 
---
--- Table structure for table tokens
---
 
-CREATE TABLE tokens (
-  tokenid varchar(100) NOT NULL,
-  dated int NOT NULL,
-  PRIMARY KEY (tokenid)
-) ;
 
 
 --
@@ -1269,12 +1232,10 @@ INSERT INTO configurations VALUES ('year_search_weight','1',NULL,NULL,NULL);
 -- create a unique index or use the PK
 CREATE UNIQUE INDEX pk_idx_surveys ON dbo.surveys(id);
 
-go
 
 -- create a fulltext catalog if not created already
 CREATE FULLTEXT CATALOG ft AS DEFAULT;
 
-go
 
 --drop existing fulltext index
 DROP FULLTEXT INDEX ON surveys;
@@ -1282,23 +1243,10 @@ DROP FULLTEXT INDEX ON surveys;
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 ( 
-  abbreviation	Language 1033,
-  authenty		Language 1033,
-  geogcover		Language 1033,
-  keywords		Language 1033,
-  kindofdata	Language 1033,
-  nation		Language 1033,
-  producer		Language 1033,
-  refno			Language 1033,
-  scope			Language 1033,
-  sponsor		Language 1033,
-  titl			Language 1033,
-  titlstmt		Language 1033,
-  topic			Language 1033,
-  ft_keywords	Language 1033
+  keywords		Language 1033
  ) 
 KEY INDEX pk_idx_surveys ; 
-GO
+
 
 
 
@@ -1372,4 +1320,110 @@ CREATE TABLE survey_lic_requests (
 CREATE UNIQUE NONCLUSTERED INDEX IX_survey_lic_req on [dbo].[survey_lic_requests](
 	[request_id] ASC,
 	[sid] ASC
+);
+
+
+
+
+-- 
+-- Table structure for table 'data_files'
+--
+CREATE TABLE data_files (
+  id int NOT NULL identity(1,1),
+  sid int NOT NULL,
+  file_id varchar(100) DEFAULT NULL,
+  file_name varchar(255) DEFAULT NULL,
+  description text,
+  case_count int DEFAULT NULL,
+  var_count int DEFAULT NULL,
+  producer varchar(255) DEFAULT NULL,
+  data_checks varchar(255) DEFAULT NULL,
+  missing_data varchar(255) DEFAULT NULL,
+  version varchar(255) DEFAULT NULL,
+  notes varchar(255) DEFAULT NULL,
+  PRIMARY KEY (id)  
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_data_files on [dbo].[data_files](
+	[sid] ASC,
+	[file_id] ASC
+);
+
+
+--
+-- API KEYS table
+--
+CREATE TABLE api_keys (
+  id int NOT NULL identity(1,1),
+  api_key varchar(40) NOT NULL,
+  level int NOT NULL,
+  ignore_limits tinyint NOT NULL DEFAULT '0',
+  ip_addresses text,
+  date_created int NOT NULL,
+  user_id int DEFAULT NULL,
+  is_private_key int NOT NULL DEFAULT '0',
+  PRIMARY KEY (id),
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys on [dbo].[api_keys](
+	[api_key] ASC
+);
+
+
+--
+-- API Logs table
+--
+CREATE TABLE api_logs (
+  id int NOT NULL identity(1,1),
+  uri varchar(255) NOT NULL,
+  method varchar(6) NOT NULL,
+  params text,
+  api_key varchar(40) NOT NULL,
+  ip_address varchar(45) NOT NULL,
+  time int NOT NULL,
+  rtime float DEFAULT NULL,
+  authorized varchar(1) NOT NULL,
+  response_code smallint DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+
+CREATE TABLE data_files_resources (
+  id INT NOT NULL identity(1,1),
+  sid INT NULL,
+  fid VARCHAR(45) NULL,
+  resource_id INT NULL,
+  file_format VARCHAR(45) NULL,
+  api_use TINYINT NULL,
+  PRIMARY KEY (id)
+  );
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_data_files_resources on [dbo].[data_files_resources](
+	[sid] ASC,
+	[resource_id] ASC
+);
+
+
+
+CREATE TABLE survey_locations (
+  id int NOT NULL identity(1,1),
+  sid int DEFAULT NULL,
+  location text NOT NULL,
+  PRIMARY KEY (id)  
+);
+
+
+CREATE TABLE filestore (
+  id int NOT NULL identity(1,1),
+  file_name varchar(255) DEFAULT NULL,
+  file_path varchar(500) DEFAULT NULL,
+  file_ext varchar(10) DEFAULT NULL,
+  is_image tinyint DEFAULT NULL,
+  changed int DEFAULT NULL,
+  PRIMARY KEY (id)  
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_filestore on [dbo].[filestore](	
+	[file_name] ASC
 );
