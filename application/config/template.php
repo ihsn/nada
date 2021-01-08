@@ -84,8 +84,8 @@ $template['installer']['theme_folder'] = 'nada';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/nada/blank';
-$template['blank']['theme_folder'] = 'nada';
+$template['blank']['template'] = '../../themes/bootstrap4/blank';
+$template['blank']['theme_folder'] = 'bootstrap4';
 
 $template['blank_iframe']['template'] =  '../../themes/wb2/blank';
 $template['blank_iframe']['theme_folder'] = 'wb2';
@@ -99,6 +99,11 @@ $template['box']['theme_folder'] = 'opendata';
 //admin template file
 $template['admin']['template'] = '../../themes/adminbt/index';
 $template['admin']['theme_folder'] = 'adminbt';
+
+//admin template file
+$template['admin5']['template'] = '../../themes/adminbt4/index';
+$template['admin5']['theme_folder'] = 'adminbt4';
+
 
 //blank admin template with all stylesheets included
 $template['admin_blank']['template'] = '../../themes/adminbt/blank';

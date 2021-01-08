@@ -134,6 +134,9 @@ $route['catalog/(:num)/variable-groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
+//timeseries db info page
+$route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
+
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
 $route['catalog/(:num)/variable_groups/(.*)'] = "study/variable_groups/$1/$2";
 $route['catalog/(:num)/vargrp/(.*)'] = "study/variable_groups/$1/$2";

@@ -55,7 +55,24 @@ class Solr extends MY_Controller {
 	 * */
 	public function full_import_surveys($start_row=NULL, $limit=10, $loop=FALSE)
 	{		
-		$this->solr_manager->full_import_surveys($start_row, $limit, $loop);
+        $result=$this->solr_manager->full_import_surveys($start_row, $limit, false);
+        
+        var_dump($result);
+
+        if($loop ==true && $result['last_row_id'] > 0){
+            $this->full_import_surveys($result['last_row_id'], $limit, $loop);
+        }
+	}
+
+	function dataset_to_json($start_row=NULL, $limit=10, $loop=FALSE)
+	{
+		$result=$this->solr_manager->dataset_to_json($start_row, $limit, $loop_=FALSE);
+
+		var_dump($result);
+		
+		if($loop ==true && $result['last_row_id'] > 0){
+            $this->dataset_to_json($result['last_row_id'], $limit, $loop);
+        }
 	}
 
 
@@ -88,10 +105,13 @@ class Solr extends MY_Controller {
 	 * */
 	public function full_import_variables($start_row=NULL, $limit=100, $loop=FALSE)
 	{
-		$result=$this->solr_manager->full_import_variables($start_row, $limit, $loop);
+		$result=$this->solr_manager->full_import_variables($start_row, $limit, false);
 
-		echo '<pre>';
-		print_r($result);
+        var_dump($result);
+
+        if($loop ==true && $result['last_row_id'] > 0){
+            $this->full_import_variables($result['last_row_id'], $limit, $loop);
+        }
 	}
 
 

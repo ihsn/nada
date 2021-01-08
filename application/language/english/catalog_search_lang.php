@@ -9,8 +9,12 @@ $lang['msg_website_redirect']="You are being redirected to the website:";
 $lang['link_export_search']="Export search result";
 $lang['link_search_help']="Search help";
 $lang['rss_feed']="RSS feed";
-$lang['filter_by_country']="Filter by Country";
-$lang['filter_by_topic']="Filter by Topic";
+
+$lang['filter_by_dtype']="License";
+$lang['filter_by_type']="Data Type";
+$lang['select_all']="Select all";
+$lang['filter_by_country']="Countries";
+$lang['filter_by_topic']="Topics";
 $lang['link_select_all']="Select all";
 $lang['link_clear']="Clear";
 $lang['link_toggle']="Toggle";
@@ -107,6 +111,22 @@ $lang['legend_data_enclave']="Data enclave";
 $lang['legend_data_open']="Open data access";
 $lang['legend_data_remote']="Data available from external repository";
 $lang['legend_data_data_na']="No microdata is available";
+$lang['legend_data_cc40']="Creative commons 4.0";
+$lang['legend_data_research']="Research microdata";
+$lang['legend_data_research_public']="Public research microdata";
+$lang['legend_data_research_license']="Research microdata with license";
+$lang['legend_data_research_public_lic']="Public research microdata with license";
+
+$lang['data_class_public']="Public";
+$lang['data_class_official']="Official";
+$lang['data_class_confidential']="Confidential";
+
+$lang['license']='License';
+
+$lang['data_class_note_public']="This dataset is classified as Public under the Access to Information Classification Policy. Staff and external Users can access this dataset.";
+$lang['data_class_note_official']="This dataset is classified as Official under the Access to Information Classification Policy. Access to data is limited to Staff only.";
+$lang['data_class_note_confidential']="This dataset is classified as Confidential under the Access to Information Classification Policy. Access to data is limited to Staff only.";
+
 $lang['no_variables_to_compare']="You have not selected any variables to compare. Please go back and select some variables and then run the comparison again.";
 $lang['refno']="Reference ID";
 $lang['accesspolicy']="Access Policy";
@@ -124,7 +144,7 @@ $lang['data_enclave_description']="Related documentation is made freely availabl
 $lang['data_remote_description']="Related documentation is made freely available to users. The datasets are held in catalogs outside or at other institutions.";
 $lang['data_na_description']="Related documentation is made freely available to users. The datasets are however not available for these studies.";
 $lang['data_open_description']="Datasets and the related documentation are made available freely to users.";
-$lang['filter_by_data']="Filter by Data Access";
+$lang['filter_by_data']="Data Access";
 $lang['legend_na_access']="Data not available";
 $lang['central_data_catalog']="Central Data Catalog";
 $lang['data_catalogs']="Data Catalogs";
@@ -141,10 +161,7 @@ $lang['search_no_results']="<p><strong>Your search did not match any studies hel
 <li>Try searching in the variable description field if you searched in the study description field.</li>
 </ul>
 ";
-$lang['filter_by_center']="Filter by Center";
-$lang['js_centers_selected']="centers selected";
-$lang['js_center_selected']="center selected";
-$lang['filter_by_collection']="Filter by Collection";
+$lang['filter_by_collection']="Collections";
 $lang['js_collections_selected']="collections selected";
 $lang['js_collection_selected']="collection selected";
 $lang['contributing_catalogs']="Contributing Catalogs";
@@ -170,7 +187,7 @@ $lang['reset_search']="Reset search";
 $lang['prev']="Prev";
 $lang['next']="Next";
 $lang['search_by_keyword']="Search by Keyword";
-$lang['filter_by_year']="Filter by Year";
+$lang['filter_by_year']="Years";
 $lang['any']="All";
 $lang['views']="Views";
 $lang['metadata']="Metadata";
@@ -197,6 +214,42 @@ $lang['cases']="Cases";
 $lang['metadata_in_json']="JSON";
 $lang['metadata_in_ddi_xml']="DDI Codebook (2.5)";
 $lang['metadata']="Metadata";
+
+$lang['tab_document']="Documents";
+$lang['tab_geospatial']="Geospatial";
+$lang['tab_image']="Images";
+$lang['tab_script']="Scripts";
+$lang['tab_table']="Tables";
+$lang['tab_timeseries']="Time series";
+$lang['tab_visualization']="Visualizations";
+$lang['tab_survey']="Microdata";
+
+$lang['from']="From";
+$lang['to']="To";
+
+$lang['filter_by_tag']="Tags";
+
+
+$lang['data_classification']="Data classification";
+$lang['select_data_classification']="Select data classification";
+$lang['filter_by_data_class']="Data classifications";
+
+$lang['Photo']='Image';
+
+$lang['geospatial_description']="Description";
+$lang['timeseries_description']="Series Description";
+$lang['timeseries_db']="Source database";
+$lang['document_description']="Document Description";
+$lang['table_description']="Table Description";
+$lang['image_description']="Image Description";
+$lang['script_description']="Project Description";
+$lang['visualization_description']="Visualization Description";
+$lang['microdata_description']="Study Description";
+$lang['data_dictionary']="Data Description";
+$lang['get_microdata']="Get Microdata";
+$lang['related_materials']="Resources";
+$lang['related_citations']="Related Publications";
+
 
 
 /* End of file catalog_search_lang.php */

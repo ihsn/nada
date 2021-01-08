@@ -60,7 +60,8 @@ $autoload['libraries'] = array(
 							'MY_Exception',
 							'ion_auth',
 							'breadcrumb',
-							'events'
+							'events',
+							'acl_manager'
 							);
 
 /*

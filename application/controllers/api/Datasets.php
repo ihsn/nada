@@ -16,6 +16,34 @@ class Datasets extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		//session user id
+		if ($this->session->userdata('user_id'))
+		{
+			//var_dump($this->session->userdata('user_id'));
+			return true;
+		}
+
+		parent::_auth_override_check();
+	}
+
+
+	//override to support sessions
+	function get_api_user_id()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
+		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->_apiuser->user_id;
+		}
+
+		return false;
+	}
 	
 	/**
 	 * 
@@ -46,6 +74,11 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	function index_delete($idno=null)
+	{
+		return $this->delete_delete($idno);
 	}
 
 
@@ -83,6 +116,97 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 * Check if a study IDNO exists
+	 * 
+	 */
+	function check_idno_get($idno=null)
+	{
+		try{
+			$sid=$this->dataset_manager->find_by_idno($idno);
+			
+			if ($sid){
+				$response=array(
+					'status'=>'success',
+					'idno'=>$idno,
+					'id'=>$sid
+				);			
+				$this->set_response($response, REST_Controller::HTTP_OK);
+			}
+			else{
+				$response=array(
+					'status'=>'not-found',
+					'idno'=>$idno,
+					'message'=>'IDNO NOT FOUND'
+				);
+				$this->set_response($response, REST_Controller::HTTP_NOT_FOUND);
+			}
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * Replace study IDNO
+	 * 
+	 */
+	function replace_idno_post()
+	{
+		try{
+			$input=$this->raw_json_input();			
+
+				
+			$old_idno=array_get_value($input,'old_idno');
+			$new_idno=array_get_value($input,'new_idno');
+
+			if (empty($old_idno) || empty($new_idno)){
+				throw new Exception("OLD_IDNO and NEW_IDNO parameters not set");
+			}
+			
+			$sid=$this->Dataset_model->get_id_by_idno($old_idno);
+
+			if(!$sid){
+				throw new Exception("OLD_IDNO was not found");
+			}
+
+			if($new_sid=$this->Dataset_model->get_id_by_idno($new_idno)){
+				throw new Exception("NEW_IDNO already in use: ".$new_sid);
+			}
+
+			$options=array(
+				'idno'=>$new_idno
+			);
+			
+			$this->Dataset_model->update_options($sid,$options);
+
+			$response=array(
+				'status'=>'success',
+				'new_idno'=>$new_idno,
+				'id'=>$sid
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 
 
 	/**
@@ -105,12 +229,17 @@ class Datasets extends MY_REST_Controller
 
 			$options=array(				
 				'repositoryid'			=> array_get_value($input,'owner_collection'),
-				'formid'				=> $this->dataset_manager->get_data_access_type_id(array_get_value($input,'access_policy')),
+				'formid'				=> array_get_value($input,'access_policy'),
 				'link_da'				=> array_get_value($input,'data_remote_url'),
 				'published'				=> array_get_value($input,'published'),
 				'link_study'			=> array_get_value($input,'link_study'),
-				'link_indicator'		=> array_get_value($input,'link_indicator')
+				'link_indicator'		=> array_get_value($input,'link_indicator'),
+				'thumbnail'				=> array_get_value($input,'thumbnail')
 			);
+
+			if(!empty($options['formid'])){
+				$options['formid']=$this->dataset_manager->get_data_access_type_id($options['formid']);
+			}
 
 			//remove options not set
 			foreach($options as $key=>$value){
@@ -120,7 +249,7 @@ class Datasets extends MY_REST_Controller
 			}
 
 			//validate
-			$this->dataset_manager->validate_options($options);
+			//$this->dataset_manager->validate_options($options);
 			
 			//update
 			$this->dataset_manager->update_options($sid,$options);
@@ -162,18 +291,66 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("PARAM-MISSING::SID");
 			}
 			
-			$result=$this->dataset_manager->get_row($sid);
+			$idno=$this->dataset_manager->get_idno($sid);
 
-			if($result){
-				$response=array(
-					'status'=>'success',
-					'dataset'=>$result
-				);
+			if(!$idno){
+				throw new Exception("ID_NOT_FOUND");
 			}
-			else{
-				throw new Exception("DATASET_NOT_FOUND");
+
+			return $this->single_get($idno);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * Create timeseries database
+	 * 
+	 * 
+	 */
+	private function create_timeseries_database($idno=null)
+	{
+		$this->load->model('Timeseries_db_model');
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+						
+			//validate & create dataset
+			$db_id=$this->Timeseries_db_model->create_database($options);
+
+			if(!$db_id){
+				throw new Exception("FAILED_TO_CREATE_DATABASE");
 			}
+
+			$database=$this->Timeseries_db_model->get_row($db_id);
+			
+			$response=array(
+				'status'=>'success',
+				'database'=>$database
+			);
+
 			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -194,6 +371,10 @@ class Datasets extends MY_REST_Controller
 	 */
 	function create_post($type=null,$idno=null)
 	{
+		if($type=='timeseries-db'){
+			return $this->create_timeseries_database($idno);
+		}
+
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -225,6 +406,7 @@ class Datasets extends MY_REST_Controller
 			);
 
 			$this->dataset_manager->update_options($dataset_id,$update_options);
+			$this->events->emit('db.after.update', 'surveys', $dataset_id,'import');
 
 			$response=array(
 				'status'=>'success',
@@ -237,14 +419,14 @@ class Datasets extends MY_REST_Controller
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
-				'errors'=>$e->GetValidationErrors()
+				'errors'=>(array)$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage()
+				'message'=>$e->getMessage() 
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -271,28 +453,43 @@ class Datasets extends MY_REST_Controller
 			//load dataset
 			$dataset=$this->dataset_manager->get_row($sid);
 
-			//get existing metadata
-			$metadata=$dataset['metadata'];
-
-			unset($metadata['idno']);
-
-			//replace metadata with new options
-			$options=array_replace_recursive($metadata,$options);
-
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
-			//$options['sid']=$sid;
 
+			//default to merge metadata and update partial metadata
+			$merge_metadata=true;
+
+			if(isset($options['merge_options'])){
+				if($options['merge_options']=='replace'){
+					$merge_metadata=false;//replace instead of merge
+				}
+			}
+
+			//merge dataset cataloging options
+        	$options=array_merge($dataset,$options);
 			
-			//validate & update dataset
-			$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options);
+			//validate & update dataset			
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image'){
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
+			}
+			else{
+				//get existing metadata
+				$metadata=$this->dataset_manager->get_metadata($sid);
+
+				//replace metadata with new options
+				if($merge_metadata==true){
+					$options=array_replace_recursive($metadata,$options);
+				}
+
+				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
+			}
 
 			//load updated dataset
-			$dataset=$this->dataset_manager->get_row_detailed($dataset_id);
+			$dataset=$this->dataset_manager->get_row($dataset_id);
 
 			$response=array(
 				'status'=>'success',
-				'dataset'=>$dataset
+				'dataset'=>$dataset				
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -497,6 +694,7 @@ class Datasets extends MY_REST_Controller
 	function variables_post($idno=null,$file_id=null,$type='survey')
 	{
 		try{
+			$options=array();
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
@@ -725,9 +923,6 @@ class Datasets extends MY_REST_Controller
 	 **/ 
 	function import_post($type)
 	{
-		$this->load->library('ion_auth');
-		$this->load->library('acl');
-
 		$overwrite=$this->input->post("overwrite")=='yes' ? TRUE : FALSE;
 		$repositoryid=$this->input->post("repositoryid");
 		//$survey_type='geospatial';
@@ -743,7 +938,8 @@ class Datasets extends MY_REST_Controller
 
 		try{
 			//user has permissions on the repo or die
-			$this->acl->user_has_repository_access($repositoryid,$this->get_api_user_id());
+			//$this->acl->user_has_repository_access($repositoryid,$this->get_api_user_id());
+			$this->acl_manager->has_access('study', 'create',$this->api_user(),$repositoryid);
 					
 			//process form
 			$temp_upload_folder=get_catalog_root().'/tmp';
@@ -758,6 +954,7 @@ class Datasets extends MY_REST_Controller
 
 			//process file urls
 			$file_url=$this->input->post("file");
+			
 			if(empty($_FILES['file']) && !empty($file_url) && $this->form_validation->valid_url($file_url)) {
 				$uploaded_ddi_path=$temp_upload_folder.'/'.md5($file_url).'.xml';
 				
@@ -911,6 +1108,7 @@ class Datasets extends MY_REST_Controller
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$this->dataset_manager->delete($sid);
+			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
 			$response=array(
 				'status'=>'success',
@@ -932,6 +1130,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$this->dataset_manager->delete($sid);
+			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
 			$response=array(
 				'status'=>'success',
@@ -967,6 +1166,7 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("MISSING_PARAMS");
 			}
 			$this->dataset_manager->set_publish_status($sid,$publish_status);
+			$this->events->emit('db.after.update', 'surveys', $sid,'publish');
 			$this->set_response('UPDATED', REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -1013,6 +1213,7 @@ class Datasets extends MY_REST_Controller
 
 			//transfer ownership
 			$this->Catalog_model->transfer_ownership($repositoryid,$sid);
+			$this->events->emit('db.after.update', 'surveys', $sid);
 			$this->set_response(t('msg_study_ownership_has_changed'), REST_Controller::HTTP_OK);		
 		}
 		catch(Exception $e){
@@ -1021,7 +1222,8 @@ class Datasets extends MY_REST_Controller
 	}
 
 	//list data access types
-	function list_data_access_types_get(){
+	function list_data_access_types_get()
+	{
 		$this->load->model("Form_model");
 		$types=$this->Form_model->data_access_types_list();
 		$this->set_response($types, REST_Controller::HTTP_OK);		
@@ -1129,6 +1331,34 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	function thumbnail_delete($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+
+			$options=array(				
+				'thumbnail'	=> null,
+			);
+
+			//update
+			$this->dataset_manager->update_options($sid,$options);
+
+			$response=array(
+				'status'=>'success'				
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 
 	/**
 	*
@@ -1179,6 +1409,7 @@ class Datasets extends MY_REST_Controller
 			);
 
 			$this->dataset_manager->update_options($id,$update_options);
+			$this->events->emit('db.after.update', 'surveys', $id,'refresh');
 
 			$output=array(
 				'status'=>'success',
@@ -1330,6 +1561,253 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 *  Reload facets/filters
+	 * 
+	 * @sid - study id
+	 * 
+	 */
+	public function refresh_filters_put($idno=null)
+	{		
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$this->dataset_manager->refresh_filters($sid);
+
+			$output=array(
+				'status'=>'success'				
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+	/**
+	 * 
+	 *  Reload year facets
+	 * 
+	 * @sid - study id
+	 * 
+	 */
+	public function refresh_year_facets_get($start_row=NULL, $limit=1000)
+	{		        
+        try{
+			$output=$this->Dataset_model->refresh_year_facets($start_row, $limit);
+			$output=array(
+                'status'=>'success',
+                'result'=>$output
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+            $error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
+		}
+    }
+
+	/**
+	 * 
+	 *  Batch Reload facets/filters by dataset type
+	 * 
+	 * @dataset_type - dataset type - microdata, timeseries, etc
+	 * @limit - number of items to process per request
+	 * @start - starting dataset id
+	 * 
+	 */
+	public function batch_refresh_filters_get($dataset_type=null, $limit=100, $start=0)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if ($dataset_type==null){
+				throw new Exception("DATASET_TYPE_IS_REQUIRED");
+			}
+
+			if(!is_numeric($start)){
+				throw new Exception("PARAM:START-INVALID");
+			}
+			
+			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			
+			$output=array();
+			foreach($datasets  as $dataset){
+				$this->dataset_manager->refresh_filters($dataset['id']);
+				$output[]=$dataset['id'];
+				$last_processed=$dataset['id'];
+			}
+			
+			$output=array(
+				'status'=>'success',
+				'datasets_updated'=>$output,
+				'last_processed'=>$last_processed			
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
+	/**
+	 * 
+	 *  Batch repopulate index
+	 * 	 
+	 * @limit - number of items to process per request
+	 * @start - starting dataset id
+	 * 
+	 */
+	public function batch_repopulate_index_put($dataset_type=null, $limit=100, $start=0)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if ($dataset_type==null){
+				throw new Exception("DATASET_TYPE_IS_REQUIRED");
+			}
+
+			if(!is_numeric($start)){
+				throw new Exception("PARAM:START-INVALID");
+			}
+			
+			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			
+			$output=array();
+			foreach($datasets  as $dataset){
+				$this->dataset_manager->repopulate_index($dataset['id']);
+				$output[]=$dataset['id'];
+				$last_processed=$dataset['id'];
+			}
+			
+			$output=array(
+				'status'=>'success',
+				'datasets_updated'=>$output,
+				'last_processed'=>$last_processed			
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
+	/**
+	 * 
+	 *  Repopulate index for a single study
+	 * 	 
+	 * 
+	 */
+	public function repopulate_index_get($idno=null)
+	{		
+		try{
+			$user_id=$this->get_api_user_id();
+			$sid=$this->get_sid_from_idno($idno);
+						
+			$result=$this->dataset_manager->repopulate_index($sid);
+			
+			$output=array(
+				'status'=>'success',
+				'result'=>$result				
+			);
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}				
+	}
+
+
+
+	function import_geospatial_post()
+	{
+		$overwrite=$this->input->post("overwrite");
+		$repositoryid=$this->input->post("repositoryid");
+		$dataset_type='geospatial';
+
+		if (!$repositoryid){
+			$repositoryid='central';
+		}
+
+		try{
+					
+			//process form
+			$temp_upload_folder=get_catalog_root().'/tmp';
+			
+			if (!file_exists($temp_upload_folder)){
+				@mkdir($temp_upload_folder);
+			}
+			
+			if (!file_exists($temp_upload_folder)){
+				show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
+			}
+
+			//process file urls
+			$file_url=$this->input->post("file");
+			
+			if(empty($_FILES['file']) && !empty($file_url) && $this->form_validation->valid_url($file_url)) {
+				$uploaded_file_path=$temp_upload_folder.'/'.md5($file_url).'.xml';
+				
+				//download file from URL 
+				$file_content=@file_get_contents($file_url);
+				if($file_content===FALSE){
+					throw new Exception("FAILED-TO-READ-FILE-URL");
+				}
+
+				if (!file_exists($uploaded_file_path)){
+					//save to tmp 		
+					if (file_put_contents($uploaded_file_path,$file_content)===FALSE){
+						throw new Exception("FILE-UPLOAD-VIA-URL-FAILED");
+					}
+				}
+			}
+			//process file uploads
+			else{
+				$uploaded_file_path=$this->process_file_upload($temp_upload_folder,$allowed_file_types='xml',$file_field_name='file');
+			}
+
+			$options=array();
+			$user_id=$this->get_api_user_id();
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+			$options['published']=$this->input->post("published");			
+			$options['overwrite']=$overwrite;
+			$options['repositoryid']=$repositoryid;
+		
+			$this->load->library('Geospatial_import');
+			$result=$this->geospatial_import->import($uploaded_file_path, $options);
+			unlink($uploaded_file_path);
+			
+			$response=array(
+				'status'=>'success',
+				'dataset'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 
 
@@ -1485,7 +1963,6 @@ class Datasets extends MY_REST_Controller
 				'dataset_variables'=>$dataset['varcount'],
 				'output'=>  $report_file
 			);
-
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
@@ -1505,4 +1982,36 @@ class Datasets extends MY_REST_Controller
 		}
 	}
 
+
+
+	/**
+	 * 
+	 * Return indexed keywords for the study
+	 * 
+	 */
+	function keywords_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->get_keywords($sid);			
+				
+			if(!$result){
+				throw new Exception("DATASET_NOT_FOUND");
+			}
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+	
 }

@@ -165,3 +165,5 @@ $lang['image_description']='Image description';
 $lang['metadata_production']='Metadata production';
 $lang['identification']='Identification';
 
+$lang['metadata.image_description.tags']='Tags';
+$lang['metadata.image_description.tags.tag']='Tag';

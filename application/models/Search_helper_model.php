@@ -244,12 +244,39 @@ class Search_helper_model extends CI_Model {
 		return FALSE;
 	}
 
+	
+	/**
+	* Return min/max years 
+	*
+	*/
+	function get_min_max_years($published=1)
+	{
+		$this->db->select_min('year_start','min_year');
+		$this->db->select_max('year_end','max_year');
+		$this->db->where('year_start > 0'); 
+
+		if($published==1 || $published==0){
+			$this->db->where('published',$published); 
+		}
+
+		$result=$this->db->get('surveys')->row_array();
+
+		if ($result){
+			return $result;
+		}
+		
+		return array(
+			'min_year'=>0,
+			'max_year'=>0
+		);
+	}
+
 		
 	/**
 	* Get start and End data collection years
 	*
 	*/
-	function get_collection_years()
+	/*function get_collection_years()
 	{
 		//get start years
 		$sql='select year_start from surveys
@@ -284,7 +311,7 @@ class Search_helper_model extends CI_Model {
 		}
 		
 		return $years;		
-	}
+	}*/
 
 	/**
 	* Topics with survey counts 
@@ -320,23 +347,22 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_active_countries($repositoryid=NULL)
 	{
-		$this->db->select('cid,countries.name as nation, count(cid) as surveys_found');
+		$this->db->select('cid as id,countries.name as title, count(cid) as found');
 		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
 		$this->db->join('countries', 'countries.countryid=survey_countries.cid','inner');
 		$this->db->order_by('countries.name','ASC');
 		$this->db->group_by('cid,countries.name','ASC');
 		$this->db->where('surveys.published',1);
 		$this->db->where('survey_countries.cid >',0);
-		if($repositoryid!=NULL)
-		{
+
+		if($repositoryid!=NULL){
 			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 		
 		$query=$this->db->get('survey_countries');
 		
-		if(!$query)
-		{
+		if(!$query){
 			return FALSE;
 		}
 		
@@ -345,10 +371,78 @@ class Search_helper_model extends CI_Model {
 		$countries=array();
 		foreach($rows as $country)
 		{
-			$countries[$country['cid']]=$country;
+			$countries[$country['id']]=$country;
 		}
 		
 		return $countries;
+	}
+
+
+	public function get_active_repositories()
+	{
+		$this->db->select('r.repositoryid as id,r.pid,r.title,r.repositoryid,count(sr.sid) as found');
+		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
+		$this->db->join('surveys', 'sr.sid= surveys.id','INNER');
+		$this->db->where('r.ispublished',1);
+		$this->db->where('surveys.published',1);
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.weight');
+		$this->db->order_by('r.weight');		
+		$query=$this->db->get('repositories r');
+		
+		if (!$query){
+			return FALSE;
+		}
+		
+		$rows=$query->result_array();
+		
+		$repositories=array();
+		foreach($rows as $repository)
+		{
+			$repositories[$repository['id']]=$repository;
+		}
+		
+		return $repositories;
+	}
+
+	
+	/**
+	 * 
+	 * 
+	 * Get tags
+	 * 
+	 */
+	function get_active_tags($repositoryid=NULL,$data_type=NULL)
+	{
+			$this->db->select('tag as id, tag as title, count(tag) as found');
+			$this->db->join('surveys', 'surveys.id=survey_tags.sid','inner');
+			$this->db->order_by('survey_tags.tag','DESC');
+			$this->db->group_by('survey_tags.tag');
+			$this->db->where('surveys.published',1);
+			
+			if($repositoryid!=NULL){
+				$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
+				$this->db->where('survey_repos.repositoryid',$repositoryid);
+			}
+
+			if($data_type!=NULL){
+				$this->db->where('surveys.type',$data_type);
+			}
+			
+			$query=$this->db->get('survey_tags');
+			
+			if(!$query){
+				return FALSE;
+			}
+			
+			$rows=$query->result_array();
+			
+			$tags=array();
+			foreach($rows as $tag)
+			{
+				$tags[$tag['id']]=$tag;
+			}
+			
+			return $tags;
 	}
 	
 	
@@ -401,29 +495,25 @@ class Search_helper_model extends CI_Model {
 	}	
 	
 	/**
-	* Returns an array of available DA types for current repo
-	*
-	*/
-	function get_active_data_types($repositoryid)
+	 * 
+	 * 
+	 * Returns an array of available DA types for current repo
+	 *
+	 */
+	function get_active_data_types($repositoryid=null)
 	{
-		if ($repositoryid=='central' || trim($repositoryid)=='')
-		{
-			$this->db->select('surveys.formid,forms.model');
-			$this->db->join('forms','forms.formid=surveys.formid','inner');	
-			$this->db->where('surveys.published',1);
-			$this->db->group_by('surveys.formid, forms.model');
-			$query=$this->db->get('surveys');
-		}
-		else
-		{
-			$this->db->select('surveys.formid,forms.model');
-			$this->db->join('forms','forms.formid=surveys.formid','inner');	
+		$this->db->select('surveys.formid as id,forms.model as code, forms.fname as title');
+		$this->db->join('forms','forms.formid=surveys.formid','inner');			
+		$this->db->where('surveys.published',1);
+
+		if (trim($repositoryid)!=='' && $repositoryid!='central'){
 			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
-			$this->db->where('surveys.published',1);
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
-			$this->db->group_by('surveys.formid, forms.model');
-			$query=$this->db->get('surveys');
 		}
+
+		$this->db->group_by('surveys.formid, forms.model, forms.fname');
+		$query=$this->db->get('surveys');
+	
 		
 		if (!$query)
 		{
@@ -440,51 +530,50 @@ class Search_helper_model extends CI_Model {
 		$types=array();
 		foreach($result as $row)
 		{
-			$types[(string)$row['formid']]=$row['model'];
+			$row['title']=t('legend_data_'.$row['code']);
+			$types[(string)$row['id']]=$row;
+		}
+		
+		return $types;
+	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * List of data classifications
+	 *
+	 */
+	function get_active_data_classifications($repositoryid=null)
+	{
+		$this->db->select('surveys.data_class_id as id, data_classifications.code, data_classifications.title, count(surveys.data_class_id) as found');
+		$this->db->join('data_classifications','data_classifications.id=surveys.data_class_id','inner');	
+		$this->db->where('surveys.published',1);
+		$this->db->group_by('surveys.data_class_id, data_classifications.code, data_classifications.title');
+
+		if (trim($repositoryid)!=='' && $repositoryid!='central'){
+			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+
+		$result=$this->db->get('surveys')->result_array();
+
+		if (!$result){
+			return FALSE;
+		}
+		
+		$types=array();
+		foreach($result as $row){
+			$row['title']=t('data_class_'.$row['code']);
+			$types[(string)$row['id']]=$row;
 		}
 		
 		return $types;
 	}
 	
 	
-	/**
-	* Returns a list of Centers 
-	*
-	**/
-	function get_active_centers($repositoryid)
-	{
-		if ($repositoryid=='central' || trim($repositoryid)=='')
-		{
-			$sql='select survey_centers.id,center_name from surveys
-					inner join survey_centers on survey_centers.sid=surveys.id
-					where surveys.published=1
-				group by survey_centers.id, survey_centers.center_name;';
-		}
-		else
-		{
-			$sql='select survey_centers.id,center_name from surveys
-					inner join survey_centers on survey_centers.sid=surveys.id
-					inner join survey_repos on surveys.id=survey_repos.sid
-					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
-					and surveys.published=1
-				group by survey_centers.id, survey_centers.center_name;';
-		}
 
-		$result=$this->db->query($sql)->result_array();
-
-		if (!$result)
-		{
-			return FALSE;
-		}
-		
-		$centers=array();
-		foreach($result as $row)
-		{
-			$centers[(string)$row['id']]=$row['center_name'];
-		}
-		
-		return $centers;
-	}
 	
 	
 	/**
@@ -518,6 +607,87 @@ class Search_helper_model extends CI_Model {
 		
 		return $output;
 	}
+
+
+
+	/**
+	* 
+	* Returns a list of dataset types
+	*/	
+	function get_dataset_types($repositoryid=null)
+	{
+			$this->db->select('survey_types.code,survey_types.title, survey_types.weight, count(*) as found');
+			$this->db->join('surveys s', 's.type=survey_types.code','inner');
+			$this->db->where('s.published',1);
+			$this->db->order_by('survey_types.weight','desc');
+			$this->db->group_by('survey_types.code, survey_types.title, survey_types.weight');
+
+			//filter by repository
+			if (trim($repositoryid)!=='' && $repositoryid!='central'){
+				$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
+				$this->db->where('sr.repositoryid',$repositoryid);	
+			}
+
+			$result=$this->db->get('survey_types')->result_array();
+			
+			$output=array();
+			foreach($result as $row){
+				$output[$row['code']]=$row;
+			}
+			
+			return $output;
+	}
+
+
+	/**
+	* 
+	* Returns a list of collections
+	*/	
+	function get_repositories_list($published=1)
+	{
+		$this->db->select('repositoryid,title');
+		
+		if($published){
+			$this->db->where('ispublished',1);
+		}
+		
+		$result=$this->db->get('repositories')->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['repositoryid']]=$row['title'];
+		}
+		
+		return $output;
+	}
+
+
+	/**
+	* 
+	* Returns a list of collections
+	*
+	* @countries - array of country integer codes
+	*
+	*/	
+	function get_countries_list($countries)
+	{
+		$this->db->select('countryid,name');
+		
+		if(is_array($countries) && count($countries)>0){
+			$this->db->where_in('countryid',$countries);
+		}
+		
+		$result=$this->db->get('countries')->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['countryid']]=$row['name'];
+		}
+		
+		return $output;
+	}
+
+
+
 	
-}
-?>
+}//end class

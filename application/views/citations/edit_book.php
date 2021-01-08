@@ -7,20 +7,20 @@
 
 <div class="content edit-book">
 	<div class="row">
-	<div class="col-md-2">
+	<div class="col-md-6">
 	<div class="form-group">
         <label for="edition"><?php echo t('edition');?></label>
         <input name="edition" type="text" id="editon" class="form-control"  value="<?php echo get_form_value('edition',isset($edition) ? $edition: ''); ?>"/>
     </div>
     </div>
-    <div class="col-md-3">   
+    <div class="col-md-6">   
     <div class="field">
         <label for="volume"><?php echo t('volume');?></label>
         <input name="volume" type="text" id="volume" class="form-control" value="<?php echo get_form_value('volume',isset($volume) ? $volume : ''); ?>"/>
     </div>
     </div>
 
-	<div class="col-md-4">
+	<div class="col-md-12 mt-3">
     <div class="form-inline">
     <div class="form-group">
         <label><?php echo t('publication_day_month_year');?></label>
@@ -33,7 +33,9 @@
     </div>
     </div>
 
-    <div class="col-md-3">
+    
+
+    <div class="col-md-12 mt-3">
     <div class="form-group">
         <label for="idnumber"><?php echo t('periodical_number');?></label>
         <input name="idnumber" type="text" id="idnumber" size="10" maxlength="44" class="form-control" value="<?php echo get_form_value('idnumber',isset($idnumber) ? $idnumber: ''); ?>"/>

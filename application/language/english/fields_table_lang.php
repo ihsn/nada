@@ -12,11 +12,11 @@ $lang['metadata.table_description.title_statement.title']='Title';
 $lang['metadata.table_description.title_statement.sub_title']='Subtitle';
 $lang['metadata.table_description.title_statement.alternate_title']='Subtitle';
 $lang['metadata.table_description.title_statement.translated_title']='Translated title';
-$lang['metadata.table_description.title_statement.idno']='Table ID';
+$lang['metadata.table_description.title_statement.idno']='ID';
 
 $lang['metadata.table_description.description']='Description';
 
-$lang['metadata.table_description.id_numbers']='Table reference number(s)';
+$lang['metadata.table_description.id_numbers']='Reference number(s)';
 $lang['metadata.table_description.id_numbers.type']='Type';
 $lang['metadata.table_description.id_numbers.value']='ID number';
 
@@ -33,7 +33,7 @@ $lang['metadata.table_description.ref_country.code']='Code';
 $lang['metadata.table_description.format']='Format';
 $lang['metadata.table_description.filename']='File name';
 $lang['metadata.table_description.sheetname']='Sheet name';
-$lang['metadata.table_description.table_series']='Table is part of the following series';
+$lang['metadata.table_description.table_series']='Series';
 $lang['metadata.table_description.table_series.name']='Name';
 $lang['metadata.table_description.table_series.maintainer']='Maintainer';
 $lang['metadata.table_description.table_series.uri']='URI';
@@ -43,9 +43,9 @@ $lang['metadata.table_description.universe']='Universe';
 $lang['metadata.table_description.data_sources']='Data source(s)';
 $lang['metadata.table_description.data_sources.source']='Source';
 
-$lang['metadata.table_description.time_period']='Time period';
-$lang['metadata.table_description.time_period.from']='Start year';
-$lang['metadata.table_description.time_period.to']='End year';
+$lang['metadata.table_description.time_periods']='Time periods';
+$lang['metadata.table_description.time_periods.from']='Start year';
+$lang['metadata.table_description.time_periods.to']='End year';
 
 
 $lang['metadata.table_description.authoring_entity']='Authoring entity';
@@ -82,7 +82,7 @@ $lang['metadata.table_description.table_rows.label']='Label';
 $lang['metadata.table_description.statistics']='Statistics';
 $lang['metadata.table_description.statistics.value']='Value';
 
-$lang['metadata.table_description.unit_observation']='Unit observation';
+$lang['metadata.table_description.unit_observation']='Unit of observation';
 $lang['metadata.table_description.unit_observation.value']='Value';
 
 $lang['metadata.table_description.universe']='Universe';
@@ -177,5 +177,5 @@ $lang['metadata.table_description.contacts.email']='Email';
 $lang['metadata.table_description.contacts.telephone']='Telephone';
 $lang['metadata.table_description.contacts.uri']='URI';
 
-$lang['metadata.table_description.tags']='Tags';
-$lang['metadata.table_description.tags.tag']='Tag';
+$lang['metadata.tags']='Tags';
+$lang['metadata.tags.tag']='Tag';

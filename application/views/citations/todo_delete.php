@@ -16,9 +16,9 @@
 <?php echo form_open(current_url(), array('class'=>'form') ); ?>
 <div class="field">
 	<div>Are you sure you want to delete the selected record(s)?</div>
-	<input type="submit" name="submit" id="submit" value="<?php echo ('Yes'); ?>" />
-	<input type="submit" name="cancel" id="cancel" value="<?php echo ('No'); ?>" />
-    <input type="hidden" name="destination"  value="<?php echo $this->input->get_post('destination'); ?>"/>
+	<input type="submit" name="submit" id="submit"  value="<?php echo ('Yes'); ?>" />
+	<input type="submit" name="cancel" id="cancel"  value="<?php echo ('No'); ?>" />
+    <input  type="hidden" name="destination"  value="<?php echo $this->input->get_post('destination'); ?>"/>
 </div>
 <?php form_close(); ?>
 

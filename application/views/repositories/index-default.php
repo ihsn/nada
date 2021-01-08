@@ -119,7 +119,6 @@ $repository_types=array(
 			<td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
                 <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a> |
-                <a href="<?php echo current_url();?>/permissions/<?php echo $row->id;?>"><?php echo t('permissions');?></a> |
                 <a target="_blank" href="<?php echo site_url('catalog/'.$row->repositoryid);?>/about"><?php echo t('preview');?></a>
             </td>
         </tr>

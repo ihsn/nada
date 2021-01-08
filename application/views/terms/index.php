@@ -1,8 +1,8 @@
 <div class="container-fluid terms-index-page" >
 
 <div class="text-right page-links">
-	<a href="<?php echo site_url(); ?>/admin/vocabularies/" class="btn btn-default"><span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('vocabularies');?></a>
-    <a href="<?php echo site_url(); ?>/admin/terms/<?php echo $this->uri->segment(3);?>/add" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('add_term');?></a> 
+	<a href="<?php echo site_url(); ?>/admin/vocabularies/" class="btn btn-outline-primary btn-sm"><span class="fas fa-home" aria-hidden="true"></span> <?php echo t('vocabularies');?></a>
+    <a href="<?php echo site_url(); ?>/admin/terms/<?php echo $this->uri->segment(3);?>/add" class="btn btn-outline-primary btn-sm"><span class="fas fa-plus" aria-hidden="true"></span> <?php echo t('add_term');?></a> 
 </div>
         
 <?php $message=$this->session->flashdata('message');?>
@@ -15,7 +15,7 @@
 
 <?php if ($rows):?>
 	 <!-- grid -->
-    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped table-sm" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
             <th><?php echo t('term');?></th>
 			<th>&nbsp;</th>

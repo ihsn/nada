@@ -5,7 +5,7 @@ class Study extends MY_Controller {
 
     public function __construct()
     {
-        parent::__construct($skip_auth=TRUE);
+        parent::__construct($skip_auth=TRUE); 
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
 		$this->load->model("Survey_type_model");
@@ -13,15 +13,17 @@ class Study extends MY_Controller {
         $this->load->model("Citation_model");
 		$this->load->model("Data_file_model");
 		$this->load->model("Related_study_model");
-        $this->load->model("Variable_model");
+		$this->load->model("Variable_model");
+		$this->load->model("Timeseries_db_model");
+		
 		$this->load->library("Metadata_template");
 		$this->load->helper("resource_helper");
 		$this->load->helper("metadata_view");
 		$this->load->helper('array');
 		$this->lang->load('general');
-		$this->lang->load('ddibrowser');
 		$this->lang->load("catalog_search");
-		$this->load->helper('catalog');
+		$this->lang->load('ddibrowser');
+		//$this->load->helper('catalog');
 		//$this->output->enable_profiler(TRUE);
 
 		if ($this->ion_auth->logged_in()){
@@ -51,6 +53,10 @@ class Study extends MY_Controller {
 
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
+
+		if( in_array($survey['type'], array('script', 'document','table'))){
+			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);	    		
+		}
 		
 		$this->metadata_template->initialize($survey['type'],$survey);
 		$output=$this->metadata_template->render_html();
@@ -63,7 +69,7 @@ class Study extends MY_Controller {
 		}
 
 		$output=$this->load->view('survey_info/metadata', array('content'=>$output), TRUE);
-		$this->render_page($sid, $output, $active_tab='study_description');
+		$this->render_page($sid, $output, $active_tab='description');
 	}
 
 
@@ -217,7 +223,7 @@ class Study extends MY_Controller {
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 
         if (!$options['resources']){
-            $content="Documentation is not available";
+            $content=t("No resources are available");
         }
         else{
             $content=$this->load->view('survey_info/related_resources',$options,TRUE);
@@ -253,10 +259,12 @@ class Study extends MY_Controller {
 
 	
 	public function get_microdata($sid)
-	{
-		//get study data access type
-		$data_access_type=$this->Catalog_model->get_survey_form_model($sid);
-				
+	{		
+		$this->load->model("Form_model");		
+
+		$form_obj=$this->Form_model->get_form_by_survey($sid);
+		$data_access_type=$form_obj['form_type'];
+
 		if($data_access_type=='data_enclave'){
 			$data_access_type='enclave';
 		}
@@ -265,6 +273,7 @@ class Study extends MY_Controller {
 
 		if ($this->data_access->is_supported($data_access_type)){
 			$content=$this->data_access->process_form($sid,$user=$this->ion_auth->current_user());
+
 			if($content==''){
 				$content='NOT_DATA_AVAILABLE';
 			}
@@ -273,13 +282,24 @@ class Study extends MY_Controller {
 			$content="Data Access Not Available";
 		}
 
-		$options['sid']=$sid;
 		$this->render_page($sid, $content,'get_microdata');
 	}
 
 
+	public function timeseries_db($sid)
+	{
+		$database=$this->Timeseries_db_model->get_database_by_series_id($sid);
+
+		if (empty($database)){
+			show_error("Timeseries database does not exist");
+		}
+
+		$this->metadata_template->initialize('timeseriesdb',$database);
+		$output=$this->metadata_template->render_html();
+		$this->render_page($sid, $output,'timeseries_db');
+	}
 	
-	private function render_page($sid, $content, $active_tab='study_description')
+	private function render_page($sid, $content, $active_tab='description')
 	{
 		$this->db_logger->increment_study_view_count($sid);
 
@@ -291,10 +311,13 @@ class Study extends MY_Controller {
             echo $content;return;
         }
 
-        $survey=$this->Dataset_model->get_row($sid);
-        $data_access_type=$survey['data_access_type'];
-		$published=$survey['published'];
+		$dataset=$this->Dataset_model->get_row($sid);
+		$dataset_type=$dataset['type'];
+        $data_access_type=$dataset['data_access_type'];
+		$published=$dataset['published'];
 		
+		$dataset_type=$dataset['type']; 
+		$published=$dataset['published'];		
 		$has_datafiles=$this->Dataset_model->has_datafiles($sid);
 
         //get citations count for the survey
@@ -313,66 +336,147 @@ class Study extends MY_Controller {
 		//formatted related studies
 		$related_studies_formatted=$this->load->view('survey_info/related_studies',array('related_studies'=>$related_studies),true);
 
-		$page_tabs=array(
-			'study_description'=>array(
-				'label'=>'Study description',
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/study-description"),
-                'show_tab'=>1
-			),
-			'related_materials'=>array(
-				'label'=>t('related_materials'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/related-materials"),
-                'show_tab'=>(int)$related_resources_count
-			),			
-			'data_dictionary'=>array(
-				'label'=>t('data_dictionary'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/data-dictionary"),
-                'show_tab'=>$has_datafiles
-			),
-			'get_microdata'=>array(
-				'label'=>t('get_microdata'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/get-microdata"),
-                'show_tab'=>1
-			),
-			'related_citations'=>array(
-				'label'=>t('related_citations'),
-				'hover_text'=>'Related documentation: questionnaires, reports, technical documents, tables',
-				'url'=>site_url("catalog/$sid/related-publications"),
-                'show_tab'=>(int)$related_citations_count
-			),
-			'related_datasets'=>array(
-				'label'=>t('related_datasets'),
-				'hover_text'=>'Related datasets',
-				'url'=>site_url("catalog/$sid/related-datasets"),
-                'show_tab'=>count($related_studies)
-			),
-		);
+		//default layout template view
+		$display_layout='survey_info/layout';
+
+		switch($dataset_type){
+			case 'survey':
+			case 'microdata':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t('microdata_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),							
+					'data_dictionary'=>array(
+						'label'=>t('data_dictionary'),
+						'url'=>site_url("catalog/$sid/data-dictionary"),
+						'show_tab'=>$has_datafiles
+					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					),	
+					'get_microdata'=>array(
+						'label'=>t('get_microdata'),
+						'url'=>site_url("catalog/$sid/get-microdata"),
+						'show_tab'=>1
+					),
+					'related_citations'=>array(
+						'label'=>t('related_citations'),
+						'url'=>site_url("catalog/$sid/related-publications"),
+						'show_tab'=>(int)$related_citations_count
+					),
+					'related_datasets'=>array(
+						'label'=>t('related_datasets'),
+						'url'=>site_url("catalog/$sid/related-datasets"),
+						'show_tab'=>count($related_studies)
+					)
+				);
+				break;
+			
+			case 'image':
+			case 'document':
+				$display_layout='survey_info/layout_scripts';
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					)
+				);
+				break;
+			case 'timeseries':
+				$display_layout='survey_info/layout_scripts';
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'timeseries_db'=>array(
+						'label'=>t('timeseries_db'),
+						'url'=>site_url("catalog/$sid/timeseries-db"),
+						'show_tab'=>1
+					),
+					//hide related materials
+					'related_materials'=>array(
+						'show_tab'=> 0
+					)
+				);
+				break;
+			case 'table':
+			case 'script':
+				$display_layout='survey_info/layout_scripts';
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					//hide related materials
+					'related_materials'=>array(
+						'show_tab'=> 0
+					)
+				);
+				break;
+			case 'geospatial':
+			case 'visualization':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t($dataset_type.'_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					),			
+					'related_citations'=>array(
+						'label'=>t('related_citations'),
+						'url'=>site_url("catalog/$sid/related-publications"),
+						'show_tab'=>(int)$related_citations_count
+					),
+					'related_datasets'=>array(
+						'label'=>t('related_datasets'),
+						'url'=>site_url("catalog/$sid/related-datasets"),
+						'show_tab'=>count($related_studies)
+					)
+				);
+			break;
+
+			default:
+				show_error('DATASET-TYPE-NOT-SUPPORTED: '. $dataset_type);
+		}
 
 		$options=array(
 			'published'=>$published,
 			'sid'=>$sid,
-			'dataset_type'=>$survey['type'],
+			'dataset_type'=>$dataset['type'],
 			'survey'=>$this->get_survey_info($sid),
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,
 			'data_access_type'=>$data_access_type,
+			'data_classification'=> $dataset['data_class_code'],
 			'body'=>$content,
 			'has_related_materials'=>$related_resources_count,
             'has_citations'=>$related_citations_count,
             'has_data_dictionary'=>$has_datafiles,
-			'survey_title'=>$survey['title'],
+			'survey_title'=>$dataset['title'],
 			'related_studies_count'=>count($related_studies),
 			'related_studies_formatted'=>$related_studies_formatted
 		);
-		
-		
-		$this->template->write('title', $this->generate_survey_title($survey),true);
+
+		$this->template->write('title', $this->generate_survey_title($dataset),true);
 		$this->template->add_variable("body_class","container-fluid-n");
-		$html= $this->load->view('survey_info/layout',$options,true); 
+		$html= $this->load->view($display_layout,$options,true); 
 		$this->template->write('survey_title', "survey title",true);
 		$this->template->write('content', $html,true);
 		$this->template->render();
@@ -383,7 +487,7 @@ class Study extends MY_Controller {
 
 	/**
 	*
-	* Get survey basic informatoin
+	* Get study metadata and other info
 	**/
 	private function get_survey_info($id)
 	{
@@ -402,6 +506,18 @@ class Study extends MY_Controller {
 
 		if (!$survey['owner_repo']){
 			$survey['owner_repo']=$this->Repository_model->get_central_catalog_array();
+		}
+
+		if($survey['type']=='timeseries'){
+			$survey['timeseries_db']=$this->Timeseries_db_model->get_database_by_series_id($id);
+
+			if (!empty($survey['timeseries_db'])){
+				$survey['timeseries_db_title']=null;
+				if (isset($survey['timeseries_db']['metadata']['database_description']['title_statement']['title'])){
+					$survey['timeseries_db_title']=$survey['timeseries_db']['metadata']['database_description']['title_statement']['title'];
+				}
+			}
+
 		}
 
 		return $survey;
@@ -494,9 +610,12 @@ class Study extends MY_Controller {
 		$this->load->model('Resource_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Public_model');
+		$this->load->model('Form_model');
 
 		$resource=$this->Resource_model->select_single($resource_id);
-		$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+		#$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+		$form_obj=$this->Form_model->get_form_by_survey($survey_id);
+		$data_access_type=$form_obj['form_type'];
 
 		if ($resource===FALSE){
 			show_error(t('RESOURCE_NOT_FOUND'));
@@ -555,10 +674,7 @@ class Study extends MY_Controller {
 				show_error("RESOURCE_NOT_AVAILABLE.");
 			}
 		}
-		else if($data_access_type=='direct' || $data_access_type=='open'){
-			$allow_download=TRUE;
-		}
-		else if($data_access_type=='data_na' ){
+		else if($data_access_type=='direct' || $data_access_type=='open' || $data_access_type=='data_na' ){
 			$allow_download=TRUE;
 		}
 		else if ($data_access_type=='public' && !$resource_is_microdata){

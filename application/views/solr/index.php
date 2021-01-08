@@ -93,21 +93,12 @@ var $total_variables=<?php echo $db_stats['variables'];?>;
 var $citations=<?php echo $db_stats['citations'];?>;
 
 $( ".btn-index-datasets" ).on( "click", function() {
-    $(".index-status").text("indexing...");
+    $("#index-datasets .index-status").text("indexing...");
     index_datasets();
-    return;
-    var jqxhr = $.get( "example.php", function(data) {
-        console.log(data);
-        $(".index-status").text("completed" + data.responseText);
-    })
-    .fail(function(data) {
-        console.log(data);
-        $(".index-status").text("ERROR: "+data.responseText);
-    })
 });
 
 $( ".btn-index-variables" ).on( "click", function() {
-    $(".index-status").text("indexing...");
+    $("#index-variables .index-status").text("indexing...");
     index_variables();
 });
 
@@ -135,18 +126,18 @@ function index_datasets(start_row=0, limit=5, processed=0)
 
         if(last_row_id>0){
             processed+=rows_processed;
-            $(".index-status").html("indexing ... " + '<span class="badge badge-success">'+ processed +'</span>' );
+            $("#index-datasets .index-status").html("indexing ... " + '<span class="badge badge-success">'+ processed +'</span>' );
             index_datasets(last_row_id,limit,processed);
         }
         else{
-            $(".index-status").html("completed - total indexed = " + '<span class="badge badge-success">'+ processed +'</span>' );
+            $("#index-datasets .index-status").html("completed - total indexed = " + '<span class="badge badge-success">'+ processed +'</span>' );
             return true;
         }
         
     })
     .fail(function(data) {
         console.log(data);
-        $(".index-status").text("ERROR: "+data.responseText);
+        $("#index-datasets .index-status").text("ERROR: "+data.responseText);
     })
 }
 
@@ -161,18 +152,18 @@ function index_variables(start_row=0, limit=5000, processed=0)
         
         if(last_row_id>0){
             processed+=rows_processed;
-            $(".index-status").html("indexing ... " + '<span class="badge badge-success">'+ processed +'</span>' );
+            $("#index-variables .index-status").html("indexing ... " + '<span class="badge badge-success">'+ processed +'</span>' );
             index_variables(last_row_id,limit, processed);
         }
         else{
-            $(".index-status").html("completed");
+            $("#index-variables .index-status").html("completed");
             return true;
         }
         
     })
     .fail(function(data) {
         console.log(data);
-        $(".index-status").text("ERROR: "+data.responseText);
+        $("#index-variables .index-status").text("ERROR: "+data.responseText);
     })
 }
     

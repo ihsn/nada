@@ -375,13 +375,10 @@ class Catalog_Admin
 			}
 
 			//check if the resource file already exists
-			$resource_exists=$this->ci->Resource_model->get_resources_by_filepath($insert_data['filename']);
+			//$resource_exists=$this->ci->Resource_model->get_survey_resources_by_filepath($insert_data['filename']);
 
-			if (!$resource_exists)
-			{
-				//insert into db
-				$this->ci->Resource_model->insert($insert_data);
-			}
+			//insert into db
+			$this->ci->Resource_model->insert($insert_data);
 		}
 	}
 
@@ -413,7 +410,7 @@ class Catalog_Admin
 		}
 
 		//study data access model
-		$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
+		//$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
 
 		//get study resources count  grouped by resource type
 		$resources=$this->ci->resource_model->get_grouped_resources_count($sid);
@@ -421,33 +418,6 @@ class Catalog_Admin
 		if (!$resources)
 		{
 			$warnings[]='warning_study_has_no_external_resources';
-		}
-
-		if(in_array($study_da_model,array('public','licensed','direct')))
-		{
-			//has microdata assigned for puf/lic/direct?
-			$has_microdata=FALSE;
-			$has_questionnaire=FALSE;
-			foreach($resources as $res)
-			{
-				if ( strpos($res['dctype'],'[dat/micro]') || strpos($res['dctype'],'[dat]'))
-				{
-					$has_microdata=TRUE;
-				}
-				if ( strpos($res['dctype'],'[doc/qst]') )
-				{
-					$has_questionnaire=TRUE;
-				}
-			}
-
-			if(!$has_microdata)
-			{
-				$warnings[]='warning_study_has_no_microdata';
-			}
-			if(!$has_questionnaire)
-			{
-				$warnings[]='warning_study_has_no_questionnaire';
-			}
 		}
 
 		//pdf documentation?

@@ -42,6 +42,20 @@ class Catalog_tags_model extends CI_Model {
 		$this->db->where('sid',$sid);
 		return $this->db->get('survey_tags')->result_array();
 	}
+
+
+	/**
+	 * 
+	 * Delete all tags for a survey
+	 * 
+	 */
+	function delete_survey_tags($sid)
+	{
+		$this->db->where('sid',$sid);
+		return $this->db->delete('survey_tags');
+	}
+
+	
 	
 	public function tags_from_catelog_id($sid) {
 		$this->db->select("*");

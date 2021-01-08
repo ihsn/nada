@@ -26,7 +26,7 @@ class Data_access_remote extends CI_Driver {
 		$this->CI->lang->load('direct_access_terms');		
 	}
 	
-	function process_form($sid,$user=FALSE)
+	function process_form($sid,$user=FALSE, $additional_html='')
 	{
 		$link=$this->get_study_data_link($sid);
 		if (!$link)
@@ -35,7 +35,9 @@ class Data_access_remote extends CI_Driver {
 		}
 		
 		$link=form_prep($link);
-		return $this->CI->load->view('access_remote/data_access', array('link'=>$link),TRUE);		
+		$output=$this->CI->load->view('access_remote/data_access', array('link'=>$link),TRUE);
+
+		return $additional_html . $output;
 	}
 	
 	

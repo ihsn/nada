@@ -117,11 +117,11 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
             <td><input type="checkbox" value="<?php echo $row['id']; ?>" class="chk"/></td>
             <td>
                     <div class="survey-row">
-                    	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></div>
+                        <div class="data-access-icon">
+                            <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></i>
+                        </div>
                         <h3>
                             <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo $row['title'];?></a>
-                            <!--<span class="data-access-type"><?php echo t($row['form_model']);?></span>-->
-                            
                         </h3>
                         <?php 
 							$study_years=array_unique(array($row['year_start'],$row['year_end']));
@@ -130,7 +130,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                         <div class="sub-title">
 							<?php echo $row['nation'];?>
 							 <?php if ($study_years==0):?>
-                            	<!--<span class="label label-warning"><?php echo t('Year Missing');?></span>-->
                             <?php else:?>
 	                            <?php echo $study_years;?>
                             <?php endif;?>
@@ -138,15 +137,15 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             <span class="dataset-idno"><?php echo $row['idno'];?></span>
                         </div>
 
-                        <!--
-                        <div class="table-row">
-                        	<span class="cell-label"><?php echo t('ID');?>:</span>
-							<span class="cell-value"><?php echo $row['idno'];?></span>
-                        </div>						
-                        !-->
-
                         <div class="table-row">
                             
+                            <span class="subgroup">                        	
+                            <span>
+                                
+                                	<span class="label label-info"><?php echo strtoupper($row['type']);?></span>                              
+                            </span>
+                            </span>
+
                             <span class="subgroup">
                         	<span><?php echo t('collection');?>:</span>
                             <span>
@@ -164,7 +163,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                               <?php endif;?>  
                             </span>
                             </span>
-
                             
                             <?php if (isset($row['tags']) &&  count($row['tags'])>0):?>
                             <span class="subgroup">

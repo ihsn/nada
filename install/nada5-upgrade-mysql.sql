@@ -9,6 +9,7 @@ ALTER TABLE `surveys` CHANGE `ddifilename` `metafile` VARCHAR(255) DEFAULT NULL;
 ALTER TABLE `surveys` ADD `metadata` mediumtext;
 ALTER TABLE `surveys` ADD `changed_by` int(11) DEFAULT NULL;
 ALTER TABLE `surveys` ADD `created_by` int(11) DEFAULT NULL;
+ALTER TABLE `surveys` ADD `license_id` int(11) DEFAULT NULL;
 ALTER TABLE `surveys` CHANGE `data_coll_start` `year_start` int(11) DEFAULT '0';
 ALTER TABLE `surveys` CHANGE `data_coll_end` `year_end` int(11) DEFAULT '0';
 ALTER TABLE `surveys` CHANGE `authenty` `authoring_entity` text;
@@ -42,10 +43,15 @@ ALTER TABLE `surveys` DROP `countryid`;
 ALTER TABLE `surveys` DROP INDEX `idx_srvy_unq`;
 ALTER TABLE `surveys` ADD UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`);
 ALTER TABLE `surveys` DROP INDEX `ft_all`;
-ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`);
+#ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`);
 ALTER TABLE `surveys` DROP INDEX `ft_titl`;
 ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_titl` (`title`);
-ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_keywords` (`keywords`);
+
+ALTER TABLE `surveys` ADD `var_keywords` mediumtext DEFAULT NULL;
+ALTER TABLE `surveys` 
+DROP INDEX `ft_keywords` ,
+ADD FULLTEXT INDEX `ft_keywords` (`keywords` ASC, `var_keywords` ASC);
+
 
 ALTER TABLE `surveys` DROP `refno`;
 ALTER TABLE `surveys` DROP `sername`;
@@ -71,17 +77,14 @@ CREATE TABLE `variables` (
   `labl` varchar(255) DEFAULT '',
   `qstn` text,
   `catgry` text,
-  `metadata` mediumtext,
+  `keywords` text,
+  `metadata` mediumtext,  
   PRIMARY KEY (`uid`),
   UNIQUE KEY `idxSurvey` (`vid`,`sid`),
   KEY `idxsurveyidfk` (`sid`),
-  FULLTEXT KEY `idx_qstn` (`qstn`),
-  FULLTEXT KEY `idx_labl` (`labl`),
-  FULLTEXT KEY `idxCatgry` (`catgry`),
-  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
-  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
-  FULLTEXT KEY `idx_nm` (`name`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`,`catgry`),
+  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`,`keywords`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 UPDATE `citations` set ihsn_id=id where ihsn_id is NULL;
@@ -210,6 +213,54 @@ CREATE TABLE `variable_groups` (
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE `ts_databases` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idno` varchar(150) DEFAULT NULL,
+  `title` varchar(300) DEFAULT NULL,
+  `abstract` text,
+  `published` tinyint(4) DEFAULT NULL,
+  `created` varchar(45) DEFAULT NULL,
+  `changed` varchar(45) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  `metadata` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idno_UNIQUE` (`idno`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE `licenses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(45) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `url` varchar(300) DEFAULT NULL,
+  `license_text` varchar(5000) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `code_UNIQUE` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+
+
+LOCK TABLES `licenses` WRITE;
+/*!40000 ALTER TABLE `licenses` DISABLE KEYS */;
+INSERT INTO `licenses` (id,code,title) VALUES 
+(9,'cc_by_40','CC-BY 4.0'),
+(10,'other_cc','Other CC'),
+(11,'custom','Custom'),
+(12,'data_na','Data not available'),
+(13,'esri','ESRI Enterprise License Agreement'),
+(14,'na','License not applicable'),
+(15,'external','License specified externally'),
+(16,'odbl','Open Database License (ODBL)'),
+(17,'licensed','Licensed Research Data'),
+(18,'public','Public Research Data');
+/*!40000 ALTER TABLE `licenses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+
+
 --- 
 --- For MYSQL 5.6 or later only
 --- requires INNODB with fulltext and geometry 
@@ -222,23 +273,3 @@ CREATE TABLE `variable_groups` (
 --- ALTER TABLE `citations` ENGINE = InnoDB;
 --- ALTER TABLE `forms` ENGINE = InnoDB;
 
-ALTER TABLE `survey_topics` ADD KEY `cascade_survey_topics` (`sid`);
-ALTER TABLE `variables` ADD CONSTRAINT `cascade_survey_variables` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_tags` ADD CONSTRAINT `cascade_survey_tags` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_repos` ADD CONSTRAINT `cascade_survey_repos` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_notes` ADD CONSTRAINT `cascade_survey_notes` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_lic_requests` ADD CONSTRAINT `cascade_survey_lic_requests` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_countries` ADD CONSTRAINT `cascade_survey_countries` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `da_collection_surveys` ADD CONSTRAINT `del_da_coll_surveys` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_citations` ADD CONSTRAINT `cascade_survey_citations` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_years` ADD CONSTRAINT `cascade_survey_years` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `featured_surveys` ADD CONSTRAINT `cascade_featured_surveys` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `resources` ADD CONSTRAINT `cascade_resources` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `lic_files` ADD CONSTRAINT `cascade_lic_files` FOREIGN KEY (`surveyid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `public_requests` ADD CONSTRAINT `cascade_pubilc_requests` FOREIGN KEY (`surveyid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_topics` ADD CONSTRAINT `cascade_survey_topics` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_aliases` ADD CONSTRAINT `cascade_survey_aliases` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE `survey_locations` ADD CONSTRAINT `cascade_survey_locations` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `data_files` ADD CONSTRAINT `cascade_data_files` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE; 
-ALTER TABLE `data_files_resources` ADD CONSTRAINT `cascade_data_files_resources` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;

@@ -27,10 +27,27 @@ class Metadata extends MY_Controller {
         }
 
         if($format=='json'){
-            $metadata=$this->Dataset_model->get_metadata($sid);
+            $full_metadata=$this->input->get("detailed") =='true' ? true : false;
+
+            if ($full_metadata){                
+                $metadata=$this->Dataset_model->get_row($sid);
+                if($metadata['type']=='survey'){
+                    $this->load->model("Data_file_model");
+                    $this->load->model("Variable_model");
+                    $metadata['data_files']=$this->Data_file_model->get_all_by_survey($sid);
+                    $variables=$this->Variable_model->select_all($sid);                    
+                    foreach($variables as $variable){
+                        $metadata['variables'][]=$variable['metadata'];
+                    }
+                }
+            }
+            else{
+                $metadata=$this->Dataset_model->get_metadata($sid);
+            }
+                        
             $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode($metadata));
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode($metadata));
             return;
         }
         else if($format=='ddi' && $dataset['type']=='survey'){

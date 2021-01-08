@@ -10,7 +10,7 @@ class Related_Citations extends MY_Controller {
       $this->load->library('pagination');
       $this->load->helper('querystring_helper','url');
       $this->load->helper('form');
-      $this->load->helper("catalog");
+      //$this->load->helper("catalog");
       $this->template->set_template('admin_blank');
       $this->load->library('chicago_citation');
 

@@ -1211,4 +1211,15 @@ class Survey_resource_model extends CI_Model {
 		return $dcformat;
 	}
 
+
+	function find_resources_by_study($idno_arr)
+	{
+		$idno_arr=(array)$idno_arr;
+
+		$this->db->select("resource_id,surveys.id as sid, idno, resources.filename");
+		$this->db->join('resources', 'surveys.id= resources.survey_id','inner');
+		$this->db->where_in('surveys.idno',$idno_arr);
+		return $this->db->get("surveys")->result_array();
+	}
+
 }

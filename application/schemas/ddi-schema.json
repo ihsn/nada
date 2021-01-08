@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://ihsn.org/schemas/ddi2-codebook",
+  "$id": "http://ihsn.org/schemas/ddi-schema",
   "version":"0.0",
   "title":"Survey Microdata Schema Draft",
   "description":"Schema for Survey data type based on DDI 2.5",

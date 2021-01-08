@@ -1,0 +1,52 @@
+/* user defined custom styles or overrides only */
+.site-header.active {
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+.site-header{
+    background:white;
+}
+
+.page-body{
+    margin-top:180px
+}
+
+
+.site-header .nada-sitename{
+    font-size:18px;
+    border-left:none;
+    line-height:125%;
+}
+
+.site-header .nada-logo img{
+    height:80px;
+}
+
+/*site title */
+.site-header .nada-sitename{
+    padding-left:0px;
+    color:black;
+}
+
+/* sf menu styles */
+ul.sf-menu li a, ul.sf-menu li > span{
+    font-size:13px;
+    color:#666666;
+}
+
+.sf-arrows .sf-with-ul:after
+{
+    right: 3.6em;
+}
+
+ul.sf-menu li.sfHover a, 
+ul.sf-menu li.sfHover > span,
+ul.sf-menu li ul li a{
+    color:white !important;
+}
+
+h1{
+    font-size: 36px;
+    font-weight: 400;
+    text-transform:uppercase;
+}

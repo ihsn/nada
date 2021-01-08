@@ -99,11 +99,11 @@
 			}
 		},
 		"volume": {
-			"type": "integer",
+			"type": "string",
 			"title": "Volumne number"
 		},
 		"issue": {
-			"type": "integer",
+			"type": "string",
             "title": "Issue number"		
         },
 		"edition": {
@@ -144,7 +144,7 @@
 		"pub_day": {
 			"type": "integer",
 			"title": "Publication date (day only)",
-			"title": "Provide the day part of the publication date"
+			"description": "Provide the day part of the publication date"
 		},
 		"pub_month": {
 			"type": "integer",
@@ -178,9 +178,22 @@
 			"description": "Language code or language title e.g. `en` or `english`"
 		},
 		"published": {
-			"type": "int",
+			"type": "integer",
 			"title": "Status",
-			"description": "Citation status - `published=1`, `unpublished=0`"
+			"description": "Citation status - `Published=1`, `Unpublished=0`"
+		},
+		"overwrite": {
+            "type": "integer",
+            "description": "Overwrite citation if already exists? - `Yes=1`, `No=0` ",            
+            "default": 0
+          },
+		"related_studies": {
+			"type": "array",
+			"title":"Related studies",
+			"description": "IDNOs for related studies",
+			"items":{
+				"type":"string"
+			}
 		}
     },
     "required": [ "ctype", "title", "uuid"]

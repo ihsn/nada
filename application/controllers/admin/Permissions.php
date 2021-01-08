@@ -9,6 +9,7 @@ class Permissions extends MY_Controller {
        	//$this->load->model('User_Groups_model');
 		$this->load->model('Permissions_model');
 		//$this->load->model('Repository_model');
+		$this->load->library("Acl_manager");
 		
 		//language files
 		$this->lang->load('general');
@@ -23,265 +24,147 @@ class Permissions extends MY_Controller {
 	
 	function index()
 	{
-		echo "TODO";
-	}
-	
-	function manage_group_perm($group_id=NULL)
-	{
-		if (!is_numeric($group_id))
-		{
-			show_404();
-		}
-
-		//get group info by group_id
-		$group_info=$this->Permissions_model->get_group_info($group_id);
-		
-		if ($group_info===FALSE)
-		{
-			show_error('INVALID_GROUP');
-		}
-		
-		//set group basic info
-		$data['group_id']=$group_id;
-		$data['group']=$group_info;
-		
-		//validation
-		$this->form_validation->set_rules('pid[]', t('permission'), 'xss_clean|numeric');
-		$this->form_validation->set_rules('repo[]', t('repository'), 'xss_clean|numeric');
-
-		if ($this->form_validation->run() == TRUE)
-		{
-			//update group URL permissions
-			$perms_array=$this->input->post("pid");
-			$this->Permissions_model->update_perms($group_id,$perms_array);
-			
-			//update group REPO permissions
-			$repos_array=$this->input->post("repo");
-			$this->Permissions_model->update_repo_perms($group_id,$repos_array);
-			
-			$this->session->set_flashdata('message', t('form_update_success'));
-		}
-		
-		//get all available permissions list
-		$data['permissions']=$this->Permissions_model->get_grouped_permission_list();
-		
-		//array of permissions assigned to selected group
-		$data['assigned_perms']=$this->Permissions_model->get_group_permissions($group_id);
-		
-		//get list of all repositories
-		$data['repos']=$this->Permissions_model->get_repositories();
-		
-		//get group permissions for repositories
-		$data['repo_group_perms']=$this->Permissions_model->get_group_repositories($group_id);
-		
-		$contents=$this->load->view('permissions/manage_group_perm',$data,TRUE);
+		$data=$this->acl_manager->get_all_permissions();
+		//$data['collection_permissions']=$
+		$contents=$this->load->view('permissions/index',$data,TRUE);
 		
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
 	}
-	
-	
-	
+
+
 	/**
 	*
 	* Manage Permission URLs 
 	**/
-	function manage()
+	function manage($role_id=null)
 	{
-		//get array of all permissions
-		$data['permissions']=$this->Permissions_model->get_permission_labels();
-		$data['permission_urls']=$this->Permissions_model->get_permission_urls();
+		if (!is_numeric($role_id)){
+			redirect("admin/permissions/roles");
+		}
+
+		$data=$this->acl_manager->get_all_permissions();
+		$role_permissions=$this->acl_manager->get_role_permissions($role_id);
+
+		//process post
+		if($post_data=$this->input->post('resource')){
+			$data['post_values']=$post_data;
+			$this->acl_manager->remove_role_permissions($role_id);
+			foreach($post_data as $resource=>$permissions){
+				$this->acl_manager->set_role_permissions($role_id,$resource, (array)$permissions);
+			}
+		}
+		else{
+			$data['post_values']=array();
+			foreach($role_permissions as $row){
+				$data['post_values'][$row['resource']]=$row['permissions'];
+			}
+		}
+		
+
+		$data['active_id']=$role_id;
+		$data['roles']=$this->acl_manager->get_roles();
 
 		$contents=$this->load->view('permissions/index',$data,TRUE);
 		
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
 	}
-	
 
-	function edit($perm_id=NULL)
-	{	
-		if (!is_numeric($perm_id))
-		{
-			show_404();
-		}
-		
-		//validation
-		$this->form_validation->set_rules('label', t('permission'), 'xss_clean|trim|max_length[100]');
-		$this->form_validation->set_rules('description', t('repository'), 'xss_clean|trim|max_length[100]');
-		$this->form_validation->set_rules('section', t('permission'), 'xss_clean|trim|max_length[100]');
-		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|numeric|max_length[3]');
-		$this->form_validation->set_rules('url[]', t('URLs'), 'xss_clean|trim|max_length[100]');
 
-		$perm_obj=array();	
 
-		if ($this->form_validation->run() == TRUE)
-		{		
-			//update permission description
-			$options=array(
-						'label'			=>$this->input->post("label"),
-						'section'		=>$this->input->post("section"),
-						'description'	=>$this->input->post("description"),
-						'weight'		=>$this->input->post("weight"),
-						'url'			=>$this->input->post("url")
-						);
-			
-			$is_saved=$this->Permissions_model->update_permission_options($perm_id,$options);
-			
-			if ($is_saved)
-			{
-				$this->session->set_flashdata('message', t('form_update_success'));
-			}
-			else
-			{
-				$this->session->set_flashdata('error', $this->db->_error_message());
-			}
-		}
-		else
-		{				
-			//get permission info by id
-			$perm_obj=$this->Permissions_model->get_permission_by_id($perm_id);			
-		}
-				
-		$contents=$this->load->view('permissions/edit',$perm_obj,TRUE);
+	function roles()
+	{
+		$data['roles']=$this->acl_manager->get_roles();
+		$contents=$this->load->view('permissions/roles',$data,TRUE);		
 		$this->template->write('content', $contents,true);
-	  	$this->template->render();		
-	}	
-	
-	
-	function add()
-	{	
-		//validation
-		$this->form_validation->set_rules('label', t('permission'), 'xss_clean|trim|max_length[100]');
-		$this->form_validation->set_rules('description', t('repository'), 'xss_clean|trim|max_length[100]');
-		$this->form_validation->set_rules('section', t('permission'), 'xss_clean|trim|max_length[100]');
-		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|numeric|max_length[3]');
-		$this->form_validation->set_rules('url[]', t('URLs'), 'xss_clean|trim|max_length[100]');
-
-		$perm_obj=array();	
-
-		if ($this->form_validation->run() == TRUE)
-		{		
-			//update permission description
-			$options=array(
-						'label'			=>$this->input->post("label"),
-						'section'		=>$this->input->post("section"),
-						'description'	=>$this->input->post("description"),
-						'weight'		=>$this->input->post("weight"),
-						'url'			=>$this->input->post("url")
-						);
-			
-			$is_saved=$this->Permissions_model->add_permission($options);
-			
-			if ($is_saved)
-			{
-				$this->session->set_flashdata('message', t('form_update_success'));
-				redirect("admin/permissions/manage","refresh");
-			}
-			else
-			{
-				$this->session->set_flashdata('error', $this->db->_error_message());
-			}
-		}		
-		
-		$contents=$this->load->view('permissions/edit',$perm_obj,TRUE);
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();		
+	  	$this->template->render();
 	}
-	
-	/**
-	* Delete one or more records
-	* note: to use with ajax/json, pass the ajax as querystring
-	* 
-	* id 	int or comma seperate string
-	*/
-	function delete($id)
-	{			
-		//array of id to be deleted
-		$delete_arr=array();
-	
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
 
-		if (!is_numeric($id))
-		{
-			$tmp_arr=explode(",",$id);
-		
-			foreach($tmp_arr as $key=>$value)
-			{
-				if (is_numeric($value))
-				{
-					$delete_arr[]=$value;
-				}
+
+	function create_role()
+	{
+		$this->load->library("form_validation");
+		$this->form_validation->reset_validation();
+		$this->form_validation->set_data($_POST);
+
+		$this->form_validation->set_rules('role', t('role'), 'xss_clean|trim|alpha_numeric_spaces|required|max_length[100]');
+		$this->form_validation->set_rules('description', t('description'), 'xss_clean|max_length[255]');
+
+		if ($this->form_validation->run() == TRUE){
+
+			$role =$this->input->post("role");
+			$description=$this->input->post("description");
+
+			try{
+				$this->acl_manager->create_role($role,$description);
+				$this->session->set_flashdata('message', t('form_update_success'));	
 			}
+			catch(Exception $e){
+				$this->session->set_flashdata('error', t($e->getMessage()));	
+			}
+		}
+		else{
+			$errors=$this->form_validation->error_array();
+			$error_str=$this->form_validation->error_array_to_string($errors);
 			
-			if (count($delete_arr)==0)
-			{
-				//for ajax return JSON output
-				if ($ajax!='')
-				{
-					echo json_encode(array('error'=>"invalid id was provided") );
-					exit;
-				}
+
+			$this->session->set_flashdata('error', $error_str);			
+		}
+		
+		redirect('admin/permissions/roles');
+	}
+
+
+
+	function edit_role($id=null)
+	{
+		if(empty($id)){
+			show_error(t("ID not provided"));
+		}
+
+		$role =$this->acl_manager->get_role_by_id($id);
+
+		if (empty($role)){
+			show_error(t("Role was not found"));
+		}
+
+		//validation rules
+		$this->form_validation->set_rules('role', t('role'), 'xss_clean|trim|alpha_numeric_spaces|required|max_length[100]');
+		$this->form_validation->set_rules('description', t('description'), 'xss_clean|max_length[255]');
+		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|is_natural|max_length[3]');
 				
-				$this->session->set_flashdata('error', 'Invalid id was provided.');
-				redirect('admin/menu',"refresh");
-			}	
-		}		
-		else
+		//process form				
+		if ($this->form_validation->run() == TRUE)
 		{
-			$delete_arr[]=$id;
-		}
-		
-		if ($this->input->post('cancel')!='')
-		{
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/menu');
-			}	
-		}
-		else if ($this->input->post('submit')!='')
-		{
-			foreach($delete_arr as $item)
-			{
-				//confirm delete	
-				$this->Permissions_model->delete($item);
-			}
-
-			//for ajax calls, return output as JSON						
-			if ($ajax!='')
-			{
-				echo json_encode(array('success'=>"true") );
-				exit;
-			}
+			$options=array();
+			$post_arr=$_POST;
 						
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			if ($destination!="")
-			{
-				redirect($destination);
+			foreach($post_arr as $key=>$value){
+				$options[$key]=$this->input->post($key);
+			}					
+															
+			//update db
+			$db_result=$this->acl_manager->update_role(
+				$id,
+				$this->input->post("role"),
+				$this->input->post("description"),
+				$this->input->post("weight")
+			);
+						
+			if ($db_result===TRUE){
+				$this->session->set_flashdata('message', t('form_update_success'));
+				redirect("admin/permissions/roles","refresh");
 			}
-			else
-			{
-				redirect('admin/permissions/manage');
-			}	
+			else{
+				$this->form_validation->set_error(t('form_update_fail'));
+			}
 		}
-		else
-		{
-			//ask for confirmation
-			$content=$this->load->view('resources/delete', NULL,true);
-			
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-		}		
+		
+		$contents=$this->load->view('permissions/role_edit',$role,TRUE);		
+		$this->template->write('content', $contents,true);
+		$this->template->render();
 	}
 	
+		
 }

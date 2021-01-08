@@ -1,6 +1,7 @@
 {
-	"$schema": "http://json-schema.org/draft-04/schema#",
-	"id": "https://www.iptc.org/std/photometadata/specification/iptc-pmd-schema.json#",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"id": "https://www.iptc.org/std/photometadata/specification/iptc-pmd-schema.json",
+	"$id": "https://www.iptc.org/std/photometadata/specification/iptc-pmd-schema.json",
 	"title": "IPTC Photo Metadata Standard JSON Schema",
 	"description": "Overall structure of photo metadata of a single media asset - sets of metadata for the whole asset and parts of the asset -- the properties comply with the IPTC Photo Metadata Standard 2017.1(IPTC/MS/2017-07-06)",	
 	"type": "object",
@@ -188,14 +189,12 @@
 				"maxAvailHeight": {
 					"title": "Max Avail Height",
 					"description": "The maximum available height in pixels of the original photo from which this photo has been derived by downsizing.",
-					"type": "number",
-					"format": "integer"
+					"type": "number"					
 				},
 				"maxAvailWidth": {
 					"title": "Max Avail Width",
 					"description": "The maximum available width in pixels of the original photo from which this photo has been derived by downsizing.",
-					"type": "number",
-					"format": "integer"
+					"type": "number"					
 				},
 				"minorModelAgeDisclosure": {
 					"title": "Minor Model Age Disclosure",
@@ -208,8 +207,7 @@
 					"description": "Age of the human model(s) at the time this image was taken in a model released image.",
 					"type": "array",
 					"items": {
-						"type": "number",
-						"format": "integer"
+						"type": "number"						
 					}
 				},
 				"modelReleaseDocuments": {
@@ -345,7 +343,7 @@
 		}
 	},
 	"required": [
-		"photoVideoMetadataIPTC"
+		
 	],
 	"patternProperties": {
 		"photoVideoMetadata_[a-zA-Z0-9_]+": {

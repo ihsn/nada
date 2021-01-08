@@ -84,7 +84,7 @@
 			"type": "object",
 			"properties": {
 				"iptc": {
-					"allOf": [{ "$ref": "../schemas/iptc-pmd-schema.json" }]
+					"allOf": [{ "$ref": "iptc-pmd-schema.json" }]
 				},
 				"license": {
 					"type": "array",
@@ -127,7 +127,24 @@
 						}
 					  }
 					}
-				  },
+					},
+					"tags": {
+						"type": "array",
+						"title": "Tags",
+						"description": "Tags",
+						"items": {
+							"type": "object",
+							"properties": {
+								"tag": {
+									"title": "Tag",
+									"type": "string"
+								}
+							}
+						},
+						"required": [
+							"tag"
+						]
+					},
 				"files": {
 					"type": "array",
 					"title": "Files",

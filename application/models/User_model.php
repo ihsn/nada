@@ -206,7 +206,7 @@ class User_model extends CI_Model {
 	 * Return user groups by user
 	 *
 	 **/
-	public function get_user_groups($id_arr=array())
+	public function get_user_roles($id_arr=array())
 	{
 		if (is_array($id_arr) && count($id_arr) ==0 )
 		{
@@ -214,10 +214,10 @@ class User_model extends CI_Model {
 		}
 
 	    $this->db->flush_cache();
-		$this->db->select('group_id,user_id,name');
+		$this->db->select('role_id,user_id,name');
 		$this->db->where_in('user_id', $id_arr);
-		$this->db->join($this->tables['groups'], sprintf('%s.id= %s.group_id',$this->tables['groups'],$this->tables['user_groups']));
-		$query = $this->db->get($this->tables['user_groups']);
+		$this->db->join('roles', sprintf('%s.id= %s.role_id','roles','user_roles'));
+		$query = $this->db->get('user_roles');
 
 		//all user groups
 		$rows = $query->result_array();

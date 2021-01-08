@@ -33,7 +33,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissions
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
 		
 		//get survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
@@ -235,7 +235,7 @@ class Resources extends MY_Controller {
 		$survey_id=$this->uri->segment(5);
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($survey_id);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($survey_id));
 		
 		if (!is_numeric($survey_id) && $survey_id<1)
 		{
@@ -449,7 +449,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
 		
 		$this->load->library('form_validation');
 		
@@ -471,7 +471,7 @@ class Resources extends MY_Controller {
 	function do_import($sid)
 	{
 		//test user study permissiosn
-		$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
 		
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
@@ -687,7 +687,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
 	
 		$this->load->library('catalog_admin');		
 		$fixed_count=$this->catalog_admin->fix_resource_links($surveyid);		
@@ -740,7 +740,7 @@ class Resources extends MY_Controller {
 			show_error("INVALID");
 		}
 		
-		$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
 		
 		if($_FILES)
 		{
@@ -834,7 +834,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
 		
 		$resource_folder=unix_path($survey_path);
 		

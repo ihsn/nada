@@ -1,10 +1,10 @@
 <div class="form-group">
-	<label for="title"><?php echo t('book_title');?></label>
+	<label for="title"><?php echo t('Book title');?></label>
 	<input name="title" type="text" id="title" class="form-control" value="<?php echo get_form_value('title',isset($title) ? $title : ''); ?>"/>
 </div>
 
 <div class="form-group">
-	<label for="title"><?php echo t('chapter_title');?></label>
+	<label for="title"><?php echo t('Chapter title');?></label>
 	<input name="subtitle" type="text" id="subtitle" class="form-control" value="<?php echo get_form_value('subtitle',isset($subtitle) ? $subtitle : ''); ?>"/>
 </div>
 

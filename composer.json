@@ -1,12 +1,16 @@
 {    
     "require": {
         "justinrainbow/json-schema": "^5.2",
-        "phpmailer/phpmailer": "6.1.6",
+        "mpdf/mpdf": "^8.0",
+        "phpmailer/phpmailer": "^5.2.26",
         "violet/streaming-json-encoder": "^1.1",
         "salsify/json-streaming-parser": "^8.0",
         "slim/csrf": "^0.8.3",
         "solarium/solarium": "^4.2",
         "league/event": "^2.2",
-        "mpdf/mpdf": "^8.0"
+        "league/csv": "^9.3",
+        "mongodb/mongodb": "^1.5",
+        "adbario/php-dot-notation": "^2.2",
+        "laminas/laminas-permissions-acl": "^2.7"
     }
 }

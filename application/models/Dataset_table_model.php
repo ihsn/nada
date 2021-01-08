@@ -18,6 +18,81 @@ class Dataset_table_model extends Dataset_model {
         parent::__construct();
     }
 
+    /**
+     * 
+     * Update dataset
+     * 
+     * @merge_metadata - boolean
+     *  true  - merge/update individual values
+     *  false - replace all metadata with new values (no merge)
+     * 
+     */
+    function update_dataset($sid,$type,$options, $merge_metadata=false)
+	{
+		//need this to validate IDNO for uniqueness
+        $options['sid']=$sid;
+        
+        //merge/replace metadata
+        if ($merge_metadata==true){
+            $metadata=$this->get_metadata($sid);
+            if(is_array($metadata)){
+                unset($metadata['idno']);                
+                $options=$this->array_merge_replace_metadata($metadata,$options);
+                $options=array_remove_nulls($options);
+            }
+        }
+
+		//validate schema
+		$this->validate_schema($type,$options);
+
+        //get core fields for listing datasets in the catalog
+        $core_fields=$this->get_core_fields($options);
+        $options=array_merge($options,$core_fields);
+		
+		//validate IDNO field
+		$new_id=$this->find_by_idno($core_fields['idno']);
+
+		//if IDNO is changed, it should not be an existing IDNO
+		if(is_numeric($new_id) && $sid!=$new_id ){
+			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
+        }                
+
+        $options['changed']=date("U");
+        
+		//fields to be stored as metadata
+        $study_metadata_sections=array('metadata_information','table_description','files','tags','additional');
+
+        foreach($study_metadata_sections as $section){		
+			if(array_key_exists($section,$options)){
+                $options['metadata'][$section]=$options[$section];
+                unset($options[$section]);
+            }
+        }                
+
+		//start transaction
+		$this->db->trans_start();
+        
+        $this->update($sid,$type,$options);
+
+		//update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//update tags
+        $this->update_survey_tags($sid, $this->get_tags($options['metadata']));
+
+        //update related countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+
+		//set aliases
+
+		//set geographic locations (bounding box)
+
+		//complete transaction
+		$this->db->trans_complete();
+
+		return $sid;
+    }
+
     function create_dataset($type,$options)
 	{
 		//validate schema
@@ -28,7 +103,7 @@ class Dataset_table_model extends Dataset_model {
         $options=array_merge($options,$core_fields);
 		
 		if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
-			throw new exception("IDNO-NOT-SET");
+			throw new exception("xIDNO-NOT-SET");
 		}
 
 		//validate IDNO field
@@ -40,7 +115,7 @@ class Dataset_table_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','table_description','files','additional');
+        $study_metadata_sections=array('metadata_information','table_description','files','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -60,11 +135,16 @@ class Dataset_table_model extends Dataset_model {
         }
 
 		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        
+        //update tags
+        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
+
 
 		//set topics
 
         //update related countries
+        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
@@ -91,8 +171,11 @@ class Dataset_table_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'table_description/title_statement/title');
         $output['idno']=$this->get_array_nested_value($options,'table_description/title_statement/idno');
 
-        //todo
-        $output['nation']='';
+        $nations=(array)$this->get_array_nested_value($options,'table_description/ref_country');
+        $nations=array_column($nations,'name');
+
+        $output['nations']=$nations;
+        $output['nation']=$this->get_country_names_string($nations);
 
         $output['abbreviation']=$this->get_array_nested_value($options,'table_description/title_statement/alternate_title');            
         
@@ -104,6 +187,20 @@ class Dataset_table_model extends Dataset_model {
         $output['year_end']=$years['end'];
         
         return $output;
+    }
+
+
+    /**
+     * 
+     * Return a comma separated list of country names
+     */
+    function get_country_names_string($nations)
+    {
+        $nation_str=implode(", ",$nations);
+        if(strlen($nation_str)>150){
+            $nation_str=substr($nation_str,0,145).'...';
+        }
+        return $nation_str;
     }
     
 
@@ -126,6 +223,28 @@ class Dataset_table_model extends Dataset_model {
 			'start'=>$start,
 			'end'=>$end
 		);
-	}
+    }
+    
+
+    /**
+     * 
+     * get tags
+     * 
+     **/
+	function get_tags($options)
+	{
+        $tags=$this->get_array_nested_value($options,'tags');
+
+        if(!is_array($tags)){
+           return false;
+        }
+
+        $output=array();
+        foreach($tags as $tag){
+            $output[]=$tag['tag'];
+        }
+
+        return $output;
+    }
 
 }

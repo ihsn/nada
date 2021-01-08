@@ -624,7 +624,7 @@ $config['site_user_register']='yes';
 |
 | allowed_resource_types	comma seperated list of file extensions that are allowed for uploading external resources
 */
-$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar';
+$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar,do,r';
 
 
 /*
@@ -763,6 +763,24 @@ $config['otp_verification']=0;
 */
 
 $config['enable_access_policy_import']=false;
+
+$config['data_types_nav_bar']=true;
+
+//catalog search box location
+$config['search_box_orientation']='default'; //inline, default
+
+
+/*
+|--------------------------------------------------------------------------
+| Google Maps API key
+|--------------------------------------------------------------------------
+|
+| API key for Google maps
+| 
+| 
+*/
+
+$config['google_maps_api_key']='';
 
 /*
 |--------------------------------------------------------------------------

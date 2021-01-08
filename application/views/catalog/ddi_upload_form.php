@@ -2,20 +2,11 @@
 .active-repo{background:gainsboro;padding:5px;}
 </style>
 <?php
-//get repositories list by user access
-$user_repositories=$this->acl->get_user_repositories();	
-$repositories_list=array();
-foreach($user_repositories as $repo)
-{
-	$repositories_list[$repo["repositoryid"]]=$repo['title'];
-}
-
 //active repository
 $active_repository='';
 
 //get active repo
-if (isset($active_repo) && $active_repo!=NULL)
-{
+if (isset($active_repo) && $active_repo!=NULL){
 	$active_repository=$active_repo->repositoryid;
 }
 
@@ -39,11 +30,13 @@ if ($max_upload>$max_post){
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
-<h1 class="page-title"><?php echo t('add_study_to_collection');?> 
-    <!--<span class="active-repo"><?php echo $repositories_list[$active_repository];?></span>-->
-</h1>
 
-<div style="width:500px;">
+<div class="col-md-6">
+
+  <h1 class="page-title"><?php echo t('add_study_to_collection');?> 
+      <!--<span class="active-repo"><?php echo $repositories_list[$active_repository];?></span>-->
+  </h1>
+
 	<?php echo form_open_multipart("", array('class'=>'form')	 );?>
     <input type="hidden" name="repositoryid" value="<?php echo $active_repository;?>"/>
 
@@ -59,15 +52,50 @@ if ($max_upload>$max_post){
     <input class="form-control-file" type="file" name="rdf" id="rdf-file" size="60"/>    
   </div>
 
-<div class="form-group" style="margin-top:10px;">
-<label for="overwrite" class="desc">
-    <input type="checkbox" name="overwrite" id="overwrite" value="yes"/> <?php echo t('ddi_overwrite_exist');?>
-</label>
-</div>
+  <div class="form-group" style="margin-top:10px;">
+  <label for="overwrite" class="desc">
+      <input type="checkbox" name="overwrite" id="overwrite" value="yes"/> <?php echo t('ddi_overwrite_exist');?>
+  </label>
+  </div>
 
 	<?php echo form_submit('submit',t('submit'), 'class="btn btn-primary"'); ?>
     <?php echo anchor('admin/catalog',t('cancel'));?>
 
     <?php echo form_close();?>
 </div>
+
+<div class="col-md-6" style="background:#eeeeee; padding:20px;">
+  <h2 style="margin:0px;margin-bottom:15px;"><?php echo t('Create new study');?> </h2>
+  
+
+  <form class="form"  method="get" action="<?php echo site_url('admin/catalog/create');?>">    
+
+    <div class="form-group">
+      <label for="exampleInputEmail1">Select data type</label>
+      <select name="type" class="form-control">
+        <option value="survey">Microdata</option>
+        <option value="geospatial" >Geospatial</option>
+        <option value="document">Document</option>
+        <option value="table">Table</option>
+        <option value="timeseries">Timeseries</option>
+        <option value="script">Script</option>
+        <option value="image">Image</option>
+      </select>  
+    </div>
+
+    <div class="form-group">
+      <label for="exampleInputEmail1">IDNO</label>
+      <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Unique ID (Leave it empty for auto generated ID)">
+    </div>
+
+    <div class="form-group">
+      <label for="dataset_set">Title</label>
+      <input type="text" class="form-control" id="datasert_title" placeholder="Title">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+</div>
+
 </div>

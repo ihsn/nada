@@ -2,6 +2,12 @@
 .published, .unpublished{
 	cursor:pointer;
 }
+.unpublished {
+	color:red;
+}
+.published{
+	color:green;
+}
 </style>
 <div class="container-fluid menu-index-page">
 <?php if (!isset($hide_form)):?>
@@ -19,19 +25,19 @@
 <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 
-<h1 class="page-title"><?php echo t('menu_management');?></h1>
+<h3 class="page-title mt-5 mb-5"><?php echo t('menu_management');?></h3>
 <div class="form-inline">
 <form class="form-group" method="GET" id="user-search">
-  <input class="form-control" type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
-  <select name="field" id="field" class="form-control">
+  <input class="form-control-sm" type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
+  <select name="field" id="field" class="form-control-sm  ml-2">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="body"	<?php echo ($this->input->get('field')=='body') ? 'selected="selected"' : '' ; ?> ><?php echo t('body');?></option>
   </select>
   
-  <input type="submit" class="btn btn-primary" value="<?php echo t('search');?>" name="search"/>
+  <input type="submit" class="btn btn-primary btn-sm ml-2" value="<?php echo t('search');?>" name="search"/>
   <?php if ($this->input->get("keywords")!=''): ?>
-    <a  class="btn btn-default" href="<?php echo current_url();?>"><?php echo t('reset');?></a>
+    <a  class="btn btn-secondary" href="<?php echo current_url();?>"><?php echo t('reset');?></a>
   <?php endif; ?>
 </form>
 </div>
@@ -80,23 +86,29 @@
 <form autocomplete="off" class="form-group">
 
 	<!-- batch operations -->
-	<div class="row" style="margin-top:30px;">
-		<div class="col-md-6">    
-			<select id="batch_actions" style="margin-bottom:5px;">
-				<option value="-1"><?php echo t('batch_actions');?></option>
-				<option value="delete"><?php echo t('delete');?></option>
-			</select>
-			<input type="button" class="btn btn-default btn-xs" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>			
-			</div>
-		<div class="col-md-6">
-			<div class="pull-right">
-				<div class="nada-pagination"><em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?></div>
+	<div class="row  mt-5 mb-2">
+		<div class="col">			
+		<div class="form-inline" style="margin-left:-15px;">
+			<div class="form-group ml-3">    
+				<select name="batch_actions" id="batch_actions" class="form-control-sm">
+					<option value="-1"><?php echo t('batch_actions');?></option>
+					<option value="delete"><?php echo t('delete');?></option>
+				</select>
+				<input type="button" class="btn btn-primary btn-sm ml-2" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>			
 			</div>
 		</div>
-	</div>
-
+		</div>
+		<div class="col-md-6">
+			<div class="nada-pagination small text-right mb-0">
+				<em><?php echo $pager; ?></em>
+				&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
+			</div>
+		</div>
+	</div>		
+		
+	
     <!-- grid -->
-    <table class="table table-striped table-border-bottom top-margin-10" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped table-sm table-border-bottom" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
             <th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
@@ -114,8 +126,14 @@
         	<td><input type="checkbox" value="<?php echo $row->id; ?>" class="chk"/></td>
             <td><a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo html_escape($row->title); ?></a></td>
             <td><?php echo html_escape($row->url); ?>&nbsp;</td>
-            <td><?php echo ($row->linktype==0 ? '<span class="glyphicon glyphicon-file"></span>' : '<span class="glyphicon glyphicon-link"></span>'); ?></td>
-			<td title="Click to publish/unpublish"><span class="<?php echo ($row->published==1 ? 'published glyphicon glyphicon-ok ico-add-color ' : 'unpublished glyphicon glyphicon-remove red-color'); ?>" id="<?php echo $row->id; ?>"></span></td>
+            <td><?php echo ($row->linktype==0 ? '<i class="fas fa-file"></i>' : '<i class="fas fa-link"></i>'); ?></td>
+			<td 
+				title="Click to publish/unpublish">
+				<span 
+					class="<?php echo ($row->published==1 ? 'published fas fa-check' : 'unpublished fas fa-times'); ?>" 
+					id="<?php echo $row->id; ?>">
+				</span>
+			</td>
 			<td><?php echo date("m-d-Y",$row->changed); ?></td>
 			<td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> |
@@ -124,7 +142,7 @@
         </tr>
     <?php endforeach;?>
     </table>
-    <div class="pull-right nada-pagination">
+    <div class="text-right nada-pagination small">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
 </form>
@@ -172,7 +190,7 @@ function bind_events()
 	$(".unpublished").click(
 			function (e) {
                 $(this).removeClass('unpublished').addClass('published');bind_events();
-				$(this).removeClass("glyphicon-remove").addClass("glyphicon-ok");
+				$(this).removeClass("fa-times").addClass("fa-check");				
                 url=CI.base_url+'/admin/menu/publish/'+$(this).attr("id")+'/'+1;
                 $.get(url);
 			}
@@ -181,7 +199,7 @@ function bind_events()
 	$(".published").click(
 			function (e) {
 				$(this).removeClass('published').addClass('unpublished');bind_events();
-				$(this).removeClass("glyphicon-ok").addClass("glyphicon-remove");
+				$(this).removeClass("fa-check").addClass("fa-times");
                 url=CI.base_url+'/admin/menu/publish/'+$(this).attr("id")+'/'+0;
                 $.get(url);
 			}

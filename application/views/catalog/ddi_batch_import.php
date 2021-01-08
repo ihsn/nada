@@ -7,20 +7,9 @@
 
 <?php
 //get repositories list by user access
-$user_repositories=$this->acl->get_user_repositories();
 $repositories_list=array();
-foreach($user_repositories as $repo)
-{
-	$repositories_list[$repo["repositoryid"]]=$repo['title'];
-}
-
-//active repository
-$active_repository='';
-
-//get active repo
-if (isset($active_repo) && $active_repo!=NULL)
-{
-	$active_repository=$active_repo->repositoryid;
+foreach($repositories as $repo){
+	$repositories_list[$repo["repositoryid"]]=$repo['title']. ' ('.strtoupper($repo['repositoryid']).')';
 }
 ?>
 

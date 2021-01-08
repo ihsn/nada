@@ -30,6 +30,27 @@ class Resource_model extends CI_Model {
 		$this->db->order_by('title','ASC');
 		return $this->db->get('resources')->result_array();
 	}
+
+
+	/**
+	 * 
+	 * Return an associated array using filename as the key
+	 * 
+	 * 
+	 */
+	function get_survey_resources_group_by_filename($sid)
+	{
+		$resources=$this->get_survey_resources($sid);
+		$output=array();
+		
+		foreach($resources as $resource)
+		{
+			$output[$resource['filename']]=$resource;
+		}
+
+		return $output;
+	}
+
 		
 	/**
 	* searche database

@@ -102,30 +102,30 @@ class Metadata_template {
    */
    
    //flatten the structure into key/value pairs
-   function flatten_schema($schema,$parent_name='',$output=array()){
-	foreach($schema->properties as $key=>$prop)
-	{
-		$key_name=$key;
-		if($parent_name!==''){
-			$key_name=$parent_name.'/'.$key;
-		}
-		print $key_name."\r\n";
+   function flatten_schema($schema,$parent_name='',$output=array())
+   {
+		foreach($schema->properties as $key=>$prop)
+		{
+			$key_name=$key;
+			if($parent_name!==''){
+				$key_name=$parent_name.'/'.$key;
+			}
+			print $key_name."\r\n";
 
-		$output[]=$key_name;
+			$output[]=$key_name;
 
-		if ($prop->type=='object'){                                            
-			$output=$this->schema_properties($prop,$key_name,$output);
+			if ($prop->type=='object'){                                            
+				$output=$this->schema_properties($prop,$key_name,$output);
+			}
 		}
+
+		return $output;
 	}
-
-	return $output;
-}
    
    
    public function get_metadata_template($survey_type, $metadata_format)
    {
-	  if (!$this->config)
-	  {
+	  if (!$this->config){
 		 throw new Exception("Metadata template config is not loaded");
 	  }
 	  
@@ -160,93 +160,21 @@ class Metadata_template {
 	  return $this->CI->load->view($this->view_path,array('metadata'=>$this->metadata),TRUE);
    }
    
-   
-   function render_html_old()
+   /**
+	* 
+	* Render selected sections only
+	*
+    */
+   public function render_section_html($sections)
    {
-	  $output=NULL;	  
-	  $root_items=NULL;
-	  
-	  //process root items and groups
-	  foreach($this->layout->items as $item)
-	  {
-		 $root_items[]=$this->render_field($item);
-	  }
-	  	  
-	  $output[]=implode("",$root_items);
-	  
-	  
-	  //process top sections
-	  foreach($this->layout->sections as $section_key=>$section)
-	  {
-		 $output[]=$this->render_section($section, $section_key);
-	  }
-	  
-	  
-	  //$output=implode("",$output);
-	  
-	  //var_dump($output);
-	  //echo "</pre>";
-	  return implode("",$output);
+	  $this->CI->load->helper('metadata_view_helper');
+	  return $this->CI->load->view($this->view_path,array('metadata'=>$this->metadata, 'sections'=>(array)$sections),TRUE);	
    }
    
-   private function render_section($node,$section_name)
-   {
-	  $output=array();
-	  	  
-	  //items
-	  if (isset($node->items)){
-		 foreach($node->items as $item)
-		 {
-			$output[]=$this->render_field($item);
-		 }
-	  }
-	  
-	  $output=implode("",$output);
-	  
-	  if (!$output)
-	  {
-		 return NULL;
-	  }
-	  
-	  $options=array(
-		 'name'=>$section_name,
-		 'value'=>$output
-	  );
-	  
-	  return $this->CI->load->view('metadata_templates/section',$options,TRUE);
-   }
    
    
    private function render_node($node,$section)
-   {
-	  /*
-	  $output=NULL;
-	  	  
-	  //items
-	  if (isset($node->items)){
-		 foreach($node->items as $item)
-		 {
-			$html=$this->render_field($item);
-			if ($html!="")
-			{
-			   $output['items'][]=$html;
-			}
-		 }
-	  }
-	  
-	  //sections
-	  if (isset($node->sections)){
-		 foreach($node->sections as $section_name=>$section_node)
-		 {
-			$section_output=$this->render_node($section_node,$section_name);
-			$output['sections'][]=$section_output;
-		 }
-	  }
-	  
-	  return $output;
-	  */
-	  
-	  
+   {	  
 	  $output=NULL;
 	  $output['items']=array();
 	  $output['sections']=array();

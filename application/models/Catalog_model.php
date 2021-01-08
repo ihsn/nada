@@ -318,8 +318,8 @@ class Catalog_model extends CI_Model {
 		//study fields
 		$fields=$this->study_fields;
 		
-		//form fields
-		$fields[]='surveys.formid, forms.model as model';
+		//Data access type + data classication fields
+		$fields[]='surveys.formid, forms.model as model, surveys.data_class_id';		
 		
 		//notes
 		//$fields[]='notes.admin_notes as admin_notes';
@@ -332,12 +332,10 @@ class Catalog_model extends CI_Model {
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
 		//$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 		
-		if (is_numeric($id))
-		{
+		if (is_numeric($id)){
 			$this->db->where('surveys.id', $id); 
 		}
-		else 
-		{	
+		else{
 			//get survey by idno
 			$this->db->where('surveys.idno', $id); 
 		}	
@@ -345,8 +343,7 @@ class Catalog_model extends CI_Model {
 		//execute query
 		$survey=$this->db->get('surveys')->row_array();
 		
-		if(!$survey)
-		{
+		if(!$survey){
 			return FALSE;
 		}
 		
@@ -357,14 +354,12 @@ class Catalog_model extends CI_Model {
 		
 		$survey['repo']=array();
 		
-		if ($additional)
-		{
+		if ($additional){
 			$survey['repo']=$additional;
 		}
 		
 		//get study countries
 		$survey['country']=$this->get_survey_iso_countries($survey['id']);
-
 		return $survey;
 	}
 	
@@ -682,7 +677,7 @@ class Catalog_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array('link_technical', 'link_study', 'link_report', 
 							'link_indicator','link_questionnaire',
-							'isshared','formid','changed','isdeleted','link_da','published');
+							'isshared','formid','changed','isdeleted','link_da','published','data_class_id');
 		
 		//pk field name
 		$key_field='id';
@@ -1323,16 +1318,18 @@ class Catalog_model extends CI_Model {
 	
 	/**
 	*
-	* Get Repository owners info
+	* Get repository id for a survey
 	*
 	**/
-	function get_repo_ownership($sid)
+	function get_survey_repositoryid($sid)
 	{
 		$this->db->select("repositoryid");
 		$this->db->where("sid",$sid);
-		$this->db->where("isadmin",1);
-		$result=$this->db->get("survey_repos")->result_array();
-		return $result;		
+		$result=$this->db->get("survey_repos")->row_array();
+		if ($result && isset($result['repositoryid'])){
+			return $result['repositoryid'];
+		}
+		return false;
 	}
 	
 	

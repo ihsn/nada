@@ -1693,7 +1693,13 @@ class Citation_model extends CI_Model {
 		}
 
 		return $output;
+	}
 
+
+	function validate_schema($data)
+	{
+		$this->load->library("Schema_validator");
+		return $this->schema_validator->validate_schema('application/schemas/citation-schema.json',$data);
 	}
 
 }

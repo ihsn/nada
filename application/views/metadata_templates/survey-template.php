@@ -7,6 +7,7 @@
  * @id - survey id
  * @surveyid - IDNO
  * @ all survey table fields
+ * @section = array - names of sections 
  *
  *
  **/
@@ -27,8 +28,9 @@
             "metadata.study_desc.title_statement.sub_title"=>'text',
             "metadata.study_desc.title_statement.alternate_title"=>'text',
             "metadata.study_desc.title_statement.translated_title"=>'text',
-            "metadata.study_desc.study_info.nation"=>'nation',
             "metadata.study_desc.study_info.nation"=>'array',
+            //"metadata.study_desc.study_info.nation"=>'array_badge',
+            //"metadata.study_desc.study_info.nation"=>'array_comma',
             "metadata.study_desc.geog_units"=>'array',
             "metadata.study_desc.series_statement.series_name"=>'text',
             "metadata.study_desc.series_statement.series_info"=>'text',            
@@ -184,26 +186,36 @@
 ?>
 
 
-<!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2  d-none d-sm-block">
-<div class="navbar-collapse sticky-top">
-
-    <ul class="navbar-nav flex-column wb--full-width">
-    <?php foreach($output as $key=>$value):?>            
-        <?php if(trim($value)!==""):?>    
-        <li class="nav-item">
-            <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
-        </li>
+<?php if (isset($sections) && count($sections)>0):?>
+    <!-- show only selected sections -->
+    <div class="metadata-sections-container mb-5">
+    <?php foreach($sections as $section):?>
+        <?php if(isset($output[$section])):?>
+            <?php echo $output[$section];?>
         <?php endif;?>
     <?php endforeach;?>
-    </ul>
-</div>
-</div>
-<!--metadata content-->
-<div class="col-12 col-sm-10 col-lg-10 wb-border-left">
-    <?php echo implode('',$output);?>
-    <?php //echo html_entity_decode(implode('',$output));?>
-</div>
+    </div>
+<?php else:?>
+    <!-- sidebar with section links -->
+    <div class="col-sm-2 col-lg-2  d-none d-sm-block">
+        <div class="navbar-collapse sticky-top">
+            <ul class="navbar-nav flex-column wb--full-width">
+                <?php foreach($output as $key=>$value):?>
+                    <?php if(trim($value)!==""):?>
+                    <li class="nav-item">
+                        <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
+                    </li>
+                    <?php endif;?>
+                <?php endforeach;?>
+            </ul>
+        </div>
+    </div>
+    <!--metadata content-->
+    <div class="col-12 col-sm-10 col-lg-10 wb-border-left">
+        <?php echo implode('',$output);?>
+        <?php //echo html_entity_decode(implode('',$output));?>
+    </div>
+<?php endif;?>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify-jquery.min.js"></script>

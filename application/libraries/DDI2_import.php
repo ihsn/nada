@@ -234,6 +234,9 @@ class DDI2_Import{
 
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
+
+        //index variable keywords
+        $this->ci->dataset_manager->index_variable_data($sid);
                     
         return array(
             'sid'=>$sid,
@@ -536,11 +539,12 @@ class DDI2_Import{
                 'name'			=> $var_obj->get_name(),
                 'labl'			=> $var_obj->get_label(),
                 'qstn'			=> $var_obj->get_question(),
-                //'catgry'		=> $var_obj->get_categories_str(),
+                'catgry'		=> $var_obj->get_categories_str(),
+                'keywords'      => $var_obj->get_notes(),
                 'sid'	        => $sid,
                 'metadata'      => $variable
             );
-        
+
             if(!$batch_inserts){
                 $variable_id=$this->ci->Variable_model->insert($sid,$variable);
 
