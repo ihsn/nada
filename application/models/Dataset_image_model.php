@@ -214,7 +214,7 @@ class Dataset_image_model extends Dataset_model {
      */
     function get_country_names_string($nations)
     {
-        $nation_str=implode(", ",$nations);
+        $nation_str=implode(", ",(array)$nations);
         if(strlen($nation_str)>150){
             $nation_str=substr($nation_str,0,145).'...';
         }
