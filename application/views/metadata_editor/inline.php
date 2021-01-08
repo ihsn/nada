@@ -363,7 +363,7 @@
             //metadata form component
             echo $this->load->view("metadata_editor/vue-metadata-form-component.js",null,true);
 
-            //metadata form component
+            //metadata grid component
             echo $this->load->view("metadata_editor/vue-grid-component.js",null,true);
 
             //nested
@@ -518,8 +518,15 @@
                     ajv.addSchema(datafile_schema,'http://ihsn.org/schemas/datafile-schema.json');
                     ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');
                     //ajv.addSchema(survey_schema,'survey-schema');
-
                     this.schema_validator= ajv.compile(survey_schema);
+                }
+                else if (vm.dataset_type=='image'){
+                    image_schema=<?php echo file_get_contents('application/schemas/image-schema.json');?>;
+                    iptc_schema=<?php echo file_get_contents('application/schemas/iptc-pmd-schema.json');?>;
+                    iptc_shared_schema=<?php echo file_get_contents('application/schemas/iptc-phovidmdshared-schema.json');?>;
+                    ajv.addSchema(iptc_schema,'iptc-pmd-schema.json');
+                    ajv.addSchema(iptc_shared_schema,'https://www.iptc.org/std/photometadata/specification/iptc-phovidmdshared-schema.json');
+                    this.schema_validator= ajv.compile(image_schema);
                 }
                 else{
                     this.schema_validator= ajv.compile(this.metadata_schema);
