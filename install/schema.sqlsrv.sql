@@ -99,6 +99,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_vocabularies on [dbo].[vocabularies](
 -- Table structure for table variables
 --
 
+
+
 CREATE TABLE variables (
   uid int NOT NULL IDENTITY(1,1),
   sid int NOT NULL,
@@ -109,6 +111,7 @@ CREATE TABLE variables (
   qstn text,
   catgry text,
   metadata text,
+  keywords text,
   PRIMARY KEY (uid)
 ) ;
 
@@ -347,6 +350,7 @@ CREATE TABLE surveys (
   link_indicator varchar(255) DEFAULT NULL,
   link_questionnaire varchar(255) DEFAULT NULL,
   formid int DEFAULT NULL,
+  data_class_id int DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
   published tinyint DEFAULT NULL,  
   total_views int DEFAULT '0',
@@ -358,7 +362,7 @@ CREATE TABLE surveys (
   changed_by int DEFAULT NULL,
   thumbnail varchar(300) DEFAULT NULL,
   metadata text,
-  variable_data text,
+  var_keywords text,
   keywords text,  
   PRIMARY KEY (id)
 );
@@ -1240,13 +1244,14 @@ CREATE FULLTEXT CATALOG ft AS DEFAULT;
 --drop existing fulltext index
 DROP FULLTEXT INDEX ON surveys;
 
+
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 ( 
-  keywords		Language 1033
+  keywords		Language 1033,
+  var_keywords		Language 1033
  ) 
 KEY INDEX pk_idx_surveys ; 
-
 
 
 
@@ -1294,15 +1299,27 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_featured_surveys on [dbo].[featured_surveys]
 -- Table structure for table survey_types
 --
 
-CREATE  TABLE survey_types (
-  id INT NOT NULL IDENTITY(1,1),
-  title VARCHAR(255) NOT NULL ,
+CREATE TABLE survey_types (
+  id int NOT NULL identity(1,1),
+  code varchar(50) NOT NULL,
+  title varchar(250) DEFAULT NULL,
+  weight int DEFAULT '0',
   PRIMARY KEY (id)
 );
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_survey_types on [dbo].[survey_types](
-	[title] ASC
+	[code] ASC
 );
+
+INSERT INTO survey_types(id,code,title, weight) VALUES(1,'survey','Survey',100);
+INSERT INTO survey_types(id,code,title, weight) VALUES(2,'geospatial','Geospatial',90);
+INSERT INTO survey_types(id,code,title, weight) VALUES(3,'timeseries','Time series',80);
+INSERT INTO survey_types(id,code,title, weight) VALUES(4,'document','Document',50);
+INSERT INTO survey_types(id,code,title, weight) VALUES(5,'table','Table',70);
+INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
+INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
+INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
+
 
 
 -- 
@@ -1427,3 +1444,70 @@ CREATE TABLE filestore (
 CREATE UNIQUE NONCLUSTERED INDEX IX_filestore on [dbo].[filestore](	
 	[file_name] ASC
 );
+
+
+
+CREATE TABLE data_classifications (
+  id int NOT NULL,
+  code varchar(45) DEFAULT NULL,
+  title varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_data_class on [dbo].[data_classifications](
+	[code] ASC
+);
+
+
+
+set IDENTITY_INSERT data_classifications ON;
+
+INSERT INTO data_classifications (id,code,title) VALUES 
+(1,'public','Public use'),
+(2,'official','Official use'),
+(3,'confidential','Confidential');
+set IDENTITY_INSERT data_classifications OFF;
+
+
+CREATE TABLE roles (
+  id int NOT NULL identity(1,1),
+  name varchar(100) NOT NULL,
+  description varchar(255) NOT NULL,
+  weight int DEFAULT '0',
+  is_admin tinyint DEFAULT '0',
+  is_locked tinyint DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+set IDENTITY_INSERT roles ON;
+insert into roles(id,name,description, weight, is_admin, is_locked) values 
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
+(2,'user','General user account with no access to site administration', 0,1,1);
+set IDENTITY_INSERT roles OFF;
+
+
+
+CREATE TABLE role_permissions (
+  id int NOT NULL identity(1,1),
+  role_id varchar(45) NOT NULL,
+  resource varchar(45) DEFAULT NULL,
+  permissions varchar(500) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE user_roles (
+  id int NOT NULL identity(1,1),
+  user_id int DEFAULT NULL,
+  role_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- migrate admins from previous version
+--
+
+insert into user_roles (user_id, role_id) 
+	select user_id, group_id from users_groups;
