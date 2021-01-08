@@ -84,6 +84,7 @@ $route['api/datasets/(:any)/resources'] = "api/resources/$1";
 $route['api/datasets/(:any)/resources/(:num)'] = "api/resources/$1/$2";
 $route['api/datasets/(:any)/resources/delete_all'] = "api/resources/delete_all/$1";
 $route['api/datasets/(:any)/resources/import_rdf'] = "api/resources/import_rdf/$1";
+$route['api/datasets/(:any)/resources/download/(:num)'] = "api/resources/download/$1/$2";
 
 //dataset files
 $route['api/datasets/(:any)/files'] = "api/files/$1";
@@ -131,6 +132,9 @@ $route['catalog/(:num)/data-dictionary'] = "study/data_dictionary/$1";
 $route['catalog/(:num)/data_dictionary'] = "study/data_dictionary/$1";
 $route['catalog/(:num)/variable-groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
+
+//timeseries db info page
+$route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
 $route['catalog/(:num)/variable_groups/(.*)'] = "study/variable_groups/$1/$2";

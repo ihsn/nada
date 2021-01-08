@@ -27,6 +27,10 @@ class Dataset_microdata_model extends Dataset_model {
 		//validate schema
         $this->validate_schema($type,$options);
 
+        if (!isset($options['overwrite'])){
+            $options['overwrite']='no';
+        }
+
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($type,$options);
         $options=array_merge($options,$core_fields);
@@ -36,15 +40,15 @@ class Dataset_microdata_model extends Dataset_model {
 		}
 
 		//validate IDNO field
-        $id=$this->find_by_idno($core_fields['idno']); 
+        $dataset_id=$this->find_by_idno($core_fields['idno']); 
 
 		//overwrite?
-		if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
+		/*if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
 			return $this->update_dataset($id,$type,$options);
-		}
+		}*/
 
-		if(is_numeric($id) ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$id);
+		if(is_numeric($dataset_id) && isset($options['overwrite']) && $options['overwrite']!=='yes'){
+			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
         }
         
         //split parts of the metadata
@@ -74,14 +78,25 @@ class Dataset_microdata_model extends Dataset_model {
         if(isset($options['variable_groups'])){
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
-        }		
+        }
+        
+        if(isset($options['additional'])){
+            $options['metadata']['additional']=$options['additional'];
+            unset($options['additional']);
+        }
                 
 
 		//start transaction
 		$this->db->trans_start();
-				
-		//insert record
-        $dataset_id=$this->insert($type,$options);
+
+        if (!empty($dataset_id)){
+            //update/replace existing study
+            $this->update($dataset_id,$type,$options);
+        }
+        else{
+		    //insert record
+            $dataset_id=$this->insert($type,$options);
+        }
         
         //set owner repo
         $this->Dataset_model->set_dataset_owner_repo($dataset_id,$options['repositoryid']); 
@@ -105,18 +120,17 @@ class Dataset_microdata_model extends Dataset_model {
 
 
         //data files
-        $this->create_update_data_files($dataset_id,$data_files);
+        $this->create_update_data_files($dataset_id,$data_files, $remove_existing=true);
         
         //variables
-        $this->create_update_variables($dataset_id,$variables);
+        $this->create_update_variables($dataset_id,$variables, $remove_existing=true);
 
 		//variable groups?
-		$this->create_update_variable_groups($dataset_id,$variable_groups);
+		$this->create_update_variable_groups($dataset_id,$variable_groups, $remove_existing=true);
 
 		//complete transaction
         $this->db->trans_complete();
         
-
         $this->index_variable_data($dataset_id);
 
 		return $dataset_id;
@@ -124,17 +138,35 @@ class Dataset_microdata_model extends Dataset_model {
 
 
 
-    function update_dataset($sid,$type,$options)
+    
+
+    /**
+     * 
+     * Update dataset
+     * 
+     * @merge_metadata - boolean
+     *  true  - merge/update individual values
+     *  false - replace all metadata with new values (no merge)
+     * 
+     */
+    function update_dataset($sid,$type,$options, $merge_metadata=false)
 	{
 		//need this to validate IDNO for uniqueness
-		$options['sid']=$sid;
+        $options['sid']=$sid;
+        
+        //merge/replace metadata
+        if ($merge_metadata==true){
+            $metadata=$this->get_metadata($sid);
+            if(is_array($metadata)){
+                unset($metadata['idno']);                
+                $options=$this->array_merge_replace_metadata($metadata,$options);
+                $options=array_remove_nulls($options);
+            }
+        }
 
 		//validate schema
 		$this->validate_schema($type,$options);
 
-		//get core fields for listing datasets in the catalog
-        //$data=$this->get_core_fields($type,$options);
-        
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($type,$options);
         $options=array_merge($options,$core_fields);
@@ -145,18 +177,8 @@ class Dataset_microdata_model extends Dataset_model {
 		//if IDNO is changed, it should not be an existing IDNO
 		if(is_numeric($new_id) && $sid!=$new_id ){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
-        }
-        
-        $dataset=$this->get_row_detailed($sid);
-        $metadata=$dataset['metadata'];
+        }                
 
-        if(is_array($metadata)){
-            unset($metadata['idno']);
-            
-            //replace metadata with new options
-            $options=array_replace_recursive($metadata,$options);
-        }
-        
         $options['changed']=date("U");
 				
 		//split parts of the metadata
@@ -187,6 +209,11 @@ class Dataset_microdata_model extends Dataset_model {
         if(isset($options['variable_groups'])){
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
+        }
+
+        if(isset($options['additional'])){
+            $options['metadata']['additional']=$options['additional'];
+            unset($options['additional']);
         }
 
 		//start transaction
@@ -250,14 +277,21 @@ class Dataset_microdata_model extends Dataset_model {
         $variables=$this->variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories);
         
         $output=[];
+        $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit');
+
+        if($include_categories==false){
+            $exclude_columns[]="catgry";
+        }
+        
         foreach($variables as $variable){
             $tmp=array();
-            
-            foreach($variable as $key=>$value){
-                $tmp[]=$value;
+            foreach($variable['metadata'] as $key=>$value){
+                if(!in_array($key,$exclude_columns)){
+                    $tmp[]=$value;
+                }
             }
-
-            $output[]=implode(" ",$tmp);
+            
+            $output[]=$this->array_to_plain_text($tmp);
         }
 
         $output=implode(" ",$output);
@@ -278,11 +312,12 @@ class Dataset_microdata_model extends Dataset_model {
      */
     private function variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories=true)
     {
-        $this->db->select("uid,name,labl,qstn");
+        //$this->db->select("uid,name,labl,qstn");
+        $this->db->select("metadata");
         
-        if($include_categories){
-            $this->db->select("catgry");
-        }
+        /*if($include_categories){
+            //$this->db->select("catgry");
+        }*/
 
         if($limit>0){
             $this->db->limit($limit);
@@ -291,15 +326,30 @@ class Dataset_microdata_model extends Dataset_model {
         $this->db->where('sid',$sid);
         $this->db->order_by('uid');
         $this->db->where('uid>=',$start_id);
-        return $this->db->get('variables')->result_array();
+        $result=$this->db->get('variables')->result_array();
+
+        foreach($result as $index=>$row)
+        {
+            $result[$index]['metadata']=$this->decode_metadata($row['metadata']);
+
+            if(!$include_categories){
+                unset($result[$index]['metadata']['catgry']);
+            }
+        }
+
+        return $result;
     }
 
 
     
-    private function create_update_variables($dataset_id,$variables)
-    {        
+    private function create_update_variables($dataset_id,$variables, $remove_existing=false)
+    {
+        if ($remove_existing==true){
+            $this->Variable_model->remove_all_variables($dataset_id);
+        }
+        
         if(is_array($variables)){
-			foreach($variables as $variable){
+			foreach($variables as $variable){ 
 				//validate file_id exists
 				$fid=$this->Data_file_model->get_fid_by_fileid($dataset_id,$variable['file_id']);
 		
@@ -368,10 +418,11 @@ class Dataset_microdata_model extends Dataset_model {
     }
 
 
-    private function create_update_variable_groups($dataset_id,$variable_groups)
+    private function create_update_variable_groups($dataset_id,$variable_groups, $remove_existing=false)
     {
-        //delete existing variable groups
-        $this->Variable_group_model->delete($dataset_id);
+        if($remove_existing){
+            $this->Variable_group_model->delete($dataset_id);
+        }
         
         if(is_array($variable_groups)){
 			foreach($variable_groups as $vgroup){
@@ -386,8 +437,12 @@ class Dataset_microdata_model extends Dataset_model {
      * Create data files for Surveys
      * 
      */
-    private function create_update_data_files($dataset_id,$data_files)
-    {        
+    private function create_update_data_files($dataset_id,$data_files, $remove_existing=false)
+    {
+        if ($remove_existing==true){
+            $this->Data_file_model->remove_all_files($dataset_id);
+        }
+
 		if(is_array($data_files)){
 			//create each data file
 			foreach($data_files as $data_file){					
@@ -430,8 +485,10 @@ class Dataset_microdata_model extends Dataset_model {
         $nations=$this->get_country_names($nations);//get names only
 
         $output['nations']=$nations;
-        $output['nation']=$this->get_country_names_string($nations);
+        $nation_str=$this->get_country_names_string($nations);        
+        $nation_system_name=$this->Country_model->get_country_system_name($nation_str);
 
+        $output['nation']=($nation_system_name!==false) ? $nation_system_name : $nation_str;
         $output['abbreviation']=$this->get_array_nested_value($options,'study_desc/title_statement/alternate_title');
         
         $auth_entity=$this->get_array_nested_value($options,'study_desc/authoring_entity');
@@ -498,6 +555,8 @@ class Dataset_microdata_model extends Dataset_model {
         if(!is_array($nations)){
             return false;
         }
+
+        $nation_names=array();
 
         foreach($nations as $nation){
             $nation_names[]=$nation['name'];
@@ -566,4 +625,23 @@ class Dataset_microdata_model extends Dataset_model {
 		);
 	}
 
+
+    /**
+     * 
+     * Update all related tables used for facets/filters
+     * 
+     * 
+     */
+    function update_filters($sid, $metadata)
+    {
+        $core_fields=$this->get_core_fields($type='survey',$metadata);
+
+        //update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//set topics
+
+        //update related countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+    }
 }

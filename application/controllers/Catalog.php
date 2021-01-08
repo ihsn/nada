@@ -12,6 +12,9 @@ class Catalog extends MY_Controller {
 		//facets data + count
 		var $facets= array();
 
+		//enable filters
+		var $enabled_filters=array();
+
     public function __construct()
 	{
 		parent::__construct($skip_auth=TRUE);
@@ -25,6 +28,9 @@ class Catalog extends MY_Controller {
 		$this->load->model('Form_model');
 		$this->load->model('Data_classification_model');
 
+		//todo - set which filters to enable
+		$this->enabled_filters=array('countries');
+
 		//$this->output->enable_profiler(TRUE);
 
 		//language files
@@ -37,6 +43,7 @@ class Catalog extends MY_Controller {
 		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
 		$this->data_types_nav_bar=$this->config->item("data_types_nav_bar");
+		$this->search_box_orientation=$this->config->item("search_box_orientation")== FALSE ? 'default' : $this->config->item("search_box_orientation");
 	}
 		 
 	
@@ -57,7 +64,7 @@ class Catalog extends MY_Controller {
 		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
 		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
-		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id); 
 	}
 
 	
@@ -83,10 +90,19 @@ class Catalog extends MY_Controller {
 		
 		//enable/disable types navbar tabs
 		$output['data_types_nav_bar']=$this->data_types_nav_bar;
+		$output['search_box_orientation']=$this->search_box_orientation;
 
 		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
 		$output['search_output']=$this->load->view($dataset_view, $output,true);
 		
+
+		//tags
+		$filters['tags']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['tags'], 
+				'filter_id'=>'tag'
+			),true);
+			
 		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
 		
 		if(!isset($this->active_repo_id)){
@@ -132,12 +148,14 @@ class Catalog extends MY_Controller {
 		var_dump(	$this->facets['countries']);
 		die();*/
 
-		//countries
-		$filters['countries']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['countries'], 
-				'filter_id'=>'country'
-			),true);		
+		if ( in_array('countries',$this->enabled_filters)){		
+			//countries
+			$filters['countries']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['countries'], 
+					'filter_id'=>'country'
+				),true);
+		}
 		
 		//countries			
 		//$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
@@ -145,12 +163,7 @@ class Catalog extends MY_Controller {
 		//tags			
 		//$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);
 
-		//tags
-		$filters['tags']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['tags'], 
-				'filter_id'=>'tag'
-			),true);
+		
 		
 		//types filter
 		if(!$this->active_tab){
@@ -244,13 +257,19 @@ class Catalog extends MY_Controller {
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
-		$search_options->repo			=xss_clean($this->active_repo['repositoryid']);
+		$search_options->repo			=xss_clean($this->active_repo_id);
 		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
 
 		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('year','title','nation','country','popularity','rank');
 		$allowed_order=array('asc','desc');
+
+		//load default sort options from config if not set
+		if(empty($search_options->sort_by)){
+			$search_options->sort_by=$this->config->item("catalog_default_sort_by");
+			$search_options->sort_order=$this->config->item("catalog_default_sort_order");
+		}
 
 		//set default sort options, if passed values are not valid
 		if (!in_array(trim($search_options->sort_by),$allowed_fields)){
@@ -358,6 +377,7 @@ class Catalog extends MY_Controller {
 
 
 		$this->load->library('catalog_search',$params);
+		$data['is_regional_search']=$this->regional_search;
 		$data['surveys']=$this->catalog_search->search($limit,$offset);
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
@@ -520,8 +540,11 @@ class Catalog extends MY_Controller {
 			case 'timeseries':
 				$dataset_view='search/images';
 				break;
+			case 'table':
+				$dataset_view='search/tables';
+				break;	
 			default:
-				$dataset_view='search/surveys';			
+				$dataset_view='search/surveys';
 				break;
 		}
 
@@ -628,7 +651,7 @@ class Catalog extends MY_Controller {
 		$repo=NULL;
 
 		//unpublished repos are visible to limited admins or admins only
-		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
+		//$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
 
 		if ($repositoryid=='central')
 		{
@@ -770,4 +793,20 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
+
+	function study($codebookid=NULL)
+	{		
+		if ($codebookid==NULL){
+			show_404();
+		}
+
+		$sid=$this->Catalog_model->get_survey_uid($codebookid);
+
+		if ($sid){
+			redirect('catalog/'.$sid);
+		}
+		else{
+			show_404();
+		}
+	}
 }    

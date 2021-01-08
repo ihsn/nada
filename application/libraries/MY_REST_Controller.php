@@ -29,14 +29,49 @@ abstract class MY_REST_Controller extends REST_Controller {
         }
     }
 
+
+    /**
+     * 
+     * Allow only admin users to access the API
+     * 
+     */
+    public function is_authenticated_or_die()
+    {
+        if(!$this->get_api_user_id()){
+            $response=array(
+                'status'=>'ACCESS-DENIED',
+                'message'=>'Access denied'
+            );
+            $this->response($response, REST_Controller::HTTP_BAD_REQUEST,false);
+            die();
+        }
+    }
+
     
+
     /**
      * Check if logged in user has admin rights
      */
     public function is_admin()
     {
         return $this->ion_auth->is_admin($this->get_api_user_id());
-    }    
+    }
+    
+
+    /**
+     * 
+     * Return user info
+     * 
+     */
+    public function api_user()
+    {
+        if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->ion_auth->get_user($this->_apiuser->user_id);
+		}
+
+		return false;
+    }
+
 
     /**
      * 

@@ -118,8 +118,8 @@ class Catalog extends MY_REST_Controller
 		$params=array(
 			'collections'		=> $search_options->collection,
 			'study_keywords'	=> $search_options->sk,
-			'variable_keywords'	=> $search_options->vk,
-			'variable_fields'	=> array('name','labl'),//$search_options->vf,
+			//'variable_keywords'	=> $search_options->vk,
+			//'variable_fields'	=> array('name','labl'),//$search_options->vf,
 			'countries'			=> $search_options->country,
 			'topics'			=> $search_options->topic,
 			'from'				=> $search_options->from,

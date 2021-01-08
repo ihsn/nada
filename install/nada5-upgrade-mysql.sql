@@ -77,17 +77,14 @@ CREATE TABLE `variables` (
   `labl` varchar(255) DEFAULT '',
   `qstn` text,
   `catgry` text,
-  `metadata` mediumtext,
+  `keywords` text,
+  `metadata` mediumtext,  
   PRIMARY KEY (`uid`),
   UNIQUE KEY `idxSurvey` (`vid`,`sid`),
   KEY `idxsurveyidfk` (`sid`),
-  FULLTEXT KEY `idx_qstn` (`qstn`),
-  FULLTEXT KEY `idx_labl` (`labl`),
-  FULLTEXT KEY `idxCatgry` (`catgry`),
-  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
-  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
-  FULLTEXT KEY `idx_nm` (`name`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`,`catgry`),
+  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`,`keywords`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 UPDATE `citations` set ihsn_id=id where ihsn_id is NULL;
@@ -276,23 +273,3 @@ UNLOCK TABLES;
 --- ALTER TABLE `citations` ENGINE = InnoDB;
 --- ALTER TABLE `forms` ENGINE = InnoDB;
 
-ALTER TABLE `survey_topics` ADD KEY `cascade_survey_topics` (`sid`);
-ALTER TABLE `variables` ADD CONSTRAINT `cascade_survey_variables` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_tags` ADD CONSTRAINT `cascade_survey_tags` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_repos` ADD CONSTRAINT `cascade_survey_repos` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_notes` ADD CONSTRAINT `cascade_survey_notes` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_lic_requests` ADD CONSTRAINT `cascade_survey_lic_requests` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_countries` ADD CONSTRAINT `cascade_survey_countries` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `da_collection_surveys` ADD CONSTRAINT `del_da_coll_surveys` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_citations` ADD CONSTRAINT `cascade_survey_citations` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_years` ADD CONSTRAINT `cascade_survey_years` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `featured_surveys` ADD CONSTRAINT `cascade_featured_surveys` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `resources` ADD CONSTRAINT `cascade_resources` FOREIGN KEY (`survey_id`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `lic_files` ADD CONSTRAINT `cascade_lic_files` FOREIGN KEY (`surveyid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `public_requests` ADD CONSTRAINT `cascade_pubilc_requests` FOREIGN KEY (`surveyid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_topics` ADD CONSTRAINT `cascade_survey_topics` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `survey_aliases` ADD CONSTRAINT `cascade_survey_aliases` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
-ALTER TABLE `survey_locations` ADD CONSTRAINT `cascade_survey_locations` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `data_files` ADD CONSTRAINT `cascade_data_files` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE; 
-ALTER TABLE `data_files_resources` ADD CONSTRAINT `cascade_data_files_resources` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;

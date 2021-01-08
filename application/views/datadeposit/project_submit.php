@@ -7,22 +7,8 @@
 <?php endif; ?>
 
 <?php 
-
-$access_policy_options=array(
-						''					=>	'--',
-						'Direct Access'		=>	'Direct Access',
-						'Public Use Files'	=>	'Public Use Files',
-						'Licensed Access'	=>	'Licensed Access',
-						'Data Enclave'		=>	'Data Enclave',
-						'Not Defined'		=>	'Not Defined'
-					);
-
-$to_catalog_options=array(
-						''					=>	'--',
-						'Internal'			=>	'Internal',
-						'External'			=>	'External',
-					);
-
+$access_policy_options=$this->config->item('access_policy_options','datadeposit');
+$to_catalog_options=$this->config->item('to_catalog_options','datadeposit');
 ?>
 
 <?php if (validation_errors() ) : ?>
@@ -51,20 +37,22 @@ $to_catalog_options=array(
 
     <div class="field">
         <label for="accesspolicy">            
-            Choose an appropriate access policy <span class="required">*</span>
-        </label>        
+			<?php echo t('choose_access_policy'); ?>
+        </label><br/>
 		<?php echo form_dropdown('access_policy', $access_policy_options, set_value('access_policy', @$project[0]->access_policy));?>
         <div class="description"><?php echo t('suggested_access_policy_help'); ?></div>
     </div>
 
 
+	<?php if(is_array($to_catalog_options)):?>
     <div class="field">
         <label for="to_catalog">            
             <?php echo t('catalog_to_publish'); ?> <span class="required">*</span>
-        </label>
+        </label><br/>
     	<?php echo form_dropdown('to_catalog', $to_catalog_options, set_value('to_catalog', @$project[0]->to_catalog));?>
         <div class="description" ><?php echo t('catalog_to_publish_help'); ?></div>    		
-    </div>
+	</div>
+	<?php endif;?>
     
     <div class="field">
     	<div class="fieldset-embargoed">
@@ -87,8 +75,21 @@ $to_catalog_options=array(
 
     <div class="field">
         <label for="title"><?php echo t('disclosure_risk'); ?></label>
-    	<input name="disclosure_risk" type="text" id="ccsubmit" class="input-flex" value="<?php echo get_form_value('disclosure_risk',@$project[0]->disclosure_risk); ?>"/>
-        <div class="description" ><?php echo t('disclosure_risk_help'); ?></div>        
+    	<textarea name="disclosure_risk" id="ccsubmit" class="input-flex"><?php echo get_form_value('disclosure_risk',@$project[0]->disclosure_risk); ?></textarea>
+        <div class="description" ><?php echo t('disclosure_risk_help'); ?></div>
+    </div>
+
+
+	<div class="field">
+        <label for="title"><?php echo t('key_variables'); ?></label>
+    	<textarea name="key_variables" id="key_variables" class="input-flex"><?php echo get_form_value('key_variables',@$project[0]->key_variables); ?></textarea>
+        <div class="description" ><?php echo t('key_variables_help'); ?></div>
+    </div>
+
+	<div class="field">
+        <label for="title"><?php echo t('sensitive_variables'); ?></label>
+    	<textarea name="sensitive_variables" id="sensitive_variables" class="input-flex"><?php echo get_form_value('sensitive_variables',@$project[0]->sensitive_variables); ?></textarea>
+        <div class="description" ><?php echo t('sensitive_variables_help'); ?></div>
     </div>
 
     <div class="field">

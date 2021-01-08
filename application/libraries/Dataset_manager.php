@@ -26,6 +26,7 @@ class Dataset_manager{
         $this->ci->load->model("Dataset_script_model");
         $this->ci->load->model("Dataset_table_model");
         $this->ci->load->model("Dataset_visualization_model");
+        $this->ci->load->helper("Array");
     }
 
     function create_dataset($type,$options)
@@ -36,10 +37,10 @@ class Dataset_manager{
     }
 
 
-    function update_dataset($sid,$type,$options)
+    function update_dataset($sid,$type,$options,$merge_data=false)
     {
         $this->validate_type($type);
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options);
+        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data);
     }
 
 
@@ -134,7 +135,21 @@ class Dataset_manager{
      */
     function repopulate_index($sid)
     {
-        return $this->ci->Dataset_model->repopulate_index($sid);
+        //return $this->ci->Dataset_model->repopulate_index($sid);
+
+        $metadata=$this->ci->Dataset_model->get_metadata($sid);
+		$type=$this->ci->Dataset_model->get_type($sid);
+
+		$data=array(
+			'keywords'=>$this->ci->Dataset_model->extract_keywords($metadata,$type)
+		);
+
+		if($type=='survey'){
+			$this->ci->Dataset_microdata_model->index_variable_data($sid);
+		}
+		
+		$this->ci->db->where('id',$sid);
+		return $this->ci->db->update('surveys',$data);
     }
 
 
@@ -142,8 +157,9 @@ class Dataset_manager{
 
     function validate_options($options)
     {
-        return $this->ci->validate_options($options);
+        return $this->ci->Dataset_model->validate_options($options);
     }
+    
 
     public function get_data_access_type_id($name)
     {
@@ -200,6 +216,22 @@ class Dataset_manager{
     function remove_datafile_variables($sid,$file_id)
     {
         return $this->ci->Dataset_microdata_model->remove_datafile_variables($sid,$file_id);
+    }
+
+    function index_variable_data($sid)
+    {
+        return $this->ci->Dataset_microdata_model->index_variable_data($sid);
+    }
+
+    function get_dataset_with_tags($idno=null)
+    {
+        return $this->ci->Dataset_model->get_dataset_with_tags($idno);
+    }
+
+
+    function get_dataset_aliases($idno=null)
+    {
+        return $this->ci->Dataset_model->get_dataset_aliases($idno);
     }
 
 }

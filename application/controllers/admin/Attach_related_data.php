@@ -11,24 +11,23 @@ class Attach_related_data extends MY_Controller {
 
   public function __construct()
   {
-				parent::__construct();
+	parent::__construct();
 
-				$this->load->model('Catalog_admin_search_model');
-				$this->load->model("Related_study_model");
-				$this->load->model("Catalog_model");
+	$this->load->model('Catalog_admin_search_model');
+	$this->load->model("Related_study_model");
+	$this->load->model("Catalog_model");
 
-				$this->load->library('pagination');
-				$this->load->helper('querystring_helper','url');
-				$this->load->helper('form');
-				$this->load->helper("catalog");
-				$this->template->set_template('admin_blank');
+	$this->load->library('pagination');
+	$this->load->helper('querystring_helper','url');
+	$this->load->helper('form');
+	$this->template->set_template('admin_blank');
 
-				//load language file
-				$this->lang->load('general');
-				$this->lang->load('catalog_search');
-				$this->lang->load('catalog_admin');
+	//load language file
+	$this->lang->load('general');
+	$this->lang->load('catalog_search');
+	$this->lang->load('catalog_admin');
 
-		//$this->output->enable_profiler(TRUE);
+	//$this->output->enable_profiler(TRUE);
 	}
 
 

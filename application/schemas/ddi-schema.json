@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://ihsn.org/schemas/ddi2-codebook",
+  "$id": "http://ihsn.org/schemas/ddi-schema",
   "version":"0.0",
   "title":"Survey Microdata Schema Draft",
   "description":"Schema for Survey data type based on DDI 2.5",
@@ -63,28 +63,28 @@
           "type":"object",
           "title":"Version Statement",
           "description":"Version Statement",
-          "_ddi_xpath":"stdyDscr/citation/verStmt",
+          "_ddi_xpath":"docDscr/citation/verStmt",
           "properties":{
             "version":{
               "title":"Version",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/version"
+              "_ddi_xpath":"docDscr/citation/verStmt/version"
             },
             "version_date":{
               "title":"Version Date",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/version/@date"
+              "_ddi_xpath":"docDscr/citation/verStmt/version/@date"
             },
             "version_resp":{
               "title":"Version Responsibility Statement",
               "description":"The organization or person responsible for the version of the work",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/verResp"
+              "_ddi_xpath":"docDscr/citation/verStmt/verResp"
             },
             "version_notes":{
               "title":"Version Notes",
               "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/verStmt/notes"
+              "_ddi_xpath":"docDscr/citation/verStmt/notes"
             }
           }
         }
@@ -256,6 +256,11 @@
                     "title":"Abbreviation",
                     "type":"string"
                   },
+                  "grant":{
+                    "title":"Grant Number",
+                    "type":"string",
+                    "_ddi_xpath":"stdyDscr/citation/prodStmt/grantNo"
+                  },
                   "role":{
                     "title":"Role",
                     "type":"string"
@@ -265,12 +270,7 @@
                   "name"
                 ]
               }
-            },
-            "grant_no":{
-              "title":"Grant number",
-              "type":"string",
-              "_ddi_xpath":"stdyDscr/citation/prodStmt/grantNo"
-            }
+            }            
           }
         },
         "distribution_statement":{
@@ -479,7 +479,7 @@
             },
             "agency":{
               "type":"array",
-              "title":"Funding Agency/Sponsor",
+              "title":"Authorizing Agency",
               "description":"The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
               "_ddi_xpath":"stdyDscr/studyAuthorization/authorizingAgency",
               "items":{
@@ -784,13 +784,7 @@
                   "_ddi_xpath":"stdyDscr/stdyInfo/qualityStatement/otherQualityStatement"
                 }
               }
-            },
-            "study_scope":{
-              "title":"Survey scope",
-              "description":"Description of scope",
-              "type":"string",
-              "_ddi_xpath":"stdyDscr/stdyInfo/notes"
-            },
+            },            
             "ex_post_evaluation":{
               "title":"Ex-Post Evaluation",
               "description":"This structure consists of two parts, standardsCompliance and otherQualityStatements. In standardsCompliance list all specific standards complied with during the execution of this study. Note the standard name and producer and how the study complied with the standard. Enter any additional quality statements in otherQualityStatements.",
@@ -982,7 +976,7 @@
                   "type":"object",
                   "properties":{
                     "type":{
-                      "title":"Response Rate",
+                      "title":"Training type",
                       "description":"The percentage of sample members who provided information",
                       "type":"string",
                       "_ddi_xpath":"stdyDscr/method/dataColl/collectorTraining/@type"
@@ -1381,30 +1375,33 @@
                   "type":"array",
                   "title":"Confidentiality Declaration",
                   "description":" This element is used to determine if signing of a confidentiality declaration is needed to access a resource.",
-                  "properties":{
-                    "txt":{
-                      "type":"string",
-                      "title":"Confidentiality declaration text",
-                      "description":"Confidentiality declaration text",
-                      "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec"
-                    },
-                    "required":{
-                      "type":"integer",
-                      "title":"Is signing of a confidentiality declaration required?",
-                      "description":"Is signing of a confidentiality declaration required",
-                      "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@required"
-                    },
-                    "form_url":{
-                      "type":"integer",
-                      "title":"Confidentiality declaration form URL",
-                      "description":"Provide a URN or URL for online access to a confidentiality declaration form.",
-                      "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@URI"
-                    },
-                    "form_id":{
-                      "type":"integer",
-                      "title":"Form ID",
-                      "description":"Indicates the number or ID of the form that the user must fill out",
-                      "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@formNo"
+                  "items":{
+                    "type": "object",
+                    "properties":{
+                      "txt":{
+                        "type":"string",
+                        "title":"Confidentiality declaration text",
+                        "description":"Confidentiality declaration text",
+                        "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec"
+                      },
+                      "required":{
+                        "type":"string",
+                        "title":"Is signing of a confidentiality declaration required?",
+                        "description":"Is signing of a confidentiality declaration required",
+                        "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@required"
+                      },
+                      "form_url":{
+                        "type":"string",
+                        "title":"Confidentiality declaration form URL",
+                        "description":"Provide a URN or URL for online access to a confidentiality declaration form.",
+                        "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@URI"
+                      },
+                      "form_id":{
+                        "type":"string",
+                        "title":"Form ID",
+                        "description":"Indicates the number or ID of the form that the user must fill out",
+                        "_ddi_xpath":"stdyDscr/dataAccs/useStmt/confDec/@formNo"
+                      }
                     }
                   }
                 },
@@ -1413,26 +1410,29 @@
                   "title":"Special Permissions",
                   "description":"Determine if any special permissions are required to access a resource",
                   "_ddi_xpath":"stdyDscr/dataAccs/useStmt/specPerm",
-                  "properties":{
-                    "txt":{
-                      "type":"string",
-                      "title":"Special permissions description",
-                      "description":"Confidentiality declaration text"
-                    },
-                    "required":{
-                      "type":"integer",
-                      "title":"Indicate if special permissions are required to access a resource",
-                      "description":"Indicate if special permissions are required to access a resource"
-                    },
-                    "form_url":{
-                      "type":"integer",
-                      "title":"Form URL",
-                      "description":"Link to the form URL"
-                    },
-                    "form_id":{
-                      "type":"integer",
-                      "title":"Form ID",
-                      "description":"Indicates the number or ID of the form that the user must fill out"
+                  "items":{
+                    "type": "object",
+                    "properties":{
+                      "txt":{
+                        "type":"string",
+                        "title":"Special permissions description",
+                        "description":"Confidentiality declaration text"
+                      },
+                      "required":{
+                        "type":"string",
+                        "title":"Indicate if special permissions are required to access a resource",
+                        "description":"Indicate if special permissions are required to access a resource"
+                      },
+                      "form_url":{
+                        "type":"string",
+                        "title":"Form URL",
+                        "description":"Link to the form URL"
+                      },
+                      "form_id":{
+                        "type":"string",
+                        "title":"Form ID",
+                        "description":"Indicates the number or ID of the form that the user must fill out"
+                      }
                     }
                   }
                 },

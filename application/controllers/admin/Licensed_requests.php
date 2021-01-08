@@ -7,28 +7,25 @@ class Licensed_requests extends MY_Controller {
         parent::__construct();   
        	
         $this->load->helper(array('url'));		
-		$this->load->library( array('pagination') );
-		
-        $this->load->model('Licensed_model');
-		//$this->load->model('Catalog_model');
-       	
-       	$this->template->set_template('admin');
-		
+		$this->load->library( array('pagination') );		
+        $this->load->model('Licensed_model');       	
+       	$this->template->set_template('admin');		
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
 		$this->lang->load('catalog_admin');
+
 		//$this->output->enable_profiler(TRUE);
 		
 		//set active repo from querystring param
 		if ($this->input->get("collection"))
 		{
 			$repo_uid=$this->repository_model->get_repositoryid_uid($this->input->get("collection"));
-			$repo_obj=$this->acl->get_repo($repo_uid);
+			$repo_obj=$this->Repository_model->select_single($repo_uid); 
 		}
 		else
 		{
 			//set active repo
-			$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+			$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo());
 		}	
 
 		if (!$repo_obj)
@@ -45,7 +42,7 @@ class Licensed_requests extends MY_Controller {
 		}
 		
 		//set active repo
-		$this->acl->set_active_repo($this->active_repo->id);
+		$this->Repository_model->set_active_repo($this->active_repo->id);
 		
 		//set collection sticky bar options
 		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
@@ -54,7 +51,7 @@ class Licensed_requests extends MY_Controller {
     
     public function index()
     {    	
-		$this->acl->user_has_lic_request_view_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('licensed_request', 'view',null,$this->active_repo->repositoryid);
 		
     	$content=NULL;
 		$result['rows']=$this->_search();
@@ -62,7 +59,12 @@ class Licensed_requests extends MY_Controller {
 		$this->template->write('title', t('title_licensed_request'),true);				
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
-    }
+	}
+	
+	function export()
+	{
+		return $this->Licensed_model->export_to_csv();
+	}
 	
 	function edit($id)
 	{			
@@ -93,24 +95,16 @@ class Licensed_requests extends MY_Controller {
 			}
 		}
 			
-			/*
-			echo '<pre>';
-			print_r($result);
-			exit;
-			*/
-		
 		//history
 		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
 		$result['email_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='email');
 		$result['forward_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='forward');
-		
-		
+				
 		//monitoring information
 		$result['download_log']=$this->monitor($id,TRUE);
 		
     	//show listing
 		$content=$this->load->view('access_licensed/edit', $result,true);
-		    	
 		$this->template->write('title', t('title_licensed_request'),true);				
 		$this->template->write('content', $content,true);
 	  	$this->template->render();		
@@ -192,9 +186,6 @@ class Licensed_requests extends MY_Controller {
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|xss_clean|callback__status_check');
 		$this->form_validation->set_rules('comments', 'Comments', 'trim|xss_clean');		
 		$this->form_validation->set_rules('ip_limit', 'IP address', 'trim|xss_clean|callback__valid_ip');		
-		/*if ($this->input->post("ip_limit")!=''){
-		
-		}*/
 
 		$post=$_POST;
 		foreach($post as $key=>$value)
@@ -408,7 +399,7 @@ class Licensed_requests extends MY_Controller {
 		{
 			//add to request history if email was sent
 			$this->Licensed_model->add_request_history($requestid,$options);
-			echo '<div class="success">'.sprintf(t('email_sent')).'</div>';
+			echo '<div class="success">'.t('email_sent').'</div>';
 		}
 		else
 		{
@@ -530,7 +521,7 @@ class Licensed_requests extends MY_Controller {
 			$offset=$total-$per_page;
 			
 			//search again
-			$rows=$this->Licensed_model->search_requests($per_page, $offset,$filter, $sort_by, $sort_order);
+			$rows=$this->Licensed_model->search_requests($per_page, $offset,$search_options, $sort_by, $sort_order);
 		}
 		
 		//set pagination options

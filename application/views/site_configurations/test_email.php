@@ -2,19 +2,23 @@
 fieldset{
     border:0px;
 }
+label{
+  font-weight:bold;
+}
 fieldset legend{
     font-weight:normal;
     margin:0px;
-    padding:0px !important;
+    padding:15px !important;
 }
 .form-check label{
     font-weight:normal;
+   
 }
 </style>
-<div class="container">
+<div class="container-fluid">
 
-<h2>Test email configurations</h2>
-<hr>
+<h3 class="mt-5 mb-5">Test email configurations</h3>
+
 
 <form method="post" id="email-form" >
 
@@ -35,10 +39,10 @@ fieldset legend{
 
     <div class="form-group row">
     <div class="col-sm-2"><label>SMTP authentication</label></div>
-    <div class="col-sm-10">
-      <div class="form-check">      
+    <div class="col-sm-10 ">
+      <div class="text-left">      
         <?php echo form_checkbox('smtp_auth', 'true', $smtp_auth,array('id'=>"smtp_auth"));?>
-        <label class="form-check-label" for="smtp_auth">
+        <label class="form-check-label font-weight-normal" for="smtp_auth">
           Use SMTP authentication
         </label>
       </div>

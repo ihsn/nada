@@ -151,12 +151,9 @@ paths:
         tags:
           - Collections
         summary: Create collection
-        description: Create new collection
+        description: Create a new collection
         operationId: postCollection
-        consumes:
-          - application/json
         produces:
-          - application/xml
           - application/json
         parameters:
           - in: "path"
@@ -165,11 +162,67 @@ paths:
             format: string
             required: true
             description: Collection IDNo
-          - in: "body"
-            name: "body"
+
+          - in: "formData"
+            name: "repositoryid"
+            type: string
             required: true
-            schema:
-              $ref: "#/definitions/Collection"
+            title: "Collection's unique IDNo"
+            description: Collection identifier containing numbers and letters only
+          
+          - in: "formData"
+            name: title
+            type: string 
+            required: true
+            description: Collection Title 
+          
+          - in: "formData"
+            name: short_text
+            type: string 
+            required: true
+            description: A short description for the collection
+          
+          - in: "formData"
+            name: long_text
+            type: string 
+            required: true
+            description: Detailed collection description. This field supports basic html and image tags.
+          
+          - in: "formData"
+            name: thumbnail
+            type: string 
+            title: Thumbnail image
+            description: Upload an image file or provide path/url
+          
+          - in: "formData"
+            name: weight
+            type: integer 
+            description: Provide weight to arrange display of collection  
+            
+          - in: "formData"
+            name: section
+            type: integer
+            required: true
+            description: 
+              Section/Group. To see a list of sections available, see api endpoint `collections/sections`
+    
+              * `2` = Regional collection
+    
+              * `3` = Specialized collection
+            
+          - in: "formData"
+            name: ispublished
+            type: integer
+            required: true
+            description:
+              Set status to draft or published
+    
+              * `0` = draft
+    
+              * `1` = published
+          
+        consumes:
+          - multipart/form-data    
         responses:
           '200':
             description: successful operation
@@ -201,7 +254,115 @@ paths:
             schema:
               $ref: '#/definitions/Collection'
         security:
-          - ApiKeyAuth: []        
+          - ApiKeyAuth: []
+  /collections/update:
+      post:
+        tags:
+          - Collections
+        summary: Update collection
+        description: Update collection by providing values for the fields that you want to update. For updating `repositoryid`, use the endpoint `collections/rename`
+        operationId: updateCollection
+        produces:
+          - application/json
+        parameters:
+          - in: "formData"
+            name: "repositoryid"
+            type: string
+            required: true
+            title: "Collection's unique IDNo"
+            description: Collection identifier containing numbers and letters only
+          
+          - in: "formData"
+            name: title
+            type: string 
+            required: true
+            description: Collection Title 
+          
+          - in: "formData"
+            name: short_text
+            type: string 
+            required: true
+            description: A short description for the collection
+          
+          - in: "formData"
+            name: long_text
+            type: string 
+            required: true
+            description: Detailed collection description. This field supports basic html and image tags.
+          
+          - in: "formData"
+            name: thumbnail
+            type: string 
+            title: Thumbnail image
+            description: Upload an image file or provide path/url
+          
+          - in: "formData"
+            name: weight
+            type: integer 
+            description: Provide weight to arrange display of collection  
+            
+          - in: "formData"
+            name: section
+            type: integer
+            required: true
+            description: 
+              Section/Group. To see a list of sections available, see api endpoint `collections/sections`
+    
+              * `2` = Regional collection
+    
+              * `3` = Specialized collection
+            
+          - in: "formData"
+            name: ispublished
+            type: integer
+            required: true
+            description:
+              Set status to draft or published
+    
+              * `0` = draft
+    
+              * `1` = published
+          
+        consumes:
+          - multipart/form-data    
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: '#/definitions/Collection'
+        security:
+          - ApiKeyAuth: []
+  /collections/rename:
+    post:
+      tags:
+        - Collections
+      summary: Rename collection
+      description: Rename a collection ID
+      operationId: renameCollection
+      produces:
+        - application/json
+      parameters:
+        - in: "formData"
+          name: "old_repositoryid"
+          type: string
+          required: true
+          description: "Old ID for collection"
+        
+        - in: "formData"
+          name: "new_repositoryid"
+          type: string 
+          required: true
+          description: "New ID for collection"
+
+      consumes:
+        - multipart/form-data
+
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []
+                       
   /datasets:
       get:
         tags:
@@ -375,7 +536,31 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []                        
+          - ApiKeyAuth: []   
+  /datasets/replace_idno:
+    post:
+      tags:
+        - Datasets
+      summary: Replace IDNO
+      description: Replace Study IDNO
+      operationId: replaceIdno
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          type: string
+          format: string
+          required: true
+          schema:
+            $ref: '#/definitions/ReplaceIdno'
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []                                          
   /datasets/create/survey/{IDNo}:
       post:
         tags:
@@ -490,13 +675,37 @@ paths:
               $ref: 'geospatial-schema.json'
         security:
           - ApiKeyAuth: []                      
+  /datasets/create/timeseriesdb:
+    post:
+      tags:
+        - Timeseries
+      summary: Create timeseries database
+      description: Create a new timeseries database
+      operationId: createTimeseriesDB
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'timeseries-db-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'timeseries-db-schema.json'
+      security:
+        - ApiKeyAuth: [] 
   /datasets/create/timeseries:
       post:
         tags:
           - Timeseries
         summary: Create timeseries dataset
         description: Create a new timeseries project
-        operationId: createTimseries
+        operationId: createTimeSeries
         consumes:
           - application/json
         produces:
@@ -513,7 +722,7 @@ paths:
             schema:
               $ref: 'timeseries-schema.json'
         security:
-          - ApiKeyAuth: []
+          - ApiKeyAuth: []         
   /datasets/create/image:
       post:
         tags:
@@ -818,7 +1027,6 @@ paths:
       get:
         tags:
           - Survey
-          - Timeseries
         summary: Get variable
         description: Get a single variable with full metadata
         operationId: getDatasetVariable
@@ -1012,8 +1220,88 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []  
-          
+          - ApiKeyAuth: []
+  
+  /datasets/generate_pdf/{datasetIDNo}:
+      put:
+        tags:
+          - Survey
+        summary: Generate PDF
+        description: Generate PDF documentation for surveys
+        operationId: generatePDF
+        parameters:
+          - in: "path"
+            name: "datasetIDNo"
+            type: string
+            requried: true
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: "#/definitions/GeneratePDF"  
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []        
+
+
+  /datasets/tags/{datasetIDNo}:
+      get:
+        tags:
+          - Survey
+          - Timeseries
+          - Document
+          - Table
+          - Geospatial
+        summary: List tags
+        description: List datasets with tags  
+        operationId: datasetTagsByIDNo
+        parameters:
+          - in: "path"
+            name: "datasetIDNo"
+            title: (Optional) IDNO
+            type: string
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []          
+
+  /datasets/aliases/{datasetIDNo}:
+      get:
+        tags:
+          - Survey
+          - Timeseries
+          - Document
+          - Table
+          - Geospatial
+        summary: List aliases
+        description: List dataset aliases
+        operationId: datasetAliasesByIDNo
+        parameters:
+          - in: "path"
+            name: "datasetIDNo"
+            title: (Optional) IDNO
+            type: string
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []          
+           
   /datasets/{datasetIDNo}/resources:
       get:
         tags:
@@ -1023,9 +1311,7 @@ paths:
         operationId: listStudyResources
         consumes:
           - application/json
-          - application/xml
         produces:
-          - application/xml
           - application/json
         parameters:
           - name: datasetIDNo
@@ -1299,6 +1585,34 @@ paths:
             $ref: '#/definitions/ResourceFile'
       security:
         - ApiKeyAuth: []
+    get:
+      tags:
+        - External resources
+      summary: Download file
+      description: Download an external resource file
+      operationId: downloadDatasetFile
+      consumes:
+        - application/json
+      produces:
+        - application/octet
+      parameters:
+        - name: datasetIDNo
+          in: path
+          description: Dataset IDNo
+          required: true
+          type: string
+          format: string
+        - name: filename
+          in: path
+          description: Base64 encoded file name
+          required: true
+          type: string
+          format: string
+      responses:
+        '200':
+          description: External resource file in binary format (PDF, ZIP, etc)
+      security:
+        - ApiKeyAuth: []      
 
   /citations:
       get:
@@ -1527,49 +1841,48 @@ definitions:
   Collection:
     type: object
     properties:
-      id:
-        type: integer
-        format: int64
-        readOnly: true
       repositoryid:
         type: string
-        required: true
-        title: "Collection's unique IDNo"        
+        title: "Collection's unique IDNo"
+        description: Collection identifier containing numbers and letters only
       title:
         type: string 
-        required: true
         description: Collection Title 
       short_text:
-        required: true
         type: string 
         description: A short description for the collection
       long_text:
         type: string 
-        required: true
         description: Detailed collection description. This field supports basic html and image tags.
       thumbnail:
         type: string 
         title: Thumbnail image
         description: Upload an image file or provide path/url
       weight:
-        type: string 
+        type: integer 
         description: Provide weight to arrange display of collection  
       section:
-        type: int
-        description: Section ID. To see a list of sections available, see api endpoint `collections/sections`
-        required: true
+        type: integer
+        description: 
+          Section/Group. To see a list of sections available, see api endpoint `collections/sections`
+
+          * `2` = Regional collection
+
+          * `3` = Specialized collection
       ispublished:
-        type: byte
-        required: true
+        type: integer
         description:
           Set status to draft or published
 
           * `0` = draft
 
           * `1` = published
-        enum:
-          - (0) draft
-          - (1) published
+    required:
+      - repositoryid
+      - title
+      - short_text
+      - long_text
+      - ispublished      
     xml:
       name: Collection    
   DatasetList:
@@ -1724,7 +2037,32 @@ definitions:
         type: string
         description: File creation date
     xml:
-      name: ResourceFile    
+      name: ResourceFile
+  GeneratePDF:
+    type: object
+    properties:
+      variable_toc:
+        type: integer
+        description: Include table of contents for variables?   `0`=No, `1`=Yes
+      variable_description:
+        type: integer
+        description: Generate variable descriptions?  `0`=No, `1`=Yes
+      include_resources:
+        type: integer
+        description: Include external resources? `0`=No, `1`=Yes
+      language:
+        type: string
+        description: 
+          Set the language for the PDF report e.g. `en' for English
+
+          * `en` - English
+
+          * `fr` - French
+
+          * `ar` - Arabic
+        
+    xml:
+      name: generatePDF        
   Resource:
     type: object
     properties:
@@ -1878,7 +2216,18 @@ definitions:
         type: string
         description: Variable label
     xml:
-      name: ResourceFile        
+      name: ResourceFile
+  ReplaceIdno:
+    type: object
+    properties:
+      old_idno:
+        type: string
+        description: Old IDNO for study      
+      new_idno:
+        type: string
+        description: New IDNO for study        
+    xml:
+      name: ReplaceIdno              
   DatasetOptions:
     type: object
     properties:

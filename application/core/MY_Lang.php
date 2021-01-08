@@ -55,6 +55,7 @@ class MY_Lang extends CI_Lang {
 			return;
 		}
 
+		$config =& get_config();
 		$langfile = str_replace('.php', '', $langfile);
 
 		if ($add_suffix === TRUE)
@@ -65,8 +66,7 @@ class MY_Lang extends CI_Lang {
 		$langfile .= '.php';
 
 		if (empty($idiom) OR ! preg_match('/^[a-z_-]+$/i', $idiom))
-		{
-			$config =& get_config();
+		{			
 			$idiom = empty($config['language']) ? 'english' : $config['language'];
 		}
 
@@ -82,23 +82,31 @@ class MY_Lang extends CI_Lang {
 			include($basepath);
 		}
 
+
+		if(empty($alt_path))
+		{
+			//set alt_path to user_data folder
+			$alt_path=empty($config['userdata_path']) ? '' : $config['userdata_path'];
+		}
+
 		// Do we have an alternative path to look in?
 		if ($alt_path !== '')
 		{
-			$alt_path .= 'language/'.$idiom.'/'.$langfile;
+			$alt_path .= '/language/'.$idiom.'/'.$langfile;
 			if (file_exists($alt_path))
 			{
 				include($alt_path);
 				$found = TRUE;
 			}
 		}
-		else
+				
+		if($found!==TRUE)
 		{
 			foreach (get_instance()->load->get_package_paths(TRUE) as $package_path)
 			{
 				$package_path .= 'language/'.$idiom.'/'.$langfile;
 				if ($basepath !== $package_path && file_exists($package_path))
-				{
+				{					
 					include($package_path);
 					$found = TRUE;
 					break;
@@ -109,13 +117,13 @@ class MY_Lang extends CI_Lang {
 		if ($found !== TRUE)
 		{
 			//show_error('Unable to load the requested language file: language/'.$idiom.'/'.$langfile);
-			log_message('error', 'Unable to load the requested language file: language/'.$idiom.'/'.$langfile);
+			log_message('info', 'Unable to load the requested language file: language/'.$idiom.'/'.$langfile);
 			return TRUE;
 		}
 
 		if ( ! isset($lang) OR ! is_array($lang))
 		{
-			log_message('error', 'Language file contains no data: language/'.$idiom.'/'.$langfile);
+			log_message('info', 'Language file contains no data: language/'.$idiom.'/'.$langfile);
 
 			if ($return === TRUE)
 			{
@@ -136,6 +144,27 @@ class MY_Lang extends CI_Lang {
 		return TRUE;
 	}
 
-	
+
+	/**
+	 * Language line
+	 *
+	 * Fetches a single line of text from the language array
+	 *
+	 * @param	string	$line		Language line key
+	 * @param	bool	$log_errors	Whether to log an error message if the line is not found
+	 * @return	string	Translation
+	 */
+	public function line($line, $log_errors = TRUE)
+	{
+		$value = isset($this->language[$line]) ? $this->language[$line] : FALSE;
+
+		// Because killer robots like unicorns!
+		if ($value === FALSE && $log_errors === TRUE)
+		{
+			log_message('info', 'Could not find the language line "'.$line.'"');
+		}
+
+		return $value;
+	}
 
 }

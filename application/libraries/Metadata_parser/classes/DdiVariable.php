@@ -1,302 +1,283 @@
 <?php
 
-class DdiVariable{
+class DdiVariable
+{
 
-    private $table_elements=array();
     private $namespaces = array();
     private $metadata=array();
-    private $metadata_keys_map=array(
-        "var/@ID" => "id",
-        "var/@name" => "name",
-        "var/@files" => "files",
-        "var/@dcml" => "dcml",
-        "var/@intrvl" => "intrvl",
-        "var/location/@StartPos" => "loc_start_pos",
-        "var/location/@EndPos" => "loc_end_pos",
-        "var/location/@width" => "loc_width",
-        "var/location/@RecSegNo" => "loc_rec_seg_no",
-        "var/labl" => "labl",
-        "var/imputation" => "imputation",
-        "var/security" => "security",
-        "var/respUnit" => "resp_unit",
-        "var/qstn/preQTxt" => "preqtxt",
-        "var/qstn/qstnLit" => "qstnlit",
-        "var/qstn/postQTxt" => "postqtxt",
-        "var/qstn/ivuInstr" => "ivuinstr",
-        "var/universe" => "universe",
-        "var/universe/@clusion" => "universe_clusion",
-        "var/sumStat" => "sumstat",
-        "var/txt" => "txt",
-        "var/catgry" => "catgry",
-        "var/codInstr" => "codinstr",
-        "var/concept" => "concept",
-        "var/varFormat/@type" => "var_format_type",
-        "var/notes" => "notes",
-        "var/varFormat/@formatname" => "var_format_name",
-        "var/varFormat/@schema" => "var_format_schema",
-        "var/varFormat/@category" => "var_format_category",
-        "var/valrng/range" =>"var_val_range"
-    );
+    private $variable=array();
+
 
     public function __construct($xmlObj)
-    {
-        $xpath_group['var/catgry'] = array(
-            'label' => 'Variable category',
-            'type' => 'table',
-            'cols' => array(
-                'catValu' => 'value',
-                'labl' => 'labl',
-                'catStat' => 'stats',
-                'catStat/@type' => 'type',
-            )
-        );
-
-
-        $xpath_group['var/sumStat'] = array(
-            'label' => 'sumStat',
-            'type' => 'table',
-            'cols' => array(
-                '.' => 'value',
-                '@type' => 'type',
-            )
-        );
-
-        $xpath_group['var/concept'] = array(
-            'label' => 'sumStat',
-            'type' => 'table',
-            'cols' => array(
-                '.' => 'name',
-                '@vocab' => 'vocab',
-                '@uri' => 'uri'
-            )
-        );
-
-        $xpath_group['var/valrng/range'] = array(
-            'label' => 'range',
-            'type' => 'table',
-            'cols' => array(
-                '@UNITS' => 'units',
-                '@min' => 'min',
-                '@max' => 'max'
-            )
-        );
-
-        $this->table_elements = $xpath_group;
-        $this->get_child_elements_array($xmlObj,"var",$this->metadata);
-        $this->transform_metadata_keys();
+    {   
+        require_once dirname(__FILE__).'/JsonSerializer.php';
+        $this->variable= $this->tranform_ddi_variable($xmlObj);
     }
 
-    private function transform_metadata_keys()
-    {
-        $output=array();
 
-        foreach($this->metadata as $key=>$value)
-        {
-            if (array_key_exists($key,$this->metadata_keys_map))
-            {
-                $output[$this->metadata_keys_map[$key]]=$value;
+    function variable_xml_to_array(&$xml_obj)
+    {
+        $xml = new JsonSerializer($xml_obj->asXML());
+        $xml_json=json_encode($xml,JSON_PRETTY_PRINT);
+        return json_decode($xml_json,true);
+    }
+
+
+    function get_element_value($path,$metadata=NULL)
+    {
+        if(!$metadata){
+            $metadata=$this->variable_metadata;
+        }
+
+        $element=NULL;
+        $output=NULL;
+
+        if(isset($metadata[$path])){
+            $element=$metadata[$path];
+        }
+        
+        //attributes/non-array
+        if(!empty($element) && !is_array($element)){
+            return $element;
+        }
+
+        //array type        
+        if(!empty($element) && count($element)>1){
+            $output=[];
+            foreach($element as $idx=>$item){
+                $output[]=$this->get_element_text($item);
+            }
+        }
+        else if(!empty($element) && count($element)==1){            
+            if(isset($element[0])){
+                $output=$this->get_element_text($element[0]);
             }
         }
 
-        $this->metadata=$output;
+        return $output;
     }
 
-
-    public function get_id(){
-        return $this->array_to_string($this->get_key('id'),$type='text');
-    }
-
-    public function get_file_id(){
-        return $this->array_to_string($this->get_key('files'),$type='text');
-    }
-
-    public function get_name(){
-        return $this->array_to_string($this->get_key('name'),$type='text');
-    }
-
-    public function get_label(){
-        return $this->array_to_string($this->get_key('labl'),$type='text');
-    }
-
-    public function get_question(){
-        return $this->array_to_string($this->get_key('qstnlit'),$type='text');
-    }
-
-    public function get_categories(){
-        return $this->get_key('catgry');
-    }
-
-    public function get_categories_str()
+    function get_element_text($element)
     {
-        $categories=$this->get_categories();
-        
-        if(!is_array($categories)){
-            return null;
+        if (isset($element['_text'])){
+            return $element['_text'];
+        }
+    }
+
+
+    /**
+     * 
+     *  works on a non-repeated element only
+     * 
+     */
+    function get_simple_element($name,$metadata=NULL)
+    {
+        if(!$metadata){
+            $metadata=$this->variable_metadata;
         }
 
-        $categories=array_column($categories,"labl");
-        return implode(" ",$categories);
+        if(isset($metadata[$name])){
+            if(isset($metadata[$name][0])){
+                return $metadata[$name][0];
+            }
+        }
     }
 
-    public function get_metadata_array(){
-        return $this->metadata;
-    }
 
-    /*
-        *
-        * return an array of all child elements with values
-        *
-        */
-    public function get_child_elements_array(&$xml_obj, $parent_path = "/", &$elements_array)
+    function get_repeatable_element($name,$metadata=NULL)
     {
-        if (array_key_exists($parent_path, $this->table_elements)) {
-            $result=array();
-            //$result = $this->get_element_flattened($xml_obj, $element_parent_path = NULL, $result = array());
-            $this->get_element_flattened($xml_obj, $element_parent_path = NULL, $result);
-            $cols = $this->table_elements[$parent_path]['cols'];
+        if(!$metadata){
+            $metadata=$this->variable_metadata;
+        }
 
-            //remove keys not registered
-            foreach ($result as $key => $value) {
-                if (!array_key_exists($key, $cols)) {
-                    unset($result[$key]);
+        if(isset($metadata[$name])){            
+            return $metadata[$name];
+        }
+    }
+
+
+    function get_attribute_value($element,$att_name)
+    {
+        if(!empty($element) && isset($element['@attr'][$att_name])){
+            return $element['@attr'][$att_name];
+        }
+    }
+
+
+    /**
+     * 
+     * Convert to JSON schema format
+     **/ 
+    private function tranform_ddi_variable(&$xml_obj)
+    {
+        $var_array=$this->variable_xml_to_array($xml_obj);
+        $var_array=$var_array['var'];
+        $this->variable_metadata=$var_array;
+
+        $output=array(
+            "file_id"=> $this->get_attribute_value($var_array,'files'),
+            "vid"=> $this->get_attribute_value($var_array,'ID'),
+            "name"=> $this->get_attribute_value($var_array,'name'),
+            "var_intrvl"=> $this->get_attribute_value($var_array,'intrvl'),
+            "var_dcml"=> $this->get_attribute_value($var_array,'dcml'),
+            "var_wgt"=> $this->get_attribute_value($var_array,'wgt-var'),
+            "var_is_wgt"=> $this->get_attribute_value($var_array,'wgt')
+        );
+
+        //location
+        $location=$this->get_simple_element('location');
+        $output["loc_start_pos"] = $this->get_attribute_value($location,'StartPos');
+        $output["loc_end_pos"] = $this->get_attribute_value($location,'EndPos');
+        $output["loc_width"] = $this->get_attribute_value($location,'width');
+        $output["loc_rec_seg_no"] = $this->get_attribute_value($location,'RecSegNo');
+
+        $output["labl"] = $this->get_element_value('labl');
+        $output["var_imputation"] = $this->get_element_value('imputation');
+        $output["var_security"] = $this->get_element_value('security');
+        $output["var_resp_unit"] = $this->get_element_value('respUnit');
+        $output["var_analysis_unit"] = $this->get_element_value('anlysUnit');
+
+        //question
+        $question=$this->get_simple_element('qstn');
+        $output["var_qstn_preqtxt"] = $this->get_element_value('preQTxt',$question);
+        $output["var_qstn_qstnlit"] = $this->get_element_value('qstnLit',$question);
+        $output["var_qstn_postqtxt"] = $this->get_element_value('postQTxt',$question);
+        $output["var_qstn_ivuinstr"] = $this->get_element_value('ivuInstr',$question);
+
+        $output["var_universe"] = $this->get_element_value('universe');
+        $output["var_universe_clusion"] = $this->get_attribute_value($this->get_simple_element('universe'),'clusion');
+
+        //sumStat
+        $sum_stats=[];
+        $sum_stats_list=(array)$this->get_repeatable_element('sumStat');
+        foreach($sum_stats_list as $idx=>$item){
+            $sum_stats[]=array(
+                'value'=>$this->get_element_text($item),
+                'type'=>$this->get_attribute_value($item,'type'),                
+                'wgtd'=>$this->get_attribute_value($item,'wgtd')
+            );
+        }
+        $output["var_sumstat"]=$sum_stats;
+        $output["var_txt"] = $this->get_element_value('txt');
+
+        //Category repeated field
+        $categories=[];
+        $category_list=(array)$this->get_repeatable_element('catgry');
+        foreach($category_list as $idx=>$item){
+            $category_stats=array();
+
+            if(isset($item['catStat'])){
+                foreach($item['catStat'] as $cat_stat){
+                    $category_stats[]=array(
+                        'value'=>$this->get_element_text($cat_stat),
+                        'type'=>$this->get_attribute_value($cat_stat,'type'),
+                        'wgtd'=>$this->get_attribute_value($cat_stat,'wgtd'),
+                    );
                 }
             }
 
-            //use column names instead of the xpaths to table type elements
-            $column_data = array();
-            foreach ($cols as $xpath => $name) {
-                $column_data[$name] = @$result[$xpath];
-            }
-
-            $result = $column_data;
-
-            $elements_array[$parent_path][] = $result;
-
-            return $elements_array;//to avoid duplicate items
-        } else {
-            if (trim((string)$xml_obj) != "") {
-                $elements_array[$parent_path][] = trim((string)$xml_obj);
-            }
+            $categories[]=array(
+                'value'=>$this->get_element_text($this->get_simple_element('catValu',$item)),
+                'labl'=>$this->get_element_text($this->get_simple_element('labl',$item)),
+                'is_missing'=>$this->get_attribute_value($item,'missing'),
+                'stats'=>$category_stats
+            );
         }
+        $output['var_catgry']=$categories;
 
-
-        //add attributes
-        foreach ($xml_obj->attributes() as $att_name => $att_value) {
-            $xpath_ = $parent_path . '/@' . $att_name;
-
-            $elements_array[$xpath_] = (string)$att_value;
+        $output["var_codinstr"] = $this->get_element_value('codInstr');
+        
+        $concepts=[];
+        $concept_list=(array)$this->get_repeatable_element('concept');        
+        foreach($concept_list as $idx=>$item){
+            $concepts[]=array(
+                'title'=>$this->get_element_text($item),
+                'vocab'=>$this->get_attribute_value($item,'vocab'),
+                'uri'=>$this->get_attribute_value($item,'vocabURI'),
+            );
         }
+        $output["var_concept"] = $concepts;
+        
+        //format
+        $var_format=$this->get_simple_element('varFormat');
+        $output['var_format']=array(
+            "type" => $this->get_attribute_value($var_format,'type'),
+            "schema" => $this->get_attribute_value($var_format,'schema'),
+            "category" => $this->get_attribute_value($var_format,'category'),
+            "name" => $this->get_attribute_value($var_format,'formatname')
+        );
 
+        $output["var_notes"] = $this->get_element_value('notes');
 
-        //get namespaces for the element
-        $this->namespaces = $xml_obj->getNamespaces(true);
-
-        foreach ($this->namespaces as $ns_key => $ns_value) {
-            foreach ($xml_obj->children($ns_value) as $child) {
-                $this->get_child_elements_array($child, $parent_path . '/' . $child->getName(), $elements_array);
-            }
-        }
-
-        return $elements_array;
-    }
-
-
-    //flatten the element values and attributes into an flat array
-    function get_element_flattened(&$xml_obj, $parent_path = NULL, &$output)
-    {
-        //element value?
-        if ($parent_path) {
-            $output[$parent_path] = trim((string)$xml_obj);
-        } else {
-            $output["."] = trim((string)$xml_obj);
-        }
-
-        //attributes
-        foreach ($xml_obj->attributes() as $att_name => $att_value) {
-            $xpath_ = $this->make_path($parent_path, '@' . $att_name);
-            $output[$xpath_] = (string)$att_value;
-        }
-
-        $namespaces = $xml_obj->getNamespaces(true);
-        foreach ($namespaces as $ns_key => $ns_value) {
-            foreach ($xml_obj->children($ns_value) as $child) {
-                $this->get_element_flattened($child, $this->make_path($parent_path, $child->getName()), $output);
-            }
-
-        }
+        //range
+        $range=$this->get_simple_element('range',$this->get_simple_element('valrng'));
+        $output['var_val_range']=array(
+            'min'=>$this->get_attribute_value($range,'min'),
+            'max'=>$this->get_attribute_value($range,'max')
+        );
+        
         return $output;
     }
 
 
-    //creates and normalizes the path based on parent and child element
-    function make_path($parent_path, $child_element)
+    public function get_id(){
+        return $this->get_key('vid');
+    }
+
+    public function get_file_id(){
+        return $this->get_key('file_id');
+    }
+
+    public function get_name(){
+        return $this->get_key('name');
+    }
+
+    public function get_label(){
+        return $this->get_key('labl');
+    }
+
+    public function get_question(){
+        return $this->get_key('var_qstn_qstnlit');
+    }
+
+    public function get_categories(){
+        return $this->get_key('var_catgry');
+    }
+
+    public function get_notes(){
+        return $this->get_key('var_notes');
+    }
+
+    public function get_txt(){
+        return $this->get_key('var_txt');
+    }
+    
+
+    public function get_categories_str()
     {
-        if (!$parent_path) {
-            return $child_element;
-        } else {
-            return $parent_path . '/' . $child_element;
+        $categories=$this->get_categories();
+        if(!is_array($categories))
+        {
+            return null;
         }
+        $categories=array_column($categories,"value");
+        return implode(" ",$categories);
+    }
+
+    public function get_metadata_array(){
+        return $this->variable;
     }
 
 
     //find an item by their key
     public function get_key($key)
     {
-        if (array_key_exists($key,$this->metadata))
+        if (array_key_exists($key,$this->variable))
         {
-            return $this->metadata[$key];
+            return $this->variable[$key];
         }
 
         return false;
     }
 
-
-
-    /**
-     *
-     * Creates a string value out of array type elements
-     *
-     * Note: uses \r\n for line breaks between multiple rows
-     *
-     **/
-    public function array_to_string($data,$type='text')
-    {
-        if(!$data)
-        {
-            return NULL;
-        }
-
-        if ($type=='text' || $type=='string')
-        {
-            if (!is_array($data)){
-                return $data;
-            }
-
-            return implode("\r\n",$data);
-        }
-        else if(in_array($type, array('table','array')))
-        {
-            $output=NULL;
-            foreach($data as $row)
-            {
-                $row_output=array();
-
-                foreach($row as $field_name=>$field_value)
-                {
-                    if(trim($field_value)!=''){
-                        $row_output[]=$field_value;
-                    }
-                }
-
-                //concat a single row
-                $output[]=implode(", ",$row_output);
-            }
-
-            //combine all rows with line break
-            return implode("\r\n",$output);
-        }
-
-        throw new Exception("TYPE_NOT_SUPPORTED: ".$type);
-    }
 }
-

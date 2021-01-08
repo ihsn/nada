@@ -29,9 +29,13 @@
             <?php $file_info=get_file_extension_info($ext);?>
             <span class="">
                 <a class="btn btn-primary btn-outline-primary btn-sm" target="_blank"
-                    href="<?php echo $row[$options['url_column']];?>"
-                >   <i class="fa fa-download" aria-hidden="true"> </i>
-                    <?php echo t($file_info['link_type']);?> <?php echo strtoupper($file_info['ext']);?>
+                    href="<?php echo $row[$options['url_column']];?>">
+                    <i class="fa fa-download" aria-hidden="true"> </i>
+                    <?php if($this->form_validation->valid_url($row[$options['url_column']])):?>
+                        <?php echo t($file_info['link_type']);?> <?php echo t('File');?>
+                    <?php else:?>
+                        <?php echo t($file_info['link_type']);?> <?php echo strtoupper($file_info['ext']);?>
+                    <?php endif;?>
                 </a>
             </span>
         <?php endforeach;?>

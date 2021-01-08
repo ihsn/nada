@@ -1,10 +1,10 @@
 <style>
+ .breadcrumb{display:none;}
  .search-nav-tabs .nav-item .active{   
     background-color: transparent;
     border:0px;
     border-bottom: 3px solid red;    
 }
-
 
 .dataset-type-label{
     text-transform: uppercase;
@@ -125,11 +125,29 @@
     color:black;
 }
 
-
 .fa-stack { 
     font-size: 2em;
     color:#bfbfbf;
 }
+
+.collapsed .icon-expanded{
+    display:none;
+}
+.collapsed .icon-collapsed{
+    display:inherit;
+}
+
+.icon-collapsed{
+    display:none;
+}
+
+.study-idno{
+    color:gray;
+    font-size:12px;
+}
+
+h5{margin:0px;}
+
 </style>
 
 <div class="container">
@@ -137,54 +155,15 @@
     <input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
     <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
 
+    <?php if($search_box_orientation!=='inline'):?>
+        <!--search bar-->
+        <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
-<?php if($data_types_nav_bar==true):?>
-<!-- data types nav tabs -->
-<div class="search-nav-tabs-container">
-<ul class="nav nav-tabs nav-tabs-auto-overflow mb-5 search-nav-tabs">
-    <li class="nav-item">
-        <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All         
-        <span class="type-count-all">&nbsp;</span>
-        </a>
-    </li>
-
-    <?php 
-        $type_icons=array(
-            'survey'=>'<i class="fa fa-database" aria-hidden="true"></i>',
-            'geospatial'=>'<i class="fa fa-globe" aria-hidden="true"></i>',
-            'timeseries'=>'<i class="fa fa-clock-o" aria-hidden="true"></i>',
-            'document'=>'<i class="fa fa-file-text-o" aria-hidden="true"></i>',
-            'table'=>'<i class="fa fa-table" aria-hidden="true"></i>',
-            'visualization'=>'<i class="fa fa-pie-chart" aria-hidden="true"></i>',            
-            'script'=>'<i class="fa fa-file-code-o" aria-hidden="true"></i>',
-            'image'=>'<i class="fa fa-camera" aria-hidden="true"></i>',
-        );
-    ?>
-
-    <?php foreach($tabs['types'] as $tab):?>
-        <?php 
-            $tab_target=site_url("catalog/?tab_type={$tab['code']}");
-        ?>
-        <li class="nav-item">
-            <a class="dataset-type-tab dataset-type-tab-<?php echo $tab['code'];?> nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">
-                <?php echo @$type_icons[$tab['code']];?>
-                <?php echo t('tab_'.$tab['code']);?>
-                <?php if(isset($tabs['search_counts_by_type']) ) :?>
-                    <?php $count=0;
-                        if (array_key_exists($tab['code'],$tabs['search_counts_by_type'])){
-                            $count=$tabs['search_counts_by_type'][$tab['code']];
-                        }
-                    ?>
-                    <span class="type-count"> <?php echo @number_format((int)$count);?> </span>
-                <?php endif;?>
-            </a>
-        </li>
-    <?php endforeach;?>
-        
-    </ul>
-</div>
-<!-- end data types nav tabs -->
-<?php endif;?>
+        <?php if($data_types_nav_bar==true):?>
+            <!-- data types nav tabs -->
+            <?php echo $this->load->view('search/search_data_tabs',array('tabs'=>$tabs,'type_icons'=>@$type_icons), true);?>
+        <?php endif;?>
+    <?php endif;?>
 
 
 <div class="row">
@@ -217,8 +196,16 @@
 
     <!-- listing page -->
     <div class="col-lg-9 col-md-8">
+
+    <?php if($search_box_orientation=='inline'):?>
         <!--search bar-->
         <?php echo $this->load->view('search/keyword_search_box',null, true);?>
+
+        <?php if($data_types_nav_bar==true):?>
+            <!-- data types nav tabs -->
+            <?php echo $this->load->view('search/search_data_tabs',array('tabs'=>$tabs,'type_icons'=>@$type_icons), true);?>
+        <?php endif;?>
+    <?php endif;?>
 
         <div id="search-result-container">
             <?php echo $search_output;?>

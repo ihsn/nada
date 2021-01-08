@@ -1,12 +1,12 @@
 <div class="container-fluid">
 
 <div class="text-right page-links">
-	<a href="<?php echo site_url('admin/countries/add'); ?>" class="btn btn-default">
-        <span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span> 
+	<a href="<?php echo site_url('admin/countries/add'); ?>" class="btn btn-outline-primary btn-sm">
+        <span class="fas fa-plus ico-add-color right-margin-5" aria-hidden="true"></span> 
         <?php echo t('add_country');?>
     </a>
-    <a href="<?php echo site_url('admin/countries/mappings'); ?>" class="btn btn-default"> 
-        <span class="glyphicon glyphicon-random ico-add-color right-margin-5" aria-hidden="true"></span> 
+    <a href="<?php echo site_url('admin/countries/mappings'); ?>" class="btn btn-outline-primary btn-sm"> 
+        <span class="fas fa-random ico-add-color right-margin-5" aria-hidden="true"></span> 
         <?php echo t('country_mappings');?>
     </a> 
 </div>
@@ -18,17 +18,17 @@
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
-<h1 class="page-title"><?php echo t('Countries');?></h1>
+<h3 class="page-title mt-3"><?php echo t('Countries');?></h3>
 
 <?php if($rows):?>
 	<div><?php echo t('Countries');?>: <?php echo count($rows);?></div>
 	 <!-- grid -->
-    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped table-sm" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><?php echo t('ID');?></th>
             <th><?php echo t('iso');?></th>
-            <th><?php echo t('country');?></th>
-            <th><?php echo t('aliases');?></th>
+            <th><?php echo t('Country');?></th>
+            <th class="text-right"><?php echo t('Aliases');?></th>
 			<th>&nbsp;</th>
         </tr>
 	<?php $tr_class=""; ?>

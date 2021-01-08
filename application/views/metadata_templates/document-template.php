@@ -27,7 +27,23 @@
 <?php */?>
 
 <?php
-    //render location field
+if(isset($metadata['resources']) && isset($metadata['metadata']['files'])){
+    //replace files->file_uri with resource download link 
+    foreach($metadata['metadata']['files'] as $file_idx => $file){
+        if (array_key_exists($file['file_uri'], $metadata['resources'])){
+            $resource=$metadata['resources'][$file['file_uri']];
+            if($this->form_validation->valid_url($file['file_uri'])){
+                $metadata['metadata']['files'][$file_idx]['file_uri']=$file['file_uri'];
+            }else{
+                $metadata['metadata']['files'][$file_idx]['file_uri']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            }            
+        }
+    }
+} 
+?>
+
+<?php
+    //render files field
     $download_buttons=render_field(
         "download_buttons_array",
         "metadata.files",
@@ -58,6 +74,11 @@
     $fields=array(
         "metadata.document_description.title_statement.idno"=>"text",
         "metadata.document_description.title_statement.title"=>"text",
+        
+
+        "metadata.document_description.journal"=>"text",
+        "metadata.document_description.date_published"=>"text",
+
         "metadata.document_description.title_statement.sub_title"=>"text",
         "metadata.document_description.title_statement.alternate_title"=>"text",
         "metadata.document_description.title_statement.abbreviated_title"=>"text",
@@ -74,7 +95,7 @@
         "metadata.document_description.date_created"=>"text",
         "metadata.document_description.date_available"=>"text",
         "metadata.document_description.date_modified"=>"text",
-        "metadata.document_description.date_published"=>"text",
+        
         
         //"metadata.document_description.id_numbers"=>"object",
         "metadata.document_description.id_numbers.type"=>"text",
@@ -86,13 +107,15 @@
         "metadata.document_description.chapter"=>"text",
         "metadata.document_description.edition"=>"text",
         "metadata.document_description.institution"=>"text",
-        "metadata.document_description.journal"=>"text",
+        
         "metadata.document_description.volume"=>"text",
         "metadata.document_description.issue"=>"text",
         "metadata.document_description.pages"=>"text",
     ),
     $metadata);
     ?>
+
+ 
 
 <?php $output['series']= render_group('series',
     $fields=array(
@@ -113,6 +136,15 @@
         ),
         $metadata);
         ?>
+
+<!--  reproducibility section -->
+<?php $output['reproducibility']= render_group('reproducibility',
+    $fields=array(
+        "metadata.document_description.reproducibility.statement"=>"text",
+        "metadata.document_description.reproducibility.links"=>"array",
+    ),
+    $metadata);
+    ?>   
     
     <?php $output['copyrights']= render_group('copyrights',
         $fields=array(  

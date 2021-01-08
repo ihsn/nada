@@ -24,6 +24,9 @@ class ISO19115_Parser
         
         //register all namespaces used by the standard
         $this->xml_obj->registerXPathNamespace("gco","http://www.isotc211.org/2005/gco");
+
+        $this->xml_obj->registerXPathNamespace('gmd', 'http://www.isotc211.org/2005/gmd');
+
         
         //automatically register namespaces found in the xml file
         foreach($this->xml_obj->getDocNamespaces() as $strPrefix => $strNamespace) {
@@ -784,6 +787,7 @@ class ISO19115_Parser
             $elements=array();
             foreach($complex_obj['items'] as $field_name=>$item)
             {
+                $row->registerXPathNamespace('gmd', 'http://www.isotc211.org/2005/gmd');
                 $sub_result=$row->xpath($item['xpath']);
                 //var_dump($sub_result);
                 //echo "<HR>";

@@ -106,7 +106,7 @@ class Citations extends MY_REST_Controller
 	}
 
 
-
+	
 	/**
 	 * 
 	 * Get citations by Study
@@ -116,6 +116,10 @@ class Citations extends MY_REST_Controller
 	{
 		try{
 			if(!is_numeric($sid)){
+				$sid=$this->Dataset_model->find_by_idno($sid);				
+			}
+
+			if (!$sid){
 				throw new Exception("MISSING_PARAM: DatasetId");
 			}
 			
@@ -140,7 +144,86 @@ class Citations extends MY_REST_Controller
 
 
 	
-	
+	/**
+	 * 
+	 * Add new citation
+	 * 
+	 **/ 
+	function index_post()
+	{
+		$this->load->model("Dataset_model");
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+
+			//remove empty values
+			foreach($options as $key=>$value){
+				if (empty($value)){
+					unset($options[$key]);
+				}
+			}
+
+			if (!isset($options['overwrite'])) {
+				$options['overwrite']=0;
+			}
+
+			//validate & create dataset
+			//$dataset_id=$this->dataset_manager->create_dataset($type,$options);
+
+			$this->Citation_model->validate_schema($options);
+			
+			$citation_id=$this->Citation_model->uuid_exists($options['uuid']);
+
+			if($citation_id>0 && $options['overwrite']==0){
+				throw new Exception("CITATION_ALREADY_EXISTS::".$citation_id);
+			}
+
+			if ($citation_id>0){
+				$this->Citation_model->update($citation_id,$options);
+			}
+			else{
+				$citation_id=$this->Citation_model->insert($options);
+			}
+
+			//attach related studies
+			if ( isset($options['related_surveys'])){
+				$surveys=array();
+				foreach($options['related_surveys'] as $survey){
+					$surveys[]=$this->Dataset_model->find_by_idno($survey['idno']);
+				}
+
+				$surveys=array_filter($surveys);
+				if (count($surveys)>0){
+					$this->Citation_model->attach_related_surveys($citation_id,$surveys);
+				}
+			}
+
+			$output=array(
+				'citation_id'=>$citation_id,
+				'uuid'=>$options['uuid'],
+				'options'=>$options,
+				'status'=>'success'
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>(array)$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 
 

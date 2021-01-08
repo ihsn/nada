@@ -210,18 +210,6 @@ $lang['notes']='Notes';
 $lang['text']='Note';
 $lang['definition']='Definition';
 
-$lang['geospatial_description']="Description";
-$lang['timeseries_description']="Timeseries Description";
-$lang['document_description']="Document Description";
-$lang['table_description']="Table Description";
-$lang['image_description']="Image Description";
-$lang['script_description']="Script Description";
-$lang['visualization_description']="Visualization Description";
-$lang['microdata_description']="Study Description";
-$lang['data_dictionary']="Data Description";
-$lang['get_microdata']="Get Microdata";
-$lang['related_materials']="Documentation";
-$lang['related_citations']="Related Publications";
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./application/language/english/ddibrowser_lang.php */

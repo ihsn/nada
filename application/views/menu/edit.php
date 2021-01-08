@@ -1,82 +1,86 @@
-<div class="container-fluid page-menu-edit">
 <?php
-	//menu breadcrumbs
-	include 'menu_breadcrumb.php';
-?>
+		//menu breadcrumbs
+		include 'menu_breadcrumb.php';
+		?>
+<div class="container-fluid page-menu-edit">
+	<div class="row">
+	<div class="col-md-6">
+			
+	
+	<h3 class="page-title mt-3"><?php echo isset($id) ? t('menu_edit') : t('menu_add'); ?></h3>
+		<?php if (validation_errors()): ?>
+			<div class="alert alert-danger">
+				<?php echo validation_errors(); ?>
+			</div>
+		<?php endif;?>
 
-<h1 class="page-title"><?php echo isset($id) ? t('menu_edit') : t('menu_add'); ?></h1>
-<?php if (validation_errors() ) : ?>
-    <div class="alert alert-danger">
-	    <?php echo validation_errors(); ?>
-    </div>
-<?php endif; ?>
+	<?php $error = $this->session->flashdata('error');?>
+	<?php echo ($error != "") ? '<div class="alert alert-danger">' . $error . '</div>' : ''; ?>
 
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+	<?php $message = $this->session->flashdata('message');?>
+	<?php echo ($message != "") ? '<div class="alert alert-success">' . $message . '</div>' : ''; ?>
 
-<?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
-
-<?php echo form_open($this->html_form_url, array('class'=>'form') ); ?>
-    <div class="form-group">
-        <label for="title"><?php echo t('title');?><span class="required">*</span></label>
-        <input class="form-control" name="title" type="text" id="title"  value="<?php echo get_form_value('title',isset($title) ? $title : ''); ?>"/>
-        <input type="hidden" name="pid" value="<?php echo get_form_value('pid',isset($pid) ? $pid : ''); ?>"/>
+	<?php echo form_open($this->html_form_url, array('class' => 'form')); ?>
+    <div class="form-group mt-3">
+        <label for="title"><?php echo t('title'); ?><span class="required">*</span></label>
+        <input class="form-control" name="title" type="text" id="title"  value="<?php echo get_form_value('title', isset($title) ? $title : ''); ?>"/>
+        <input type="hidden" name="pid" value="<?php echo get_form_value('pid', isset($pid) ? $pid : ''); ?>"/>
     </div>
 
     <div class="form-group" >
-     	<label for="username"><?php echo t('url');?><span class="required">*</span></label>
-        <input class="form-control"  name="url" type="text" id="url"  value="<?php echo get_form_value('url',isset($url) ? $url : '') ; ?>"/>
-        <label for="url" class="desc" id="url-label"><?php echo site_url(); ?>/<?php echo get_form_value('url',isset($url) ? $url : '') ; ?></label>
+     	<label for="username"><?php echo t('url'); ?><span class="required">*</span></label>
+        <input class="form-control"  name="url" type="text" id="url"  value="<?php echo get_form_value('url', isset($url) ? $url : ''); ?>"/>
+        <label for="url" class="desc" id="url-label"><?php echo site_url(); ?>/<?php echo get_form_value('url', isset($url) ? $url : ''); ?></label>
     </div>
 
     <div class="form-group">
-        <label for="body"><?php echo t('body');?></label>
-        <textarea id="body" class="form-control"  name="body" rows="20"><?php echo get_form_value('body',isset($body) ? $body : ''); ?></textarea>
+        <label for="body"><?php echo t('body'); ?></label>
+        <textarea id="body" class="form-control"  name="body" rows="20"><?php echo get_form_value('body', isset($body) ? $body : ''); ?></textarea>
     </div>
 
 	<div class="form-group form-inline form-inline-with-spacing">
-		
-		<div class="form-group field">
-			<label for="target"><?php echo t('open_in');?><span class="required">*</span></label>
-			<?php echo form_dropdown('target', array(0=>t('same_window'),1=>t('new_window')), get_form_value("target",isset($target) ? $target : '')); ?>
-		</div>
-		
-		<div class="form-group">
-			<label for="weight"><?php echo t('weight');?><span class="required">*</span></label>
-			<input class="form-control" name="weight" type="text" id="weight" size="3"  value="<?php echo get_form_value('weight',isset($weight) ? $weight : ''); ?>"/>		
-		</div>
 
 		<div class="form-group field">
-			<label for="published"><?php echo t('publish');?><span class="required">*</span></label>
-			<?php echo form_dropdown('published', array(1=>t('yes'),0=>t('no')), get_form_value("published",isset($published) ? $published : '')); ?>
+			<label for="target"><?php echo t('open_in'); ?><span class="required">*</span></label>
+			<?php echo form_dropdown('target', array(0 => t('same_window'), 1 => t('new_window')), get_form_value("target", isset($target) ? $target : '')); ?>
 		</div>
 
+		<div class="form-group ml-3">
+			<label for="weight"><?php echo t('weight'); ?><span class="required ">*</span></label>
+			<input class="form-control" name="weight" type="text" id="weight" size="3"  value="<?php echo get_form_value('weight', isset($weight) ? $weight : ''); ?>"/>
+		</div>
+
+		<div class="form-group field ml-3">
+			<label for="published"><?php echo t('publish'); ?><span class="required">*</span></label>
+			<?php echo form_dropdown('published', array(1 => t('yes'), 0 => t('no')), get_form_value("published", isset($published) ? $published : '')); ?>
+		</div>
 	</div>
+	
+	<div class="form-group"><?php echo form_submit('submit', t('update'), array('class' => 'btn btn-primary btn-sm', 'id' => 'btnupdate')); ?>
+	<?php echo anchor('admin/menu', t('cancel'), array('class' => 'btn btn-secondary btn-sm')); ?></div>
 
-<div class="form-group"><?php echo form_submit('submit',t('update'),array('class'=>'btn btn-primary','id'=>'btnupdate')); ?>
-<?php echo anchor('admin/menu',t('cancel'),array('class'=>'btn btn-default') );?></div>
-
-<? echo form_close(); ?>
+	<? echo form_close(); ?>
+	</div>
+	</div>
 </div>
-<script type="text/javascript">
+	<script type="text/javascript">
 
-$(document).ready(function() {
+		$(document).ready(function() {
 
-    $("#title").change(function() {
-		if( $("#url").val()==''){
-			$path=$("#title").val().trim().replace(/\s/g,"-").toLowerCase();
-			$("#url").val($path);
-			$("#url-label").text(CI.base_url+'/'+$path);
-		}
-    });
-	$("#url").keyup(function() {
-	       $("#url-label").text(CI.base_url+'/'+$("#url").val());
-    });
+			$("#title").change(function() {
+				if( $("#url").val()==''){
+					$path=$("#title").val().trim().replace(/\s/g,"-").toLowerCase();
+					$("#url").val($path);
+					$("#url-label").text(CI.base_url+'/'+$path);
+				}
+			});
+			$("#url").keyup(function() {
+				$("#url-label").text(CI.base_url+'/'+$("#url").val());
+			});
 
-});
-</script>
-<script type="text/javascript">
+		});
+		</script>
+	<script type="text/javascript">
 <?php
 /*
 //TODO:
@@ -84,9 +88,9 @@ $(document).ready(function() {
 2. move this script to a seperate file
 3. setup css file references
 4. setup image_list_url below
-*/
+ */
 ?>
-<?php if ($this->config->item("use_html_editor")!=="no"):?>
+<?php if ($this->config->item("use_html_editor") !== "no"): ?>
 tinyMCE.init({
 	mode : "textareas",
 	theme : "advanced",
@@ -101,7 +105,7 @@ tinyMCE.init({
 	theme_advanced_toolbar_align : "left",
 	theme_advanced_statusbar_location : "bottom",
 	theme_advanced_resizing : true,
-	document_base_url : "<?php echo base_url();?>",
+	document_base_url : "<?php echo base_url(); ?>",
 
 	//site styles
 	//content_css: "<?php echo base_url(); ?>themes/default/styles.css",

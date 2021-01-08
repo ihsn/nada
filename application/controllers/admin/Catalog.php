@@ -17,12 +17,14 @@ class Catalog extends MY_Controller {
 		$this->load->model('Form_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Citation_model');
+		$this->load->model('Search_helper_model');
 		$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin');
+		$this->template->set_template('admin'); 
+		$this->load->library("Dataset_manager");
 
 		//load language file
 		$this->lang->load('general');
@@ -35,7 +37,7 @@ class Catalog extends MY_Controller {
 		//$this->acl->clear_active_repo();
 
 		//set active repo
-		$repo_obj=$this->acl->get_repo($this->acl->user_active_repo());
+		$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo()); 
 
 		if (!$repo_obj){
 			//set active repo to CENTRAL
@@ -61,6 +63,7 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
+
 		//css files
 		//$this->template->add_css('themes/admin/catalog_admin.css');
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
@@ -76,6 +79,8 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 
+		$this->acl_manager->has_access_or_die('catalog', 'view');
+
 		//get surveys
 		$db_rows=$this->_search();
 
@@ -87,6 +92,8 @@ class Catalog extends MY_Controller {
 
 		//data access types
 		$this->data_access_types=$this->Form_model->get_all();
+		//data types
+		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid); 
 
 		if ($db_rows['rows'])
 		{
@@ -116,10 +123,12 @@ class Catalog extends MY_Controller {
 	
 
 	function search()
-	{
+	{		
 		if (isset($this->active_repo) && $this->active_repo!=null){
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
+
+		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
 
 		$data= $this->_search();
 		$data['active_repo_obj']=$this->active_repo;
@@ -290,9 +299,6 @@ class Catalog extends MY_Controller {
 	}
 
 
-	
-
-
 	function upload()
 	{
 		$this->add_study();
@@ -306,7 +312,8 @@ class Catalog extends MY_Controller {
 	function add_study()
 	{
 		//user has permissions on the repo
-		$this->acl->user_has_repository_access($this->active_repo->id);
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'create',null,$this->active_repo->repositoryid);
 
 		$this->template->set_template('admin');
 
@@ -363,7 +370,7 @@ class Catalog extends MY_Controller {
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
 		
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$uploaded_ddi_path;
 		$params=array(
@@ -461,7 +468,7 @@ class Catalog extends MY_Controller {
 
 		//get survey info
 		$survey=$this->Dataset_model->get_row($sid);
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 
 		if (!$survey){
 			show_error("SURVEY_NOT_FOUND");
@@ -529,7 +536,8 @@ class Catalog extends MY_Controller {
 
 	function batch_refresh()
 	{
-		$this->acl->user_has_repository_access($this->active_repo->id);
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'batch_refresh',null,$this->active_repo->repositoryid);
 
 		//list of all surveys
 		$data['surveys']=$this->Catalog_model->select_all_compact();
@@ -548,7 +556,8 @@ class Catalog extends MY_Controller {
 	**/
 	function refresh($id=NULL)
 	{		
-		$this->acl->user_has_repository_access($this->active_repo->id);
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'refresh',null,$this->active_repo->repositoryid);
 
 		if (!is_numeric($id)){
 			show_404();
@@ -573,7 +582,7 @@ class Catalog extends MY_Controller {
 			}
 		}
 		
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 		$dataset=$this->Dataset_model->get_row($id);
 
 		$params=array(
@@ -636,7 +645,7 @@ class Catalog extends MY_Controller {
 	* Clear files from the imports folder
 	**/
 	function clear_import_folder()
-	{
+	{		
 		$this->load->helper('file');
 		$import_folder=$this->config->item('ddi_import_folder');
 
@@ -672,8 +681,7 @@ class Catalog extends MY_Controller {
 		//import folder path
 		$import_folder=$this->config->item('ddi_import_folder');
 
-		if (!file_exists($import_folder))
-		{
+		if (!file_exists($import_folder)){
 			show_error('FOLDER-NOT-SET');
 		}
 
@@ -722,7 +730,8 @@ class Catalog extends MY_Controller {
 	function batch_import()
 	{
 		//user has permissions on the repo
-		$this->acl->user_has_repository_access($this->active_repo->id);
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'batch_import',null,$this->active_repo->repositoryid);
 
 		$this->load->helper('file');
 
@@ -743,9 +752,14 @@ class Catalog extends MY_Controller {
 				}
 			}
 		}
+		
+		$options=array(
+			'repositories'=>$this->Repository_model->select_all(),
+			'files'=>$files['files'],
+			'active_repository'=>$this->active_repo->repositoryid
+		);
 
-		$files['active_repo']=$this->active_repo;
-		$content=$this->load->view('catalog/ddi_batch_import', $files, true);
+		$content=$this->load->view('catalog/ddi_batch_import', $options, true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
@@ -774,27 +788,15 @@ class Catalog extends MY_Controller {
 		$repositoryid=$this->input->post("repositoryid");
 
 		//validate if user has access to the selected repository
-		$user_repositories=$this->acl->get_user_repositories();
-
-		$user_repo_access=FALSE;
-		foreach($user_repositories as $repo){
-			if ($repo["repositoryid"]==$repositoryid){
-				$user_repo_access=TRUE;
-				break;
-			}
-		}
-
-		if ($user_repo_access===FALSE){
-			//show_error("REPO_ACCESS_DENIED");
+		if (!$this->acl_manager->has_access('study', 'create',$repositoryid)){
 			echo json_encode(array('error'=>t('REPO_ACCESS_DENIED')) );
 			exit;
 		}
-
 		
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
 		
-		$user=$this->acl->current_user();
+		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$ddi_file;
 		$params=array(
@@ -908,6 +910,7 @@ class Catalog extends MY_Controller {
 
 	function delete($id)
 	{
+		$this->acl_manager->has_access_or_die('study', 'delete',null,$this->active_repo->repositoryid);
 		//array of id to be deleted
 		$delete_arr=array();
 
@@ -945,7 +948,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//test user has permission to delete study or not
-		$this->acl->user_has_study_access($id);
+		//$this->acl->user_has_study_access($id);		
 
 		if ($this->input->post('cancel')!='')
 		{
@@ -1116,7 +1119,8 @@ class Catalog extends MY_Controller {
 			show_error("ID_INVALID");
 		}
 
-		$this->acl->user_has_study_access($sid);
+		//$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'replace_ddi',null,$this->active_repo->repositoryid);
 
 
 		if(!isset($_FILES['userfile'])){			
@@ -1191,7 +1195,8 @@ class Catalog extends MY_Controller {
 	{
 
 		//user has permissions on the repo
-		$this->acl->user_has_repository_access($this->active_repo->id);
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
 
 		$this->template->add_css('themes/admin/catalog_admin.css');
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
@@ -1300,27 +1305,24 @@ class Catalog extends MY_Controller {
 	function transfer($surveyid=NULL)
 	{
 		//user has permissions on the repo
-		$this->acl->user_has_repository_access($this->active_repo->id);
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'transfer_ownership',null,$this->active_repo->repositoryid);
 
-		if ($surveyid==NULL && !$this->input->post("sid"))
-		{
+		if ($surveyid==NULL && !$this->input->post("sid")){
 			show_error("PARAM_MISSING");
 		}
 
 		//active repositoryid
 		$active_repo=$this->active_repo->repositoryid;
 
-		if (!$active_repo)
-		{
+		if (!$active_repo){
 			show_error("NO_ACTIVE_REPO_SET");
 		}
 
-		if ($this->input->post("sid"))
-		{
+		if ($this->input->post("sid")){
 			$surveys_arr=$this->input->post("sid");
 		}
-		else
-		{
+		else{
 			$surveys_arr=explode(",",$surveyid);
 		}
 
@@ -1329,11 +1331,9 @@ class Catalog extends MY_Controller {
 		//get survey info by id
 		foreach($surveys_arr as $id)
 		{
-			if (is_numeric($id))
-			{
+			if (is_numeric($id)){
 				$survey_row=$this->Catalog_model->get_survey($id);
-				if ($survey_row)
-				{
+				if ($survey_row){
 					$surveys[$id]=$this->Catalog_model->get_survey($id);
 				}
 			}
@@ -1345,23 +1345,18 @@ class Catalog extends MY_Controller {
 			$repositoryid=$this->input->post("repositoryid");
 
 			//validate repository
-			if ($repositoryid=='central')
-			{
+			if ($repositoryid=='central'){
 				$exists=true;
 			}
-			else
-			{
+			else{
 				$exists=$this->Catalog_model->repository_exists($repositoryid);
 			}
 
-			if (!$exists)
-			{
+			if (!$exists){
 				$this->form_validation->set_error(t('error_no_collection_selected'));
 			}
-			else
-			{
-				foreach($surveys as $key=>$value)
-				{
+			else{
+				foreach($surveys as $key=>$value){
 					//transfer ownership
 					$this->Catalog_model->transfer_ownership($repositoryid,$key);
 				}
@@ -1370,7 +1365,12 @@ class Catalog extends MY_Controller {
 			}
 		}
 
-		$content=$this->load->view('catalog/transfer_ownership',array('surveys'=>$surveys),TRUE);
+		$options=array(
+			'repositories'=>$this->Repository_model->select_all(),
+			'surveys'=>$surveys
+		);
+
+		$content=$this->load->view('catalog/transfer_ownership',$options,TRUE);
 		$this->template->write('content', $content,true);
   		$this->template->render();
 	}
@@ -1441,10 +1441,7 @@ class Catalog extends MY_Controller {
 	**/
 	function publish($id,$publish=1)
 	{
-		$this->acl->user_has_study_access($id);
-
-		if (!in_array($publish,array(0,1)))
-		{
+		if (!in_array($publish,array(0,1))){
 			$publish=1;
 		}
 
@@ -1454,13 +1451,11 @@ class Catalog extends MY_Controller {
 		//is ajax call
 		$ajax=$this->input->get_post('ajax');
 
-		if (!is_numeric($id))
-		{
+		if (!is_numeric($id)){
 			$tmp_arr=explode(",",$id);
 			foreach($tmp_arr as $key=>$value)
 			{
-				if (is_numeric($value))
-				{
+				if (is_numeric($value)){
 					$id_arr[]=$value;
 				}
 			}
@@ -1468,8 +1463,7 @@ class Catalog extends MY_Controller {
 			if (count($id_arr)==0)
 			{
 				//for ajax return JSON output
-				if ($ajax!='')
-				{
+				if ($ajax!=''){
 					echo json_encode(array('error'=>"invalid id was provided") );
 					exit;
 				}
@@ -1478,13 +1472,9 @@ class Catalog extends MY_Controller {
 				redirect('admin/catalog');
 			}
 		}
-		else
-		{
+		else{
 			$id_arr[]=$id;
 		}
-
-		//test user study permissiosn
-		$this->acl->user_has_study_access($id);
 
 		if ($this->input->post('cancel')!='')
 		{
@@ -1506,10 +1496,10 @@ class Catalog extends MY_Controller {
 			{
 				//get survey info
 				$survey=$this->Catalog_model->get_survey($item);
+				$this->acl_manager->has_access_or_die('study', 'publish',null,$survey['repositoryid']);
 
 				//if exists
-				if ($survey)
-				{
+				if ($survey){
 					//publish/unpublish a study
 					$result=$this->Catalog_model->publish_study($item,$publish);
 					$this->events->emit('db.after.update', 'surveys', $item,'publish');
@@ -1523,37 +1513,24 @@ class Catalog extends MY_Controller {
 			//$this->events->emit('db.after.update', 'surveys', $id_arr,'atomic');
 
 			//for ajax calls, return output as JSON
-			if ($ajax!='')
-			{
+			if ($ajax!=''){
 				echo json_encode(array('success'=>"true") );
 				exit;
 			}
 
 			//redirect page url
 			$destination=$this->input->get_post('destination');
-
-			if ($destination!="")
-			{
-				//redirect($destination);
-			}
-			else
-			{
-
-				redirect('admin/catalog');
-			}
+			redirect('admin/catalog');			
 		}
 		else
 		{
-			$items=array(); //list of deleted items
+			$items=array(); //list of items
 
-			foreach($id_arr as $item)
-			{
-				//get survey info
+			foreach($id_arr as $item){				
 				$survey=$this->Catalog_model->get_survey($item);
+				$this->acl_manager->has_access_or_die('study', 'publish',null,$survey['repositoryid']);
 
-				//exists
-				if ($survey)
-				{
+				if ($survey){
 					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
 					$items[]=$survey_name;
 				}
@@ -1565,10 +1542,116 @@ class Catalog extends MY_Controller {
 			$this->template->write('content', $content,true);
 	  		$this->template->render();
 		}
-
 	}
 
+	
+	
+	function create($type=null)
+	{
+		$this->acl_manager->has_access_or_die('study', 'create',null,$this->active_repo->repositoryid);
+		$this->template->set_template('admin5');
+		
+		if(!$type){
+			$type=$this->input->get("type");
+		}
 
+		if(!$type){
+			show_error("Type not set");
+		}
+
+		$sid=$this->Dataset_model->create_new(
+			$idno=$this->Dataset_model->GUID(), 
+			$type, 
+			$repositoryid='central', 
+			$title='untitled', 
+			$created_by=1
+		);
+
+		redirect("admin/catalog/edit/".$sid);
+		return;
+		
+		$template_path="application/metadata_editor_templates/{$type}_form_template.json";
+		$schema_path="application/schemas/{$type}-schema.json";
+
+		if(!file_exists($template_path)){
+			show_error('Template not found::'. $template_path);
+		}
+
+		if(!file_exists($schema_path)){
+			show_error('Schema not found::'. $schema_path);
+		}
+		
+		$options['sid']=null;
+		$options['survey']=array(
+			'title'=>'New survey'
+		);
+
+		$options['type']=$type;
+		$options['metadata_template']=file_get_contents($template_path);
+		$options['metadata_schema']=file_get_contents($schema_path);
+		$options['post_url']=site_url('api/datasets/create/'.$type);
+		$options['metadata']=array();
+		$options['metadata']['merge_options']='replace';
+				
+		//render
+		$content=$this->load->view('metadata_editor/inline',$options, true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+		
+	}
+
+	function metadata_editor($id=null)
+	{		
+		$survey=$this->dataset_manager->get_row($id);
+
+		if (!$survey){
+			show_error('Survey was not found');
+		}
+
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
+				 
+		$template_path="application/metadata_editor_templates/{$survey['type']}_form_template.json";
+		$schema_path="application/schemas/{$survey['type']}-schema.json";
+
+		if(!file_exists($template_path)){
+			show_error('Template not found::'. $template_path);
+		}
+
+		if(!file_exists($schema_path)){
+			show_error('Schema not found::'. $schema_path);
+		}
+
+		$metadata_subset=array(
+			'repositoryid'=>$survey['repositoryid'],
+			'access_policy'=>$survey['data_access_type'],
+			'published'=>$survey['published']			
+		);
+		
+
+		$metadata=$this->dataset_manager->get_metadata($id);
+
+		$options['sid']=$id;
+		$options['survey']=$survey;
+		$options['type']=$survey['type'];		
+
+		if (!empty($metadata)){
+			$options['metadata']=$this->dataset_manager->get_metadata($id);//array_merge($metadata_subset,$this->dataset_manager->get_metadata($id));
+		}else{
+			$options['metadata']=null;
+		}
+
+		$options['metadata_template']=file_get_contents($template_path);
+		$options['metadata_schema']=file_get_contents($schema_path);
+		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);
+		//$options['metadata']=array();
+		$options['metadata']['merge_options']='replace';		
+				
+		//render
+		$this->template->set_template('admin5');
+		$content= $this->load->view('metadata_editor/inline',$options,true);
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
 
 	/**
 	 * Edit survey - by id
@@ -1582,8 +1665,19 @@ class Catalog extends MY_Controller {
 			show_error('Invalid parameters were passed');
 		}
 
+		$active_repository=FALSE;
+
+		//get active repository
+		if (isset($this->active_repo) && $this->active_repo!=NULL){
+			$active_repository=$this->active_repo->repositoryid;
+		}
+
 		//test user study permissiosn
-		$this->acl->user_has_study_access($id);
+		//$this->acl->user_has_study_access($id);		
+
+		if ($this->uri->segment(5)=='metadata'){
+			return $this->metadata_editor($id);
+		}
 
 		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
 		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
@@ -1610,12 +1704,15 @@ class Catalog extends MY_Controller {
 			$active_repository=$this->active_repo->repositoryid;
 		}
 
+		
 		//get the survey info from db
 		$survey_row=$this->Catalog_model->select_single($id,$active_repository);
 
 		if (!$survey_row){
 			show_error('Survey was not found');
 		}
+
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey_row['repositoryid']);
 
 		$survey_row['survey_id']=$id;
 		$survey_row['repositoryid']=$active_repository;
@@ -1720,13 +1817,19 @@ class Catalog extends MY_Controller {
 		//study id
 		$id=$this->input->post("sid");
 
-		if (!is_numeric($id))
-		{
+		if (!is_numeric($id)){
+			show_404();
+		}
+		
+		$survey=$this->Catalog_model->get_survey($id);
+
+		if(!$survey){
 			show_404();
 		}
 
 		//test user study permissiosn
-		$this->acl->user_has_study_access($id);
+		//$this->acl->user_has_study_access($id);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
 
 		//is ajax call
 		$ajax=$this->input->get_post('ajax');
@@ -1763,8 +1866,7 @@ class Catalog extends MY_Controller {
 	**/
 	function related_citations($skey,$isajax=1)
 	{
-       	if (!is_numeric($skey))
-		{
+       	if (!is_numeric($skey)){
 			return FALSE;
 		}
 

@@ -5,7 +5,7 @@ class Regions extends MY_Controller {
     {
         parent::__construct();   
 		$this->load->model('country_region_model');
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
     	
 		$this->lang->load('general');
 		//$this->lang->load('country');	

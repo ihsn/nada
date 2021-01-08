@@ -17,15 +17,13 @@
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "title"=>'text',
-            "metadata.image_description.description.description"=>'text',
+            "metadata.image_description.description.description"=>'text',            
             "metadata.image_description.description.albums"=>'array',
             "idno"=>'text',
-
     ),
-    $metadata);
+    $metadata    
+);
 ?>
-
-
 
 <!-- metadata_production -->
 <?php $output['image_description']= render_group('image_description',
@@ -117,7 +115,8 @@
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprEncType"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprLangId"=>"text",
 
-        "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"object",
+        "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"map",
+        //"metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"object",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.city"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryCode"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryName"=>"text",
@@ -181,7 +180,15 @@
         "metadata.image_description.iptc.photoVideoMetadataIPTC.usageTerms"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.webstatementRights"=>"text"
             ),
-    $metadata);
+    $metadata,
+    $options=array(
+        'metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown'=> array(
+            'latitude'=>'gpsLatitude',
+            'longitude'=>'gpsLongitude',
+            'loc_info'=>'countryName',
+            'api_key'=>$this->config->item("google_maps_api_key"))
+    )
+);
 ?>
 
 

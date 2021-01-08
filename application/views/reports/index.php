@@ -10,7 +10,7 @@ label{font-weight:bold;}
 </style>
 
 <div class="container-fluid">
-<h1><?php echo t('reports');?></h1>
+<h3 class="page-title mt-5 mb-3"><?php echo t('reports');?></h3>
 <form style="background-color:#E6E6E6;padding:10px;margin-bottom:20px;" id="form_report">	
 	<div class="form-title"><?php echo t('select_reporting_period');?></div>
     <label for="from"><?php echo t('from');?></label>
@@ -31,7 +31,7 @@ label{font-weight:bold;}
         <option value="study-data-access"><?php echo t('studies_data_access');?></option>
         <option value="broken-resources"><?php echo t('broken_resources');?></option>
     </select>
-    <input type="submit" name="Submit" value="<?php echo t('submit');?>" onClick="do_report();return false;"/>
+    <input class="btn btn-primary btn-sm" type="submit" name="Submit" value="<?php echo t('submit');?>" onClick="do_report();return false;"/>
     
     <div style="padding-top:10px;"><a href="<?php echo site_url();?>/admin/logs/"><?php echo t('view_complete_site_logs');?></a></div>
 </form>

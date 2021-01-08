@@ -163,7 +163,11 @@ else{
     <div class="survey-row" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
     <div class="row">
         <div class="col-2 col-lg-1">            
-            <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i>
+        <?php /* <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i> */?>
+            <span class="fa-stack fa-lg fa-nada-<?php echo $row['type'];?>">
+            <i class="fa fa-circle fa-stack-2x"></i>
+            <i class="fa <?php echo $type_icons[$row['type']];?> fa-stack-1x fa-inverse fa-nada-icon"></i>
+            </span> 
         </div>        
         
         <div class="col-10 col-lg-11">            
@@ -209,8 +213,8 @@ else{
                 <?php if ((int)$row['total_views']>0):?>
                     <span><?php echo t('views');?>: <?php echo (int)$row['total_views'];?></span>
                 <?php endif;?>
-                <?php if(isset($row['rank'])):?>
-                    <span> Score: <?php echo round($row['rank'],2);?></span>
+                <?php if(isset($row['rank_'])):?>
+                    <span> Score: <?php echo round($row['rank_'],2);?></span>
                 <?php endif;?>
 
                 <?php if(isset($licenses) && !empty($row['license_id'])):?>

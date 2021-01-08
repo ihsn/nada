@@ -1318,16 +1318,18 @@ class Catalog_model extends CI_Model {
 	
 	/**
 	*
-	* Get Repository owners info
+	* Get repository id for a survey
 	*
 	**/
-	function get_repo_ownership($sid)
+	function get_survey_repositoryid($sid)
 	{
 		$this->db->select("repositoryid");
 		$this->db->where("sid",$sid);
-		$this->db->where("isadmin",1);
-		$result=$this->db->get("survey_repos")->result_array();
-		return $result;		
+		$result=$this->db->get("survey_repos")->row_array();
+		if ($result && isset($result['repositoryid'])){
+			return $result['repositoryid'];
+		}
+		return false;
 	}
 	
 	

@@ -624,7 +624,7 @@ $config['site_user_register']='yes';
 |
 | allowed_resource_types	comma seperated list of file extensions that are allowed for uploading external resources
 */
-$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar';
+$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar,do,r';
 
 
 /*
@@ -664,7 +664,42 @@ $config['citations_storage_path']='datafiles/citations'; //don't add a trailing 
 $config['filestore_path']='files/public';
 
 
+/*
+|--------------------------------------------------------------------------
+| User data folder
+|--------------------------------------------------------------------------
+|
+| For storing user customizations and overrides.
+| 
+| Override language translations: 
+| For personalizing translations for your language, copy the language folder (e.g. application/language/english) and copy
+|  to [user_datapath/language/english] folder. 
+|
+|
+*/
+$config['userdata_path']='userdata'; //relative or absolute path
 
+
+/*
+|--------------------------------------------------------------------------
+| Catalog entries sort order
+|--------------------------------------------------------------------------
+|
+| Set default sort for catalog results
+|
+| catalog_default_sort_by       Sort by field
+| 
+|   valid values are:   
+|   'proddate','title','labl','nation','popularity','rank'
+|
+|
+| catalog_default_sort_order    Sort order
+|
+| valid values are: 'desc', 'asc'
+|
+*/
+$config['catalog_default_sort_by']='';
+$config['catalog_default_sort_order']='';
 
 /*
 |--------------------------------------------------------------------------
@@ -729,7 +764,23 @@ $config['otp_verification']=0;
 
 $config['enable_access_policy_import']=false;
 
-$config['data_types_nav_bar']=false;
+$config['data_types_nav_bar']=true;
+
+//catalog search box location
+$config['search_box_orientation']='default'; //inline, default
+
+
+/*
+|--------------------------------------------------------------------------
+| Google Maps API key
+|--------------------------------------------------------------------------
+|
+| API key for Google maps
+| 
+| 
+*/
+
+$config['google_maps_api_key']='';
 
 /*
 |--------------------------------------------------------------------------

@@ -10,7 +10,7 @@ $data['menus']= $this->Menu_model->select_all();
 $sidebar=$this->load->view('default_menu', $data,true);
 
 //default page content wrapper class
-$content_wrap_class="container";
+$content_wrap_class="container page-" .$this->uri->segment(1);
 
 if (isset($body_class)){
     $content_wrap_class=$body_class;
@@ -33,46 +33,21 @@ $use_cdn=false;
 <!-- page body -->
 <div class="<?php echo $content_wrap_class;?>">
     
-        <?php if ($menu_horizontal===TRUE):?>
-            <?php if (isset($search_filters) && $search_filters!==false):?>
-              <div class="row">            
-                <div class="col-sm-12">
-                    <?php include 'share.php';?>
-                    <!--breadcrumbs -->
-                    <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
-                    <?php if ($breadcrumbs_str!=''):?>
-                        <ol class="breadcrumb wb-breadcrumb">
-                            <?php echo $breadcrumbs_str;?>
-                        </ol>
-                    <?php endif;?>
-                </div>
-                <?php echo $search_filters;?>
-                <?php echo isset($content) ? $content : '';?>
-              </div>
-            <?php else:?>
-                <div class="body-content-wrap">
-                    
-                    <?php //include 'share.php';?>
-                    <!--breadcrumbs -->
-                    <div class="container">
-                    <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
-                    <?php if ($breadcrumbs_str!=''):?>
-                        <ol class="breadcrumb wb-breadcrumb">
-                            <?php echo $breadcrumbs_str;?>
-                        </ol>
-                    <?php endif;?>
-                    </div>
-                    <!-- /breadcrumbs -->
-
-                    <?php echo isset($content) ? $content : '';?>
-                </div>
-            <?php endif;?>
-        <?php else:?>
-            <?php echo isset($content) ? $content : '';?>
+    <div class="body-content-wrap">
+        
+        <!--breadcrumbs -->
+        <div class="container">
+        <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
+        <?php if ($breadcrumbs_str!=''):?>
+            <ol class="breadcrumb wb-breadcrumb">
+                <?php echo $breadcrumbs_str;?>
+            </ol>
         <?php endif;?>
+        </div>
+        <!-- /breadcrumbs -->
 
-    
-
+        <?php echo isset($content) ? $content : '';?>
+    </div>        
 </div>
 
 <!-- page footer -->

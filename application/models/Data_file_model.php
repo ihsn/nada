@@ -182,6 +182,12 @@ class Data_file_model extends CI_Model {
 		
 		return TRUE;
 	}
+
+	public function remove_all_files($sid)
+    {
+        $this->db->where("sid",$sid);
+        $this->db->delete("data_files");
+    }
 	
 	
 	/**

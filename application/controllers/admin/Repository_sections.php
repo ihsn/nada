@@ -14,11 +14,12 @@ class Repository_Sections extends MY_Controller {
 		$this->lang->load('collection');
 		
 		//set default template
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 	}
 	
-	public function index() {
+	public function index() 
+	{
 		//get array of db rows		
 		$result['rows']=$this->_search();
 		

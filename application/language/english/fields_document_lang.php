@@ -148,6 +148,13 @@ $lang['metadata.document_description.lda_topics.topic_description.topic_label']=
 $lang['metadata.document_description.lda_topics.topic_description.topic_words']='Topic words';
 $lang['metadata.document_description.lda_topics.topic_description.topic_words.word']='Word';
 
+$lang['reproducibility']='Reproducibility';
+$lang['metadata.document_description.reproducibility.statement']='Reproduciblity';
+$lang['metadata.document_description.reproducibility.links']='Links';
+$lang['metadata.document_description.reproducibility.links.uri']='Link';
+$lang['metadata.document_description.reproducibility.links.description']='Description';
+
+
 $lang['metadata.files']='Files';
 $lang['metadata.files.file_uri']='File';
 $lang['metadata.files.format']='File format';

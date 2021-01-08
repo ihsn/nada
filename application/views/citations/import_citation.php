@@ -151,55 +151,57 @@ $flag_options=array(
 	
 	}//end-function		
 </script>
-<div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/citations/" class="btn btn-default"><span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('citation_home');?></a> 
+<div class="page-links text-right m-3 pb-3">
+	<a href="<?php echo site_url(); ?>/admin/citations/" class="btn btn-outline-primary btn-sm"><i class="fa fa-home" aria-hidden="true">&nbsp;</i><?php echo t('citation_home');?></a> 
 </div>
 
 <div class="container-fluid">
+	<div class="row">	
+    <div class="col-md-6">
+		<?php if (validation_errors() ) : ?>
+			<div class="alert alert-danger">
+				<?php echo validation_errors(); ?>
+			</div>
+		<?php endif; ?>
 
-<?php if (validation_errors() ) : ?>
-    <div class="alert alert-danger">
-	    <?php echo validation_errors(); ?>
-    </div>
-<?php endif; ?>
+		<?php $error=$this->session->flashdata('error');?>
+		<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+		<?php $message=$this->session->flashdata('message');?>
+		<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
-<?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
+		<h1 class="page-title mb-3"><?php echo t('import_citation'); ?></h1>
 
-<h1 class="page-title"><?php echo t('import_citation'); ?></h1>
+		<?php echo form_open_multipart(site_url().'/admin/citations/import/', array('class'=>'form') ); ?>
+		<input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
+		<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: 'cit-'.date("U")); ?>"/>
 
-<?php echo form_open_multipart(site_url().'/admin/citations/import/', array('class'=>'form') ); ?>
-<input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
-<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: 'cit-'.date("U")); ?>"/>
-<div class="form-group field">
-	<label for="citation_format"><?php echo t('citation_import_format');?></label>
-	<?php echo form_dropdown('citation_format', $citation_formats ,'',array('class'=>'form-control'));?>
-</div>
+		<div class="form-group field">
+			<label for="citation_format"><?php echo t('citation_import_format');?></label>
+			<?php echo form_dropdown('citation_format', $citation_formats ,'',array('class'=>'form-control'));?>
+		</div>
 
-<div class="form-group field">
-	<label for="citation_string"><?php echo t('paste_citation_string');?></label>
-	<textarea rows="10" name="citation_string" id="citation_string" class="form-control"><?php echo get_form_value('citation_string',isset($citation_string) ? $citation_string : ''); ?></textarea>
-</div>
+		<div class="form-group field">
+			<label for="citation_string"><?php echo t('paste_citation_string');?></label>
+			<textarea rows="10" name="citation_string" id="citation_string" class="form-control"><?php echo get_form_value('citation_string',isset($citation_string) ? $citation_string : ''); ?></textarea>
+		</div>
 
-<div class="form-group field">
-    <label for="publish"><?php echo t('publish_citation');?></label>
-    <?php echo form_dropdown('published', $publish_options, get_form_value("published",isset($published) ? $published : ''),array('class'=>'form-control','id'=>'published')); ?>
-</div>
+		<div class="form-group field">
+			<label for="publish"><?php echo t('publish_citation');?></label>
+			<?php echo form_dropdown('published', $publish_options, get_form_value("published",isset($published) ? $published : ''),array('class'=>'form-control','id'=>'published')); ?>
+		</div>
 
-<div class="form-group field">
-    <label for="flag"><?php echo t('flag_entry_as');?></label>
-    <?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),array('class'=>'form-control','id'=>'flag')); ?>
-</div>
+		<div class="form-group field">
+			<label for="flag"><?php echo t('flag_entry_as');?></label>
+			<?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),array('class'=>'form-control','id'=>'flag')); ?>
+		</div>
 
-<fieldset class="field-expanded">
-	<label class="left-margin-5"><?php echo t('related_studies');?></label>
-<div class="field">
-    <div id="related-surveys" class="related-surveys">    	
-			<?php echo $survey_list; ?>
-    </div> 
+		<fieldset class="field-expanded border">
+			<label class=" m-2"><?php echo t('related_studies');?></label>
+		<div class="field  m-2">
+			<div id="related-surveys  m-2" class="related-surveys">    	
+					<?php echo $survey_list; ?>
+			</div> 
 	<a  class="add_survey" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
 </div>
 </fieldset>
@@ -218,10 +220,12 @@ $flag_options=array(
 ?>
 
 <div class="form-group" style="margin-top:20px">
-	<input class="btn btn-primary" type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
-	<?php echo anchor('admin/citations/', t('cancel'), array('class'=>'btn btn-default'));?>
+	<input class="btn btn-primary btn-sm" type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" />
+	<?php echo anchor('admin/citations/', t('cancel'), array('class'=>'btn btn-secondary btn-sm'));?>
 </div>
 
 
 <?php echo form_close();?>
 </div>
+		</div>
+		</div>

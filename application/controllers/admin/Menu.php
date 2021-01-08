@@ -16,13 +16,15 @@ class Menu extends MY_Controller {
 		$this->lang->load('menu');
 		
 		//set default template
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		//$this->output->enable_profiler(TRUE);
 	}
 	
 	function index()
 	{			
+		$this->acl_manager->has_access_or_die('menu', 'view');
+
 		//get array of db rows		
 		$result['rows']=$this->_search();
 		
@@ -96,7 +98,7 @@ class Menu extends MY_Controller {
 	*/
 	function add()
 	{
-			$this->edit();
+		$this->edit();
 	}
 		
 	/**
@@ -113,12 +115,12 @@ class Menu extends MY_Controller {
 			show_error('INVALID ID');
 		}
 		
-		if (is_numeric($id))
-		{
+		if (is_numeric($id)){
+			$this->acl_manager->has_access_or_die('menu', 'edit');
 			$this->html_form_url.='/edit/'.$id;
 		}
-		else
-		{
+		else{
+			$this->acl_manager->has_access_or_die('menu', 'create');
 			$this->html_form_url.='/add';
 		}
 		
@@ -238,18 +240,16 @@ class Menu extends MY_Controller {
 	*/
 	function add_link($id=NULL)
 	{
-		if ($id!=NULL && !is_numeric($id))
-		{
+		if ($id!=NULL && !is_numeric($id)){
 			show_error('INVALID ID');
 		}
 		
-		if ($id==NULL)
-		{
-			//form/page title
+		if ($id==NULL){
+			$this->acl_manager->has_access_or_die('menu', 'create');
 			$data['form_title']=t('menu_create_link');
 		}
-		else
-		{
+		else{
+			$this->acl_manager->has_access_or_die('menu', 'edit');
 			$data['form_title']=t('menu_edit_link');
 		}
 		
@@ -377,7 +377,9 @@ class Menu extends MY_Controller {
 	* id 	int or comma seperate string
 	*/
 	function delete($id)
-	{			
+	{
+		$this->acl_manager->has_access_or_die('menu', 'delete');
+
 		//array of id to be deleted
 		$delete_arr=array();
 	
@@ -471,6 +473,7 @@ class Menu extends MY_Controller {
 	*/
 	function menu_sort()
 	{		
+		$this->acl_manager->has_access_or_die('menu', 'edit');
 		$id_list=$this->input->post('id');
 		
 		if (is_array($id_list))
@@ -507,8 +510,8 @@ class Menu extends MY_Controller {
 	*/
 	function publish($id=NULL,$publish=NULL)
 	{
-		if (!is_numeric($id) || !is_numeric($publish))
-		{
+		$this->acl_manager->has_access_or_die('menu', 'publish');
+		if (!is_numeric($id) || !is_numeric($publish)){
 			show_404();
 		}
 		

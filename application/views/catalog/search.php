@@ -139,6 +139,13 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 
                         <div class="table-row">
                             
+                            <span class="subgroup">                        	
+                            <span>
+                                
+                                	<span class="label label-info"><?php echo strtoupper($row['type']);?></span>                              
+                            </span>
+                            </span>
+
                             <span class="subgroup">
                         	<span><?php echo t('collection');?>:</span>
                             <span>
@@ -156,7 +163,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                               <?php endif;?>  
                             </span>
                             </span>
-
                             
                             <?php if (isset($row['tags']) &&  count($row['tags'])>0):?>
                             <span class="subgroup">

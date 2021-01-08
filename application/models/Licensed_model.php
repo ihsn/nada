@@ -89,31 +89,6 @@ class Licensed_model extends CI_Model {
 	}
 
 
-	/**
-     * Returns request for access to a collection by user
-     * 
-     * 
-     * @param $user_id
-     * @return array
-     */
-	/* //TODO remove
-	function __get_user_collection_requests($user_id,$repository_id=NULL,$request_status=NULL)
-	{
-		$this->db->select('lic_requests.id,repositories.title,lic_requests.created,lic_requests.status');		
-		$this->db->from('lic_requests');	
-		$this->db->join('repositories', 'repositories.repositoryid = lic_requests.collection_id','inner');
-		$this->db->where('userid',$user_id);
-		if($repository_id)
-		{
-			$this->db->where('repositories.repositoryid',$repository_id);
-		}
-		if($request_status)
-		{
-			$this->db->where_in('status',$request_status);
-		}	
-		return $this->db->get()->result_array();
-	}
-	*/
     
 	/**
 	 * 
@@ -187,46 +162,7 @@ class Licensed_model extends CI_Model {
 		return $request_id;
 	}
 
-	/**
-	*
-	* Insert request by collection
-	**/
-	/*
-    function insert_collection_request($collection_id,$user_id,$options)
-	{
-		$data= array(
-               'collection_id' 	=> $collection_id,
-			   'request_type'	=>'collection',
-               'userid' 		=> $user_id ,
-			   'created' 		=> date("U"),
-			   'updated' 		=> date("U"),
-				'status'		=>'PENDING',
-				'locked'		=>1
-        );
 
-		foreach($options as $key=>$value)
-		{
-			if (in_array($key,$this->db_fields))
-			{
-				$data[$key]=$value;
-			}
-		}		
-		$result=$this->db->insert('lic_requests', $data); 
-		log_message('info',"Request received for [Licensed dataset]");
-		
-		if ($result)
-		{
-			return $this->db->insert_id();
-		}	
-		else
-		{
-			//failed
-			log_message('info',"FAILED to save request for [Licensed dataset=$survey_id] by user $user_id ");
-		}
-		
-		return FALSE;
-	}
-    */
 	
 	function update_request_status($request_id,$username,$status,$comments='',$ip_limit='')
 	{
@@ -665,6 +601,27 @@ class Licensed_model extends CI_Model {
 		$result = $this->db->get()->row_array();
 		return $result;
 	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * Return all licensed requests
+	 * 
+	 */
+	function select_all($limit=null,$offset=0)
+	{
+		$this->db->select('users.username, users.email,lic_requests.*');
+		$this->db->join('users', 'users.id = lic_requests.userid');
+
+		if($limit>0){
+			$this->db->limit($limit, $offset);
+		}
+		
+		return $this->db->get('lic_requests')->result_array();
+	}
+
 	
 	/**
 	 * Get all licensed surveys
@@ -972,47 +929,7 @@ class Licensed_model extends CI_Model {
 	}
 	
 		
-	/*
-	*
-	* return requests for studies/collections
-	**/
-	function get_user_study_n_collection_requests($survey_id,$user_id,$request_status=NULL)
-	{
-		$requests=array();
-		
-		//collections that study belong to with DA access enabled
-		$collections=$this->get_study_collections($survey_id);
-		
-		if($collections)
-		{
-			//find requests by collection
-			foreach($collections as $collection)
-			{
-				$result=$this->get_user_collection_requests($user_id,$collection['repositoryid'],$request_status);
-				
-				if($result)
-				{
-					foreach($result as $row)
-					{
-						$requests[]=$row;
-					}
-				}
-			}
-		}
-				
-		//find requests by study
-		$result=$this->get_user_study_requests($survey_id,$user_id);
-		
-		if ($result)
-		{
-			foreach($result as $row)
-			{
-				$requests[]=$row;
-			}
-		}
-		
-		return $requests;
-	}
+
 	
 	/**
 	*
@@ -1027,27 +944,6 @@ class Licensed_model extends CI_Model {
 		return $this->db->get('survey_repos')->result_array();	
 	}
 	
-	
-	/**
-	*
-	* Check if user has active access to survey
-	*
-	* Note: checks access by checking if user has an APPROVED request for the study
-	**/
-	function check_user_has_data_access($survey_id,$user_id)
-	{
-		$requests=$this->get_user_study_n_collection_requests($survey_id,$user_id);
-			
-			foreach($requests as $request)
-			{
-				if ($request['status']=='APPROVED')
-				{
-					return TRUE;
-				}
-			}
-	
-		return FALSE;
-	}
 	
 	
 	
@@ -1124,5 +1020,75 @@ class Licensed_model extends CI_Model {
 		$this->db->where('id',$cid);
 		$result=$this->db->get()->row_array();
 		return $result['title'];
+	}
+
+
+
+	function export_to_csv($rows=null,$filename=null)
+	{
+		if(!$rows){
+			$rows=$this->select_all();
+		}
+
+		if(!$filename){
+			$filename='lic-requests-'.date("m-d-Y").'.csv';
+		}
+
+		//set header for outputing to CSV
+		header("Expires: Sat, 01 Jan 1980 00:00:00 GMT");
+		header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+		header("Pragma: public");
+		header("Expires: 0");
+		header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+		header("Cache-Control: public"); 
+		header("Content-Description: File Transfer");		
+        header('Content-Type: text/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="'.$filename.'"');
+		
+		if (!is_array($rows))
+		{
+			echo $rows;exit;
+		}
+
+		$outstream = fopen("php://output", "w");
+
+		//header row with column names
+		$column_names=array_keys($rows[0]);
+		
+		//unix timestamp type columns that needs to be formatted as readable date types
+		$date_columns=array('created','updated','expiry_date');
+		
+		//$date_type_idx=array();
+		
+		//date type columns used by current data
+		$date_columns_found=array();
+		
+		//get indexes for date type columns
+		foreach($column_names as $col){
+		    if (in_array($col,$date_columns)){
+				$date_columns_found[]=$col;
+		    }
+		}
+
+        //UTF8 BOM
+        echo "\xEF\xBB\xBF";
+
+		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');	
+	            
+		//data rows
+		foreach($rows as $row)
+		{		    
+		    if ($date_columns_found)
+		    {			
+				foreach($date_columns_found as $col)
+				{
+					$row[$col]=date("M/d/Y H:i:s", $row[$col]);
+				}			
+		    }
+		    
+		    fputcsv($outstream, array_values($row));
+		}
+	
+		fclose($outstream);
 	}
 }

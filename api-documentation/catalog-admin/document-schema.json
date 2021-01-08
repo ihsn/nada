@@ -284,24 +284,26 @@
         },
 
         "id_numbers": {
-          "type": "object",
+          "type": "array",
           "title": "Identifier numbers",
-          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",          
-          "properties": {
-            "type": {
-              "title": "Type",
-              "description":"ID number type such as  ISSN, ISBN, DOI",
-              "type": "string"
+          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "description":"ID number type such as  ISSN, ISBN, DOI"
+              },
+              "value": {
+                "title": "ID number",
+                "type": "string"               
+              }
             },
-            "value": {
-              "title": "ID number",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "type","value"
-          ]
-        },        
+            "required": [
+              "type","value"
+            ]
+          }
+        },      
 
         "publication_frequency": {
           "type": "string",
@@ -572,13 +574,7 @@
           "title": "Sources",
           "description": "Description of sources used. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. ",
           "_ddi_xpath":"stdyDscr/method/dataColl/sources",
-            "properties": {
-              "data_source":{
-                "type":"array",
-                "title":"Data Sources",
-                "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
-                "_ddi_xpath":"stdyDscr/method/dataColl/sources/dataSrc"
-              },
+            "properties": {              
               "source_origin":{
                 "type":"string",
                 "title":"Origin of Source",
@@ -598,6 +594,33 @@
                 "_ddi_xpath":"stdyDscr/method/dataColl/sources/srcDocu"
               }                
             }
+        },
+
+        "data_sources":{
+          "type":"array",
+          "title":"Data Sources",
+          "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Dataset name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Link to the dataset",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",                
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         },
                 
         "keywords":{
@@ -731,6 +754,36 @@
             "name"
           ]
         },
+        "reproducibility": {
+          "title": "Reproducibility",
+          "type": "object",
+          "properties":{
+            "statement": {
+              "title": "Statement",
+              "type": "string"
+            },
+            "links": {
+              "title": "Link",
+              "type": "array",
+              "items":{
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "title": "URI",
+                    "type": "string"
+                  },
+                  "description": {
+                    "title": "Description",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                "uri"
+              ]
+              }
+            }
+          }          
+        },        
 
         "lda_topics": {
           "type": "array",
@@ -811,6 +864,10 @@
                           "word": {
                             "title": "Word",
                             "type": "string"
+                          },
+                          "word_weight": {
+                            "title": "Word weight",
+                            "type": "number"
                           }
                         }
                       },
@@ -823,6 +880,35 @@
                 "required": [
                   "topic_id"
                 ]
+              },
+              "word_vectors":{
+                "type": "array",
+                "title": "Word vectors",
+                "description": "Word vectors",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "title": "Vector Model ID",
+                      "type": "string"
+                    },
+                    "description": {
+                      "title": "Vector Model Description",
+                      "type": "string"
+                    },
+                    "date": {
+                      "title": "Date (YYYY-MM-DD)",
+                      "type": "string"
+                    },
+                    "vector": {
+                      "title": "Vector",
+                      "type": "object"
+                    }
+                  }
+                },
+                "required": [
+                  "id","vector"
+                ]
               }
             },
             "additionalProperties": false
@@ -831,6 +917,9 @@
 
 
       },
+      "required":[
+        "title_statement"
+      ], 
       "additionalProperties": false
     },
     "tags": {
@@ -882,5 +971,8 @@
       ]
     }
     }
-  }
+  },
+  "required":[
+    "document_description"
+  ]
 }

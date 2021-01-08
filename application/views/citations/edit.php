@@ -3,10 +3,30 @@
     display: block;
     padding: 9.5px;
     margin: 0 0 10px;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 20px;
     background-color: #f5f5f5;
 }
+
+
+label, legend {
+  font-weight:bold;
+  font-size: 15px;
+}
+.badge{
+  display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+    line-height: 1;
+    vertical-align: middle;
+    white-space: nowrap;
+    text-align: center;
+    background-color: red;
+}
+
 
 .suggestions .authors{
     color:gray;
@@ -22,6 +42,7 @@
 .suggestions .title,
 .suggestions .subtitle{
     font-weight: bold;
+    font-weight:
 }
 
 .survey-row {font-size:smaller;}
@@ -63,7 +84,7 @@
 
 .sidebar-attach-studies .items-found{font-weight:bold;margin-top:5px;margin-bottom:10px;}
 
-.nav-tabs li a{background:#F4F4F4}
+.nav-tabs li a{background:#F4F4F4; color:#007bff !important;}
 .nav-tabs .action-buttons{float:right;}
 .extra-spacing .field{padding-right:15px;}
 
@@ -81,7 +102,7 @@
 
 .citation-row a{text-decoration:none;display:block;}
 .citation-row a:hover{background:rgb(250, 252, 219);}
-.no-citations{background:red;}
+.no-citations{background:red; color:white;}
 
 .padding-table-rt td{padding-right:10px;}
 .padding-left-10{padding-left:10px;}
@@ -89,11 +110,8 @@
 </style>
 
 <div class="container-fluid page-citations-edit">
-<div class="pull-right page-links"> 
-  <a href="<?php echo site_url(); ?>/admin/citations/" class="btn btn-default">
-    <span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span>
-    <?php echo t('citation_home');?>
-  </a> 
+<div class="page-links text-right m-3 pb-3">
+	<a href="<?php echo site_url(); ?>/admin/citations/" class="btn btn-outline-primary btn-sm"><i class="fa fa-home" aria-hidden="true">&nbsp;</i><?php echo t('citation_home');?></a> 
 </div>
 
 <?php
@@ -225,34 +243,46 @@
   <?php $message=$this->session->flashdata('message');?>
   <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
-  <h1 class="page-title"><?php echo $form_title; ?></h1>
+  <h1 class="page-title mb-3"><?php echo $form_title; ?></h1>
   <?php echo form_open_multipart($this->html_form_url, array('class'=>'form-horizontal form','autocomplete'=>'off') ); ?>
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="active"> <a href="#edit" rel="tab" data-toggle="tab">Home</a></li>
-    <li> <a href="#tab-attach-studies" rel="tab" data-toggle="tab">Attach Surveys <span class="badge citation-count"></span></a></li>
-    <li class="pull-right action-buttons">
-      <input type="submit" name="submit" id="submit" class="btn btn-primary" value="<?php echo t('Save'); ?>" />
-      <span class="btn btn-default"><?php echo anchor('admin/citations/', t('cancel'));?></span> </li>
-  </ul>
-  <div class="tab-content" style="padding-top:15px;">
+  
+ 
+  <ul class="nav navbar nav-tabs mb-3">
+    <li class="nav-item" > 
+      <a class="nav-link active " href="#edit" rel="tab" data-toggle="tab">Home</a>
+    </li>
+    <li class="nav-item  mr-auto"> 
+      <a class="nav-link" href="#tab-attach-studies" rel="tab" data-toggle="tab">Attach Surveys <span class="badge citation-count"></span></a>
+    </li>
+    <li>
+        <div class="nav-item form-group text-right mb-0 ">
+            <?php echo form_submit('submit', t('save'),array('class'=>'btn btn-primary btn-sm'));?>
+            <?php echo anchor('admin/citations/', t('cancel'),array('class'=>'btn btn-secondary btn-sm'));?>
+        </div>
+  </li>
+    </ul>
+  
+  <div class="tab-content">
     <div class="tab-pane active" id="edit" >
-      <div class="col-md-8" style="padding-right:40px;">
+    <div class="row">
+      <div class="col-md-8">
         <input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
         <input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: 'cit-'.date("U")); ?>"/>
         
-        <div class="form-group form-group-">
+        <div class="form-group">
             <label for="ctype"><?php echo t('select_citation_type');?></label>
             <div class="form-inline">
-              <?php echo form_dropdown('ctype', $citation_types, get_form_value("ctype",isset($ctype) ? $ctype : ''),array('id'=>'citation_type','class'=>'form-control')) ; ?>
-              <input class="btn btn-primary" type="submit" name="select" id="change_type" value="Change type"/>
+              <?php echo form_dropdown('ctype', $citation_types, get_form_value("ctype",isset($ctype) ? $ctype : ''),array('id'=>'citation_type','class'=>'form-control-sm')) ; ?>
+              <input class="btn btn-primary btn-sm ml-2" type="submit" name="select" id="change_type" value="Change type"/>
             </div>
         </div>
 
         
-        <div id="citation-edit-view">
+        <div class="form-group">
         <?php
         //load the citation view based on the citation view
         $citation_view=get_form_value('ctype',isset($ctype) ? $ctype: 'book');
+        
         $citation_view=str_replace("-","_",'edit_'.$citation_view);
         //include 'edit_book.php';
         //print_r($citation_view);die;
@@ -290,25 +320,25 @@
             <textarea class="form-control" name="notes" id="notes" rows="3"><?php echo get_form_value('notes',isset($notes) ? $notes : ''); ?></textarea>
           </div>
         </div>
-        <div class="content">
-          <div class="form-group">
+        <div class="content border">
+          <div class="form-group m-2">
             <fieldset class="always-visible">
               <legend><?php echo t('attach_file');?> <span class="max-file-size">(<?php echo t('max_upload_limit') ." ".$max_limit;?>MB)</span> </legend>
               <div class="file-upload-control">
-                <input class="form-control" type="file" name="attachment" id="attachment" size="60"/>
+                <input class="btn btn-light btn-xs" type="file" name="attachment" id="attachment" size="60"/>
                 <div class="description">
                     <?php echo t('allowed_file_types');?>: <span class="file-types"><?php echo str_replace("|",", ",$this->allowed_attachment_file_types);?></span>
                 </div>
                 <?php if(isset($attachment) && strlen($attachment)>1):?>
                 <div class="attachment-link" style="margin-top:15px;">
-                  <div><strong><?php echo t('attachment');?></strong></div>
+                  <div ><strong><?php echo t('attachment');?></strong></div>
                   <div>
-                  <button type="button" class="btn btn-default btn-xs">
-                  <a target="_blank" class="download-link" href="<?php echo site_url('admin/citations/download_attachment/'.$id);?>"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 
+                  <button type="button" class="btn btn-outline-primary btn-sm">
+                  <a target="_blank" class="download-link" href="<?php echo site_url('admin/citations/download_attachment/'.$id);?>"><i class="fas fa-arrow-circle-down"></i> 
                     <?php echo html_escape(basename($attachment));?></a>
                     </button>
-                    <button type="button" class="btn btn-default btn-xs">  
-                  <a class="delete-citation-attachment" href="<?php echo site_url('admin/citations/delete_attachment/'.$id);?>"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> <?php echo t('delete');?></a>
+                    <button type="button" class="btn btn-outline-primary btn-sm">  
+                  <a class="delete-citation-attachment" href="<?php echo site_url('admin/citations/delete_attachment/'.$id);?>"><i class="far fa-trash-alt"></i> <?php echo t('delete');?></a>
                   </button>
                   </div>
                 </div>
@@ -360,9 +390,10 @@
         </table>
         </div>
         
-        <div class="form-group" style="margin-top:20px;">
-          <input class="btn btn-primary" type="submit" name="submit" id="submit" value="<?php echo t('Save'); ?>" />
-          <?php echo anchor('admin/citations/', t('cancel'));?> </div>
+        <div class="form-group">
+          <input class="btn btn-primary btn-sm" type="submit" name="submit" id="submit" value="<?php echo t('Save'); ?>" />
+          <?php echo anchor('admin/citations/', t('cancel'),array('class'=>'btn btn-secondary btn-sm'));?>
+          </div>
       </div>
       <!--end span8-->
       
@@ -370,24 +401,27 @@
         <div class="suggestions">...</div>
       </div>
     </div>
+    </div>
     <!--end-tab-edit-->
     
     <div class="tab-pane" id="tab-attach-studies" >
+      <div class="row">
       <div class="field col-md-8" >
         <div id="related-surveys" ><?php echo $survey_list; ?></div>
       </div>
       <div class="col-md-4 sidebar-attach-studies" >
-        <h4>Find surveys</h4>
-        <div class="form-group">
+      <h4 class="m-2">Find surveys</h4>
+        <div class="form-group row">
           <div class="col-md-8">
             <input class="form-control" autocomplete="off" type="text" id="sk" placeholder="Search for surveys by title, country and year"/>
           </div>
           <div class="col-md-4">
-            <input class="btn btn-primary" type="button" name="Find" value="Find" id="find_surveys"/>
+            <input class="btn btn-primary btn-sm" type="button" name="Find" value="Find" id="find_surveys"/>
           </div>
         </div>
         <div class="modal-survey-list"> </div>
       </div>
+    </div>
     </div>
   </div>
   <?php echo form_close();?> 
@@ -495,7 +529,7 @@ function form_author_field($name,$title)
     $table_id='citation-fieldset-'.$name;
 
     $output=	'<fieldset class="form-group always-visible">';
-    $output.=	'<legend>'.$title.'</legend>';
+    $output.=	'<label>'.$title.'</label>';
 
     $output.=	'<table border="0" class="inline-fields field tr-spacing citation-authors-table" id="'.$table_id.'">';
     $output.=	'<tr>
@@ -519,9 +553,9 @@ function form_author_field($name,$title)
         }
 
         $output.='<tr '.$id.$class.'>
-					<td width="25%"><input name="'.$fname.'[]" type="text" class="author-field author-fname"  value="'.$fnames[$i].'"/></td>
-					<td width="25%"><input name="'.$lname.'[]" type="text" class="author-field author-lname"  value="'.$lnames[$i].'"/></td>
-					<td width="25%"><input name="'.$initial.'[]" type="text" class="author-field author-initial"  value="'.$initials[$i].'" maxlength="1"/></td>
+					<td width="25%"><input name="'.$fname.'[]" type="text" class="author-field author-fname form-control"  value="'.$fnames[$i].'"/></td>
+					<td width="25%"><input name="'.$lname.'[]" type="text" class="author-field author-lname form-control"  value="'.$lnames[$i].'"/></td>
+					<td width="25%"><input name="'.$initial.'[]" type="text" class="author-field author-initial form-control"  value="'.$initials[$i].'" maxlength="1"/></td>
 					<td class="remove-link">'.$remove_link.'</td>
         		</tr>';
     }
@@ -565,10 +599,10 @@ function form_author_field($name,$title)
 function add_author_row(id,name)
 {
     html='<tr>';
-    html+='<td width="10%"><input name="'+name+'_fname[]" class="author-field" type="text"></td>';
-    html+='<td width="10%"><input name="'+name+'_lname[]" class="author-field" type="text"></td>';
-    html+='<td width="10%"><input name="'+name+'_initial[]" class="author-field" type="text" maxlength="1"></td>';
-    html+='<td class="remove-link"><a class="btn btn-xs btn-default" href="#" onclick="remove_author_row(this);return false;"><?php echo t('remove');?></a></td>';
+    html+='<td width="10%"><input name="'+name+'_fname[]" class="author-field form-control" type="text"></td>';
+    html+='<td width="10%"><input name="'+name+'_lname[]" class="author-field form-control" type="text"></td>';
+    html+='<td width="10%"><input name="'+name+'_initial[]" class="author-field form-control" type="text" maxlength="1"></td>';
+    html+='<td class="remove-link"><a class="btn btn-xs text-danger" href="#" onclick="remove_author_row(this);return false;"><?php echo t('remove');?></a></td>';
     html+='</tr>';
 
     $("#"+id).append(html);

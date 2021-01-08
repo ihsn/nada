@@ -46,7 +46,7 @@ class Timeseries_db_model extends CI_Model {
         return $result;
 	}
 
-    function get_row($id)
+    function get_row($id) 
 	{
         $this->db->select('id,idno,title,created,changed,published,metadata');
         $this->db->where('id', $id);
@@ -59,6 +59,31 @@ class Timeseries_db_model extends CI_Model {
         return $result;
 	}
 
+	function get_row_by_idno($idno)
+	{
+		$this->db->select('*');
+        $this->db->where('idno', $idno);
+		$result= $this->db->get("ts_databases")->row_array();
+
+		if($result){
+			$result=$this->decode_encoded_fields($result);
+		}
+
+        return $result;
+	}
+
+	function get_database_by_series_id($sid)
+	{
+		$this->load->model('Dataset_timeseries_model');
+		$database_id=$this->Dataset_timeseries_model->get_timeseries_db_id($sid);
+
+		if (empty($database_id)){
+			return false;
+		}
+		
+		return $this->get_row_by_idno($database_id);
+	}
+	
 
 	function find_by_idno($idno)
 	{
@@ -86,8 +111,8 @@ class Timeseries_db_model extends CI_Model {
 	function get_core_fields($options)
 	{        
         $output=array();
-        $output['title']=$this->get_array_nested_value($options,'title');
-        $output['idno']=$this->get_array_nested_value($options,'idno');
+        $output['title']=$this->get_array_nested_value($options,'database_description/title_statement/title');
+        $output['idno']=$this->get_array_nested_value($options,'database_description/title_statement/idno');
         return $output;
 	}
 	

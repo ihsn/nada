@@ -11,6 +11,10 @@
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
+<div class="pull-right page-links">
+        <a href="<?php echo site_url('admin/licensed_requests/export');?>" class="btn btn-default"><span class="glyphicon glyphicon-plus ico-add-color right-margin-5" aria-hidden="true"></span><?php echo t('export_to_csv');?></a>
+</div>
+
 <h1 class="page-title"><?php echo t('title_licensed_request');?></h1>
 
 <form class="form-inline" style="margin-bottom:20px;" method="GET" id="user-search">

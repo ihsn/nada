@@ -3,13 +3,6 @@
 /**
  * NADA language translator (Beta)
  * 
- *
- *
- * @package		NADA 3.0
- * @subpackage	Libraries
- * @author		Mehmood
- * @link		-
- *
  */
 class Translator{
 	
@@ -152,6 +145,13 @@ class Translator{
 	
 	function translation_file_exists($language,$translation_file)
 	{
+		$user_data=$this->ci->config->item('userdata_path').'/'.$language.'/'.$translation_file;
+
+		if(file_exists($user_data))
+		{
+			return true;
+		}
+
 		$fullpath=APPPATH.'/'.$language.'/'.$translation_file;
 		if (file_exists($fullpath))
 		{
@@ -159,6 +159,55 @@ class Translator{
 		}
 		
 		return false;
+	}
+
+
+	/**
+	 * 
+	 * Return the translation file full path
+	 * 
+	 * 
+	 */
+	function translation_file_path($language,$translation_file,$ignore_exists=false)
+	{		
+		$user_data=$this->ci->config->item('userdata_path');
+
+		//file path based on userdata folder
+		if($ignore_exists==true && !empty($user_data) && file_exists($user_data) ){
+			$user_data_lang_folder=$user_data.'/language/';//.$language.'/'.$translation_file.'_lang.php';
+			$user_data_file=$user_data.'/language/'.$language.'/'.$translation_file.'_lang.php';
+			
+			if(file_exists($user_data_lang_folder)){
+				return $user_data_file;
+			}
+		}
+
+		$fullpath=APPPATH.'language/'.$language.'/'.$translation_file.'_lang.php';
+
+		//return file path even if the file does not exist
+		if($ignore_exists==true && !empty($fullpath)){
+			return $fullpath;
+		}
+
+		if (file_exists($fullpath))
+		{
+			return $fullpath;
+		}
+
+		return false;
+	}
+
+	function get_language_folder()
+	{
+		//custom user language folder
+		$user_data=$this->ci->config->item('userdata_path');
+		
+		if(!empty($user_data) && file_exists($user_data.'/language')){
+			return $user_data.'/language';
+		}
+
+		//default language folder
+		return 'application/language';
 	}
 	
 	
@@ -169,8 +218,8 @@ class Translator{
 	function export($language)
 	{
 		//application language folder
-		$language_folder=APPPATH.'language/';
-		
+		$language_folder=$this->get_language_folder().'/';//'application/language/';
+
 		//system language folder
 		$system_language_folder='system/language/';
 		
@@ -180,7 +229,7 @@ class Translator{
 		//check if valid language name
 		if (!in_array($language, $languages))
 		{
-			show_error('INVALID LANGUAGE');
+			show_error('INVALID LANGUAGE:: '.$language);
 		}
 		
 		//full path to the language folder
@@ -189,7 +238,7 @@ class Translator{
 		//check if the language folder exist
 		if (!file_exists($language_path))
 		{
-			show_error("NOT FOUND");
+			show_error("NOT FOUND:: ".$language_path);
 		}
 		
 		//list of files found in the language folder
@@ -199,7 +248,7 @@ class Translator{
 		$this->ci->load->library('zip');
 
 		//create application language folder
-		$this->ci->zip->add_dir('application/language/'.$language);
+		$this->ci->zip->add_dir($language_path);
 
 		//add language files
 		foreach ($files as $file)

@@ -5,17 +5,17 @@ class Reports extends MY_Controller {
     {
         parent::__construct();
 		
-	//set template to admin 
-	$this->template->set_template('admin');
+		//set template to admin 
+		$this->template->set_template('admin');
       	$this->load->model('Reports_model');
 		
-	$this->lang->load("reports");	
-	//$this->output->enable_profiler(TRUE);
+		$this->lang->load("reports");	
+		//$this->output->enable_profiler(TRUE);
     }
  
 	function index()
 	{	
-		$this->template->set_template('admin');		
+		$this->template->set_template('admin5');		
 		//javascript/css needed for showing the date picker
 		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.core.js');

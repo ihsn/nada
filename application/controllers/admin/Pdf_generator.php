@@ -30,7 +30,8 @@ class Pdf_generator extends MY_Controller {
 			show_error("INVALID ID");
 		}
 		
-		$this->acl->user_has_study_access($sid);
+		$survey=$this->Catalog_model->select_single($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
 		
 		$this->form_validation->set_rules('website_title', t('website_title'), 'xss_clean|trim|required|max_length[255]');
 		$this->form_validation->set_rules('study_title', t('study_title'), 'xss_clean|trim|required|max_length[400]');
@@ -62,8 +63,7 @@ class Pdf_generator extends MY_Controller {
 				//echo $options['ext_resources_html'];exit;
 				$this->_export_pdf($sid,$options);
 		}
-		else{
-			$survey=$this->Catalog_model->select_single($sid);			
+		else{						
 			$data['publisher']=$survey['authoring_entity'];
 			if (@json_decode($data['publisher']))
 			{

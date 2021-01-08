@@ -59,8 +59,8 @@
         "metadata.series_description.time_periods.end"=>"text",
 
         "metadata.series_description.aggregation_method"=>"text",
-        "metadata.series_description.source"=>"text",
-        "metadata.series_description.source_note"=>"text",
+        "metadata.series_description.sources"=>"array",
+        "metadata.series_description.source_notes"=>"text",
         "metadata.series_description.keywords"=>"array",
         "metadata.series_description.notes"=>"array",
         "metadata.series_description.related_indicators"=>"array",

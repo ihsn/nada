@@ -131,20 +131,17 @@ class Reports_model extends CI_Model {
 					users.email,
 					meta.company,
 					meta.country,
-					keyword as downloadid,
 					surveys.title as survey_title,
-					resources.title as download_title,
-					resources.filename as download_filename,
+					keyword as download_filename,
 					forms.model as form_type
 			
 				from sitelogs
 				inner join surveys on surveys.id =sitelogs.surveyid
-				inner join resources on resources.resource_id=sitelogs.keyword
 				left join users on users.email = sitelogs.username
 				left join meta on users.id=meta.user_id
 				left join forms on forms.formid=surveys.formid
 
-			where sitelogs.section like \'%download%\'';
+			where sitelogs.logtype like \'download\'';
 
 		if (is_numeric($start) && is_numeric($end) ) {
 			$sql.='	and (logtime between '.$start.' and '.$end.')';

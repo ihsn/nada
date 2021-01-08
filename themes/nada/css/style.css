@@ -1221,4 +1221,15 @@ a.active.page-link {
   margin-bottom: 46px;
   font-weight: bold;
 }
+.lang-container{
+  font-size:smaller;
+  padding-left:15px;
+}
+.lang-container .lang-label{
+  border-left:1px solid gainsboro;
+  padding-left:5px;
+  padding-right:5px;
+}
+
+
 

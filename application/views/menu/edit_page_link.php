@@ -3,15 +3,17 @@
 * Add/edit page link [internal/external]
 */
 ?>
-<div class="container-fluid page-menu-link-edit">
-
 <?php 
 	//menu breadcrumbs
 	include 'menu_breadcrumb.php'; 
 ?>
+<div class="container-fluid page-menu-link-edit">
+    <div class="row">   
+	<div class="col-md-6">
 
-<h1 class="page-title"><?php echo $form_title; ?></h1>
 
+<h3 class="page-title mt-5 mb-5"><?php echo $form_title; ?></h3>
+ 
 <?php if (validation_errors() ) : ?>
     <div class="alert alert-danger">
 	    <?php echo validation_errors(); ?>
@@ -40,16 +42,17 @@
     <div class="form-group form-inline form-inline-with-spacing">    
 
     <div class="form-group">
-        <label for="target"><?php echo t('open_in');?><span class="required">*</span></label>
+        <label  for="target"><?php echo t('open_in');?><span class="required">*</span></label>
         <?php echo form_dropdown('target', array(0=>t('same_window'),1=>t('new_window')), get_form_value("target",isset($target) ? $target : '')); ?>
+    
     </div>
 
-    <div class="form-group">
+    <div class="form-group ml-3">
         <label for="weight"><?php echo t('weight');?><span class="required">*</span></label>
         <input class="form-control" name="weight" type="text" id="weight" size="3" maxlength="3"  value="<?php echo get_form_value('weight',isset($weight) ? $weight : ''); ?>"/>
     </div>
     
-    <div class="form-group field">
+    <div class="form-group field ml-3">
         <label for="published"><?php echo t('publish');?><span class="required">*</span></label>
         <?php echo form_dropdown('published', array(1=>t('yes'),0=>t('no')), get_form_value("published",isset($published) ? $published : '')); ?>
     </div>
@@ -57,8 +60,10 @@
     </div>
 
 <?php
-	echo form_submit('submit',t('update'),array('class'=>'btn btn-primary')); 
- 	echo anchor('admin/menu',t('cancel'),array('class'=>'btn btn-default') );	
+	echo form_submit('submit',t('update'),array('class'=>'btn btn-primary btn-sm')); 
+ 	echo anchor('admin/menu',t('cancel'),array('class'=>'btn btn-secondary btn-sm') );	
 	echo form_close(); 
 ?>
+</div>
+</div>
 </div>

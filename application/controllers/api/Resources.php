@@ -11,7 +11,7 @@ class Resources extends MY_REST_Controller
 		$this->load->model('Dataset_model');
 		$this->load->model("Resource_model");	//todo to be deleted
 		$this->load->model("Survey_resource_model");	
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 	}
 	
 
@@ -89,8 +89,16 @@ class Resources extends MY_REST_Controller
 	 **/ 
 	function index_post($idno=null)
 	{
-		$options=$this->raw_json_input();
+		$this->is_admin_or_die();
 
+		//multipart/form-data
+		$options=$this->input->post(null, true);
+
+		//raw json input
+		if (empty($options)){
+			$options=$this->raw_json_input();
+		}
+				
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -107,12 +115,47 @@ class Resources extends MY_REST_Controller
 
 			//validate resource
 			if ($this->Survey_resource_model->validate_resource($options)){
-				$resource_id=$this->Survey_resource_model->insert($options);
+
+				$upload_result=null;
+
+				if(!empty($_FILES)){
+					//upload file?
+					$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
+					$uploaded_file_name=$upload_result['file_name'];
+				
+					//set filename to uploaded file
+					$options['filename']=$uploaded_file_name;
+				}
+
+				//check if resource already exists
+				$resource_exists=false;
+								
+				if (!empty($options['filename'])){
+					$resource_exists=$this->Survey_resource_model->get_survey_resources_by_filepath($sid,$options['filename']);
+				}					
+
+				$overwrite=isset($options["overwrite"]) ? $options["overwrite"] : false;
+
+				if($resource_exists){
+					if ($overwrite == 'yes'){
+						//update existing
+						$resource_id=$this->Survey_resource_model->update($resource_exists[0]['resource_id'],$options);
+					}
+					else{
+						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");						
+					}
+				}
+				else{
+					//insert new resource
+					$resource_id=$this->Survey_resource_model->insert($options);
+				}
+
 				$resource=$this->Survey_resource_model->select_single($resource_id);
 				
 				$response=array(
 					'status'=>'success',
-					'resource'=>$resource
+					'resource'=>$resource,
+					'uploaded_file'=>$upload_result
 				);
 
 				$this->set_response($response, REST_Controller::HTTP_OK);
@@ -134,6 +177,7 @@ class Resources extends MY_REST_Controller
 	//update an existing resource
 	function index_put($idno=null,$resource_id=null)
 	{
+		$this->is_admin_or_die();
 		$options=$this->raw_json_input();
 
 		try{
@@ -187,7 +231,8 @@ class Resources extends MY_REST_Controller
 
 	//delete a single resource by resource id
 	function index_delete($idno=null,$resource_id=null)
-	{			
+	{
+		$this->is_admin_or_die();
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -213,7 +258,8 @@ class Resources extends MY_REST_Controller
 
 	//delete all resources by study
 	public function delete_all_delete($idno=null)
-	{		
+	{	
+		$this->is_admin_or_die();	
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$this->Survey_resource_model->delete_all_survey_resources($sid);
@@ -233,6 +279,7 @@ class Resources extends MY_REST_Controller
 	//import rdf file
 	public function import_rdf_post($idno=NULL)
 	{
+		$this->is_admin_or_die();
 		$this->load->model("Survey_model");	
 		
 		try {
@@ -261,9 +308,7 @@ class Resources extends MY_REST_Controller
 				'message'=>$e->getMessage()
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-
-		
+		}		
 	}
 
 	/**
@@ -273,6 +318,7 @@ class Resources extends MY_REST_Controller
 	 */
 	function fix_links_put($idno=null)
 	{
+		$this->is_admin_or_die();
 		$this->load->model("Survey_resource_model");		
 		try{
 			$sid=$this->get_sid_from_idno($idno);
@@ -284,6 +330,47 @@ class Resources extends MY_REST_Controller
 		}
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Download file
+	 * 
+	 */
+	function download_get($dataset_idno=null,$resource_id=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($dataset_idno);
+			$user_id=$this->get_api_user_id();
+
+			if(!$resource_id){
+				throw new Exception("PARAM_NOT_SET: resource_id");
+			}
+
+			$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
+			
+			if(!$resource){
+				throw new Exception("RESOURCE_NOT_FOUND");
+			}			
+
+			$allow_download=$this->Survey_resource_model->user_has_download_access($user_id,$sid,$resource);
+
+			if($allow_download!==true){
+				throw new Exception("You don't have permissions to access the file.");
+			}
+
+			$resource_filename=$this->Survey_resource_model->get_resource_filename($resource_id);
+			return $this->Survey_resource_model->download_file($sid,base64_encode($resource_filename));	
+		}
+		catch(Exception $e){
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 
@@ -301,6 +388,39 @@ class Resources extends MY_REST_Controller
 		}
 
 		return $sid;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * List external resources links by study IDNO
+	 * 
+	 * 
+	 */
+	public function download_links_post()
+	{
+		$this->is_admin_or_die();
+		$options=$this->raw_json_input();
+		
+		try {
+			
+			$resources=$this->Survey_resource_model->find_resources_by_study($options['idno_list']);
+
+			$output=array(
+				'status'=>'success',
+				'resources'=>$resources
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
 	}
 	
 }

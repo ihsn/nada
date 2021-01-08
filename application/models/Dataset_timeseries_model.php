@@ -313,12 +313,17 @@ class Dataset_timeseries_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'series_description/name');
-        $output['idno']=$this->get_array_nested_value($options,'idno');
+        $output['idno']=$this->get_array_nested_value($options,'series_description/idno');
 
         $nations=$this->get_array_nested_value($options,'series_description/geographic_units');	
 
         if (count($nations)>0 && isset($nations[0]['name'])){
-            $nation_names=array_column($nations,"name");
+            //$nation_names=array_column($nations,"name");
+            foreach($nations as $nrow){
+                if(isset($nrow['type']) && strtolower($nrow['type'])=='country'){
+                    $nation_names[]=$nrow['name'];
+                }
+            }
 
             $max_show=3;
 
@@ -430,6 +435,18 @@ class Dataset_timeseries_model extends Dataset_model {
 			'start'=>$start,
 			'end'=>$end
 		);
-	}
+    }
+    
+
+    function get_timeseries_db_id($sid)
+    {
+        $metadata=$this->get_metadata($sid);
+
+        if(isset($metadata['series_description']['database_id'])){
+            return $metadata['series_description']['database_id'];
+        }
+
+        return false;
+    }
 
 }

@@ -170,7 +170,8 @@ class Variable_model extends CI_Model {
      * 
      * get variables count by sid
      */
-    function get_variables_count($sid){
+    function get_variables_count($sid)
+    {
         $this->db->where('sid',$sid);
         $this->db->from("variables");
         return $this->db->count_all_results();        
@@ -183,6 +184,7 @@ class Variable_model extends CI_Model {
             'labl',
             'qstn',
             'catgry',
+            'keywords',
             'sid',
             'fid',
             'vid',
@@ -222,6 +224,7 @@ class Variable_model extends CI_Model {
             'labl',
             'qstn',
             'catgry',
+            'keywords',
             'sid',
             'fid',
             'vid',
@@ -255,6 +258,7 @@ class Variable_model extends CI_Model {
             'labl',
             'qstn',
             'catgry',
+            'keywords',
             'sid',
             'fid',
             'metadata',

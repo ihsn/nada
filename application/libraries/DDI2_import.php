@@ -234,6 +234,9 @@ class DDI2_Import{
 
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
+
+        //index variable keywords
+        $this->ci->dataset_manager->index_variable_data($sid);
                     
         return array(
             'sid'=>$sid,
@@ -505,13 +508,14 @@ class DDI2_Import{
             $fid=$data_files[$var_obj->get_file_id()]['id'];
             
             if(!$fid){
-                throw new exception("FILE_NOT_FOUND: ".$file_id);
+                throw new exception("var @files attribute not set.");
             }
             
             //transform fields to map to variable fields and validate
-            $variable=$this->map_variable_fields($var_obj->get_metadata_array());
-            $variable['fid']=$variable['file_id'];            
-
+            //$variable=$this->map_variable_fields($var_obj->get_metadata_array());
+            $variable=$var_obj->get_metadata_array();
+            $variable['fid']=$variable['file_id'];   
+            
             try{
                 $this->ci->Variable_model->validate_variable($variable);
             }
@@ -536,10 +540,11 @@ class DDI2_Import{
                 'labl'			=> $var_obj->get_label(),
                 'qstn'			=> $var_obj->get_question(),
                 'catgry'		=> $var_obj->get_categories_str(),
+                'keywords'      => $var_obj->get_notes(),
                 'sid'	        => $sid,
                 'metadata'      => $variable
             );
-        
+
             if(!$batch_inserts){
                 $variable_id=$this->ci->Variable_model->insert($sid,$variable);
 

@@ -11,7 +11,7 @@ $lang['link_search_help']="Search help";
 $lang['rss_feed']="RSS feed";
 
 $lang['filter_by_dtype']="License";
-$lang['filter_by_type']="Dataset Type";
+$lang['filter_by_type']="Data Type";
 $lang['select_all']="Select all";
 $lang['filter_by_country']="Countries";
 $lang['filter_by_topic']="Topics";
@@ -233,6 +233,23 @@ $lang['filter_by_tag']="Tags";
 $lang['data_classification']="Data classification";
 $lang['select_data_classification']="Select data classification";
 $lang['filter_by_data_class']="Data classifications";
+
+$lang['Photo']='Image';
+
+$lang['geospatial_description']="Description";
+$lang['timeseries_description']="Series Description";
+$lang['timeseries_db']="Source database";
+$lang['document_description']="Document Description";
+$lang['table_description']="Table Description";
+$lang['image_description']="Image Description";
+$lang['script_description']="Project Description";
+$lang['visualization_description']="Visualization Description";
+$lang['microdata_description']="Study Description";
+$lang['data_dictionary']="Data Description";
+$lang['get_microdata']="Get Microdata";
+$lang['related_materials']="Resources";
+$lang['related_citations']="Related Publications";
+
 
 
 /* End of file catalog_search_lang.php */
