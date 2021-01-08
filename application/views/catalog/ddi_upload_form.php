@@ -77,6 +77,7 @@ if ($max_upload>$max_post){
         <option value="geospatial" >Geospatial</option>
         <option value="document">Document</option>
         <option value="table">Table</option>
+        <option value="timeseries">Timeseries</option>
         <option value="script">Script</option>
         <option value="image">Image</option>
       </select>  
