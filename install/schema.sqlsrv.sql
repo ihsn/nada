@@ -1463,13 +1463,10 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_data_class on [dbo].[data_classifications](
 
 
 
-set IDENTITY_INSERT data_classifications ON;
-
 INSERT INTO data_classifications (id,code,title) VALUES 
 (1,'public','Public use'),
 (2,'official','Official use'),
 (3,'confidential','Confidential');
-set IDENTITY_INSERT data_classifications OFF;
 
 
 CREATE TABLE roles (
