@@ -15,11 +15,6 @@ class Data_classification_model extends CI_Model {
 	}
 	
 	
-	function get_all()
-	{
-		return $this->db->get('data_classifications')->result_array();
-	}
-
 	/**
 	*
 	* Returns array of id/name values
@@ -40,6 +35,34 @@ class Data_classification_model extends CI_Model {
 		if($query){
 			foreach($query as $row){
 				$result[$row['id']]=$row['title'];
+			}
+			return $result;
+		}
+		
+		return FALSE;
+	}
+
+
+	/**
+	*
+	* Returns a list of all classification by code
+	*
+	*/
+	function get_all()
+	{
+		$this->db->select('*');
+		$this->db->order_by("id", "asc");
+		$query=$this->db->get('data_classifications');
+		
+		if(!$query){
+			return FALSE;
+		}
+		
+		$query=$query->result_array();
+		
+		if($query){
+			foreach($query as $row){
+				$result[$row['code']]=$row;
 			}
 			return $result;
 		}

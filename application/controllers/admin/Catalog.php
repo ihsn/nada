@@ -14,6 +14,7 @@ class Catalog extends MY_Controller {
       	parent::__construct();
      	$this->load->model('Catalog_model');
 		$this->load->model('Licensed_model');
+		$this->load->model('Form_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Citation_model');
 		$this->load->model('Search_helper_model');
@@ -89,13 +90,15 @@ class Catalog extends MY_Controller {
 		//get country list for filter
 		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
 
+		//data access types
+		$this->data_access_types=$this->Form_model->get_all();
 		//data types
 		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid); 
 
 		if ($db_rows['rows'])
 		{
 			$sid_list=array();
-			foreach($db_rows['rows'] as $row)
+			foreach($db_rows['rows'] as $row) 
 			{
 				$sid_list[]=$row['id'];
 			}
@@ -1690,6 +1693,17 @@ class Catalog extends MY_Controller {
 		//$this->load->library('ion_auth');
 
 		$this->load->library("catalog_admin");
+
+		//load data classification + license options
+		$this->config->load('data_access');		
+
+		$active_repository=FALSE;
+
+		//get active repository
+		if (isset($this->active_repo) && $this->active_repo!=NULL){
+			$active_repository=$this->active_repo->repositoryid;
+		}
+
 		
 		//get the survey info from db
 		$survey_row=$this->Catalog_model->select_single($id,$active_repository);
@@ -1770,9 +1784,11 @@ class Catalog extends MY_Controller {
 		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
 
 		//Data classifications
-		$data_classfications = $this->Data_classification_model->get_list();
-		$data_classfications=array('0'=>'--SELECT--') + (array)$data_classfications;
+		$data_classfications = $this->Data_classification_model->get_all();
+		//$data_classfications=array('0'=>'--SELECT--') + (array)$data_classfications;
 		$survey_row['data_classifications']=$data_classfications;
+
+		$survey_row['data_access_options']=$this->config->item("data_access_options");
 
 		//data access form list
 		$this->load->model('Form_model');
@@ -1782,6 +1798,8 @@ class Catalog extends MY_Controller {
 		foreach($this->Form_model->get_all()  as $value){
 			$this->forms_list[$value['formid']]=t($value['fname']); 
 		}
+
+		$survey_row['data_access_types']=$this->Form_model->get_all();
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
 		$this->template->write('content', $content,true);

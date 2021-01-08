@@ -16,9 +16,9 @@
 |
 | 
 */
-$config['solr_host'] = "w0lxqw0lxpmeh01";
+$config['solr_host'] = "localhost";
 $config['solr_port'] = "8983";
-$config['solr_collection'] = "/solr/microdatalib/";
+$config['solr_collection'] = "/solr/nada/";
 
 
 

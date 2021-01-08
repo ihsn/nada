@@ -64,8 +64,14 @@ items=array(
                                    id="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>"
                                 <?php if(isset($search_options->{$filter_id}) && is_array($search_options->{$filter_id}) && in_array($item_key,$search_options->{$filter_id})):?>
                                     checked="checked"
-                                <?php endif;?>>                                
-                                <?php echo $item['title']; ?> 
+                                <?php endif;?>>
+                                
+                                <?php if (isset($item['translated_title'])):?>
+                                    <?php echo $item['translated_title']; ?>
+                                <?php else:?>
+                                    <?php echo $item['title'];?>
+                                <?php endif;?>
+                                 
                                 <?php if(isset($item['found'])):?>
                                     <span class="count">(<?php echo $item['found']; ?>)</span>
                                 <?php endif;?>

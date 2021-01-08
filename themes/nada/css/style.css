@@ -787,6 +787,52 @@ footer {
   background-size: 12px;
 }
 
+
+.icon-da-research{
+  background: url('../images/public-use-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_public{
+  background: url('../images/research-public-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_license{
+  background: url('../images/licensed-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_public_lic{
+  background: url('../images/research-public-lic-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-cc40{
+  background: url('../images/ccby40-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
 .icon-da-data_na,
 .icon-da-{
   background: url('../images/not-available-round-32x32.svg') no-repeat 0 2px;
@@ -1167,6 +1213,14 @@ a.active.page-link {
   color: #721c24;
 }
 
+
+.login-form .reason{ 
+  padding: 15px;
+  font-size: 16px;
+  background: #f1e5bc;
+  margin-bottom: 46px;
+  font-weight: bold;
+}
 .lang-container{
   font-size:smaller;
   padding-left:15px;

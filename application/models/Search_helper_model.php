@@ -530,6 +530,7 @@ class Search_helper_model extends CI_Model {
 		$types=array();
 		foreach($result as $row)
 		{
+			$row['title']=t('legend_data_'.$row['code']);
 			$types[(string)$row['id']]=$row;
 		}
 		
@@ -564,6 +565,7 @@ class Search_helper_model extends CI_Model {
 		
 		$types=array();
 		foreach($result as $row){
+			$row['title']=t('data_class_'.$row['code']);
 			$types[(string)$row['id']]=$row;
 		}
 		
