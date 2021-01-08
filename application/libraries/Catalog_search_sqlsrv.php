@@ -22,10 +22,11 @@ class Catalog_search_sqlsrv{
 	var $from=0;
 	var $to=0;
 	var $repo='';
+	var $type=array();
+	var $data_class=array();
 	var $dtype=array();//data access type
 	var $collections=array();
 	var $tags=array();
-	var $data_class=array();
 	var $sid='';
 	var $country_iso3='';
 
@@ -216,7 +217,8 @@ class Catalog_search_sqlsrv{
 	//perform the search
 	function search($limit=15, $offset=0)
     {
-        $dtype = $this->_build_dtype_query();
+		$type=$this->_build_dataset_type_query();
+		$dtype = $this->_build_dtype_query();
         $study = $this->_build_study_query();
         $variable = $this->_build_variable_query();
         $topics = $this->_build_topics_query();
@@ -254,7 +256,7 @@ class Catalog_search_sqlsrv{
         }
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections, $tags,$data_class,$sid,$countries_iso3);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$dtype,$collections, $tags,$data_class,$sid,$countries_iso3,$type);
 
         //show only publshed studies
         $where_list[]='surveys.published=1';
@@ -278,7 +280,7 @@ class Catalog_search_sqlsrv{
 
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,surveys.idno,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
+		$study_fields='surveys.id as id,surveys.idno,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
 		//add ranking if keywords are not empty
@@ -970,6 +972,32 @@ class Catalog_search_sqlsrv{
 	}
 
 
+	protected function _build_dataset_type_query()
+	{
+		$types=(array)$this->type;//must always be an array
+
+		if (!is_array($types)){
+			return FALSE;
+		}
+		
+		$types_list=array();
+				
+		foreach($types  as $type){
+			if(!empty($type)){
+				$types_list[]=$this->ci->db->escape($type);
+			}
+		}
+
+		$types= implode(',',$types_list);
+
+		if ($types!=''){
+			return sprintf('(surveys.type in (%s))',$types);
+		}
+		
+		return FALSE;
+	}
+
+	
 	protected function _build_tags_query()
 	{
 		$tags=(array)$this->tags;//must always be an array
