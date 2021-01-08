@@ -1,6 +1,7 @@
 {
-	"$schema": "http://json-schema.org/draft-04/schema#",
-	"id": "https://www.iptc.org/std/phovidmd/iptc-phovidmdshared-schema.json#",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"id": "https://www.iptc.org/std/phovidmd/iptc-phovidmdshared-schema.json",
+	"$id": "https://www.iptc.org/std/phovidmd/iptc-phovidmdshared-schema.json",
 	"title": "IPTC Photo and Video Metadata Shared Objects JSON Schema",
 	"description": "Objects used for IPTC Photo and/or Video Metadata (IPTC/MS/2018-09-27, cvTerm property names corrected)",
 	"type": "null",

@@ -84,7 +84,7 @@
 			"type": "object",
 			"properties": {
 				"iptc": {
-					"allOf": [{ "$ref": "../schemas/iptc-pmd-schema.json" }]
+					"allOf": [{ "$ref": "iptc-pmd-schema.json" }]
 				},
 				"license": {
 					"type": "array",
