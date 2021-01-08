@@ -52,7 +52,7 @@ Vue.component('grid-component', {
 
                         <validation-provider 
                                 :rules="column.rules" 
-                                :name="field.title + '.' + column.title"
+                                :name="columnName(column,path)"
                                 v-slot="{ errors }"                                
                                 >
                             
@@ -88,6 +88,14 @@ Vue.component('grid-component', {
         },
         remove: function (index){
             this.field_data.splice(index,1);
-        }  
+        },
+        columnName: function(column,path)
+        {
+            if (typeof column.name ==='undefined'){
+                return path + '.' + column.title;
+            }else{
+                return column.name
+            }
+        }
     }
 })

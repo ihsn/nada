@@ -1,3 +1,4 @@
+///// nested-section
 Vue.component('nested-section', {
     props:['value','columns','path'],
     data: function () {    
