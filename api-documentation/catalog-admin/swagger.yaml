@@ -362,7 +362,7 @@ paths:
           description: successful operation
       security:
         - ApiKeyAuth: []
-                       
+  
   /datasets:
       get:
         tags:
@@ -488,8 +488,36 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []        
-  /datasets/find_by_id{datasetID}:
+          - ApiKeyAuth: []
+  /datasets/owner_collection/{datasetID}:
+    post:
+      tags:
+        - Datasets
+      summary: Set owner collection
+      description: Collection that owns the study
+      operationId: datasetOwnerCollection
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: owner_collection
+          schema:
+            type: object
+            required:
+              - collection_idno
+            properties:
+              collection_idno:
+                type: string
+
+      consumes:
+        - application/json
+
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []
+  /datasets/find_by_id/{datasetID}:
       get:
         tags:
           - Datasets
@@ -542,7 +570,7 @@ paths:
       tags:
         - Datasets
       summary: Replace IDNO
-      description: Replace Study IDNO
+      description: Replace IDNO
       operationId: replaceIdno
       consumes:
         - application/json
@@ -1168,7 +1196,29 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []
-
+  /datasets/generate_ddi/{datasetID}:
+      get:
+        tags:
+          - Datasets
+        summary: Generate DDI file
+        description: Generate DDI/XML file
+        operationId: generateDDIget
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "IDNo"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
   /datasets/strip_ddi/{IDNo}/{options}:
       put:
         tags:

@@ -1094,9 +1094,35 @@ class Datasets extends MY_REST_Controller
 			$this->db_logger->write_log('ddi-upload','success','catalog');
 		}
 		
-		return $uploaded_ddi_path;
-			
+		return $uploaded_ddi_path;			
 	}
+
+
+	/**
+	 * 
+	 *  Generate DDI and return the xml
+	 * 
+	 */
+	public function generate_ddi_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			
+			header("Content-type: text/xml");			
+			$this->load->library("DDI_Writer");
+	 		$this->ddi_writer->generate_ddi($idno);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}	 
+
+
+
 
 	/**
 	 * 
