@@ -29,31 +29,6 @@ else{
     </div>
     <div class="row">
         <div class="col">
-            <!-- Nav tabs -->
-            <ul class="nav nav-tabs wb-nav-tab-space mb-5 catalog-tabs" role="tablist">
-                <?php if (isset($repo) && isset($repo['repositoryid']) && $repo['repositoryid']=='central'):?>
-                    <?php if(isset($repositories) && count($repositories)>0):?>
-                    <li class="nav-item tab-about">
-                        <a class="nav-link <?php echo ($active_tab=='about') ? $active_class : '' ?>"   href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>/about" role="presentation"><?php echo t('tab_collections');?></a>
-                    </li>
-                    <?php endif;?>
-                <?php else:?>
-                    <li class="nav-item tab-about">
-                        <a class="nav-link <?php echo ($active_tab=='about') ? $active_class : '' ?>"  href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>/about" role="presentation"><?php echo t('tab_about');?></a>
-                    </li>
-                <?php endif;?>
-                    <li class="nav-item tab-catalog">
-                        <a class="nav-link <?php echo ($active_tab=='catalog') ? $active_class : '' ?>"  href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>" role="presentation"><?php echo t('tab_datasets');?></a>
-                    </li>
-                <?php if (isset($repo_citations_count) && $repo_citations_count > 0):?>
-                    <li class="nav-item tab-citations">
-                        <a class="nav-link <?php echo ($active_tab=='citations') ? $active_class : '' ?>"  href="<?php echo site_url('citations/?collection='.$repo['repositoryid']);?>" role="presentation"><?php echo t('tab_citations');?></a>
-
-                    </li>
-                <?php endif;?>
-            </ul>
-            <!-- / Nav Tabs -->
-
             <!-- Tab panes -->
             <div class="tab-content">
                 <!-- Datasets Tab -->
@@ -79,30 +54,7 @@ else{
     </div>
     <div class="row">
         <div class="col-sm-12">
-            <!-- Nav tabs -->
-            <ul class="nav nav-tabs wb-nav-tab-space mb-5 catalog-tabs" role="tablist">
-
-                <?php if (isset($repo) && isset($repo['repositoryid']) && $repo['repositoryid']=='central'):?>
-                    <?php /* ?>
-                    <li class="nav-item tab-about">
-                        <a class="nav-link <?php echo ($active_tab=='about') ? $active_class : '' ?>"   href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>/about" role="presentation"><?php echo t('tab_collections');?></a>
-                    </li>
-                    <?php */?>
-                <?php else:?>
-                    <li class="nav-item tab-about">
-                        <a class="nav-link <?php echo ($active_tab=='about') ? $active_class : '' ?>"  href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>/about" role="presentation"><?php echo t('tab_about');?></a>
-                    </li>
-                <?php endif;?>
-                <li class="nav-item tab-catalog">
-                    <a class="nav-link <?php echo ($active_tab=='catalog') ? $active_class : '' ?>"  href="<?php echo site_url('catalog/'.$repo['repositoryid']);?>" role="presentation"><?php echo t('tab_datasets');?></a>
-                </li>
-                <?php //if (isset($repo_citations_count) && $repo_citations_count > 0):?>
-                    <li class="nav-item tab-citations">
-                        <a class="nav-link <?php echo ($active_tab=='citations') ? $active_class : '' ?>"  href="<?php echo site_url('citations/?collection='.$repo['repositoryid']);?>" role="presentation"><?php echo t('tab_citations');?></a>
-                    </li>
-                <?php //endif;?>
-            </ul>
-            <!-- / Nav Tabs -->
+           
 
             <!-- Tab panes -->
             <div class="tab-content">

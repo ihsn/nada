@@ -83,7 +83,10 @@ class Breadcrumb
 					$breadcrumbs[$segments[1]]=t($segments[1]);
 				break;
 				
-				
+				case 'collections':
+					$breadcrumbs['collections']=t('collections');
+				break;
+
 				case 'catalog':
 					
 					$breadcrumbs['catalog']=t('central_data_catalog');

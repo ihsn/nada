@@ -641,59 +641,9 @@ class Catalog extends MY_Controller {
 
 
 	function about_repository()
-	{
+	{		
 		$repositoryid=$this->uri->segment(2);
-		$this->load->model("repository_model");
-		$additional_data=NULL;
-		$repo=NULL;
-
-		//unpublished repos are visible to limited admins or admins only
-		//$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
-
-		if ($repositoryid=='central')
-		{
-			$this->load->model("repository_model");
-			$this->load->model("repository_sections_model");
-			$collections=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
-			$sections=array();
-
-			foreach($collections as $key=>$collection)
-			{
-				$sections[$collection['section']]=$collection['section_title'];
-			}
-
-			$data['sections']=$sections;
-			$data['rows']=$collections;
-			$data['show_unpublished']=FALSE;
-			$additional_data=$this->load->view("repositories/index_public",$data,TRUE);
-			$repo=array(
-					'repositoryid'	=>'central',
-					'title'			=>t('central_data_catalog')
-			);
-		}
-		else
-		{
-			$repo=$this->repository_model->get_repository_by_repositoryid($repositoryid);
-
-			if (!$repo)
-			{
-				show_404();
-			}
-		}
-
-		$page_data=array(
-			'repo'=>$this->active_repo,
-			'active_tab'=>'about',
-			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
-		);
-
-		$page_data['content']=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
-		$contents=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
-
-		//set page title
-		$this->template->write('title', $repo['title'],true);
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();
+		redirect('collections/'.$repositoryid);		
 	}
 
 
