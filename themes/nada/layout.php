@@ -36,7 +36,7 @@ $use_cdn=false;
     <div class="body-content-wrap">
         
         <!--breadcrumbs -->
-        <div class="container">
+        <div class="container breadcrumb-container">
         <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
         <?php if ($breadcrumbs_str!=''):?>
             <ol class="breadcrumb wb-breadcrumb">
