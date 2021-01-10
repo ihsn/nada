@@ -11,6 +11,7 @@
         "league/csv": "^9.3",
         "mongodb/mongodb": "^1.5",
         "adbario/php-dot-notation": "^2.2",
-        "laminas/laminas-permissions-acl": "^2.7"
+        "laminas/laminas-permissions-acl": "^2.7",
+        "spatie/array-to-xml": "^2.16"
     }
 }

@@ -52,11 +52,12 @@ final class Versions
   'setasign/fpdi' => 'v2.3.5@f2246c8669bd25834f5c264425eb0e250d7a9312',
   'slim/csrf' => '0.8.3@5f2bcf5d89adf86dc0455a32bea84d912ab466a7',
   'solarium/solarium' => '4.2.0@20cf9e906a4e8e4a29c1ff48a2b145fa31d1064d',
+  'spatie/array-to-xml' => '2.16.0@db39308c5236b69b89cadc3f44f191704814eae2',
   'symfony/event-dispatcher' => 'v4.4.17@f029d6f21eac61ab23198e7aca40e7638e8c8924',
   'symfony/event-dispatcher-contracts' => 'v1.1.9@84e23fdcd2517bf37aecbd16967e83f0caee25a7',
   'symfony/polyfill-php80' => 'v1.20.0@e70aa8b064c5b72d3df2abd5ab1e90464ad009de',
   'violet/streaming-json-encoder' => 'v1.1.2@7067297cfb8b3fbf6d45cdb03f877eb5e7abb2b6',
-  '__root__' => 'dev-nada-5.1@c91e131be24f66ffe6c863530c09b71f07ec50b7',
+  '__root__' => 'dev-nada-5.1@27f864bb410626ee14a8b67326ee6435359f6f87',
 );
 
     private function __construct()

@@ -8,8 +8,8 @@ class ComposerStaticInit5ef75f4a15ad5dd8c90a436c9a1a8a24
 {
     public static $files = array (
         '7e9bd612cc444b3eed788ebbe46263a0' => __DIR__ . '/..' . '/laminas/laminas-zendframework-bridge/src/autoload.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
         '3a37ebac017bc098e9a86b35401e7a68' => __DIR__ . '/..' . '/mongodb/mongodb/src/functions.php',
@@ -29,6 +29,7 @@ class ComposerStaticInit5ef75f4a15ad5dd8c90a436c9a1a8a24
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Component\\EventDispatcher\\' => 34,
+            'Spatie\\ArrayToXml\\' => 18,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
         ),
@@ -87,6 +88,10 @@ class ComposerStaticInit5ef75f4a15ad5dd8c90a436c9a1a8a24
         'Symfony\\Component\\EventDispatcher\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/event-dispatcher',
+        ),
+        'Spatie\\ArrayToXml\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/spatie/array-to-xml/src',
         ),
         'Solarium\\' => 
         array (
