@@ -984,11 +984,11 @@ class Ion_auth_model extends CI_Model
 	public function assign_user_group($user_id,$group_id)
 	{
 		$options=array(
-			'group_id'=>$group_id,
+			'role_id'=>$group_id,
 			'user_id'=>$user_id
 		);
 
-		$this->db->insert('users_groups',$options);
+		$this->db->insert('user_roles',$options);
 	}
 	
 
