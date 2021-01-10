@@ -1610,7 +1610,24 @@ class Catalog extends MY_Controller {
 
 		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
 				 
-		$template_path="application/metadata_editor_templates/{$survey['type']}_form_template.json";
+		$template_file="{$survey['type']}_form_template.json";
+		$template_path=null;
+		
+		//locations to look for templates
+		$template_locations=array(
+			'application/metadata_editor_templates/custom',
+			'application/metadata_editor_templates',
+		);
+
+		//look for template in all locations and pick the first one found
+		foreach($template_locations as $path){
+			if (file_exists($path.'/'.$template_file)){
+				$template_path=$path.'/'.$template_file;
+				break;
+			}
+		}
+		
+		//$template_path="application/metadata_editor_templates/{$survey['type']}_form_template.json";
 		$schema_path="application/schemas/{$survey['type']}-schema.json";
 
 		if(!file_exists($template_path)){

@@ -438,7 +438,11 @@ class Dataset_model extends CI_Model {
 			if(isset($data[$field])){
 				$data[$field]=$this->encode_metadata($data[$field]);
 			}
-		}		
+		}
+		
+		if (isset($data['id'])){
+			unset($data['id']);
+		}
 		
 		//update study
 		$this->db->where('id',$sid);
@@ -807,7 +811,7 @@ class Dataset_model extends CI_Model {
 	function find_by_idno($idno)
 	{
 		$this->db->select('id');
-		$this->db->where('idno', $idno); 
+		$this->db->where('idno', (string)$idno); 
 		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query){

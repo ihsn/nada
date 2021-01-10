@@ -124,6 +124,8 @@ $route['api/datadeposits'] = "api/datadeposits/projects";
 */
 
 
+//collections
+$route['collections/(.*)'] = "collections/index/$1";
 
 //for new study page
 $route['catalog/(:num)/study-description'] = "study/metadata/$1";

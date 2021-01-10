@@ -1314,6 +1314,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_types on [dbo].[survey_types](
 	[code] ASC
 );
 
+set IDENTITY_INSERT survey_types ON;
 INSERT INTO survey_types(id,code,title, weight) VALUES(1,'survey','Survey',100);
 INSERT INTO survey_types(id,code,title, weight) VALUES(2,'geospatial','Geospatial',90);
 INSERT INTO survey_types(id,code,title, weight) VALUES(3,'timeseries','Time series',80);
@@ -1322,7 +1323,7 @@ INSERT INTO survey_types(id,code,title, weight) VALUES(5,'table','Table',70);
 INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
 INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
 INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
-
+set IDENTITY_INSERT survey_types OFF;
 
 
 -- 
