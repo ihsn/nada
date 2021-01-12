@@ -1,9 +1,14 @@
 <?php 
 
     $column_class='col-3';//set boostrap column size
+    $show_empty=true; //show empty fields
 
     if (isset($options['column_class'])){
         $column_class=$options['column_class'];
+    }
+
+    if (isset($options['show_empty'])){
+        $show_empty=$options['show_empty'];
     }
 ?>
 
@@ -23,11 +28,11 @@
                     $field_type=$field_type_info;
                 }
             ?>
-            <?php //if ($value):?>
+            <?php if ($show_empty==true || ($show_empty==false && !empty($value))):?>
             <div class="<?php echo $column_class;?>">
                 <?php echo render_field($field_type,$field_name,$value,$options);?>
             </div>
-            <?php //endif;?>
+            <?php endif;?>
         <?php endforeach;?>
     </div>
     
