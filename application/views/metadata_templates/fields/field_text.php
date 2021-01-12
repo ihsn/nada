@@ -5,7 +5,7 @@
         $show_empty=$options['show_empty'];
     }
 ?>
-<?php if ( isset($data) && $data !='' || $show_empty==true ):?>
+<?php if ( (isset($data) && $data !='') || $show_empty==true ):?>
 <div class="field field-<?php echo $name;?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value">
