@@ -44,10 +44,12 @@
             <select style="display:none"  name="<?php echo $classification_code;?>" id="select-<?php echo $classification_code;?>" class="data-access-dropdown form-control">
                 <option> - Select - </option>
                 <?php foreach($data_licenses as $license_):?>
+                    <?php if(isset($data_access_types[$license_])):?>
                     <option 
                         value="<?php echo $data_access_types[$license_]['formid'];?>"
                         <?php echo ($selected_formid==$data_access_types[$license_]['formid']) ? 'selected="selected"' :'';?>
                     ><?php echo t($data_access_types[$license_]['fname']);?></option>
+                    <?php endif;?>
                 <?php endforeach;?>
             </select>
         <?php endforeach;?>
