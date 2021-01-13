@@ -31,7 +31,8 @@ class Repositories extends MY_Controller {
 	
 	//list repositories
 	function index()
-	{					
+	{
+		$this->acl_manager->has_access_or_die('collection', 'view');
 		$result['rows']=$this->_search();
 		$content=$this->load->view('repositories/index-default', $result,true);	
 		$this->template->write('content', $content,true);
@@ -46,6 +47,7 @@ class Repositories extends MY_Controller {
 	 **/
 	function _search()
 	{
+		$this->acl_manager->has_access_or_die('collection', 'view');
 		//records to show per page
 		$per_page = 100;
 				
@@ -176,7 +178,8 @@ class Repositories extends MY_Controller {
 	*/
 	function edit($id=NULL)	
 	{
-        $this->load->helper('security');
+		$this->acl_manager->has_access_or_die('collection', 'edit');
+		$this->load->helper('security');
 
         if (!is_numeric($id)  && $id!==NULL){
 			show_error('Invalid ID provided');exit;		
@@ -400,6 +403,7 @@ class Repositories extends MY_Controller {
 	*/
 	function delete($id)
 	{		
+		$this->acl_manager->has_access_or_die('collection', 'delete');
 		//array of id to be deleted
 		$delete_arr=array();
 	
@@ -595,6 +599,8 @@ class Repositories extends MY_Controller {
 	//publish/unpublish repository
 	function publish($id,$status)
 	{
+		$this->acl_manager->has_access_or_die('collection', 'publish');
+
 		if(!is_numeric($id) || !in_array($status,array(0,1)))
 		{
 			show_error('INVALID-PARAMS');
@@ -611,6 +617,8 @@ class Repositories extends MY_Controller {
 	//change repo weight
 	function weight($id,$weight)
 	{
+		$this->acl_manager->has_access_or_die('collection', 'edit');
+
 		if(!is_numeric($id) || !is_numeric($weight))
 		{
 			show_error('INVALID-PARAMS');
@@ -630,6 +638,7 @@ class Repositories extends MY_Controller {
 	**/
 	function history($repositoryid)
 	{
+		$this->acl_manager->has_access_or_die('collection', 'view');
 		$data['rows']=$this->repository_model->repo_survey_list($repositoryid);		
 		$content=$this->load->view('repositories/history', $data,true);	
 		$this->template->write('content', $content,true);

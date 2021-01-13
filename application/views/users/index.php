@@ -7,7 +7,8 @@
 
   <?php if (!isset($hide_form)): ?>
     <div class="page-links text-right m-3 pb-3">
-      <a href="<?php echo site_url(); ?>/admin/users/add" class="btn btn-outline-primary btn-sm"><i class="fa fa-plus-circle" aria-hidden="true">&nbsp;</i> <?php echo t('create_user_account'); ?></a>
+      <a href="<?php echo site_url('admin/users/add'); ?>" class="btn btn-outline-primary btn-sm"><i class="fa fa-plus-circle" aria-hidden="true">&nbsp;</i> <?php echo t('create_user_account'); ?></a>
+      <a href="<?php echo site_url('admin/permissions'); ?>" class="btn btn-outline-primary btn-sm"><i class="fa fa-users" aria-hidden="true">&nbsp;</i> <?php echo t('User roles'); ?></a>
     </div>
     
     <h1 class="page-title mt-3 mb-3"><?php echo t('title_user_management'); ?></h1>

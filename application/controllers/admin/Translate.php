@@ -12,6 +12,7 @@ class Translate extends MY_Controller {
 
 		$this->lang->load("general");
 		$this->load->library('translator');
+		$this->acl_manager->has_access_or_die('translate', 'edit');
 		//$this->output->enable_profiler(TRUE);
     }
  

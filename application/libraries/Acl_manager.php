@@ -90,7 +90,7 @@ class Acl_manager
 
 		$options=array(
 			'name'=>$role,
-			'description'=>$description,
+			'description'=>$description, 
 			'weight'=>$weight
 		);
 
@@ -183,7 +183,51 @@ class Acl_manager
 
 		return $user_roles;
 	}
+
+
+	/**
+	 * 
+	 * assign a role to a user
+	 * 
+	 */
+	function set_user_role($user_id, $role_id)
+	{
+		$options=array(
+			'role_id'=>$role_id,
+			'user_id'=>$user_id
+		);
+
+		if (!$this->check_user_role_exists($user_id, $role_id)){
+			return $this->ci->db->insert("user_roles",$options);
+		}
+	}
+
+
+	function check_user_role_exists($user_id, $role_id)
+	{
+		$this->ci->db->select("*");
+		$this->ci->db->where("user_id",$user_id);
+		$this->ci->db->where("role_id",$role_id);		
+		$result= $this->ci->db->get("user_roles")->result_array();
+
+		if (count($result)>0){
+			return true;
+		}
+		return false;
+	}
 	
+
+
+	/**
+	 * 
+	 * delete all user roles
+	 * 
+	 */
+	function remove_user_roles($user_id)
+	{
+		$this->ci->db->where("user_id",$user_id);		
+		return $this->ci->db->delete("user_roles");
+	}
 
 
 	/**
@@ -259,7 +303,14 @@ class Acl_manager
 			$this->has_access($resource, $privilege,$user,$repositoryid);
 		}
 		catch(Exception $e){
-			die($e->getMessage());
+			if ($this->ci->input->is_ajax_request()) {
+				$this->ci->output
+					->set_status_header(403)
+        			->set_content_type('application/json');
+				die (json_encode($e->getMessage()));
+			}
+
+			show_error($e->getMessage());
 		}	
 	}
 
