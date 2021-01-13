@@ -50,19 +50,29 @@ $(document).ready(function () {
 		//study publish/unpublish
 		$(document.body).on("click","#survey .publish, .survey-publish .publish", function(){
 			var studyid=$(this).attr("data-sid");
-			if ($(this).attr("data-value")==0){
-				$(this).attr("data-value",1);
-				$(this).html("<?php echo t('published');?>");
-				$(this).removeClass("btn-warning");
-				$(this).addClass("btn-success");
-				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1',{submit:"submit"});
+			if ($(this).attr("data-value")==0){				
+				$this=this;				
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1', {submit:"submit"}, function( data ) {
+					$($this).attr("data-value",1);
+					$($this).html("<?php echo t('published');?>");
+					$($this).removeClass("btn-warning");
+					$($this).addClass("btn-success");
+				})
+				.fail(function(xhr, status, error) {
+					alert(xhr.responseText);
+				});
 			}
 			else{
-				$(this).html("<?php echo t('draft');?>");
-				$(this).attr("data-value",0);
-				$(this).removeClass("btn-success");
-				$(this).addClass("btn-warning");
-				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1',{submit:"submit"});
+				$this=this;	
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1', {submit:"submit"}, function( data ) {
+					$($this).html("<?php echo t('draft');?>");
+					$($this).attr("data-value",0);
+					$($this).removeClass("btn-success");
+					$($this).addClass("btn-warning");
+				})
+				.fail(function(xhr, status, error) {
+					console.log(xhr,status,error);
+				});
 			}
 		});
 

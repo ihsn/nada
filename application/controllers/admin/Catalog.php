@@ -37,9 +37,9 @@ class Catalog extends MY_Controller {
 		//$this->acl->clear_active_repo();
 
 		//set active repo
-		$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo()); 
+		$repo_obj=(object)$this->Repository_model->select_single($this->Repository_model->user_active_repo());
 
-		if (!$repo_obj){
+		if (empty($repo_obj) || $this->Repository_model->user_active_repo()==0){
 			//set active repo to CENTRAL
 			$data=$this->Repository_model->get_central_catalog_array();
 			$this->active_repo=(object)$data;
@@ -79,7 +79,7 @@ class Catalog extends MY_Controller {
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
 
-		$this->acl_manager->has_access_or_die('catalog', 'view');
+		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
 
 		//get surveys
 		$db_rows=$this->_search();
@@ -1696,8 +1696,6 @@ class Catalog extends MY_Controller {
 			return $this->metadata_editor($id);
 		}
 
-		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
 		$this->load->model('Citation_model');
 		$this->load->model('Catalog_notes_model');
 		$this->load->model('Catalog_tags_model');
