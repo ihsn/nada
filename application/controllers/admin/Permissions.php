@@ -24,12 +24,7 @@ class Permissions extends MY_Controller {
 	
 	function index()
 	{
-		$data=$this->acl_manager->get_all_permissions();
-		//$data['collection_permissions']=$
-		$contents=$this->load->view('permissions/index',$data,TRUE);
-		
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();
+		$this->roles();
 	}
 
 
@@ -166,5 +161,53 @@ class Permissions extends MY_Controller {
 		$this->template->render();
 	}
 	
-		
+	
+	/**
+	* 
+	* Delete a role
+	* 
+	*/
+	function delete_role($id)
+	{			
+		$this->acl_manager->has_access_or_die('user', 'edit');
+
+		if (!is_numeric($id)){
+			show_error('INVALID_ROLE_ID');
+		}
+				
+		if ($this->input->post('cancel')!=''){
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!=""){
+				redirect($destination);
+			}
+			else{
+				redirect('admin/permissions');
+			}	
+		}
+		else if ($this->input->post('submit')!='')
+		{			
+			//confirm delete	
+			$this->acl_manager->delete_role($id);
+								
+			//redirect page url
+			$destination=$this->input->get_post('destination');
+			
+			if ($destination!=""){
+				redirect($destination);
+			}
+			else{
+				redirect('admin/permissions');
+			}	
+		}
+		else
+		{
+			//ask for confirmation
+			$content=$this->load->view('resources/delete', NULL,true);
+			
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+		}		
+	}
 }
