@@ -8,6 +8,7 @@ class Regions extends MY_Controller {
 		$this->template->set_template('admin5');
     	
 		$this->lang->load('general');
+		$this->acl_manager->has_access_or_die('regions', 'edit');
 		//$this->lang->load('country');	
 	}
  

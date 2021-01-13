@@ -16,6 +16,8 @@ class Configurations extends MY_Controller {
 		$this->_init_default_configs();
 		
 		//$this->output->enable_profiler(TRUE);
+
+		$this->acl_manager->has_access_or_die('configurations', 'edit');
 	}
 	
 	private function _skip_field($field) {

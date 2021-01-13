@@ -8,7 +8,8 @@ class Vocabularies extends MY_Controller {
 		$this->template->set_template('admin5');
     	
 		$this->lang->load('general');
-		$this->lang->load('vocabularies');	
+		$this->lang->load('vocabularies');
+		$this->acl_manager->has_access_or_die('vocabularies', 'edit');
 	}
  
  

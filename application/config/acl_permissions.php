@@ -103,16 +103,32 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
-    "catalog"=>[ 
-        "title" => "Studies listing page",
-        "description" => "Allows access to the studies listing page to view, browse and search studies",
+    "collection"=>[ 
+        "title" => "Manage collections",
+        "description" => "Allows access to create, view, edit and delete collections",
         "permissions"=>[
             [
                 "permission" => "view",
-                "description" => "Browse and search studies"
-            ]            
+                "description" => "Browse and search collections"
+            ],
+            [
+                "permission" => "create",
+                "description" => "Create a new collection"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Edit collection information"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete a collection"
+            ],
+            [
+                "permission" => "publish",
+                "description" => "Publish or unpublish a collection"
+            ]
         ]
-            ], 
+    ], 
     "study"=>[ 
         "title" => "Manage studies",
         "description"=> "Global access to studies in all collections. For restricting access by collection, see <i>'Permissions by collection'</i> section below",
@@ -137,7 +153,62 @@ $config['acl_permissions'] = [
                 "description" => "Publish or unpublish a study"
             ]
         ]
-    ]    
+    ],    
+    "reports"=>[ 
+        "title" => "Reports",
+        "description"=> "Reports",
+        "permissions"=>[
+            [
+                "permission" => "view"
+            ]
+        ]
+    ],
+    "configurations"=>[ 
+        "title" => "Site configurations",
+        "description"=> "Manage site configurations",
+        "permissions"=>[
+            [
+                "permission" => "edit"
+            ]
+        ]
+    ],
+    "vocabularies"=>[ 
+        "title" => "Vocabularies",
+        "description"=> "Manage vocabularies and terms",
+        "permissions"=>[
+            [
+                "permission" => "edit"
+            ]
+        ]
+    ],
+    "countries"=>[ 
+        "title" => "Countries configurations",
+        "description"=> "Manage countries list",
+        "permissions"=>[
+            [
+                "permission" => "edit"
+            ]
+        ]
+    ],
+    "regions"=>[ 
+        "title" => "Regions",
+        "description"=> "Manage regions",
+        "permissions"=>[
+            [
+                "permission" => "edit"
+            ]
+        ]
+    ],
+    "translate"=>[ 
+        "title" => "Site translations",
+        "description"=> "Manage translations",
+        "permissions"=>[
+            [
+                "permission" => "edit"
+            ]
+        ]
+    ],
+
 ];
 
 //permissions by collections

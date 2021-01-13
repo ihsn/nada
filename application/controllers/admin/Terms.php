@@ -9,6 +9,7 @@ class Terms extends MY_Controller {
 		
 		$this->lang->load('general');
 		$this->lang->load('vocabularies');	
+		$this->acl_manager->has_access_or_die('vocabularies', 'edit');
     }
  
 	function index($vid=NULL)
