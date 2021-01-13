@@ -83,9 +83,9 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 </td>
 </tr>
 <tr style="background:gainsboro;">
-    <td style="padding:5px;padding-left:0px" class="form-inline">
+    <td style="padding:5px;padding-left:0px" xclass="form-inline">
         <input type="checkbox" value="-1" id="chk_toggle" style="margin-left:8px;"/>
-        <select id="batch_actions" class="form-control">
+        <select id="batch_actions" class="form-control-sm">
             <option value="-1"><?php echo t('batch_actions');?></option>
             <option value="transfer"><?php echo t('transfer_ownership');?></option>
             <option value="publish"><?php echo t('publish');?></option>
@@ -95,9 +95,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
         <input class="btn btn-secondary btn-sm" type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>
         <span style="padding-right:20px"></span>
         </td>
-    <td align="right">
-
-    </td>
+        <td></td>
 </tr>
 </table>
 
@@ -211,8 +209,8 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
             <td class="col-published">
                         <div class="actions">
                         	<div class="status">
-                                <?php $published_checked=(!$row['published']) ? '' :'checked="checked"';?>                             
-                                <input class="publish-toggle" type="checkbox" data-sid="<?php echo $row['id'];?>" <?php echo $published_checked;?> data-toggle="toggle" data-on="<?php echo t('published');?>" data-off="<?php echo t('draft');?>" data-onstyle="success" data-offstyle="danger">
+                                <?php $published_checked=(!$row['published']) ? '' :'checked="checked"';?>
+                                <input class="publish-toggle" data-size="sm" type="checkbox" data-sid="<?php echo $row['id'];?>" <?php echo $published_checked;?> data-toggle="toggle" data-on="<?php echo t('published');?>" data-off="<?php echo t('draft');?>" data-onstyle="success" data-offstyle="danger">
                             </div>
                             
                             <?php if (isset($row['pending_lic_requests'])):?>

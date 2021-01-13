@@ -38,9 +38,12 @@ $site_navigation_menu=get_site_menu();
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"  crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-    
+
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/custom.css?v=bt4" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/style.css">
+    <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/style.css?v=3">
     
 
     
@@ -142,7 +145,7 @@ $site_navigation_menu=get_site_menu();
 
 
 <nav class="navbar navbar-inverse navbar-expand-lg navbar-secondary bg-dark">  
-  <a class="navbar-brand" href="<?php echo site_url();?>/admin">NADA <?php echo APP_VERSION;?></a>
+  <a class="navbar-brand site-title" href="<?php echo site_url();?>/admin">NADA <?php echo APP_VERSION;?></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>

@@ -63,7 +63,7 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
-
+		$this->template->set_template('admin5'); 
 		//css files
 		//$this->template->add_css('themes/admin/catalog_admin.css');
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);

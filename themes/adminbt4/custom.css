@@ -104,38 +104,3 @@ input[type="file"] {
 .citations-index-page h3{
 	font-size:14px;
 }
-
-.page-links{
-	margin-bottom:10px;
-}
-
-/* non-bootstrap pagination class */
-.nada-pagination {
-	padding:5px;
-	color:#666666;
-	text-align:right
-}
-.nada-pagination a.page-link {
-	padding:3px;
-	text-decoration:none;
-	font-size:13px;
-	color:#666666;
-	border:1px solid gainsboro;
-	margin:2px;
-}
-.nada-pagination a:hover {
-	background-color:black;
-	color:white;
-}
-.nada-pagination strong {
-	font-weight:bold;
-}
-
-
-.page-links{
-	text-align:right;
-}
-
-.page-links .glyphicon{
-	padding-right:5px;
-}
