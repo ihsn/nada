@@ -140,7 +140,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             <span class="subgroup">                        	
                             <span>
                                 
-                                	<span class="label label-info"><?php echo strtoupper($row['type']);?></span>                              
+                                	<span class="badge badge-info"><?php echo strtoupper($row['type']);?></span>                              
                             </span>
                             </span>
 
