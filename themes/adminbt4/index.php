@@ -178,7 +178,7 @@ $site_navigation_menu=get_site_menu();
 
 
 
-<?php if(isset($collection) && 1==2):?>
+<?php if(isset($collection)):?>
 <div class="sub-header" > <?php echo $collection;?></div>
 <?php endif;?>
 
