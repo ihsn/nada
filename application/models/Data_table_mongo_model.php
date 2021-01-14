@@ -1148,5 +1148,91 @@ class Data_table_mongo_model extends CI_Model {
         return $total;
    }
 
+
+   function get_table_aggregate($db_id,$table_id,$limit=100,$offset=0,$options)
+   {    
+        $limit=intval($limit);
+        $offset=intval($offset);
+        
+        if ($limit<=0 || $limit>10000){
+            $limit=100;
+        }        
+
+        $table_id=strtolower($table_id);
+
+        if (!isset($options['fields'])){
+            throw new Exception("fields parameter is required");
+        }
+
+        $group_fields=explode(",",$options['fields']);
+
+        //get table type info
+        $this->table_type_obj= $this->get_table_type($db_id,$table_id);
+
+        //get table fields list
+        $fields=$this->get_table_field_names($db_id,$table_id);
+
+        if (!empty($fields) && isset($fields['_id'])){
+            unset($fields['_id']);
+        }
+
+        $group_fields=array_intersect($group_fields,$fields);
+
+        if (empty($group_fields)){
+            throw new Exception("No valid field values provided. Valid values are: ". implode(", ",$fields));
+        }
+
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};        
+
+        /*
+        $cond = array(
+            //array('$match' => array('page_id' =>123456)),
+            array(
+                '$group' => array(
+                    '_id' => array("ctry_code" => '$ctry_code', 'country'=>'$ctry_name'),
+                'total' => array('$sum' => '$ctry_code'),
+                //'count' => "total_count"
+                'count' => array('$sum' => 1),
+                )
+            ),
+        );
+        */
+
+        $groups_arr=array();
+        foreach($group_fields as $f){
+            $groups_arr[$f]='$'.$f;
+        }
+
+        $cond=array(
+            //array('$match'=>$filter_query)
+            array('$group'=>array('_id'=>$groups_arr, 'count'=>array('$sum'=>1))),
+            array('$sort'=>array('_id'=>1)),
+            array('$skip'=>$offset),
+            array('$limit'=>$limit)
+        );
+
+        $cursor = $collection->aggregate($cond);
+
+        $output['rows']=0;
+        $output['limit']=$limit;
+        $output['offset']=$offset;        
+        $output['data']=array();
+        //$output['aggregate_group']=$cond;
+
+        $k=0;
+        foreach ($cursor as $document) {
+            $k++;
+            $row=iterator_to_array($document);
+            $result=array();
+            if(isset($row['_id'])){
+                $result=$row['_id'];
+            }
+            $result['count']=$row['count'];
+            $output['data'][]= $result;
+        }
+
+        $output['rows']=$k;
+        return $output;
+   } 
 	
 }    

@@ -401,6 +401,63 @@ class Tables extends MY_REST_Controller
 	}
 
 
+	function aggregate_get($db_id=null,$table_id=null,$limit=100,$offset=0)
+	{
+		try{
+			
+			$get_params=array();
+			parse_str($_SERVER['QUERY_STRING'], $get_params);
+			
+			$options=array();			
+			foreach(array_keys($get_params) as $param){
+				$options[$param]=$this->input->get($param,true);
+			}
+
+			if ($this->input->get("offset") > 1){
+				$offset=(int)$this->input->get("offset");
+			}
+
+			if ($this->input->get("limit") > 1){
+				$limit=(int)$this->input->get("limit");
+			}
+
+			//$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+
+			$response=$this->Data_table_mongo_model->get_table_aggregate($db_id,$table_id,$limit,$offset,$options);
+			
+			if(isset($options['format']) && $options['format']=='csv'){
+
+				if ($this->input->get("disposition")=='inline'){
+					$this->export_data_to_csv($response['data']);
+					die();
+				}
+				
+				header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
+				$response=$response['data'];
+			}
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'error'=>$this->Data_table_model->get_db_error()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 	private function export_data_to_csv($data,$filename='export',$delimiter = ',',$enclosure = '"')
 	{
 		// Tells to the browser that a file is returned, with its name : $filename.csv
