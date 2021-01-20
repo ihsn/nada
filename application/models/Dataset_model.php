@@ -86,14 +86,28 @@ class Dataset_model extends CI_Model {
 	}
 	
 	
-	//return all datasets
-	function get_all($sid=null)
+	/**
+	 * 
+	 * Return all datasets
+	 * 
+	 * @sid - ID to get a single study
+	 * @offset - offset
+	 * @limit - number of rows to return
+	 * 
+	 */
+	function get_all($limit=0,$offset=0)
 	{
 		$this->db->select(implode(",",$this->listing_fields));
+		$this->db->order_by('id');
 
-		if($sid){
+		/*if($sid){
 			$this->db->where('id',$sid);
+		}*/
+
+		if ($limit>0){
+			$this->db->limit($limit, $offset);
 		}
+
 		$result= $this->db->get("surveys")->result_array();
 
 		if($result){
@@ -101,6 +115,12 @@ class Dataset_model extends CI_Model {
 		}
 
 		return false;
+	}
+
+	//returns the total 
+	function get_total_count()
+	{
+		return $this->db->count_all('surveys');
 	}
 
 
@@ -466,7 +486,8 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function has_datafiles($sid){
+	function has_datafiles($sid)
+	{
 		$this->db->select('id');
 		$this->db->from('data_files');
 		$this->db->where('sid',$sid);
