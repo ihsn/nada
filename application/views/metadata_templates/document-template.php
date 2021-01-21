@@ -27,30 +27,28 @@
 <?php */?>
 
 <?php
-if(isset($metadata['resources']) && isset($metadata['metadata']['files'])){
-    //replace files->file_uri with resource download link 
-    foreach($metadata['metadata']['files'] as $file_idx => $file){
-        if (array_key_exists($file['file_uri'], $metadata['resources'])){
-            $resource=$metadata['resources'][$file['file_uri']];
-            if($this->form_validation->valid_url($file['file_uri'])){
-                $metadata['metadata']['files'][$file_idx]['file_uri']=$file['file_uri'];
-            }else{
-                $metadata['metadata']['files'][$file_idx]['file_uri']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-            }            
-        }
+if(isset($metadata['resources']) ){    
+    foreach($metadata['resources'] as $resource_filename => $resource){
+        if($this->form_validation->valid_url($resource['filename'])){
+            $metadata['resources'][$resource_filename]['download_link']=$resource['filename'];
+        }else{
+            $metadata['resources'][$resource_filename]['download_link']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+        }  
     }
 } 
+
+$metadata['metadata']['resources']=$metadata['resources'];
 ?>
 
 <?php
     //render files field
     $download_buttons=render_field(
         "download_buttons_array",
-        "metadata.files",
-        get_field_value('metadata.files',$metadata), 
+        "metadata.resources",
+        get_field_value('metadata.resources',$metadata), 
         $options=array(
-            'url_column'=>'file_uri',
-            'title_column'=>'note'
+            'url_column'=>'download_link',
+            'title_column'=>'title'
         )
     );
 ?>    
@@ -72,6 +70,8 @@ if(isset($metadata['resources']) && isset($metadata['metadata']['files'])){
 <!-- identification section -->
 <?php $output['description']= render_group('description',
     $fields=array(
+        "metadata.files"=>"dump",
+        "metadata.resources"=>"dump",
         "metadata.document_description.title_statement.idno"=>"text",
         "metadata.document_description.title_statement.title"=>"text",
         

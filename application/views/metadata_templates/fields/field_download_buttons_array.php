@@ -14,6 +14,10 @@
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
 
+<?php 
+     $max_links=5; //max number of download buttons to show
+?>
+
 <?php /*?>
 <pre>
 <?php var_dump($options);?>
@@ -24,7 +28,8 @@
 
 <div class="table-responsive field field-<?php echo $name;?>">    
     <div class="field-value ">    
-        <?php foreach($data as $row):?>
+        <?php $k=0;foreach($data as $row):$k++;?>
+            <?php if ($k>$max_links){continue;}  //?>
             <?php $ext=get_file_extension($row[$options['url_column']]);?>
             <?php $file_info=get_file_extension_info($ext);?>
             <span class="">
