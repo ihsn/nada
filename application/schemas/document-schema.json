@@ -303,7 +303,7 @@
               "type","value"
             ]
           }
-        },
+        },      
 
         "publication_frequency": {
           "type": "string",
@@ -633,9 +633,36 @@
         "themes":{
           "type":"array",
           "description":"Themes",
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ]
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent Identifier",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         },
         "topics": {
           "type": "array",
@@ -669,7 +696,7 @@
               }
             },
             "required": [
-              "id","name"
+              "name"
             ]
           }
         },
@@ -681,8 +708,17 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
               "name": {
                 "title": "Discipline title or name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent discipline Identifier",
+                "description":"Parent discipline ID",
                 "type": "string"
               },
               "vocabulary": {
@@ -939,11 +975,17 @@
         "tag"
       ]
     },
-
+    "resources":{
+      "type":"array",
+      "description":"Resources",
+      "items":{
+        "$ref":"resource-schema.json"
+      }
+    },
     "files": {
       "type": "array",
-      "title": "Files",
-      "description": "Files",
+      "title": "Files [Deprecated]",
+      "description": "Files - `deprecated - use resources`",
       "items":{
         "type":"object",
         "properties":{
