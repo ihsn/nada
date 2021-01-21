@@ -60,7 +60,7 @@ class Dataset_document_model extends Dataset_model {
         $options['changed']=date("U");
         
 		//fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','files','tags','additional');
+        $study_metadata_sections=array('metadata_information','document_description','files','resources','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -126,7 +126,7 @@ class Dataset_document_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','files','tags','additional');
+        $study_metadata_sections=array('metadata_information','document_description','files','resources','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){

@@ -971,39 +971,40 @@
                 "required": [
                   "topic_id"
                 ]
-              },
-              "word_vectors":{
-                "type": "array",
-                "title": "Word vectors",
-                "description": "Word vectors",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "title": "Vector Model ID",
-                      "type": "string"
-                    },
-                    "description": {
-                      "title": "Vector Model Description",
-                      "type": "string"
-                    },
-                    "date": {
-                      "title": "Date (YYYY-MM-DD)",
-                      "type": "string"
-                    },
-                    "vector": {
-                      "title": "Vector",
-                      "type": "object"
-                    }
-                  }
-                },
-                "required": [
-                  "id","vector"
-                ]
               }
+              
             },
             "additionalProperties": false
           }
+        },
+        "embeddings":{
+          "type": "array",
+          "title": "Word embeddings",
+          "description": "Word embeddings",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Vector Model ID",
+                "type": "string"
+              },
+              "description": {
+                "title": "Vector Model Description",
+                "type": "string"
+              },
+              "date": {
+                "title": "Date (YYYY-MM-DD)",
+                "type": "string"
+              },
+              "vector": {
+                "title": "Vector",
+                "type": "object"
+              }
+            }
+          },
+          "required": [
+            "id","vector"
+          ]
         }
 
 
