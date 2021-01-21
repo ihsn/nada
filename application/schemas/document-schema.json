@@ -170,7 +170,7 @@
             "website",
             "other"
           ]
-        },        
+        },
 
         "description": {
           "title": "Description",
@@ -246,6 +246,61 @@
               "code": {
                 "title": "Country code",
                 "type": "string"
+              }
+            }
+          }
+        },
+
+        "geographic_units": {
+          "title": "Geographic locations",
+          "description": "List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic coverahe of the research project.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Location name",
+                "description": "Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'",
+                "type": "string"
+              },
+              "code": {
+                "title": "Location code",
+                "description": "Code of the geographic unit (for countries, preferred = ISO3 code)",
+                "type": "string"
+              },
+              "type": {
+                "title": "Type",
+                "description": "Type of geographic unit e.g. country, state, region, province, town, etc",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+
+        "bbox":{
+          "title":"Geographic bounding box",
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "west":{
+                "title":"West",
+                "type":"string"
+              },
+              "east":{
+                "title":"East",
+                "type":"string"
+              },
+              "south":{
+                "title":"South",
+                "type":"string"
+              },
+              "north":{
+                "title":"North",
+                "type":"string"
               }
             }
           }
@@ -967,6 +1022,10 @@
         "properties": {
           "tag": {
             "title": "Tag",
+            "type": "string"
+          },
+          "tag_group": {
+            "title": "Tag group",
             "type": "string"
           }
         }
