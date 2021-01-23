@@ -27,8 +27,8 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
-			$table_types=$this->Data_table_mongo_model->get_table_types_list($db_id);
-			$table_storage_info=$this->Data_table_mongo_model->get_tables_list();
+			$table_types=(array)$this->Data_table_mongo_model->get_table_types_list($db_id);
+			$table_storage_info=(array)$this->Data_table_mongo_model->get_tables_list();
 
 			$output=array();
 
