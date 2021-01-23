@@ -1212,14 +1212,40 @@ class Survey_resource_model extends CI_Model {
 	}
 
 
-	function find_resources_by_study($idno_arr)
+	/**
+	 * 
+	 * Get resources downloadable links by Study IDNO
+	 * 
+	 */
+	function get_download_links($idno_arr)
 	{
-		$idno_arr=(array)$idno_arr;
+		if (!is_array($idno_arr)){
+			throw new Exception("idno_arr is is not an array");
+		}
 
-		$this->db->select("resource_id,surveys.id as sid, idno, resources.filename");
-		$this->db->join('resources', 'surveys.id= resources.survey_id','inner');
-		$this->db->where_in('surveys.idno',$idno_arr);
-		return $this->db->get("surveys")->result_array();
+		foreach (array_chunk($idno_arr, 100, true) as $chunk) {
+			$this->db->select("resource_id,survey_id,filename,surveys.idno");
+			$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
+			$this->db->where_in("surveys.idno",$chunk);
+			$resources=$this->db->get('resources')->result_array();
+			
+			if ($resources){
+				$output=array();
+				foreach($resources as $resource){
+					$link='';
+					if($this->form_validation->valid_url($resource['filename'])){
+						$link=$resource['filename'];
+					}else{
+						$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+					}  
+
+					yield [
+						'idno'=>$resource['idno'],
+						'link'=>$link
+					];
+				}				
+			}
+		}
 	}
 
 }

@@ -398,29 +398,58 @@ class Resources extends MY_REST_Controller
 	 * 
 	 * 
 	 */
-	public function download_links_post()
+	function download_links_post()
 	{
 		$this->is_admin_or_die();
-		$options=$this->raw_json_input();
-		
-		try {
-			
-			$resources=$this->Survey_resource_model->find_resources_by_study($options['idno_list']);
 
-			$output=array(
+		//multipart/form-data
+		$options=$this->input->post(null, true);
+
+		//raw json input
+		if (empty($options)){
+			$options=$this->raw_json_input();
+		}
+				
+		try{
+			if(!isset($options['idno_list'])){
+				throw new Exception("Param required: idno_list");
+			}
+
+			$links_generator=$this->Survey_resource_model->get_download_links($options['idno_list']);
+
+			$links=array();
+			foreach($links_generator as $link){
+				$links[]=$link;
+			}			
+
+			if(isset($options['format']) && $options['format']=='csv')
+			{
+				header('Content-Disposition: attachment; filename=resources-download-links.csv');
+				header("Content-Type: text/plain");
+				$delimiter = ',';
+				$enclosure = '"';				
+
+				$fp = fopen("php://output", 'w');
+				fputcsv($fp,array_keys($links[0]),$delimiter,$enclosure);
+
+				foreach ($links as $fields) {
+					fputcsv($fp, $fields,$delimiter,$enclosure);
+				}
+
+				fclose($fp);
+				return;
+			}
+			
+			$response=array(
 				'status'=>'success',
-				'resources'=>$resources
+				'links'=>$links
 			);
 
-			$this->set_response($output, REST_Controller::HTTP_OK);			
+			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
-			$output=array(
-				'status'=>'error',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
-		}		
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}	
 	}
 	
 }
