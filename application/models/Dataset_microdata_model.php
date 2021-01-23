@@ -277,7 +277,7 @@ class Dataset_microdata_model extends Dataset_model {
         $variables=$this->variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories);
         
         $output=[];
-        $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit');
+        $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit','var_sumstat','var_format','var_val_range');
 
         if($include_categories==false){
             $exclude_columns[]="catgry";
@@ -366,6 +366,7 @@ class Dataset_microdata_model extends Dataset_model {
                 $variable['fid']=$variable['file_id'];
                 $variable['qstn']=$this->variable_question_to_str($variable);
                 $variable['catgry']=$this->variable_categories_to_str($variable);
+                //$variable['keywords']=$this->variable_keywords_to_str($variable);
 
 				//all fields are stored as metadata
 				$variable['metadata']=$variable;
@@ -376,6 +377,24 @@ class Dataset_microdata_model extends Dataset_model {
 			$this->update_varcount($dataset_id);
 		}
     }
+
+    /*private function variable_keywords_to_str($variable)
+    {
+        $fields=array(
+            'var_notes',
+            'var_txt'
+        );
+
+        $output=[];
+        foreach($fields as $field){
+            if(isset($variable[$field])){
+                $output[]=$variable[$field];
+            }            
+        }
+        
+        return implode("\r\n",$output);
+    }*/
+
 
     /**
      * 
