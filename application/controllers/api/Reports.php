@@ -183,7 +183,7 @@ class Reports extends MY_REST_Controller
 
 
 	//datasets summary by country
-	function licensed_requests_by_collection_summery_get()
+	function licensed_requests_by_collection_summary_get()
 	{
 		try{
 
