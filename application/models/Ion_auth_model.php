@@ -19,10 +19,6 @@
 * 
 */ 
 
-//  CI 2.0 Compatibility
-if(!class_exists('CI_Model')) { class CI_Model extends Model {} }
-
-
 class Ion_auth_model extends CI_Model
 {
 	public $errors= array();
@@ -391,17 +387,26 @@ class Ion_auth_model extends CI_Model
 	    if (empty($email))
 	    {
 	        return FALSE;
-	    }
-	    
-		//$key = $this->hash_password(microtime().$email);
-		$key = md5(microtime().$email);
+		}
+		
+		$user=$this->get_userinfo_by_email($email);
+
+		if(!$user){
+			return FALSE;
+		}
+
+		$user=(object)$user;
+
+		$expiry_time=new DateTime();
+		$expiry_time->modify("4 hour");
+
+		$key=rand(0,9999999);
+		$key=$key.':'.$user->id.':'.$expiry_time->format("U");
+		$key=base64_encode($key);
 			
 		$this->forgotten_password_code = $key;
-		
 		$this->db->where($this->ion_auth->_extra_where);
-		   
-		$result=$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));
-		
+		$result=$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));		
 		return $result;
 	}
 	
@@ -418,25 +423,101 @@ class Ion_auth_model extends CI_Model
 	        return FALSE;
 	    }
 		   
-	   	$this->db->where('forgotten_password_code', $code);
+		$this->db->where('forgotten_password_code', $code);
+		
+		$user=$this->db->get($this->tables['users'])->result_array();
 
-	   	if ($this->db->count_all_results($this->tables['users']) > 0) 
-        {
-        	$password = $this->salt();
-		    
-            $data = array(
-            	'password'                => $this->hash_password($password),
-                'forgotten_password_code' => '0',
-                'active'                  => 1
-            );
-		   
-           	$this->db->update($this->tables['users'], $data, array('forgotten_password_code' => $code));
+		if(count($user)!=1){
+			return false;
+		}
 
-            return $password;
-        }
-        
-        return FALSE;
+		$user=(object)$user[0];
+
+		$code_arr=explode(":",base64_decode($code));
+		$token=array(
+			'code' => $code_arr[0],
+			'user_id' => @$code_arr[1],
+			'expiry' => @$code_arr[2]			
+		);
+		
+		if($user->id != $token['user_id']){
+			return false;
+		}
+
+		//code expired?
+		if(empty($token['expiry']) || date("U") > $token['expiry']){			
+			return false;
+		}
+
+		//remove reset code
+		$this->db->where('id',$user->id);
+		$this->db->update($this->tables['users'], array('forgotten_password_code' => null));
+
+		//login user
+		$this->update_last_login($user->id);
+		$this->session->set_userdata('email',  $user->email);
+		$this->session->set_userdata('username',  $user->username);
+		$this->session->set_userdata('user_id',  $user->id);
+		return true;
 	}
+
+
+	public function reset_password($email, $password)
+	{
+		$password=$this->hash_password($password);
+		$result=$this->set_password($email,$password);
+		
+		if ($result==false){
+			return false;
+		}
+
+		//remove reset code
+		$this->db->where('email',$email);
+		$this->db->update($this->tables['users'], array('forgotten_password_code' => null));
+
+		return true;
+	}
+
+
+
+	public function validate_forgot_password_code($code)
+	{
+	    if (empty($code)){
+	        return false;
+	    }
+		   
+		$this->db->where('forgotten_password_code', $code);
+		
+		$user=$this->db->get($this->tables['users'])->result_array();
+
+		if(count($user)!=1){
+			return false;
+		}
+
+		$user=(object)$user[0];
+
+		$code_arr=explode(":",base64_decode($code));
+		$token=array(
+			'code' => $code_arr[0],
+			'user_id' => @$code_arr[1],
+			'expiry' => @$code_arr[2]			
+		);
+		
+		if($user->id != $token['user_id']){
+			return false;
+		}
+
+		//code expired?
+		if(empty($token['expiry']) || date("U") > $token['expiry']){			
+			return false;
+		}
+
+		return array(
+			'user'=>$user,
+			'token'=>$token
+		);
+	}
+
 
 	/**
 	 * profile
@@ -805,6 +886,12 @@ class Ion_auth_model extends CI_Model
 		$this->db->limit(1);
 		
 		return $this->get_users();
+	}
+
+	public function get_userinfo_by_email($email)
+	{
+		$this->db->where('email', $email);
+		return $this->db->get("users")->row_array();
 	}
 
 	/**

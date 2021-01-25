@@ -24,15 +24,20 @@
 
 <?php $message=$this->session->flashdata('message');?>
 <?php if (isset($error) && $error!=''):?>
-	<?php $error= '<div class="error">'.$error.'</div>'?>
+	<?php $error= '<div class="alert alert-danger">'.$error.'</div>'?>
 <?php else:?>
 	<?php $error=$this->session->flashdata('error');?>
-	<?php $error= ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>            
+	<?php $error= ($error!="") ? '<div class="alert-danger">'.$error.'</div>' : '';?>            
 <?php endif;?>	
 
-<?php if ($error!='' || $message!=''):?> 
-	<div><?php echo $message.$error;?></div>
+<?php if ($error!=''):?> 
+	<div><?php echo $error;?></div>
 <?php endif;?>
+
+<?php if ($message!=''):?> 
+	<div class="alert alert-primary"><?php echo $message;?></div>
+<?php endif;?>
+
 
 <h1><?php echo t('log_in');?></h1>
 <form method="post" class="form" autocomplete="off">
