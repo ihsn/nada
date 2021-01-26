@@ -45,6 +45,7 @@ x-tagGroups:
       - Visualizations
       - Citations
       - Filestore
+      - Reports
 schemes:
   - http
 paths:
@@ -1580,7 +1581,54 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []                                
+          - ApiKeyAuth: []
+  /reports/datasets_published/{type}:
+      get:
+        tags:
+          - Reports
+        summary: Studies published
+        description: Report number of studies published by month, country, collection and topics
+        operationId: reportPublishedDatasets
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "type"
+            type: string
+            format: string
+            required: true
+            description: "Report type - valid values are: `month`, `country`, `collection`, `topics`"
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: [] 
+
+  /reports/licensed_requests/{type}:
+      get:
+        tags:
+          - Reports
+        summary: Licensed requests
+        description: Summary reports for Licensed requests by month, country and collection
+        operationId: reportLicensedRequests
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "type"
+            type: string
+            format: string
+            required: true
+            description: "Report type - valid values are: `month`, `country`, `collection`, `topics`"
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: [] 
 ###############################################################
 securityDefinitions:
   ApiKeyAuth:
