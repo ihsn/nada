@@ -126,7 +126,6 @@ CREATE INDEX IX_var_sidfk on [dbo].[variables](
 
 
 
-<<<<<<< HEAD
 --
 -- Table structure for table variable_groups
 --
@@ -148,8 +147,6 @@ CREATE TABLE variable_groups (
 
 
 
-=======
->>>>>>> nada-5.2
 --
 -- Table structure for table users_groups
 --
