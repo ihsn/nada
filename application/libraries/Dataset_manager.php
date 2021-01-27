@@ -77,9 +77,21 @@ class Dataset_manager{
      * Return all rows
      * 
      */
-    function get_all()
+    function get_all($limit,$offset)
     {
-        return $this->ci->Dataset_model->get_all();
+        return $this->ci->Dataset_model->get_all($limit,$offset);
+    }
+
+
+
+    /**
+     * 
+     * Return total number of studies in the catalog
+     * 
+     */
+    function get_total_count()
+    {
+        return $this->ci->Dataset_model->get_total_count();
     }
 
 
