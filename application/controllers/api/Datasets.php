@@ -997,8 +997,10 @@ class Datasets extends MY_REST_Controller
 				'published'=>$published,
 				'user_id'=>$this->get_api_user_id(),
 				'formid'=>$form_id,
+				'link_da'=>$this->input->post("data_remote_url"),
 				'overwrite'=>$overwrite
-			);			
+			);
+						
 			
 			$result=$this->ddi2_import->import($params);
 
