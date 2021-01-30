@@ -263,7 +263,12 @@ class Study extends MY_Controller {
 		$this->load->model("Form_model");		
 
 		$form_obj=$this->Form_model->get_form_by_survey($sid);
-		$data_access_type=$form_obj['form_type'];
+		
+		if(empty($form_obj)){
+			$data_access_type='data_na';
+		}else{
+			$data_access_type=$form_obj['model'];
+		}
 
 		if($data_access_type=='data_enclave'){
 			$data_access_type='enclave';
