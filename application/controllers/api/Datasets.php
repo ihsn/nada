@@ -389,6 +389,10 @@ class Datasets extends MY_REST_Controller
 				$options['repositoryid']='central';
 			}
 
+			if(!isset($options['data_remote_url'])){
+				$options['link_da']=$options['data_remote_url'];
+			}
+
 			//validate & create dataset
 			$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 
