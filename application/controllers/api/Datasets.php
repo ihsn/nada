@@ -409,6 +409,10 @@ class Datasets extends MY_REST_Controller
 				'dirpath'=>$dataset['dirpath']
 			);
 
+			if(!isset($options['data_remote_url'])){
+				$update_options['link_da']=$options['data_remote_url'];
+			}
+
 			$this->dataset_manager->update_options($dataset_id,$update_options);
 			$this->events->emit('db.after.update', 'surveys', $dataset_id,'import');
 
