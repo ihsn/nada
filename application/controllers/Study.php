@@ -620,7 +620,12 @@ class Study extends MY_Controller {
 		$resource=$this->Resource_model->select_single($resource_id);
 		#$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
 		$form_obj=$this->Form_model->get_form_by_survey($survey_id);
-		$data_access_type=$form_obj['form_type'];
+
+		if(empty($form_obj)){
+			$data_access_type='data_na';
+		}else{
+			$data_access_type=$form_obj['model'];
+		}
 
 		if ($resource===FALSE){
 			show_error(t('RESOURCE_NOT_FOUND'));
