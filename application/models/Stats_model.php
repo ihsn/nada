@@ -40,10 +40,10 @@ class Stats_model extends CI_Model {
 	
 	function get_latest_surveys($limit=10)
 	{
-		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created");
+		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created, surveys.changed");
 		$this->db->join("forms", "surveys.formid=forms.formid","left");
 		$this->db->where("surveys.published", 1); 
-		$this->db->order_by("surveys.created", "desc"); 
+		$this->db->order_by("surveys.changed", "desc"); 
 		$this->db->limit($limit);
 		$query=$this->db->get("surveys");
 

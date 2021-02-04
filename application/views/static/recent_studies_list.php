@@ -36,7 +36,7 @@
                     <?php endif;?>
 
                     <div class="survey-stats">                        
-                        <span><?php echo date("M d, Y",$row['created']);?></span>
+                        <span><?php echo date("M d, Y",$row['changed']);?></span>
                     </div>
                 </div>
             </div>
