@@ -63,7 +63,7 @@ Vue.component('nested-section', {
                         
                     </div>    
                     <div>        
-                        <button type="button"  class="btn btn-sm btn-danger float-right" v-on:click="remove(index)"><i class="fa fa-trash-o" aria-hidden="true"></i></button>
+                        <button type="button"  class="btn btn-sm btn-danger float-right" v-on:click="remove(index)">remove <i class="fa fa-trash-o" aria-hidden="true"></i></button>
                     </div>
                 </template>
 

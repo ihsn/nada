@@ -75,6 +75,7 @@
             margin-bottom:5px;
             background:#f3f3f3;
             padding-bottom:5px;
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important
         }
 
         .metadata-form-container .required-label{
@@ -144,8 +145,9 @@
         
 
         .sidebar{            
-            overflow-y: scroll;
+            /*overflow-y: scroll;*/
             border:1px solid gainsboro;
+            padding-left:10px;
         }
 
         .sidebar-content{
@@ -159,7 +161,7 @@
         }
 
         .main-content{
-            overflow-y: scroll;
+            /*overflow-y: scroll;*/
             height:100%;
             padding-top:10px;
         }
@@ -204,78 +206,75 @@
             font-weight:bold;
             color:#007bff;
         }
-        
+
+
+
+.sub-header{
+    display:none;
+}
+
+
+.metadata-form-container .field-type-section {
+    border: 1px solid gainsboro;
+    margin-bottom: 5px;
+    background: transparent;
+    padding-bottom: 0px;
+}
+
+
+.form-section {
+    background: #f6f8fa;
+    color: #000000;
+    font-size: 14px;
+    border-bottom: 1px solid gainsboro;
+    font-weight: bold;
+    padding: 10px;
+}
+
+.list-group-item{
+    padding:.3rem 1.25rem;
+    font-size:14px;
+}
+
+.sticky-offset {
+    top: 56px;
+}
+
+
+
+#sidebar-container .list-group .list-group-item[aria-expanded="false"] .submenu-icon .fa-caret-right{
+    display:none;
+}
+#sidebar-container .list-group .list-group-item[aria-expanded="true"] .submenu-icon .fa-caret-down{
+    display:none;
+}
+
+.sidebar-submenu{
+    font-size:smaller;
+}
     </style>
 </head>
 
 <body>
-
-<div id="app" class="container-fluid mt-5">
-
-<!-- Modal -->
-<div class="modal fade" id="app_dialog" tabindex="-1" role="dialog" aria-labelledby="DialogBox" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLongTitle">{{dialog_box_option.title}}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div>{{dialog_box_option.content}}</div>
-        <div v-if="dialog_box_option.errors" > 
-            <div style="color:red;">
-                <div style="font-weight:bold;">{{dialog_box_option.errors.message}}</div>
-                <li v-for="error in dialog_box_option.errors.errors">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span v-if="error.message">{{ error.message }}</span>
-                    <span v-if="!error.message">{{ error }}</span>
-                </li>
-            </div>
-            <div class="mt-3" style="font-weight:bold">Error:</div>
-            <pre style="max-height:200px;overflow:auto;">{{dialog_box_option.errors}}</pre>        
-        </div>
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+    <!-- Bootstrap NavBar -->
 
 
-    <div class="container-fluid-x">
+<div id="app">
+<!-- Bootstrap row -->
+<div class="row" id="body-row">
+
+
+            
+    <!-- Sidebar -->
+    <?php $this->load->view('metadata_editor/sidebar');?>
+
+    <!-- MAIN -->
+    <div class="col py-3">
+
         
-        <!--<div class="col-md-6" style="text-align:right;"><button type="button" class="btn btn-primary" @click="saveForm">Save</button></div>-->
-    </div>
 
-
-
-    
-    <div class="container-fluid h-100 d-flex flex-column" >
-
-        <div class="row flex-fill" style="min-height:0">
-
-            <div class="col-md-2 sidebar-container  mh-100" style="overflow-y: scroll;" >
-            
-                <nav class="nav nav-pills flex-column">
-                <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-chart-bar"></i> Overview</a>
-                <a class="nav-link nav-active" href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>"><i class="fas fa-bars"></i> Metadata</a>
-                
-                <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-file-alt"></i> Files</a>
-                <a class="nav-link" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>"><i class="fas fa-file-medical-alt"></i> Resources</a>
-                <a class="nav-link disabled" href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" tabindex="-1" aria-disabled="true"><i class="fas fa-book"></i> Citations</a>
-                </nav>
-
-                
-            
-            </div>
-
-            <div class="col mh-100" >
-
-            <div class="border-bottom py-2">
+        <!--start-->
+        <div class="border-bottom py-2">
                 <h3 style="margin:0px;">Metadata</h3>
             
                 <div class="btn-group">
@@ -328,18 +327,62 @@
                     <metadata-form :field="form_template" :items="form_template.items" :depth="0" :css_class="'metadata-form-container'"></metadata-form>
                 </validation-observer>
             </div>
-        </div>
+        <!--end-->
 
-            
-            
-        </div>
+
+
+        
+
     </div>
+    <!-- Main Col END -->
 
-    
 
-    
+    </div><!--end app -->
 
 </div>
+<!-- body-row END -->
+
+
+
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="app_dialog" tabindex="-1" role="dialog" aria-labelledby="DialogBox" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">{{dialog_box_option.title}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div>{{dialog_box_option.content}}</div>
+        <div v-if="dialog_box_option.errors" > 
+            <div style="color:red;">
+                <div style="font-weight:bold;">{{dialog_box_option.errors.message}}</div>
+                <li v-for="error in dialog_box_option.errors.errors">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span v-if="error.message">{{ error.message }}</span>
+                    <span v-if="!error.message">{{ error }}</span>
+                </li>
+            </div>
+            <div class="mt-3" style="font-weight:bold">Error:</div>
+            <pre style="max-height:200px;overflow:auto;">{{dialog_box_option.errors}}</pre>        
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 
     <script>
