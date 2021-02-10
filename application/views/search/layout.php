@@ -222,6 +222,14 @@ h5{margin:0px;}
 
 </div>
 
+<?php 
+//search plugins
+if (file_exists('application/views/search/search_plugin.php')){
+    $this->load->view('search/search_plugin.php');
+}
+?>
+
+
 <script>
 //translations	
 var i18n=
