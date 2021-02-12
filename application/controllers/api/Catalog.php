@@ -1015,7 +1015,7 @@ class Catalog extends MY_REST_Controller
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 			$this->load->model("Survey_resource_model");
-			$resources=$this->Survey_resource_model->get_survey_resources($idno);
+			$resources=$this->Survey_resource_model->get_survey_resources($sid);
 			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
 			
 			foreach($resources as $idx=>$resource){				
@@ -1034,6 +1034,68 @@ class Catalog extends MY_REST_Controller
 			
 			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+	
+	
+	/**
+	 * 
+	 * Get DDI
+	 * 
+	 */
+	function ddi_get($idno=null)
+	{
+		try{
+			$this->load->helper("download");
+			$sid=$this->get_sid_from_idno($idno);
+			$dataset=$this->Dataset_model->get_row($sid);
+
+			if($dataset['type']!='survey'){
+				throw new Exception("DDI is only available for Survey/MICRODATA types");
+			}
+			
+            $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
+			
+            if(!file_exists($ddi_path)){
+                throw new Exception("DDI is not available");
+            }
+			
+			force_download2($ddi_path);
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+	
+	/**
+	 * 
+	 * Download RDF for external resources
+	 * 
+	 */
+	function rdf_get($idno=null)
+	{
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+			$this->load->model('Catalog_model');
+
+			header("Content-Type: application/xml");
+			header('Content-Encoding: UTF-8');
+			header( "Content-Disposition: attachment;filename=study-$idno.rdf");
+
+			echo $this->Catalog_model->get_survey_rdf($sid);
+			die();
+        }		
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
