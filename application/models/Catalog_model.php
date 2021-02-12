@@ -549,8 +549,16 @@ class Catalog_model extends CI_Model {
 		
 		foreach($rows as $row)
 		{
-			$row=(object)$row;	
-			$rdf.=sprintf('<rdf:Description rdf:about="%s">',htmlentities($row->filename,ENT_QUOTES,'UTF-8'));
+			$row=(object)$row;
+			
+			$download_link=htmlspecialchars($row->filename);
+			if($this->form_validation->valid_url($row->filename)){
+				$download_link=htmlspecialchars($row->filename);
+			}else{
+				$download_link=site_url("catalog/{$row->survey_id}/download/{$row->resource_id}/".rawurlencode($row->filename) );
+			}
+
+			$rdf.=sprintf('<rdf:Description rdf:about="%s">',htmlentities($download_link,ENT_QUOTES,'UTF-8'));
 			$rdf.='<rdf:label><![CDATA['.$row->title.']]></rdf:label>';
 			$rdf.='<dc:title><![CDATA['.$row->title.']]></dc:title>';
 			

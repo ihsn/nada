@@ -1002,4 +1002,44 @@ class Catalog extends MY_REST_Controller
 		}
 		return $output;
 	}
+
+
+
+	/**
+	 * 
+	 * Get study external resources
+	 * 
+	 */
+	function resources_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$this->load->model("Survey_resource_model");
+			$resources=$this->Survey_resource_model->get_survey_resources($idno);
+			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
+			
+			foreach($resources as $idx=>$resource){				
+				if($this->form_validation->valid_url($resource['filename'])){
+					$resources[$idx]['url']=$resource['filename'];
+				}else{
+					$resources[$idx]['url']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+				}				
+			}
+			
+			$response=array(
+				'status'=>'success',
+				'total'=>count($resources),
+				'resources'=>$resources
+			);
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
 }
