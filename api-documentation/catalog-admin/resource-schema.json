@@ -7,12 +7,6 @@
     
     "properties": {    
   
-      "id": {
-        "type": "string",
-        "title": "Unique ID",
-        "description": "Unique identifier for the resource"
-      },
-  
       "dctype": {
         "type": "string",
         "title": "Resource type",
@@ -84,16 +78,12 @@
 
       "filename": {
         "type": "string",
-        "description": "Filename"
-      },
-
-      "overwrite": {
-        "type": "string",
-        "description": "Overwrite resource if already exists?",            
-        "enum":["yes","no"],
-        "default": "no"
+        "description": "Resource file or URL"
       }
 
   
-    }
+    },
+    "required": [
+      "title"
+    ]
   }
