@@ -246,7 +246,7 @@ class Acl_manager
 		}
 
 		if(!$user){
-			die("acl_manager::User not set");
+			throw new Exception("acl_manager::User not set");
 		}
 
 		//get user roles

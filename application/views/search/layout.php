@@ -222,6 +222,14 @@ h5{margin:0px;}
 
 </div>
 
+<?php 
+//search plugins
+if (file_exists('application/views/search/search_plugin.php')){
+    $this->load->view('search/search_plugin.php');
+}
+?>
+
+
 <script>
 //translations	
 var i18n=
@@ -350,13 +358,19 @@ $(document).ready(function() {
     //call this for search
     function change_state(){
         console.log("change_state called");
-        let search_state=$("#catalog-search-form :input[value!='']").serialize(); //don't include empty        
+        let search_state=serialize_form(); //don't include empty elements
         let page_state_data={
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
             };
             
         History.pushState({state:search_state,page_state_data}, document.title + '/search - ' + search_state, "?"+search_state);
+    }
+
+    function serialize_form(){
+        return  $("#catalog-search-form :input").filter(function(index, element) {
+            return $(element).val() != '';
+        }).serialize();
     }
 
 

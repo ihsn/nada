@@ -79,7 +79,8 @@ class Dataset_model extends CI_Model {
 		$this->load->library("form_validation");		
 		$this->load->model("Survey_country_model");
 		$this->load->model("Vocabulary_model");
-		$this->load->model("Term_model");		
+		$this->load->model("Term_model");
+		$this->load->model("Survey_resource_model");
 	}
 	
 	
@@ -1000,6 +1001,34 @@ class Dataset_model extends CI_Model {
 	{
 		$this->load->model("Resource_model");
 		return $this->Resource_model->import_rdf($sid,$filepath);
+	}
+
+	/**
+	*
+	* Import external resources
+	*
+	* 
+	* - delete all existing resources?
+	* 
+	*
+	* 
+	*/
+	function update_resources($sid, $external_resources)
+	{		
+		if (empty($external_resources)){
+			return;
+		}
+
+		//remove all existing resources
+		$this->Survey_resource_model->delete_all_survey_resources($sid);
+
+		//import new
+		foreach($external_resources as $resource){
+			$resource['survey_id']=$sid;
+
+			$this->Survey_resource_model->validate_resource($resource);
+			$this->Survey_resource_model->insert($resource);
+		}		
 	}
 
 

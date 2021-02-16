@@ -17,6 +17,7 @@ class Study extends MY_Controller {
 		$this->load->model("Timeseries_db_model");
 		
 		$this->load->library("Metadata_template");
+		$this->load->library("Dataset_manager");
 		$this->load->helper("resource_helper");
 		$this->load->helper("metadata_view");
 		$this->load->helper('array');
@@ -41,15 +42,13 @@ class Study extends MY_Controller {
 	function metadata($sid=NULL)
 	{
 		$this->load->helper('array');
-		$survey=$this->Dataset_model->get_row_detailed($sid);
+		$survey=$this->Dataset_model->get_row($sid);
 
 		if (!$survey){
 			show_404();
 		}
 
-		if(!is_array($survey['metadata'])){
-			$survey['metadata']=array($survey['metadata']);
-		}
+		$survey['metadata']=(array)$this->dataset_manager->get_metadata($sid,$survey['type']);
 
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
@@ -439,11 +438,15 @@ class Study extends MY_Controller {
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
 					),
-					'related_materials'=>array(
+					/*'related_materials'=>array(
 						'label'=>t('related_materials'),
 						'url'=>site_url("catalog/$sid/related-materials"),
 						'show_tab'=>(int)$related_resources_count
-					),			
+					),*/
+					//hide related materials
+					'related_materials'=>array(
+						'show_tab'=> 0
+					),
 					'related_citations'=>array(
 						'label'=>t('related_citations'),
 						'url'=>site_url("catalog/$sid/related-publications"),

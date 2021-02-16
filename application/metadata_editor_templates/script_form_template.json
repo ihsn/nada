@@ -739,7 +739,10 @@
                     "name": {
                         "key": "name",
                         "title": "Person or Organization name",
-                        "type": "string"
+                        "type": "string",
+                        "required":true,
+                        "rules":"required",
+                        "xname": "Script files / authors / name"
                     },
                     "abbr": {
                         "key": "abbr",

@@ -1,4 +1,4 @@
-<div>
+<div class="nada-search-box">
     <div class="row mb-5 justify-content-center align-items-center">
         <div class="input-group col-md-12 search-box-container">            
         <input class="form-control form-control-lg py-2 search-keywords" id="search-keywords" name="sk" value="<?php echo $search_options->sk;?>" placeholder="Keywords ..."  >
@@ -11,5 +11,6 @@
             </a>
         </span>
         </div>
-    </div>
+        <span class="keyword-suggestions"></span>
+    </div>    
 </div>

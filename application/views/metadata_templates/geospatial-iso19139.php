@@ -97,7 +97,7 @@
 <?php $output['distribution']= render_group('distribution',
     $fields=array(
         "metadata.dataset_description.distribution_info.distributors"=>'array',
-        "metadata.dataset_description.distribution_info.online_resource"=>'array',
+        "metadata.dataset_description.distribution_info.online_resource"=>'resources',
         "metadata.dataset_description.identification_info.date"=>'array'
     ),
     $metadata);

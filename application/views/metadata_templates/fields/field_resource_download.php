@@ -19,7 +19,7 @@
     <div>
     <button class="float-right btn btn-primary btn-sm"><i class="fa fa-download" aria-hidden="true"></i> Download</button>
         <strong><?php echo $resource['title'];?></strong>
-        <?php echo $resource['filename'];?>
+        <?php echo isset($resource['filename']) ? $resource['filename'] : '' ;?>
         <div><?php echo $resource['description'];?></div>        
     </div>
 
@@ -37,9 +37,9 @@
 <?php return;?>
 
 <h5 class="mb-0 title" >
-        <i class="fa float-right" aria-hidden="true"></i>
-        <?php echo $script['title'];?>
-    </h5>
+    <i class="fa float-right" aria-hidden="true"></i>
+    <?php echo $script['title'];?>
+</h5>
 
 
 

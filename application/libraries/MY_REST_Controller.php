@@ -19,14 +19,17 @@ abstract class MY_REST_Controller extends REST_Controller {
      */
     public function is_admin_or_die()
     {
-        if(!$this->is_admin()){
-            $response=array(
+        try{
+            return $this->is_admin();            
+        }   
+        catch(Exception $e){
+			$response=array(
                 'status'=>'ACCESS-DENIED',
                 'message'=>'Access denied'
             );
             $this->response($response, REST_Controller::HTTP_BAD_REQUEST,false);
             die();
-        }
+		}
     }
 
 

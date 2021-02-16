@@ -175,35 +175,7 @@
 			"required": [
 				"value"
 			]
-		},
-		"online_resource": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"url": {
-						"title": "Link to the resource",
-						"type": "string"
-					},
-					"name": {
-						"title": "Resource title",
-						"type": "string"
-					},
-					"description": {
-						"title": "Resource description",
-						"type": "string"
-					},
-					"format": {
-						"title": "Resource format",
-						"description": "File format - CSV, ZIP",
-						"type": "string"
-					}
-				}
-			},
-			"required": [
-				"url"
-			]
-		}
+		}		
 	},
 	"properties": {
 
@@ -539,11 +511,14 @@
 							"_xpath":"gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor"
 						},
 						"online_resource":{
-							"title":"Online resource",
+							"title":"Online resources",
 							"description":"Online resource",
-							"$ref": "#/definitions/online_resource",
+							"type": "array",
+							"items":{
+								"$ref": "resource-schema.json"
+							},
 							"_xpath":"gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource"
-						}
+						}						
 					}
 				},
 

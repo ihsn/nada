@@ -44,6 +44,14 @@ class Dataset_geospatial_model extends Dataset_model {
         //fields to be stored as metadata
         $study_metadata_sections=array('metadata_maintenance','dataset_description','additional');
 
+        //external resources
+        $external_resources=$this->get_array_nested_value($options,'dataset_description/distribution_info/online_resource');
+        
+        //remove external resource from metadata
+        if(isset($options['dataset_description']['distribution_info']['online_resource'])){
+            unset($options['dataset_description']['distribution_info']['online_resource']);
+        }
+
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
                 $options['metadata'][$section]=$options[$section];
@@ -62,7 +70,10 @@ class Dataset_geospatial_model extends Dataset_model {
         }
 
 		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        
+        //import external resources
+        $this->update_resources($dataset_id,$external_resources);
 
 		//set topics
 
@@ -196,6 +207,27 @@ class Dataset_geospatial_model extends Dataset_model {
 			'start'=>$start,
 			'end'=>$end
 		);
+    }
+    
+
+    //returns survey metadata array
+    function get_metadata($sid)
+    {
+        $metadata= parent::get_metadata($sid);
+
+        $res_fields="resource_id,dctype,dcformat,title,author,dcdate,country,language,contributor,publisher,rights,description, abstract,toc,filename";
+        $external_resources=$this->Survey_resource_model->get_survey_resources($sid, $res_fields);
+        
+        //add download link
+        foreach($external_resources as $resource_filename => $resource){
+            if (!$this->form_validation->valid_url($resource['filename']) && !empty($resource['filename'])){
+                $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            }  
+        }
+        
+        //add external resources
+        $metadata['dataset_description']['distribution_info']['online_resource']=$external_resources;
+       return $metadata;
 	}
 
 }

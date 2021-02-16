@@ -6,6 +6,12 @@ Vue.component('metadata-form', {
             showChildren: true
         }
     },
+    mounted:function(){
+        //collapse all sections by default
+        if (this.depth>0){
+            this.toggleChildren();
+        }
+    },
     methods: {
         toggleChildren() {
             this.showChildren = !this.showChildren;
