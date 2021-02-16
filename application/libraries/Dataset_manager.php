@@ -105,9 +105,13 @@ class Dataset_manager{
      * Get metadata
      * 
      */
-    function get_metadata($sid)
+    function get_metadata($sid,$type=null)
     {
-        return $this->ci->Dataset_model->get_metadata($sid);
+        if (empty($type)){
+            return $this->ci->Dataset_model->get_metadata($sid);
+        }else{
+            return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->get_metadata($sid);
+        }
     }
 
 

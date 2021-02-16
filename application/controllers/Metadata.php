@@ -6,6 +6,7 @@ class Metadata extends MY_Controller {
     public function __construct()
     {
         parent::__construct($skip_auth=TRUE);
+        $this->load->library("Dataset_manager");
         $this->load->model("Dataset_model");
         $this->load->helper("download");
 	}
@@ -30,7 +31,7 @@ class Metadata extends MY_Controller {
             $full_metadata=$this->input->get("detailed") =='true' ? true : false;
 
             if ($full_metadata){                
-                $metadata=$this->Dataset_model->get_row($sid);
+                $metadata=$dataset;
                 if($metadata['type']=='survey'){
                     $this->load->model("Data_file_model");
                     $this->load->model("Variable_model");
@@ -42,7 +43,7 @@ class Metadata extends MY_Controller {
                 }
             }
             else{
-                $metadata=$this->Dataset_model->get_metadata($sid);
+                $metadata=$this->dataset_manager->get_metadata($sid,$dataset['type']);
             }
                         
             $this->output

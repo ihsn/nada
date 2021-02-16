@@ -238,10 +238,17 @@ class Survey_resource_model extends CI_Model {
 	/**
 	*
 	* Return all resources attached to a survey
+	*
+	* @fields - comma seperated list of field names
+	*
 	**/
-	function get_survey_resources($sid)
+	function get_survey_resources($sid,$fields=null)
 	{
-		$this->db->select('*');
+		if(!empty($fields)){
+			$this->db->select($fields);
+		}else{
+			$this->db->select('*');
+		}
 		$this->db->where('survey_id',$sid);
 		$this->db->order_by('title','ASC');
 		return $this->db->get('resources')->result_array();
