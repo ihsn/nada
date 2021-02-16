@@ -24,6 +24,7 @@
             "metadata.dataset_description.identification_info.status"=>'text',            
             "metadata.dataset_description.identification_info.resource_maintenance.maintenance_frequency"=>'text',
             "metadata.dataset_description.identification_info.spatial_representation_type"=>'text',
+            "metadata.dataset_description.identification_info.supplemental_information"=>'text',
             ),
     $metadata);
 ?>
@@ -35,6 +36,15 @@
     $fields=array(
             "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'array',
             "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'bounding_box',
+            ),
+    $metadata);
+?>
+
+<!-- spatial extent -->
+<?php $output['reference_system_info']= render_columns('reference_system_info',
+    $fields=array(
+            "metadata.dataset_description.reference_system_info.code"=>'text',
+            "metadata.dataset_description.reference_system_info.code_space"=>'text',
             ),
     $metadata);
 ?>
@@ -75,7 +85,7 @@
             "metadata.dataset_description.identification_info.resource_constraints.access_constraints"=>'array',
             "metadata.dataset_description.identification_info.resource_constraints.use_constraints"=>'array',
             "metadata.dataset_description.identification_info.resource_constraints.other_constraints"=>'text',
-            "metadata.dataset_description.identification_info.use_limitation"=>'text',
+            "metadata.dataset_description.identification_info.resource_constraints.use_limitations"=>'text',
             ),
     $metadata);
 ?>
