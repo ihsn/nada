@@ -678,6 +678,23 @@ class Data_table_mongo_model extends CI_Model {
                 );
                 continue;
             }
+			
+			//gte or lte 
+			if (substr($val,0,1)=='>' && is_numeric(substr($val,1))){
+                $output[]=array(
+                    'type'=>'gte',
+                    'value'=>substr($val,1)
+                );
+                continue;
+            }
+			
+			if (substr($val,0,1)=='<' && is_numeric(substr($val,1))){
+                $output[]=array(
+                    'type'=>'lte',
+                    'value'=>substr($val,1)
+                );
+                continue;
+            }
             
             $range=explode("-",$val);
 
@@ -750,7 +767,17 @@ class Data_table_mongo_model extends CI_Model {
             }else if($val['type']=='value'){
                 //$wheres[]=$feature_name." = ".$this->db->escape($val['value']);
                 $values[]=is_numeric($val['value']) ? (int)$val['value']: $val['value'];
-            }        
+            }
+			else if($val['type']=='gte'){                
+				$output[][$feature_name]= array(
+                        '$gte' => is_numeric($val['value']) ? (int)$val['value']: $val['value']                        
+                );
+            }
+			else if($val['type']=='lte'){
+				$output[][$feature_name]= array(
+                        '$lte' => is_numeric($val['value']) ? (int)$val['value']: $val['value']                        
+                );
+            }
         }
 
         if (count($values)>0){
@@ -1120,8 +1147,8 @@ class Data_table_mongo_model extends CI_Model {
                 return $value + 0;
             }
 
-            return $value;
-            //return utf8_encode($value);
+            //return $value;
+            return utf8_encode(utf8_decode($value));
         };
 
         foreach($records as $row){
