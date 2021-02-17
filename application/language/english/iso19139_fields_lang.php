@@ -94,7 +94,7 @@ $lang['metadata.dataset_description.identification_info.keywords.thesaurus']='Th
 
 
 	
-$lang['metadata.dataset_description.identification_info.resource_constraints']='';
+$lang['resource_constraints']='Resource constraints';
 $lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints']='Legal constraints';
 $lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints.code_list_uri']='Code list URI';
 $lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints.code']='Code';
@@ -146,8 +146,8 @@ $lang['metadata.dataset_description.data_quality_info.lineage']='Data Quality Li
 $lang['metadata.dataset_description.spatial_representation_info']='Resource Spatial Representation';
 $lang['metadata.dataset_description.spatial_representation_info.topology_level']='Topology Level Code';
 $lang['metadata.dataset_description.spatial_representation_info.Geometric_object_code']='Geometric Object Type Code';
-$lang['metadata.dataset_description.reference_system_info']='Resource Reference System';
-$lang['metadata.dataset_description.reference_system_info.code']='Reference System Identifier Code';
+$lang['reference_system_info']='Resource Reference System';
+$lang['metadata.dataset_description.reference_system_info.code']='Code';
 $lang['metadata.dataset_description.reference_system_info.code_space']='Code Space';
 $lang['metadata.additional']='Additional metadata';
 $lang['spatial_extent']='Spatial extent';
