@@ -70,8 +70,6 @@ $metadata['metadata']['resources']=$metadata['resources'];
 <!-- identification section -->
 <?php $output['description']= render_group('description',
     $fields=array(
-        "metadata.files"=>"dump",
-        "metadata.resources"=>"dump",
         "metadata.document_description.title_statement.idno"=>"text",
         "metadata.document_description.title_statement.title"=>"text",
         
