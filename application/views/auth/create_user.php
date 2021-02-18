@@ -21,8 +21,8 @@ $options_country=$this->ion_auth_model->get_all_countries();
     <div style="max-width:800px;">
     <?php echo form_open(site_url('auth/register'), array('class'=>'form register','autocomplete'=>'off'));?>    
     
-    <input type="hidden" name="<?php echo $this->data['csrf']['keys']['name'];?>" value="<?php echo $this->data['csrf']['name'];?>"/>
-    <input type="hidden" name="<?php echo $this->data['csrf']['keys']['value'];?>" value="<?php echo $this->data['csrf']['value'];?>"/>
+    <input type="hidden" name="<?php echo $csrf['keys']['name'];?>" value="<?php echo $csrf['name'];?>"/>
+    <input type="hidden" name="<?php echo $csrf['keys']['value'];?>" value="<?php echo $csrf['value'];?>"/>
         
     <div class="form-row">
         <div class="form-group col-md-6">
