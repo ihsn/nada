@@ -35,6 +35,7 @@ class Citations extends MY_Controller {
 
 		$data['rows']=$this->_search();
 		$data['active_repo']=$collection;
+		$data['repo']=$repo;
 		$content=$this->load->view('citations/public_search', $data,true);
 
 		$facet_options=array();
@@ -50,17 +51,18 @@ class Citations extends MY_Controller {
 		);
 
 		//show search form
-		$this->template->write('search_filters', $this->load->view('citations/facets',$facet_options,true),true);
+		$facets_html=$this->load->view('citations/facets',$facet_options,true);
 
 		if ($collection!==''){
 			$page_data=array(
 				'repo'=>$repo,
 				'active_tab'=>'citations',
 				'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($collection),
-				'content'=>$content
+				'content'=>$content,
+				'facets_html'=>$facets_html
 			);
 
-			$content=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
+			$content=$this->load->view("citations/citations_search",$page_data,TRUE);
 		}
 
 		$this->template->write('title', t('citations'),true);
