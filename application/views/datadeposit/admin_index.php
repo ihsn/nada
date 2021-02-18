@@ -42,11 +42,15 @@ if (!array_key_exists($filter,$status_codes))
 .task-team-container .person {position: relative;}
 .task-team-container .person .btn-assign {position: absolute; right:10px; top:15px;}
 .task-team-container .person:hover{background:#dcdcdc;}
+
+.datadeposit-tabs a:link,.datadeposit-tabs a:visited {
+    color: #007bff;
+}
 </style>
 
 <div class="container-fluid">
 
-<h1 class="page-title">Data Deposit Projects</h1>
+<h1 class="page-title"><?php echo t('Data Deposit Projects');?></h1>
 
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
@@ -65,9 +69,11 @@ if (!array_key_exists($filter,$status_codes))
 </form>
 
 
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs datadeposit-tabs">
 <?php foreach($status_codes as $code=>$status):?>
-	<li <?php echo ($code==$filter) ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/datadeposit?filter='.$code);?>" ><?php echo $status;?></a></li>
+    <li class="nav-item">
+        <a <?php echo ($code==$filter) ? 'class="nav-link active"' : 'class="nav-link"';?> href="<?php echo site_url('admin/datadeposit?filter='.$code);?>" ><?php echo $status;?></a>
+    </li>
 <?php endforeach;?>
 </ul>
 
@@ -77,15 +83,15 @@ if (!array_key_exists($filter,$status_codes))
 ?>
 
 <?php if (count($projects)==0):?>
-	No projects were found.
+    <div class="m-2">No projects were found.</div>
     <?php return;?>
 <?php endif;?>
 
-<div style="font-weight:bold;">
-Total projects found: <span><?php echo count($projects);?></span>
+<div style="font-weight:bold;" class="m-2">
+    Total projects found: <span><?php echo count($projects);?></span>
 </div>
 
-<table class="grid-table table table-striped" width="100%" cellspacing="0" cellpadding="0">
+<table class="grid-table table table-sm table-striped" width="100%" cellspacing="0" cellpadding="0">
   <thead class="header">
   	<th> <?php echo create_sort_link($sort_by,$sort_order,'status',t('Status'),current_url(),array('filter')); ?>  </th>
     <th> <?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),current_url(),array('filter')); ?> </th>
