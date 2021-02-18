@@ -55,9 +55,11 @@
 			<td class="role-name"><?php echo $role['name'];?></td>
 			<td><?php echo $role['description'];?></td>
 			<td>
-				<a href="<?php echo site_url('admin/permissions/edit_role/'.$role['id']);?>"><?php echo t('edit');?></a> | 
-				<a href="<?php echo site_url('admin/permissions/manage/'.$role['id']);?>"><?php echo t('permissions');?></a> | 
+				<?php if (!$role['is_locked']):?>
+				<a href="<?php echo site_url('admin/permissions/edit_role/'.$role['id']);?>"><?php echo t('edit');?></a> | 				
+				<a href="<?php echo site_url('admin/permissions/manage/'.$role['id']);?>"><?php echo t('permissions');?></a> | 				
 				<a href="<?php echo site_url('admin/permissions/delete_role/'.$role['id']);?>"><?php echo t('delete');?></a>
+				<?php endif;?>
 			</td>
 		</tr>
 	<?php endforeach;?>
