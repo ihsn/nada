@@ -148,18 +148,33 @@
 
 h5{margin:0px;}
 
+
+.variable-search .vrow{
+    font-size:medium;
+}
+
+.variable-search .vrow .var-subtitle{
+    color:gray;
+    font-size:small
+}
+
+.study-view-toggle a:hover,
+.study-view-toggle .toggle_view{
+    color:white;
+}
 </style>
 
 <div class="container">
 <form method="get" id="catalog-search-form">    
     <input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
     <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
+    <input type="hidden" name="view" id="view" value="<?php echo $search_options->view;?>"/>
 
     <?php if($search_box_orientation!=='inline'):?>
         <!--search bar-->
         <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
-        <?php if($data_types_nav_bar==true):?>
+        <?php if($data_types_nav_bar==true && $this->input->get("view")!=='v' ):?>
             <!-- data types nav tabs -->
             <?php echo $this->load->view('search/search_data_tabs',array('tabs'=>$tabs,'type_icons'=>@$type_icons), true);?>
         <?php endif;?>
@@ -201,7 +216,7 @@ h5{margin:0px;}
         <!--search bar-->
         <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
-        <?php if($data_types_nav_bar==true):?>
+        <?php if($data_types_nav_bar==true || $this->input->get("view")!=='v'):?>
             <!-- data types nav tabs -->
             <?php echo $this->load->view('search/search_data_tabs',array('tabs'=>$tabs,'type_icons'=>@$type_icons), true);?>
         <?php endif;?>
@@ -505,12 +520,22 @@ $(document).ready(function() {
 		return false;
     })
 
+
     //show variable details in a modal dialog
-    $(document.body).on("click",".variables-found .vsearch-result .link", function(event){
-        var row=$(this).closest("tr");
-        window.simple_dialog("dialog_id",row.attr("data-title"),$(this).attr("href"));
+    $(document.body).on("click",".variable-list .vrow .link", function(event){
         event.stopPropagation();
-        return false;
+
+        var vrow=$(this).closest(".vrow");
+        var target='';
+        if(typeof $(vrow).attr("data-url-target") != 'undefined'){
+            target=$(vrow).attr("data-url-target");
+        }
+        if(target==''){
+            window.location=$(vrow).attr("data-url");
+        }
+        else{
+            window.simple_dialog("dialog_id",$(vrow).attr("data-title"),$(vrow).attr("data-url"));return false;
+        }
     });
 
 

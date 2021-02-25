@@ -23,31 +23,8 @@
 	$pages=ceil($surveys['found']/$surveys['limit']);	
 ?>
 
-<?php 
-if ($this->input->get("view")=="v"){
-	if($found==1) {
-		$items_found=t('found_variable');
-	}
-	else{
-		$items_found=t('found_variables');
-	}
-}	
-else{
-	$found=$surveys['found'];
-	$total=$surveys['total'];
-    
-    if($found==1) {
-		$items_found=t('found_study');
-	}
-	else{
-		$items_found=t('found_studies');
-	}
-}
-?>
-
 <?php $this->load->view("search/search_nav_bar");?>
 <?php //$this->load->view("search/active_filter_tokens");?>
-
 
 
 <hr/>

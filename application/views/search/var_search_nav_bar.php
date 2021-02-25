@@ -1,39 +1,46 @@
 <?php 
 
-	$found=$surveys['found'];
-	$total=$surveys['total'];
+	$found=$variables['found'];
+	$total=$variables['total'];
     
     if($found==1) {
-		$items_found=t('found_study');
+		$items_found=t('found_variable');
 	}
 	else{
-		$items_found=t('found_studies');
+		$items_found=t('found_variables');
 	}
 
+    $study_view=$this->input->get();
+    unset($study_view['view']);
+    $study_view=http_build_query($study_view);
 
-    $variable_view=$this->input->get();
-    $variable_view['view']="v";
-    $variable_view=http_build_query($variable_view);
-
-    $show_variable_toggle=false;
-    if (isset($search_options->tab_type) && in_array($search_options->tab_type,array("","survey"))){
-        $show_variable_toggle=true;
-    }
+    
 ?>
 
 <div class="row mb-3">
+
+    
     <div class="col-12 col-md-12 mt-2 mt-md-0 ">
+    <?php /* ?>
+    <ul class="nav nav-tabs mb-3 font-weight-bold">
+        <li class="nav-item">
+            <span class="nav-link" ><a href="<?php echo site_url('catalog?'.$study_view);?>">Studies</a></span>
+        </li>
+        <li class="nav-item">
+            <span class="nav-link active" >Variables</span>
+        </li>
+    </ul>
+    <?php */ ?>
+        
         <div class="filter-action-bar row">
                 <?php if($found>0):?>
                 <div class="search-count font-weight-bold col"><?php echo number_format($found). ' '. t('results');?></div>
-                <?php if($show_variable_toggle):?>
                 <div class="col mt-1">
                     <div class="btn-group btn-group-toggle study-view-toggle" >
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s" ><?php echo t('Study view');?></button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-left toggle_view" data-value="s" ><a href="<?php echo site_url('catalog?'.$study_view);?>"><?php echo t('Study view');?></a></button>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-right active toggle_view" data-value="v"><?php echo t('Variable view');?></button>
                     </div>
                 </div>
-                <?php endif;?>
                 <div class="col">
                     <div class="form-inline float-right ">
                         <label for="sort-by-select" class="sort-by-label">
@@ -54,8 +61,7 @@
                     </div>
                 </div>                  
                 <?php endif;?>
-        </div>
-
+        </div>            
     </div>    
 </div>
 

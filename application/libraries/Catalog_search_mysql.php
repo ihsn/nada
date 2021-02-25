@@ -98,7 +98,7 @@ class Catalog_search_mysql{
 	{		
 		$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
-		$variable=$this->_build_variable_query();
+		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$tags=$this->_build_tags_query();
@@ -311,7 +311,7 @@ class Catalog_search_mysql{
 	{		
 		//$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
-		$variable=$this->_build_variable_query();
+		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$tags=$this->_build_tags_query();
@@ -464,7 +464,7 @@ class Catalog_search_mysql{
 			
 	protected function _build_variable_query()
 	{
-		$variable_keywords=trim($this->variable_keywords);
+		$variable_keywords=trim($this->study_keywords);
 		$variable_keywords=str_replace(array('"',"'"), '',$variable_keywords);
 
 		if(strlen($variable_keywords)<3 || strlen($variable_keywords)>100){
@@ -845,7 +845,7 @@ class Catalog_search_mysql{
 		
 		if (empty($index))
 		{
-			$index[]='name,labl,qstn,catgry,keywords';
+			$index[]='name,v.labl,v.qstn,v.catgry,v.keywords';
 		}
 
 		if ($is_fulltext==TRUE)	
@@ -949,18 +949,20 @@ class Catalog_search_mysql{
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
-		$variable_keywords=$this->variable_keywords;
+		$variable_keywords=$this->study_keywords;
 		$variable_fields=$this->variable_fields;
 
-		$study=$this->_build_study_query();
+		$study="";//$this->_build_study_query();
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
-		//$dtype=$this->_build_dtype_query();		
+		$collections=$this->_build_collections_query();
+		$dtype=$this->_build_dtype_query();
+		$tags=$this->_build_tags_query();
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years);
+		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags);
 
         //show only publshed studies
         $where_list[]='published=1';
@@ -990,7 +992,7 @@ class Catalog_search_mysql{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,  surveys.title as title,surveys.nation, v.sid",FALSE);
+		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.qstn, v.vid,  surveys.title as title,surveys.nation, v.sid",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
