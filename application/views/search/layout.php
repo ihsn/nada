@@ -291,11 +291,6 @@ h5{margin:0px;}
                 <i class="fa fa-window-close faclose var-remove" aria-hidden="true"></i>
                 </span>-->
 
-                <!--<<span class="var-box">
-                    <span>VAR</span>
-                    <i class="fa fa-window-close faclose" aria-hidden="true"></i>
-                </span>-->
-
             </div>
            <div class="col-2">
                <div class="align-middle mt-2"> 
@@ -486,9 +481,12 @@ var i18n=
                 $(".variable-comparison-popup .var-list").append(html);
             }*/
 
-            window.data_x=data;
+            if(data.length<1){
+                update_compare_variable_list("remove-all");
+                compare_variable_popup_toggle();
+            }
+            
             for(var i=0;i < data.length;i++) {    
-                console.log(data[i]);
                 var row=data[i];
                 var url=encodeURI(CI.base_url + '/catalog/' + row['sid'] + '/variable/' + row['vid']);
 

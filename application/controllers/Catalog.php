@@ -793,7 +793,9 @@ class Catalog extends MY_Controller {
 			$tmp=explode('/',$value);
 			if (isset($tmp[1])){
 				$variable=$this->Variable_model->variable_basic_info($tmp[0],$tmp[1]);
-				$list[]=$variable;
+				if(!empty($variable)){
+					$list[]=$variable;
+				}
 			}
 		}
 		

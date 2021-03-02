@@ -105,7 +105,7 @@ class Catalog_search_sqlsrv{
 	{
 		$dtype=$this->_build_dtype_query();
 		$study=$this->_build_study_query();
-		$variable=$this->_build_variable_query();
+		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
@@ -222,7 +222,7 @@ class Catalog_search_sqlsrv{
 		$type=$this->_build_dataset_type_query();
 		$dtype = $this->_build_dtype_query();
         $study = $this->_build_study_query();
-        $variable = $this->_build_variable_query();
+        $variable = false;//$this->_build_variable_query();
         $topics = $this->_build_topics_query();
         $countries = $this->_build_countries_query();
         $years = $this->_build_years_query();
@@ -477,7 +477,7 @@ class Catalog_search_sqlsrv{
 			
 	function _build_variable_query()
 	{
-		$variable_keywords=trim($this->variable_keywords);		
+		$variable_keywords=trim($this->study_keywords);		
 		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
 
 		if ($variable_keywords=='')
@@ -845,8 +845,8 @@ class Catalog_search_sqlsrv{
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
-		$variable_keywords=$this->variable_keywords;
-		$variable_fields=$this->variable_fields;
+		//$variable_keywords=$this->variable_keywords;
+		//$variable_fields=$this->variable_fields;
 
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
@@ -885,7 +885,7 @@ class Catalog_search_sqlsrv{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,  surveys.title as title,surveys.nation as nation, v.sid",FALSE);
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid, v.qstn, surveys.title as title,surveys.nation as nation, v.sid, surveys.idno",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
