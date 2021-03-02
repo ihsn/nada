@@ -268,8 +268,7 @@ class Repository_model extends CI_Model {
 	**/
 	function delete($id=NULL)
 	{
-		if (!is_numeric($id))
-		{
+		if (!is_numeric($id)){
 			return FALSE;
 		}
 		
@@ -281,7 +280,13 @@ class Repository_model extends CI_Model {
 		//remove from survey_repos
 		$this->db->where('repositoryid',$repo['repositoryid']);
 		$this->db->delete('survey_repos');
+
+		//update surveys
+		$this->db->where('repositoryid',$repo['repositoryid']);
+		$this->db->update('surveys',array('repositoryid'=>'central'));
 	}
+
+
 	
 
 	/**
@@ -730,31 +735,7 @@ class Repository_model extends CI_Model {
 		return $row;
 	}
 	
-	/**
-	*
-	* check if the repo/collection has Data Access by Collection enabled
-	**/
-	/*
-	public function repo_has_group_data_access($repositoryid,$data_access_type)
-	{
-		$this->db->select('group_da_public,group_da_licensed');		
-		$this->db->where('repositoryid',$repositoryid);		
-		$row=$this->db->get('repositories')->row_array();
-		
-		if ($row)
-		{
-			if ($data_access_type=='public')
-			{
-				return (bool)$row['group_da_public'];
-			}
-			else if($data_access_type=='licensed')
-			{
-				return (bool)$row['group_da_licensed'];
-			}	
-		}
-		
-		return FALSE;
-	}*/
+	
 
 	/**
 	* Delete orphan rows from the survey_repos table
