@@ -92,6 +92,7 @@ function eraseCookie(name) {
 
 <?php if (!$list): ?>
 	<div class="error"><?php echo t('no_variables_to_compare');?></div>
+	<?php return;?>
 <?php endif;?>
 
 <div class="compare-header clearfix">
@@ -137,6 +138,7 @@ function eraseCookie(name) {
                      </div>
     	        	<div class="compare-box-body" >
                             <div class="survey-link">
+								<div><?php echo $item['dataset']['nation'];?></div>
 								<?php echo anchor("catalog/".$item['sid'],$survey_title,array('target'=>'_blank'));?>
                             </div>
                             <div class="variable-content">

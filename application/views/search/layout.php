@@ -166,6 +166,8 @@ h5{margin:0px;}
 .variable-comparison-popup{
     display:none;
 }
+
+
 </style>
 
 <div class="container">
@@ -244,14 +246,16 @@ h5{margin:0px;}
 <style>
 .var-box{
     border: 1px solid gray;
-    padding: 10px;
-    padding-left: 15px;
+    padding: 5px;
     margin-right: 15px;
-    margin-bottom:5px;
+    margin-bottom:15px;
     background:#6c757d;
     position:relative;
     font-size:12px;
-    line-height:50px;
+    display:block;
+    float:left;
+    width:160px;
+    height:45px;    
 }
 .var-box .fa{
     font-size:18px;
@@ -265,6 +269,9 @@ h5{margin:0px;}
     z-index:1;
 }
 
+.variable-comparison-popup .var-name{
+    text-transform:uppercase;
+}
 </style>
 
 
@@ -458,20 +465,48 @@ var i18n=
 
         vars=get_selected_variables();
         
-        $(".variable-comparison-popup .var-list").html("");
+        $(".variable-comparison-popup .var-list").html("Loading...");
 
-        for(var i=0;i < vars.length;i++) {
-            var var_info=vars[i].split("/");
-            var url=encodeURI(CI.base_url + '/catalog/' + var_info[0] + '/variable/' + var_info[1]);
-            var var_id=vars[i].replace("/","__");
+        
+        $.get(CI.base_url + '/catalog/variable_cart', function(data) {
+            console.log(data);
+            $(".variable-comparison-popup .var-list").html("");
+        
+            /*for(var i=0;i < vars.length;i++) {
+                var var_info=vars[i].split("/");
+                var url=encodeURI(CI.base_url + '/catalog/' + var_info[0] + '/variable/' + var_info[1]);
+                var var_id=vars[i].replace("/","__");
 
-            var html =`<span class="var-box" id="var-${var_id}" data-value="${vars[i]}">
-                <a target="_blank" href="${url}"><i class="fa fa-address-card" aria-hidden="true"></i></a>
-                <i class="fa fa-window-close faclose var-remove" aria-hidden="true" data-value="${vars[i]}"></i>
-            </span>`;
+                var html =`<span class="var-box" id="var-${var_id}" data-value="${vars[i]}">
+                    <!--<a target="_blank" href="${url}"><i class="fa fa-address-card" aria-hidden="true"></i></a>-->
+                    <a class="text-white" target="_blank" href="${url}">EVENT_ID_CNTRY</a>
+                    <i class="fa fa-window-close faclose var-remove" aria-hidden="true" data-value="${vars[i]}"></i>
+                </span>`;
 
-            $(".variable-comparison-popup .var-list").append(html);
-        }
+                $(".variable-comparison-popup .var-list").append(html);
+            }*/
+
+            window.data_x=data;
+            for(var i=0;i < data.length;i++) {    
+                console.log(data[i]);
+                var row=data[i];
+                var url=encodeURI(CI.base_url + '/catalog/' + row['sid'] + '/variable/' + row['vid']);
+
+                var html =`<div class="var-box" id="var-${row['sid']}__data['vid']" data-value="${row['sid']}/${row['vid']}">
+                    <!--<a target="_blank" href="${url}"><i class="fa fa-address-card" aria-hidden="true"></i></a>-->
+                    <a class="text-white font-weight-bold var-name" target="_blank" href="${row['sid']}">${row['name']}</a>
+                    <div class="text-light">${row['idno']}</div>
+                    <i class="fa fa-window-close faclose var-remove" aria-hidden="true" data-value="${row['sid']}/${row['vid']}"></i>
+                </div>`;
+
+                $(".variable-comparison-popup .var-list").append(html);
+            }
+        })
+        .fail(function() {
+            alert("error");
+        })
+
+        
     }
 
     //remove all variables

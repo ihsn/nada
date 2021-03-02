@@ -768,6 +768,41 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
+	/**
+	*
+	* List all variables selected for comparison
+	*
+	**/
+	function variable_cart()
+	{
+		$this->lang->load('ddi_fields');
+		$this->lang->load('catalog_search');
+		$this->load->model("Dataset_model");
+		$this->load->model("Variable_model");
+		$this->load->model("Data_file_model");
+		$this->load->helper("metadata_view");		
+
+		$items=explode(",",$this->input->cookie('variable-compare', TRUE));
+		$list=array();
+
+		if (!$items){
+			return false;
+		}
+
+		foreach($items as $item=>$value){
+			$tmp=explode('/',$value);
+			if (isset($tmp[1])){
+				$variable=$this->Variable_model->variable_basic_info($tmp[0],$tmp[1]);
+				$list[]=$variable;
+			}
+		}
+		
+		$this->output
+			->set_content_type('application/json')
+			->set_output(json_encode($list));
+		return;
+	}
+
 
 	function study($codebookid=NULL)
 	{		

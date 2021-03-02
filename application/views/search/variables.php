@@ -103,6 +103,9 @@
                     if (in_array($row['sid'].'/'.$row['vid'], $compare_items) ){
                         $compare=' checked="checked" ';
                     }
+
+                    $var_country_info=array_filter(array($row['nation'], $row['idno']));
+                    $var_country_info=implode(" - ", $var_country_info);
                     ?>
                     <tr  class="vrow" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
                         <td title="<?php echo t('mark_for_variable_comparison');?>">
@@ -116,7 +119,10 @@
                         <td>
                             <div class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></div>
                             <div class="qstn" ><?php echo ($row['qstn']!=='') ? $row['qstn'] : 'n/a'; ?></div>
-                            <div class="var-subtitle var-study-link"><a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo $row['title']; ?> <i class="fa fa-external-link" aria-hidden="true"></i></a></div>
+                            <div class="var-subtitle var-study-link">
+                                <div><?php echo $var_country_info; ?></div>
+                                <a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo $row['title']; ?> <i class="fa fa-external-link" aria-hidden="true"></i></a>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach;?>
@@ -131,7 +137,7 @@
         <div class="row mt-3 mb-3 d-flex align-items-lg-center">
 
             <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
-                <?php echo sprintf(t('showing_studies'),
+                <?php echo sprintf(t('showing_variables'),
                     (($variables['limit']*$current_page)-$variables['limit']+1),
                     ($variables['limit']*($current_page-1))+ count($variables['rows']),
                     $variables['found']);

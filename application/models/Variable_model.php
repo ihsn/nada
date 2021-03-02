@@ -473,6 +473,18 @@ class Variable_model extends CI_Model {
 
         fclose($fp);
 	}
+
+
+    function variable_basic_info($sid,$vid)
+    {
+        $this->db->select("surveys.id as sid, surveys.idno, surveys.nation,variables.vid, variables.name");
+        $this->db->where("sid",$sid);
+        $this->db->where("vid",$vid);
+        $this->db->join('surveys','surveys.id=variables.sid');
+        
+        $variable=$this->db->get("variables")->row_array();        
+        return $variable;
+    }
 	
 }
 	
