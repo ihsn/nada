@@ -191,6 +191,7 @@ $config['auth_override_class_method']['tables']['list'] = 'none';
 $config['auth_override_class_method']['tables']['index'] = 'none';
 $config['auth_override_class_method']['tables']['info'] = 'none';
 $config['auth_override_class_method']['tables']['data'] = 'none';
+$config['auth_override_class_method']['tables']['collection_tables'] = 'none';
 $config['auth_override_class_method']['tables']['aggregate'] = 'none';
 $config['auth_override_class_method']['tables']['databases'] = 'none';
 $config['auth_override_class_method']['tables']['population_by_age'] = 'none';
