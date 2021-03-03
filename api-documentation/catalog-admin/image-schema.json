@@ -147,8 +147,8 @@
 					},
 				"files": {
 					"type": "array",
-					"title": "Files",
-					"description": "Files",
+					"title": "Files - `deprecated` use resources",
+					"description": "Files  - `deprecated` use resources",
 					"items":{
 						"type":"object",
 						"properties":{
@@ -174,7 +174,15 @@
 						},
 						"required": ["file_uri"]
 					}
-				}
+				},
+				"resources":{
+					"title":"External resources",
+					"description":"External resources",
+					"type": "array",
+					"items":{
+						"$ref": "resource-schema.json"
+					}
+				}	
 			}
 		}
 	},
