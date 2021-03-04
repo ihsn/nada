@@ -824,6 +824,7 @@ class Catalog_search_mysql{
 		$index=array();
 		
 		$variable_fields=$this->variable_fields();
+
 		
 		//select which index to use
 		if( in_array('name',$variable_fields) )
@@ -888,7 +889,7 @@ class Catalog_search_mysql{
 		//no allowed fields found	
 		if ($tmp==NULL)
 		{
-			return array('labl');
+			return array('labl,qstn,catgry,keywords');
 		}
 		else
 		{
@@ -1168,7 +1169,7 @@ class Catalog_search_mysql{
 		
 		if (strlen($keywords) >3){
 			$fulltext_index=$this->get_variable_search_field(TRUE);
-			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($keywords));			
+			$where=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)',$fulltext_index,$this->ci->db->escape($keywords));			
 		}
 		else{
 			return false;
