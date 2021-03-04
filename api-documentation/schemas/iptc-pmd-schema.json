@@ -9,17 +9,6 @@
 			"description": "Container for IPTC photo/video metadata",
 			"type": "object",
 			"properties": {
-				"aboutCvTerms": {
-					"title": "CV-Term About Image",
-					"description": "One or more topics, themes or entities the content is about, each one expressed by a term from a Controlled Vocabulary.",
-					"type": "array",
-					"items": {
-						"$ref": "iptc-phovidmdshared-schema.json#/definitions/CvTerm"
-					}
-				},
-
-
-
 				"title": {
 					"$ref": "iptc-phovidmdshared-schema.json#/definitions/AltLang",
 					"description": "A shorthand reference for the digital image. Title provides a short human readable name which can be a text and/or numeric reference. It is not the same as Headline.",
@@ -131,32 +120,7 @@
 					"title": "Source",
 					"description": "The name of a person or party who has a role in the content supply chain. This could be an agency, a member of an agency, an individual or a combination. Source could be different from Creator and from the entities in the Copyright Notice.",
 					"type": "string"
-				},
-				"countryName": {
-					"title": "Country (legacy)",
-					"description": "Full name of the country of the location shown in the image. This element is at the top/first level of a top-down geographical hierarchy. The full name should be expressed as a verbal name and not as a code, a code should go to the element \"CountryCode\"",
-					"type": "string"
-				},
-				"countryCode": {
-					"title": "Country Code (legacy)",
-					"description": "Code of the country of the location shown in the image. This element is at the top/first level of a top-down geographical hierarchy. The code should be taken from ISO 3166 two or three letter code. The full name of a country should go to the \"Country\" element.",
-					"type": "string"
-				},
-				"provinceStatePhoto": {
-					"title": "Province or State (legacy)",
-					"description": "Name of the subregion of a country  of the location shown in the image. This element is at the second level of a top-down geographical hierarchy.",
-					"type": "string"
-				},
-				"cityName": {
-					"title": "City (legacy)",
-					"description": "Name of the city of the location shown in the image. This element is at the third level of a top-down geographical hierarchy.",
-					"type": "string"
-				},
-				"sublocationName": {
-					"title": "Sublocation (legacy)",
-					"description": "Exact name of the sublocation shown in the image. This sublocation name could either be the name of a sublocation to a city or the name of a well known location or (natural) monument outside a city. In the sense of a sublocation to a city this element is at the fourth level of a top-down geographical hierarchy.",
-					"type": "string"
-				},
+				},				
 				"locationsShown": {
 					"title": "Location created",
 					"description": "The location the photo was taken.",
@@ -341,6 +305,14 @@
 					"type": "array",
 					"items": {
 						"type": "string"
+					}
+				},
+				"aboutCvTerms": {
+					"title": "CV-Term About Image",
+					"description": "One or more topics, themes or entities the content is about, each one expressed by a term from a Controlled Vocabulary.",
+					"type": "array",
+					"items": {
+						"$ref": "iptc-phovidmdshared-schema.json#/definitions/CvTerm"
 					}
 				}
 			},

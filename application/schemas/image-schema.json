@@ -83,6 +83,11 @@
 		"image_description":{
 			"type": "object",
 			"properties": {
+				"idno": {
+					"title": "Image unique identifier",
+					"description": "Image unique identifier",
+					"type": "string"
+				},
 				"iptc": {
 					"allOf": [{ "$ref": "../schemas/iptc-pmd-schema.json" }]
 				},
