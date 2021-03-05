@@ -81,6 +81,7 @@ $metadata['metadata']['resources']=$metadata['resources'];
         "metadata.document_description.title_statement.alternate_title"=>"text",
         "metadata.document_description.title_statement.abbreviated_title"=>"text",
         "metadata.document_description.type"=>"text",
+        "metadata.document_description.status"=>"text",
         "metadata.document_description.description"=>"text",
         "metadata.document_description.toc"=>"text",
         "metadata.document_description.toc_structured"=>"array",
