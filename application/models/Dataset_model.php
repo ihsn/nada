@@ -84,12 +84,15 @@ class Dataset_model extends CI_Model {
 	
 	
 	//return all datasets
-	function get_all($sid=null)
+	function get_all($sid=null,$type=null)
 	{
 		$this->db->select(implode(",",$this->listing_fields));
 
 		if($sid){
 			$this->db->where('id',$sid);
+		}
+		if($type){
+			$this->db->where('type',$type);
 		}
 		$result= $this->db->get("surveys")->result_array();
 

@@ -32,6 +32,8 @@ class Catalog_search_mysql{
 	var $country_iso3=''; //comma seperated list country iso3 codes	
 	var $created='';
 
+	var $params;
+
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
 	
@@ -77,6 +79,8 @@ class Catalog_search_mysql{
 		
 		log_message('debug', "Catalog_search Class Initialized");
 		//$this->ci->output->enable_profiler(TRUE);
+
+		$this->params=$params;
 	}
 	
 	function initialize($params=array())
@@ -150,6 +154,27 @@ class Catalog_search_mysql{
 
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type);
+
+
+		$user_facets=$this->ci->Facet_model->select_all();
+		//echo '<pre>';
+		//var_dump($user_facets);
+		//echo "<HR>";
+		//var_dump($this->params);
+		
+		foreach($user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				var_dump($fc['name']);
+				var_dump($this->params[$fc['name']]);
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
+
+		//echo '</pre>';
+
 		
 		//create combined where clause
 		$where='';
@@ -493,6 +518,28 @@ class Catalog_search_mysql{
 		return FALSE;
 	}
 
+
+	protected function _build_facet_query($facet_name,$values)
+	{
+		if (empty($values)){
+			return false;
+		}
+		
+		$values=(array)$values;
+		foreach($values  as $idx=>$value){
+			if(!empty($value)){
+				$values[$idx]=$this->ci->db->escape($value);
+			}
+		}
+
+		$values= implode(',',$values);
+
+		if ($values!=''){
+			return sprintf('surveys.id in (select sid from survey_facets where term_id in (%s))',$values);
+		}
+		
+		return FALSE;
+	}
 
 	
 	/**

@@ -27,6 +27,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
 		$this->load->model('Data_classification_model');
+		$this->load->model('Facet_model');
 
 		//todo - set which filters to enable
 		$this->enabled_filters=array('countries');
@@ -64,7 +65,24 @@ class Catalog extends MY_Controller {
 		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
 		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
-		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id); 
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
+		
+		//load user defined facets from db
+		$user_facets=$this->Facet_model->select_all();
+		foreach($user_facets as $fc){
+			$this->facets[$fc['name']]=array(
+				'type'=>'user',
+				'values'=>$this->Facet_model->get_facet_values($fc['id'],$published=1)
+			);
+		}
+
+		//var_dump($user_facets);
+
+		//echo '<pre>';
+
+		//var_dump($this->facets);
+		//die();
+
 	}
 
 	
@@ -87,6 +105,7 @@ class Catalog extends MY_Controller {
 
 		$output= $this->_search();
 		$output['tab_type']=$this->active_tab;
+		$output['facets']=$this->facets;
 		
 		//enable/disable types navbar tabs
 		$output['data_types_nav_bar']=$this->data_types_nav_bar;
@@ -102,6 +121,19 @@ class Catalog extends MY_Controller {
 				'items'=>$this->facets['tags'], 
 				'filter_id'=>'tag'
 			),true);
+
+		//echo "<pre>";
+		//var_dump($this->facets);
+		//die();	
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$filters[$facet_key]=$this->load->view('search/facet', 
+				array(
+					'items'=>$facet['values'],
+					'filter_id'=>$facet_key
+				),true);
+			}
+		}
 			
 		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
 		
@@ -187,8 +219,7 @@ class Catalog extends MY_Controller {
 		$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
 		$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
 
-		$output['tabs']=$tabs;
-		$output['facets']=$this->facets;
+		$output['tabs']=$tabs;		
 
 		//load js
 		$this->template->add_js('javascript/jquery.history.min.js');		
@@ -213,9 +244,11 @@ class Catalog extends MY_Controller {
 		//$this->load_facets_data();
 
 		$output= $this->_search();
+
+		$output['facets']=$this->facets;
 		$output['tab_type']=$this->active_tab;
 		$output['featured_studies']=null;//$this->get_featured_study($output['surveys']['rows']);
-		$this->load->view($dataset_view, $output);		
+		$this->load->view($dataset_view, $output);
 	}
 
 
@@ -260,6 +293,17 @@ class Catalog extends MY_Controller {
 		$search_options->repo			=xss_clean($this->active_repo_id);
 		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
+
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$search_options->{$facet_key}=xss_clean($this->input->get($facet_key));
+			}
+		}
+
+		//echo '<pre>';
+		//var_dump($search_options);
+		//echo '</pre>';
+		//$search_options->sername		=xss_clean($this->input->get("sername"));
 
 		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('year','title','nation','country','popularity','rank');
@@ -374,6 +418,12 @@ class Catalog extends MY_Controller {
 			'type'=>$search_options->type,
             'country_iso3'=>$search_options->country_iso3,
 		);
+
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$params[$facet_key]=xss_clean($this->input->get($facet_key));
+			}
+		}
 
 
 		$this->load->library('catalog_search',$params);
