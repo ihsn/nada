@@ -172,6 +172,12 @@
           ]
         },
 
+        "status": {
+          "title": "Status",
+          "type": "string",
+          "description": "Status of the document - e.g. `Draft`, `Draft released for comment`, `Final draft released for comment`, `Final` "
+        },
+
         "description": {
           "title": "Description",
           "type": "string",
