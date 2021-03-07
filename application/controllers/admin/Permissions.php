@@ -38,6 +38,16 @@ class Permissions extends MY_Controller {
 			redirect("admin/permissions/roles");
 		}
 
+		$role =$this->acl_manager->get_role_by_id($role_id);
+
+		if (empty($role)){
+			show_error(t("Role was not found"));
+		}
+
+		if ($role['is_locked']==1){
+			show_error("System role cannot be edited");
+		}
+
 		$data=$this->acl_manager->get_all_permissions();
 		$role_permissions=$this->acl_manager->get_role_permissions($role_id);
 

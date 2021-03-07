@@ -42,7 +42,7 @@ font-weight: bold;
 </style>
 
 <div class="page-links">
-		<a href="<?php echo site_url(); ?>/admin/datadeposit" class="button"><img src="images/house.png"/>Home</a> 
+    <a href="<?php echo site_url('admin/datadeposit'); ?>" class="btn btn-outline-primary btn-sm"><i class="fas fa-home"></i> <?php echo t('home');?></a> 
 </div>
 
 

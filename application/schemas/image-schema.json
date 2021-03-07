@@ -83,8 +83,13 @@
 		"image_description":{
 			"type": "object",
 			"properties": {
+				"idno": {
+					"title": "Image unique identifier",
+					"description": "Image unique identifier",
+					"type": "string"
+				},
 				"iptc": {
-					"allOf": [{ "$ref": "iptc-pmd-schema.json" }]
+					"allOf": [{ "$ref": "../schemas/iptc-pmd-schema.json" }]
 				},
 				"license": {
 					"type": "array",
@@ -147,8 +152,8 @@
 					},
 				"files": {
 					"type": "array",
-					"title": "Files",
-					"description": "Files",
+					"title": "Files - `deprecated` use resources",
+					"description": "Files  - `deprecated` use resources",
 					"items":{
 						"type":"object",
 						"properties":{
@@ -174,7 +179,15 @@
 						},
 						"required": ["file_uri"]
 					}
-				}
+				},
+				"resources":{
+					"title":"External resources",
+					"description":"External resources",
+					"type": "array",
+					"items":{
+						"$ref": "resource-schema.json"
+					}
+				}	
 			}
 		}
 	},

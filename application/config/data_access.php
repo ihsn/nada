@@ -33,7 +33,7 @@ $config['licensed_access']['dataset_access'] = false;
 */
 $config['data_access_options'] = array(
     'public'=> array(
-        'cc40', 'open', 'direct','public','licensed'
+        'cc40', 'open', 'direct','public','licensed','remote', 'data_na'
     ),
     'official'=> array(
         'research_license'

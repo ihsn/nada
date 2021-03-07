@@ -84,8 +84,8 @@ $template['installer']['theme_folder'] = 'nada';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/bootstrap4/blank';
-$template['blank']['theme_folder'] = 'bootstrap4';
+$template['blank']['template'] = '../../themes/nada/blank';
+$template['blank']['theme_folder'] = 'nada';
 
 $template['blank_iframe']['template'] =  '../../themes/wb2/blank';
 $template['blank_iframe']['theme_folder'] = 'wb2';

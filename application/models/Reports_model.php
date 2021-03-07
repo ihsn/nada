@@ -540,5 +540,149 @@ class Reports_model extends CI_Model {
 		
 		return $broken_rows;
 	}
+
+
+	/**
+	 * 
+	 * Return studies published summary by months
+	 * 	 
+	 * 
+	 */
+	function get_datasets_published()
+	{
+		$sql='select 
+				year(FROM_UNIXTIME(created)) as year_,
+				month(FROM_UNIXTIME(created)) as month_,
+				published,
+				count(*) as count
+			 from surveys 
+			 where published=1
+			group by year_, month_, published;';
+
+		$query=$this->db->query($sql)->result_array();		   
+		return $query;	
+	}
+
+
+	/**
+	 * 
+	 * Get studies count by collection
+	 * 	 
+	 * 
+	 */
+	function get_datasets_published_by_collection()
+	{
+		$sql='select 
+				surveys.repositoryid as collection_id,
+				repos.title as collection_title,
+				count(*) as count
+			from surveys 
+				left join repositories repos on repos.repositoryid=surveys.repositoryid
+				where published=1
+				group by surveys.repositoryid, repos.title;';
+
+		$query=$this->db->query($sql)->result_array();		   
+		return $query;	
+	}
+
+	/**
+	 * 
+	 * Get studies count by collection
+	 * 	 
+	 * 
+	 */
+	function get_datasets_published_by_country()
+	{
+		$sql='select     
+			c.name as country,
+			count(*) as count
+		from surveys 
+			inner join survey_countries sc on sc.sid=surveys.id
+			inner join countries c on c.countryid=sc.cid
+			where published=1
+			group by c.name;';
+
+		$query=$this->db->query($sql)->result_array();		   
+		return $query;	
+	}
+
+
+	/**
+	 * 
+	 * Get licensed requests summary by month, year
+	 * 	 
+	 * 
+	 */
+	function get_licensed_requests_by_month()
+	{
+		$sql='select 
+			year(FROM_UNIXTIME(created)) as year_,
+			month(FROM_UNIXTIME(created)) as month_,
+			status,
+			count(*) as count
+		from lic_requests 	
+			group by year_, month_,status
+			order by year_ desc';
+
+		$query=$this->db->query($sql)->result_array();		   
+		return $query;	
+	}
+
+
+	/**
+	 * 
+	 * Get licensed requests summary by collection, month, year
+	 * 	 
+	 * 
+	 */
+	function get_licensed_requests_by_collection()
+	{
+		$sql='select 
+				year(FROM_UNIXTIME(lic_requests.created)) as year_,
+				month(FROM_UNIXTIME(lic_requests.created)) as month_,
+				surveys.repositoryid,
+				status,
+				count(*) as count
+			from lic_requests 	
+				inner join survey_lic_requests slr on slr.request_id= lic_requests.id
+				inner join surveys on slr.sid=surveys.id
+				group by year_, month_,status, surveys.repositoryid
+				order by year_ desc
+			;';
+
+		$query=$this->db->query($sql)->result_array();		   
+		return $query;	
+	}
+
+
+	/**
+	 * 
+	 * Get licensed requests summary by country, month, year
+	 * 	 
+	 * 
+	 */
+	function get_licensed_requests_by_country()
+	{
+		$sql='select 
+			year(FROM_UNIXTIME(lic_requests.created)) as year_,
+			month(FROM_UNIXTIME(lic_requests.created)) as month_,
+			c.name as country,
+			status,
+			count(*) as count
+		from lic_requests 	
+			inner join survey_lic_requests slr on slr.request_id= lic_requests.id
+			inner join surveys on slr.sid=surveys.id
+			inner join survey_countries sc on sc.sid=surveys.id
+			inner join countries c on c.countryid=sc.cid
+			group by year_, month_,status, c.name
+			order by year_ desc
+		;';
+
+		$query=$this->db->query($sql)->result_array();		   
+		return $query;	
+	}
+
+
+
+
 }
-?>

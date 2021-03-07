@@ -10,11 +10,24 @@ class Resources extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
 		$this->load->model("Resource_model");	//todo to be deleted
-		$this->load->model("Survey_resource_model");	
-		$this->is_authenticated_or_die();
+		$this->load->model("Survey_resource_model");
+		$this->load->library("Dataset_manager");		
+		$this->is_admin_or_die();
 	}
 	
 
+//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		//session user id
+		if ($this->session->userdata('user_id'))
+		{
+			//var_dump($this->session->userdata('user_id'));
+			return true;
+		}
+
+		parent::_auth_override_check();
+	}
 
 	/**
 	 * 
@@ -376,12 +389,18 @@ class Resources extends MY_REST_Controller
 
 
 	private function get_sid_from_idno($idno=null)
-	{
+	{		
 		if(!$idno){
 			throw new Exception("IDNO-NOT-PROVIDED");
 		}
 
-		$sid=$this->Dataset_model->find_by_idno($idno);
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			return $idno;
+		}
+
+		$sid=$this->dataset_manager->find_by_idno($idno);
 
 		if(!$sid){
 			throw new Exception("IDNO-NOT-FOUND");

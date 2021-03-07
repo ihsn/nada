@@ -89,6 +89,7 @@ $lang['user_site_level_permissions']="Site level permissions";
 $lang['assigned_user_groups']="Global user roles";
 $lang['manage_permissions']="Manage permissions";
 $lang['permissions_per_collection']="Permissions per collection";
+$lang['reset_password']="Reset your password";
 
 
 $lang['api_keys']="API keys";

@@ -28,7 +28,7 @@ class Dataset_image_model extends Dataset_model {
         $options=array_merge($options,$core_fields);
 		
 		if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
-			throw new exception("IDNO-NOT-SET");
+            throw new ValidationException("VALIDATION_ERROR", "image_description.IDNO is required");
 		}
 
 		//validate IDNO field
@@ -162,7 +162,7 @@ class Dataset_image_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/headline');
-        $output['idno']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/digitalImageGuid');
+        $output['idno']=$this->get_array_nested_value($options,'image_description/idno');
         
         //extract country names from the location element
         $nations=$this->get_country_names($this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/locationsShown'));    

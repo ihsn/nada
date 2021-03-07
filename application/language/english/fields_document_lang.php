@@ -30,6 +30,7 @@ $lang['metadata.document_description.title_statement.sub_title']='Subtitle';
 $lang['metadata.document_description.title_statement.alternate_title']='Abbreviation or Acronym';
 $lang['metadata.document_description.title_statement.abbreviated_title']='Abbreviated Title';
 $lang['metadata.document_description.type']='Resource type';
+$lang['metadata.document_description.status']='Status';
 $lang['metadata.document_description.description']='Description';
 $lang['metadata.document_description.toc']='Table of contents';
 $lang['metadata.document_description.toc_structured']='Table of contents';

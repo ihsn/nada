@@ -77,9 +77,21 @@ class Dataset_manager{
      * Return all rows
      * 
      */
-    function get_all()
+    function get_all($limit,$offset)
     {
-        return $this->ci->Dataset_model->get_all();
+        return $this->ci->Dataset_model->get_all($limit,$offset);
+    }
+
+
+
+    /**
+     * 
+     * Return total number of studies in the catalog
+     * 
+     */
+    function get_total_count()
+    {
+        return $this->ci->Dataset_model->get_total_count();
     }
 
 
@@ -105,9 +117,13 @@ class Dataset_manager{
      * Get metadata
      * 
      */
-    function get_metadata($sid)
+    function get_metadata($sid,$type=null)
     {
-        return $this->ci->Dataset_model->get_metadata($sid);
+        if (empty($type)){
+            return $this->ci->Dataset_model->get_metadata($sid);
+        }else{
+            return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->get_metadata($sid);
+        }
     }
 
 

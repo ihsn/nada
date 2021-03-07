@@ -1,4 +1,3 @@
-<div class="col-md-3">
 <form name="search_form" id="search_form" method="get" autocomplete="off">        
         <input type="hidden" id="ps" name="ps" value="">
         <input type="hidden" id="page" name="page" value="1">
@@ -38,6 +37,7 @@
             </div>
         </div>
 
+        <?php if(is_array($ctypes) && count($ctypes)>0):?>
         <div id="filter-by-access" class="sidebar-filter wb-ihsn-sidebar-filter filter-by-access filter-box filter-by-dtype">
         <h6 class="togglable"> <i class="fa fa-filter pr-2"></i> Filter by Type</h6>
         <div class="sidebar-filter-entries filter-da items-container">
@@ -51,11 +51,12 @@
             </div>
             <?php endforeach;?>
         </div>
-    </div>
+        </div>
+        <?php endif;?>
 
 </div>
 </form>
-</div>
+
 
 <script type="text/javascript">  
     $(function(){

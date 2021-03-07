@@ -370,5 +370,42 @@ class Collections extends MY_REST_Controller
 		}		
 	}
 
+
+	/**
+	 * 
+	 * 
+	 * Delete collection
+	 * 
+	 * 
+	 */
+	function delete_delete($repo_id=null)
+	{
+		try{
+			if(!($repo_id)){
+				throw new Exception("MISSING_PARAM: repositoryId");
+			}			
+			
+			$repo=$this->Repository_model->get_repository_by_repositoryid($repo_id);
+			
+			if(!$repo){
+				throw new Exception("REPOSITORY-NOT-FOUND");
+			}
+
+			$this->Repository_model->delete($repo['id']);
+
+			$response=array(
+				'status'=>'success'				
+			);
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
 	
 }

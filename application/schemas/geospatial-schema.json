@@ -5,80 +5,135 @@
 	"description":"Geospatial draft schema",
 	"version" :"0.0",
 	"id": "geospatial-schema.json",
-	"definitions":{
-		"contact": {
-			"type": "array",
-			"description": "Contact",
-			"title": "Contact",
-			"items": {
-				"type": "object",
-				"properties": { 
-					"person_name": {
-						"title": "Individual name",
-						"type": "string"						
-					},
-					"role": {
-						"title": "Role",
-						"type": "string"
-					},
-					"organisation": {
-						"title": "Organization",
-						"type": "string"
-					},
-					"position": {
-						"title": "Position",
-						"type": "string"
-					},
-					"instructions": {
-						"title": "Contact Instructions",
-						"type": "string"
-					},
-					"phone": {
-						"title": "Phone",
-						"type": "string"
-					},
-					"fax": {
-						"title": "Fax",
-						"type": "string"
-					},
-					"email": {
-						"title": "Email",
-						"type": "string"
-					},
-					"website": {
-						"title": "Website Link",
-						"type": "string"
-					},
-					"address": {
-						"title": "Address",
-						"type": "string"
-					},
-					"city": {
-						"title": "City",
-						"type": "string"
-					},
-					"administrative_area": {
-						"title": "Administrative Area",
-						"type": "string"
-					},
-					"postal_code": {
-						"title": "Postal Code",
-						"type": "string"
-					},
-					"country": {
-						"title": "Country",
-						"type": "string"
+	"definitions": {
+		"language": {
+			"title": "Language",
+			"description":"Language of the resource",					
+			"type": "string",
+			"_xpath":"gmd:LanguageCode",
+			"properties": {
+				"codeListValue": {
+					"title": "Language code. Preferred code following the [ISO 639-2](http://www.loc.gov/standards/iso639-2/) (alpha-3 code)",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeList": {
+					"title": "Codelist used for referencing ISO 639-2",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeSpace": {
+					"title": "Codespace used for language codelist. Recommended value: ISO 639-2",
+					"type":"string",
+					"propertyType": "attribute"
+				}
+			}
+		},
+		"locale": {
+			"title": "Locale",
+			"description": "Locale definition for multi-lingual description",
+			"type": "object",
+			"_xpath": "gmd:PT_Locale",
+			"properties" : {
+				"id": {
+					"title": "Locale code",
+					"description": "Locale code, eg. FR, EN",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"languageCode": {
+					"title": "Language",
+					"description":"Language",					
+					"type": "string",
+					"_xpath":"gmd:PT_Locale/gmd:languageCode",
+					"$ref": "#/definitions/language"
+				},
+				"characterEncoding" : {
+					"title": "Character set",
+					"description":"Character encoding used e.g. UTF-8",
+					"type": "string",
+					"_xpath":"gmd:PT_Locale/gmd:characterEncoding",
+					"properties": {
+						"characterSet": {
+							"title": "Character set",
+							"description":"Character encoding used e.g. UTF-8",
+							"type": "string",
+							"_xpath":"gmd:PT_Locale/gmd:characterEncoding/gmd:MD_CharacterSetCode",
+							"$ref": "#/definitions/characterSet"
+						}
 					}
 				}
-			}			
+			}
+		},
+		"characterSet": {
+			"title": "Character set",
+			"description":"Character encoding used e.g. UTF-8",
+			"type": "string",
+			"_xpath":"gmd:MD_CharacterSetCode",
+			"properties": {
+				"codeListValue": {
+					"title": "Character set code, e.g 'utf8'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CharacterSetCode) CharacterSet codelist",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeList": {
+					"title": "Codelist used for character sets. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CharacterSetCode",
+					"type": "string",
+					"propertyType": "attribute"
+				}
+			}
+		},
+		"topicCategory": {
+			"type": "string",
+			"title": "Topic Category",
+			"description": "Topic category of the resource",
+			"_xpath": "gmd:MD_TopicCategoryCode",
+			"properties": {
+				"codeListValue": {
+					"title": "Topic category, eg. 'owner'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_TopicCategoryCode) TopicCategory codelist. Suggested values: {farming, biota, boundaries, climatologyMeteorologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWaters, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication, extraTerrestrial, disaster}",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeList" : {
+					"title": "Codelist used for resource topic categories. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_TopicCategoryCode",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeSpace": {
+					"title": "Codespace of the topic categories codelist. Recommended value: ISOTC211/19115",
+					"type": "string",
+					"propertyType": "attribute"
+				}
+			}
+		},
+		"scope": {
+			"title": "Scope / Hierarchy Level",
+			"description": "Scope(s), or 'hierarchy level(s)' applicable to the dataset description e.g. dataset, series'",
+			"type": "string",
+			"_xpath":"gmd:MD_ScopeCode",
+			"properties" :{
+				"codeListValue": {
+					"title": "Hierarchy level code, eg. 'dataset'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MX_ScopeCode) Scope codelist. Suggested values: `attribute`, `attributeType`, `collectionHardware`, `collectionSession`, `dataset`, `series`, `nonGeographicDataset`, `dimensionGroup`, `feature`, `featureType`, `propertyType`, `fieldSession`, `software`, `service`, `model`, `tile`, `initiative`, `stereomate`, `sensor`, `platformSeries`, `sensorSeries`, `productionSeries`, `transferAggregate`, `otherAggregate`",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeList" : {
+					"title": "Codelist used for dataset hierarchy level. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MX_ScopeCode",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeSpace": {
+					"title": "Codespace of the scope codelist. Recommended value: ISOTC211/19115",
+					"type": "string",
+					"propertyType": "attribute"
+				}
+			}
 		},
 		"date": {
-			"type": "array",
 			"title": "Date",
 			"description": "Date",
-			"items": {
-			  "type": "object",
-			  "properties": {
+			"type": "object",
+			"properties": {
 				"date": {
 				  "title": "Date",
 				  "description": "Date in ISO 8601 format - YYYY-MM-DD",
@@ -89,111 +144,663 @@
 				  "description":"Date type e.g. `publication`, `revision`, `creation`, `expiry`, `lastUpdate`, `lastRevision`, `deprecated`. See full list at [data.noaa.gov](https://data.noaa.gov/resources/iso19139/schema/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode)",
 				  "type": "string"
 				}
-			  },
-			  "required": [
-				"date"
-			  ]
 			}
 		},
-		"keyword": {
-			"type": "array",
-			"description": "Keywords",
-			"items": {
-				"type": "object",
-				"properties": {
-					"keyword": {
-						"title": "Keyword",
-						"type": "string",
-						"_xpath":"gmd:keyword/gco:CharacterString"
-					},
-					"code": {
-						"title": "Code",
-						"type": "string",
-						"description": "Code value - allowed {`discipline`, `place`, `stratum`, `temporal`, `theme`}",
-						"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeListValue"
-					},
-					"code_uri": {
-						"title": "Code list URI",
-						"type": "string",
-						"description": "Code list used e.g. http://www.isotc211.org/2005/resources/codeList.xml#MD_KeywordTypeCode",
-						"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeList"
-					}					
+		"onlineResource": {
+			"title": "Online Resource",
+			"description": "Online Resource",
+			"type": "object",
+			"_xpath": "gmd:CI_OnlineResource",
+			"properties": {
+				"linkage": {
+					"title": "Link to the resource",
+					"type": "string"
+				},
+				"name": {
+					"title": "Resource title",
+					"type": "string"
+				},
+				"description": {
+					"title": "Resource description",
+					"type": "string"
+				},
+				"protocol": {
+					"title": "Protocol",
+					"description": "Protocol used to access the resource, eg HTTP, FTP",
+					"type": "string"
+				},
+				"function": {
+					"title": "Function",
+					"description": "Function of the online resource",
+					"type": "string"
 				}
-			},
-			"required": [
-				"keyword"
-			]
+			}
 		},
-		"graphic_overview": {
-			"type": "array",
+		"responsibleParty": {
+			"title": "Responsible party",
+			"description": "Definition of a responsible party (individual or organization)",
+			"type": "object",
+			"_xpath": "gmd:CI_ResponsibleParty",
+			"properties": { 
+				"individualName" : {
+					"title": "Individual name",
+					"description": "Name of the individual",
+					"type": "string"
+				},
+				"organisationName": {
+					"title": "Organization name",
+					"description": "Name of the organization",
+					"type": "string"
+				},
+				"positionName": {
+					"title": "Position name",
+					"description": "Name of the individual position",
+					"type": "string"
+				},
+				"contactInfo": {
+					"type": "object",
+					"title": "Contact info",
+					"description": "Information to contact the responsible party",
+					"properties": {
+						"phone": {
+							"type": "object",
+							"title": "Phone",
+							"description": "Phone contact information",
+							"properties": {
+								"voice": {
+									"title": "Phone number",
+									"type": "string"
+								},
+								"facsimile": {
+									"title": "Facsimile",
+									"type": "string"
+								}
+							}
+						},
+						"address": {
+							"type": "object",
+							"title": "Address",
+							"description": "Address contact information",
+							"properties": {
+								"deliveryPoint": {
+									"type": "string",
+									"title": "Delivery point"
+								},
+								"city": {
+									"type": "string",
+									"title": "City"
+								},
+								"postalCode": {
+									"type": "string",
+									"title": "Postal Code"
+								},
+								"country": {
+									"type": "string",
+									"title": "Country"
+								},
+								"elctronicMailAddress": {
+									"type": "string",
+									"title": "Email"
+								}
+							}
+						},
+						"onlineResource": {
+							"$ref": "#/definitions/onlineResource"
+						}
+					}
+				},
+				"role" : {
+					"type": "string",
+					"title": "Role",
+					"description": "Role of the responsible party",
+					"properties": {
+						"codeListValue": {
+							"title": "Role type, eg. 'owner'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_RoleCode) Role codelist. Suggested values: {resourceProvider, custodian, owner, sponsor, user, distributor, originator, pointOfContact, principalInvestigator, processor, publisher, author, coAuthor, collaborator, editor, mediator, rightsHolder, contributor, funder, stakeholder}",
+							"type": "string",
+							"propertyType": "attribute"
+						},
+						"codeList" : {
+							"title": "Codelist used for responsible party/contact role. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_RoleCode)",
+							"type": "string",
+							"propertyType": "attribute"
+						},
+						"codeSpace": {
+							"title": "Codespace of the role codelist. Recommended value: ISOTC211/19115",
+							"type": "string",
+							"propertyType": "attribute"
+						}
+					}
+				}
+			}
+		},		
+		"citation": {
+			"title": "Citation",
+			"description": "A set of elements to describe a resource citation",
+			"type": "object",
+			"_xpath": "gmd:CI_Citation",
+			"properties": {
+				"title": {
+					"title": "Title",
+					"description": "Resource title",
+					"type": "string"
+				},
+				"alternateTitle": {
+					"title": "Alternate Title",
+					"description": "Resource alternate title",
+					"type": "string"
+				},
+				"date": {
+					"title": "Citation date(s)",
+					"description": "Date(s) associated to the resource citation",
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/date"
+					}
+				},
+				"edition": {
+					"title": "Edition",
+					"description": "Edition",
+					"type": "string"
+				},
+				"editionDate": {
+					"title": "Edition Date",
+					"type": "string",
+					"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)"
+				},
+				"identifier": {
+					"title": "Identifier",
+					"description": "Unique identifier for the resource metadata",
+					"type": "object",
+					"properties": {
+						"authority": {
+							"title": "Authority",
+							"description": "The authority that identifies uniquely the resource metadata",
+							"type": "string"
+						},
+						"code": {
+							"title": "Code",
+							"description": "A code uniquely identifying the resource metadata"
+						}
+					}
+				},
+				"citedResponsibleParty": {
+					"title": "Responsible party(ies)",
+					"description": "Responsible party(ies) to cite in the resource citation",
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/responsibleParty"
+					}
+				},
+				"presentationForm": {
+					"title": "Presentation form",
+					"description": "The resource presentation form",
+					"type": "array",
+					"items": {
+						"codeListValue": {
+							"title": "Presentation form code, eg. 'mapDigital'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_PresentationFormCode) PresentationForm codelist. Suggested values: {documentDigital, imageDigital, documentHardcopy, imageHardcopy, mapDigital, mapHardcopy, modelDigital, modelHardcopy, profileDigital, profileHardcopy, tableDigital, tableHardcopy, videoDigital, videoHardcopy, audioDigital, audioHardcopy, multimediaDigital, multimediaHardcopy, physicalSample, diagramDigital, diagramHardcopy}",
+							"type": "string",
+							"propertyType": "attribute"
+						},
+						"codeList" : {
+							"title": "Codelist used for dataset hierarchy level. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_PresentationFormCode",
+							"type": "string",
+							"propertyType": "attribute"
+						},
+						"codeSpace": {
+							"title": "Codespace of the scope codelist. Recommended value: ISOTC211/19115",
+							"type": "string",
+							"propertyType": "attribute"
+						}
+					}
+				},
+				"series": {
+					"title": "Series",
+					"description": "Series citation",
+					"type": "object",
+					"properties": {
+						"name": {
+							"title": "Name",
+							"description": "Name of the series in which the resource is cited",
+							"type": "string"
+						},
+						"issueIdentification": {
+							"title": "Issue",
+							"description": "Identification of the series issue",
+							"type": "string"
+						},
+						"page": {
+							"title": "Page",
+							"description": "Identification of the series page in which the resource is cited",
+							"type": "string"
+						}
+					}
+				},
+				"otherCitationDetails": {
+					"title": "Other Citation Details",
+					"type": "string"
+				},
+				"collectiveTitle": {
+					"title": "Collective Title",
+					"type": "string"
+				},
+				"ISBN": {
+					"title": "ISBN",
+					"type": "string"
+				},
+				"ISSN": {
+					"title": "ISSN",
+					"type": "string"
+				}
+			}
+		},
+		"referenceSystem": {
+			"title": "Reference System System",
+			"description": "Reference System",
+			"_xpath": "gmd:MD_ReferenceSystem/gmd:referenceSystemIdentifier/gmd:RS_Identifier",
+			"properties": {
+				"code": {
+					"title": "Reference System Identifier Code",
+					"type": "string",
+					"description": "example - 5701",
+					"_xpath": "gmd:MD_ReferenceSystem/gmd:referenceSystemIdentifier/gmd:RS_Identifier/gmd:code/gco:CharacterString"
+				},
+				"codeSpace": {
+					"title": "Code Space",
+					"type": "string",
+					"description": "example - 'EPSG'",
+					"_xpath": "gmd:MD_ReferenceSystem/gmd:referenceSystemIdentifier/gmd:RS_Identifier/gmd:codeSpace/gco:CharacterString"
+				}
+			}
+		},
+		"maintenanceInfo": {
+			"title": "Maintenance Information",
+			"description": "Information about a resource maintenance",
+			"type": "object",
+			"_xpath": "gmd:MD_MaintenanceInformation",
+			"properties": {
+				"maintenanceAndUpdateFrequency": {
+					"title": "Maintenance and Update Frequency",
+					"description": "Frequency of maintenance/update of a resource",
+					"type": "string",
+					"properties": {
+						"codeListValue": {
+							"title": "Maintenance Frequency code, eg. 'daily'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_MaintenanceFrequencyCode) MaintenanceFrequency codelist. Suggested values: {continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, notPlanned, unknown}",
+							"type": "string",
+							"propertyType": "attribute"
+						},
+						"codeList" : {
+							"title": "Codelist used for a resource maintenance frequency. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_MaintenanceFrequencyCode",
+							"type": "string",
+							"propertyType": "attribute"
+						},
+						"codeSpace": {
+							"title": "Codespace of the scope codelist. Recommended value: ISOTC211/19115",
+							"type": "string",
+							"propertyType": "attribute"
+						}
+					}
+				}
+			}
+		},
+		"graphicOverview": {
+			"type": "object",
 			"description": "Graphic overview of resource",
-			"items": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"title": "File name / URL",
-						"type": "string",
-						"_xpath":"gmd:MD_BrowseGraphic/gmd:fileName/gco:CharacterString"
+			"_xpath": "gmd:MD_BrowseGraphic",
+			"properties": {
+				"fileName": {
+					"title": "File name / URL",
+					"type": "string",
+					"_xpath":"gmd:MD_BrowseGraphic/gmd:fileName/gco:CharacterString"
+				},
+				"fileDescription": {
+					"title": "File Description",
+					"type": "string",
+					"_xpath":"gmd:MD_BrowseGraphic/gmd:fileDescription/gco:CharacterString"
+				},
+
+				"fileType": {
+					"title": "File Type",
+					"type": "string"
+				}
+			}
+		},
+		"format": {
+			"type": "object",
+			"title": "Format",
+			"description": "Description of a digital format",
+			"_xpath": "gmd:MD_Format",
+			"properties" : {
+				"name": {
+					"title": "Format name",
+					"type": "string",
+					"_xpath": "gmd:MD_Format/gmd:name/gco:CharacterString"
+				},
+				"version": {
+					"title": "Format version",
+					"type": "string",
+					"_xpath": "gmd:MD_Format/gmd:version/gco:CharacterString"
+				},
+				"amendmentNumber": {
+					"title": "Format version amendment number",
+					"type": "string",
+					"_xpath": "gmd:MD_Format/gmd:amendmentNumber/gco:CharacterString"
+				},
+				"specification": {
+					"title": "Format specification",
+					"type": "string",
+					"_xpath": "gmd:MD_Format/gmd:specification/gco:CharacterString"
+				},
+				"fileDecompressionTechnique": {
+					"title": "File decompression technique",
+					"type": "string",
+					"_xpath": "gmd:MD_Format/gmd:fileDecompressionTechnique/gco:CharacterString"
+				},
+				"FormatDistributor": {
+					"title": "Distributor",
+					"description": "Responsible party in charge of the format distribution",
+					"type": "object",
+					"_xpath": "gmd:MD_Format/gmd:FormatDistributor/gmd:MD_Distributor/gmd:distributorContact",
+					"$ref": "#/definitions/responsibleParty"
+				}
+			}
+		},		
+		"keywords" : {
+			"title": "Keywords",
+			"description": "Set of keywords for a given type of keywords, eg. theme, project, instrument",
+			"type": "object",
+			"_xpath": "gmd:MD_Keywords",
+			"properties": {
+				"type": {
+					"title": "Keyword type",
+					"type": "string",
+					"description": "Type of keyword based on pre-defined code values",
+					"items":{
+						"type": "object",
+						"properties": {
+							"code": {
+								"title": "Code",
+								"type": "string",
+								"description": "Code value - based on (but not limited to) code values listed in the ISO 19115  {`dataCenter`,`discipline`,`place`,`dataResolution`,`stratum`,`temporal`,`theme`,`dataCentre`,`featureType`,`instrument`,`platform`,`process`,`project`,`service`,`product`,`subTopicCategory`}",
+								"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeListValue"
+							},
+							"code_uri": {
+								"title": "Code list URI",
+								"type": "string",
+								"description": "Code list used e.g. https://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_KeywordTypeCode",
+								"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeList"
+							}	
+						}
 					},
-					"type": {
-						"title": "File Type",
-						"type": "string"
+					"required": [
+						"code", "code_uri"
+					]
+				},
+				"keyword": {
+					"type": "array",
+					"description": "Keywords",
+					"items": {
+						"type": "object",
+						"properties": {
+							"keyword": {
+								"title": "Keyword",
+								"type": "string",
+								"_xpath":"gmd:keyword/gco:CharacterString"
+							}				
+						}
 					},
-					"description": {
-						"title": "File Description",
-						"type": "string",
-						"_xpath":"gmd:MD_BrowseGraphic/gmd:fileDescription/gco:CharacterString"
+					"required": [
+						"keyword"
+					]
+				},
+				"thesaurusName": {
+					"type": "object",
+					"title": "Thesaurus",
+					"description": "Thesaurus to which keywords are associated",
+					"$ref": "#/definitions/citation"
+				}
+			}
+		},
+		"restriction": {
+			"title": "Restriction",
+			"description": "A restriction to access/use a resource",
+			"type": "string",
+			"_xpath": "gmd:MD_RestrictionCode",
+			"properties": {
+				"codeListValue": {
+					"title": "Restriction code, eg. 'dataset'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode) Restriction codelist. Suggested values: {copyright, patent, patentPending, trademark, license, intellectualPropertyRights, restricted, otherRestrictions, unrestricted, licenceUnrestricted, licenceEndUser, licenceDistributor, private, statutory, confidential, SBU, in-confidence}",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeList" : {
+					"title": "Codelist used for a restriction to access/use a resource. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode",
+					"type": "string",
+					"propertyType": "attribute"
+				},
+				"codeSpace": {
+					"title": "Codespace of the scope codelist. Recommended value: ISOTC211/19115",
+					"type": "string",
+					"propertyType": "attribute"
+				}
+			}
+		},
+		"constraints": {
+			"title": "Constraints",
+			"description": "Constraints associated to the resource",
+			"type": "object",
+			"properties": {
+				"legalConstraints": {
+					"title": "Legal constraints",
+					"description": "Legal constraints associated to the resource",
+					"type": "object",
+					"_xpath": "gmd:MD_LegalConstraints",
+					"properties": {
+						"useLimitation": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"accessConstraints": {
+							"title": "Access constraints",
+							"description": "Legal constraints concerning the access of the resource. eg. Copyright",
+							"type": "array",
+							"_xpath": "gmd:MD_LegalConstraints/gmd:accessConstraints/gmd:MD_RestrictionCode",
+							"items": {
+								"type": "string",
+								"$ref": "#/definitions/restriction"
+							}
+						},
+						"useConstraints": {
+							"title": "Use constraints",
+							"description": "Legal constraints concerning the use of the resource, eg. Terms of use statement, License",
+							"type": "array",
+							"_xpath": "gmd:MD_LegalConstraints/gmd:useConstraints/gmd:MD_RestrictionCode",
+							"items": {
+								"type": "string",
+								"$ref": "#/definitions/restriction"
+							}
+						},
+						"otherConstraints": {
+							"title": "Other constraints",
+							"description": "Other legal constraints concerning the resource, e.g. additional information to complement the access/use constraints, Disclaimer",
+							"type": "array",
+							"_xpath": "gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString",
+							"items": {
+								"type": "string",
+								"title": "Other constraint associated to the resource"
+							}
+						}
+					}
+				},
+				"securityConstraints": {
+					"title": "Security constraints",
+					"description": "Security constraints associated to the resource",
+					"type": "object",
+					"_xpath": "gmd:MD_SecurityConstraints",
+					"properties": {
+						"useLimitation": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"classification": {
+							"type": "string",
+							"title": "Classification",
+							"description": "Security constraint classification",
+							"properties": {
+								"codeListValue": {
+									"title": "Security constraint classification code, eg. 'secret'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ClassificationCode) Classification codelist. Suggested values: {unclassified, restricted, confidential, secret, topSecret, SBU, forOfficialUseOnly, protected, limitedDistribution}",
+									"type": "string",
+									"propertyType": "attribute"
+								},
+								"codeList" : {
+									"title": "Codelist used for resource topic categories. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ClassificationCode",
+									"type": "string",
+									"propertyType": "attribute"
+								},
+								"codeSpace": {
+									"title": "Codespace of the topic categories codelist. Recommended value: ISOTC211/19115",
+									"type": "string",
+									"propertyType": "attribute"
+								}
+							}
+						},
+						"userNote": {
+							"type": "string",
+							"title": "User note"
+						},
+						"classificationSystem": {
+							"type": "string",
+							"title": "Classification system",
+							"description": "A specific classification system, eg. Organization-specific system to classify resource confidentiality"
+						},
+						"handlingDescription": {
+							"type": "string",
+							"title": "Handling description",
+							"description": "A description for the security constraint associated to the resource"
+						}
 					}
 				}
-			},
-			"required": [
-				"name"
-			]
+			}
 		},
-		"controlled_vocabulary": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"code_list_uri": {
-						"title": "Code list URI",
-						"type": "string"
-					},
-					"code": {
-						"title": "Code",
-						"type": "string"
-					},
-					"value": {
-						"title": "Value",
-						"type": "string"
-					}
+		"parameter": {
+			"type": "object",
+			"title": "Parameter",
+			"description": "Service parameter",
+			"_xpath": "gmd:SV_Parameter",
+			"properties": {
+				"name": {
+					"type": "string",
+					"title": "Name",
+					"description": "Service parameter name",
+					"_xpath": "gmd:SV_Parameter/gmd:name/gco:CharacterString"
+				},
+				"direction": {
+					"type": "string",
+					"title": "Direction",
+					"description": "Direction of the parameter. Suggested values: {in, out, inout}",
+					"_xpath": "gmd:SV_Parameter/gmd:direction/gmd:SV_ParameterDirection"
+				},
+				"description": {
+					"type": "string",
+					"title": "Description",
+					"description": "Service parameter description",
+					"_xpath": "gmd:SV_Parameter/gmd:description/gco:CharacterString"
+				},
+				"optionality": {
+					"type": "string",
+					"title": "Optionality",
+					"description": "Optionality, either 'Optional' or 'Mandatory' value",
+					"_xpath": "gmd:SV_Parameter/gmd:optionality/gco:CharacterString"
+				},
+				"repeatability": {
+					"type": "boolean",
+					"title": "Repeatability",
+					"description": "Service parameter repeatability",
+					"_xpath": "gmd:SV_Parameter/gmd:repeatability/gco:Boolean"
+				},
+				"valueType": {
+					"type": "string",
+					"title": "Value type",
+					"description": "Value type",
+					"_xpath": "gmd:SV_Parameter/gmd:valueType/gco:TypeName/gco:aName/gco:CharacterString"
 				}
-			},
-			"required": [
-				"value"
-			]
+			}
 		},
-		"online_resource": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"url": {
-						"title": "Link to the resource",
-						"type": "string"
-					},
-					"name": {
-						"title": "Resource title",
-						"type": "string"
-					},
-					"description": {
-						"title": "Resource description",
-						"type": "string"
-					},
-					"format": {
-						"title": "Resource format",
-						"description": "File format - CSV, ZIP",
-						"type": "string"
+		"operationMetadata": {
+			"type": "object",
+			"title": "Operation metadata",
+			"description" : "Service operation metadata descriptions",
+			"_xpath": "gmd:SV_OperationMetadata",
+			"properties": {
+				"operationName": {
+					"title": "Operation name",
+					"type": "string",
+					"_xpath": "gmd:SV_OperationMetadata/gmd:operationName/gco:CharacterString"
+				},
+				"DCP": {
+					"type": "array",
+					"title": "DCP(s)",
+					"description": "Distributed Computing Plateform(s). Recommended value: 'WebServices'",
+					"_xpath": "gmd:SV_OperationMetadata/gmd:DCP",
+					"items": {
+						"type": "string",
+						"title": "DCP",
+						"description": "Distributed Computing Plateform",
+						"_xpath": "gmd:SV_OperationMetadata/gmd:DCP/gmd:DCPList",
+						"properties": {
+							"codeListValue": {
+								"title": "DCP, eg. 'WebServices'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DCPList) DCP codelist. Suggested values: {COM, CORBA, JAVA, SQL, WebServices, XML}",
+								"type": "string",
+								"propertyType": "attribute"
+							},
+							"codeList" : {
+								"title": "Codelist used for DCPs. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DCPList",
+								"type": "string",
+								"propertyType": "attribute"
+							},
+							"codeSpace": {
+								"title": "Codespace of the DCPs. Recommended value: ISOTC211/19119",
+								"type": "string",
+								"propertyType": "attribute"
+							}
+						}
+					}
+				},
+				"operationDescription": {
+					"type": "string",
+					"title": "Operation description",
+					"_xpath": "gmd:SV_OperationMetadata/gmd:operationDescription/gco:CharacterString"
+				},
+				"invocationName": {
+					"type": "string",
+					"title": "Invocation name",
+					"_xpath": "gmd:SV_OperationMetadata/gmd:invocationName/gco:CharacterString"
+				},
+				"parameters": {
+					"type": "array",
+					"title": "Parameters",
+					"description": "Operation parameters",
+					"_xpath": "gmd:SV_OperationMetadata/gmd:parameters",
+					"items": {
+						"type": "object",
+						"$ref": "#/definitions/parameter"
+					}
+				},
+				"connectPoint": {
+					"type": "array",
+					"title": "Connect Point(s)",
+					"_xpath": "gmd:SV_OperationMetadata/gmd:connectPoint",
+					"$ref": "#/definitions/onlineResource"
+				},
+				"dependsOn": {
+					"type": "array",
+					"title": "Depends on",
+					"description": "Depends on (other operation metadata)",
+					"items": {
+						"type": "object",
+						"$ref": "#/definitions/operationMetadata"
 					}
 				}
 			}
@@ -205,399 +812,1963 @@
             "type": "string",
             "title": "Collection ID that owns the dataset",
             "description": "Abbreviation for the collection that owns this dataset"
-          },
-          "published": {
-            "type": "integer",
-            "description": "Status of the dataset - 0=draft, 1=published",
-            "default": 0
-          },
-          "overwrite": {
-            "type": "string",
-            "description": "Overwrite if already exists?",            
-            "enum":["yes","no"],
-            "default": "no"
-          },
-
-		"metadata_maintenance": {
-			"type": "object",
-			"title": "Metadata production",
-			"description": "Document production",
-			
-			"properties": {
-				"update_frequency": {
-					"title": "Maintenance Frequency",
-					"type": "string",
-					"description": "continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, not-Planned, unknown"
-				},
-				"note": {
-					"title": "Maintenance Note",
-					"type": "string"					
-				},
-				"contact": {
-					"$ref":"#/definitions/contact",
-					"description": "Maintenance contact"
-				},
-				"prod_date": {
-					"title": "Date of Production",
-					"description": "Document production date using format(YYYY-MM-DD)",
-					"type": "string"
-				  },
-				  "version": {
-					"title": "Document version",
-					"description": "Identify and describe the current version of the document",
-					"type": "string"
-				  }
-			}
+        },
+		"published": {
+			"type": "integer",
+			"description": "Status of the dataset - 0=draft, 1=published",
+			"default": 0
+		},
+		"overwrite": {
+			"type": "string",
+			"description": "Overwrite if already exists?",            
+			"enum":["yes","no"],
+			"default": "no"
 		},
 
-		"dataset_description": {
+		"dataset_metadata": {
 			"type": "object",
-			"title": "Dataset description",
+			"title": "Dataset description following ISO 19115 / ISO/TS 19139 metadata standard",
 			"description": "Dataset description",
 			"properties": {
-
-				"file_identifier": {
+				"fileIdentifier": {
 					"title": "Unique Identifier",
-					"description":"Global unique identifier",
+					"description":"Global unique persistent identifier.",
 					"type": "string",
 					"_xpath":"gmd:fileIdentifier/gco:CharacterString"
 				},
 				"language": {
 					"title": "Language",
-					"description":"Language code",					
+					"description":"Main metadata language",					
 					"type": "string",
-					"_xpath":"gmd:language/gco:CharacterString"
+					"_xpath":"gmd:language/gmd:LanguageCode",
+					"$ref": "#/definitions/language"
 				},
-				"charset_code": {
-					"title": "Characterset",
-					"description":"Character encoding used e.g. UTF-8",
+				"characterSet": {
+					"title": "Character set",
+					"description":"Metadata Character encoding used e.g. UTF-8",
 					"type": "string",
-					"_xpath":"gmd:characterSet/gmd:MD_CharacterSetCode"
+					"_xpath":"gmd:characterSet/gmd:MD_CharacterSetCode",
+					"$ref": "#/definitions/characterSet"
 				},
-				"hierarchy_level": {
-					"title": "Hierarchy level",
-					"description":"Hierarchy level e.g. dataset, series",
+				"parentIdentifier": {
+					"title": "Unique parent identifier",
+					"description": "Global unique persistent identifier of the parent record, eg. a data collection that includes several datasets",
 					"type": "string",
-					"_xpath":"gmd:hierarchyLevel/gmd:MD_ScopeCode"
+					"_xpath":"gmd:parentIdentifier/gco:CharacterString"
 				},
-				"date_stamp": {
-					"title": "Metadata Date Stamp (YYYY-MM-DD)",
+				"hierarchyLevel": {
+					"title": "Scope(s) / Hierarchy Level(s)",
+					"description":"List of Scope(s), or 'hierarchy level(s)' applicable to the dataset description e.g. dataset, series",
+					"type": "array",
+					"_xpath":"gmd:hierarchyLevel",
+					"items": {
+						"type": "object",
+						"properties": {
+							"hierarchyLevel": {
+								"title": "Scope / Hierarchy Level",
+								"description": "Scope(s), or 'hierarchy level(s)' applicable to the dataset description e.g. dataset, series'",
+								"type": "string",
+								"_xpath":"gmd:hierarchyLevel/gmd:MD_ScopeCode",
+								"$ref": "#/definitions/scope"
+							}
+						}
+					}
+				},
+				"hierarchyLevelName": {
+					"title": "Scope / hierarchy level names.",
+					"description":"List of scope / hierarchy level names. Alternative to the use of 'hierarchyLevel' code items.",
+					"type": "array",
+					"_xpath":"gmd:hierarchyLevelName",
+					"items": {
+						"type": "object",
+						"properties": {
+							"hierarchyLevelName": {
+								"title": "Scope / hierarchy level names",
+								"description":"Scope / hierarchy level name. Alternative to the use of 'hierarchyLevel' code items.",
+								"type": "string",
+								"_xpath":"gmd:hierarchyLevelName/gco:CharacterString"
+							}
+						}
+					}
+				},
+				"contact": {
+					"title": "Contacts",
+					"description": "Contact(s) associated to the metadata",
+					"_xpath":"gmd:contact/gmd:CI_ResponsibleParty",
+					"$ref": "#/definitions/responsibleParty"
+				},
+				"dateStamp": {
+					"title": "Metadata Date Stamp",
 					"type": "string",
 					"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
-					"_xpath":"gmd:dateStamp/gco:Date"
+					"_xpath":"gmd:dateStamp/gco:DateTime"
 				},
-				"contact":{
-					"$ref": "#/definitions/contact",
-					"_xpath":"gmd:contact"
+				"metadataStandardName" : {
+					"title": "Metadata standard name",
+					"description": "Standard name of the metadata standard used. Recommended value: ISO 19115:2003/19139",
+					"type": "string",
+					"_xpath": "gmd:metadataStandardName/gco:CharacterString"
+				},
+				"metadataStandardVersion" : {
+					"title": "Metadata standard version",
+					"description": "Version of the metadata standard used. Optional for ISO/TC211 standard if the metadata standard name includes the inception year",
+					"type": "string",
+					"_xpath": "gmd:metadataStandardVersion/gco:CharacterString"
+				},
+				"dataSetURI" : {
+					"title": "Dataset URI",
+					"description": "A URI that uniquely identifies the dataset",
+					"type": "string",
+					"_xpath": "gmd:dataSetURI/gco:CharacterString"
+				},
+				"locale": {
+					"title": "Locales",
+					"description": "List of locale(s) used for multi-lingual dataset description",
+					"type": "array",
+					"items" : {
+						"type": "object",
+						"$ref": "#/definitions/locale"
+					}
+				},
+				"spatialRepresentationInfo": {
+					"title": "Resource Spatial Representation(s)",
+					"type": "array",
+					"_xpath": "gmd:spatialRepresentationInfo",
+					"items": {
+						"type": "object",
+						"properties": {
+							"vectorSpatialRepresentation": {
+								"type": "object",
+								"description": "Vector Resource spatial representation - Spatial representation information for the dataset (resource). Best practice is to include metadata for spatial representation if the described resource is a georeferenced vector dataset.",
+								"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation",
+								"properties": {
+									"topologyLevel": {
+										"title": "Topology Level",
+										"type": "string",
+										"description": "Topology level associated to the vector resource. Recommended codes: ",
+										"_xpath":"gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:topologyLevel/gmd:MD_TopologyLevelCode",
+										"properties": {
+											"codeListValue": {
+												"title": "Codelist value according to the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_TopologyLevelCode) TopologyLevel codelist. Possible values: {geometryOnly, topology1D, planarGraph, fullPlanarGraph, surfaceGraph, fullSurfaceGraph, topology3D, fullTopology3D, abstract}",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeList": {
+												"title": "Codelist used for topology levels. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_TopologyLevelCode",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeSpace": {
+												"title": "Codespace of the scope codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									},
+									"geometricObjects": {
+										"title": "Geometric objects definition(s)",
+										"description": "Definition(s) of the geometric objects including the geometry type and count",
+										"type": "array",
+										"_xpath":"gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:geometricObjects",
+										"items": {
+											"type": "object",
+											"title": "Geometric object definition",
+											"description": "Definition of the geometric objects including the geometry type and count",
+											"_xpath":"gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:geometricObjects/gmd:MD_GeometricObjects",
+											"properties": {
+												"geometricObjectType" : {
+													"title": "Geometric Object Type",
+													"type": "string",
+													"_xpath":"gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:geometricObjects/gmd:MD_GeometricObjects/gmd:geometricObjectType/gmd:MD_GeometricObjectTypeCode",
+													"description": "Identification of the objects used to represent features in the vector spatial dataset",
+													"properties" : {
+														"codeListValue": {
+															"title": "Codelist value according to the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_GeometricObjectTypeCode) GeometricObjectType codelist. Possible values: {complex, composite, curve, point, solid, surface}",
+															"type": "string",
+															"propertyType": "attribute"
+														},
+														"codeList": {
+															"title": "Codelist used for topology levels. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_GeometricObjectTypeCode",
+															"type": "string",
+															"propertyType": "attribute"
+														},
+														"codeSpace": {
+															"title": "Codespace of the geometry object type codelist. Recommended value: ISOTC211/19115",
+															"type": "string",
+															"propertyType": "attribute"
+														}
+													}
+												},
+												"geometricObjectCount" : {
+													"title": "Geometric Object count",
+													"description": "Number of geometric objects available for the resource",
+													"type": "integer",
+													"_xpath":"gmd:spatialRepresentationInfo/gmd:MD_VectorSpatialRepresentation/gmd:geometricObjects/gmd:MD_GeometricObjects/gmd:geometricObjectCount/gco:Integer"
+												}
+											}
+										}
+									}
+								}
+							},
+							"gridSpatialRepresentation" : {
+								"type": "object",
+								"description": "Grid  Resource spatial representation - Spatial representation information for the dataset (resource). Best practice is to include metadata for spatial representation if the described resource is a georeferenced gridded / raster dataset.",
+								"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation",
+								"properties": {
+									"numberOfDimensions" : {
+										"title": "Number of dimensions",
+										"description": "Number of dimensions in the grid",
+										"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:numberOfDimensions/gco:Integer",
+										"type": "integer"
+									},
+									"axisDimensionProperties": {
+										"title": "Axis dimension properties",
+										"description": "Properties of the axis dimensions",
+										"type": "array",
+										"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:axisDimensionProperties",
+										"items": {
+											"type": "object",
+											"properties": {
+												"dimension": {
+													"title": "Grid dimension",
+													"description": "Definition of a grid dimension including its name, size and resolution",
+													"type": "object",
+													"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:axisDimensionProperties/gmd:MD_Dimension",
+													"properties": {
+														"dimensionName": {
+															"title": "Dimension name type",
+															"description": "name type of the dimension",
+															"type": "string",
+															"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:axisDimensionProperties/gmd:MD_Dimension/gmd:dimensionName/gmd:MD_DimensionNameTypeCode",
+															"properties": {
+																"codeListValue": {
+																	"title": "Codelist value according to the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_DimensionNameTypeCode) DimensionNameType codelist. Possible values: {row, column, vertical, track, crossTrack, line, sample, time}",
+																	"type": "string",
+																	"propertyType": "attribute"
+																},
+																"codeList": {
+																	"title": "Codelist used for grid dimension name types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_DimensionNameTypeCode",
+																	"type": "string",
+																	"propertyType": "attribute"
+																},
+																"codeSpace": {
+																	"title": "Codespace of the grid dimension name type codelist. Recommended value: ISOTC211/19115",
+																	"type": "string",
+																	"propertyType": "attribute"
+																}
+															}
+														},
+														"dimensionSize": {
+															"title": "Dimension size",
+															"description": "Size of the dimension",
+															"type": "integer",
+															"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:axisDimensionProperties/gmd:MD_Dimension/gmd:dimensionSize/gco:Integer"
+														},
+														"resolution": {
+															"title": "Dimension resolution",
+															"description": "Resolution associated to the dimension. The resolution is handled as 'measure' which could be either a length, distance [special measure of length), angle or scale.",
+															"type": "double",
+															"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:axisDimensionProperties/gmd:MD_Dimension/gmd:dimensionSize/gco:Measure",
+															"_xpath_note": "gco:Measure is an abstract element, use sub-classes gco:Length/gco:Distance/gco:Angle/gco:Scale",
+															"properties": {
+																"uom" : {
+																	"title": "Unit Of Measure",
+																	"description": "Unit considered for the resolution measure",
+																	"type": "string",
+																	"propertyType": "attribute"
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									},
+									"cellGeometry": {
+										"title": "Cell geometry",
+										"description": "Type of geometry used for the grid cells",
+										"type": "string",
+										"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:cellGeometry/gmd:MD_CellGeometryCode",
+										"properties": {
+											"codeListValue": {
+												"title": "Codelist value according to the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CellGeometryCode) CellGeometryCode codelist. Possible values: {point, area, voxel, stratum}",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeList": {
+												"title": "Codelist used for the grid cell geometry type. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CellGeometryCode",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeSpace": {
+												"title": "Codespace of the cell geometry type codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									},
+									"transformationParameterAvailability" : {
+										"title": "Transformation Parameter Availability",
+										"description": "Indicates whether grid transformation parameters are available",
+										"type": "boolean",
+										"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:transformationparameterAvailability/gco:Boolean"
+									}
+								}	
+							}
+						}
+					}
 				},
 				
-				"identification_info": {
-					"title": "Resource Identification Information",
-					"type": "object",
-					"description": "Resource Dataset or Dataset Series Identification",
-					"properties": {
-						"title": {
-							"title": "Title",
-							"type": "string",
-							"description": "Dataset title",
-							"_xpath" :"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString"
-						},
-						"alternate_title": {
-							"title": "Alternate Title",
-							"type": "string",
-							"_xpath" :"",
-							"_xpath_note":"not supported by ISO-19139"
-						},
-						"date":{
-							"$ref": "#/definitions/date",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:DateTime"
-						},
-						"edition": {
-							"title": "Edition",
-							"type": "string",
-							"description": "Edition e.g. first",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:edition/gco:CharacterString"
-						},
-						"identifiers":{
-							"title": "Unique Identifier",
-							"description":"Unique identifier",
-							"type":"array",
-							"items":{
-							  "type":"object",
-							  "properties":{
-								"identifier":{
-								  "title":"Identifier",
-								  "type":"string"
+				"referenceSystemInfo": {
+					"type": "array",
+					"title": "Resource Reference Systems",
+					"description": "Resource’s spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
+					"items": {
+						"$ref": "#/definitions/referenceSystem"
+					}
+				},
+				
+				"identificationInfo": {
+					"title": "Identification Info(s)",
+					"description": "Identification(s) of the resource",
+					"type": "array",
+					"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification",
+					"items": {
+						"type": "object",
+						"properties": {
+							"citation": {
+								"type": "object",
+								"title": "Citation",
+								"description": "Dataset citation",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation",
+								"$ref": "#/definitions/citation"
+							},
+							"abstract": {
+								"title": "Abstract",
+								"description": "Abstract describing the dataset resource",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract",
+								"type": "string"
+							},
+							"purpose": {
+								"title": "Purpose",
+								"description": "Purpose of the dataset resource",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:purpose",
+								"type": "string"
+							},
+							"credit": {
+								"title": "Credit",
+								"description": "Credit associated to the dataset resource",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:credit",
+								"type": "string"
+							},
+							"status": {
+								"title": "Status",
+								"description": "Status of the dataset resource",
+								"type": "string",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode",
+								"properties": {
+									"codeListValue": {
+										"title": "Status/Progress code, eg. 'onGoing'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ProgressCode) Progress codelist. Suggested values: {completed, historicalArchive, obsolete, onGoing, planned, required, underDevelopment, final, pending, retired, superseded, tentative, valid, accepted, notAccepted, withdrawn, proposed, deprecated}",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeList" : {
+										"title": "Codelist used for dataset hierarchy level. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ProgressCode",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeSpace": {
+										"title": "Codespace of the status/progress codelist. Recommended value: ISOTC211/19115",
+										"type": "string",
+										"propertyType": "attribute"
+									}
 								}
-							  }
-							}
-						  },
-						"presentation_form": {
-							"title": "Dataset Presentation Form",
-							"type": "string",
-							"description": "documentDigital, documentHardcopy, imageDigital, image-Hardcopy, mapDigital, mapHardcopy, modelDigital, model-Hardcopy, profileDigital, profileHardcopy, tableDigital, tableHardcopy, videoDigital, videoHardcopy, audioDigital",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:presentationForm/gmd:CI_PresentationFormCode/@codeListValue"
-						},
-						"abstract": {
-							"title": "Abstract",
-							"type": "string",
-							"description": "A free text summary of the content, significance, purpose, scope, etc. of the resource.",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString"
-						},
-						"purpose": {
-							"title": "Purpose",
-							"type": "string",
-							"description": "Summary of the intentions for which the dataset was developed. Purpose includes objectives for creating the dataset and what the dataset is to support.",
-							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:purpose/gco:CharacterString"
-						},
-
-						"credit": {
-							"title": "Credit",
-							"type": "string"							
-						},
-
-						"status": {
-							"title": "Status",
-							"type": "string",
-							"description": "Status code - completed, historicalArchive, obsolete, onGoing, planned, required, underDevelopment",
-							"_xpath": "//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode/@codeListValue"
-						},
-						"point_of_contact":{
-							"$ref": "#/definitions/contact",
-							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty"
-						},
-
-						"resource_maintenance": {
-							"type": "object",
-							"description": "Resource maintenance",							
-							"properties": {
-								"maintenance_frequency": {
-									"title": "Maintenance Frequency",
-									"type": "string",
-									"description": "Maintenance frequency code - continual, daily, weekly, fortnightly, monthly, quarterly, biannually, annually, asNeeded, irregular, not-Planned, unknown",
-									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency/gmd:MD_MaintenanceFrequencyCode/@codeListValue"
+							},
+							"pointOfContact": {
+								"title": "Points of contact",
+								"description": "One or more points of contacts for the resource",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty",
+									"$ref": "#/definitions/responsibleParty"
 								}
-							}
-						},
-						
-						"graphic_overview": {
-							"$ref": "#/definitions/graphic_overview",
-							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview"
-						},
-						"keywords": {
-							"$ref": "#/definitions/keyword",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords"
-						},
-
-						"resource_constraints": {
-							"type": "object",
-							"description": "Resource constraints",							
-							"properties": {
-								"legal_constraints": {
-									"title":"Legal constraints",
-									"description":"Legal constraints",
-									"$ref":"#/definitions/controlled_vocabulary",
-									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:useConstraints/gmd:MD_RestrictionCode/@codeListValue"
-								},
-								"use_limitations": {
-									"title":"Use limitations",
-									"description":"Use limitations",
-									"type":"string",
-									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_Constraints/gmd:useLimitation/gco:CharacterString"
-								},
-								"other_constraints": {
-									"title":"Other constraints",
-									"description":"Other constraints",
-									"type":"string",
-									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString"
+							},
+							"resourceMaintenance": {
+								"title": "Resource maintenance",
+								"description": "Information about the dataset resource maintenance",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation",
+									"$ref": "#/definitions/maintenanceInfo"
 								}
-							}
-						},
-						
-						"spatial_representation_type": {
-							"title": "Spatial Representation Type",							
-							"description": "Spatial Representation type - `vector`, `grid`, `textTable`, `tin`, `stereoModel`, `video`",
-							"type":"string",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode/@codeListValue"
-						},
-						"representative_fraction_denominator": {
-							"title": "Spatial Resolution Fraction",
-							"type": "string",
-							"description": "e.g. 100000",
-							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gmd:equivalentScale/gmd:MD_RepresentativeFraction/gmd:denominator/gco:Integer"
-						},
-						"language": {
-							"title": "Language code",
-							"description": "Language code",
-							"type": "string",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gco:CharacterString"
-						},
-						"charset_code": {
-							"title": "Characterset code",
-							"description": "Characterset code",
-							"type": "string",
-							"_xpath":"//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:characterSet/gmd:MD_CharacterSetCode/@codeListValue"
-						},
-
-						"topics": {
-							"type": "array",
-							"title": "Topic Classification",
-							"description": "Topic Classification",
-							"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory",
-							"items": {
-							  "type": "object",
-							  "properties": {
-								"topic": {
-								  "title": "Topic",
-								  "type": "string",
-								  "description": "Topic code e.g. farming, biota, boundaries, climatologyMeterologyAtmosphere, economy, elevation, environment, geoscientificInformation, health, imageryBaseMapsEarthCover, intelligenceMilitary, inlandWater, location, oceans, planningCadastre, society, structure, transportation, utilitiesCommunication",
-								  "_xpath":"gmd:MD_TopicCategoryCode"
-								},
-								"vocab": {
-								  "title": "Vocabulary name",
-								  "type": "string"
-								},
-								"vocab_uri": {
-								  "title": "Vocabulary URI",
-								  "type": "string"
+							},
+							"graphicOverview" : {
+								"title": "Graphic Overview(s)",
+								"description": "Graphic Overview(s) for the dataset resource",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview/gmd:MD_BrowseGraphic",
+									"$ref": "#/definitions/graphicOverview"
 								}
-							  },
-							  "required": [
-								"topic"
-							  ]
-							}
-						},
-						"extent": {
-							"title": "Resource Content Extent",
-							"description": "Defines the spatial (horizontal and vertical) and temporal region to which the content of the resource applies.",
-							"type": "object",
-							"properties": {
-								"geographic_bounding_box": {
-									"title": "Geographic Bounding Box",
-									"type": "array",
-									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox",
-									"items": {
-										"type": "object",
+							},
+							"resourceFormat": {
+								"title": "Resource format(s)",
+								"description": "Resource format(s)",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceFormat/gmd:MD_Format",
+									"$ref": "#/definitions/format"
+								}
+							},
+							"descriptiveKeywords": {
+								"title": "Descriptive keywords",
+								"description": "Descriptive keywords, organized by keyword type",
+								"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords",
+									"$ref": "#/definitions/keywords"
+								}
+							},
+							"resourceConstraints": {
+								"title": "Resource constraints",
+								"description": "Constraints associated to the resource",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints",
+								"_xpath_note": "gmd:MD_LegalConstraints or gmd:MD_SecurityConstraints",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"$ref": "#/definitions/constraints"
+								}
+							},
+							"resourceSpecificUsage": {
+								"title": "Resource specific usage(s)",
+								"description": "Resource specific usage(s) - if applicable",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage",
+								"items": {
+									"type": "object",
+									"properties": {
+										"specificUsage": {
+											"title": "Specific usage description",
+											"description": "A description of a specific usage of this resource relevant to highlight, eg. use case of interest, success story, data paper",
+											"type": "string",
+											"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage/gmd:specificUsage/gco:CharacterString"
+										},
+										"usageDateTime": {
+											"title": "Metadata Date Stamp",
+											"type": "string",
+											"description": "Date and time of the usage. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+											"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage/gmd:usageDateTime/gco:DateTime"
+										},
+										"userDeterminedLimitations": {
+											"title": "User determined limitations",
+											"type": "string",
+											"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage/gmd:userDeterminedLimitations/gco:CharacterString"
+										},
+										"userContactInfo": {
+											"title": "User contact(s)",
+											"type": "array",
+											"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage/gmd:userContactInfo/gmd:CI_ResponsibleParty",
+											"$ref": "#/definitions/responsibleParty"
+										}
+									}
+								}
+							},
+							"aggregationInfo": {
+								"title": "Aggregate information",
+								"description": "Identification of aggregate that encompasses the described resource, eg. data collection",
+								"type": "object",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:aggregateInfo",
+								"properties": {
+									"aggregateDataSetName": {
+										"type": "string",
+										"title": "Name of the Aggregate dataset",
+										"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:aggregateInfo/gmd:aggregateDataSetName"
+									},
+									"aggregateDataSetIdentifier": {
+										"type": "string",
+										"title": "Identifier of the Aggregate dataset",
+										"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:aggregateInfo/gmd:aggregateDataSetIdentifier"
+									},
+									"associationType": {
+										"type": "string",
+										"title": "Association type",
+										"description": "Type of association between the dataset resource and the aggregate Resource",
+										"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:aggregateInfo/gmd:associationType/gmd:DS_AssociationTypeCode",
 										"properties": {
-											"south": {
-												"title": "South",
-												"type": "number", 
-												"minimum": -180,
-												"maximum":180,
-												"_xpath":"gmd:southBoundLongitude/gco:Decimal"
+											"codeListValue": {
+												"title": "Association type, eg. 'isComposedOf'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_AssociationTypeCode) AssociationType codelist. Suggested values: {crossReference, largerWorkCitation, partOfSeamlessDatabase, source, stereoMate, isComposedOf, collectiveTitle, series, dependency, revisionOf}",
+												"type": "string",
+												"propertyType": "attribute"
 											},
-											"west": {
-												"title": "West",
-												"type": "number", 
-												"minimum": -180,
-												"maximum":180,
-												"_xpath":"gmd:westBoundLongitude/gco:Decimal"
+											"codeList" : {
+												"title": "Codelist used for association types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_AssociationTypeCode",
+												"type": "string",
+												"propertyType": "attribute"
 											},
-											"north": {
-												"title": "North",
-												"type": "number", 
-												"minimum": -180,
-												"maximum":180,
-												"_xpath":"gmd:northBoundLongitude/gco:Decimal"
+											"codeSpace": {
+												"title": "Codespace of the association types codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									},
+									"initiativeType": {
+										"type": "string",
+										"title": "Initiative type",
+										"description": "Type of initative behind the aggregate Resource",
+										"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:initiativeType/gmd:DS_InitiativeTypeCode",
+										"properties": {
+											"codeListValue": {
+												"title": "Initiative type, eg. 'collection'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_InitiativeTypeCode) InitiativeType codelist. Suggested values: {campaign, collection, dataDictionary, exercise, experiment, investigation, mission, sensor, operation, platform, process, program, project, sciencePaper, study, task, trial, userGuide}",
+												"type": "string",
+												"propertyType": "attribute"
 											},
-											"east": {
-												"title": "East",
-												"type": "number", 
-												"minimum": -180,
-												"maximum":180,
-												"_xpath":"gmd:eastBoundLongitude/gco:Decimal"
+											"codeList" : {
+												"title": "Codelist used for initiative types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_InitiativeTypeCode",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeSpace": {
+												"title": "Codespace of the initiative types codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									}
+								}
+							},
+							"spatialRepresentationType": {
+								"type": "string",
+								"title": "Spatial Representation type",
+								"description": "Spatial representation type of the resource",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode",
+								"properties": {
+									"codeListValue": {
+										"title": "Spatial representation type, eg. 'vector'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_SpatialRepresentationTypeCode) SpatialRepresentationType codelist. Suggested values: {vector, grid, textTable, tin, stereoModel, video}",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeList" : {
+										"title": "Codelist used for resource topic categories. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_SpatialRepresentationTypeCode",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeSpace": {
+										"title": "Codespace of the topic categories codelist. Recommended value: ISOTC211/19115",
+										"type": "string",
+										"propertyType": "attribute"
+									}
+								}
+							},
+							"spatialResolution": {
+								"title": "Spatial Resolution",
+								"description": "Spatial resolution of the resource",
+								"type": "double",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gco:Distance",
+								"properties": {
+									"uom" : {
+										"title": "Unit Of Measure",
+										"description": "Unit considered for the resolution measure",
+										"type": "string",
+										"propertyType": "attribute"
+									}
+								}
+							},
+							"language": {
+								"type": "array",
+								"title": "Resource language(s)",
+								"description": "Resource language(s)",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gmd:LanguageCode",
+								"items": {
+									"type": "string",
+									"$ref": "#/definitions/language"
+								}
+							},
+							"characterSet": {
+								"type": "array",
+								"title": "Resource character set(s)",
+								"description": "Resource character set(s)",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:characterSet/gmd:MD_CharacterSetCode",
+								"items": {
+									"type": "string",
+									"$ref": "#/definitions/characterSet"
+								}
+							},
+							"topicCategory": {
+								"type": "array",
+								"title": "Topic categories",
+								"description": "Topic categories of the resource",
+								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:topicCategory/gmd:MD_TopicCategoryCode",
+								"items": {
+									"type": "string",
+									"$ref": "#/definitions/topicCategory"
+								}
+							},
+							"extent": {
+								"title": "Extent of the resource",
+								"description": "Defines the spatial (horizontal and vertical) and temporal region to which the content of the resource applies.",
+								"type": "object",
+								"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent",
+								"properties": {
+									"geographicElement": {
+										"type": "array",
+										"title": "Geographic extent(s)",
+										"description": "Geographic extent(s)",
+										"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement",
+										"items": {
+											"type": "object",
+											"properties": {
+												"geographicBoundingBox": {
+													"title": "Geographic Bounding Box",
+													"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox",
+													"type": "object",
+													"properties": {
+														"southBoundLongitude": {
+															"title": "South",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:southBoundLongitude/gco:Decimal"
+														},
+														"westBoundLongitude": {
+															"title": "West",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:westBoundLongitude/gco:Decimal"
+														},
+														"northBoundLongitude": {
+															"title": "North",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:northBoundLongitude/gco:Decimal"
+														},
+														"eastBoundLongitude": {
+															"title": "East",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:eastBoundLongitude/gco:Decimal"
+														}
+													}
+												},
+												"geographicDescription": {
+													"title": "Geographic description identifier",
+													"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/EX_GeographicDescription/gmd:geographicIdentifier/gmd:MD_Identifier/gmd:code/gco:CharacterString",
+													"type": "string"
+												}
+											}
+										}
+									},
+									"temporalElement": {
+										"type": "array",
+										"title": "Temporal extent(s)",
+										"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent",
+										"items": {
+											"type": "object",
+											"properties": {
+												"extent": {
+													"TimePeriod": {
+														"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod",
+														"properties": {
+															"beginPosition": {
+																"title": "Begin time position",
+																"description": "Begin time position. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+																"type": "string",
+																"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"
+															},
+															"endPosition": {
+																"title": "End time position",
+																"description": "End time position. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+																"type": "string",
+																"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition"
+															}
+														}
+													},
+													"TimeInstant": {
+														"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant",
+														"properties": {
+															"timePosition": {
+																"title": "Time Position",
+																"description": "Time position. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+																"type": "string",
+																"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition"
+															}
+														}
+													}
+												}
+											}
+										}
+									},
+									"verticalElement": {
+										"type": "array",
+										"title": "Vertical extent(s)",
+										"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent",
+										"items": {
+											"type": "object",
+											"properties": {
+												"minimumValue": {
+													"title": "Minimum vertical value",
+													"type": "real",
+													"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:minimumValue/gco:Real"	
+												},
+												"maximumValue": {
+													"title": "Maximum vertical value",
+													"type": "real",
+													"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:maximumValue/gco:Real"
+												},
+												"verticalCRS": {
+													"title": "Vertical CRS",
+													"description": "Vertical coordinate reference system used (as defined in the ISO 19136 / GML standard",
+													"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:verticalCRS"
+												}
+											}
+										}
+									}
+								}
+							},
+							"supplementalInformation": {
+								"title": "Supplemental Information",
+								"description": "Additional information about the resource",
+								"type": "string"
+							}
+						}
+					}
+				},
+				
+				"contentInfo": {
+					"title": "Content information",
+					"description": "Information on the resource content, ie data structure definition",
+					"type": "array",
+					"_xpath": "gmd:contentInfo",
+					"items": {
+						"type": "object",
+						"properties": {
+							"featureCatalogueDescription": {
+								"title": "Feature Catalogue Description",
+								"description": "description of the feature catalogue (ISO 19110) associated to a vector resource, ie. the definition of the vector data structure",
+								"_xpath": "gmd:contentInfo/gmd:MD_FeatureCatalogueDescription",
+								"properties": {
+									"complianceCode": {
+										"title": "Compliance code",
+										"description": "Indicates whether the dataset complies with the feature catalogue description",
+										"type": "boolean",
+										"_xpath": "gmd:contentInfo/gmd:MD_FeatureCatalogueDescription/gmd:complianceCode/gco:Boolean"
+									},
+									"language": {
+										"title": "Feature catalogue language",
+										"type": "string",
+										"_xpath": "gmd:contentInfo/gmd:MD_FeatureCatalogueDescription//gmd:language/gco:CharacterString"
+									},
+									"includedWithDataset": {
+										"title": "Included with dataset",
+										"description": "Indicates if the feature catalogue (ISO 19110) is included with the dataset?",
+										"type": "boolean",
+										"_xpath": "gmd:contentInfo/gmd:MD_FeatureCatalogueDescription/gmd:includeWithDataset/gco:Boolean"
+									},
+									"featureCatalogueCitation": {
+										"title": "Feature Catalogue citation",
+										"type": "object",
+										"_xpath": "gmd:contentInfo/gmd:MD_FeatureCatalogueDescription/gmd:featureCatalogueCitation/gmd:CI_Citation",
+										"$ref": "#/definitions/citation",
+										"properties": {
+											"uuidref": {
+												"title": "Feature catalogue identifier",
+												"description": "Unique identifier of the feature catalogue (ISO 19110) within the same catalogue",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									}
+								}
+								
+							},
+							"coverageDescription": {
+								"title": "Coverage Description",
+								"_xpath": "gmd:contentInfo/gmd:MD_CoverageDescription",
+								"_xpath_note": "MD_CoverageDescription is extended by the MI_CoverageDescription in the ISO 19115-2 extension for grid/imagery data",
+								"description": "description of the coverage (grid/raster), ie. the definition of the grid/raster data structure",
+								"type": "object",
+								"properties": {
+									"contentType": {
+										"title": "Coverage content type",
+										"description": "Type of coverage content",
+										"type": "string",
+										"properties": {
+											"codeListValue": {
+												"title": "Type of coverage content, eg. 'image'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CoverageContentTypeCode) Coverage content type codelist. Suggested values: {image, thematicClassification, physicalMeasurement, auxillaryInformation, qualityInformation, referenceInformation, modelResult, coordinate, auxilliaryData}",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeList" : {
+												"title": "Codelist used for coverage content types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CoverageContentTypeCode",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeSpace": {
+												"title": "Codespace of the coverage content types codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									},
+									"dimension": {
+										"title": "Coverage dimensions",
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"name": {
+													"title": "Name",
+													"type": "string"
+												},
+												"type": {
+													"title": "Dimension type",
+													"type": "string"
+												}
 											}
 										}
 									}
 								}
 							}
-						},
-						"supplemental_information": {
-							"title": "Supplemental information",
-							"description": "Supplemental information",
-							"type": "string"
 						}
-					},
-					"required":["title"]
-				},				
-
-				"distribution_info": {
+					}
+				},
+				
+				"distributionInfo": {
 					"type": "object",
 					"title": "Distribution information",
 					"description": "Distribution information",
 					"properties": {
-						"distributors":{
-							"title":"Distributors",
-							"description":"Distributors",
-							"$ref": "#/definitions/contact",
-							"_xpath":"gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor"
+						"distributionFormat": {
+							"title": "Distribution format(s)",
+							"_xpath": "gmd:distributionInfo/gmd:MD_Format",
+							"type": "array",
+							"$ref": "#/definitions/format"
 						},
-						"online_resource":{
-							"title":"Online resource",
-							"description":"Online resource",
-							"$ref": "#/definitions/online_resource",
-							"_xpath":"gmd:distributionInfo/gmd:MD_Distribution/gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource"
+						"distributor": {
+							"title": "Distributor(s)",
+							"description": "Responsible party(ies) in charge of the resource distribution",
+							"type": "array",
+							"_xpath": "gmd:distributionInfo/gmd:MD_Distributor/gmd:distributorContact",
+							"$ref": "#/definitions/responsibleParty"
+						},
+						"transferOptions": {
+							"title": "Digital transfer options",
+							"description": "Options of digital transfer available for the resource",
+							"type": "array",
+							"_xpath": "gmd:distributionInfo/gmd:MD_DigitalTransferOptions",
+							"items": {
+								"type": "object",
+								"properties": {
+									"onLine": {
+										"title": "Online Resources",
+										"type": "array",
+										"$ref": "#/definitions/onlineResource"
+									}
+								}
+							}
 						}
 					}
 				},
+				
+				"dataQualityInfo": {
+					"title": "Data quality information",
+					"description": "Data quality information",
+					"type": "array",
+					"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality",
+					"items": {
+						"type": "object",
+						"properties": {
+							"scope": {
+								"title": "Scope of the data quality information",
+								"type": "object",
+								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode",
+								"$ref": "#/definitions/scope"
+							},
+							"report": {
+								"title": "Data quality report(s)",
+								"description": "Data quality report(s) associated to the resource",
+								"type": "array",
+								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report",
+								"items": {
+									"type": "object",
+									"properties": {
+										"DQ_DomainConsistency" : {
+											"title": "Data quality domain consistency",
+											"description": "Domain consistency report information",
+											"type": "object",
+											"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency",
+											"properties": {
+												"result": {
+													"title": "Conformance Result",
+													"description": "Result of conformance of the resource",
+													"type": "object",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult",
+													"properties": {
+														"nameOfMeasure": {
+															"title": "Measures",
+															"description": "Data quality measure names",
+															"type": "array",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:nameOfMeasure", 
+															"items": {
+																"type": "string",
+																"title": "Measure of the data quality"
+															}
+														},
+														"measureIdentification": {
+															"title": "Measure identification",
+															"description": "Unique identifier for the data quality measure",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:measureIdentification/gmd:MD_Identifier" 
+														},
+														"measureDescription": {
+															"title": "Measure description",
+															"description": "Description for the data quality measure",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:measureDescription/gco:CharacterString"
+														},
+														"evaluationMethodType": {
+															"title": "Evaluation method type",
+															"description": "the type of method to evaluate the data quality measure",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:evaluationMethodType/gmd:DQ_EvaluationMethodTypeCode",
+															"properties": {
+																"codeListValue": {
+																	"title": "Type of evaluation method, eg. 'indirect'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DQ_EvaluationMethodTypeCode) TopicCategory codelist. Suggested values: {directInternal, directExternal, indirect}",
+																	"type": "string",
+																	"propertyType": "attribute"
+																},
+																"codeList" : {
+																	"title": "Codelist used for data quality evaluation method types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MDQ_EvaluationMethodTypeCode",
+																	"type": "string",
+																	"propertyType": "attribute"
+																},
+																"codeSpace": {
+																	"title": "Codespace of the data quality evaluation method types codelist. Recommended value: ISOTC211/19115",
+																	"type": "string",
+																	"propertyType": "attribute"
+																}
+															}
+														},
+														"evaluationMethodDescription": {
+															"title": "Evaluation method description",
+															"description": "a description of the data quality evaluation method",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:evaluationMethodDescription/gco:CharacterString"
+														},
+														"evaluationProcedure": {
+															"title": "Evaluation procedure",
+															"description": "Evaluation procedure description (as 'citation')",
+															"type": "object",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:evaluationMethodDescription/gco:CharacterString",
+															"$ref": "#/definitions/citation"
+														},
+														"dateTime": {
+															"title": "Report Date Stamp",
+															"type": "string",
+															"description": "Date and time when the data quality report has been established. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:dateTime/gco:DateTime"
+														},
+														"result": {
+															"title": "Result(s)",
+															"description": "Result(s) of consistency associated to the data quality report",
+															"type": "array",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult",
+															"items": {
+																"type": "object",
+																"properties": {
+																	"specification": {
+																		"title": "Result specification",
+																		"description": "The specification(s) of the data quality conformance result",
+																		"type": "object",
+																		"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult/gmd:specification/gmd:CI_Citation",
+																		"$ref": "#/definitions/citation"
+																	},
+																	"explanation": {
+																		"title": "Result explanation",
+																		"description": "The explanation(s) of the data quality conformance (or non-conformance) result",
+																		"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult/gmd:explanation/gco:CharacterString",
+																		"type": "string"
+																	},
+																	"pass": {
+																		"title": "Result pass",
+																		"description": "Indicates whether or not the conformance result is a success",
+																		"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult/gmd:pass/gco:Boolean",
+																		"type": "boolean"
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							},
+							"lineage": {
+								"type": "object",
+								"title": "Lineage",
+								"description": "Description of the resource lineage, ie process steps performed to lead to the resource",
+								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage",
+								"properties": {
+									"statement": {
+										"title": "Lineage statement",
+										"description": "A description of the overall lineage information. eg. 'Data management workflow'",
+										"type": "string",
+										"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:statement/gco:CharacterString"
+									},
+									"processStep": {
+										"title": "Process step(s)",
+										"description": "Description of the process steps required to obtain the resource",
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"description": {
+													"title": "process step description",
+													"description": "description of the process step",
+													"type": "string",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:description/gco:CharacterString"
+												},
+												"rationale": {
+													"title": "process step rationale",
+													"description": "rationale of the process step",
+													"type": "string",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:rationale/gco:CharacterString"
+												},
+												"dateTime": {
+													"title": "Date stamp",
 
-				"data_quality_info": {
-					"title": "Data Quality",
-					"type": "object",
-					"properties": {
-						"Scope": {
-							"title": "Data Quality Scope",
-							"description": "Scope code - dataset, series, collectionSession, etc.",
-							"type": "string",
-							"_xpath":"gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode/@codeListValue"
-						},
-						"lineage": {
-							"title": "Data Quality Lineage Statement",
-							"description": "Data quality lineage statement",
-							"type": "string",
-							"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage"
+													"type": "string",
+													"description": "Date and time when the data quality report has been established. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:dateTime/gco:DateTime"
+												},
+												"processor": {
+													"type": "array",
+													"title": "Processor(s)",
+													"description": "Responsible party(ies) in charge of the processing for the step",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:processor/gmd:CI_ResponsibleParty",
+													"$ref": "#/definitions/responsibleParty"
+												},
+												"source": {
+													"type": "array",
+													"title": "Source(s)",
+													"description": "Source(s) processed during the process step",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:source/gmd:LI_Source",
+													"items": {
+														"type": "object",
+														"properties": {
+															"description": {
+																"title": "Source description",
+																"type": "string"
+															},
+															"sourceCitation": {
+																"title": "Source citation",
+																"type": "object",
+																"$ref": "#/definitions/citation"
+															}
+														}
+													}
+												}
+											}
+										}
+									}									
+								}
+							}
 						}
 					}
 				},
-
-				"spatial_representation_info": {
-					"title": "Resource Spatial Representation",
+				
+				"metadataMaintenance": {
+					"title": "Metadata Maintenance information",
+					"description": "Metadata maintenance information",
 					"type": "object",
-					"description": "Resource spatial representation - Spatial representation information for the dataset (resource). Best practice is to include metadata for spatial representation if the described resource is a georeferenced dataset.",
+					"_xpath": "gmd:metadataMaintenance/gmd:MD_MaintenanceInformation",
+					"$ref": "#/definitions/maintenanceInfo"
+				},
+				
+				"portrayalCatalogueInfo": {
+					"title": "Portrayal catalogue information",
+					"description": "Information identifying the portrayal catalogue used by the resource",
+					"type": "object",
+					"_xpath": "gmd:portrayalCatalogueInfo",
 					"properties": {
-						"topology_level": {
-							"title": "Topology Level Code",
-							"type": "string",
-							"description": "codes: {geometryOnly, topology1D, planarGraph, fullPlanarGraph, surfaceGraph, fullSurfaceGraph, topology3D, fullTopology3D, abstract} "
-						},
-						"Geometric_object_code": {
-							"title": "Geometric Object Type Code",
-							"type": "string",
-							"description": "Identification of the objects used to represent features in the dataset - codes ={complex, composite, curve, point, solid, surface}"
+						"portrayalCatalogueCitation": {
+							"title": "Citation for the portrayal catalogue",
+							"_xpath": "gmd:portrayalCatalogueInfo/gmd:portrayalCatalogueCitation/gmd:CI_Citation",
+							"type": "array",
+							"items": {
+								"type": "object",
+								"title": "Citation",
+								"description": "Catalogue citation",
+								"$ref": "#/definitions/citation"
+							}
 						}
 					}
 				},
-				"reference_system_info": {
-					"title": "Resource Reference System",
-					"type": "object",
-					"description": "Resource’s spatial reference system - Description of the spatial and/or temporal reference systems used in the dataset.",
-					"properties": {
-						"code": {
-							"title": "Reference System Identifier Code",
-							"type": "string",
-							"description": "example - EPSG:5701 "
-						},
-						"code_space": {
-							"title": "Code Space",
-							"type": "string",
-							"description": "example - urn:ogc:def:crs"
-						}
-					}
-				}		
-			},
-			"required":["file_identifier"]
+				
+				"metadataExtensionInfo": {
+					"note": "TODO?"
+				},
+				
+				"applicationSchemaInformation": {
+					"note": "TODO?"
+				}
+	
+			}
 		},
 									
+		"service_metadata": {
+			"type": "object",
+			"title": "Service description following ISO 19119 / ISO/TS 19139 metadata standard",
+			"description": "Service description",
+			"properties": {
+				"language": {
+					"title": "Language",
+					"description":"Main metadata language",					
+					"type": "string",
+					"_xpath":"gmd:language/gmd:LanguageCode",
+					"$ref": "#/definitions/language"
+				},
+				"characterSet": {
+					"title": "Character set",
+					"description":"Metadata Character encoding used e.g. UTF-8",
+					"type": "string",
+					"_xpath":"gmd:characterSet/gmd:MD_CharacterSetCode",
+					"$ref": "#/definitions/characterSet"
+				},
+				"parentIdentifier": {
+					"title": "Unique parent identifier",
+					"description": "Global unique persistent identifier of the parent record. May be relevant for multi-services architecture.",
+					"type": "string",
+					"_xpath":"gmd:parentIdentifier/gco:CharacterString"
+				},
+				"hierarchyLevel": {
+					"title": "Scope(s) / Hierarchy Level(s)",
+					"description":"List of Scope(s), or 'hierarchy level(s)' applicable to the service description.",
+					"type": "array",
+					"_xpath":"gmd:hierarchyLevel",
+					"items": {
+						"type": "object",
+						"properties": {
+							"hierarchyLevel": {
+								"title": "Scope / Hierarchy Level",
+								"description": "Scope(s), or 'hierarchy level(s)' applicable to the service description. Recommended value: 'service'",
+								"type": "string",
+								"_xpath":"gmd:hierarchyLevel/gmd:MD_ScopeCode",
+								"$ref": "#/definitions/scope"
+							}
+						}
+					}
+				},
+				"hierarchyLevelName": {
+					"title": "Scope / hierarchy level names.",
+					"description":"List of scope / hierarchy level names. Alternative to the use of 'hierarchyLevel' code items.",
+					"type": "array",
+					"_xpath":"gmd:hierarchyLevelName",
+					"items": {
+						"type": "object",
+						"properties": {
+							"hierarchyLevelName": {
+								"title": "Scope / hierarchy level names",
+								"description":"Scope / hierarchy level name. Alternative to the use of 'hierarchyLevel' code items.",
+								"type": "string",
+								"_xpath":"gmd:hierarchyLevelName/gco:CharacterString"
+							}
+						}
+					}
+				},
+				"contact": {
+					"title": "Contacts",
+					"description": "Contact(s) associated to the metadata",
+					"_xpath":"gmd:contact/gmd:CI_ResponsibleParty",
+					"$ref": "#/definitions/responsibleParty"
+				},
+				"dateStamp": {
+					"title": "Metadata Date Stamp",
+					"type": "string",
+					"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+					"_xpath":"gmd:dateStamp/gco:DateTime"
+				},
+				"metadataStandardName" : {
+					"title": "Metadata standard name",
+					"description": "Standard name of the metadata standard used. Recommended value: ISO 19119:2005/19139",
+					"type": "string",
+					"_xpath": "gmd:metadataStandardName/gco:CharacterString"
+				},
+				"metadataStandardVersion" : {
+					"title": "Metadata standard version",
+					"description": "Version of the metadata standard used. Optional for ISO/TC211 standard if the metadata standard name includes the inception year",
+					"type": "string",
+					"_xpath": "gmd:metadataStandardVersion/gco:CharacterString"
+				},
+				"locale": {
+					"title": "Locales",
+					"description": "List of locale(s) used for multi-lingual service description",
+					"type": "array",
+					"_xpath": "gmd:locale",
+					"items" : {
+						"type": "object",
+						"$ref": "#/definitions/locale"
+					}
+				},
+				"referenceSystemInfo": {
+					"type": "array",
+					"title": "Resource Reference Systems",
+					"description": "Resource’s spatial reference systems - Description of the spatial and/or temporal reference systems managed by the service.",
+					"_xpath": "gmd:referenceSystemInfo",
+					"items": {
+						"$ref": "#/definitions/referenceSystem"
+					}
+				},
+				"identificationInfo" : {
+					"title": "Identification Info(s)",
+					"description": "Identification(s) of the service resource",
+					"type": "array",
+					"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification",
+					"items": {
+						"type": "object",
+						"properties": {
+							"citation": {
+								"type": "object",
+								"title": "Citation",
+								"description": "Service citation",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:citation",
+								"$ref": "#/definitions/citation"
+							},
+							"abstract": {
+								"title": "Abstract",
+								"description": "Abstract describing the service resource",
+								"type": "string",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/abstract"
+							},
+							"purpose": {
+								"title": "Purpose",
+								"description": "Purpose of the service resource",
+								"type": "string",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/purpose"
+							},
+							"credit": {
+								"title": "Credit",
+								"description": "Credit associated to the service resource",
+								"type": "string",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:credit"
+							},
+							"status": {
+								"title": "Status",
+								"description": "Status of the service resource",
+								"type": "string",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:status/gmd:MD_ProgressCode",
+								"properties": {
+									"codeListValue": {
+										"title": "Status/Progress code, eg. 'onGoing'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ProgressCode) Progress codelist. Suggested values: {completed, historicalArchive, obsolete, onGoing, planned, required, underDevelopment, final, pending, retired, superseded, tentative, valid, accepted, notAccepted, withdrawn, proposed, deprecated}",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeList" : {
+										"title": "Codelist used for dataset hierarchy level. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ProgressCode",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeSpace": {
+										"title": "Codespace of the status/progress codelist. Recommended value: ISOTC211/19115",
+										"type": "string",
+										"propertyType": "attribute"
+									}
+								}
+							},
+							"pointOfContact": {
+								"title": "Points of contact",
+								"description": "One or more points of contacts for the service resource",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:pointOfContact",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty",
+									"$ref": "#/definitions/responsibleParty"
+								}
+							},
+							"resourceMaintenance": {
+								"title": "Resource maintenance",
+								"description": "Information about the service resource maintenance",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:resourceMaintenance",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation",
+									"$ref": "#/definitions/maintenanceInfo"
+								}
+							},
+							"graphicOverview" : {
+								"title": "Graphic Overview(s)",
+								"description": "Graphic Overview(s) for the service resource, if applicable. eg. A map overview for Map tile services.",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:graphicOverview",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:graphicOverview/gmd:MD_BrowseGraphic",
+									"$ref": "#/definitions/graphicOverview"
+								}
+							},
+							"resourceFormat": {
+								"title": "Resource format(s)",
+								"description": "Resource format(s)",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:resourceFormat",
+								"items": {
+									"type": "object",
+									"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:resourceFormat/gmd:MD_Format",
+									"$ref": "#/definitions/format"
+								}
+							},
+							"descriptiveKeywords": {
+								"title": "Descriptive keywords",
+								"description": "Descriptive keywords, organized by keyword type",
+								"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:descriptiveKeywords",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords",
+									"$ref": "#/definitions/keywords"
+								}
+							},
+							"resourceConstraints": {
+								"title": "Service constraints",
+								"description": "Legal constraints associated to the service",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:resourceConstraints",
+								"_xpath_note": "applies to gmd:MD_LegalConstraints and gmd:MD_SecurityConstraints",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"$ref": "#/definitions/constraints"
+								}
+							},
+							"resourceSpecificUsage": {
+								"title": "Service specific usage(s)",
+								"description": "Service specific usage(s) - if applicable",
+								"type": "array",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:resourceSpecificUsage",
+								"items": {
+									"type": "object",
+									"properties": {
+										"specificUsage": {
+											"title": "Specific usage description",
+											"description": "A description of a specific usage of this resource relevant to highlight, eg. use case of interest, success story, data paper",
+											"type": "string",
+											"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:specificUsage/gco:CharacterString"
+										},
+										"usageDateTime": {
+											"title": "Metadata Date Stamp",
+											"type": "string",
+											"description": "Date and time of the usage. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+											"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:usageDateTime/gco:DateTime"
+										},
+										"userDeterminedLimitations": {
+											"title": "User determined limitations",
+											"type": "string",
+											"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:userDeterminedLimitations/gco:CharacterString"
+										},
+										"userContactInfo": {
+											"title": "User contact(s)",
+											"type": "array",
+											"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:userContactInfo/gmd:CI_ResponsibleParty",
+											"$ref": "#/definitions/responsibleParty"
+										}
+									}
+								}
+							},
+							"aggregationInfo": {
+								"title": "Aggregate information",
+								"description": "Identification of aggregate that encompasses the described service, eg. GIS map viewer application",
+								"type": "object",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:aggregationInfo",
+								"properties": {
+									"aggregateDataSetName": {
+										"type": "string",
+										"title": "Name of the Aggregate resource"
+									},
+									"aggregateDataSetIdentifier": {
+										"type": "string",
+										"title": "Identifier of the Aggregate resource"
+									},
+									"associationType": {
+										"type": "string",
+										"title": "Association type",
+										"description": "Type of association between the service resource and the aggregate Resource",
+										"properties": {
+											"codeListValue": {
+												"title": "Association type, eg. 'dependency'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_AssociationTypeCode) AssociationType codelist. Suggested values: {crossReference, largerWorkCitation, partOfSeamlessDatabase, source, stereoMate, isComposedOf, collectiveTitle, series, dependency, revisionOf}",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeList" : {
+												"title": "Codelist used for association types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_AssociationTypeCode",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeSpace": {
+												"title": "Codespace of the association types codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									},
+									"initiativeType": {
+										"type": "string",
+										"title": "Initiative type",
+										"description": "Type of initative behind the aggregate Resource",
+										"properties": {
+											"codeListValue": {
+												"title": "Initiative type, eg. 'program'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_InitiativeTypeCode) InitiativeType codelist. Suggested values: {campaign, collection, dataDictionary, exercise, experiment, investigation, mission, sensor, operation, platform, process, program, project, sciencePaper, study, task, trial, userGuide}",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeList" : {
+												"title": "Codelist used for initiative types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DS_InitiativeTypeCode",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"codeSpace": {
+												"title": "Codespace of the initiative types codelist. Recommended value: ISOTC211/19115",
+												"type": "string",
+												"propertyType": "attribute"
+											}
+										}
+									}
+								}
+							},
+							"serviceType": {
+								"type": "string",
+								"title": "Service type",
+								"description": "Service type name",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:serviceType/gco:CharacterString"
+							},
+							"serviceTypeVersion": {
+								"type": "string",
+								"title": "Service type version",
+								"description": "Service type version",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:serviceTypeVersion/gco:CharacterString"
+							},
+							"accessProperties": {
+								"type": "object",
+								"title": "Access properties",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:accessProperties/gmd:MD_StandardOrderProcess",
+								"properties": {
+									"fees": {
+										"type": "string",
+										"title": "Fees",
+										"description": "Eventual fees associated with the service",
+										"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:accessProperties/gmd:MD_StandardOrderProcess/gmd:fees/gco:CharacterString"
+									},
+									"plannedAvailableDateTime": {
+										"title": "Service availability Date Stamp",
+										"type": "string",
+										"description": "Date and time when the metadata record was created or updated. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+										"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:accessProperties/gmd:MD_StandardOrderProcess/gmd:plannedAvailableDateTime/gco:DateTime"
+									},
+									"orderingInstructions": {
+										"type": "string",
+										"title": "Ordering instructions",
+										"description": "Eventual instructions for the ordering",
+										"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:accessProperties/gmd:MD_StandardOrderProcess/gmd:orderingInstructions/gco:CharacterString"
+									},
+									"turnaround": {
+										"type": "string",
+										"title": "Turnaround",
+										"description": "Turnaround",
+										"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:accessProperties/gmd:MD_StandardOrderProcess/gmd:turnaround/gco:CharacterString"
+									}			
+								}
+							},
+							"restrictions": {
+								"title": "Service constraints",
+								"description": "Constraints associated to the service",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:restrictions",
+								"_xpath_note": "gmd:MD_LegalConstraints or gmd:MD_SecurityConstraints",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"$ref": "#/definitions/constraints"
+								}
+							},
+							"keywords": {
+								"title": "Service keywords",
+								"description": "Service keywords, organized by keyword type",
+								"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"$ref": "#/definitions/keywords"
+								}
+							},
+							"extent": {
+								"title": "Extent of the resource",
+								"description": "Defines the spatial (horizontal and vertical) and temporal region to which the content of the resource applies.",
+								"type": "object",
+								"properties": {
+									"geographicElement": {
+										"type": "array",
+										"title": "Geographic extent(s)",
+										"description": "Geographic extent(s)",
+										"items": {
+											"type": "object",
+											"properties": {
+												"geographicBoundingBox": {
+													"title": "Geographic Bounding Box",
+													"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox",
+													"type": "object",
+													"properties": {
+														"southBoundLongitude": {
+															"title": "South",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:southBoundLongitude/gco:Decimal"
+														},
+														"westBoundLongitude": {
+															"title": "West",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:westBoundLongitude/gco:Decimal"
+														},
+														"northBoundLongitude": {
+															"title": "North",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:northBoundLongitude/gco:Decimal"
+														},
+														"eastBoundLongitude": {
+															"title": "East",
+															"type": "number", 
+															"minimum": -180,
+															"maximum":180,
+															"_xpath":"gmd:eastBoundLongitude/gco:Decimal"
+														}
+													}
+												},
+												"geographicDescription": {
+													"title": "Geographic description identifier",
+													"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/EX_GeographicDescription/gmd:geographicIdentifier/gmd:MD_Identifier/gmd:code/gco:CharacterString",
+													"type": "string"
+												}
+											}
+										}
+									},
+									"temporalElement": {
+										"type": "array",
+										"title": "Temporal extent(s)",
+										"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent",
+										"items": {
+											"type": "object",
+											"properties": {
+												"extent": {
+													"TimePeriod": {
+														"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod",
+														"properties": {
+															"beginPosition": {
+																"title": "Begin time position",
+																"description": "Begin time position. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+																"type": "string",
+																"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition"
+															},
+															"endPosition": {
+																"title": "End time position",
+																"description": "End time position. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+																"type": "string",
+																"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition"
+															}
+														}
+													},
+													"TimeInstant": {
+														"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant",
+														"properties": {
+															"timePosition": {
+																"title": "Time Position",
+																"description": "Time position. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+																"type": "string",
+																"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimeInstant/gml:timePosition"
+															}
+														}
+													}
+												}
+											}
+										}
+									},
+									"verticalElement": {
+										"type": "array",
+										"title": "Vertical extent(s)",
+										"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent",
+										"items": {
+											"type": "object",
+											"properties": {
+												"minimumValue": {
+													"title": "Minimum vertical value",
+													"type": "real",
+													"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:minimumValue/gco:Real"	
+												},
+												"maximumValue": {
+													"title": "Maximum vertical value",
+													"type": "real",
+													"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:maximumValue/gco:Real"
+												},
+												"verticalCRS": {
+													"title": "Vertical CRS",
+													"description": "Vertical coordinate reference system used (as defined in the ISO 19136 / GML standard",
+													"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:verticalCRS"
+												}
+											}
+										}
+									}
+								}
+							},
+							"coupledResource": {
+								"type": "array",
+								"title": "Coupled resource(s)",
+								"description": "Coupled resource(s)",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:coupledResource",
+								"items": {
+									"type":" object",
+									"title": "Coupled resource",
+									"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:coupledResource/gmd:SV_CoupledResource",
+									"properties": {
+										"operationName": {
+											"type": "string",
+											"title": "Operation name"
+										},
+										"identifier": {
+											"type": "string",
+											"title": "Identifier of the coupled resource"
+										}
+									}
+								}
+							},
+							"couplingType": {
+								"type": "string",
+								"title": "Coupling type",
+								"description": "Coupling type",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:couplingType/gmd:SV_CouplingType",
+								"properties": {
+									"codeListValue": {
+										"title": "Coupling type, eg. 'loose'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#SV_CouplingTypeCode) CouplingType codelist. Suggested values: {loose, mixed, tight}",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeList" : {
+										"title": "Codelist used for coupling types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#SV_CouplingTypeCode",
+										"type": "string",
+										"propertyType": "attribute"
+									},
+									"codeSpace": {
+										"title": "Codespace of the coupling types codelist. Recommended value: ISOTC211/19119",
+										"type": "string",
+										"propertyType": "attribute"
+									}
+								}
+							},
+							"containsOperations": {
+								"type": "array",
+								"title": "Contained operation(s)",
+								"description": "Operation(s) contained in the service",
+								"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:containsOperations",
+								"items": {
+									"type": "object",
+									"$ref": "#/definitions/operationMetadata"
+								}
+							},
+							"operatesOn": {
+								"type": "array",
+								"title": "Operates on relationship(s)",
+								"description": "List identifiers of datasets on which service operates on",
+								"items": {
+									"type": "object",
+									"title": "Operates On",
+									"description": "Operates On relationship",
+									"properties": {
+										"uuidref": {
+											"type": "string",
+											"title": "Unique dataset identifier within the same catalogue",
+											"propertyType": "attribute"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				
+				"distributionInfo": {
+					"type": "object",
+					"title": "Distribution information",
+					"description": "Distribution information",
+					"properties": {
+						"distributionFormat": {
+							"title": "Distribution format(s)",
+							"_xpath": "gmd:distributionInfo/gmd:MD_Format",
+							"type": "array",
+							"$ref": "#/definitions/format"
+						},
+						"distributor": {
+							"title": "Distributor(s)",
+							"description": "Responsible party(ies) in charge of the resource distribution",
+							"type": "array",
+							"_xpath": "gmd:distributionInfo/gmd:MD_Distributor/gmd:distributorContact",
+							"$ref": "#/definitions/responsibleParty"
+						},
+						"transferOptions": {
+							"title": "Digital transfer options",
+							"description": "Options of digital transfer available for the resource",
+							"type": "array",
+							"_xpath": "gmd:distributionInfo/gmd:MD_DigitalTransferOptions",
+							"items": {
+								"type": "object",
+								"properties": {
+									"onLine": {
+										"title": "Online Resources",
+										"type": "array",
+										"$ref": "#/definitions/onlineResource"
+									}
+								}
+							}
+						}
+					}
+				},
+				
+				"dataQualityInfo": {
+					"title": "Data quality information",
+					"description": "Data quality information",
+					"type": "array",
+					"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality",
+					"items": {
+						"type": "object",
+						"properties": {
+							"scope": {
+
+								"title": "Scope of the data quality information",
+								"type": "object",
+								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode",
+								"$ref": "#/definitions/scope"
+							},
+							"report": {
+								"title": "Data quality report(s)",
+								"description": "Data quality report(s) associated to the service resource",
+								"type": "array",
+								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report",
+								"items": {
+									"type": "object",
+									"properties": {
+										"DQ_DomainConsistency" : {
+											"title": "Data quality domain consistency",
+											"description": "Domain consistency report information",
+											"type": "object",
+											"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency",
+											"properties": {
+												"result": {
+													"title": "Conformance Result",
+													"description": "Result of conformance of the resource",
+													"type": "object",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult",
+													"properties": {
+														"nameOfMeasure": {
+															"title": "Measures",
+															"description": "Data quality measure names",
+															"type": "array",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:nameOfMeasure", 
+															"items": {
+																"type": "string",
+																"title": "Measure of the quality"
+															}
+														},
+														"measureIdentification": {
+															"title": "Measure identification",
+															"description": "Unique identifier for the quality measure",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:measureIdentification/gmd:MD_Identifier" 
+														},
+														"measureDescription": {
+															"title": "Measure description",
+															"description": "Description for the quality measure",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:measureDescription/gco:CharacterString"
+														},
+														"evaluationMethodType": {
+															"title": "Evaluation method type",
+															"description": "the type of method to evaluate the quality measure",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:evaluationMethodType/gmd:DQ_EvaluationMethodTypeCode",
+															"properties": {
+																"codeListValue": {
+																	"title": "Type of evaluation method, eg. 'indirect'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DQ_EvaluationMethodTypeCode) TopicCategory codelist. Suggested values: {directInternal, directExternal, indirect}",
+																	"type": "string",
+																	"propertyType": "attribute"
+																},
+																"codeList" : {
+																	"title": "Codelist used for quality evaluation method types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MDQ_EvaluationMethodTypeCode",
+																	"type": "string",
+																	"propertyType": "attribute"
+																},
+																"codeSpace": {
+																	"title": "Codespace of the quality evaluation method types codelist. Recommended value: ISOTC211/19115",
+																	"type": "string",
+																	"propertyType": "attribute"
+																}
+															}
+														},
+														"evaluationMethodDescription": {
+															"title": "Evaluation method description",
+															"description": "a description of the quality evaluation method",
+															"type": "string",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:evaluationMethodDescription/gco:CharacterString"
+														},
+														"evaluationProcedure": {
+															"title": "Evaluation procedure",
+															"description": "Evaluation procedure description (as 'citation')",
+															"type": "object",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:evaluationMethodDescription/gco:CharacterString",
+															"$ref": "#/definitions/citation"
+														},
+														"dateTime": {
+															"title": "Report Date Stamp",
+															"type": "string",
+															"description": "Date and time when the quality report has been established. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:dateTime/gco:DateTime"
+														},
+														"result": {
+															"title": "Result(s)",
+															"description": "Result(s) of consistency associated to the quality report",
+															"type": "array",
+															"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult",
+															"items": {
+																"type": "object",
+																"properties": {
+																	"specification": {
+																		"title": "Result specification",
+																		"description": "The specification(s) of the quality conformance result",
+																		"type": "object",
+																		"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult/gmd:specification/gmd:CI_Citation",
+																		"$ref": "#/definitions/citation"
+																	},
+																	"explanation": {
+																		"title": "Result explanation",
+																		"description": "The explanation(s) of the quality conformance (or non-conformance) result",
+																		"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult/gmd:explanation/gco:CharacterString",
+																		"type": "string"
+																	},
+																	"pass": {
+																		"title": "Result pass",
+																		"description": "Indicates whether or not the conformance result is a success",
+																		"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:result/gmd:DQ_ConformanceResult/gmd:pass/gco:Boolean",
+																		"type": "boolean"
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							},
+							"lineage": {
+								"type": "object",
+								"title": "Lineage",
+								"description": "Description of the resource lineage, ie process steps performed to lead to the resource",
+								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage",
+								"properties": {
+									"statement": {
+										"title": "Lineage statement",
+										"description": "A description of the overall lineage information. eg. 'Data management workflow'",
+										"type": "string",
+										"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:statement/gco:CharacterString"
+									},
+									"processStep": {
+										"title": "Process step(s)",
+										"description": "Description of the process steps required to obtain the resource",
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"description": {
+													"title": "process step description",
+													"description": "description of the process step",
+													"type": "string",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:description/gco:CharacterString"
+												},
+												"rationale": {
+													"title": "process step rationale",
+													"description": "rationale of the process step",
+													"type": "string",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:rationale/gco:CharacterString"
+												},
+												"dateTime": {
+													"title": "Date stamp",
+
+													"type": "string",
+													"description": "Date and time when the quality report has been established. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:dateTime/gco:DateTime"
+												},
+												"processor": {
+													"type": "array",
+													"title": "Processor(s)",
+													"description": "Responsible party(ies) in charge of the processing for the step",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:processor/gmd:CI_ResponsibleParty",
+													"$ref": "#/definitions/responsibleParty"
+												},
+												"source": {
+													"type": "array",
+													"title": "Source(s)",
+													"description": "Source(s) processed during the process step",
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:source/gmd:LI_Source",
+													"items": {
+														"type": "object",
+														"properties": {
+															"description": {
+																"title": "Source description",
+																"type": "string"
+															},
+															"sourceCitation": {
+																"title": "Source citation",
+																"type": "object",
+																"$ref": "#/definitions/citation"
+															}
+														}
+													}
+												}
+											}
+										}
+									}									
+								}
+							}
+						}
+					}
+				},
+				
+				"metadataMaintenance": {
+					"title": "Metadata Maintenance information",
+					"description": "Metadata maintenance information",
+					"type": "object",
+					"_xpath": "gmd:metadataMaintenance/gmd:MD_MaintenanceInformation",
+					"$ref": "#/definitions/maintenanceInfo"
+				}
+			}
+		},
+		
 		"additional": {
 			"title":"Additional metadata",
 			"description":"Any additional metadata"

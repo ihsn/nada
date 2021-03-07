@@ -23,7 +23,7 @@
                 {
                     "key": "metadata_information.producers",
                     "title": "List of producers",
-                    "type": "array",
+                    "type": "nested_array",
                     "props": {
                         "name": {
                             "key": "name",

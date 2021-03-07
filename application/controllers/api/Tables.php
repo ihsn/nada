@@ -39,6 +39,7 @@ class Tables extends MY_REST_Controller
 					$table_types[$table_id]['storage_size']=$table_storage_info[$table_id]['storageSize'].'M';
 				}
 
+				if(isset($table['table_id']) && isset($table['db_id'])){
 				$table_types[$table_id]['_links']= array(
 					"info" => array(
 						"href" => site_url('/api/tables/info/'.$table['db_id'].'/'.$table['table_id'])
@@ -47,6 +48,7 @@ class Tables extends MY_REST_Controller
 						"href" => site_url('/api/tables/data/'.$table['db_id'].'/'.$table['table_id'])
 					)
 				);
+				}
 			}
 			
 			foreach($table_storage_info as $table_id=>$table){
@@ -56,7 +58,7 @@ class Tables extends MY_REST_Controller
 			}
 			
 			$response=array(
-                		'status'=>'success',
+                'status'=>'success',
 				'tables'=>$table_types,
 				//'tables_storage'=>$table_storage_info
 			);
@@ -91,12 +93,22 @@ class Tables extends MY_REST_Controller
 
 			$table_storage_info=$this->Data_table_mongo_model->get_tables_list();
 
-			
-			$response=array(
-                'status'=>'success',
-				'tables_storage'=>$table_storage_info
-			);
+			if(isset($options['format']) && $options['format']=='csv'){
 
+				if ($this->input->get("disposition")=='inline'){
+					$this->export_data_to_csv(array_values($table_storage_info));
+					die();
+				}
+				
+				header('Content-Disposition: attachment; filename=tables-list.csv');
+				$response=$table_storage_info;
+			}
+			else{
+				$response=array(
+					'status'=>'success',
+					'tables_storage'=>$table_storage_info
+				);
+			}
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -460,23 +472,16 @@ class Tables extends MY_REST_Controller
 
 	private function export_data_to_csv($data,$filename='export',$delimiter = ',',$enclosure = '"')
 	{
-		// Tells to the browser that a file is returned, with its name : $filename.csv
-		//header("Content-disposition: attachment; filename=$filename.csv");
-		// Tells to the browser that the content is a csv file
 		header("Content-Type: text/plain");
-
-		// I open PHP memory as a file
 		$fp = fopen("php://output", 'w');
-
-		// Insert the UTF-8 BOM in the file
-		//fputs($fp, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
-
-		// I add the array keys as CSV headers
 		fputcsv($fp,array_keys($data[0]),$delimiter,$enclosure);
-
-		// Add all the data in the file
-		foreach ($data as $fields) {
-			fputcsv($fp, $fields,$delimiter,$enclosure);
+		foreach ($data as $row) {
+			foreach($row as $key=>$value){
+				if (is_array($value)){
+					$row[$key]=implode("|",$value);
+				}
+			}
+			fputcsv($fp, $row,$delimiter,$enclosure);
 		}
 
 		fclose($fp);

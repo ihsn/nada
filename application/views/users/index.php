@@ -115,8 +115,7 @@
           
       <td>
           <a href="<?php echo current_url(); ?>/edit/<?php echo $row->id; ?>"><?php echo t('edit'); ?></a> |
-          <a href="<?php echo current_url(); ?>/delete/<?php echo $row->id; ?>"><?php echo t('delete'); ?></a> |
-          <a href="<?php echo site_url('admin/users/permissions/' . $row->id); ?>"><?php echo t('permissions'); ?></a>
+          <a href="<?php echo current_url(); ?>/delete/<?php echo $row->id; ?>"><?php echo t('delete'); ?></a>
       </td>
     </tr>
   <?php endforeach;?>

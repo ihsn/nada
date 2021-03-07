@@ -79,21 +79,33 @@ class Dataset_model extends CI_Model {
 		$this->load->library("form_validation");		
 		$this->load->model("Survey_country_model");
 		$this->load->model("Vocabulary_model");
-		$this->load->model("Term_model");		
+		$this->load->model("Term_model");
+		$this->load->model("Survey_resource_model");
 	}
 	
 	
-	//return all datasets
-	function get_all($sid=null,$type=null)
+	/**
+	 * 
+	 * Return all datasets
+	 * 
+	 * @sid - ID to get a single study
+	 * @offset - offset
+	 * @limit - number of rows to return
+	 * 
+	 */
+	function get_all($limit=0,$offset=0)
 	{
 		$this->db->select(implode(",",$this->listing_fields));
+		$this->db->order_by('id');
 
-		if($sid){
+		/*if($sid){
 			$this->db->where('id',$sid);
+		}*/
+
+		if ($limit>0){
+			$this->db->limit($limit, $offset);
 		}
-		if($type){
-			$this->db->where('type',$type);
-		}
+		
 		$result= $this->db->get("surveys")->result_array();
 
 		if($result){
@@ -101,6 +113,12 @@ class Dataset_model extends CI_Model {
 		}
 
 		return false;
+	}
+
+	//returns the total 
+	function get_total_count()
+	{
+		return $this->db->count_all('surveys');
 	}
 
 
@@ -1003,6 +1021,34 @@ class Dataset_model extends CI_Model {
 	{
 		$this->load->model("Resource_model");
 		return $this->Resource_model->import_rdf($sid,$filepath);
+	}
+
+	/**
+	*
+	* Import external resources
+	*
+	* 
+	* - delete all existing resources?
+	* 
+	*
+	* 
+	*/
+	function update_resources($sid, $external_resources)
+	{		
+		if (empty($external_resources)){
+			return;
+		}
+
+		//remove all existing resources
+		$this->Survey_resource_model->delete_all_survey_resources($sid);
+
+		//import new
+		foreach($external_resources as $resource){
+			$resource['survey_id']=$sid;
+
+			$this->Survey_resource_model->validate_resource($resource);
+			$this->Survey_resource_model->insert($resource);
+		}		
 	}
 
 

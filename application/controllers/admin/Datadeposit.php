@@ -13,7 +13,7 @@ class Datadeposit extends MY_Controller {
 		$this->load->library('form_validation');
 		$this->lang->load('licensed_request');
 		$this->load->language('dd_projects');
-		$this->template->set_template('admin');	
+		$this->template->set_template('admin5');	
 		//$this->_get_active_project();
 		
 		$this->load->config("datadeposit");

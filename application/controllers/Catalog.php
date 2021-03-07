@@ -112,7 +112,12 @@ class Catalog extends MY_Controller {
 		$output['search_box_orientation']=$this->search_box_orientation;
 
 		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
-		$output['search_output']=$this->load->view($dataset_view, $output,true);
+		if ($output['search_type']=='variable'){
+			$output['search_output']=$this->load->view('search/variables', $output,true);
+		}
+		else{
+			$output['search_output']=$this->load->view($dataset_view, $output,true);
+		}
 		
 
 		//tags
@@ -216,8 +221,15 @@ class Catalog extends MY_Controller {
 		//tabs
 		$tabs=array();
 		$tabs['types']=$this->facets['types'];
-		$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
-		$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
+
+		//variable view is enabled
+		if(isset($output['variables'])){
+			$tabs['search_counts_by_type']=array();
+			$tabs['active_tab']="survey";
+		}else{
+			$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
+			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
+		}
 
 		$output['tabs']=$tabs;		
 
@@ -248,7 +260,13 @@ class Catalog extends MY_Controller {
 		$output['facets']=$this->facets;
 		$output['tab_type']=$this->active_tab;
 		$output['featured_studies']=null;//$this->get_featured_study($output['surveys']['rows']);
-		$this->load->view($dataset_view, $output);
+		
+		if ($output['search_type']=='variable'){
+			return $this->load->view('search/variables', $output);
+		}
+		else{
+			return $this->load->view($dataset_view, $output);
+		}
 	}
 
 
@@ -272,7 +290,7 @@ class Catalog extends MY_Controller {
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
 		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
-		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
+		$search_options->vk				="";//trim(xss_clean($this->input->get("vk")));
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));
@@ -402,7 +420,7 @@ class Catalog extends MY_Controller {
 		$params=array(
 			'collections'=>$search_options->collection,
 			'study_keywords'=>$search_options->sk,
-			'variable_keywords'=>$search_options->vk,
+			//'variable_keywords'=>$search_options->vk,
 			'variable_fields'=>$search_options->vf,
 			'countries'=>$search_options->country,
 			'topics'=>$search_options->topic,
@@ -428,13 +446,20 @@ class Catalog extends MY_Controller {
 
 		$this->load->library('catalog_search',$params);
 		$data['is_regional_search']=$this->regional_search;
-		$data['surveys']=$this->catalog_search->search($limit,$offset);
+		
+		if($search_options->view=='v'){			
+			$data['variables']=$this->catalog_search->vsearch($limit,$offset);
+			$data['search_type']='variable';
+		}else{
+			$data['surveys']=$this->catalog_search->search($limit,$offset);
+			$data['search_type']='study';
+		}
+
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
 		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
 		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
-		$data['sid']=$search_options->sid;
-		$data['search_type']='study';
+		$data['sid']=$search_options->sid;		
 		return $data;
 	}
 
@@ -791,6 +816,43 @@ class Catalog extends MY_Controller {
 		$this->template->write('title', t('title_compare_variables'),true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
+	}
+
+	/**
+	*
+	* List all variables selected for comparison
+	*
+	**/
+	function variable_cart()
+	{
+		$this->lang->load('ddi_fields');
+		$this->lang->load('catalog_search');
+		$this->load->model("Dataset_model");
+		$this->load->model("Variable_model");
+		$this->load->model("Data_file_model");
+		$this->load->helper("metadata_view");		
+
+		$items=explode(",",$this->input->cookie('variable-compare', TRUE));
+		$list=array();
+
+		if (!$items){
+			return false;
+		}
+
+		foreach($items as $item=>$value){
+			$tmp=explode('/',$value);
+			if (isset($tmp[1])){
+				$variable=$this->Variable_model->variable_basic_info($tmp[0],$tmp[1]);
+				if(!empty($variable)){
+					$list[]=$variable;
+				}
+			}
+		}
+		
+		$this->output
+			->set_content_type('application/json')
+			->set_output(json_encode($list));
+		return;
 	}
 
 

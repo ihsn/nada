@@ -66,13 +66,8 @@ class Survey_resource_model extends CI_Model {
 		//add date modified
 		$options['changed']=date("U");
 					
-		//remove slash before the file path otherwise can't link the path to the file
-		if (isset($options['filename']))
-		{
-			if (substr($options['filename'],0,1)=='/')
-			{
-				$options['filename']=substr($options['filename'],1,255);
-			}
+		if (isset($options['filename'])){
+			$options['filename']=$this->normalize_filename($options['filename']);
 		}
 		
 		//pk field name
@@ -143,6 +138,10 @@ class Survey_resource_model extends CI_Model {
 			$options['dcformat']=$options['format'];
 		}
 		
+		if (isset($options['filename'])){
+			$options['filename']=$this->normalize_filename($options['filename']);
+		}
+
 		$data=array();
 
 		//build update statement
@@ -151,7 +150,7 @@ class Survey_resource_model extends CI_Model {
 				$data[$key]=$value;
 			}
 		}
-		
+
 		$this->db->insert('resources', $data); 		
 		return $this->db->insert_id();
 	}
@@ -238,10 +237,17 @@ class Survey_resource_model extends CI_Model {
 	/**
 	*
 	* Return all resources attached to a survey
+	*
+	* @fields - comma seperated list of field names
+	*
 	**/
-	function get_survey_resources($sid)
+	function get_survey_resources($sid,$fields=null)
 	{
-		$this->db->select('*');
+		if(!empty($fields)){
+			$this->db->select($fields);
+		}else{
+			$this->db->select('*');
+		}
 		$this->db->where('survey_id',$sid);
 		$this->db->order_by('title','ASC');
 		return $this->db->get('resources')->result_array();
@@ -451,6 +457,8 @@ class Survey_resource_model extends CI_Model {
 	*/
 	function get_survey_resources_by_filepath($surveyid,$filepath)
 	{
+		$filepath=$this->normalize_filename($filepath);
+
 		$this->db->where('survey_id', $surveyid); 
 		$this->db->where('filename', $filepath); 		
 		return $this->db->get('resources')->result_array();
@@ -788,20 +796,7 @@ class Survey_resource_model extends CI_Model {
 			}										
 			
 			//check filenam is URL?
-			if (!is_url($insert_data['filename']))
-			{
-				//clean file paths
-				$insert_data['filename']=unix_path($insert_data['filename']);
-
-				//remove slash before the file path otherwise can't link the path to the file
-				/*if (substr($insert_data['filename'],1,1)=='/')
-				{
-					$insert_data['filename']=substr($insert_data['filename'],2,255);
-				}*/
-				
-				//keep only the filename, remove path
-				$insert_data['filename']=basename($insert_data['filename']);
-			}
+			$insert_data['filename']=$this->normalize_filename($insert_data['filename']);
 			
 			//check if the resource file already exists
 			$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
@@ -818,6 +813,21 @@ class Survey_resource_model extends CI_Model {
 		}
 	
 		return $output;
+	}
+
+	function normalize_filename($filename)
+	{
+		//check filenam is URL?
+		if (!is_url($filename))
+		{
+			//clean file paths
+			$filename=unix_path($filename);
+			
+			//keep only the filename, remove path
+			return basename($filename);
+		}
+
+		return $filename;
 	}
 
 
