@@ -39,7 +39,7 @@ class Catalog extends MY_Controller {
 		$this->lang->load('catalog_search');
 
 		//configuration settings
-		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
+		//$this->topic_search=true;//($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
 		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
 		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
@@ -272,9 +272,6 @@ class Catalog extends MY_Controller {
 
 	function _search()
 	{
-		//all keys that needs to be persisted
-		$get_keys_array=array('tab_type','sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection','ps','data_class');
-
 		$this->load->helper('security');
 
 		//load data for facets
@@ -290,11 +287,10 @@ class Catalog extends MY_Controller {
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
 		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
-		$search_options->vk				="";//trim(xss_clean($this->input->get("vk")));
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));
-		$search_options->topic			=xss_clean($this->input->get("topic"));
+		//$search_options->topic			=xss_clean($this->input->get("topic"));
 		$search_options->from			=(int)xss_clean($this->input->get("from"));
 		$search_options->to				=(int)xss_clean($this->input->get("to"));
 		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
@@ -319,9 +315,9 @@ class Catalog extends MY_Controller {
 		}
 
 		//echo '<pre>';
-		//var_dump($search_options);
+		//var_dump($this->facets);
 		//echo '</pre>';
-		//$search_options->sername		=xss_clean($this->input->get("sername"));
+		
 
 		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('year','title','nation','country','popularity','rank');
@@ -361,58 +357,6 @@ class Catalog extends MY_Controller {
 		$data['active_repo']=$this->active_repo;
 		$data['active_repo_id']=$this->active_repo_id;
 
-		/*if($this->topic_search=='yes')
-		{
-			//get vocabulary id from config
-			$vid=$this->config->item("topics_vocab");
-
-			if ($vid!==FALSE && is_numeric($vid))
-			{
-				//$this->load->model('Vocabulary_model');
-				$this->load->model('term_model');
-
-				//get topics by vid
-				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE);//$this->Vocabulary_model->get_tree($vid);
-				$data['topic_search']=TRUE;
-			}
-			else
-			{
-				//hide the topics box
-				$data['topic_search']='no';
-			}
-		}*/
-
-
-		//which view to use for display
-		/*if ($search_options->vk!='' && $search_options->view=='v')
-		{
-			//variable search
-			$params=array(
-				'collections'=>$search_options->collection,
-				'study_keywords'=>$search_options->sk,
-				'variable_keywords'=>$search_options->vk,
-				'variable_fields'=>$search_options->vf,
-				'countries'=>$search_options->country,
-				'topics'=>$search_options->topic,
-				'from'=>$search_options->from,
-				'to'=>$search_options->to,
-				'sort_by'=>$search_options->sort_by,
-				'sort_order'=>$search_options->sort_order,
-				'repo'=>$search_options->repo,
-				'dtype'=>$search_options->dtype
-			);
-
-			$this->load->library('catalog_search',$params);
-			$search_result=$this->catalog_search->vsearch($limit,$offset);
-
-			$data=array_merge($search_result,$data);
-			$data['current_page']=$search_options->page;
-			$data['search_options']=$search_options;
-			$data['data_access_types']=array();//$this->Form_model->get_form_list();
-			$data['search_type']='variable';
-			return $data;
-		}*/
-
 		if($search_options->tab_type!=''){
 			$search_options->type=$search_options->tab_type;
 		}
@@ -423,7 +367,6 @@ class Catalog extends MY_Controller {
 			//'variable_keywords'=>$search_options->vk,
 			'variable_fields'=>$search_options->vf,
 			'countries'=>$search_options->country,
-			'topics'=>$search_options->topic,
 			'from'=>$search_options->from,
 			'to'=>$search_options->to,
 			'tags'=>$search_options->tag,
@@ -442,7 +385,6 @@ class Catalog extends MY_Controller {
 				$params[$facet_key]=xss_clean($this->input->get($facet_key));
 			}
 		}
-
 
 		$this->load->library('catalog_search',$params);
 		$data['is_regional_search']=$this->regional_search;
@@ -480,8 +422,7 @@ class Catalog extends MY_Controller {
 			'study_keywords'=>$this->input->get_post('sk'),
 			'variable_keywords'=>$this->input->get_post('sk'),
 			'variable_fields'=>$this->input->get_post('vf'),
-			'countries'=>$this->input->get_post('country'),
-			'topics'=>$this->input->get_post('topic'),
+			'countries'=>$this->input->get_post('country'),			
 			'from'=>$this->input->get_post('from'),
 			'to'=>$this->input->get_post('to'),
 			'sort_by'=>$this->input->get_post('sort_by'),
@@ -855,6 +796,10 @@ class Catalog extends MY_Controller {
 		return;
 	}
 
+
+	function idno($codebookid=NULL){
+		return $this->study($codebookid); 
+	}
 
 	function study($codebookid=NULL)
 	{		

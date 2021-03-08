@@ -8,6 +8,7 @@ class Facet_model extends CI_Model {
     {
         parent::__construct();
 		$this->config->load('facets');
+		$this->load->model("Dataset_model");
 		$this->facets=$this->config->item("facets");
 		$this->output->enable_profiler(FALSE);
 	}
@@ -56,6 +57,48 @@ class Facet_model extends CI_Model {
 	{		
 		$this->db->select("*");
 		return $this->db->get('facets')->result_array();
+	}
+
+	/**
+	 * 
+	 * 
+	 * Get terms count by facet
+	 * 
+	 * 
+	 */
+	function select_terms_counts()
+	{		
+		$this->db->select("facets.id,facets.name,count(facet_terms.facet_id) as total");
+
+		$this->db->join('facet_terms', 'facet_terms.facet_id = facets.id','left');
+		$this->db->group_by('facets.id,facets.name');
+
+		return $this->db->get('facets')->result_array();
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Get a count of values by facet
+	 * 
+	 */
+	function select_term_value_counts()
+	{		
+		$this->db->select("facets.id,facets.name,count(survey_facets.facet_id) as total");
+
+		$this->db->join('survey_facets', 'survey_facets.facet_id = facets.id','left');
+		$this->db->group_by('facets.id,facets.name');
+
+		return $this->db->get('facets')->result_array();
+	}
+
+
+	function get_facet_terms($facet_id)
+	{		
+		$this->db->select("*");
+		$this->db->where('facet_id',$facet_id);
+		return $this->db->get('facet_terms')->result_array();
 	}
 	
 
@@ -212,11 +255,7 @@ class Facet_model extends CI_Model {
 	 * 
 	 */
 	function facet_term_exists($facet_id,$term_value)
-	{
-		var_dump("<HR>");
-		var_dump($facet_id);
-		var_dump($term_value);
-		
+	{		
 		$this->db->select("*");
 		$this->db->where('facet_id', $facet_id);
 		$this->db->where('value', $term_value);
@@ -251,21 +290,8 @@ class Facet_model extends CI_Model {
 						$facet_data=$metadata->get($facet_mapping['path']);
 
 						if (!empty($facet_data) && isset($facet_mapping['column']) 
-							&& $facet_mapping['column']!='' 
-							//&& isset($facet_data[$facet_mapping['column']])
-						){
-							/*if(!isset($facet_data[$facet_mapping['column']])){
-								//var_dump($facet_mapping);
-								var_dump($facet_data);
-								echo '<hr>xxxx';
-
-								foreach($facet_data as $row){
-									var_dump($row[$facet_mapping['column']]);
-									echo '<HR>';
-								}
-								//die("ERORR");
-
-							}*/
+							&& $facet_mapping['column']!=''						
+						){							
 							$column_data=array_column($facet_data, $facet_mapping['column']);
 							$output[$facet_key]=(array)$column_data;
 						}else{
@@ -279,6 +305,100 @@ class Facet_model extends CI_Model {
 		
 		return $output;
 	}
+
+
+
+
+	/**
+	 *
+	 * recursive function to import all citations
+	 *
+	 * @start_row start importing from a row number or NULL to start from first id
+	 * @limit number of records to read at a time
+	 * @loop whether to recursively call the function till the end of rows
+	 *
+	 * */
+	public function reindex($start_row=NULL, $limit=100, $loop=TRUE)
+	{
+		//echo "starting at: ".$start_row."\r\n";
+		set_time_limit(0);
+
+		$this->db->select("id");
+    	$this->db->limit($limit);
+		$this->db->order_by('id ASC');
+
+		if ($start_row){
+			$this->db->where("id >",$start_row,false);
+		}
+
+	  	$rows=$this->db->get("surveys")->result_array();
+
+		//echo "\r\n".count($rows). "rows found\r\n";
+
+		if (!$rows){
+			return false;
+		}
+
+		$last_row_id=NULL;
+
+		//row id
+		$last_row_id=$rows[ count($rows)-1]['id'];
+
+		//reindex
+		foreach($rows as $row){
+			$this->index_facets($row['id']);
+		}
+
+		if($loop ==true){
+			$this->reindex($last_row_id,$limit,$loop);
+		}
+
+		return array(
+			'rows_processed'=>count($rows),
+			'last_row_id'=>$last_row_id
+		);
+	}
+
+	function index_facets($sid)
+    {
+        $study=$this->Dataset_model->get_row_detailed($sid);
+        
+        //extract facets
+        $facet_data=$this->extract_facet_values($type=$study['type'],$study['metadata']);
+
+        //remove all existing facet terms for study
+        $this->clear_facet_values($sid);
+
+        //upsert facets
+        foreach($facet_data as $facet_key=>$facet_values)
+        {
+            $facet_id=$this->get_facet_id($facet_key);
+
+            if(empty($facet_id)){
+                //create facet
+                $facet_id=$this->create_facet(array('name'=>$facet_key, 'title'=>$facet_key));
+            }
+
+            foreach($facet_values as $facet_value){
+                
+                if(empty($facet_value)){
+                    continue;
+                }
+
+                if(is_array($facet_value)){
+                    throw new Exception("Facet value cannot be an array. " . json_encode($facet_data));
+                }
+
+                //create a term for facet if not already exists
+                $term_id=$this->upsert_facet_term($facet_id,$facet_value);
+
+                //upsert facet value
+                $this->insert_facet_value($sid,$facet_id,$term_id);
+            }
+
+        }
+
+    }
 
 	
 

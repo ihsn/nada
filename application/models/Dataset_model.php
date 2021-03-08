@@ -88,7 +88,6 @@ class Dataset_model extends CI_Model {
 	 * 
 	 * Return all datasets
 	 * 
-	 * @sid - ID to get a single study
 	 * @offset - offset
 	 * @limit - number of rows to return
 	 * 

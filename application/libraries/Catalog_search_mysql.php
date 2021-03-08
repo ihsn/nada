@@ -65,6 +65,7 @@ class Catalog_search_mysql{
 	{
 		$this->ci=& get_instance();
 		$this->ci->load->config('noise_words');
+		$this->user_facets=$this->ci->Facet_model->select_all();
 		
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes')
@@ -154,27 +155,15 @@ class Catalog_search_mysql{
 
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type);
-
-
-		$user_facets=$this->ci->Facet_model->select_all();
-		//echo '<pre>';
-		//var_dump($user_facets);
-		//echo "<HR>";
-		//var_dump($this->params);
 		
-		foreach($user_facets as $fc){
+		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
-				var_dump($fc['name']);
-				var_dump($this->params[$fc['name']]);
 				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
 				if($facet_query){
 					$where_list[]=$facet_query;
 				}
 			}
 		}
-
-		//echo '</pre>';
-
 		
 		//create combined where clause
 		$where='';
@@ -350,6 +339,15 @@ class Catalog_search_mysql{
 		
 		//array of all options
 		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3);
+
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
 		
 		//create combined where clause
 		$where='';
@@ -1014,6 +1012,15 @@ class Catalog_search_mysql{
 
         //show only publshed studies
         $where_list[]='published=1';
+
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
 
 		//create combined where clause
 		$where='';
