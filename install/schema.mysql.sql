@@ -1377,3 +1377,43 @@ CREATE TABLE `user_roles` (
 
 insert into user_roles (user_id, role_id) 
 	select user_id, group_id from users_groups;
+
+
+
+--
+-- Facets
+--
+
+  CREATE TABLE `facets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) DEFAULT NULL,
+  `title` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- Facet terms
+--
+
+CREATE TABLE `facet_terms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `facet_id` int(11) DEFAULT NULL,
+  `value` varchar(300) DEFAULT NULL,
+  `weight` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- Survey facets
+--
+
+CREATE TABLE `survey_facets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `facet_id` int(11) DEFAULT NULL,
+  `term_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
