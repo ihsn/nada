@@ -261,6 +261,7 @@ class Catalog extends MY_Controller {
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));
+		$search_options->image_view		=xss_clean($this->input->get("image_view"));
 		$search_options->topic			=xss_clean($this->input->get("topic"));
 		$search_options->from			=(int)xss_clean($this->input->get("from"));
 		$search_options->to				=(int)xss_clean($this->input->get("to"));
