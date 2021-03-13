@@ -186,6 +186,7 @@
                 <?php endif;?>
             </div>
             <div class="survey-stats">                
+                <span><?php echo t('ID');?>: <?php echo $row['idno'];?></span>
                 <span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span>
                 <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
                 <?php if ((int)$row['total_views']>0):?>

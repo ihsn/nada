@@ -26,6 +26,24 @@
           "uri":{
             "title":"URI",
             "type":"string"
+          },
+          "author_id": {
+            "type": "array",
+            "title": "Author ID",
+            "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "title": "Type",
+                  "description": "Source of identifier, e.g. ORCID"
+                },
+                "id": {
+                  "title": "Identifier",
+                  "description": "Author's unique identifier for the corresponding source"
+                }
+              }
+            }
           }
         },
         "required":[

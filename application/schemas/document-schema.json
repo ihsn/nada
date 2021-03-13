@@ -472,8 +472,8 @@
 
         "authors": {
           "type": "array",
-          "title": "Editors",
-          "description": "Editors",
+          "title": "Authors",
+          "description": "Authors",
           "items": {
             "type": "object",
             "properties": {
@@ -492,6 +492,24 @@
               "affiliation": {
                 "title": "Affiliation",
                 "type": "string"
+              },
+              "author_id": {
+                "type": "array",
+                "title": "Author ID",
+                "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "title": "Type",
+                      "description": "Source of identifier, e.g. ORCID"
+                    },
+                    "id": {
+                      "title": "Identifier",
+                      "description": "Author's unique identifier for the corresponding source"
+                    }
+                  }
+                }
               }
             }
           },
@@ -580,6 +598,10 @@
               "affiliation": {
                 "title": "Affiliation",
                 "type": "string"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
               }
             }
           },
@@ -587,6 +609,44 @@
             "first_name"
           ]
         },
+
+        "contacts": {
+					"type": "array",
+					"title": "Contacts",
+					"description": "Contacts",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"type": "string"
+							},
+							"role": {
+								"title": "Role",
+								"type": "string"
+							},
+							"affiliation": {
+								"title": "Affiliation",
+								"type": "string"
+							},
+							"email": {
+								"title": "Email",
+								"type": "string"
+							},
+							"telephone": {
+								"title": "Telephone",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
+						}
+					},
+					"required": [
+						"name"
+					]
+				},
 
         "publisher": {
           "type": "string",
@@ -616,6 +676,12 @@
           "type": "string",
           "title": "Terms governing use and reproduction",
           "description":"Terms Governing Use and Reproduction"
+        },
+
+        "disclaimer": {
+          "type": "string",
+          "title": "Disclaimer",
+          "description":"Disclaimer"
         },
 
         "security_classification": {

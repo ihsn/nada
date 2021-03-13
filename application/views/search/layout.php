@@ -167,6 +167,11 @@ h5{margin:0px;}
     display:none;
 }
 
+.study-thumbnail{
+    object-fit: cover;
+    max-height: 180px;
+    width: 100%;
+}
 
 </style>
 
@@ -175,6 +180,7 @@ h5{margin:0px;}
     <input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
     <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
     <input type="hidden" name="view" id="view" value="<?php echo $search_options->view;?>"/>
+    <input type="hidden" name="image_view" id="image_view" value="<?php echo $search_options->image_view;?>"/>
 
     <?php if($search_box_orientation!=='inline'):?>
         <!--search bar-->

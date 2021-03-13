@@ -180,45 +180,15 @@ class Data_table_mongo_model extends CI_Model {
     */
     function rename_collection($old_name, $new_name)
     {
-        /*
-        $manager = $this->get_mongo_manager();
-        $command = new MongoDB\Driver\Command(array(
-            'renameCollection' => 'nada_db.table_2020_abc_x',
-            'to' => 'nada_db.table_2020_abc_xy'
-        ));
-        
-        try {
-            $cursor = $manager->executeCommand('admin', $command);
-        } catch(MongoDB\Driver\Exception $e) {
-            echo $e->getMessage(), "xxxxxxx\n";
-            exit;
-        }
-        
-        return "done";
-        $response = $cursor->toArray()[0];
-        
-        return ($response);
-        */
-
         $db_name=$this->get_db_name();
      
         //enable admin priviledges
         $admin = $this->mongo_client->admin;
      
-        /*$result= ($admin->command(array(
-            'renameCollection' => 'nada_db.table_2020_abc_new_YYYYY',
-            'to' => 'nada_db.table_2020_abc_new_CC'
-        )));
-
-        return ($result);
-        die();
-        */
-     
         $result= $admin->command(array(
             'renameCollection'=> $db_name.'.'.$old_name,
             'to'=> $db_name.'.'.$new_name)
         );
-        //return $result;
         return $result->toArray()[0];
     }
 
@@ -409,6 +379,33 @@ class Data_table_mongo_model extends CI_Model {
         $result= $collection->createIndex($indexes);
         return $result;
    }
+
+
+   /**
+    * 
+    * Create text index on a collection
+    *
+    * @index_options - comma seperated list of field names
+    *
+    */
+    function create_collection_text_index($db_id,$table_id,$index_options)
+    {
+         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+ 
+         $index_options=array_filter(explode(",",$index_options));
+         
+         if(empty($index_options)){
+             return false;
+         }
+ 
+         $indexes=array();
+         foreach($index_options as $index){
+             $indexes[$index]='text';
+         }
+ 
+         $result= $collection->createIndex($indexes);
+         return $result;
+    }
 
 
    /**
