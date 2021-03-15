@@ -91,9 +91,13 @@ class Catalog extends MY_REST_Controller
 	function list_idno_get($type=null)
 	{	
 		try{
+
+			$result=$this->Dataset_model->get_list_all($type,$published=1);
+
 			$response=array(
 				'status'=>'success',
-				'records'=>$this->Dataset_model->get_list_all($type,$published=1)
+				'total'=>count($result),
+				'records'=>$result				
 			);			
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
