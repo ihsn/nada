@@ -178,15 +178,61 @@ class Variable_model extends CI_Model {
     }
 
 
-    //get all variables attached to a study
-    function list_by_dataset($sid,$file_id=null)
+    /**
+     * 
+     * 
+     * get all variables attached to a study
+     * 
+     * @metadata_detailed = true|false - include detailed metadata
+     * 
+     **/
+    function list_by_dataset($sid,$file_id=null,$metadata_detailed=false)
     {
-        $this->db->select("uid,sid,fid,vid,name,labl");
+        if ($metadata_detailed==true){
+            $fields="uid,sid,fid,vid,name,labl,metadata";
+        }else{
+            $fields="uid,sid,fid,vid,name,labl";
+        }
+        
+        $this->db->select($fields);
         $this->db->where("sid",$sid);
+
         if($file_id){
             $this->db->where("fid",$file_id);
         }
-        return $this->db->get("variables")->result_array();
+
+        $variables=$this->db->get("variables")->result_array();
+
+        $exclude_metadata=array(
+            'var_format',
+            'var_sumstat',
+            'var_val_range',
+            'loc_start_pos',
+            'loc_end_pos',
+            'loc_width',
+            'loc_rec_seg_no',
+
+        );
+
+        if ($metadata_detailed==true){
+            foreach($variables as $key=>$variable){
+                if(isset($variable['metadata'])){
+                    $var_metadata=$this->Dataset_model->decode_metadata($variable['metadata']);
+                    unset($variable['metadata']);
+                    foreach($exclude_metadata as $ex){
+                        if (array_key_exists($ex, $var_metadata)){
+                            unset($var_metadata[$ex]);
+                        }
+                    }
+                    if (isset($variable['var_catgry']['stats'])){
+                        unset($variable['var_catgry']['stats']);
+                    }
+                    $variables[$key]=array_merge($variable,$var_metadata);
+                }
+            }
+        }
+
+        return $variables;
     }
 
 

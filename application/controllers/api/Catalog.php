@@ -625,7 +625,7 @@ class Catalog extends MY_REST_Controller
 				throw new exception("FILE-ID-REQUIRED");
 			}
 
-			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
+			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id,$metadata_detailed=$this->input->get("metadata_detailed")=='true');
 			
 			$response=array(
 				'total'=> count($survey_variables),
