@@ -145,6 +145,30 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	/**
+	 * 
+	 * returns a list of datasets by type
+	 * 
+	 * 
+	 */
+	function get_list_all($dataset_type=null,$published=1)
+	{
+		$this->db->select('id,idno,type');
+		
+		if(!empty($dataset_type)){
+			$this->db->where('type',$dataset_type);
+		}
+
+		if(!empty($published)){
+			$this->db->where('published',$published);
+		}
+		
+		return $this->db->get("surveys")->result_array();
+	}
+
+	
+
+
 	//return IDNO
 	function get_idno($sid)
 	{

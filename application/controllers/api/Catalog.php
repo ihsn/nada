@@ -80,6 +80,38 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+	/**
+	 * 
+	 * Return a list of all study IDNOs in the catalog
+	 * 
+	 * 
+	 */
+	function list_idno_get($type=null)
+	{	
+		try{
+			$response=array(
+				'status'=>'success',
+				'records'=>$this->Dataset_model->get_list_all($type,$published=1)
+			);			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Error $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 	
 	
 	/**
