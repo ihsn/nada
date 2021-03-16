@@ -198,7 +198,17 @@ $config['survey']=array(
 
 
     'study_desc/method/data_collection/sampling_deviation'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/deviat', 'transform_callback'=>'none'),
-    'study_desc/method/data_collection/coll_mode'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/collMode', 'transform_callback'=>'none'),
+    
+    'study_desc/method/data_collection/coll_mode'=>array(
+        'xpath'=>'codeBook/stdyDscr/method/dataColl/collMode', 'transform_callback'=>'none'),
+    
+    'study_desc/method/data_collection/coll_mode'=>array(
+            'xpath'=>'codeBook/stdyDscr/method/dataColl/collMode', 
+            'transform_callback'=>'transform_ddi_collmode','type'=>'array'
+        ),
+    
+    
+    
     'study_desc/method/data_collection/research_instrument'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/resInstru', 'transform_callback'=>'none'),
     'study_desc/method/data_collection/instru_development'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/instrumentDevelopment', 'transform_callback'=>'none'),
     'study_desc/method/data_collection/instru_development_type'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/instrumentDevelopment/@type', 'transform_callback'=>'none'),

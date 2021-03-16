@@ -48,6 +48,9 @@ $abstract=array();
 foreach($abstract_fields as $fld_name=>$fld_path){
     $value=get_array_nested_value($metadata,$fld_path);
     if(!empty($value)){
+        if (is_array($value)){
+            $value=implode(",", $value);
+        }
         $abstract[]=$fld_name."\r\n---------------------------\r\n\r\n".$value;
     }
 }
