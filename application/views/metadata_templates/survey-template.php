@@ -20,12 +20,15 @@
 ?>
 
 
+
+
+
 <!-- identification section -->
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "idno"=>'text',
             "title"=>'text',
-            "metadata.study_desc.title_statement.sub_title"=>'text',
+            "metadata.study_desc.title_statement.sub_title"=>'text',            
             "metadata.study_desc.title_statement.alternate_title"=>'text',
             "metadata.study_desc.title_statement.translated_title"=>'text',
             "metadata.study_desc.study_info.nation"=>'array',
@@ -36,7 +39,8 @@
             "metadata.study_desc.series_statement.series_info"=>'text',            
             "metadata.study_desc.study_info.abstract"=>'text',
             "metadata.study_desc.study_info.data_kind"=>'text',
-            "metadata.study_desc.study_info.analysis_unit"=>'text'
+            "metadata.study_desc.study_info.analysis_unit"=>'text',
+            "metadata.iframe_embeds"=>'iframe_embed'
     ),
     $metadata);
 ?>

@@ -1377,3 +1377,33 @@ CREATE TABLE `user_roles` (
 
 insert into user_roles (user_id, role_id) 
 	select user_id, group_id from users_groups;
+
+
+
+CREATE TABLE `embed` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(100) NOT NULL,
+  `title` varchar(250) NOT NULL,
+  `description` varchar(450) DEFAULT NULL,
+  `storage_path` varchar(255) DEFAULT NULL,
+  `published` int DEFAULT NULL,
+  `width` varchar(15) DEFAULT NULL,
+  `height` varchar(15) DEFAULT NULL,
+  `maxwidth` varchar(15) DEFAULT NULL,
+  `maxheight` varchar(15) DEFAULT NULL,
+  `created` int DEFAULT NULL,
+  `changed` int DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `changed_by` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid_UNIQUE` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `survey_embeds` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sid` int NOT NULL,
+  `embed_uuid` varchar(145) NOT NULL,
+  `embed_url` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sid_uuid` (`sid`,`embed_uuid`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
