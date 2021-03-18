@@ -263,6 +263,9 @@ class Embed_model extends CI_Model {
         $this->db->where("uuid",$uuid);
         $this->db->delete('embed');
 
+        $this->db->where("uuid",$uuid);
+        $this->db->delete('survey_embeds');
+
         $project_path=$this->storage_path.$file['storage_path'];
         
         //delete file
