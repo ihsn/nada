@@ -110,7 +110,7 @@ class Embed extends MY_REST_Controller
 	 * delete 
 	 * 
 	 **/ 
-	function delete_delete($uuid=null)
+	function index_delete($uuid=null)
 	{
 		
 		try{

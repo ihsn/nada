@@ -255,7 +255,7 @@ class Embed_model extends CI_Model {
     {
         $row=$this->find($uuid);
 
-        if(!$uuid){
+        if(!$row){
             throw new Exception("RECORD_NOT_FOUND");
         }
 
@@ -263,37 +263,29 @@ class Embed_model extends CI_Model {
         $this->db->where("uuid",$uuid);
         $this->db->delete('embed');
 
-        $this->db->where("uuid",$uuid);
+        $this->db->where("embed_uuid",$uuid);
         $this->db->delete('survey_embeds');
 
-        $project_path=$this->storage_path.$file['storage_path'];
+        $project_path=$this->storage_path.'/'.$row['storage_path'];
         
-        //delete file
         //$this->delete_file($file_path);
-        //$this->delete_project_folder();
-
+        $this->delete_project_folder($project_path);
+        
         return true;
     }
 
 
     private function delete_project_folder($project_folder_name)
     {
-        $dataset_folder=$this->get_survey_path_full($sid);
-		$catalog_root=get_catalog_root();
-
 		if($this->storage_path=='' || $project_folder_name==''){
 			return false;
 		}
 
-		if($catalog_root==$dataset_folder){
-			return false;
-		}
-
-		if (!strpos($dataset_folder, $catalog_root) === 0 ) {
+		if (!strpos($project_folder_name, $this->storage_path) === 0 ) {
 			return false;
 		}
 		
-		remove_folder($dataset_folder);
+		remove_folder($project_folder_name);
 
 		return true;
     }
@@ -358,6 +350,7 @@ class Embed_model extends CI_Model {
             'embed_uuid'=>$embed_uuid
         );
 
+        $this->remove_from_study($study_id,$embed_uuid);
         return $this->db->insert("survey_embeds",$options);
     }
 
