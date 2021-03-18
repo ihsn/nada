@@ -319,10 +319,11 @@ class Dataset_timeseries_model extends Dataset_model {
 
         if (count($nations)>0 && isset($nations[0]['name'])){
             //$nation_names=array_column($nations,"name");
+            $nation_names=array();
             foreach($nations as $nrow){
-                if(isset($nrow['type']) && strtolower($nrow['type'])=='country'){
+                //if(isset($nrow['type']) && strtolower($nrow['type'])=='country'){
                     $nation_names[]=$nrow['name'];
-                }
+                //}
             }
 
             $max_show=3;
