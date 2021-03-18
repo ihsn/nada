@@ -46,6 +46,7 @@ x-tagGroups:
       - Citations
       - Filestore
       - Reports
+      - Embeds
 schemes:
   - http
 paths:
@@ -1885,6 +1886,90 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: [] 
+  
+  /embed/:
+      get:
+        tags:
+          - Embeds
+        summary: List all embeds
+        description: List all embds
+        operationId: listEmbeds
+        consumes:
+          - application/json
+        produces:
+          - application/json        
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []    
+  /embed/{uuid}:    
+      post:
+        tags:
+          - Embeds
+        summary: Create a new embed
+        description: Create a new embed
+        operationId: createEmbed
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "uuid"
+            type: string
+            format: string
+            required: true
+            description: "UUID - Unique identifier"
+          - name: file
+            in: formData
+            description: Upload a zip file containing HTML, CSS, JS, etc.
+            required: true
+            type: file
+            format: file
+          - name: title
+            in: formData
+            description: Title
+            required: true
+            type: string
+            format: string 
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  /embed/attach_to_study:
+      post:
+        tags:
+          - Embeds
+        summary: Attach embed to a study
+        description: Attach embed to a study
+        operationId: attachEmbed
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: attach_dataset
+            schema:
+              type: object
+              required:
+                - idno
+                - uuid
+              properties:
+                idno:
+                  type: string
+                  title: Study IDNO
+                uuid:
+                  type: string
+                  title: Embed UUID
+          
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []                       
 ###############################################################
 securityDefinitions:
   ApiKeyAuth:
