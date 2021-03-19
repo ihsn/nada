@@ -78,7 +78,7 @@
 
       "filename": {
         "type": "string",
-        "description": "Resource file or URL"
+        "description": "Resource file name or URL. For uploading a file, use the field `file` in formData or use the `Upload file` endpoint."
       }
 
   

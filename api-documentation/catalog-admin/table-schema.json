@@ -860,10 +860,19 @@
       },
       "additionalProperties": false
     },
+
+    "resources":{
+      "type":"array",
+      "description":"Resources",
+      "items":{
+        "$ref":"resource-schema.json"
+      }
+    },
+
       "files": {
         "type": "array",
-        "title": "Table file",
-        "description": "Table file",          
+        "title": "Files [Deprecated]",
+        "description": "Files - `deprecated - use resources`",        
         "items":{
           "type":"object",
           "properties":{

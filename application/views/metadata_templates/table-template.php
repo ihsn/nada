@@ -15,51 +15,17 @@
     $output=array();
 ?>
 
-<?php
-if(isset($metadata['resources']) && isset($metadata['metadata']['files'])){
-    //replace files->file_uri with resource download link 
-    foreach($metadata['metadata']['files'] as $file_idx => $file){
-        if (array_key_exists($file['file_uri'], $metadata['resources'])){
-            $resource=$metadata['resources'][$file['file_uri']];
-            if($this->form_validation->valid_url($file['file_uri'])){
-                $metadata['metadata']['files'][$file_idx]['file_uri']=$file['file_uri'];
-            }else{
-                $metadata['metadata']['files'][$file_idx]['file_uri']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-            }            
-        }
-    }
-} 
-?>
 
-<?php
-    //render files field
-    $download_buttons=render_field(
-        "download_buttons_array",
-        "metadata.files",
-        get_field_value('metadata.files',$metadata), 
-        $options=array(
-            'url_column'=>'file_uri',
-            'title_column'=>'note'
-        )
-    );
-?>    
-
-<?php    
-    $download_buttons_html=render_field(
-        "literal",
-        "",
-        $download_buttons, 
-        $options=array(
-            'css_class'=>'float-md-right',
-            'css_style'=>''
-        )
-    );
-    $output['download_links']=$download_buttons_html;
+<?php $output['']= render_group('',
+    $fields=array(
+            "metadata.resources"=>'resources_download_buttons'),
+    $metadata);
 ?>
+    
 
 <!-- identification section -->
 <?php $output['description']= render_group('description',
-    $fields=array(            
+    $fields=array(
             "metadata.table_description.title_statement.title"=>'text',
             "metadata.table_description.title_statement.idno"=>'text',
             "metadata.table_description.id_numbers"=>'array',            
