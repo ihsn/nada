@@ -68,6 +68,7 @@
         "metadata.document_description.volume"=>"text",
         "metadata.document_description.issue"=>"text",
         "metadata.document_description.pages"=>"text",
+        "metadata.resources"=>'resources'
     ),
     $metadata);
     ?>

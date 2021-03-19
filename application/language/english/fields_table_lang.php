@@ -15,6 +15,7 @@ $lang['metadata.table_description.title_statement.translated_title']='Translated
 $lang['metadata.table_description.title_statement.idno']='ID';
 
 $lang['metadata.table_description.description']='Description';
+$lang['metadata.resources']='External resources';
 
 $lang['metadata.table_description.id_numbers']='Reference number(s)';
 $lang['metadata.table_description.id_numbers.type']='Type';

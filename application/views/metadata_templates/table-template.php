@@ -46,9 +46,6 @@
             "metadata.table_description.table_series"=>'array',
             "metadata.table_description.ref_country"=>'array',            
             
-            "metadata.table_description.file"=>'array',
-
-            
             "metadata.table_description.authoring_entity"=>'array',            
             "metadata.table_description.contributor"=>'array',
             "metadata.table_description.publisher"=>'array',
@@ -81,7 +78,8 @@
             "metadata.table_description.confidentiality"=>'text',
             "metadata.table_description.notes"=>'text',
             "metadata.table_description.relations"=>'array',
-            "metadata.table_description.citation"=>'text'
+            "metadata.table_description.citation"=>'text',
+            "metadata.resources"=>'resources'
     ),
     $metadata);
 ?>

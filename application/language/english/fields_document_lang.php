@@ -11,6 +11,7 @@ $lang['copyrights']='Disclaimer and copyrights';
 $lang['additional']='Additional information';
 $lang['metadata_production']='Metadata production';
 $lang['series']='Series';
+$lang['metadata.resources']='External resources';
 
 $lang['metadata.metadata_information']='Document metadata information';
 $lang['metadata.metadata_information.title']='Document title';
