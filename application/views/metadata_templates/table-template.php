@@ -16,10 +16,11 @@
 ?>
 
 
-<?php $output['']= render_group('',
+<?php /*$output['']= render_group('',
     $fields=array(
             "metadata.resources"=>'resources_download_buttons'),
     $metadata);
+    */
 ?>
     
 
@@ -28,7 +29,10 @@
     $fields=array(
             "metadata.table_description.title_statement.title"=>'text',
             "metadata.table_description.title_statement.idno"=>'text',
-            "metadata.table_description.id_numbers"=>'array',            
+
+            "metadata.resources"=>'resources',
+
+            "metadata.table_description.id_numbers"=>'array',
             "metadata.table_description.title_statement.sub_title"=>'text',
             "metadata.table_description.title_statement.alternate_title"=>'text',
             "metadata.table_description.title_statement.translated_title"=>'text',
@@ -78,8 +82,7 @@
             "metadata.table_description.confidentiality"=>'text',
             "metadata.table_description.notes"=>'text',
             "metadata.table_description.relations"=>'array',
-            "metadata.table_description.citation"=>'text',
-            "metadata.resources"=>'resources'
+            "metadata.table_description.citation"=>'text'            
     ),
     $metadata);
 ?>

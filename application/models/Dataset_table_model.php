@@ -232,9 +232,10 @@ class Dataset_table_model extends Dataset_model {
         
         //add download link
         foreach($external_resources as $resource_filename => $resource){
-            if (!$this->form_validation->valid_url($resource['filename']) && !empty($resource['filename'])){
+
+            if (!$this->form_validation->valid_url($resource['filename'])){
                 $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-            }  
+            }
         }
         
         //add external resources

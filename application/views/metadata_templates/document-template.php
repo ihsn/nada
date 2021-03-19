@@ -31,7 +31,8 @@
         "metadata.document_description.title_statement.idno"=>"text",
         "metadata.document_description.title_statement.title"=>"text",
         
-
+        "metadata.resources"=>'resources',
+        
         "metadata.document_description.journal"=>"text",
         "metadata.document_description.date_published"=>"text",
 
@@ -67,8 +68,7 @@
         
         "metadata.document_description.volume"=>"text",
         "metadata.document_description.issue"=>"text",
-        "metadata.document_description.pages"=>"text",
-        "metadata.resources"=>'resources'
+        "metadata.document_description.pages"=>"text"        
     ),
     $metadata);
     ?>
