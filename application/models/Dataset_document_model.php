@@ -42,58 +42,10 @@ class Dataset_document_model extends Dataset_model {
             }
         }
 
-		//validate schema
-		$this->validate_schema($type,$options);
-
-        //get core fields for listing datasets in the catalog
-        $core_fields=$this->get_core_fields($options);
-        $options=array_merge($options,$core_fields);
-		
-		//validate IDNO field
-		$new_id=$this->find_by_idno($core_fields['idno']);
-
-		//if IDNO is changed, it should not be an existing IDNO
-		if(is_numeric($new_id) && $sid!=$new_id ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
-        }                
-
-        $options['changed']=date("U");
-        
-		//fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','files','resources','tags','additional');
-
-        foreach($study_metadata_sections as $section){		
-			if(array_key_exists($section,$options)){
-                $options['metadata'][$section]=$options[$section];
-                unset($options[$section]);
-            }
-        }                
-
-		//start transaction
-		$this->db->trans_start();
-        
-        $this->update($sid,$type,$options);
-
-		//update years
-		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-		//update tags
-        $this->update_survey_tags($sid, $this->get_tags($options['metadata']));
-
-        //update related countries
-        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
-
-		//set aliases
-
-		//set geographic locations (bounding box)
-
-		//complete transaction
-		$this->db->trans_complete();
-
-		return $sid;
+        return $this->create_dataset($type,$options,$sid);
     }
     
-    function create_dataset($type,$options)
+    function create_dataset($type,$options, $sid=null)
 	{
 		//validate schema
         $this->validate_schema($type,$options);
@@ -108,25 +60,33 @@ class Dataset_document_model extends Dataset_model {
 
 		//validate IDNO field
         $dataset_id=$this->find_by_idno($core_fields['idno']);
-        
-        
-        //updating IDNO?
-        if(isset($options['idno']) && $options['idno'] !=$core_fields['idno']){
-            //check if old options.idno is in use?
-            $old_idno=$this->find_by_idno($options['idno']);
+                
+        if(!empty($sid)){//for updating a study
+            //if IDNO is changed, it should not be an existing IDNO
+            if(is_numeric($dataset_id) && $sid!=$dataset_id ){
+                throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$dataset_id.':'.$core_fields['idno']);
+            }
 
-            if (!$old_idno){
-                throw new Exception("IDNO not found");
+            $dataset_id=$sid;
+        }
+        else{//for creating new study or overwritting existing one
+            if($dataset_id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
+                throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
             }
         }
 
-		//overwrite?
-		if($dataset_id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
-        }
+        $options['changed']=date("U");
         
         //fields to be stored as metadata
         $study_metadata_sections=array('metadata_information','document_description','files','resources','tags','additional');
+
+        //external resources
+        $external_resources=$this->get_array_nested_value($options,'resources');
+        
+        //remove external resource from metadata
+        if(isset($options['resources'])){
+            unset($options['resources']);
+        }
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -150,6 +110,9 @@ class Dataset_document_model extends Dataset_model {
 
 		//update tags
         $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
+
+        //import external resources
+        $this->update_resources($dataset_id,$external_resources);
 
         //update related countries
         $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
@@ -289,5 +252,26 @@ class Dataset_document_model extends Dataset_model {
 
         return $output;
     }
+
+
+    //returns survey metadata array
+    function get_metadata($sid)
+    {
+        $metadata= parent::get_metadata($sid);
+
+        $res_fields="resource_id,dctype,dcformat,title,author,dcdate,country,language,contributor,publisher,rights,description, abstract,toc,filename";
+        $external_resources=$this->Survey_resource_model->get_survey_resources($sid, $res_fields);
+        
+        //add download link
+        foreach($external_resources as $resource_filename => $resource){
+            if (!$this->form_validation->valid_url($resource['filename']) && !empty($resource['filename'])){
+                $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            }  
+        }
+        
+        //add external resources
+        $metadata['resources']=$external_resources;
+       return $metadata;
+	}
 
 }

@@ -384,7 +384,6 @@ class Study extends MY_Controller {
 				break;
 			
 			case 'image':
-			case 'document':
 				$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
@@ -419,6 +418,7 @@ class Study extends MY_Controller {
 				);
 				break;
 			case 'table':
+			case 'document':
 			case 'script':
 				$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
