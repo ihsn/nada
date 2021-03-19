@@ -900,4 +900,59 @@ class Resource_model extends CI_Model {
 		return $rdf_import_result;
 	}
 
+
+	/**
+	 * 
+	 * 
+	 * Add download links for resources
+	 * 
+	 */
+	function generate_download_link($resources)
+	{
+		foreach($resources as $idx => $resource){
+			if($this->form_validation->valid_url($resource['filename'])){
+				$resources[$idx]['_links']=array(
+					'download'=>$resource['filename'],
+					'type'=>'link'
+				);				
+			}else{
+				if(!empty($resource['filename'])){
+					$resources[$idx]['_links']=array(
+						'download'=> site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename'])),
+						'type'=>'download'
+					);
+				}
+			}  
+		}
+
+		return $resources;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Add download links for resources
+	 * 
+	 */
+	function generate_api_download_link($resources,$idno)
+	{
+		foreach($resources as $idx => $resource){
+			if($this->form_validation->valid_url($resource['filename'])){
+				$resources[$idx]['_links']=array(
+					'download'=>$resource['filename'],
+					'type'=>'link'
+				);				
+			}else{
+				if(!empty($resource['filename'])){
+					$resources[$idx]['_links']=array(
+						'download'=> site_url("api/catalog/{$idno}/resources/{$resource['resource_id']}/".$resource['resource_id'].'/'.rawurlencode($resource['filename'])),
+						'type'=>'download'
+					);
+				}
+			}  
+		}
+
+		return $resources;
+	}
+
 }

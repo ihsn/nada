@@ -42,8 +42,8 @@ class Survey_resource_model extends CI_Model {
 	{
 		//allowed fields
 		$valid_fields=array(
-			//'resource_id',
-			//'survey_id',
+			'resource_id',
+			'survey_id',
 			'dctype',
 			'title',
 			'subtitle',
@@ -70,9 +70,6 @@ class Survey_resource_model extends CI_Model {
 			$options['filename']=$this->normalize_filename($options['filename']);
 		}
 		
-		//pk field name
-		$key_field='resource_id';
-		
 		$update_arr=array();
 
 		//build update statement
@@ -85,7 +82,7 @@ class Survey_resource_model extends CI_Model {
 		}
 		
 		//update db
-		$this->db->where($key_field, $resource_id);
+		$this->db->where('resource_id', $resource_id);
 		$result=$this->db->update('resources', $update_arr); 
 		
 		return $result;		

@@ -46,7 +46,13 @@ class Resources extends MY_REST_Controller
 			
 			$sid=$this->get_sid_from_idno($idno);
 
-			$resources=$this->Resource_model->get_resources_by_survey($sid);
+			$dctype=$this->input->get("dctype");
+
+			$resources=$this->Resource_model->get_resources_by_type($sid,$dctype);
+
+			if($resources){
+				$resources=$this->Resource_model->generate_api_download_link($resources,$idno);
+			}
 
 			$response=array(
 				'status'	=> 'success',
@@ -152,7 +158,8 @@ class Resources extends MY_REST_Controller
 				if($resource_exists){
 					if ($overwrite == 'yes'){
 						//update existing
-						$resource_id=$this->Survey_resource_model->update($resource_exists[0]['resource_id'],$options);
+						$resource_id=$resource_exists[0]['resource_id'];
+						$resource_id=$this->Survey_resource_model->update($resource_id,$options);
 					}
 					else{
 						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");						
