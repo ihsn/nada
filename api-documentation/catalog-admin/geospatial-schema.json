@@ -832,6 +832,7 @@
 		},
 		"idno":{
 			"title":"Unique ID number for the document",
+			"description":"Unique ID number for the document",
 			"type":"string"			
 		  },
 
