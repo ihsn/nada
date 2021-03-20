@@ -824,6 +824,17 @@
 			"enum":["yes","no"],
 			"default": "no"
 		},
+		"type": {
+			"type": "string",
+			"description": "Geospatial metadata type - `dataset`, `service`",
+			"enum":["dataset","service"],
+			"default": "dataset"
+		},
+		"idno":{
+			"title":"Unique ID number for the document",
+			"description":"Unique ID number for the document",
+			"type":"string"			
+		  },
 
 		"dataset_metadata": {
 			"type": "object",
@@ -894,9 +905,13 @@
 				"contact": {
 					"title": "Contacts",
 					"description": "Contact(s) associated to the metadata",
+					"type": "array",
 					"_xpath":"gmd:contact/gmd:CI_ResponsibleParty",
-					"$ref": "#/definitions/responsibleParty"
+					"items":{
+						"$ref": "#/definitions/responsibleParty"
+					}
 				},
+
 				"dateStamp": {
 					"title": "Metadata Date Stamp",
 					"type": "string",
@@ -1132,6 +1147,7 @@
 					"title": "Identification Info(s)",
 					"description": "Identification(s) of the resource",
 					"type": "array",
+					"type": "object",
 					"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification",
 					"items": {
 						"type": "object",
