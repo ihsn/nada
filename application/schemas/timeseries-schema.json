@@ -126,6 +126,38 @@
 						  }
 					  }
 				  },
+				  "alternate_identifiers": {
+					  "type": "array",
+					  "title": "Alternate identifiers",
+					  "items": {
+						  "type": "object",
+						  "properties": {
+							  "identifier": {
+								  "title": "Identifier",
+								  "type": "string"
+							  },
+							  "name": {
+								  "title": "Identifier name",
+								  "type": "string"
+							  },
+							  "database": {
+								  "title": "Database",
+								  "type": "string"
+							  },
+							  "uri": {
+								  "title": "URI",
+								  "type": "string"
+							  },
+							  "notes": {
+								  "title": "Notes",
+								  "type": "string"
+							  }
+						  },
+						  "required": [
+							  "identifier"
+						  ]
+					  }
+				  },
 				  "measurement_unit": {
 					  "type": "string",
 					  "title": "Series unit of measure"
@@ -214,6 +246,10 @@
 					  "type": "string",
 					  "title": "Imputations"
 				  },
+				  "missing": {
+					  "type": "string",
+					  "title": "Treatment of missing values"
+				  },
 				  "quality_checks": {
 					  "type": "string",
 					  "title": "Quality control methods"
@@ -221,6 +257,10 @@
 				  "quality_note": {
 					  "type": "string",
 					  "title": "Note on data quality"
+				  },
+				  "sources_discrepancies": {
+					  "type": "string",
+					  "title": "Discrepency sources"
 				  },
 				  "series_break": {
 					  "type": "string",
@@ -371,6 +411,10 @@
 				  "aggregation_method": {
 					  "type": "string",
 					  "title": "Aggregation method"
+				  },
+				  "disaggregation": {
+					  "type": "string",
+					  "title": "Dissaggregation"
 				  },
 				  "license": {
 					  "type": "object",
@@ -580,11 +624,75 @@
 								  "type": "string",
 								  "title": "URI"
 							  }
-						  }
-					  },
-					  "required": [
-						  "value"
-					  ]
+						  },
+						  "required": [
+							  "standard"
+						  ]
+					  }
+				  },
+				  "framework": {
+					  "type": "array",
+					  "title": "Framework",
+					  "items": {
+						  "type": "object",
+						  "properties": {
+							  "name": {
+								  "type": "string",
+								  "title": "Name"
+							  },
+							  "description": {
+								  "type": "string",
+								  "title": "Description"
+							  },
+							  "goal_id": {
+								  "type": "string",
+								  "title": "Goal ID"
+							  },
+							  "goal_name": {
+								  "type": "string",
+								  "title": "Goal name"
+							  },
+							  "goal_description": {
+								  "type": "string",
+								  "title": "Goal description"
+							  },
+							  "target_id": {
+								  "type": "string",
+								  "title": "target ID"
+							  },
+							  "target_name": {
+								  "type": "string",
+								  "title": "Target name"
+							  },
+							  "target_description": {
+								  "type": "string",
+								  "title": "Target description"
+							  },
+							  "indicator_id": {
+								  "type": "string",
+								  "title": "Indicator ID"
+							  },
+							  "indicator_name": {
+								  "type": "string",
+								  "title": "Indicator name"
+							  },
+							  "indicator_description": {
+								  "type": "string",
+								  "title": "Indicator description"
+							  },
+							  "uri": {
+								  "type": "string",
+								  "title": "URI"
+							  },
+							  "notes": {
+								  "type": "string",
+								  "title": "Description"
+							  }
+						  },
+						  "required": [
+							  "name"
+						  ]
+					  }
 				  },
 				  "lda_topics": {
 					  "type": "array",
