@@ -55,7 +55,7 @@ class Dataset_geospatial_model extends Dataset_model {
 
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_maintenance','dataset_description','additional');
+        $study_metadata_sections=array('type','dataset_metadata','service_metadata','additional');
 
         //external resources
         $external_resources=$this->get_array_nested_value($options,'dataset_description/distribution_info/online_resource');
@@ -134,21 +134,38 @@ class Dataset_geospatial_model extends Dataset_model {
 	 * 
 	 */
 	function get_core_fields($options)
-	{        
+	{
+        $type=$this->get_array_nested_value($options,'type');
+        if ($type=='dataset'){
+            return $this->get_dataset_core_fields($options);
+        }
+        else if ($type=='service'){
+            //return $this->get_service_core_fields($options);
+            throw new exception("Service metadata import not implemented");
+        }
+        
+        throw new exception("Type valid values are - 'service', 'dataset'");
+    }
+
+    function get_dataset_core_fields($options)
+	{
         $output=array();
-        $output['title']=$this->get_array_nested_value($options,'dataset_description/identification_info/title');
-        $output['idno']=$this->get_array_nested_value($options,'dataset_description/file_identifier');
+        
+        $identification_info=$this->get_array_nested_value($options,'dataset_metadata/identificationInfo');
+        $output['title']=$this->get_array_nested_value($identification_info[0],'citation/title');
+        $output['abbreviation']=$this->get_array_nested_value($options,'citation/alternateTitle');
+        $output['idno']=$this->get_array_nested_value($options,'idno');
+        $output['type']=$this->get_array_nested_value($options,'type');
 
         //todo
         //$nations=$this->get_array_nested_value($options,'database_description/geographic_units');	
         $output['nation']='';//todo
 
-        $output['abbreviation']=$this->get_array_nested_value($options,'dataset_description/identification_info/alternate_title');
-        
         //$auth_entity=$this->get_array_nested_value($options,'database_description/authoring_entity');
         $output['authoring_entity']='';
+        
+        $years=$this->get_years($this->get_array_nested_value($options,'dataset_metadata/dateStamp'));
 
-        $years=$this->get_years($options);
         $output['year_start']=$years['start'];
         $output['year_end']=$years['end'];
         
@@ -162,13 +179,16 @@ class Dataset_geospatial_model extends Dataset_model {
      * get years
      * 
      **/
-	function get_years($options)
+	function get_years($year)
 	{
-		$years=explode("-",$this->get_array_nested_value($options,'dataset_description/date_stamp'));
+		$year_parts=explode("-",$year);
 
-		if(is_array($years)){
-            $start=(int)$years[0];
-            $end=(int)$years[0];			
+        $start=0;
+        $end=0;
+
+		if(is_array($year_parts)){
+            $start=(int)$year_parts[0];
+            $end=(int)$year_parts[0];			
         }
 
 		return array(

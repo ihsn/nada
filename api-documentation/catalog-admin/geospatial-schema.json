@@ -911,7 +911,6 @@
 						"$ref": "#/definitions/responsibleParty"
 					}
 				},
-
 				"dateStamp": {
 					"title": "Metadata Date Stamp",
 					"type": "string",
@@ -1082,7 +1081,7 @@
 														"resolution": {
 															"title": "Dimension resolution",
 															"description": "Resolution associated to the dimension. The resolution is handled as 'measure' which could be either a length, distance [special measure of length), angle or scale.",
-															"type": "double",
+															"type": "number",
 															"_xpath": "gmd:spatialRepresentationInfo/gmd:MD_GridSpatialRepresentation/gmd:axisDimensionProperties/gmd:MD_Dimension/gmd:dimensionSize/gco:Measure",
 															"_xpath_note": "gco:Measure is an abstract element, use sub-classes gco:Length/gco:Distance/gco:Angle/gco:Scale",
 															"properties": {
@@ -1147,7 +1146,6 @@
 					"title": "Identification Info(s)",
 					"description": "Identification(s) of the resource",
 					"type": "array",
-					"type": "object",
 					"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification",
 					"items": {
 						"type": "object",
@@ -1294,8 +1292,10 @@
 										"userContactInfo": {
 											"title": "User contact(s)",
 											"type": "array",
-											"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage/gmd:userContactInfo/gmd:CI_ResponsibleParty",
-											"$ref": "#/definitions/responsibleParty"
+											"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceSpecificUsage/gmd:userContactInfo/gmd:CI_ResponsibleParty",											
+											"items":{
+												"$ref": "#/definitions/responsibleParty"
+											}
 										}
 									}
 								}
@@ -1390,7 +1390,7 @@
 							"spatialResolution": {
 								"title": "Spatial Resolution",
 								"description": "Spatial resolution of the resource",
-								"type": "double",
+								"type": "number",
 								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gco:Distance",
 								"properties": {
 									"uom" : {
@@ -1537,12 +1537,12 @@
 											"properties": {
 												"minimumValue": {
 													"title": "Minimum vertical value",
-													"type": "real",
+													"type": "number",
 													"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:minimumValue/gco:Real"	
 												},
 												"maximumValue": {
 													"title": "Maximum vertical value",
-													"type": "real",
+													"type": "number",
 													"_xpath":"gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:maximumValue/gco:Real"
 												},
 												"verticalCRS": {
@@ -1603,6 +1603,12 @@
 											"uuidref": {
 												"title": "Feature catalogue identifier",
 												"description": "Unique identifier of the feature catalogue (ISO 19110) within the same catalogue",
+												"type": "string",
+												"propertyType": "attribute"
+											},
+											"href": {
+												"title": "Feature catalogue hyperlink",
+												"description": "Hyperlink of the feature catalogue (ISO 19110) within the same catalogue",
 												"type": "string",
 												"propertyType": "attribute"
 											}
@@ -1672,14 +1678,18 @@
 							"title": "Distribution format(s)",
 							"_xpath": "gmd:distributionInfo/gmd:MD_Format",
 							"type": "array",
-							"$ref": "#/definitions/format"
+							"items":{
+								"$ref": "#/definitions/format"
+							}							
 						},
 						"distributor": {
 							"title": "Distributor(s)",
 							"description": "Responsible party(ies) in charge of the resource distribution",
 							"type": "array",
 							"_xpath": "gmd:distributionInfo/gmd:MD_Distributor/gmd:distributorContact",
-							"$ref": "#/definitions/responsibleParty"
+							"items":{
+								"$ref": "#/definitions/responsibleParty"
+							}							
 						},
 						"transferOptions": {
 							"title": "Digital transfer options",
@@ -1692,7 +1702,9 @@
 									"onLine": {
 										"title": "Online Resources",
 										"type": "array",
-										"$ref": "#/definitions/onlineResource"
+										"items":{
+											"$ref": "#/definitions/onlineResource"
+										}										
 									}
 								}
 							}
@@ -1710,7 +1722,6 @@
 						"properties": {
 							"scope": {
 								"title": "Scope of the data quality information",
-								"type": "object",
 								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode",
 								"$ref": "#/definitions/scope"
 							},
@@ -1877,8 +1888,10 @@
 													"type": "array",
 													"title": "Processor(s)",
 													"description": "Responsible party(ies) in charge of the processing for the step",
-													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:processor/gmd:CI_ResponsibleParty",
-													"$ref": "#/definitions/responsibleParty"
+													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:processor/gmd:CI_ResponsibleParty",													
+													"items":{
+														"$ref": "#/definitions/responsibleParty"
+													}
 												},
 												"source": {
 													"type": "array",
@@ -2435,12 +2448,12 @@
 											"properties": {
 												"minimumValue": {
 													"title": "Minimum vertical value",
-													"type": "real",
+													"type": "number",
 													"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:minimumValue/gco:Real"	
 												},
 												"maximumValue": {
 													"title": "Maximum vertical value",
-													"type": "real",
+													"type": "number",
 													"_xpath":"gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_VerticalExtent/gmd:maximumValue/gco:Real"
 												},
 												"verticalCRS": {
@@ -2785,9 +2798,176 @@
 			}
 		},
 		
+		"feature_catalogue": {
+			"title": "Feature catalogue",
+			"type": "object",
+			"properties": {
+				"name": {
+					"title": "Name",
+					"description": "Name of the feature catalogue",
+					"type": "string"
+				},
+				"scope": {
+					"title": "Scope(s)",
+					"description": "Subject domain(s) of feature types defined in this feature catalogue",
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"fieldOfApplication": {
+					"title": "Field(s) of application",
+					"description": "Description of kind(s) of use to which this feature catalogue may be put",
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"versionNumber": {
+					"title": "Version number",
+					"description": "version number of this feature catalogue, which may include both a major version number or letter and a sequence of minor release numbers or letters, such as '3.2.4a.' The format of this attribute may differ between cataloguing authorities.",
+					"type": "string"
+				},
+				"versionDate": {
+					"$ref": "#/definitions/date"
+				},
+				"producer": {
+					"title": "Producer",
+					"description": "Name, address, country, and telecommunications address of person or organization having primary responsibility for the intellectual content of this feature catalogue",
+					"type": "object",
+					"$ref": "#/definitions/responsibleParty"
+				},
+				"functionalLanguage": {
+					"title": "Functional language",
+					"description": "Formal functional language in which the feature operation formal definition occurs in this feature catalogue",
+					"type": "string"
+				},
+				"featureType": {
+					"title": "Feature type(s)",
+					"description": "Feature type(s) contained in the catalogue",
+					"type": "array",
+					"items": {
+						"title": "Feature Type",
+						"type": "object",
+						"properties": {
+							"typeName": {
+								"title": "Type name",
+								"description": "text string that uniquely identifies this feature type within the feature catalogue that contains this feature type",
+								"type": "string"
+							},
+							"definition": {
+								"title": "Definition",
+								"description": "definition of the feature type in a natural language",
+								"type": "string"
+							},
+							"code": {
+								"title": "Code",
+								"description": "code that uniquely identifies this feature type within the feature catalogue that contains this feature type",
+								"type": "string"
+							},
+							"isAbstract": {
+								"title": "Is abstract",
+								"description": "indicates if the feature type is abstract or not",
+								"type": "boolean"
+							},
+							"aliases": {
+								"title": "Alias(es)",
+								"description": "equivalent name(s) of this feature type",
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"carrierOfCharacteristics": {
+								"title": "Carrier(s) of characteristics",
+								"description": "links this feature type to the property types that it contains",
+								"type": "array",
+								"items": {
+									"title": "Property types",
+									"type": "object",
+									"properties": {
+										"memberName": {
+											"title": "Member name",
+											"description": "Name of the property member of the feature type",
+											"type": "string"
+										},
+										"definition": {
+											"title": "Definition",
+											"description": "Definition of the property member of the feature type",
+											"type": "string"
+										},
+										"cardinality": {
+											"title": "Cardinality",
+											"description": "Definition of the member type cardinality",
+											"type": "object",
+											"properties": {
+												"lower": {
+													"title": "Lower cardinality",
+													"description": "Lower cardinality range value",
+													"type": "integer"
+												},
+												"upper": {
+													"title": "Upper cardinality",
+													"description": "Upper cardinality range value",
+													"type": "integer"
+												}
+											}
+										},
+										"code": {
+											"title": "Code",
+											"description": "Code for the attribute member of the feature type",
+											"type": "string"
+										},
+										"valueMeasurementUnit": {
+											"title": "Value measurement unit",
+											"description": "Measurement unit of the values (in case of variable)",
+											"type": "string"
+										},
+										"valueType": {
+											"title": "Value type",
+											"description": "Type of value. A good practice is to rely on primitive data types defined in the XML Schema https://www.w3.org/2009/XMLSchema/XMLSchema.xsd",
+											"type": "string"
+										},
+										"listedValue": {
+											"title": "Listed value(s)",
+											"description": "List of controlled value(s) used in te attribute member",
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"label": {
+														"title": "Value label",
+														"description": "a label for the value",
+														"type": "string"
+													},
+													"code": {
+														"title": "Value code",
+														"description": "a code for the value",
+														"type": "string"
+													},
+													"definition": {
+														"title": "Value definition",
+														"description": "a definition for the value",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		
 		"additional": {
 			"title":"Additional metadata",
 			"description":"Any additional metadata"
 		}
-	}
+	},
+	"required": [
+		"idno","type"
+	]
 }
