@@ -9,7 +9,7 @@
 		"language": {
 			"title": "Language",
 			"description":"Language of the resource",					
-			"type": "string",
+			"type": "object",
 			"_xpath":"gmd:LanguageCode",
 			"properties": {
 				"codeListValue": {
@@ -51,7 +51,7 @@
 				"characterEncoding" : {
 					"title": "Character set",
 					"description":"Character encoding used e.g. UTF-8",
-					"type": "string",
+					"type": "object",
 					"_xpath":"gmd:PT_Locale/gmd:characterEncoding",
 					"properties": {
 						"characterSet": {
@@ -68,7 +68,7 @@
 		"characterSet": {
 			"title": "Character set",
 			"description":"Character encoding used e.g. UTF-8",
-			"type": "string",
+			"type": "object",
 			"_xpath":"gmd:MD_CharacterSetCode",
 			"properties": {
 				"codeListValue": {
@@ -844,9 +844,11 @@
 				"language": {
 					"title": "Language",
 					"description":"Main metadata language",					
-					"type": "string",
+					"type": "array",
 					"_xpath":"gmd:language/gmd:LanguageCode",
-					"$ref": "#/definitions/language"
+					"items": {
+						"$ref": "#/definitions/language"
+					}
 				},
 				"characterSet": {
 					"title": "Character set",
