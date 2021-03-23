@@ -512,7 +512,7 @@
 			"properties": {
 				"type": {
 					"title": "Keyword type",
-					"type": "string",
+					"type": "array",
 					"description": "Type of keyword based on pre-defined code values",
 					"items":{
 						"type": "object",
@@ -520,7 +520,7 @@
 							"code": {
 								"title": "Code",
 								"type": "string",
-								"description": "Code value - based on (but not limited to) code values listed in the ISO 19115  {`dataCenter`,`discipline`,`place`,`dataResolution`,`stratum`,`temporal`,`theme`,`dataCentre`,`featureType`,`instrument`,`platform`,`process`,`project`,`service`,`product`,`subTopicCategory`}",
+								"description": "Code value - based on (but not limited to) code values listed in the ISO 19115 \n {`dataCenter`, `discipline`, `place`, `dataResolution`, \n`stratum`,`temporal`,`theme`,`dataCentre`,`featureType`,`instrument`,`platform`,`process`,`project`,`service`,`product`,`subTopicCategory`}",
 								"_xpath":"gmd:type/gmd:MD_KeywordTypeCode/@codeListValue"
 							},
 							"code_uri": {
@@ -539,14 +539,8 @@
 					"type": "array",
 					"description": "Keywords",
 					"items": {
-						"type": "object",
-						"properties": {
-							"keyword": {
-								"title": "Keyword",
-								"type": "string",
-								"_xpath":"gmd:keyword/gco:CharacterString"
-							}				
-						}
+						"type": "string",
+						"_xpath":"gmd:keyword/gco:CharacterString"						
 					},
 					"required": [
 						"keyword"
