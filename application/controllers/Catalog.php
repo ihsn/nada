@@ -32,10 +32,11 @@ class Catalog extends MY_Controller {
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
 
 		//set template for print
-		if ($this->input->get("print")==='yes')
-		{
+		if ($this->input->get("print")==='yes'){
 			$this->template->set_template('blank');
 		}
+
+		$this->active_repo=$this->repository_model->get_central_catalog_array();
 	}
 
 	
@@ -1047,8 +1048,8 @@ class Catalog extends MY_Controller {
 		if (in_array($repo,$repositories)){
 			//repository options
 			if ($repo=='central'){
-				$this->active_repo=null;
-				//$this->active_repo=$this->repository_model->get_central_catalog_array();
+				//$this->active_repo=null;
+				$this->active_repo=$this->repository_model->get_central_catalog_array();
 			}
 			else{
 				//set active repo
