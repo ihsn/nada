@@ -10,6 +10,7 @@ return array(
     'Violet\\StreamingJsonEncoder\\' => array($vendorDir . '/violet/streaming-json-encoder/src'),
     'Symfony\\Contracts\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher-contracts'),
     'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
+    'Spatie\\ArrayToXml\\' => array($vendorDir . '/spatie/array-to-xml/src'),
     'Solarium\\' => array($vendorDir . '/solarium/solarium/src'),
     'Slim\\Csrf\\' => array($vendorDir . '/slim/csrf/src'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
@@ -21,4 +22,5 @@ return array(
     'JsonStreamingParser\\' => array($vendorDir . '/salsify/json-streaming-parser/src'),
     'JsonSchema\\' => array($vendorDir . '/justinrainbow/json-schema/src/JsonSchema'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
+    'Adbar\\' => array($vendorDir . '/adbario/php-dot-notation/src'),
 );

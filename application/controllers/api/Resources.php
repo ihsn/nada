@@ -10,11 +10,24 @@ class Resources extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
 		$this->load->model("Resource_model");	//todo to be deleted
-		$this->load->model("Survey_resource_model");	
-		$this->is_authenticated_or_die();
+		$this->load->model("Survey_resource_model");
+		$this->load->library("Dataset_manager");		
+		$this->is_admin_or_die();
 	}
 	
 
+//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		//session user id
+		if ($this->session->userdata('user_id'))
+		{
+			//var_dump($this->session->userdata('user_id'));
+			return true;
+		}
+
+		parent::_auth_override_check();
+	}
 
 	/**
 	 * 
@@ -89,9 +102,16 @@ class Resources extends MY_REST_Controller
 	 **/ 
 	function index_post($idno=null)
 	{
-		$this->is_admin_or_die();		
-		$options=$this->raw_json_input();
+		$this->is_admin_or_die();
 
+		//multipart/form-data
+		$options=$this->input->post(null, true);
+
+		//raw json input
+		if (empty($options)){
+			$options=$this->raw_json_input();
+		}
+				
 		try{
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -108,12 +128,47 @@ class Resources extends MY_REST_Controller
 
 			//validate resource
 			if ($this->Survey_resource_model->validate_resource($options)){
-				$resource_id=$this->Survey_resource_model->insert($options);
+
+				$upload_result=null;
+
+				if(!empty($_FILES)){
+					//upload file?
+					$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
+					$uploaded_file_name=$upload_result['file_name'];
+				
+					//set filename to uploaded file
+					$options['filename']=$uploaded_file_name;
+				}
+
+				//check if resource already exists
+				$resource_exists=false;
+								
+				if (!empty($options['filename'])){
+					$resource_exists=$this->Survey_resource_model->get_survey_resources_by_filepath($sid,$options['filename']);
+				}					
+
+				$overwrite=isset($options["overwrite"]) ? $options["overwrite"] : false;
+
+				if($resource_exists){
+					if ($overwrite == 'yes'){
+						//update existing
+						$resource_id=$this->Survey_resource_model->update($resource_exists[0]['resource_id'],$options);
+					}
+					else{
+						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");						
+					}
+				}
+				else{
+					//insert new resource
+					$resource_id=$this->Survey_resource_model->insert($options);
+				}
+
 				$resource=$this->Survey_resource_model->select_single($resource_id);
 				
 				$response=array(
 					'status'=>'success',
-					'resource'=>$resource
+					'resource'=>$resource,
+					'uploaded_file'=>$upload_result
 				);
 
 				$this->set_response($response, REST_Controller::HTTP_OK);
@@ -334,12 +389,18 @@ class Resources extends MY_REST_Controller
 
 
 	private function get_sid_from_idno($idno=null)
-	{
+	{		
 		if(!$idno){
 			throw new Exception("IDNO-NOT-PROVIDED");
 		}
 
-		$sid=$this->Dataset_model->find_by_idno($idno);
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			return $idno;
+		}
+
+		$sid=$this->dataset_manager->find_by_idno($idno);
 
 		if(!$sid){
 			throw new Exception("IDNO-NOT-FOUND");

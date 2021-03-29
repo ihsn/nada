@@ -16,6 +16,32 @@ class Datasets extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return true;
+		}
+
+		parent::_auth_override_check();
+	}
+
+
+	//override to support sessions
+	function get_api_user_id()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
+		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->_apiuser->user_id;
+		}
+
+		return false;
+	}
 	
 	/**
 	 * 
@@ -206,6 +232,10 @@ class Datasets extends MY_REST_Controller
 			//set default repository if not set
 			if(!isset($options['repositoryid'])){
 				$options['repositoryid']='central';
+			}
+
+			if(isset($options['data_remote_url'])){
+				$options['link_da']=$options['data_remote_url'];
 			}
 
 			//validate & create dataset
@@ -800,6 +830,7 @@ class Datasets extends MY_REST_Controller
 				'published'=>$published,
 				'user_id'=>$this->get_api_user_id(),
 				'formid'=>$form_id,
+				'link_da'=>$this->input->post("data_remote_url"),
 				'overwrite'=>$overwrite
 			);			
 			
@@ -899,6 +930,13 @@ class Datasets extends MY_REST_Controller
 		
 		return $uploaded_ddi_path;
 			
+	}
+
+
+	//alias for delete_delete
+	public function index_delete($idno=null)
+	{
+		return $this->delete_delete($idno);
 	}
 
 	/**
@@ -1504,5 +1542,32 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+	/**
+	 * 
+	 *  Generate DDI and return the xml
+	 * 
+	 */
+	public function generate_ddi_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->write_ddi($sid,$overwrite=true);
+
+			$response=array(
+				'status'=>  'success'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}	
 
 }

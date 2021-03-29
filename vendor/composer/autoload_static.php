@@ -8,6 +8,7 @@ class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -23,6 +24,7 @@ class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
         array (
             'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Component\\EventDispatcher\\' => 34,
+            'Spatie\\ArrayToXml\\' => 18,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
         ),
@@ -50,6 +52,10 @@ class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
         array (
             'DeepCopy\\' => 9,
         ),
+        'A' => 
+        array (
+            'Adbar\\' => 6,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -68,6 +74,10 @@ class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
         'Symfony\\Component\\EventDispatcher\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/event-dispatcher',
+        ),
+        'Spatie\\ArrayToXml\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/spatie/array-to-xml/src',
         ),
         'Solarium\\' => 
         array (
@@ -113,6 +123,14 @@ class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
         ),
+        'Adbar\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/adbario/php-dot-notation/src',
+        ),
+    );
+
+    public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
@@ -120,6 +138,7 @@ class ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit805259cb3dd98a9c81b0ee4514dab5c2::$classMap;
 
         }, null, ClassLoader::class);
     }
