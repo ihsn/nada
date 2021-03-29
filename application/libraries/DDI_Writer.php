@@ -112,8 +112,6 @@ class DDI_Writer
         $this->ci->load->model("Variable_model");
         $this->ci->load->model("Variable_group_model");        
 
-        //$id=$this->ci->Dataset_model->find_by_idno($idno);
-        
         if(!$sid){
             throw new Exception('STUDY NOT FOUND');
         }
@@ -123,8 +121,6 @@ class DDI_Writer
         if (!$dataset['type']=='survey'){
             throw new Exception('Dataaset type is not `survey`:: '. $sid . ' - ' . $dataset['type']);
         }
-
-        var_dump($output);
 
         $writer = new XMLWriter;
         $writer->openURI($output);

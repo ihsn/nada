@@ -1223,11 +1223,16 @@ class Dataset_model extends CI_Model {
             throw new Exception("DDI is only available for Survey/MICRODATA types");
         }
 
-        $ddi_path=$this->get_metadata_file_path($sid);
+        $ddi_path=$this->get_metadata_file_path($sid);		
 
 		//create project folder if not exists
 		if(!file_exists(dirname($ddi_path))){
 			mkdir(dirname($ddi_path));
+		}
+
+		//data has changed, overwrite file
+		if (file_exists($ddi_path) && filemtime($ddi_path) < $dataset['changed']){
+			$overwrite=true;
 		}
 
         if(file_exists($ddi_path) && $overwrite==false){
