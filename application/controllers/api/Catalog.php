@@ -1060,9 +1060,13 @@ class Catalog extends MY_REST_Controller
 			if($dataset['type']!='survey'){
 				throw new Exception("DDI is only available for Survey/MICRODATA types");
 			}
-			
+
             $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
-			
+
+			if(!file_exists($ddi_path)){
+                $this->Dataset_model->write_ddi($sid,$overwrite=false);
+            }
+
             if(!file_exists($ddi_path)){
                 throw new Exception("DDI is not available");
             }

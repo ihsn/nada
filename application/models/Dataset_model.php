@@ -710,12 +710,17 @@ class Dataset_model extends CI_Model {
 
 	function get_metadata_file_path($sid)
 	{
-		$this->db->select('dirpath,metafile');
+		$this->db->select('idno,dirpath,metafile');
 		$this->db->where('id', $sid);
 		$query=$this->db->get('surveys')->row_array();
 		
-		if ($query){
-			return get_catalog_root() . '/'. $query['dirpath'].'/'.$query['metafile'];
+		if ($query){			
+			$metafile=$query['metafile'];
+			if (empty($metafile)){
+				$metafile=$query['idno'].'.xml';
+			}
+
+			return get_catalog_root() . '/'. $query['dirpath'].'/'.$metafile;
 		}
 		
 		return false;
@@ -1207,6 +1212,31 @@ class Dataset_model extends CI_Model {
 		return $output;
 	}
 
+
+	//create a DDI file
+    function write_ddi($sid,$overwrite=false)
+    {
+        $this->load->library("DDI_Writer");
+        $dataset=$this->get_row($sid);
+
+        if($dataset['type']!='survey'){
+            throw new Exception("DDI is only available for Survey/MICRODATA types");
+        }
+
+        $ddi_path=$this->get_metadata_file_path($sid);
+
+		//create project folder if not exists
+		if(!file_exists(dirname($ddi_path))){
+			mkdir(dirname($ddi_path));
+		}
+
+        if(file_exists($ddi_path) && $overwrite==false){
+            throw new Exception("DDI_FILE_EXISTS");
+        }
+
+        $this->ddi_writer->generate_ddi($sid,$ddi_path);
+        return $ddi_path;
+    }
 
 }//end-class
 	

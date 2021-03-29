@@ -35,6 +35,16 @@ class Metadata extends MY_Controller {
         }
         else if($format=='ddi' && $dataset['type']=='survey'){
             $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
+
+            if(!file_exists($ddi_path)){
+                try{
+                    $result=$this->Dataset_model->write_ddi($sid,$overwrite=false);
+                }
+                catch(Exception $e){                    
+                    show_error($e->getMessage());
+                }	
+            }
+
             if(file_exists($ddi_path)){
                 force_download2($ddi_path);
             }
