@@ -1626,6 +1626,7 @@ class Dataset_model extends CI_Model {
 		}
 
 		if(file_exists($ddi_path)){
+			$this->load->helper("download");
 			force_download2($ddi_path);
 		}
 	}
@@ -1633,6 +1634,11 @@ class Dataset_model extends CI_Model {
 	function download_metadata_json($sid)
 	{
 		$dataset=$this->Dataset_model->get_row($sid);
+
+		if (!$dataset){
+			throw new Exception("STUDY_NOT_FOUND");
+		}
+
 		$study_path=$this->get_storage_fullpath($sid);
 		$json_path=$study_path.'/'.$dataset['idno'].'.json';
 
