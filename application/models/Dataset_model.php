@@ -1345,6 +1345,7 @@ class Dataset_model extends CI_Model {
 
 	function download_metadata_ddi($sid)
 	{
+		$this->load->helper("download");
 		$dataset=$this->Dataset_model->get_row($sid); 
 		$ddi_path=$this->get_metadata_file_path($sid);
 
@@ -1372,7 +1373,7 @@ class Dataset_model extends CI_Model {
 	}
 
 	function download_metadata_json($sid)
-	{
+	{		
 		$dataset=$this->Dataset_model->get_row($sid);
 		$study_path=$this->get_storage_fullpath($sid);
 		$json_path=$study_path.'/'.$dataset['idno'].'.json';

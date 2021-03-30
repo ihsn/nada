@@ -1052,26 +1052,19 @@ class Catalog extends MY_REST_Controller
 	 */
 	function ddi_get($idno=null)
 	{
-		try{
-			$this->load->helper("download");
+		try{			
 			$sid=$this->get_sid_from_idno($idno);
 			$dataset=$this->Dataset_model->get_row($sid);
+
+			if (!$dataset){
+				throw new Exception("IDNO_NOT_FOUND");
+			}
 
 			if($dataset['type']!='survey'){
 				throw new Exception("DDI is only available for Survey/MICRODATA types");
 			}
-
-            $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
-
-			if(!file_exists($ddi_path)){
-                $this->Dataset_model->write_ddi($sid,$overwrite=false);
-            }
-
-            if(!file_exists($ddi_path)){
-                throw new Exception("DDI is not available");
-            }
-			
-			force_download2($ddi_path);
+            $this->Dataset_model->download_metadata_ddi($sid);
+			die();
         }		
 		catch(Exception $e){
 			$error_output=array(
@@ -1081,6 +1074,38 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
+
+
+
+	/**
+	 * 
+	 * Get JSON
+	 * 
+	 */
+	function json_get($idno=null)
+	{
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+			$dataset=$this->Dataset_model->get_row($sid);
+
+			if (!$dataset){
+				throw new Exception("IDNO_NOT_FOUND");
+			}
+
+			$this->Dataset_model->download_metadata_json($sid);
+			die();
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+
+
 	
 	/**
 	 * 
