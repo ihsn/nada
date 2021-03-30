@@ -18,44 +18,28 @@ class Metadata extends MY_Controller {
      * 
      * @format - JSON, DDI
      * 
-     */
-	function export($sid=null,$format='json')
+     */	
+    function export($sid=null,$format='json')
 	{
-        $dataset=$this->Dataset_model->get_row($sid);
+        $dataset=$this->Dataset_model->get_row($sid); 
 
         if(!$dataset){
             show_404();
         }
 
         if($format=='json'){
-            $full_metadata=$this->input->get("detailed") =='true' ? true : false;
-
-            if ($full_metadata){                
-                $metadata=$dataset;
-                if($metadata['type']=='survey'){
-                    $this->load->model("Data_file_model");
-                    $this->load->model("Variable_model");
-                    $metadata['data_files']=$this->Data_file_model->get_all_by_survey($sid);
-                    $variables=$this->Variable_model->select_all($sid);                    
-                    foreach($variables as $variable){
-                        $metadata['variables'][]=$variable['metadata'];
-                    }
-                }
-            }
-            else{
-                $metadata=$this->dataset_manager->get_metadata($sid,$dataset['type']);
-            }
-                        
-            $this->output
+            if (!$this->input->get("detailed")){
+                $metadata=$this->Dataset_model->get_metadata($sid);
+                $this->output
                     ->set_content_type('application/json')
                     ->set_output(json_encode($metadata));
-            return;
+                return;
+            }
+            //download JSON file
+            $this->Dataset_model->download_metadata_json($sid);
         }
         else if($format=='ddi' && $dataset['type']=='survey'){
-            $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
-            if(file_exists($ddi_path)){
-                force_download2($ddi_path);
-            }
+            $this->Dataset_model->download_metadata_ddi($sid);
         }
     }
     

@@ -19,13 +19,9 @@ class Datasets extends MY_REST_Controller
 	//override authentication to support both session authentication + api keys
 	function _auth_override_check()
 	{
-		//session user id
-		if ($this->session->userdata('user_id'))
-		{
-			//var_dump($this->session->userdata('user_id'));
+		if ($this->session->userdata('user_id')){
 			return true;
 		}
-
 		parent::_auth_override_check();
 	}
 
@@ -58,11 +54,22 @@ class Datasets extends MY_REST_Controller
 				return $this->single_get($idno);
 			}
 			
-			$result=$this->dataset_manager->get_all();
+			$offset=(int)$this->input->get("offset");
+			$limit=(int)$this->input->get("limit");
+
+			if (!$limit){
+				$limit=50;
+			}
+			
+			$result=$this->dataset_manager->get_all($limit,$offset);
 			array_walk($result, 'unix_date_to_gmt',array('created','changed'));				
+
 			$response=array(
 				'status'=>'success',
+				'total'=>$this->dataset_manager->get_total_count(),
 				'found'=>count($result),
+				'offset'=>$offset,
+				'limit'=>$limit,
 				'datasets'=>$result
 			);		
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -1106,32 +1113,6 @@ class Datasets extends MY_REST_Controller
 
 	/**
 	 * 
-	 *  Generate DDI and return the xml
-	 * 
-	 */
-	public function generate_ddi_get($idno=null)
-	{
-		try{
-			$sid=$this->get_sid_from_idno($idno);
-			
-			header("Content-type: text/xml");			
-			$this->load->library("DDI_Writer");
-	 		$this->ddi_writer->generate_ddi($idno);
-		}	
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}	
-	}	 
-
-
-
-
-	/**
-	 * 
 	 *  Delete by IDNO
 	 * 
 	 */
@@ -2045,5 +2026,65 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+	/**
+	 * 
+	 *  Generate DDI and return the xml
+	 * 
+	 */
+	public function generate_ddi_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->write_ddi($sid,$overwrite=true);
+
+			$response=array(
+				'status'=>  'success'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
+
+
+	/**
+	 * 
+	 *  Generate DDI and return the xml
+	 * 
+	 */
+	public function generate_json_get($idno=null)
+	{
+		try{
+
+			header("Content-Type: application/json");
+			header('Content-Encoding: UTF-8');
+
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->write_json($sid,$overwrite=true);
+
+			$response=array(
+				'status'=>  'success',
+				//'memory_usage'=>memory_get_usage()/1024,
+				//'memory_peak'=>memory_get_peak_usage()/1024
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}	
 	
 }

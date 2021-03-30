@@ -106,17 +106,11 @@ class DDI_Writer
      * @output - 'php://output' or file path
      * 
      * */
-	function generate_ddi($idno=null, $output='php://output')
+	function generate_ddi($id=null, $output='php://output')
 	{
         $this->ci->load->model('Data_file_model');
         $this->ci->load->model("Variable_model");
         $this->ci->load->model("Variable_group_model");        
-
-        $id=$this->ci->Dataset_model->find_by_idno($idno);
-        
-        if(!$id){
-            throw new Exception('STUDY NOT FOUND');
-        }
 
         $dataset=$this->ci->Dataset_model->get_row_detailed($id);
 

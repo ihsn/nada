@@ -224,7 +224,7 @@ class Dataset_model extends CI_Model {
     function get_row($sid)
     {
 		$this->db->select("surveys.id,surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.year_start, 
-			year_end,nation,published,created, changed, varcount, total_views, total_downloads, 
+			year_end,nation,surveys.authoring_entity,published,created, changed, varcount, total_views, total_downloads, 
 			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, 
 			surveys.data_class_id, data_classifications.code as data_class_code, data_classifications.title as data_class_title,
 			surveys.thumbnail, link_study, link_indicator, link_report");
@@ -1475,6 +1475,193 @@ class Dataset_model extends CI_Model {
 		}
 
 		return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
+	}
+
+
+	//create a DDI file
+    function write_ddi($sid,$overwrite=false)
+    {
+        $this->load->library("DDI_Writer");
+		$this->load->model('Data_file_model');
+		$this->load->model('Variable_model');
+		$this->load->model('Variable_group_model');
+        $dataset=$this->get_row($sid);
+
+        if($dataset['type']!='survey'){
+            throw new Exception("DDI is only available for Survey/MICRODATA types");
+        }
+
+        $ddi_path=$this->get_metadata_file_path($sid);		
+
+		//create project folder if not exists
+		if(!file_exists(dirname($ddi_path))){
+			mkdir(dirname($ddi_path));
+		}
+
+		//data has changed, overwrite file
+		if (file_exists($ddi_path) && filemtime($ddi_path) < $dataset['changed']){
+			$overwrite=true;
+		}
+
+        if(file_exists($ddi_path) && $overwrite==false){
+            throw new Exception("DDI_FILE_EXISTS");
+        }
+
+        $this->ddi_writer->generate_ddi($sid,$ddi_path);
+        return $ddi_path;
+    }
+
+	function write_json($sid,$overwrite=false)
+	{
+		$this->load->library("DDI_Writer");
+		$this->load->model('Data_file_model');
+		$this->load->model('Variable_model');
+		$this->load->model('Variable_group_model');
+        $dataset=$this->get_row($sid);
+
+        $study_path=$this->get_storage_fullpath($sid);
+
+		if(!$study_path){
+			throw new Exception("STUDY_FOLDER_NOT_SET");
+		}
+
+		$json_path=$study_path.'/'.$dataset['idno'].'.json';
+
+		//create project folder if not exists
+		if(!file_exists($study_path)){
+			mkdir($study_path);
+		}
+
+		//data has changed, overwrite file
+		if (file_exists($json_path) && filemtime($json_path) < $dataset['changed']){
+			$overwrite=true;
+		}
+
+        if(file_exists($json_path) && $overwrite==false){
+            throw new Exception("JSON_FILE_EXISTS");
+        }
+
+		//$fp = fopen('php://output', 'w');
+		$fp = fopen($json_path, 'w');
+
+		$metadata=$this->get_metadata($sid);
+		$basic_info=array(
+			'type'=>$dataset['type']
+		);
+		
+		$output=array_merge($basic_info, $metadata );
+
+		if($dataset['type']=='survey'){
+			$this->load->model("Data_file_model");
+			$output['data_files'] = function () use ($sid) {
+				$files=$this->Data_file_model->get_all_by_survey($sid);
+				if ($files){
+					foreach($files as $file){
+						unset($file['id']);
+						unset($file['sid']);
+						yield $file;
+					}
+				}
+			};
+
+			$output['variables'] = function () use ($sid) {
+				foreach($this->Variable_model->chunk_reader_generator($sid) as $variable){
+					yield $variable['metadata'];
+				}
+			};
+
+			$output['variable_groups'] = function () use ($sid) {
+				$var_groups=$this->Variable_group_model->select_all($sid);
+				foreach($var_groups as $var_group){
+					yield $var_group;
+				}			
+			};
+		}
+		
+		$encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder(
+			$output,
+			function ($json) use ($fp) {
+				fwrite($fp, $json);
+			}
+		);
+		//$encoder->setOptions(JSON_PRETTY_PRINT);
+		$encoder->encode();
+		fclose($fp);
+
+		return $json_path;
+	}
+
+
+	function download_metadata($sid,$format='json')
+	{
+		if ($format=='json'){
+			return $this->download_metadata_json($sid);
+		}
+		else if ($format=='ddi'){
+			return $this->download_metadata_ddi($sid);
+		}
+	}
+
+	function download_metadata_ddi($sid)
+	{
+		$dataset=$this->Dataset_model->get_row($sid); 
+		$ddi_path=$this->get_metadata_file_path($sid);
+
+		$generate_file=false;
+		if (file_exists($ddi_path) && filemtime($ddi_path) < $dataset['changed']){
+			$generate_file=true;
+		}
+		
+		if(!file_exists($ddi_path)){
+			$generate_file=true;
+		}
+
+		if($generate_file){
+			try{
+				$result=$this->write_ddi($sid,$overwrite=true);
+			}
+			catch(Exception $e){                    
+				show_error($e->getMessage());
+			}	
+		}
+
+		if(file_exists($ddi_path)){
+			force_download2($ddi_path);
+		}
+	}
+
+	function download_metadata_json($sid)
+	{
+		$dataset=$this->Dataset_model->get_row($sid);
+		$study_path=$this->get_storage_fullpath($sid);
+		$json_path=$study_path.'/'.$dataset['idno'].'.json';
+
+		$generate_file=false;
+		if (file_exists($json_path) && filemtime($json_path) < $dataset['changed']){
+			$generate_file=true;
+		}
+		
+		if(!file_exists($json_path)){
+			$generate_file=true;
+		}
+
+		if($generate_file){
+			try{
+				$result=$this->write_json($sid,$overwrite=true);
+			}
+			catch(Exception $e){                    
+				show_error($e->getMessage());
+			}	
+		}
+
+		if(file_exists($json_path)){
+			header("Content-type: application/json; charset=utf-8");
+			$stdout = fopen('php://output', 'w');			
+			$fh = fopen($json_path, 'r');
+			stream_copy_to_stream($fh, $stdout);
+			fclose($fh);
+			fclose($stdout);
+		}
 	}
 
 }//end-class

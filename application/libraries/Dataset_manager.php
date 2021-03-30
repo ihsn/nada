@@ -77,7 +77,7 @@ class Dataset_manager{
      * Return all rows
      * 
      */
-    function get_all($limit,$offset)
+    function get_all($limit=100,$offset=0)
     {
         return $this->ci->Dataset_model->get_all($limit,$offset);
     }
