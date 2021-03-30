@@ -20,43 +20,25 @@ class Metadata extends MY_Controller {
      */
 	function export($sid=null,$format='json')
 	{
-        $dataset=$this->Dataset_model->get_row($sid);
+        $dataset=$this->Dataset_model->get_row($sid); 
 
         if(!$dataset){
             show_404();
         }
 
         if($format=='json'){
-            $metadata=$this->Dataset_model->get_metadata($sid);
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode($metadata));
-            return;
+            if (!$this->input->get("detailed")){
+                $metadata=$this->Dataset_model->get_metadata($sid);
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode($metadata));
+                return;
+            }
+            //download JSON file
+            $this->Dataset_model->download_metadata_json($sid);
         }
         else if($format=='ddi' && $dataset['type']=='survey'){
-            $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
-
-            $generate_file=false;
-            if (file_exists($ddi_path) && filemtime($ddi_path) < $dataset['changed']){
-                $generate_file=true;
-            }
-            
-            if(!file_exists($ddi_path)){
-                $generate_file=true;
-            }
-
-            if($generate_file){
-                try{
-                    $result=$this->Dataset_model->write_ddi($sid,$overwrite=true);
-                }
-                catch(Exception $e){                    
-                    show_error($e->getMessage());
-                }	
-            }
-
-            if(file_exists($ddi_path)){
-                force_download2($ddi_path);
-            }
+            $this->Dataset_model->download_metadata_ddi($sid);
         }
     }
     

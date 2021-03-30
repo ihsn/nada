@@ -1570,4 +1570,37 @@ class Datasets extends MY_REST_Controller
 		}	
 	}	
 
+
+	/**
+	 * 
+	 *  Generate DDI and return the xml
+	 * 
+	 */
+	public function generate_json_get($idno=null)
+	{
+		try{
+
+			header("Content-Type: application/json");
+			header('Content-Encoding: UTF-8');
+
+			$sid=$this->get_sid_from_idno($idno);
+			$result=$this->Dataset_model->write_json($sid,$overwrite=true);
+
+			$response=array(
+				'status'=>  'success',
+				'memory_usage'=>memory_get_usage()/1024,
+				'memory_peak'=>memory_get_peak_usage()/1024
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}	
+
 }
