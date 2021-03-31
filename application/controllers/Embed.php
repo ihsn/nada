@@ -22,9 +22,9 @@ class Embed extends MY_Controller {
 
         if (file_exists($index_file)){
             $file_content=file_get_contents($index_file);
-            $base_url='<head><base href="'.base_url().'files/embed/'.$row['storage_path'].'/">';
-            $file_content=str_replace('<head>', $base_url,$file_content);
-
+            $head='<head><base href="'.base_url().'files/embed/'.$row['storage_path'].'/">';
+            $head=$head . '<script type="text/javascript" src="https://pym.nprapps.org/pym.v1.min.js"></script><script>window.onload = function () {var pymChild = new pym.Child();}</script>';
+            $file_content=str_replace('<head>', $head,$file_content);
             echo $file_content;
         }
     }
