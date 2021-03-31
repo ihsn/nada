@@ -21,9 +21,9 @@
                 */?>
 
 
-                <div id="widget-<?php $row['uuid'];?>"></div>
+                <div id="widget-<?php echo $row['uuid'];?>"></div>
                 <script>
-                    var pymParent = new pym.Parent('widget-<?php $row['uuid'];?>', '<?php echo site_url('embed/'.$row['uuid']);?>', {});
+                    var pymParent = new pym.Parent('widget-<?php echo $row['uuid'];?>', '<?php echo site_url('embed/'.$row['uuid']);?>', {});
                 </script>
 
             </div>
