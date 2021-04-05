@@ -77,7 +77,7 @@
 				}
 			}
 		},		
-		"Translators": {
+		"translators": {
             "type": "array",
             "description": "Authors",
 			"items": {
@@ -147,7 +147,7 @@
 			"description": "Provide the day part of the publication date"
 		},
 		"pub_month": {
-			"type": "string",
+			"type": "integer",
 			"title": "Publication date (Month only)",
 			"description": "Provide the month of the publication date"
 		},

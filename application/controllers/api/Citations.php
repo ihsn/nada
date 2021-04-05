@@ -191,13 +191,14 @@ class Citations extends MY_REST_Controller
 			}
 
 			//attach related studies
-			if ( isset($options['related_surveys'])){
+			if ( isset($options['related_studies'])){
 				$surveys=array();
-				foreach($options['related_surveys'] as $survey){
-					$surveys[]=$this->Dataset_model->find_by_idno($survey['idno']);
+				foreach($options['related_studies'] as $survey){
+					$surveys[]=$this->Dataset_model->find_by_idno($survey);
 				}
 
 				$surveys=array_filter($surveys);
+
 				if (count($surveys)>0){
 					$this->Citation_model->attach_related_surveys($citation_id,$surveys);
 				}
