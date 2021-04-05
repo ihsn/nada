@@ -1384,20 +1384,19 @@ CREATE TABLE `embed` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` varchar(100) NOT NULL,
   `title` varchar(250) NOT NULL,
+  `thumbnail` varchar(300) DEFAULT NULL,
   `description` varchar(450) DEFAULT NULL,
   `storage_path` varchar(255) DEFAULT NULL,
   `published` int DEFAULT NULL,
-  `width` varchar(15) DEFAULT NULL,
-  `height` varchar(15) DEFAULT NULL,
-  `maxwidth` varchar(15) DEFAULT NULL,
-  `maxheight` varchar(15) DEFAULT NULL,
   `created` int DEFAULT NULL,
   `changed` int DEFAULT NULL,
   `created_by` int DEFAULT NULL,
   `changed_by` int DEFAULT NULL,
+  `options` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid_UNIQUE` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1;
+
 
 CREATE TABLE `survey_embeds` (
   `id` int NOT NULL AUTO_INCREMENT,
