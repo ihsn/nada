@@ -19,10 +19,6 @@ class Embed_model extends CI_Model {
         'description',
         'storage_path',
         'published',
-        'width',
-        'height',
-        'maxwidth',
-        'maxheight',
         'created',
         'changed',
         'created_by',
@@ -49,7 +45,7 @@ class Embed_model extends CI_Model {
 
     function select_all()
     {
-        $this->db->select("*");
+        $this->db->select("id,uuid,title,description,storage_path,published, changed,created");
         return $this->db->get("embed")->result_array();
     }
 
@@ -194,6 +190,7 @@ class Embed_model extends CI_Model {
         }
 
         $data['uuid']=$uuid;
+        $data['options']=json_encode($data);
         
         $result=$this->db->insert('embed', $data);
 
@@ -219,6 +216,7 @@ class Embed_model extends CI_Model {
         }
 
         $data['uuid']=$uuid;
+        $data['options']=json_encode($data);
         
         $this->db->where("uuid",$uuid);
         $result=$this->db->update('embed', $data);
@@ -233,7 +231,7 @@ class Embed_model extends CI_Model {
 
     /**
      * 
-     * Find photo by name
+     * Find by UUID
      * 
      */
     function find($uuid)
@@ -365,7 +363,11 @@ class Embed_model extends CI_Model {
     {
         $this->db->where("sid",$sid);
         $this->db->join('survey_embeds', 'embed.uuid= survey_embeds.embed_uuid','inner');
-        return $this->db->get("embed")->result_array();
+        $query=$this->db->get("embed");
+
+        if ($query){
+            return $query->result_array();
+        }
     }
     
 
