@@ -8,6 +8,22 @@
 ?>
 
 
+<?php
+if(isset($metadata['resources']) ){    
+    foreach($metadata['resources'] as $resource_filename => $resource){
+        if($this->form_validation->valid_url($resource['filename'])){
+            $metadata['resources'][$resource_filename]['download_link']=$resource['filename'];
+            $metadata['resources'][$resource_filename]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        }else{
+            $metadata['resources'][$resource_filename]['download_link']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            $metadata['resources'][$resource_filename]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        }  
+    }
+} 
+
+//$metadata['metadata']['resources']=$metadata['resources'];
+?>
+
 <?php 
     //rendered html for all sections
     $output=array();
@@ -17,6 +33,7 @@
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "title"=>'text',
+            "resources"=>'photo',
             "metadata.image_description.description.description"=>'text',            
             "metadata.image_description.description.albums"=>'array',
             "idno"=>'text',
