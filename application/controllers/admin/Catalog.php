@@ -15,6 +15,7 @@ class Catalog extends MY_Controller {
      	$this->load->model('Catalog_model');
 		$this->load->model('Licensed_model');
 		$this->load->model('Form_model');
+		$this->load->model('Data_classification_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Citation_model');
 		$this->load->model('Search_helper_model');
@@ -1699,8 +1700,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Citation_model');
 		$this->load->model('Catalog_notes_model');
 		$this->load->model('Catalog_tags_model');
-		$this->load->model('Survey_alias_model');
-		$this->load->model('Data_classification_model');
+		$this->load->model('Survey_alias_model');		
 		
 		$this->load->library('catalog_admin');
 		$this->load->library('chicago_citation');
@@ -1709,18 +1709,13 @@ class Catalog extends MY_Controller {
 
 		$this->load->library("catalog_admin");
 
-		//load data classification + license options
-		$this->config->load('data_access');		
-
 		$active_repository=FALSE;
 
 		//get active repository
 		if (isset($this->active_repo) && $this->active_repo!=NULL){
 			$active_repository=$this->active_repo->repositoryid;
 		}
-
 		
-		//get the survey info from db
 		$survey_row=$this->Catalog_model->select_single($id,$active_repository);
 
 		if (!$survey_row){
@@ -1800,25 +1795,63 @@ class Catalog extends MY_Controller {
 
 		//Data classifications
 		$data_classfications = $this->Data_classification_model->get_all();
-		//$data_classfications=array('0'=>'--SELECT--') + (array)$data_classfications;
 		$survey_row['data_classifications']=$data_classfications;
-
-		$survey_row['data_access_options']=$this->config->item("data_access_options");
-
-		//data access form list
-		$this->load->model('Form_model');
-		$this->forms_list=array('0'=>'---');
-
-		//create a list of choices for the drop down
-		foreach($this->Form_model->get_all()  as $value){
-			$this->forms_list[$value['formid']]=t($value['fname']); 
-		}
-
-		$survey_row['data_access_types']=$this->Form_model->get_all();
+		$survey_row['data_licenses']=$this->Form_model->get_all();
+		$survey_row['data_access_dropdown']=$this->da_by_class($survey_row['data_class_id'],$survey_row['formid'],'html',true);
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
+	}
+
+
+	/**
+	 * 
+	 * Get data access dropdown list by data classification
+	 * 
+	 * @return_output - if true, return the html
+	 */
+	function da_by_class($classification_code=null,$da_id=null,$format='html',$return_output=false)
+	{
+		if(is_numeric($classification_code)){
+			$classification=$this->Data_classification_model->get_single($classification_code);
+			if(isset($classification['code'])){
+				$classification_code=$classification['code'];
+			}
+		}
+
+		//load data classification + license options
+		$this->config->load('data_access');
+		$data_access_options=$this->config->item("data_access_options");
+
+		$data_classfications = $this->Data_classification_model->get_all();
+
+		//data access options by classification
+		$da_options=isset($data_access_options[$classification_code]) ? $data_access_options[$classification_code] : array();
+
+		$data_access_list=$this->Form_model->get_all();
+
+		$output=array();
+		foreach($da_options as $da){
+			if(isset($data_access_list[$da])){
+				$output[$da]=$data_access_list[$da];
+			}
+		}
+
+		if($format=="html"){
+			$html= $this->load->view('catalog/data_access_dropdown', array('da_list'=>$output,'selected'=>$da_id),TRUE);
+			if ($return_output==true) {
+				return $html;
+			}
+			echo $html;
+			return;
+		}
+		
+		return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode($output));
+
 	}
 
 
@@ -2117,6 +2150,21 @@ class Catalog extends MY_Controller {
 	}
 
 
+	function doi($sid=null)
+	{
+		$this->template->set_template('admin_blank');
+ 
+		$this->load->model("Dataset_model");
+		$dataset=$this->Dataset_model->get_row($sid);
+		
+		$options=array();
+		$options['dataset']=$dataset;
+		$content=$this->load->view('catalog/doi', $options,true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+	}
+
+	
 }
 /* End of file catalog.php */
 /* Location: ./controllers/admin/catalog.php */
