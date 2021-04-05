@@ -1359,8 +1359,7 @@ class Ion_auth_model extends CI_Model
 	
 	function impersonate($user_id,$current_user)
 	{
-		if (!is_numeric($user_id))
-		{
+		if (!is_numeric($user_id)){
 			return FALSE;
 		}
 		
@@ -1375,8 +1374,7 @@ class Ion_auth_model extends CI_Model
 	
 	function exit_impersonate()
 	{
-		if (!$this->session->userdata('impersonate_user'))
-		{
+		if (!$this->session->userdata('impersonate_user')){
 			return FALSE;
 		}
 		

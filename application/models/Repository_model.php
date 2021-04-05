@@ -1196,7 +1196,7 @@ class Repository_model extends CI_Model {
 			return FALSE;
 		}
 
-		return $repoid;		
+		return (int)$repoid;		
 	}
 	
 	
