@@ -15,7 +15,7 @@ class Licensed_requests extends MY_Controller {
 		$this->lang->load('catalog_admin');
 
 		//$this->output->enable_profiler(TRUE);
-		
+
 		//set active repo from querystring param
 		if ($this->input->get("collection"))
 		{
@@ -26,6 +26,9 @@ class Licensed_requests extends MY_Controller {
 		{
 			//set active repo
 			$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo());
+			if($repo_obj){
+				$repo_obj=(object)$repo_obj;
+			}
 		}	
 
 		if (!$repo_obj)
@@ -38,6 +41,7 @@ class Licensed_requests extends MY_Controller {
 		{
 			//set active repo
 			$this->active_repo=$repo_obj;
+			//var_dump($repo_obj);
 			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
 		}
 		
@@ -68,7 +72,8 @@ class Licensed_requests extends MY_Controller {
 	
 	function edit($id)
 	{			
-		$this->acl->user_has_lic_request_access($id);
+		//$this->acl->user_has_lic_request_access($id);
+		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
 		
 		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');		
@@ -176,7 +181,8 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function update($requestid)
 	{			
-		$this->acl->user_has_lic_request_access($requestid);
+		//$this->acl->user_has_lic_request_access($requestid);
+		$this->acl_manager->has_access_or_die('licensed_request', 'view',null,$this->active_repo->repositoryid);
 
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|xss_clean|callback__status_check');
 		$this->form_validation->set_rules('comments', 'Comments', 'trim|xss_clean');		
@@ -315,7 +321,8 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function monitor($requestid,$output=FALSE)
 	{	
-		$this->acl->user_has_lic_request_access($requestid);
+		//$this->acl->user_has_lic_request_access($requestid);
+		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
 
 		//get request summary statistics
 		$data['summary_rows']=$this->Licensed_model->get_request_summary($requestid);
@@ -342,12 +349,12 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function send_mail($requestid=NULL)
 	{
-		if (!is_numeric($requestid))
-		{
+		if (!is_numeric($requestid)){
 			show_404();
 		}
 		
-		$this->acl->user_has_lic_request_access($requestid);
+		//$this->acl->user_has_lic_request_access($requestid);
+		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
 		
 		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
 		$this->form_validation->set_rules('cc', t('cc'), 'trim|xss_clean');
@@ -415,7 +422,8 @@ class Licensed_requests extends MY_Controller {
 			show_404();
 		}
 		
-		$this->acl->user_has_lic_request_access($requestid);
+		//$this->acl->user_has_lic_request_access($requestid);
+		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
 		
 		//get request from db
 		$request_data=$this->Licensed_model->get_request_by_id($requestid);
@@ -599,7 +607,7 @@ class Licensed_requests extends MY_Controller {
 		{
 			foreach($delete_arr as $item)
 			{
-				$this->acl->user_has_lic_request_access($item);
+				//$this->acl->user_has_lic_request_access($item);
 				
 				//confirm delete	
 				$this->Licensed_model->delete($item);
