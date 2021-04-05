@@ -36,10 +36,11 @@ $config['data_access_options'] = array(
         'cc40', 'open', 'direct','public','licensed','remote', 'data_na'
     ),
     'official'=> array(
-        'research_license'
+        'research_license','data_na'
     ),
     'confidential' => array(
         'data_na'
     )
 );
+
 
