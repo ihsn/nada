@@ -132,7 +132,7 @@ if(isset($metadata['resources']) ){
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprEncType"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprLangId"=>"text",
 
-        "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"map",
+        "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"map_leaflet",
         //"metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"object",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.city"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryCode"=>"text",
