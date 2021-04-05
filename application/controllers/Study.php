@@ -50,15 +50,14 @@ class Study extends MY_Controller {
 		}
 
 		$survey['metadata']=(array)$this->dataset_manager->get_metadata($sid,$survey['type']);
-
 		$survey['metadata']['iframe_embeds']=$this->Embed_model->embeds_by_study($sid);
 
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
 
-		if( in_array($survey['type'], array('script', 'document','table'))){
-			$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);	    		
-		}
+		//if( in_array($survey['type'], array('script', 'document','table'))){
+		$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);	    		
+		//}
 		
 		$this->metadata_template->initialize($survey['type'],$survey);
 		$output=$this->metadata_template->render_html();
