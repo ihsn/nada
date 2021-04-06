@@ -373,7 +373,9 @@ class Embed_model extends CI_Model {
 
     function get_attached_studies($uuid)
     {
-        $this->db->where("embed_uuid",$uuid);
+        $this->db->get("surveys.sid,surveys.idno");
+        $this->db->join('surveys', 'survey_embeds.sid= surveys.id','inner');
+        $this->db->where("survey_embeds.embed_uuid",$uuid);
         $query=$this->db->get("survey_embeds");
 
         if ($query){
