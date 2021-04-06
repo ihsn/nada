@@ -88,7 +88,7 @@ $site_navigation_menu=get_site_menu();
       }
 
 
-      .nav > li > a {
+      .nada-site-admin-nav .nav > li > a {
           position: relative;
           display: block;
           padding: 10px 15px;
@@ -144,7 +144,7 @@ $site_navigation_menu=get_site_menu();
 <body>
 
 
-<nav class="navbar navbar-inverse navbar-expand-lg navbar-secondary bg-dark">  
+<nav class="navbar navbar-inverse navbar-expand-lg navbar-secondary bg-dark nada-site-admin-nav">  
   <a class="navbar-brand site-title" href="<?php echo site_url();?>/admin">NADA <?php echo APP_VERSION;?></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
