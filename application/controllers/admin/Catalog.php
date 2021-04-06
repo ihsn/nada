@@ -789,7 +789,7 @@ class Catalog extends MY_Controller {
 		$repositoryid=$this->input->post("repositoryid");
 
 		//validate if user has access to the selected repository
-		if (!$this->acl_manager->has_access('study', 'create',$repositoryid)){
+		if (!$this->acl_manager->has_access('study', 'create',null, $repositoryid)){
 			echo json_encode(array('error'=>t('REPO_ACCESS_DENIED')) );
 			exit;
 		}

@@ -153,9 +153,9 @@ var batch_import = {
 		obj=this;
 		//set error hanlder
 		$.ajaxSetup({
-				error:function(x,e){					
-					alert("Error code: " + x.status);
-					obj.abort();					
+				error:function(x,e){	
+					alert("Error code: " + x.status + " " + x.responseText);
+					obj.abort();
 				}
 			});		
 		
