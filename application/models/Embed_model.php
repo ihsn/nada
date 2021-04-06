@@ -242,6 +242,7 @@ class Embed_model extends CI_Model {
 
         if($result){
             $result['full_path']=$this->storage_path.'/'.$result['storage_path'];
+            $result['related_studies']=$this->get_attached_studies($uuid);
         }
 
         return $result;
@@ -364,6 +365,16 @@ class Embed_model extends CI_Model {
         $this->db->where("sid",$sid);
         $this->db->join('survey_embeds', 'embed.uuid= survey_embeds.embed_uuid','inner');
         $query=$this->db->get("embed");
+
+        if ($query){
+            return $query->result_array();
+        }
+    }
+
+    function get_attached_studies($uuid)
+    {
+        $this->db->where("embed_uuid",$uuid);
+        $query=$this->db->get("survey_embeds");
 
         if ($query){
             return $query->result_array();
