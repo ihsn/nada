@@ -1230,8 +1230,11 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception("idno_arr is is not an array");
 		}
 
+		//default fields
+		$fields="resource_id,survey_id,filename,surveys.idno";
+
 		foreach (array_chunk($idno_arr, 100, true) as $chunk) {
-			$this->db->select("resource_id,survey_id,filename,surveys.idno");
+			$this->db->select($fields);
 			$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
 			$this->db->where_in("surveys.idno",$chunk);
 			$resources=$this->db->get('resources')->result_array();
@@ -1250,6 +1253,52 @@ class Survey_resource_model extends CI_Model {
 						'idno'=>$resource['idno'],
 						'link'=>$link
 					];
+				}				
+			}
+		}
+	}
+
+
+	/**
+	 * 
+	 * Get resources by studies
+	 * 
+	 * @additional_fields = array of additional fields to include
+	 * 
+	 */
+	function get_resources_by_studies($idno_arr,$additional_fields=null)
+	{
+		if (!is_array($idno_arr)){
+			throw new Exception("idno_arr is is not an array");
+		}
+
+		//default fields
+		$fields="resource_id,survey_id,filename,surveys.idno";
+
+		if(is_array($additional_fields)){
+			$fields=$fields . ',' . implode(",",$additional_fields);
+		}
+
+		foreach (array_chunk($idno_arr, 100, true) as $chunk) {
+			$this->db->select($fields);
+			$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
+			$this->db->where_in("surveys.idno",$chunk);
+			$resources=$this->db->get('resources')->result_array();
+			
+			if ($resources){
+				$output=array();
+				foreach($resources as $resource){
+					$link='';
+					if($this->form_validation->valid_url($resource['filename'])){
+						$link=$resource['filename'];
+					}else{
+						$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+					}
+					
+					$resource['link']=$link;
+					$resource['ext']=strtolower(pathinfo($resource['filename'],PATHINFO_EXTENSION));
+					
+					yield $resource;
 				}				
 			}
 		}

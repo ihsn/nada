@@ -193,7 +193,7 @@ class Catalog extends MY_REST_Controller
 			$limit=$params['ps'];
 		}
 
-		$page=$this->input->get('page');
+		$page=(int)$this->input->get('page');		
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$limit;
 
@@ -204,11 +204,30 @@ class Catalog extends MY_REST_Controller
 
 			if(isset($result['rows'])){
 				
+				$result['page']=$page;
+
 				$iso3_codes=array();
 
 				if ($this->input->get("inc_iso")){
 					//iso3 codes
 					$iso3_codes=$this->Dataset_model->get_dataset_country_codes(array_column($result['rows'],'id') );	
+				}
+
+				//include external resources
+				$include_resources=$this->input->get("include_resources");
+				$resources=array();
+				if ($include_resources=='true'){
+					if (isset($result['rows'][0]['idno'])){
+						$resources_iterator=$this->Survey_resource_model->get_resources_by_studies(array_column($result['rows'],'idno'),array("resources.title","resources.dcformat"));
+						foreach($resources_iterator as $resource){
+							$resources[$resource['idno']][]=array(
+								'resource_id'=>$resource['resource_id'],
+								'link'=>$resource['link'],
+								'ext'=>$resource['ext'],
+								'title'=>$resource['title']
+							);
+						}						
+					}
 				}
 				
 				//convert date format
@@ -222,6 +241,13 @@ class Catalog extends MY_REST_Controller
 					//attach iso3 codes to study
 					if (isset($iso3_codes[$row['id']])){
 						$result['rows'][$idx]['iso3'] = implode(",",$iso3_codes[$row['id']]);
+					}
+
+					//attach external resources
+					if ($include_resources=='true'){
+						if (isset($resources[$row['idno']])){
+							$result['rows'][$idx]['resources']=$resources[$row['idno']];
+						}	
 					}
 				}
 
