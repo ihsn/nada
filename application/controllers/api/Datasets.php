@@ -49,6 +49,12 @@ class Datasets extends MY_REST_Controller
 	 * Return all datasets
 	 * 
 	 */
+	/**
+	 * 
+	 * 
+	 * Return all datasets
+	 * 
+	 */
 	function index_get($idno=null)
 	{
 		try{
@@ -56,11 +62,22 @@ class Datasets extends MY_REST_Controller
 				return $this->single_get($idno);
 			}
 			
-			$result=$this->dataset_manager->get_all();
+			$offset=(int)$this->input->get("offset");
+			$limit=(int)$this->input->get("limit");
+
+			if (!$limit){
+				$limit=50;
+			}
+			
+			$result=$this->dataset_manager->get_all($limit,$offset);
 			array_walk($result, 'unix_date_to_gmt',array('created','changed'));				
+
 			$response=array(
 				'status'=>'success',
+				'total'=>$this->dataset_manager->get_total_count(),
 				'found'=>count($result),
+				'offset'=>$offset,
+				'limit'=>$limit,
 				'datasets'=>$result
 			);		
 			$this->set_response($response, REST_Controller::HTTP_OK);
