@@ -12,6 +12,6 @@
         "adbario/php-dot-notation": "^2.2",
         "laminas/laminas-permissions-acl": "^2.7",
         "phpmailer/phpmailer": "^6.2",
-        "spatie/array-to-xml": "^2.16"
+        "spatie/array-to-xml": "^2.15"
     }
 }
