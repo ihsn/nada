@@ -159,12 +159,12 @@ class Citations extends MY_Controller {
 			show_404();
 		}
 
-		$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
+		//$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
 
 		$content=$this->load->view('citations/citation_info',$citation,TRUE);
 		//$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
 
-		$repo=$this->get_repo_by_id($this->input->get("collection"));
+		/*$repo=$this->get_repo_by_id($this->input->get("collection"));
 		$collection='central';
 
 		if($repo){
@@ -173,7 +173,7 @@ class Citations extends MY_Controller {
 
 		if ($collection!==''){
 			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$repo,'active_tab'=>'citations'),TRUE);
-		}
+		}*/
 
 
 		//change template if ajax request
