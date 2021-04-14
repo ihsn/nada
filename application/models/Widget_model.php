@@ -4,10 +4,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * 
- * Embed
+ * Widget
  * 
  */
-class Embed_model extends CI_Model {
+class Widget_model extends CI_Model {
 
 
     private $storage_path='files/embed';
@@ -17,6 +17,7 @@ class Embed_model extends CI_Model {
         'uuid',
         'title',
         'description',
+        'thumbnail',
         'storage_path',
         'published',
         'created',
@@ -45,13 +46,19 @@ class Embed_model extends CI_Model {
 
     function select_all()
     {
-        $this->db->select("id,uuid,title,description,storage_path,published, changed,created");
-        return $this->db->get("embed")->result_array();
+        $this->db->select("id,uuid,title,thumbnail,description,storage_path,published, changed,created");
+        $result=$this->db->get("widgets")->result_array();
+
+        foreach($result as $key=>$row){
+            $result[$key]['link']=site_url('widgets/view/'.$row['uuid']);
+        }
+
+        return $result;
     }
 
     function get_total_counts()
     {
-        $result= $this->db->query("select count(*) as total from embed")->row_array();
+        $result= $this->db->query("select count(*) as total from widgets")->row_array();
         return $result['total'];
     }
 
@@ -65,10 +72,14 @@ class Embed_model extends CI_Model {
 
         //create folder for project
         $project_folder=$this->storage_path.'/'.md5($uuid);
+        $this->delete_project_folder($project_folder);
         $this->create_folder($project_folder);
 
         //unzip files to project folder
         $this->unzip_project_files($project_folder,$zip_file);
+
+        //set the main index.html file
+        $this->set_project_entry_file($project_folder);
 
         $options['storage_path']=md5($uuid);
 
@@ -82,8 +93,35 @@ class Embed_model extends CI_Model {
         return array(
             'folder'=>$options['storage_path'],
             'uuid'=>$uuid,
-            'link'=>site_url('embed/'.$uuid)
+            'link'=>site_url('widgets/view/'.$uuid)
         );
+    }
+
+    function set_project_entry_file($project_folder)
+    {
+        $index_file=false;
+        if (!empty($project_folder) && file_exists($project_folder)){
+            //check of index.html
+            if(file_exists($project_folder.'/index.html')){
+                return true;
+            }else{
+                //find 
+                $files=scandir($project_folder);
+                foreach($files as $file)
+                {
+                    if(strtolower(pathinfo($file,PATHINFO_EXTENSION))=='html'){
+                        copy($project_folder.'/'.$file, $project_folder.'/index.html');
+                        unlink($project_folder.'/'.$file);
+                        $index_file=true;
+                        break;
+                    }
+                }                
+            }
+        }
+
+        if(!$index_file){
+            throw new Exception("ZIP does not contain an HTML file");
+        }
     }
 
     function unzip_project_files($project_folder,$zip_file)
@@ -192,7 +230,7 @@ class Embed_model extends CI_Model {
         $data['uuid']=$uuid;
         $data['options']=json_encode($data);
         
-        $result=$this->db->insert('embed', $data);
+        $result=$this->db->insert('widgets', $data);
 
         if ($result===false){
             throw new MY_Exception($this->db->error());
@@ -219,7 +257,7 @@ class Embed_model extends CI_Model {
         $data['options']=json_encode($data);
         
         $this->db->where("uuid",$uuid);
-        $result=$this->db->update('embed', $data);
+        $result=$this->db->update('widgets', $data);
 
         if ($result===false){
             throw new MY_Exception($this->db->error());
@@ -238,11 +276,17 @@ class Embed_model extends CI_Model {
     {
         $this->db->select("*");
         $this->db->where('uuid',$uuid);
-        $result=$this->db->get("embed")->row_array();
+        $result=$this->db->get("widgets")->row_array();
 
         if($result){
             $result['full_path']=$this->storage_path.'/'.$result['storage_path'];
-            $result['related_studies']=$this->get_attached_studies($uuid);
+            $result['link']=site_url('widgets/view/'.$result['uuid']);
+            $related_studies=$this->get_attached_studies($uuid);
+
+            foreach($related_studies as $key=>$row){
+                $related_studies[$key]['link']=site_url('catalog/'.$row['sid']);
+            }
+            $result['related_studies']=$related_studies;
         }
 
         return $result;
@@ -260,10 +304,10 @@ class Embed_model extends CI_Model {
 
         //delete from db
         $this->db->where("uuid",$uuid);
-        $this->db->delete('embed');
+        $this->db->delete('widgets');
 
-        $this->db->where("embed_uuid",$uuid);
-        $this->db->delete('survey_embeds');
+        $this->db->where("widget_uuid",$uuid);
+        $this->db->delete('survey_widgets');
 
         $project_path=$this->storage_path.'/'.$row['storage_path'];
         
@@ -296,7 +340,9 @@ class Embed_model extends CI_Model {
 		$this->form_validation->reset_validation();
 		$this->form_validation->set_data($options);
 
-        $this->form_validation->set_rules('title', 'Title', 'required|xss_clean|trim|max_length[255]');	
+        $this->form_validation->set_rules('title', 'Title', 'required|xss_clean|trim|max_length[255]');
+        $this->form_validation->set_rules('description', 'Description', 'xss_clean|trim|max_length[500]');
+        $this->form_validation->set_rules('thumbnail', 'Thumbnail', 'xss_clean|trim|max_length[200]');
         $this->form_validation->set_rules('uuid', 'UUID', 'required|xss_clean|alpha_dash|trim|max_length[100]');	
         
         //idno validation rule
@@ -342,29 +388,29 @@ class Embed_model extends CI_Model {
 
 
 
-    function attach_to_study($study_id,$embed_uuid)
+    function attach_to_study($study_id,$widget_uuid)
     {
         $options=array(
             'sid'=>$study_id,
-            'embed_uuid'=>$embed_uuid
+            'widget_uuid'=>$embed_uuid
         );
 
-        $this->remove_from_study($study_id,$embed_uuid);
-        return $this->db->insert("survey_embeds",$options);
+        $this->remove_from_study($study_id,$widget_uuid);
+        return $this->db->insert("survey_widgets",$options);
     }
 
     function remove_from_study($study_id,$embed_uuid)
     {
         $this->db->where("sid",$study_id);
-        $this->db->where("embed_uuid",$embed_uuid);
-        return $this->db->delete("survey_embeds");
+        $this->db->where("widget_uuid",$embed_uuid);
+        return $this->db->delete("survey_widgets");
     }
 
-    function embeds_by_study($sid)
+    function widgets_by_study($sid)
     {
         $this->db->where("sid",$sid);
-        $this->db->join('survey_embeds', 'embed.uuid= survey_embeds.embed_uuid','inner');
-        $query=$this->db->get("embed");
+        $this->db->join('survey_widgets', 'widgets.uuid= survey_widgets.widget_uuid','inner');
+        $query=$this->db->get("widgets");
 
         if ($query){
             return $query->result_array();
@@ -374,9 +420,9 @@ class Embed_model extends CI_Model {
     function get_attached_studies($uuid)
     {
         $this->db->select("surveys.id as sid,surveys.idno");
-        $this->db->join('surveys', 'survey_embeds.sid= surveys.id','inner');
-        $this->db->where("survey_embeds.embed_uuid",$uuid);
-        $query=$this->db->get("survey_embeds");
+        $this->db->join('surveys', 'survey_widgets.sid= surveys.id','inner');
+        $this->db->where("survey_widgets.widget_uuid",$uuid);
+        $query=$this->db->get("survey_widgets");
 
         if ($query){
             return $query->result_array();

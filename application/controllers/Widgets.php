@@ -1,18 +1,18 @@
 <?php
 
 
-class Embed extends MY_Controller {
+class Widgets extends MY_Controller {
  
     public function __construct()
     {
         parent::__construct($skip_auth=TRUE);
-        $this->load->model("Embed_model");
+        $this->load->model("Widget_model");
 	}
 
 
-    function index($uuid)
+    function view($uuid)
     {        
-        $row=$this->Embed_model->find($uuid);
+        $row=$this->Widget_model->find($uuid);
 
         if (!$row){
             show_error("page failed");
@@ -27,6 +27,18 @@ class Embed extends MY_Controller {
             $file_content=str_replace('<head>', $head,$file_content);
             echo $file_content;
         }
+    }
+
+    function index()
+    {
+        $options['widget_storage_root']='files/embed/';
+        $options['widgets']=$this->Widget_model->select_all();
+        $content=$this->load->view('widgets/index', $options,true);
+        //$content="testing";
+        $this->template->set_template('default');
+		//$this->template->write('title', $data['title'],true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
     }
 
     

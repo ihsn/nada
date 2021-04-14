@@ -15,7 +15,7 @@ class Study extends MY_Controller {
 		$this->load->model("Related_study_model");
 		$this->load->model("Variable_model");
 		$this->load->model("Timeseries_db_model");
-		$this->load->model("Embed_model");
+		$this->load->model("Widget_model");
 		
 		$this->load->library("Metadata_template");
 		$this->load->library("Dataset_manager");
@@ -50,7 +50,7 @@ class Study extends MY_Controller {
 		}
 
 		$survey['metadata']=(array)$this->dataset_manager->get_metadata($sid,$survey['type']);
-		$survey['metadata']['iframe_embeds']=$this->Embed_model->embeds_by_study($sid);
+		$survey['metadata']['iframe_embeds']=$this->Widget_model->widgets_by_study($sid);
 
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');

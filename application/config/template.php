@@ -106,8 +106,8 @@ $template['admin5']['theme_folder'] = 'adminbt4';
 
 
 //blank admin template with all stylesheets included
-$template['admin_blank']['template'] = '../../themes/adminbt/blank';
-$template['admin_blank']['theme_folder'] = 'adminbt';
+$template['admin_blank']['template'] = '../../themes/adminbt4/blank';
+$template['admin_blank']['theme_folder'] = 'adminbt4';
 
 
 //ddi browser template file

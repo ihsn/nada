@@ -9,7 +9,8 @@
 
 <script type="text/javascript" src="https://pym.nprapps.org/pym.v1.min.js"></script>
 
-<?php if (isset($data) && is_array($data) && count($data)>0 ):?>
+<?php if (isset($data) && is_array($data) && count($data)>0 ):?>    
+
 <div class="iframe_field field field-<?php echo str_replace(".","__",$name);?>">
     
     <div class="field-value">                
@@ -20,10 +21,9 @@
                 <!--<iframe class="embed-responsive-item" src="<?php echo site_url('embed/'.$row['uuid']);?>" title="<?php echo $row['title'];?>"></iframe>-->
                 */?>
 
-
                 <div id="widget-<?php echo $row['uuid'];?>"></div>
                 <script>
-                    var pymParent = new pym.Parent('widget-<?php echo $row['uuid'];?>', '<?php echo site_url('embed/'.$row['uuid']);?>', {});
+                    var pymParent = new pym.Parent('widget-<?php echo $row['uuid'];?>', '<?php echo site_url('widgets/view/'.$row['uuid']);?>', {});
                 </script>
 
             </div>

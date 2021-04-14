@@ -2,13 +2,13 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
-class Embed extends MY_REST_Controller
+class Widgets extends MY_REST_Controller
 {
 	public function __construct()
 	{
 		parent::__construct();
         $this->load->helper("date");
-        $this->load->model('Embed_model');
+        $this->load->model('Widget_model');
 		$this->load->library("Dataset_manager");
 		$this->is_admin_or_die();
     }
@@ -36,7 +36,7 @@ class Embed extends MY_REST_Controller
 				return $this->single($uuid);
 			}
 
-			$result=$this->Embed_model->select_all();
+			$result=$this->Widget_model->select_all();
 
 			$response=array(
 				'total'=>count($result),
@@ -59,7 +59,7 @@ class Embed extends MY_REST_Controller
 	private function single($uuid=null)
 	{
 		try{
-			$result=$this->Embed_model->find($uuid);
+			$result=$this->Widget_model->find($uuid);
 
 			if (!$result){
 				throw new Exception("NOT_FOUND");
@@ -80,7 +80,7 @@ class Embed extends MY_REST_Controller
 
     /**
 	 * 
-	 * Create Embed 
+	 * Create Widget 
 	 * 
 	 **/ 
 	function index_post($uuid=null)
@@ -93,7 +93,7 @@ class Embed extends MY_REST_Controller
 			}
 
 			$options=$this->input->post(null, true);
-			$result=$this->Embed_model->create_project($uuid,$options);
+			$result=$this->Widget_model->create_project($uuid,$options);
 
 			$output=array(
 				'status'=>'success',
@@ -123,7 +123,7 @@ class Embed extends MY_REST_Controller
 	{
 		
 		try{
-			$this->Embed_model->delete($uuid);
+			$this->Widget_model->delete($uuid);
 
 			$output=array(
 				'status'=>'success'
@@ -144,7 +144,7 @@ class Embed extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Attach Embed link to a study
+	 * Attach Widget link to a study
 	 * 
 	 **/ 
 	function attach_to_study_post()
@@ -162,7 +162,7 @@ class Embed extends MY_REST_Controller
 
 			$sid=$this->get_sid_from_idno($options['idno']);
 
-			$result=$this->Embed_model->attach_to_study($sid,$options['uuid']);
+			$result=$this->Widget_model->attach_to_study($sid,$options['uuid']);
 
 			$output=array(
 				'status'=>'success',
@@ -187,14 +187,14 @@ class Embed extends MY_REST_Controller
 	
 	/**
 	 * 
-	 * Embeds by dataset
+	 * Widgets by dataset
 	 * 
 	 **/
 	function by_dataset_get($idno=null)
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
-			$result=$this->Embed_model->embeds_by_study($sid);
+			$result=$this->Widget_model->widgets_by_study($sid);
 			
 			$response=array(
 				'record'=>$result
