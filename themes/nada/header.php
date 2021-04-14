@@ -5,7 +5,7 @@
 
     <div class="container">
         <!--  /***** Login Bar Start *****/ -->
-        <?php $this->load->view('users/user_bar'); ?>
+        <?php require 'user-bar.php';?>
         <!--  /***** Login Bar Close *****/ -->
         <div class="row">
             <div class="col-12">
@@ -44,11 +44,7 @@
                     </button>
 
                     <!-- Start menus -->
-                    <div class="navbar-collapse collapse" id="containerNavbar" aria-expanded="false">
-                        <?php if ($menu_horizontal===TRUE):?>
-                            <?php echo isset($sidebar) ? $sidebar : '';?>
-                        <?php endif;?>
-                    </div>
+                    <?php require 'nav-menu.php'; ?>
                     <!-- Close Menus -->
 
                 </nav>
