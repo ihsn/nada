@@ -14,6 +14,14 @@ class Citations extends MY_REST_Controller
 	}
 	
 
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		if ($this->session->userdata('user_id')){
+			return true;
+		}
+		parent::_auth_override_check();
+	}
 
 	/**
 	 * 
@@ -227,6 +235,56 @@ class Citations extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 * 
+	 * Find similar citations
+	 * 
+	 */
+	function find_similar_get()
+    {
+        try{
+			$keywords=array();
+
+			//key variables to search on
+			$search_keys=explode(",","title,author_fname,author_lname,doi");
+
+			foreach($search_keys as $key){
+				if (isset($_GET[$key])){
+					$value=$this->get($key,true);
+
+					if (is_array($value)){
+						$keywords[]=implode(" ",$value);
+					}
+					else{
+						$keywords[]=$value;
+					}
+				}
+			}
+
+			$keywords= implode(" ",$keywords);
+
+			$citations=$this->Citation_model->search_duplicates($keywords);
+
+			$output=array(
+				'citations'=>$citations,				
+				'status'=>'success'
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>(array)$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}
+    }
 
 	
 }
