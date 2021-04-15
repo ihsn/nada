@@ -1380,7 +1380,8 @@ insert into user_roles (user_id, role_id)
 
 
 
-CREATE TABLE `embed` (
+
+CREATE TABLE `widgets` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` varchar(100) NOT NULL,
   `title` varchar(250) NOT NULL,
@@ -1395,14 +1396,15 @@ CREATE TABLE `embed` (
   `options` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid_UNIQUE` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `survey_embeds` (
+
+CREATE TABLE `survey_widgets` (
   `id` int NOT NULL AUTO_INCREMENT,
   `sid` int NOT NULL,
-  `embed_uuid` varchar(145) NOT NULL,
-  `embed_url` varchar(500) DEFAULT NULL,
+  `widget_uuid` varchar(145) NOT NULL,
+  `url` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `sid_uuid` (`sid`,`embed_uuid`) USING BTREE
+  KEY `sid_uuid` (`sid`,`widget_uuid`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
