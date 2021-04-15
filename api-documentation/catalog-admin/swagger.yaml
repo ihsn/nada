@@ -46,7 +46,7 @@ x-tagGroups:
       - Citations
       - Filestore
       - Reports
-      - Embeds
+      - Widgets
 schemes:
   - http
 paths:
@@ -1887,13 +1887,13 @@ paths:
         security:
           - ApiKeyAuth: [] 
   
-  /embed/:
+  /widgets/:
       get:
         tags:
-          - Embeds
-        summary: List all embeds
-        description: List all embds
-        operationId: listEmbeds
+          - Widgets
+        summary: List all widgets
+        description: List all widgets
+        operationId: listWidgets
         consumes:
           - application/json
         produces:
@@ -1903,13 +1903,13 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []    
-  /embed/{uuid}:    
+  /widgets/{uuid}:    
       post:
         tags:
-          - Embeds
-        summary: Create a new embed
-        description: Create a new embed
-        operationId: createEmbed
+          - Widgets
+        summary: Create a new widget
+        description: Create a new widget
+        operationId: createWidget
         consumes:
           - application/json
         produces:
@@ -1933,18 +1933,29 @@ paths:
             required: true
             type: string
             format: string 
+          - name: thumbnail
+            in: formData
+            description: Name of the image file to use as thumbnail
+            required: true
+            type: string
+            format: string 
+          - name: description
+            in: formData
+            description: Description
+            type: string
+            format: string   
         responses:
           '200':
             description: successful operation
         security:
           - ApiKeyAuth: []  
-  /embed/attach_to_study:
+  /widgets/attach_to_study:
       post:
         tags:
-          - Embeds
-        summary: Attach embed to a study
-        description: Attach embed to a study
-        operationId: attachEmbed
+          - Widgets
+        summary: Attach widget to a study
+        description: Attach widget to a study
+        operationId: attachWidget
         consumes:
           - application/json
         produces:
@@ -1963,7 +1974,7 @@ paths:
                   title: Study IDNO
                 uuid:
                   type: string
-                  title: Embed UUID
+                  title: Widget UUID
           
         responses:
           '200':

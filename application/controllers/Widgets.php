@@ -18,6 +18,32 @@ class Widgets extends MY_Controller {
             show_error("page failed");
         }
 
+        $content=$this->load->view('widgets/info',array('widget'=>$row), true);
+
+        /*$index_file=$row['full_path'].'/index.html';
+
+        if (file_exists($index_file)){
+            $file_content=file_get_contents($index_file);
+            $head='<head><base href="'.base_url().'files/embed/'.$row['storage_path'].'/">';
+            $head=$head . '<script type="text/javascript" src="https://pym.nprapps.org/pym.v1.min.js"></script><script>window.onload = function () {var pymChild = new pym.Child();}</script>';
+            $file_content=str_replace('<head>', $head,$file_content);
+            //echo $file_content;
+            $content=$file_content;
+        }*/
+
+        //$this->template->write('title', $repo['title'],true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+    }
+
+    function embed($uuid)
+    {        
+        $row=$this->Widget_model->find($uuid);
+
+        if (!$row){
+            show_error("page failed");
+        }
+
         $index_file=$row['full_path'].'/index.html';
 
         if (file_exists($index_file)){
@@ -25,6 +51,9 @@ class Widgets extends MY_Controller {
             $head='<head><base href="'.base_url().'files/embed/'.$row['storage_path'].'/">';
             $head=$head . '<script type="text/javascript" src="https://pym.nprapps.org/pym.v1.min.js"></script><script>window.onload = function () {var pymChild = new pym.Child();}</script>';
             $file_content=str_replace('<head>', $head,$file_content);
+            $embed_bar=$this->load->view('widgets/options',null,true);
+            $file_content=str_replace('</body>', $embed_bar.'</body>',$file_content);
+            $file_content=str_replace('class="container ', 'class="container-fluid',$file_content); 
             echo $file_content;
         }
     }
