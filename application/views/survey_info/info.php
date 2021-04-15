@@ -168,9 +168,9 @@
 				</div>
 				<div class="col">
 					<span class="license">
-						<a href="<?php echo site_url('licenses/'.$data_access_type);?>">
+						<!--<a href="<?php //echo site_url('licenses/'.$data_access_type);?>">-->
 						<?php echo t('legend_data_'.$data_access_type);?> <i class="fa fa-info-circle" aria-hidden="true"></i>
-						</a>
+						<!--</a>-->
 					<span>
 				</div>
 			
