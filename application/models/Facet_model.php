@@ -3,20 +3,26 @@ class Facet_model extends CI_Model {
  
 
 	private $facets=[];
+	private $facets_list=[];
 
     public function __construct()
     {
         parent::__construct();
 		$this->config->load('facets');
 		$this->load->model("Dataset_model");
-		$this->facets=$this->config->item("facets");
-		$this->output->enable_profiler(FALSE);
+		$this->facets=$this->config->item("user_facets");
+		//$this->output->enable_profiler(FALSE);
 	}
 
 
 	function get_facet_options()
 	{
 		return $this->facets;
+	}
+
+	function get_core_facets_list()
+	{
+		return ['tag','topic','country','year','collection','data_class','dtype','type'];
 	}
 	
 	
@@ -30,6 +36,15 @@ class Facet_model extends CI_Model {
 		$this->db->select("*");
 		$this->db->where('id', (integer)$id); 
 		return $this->db->get('facets')->row_array();
+	}
+
+
+	function get_facet_by_name($facet_name)
+	{		
+		$this->db->select("*");
+		$this->db->where('name', $facet_name);
+		$result=$this->db->get('facets')->row_array();
+		return $result;
 	}
 
 
@@ -53,10 +68,27 @@ class Facet_model extends CI_Model {
 	 * Return a list of all facets
 	 * 
 	 */
-	function select_all()
+	function select_all($type=null,$enabled=null)
 	{		
 		$this->db->select("*");
-		return $this->db->get('facets')->result_array();
+		
+		if($type){
+			$this->db->where("facet_type",$type);
+		}
+
+		if($enabled){
+			$this->db->where("enabled",$enabled);
+		}
+
+		$result=$this->db->get('facets')->result_array();
+
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[$row['name']]=$row;
+		}
+
+		return $output;
 	}
 
 	/**
@@ -77,18 +109,33 @@ class Facet_model extends CI_Model {
 	}
 
 
+	function select_terms_counts_detailed()
+	{		
+		$this->db->select("facets.id,facets.name,facets.title,facets.facet_type,facets.enabled,count(facet_terms.facet_id) as total");
+
+		$this->db->join('facet_terms', 'facet_terms.facet_id = facets.id','left');
+		$this->db->group_by('facets.id,facets.name,facets.title,facets.facet_type,facets.enabled');
+
+		return $this->db->get('facets')->result_array();
+	}
+
+
 	/**
 	 * 
 	 * 
 	 * Get a count of values by facet
 	 * 
 	 */
-	function select_term_value_counts()
+	function select_term_value_counts($facet_type=null)
 	{		
 		$this->db->select("facets.id,facets.name,count(survey_facets.facet_id) as total");
 
 		$this->db->join('survey_facets', 'survey_facets.facet_id = facets.id','left');
 		$this->db->group_by('facets.id,facets.name');
+
+		if ($facet_type){
+			$this->db->where("facet_type",$facet_type);
+		}
 
 		return $this->db->get('facets')->result_array();
 	}
@@ -169,7 +216,10 @@ class Facet_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array(
 			'name',
-			'title',			
+			'title',
+			'facet_type',
+			'enabled',
+			'mappings'
 			);
 
 		$data=array();
@@ -178,9 +228,25 @@ class Facet_model extends CI_Model {
 			if (in_array($key,$valid_fields) ){
 				$data[$key]=$value;
 			}
-		}		
+		}
+
+		if(empty($data['name']) || empty($data['title'])){
+			throw new Exception("Missing required fields: name, title");
+		}
 		
-		return $this->db->insert('facets', $data);		
+		if (isset($options['mappings'])){
+			$data['mappings']=json_encode($options['mappings']);
+		}
+
+		$facet=$this->get_facet_by_name($data['name']);
+
+		if($facet){		
+			$this->db->where("name",$data['name']);
+			return $this->db->update('facets', $data);
+		}
+		else{
+			return $this->db->insert('facets', $data);
+		}
 	}
 	
 	
@@ -207,7 +273,7 @@ class Facet_model extends CI_Model {
 	{
 		$options=array(
 			'facet_id'=>$facet_id,
-			'value'=>$value	
+			'value'=>substr($value,0,299)
 			);
 
 		$term=$this->facet_term_exists($facet_id, $value);
@@ -268,6 +334,15 @@ class Facet_model extends CI_Model {
 		return false;
 	}
 	
+
+	function facets_list()
+	{
+		if (empty($this->facets_list)){
+			$this->facets_list=$this->select_all($facet_type='user',$enabled=1);
+		}
+
+		return $this->facets_list;		
+	}
 		
 
 
@@ -276,32 +351,62 @@ class Facet_model extends CI_Model {
 		$metadata = new \Adbar\Dot($metadata);
 
 		$output=array();
+		$facets=$this->facets_list();
 
 		//iterate over all facets
-		foreach($this->facets as $facet_key=>$facet){
+		foreach($facets as $facet_key=>$facet){
 			if(isset($facet['enabled']) && $facet['enabled']==true){
+
+				if($facet_key==''){
+					continue;
+				}
 
 				if (!isset($facet["mappings"])){
 					continue;
 				}
 
-				foreach ($facet['mappings'] as $facet_data_type=>$facet_mapping){
-					if ($facet_data_type==$type){
-						$facet_data=$metadata->get($facet_mapping['path']);
+				$mappings=json_decode($facet['mappings'],true);
 
-						if (!empty($facet_data) && isset($facet_mapping['column']) 
-							&& $facet_mapping['column']!=''						
-						){							
-							$column_data=array_column($facet_data, $facet_mapping['column']);
-							$output[$facet_key]=(array)$column_data;
-						}else{
-							$output[$facet_key]=(array)$facet_data;
+				//field xpath				
+				$field_path=isset($mappings[$type]['field']) ? str_replace("/",".",$mappings[$type]['field']) : null;
+				
+				//field column if an array field
+				$field_column=isset($mappings[$type]['subfield']) ? $mappings[$type]['subfield'] : null;
+
+				//filter field values
+				$filter_field=isset($mappings[$type]['filter']) ? $mappings[$type]['filter'] : null;
+				$filter_value=isset($mappings[$type]['filter_value']) ? $mappings[$type]['filter_value'] : null;
+
+				if (!$field_path){
+					continue;
+				}
+
+				//get data for the facet
+				$facet_data=$metadata->get($field_path);
+
+				//extract data
+				if (!empty($facet_data) && $field_column!=null){							
+					//filter data
+					if(!empty($filter_field) && !empty($filter_value)){
+						$filtered_data=array();
+						foreach($facet_data as $row){
+							if (isset($row[$filter_field]) && trim(strtolower($row[$filter_field]))==trim(strtolower($filter_value)) ){
+								$filtered_data[]=$row[$field_column];
+							}
 						}
-
+						$output[$facet_key]=(array)$filtered_data;
 					}
+					else{
+						$column_data=array_column($facet_data, $field_column);
+						$output[$facet_key]=(array)$column_data;
+					}
+
+				}else{
+					$output[$facet_key]=(array)$facet_data;
 				}
 			}
 		}
+
 		
 		return $output;
 	}
@@ -359,6 +464,15 @@ class Facet_model extends CI_Model {
 		);
 	}
 
+	function clear_index()
+	{
+		$this->db->where("id>",0);
+		$this->db->delete("facet_terms");
+
+		$this->db->where("id>",0);
+		$this->db->delete("survey_facets");
+	}
+
 	function index_facets($sid)
     {
         $study=$this->Dataset_model->get_row_detailed($sid);
@@ -385,8 +499,9 @@ class Facet_model extends CI_Model {
                     continue;
                 }
 
+				//nested structures - e.g. study_desc/title_statement
                 if(is_array($facet_value)){
-                    throw new Exception("Facet value cannot be an array. " . json_encode($facet_data));
+                    throw new Exception("Facet value cannot be a nested array. " . json_encode($facet_data));
                 }
 
                 //create a term for facet if not already exists

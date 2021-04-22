@@ -65,7 +65,8 @@ class Catalog_search_mysql{
 	{
 		$this->ci=& get_instance();
 		$this->ci->load->config('noise_words');
-		$this->user_facets=$this->ci->Facet_model->select_all();
+		$this->ci->load->model("Facet_model");
+		$this->user_facets=$this->ci->Facet_model->select_all('user');
 		
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes')

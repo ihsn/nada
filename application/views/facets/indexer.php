@@ -1,12 +1,6 @@
 <div class="container-fluid">
 
-<div class="text-right page-links">
-	<a href="<?php echo site_url('admin/facets'); ?>" class="btn btn-outline-primary btn-sm">
-        <span class="fas fa-home ico-add-color right-margin-5" aria-hidden="true"></span> 
-        <?php echo t('home');?>
-    </a>
-</div>
-
+<?php require_once 'links.php';?>
 
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
@@ -21,7 +15,7 @@
 <div class="p-3 border">
 <p class="text-secondary">Facets index is not updated automatically. After making any changes to the facets, use the re-index to update the index.</p>
 <button class="btn btn-sm btn-primary btn-index">Reindex facets</button>
-<button class="btn btn-sm btn-danger">Clear index</button> 
+<button class="btn btn-sm btn-danger btn-clear">Clear index</button> 
 
 <div class="index-status mt-3" style="display:none;"></div>
 
@@ -79,6 +73,12 @@ $( ".btn-index" ).on( "click", function() {
 });
 
 
+$( ".btn-clear" ).on( "click", function() {
+    $(".index-status").show().text("Clearing...");
+    clear_index();
+});
+
+
 function reindex(start_row=0, limit=5, processed=0)
 {
     var jqxhr = $.get( "<?php echo site_url('api/facets/reindex/');?>"+start_row + '/'+limit, function(data) {
@@ -104,6 +104,21 @@ function reindex(start_row=0, limit=5, processed=0)
     })
 }
 
+
+function clear_index()
+{
+    var jqxhr = $.get( "<?php echo site_url('api/facets/clear_index/');?>", function(data) {
+        console.log(data);
+        
+		$(".index-status").html("Index is cleared" );
+		return true;
+	
+    })
+    .fail(function(data) {
+        console.log(data);
+        $(".index-status").text("ERROR: "+data.responseText);
+    })
+}
 
     
 </script>

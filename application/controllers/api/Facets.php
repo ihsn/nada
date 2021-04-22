@@ -38,9 +38,10 @@ class Facets extends MY_REST_Controller
 	 *
 	 * */
 	public function reindex_get($start_row=NULL, $limit=10)
-	{		        
+	{		  
+        $output=$this->Facet_model->reindex($start_row, $limit, $loop=false);      
         try{
-			$output=$this->Facet_model->reindex($start_row, $limit, $loop=false);
+			//$output=$this->Facet_model->reindex($start_row, $limit, $loop=false);
 			$output=array(
                 'status'=>'success',
                 'result'=>$output
@@ -62,10 +63,9 @@ class Facets extends MY_REST_Controller
     public function clear_index_get()
     {        
         try{
-            $output='TODO';
+            $output=$this->Facet_model->clear_index();
             $output=array(
-                'status'=>'success',
-                'result'=>$output
+                'status'=>'success'
             );
             $this->set_response($output, REST_Controller::HTTP_OK);			
         }
@@ -77,6 +77,79 @@ class Facets extends MY_REST_Controller
             $this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
         }
     }
+    
+
+    function reorder_post()
+	{
+		try{
+            $this->load->model("Configurations_model");
+            $options=$this->input->post(null,true);
+
+            $data_types=array(
+                'all',
+                'microdata',
+                'geospatial',
+                'document',
+                'table',
+                'image'
+            );
+
+            $data=array();
+
+            foreach($data_types as $type){
+                if (isset($options[$type])){
+                    $data=array_keys($options[$type]);
+                    $result=$this->Configurations_model->upsert($name='facets_'.$type, json_encode($data));
+                }
+            }
+
+            $output=array(
+                'status'=>'success',
+                'options'=>$options
+            );
+            $this->set_response($output, REST_Controller::HTTP_OK);			
+        }
+        catch(Exception $e){
+            $error_output=array(
+                'status'=>'failed',
+                'message'=>$e->getMessage()
+            );
+            $this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
+        }
+	}
+
+
+
+    /**
+     * 
+     * 
+     * Create/update facet
+     * 
+     * 
+     */
+    function index_post()
+	{
+		try{
+            $this->load->model("Configurations_model");
+            $options=$this->raw_json_input();
+
+            $result=$this->Facet_model->create_facet($options);
+
+            $output=array(
+                'status'=>'success',
+                'options'=>$options,
+                'result'=>$result
+            );
+            $this->set_response($output, REST_Controller::HTTP_OK);			
+        }
+        catch(Exception $e){
+            $error_output=array(
+                'status'=>'failed',
+                'message'=>$e->getMessage()
+            );
+            $this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
+        }
+	}
 
 
 }

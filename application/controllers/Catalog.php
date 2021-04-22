@@ -29,8 +29,9 @@ class Catalog extends MY_Controller {
 		$this->load->model('Data_classification_model');
 		$this->load->model('Facet_model');
 
-		//todo - set which filters to enable
-		$this->enabled_filters=array('countries');
+		//load facets configurations
+		$this->load->config("facets");
+		//$this->enabled_filters=$this->config->item('facets_by_type');
 
 		//$this->output->enable_profiler(TRUE);
 
@@ -46,13 +47,51 @@ class Catalog extends MY_Controller {
 		$this->data_types_nav_bar=$this->config->item("data_types_nav_bar");
 		$this->search_box_orientation=$this->config->item("search_box_orientation")== FALSE ? 'default' : $this->config->item("search_box_orientation");
 	}
-		 
-	
-	private function load_facets_data()
+
+
+	/**
+	 * 
+	 * 
+	 * Get data type for the active tab/page
+	 * 
+	 */
+	private function get_active_data_type()
 	{
+		if($this->active_tab==''){
+			return 'all';
+		}else
+		{
+			return $this->active_tab;
+		}
+	}
+
+
+	private function set_enabled_filters($active_tab=null)
+	{
+		$tab=$this->get_active_data_type();
+
+		if($tab=='survey'){
+			$tab='microdata';
+		}
+
+		$this->enabled_filters=(array)json_decode($this->config->item('facets_'.$tab),true);
+	}
+
+	/**
+	 * 
+	 * Load data for all facets
+	 * 
+	 */
+	private function load_facets_data($active_tab=null)
+	{
+
+		$facets=(array)$this->enabled_filters;
+
 		//get years
-		$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
-		$this->facets['years']=$years_range;
+		if ($this->is_facet_enabled($this->active_tab,'year')){
+			$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
+			$this->facets['years']=$years_range;
+		}
 
 		$repo_id=null;
 
@@ -60,29 +99,174 @@ class Catalog extends MY_Controller {
 			$repo_id=$this->active_repo['repositoryid'];
 		}
 
-		$this->facets['repositories']=$this->Search_helper_model->get_active_repositories();
-		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
-		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
-		$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
-		$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);				
-		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
-		
-		//load user defined facets from db
-		$user_facets=$this->Facet_model->select_all();
-		foreach($user_facets as $fc){
-			$this->facets[$fc['name']]=array(
-				'type'=>'user',
-				'values'=>$this->Facet_model->get_facet_values($fc['id'],$published=1)
-			);
+		//core facets
+		if ($this->is_facet_enabled($this->active_tab,'collection')){
+			$this->facets['repositories']=$this->Search_helper_model->get_active_repositories();
 		}
 
-		//var_dump($user_facets);
+		//if ($this->is_facet_enabled($this->active_tab,'dtype')){
+			$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
+		//}
 
-		//echo '<pre>';
+		//if ($this->is_facet_enabled($this->active_tab,'data_class')){
+			$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
+		///}
 
-		//var_dump($this->facets);
-		//die();
+		if ($this->is_facet_enabled($this->active_tab,'country')){
+			$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
+		}
 
+		if ($this->is_facet_enabled($this->active_tab,'tag')){
+			$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);
+		}
+
+		if ($this->is_facet_enabled($this->active_tab,'type')){
+			$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
+		}
+		
+		//load user defined facets from db
+		$facets_list=$this->Facet_model->select_all();
+		foreach($facets_list as $fc){
+			if($fc['facet_type']=='user' && $this->is_facet_enabled($this->active_tab,$fc['name'])){
+				$this->facets[$fc['name']]=array(
+					'type'=>$fc['facet_type'],
+					'title'=>$fc['title'],
+					'values'=>$this->Facet_model->get_facet_values($fc['id'],$published=1)
+				);
+			}
+		}
+
+	}
+
+
+	private function load_facets_html()
+	{
+		//enabled filters by active page/tab
+		$filters=(array)$this->enabled_filters;
+
+		//flip to keep the keys for sorting facets
+		$filters=array_flip($filters);
+		foreach($filters as $key=>$val){
+			$filters[$key]=null;
+		}
+
+		//tags
+		if ($this->is_facet_enabled($this->active_tab,'tag')){
+			$filters['tag']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['tags'], 
+					'filter_id'=>'tag'
+				),true);
+		}
+			
+		if ($this->is_facet_enabled($this->active_tab,'year')){
+			$filters['year']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
+		}
+		
+		if(!isset($this->active_repo_id)){
+			/*$filters['repositories']=$this->load->view('search/filter_collections', 
+				array(
+					'repositories'=>$this->facets['repositories'],
+					'search_options'=>$output['search_options']
+				)
+				,true);
+			*/	
+			if ($this->is_facet_enabled($this->active_tab,'collection')){
+				$filters['repositories']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['repositories'], 
+					'filter_id'=>'collection'
+				),true);
+			}
+		}
+
+		//data access types
+		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
+
+		//data classifications
+		if ($this->is_facet_enabled($this->active_tab,'data_class')){
+			$filters['data_class']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['data_class'], 
+					'filter_id'=>'data_class'
+				),true);
+		}
+
+
+		//data types
+		if ($this->is_facet_enabled($this->active_tab,'dtype')){
+			$filters['da_type']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['da_types'], 
+					'filter_id'=>'dtype'
+				),true);	
+		}
+
+
+		//countries
+		if ( $this->is_facet_enabled($this->active_tab,'country')){		
+			$filters['country']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['countries'], 
+					'filter_id'=>'country'
+				),true);
+		}
+		
+		//countries			
+		//$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
+
+		//tags			
+		//$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);		
+		
+		//types filter
+		if(!$this->active_tab){
+			if ($this->is_facet_enabled($this->active_tab,'data_type')){
+				//$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
+				$filters['data_type']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['types'], 
+					'filter_id'=>'type'
+				),true);
+			}
+		}
+
+		//user defined facets
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$filters[$facet_key]=$this->load->view('search/facet', 
+				array(
+					'items'=>$facet['values'],
+					'filter_id'=>$facet_key,
+					'title'=>$facet['title']
+				),true);
+			}
+		}
+
+		return $filters;
+	}
+
+
+	private function is_facet_enabled($type,$facet)
+	{
+		if ($type==''){
+			$type='all';
+		}
+
+		if ( in_array($facet,$this->enabled_filters)){
+			return true;
+		}
+	}
+
+	private function get_facets_by_type($type)
+	{
+		if ($type==''){
+			$type='all';
+		}
+
+		if (isset($this->enabled_filters[$type])){
+			return $this->enabled_filters[$type];
+		}
+		return false;
 	}
 
 	
@@ -97,12 +281,7 @@ class Catalog extends MY_Controller {
     {
 		$this->active_tab=xss_clean($this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($this->active_tab);
-
-		$filters=array();
-
-		//load data for facets
-		//$this->load_facets_data();
-
+		
 		$output= $this->_search();
 		$output['tab_type']=$this->active_tab;
 		$output['facets']=$this->facets;
@@ -120,103 +299,14 @@ class Catalog extends MY_Controller {
 		}
 		
 
-		//tags
-		$filters['tags']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['tags'], 
-				'filter_id'=>'tag'
-			),true);
+		$filters_html=$this->load_facets_html();
 
-		//echo "<pre>";
-		//var_dump($this->facets);
-		//die();	
-		foreach($this->facets as $facet_key=>$facet){
-			if(isset($facet['type']) && isset($facet['type'])=='user'){
-				$filters[$facet_key]=$this->load->view('search/facet', 
-				array(
-					'items'=>$facet['values'],
-					'filter_id'=>$facet_key
-				),true);
-			}
-		}
-			
-		$filters['years']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
-		
-		if(!isset($this->active_repo_id)){
-			/*$filters['repositories']=$this->load->view('search/filter_collections', 
-				array(
-					'repositories'=>$this->facets['repositories'],
-					'search_options'=>$output['search_options']
-				)
-				,true);
-			*/	
-			
-			$filters['repositories']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['repositories'], 
-				'filter_id'=>'collection'
-			),true);
-		}
+		$output['filters']=$filters_html;
 
 		//collection info box
 		if(isset($this->active_repo_id)){
 			$output['collection_info']=$this->load->view('search/collection_info',array('repo'=>$this->active_repo),true);
 		}
-
-		//data access types
-		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
-
-		//data classifications
-		$filters['data_class']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['data_class'], 
-				'filter_id'=>'data_class'
-			),true);
-
-
-		//data types
-		$filters['da_types']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['da_types'], 
-				'filter_id'=>'dtype'
-			),true);	
-
-		/*echo '<pre>';
-		var_dump(	$this->facets['countries']);
-		die();*/
-
-		if ( in_array('countries',$this->enabled_filters)){		
-			//countries
-			$filters['countries']=$this->load->view('search/facet', 
-				array(
-					'items'=>$this->facets['countries'], 
-					'filter_id'=>'country'
-				),true);
-		}
-		
-		//countries			
-		//$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
-
-		//tags			
-		//$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);
-
-		
-		
-		//types filter
-		if(!$this->active_tab){
-			//$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
-			$filters['types']=$this->load->view('search/facet', 
-			array(
-				'items'=>$this->facets['types'], 
-				'filter_id'=>'type'
-			),true);
-		}
-
-		/*echo '<pre>';
-		var_dump(	$this->facets);
-		die();*/
-
-		$output['filters']=$filters;
 
 		//tabs
 		$tabs=array();
@@ -273,6 +363,7 @@ class Catalog extends MY_Controller {
 	function _search()
 	{
 		$this->load->helper('security');
+		$this->set_enabled_filters();
 
 		//load data for facets
 		$this->load_facets_data();
@@ -314,11 +405,6 @@ class Catalog extends MY_Controller {
 				$search_options->{$facet_key}=xss_clean($this->input->get($facet_key));
 			}
 		}
-
-		//echo '<pre>';
-		//var_dump($this->facets);
-		//echo '</pre>';
-		
 
 		//allowed fields for sort_by and sort_order
 		$allowed_fields = array('year','title','nation','country','popularity','rank');
@@ -503,9 +589,6 @@ class Catalog extends MY_Controller {
 			case 'csv':
 				$rows=$output['surveys']['rows'];
 				$cols=explode(",",'id,idno,title,nation,authoring_entity,year_start,year_end,created,changed');
-
-				//var_dump($output['surveys']);exit;
-
 				$filename='search-'.date("m-d-y-his").'.csv';
 				header('Content-Encoding: UTF-8');
 				header( 'Content-Type: text/csv' );

@@ -18,6 +18,7 @@ class Dataset_manager{
     {
         $this->ci =& get_instance();
         $this->ci->load->model("Dataset_model");
+        $this->ci->load->model("Facet_model");
         $this->ci->load->model("Dataset_microdata_model");
         $this->ci->load->model("Dataset_timeseries_model");
         $this->ci->load->model("Dataset_geospatial_model");
@@ -32,15 +33,21 @@ class Dataset_manager{
     function create_dataset($type,$options)
     {
         $this->validate_type($type);
-        //return $this->ci->Dataset_microdata_model->create_dataset($type,$options);
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->create_dataset($type,$options);
+        $new_id=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->create_dataset($type,$options);
+
+        if ($new_id>0){            
+            $this->ci->Facet_model->index_facets($new_id);
+        }
+        return $new_id;
     }
 
 
     function update_dataset($sid,$type,$options,$merge_data=false)
     {
         $this->validate_type($type);
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data);
+        $result=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data);
+        $this->ci->Facet_model->index_facets($sid);
+        return $result;
     }
 
 
