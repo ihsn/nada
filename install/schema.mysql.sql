@@ -1385,12 +1385,15 @@ insert into user_roles (user_id, role_id)
 --
 
   CREATE TABLE `facets` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(20) DEFAULT NULL,
   `title` varchar(45) DEFAULT NULL,
+  `facet_type` varchar(10) DEFAULT NULL,
+  `enabled` int DEFAULT '0',
+  `mappings` mediumtext,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 --
