@@ -1,3 +1,45 @@
+<?php
+
+$facet_bg=array(
+    '#2364aa',
+    '#3da5d9',
+    '#73bfb8',
+    '#fec601',
+    '#ea7317',
+    '#99B898',
+    '#FECEAB',
+    '#FF847C',
+    '#E84A5F',
+    '#2A363B',
+
+    '#F8B195',
+    '#F67280',
+    '#C06C84',
+    '#6C5B7B',
+    '#355C7D',
+    '#99B898',
+    '#FECEAB',
+    '#FF847C',
+    '#E84A5F',
+);
+$bg=0;
+?>
+   <?php foreach($facets as $facet_key=>$facet):?>
+		<?php if(isset($facet['type']) && isset($facet['type'])=='user'):?>
+                <?php if (isset($search_options->{$facet_key}) && is_array($search_options->{$facet_key})):?>
+                    <?php foreach($search_options->{$facet_key} as $facet_value):?>
+                        <?php if (array_key_exists($facet_value,$facets[$facet_key]['values'])):?>
+                            <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" style="background:<?php echo $facet_bg[$bg];?>" 
+                                    data-type="<?php echo $facet_key;?>[]" data-value="<?php echo html_escape($facet_value);?>">
+                                    <?php echo html_escape($facets[$facet_key]['values'][$facet_value]['title']);?><i class="fa fa-close"></i></span>
+                        <?php endif;?>    
+                    <?php endforeach;?>
+                    <?php $bg++;?>
+                <?php endif;?>
+		<?php endif;?>        
+	<?php endforeach;?>
+    
+
     <?php if (is_array($search_options->type)):?>
         <?php foreach($search_options->type as $type):?>
             <?php if ($search_options->tab_type==$type){continue;};?>                
@@ -20,21 +62,7 @@
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
-
-    <?php if (is_array($search_options->topic)):?>
-        <?php foreach($search_options->topic as $topic):?>
-            <?php if (array_key_exists($topic,$topics)):?>
-                <span class="badge badge-default wb-badge-close country remove-filter topic" data-type="topic" data-value="<?php echo $topic;?>">
-                    <?php $brac_pos=strpos($topics[$topic]['title'],'[',0);?>
-                    <?php if ($brac_pos):?>
-                        <?php echo substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0)); ?>
-                    <?php else: ?>
-                        <?php echo $topics[$topic]['title']; ?>
-                    <?php endif;?>
-                    <i class="fa fa-close"></i></span>
-            <?php endif;?>
-        <?php endforeach;?>
-    <?php endif;?>
+    
 
     <?php if (is_array($search_options->collection)):?>
         <?php foreach($search_options->collection as $collection):?>

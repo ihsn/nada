@@ -88,7 +88,6 @@ class Dataset_model extends CI_Model {
 	 * 
 	 * Return all datasets
 	 * 
-	 * @sid - ID to get a single study
 	 * @offset - offset
 	 * @limit - number of rows to return
 	 * 
@@ -105,7 +104,7 @@ class Dataset_model extends CI_Model {
 		if ($limit>0){
 			$this->db->limit($limit, $offset);
 		}
-
+		
 		$result= $this->db->get("surveys")->result_array();
 
 		if($result){

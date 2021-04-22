@@ -78,7 +78,26 @@ class Configurations_model extends CI_Model {
 		}
 		
 		return $result;
-    }	
+    }
+	
+
+	/**
+	* 
+	* Get a single config value
+	*
+	*/
+	function get_config_item($key)
+    {
+		$this->db->select('value');
+		$this->db->where('name',$key);
+        $result=$this->db->get('configurations')->row_array();
+		
+		if ($result){
+			return $result['value'];
+		}
+		
+		return NULL;
+    }
 
 
 	/**
@@ -154,7 +173,28 @@ class Configurations_model extends CI_Model {
 		
 		return FALSE;
     }	
+
 	
+	function upsert($name, $value,$label=NULL, $helptext=NULL)
+	{	
+		if (trim($name)==''){
+			return FALSE;
+		}
+		
+		$data=array(
+			'name'=>$name,
+			'value'=>$value,
+			'label'=>$label,
+			'helptext'=>$helptext
+		);
+
+		if ($this->check_key_exists($name)){
+			$this->db->where('name',$name);
+			return $this->db->update('configurations',$data);
+		}
+		
+		return $this->db->insert('configurations', $data);
+	}
 	
 }
 ?>

@@ -32,6 +32,8 @@ class Catalog_search_mysql{
 	var $country_iso3=''; //comma seperated list country iso3 codes	
 	var $created='';
 
+	var $params;
+
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
 	
@@ -63,6 +65,8 @@ class Catalog_search_mysql{
 	{
 		$this->ci=& get_instance();
 		$this->ci->load->config('noise_words');
+		$this->ci->load->model("Facet_model");
+		$this->user_facets=$this->ci->Facet_model->select_all('user');
 		
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes')
@@ -77,6 +81,8 @@ class Catalog_search_mysql{
 		
 		log_message('debug', "Catalog_search Class Initialized");
 		//$this->ci->output->enable_profiler(TRUE);
+
+		$this->params=$params;
 	}
 	
 	function initialize($params=array())
@@ -150,6 +156,15 @@ class Catalog_search_mysql{
 
 		//array of all options
 		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type);
+		
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
 		
 		//create combined where clause
 		$where='';
@@ -325,6 +340,15 @@ class Catalog_search_mysql{
 		
 		//array of all options
 		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3);
+
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
 		
 		//create combined where clause
 		$where='';
@@ -493,6 +517,28 @@ class Catalog_search_mysql{
 		return FALSE;
 	}
 
+
+	protected function _build_facet_query($facet_name,$values)
+	{
+		if (empty($values)){
+			return false;
+		}
+		
+		$values=(array)$values;
+		foreach($values  as $idx=>$value){
+			if(!empty($value)){
+				$values[$idx]=$this->ci->db->escape($value);
+			}
+		}
+
+		$values= implode(',',$values);
+
+		if ($values!=''){
+			return sprintf('surveys.id in (select sid from survey_facets where term_id in (%s))',$values);
+		}
+		
+		return FALSE;
+	}
 
 	
 	/**
@@ -967,6 +1013,15 @@ class Catalog_search_mysql{
 
         //show only publshed studies
         $where_list[]='published=1';
+
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
 
 		//create combined where clause
 		$where='';
