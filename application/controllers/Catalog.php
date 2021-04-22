@@ -120,9 +120,9 @@ class Catalog extends MY_Controller {
 			$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);
 		}
 
-		if ($this->is_facet_enabled($this->active_tab,'type')){
+		//if ($this->is_facet_enabled($this->active_tab,'type')){
 			$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
-		}
+		//}
 		
 		//load user defined facets from db
 		$facets_list=$this->Facet_model->select_all();
