@@ -15,6 +15,8 @@ $lang['filter_by_type']="Data Type";
 $lang['select_all']="Select all";
 $lang['filter_by_country']="Countries";
 $lang['filter_by_topic']="Topics";
+$lang['filter_by_data_class']="Data classifications";
+
 $lang['link_select_all']="Select all";
 $lang['link_clear']="Clear";
 $lang['link_toggle']="Toggle";
@@ -232,7 +234,6 @@ $lang['filter_by_tag']="Tags";
 
 $lang['data_classification']="Data classification";
 $lang['select_data_classification']="Select data classification";
-$lang['filter_by_data_class']="Data classifications";
 
 $lang['Photo']='Image';
 

@@ -1096,7 +1096,7 @@ DROP TABLE IF EXISTS `configurations`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `configurations` (
   `name` varchar(200) NOT NULL,
-  `value` varchar(255) NOT NULL,
+  `value` varchar(5000) NOT NULL,
   `label` varchar(255) DEFAULT NULL,
   `helptext` varchar(255) DEFAULT NULL,
   `item_group` varchar(255) DEFAULT NULL,
@@ -1408,3 +1408,43 @@ CREATE TABLE `survey_widgets` (
   PRIMARY KEY (`id`),
   KEY `sid_uuid` (`sid`,`widget_uuid`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+--
+-- Facets
+--
+
+  CREATE TABLE `facets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) DEFAULT NULL,
+  `title` varchar(45) DEFAULT NULL,
+  `facet_type` varchar(10) DEFAULT NULL,
+  `enabled` int DEFAULT '0',
+  `mappings` mediumtext,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- Facet terms
+--
+
+CREATE TABLE `facet_terms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `facet_id` int(11) DEFAULT NULL,
+  `value` varchar(300) DEFAULT NULL,
+  `weight` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- Survey facets
+--
+
+CREATE TABLE `survey_facets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `facet_id` int(11) DEFAULT NULL,
+  `term_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

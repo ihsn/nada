@@ -33,14 +33,13 @@ items=array(
 ?>
 
 <div id="filter-by-<?php echo $filter_id;?>" class="sidebar-filter wb-ihsn-sidebar-filter filter-box filter-by-<?php echo $filter_id;?>">
-    
         <h6 class="togglable"> 
             <div 
             class=" <?php echo $filter_collapse ? 'collapsed' :'';?>" 
             data-toggle="collapse" 
             href="#facet-<?php echo $filter_id;?>" role="button" aria-expanded="false" aria-controls="facet-<?php echo $filter_id;?>">
-                <i class="fa fa-filter pr-2"></i>
-                <?php echo t('filter_by_'.$filter_id);?>
+                <i class="fa fa-filter pr-2" ></i>
+                <span class="text-capitalize"><?php echo isset($title) ? t($title) : t('filter_by_'.$filter_id);?></span>
                 <span class="float-right" >
                 <i class="icon-toggle icon-collapsed float-right fa fa-chevron-down"></i>
                 <i class="icon-toggle icon-expanded float-right fa fa-chevron-up"></i>
