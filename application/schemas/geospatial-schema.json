@@ -44,7 +44,7 @@
 				"languageCode": {
 					"title": "Language",
 					"description":"Language",					
-					"type": "string",
+					"type": "object",
 					"_xpath":"gmd:PT_Locale/gmd:languageCode",
 					"$ref": "#/definitions/language"
 				},
@@ -57,7 +57,7 @@
 						"characterSet": {
 							"title": "Character set",
 							"description":"Character encoding used e.g. UTF-8",
-							"type": "string",
+							"type": "object",
 							"_xpath":"gmd:PT_Locale/gmd:characterEncoding/gmd:MD_CharacterSetCode",
 							"$ref": "#/definitions/characterSet"
 						}
@@ -783,7 +783,7 @@
 					}
 				},
 				"connectPoint": {
-					"type": "array",
+					"type": "object",
 					"title": "Connect Point(s)",
 					"_xpath": "gmd:SV_OperationMetadata/gmd:connectPoint",
 					"$ref": "#/definitions/onlineResource"
@@ -853,7 +853,7 @@
 				"characterSet": {
 					"title": "Character set",
 					"description":"Metadata Character encoding used e.g. UTF-8",
-					"type": "string",
+					"type": "object",
 					"_xpath":"gmd:characterSet/gmd:MD_CharacterSetCode",
 					"$ref": "#/definitions/characterSet"
 				},
@@ -1403,7 +1403,7 @@
 								"description": "Resource language(s)",
 								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gmd:LanguageCode",
 								"items": {
-									"type": "string",
+									"type": "object",
 									"$ref": "#/definitions/language"
 								}
 							},
@@ -1413,7 +1413,7 @@
 								"description": "Resource character set(s)",
 								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:characterSet/gmd:MD_CharacterSetCode",
 								"items": {
-									"type": "string",
+									"type": "object",
 									"$ref": "#/definitions/characterSet"
 								}
 							},
@@ -1965,14 +1965,14 @@
 				"language": {
 					"title": "Language",
 					"description":"Main metadata language",					
-					"type": "string",
+					"type": "object",
 					"_xpath":"gmd:language/gmd:LanguageCode",
 					"$ref": "#/definitions/language"
 				},
 				"characterSet": {
 					"title": "Character set",
 					"description":"Metadata Character encoding used e.g. UTF-8",
-					"type": "string",
+					"type": "object",
 					"_xpath":"gmd:characterSet/gmd:MD_CharacterSetCode",
 					"$ref": "#/definitions/characterSet"
 				},
@@ -2209,7 +2209,7 @@
 										},
 										"userContactInfo": {
 											"title": "User contact(s)",
-											"type": "array",
+											"type": "object",
 											"_xpath": "gmd:identificationInfo/gmd:SV_ServiceIdentification/gmd:userContactInfo/gmd:CI_ResponsibleParty",
 											"$ref": "#/definitions/responsibleParty"
 										}
@@ -2545,13 +2545,13 @@
 						"distributionFormat": {
 							"title": "Distribution format(s)",
 							"_xpath": "gmd:distributionInfo/gmd:MD_Format",
-							"type": "array",
+							"type": "object",
 							"$ref": "#/definitions/format"
 						},
 						"distributor": {
 							"title": "Distributor(s)",
 							"description": "Responsible party(ies) in charge of the resource distribution",
-							"type": "array",
+							"type": "object",
 							"_xpath": "gmd:distributionInfo/gmd:MD_Distributor/gmd:distributorContact",
 							"$ref": "#/definitions/responsibleParty"
 						},
@@ -2565,7 +2565,7 @@
 								"properties": {
 									"onLine": {
 										"title": "Online Resources",
-										"type": "array",
+										"type": "object",
 										"$ref": "#/definitions/onlineResource"
 									}
 								}
@@ -2583,9 +2583,8 @@
 						"type": "object",
 						"properties": {
 							"scope": {
-
 								"title": "Scope of the data quality information",
-								"type": "object",
+								"type": "string",
 								"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode",
 								"$ref": "#/definitions/scope"
 							},
@@ -2749,7 +2748,7 @@
 													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:dateTime/gco:DateTime"
 												},
 												"processor": {
-													"type": "array",
+													"type": "object",
 													"title": "Processor(s)",
 													"description": "Responsible party(ies) in charge of the processing for the step",
 													"_xpath": "gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:lineage/gmd:LI_Lineage/gmd:processStep/gmd:processor/gmd:CI_ResponsibleParty",
