@@ -10,110 +10,128 @@
 
 <!--<h1>Geospatial metadata</h1>-->
 
+
+
 <!-- identification section -->
-<?php $output['overview']= render_group('overview',
+
+
+
+<?php 
+$identification_info=current((array)get_field_value('metadata.dataset_metadata.identificationInfo',$metadata));
+$output['IdentificationInfo']= render_group('identificationInfo',
     $fields=array(
-            "metadata.dataset_description.identification_info.title"=>'text',
-            "metadata.dataset_description.identification_info.alternate_title"=>'text',
-            "metadata.dataset_description.identification_info.abstract"=>'text',
-            "metadata.dataset_description.identification_info.identifier"=>'array',            
-            "metadata.dataset_description.identification_info.edition"=>'text',
-            "metadata.dataset_description.identification_info.presentation_form"=>'text',
-            "metadata.dataset_description.identification_info.purpose"=>'text',
-            "metadata.dataset_description.identification_info.credit"=>'text',
-            "metadata.dataset_description.identification_info.status"=>'text',            
-            "metadata.dataset_description.identification_info.resource_maintenance.maintenance_frequency"=>'text',
-            "metadata.dataset_description.identification_info.spatial_representation_type"=>'text',
-            "metadata.dataset_description.identification_info.supplemental_information"=>'text',
-            ),
-    $metadata);
-?>
+        "citation.title"=>'text',
+        "citation.alternateTitle"=>'text',
+        "citation.date"=>'array',
+        "citation.edition"=>'text',
+        "citation.editionDate"=>'text',
+        "citation.identifier"=>'array',
+        "citation.citedResponsibleParty"=>'geog_contact',
+        "citation.presentationForm"=>'array_badge',
+        "citation.series.name"=>'text',
+        "citation.series.issueIdentification"=>'text',
+        "citation.otherCitationDetails"=>'text',
+        "citation.collectiveTitle"=>'text',
+        "citation.ISBN"=>'text',
+        "citation.ISSN"=>'text',
+        "abstract"=>'text',
+        "purpose"=>'text',
+        "credit"=>'text',
+        "status"=>'text',
 
-
-
-<!-- spatial extent -->
-<?php $output['spatial_extent']= render_group('spatial_extent',
-    $fields=array(
-            "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'array',
-            "metadata.dataset_description.identification_info.extent.geographic_bounding_box"=>'bounding_box',
-            ),
-    $metadata);
-?>
-
-<!-- spatial extent -->
-<?php $output['reference_system_info']= render_columns('reference_system_info',
-    $fields=array(
-            "metadata.dataset_description.reference_system_info.code"=>'text',
-            "metadata.dataset_description.reference_system_info.code_space"=>'text',
-            ),
-    $metadata);
-?>
-
-
-<!-- spatial extent -->
-<?php $output['keywords']= render_group('keywords',
-    $fields=array(
-        "metadata.dataset_description.identification_info.keywords"=>'array',
-        "metadata.dataset_description.identification_info.topics"=>'array',
-            ),
-    $metadata);
-?>
-
-<?php $output['contact']= render_group('contact',
-    $fields=array(
-            "metadata.dataset_description.contact"=>'array',
-            "metadata.dataset_description.identification_info.point_of_contact"=>'array',
-            ),
-    $metadata);
-?>
-
-
-
-
-<!-- graphic_overview -->
-<?php $output['graphic_overview']= render_group('graphic_overview',
-    $fields=array(
-            "metadata.dataset_description.identification_info.graphic_overview"=>'array',
-            ),
-    $metadata);
-?>
-
-
-<!-- constraints -->
-<?php $output['resource_constraints']= render_group('resource_constraints',
-    $fields=array(
-            "metadata.dataset_description.identification_info.resource_constraints.access_constraints"=>'array',
-            "metadata.dataset_description.identification_info.resource_constraints.use_constraints"=>'array',
-            "metadata.dataset_description.identification_info.resource_constraints.other_constraints"=>'text',
-            "metadata.dataset_description.identification_info.resource_constraints.use_limitations"=>'text',
-            ),
-    $metadata);
-?>
-
-
-
-
-<!-- distribution -->
-<?php $output['distribution']= render_group('distribution',
-    $fields=array(
-        "metadata.dataset_description.distribution_info.distributors"=>'array',
-        "metadata.dataset_description.distribution_info.online_resource"=>'resources',
-        "metadata.dataset_description.identification_info.date"=>'array'
+        "pointOfContact"=>'geog_contact',
+        "resourceMaintenance"=>'array',
+        "graphicOverview"=>'array',
+        "resourceFormats"=>'array',
+        "descriptiveKeywords"=>'array',
+        "status"=>'text',
+        "spatialRepresentationType"=>"text",
+        "language"=>"text",
+        "characterSet"=>"text",
+        "topicCategory"=>"text",
     ),
-    $metadata);
+    $identification_info);
 ?>
+
+<!-- resource constraints section -->
+<?php 
+$output['constraints']= render_group('constraints',
+    $fields=array(
+            "legalConstraints.accessConstraints"=>'array',
+            "legalConstraints.useConstraints"=>'array',
+            "legalConstraints.uselimitation"=>'array',
+            ),
+        current( get_field_value('resourceConstraints',$identification_info)));
+?>
+
+
+<!-- spatial extent -->
+<?php 
+
+$geographic_element=get_field_value('extent.geographicElement',$identification_info);
+$bbox=array();
+foreach($geographic_element as $element){
+    $bbox['bbox'][]=array(
+        'south'=>get_field_value('geographicBoundingBox.southBoundLongitude',$element),
+        'west'=>get_field_value('geographicBoundingBox.westBoundLongitude',$element),
+        'north'=>get_field_value('geographicBoundingBox.northBoundLongitude',$element),
+        'east'=>get_field_value('geographicBoundingBox.eastBoundLongitude',$element)
+    );
+}
+
+$output['spatial_extent']= render_group('spatial_extent',
+    $fields=array(
+            "bbox"=>'array',
+            "bbox"=>'bounding_box',
+            ),
+    $bbox);
+?>
+
+
+<!-- distributionInfo section -->
+<?php 
+$output['distributionInfo']= render_group('distributionInfo',
+    $fields=array(
+            "distributionFormat"=>'array',
+            "distributor"=>"geog_contact",
+            ),
+        get_field_value('metadata.dataset_metadata.distributionInfo',$metadata));
+?>
+
+<?php 
+$output['transferOptions']= render_group('transferOptions',
+    $fields=array(
+            "onLine"=>"array"
+            ),
+        current((array)get_field_value('metadata.dataset_metadata.distributionInfo.transferOptions',$metadata)));
+?>
+
+
+<?php 
+$output['dataQualityInfo']= render_group('dataQualityInfo',
+    $fields=array(
+            "scope"=>'text',
+            "lineage.statement"=>"text",
+            "lineage.processStep"=>"array"
+            ),
+        current((array)get_field_value('metadata.dataset_metadata.dataQualityInfo',$metadata)));
+?>
+
+
 
 
 <!-- metadata -->
-<?php $output['metadata_production']= render_group('metadata_production',
+<?php $output['dataset_metadata']= render_group('dataset_metadata',
     $fields=array(
-        "metadata.dataset_description.language"=>'text',
-        "metadata.dataset_description.charset_code"=>'text',
-        "metadata.dataset_description.time_stamp"=>'text',
-        "metadata.metadata_maintenance.update_frequency"=>'text',
-        "metadata.metadata_maintenance.note"=>'text',
-        "metadata.metadata_maintenance.contact"=>'text',
-        "metadata.metadata_maintenance.version"=>'text',        
+        "metadata.dataset_metadata.fileIdentifier"=>'text',
+        "metadata.dataset_metadata.language"=>'text',
+        "metadata.dataset_metadata.characterset"=>'text',
+        "metadata.dataset_metadata.hierarchyLevel"=>'text',
+        "metadata.dataset_metadata.contact"=>'text',
+        "metadata.dataset_metadata.dateStamp"=>'text',
+        "metadata.dataset_metadata.contact"=>'geog_contact',
+        "metadata.dataset_metadata.metadataStandardName"=>'text',
+        "metadata.dataset_metadata.referenceSystemInfo"=>'array'
     ),
     $metadata);
 ?>

@@ -52,7 +52,7 @@ if ( ! function_exists('render_custom'))
  
 if ( ! function_exists('render_text'))
 {
-	function render_text($name, $data, $options)
+	function render_text($name, $data, $options=array())
 	{
 		$ci =& get_instance();
 		return $ci->load->view('metadata_templates/fields/field_text',array('name'=>$name, 'data'=>$data, 'options'=>$options), TRUE);

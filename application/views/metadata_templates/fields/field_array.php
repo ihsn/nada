@@ -57,7 +57,7 @@
                         <?php if(!in_array($key,$columns)){continue;}?>
                         <td>
                             <?php if(is_array($value)):?>
-                            <?php echo render_field($field_type='array_comma',$field_name=$name.'.'.$key,$value, array('hide_column_headings'=>true));?>
+                            <?php echo render_field($field_type='array_br',$field_name=$name.'.'.$key,$value, array('hide_column_headings'=>true));?>
                             <?php else:?>
                                 <?php echo $value;?>
                             <?php endif;?>    

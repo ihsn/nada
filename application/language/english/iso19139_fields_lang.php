@@ -1,154 +1,81 @@
 <?php
 
-$lang['identification']='Identification';
+$lang['identificationInfo']='Identification information';
 $lang['contact']='Contacts';
 $lang['keywords']='Keywords';
-$lang['metadata_production']='Metadata production';
-$lang['metadata.metadata_maintenance']='Metadata production';
-$lang['metadata.metadata_maintenance.update_frequency']='Maintenance Frequency';
-$lang['metadata.metadata_maintenance.note']='Maintenance Note';
-$lang['metadata.metadata_maintenance.contact']='Contact';
-$lang['metadata.metadata_maintenance.contact.person_name']='Individual name';
-$lang['metadata.metadata_maintenance.contact.role']='Role';
-$lang['metadata.metadata_maintenance.contact.organisation']='Organization';
-$lang['metadata.metadata_maintenance.contact.position']='Position';
-$lang['metadata.metadata_maintenance.contact.instructions']='Contact Instructions';
-$lang['metadata.metadata_maintenance.contact.phone']='Phone';
-$lang['metadata.metadata_maintenance.contact.fax']='Fax';
-$lang['metadata.metadata_maintenance.contact.email']='Email';
-$lang['metadata.metadata_maintenance.contact.website']='URL';
-$lang['metadata.metadata_maintenance.contact.address']='Address';
-$lang['metadata.metadata_maintenance.contact.city']='City';
-$lang['metadata.metadata_maintenance.contact.administrative_area']='Administrative Area';
-$lang['metadata.metadata_maintenance.contact.postal_code']='Postal Code';
-$lang['metadata.metadata_maintenance.contact.country']='Country';
-$lang['metadata.metadata_maintenance.prod_date']='Date of Production';
-$lang['metadata.metadata_maintenance.version']='Document version';
-$lang['metadata.dataset_description']='Dataset description';
-$lang['metadata.dataset_description.file_identifier']='Unique Identifier';
-$lang['metadata.dataset_description.language']='Language';
-$lang['metadata.dataset_description.charset_code']='Characterset';
-$lang['metadata.dataset_description.hierarchy_level']='Hierarchy level';
-$lang['metadata.dataset_description.date_stamp']='Metadata Date Stamp (YYYY-MM-DD)';
-$lang['metadata.dataset_description.contact']='Contact';
-$lang['metadata.dataset_description.contact.person_name']='Individual name';
-$lang['metadata.dataset_description.contact.role']='Role';
-$lang['metadata.dataset_description.contact.organisation']='Organization';
-$lang['metadata.dataset_description.contact.position']='Position';
-$lang['metadata.dataset_description.contact.instructions']='Contact Instructions';
-$lang['metadata.dataset_description.contact.phone']='Phone';
-$lang['metadata.dataset_description.contact.fax']='Fax';
-$lang['metadata.dataset_description.contact.email']='Email';
-$lang['metadata.dataset_description.contact.website']='URL';
-$lang['metadata.dataset_description.contact.address']='Address';
-$lang['metadata.dataset_description.contact.city']='City';
-$lang['metadata.dataset_description.contact.administrative_area']='Administrative Area';
-$lang['metadata.dataset_description.contact.postal_code']='Postal Code';
-$lang['metadata.dataset_description.contact.country']='Country';
-$lang['metadata.dataset_description.identification_info']='Resource Identification Information';
-$lang['metadata.dataset_description.identification_info.title']='Title';
-$lang['metadata.dataset_description.identification_info.alternate_title']='Alternate Title';
-$lang['metadata.dataset_description.identification_info.date']='Date';
-$lang['metadata.dataset_description.identification_info.date.date']='Date';
-$lang['metadata.dataset_description.identification_info.date.type']='Date type';
-$lang['metadata.dataset_description.identification_info.date.date_type']='Date type';
-
-
-$lang['metadata.dataset_description.identification_info.edition']='Edition';
-$lang['metadata.dataset_description.identification_info.identifiers']='Unique Identifier';
-$lang['metadata.dataset_description.identification_info.identifiers.identifier']='Identifier';
-$lang['metadata.dataset_description.identification_info.presentation_form']='Dataset Presentation Form';
-$lang['metadata.dataset_description.identification_info.abstract']='Abstract';
-$lang['metadata.dataset_description.identification_info.purpose']='Purpose';
-$lang['metadata.dataset_description.identification_info.credit']='Credit';
-$lang['metadata.dataset_description.identification_info.status']='Status';
-$lang['metadata.dataset_description.identification_info.point_of_contact']='Point of contact';
-$lang['metadata.dataset_description.identification_info.point_of_contact.org_name']='Organization';
-	
-$lang['metadata.dataset_description.identification_info.point_of_contact.person_name']='Individual name';
-$lang['metadata.dataset_description.identification_info.point_of_contact.role']='Role';
-$lang['metadata.dataset_description.identification_info.point_of_contact.organisation']='Organization';
-$lang['metadata.dataset_description.identification_info.point_of_contact.position']='Position';
-$lang['metadata.dataset_description.identification_info.point_of_contact.instructions']='Contact Instructions';
-$lang['metadata.dataset_description.identification_info.point_of_contact.phone']='Phone';
-$lang['metadata.dataset_description.identification_info.point_of_contact.fax']='Fax';
-$lang['metadata.dataset_description.identification_info.point_of_contact.email']='Email';
-$lang['metadata.dataset_description.identification_info.point_of_contact.website']='URL';
-$lang['metadata.dataset_description.identification_info.point_of_contact.address']='Address';
-$lang['metadata.dataset_description.identification_info.point_of_contact.city']='City';
-$lang['metadata.dataset_description.identification_info.point_of_contact.administrative_area']='Administrative Area';
-$lang['metadata.dataset_description.identification_info.point_of_contact.postal_code']='Postal Code';
-$lang['metadata.dataset_description.identification_info.point_of_contact.country']='Country';
-$lang['metadata.dataset_description.identification_info.resource_maintenance']='';
-$lang['metadata.dataset_description.identification_info.resource_maintenance.maintenance_frequency']='Maintenance Frequency';
-$lang['metadata.dataset_description.identification_info.graphic_overview']='';
-$lang['metadata.dataset_description.identification_info.graphic_overview.name']='File name / URL';
-$lang['metadata.dataset_description.identification_info.graphic_overview.type']='File Type';
-$lang['metadata.dataset_description.identification_info.graphic_overview.description']='File Description';
-$lang['metadata.dataset_description.identification_info.keywords']='Keywords';
-$lang['metadata.dataset_description.identification_info.keywords.keyword']='Keyword';
-$lang['metadata.dataset_description.identification_info.keywords.code']='Code';
-$lang['metadata.dataset_description.identification_info.keywords.code_uri']='Code list URI';
-$lang['metadata.dataset_description.identification_info.keywords.type']='Type';
-$lang['metadata.dataset_description.identification_info.keywords.thesaurus']='Thesaurus';
-
-
-	
-$lang['resource_constraints']='Resource constraints';
-$lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints']='Legal constraints';
-$lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints.code_list_uri']='Code list URI';
-$lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints.code']='Code';
-$lang['metadata.dataset_description.identification_info.resource_constraints.legal_constraints.value']='Value';
-$lang['metadata.dataset_description.identification_info.resource_constraints.use_limitations']='Use limitations';
-$lang['metadata.dataset_description.identification_info.resource_constraints.other_constraints']='Other constraints';
-$lang['metadata.dataset_description.identification_info.spatial_representation_type']='Spatial Representation Type';
-$lang['metadata.dataset_description.identification_info.representative_fraction_denominator']='Spatial Resolution Fraction';
-$lang['metadata.dataset_description.identification_info.language']='Language code';
-$lang['metadata.dataset_description.identification_info.charset_code']='Characterset code';
-$lang['metadata.dataset_description.identification_info.topics']='Topic Classification';
-$lang['metadata.dataset_description.identification_info.topics.topic']='Topic';
-$lang['metadata.dataset_description.identification_info.topics.vocab']='Vocabulary name';
-$lang['metadata.dataset_description.identification_info.topics.vocab_uri']='Vocabulary URI';
-$lang['metadata.dataset_description.identification_info.extent']='Resource Content Extent';
-$lang['metadata.dataset_description.identification_info.extent.geographic_bounding_box']='Geographic Bounding Box';
-$lang['metadata.dataset_description.identification_info.extent.geographic_bounding_box.south']='South';
-$lang['metadata.dataset_description.identification_info.extent.geographic_bounding_box.west']='West';
-$lang['metadata.dataset_description.identification_info.extent.geographic_bounding_box.north']='North';
-$lang['metadata.dataset_description.identification_info.extent.geographic_bounding_box.east']='East';
-$lang['metadata.dataset_description.identification_info.supplemental_information']='Supplemental information';
-$lang['metadata.dataset_description.distribution_info']='Distribution information';
-$lang['metadata.dataset_description.distribution_info.distributors']='Distributors';
-$lang['metadata.dataset_description.distribution_info.distributors.person_name']='Individual name';
-$lang['metadata.dataset_description.distribution_info.distributors.role']='Role';
-$lang['metadata.dataset_description.distribution_info.distributors.organisation']='Organization';
-$lang['metadata.dataset_description.distribution_info.distributors.org_name']='Organization';
-$lang['metadata.dataset_description.distribution_info.distributors.position']='Position';
-$lang['metadata.dataset_description.distribution_info.distributors.instructions']='Contact Instructions';
-$lang['metadata.dataset_description.distribution_info.distributors.phone']='Phone';
-$lang['metadata.dataset_description.distribution_info.distributors.fax']='Fax';
-$lang['metadata.dataset_description.distribution_info.distributors.email']='Email';
-$lang['metadata.dataset_description.distribution_info.distributors.website']='Website Link';
-$lang['metadata.dataset_description.distribution_info.distributors.address']='Address';
-$lang['metadata.dataset_description.distribution_info.distributors.city']='City';
-$lang['metadata.dataset_description.distribution_info.distributors.administrative_area']='Administrative Area';
-$lang['metadata.dataset_description.distribution_info.distributors.postal_code']='Postal Code';
-$lang['metadata.dataset_description.distribution_info.distributors.country']='Country';
-$lang['metadata.dataset_description.distribution_info.online_resource']='Online resource';
-$lang['metadata.dataset_description.distribution_info.online_resource.url']='URL';
-$lang['metadata.dataset_description.distribution_info.online_resource.name']='Title';
-$lang['metadata.dataset_description.distribution_info.online_resource.description']='Description';
-$lang['metadata.dataset_description.distribution_info.online_resource.format']='Format';
-$lang['metadata.dataset_description.distribution_info.online_resource.protocol']='Protocol';
-
-$lang['metadata.dataset_description.data_quality_info']='Data Quality';
-$lang['metadata.dataset_description.data_quality_info.Scope']='Data Quality Scope';
-$lang['metadata.dataset_description.data_quality_info.lineage']='Data Quality Lineage Statement';
-$lang['metadata.dataset_description.spatial_representation_info']='Resource Spatial Representation';
-$lang['metadata.dataset_description.spatial_representation_info.topology_level']='Topology Level Code';
-$lang['metadata.dataset_description.spatial_representation_info.Geometric_object_code']='Geometric Object Type Code';
-$lang['reference_system_info']='Resource Reference System';
-$lang['metadata.dataset_description.reference_system_info.code']='Code';
-$lang['metadata.dataset_description.reference_system_info.code_space']='Code Space';
 $lang['metadata.additional']='Additional metadata';
 $lang['spatial_extent']='Spatial extent';
 $lang['distribution']='Distribution';
+
+$lang['citation.title']='Title';
+$lang['citation.date']='Date';
+$lang['citation.date.date']='Date';
+$lang['citation.date.type']='Type';
+$lang['citation.edition']='Edition';
+
+$lang['citation.identifier']='Identifier';
+$lang['citation.citedResponsibleParty']='Responsible party';
+$lang['citation.presentationForm']='Presentation form';
+$lang['citation.series.name']='Series name';
+$lang['citation.series.issueIdentification']='Series issue identification';
+$lang['abstract']='Abstract';
+$lang['credit']='Credit';
+$lang['status']='Status';
+$lang['pointOfContact']='Point of contact';
+$lang['resourceMaintenance']='Resource maintenance';
+$lang['resourceMaintenance.maintenanceOrUpdateFrequency']='Update frequency';
+
+$lang['graphicOverview']='Graphic overview';
+$lang['graphicOverview.fileName']='File';
+$lang['graphicOverview.fileDescription']='Description';
+$lang['graphicOverview.fileType']='File type';
+
+$lang['resourceFormats']='Resource formats';
+$lang['resourceFormats.name']='Name';
+$lang['resourceFormats.specification']='Specification';
+
+
+$lang['descriptiveKeywords']='Descriptive keywords';
+$lang['descriptiveKeywords.type']='Type';
+$lang['descriptiveKeywords.thesaurusName']='Thesaurus';
+$lang['descriptiveKeywords.keyword']='Keyword';
+
+$lang['spatialRepresentationType']='Spatial representation type';
+$lang['language']='Language';
+$lang['characterset']='Characterset';
+$lang['topicCategory']='Topic category';
+
+$lang['constraints']='Constraints';
+$lang['legalConstraints.accessConstraints']='Access constraints';
+$lang['legalConstraints.useConstraints']='Use constraints';
+$lang['legalConstraints.uselimitation']='Use limitations';
+
+
+$lang['distributionInfo']='Distribution information';
+$lang['distributionFormat']='Distribution format';
+$lang['distributionFormat.name']='Name';
+$lang['distributionFormat.specification']='Spcification';
+$lang['distributionFormat.fileDecompressionTechnique']='Compression';
+
+
+$lang['distributor']='Distributor';
+$lang['transferOptions']='Transfer options';
+$lang['onLine']='Resources';
+$lang['onLine.linkage']='Link';
+$lang['onLine.name']='Name';
+$lang['onLine.protocol']='Protocol';
+$lang['onLine.function']='Function';
+
+$lang['dataQualityInfo']='Data quality information';
+$lang['scope']='Scope';
+$lang['lineage.statement']='Lineage statement';
+
+$lang['dataset_metadata']='Metadata production';
+$lang['metadata.dataset_metadata.fileIdentifier']='File identifier';
+$lang['metadata.dataset_metadata.language']='Language';
+$lang['metadata.dataset_metadata.contact']='Contacts';
+$lang['metadata.dataset_metadata.dateStamp']='Date stamp';
+$lang['metadata.dataset_metadata.metadataStandardName']='Metadata standard';
+$lang['metadata.dataset_metadata.referenceSystemInfo']='Reference system';
+$lang['metadata.dataset_metadata.referenceSystemInfo.code']='Code';
+$lang['metadata.dataset_metadata.referenceSystemInfo.codeSpace']='Code Space';
