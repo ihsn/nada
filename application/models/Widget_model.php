@@ -392,17 +392,17 @@ class Widget_model extends CI_Model {
     {
         $options=array(
             'sid'=>$study_id,
-            'widget_uuid'=>$embed_uuid
+            'widget_uuid'=>$widget_uuid
         );
 
         $this->remove_from_study($study_id,$widget_uuid);
         return $this->db->insert("survey_widgets",$options);
     }
 
-    function remove_from_study($study_id,$embed_uuid)
+    function remove_from_study($study_id,$widget_uuid)
     {
         $this->db->where("sid",$study_id);
-        $this->db->where("widget_uuid",$embed_uuid);
+        $this->db->where("widget_uuid",$widget_uuid);
         return $this->db->delete("survey_widgets");
     }
 

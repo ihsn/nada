@@ -23,7 +23,7 @@
 
                 <div id="widget-<?php echo $row['uuid'];?>"></div>
                 <script>
-                    var pymParent = new pym.Parent('widget-<?php echo $row['uuid'];?>', '<?php echo site_url('widgets/view/'.$row['uuid']);?>', {});
+                    var pymParent = new pym.Parent('widget-<?php echo $row['uuid'];?>', '<?php echo site_url('widgets/embed/'.$row['uuid']);?>', {});
                 </script>
 
             </div>
