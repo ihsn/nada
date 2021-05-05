@@ -37,6 +37,8 @@
             "metadata.table_description.title_statement.alternate_title"=>'text',
             "metadata.table_description.title_statement.translated_title"=>'text',
 
+            "metadata.iframe_embeds"=>'iframe_embed',
+
             "metadata.table_description.links"=>'array',
             
             "metadata.table_description.description"=>'text',
