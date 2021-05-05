@@ -46,8 +46,12 @@ class Widgets extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}	
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
 	}
 	
 
@@ -72,8 +76,12 @@ class Widgets extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}	
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
     }
     
 
@@ -163,6 +171,46 @@ class Widgets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($options['idno']);
 
 			$result=$this->Widget_model->attach_to_study($sid,$options['uuid']);
+
+			$output=array(
+				'status'=>'success',
+				'options'=>$options,
+				'result'=>$result
+			);
+
+			$this->set_response($output, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+  	}
+
+
+	/**
+	 * 
+	 * Dettach Widget link to a study
+	 * 
+	 **/ 
+	function detach_study_post()
+	{		
+		try{			
+			$options=$this->raw_json_input();
+
+			if (!isset($options['uuid'])){
+				throw new Exception("uuid is required");
+			}
+
+			if (!isset($options['idno'])){
+				throw new Exception("idno is required");
+			}
+
+			$sid=$this->get_sid_from_idno($options['idno']);
+
+			$result=$this->Widget_model->remove_from_study($sid,$options['uuid']);
 
 			$output=array(
 				'status'=>'success',
