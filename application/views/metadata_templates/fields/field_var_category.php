@@ -22,7 +22,7 @@
                 $data[$data_idx]['stats_wgtd_value']=null;
                 $data[$data_idx]['stats_non_wgtd_value']=null;
 
-                if(!is_array($item['stats'])){
+                if(!isset($item['stats']) || !is_array($item['stats'])){
                     continue;
                 }
 
