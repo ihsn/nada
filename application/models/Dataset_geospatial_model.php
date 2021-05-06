@@ -55,7 +55,7 @@ class Dataset_geospatial_model extends Dataset_model {
 
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('type','dataset_metadata','service_metadata','additional');
+        $study_metadata_sections=array('type','dataset_metadata','service_metadata','feature_catalogue','additional');
 
         //external resources
         $external_resources=$this->get_array_nested_value($options,'dataset_description/distribution_info/online_resource');
