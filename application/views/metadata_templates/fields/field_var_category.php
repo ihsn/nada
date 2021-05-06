@@ -87,7 +87,7 @@
 
                     <tr>
                         <td><?php echo isset($cat->value) ? $cat->value : '';?></td>
-                        <td><?php echo isset($cat->labl) ? $cat->labl : '';?></td>
+                        <td><?php echo isset($cat->labl) ? $cat->labl : '';?> <?php echo isset($cat->label) ? $cat->label : '';?></td>
                         
                         <?php if($show_stats && $sum_cases>0):?>
                         <td><?php echo (int)$cat->stats_non_wgtd_value;?></td>
