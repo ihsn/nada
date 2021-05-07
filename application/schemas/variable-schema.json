@@ -95,12 +95,13 @@
 						"title": "Type"
 					},
 					"value": {
-						"type": "string",
+						"type": ["integer", "string"],
 						"title": "Value"
 					},
 					"wgtd": {
 						"type": "string",
-						"title": "Weighted"
+						"title": "Weighted",
+						"description": "For weighted values, enter `weighted`"
 					}
 				}
 			}
@@ -136,12 +137,13 @@
 									"description": "Type such as frequency, percent, etc"
 								},
 								"value": {
-									"type": "string",
+									"type": ["integer", "string"],
 									"title": "Value"
 								},
 								"wgtd": {
 									"type": "string",
-									"title": "Weighted"
+									"title": "Weighted",
+									"description": "For weighted values, enter `weighted`"
 								}									
 							}
 						}
