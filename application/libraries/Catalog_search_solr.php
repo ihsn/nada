@@ -24,6 +24,7 @@ class Catalog_search_solr{
 	var $collections=array();
 	var $dtype=array();//data access type
 	var $sid=''; //comma separated list of survey IDs
+	var $varcount='';
 	var $debug=false;
 
 	//allowed variable search fields
@@ -130,6 +131,7 @@ class Catalog_search_solr{
 		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
+		$varcount=$this->_build_varcount_query();
 
 
 		if ($topics){
@@ -150,6 +152,11 @@ class Catalog_search_solr{
 			foreach($years as $key=>$year){
 				$query->createFilterQuery('years'.$key)->setQuery($year);
 			}
+		}
+
+		//varcount filter
+		if ($varcount)	{
+			$query->createFilterQuery('varcount')->setQuery($varcount);
 		}
 
 		//dtype filter
@@ -647,6 +654,28 @@ class Catalog_search_solr{
 		return FALSE;
 	}
 
+
+	function _build_varcount_query()
+	{
+		//handles only these cases
+
+		//varcount= 
+		// >0
+		// 0 
+
+		$varcount=$this->varcount;
+
+		if ($varcount=='>0'){
+			return sprintf('varcount:[%s TO %s]',1, '*');
+		}
+		else if ($varcount=='0'){
+			return sprintf('varcount:%s',0);
+		}
+
+		return FALSE;
+	}
+
+
 	function _build_sid_query()
 	{
 		$sid=explode(",",$this->sid);
@@ -1067,7 +1096,7 @@ class Catalog_search_solr{
 
 	function _build_dtype_query()
 	{
-		$dtypes=$this->dtype;
+		$dtypes=(array)$this->dtype;
 
 		if (!is_array($dtypes) || count($dtypes)<1)
 		{

@@ -12,6 +12,7 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Dataset_model');
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');
+		$this->load->model("Form_model");
 		$this->load->library('Dataset_manager');
 	}
 
@@ -90,12 +91,16 @@ class Catalog extends MY_REST_Controller
 				'type'				=>  $this->security->xss_clean($this->input->get("type")),
 				'country_iso3'		=>  $this->security->xss_clean($this->input->get("country_iso3")),
 				'created'			=>  $this->security->xss_clean($this->input->get("created")),
+				'varcount'			=>  $this->security->xss_clean($this->input->get("varcount"))
+				
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
 
 		//convert country names or iso codes into country IDs
 		$params['countries']=$this->get_countries_id($params['countries']);
+
+		$params['dtype']=$this->get_dtype_id($params['dtype']);
 
 		//collections to array
 		$params['collections']=explode(",",$params['collections']);		
@@ -252,18 +257,13 @@ class Catalog extends MY_REST_Controller
 	**/
 	function data_access_codes_get()
 	{
-		try{
-			$this->db->select("*");
-			$query=$this->db->get("forms");
-			$content=NULL;
-			
-			if ($query){
-				$content=$query->result_array();
-			}
+		try{			
+			$content=$this->Form_model->get_all();
 
 			$output=array();
 			foreach($content as $row){
 				$output[]=array(
+					'id'=>$row['formid'],
 					'type'=>$row['model'],
 					'title'=>$row['fname']
 				);
@@ -396,6 +396,45 @@ class Catalog extends MY_REST_Controller
 		}
 
 		return $output;
+	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * Get numeric IDs for data license
+	 * 
+	 * @dtypes - comma separated string or array
+	 * @todo - move to model
+	 */
+	private function get_dtype_id($dtypes)
+	{
+		if(empty($dtypes)){
+			return false;
+		}
+
+		if(!is_array($dtypes)){
+			$dtypes=explode(",",$dtypes);
+		}
+
+		$forms=$this->Form_model->get_all();
+
+		$form_list=array();
+		foreach($forms as $idx=>$form){
+			$form_list[$form['model']]=$form['formid'];
+		}
+
+		foreach($dtypes as $key=>$val){
+			if (!is_numeric($val) && isset($form_list[$val])){
+				$dtypes[$key]=$form_list[$val];
+			}else{
+				//invalid values
+				$dtypes[$key]=-1;
+			}
+		}
+		
+		return $dtypes;
 	}
 
 	

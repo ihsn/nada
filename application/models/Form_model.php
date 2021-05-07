@@ -9,13 +9,15 @@ class Form_model extends CI_Model {
 	
   	
 	//return single form row
-	function get_single($formid){
+	function get_single($formid)
+	{
 		$this->db->where('formid', $formid); 
 		return $this->db->get('forms')->row_array();
 	}
 	
 	//return all forms
-	function get_all(){
+	function get_all()
+	{
 		return $this->db->get('forms')->result_array();
 	}
 
@@ -24,7 +26,8 @@ class Form_model extends CI_Model {
 	* Returns array of form id/name values
 	*
 	*/
-	function get_form_list(){
+	function get_form_list()
+	{
 		$this->db->select('forms.*');
 		$this->db->order_by("formid", "asc"); 
 		$query=$this->db->get('forms');
