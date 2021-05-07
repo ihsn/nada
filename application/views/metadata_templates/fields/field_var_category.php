@@ -28,15 +28,15 @@
 
                 foreach($item['stats'] as $stat_row){                    
                     //non-weighted stats
-                    if(!isset($stat_row['wgtd']) || empty($stat_row['wgtd']) ){
+                    if(!isset($stat_row['wgtd']) || !empty($stat_row['wgtd']) ){
                         $data[$data_idx]['stats_non_wgtd_value']=$stat_row['value'];
-                        if(!$item['is_missing']){
+                        if(!isset($item['is_missing']) || !empty($item['is_missing'])){
                             $stats_col[]=$stat_row['value'];
                         }
                     }//weighted stats
                     else if ($stat_row['wgtd']=='wgtd'){
                         $data[$data_idx]['stats_wgtd_value']=$stat_row['value'];
-                        if(!$item['is_missing']){
+                        if(!isset($item['is_missing']) || !empty($item['is_missing'])){
                             $stats_col_wgtd[]=$stat_row['value'];
                         }    
                     }
