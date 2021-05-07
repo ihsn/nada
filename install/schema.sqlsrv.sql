@@ -720,6 +720,13 @@ INSERT INTO group_permissions (id,group_id,permission_id)
 VALUES (5,1,2),(6,1,14),(292,3,1),(289,3,2),(301,3,3),(299,3,14),(293,3,41),(295,3,42),(296,3,43),(297,3,44),(291,3,46),(294,3,49),(300,3,61),(290,3,62),(298,3,63),(334,4,2),(339,4,3),(335,4,16),(338,4,61),(336,4,69),(337,4,70),(313,5,3),(312,5,71),(287,9,2),(288,9,63),(227,10,2),(229,10,3),(228,10,45);
 set IDENTITY_INSERT group_permissions OFF;
 
+--- permissions for citation manager group
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 64)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 65)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 66)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 67)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 68)
+
 --
 -- Table structure for table survey_repos
 --

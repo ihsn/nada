@@ -808,6 +808,13 @@ INSERT INTO `group_permissions` VALUES (5,1,2),(6,1,14),(292,3,1),(289,3,2),(301
 /*!40000 ALTER TABLE `group_permissions` ENABLE KEYS */;
 UNLOCK TABLES;
 
+--- permissions for citation manager group
+INSERT INTO `group_permissions` (`group_id`, `permission_id`) VALUES ('11', '64')
+INSERT INTO `group_permissions` (`group_id`, `permission_id`) VALUES ('11', '65')
+INSERT INTO `group_permissions` (`group_id`, `permission_id`) VALUES ('11', '66')
+INSERT INTO `group_permissions` (`group_id`, `permission_id`) VALUES ('11', '67')
+INSERT INTO `group_permissions` (`group_id`, `permission_id`) VALUES ('11', '68')
+
 --
 -- Table structure for table `survey_repos`
 --
