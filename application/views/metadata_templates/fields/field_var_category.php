@@ -26,9 +26,9 @@
                     continue;
                 }
 
-                foreach($item['stats'] as $stat_row){
+                foreach($item['stats'] as $stat_row){                    
                     //non-weighted stats
-                    if(!$stat_row['wgtd']){
+                    if(!isset($stat_row['wgtd']) || empty($stat_row['wgtd']) ){
                         $data[$data_idx]['stats_non_wgtd_value']=$stat_row['value'];
                         if(!$item['is_missing']){
                             $stats_col[]=$stat_row['value'];
