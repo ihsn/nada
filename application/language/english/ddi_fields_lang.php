@@ -247,6 +247,7 @@ $lang['metadata.study_desc.method.data_collection.method_notes']='Other Processi
 
 
 $lang['var_vald']='Valid';
+$lang['var_valid']='Valid';
 $lang['var_vald_wgtd']='Valid (weighted)';
 $lang['var_intrvl']='Type';
 $lang['var_invd']='Invalid';
