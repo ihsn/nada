@@ -9,8 +9,7 @@ class Widgets extends MY_REST_Controller
 		parent::__construct();
         $this->load->helper("date");
         $this->load->model('Widget_model');
-		$this->load->library("Dataset_manager");
-		$this->is_admin_or_die();
+		$this->load->library("Dataset_manager");		
     }
 
 	//override authentication to support both session authentication + api keys
@@ -92,8 +91,9 @@ class Widgets extends MY_REST_Controller
 	 * 
 	 **/ 
 	function index_post($uuid=null)
-	{		
+	{
 		try{
+			$this->is_admin_or_die();
 			$overwrite=$this->input->post("overwrite");
 
 			if($overwrite=='yes'){
@@ -131,6 +131,7 @@ class Widgets extends MY_REST_Controller
 	{
 		
 		try{
+			$this->is_admin_or_die();
 			$this->Widget_model->delete($uuid);
 
 			$output=array(
@@ -157,7 +158,8 @@ class Widgets extends MY_REST_Controller
 	 **/ 
 	function attach_to_study_post()
 	{		
-		try{			
+		try{	
+			$this->is_admin_or_die();		
 			$options=$this->raw_json_input();
 
 			if (!isset($options['uuid'])){
@@ -197,7 +199,8 @@ class Widgets extends MY_REST_Controller
 	 **/ 
 	function detach_study_post()
 	{		
-		try{			
+		try{	
+			$this->is_admin_or_die();		
 			$options=$this->raw_json_input();
 
 			if (!isset($options['uuid'])){
@@ -256,7 +259,7 @@ class Widgets extends MY_REST_Controller
     }
 
 
-	  private function get_sid_from_idno($idno=null)
+	private function get_sid_from_idno($idno=null)
 	{		
 		if(!$idno){
 			throw new Exception("IDNO-NOT-PROVIDED");
