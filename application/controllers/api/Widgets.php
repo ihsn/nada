@@ -26,7 +26,19 @@ class Widgets extends MY_REST_Controller
 				return $this->single($uuid);
 			}
 
+			$widget_storage_root='files/embed/';
 			$result=$this->Widget_model->select_all();
+
+			foreach($result as $idx=>$row){
+				if (isset($row['thumbnail']) && !empty($row['thumbnail'])){
+					$thumbnail=$widget_storage_root.$row['storage_path'].'/'.$row['thumbnail'];
+            		$thumbnail_url=base_url().$widget_storage_root.$row['storage_path'].'/'.$row['thumbnail'];
+
+					if (file_exists($thumbnail)){
+						$result[$idx]['thumbnail_url']=$thumbnail_url;
+					}
+				}
+			}
 
 			$response=array(
 				'total'=>count($result),
