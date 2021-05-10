@@ -11,16 +11,7 @@ class Widgets extends MY_REST_Controller
         $this->load->model('Widget_model');
 		$this->load->library("Dataset_manager");		
     }
-
-	//override authentication to support both session authentication + api keys
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
-    
+	
 
     /**
 	 * 

@@ -15,7 +15,8 @@ class Widgets extends MY_Controller {
         $row=$this->Widget_model->find($uuid);
 
         if (!$row){
-            show_error("page failed");
+            echo $this->load->view('widgets/404',NULL, true);
+            die();
         }
 
         $content=$this->load->view('widgets/info',array('widget'=>$row), true);
@@ -41,7 +42,8 @@ class Widgets extends MY_Controller {
         $row=$this->Widget_model->find($uuid);
 
         if (!$row){
-            show_error("page failed");
+            echo $this->load->view('widgets/404',NULL, true);
+            die();
         }
 
         $index_file=$row['full_path'].'/index.html';

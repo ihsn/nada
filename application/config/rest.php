@@ -198,6 +198,8 @@ $config['auth_override_class_method']['tables']['population_by_age'] = 'none';
 $config['auth_override_class_method']['tables']['geosearch'] = 'none';
 $config['auth_override_class_method']['tables']['search_place'] = 'none';
 
+$config['auth_override_class_method']['widgets']['*'] = 'none';
+
 
 
 // ---Uncomment list line for the wildard unit test
