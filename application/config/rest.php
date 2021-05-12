@@ -198,9 +198,6 @@ $config['auth_override_class_method']['tables']['population_by_age'] = 'none';
 $config['auth_override_class_method']['tables']['geosearch'] = 'none';
 $config['auth_override_class_method']['tables']['search_place'] = 'none';
 
-$config['auth_override_class_method']['widgets']['*'] = 'none';
-
-
 
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method']['wildcard_test_cases']['*'] = 'basic';
@@ -219,7 +216,7 @@ $config['auth_override_class_method']['widgets']['*'] = 'none';
 
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method_http']['wildcard_test_cases']['*']['options'] = 'basic';
-
+$config['auth_override_class_method_http']['widgets']['*']['get'] = 'none';
 
 /*
 |--------------------------------------------------------------------------
