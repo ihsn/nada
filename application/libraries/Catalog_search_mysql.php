@@ -890,7 +890,7 @@ class Catalog_search_mysql{
 	{
 		$repo=(string)$this->repo;
 
-		if ($repo!='')
+		if ($repo!='' && $repo!='central')
 		{
 			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
 		}

@@ -319,7 +319,7 @@ class Search_helper_model extends CI_Model {
 	* @repositoryid	- repositoyr identifier to filter list of countries
 	*/
 	function get_active_countries($repositoryid=NULL)
-	{
+	{		
 		$this->db->select('cid,countries.name as nation, count(cid) as surveys_found');
 		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
 		$this->db->join('countries', 'countries.countryid=survey_countries.cid','inner');
@@ -327,16 +327,15 @@ class Search_helper_model extends CI_Model {
 		$this->db->group_by('cid,countries.name','ASC');
 		$this->db->where('surveys.published',1);
 		$this->db->where('survey_countries.cid >',0);
-		if($repositoryid!=NULL)
-		{
+		
+		if ($repositoryid!=='central' && $repositoryid!=NULL){
 			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 		
 		$query=$this->db->get('survey_countries');
 		
-		if(!$query)
-		{
+		if(!$query){
 			return FALSE;
 		}
 		
@@ -444,46 +443,6 @@ class Search_helper_model extends CI_Model {
 		}
 		
 		return $types;
-	}
-	
-	
-	/**
-	* Returns a list of Centers 
-	*
-	**/
-	function get_active_centers($repositoryid)
-	{
-		if ($repositoryid=='central' || trim($repositoryid)=='')
-		{
-			$sql='select survey_centers.id,center_name from surveys
-					inner join survey_centers on survey_centers.sid=surveys.id
-					where surveys.published=1
-				group by survey_centers.id, survey_centers.center_name;';
-		}
-		else
-		{
-			$sql='select survey_centers.id,center_name from surveys
-					inner join survey_centers on survey_centers.sid=surveys.id
-					inner join survey_repos on surveys.id=survey_repos.sid
-					where survey_repos.repositoryid='.$this->db->escape($repositoryid).'
-					and surveys.published=1
-				group by survey_centers.id, survey_centers.center_name;';
-		}
-
-		$result=$this->db->query($sql)->result_array();
-
-		if (!$result)
-		{
-			return FALSE;
-		}
-		
-		$centers=array();
-		foreach($result as $row)
-		{
-			$centers[(string)$row['id']]=$row['center_name'];
-		}
-		
-		return $centers;
 	}
 	
 	

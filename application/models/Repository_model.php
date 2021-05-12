@@ -1160,14 +1160,15 @@ class Repository_model extends CI_Model {
 	}
 	
 	//returns number of citations by collection
-	function get_citations_count_by_collection($repositoryid)
+	function get_citations_count_by_collection($repositoryid=NULL)
 	{
 		$this->db->select('count(*) as total');
 		$this->db->join('survey_repos', 'survey_repos.sid = survey_citations.sid','inner');
-		if ($repositoryid!=NULL)
-		{
+
+		if ($repositoryid!=NULL && $repositoryid!='central'){
 			$this->db->where('survey_repos.repositoryid', $repositoryid);
-		}	
+		}
+
 		$result=$this->db->get('survey_citations')->row_array();
 		return $result['total'];
 	}

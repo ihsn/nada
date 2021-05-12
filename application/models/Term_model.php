@@ -470,7 +470,7 @@ class Term_model extends CI_Model {
 			$this->db->where('surveys.published',1);			
 		}
 		
-		if($repositoryid!=NULL && $active_only==TRUE)
+		if($repositoryid!=NULL && $repositoryid!='central' && $active_only==TRUE)
 		{
 			$this->db->join('survey_repos', 'st.sid=survey_repos.sid','inner');			
 			$this->db->where('survey_repos.repositoryid',$repositoryid);			
