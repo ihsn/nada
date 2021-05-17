@@ -1408,6 +1408,8 @@ CREATE TABLE `survey_widgets` (
   PRIMARY KEY (`id`),
   KEY `sid_uuid` (`sid`,`widget_uuid`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
 --
 -- Facets
 --
@@ -1423,6 +1425,16 @@ CREATE TABLE `survey_widgets` (
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+
+insert into facets(name,title,facet_type,enabled)
+values 
+('year','Years','core',1),
+('data_class','Data classifications','core',1),
+('dtype','License','core',1),
+('country','Countries','core',1),
+('collection','Collections','core',1),
+('type','Data types','core',1),
+('tag','Tags','core',1);
 
 --
 -- Facet terms
