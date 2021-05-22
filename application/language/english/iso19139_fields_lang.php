@@ -82,4 +82,5 @@ $lang['metadata.dataset_metadata.referenceSystemInfo.codeSpace']='Code Space';
 
 $lang['feature_catalogue']='Feature catalogue';
 $lang['lineage.processStep.processor']='Processor';
+$lang['resourceMaintenance.maintenanceAndUpdateFrequency']='Update frequency';
 
