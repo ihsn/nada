@@ -31,7 +31,14 @@
         <?php foreach($data as $row):?>
 
             <?php if(get_field_value('individualName',$row)):?>
-                <div><?php echo get_field_value('individualName',$row);?></div>
+                <div>
+                    <?php echo get_field_value('individualName',$row);?>
+
+                    <?php if(get_field_value('role',$row)):?>
+                    <span class="contact-role"> (<?php echo get_field_value('role',$row);?>)</span>
+                    <?php endif;?>
+
+                </div>
             <?php endif;?>
             
             <?php if(get_field_value('organisationName',$row)):?>
@@ -40,7 +47,7 @@
             
             <?php if(get_field_value('positionName',$row)):?>
                 <div><?php echo get_field_value('positionName',$row);?></div>
-            <?php endif;?>
+            <?php endif;?>            
             
             <div>
             <?php if(get_field_value('contactInfo.phone.voice',$row)):?>

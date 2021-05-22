@@ -72,6 +72,7 @@ $geographic_element=get_field_value('extent.geographicElement',$identification_i
 $bbox=array();
 foreach($geographic_element as $element){
     $bbox['bbox'][]=array(
+        'place'=>get_field_value('geographicDescription',$element),
         'south'=>get_field_value('geographicBoundingBox.southBoundLongitude',$element),
         'west'=>get_field_value('geographicBoundingBox.westBoundLongitude',$element),
         'north'=>get_field_value('geographicBoundingBox.northBoundLongitude',$element),
@@ -112,7 +113,7 @@ $output['dataQualityInfo']= render_group('dataQualityInfo',
     $fields=array(
             "scope"=>'text',
             "lineage.statement"=>"text",
-            "lineage.processStep"=>"array"
+            "lineage.processStep"=>"geo_lineage"
             ),
         current((array)get_field_value('metadata.dataset_metadata.dataQualityInfo',$metadata)));
 ?>
@@ -132,6 +133,14 @@ $output['dataQualityInfo']= render_group('dataQualityInfo',
         "metadata.dataset_metadata.contact"=>'geog_contact',
         "metadata.dataset_metadata.metadataStandardName"=>'text',
         "metadata.dataset_metadata.referenceSystemInfo"=>'array'
+    ),
+    $metadata);
+?>
+
+<!-- metadata -->
+<?php $output['feature_catalogue']= render_group('feature_catalogue',
+    $fields=array(
+        "metadata.feature_catalogue"=>'feature_catalog'
     ),
     $metadata);
 ?>

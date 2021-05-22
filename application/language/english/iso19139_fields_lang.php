@@ -79,3 +79,7 @@ $lang['metadata.dataset_metadata.metadataStandardName']='Metadata standard';
 $lang['metadata.dataset_metadata.referenceSystemInfo']='Reference system';
 $lang['metadata.dataset_metadata.referenceSystemInfo.code']='Code';
 $lang['metadata.dataset_metadata.referenceSystemInfo.codeSpace']='Code Space';
+
+$lang['feature_catalogue']='Feature catalogue';
+$lang['lineage.processStep.processor']='Processor';
+
