@@ -18,6 +18,13 @@
     'north'=>'North',
     'south'=>'South'
   );
+
+  $place = array_column($data, 'place');
+
+  if(!$place){
+    unset($columns['place']);
+  }
+
 ?>
 
 <div class="extent-geographic-container mt-2">
@@ -52,15 +59,14 @@
     // define rectangle geographical bounds
     var bounds_arr = [[bounds.south, bounds.west], [bounds.north, bounds.east]];
     
-    //mymap = L.map('map-canvas').setView([51.505, -0.09], 13);
     mymap.addLayer(osm);
-
     L.rectangle(bounds_arr, {color: "red", weight: 1}).addTo(mymap);
     
     <?php if ($k==1): //set focus to first bounding box ?>
       mymap.setView(new L.LatLng(bounds.south, bounds.west),13);
-    //zoom the map to the rectangle bounds
-    mymap.fitBounds(bounds_arr);
+
+      //zoom the map to the rectangle bounds
+      mymap.fitBounds(bounds_arr);
     <?php endif;?>
 
   <?php endforeach;?>  
