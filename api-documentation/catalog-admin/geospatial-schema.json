@@ -1690,11 +1690,9 @@
 						"transferOptions": {
 							"title": "Digital transfer options",
 							"description": "Options of digital transfer available for the resource",
-							"type": "array",
+							"type": "object",
 							"_xpath": "gmd:distributionInfo/gmd:MD_DigitalTransferOptions",
-							"items": {
-								"type": "object",
-								"properties": {
+							"properties": {
 									"onLine": {
 										"title": "Online Resources",
 										"type": "array",
@@ -1702,7 +1700,6 @@
 											"$ref": "#/definitions/onlineResource"
 										}										
 									}
-								}
 							}
 						}
 					}
@@ -2558,17 +2555,16 @@
 						"transferOptions": {
 							"title": "Digital transfer options",
 							"description": "Options of digital transfer available for the resource",
-							"type": "array",
+							"type": "object",
 							"_xpath": "gmd:distributionInfo/gmd:MD_DigitalTransferOptions",
-							"items": {
-								"type": "object",
-								"properties": {
+							"properties": {
 									"onLine": {
 										"title": "Online Resources",
-										"type": "object",
-										"$ref": "#/definitions/onlineResource"
+										"type": "array",
+										"items":{
+											"$ref": "#/definitions/onlineResource"
+										}										
 									}
-								}
 							}
 						}
 					}

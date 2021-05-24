@@ -1,6 +1,6 @@
 <?php
 
-$lang['identificationInfo']='Identification information';
+$lang['identificationInfo']='Identification';
 $lang['contact']='Contacts';
 $lang['keywords']='Keywords';
 $lang['metadata.additional']='Additional metadata';
@@ -51,7 +51,7 @@ $lang['legalConstraints.useConstraints']='Use constraints';
 $lang['legalConstraints.uselimitation']='Use limitations';
 
 
-$lang['distributionInfo']='Distribution information';
+$lang['distributionInfo']='Distribution';
 $lang['distributionFormat']='Distribution format';
 $lang['distributionFormat.name']='Name';
 $lang['distributionFormat.specification']='Spcification';
@@ -66,7 +66,7 @@ $lang['onLine.name']='Name';
 $lang['onLine.protocol']='Protocol';
 $lang['onLine.function']='Function';
 
-$lang['dataQualityInfo']='Data quality information';
+$lang['dataQualityInfo']='Data quality';
 $lang['scope']='Scope';
 $lang['lineage.statement']='Lineage statement';
 

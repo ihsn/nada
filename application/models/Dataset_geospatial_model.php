@@ -58,12 +58,12 @@ class Dataset_geospatial_model extends Dataset_model {
         $study_metadata_sections=array('type','dataset_metadata','service_metadata','feature_catalogue','additional');
 
         //external resources
-        $external_resources=$this->get_array_nested_value($options,'dataset_description/distribution_info/online_resource');
+        $external_resources=$this->get_array_nested_value($options,'dataset_metadata/distributionInfo/transferOptions/onLine');
         
         //remove external resource from metadata
-        if(isset($options['dataset_description']['distribution_info']['online_resource'])){
-            unset($options['dataset_description']['distribution_info']['online_resource']);
-        }
+        /*if($external_resources){
+            unset($options['dataset_metadata']['distributionInfo']['transferOptions']['onLine']);
+        }*/
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -164,7 +164,26 @@ class Dataset_geospatial_model extends Dataset_model {
         //$auth_entity=$this->get_array_nested_value($options,'database_description/authoring_entity');
         $output['authoring_entity']='';
         
-        $years=$this->get_years($this->get_array_nested_value($options,'dataset_metadata/dateStamp'));
+        //$years=$this->get_years($this->get_array_nested_value($options,'dataset_metadata/dateStamp'));
+        //$dates=$this->get_array_nested_value($options,'dataset_metadata/identificationInfo/citation/date');
+
+        $dates=array();
+        if (isset($options['dataset_metadata']['identificationInfo'][0]['citation']['date'])){
+            $dates=$options['dataset_metadata']['identificationInfo'][0]['citation']['date'];
+        }
+
+        $date_creation=null;
+        foreach($dates as $date){
+            if ($date=='creation'){
+                $date_creation=$date;
+            }
+        }
+
+        if ($date_creation){
+            $years=$this->get_years($date_creation);
+        }else{
+            $years=$this->get_years($this->get_array_nested_value($options,'dataset_metadata/dateStamp'));
+        }
 
         $output['year_start']=$years['start'];
         $output['year_end']=$years['end'];
@@ -206,16 +225,53 @@ class Dataset_geospatial_model extends Dataset_model {
         $res_fields="resource_id,dctype,dcformat,title,author,dcdate,country,language,contributor,publisher,rights,description, abstract,toc,filename";
         $external_resources=$this->Survey_resource_model->get_survey_resources($sid, $res_fields);
         
+        $online_resources=array();
+
         //add download link
         foreach($external_resources as $resource_filename => $resource){
             if (!$this->form_validation->valid_url($resource['filename']) && !empty($resource['filename'])){
-                $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-            }  
+                $resource['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+//                $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            }
+            
+            $online_resources[]=array(
+                'linkage'=>$resource['filename'],
+                'name'=>$resource['title'],
+                'description'=>$resource['description'],
+                'protocol' =>'WWW:LINK-1.0-http--link',
+                'function' =>$resource['abstract']
+            );
         }
         
         //add external resources
-        $metadata['dataset_description']['distribution_info']['online_resource']=$external_resources;
-       return $metadata;
+        $metadata['dataset_metadata']['distributionInfo']['transferOptions']['onLine']=$online_resources;
+        $metadata['resources']=$external_resources;
+        return $metadata;
 	}
+
+
+    function update_resources($dataset_id,$external_resources)
+    {
+        
+        foreach($external_resources as $idx=>$resource){
+
+            /*if (!isset($resource['linkage'])){
+                continue;                
+            }*/
+
+            $options=array(
+                'survey_id'=>$dataset_id,
+                'dctype'=>'Other [doc/oth]',
+                'title'=>isset($resource['name']) ? $resource['name'] : null,
+                'filename'=>isset($resource['linkage']) ? $resource['linkage'] : null,
+                'description'=>isset($resource['description']) ? $resource['description'] : null,
+                'abstract'=>isset($resource['function']) ? $resource['function'] : null
+            );
+
+            $external_resources[$idx]=$options;
+        }
+
+        return parent::update_resources($dataset_id,$external_resources);
+    }
 
 }

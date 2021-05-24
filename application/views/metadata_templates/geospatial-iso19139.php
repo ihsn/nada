@@ -18,14 +18,14 @@
 
 <?php 
 $identification_info=current((array)get_field_value('metadata.dataset_metadata.identificationInfo',$metadata));
-$output['IdentificationInfo']= render_group('identificationInfo',
+$output['identificationInfo']= render_group('identificationInfo',
     $fields=array(
         "citation.title"=>'text',
         "citation.alternateTitle"=>'text',
         "citation.date"=>'array',
         "citation.edition"=>'text',
         "citation.editionDate"=>'text',
-        "citation.identifier"=>'array',
+        "citation.identifier"=>'text',
         "citation.citedResponsibleParty"=>'geog_contact',
         "citation.presentationForm"=>'array_badge',
         "citation.series.name"=>'text',
@@ -99,12 +99,16 @@ $output['distributionInfo']= render_group('distributionInfo',
         get_field_value('metadata.dataset_metadata.distributionInfo',$metadata));
 ?>
 
-<?php 
+<?php  /*
 $output['transferOptions']= render_group('transferOptions',
     $fields=array(
             "onLine"=>"array"
             ),
-        current((array)get_field_value('metadata.dataset_metadata.distributionInfo.transferOptions',$metadata)));
+        get_field_value('metadata.dataset_metadata.distributionInfo.transferOptions',$metadata));
+*/ ?>
+
+<?php 
+    $output['distributionInfo']= $output['distributionInfo'] . render_field('resources','resources', $metadata['resources']);
 ?>
 
 
@@ -120,6 +124,14 @@ $output['dataQualityInfo']= render_group('dataQualityInfo',
 
 
 
+<!-- metadata -->
+<?php $output['feature_catalogue']= render_group('feature_catalogue',
+    $fields=array(
+        "metadata.feature_catalogue"=>'feature_catalog'
+    ),
+    $metadata);
+?>
+
 
 <!-- metadata -->
 <?php $output['dataset_metadata']= render_group('dataset_metadata',
@@ -132,19 +144,10 @@ $output['dataQualityInfo']= render_group('dataQualityInfo',
         "metadata.dataset_metadata.dateStamp"=>'text',
         "metadata.dataset_metadata.contact"=>'geog_contact',
         "metadata.dataset_metadata.metadataStandardName"=>'text',
-        "metadata.dataset_metadata.referenceSystemInfo"=>'array'
+        "metadata.dataset_metadata.referenceSystemInfo"=>'array',        
     ),
     $metadata);
 ?>
-
-<!-- metadata -->
-<?php $output['feature_catalogue']= render_group('feature_catalogue',
-    $fields=array(
-        "metadata.feature_catalogue"=>'feature_catalog'
-    ),
-    $metadata);
-?>
-
 
 <?php 
     //renders html
