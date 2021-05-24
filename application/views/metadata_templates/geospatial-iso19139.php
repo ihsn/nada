@@ -53,17 +53,6 @@ $output['identificationInfo']= render_group('identificationInfo',
     $identification_info);
 ?>
 
-<!-- resource constraints section -->
-<?php 
-$output['constraints']= render_group('constraints',
-    $fields=array(
-            "legalConstraints.accessConstraints"=>'array',
-            "legalConstraints.useConstraints"=>'array',
-            "legalConstraints.uselimitation"=>'array',
-            ),
-        current( get_field_value('resourceConstraints',$identification_info)));
-?>
-
 
 <!-- spatial extent -->
 <?php 
@@ -86,6 +75,18 @@ $output['spatial_extent']= render_group('spatial_extent',
             "bbox"=>'bounding_box',
             ),
     $bbox);
+?>
+
+
+<!-- resource constraints section -->
+<?php 
+$output['constraints']= render_group('constraints',
+    $fields=array(
+            "legalConstraints.accessConstraints"=>'array',
+            "legalConstraints.useConstraints"=>'array',
+            "legalConstraints.uselimitation"=>'array',
+            ),
+        current( get_field_value('resourceConstraints',$identification_info)));
 ?>
 
 
