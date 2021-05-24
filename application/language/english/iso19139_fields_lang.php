@@ -12,6 +12,9 @@ $lang['citation.date']='Date';
 $lang['citation.date.date']='Date';
 $lang['citation.date.type']='Type';
 $lang['citation.edition']='Edition';
+$lang['citation.editionDate']='Edition date';
+
+$lang['citation.otherCitationDetails']='Citation';
 
 $lang['citation.identifier']='Identifier';
 $lang['citation.citedResponsibleParty']='Responsible party';
@@ -81,6 +84,7 @@ $lang['metadata.dataset_metadata.referenceSystemInfo.code']='Code';
 $lang['metadata.dataset_metadata.referenceSystemInfo.codeSpace']='Code Space';
 
 $lang['feature_catalogue']='Feature catalogue';
+$lang['lineage.processStep']='Lineage process step';
 $lang['lineage.processStep.processor']='Processor';
 $lang['resourceMaintenance.maintenanceAndUpdateFrequency']='Update frequency';
 
