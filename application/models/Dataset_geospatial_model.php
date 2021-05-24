@@ -174,8 +174,8 @@ class Dataset_geospatial_model extends Dataset_model {
 
         $date_creation=null;
         foreach($dates as $date){
-            if ($date=='creation'){
-                $date_creation=$date;
+            if (isset($date['type']) && $date['type']=='creation'){
+                $date_creation=$date['date'];
             }
         }
 
