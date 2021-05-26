@@ -29,7 +29,7 @@ class Metadata extends MY_Controller {
 
         if($format=='json'){
             if (!$this->input->get("detailed")){
-                $metadata=$this->Dataset_model->get_metadata($sid);
+                $metadata=$this->dataset_manager->get_metadata($sid,$dataset['type']);
                 $this->output
                     ->set_content_type('application/json')
                     ->set_output(json_encode($metadata));

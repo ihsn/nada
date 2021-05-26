@@ -17,7 +17,7 @@
 
 
 <?php 
-$identification_info=current((array)get_field_value('metadata.dataset_metadata.identificationInfo',$metadata));
+$identification_info=current((array)get_field_value('metadata.identificationInfo',$metadata));
 $output['identificationInfo']= render_group('identificationInfo',
     $fields=array(
         "citation.title"=>'text',
@@ -62,10 +62,10 @@ $bbox=array();
 foreach($geographic_element as $element){
     $bbox['bbox'][]=array(
         'place'=>get_field_value('geographicDescription',$element),
-        'south'=>get_field_value('geographicBoundingBox.southBoundLongitude',$element),
+        'east'=>get_field_value('geographicBoundingBox.eastBoundLongitude',$element),
         'west'=>get_field_value('geographicBoundingBox.westBoundLongitude',$element),
-        'north'=>get_field_value('geographicBoundingBox.northBoundLongitude',$element),
-        'east'=>get_field_value('geographicBoundingBox.eastBoundLongitude',$element)
+        'north'=>get_field_value('geographicBoundingBox.northBoundLatitude',$element),
+        'south'=>get_field_value('geographicBoundingBox.southBoundLatitude',$element)        
     );
 }
 
@@ -97,7 +97,7 @@ $output['distributionInfo']= render_group('distributionInfo',
             "distributionFormat"=>'array',
             "distributor"=>"geog_contact",
             ),
-        get_field_value('metadata.dataset_metadata.distributionInfo',$metadata));
+        get_field_value('metadata.distributionInfo',$metadata));
 ?>
 
 <?php  /*
@@ -105,7 +105,7 @@ $output['transferOptions']= render_group('transferOptions',
     $fields=array(
             "onLine"=>"array"
             ),
-        get_field_value('metadata.dataset_metadata.distributionInfo.transferOptions',$metadata));
+        get_field_value('metadata..distributionInfo.transferOptions',$metadata));
 */ ?>
 
 <?php 
@@ -120,7 +120,7 @@ $output['dataQualityInfo']= render_group('dataQualityInfo',
             "lineage.statement"=>"text",
             "lineage.processStep"=>"geo_lineage"
             ),
-        current((array)get_field_value('metadata.dataset_metadata.dataQualityInfo',$metadata)));
+        current((array)get_field_value('metadata..dataQualityInfo',$metadata)));
 ?>
 
 
@@ -135,17 +135,17 @@ $output['dataQualityInfo']= render_group('dataQualityInfo',
 
 
 <!-- metadata -->
-<?php $output['dataset_metadata']= render_group('dataset_metadata',
+<?php $output['metadata']= render_group('metadata',
     $fields=array(
-        "metadata.dataset_metadata.fileIdentifier"=>'text',
-        "metadata.dataset_metadata.language"=>'text',
-        "metadata.dataset_metadata.characterset"=>'text',
-        "metadata.dataset_metadata.hierarchyLevel"=>'text',
-        "metadata.dataset_metadata.contact"=>'text',
-        "metadata.dataset_metadata.dateStamp"=>'text',
-        "metadata.dataset_metadata.contact"=>'geog_contact',
-        "metadata.dataset_metadata.metadataStandardName"=>'text',
-        "metadata.dataset_metadata.referenceSystemInfo"=>'array',        
+        "metadata..fileIdentifier"=>'text',
+        "metadata..language"=>'text',
+        "metadata..characterset"=>'text',
+        "metadata..hierarchyLevel"=>'text',
+        "metadata..contact"=>'text',
+        "metadata..dateStamp"=>'text',
+        "metadata..contact"=>'geog_contact',
+        "metadata..metadataStandardName"=>'text',
+        "metadata..referenceSystemInfo"=>'array',        
     ),
     $metadata);
 ?>

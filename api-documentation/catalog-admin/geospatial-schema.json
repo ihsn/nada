@@ -663,9 +663,9 @@
 			],
 			"default": "no"
 		},
-		"fileIdentifier": {
+		"idno": {
 			"title": "Unique Identifier",
-			"description": "Global unique persistent identifier.",
+			"description": "Global unique persistent identifier",
 			"type": "string",
 			"_xpath": "gmd:fileIdentifier/gco:CharacterString"
 		},
@@ -693,10 +693,7 @@
 			"type": "array",
 			"_xpath": "gmd:hierarchyLevel",
 			"items": {
-				"type": "string",
-				"enum":[
-					"attribute", "attributeType", "collectionHardware", "collectionSession", "dataset", "series", "nonGeographicDataset", "dimensionGroup", "feature", "featureType", "propertyType", "fieldSession", "software", "service", "model", "tile", "initiative", "stereomate", "sensor", "platformSeries", "sensorSeries", "productionSeries", "transferAggregate", "otherAggregate"
-				]
+				"type": "string"
 			}
 		},
 		"hierarchyLevelName": {
@@ -1093,13 +1090,6 @@
 											"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox",
 											"type": "object",
 											"properties": {
-												"southBoundLongitude": {
-													"title": "South",
-													"type": "number",
-													"minimum": -180,
-													"maximum": 180,
-													"_xpath": "gmd:southBoundLongitude/gco:Decimal"
-												},
 												"westBoundLongitude": {
 													"title": "West",
 													"type": "number",
@@ -1107,20 +1097,27 @@
 													"maximum": 180,
 													"_xpath": "gmd:westBoundLongitude/gco:Decimal"
 												},
-												"northBoundLongitude": {
-													"title": "North",
-													"type": "number",
-													"minimum": -180,
-													"maximum": 180,
-													"_xpath": "gmd:northBoundLongitude/gco:Decimal"
-												},
 												"eastBoundLongitude": {
 													"title": "East",
 													"type": "number",
 													"minimum": -180,
 													"maximum": 180,
 													"_xpath": "gmd:eastBoundLongitude/gco:Decimal"
-												}
+												},
+												"southBoundLatitude": {
+													"title": "South",
+													"type": "number",
+													"minimum": -180,
+													"maximum": 180,
+													"_xpath": "gmd:southBoundLatitude/gco:Decimal"
+												},												
+												"northBoundLatitude": {
+													"title": "North",
+													"type": "number",
+													"minimum": -180,
+													"maximum": 180,
+													"_xpath": "gmd:northBoundLongitude/gco:Decimal"
+												}												
 											}
 										},
 										"geographicDescription": {
@@ -1199,13 +1196,10 @@
 						}
 					},
 					"spatialRepresentationType": {
-						"type": "array",
+						"type": "string",
 						"title": "Spatial Representation type",
 						"description": "Spatial representation type of the resource. e.g. 'vector'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_SpatialRepresentationTypeCode) SpatialRepresentationType codelist. Suggested values: {`vector`, `grid`, `textTable`, `tin`, `stereoModel`, `video`}",
-						"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode",
-						"items":{
-							"type":"string"
-						}
+						"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode"						
 					},
 					"spatialResolution": {
 						"title": "Spatial Resolution",
@@ -1942,14 +1936,20 @@
 				}
 			}
 		},
+		"provenance":{
+			"type":"array",
+			"title":"Provenance",
+			"description": "Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)",
+			"items":{
+			  "$ref":"provenance-schema.json"
+			}
+		  },
 		"additional": {
 			"title": "Additional metadata",
 			"description": "Any additional metadata"
 		}
 	},
 	"required": [
-		"fileIdentifier",
-		"hierarchyLevel"
-	],
-	"additionalProperties": false
+		"idno"		
+	]
 }

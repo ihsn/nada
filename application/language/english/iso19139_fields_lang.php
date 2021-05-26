@@ -57,7 +57,7 @@ $lang['legalConstraints.uselimitation']='Use limitations';
 $lang['distributionInfo']='Distribution';
 $lang['distributionFormat']='Distribution format';
 $lang['distributionFormat.name']='Name';
-$lang['distributionFormat.specification']='Spcification';
+$lang['distributionFormat.specification']='Specification';
 $lang['distributionFormat.fileDecompressionTechnique']='Compression';
 
 
