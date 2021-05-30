@@ -118,6 +118,21 @@ if ( ! function_exists('render_group'))
 	}
 }
 
+if ( ! function_exists('render_group_text'))
+{
+	function render_group_text($section_name, $html)
+	{
+		$ci =& get_instance();
+		return $ci->load->view('metadata_templates/fields/section_field',
+			array(
+				'section_name'=>$section_name, 
+				'output'=>$html				
+			)
+			, TRUE);
+	}
+}
+
+
 
 if ( ! function_exists('render_columns'))
 {
@@ -128,6 +143,22 @@ if ( ! function_exists('render_columns'))
 			array(
 				'section_name'=>$name, 
 				'metadata'=>$metadata,
+				'fields'=>$fields,
+				'options'=>$options
+			)
+			, TRUE);
+	}
+}
+
+
+if ( ! function_exists('render_columns_array'))
+{
+	function render_columns_array($name,$fields=array(), $options=array())
+	{
+		$ci =& get_instance();
+		return $ci->load->view('metadata_templates/fields/columns_array',
+			array(
+				'section_name'=>$name, 
 				'fields'=>$fields,
 				'options'=>$options
 			)

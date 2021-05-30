@@ -33,7 +33,9 @@
                 <?php if (isset($resource['dcformat'])):?>
                     <span class="badge badge-light"><?php echo $resource['dcformat'];?></span>
                 <?php endif;?>
+                <?php if(isset($resource['description'])):?>
                 <div><?php echo nl2br($resource['description']);?></div>
+                <?php endif;?>
             </div>
             <div class="col-md-2 col-sm-4">
             <?php //if (!empty($resource['filename'])):?>

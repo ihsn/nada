@@ -63,7 +63,7 @@ $lang['distributionFormat.fileDecompressionTechnique']='Compression';
 
 $lang['distributor']='Distributor';
 $lang['transferOptions']='Transfer options';
-$lang['onLine']='Resources';
+$lang['transferOptions.onLine']='Online resources';
 $lang['onLine.linkage']='Link';
 $lang['onLine.name']='Name';
 $lang['onLine.protocol']='Protocol';
@@ -73,15 +73,16 @@ $lang['dataQualityInfo']='Data quality';
 $lang['scope']='Scope';
 $lang['lineage.statement']='Lineage statement';
 
-$lang['dataset_metadata']='Metadata production';
-$lang['metadata.dataset_metadata.fileIdentifier']='File identifier';
-$lang['metadata.dataset_metadata.language']='Language';
-$lang['metadata.dataset_metadata.contact']='Contacts';
-$lang['metadata.dataset_metadata.dateStamp']='Date stamp';
-$lang['metadata.dataset_metadata.metadataStandardName']='Metadata standard';
-$lang['metadata.dataset_metadata.referenceSystemInfo']='Reference system';
-$lang['metadata.dataset_metadata.referenceSystemInfo.code']='Code';
-$lang['metadata.dataset_metadata.referenceSystemInfo.codeSpace']='Code Space';
+$lang['description']='Metadata production';
+$lang['metadata.description.fileIdentifier']='File identifier';
+$lang['metadata.description.language']='Language';
+$lang['metadata.description.hierarchyLevel']='Hierarchy level';
+$lang['metadata.description.contact']='Contacts';
+$lang['metadata.description.dateStamp']='Date stamp';
+$lang['metadata.description.metadataStandardName']='Metadata standard';
+$lang['metadata.description.referenceSystemInfo']='Reference system';
+$lang['metadata.description.referenceSystemInfo.code']='Code';
+$lang['metadata.description.referenceSystemInfo.codeSpace']='Code Space';
 
 $lang['feature_catalogue']='Feature catalogue';
 $lang['lineage.processStep']='Lineage process step';

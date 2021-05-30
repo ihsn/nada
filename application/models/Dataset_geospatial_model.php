@@ -52,40 +52,34 @@ class Dataset_geospatial_model extends Dataset_model {
         }
 
         $options['changed']=date("U");
-
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('type','dataset_metadata','service_metadata','feature_catalogue','additional');
+        $study_metadata_sections=array('description','tags','provenance','additional');
 
-        $metadata_exclude_fields=array('repositoryid','published','overwrite');
+        foreach($study_metadata_sections as $section){
+			if(array_key_exists($section,$options)){
+                $options['metadata'][$section]=$options[$section];
+                unset($options[$section]);
+            }
+        }
 
         //external resources
-        $external_resources=$this->get_array_nested_value($options,'dataset_metadata/distributionInfo/transferOptions/onLine');
+        $external_resources=$this->get_array_nested_value($options,'description/distributionInfo/transferOptions/onLine');
         
         //remove external resource from metadata
         /*if($external_resources){
             unset($options['dataset_metadata']['distributionInfo']['transferOptions']['onLine']);
         }*/
 
-        $data_options=array();
-        $data_options['metadata']=$options;
-        unset($options);
-
-        //remove fields not part of the metadata
-        foreach($metadata_exclude_fields as $exclude_field){
-            if(array_key_exists($exclude_field,$data_options)){
-                unset($data_options['metadata'][$exclude_field]);
-            }
-        }
 
 		//start transaction
 		$this->db->trans_start();
         
         if($dataset_id>0){
-            $this->update($dataset_id,$type,$data_options);
+            $this->update($dataset_id,$type,$options);
         }
         else{
-            $dataset_id=$this->insert($type,$data_options);
+            $dataset_id=$this->insert($type,$options);
         }
 
 		//update years
@@ -143,10 +137,10 @@ class Dataset_geospatial_model extends Dataset_model {
 	{
         $output=array();
         
-        $identification_info=$this->get_array_nested_value($options,'identificationInfo');
+        $identification_info=$this->get_array_nested_value($options,'description/identificationInfo');
         $output['title']=$this->get_array_nested_value($identification_info[0],'citation/title');
         $output['abbreviation']=$this->get_array_nested_value($options,'citation/alternateTitle');
-        $output['idno']=$this->get_array_nested_value($options,'idno');
+        $output['idno']=$this->get_array_nested_value($options,'description/idno');
         //$output['type']=$this->get_array_nested_value($options,'type');
 
         //todo
@@ -160,8 +154,8 @@ class Dataset_geospatial_model extends Dataset_model {
         //$dates=$this->get_array_nested_value($options,'dataset_metadata/identificationInfo/citation/date');
 
         $dates=array();
-        if (isset($options['identificationInfo'][0]['citation']['date'])){
-            $dates=$options['identificationInfo'][0]['citation']['date'];
+        if (isset($options['description']['identificationInfo'][0]['citation']['date'])){
+            $dates=$options['description']['identificationInfo'][0]['citation']['date'];
         }
 
         $date_creation=null;
@@ -174,7 +168,7 @@ class Dataset_geospatial_model extends Dataset_model {
         if ($date_creation){
             $years=$this->get_years($date_creation);
         }else{
-            $years=$this->get_years($this->get_array_nested_value($options,'dateStamp'));
+            $years=$this->get_years($this->get_array_nested_value($options,'description/dateStamp'));
         }
 
         $output['year_start']=$years['start'];
