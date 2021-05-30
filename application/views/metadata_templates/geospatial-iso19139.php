@@ -167,12 +167,7 @@ $output['transferOptions']= render_group('transferOptions',
         get_field_value('metadata.description.distributionInfo.transferOptions',$metadata)); 
 */
 
-        ?>
-
-<?php 
-    $output['distributionInfo']= $output['distributionInfo'] . render_field('resources','resources', $metadata['resources']);
 ?>
-
 
 <?php 
 $output['dataQualityInfo']= render_group('dataQualityInfo',
