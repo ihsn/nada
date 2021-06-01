@@ -64,12 +64,12 @@ class Dataset_geospatial_model extends Dataset_model {
         }
 
         //external resources
-        $external_resources=$this->get_array_nested_value($options,'description/distributionInfo/transferOptions/onLine');
+        $external_resources=$this->get_array_nested_value($options,'metadata/description/distributionInfo/transferOptions/onLine');
         
         //remove external resource from metadata
-        /*if($external_resources){
-            unset($options['dataset_metadata']['distributionInfo']['transferOptions']['onLine']);
-        }*/
+        if($external_resources){
+            unset($options['metadata']['description']['distributionInfo']['transferOptions']['onLine']);
+        }
 
 
 		//start transaction
@@ -225,12 +225,11 @@ class Dataset_geospatial_model extends Dataset_model {
                 if (!$value){
                     unset($external_resources[$resource_filename][$key]);
                 }
-            }
-            
+            }            
         }
-        
+
         //add external resources
-        $metadata['distributionInfo']['transferOptions']['onLine']=$external_resources;
+        $metadata['description']['distributionInfo']['transferOptions']['onLine']=$external_resources;
         return $metadata;
 	}    
 
