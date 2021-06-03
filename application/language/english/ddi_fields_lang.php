@@ -243,7 +243,10 @@ $lang['metadata.study_desc.data_access.dataset_use.conditions']='Access conditio
 $lang['metadata.study_desc.data_access.dataset_use.disclaimer']='Disclaimer';
 $lang['metadata.study_desc.data_access.notes']='Notes';
 $lang['metadata.study_desc.method.data_collection.method_notes']='Other Processing';
-
+$lang['metadata.study_desc.study_info.method.method_notes']='Method notes';
+$lang['metadata.study_desc.study_info.method.data_collection.sources.source_origin']='Source origin';
+$lang['metadata.study_desc.study_info.method.data_collection.sources.data_source']='Data source';
+$lang['metadata.study_desc.study_info.method.data_collection.sources.data_source.source']='Source';
 
 
 $lang['var_vald']='Valid';
