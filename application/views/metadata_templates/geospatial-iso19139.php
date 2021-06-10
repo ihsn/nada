@@ -62,7 +62,10 @@ $identification=array(
     render_field('array','citation.date', get_field_value('citation.date',$identification_info)),
 
     //graphic Overview
-    render_field('photo_gallery','graphicOverview',get_field_value('metadata.description.distributionInfo.transferOptions.onLine',$metadata))
+    render_field('photo_gallery','graphicOverview',get_field_value('metadata.description.distributionInfo.transferOptions.onLine',$metadata)),
+
+    //visualizations
+    render_field('iframe_embed','metadata.iframe_embeds',get_field_value("metadata.iframe_embeds",$metadata))
 );
 
 
@@ -193,13 +196,14 @@ $output['transferOptions']= render_group('transferOptions',
 */
 ?>
 
-<?php  
+
+<?php  /*
 $output['Visualzations']= render_group('Visualizations',
     $fields=array(
             "metadata.iframe_embeds"=>'iframe_embed'
             ),
         $metadata); 
-?>
+*/ ?>
 
 
 
