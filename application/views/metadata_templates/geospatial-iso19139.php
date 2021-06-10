@@ -8,6 +8,28 @@
  **/
 ?>
 
+<?php
+ 
+ $resources=get_field_value('metadata.description.distributionInfo.transferOptions.onLine',$metadata);
+
+if($resources){
+    foreach($resources as $idx => $resource){
+        $resource_filename=$resource['filename'];
+        /*if($this->form_validation->valid_url($resource['filename'])){
+            $resources[$idx]['download_link']=$resource['filename'];
+            $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        }else{
+            $resources[$idx]['download_link']=site_url("catalog/{$metadata['id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        }*/  
+        $resources[$idx]['download_link']=$resource['filename'];
+            $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+    }
+$metadata['metadata']['description']['distributionInfo']['transferOptions']['onLine']=$resources;
+} 
+?>
+
+
 <!--<h1>Geospatial metadata</h1>-->
 
 
@@ -37,7 +59,10 @@ $identification=array(
         )
     ),
 
-    render_field('array','citation.date', get_field_value('citation.date',$identification_info))    
+    render_field('array','citation.date', get_field_value('citation.date',$identification_info)),
+
+    //graphic Overview
+    render_field('photo_gallery','graphicOverview',get_field_value('metadata.description.distributionInfo.transferOptions.onLine',$metadata))
 );
 
 
@@ -55,7 +80,7 @@ $ident_fields=array(
     "credit"=>'text',
     "pointOfContact"=>'geog_contact',
     "resourceMaintenance"=>'array',
-    "graphicOverview"=>'array',
+   //"graphicOverview"=>'array',
     "resourceFormats"=>'array',
     "descriptiveKeywords"=>'array',
     "spatialRepresentationType"=>"text",        
@@ -154,7 +179,7 @@ $output['distributionInfo']= render_group('distributionInfo',
     $fields=array(
         "distributionFormat"=>'array',
         "distributor"=>"geog_contact",
-        "transferOptions.onLine"=>"resources"
+        "transferOptions.onLine"=>"resources",        
         ),
         get_field_value('metadata.description.distributionInfo',$metadata));
 ?>
@@ -166,8 +191,17 @@ $output['transferOptions']= render_group('transferOptions',
             ),
         get_field_value('metadata.description.distributionInfo.transferOptions',$metadata)); 
 */
-
 ?>
+
+<?php  
+$output['Visualzations']= render_group('Visualizations',
+    $fields=array(
+            "metadata.iframe_embeds"=>'iframe_embed'
+            ),
+        $metadata); 
+?>
+
+
 
 <?php 
 $output['dataQualityInfo']= render_group('dataQualityInfo',

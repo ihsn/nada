@@ -348,6 +348,7 @@ class Study extends MY_Controller {
 		switch($dataset_type){
 			case 'survey':
 			case 'microdata':
+				case 'geospatial':
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t('microdata_description'),
@@ -432,7 +433,7 @@ class Study extends MY_Controller {
 					)
 				);
 				break;
-			case 'geospatial':
+			//case 'geospatial':
 			case 'visualization':
 				$page_tabs=array(
 					'description'=>array(
