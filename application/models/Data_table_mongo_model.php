@@ -721,7 +721,7 @@ class Data_table_mongo_model extends CI_Model {
         $keywords=explode(" ", $keywords);
         $output=array();
         foreach($keywords as $keyword){
-            $output[]='"'.str_replace('"','',trim($keyword)).'"';
+            $output[]='"'.str_replace('"','',trim($keyword)).'"'; 
         }
 
         return array('$search' => implode(" ", $output));
@@ -1228,12 +1228,19 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         $cond=array(
-            //array('$match'=>$filter_query)
+            //array('$match'=>null),
             array('$group'=>array('_id'=>$groups_arr, 'count'=>array('$sum'=>1))),
             array('$sort'=>array('_id'=>1)),
             array('$skip'=>$offset),
             array('$limit'=>$limit)
         );
+
+        $filters=$this->get_filters($db_id,$table_id,$options);
+
+        if ($filters){
+            //must be added at the beginning of the conditions to work
+            array_unshift($cond,array('$match'=>$filters));
+        }
 
         $cursor = $collection->aggregate($cond);
 
@@ -1241,7 +1248,10 @@ class Data_table_mongo_model extends CI_Model {
         $output['limit']=$limit;
         $output['offset']=$offset;        
         $output['data']=array();
-        //$output['aggregate_group']=$cond;
+
+        if (isset($options['debug'])){
+            $output['debug']=$cond;
+        }
 
         $k=0;
         foreach ($cursor as $document) {
@@ -1258,5 +1268,50 @@ class Data_table_mongo_model extends CI_Model {
         $output['rows']=$k;
         return $output;
    } 
+
+
+   function get_filters($db_id, $table_id,$options)
+   {
+    $fields=$this->get_table_field_names($db_id,$table_id);
+
+    $features=$fields;
+    $feature_filters=array();
+    $filter_options=array();
+
+    //see if any key matches with the feature name
+    foreach($options as $key=>$value)
+    {
+        if(array_key_exists($key,$features)){
+             $filter_options[$key]=$value; //age=something
+        }
+    }
+    
+    $tmp_feature_filters=array();
+
+    //filter by features
+    foreach($filter_options as $feature_key=>$value){
+        $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
+    }
+
+    //fulltext query
+    if(isset($options['ft_query']) && !empty($options['ft_query'])){
+        $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
+    }
+    
+    $feature_filters=array();
+
+    if (!empty($tmp_feature_filters)){
+
+        $feature_filters=array(
+            '$and'=> array()
+        );
+
+        foreach($tmp_feature_filters as $feature_key=>$filter){
+            $feature_filters['$and'][]['$or']=$filter;
+        }
+    }
+
+    return $feature_filters;
+   }
 	
 }    
