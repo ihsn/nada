@@ -51,7 +51,7 @@ $lang['topicCategory']='Topic category';
 $lang['constraints']='Constraints';
 $lang['legalConstraints.accessConstraints']='Access constraints';
 $lang['legalConstraints.useConstraints']='Use constraints';
-$lang['legalConstraints.uselimitation']='Use limitations';
+$lang['legalConstraints.useLimitation']='Use limitations';
 
 
 $lang['distributionInfo']='Distribution';
@@ -62,6 +62,8 @@ $lang['distributionFormat.fileDecompressionTechnique']='Compression';
 
 
 $lang['distributor']='Distributor';
+$lang['distributor.organisationName']='Name';
+
 $lang['transferOptions']='Transfer options';
 $lang['transferOptions.onLine']='Online resources';
 $lang['onLine.linkage']='Link';

@@ -19,14 +19,22 @@
 }
 </style>
 
+<?php 
 
+$exclude=isset($options['exclude']) ? (array)$options['exclude'] : array();
+
+?>
 <div class="field resource-downloads field-<?php echo $name;?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value p-2" >
     <?php foreach($data as $index=>$resource):?>
-
+        <?php 
+            $dctypecode=explode("[",$resource['dctype']);
+            $dctypecode=str_replace("]","",$dctypecode[count($dctypecode)-1]);
+            if(in_array($dctypecode,$exclude)){continue;}
+        ?>
         <div class="row mb-3 pb-2 border-bottom ">
-            <div class="col">
+            <div class="col">            
                 <a target="_blank" href="<?php echo $resource['filename'];?>" class="font-weight-bold">    
                     <?php echo $resource['title'];?></strong>
                 </a>

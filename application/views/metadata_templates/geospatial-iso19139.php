@@ -170,14 +170,14 @@ $output['constraints']= render_group('constraints',
     $fields=array(
             "legalConstraints.accessConstraints"=>'array',
             "legalConstraints.useConstraints"=>'array',
-            "legalConstraints.uselimitation"=>'array',
+            "legalConstraints.useLimitation"=>'array',
             ),
         current( (array)get_field_value('resourceConstraints',$identification_info)));
 ?>
 
 
 <!-- distributionInfo section -->
-<?php 
+<?php/* 
 $output['distributionInfo']= render_group('distributionInfo',
     $fields=array(
         "distributionFormat"=>'array',
@@ -185,6 +185,16 @@ $output['distributionInfo']= render_group('distributionInfo',
         "transferOptions.onLine"=>"resources",        
         ),
         get_field_value('metadata.description.distributionInfo',$metadata));
+*/?>
+
+<?php
+$distributionInfo=array(
+    render_field('array','distributionFormat', get_field_value('metadata.description.distributionInfo.distributionFormat',$metadata)),
+    render_field('array','distributor', get_field_value('metadata.description.distributionInfo.distributor',$metadata)),
+    render_field('resources','transferOptions.onLine', get_field_value('metadata.description.distributionInfo.transferOptions.onLine',$metadata), array('exclude'=>'pic')),
+);
+
+$output["distributionInfo"]=render_group_text ("distributionInfo",implode("",$distributionInfo));
 ?>
 
 <?php  /*

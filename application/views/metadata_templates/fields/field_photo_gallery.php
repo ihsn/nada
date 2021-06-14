@@ -12,7 +12,7 @@
 
 <style>
 .carousel-container{
-    background:gainsboro;
+    border:1px solid gainsboro;
     padding:5px;
 }
 
@@ -25,12 +25,34 @@
 .carousel-img{
     max-height:300px;    
     width:auto;
+    margin:auto;
 }
 
-.carousel-control-next:hover,
+.carousel-indicators {
+    bottom: -5px;
+}
+
+/*.carousel-control-next:hover,
 .carousel-control-prev:hover
 {
     background:#80808036;
+}*/
+
+.icon-wrap{
+    background: #545b62;
+    padding: 10px;
+    padding-bottom: 5px;
+    border: 1px solid white;
+}
+
+.gallery-indicators li {
+    height: 11px;
+    border: 1px solid #ced4da;
+    background-color: #6c757d;
+}
+
+.carousel-indicators .active{
+    background-color:#f8f9fa;
 }
 
 
@@ -42,8 +64,8 @@
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value" >
 
-    <div id="photoGallery" class="carousel-container carousel slide" data-ride="carousel" data-interval="9000">
-    <ol class="carousel-indicators">
+    <div id="photoGallery" class="carousel-container carousel slide" data-ride="carousel" data-interval="false">
+    <ol class="carousel-indicators gallery-indicators">
 
         <?php $counter=0;foreach($data as $index=>$resource):?>
             <?php if (in_array($resource['extension'],array('jpg','jpeg','gif','png'))):$counter++;?>
@@ -55,8 +77,8 @@
     <div class="carousel-inner">
         <?php $counter=0;foreach($data as $index=>$resource):?>
             <?php if (in_array($resource['extension'],array('jpg','jpeg','gif','png'))):$counter++;?>
-                <div class="carousel-item <?php echo $counter==1 ? 'active' : '';?>">
-                    <img src="<?php echo $resource['download_link'];?>" title="<?php echo $resource['title'];?>" class="d-block w-100 carousel-img" alt="<?php echo $resource['title'];?>">
+                <div class="carousel-item <?php echo $counter==1 ? 'active' : '';?>">                    
+                    <img src="<?php echo $resource['download_link'];?>" title="<?php echo $resource['title'];?>" class="carousel-img mx-auto d-block" alt="<?php echo $resource['title'];?>">
                 </div>                
             <?php endif;?>
             
@@ -65,11 +87,15 @@
     </div>
 
     <a class="carousel-control-prev" href="#photoGallery" role="button" data-slide="prev">
-        <span class="carousel-control-prev-icon carousel-control" aria-hidden="true"></span>
+        <span class="icon-wrap">
+            <span class="carousel-control-prev-icon carousel-control" aria-hidden="true"></span>
+        </span>
         <span class="sr-only">Previous</span>
     </a>
     <a class="carousel-control-next" href="#photoGallery" role="button" data-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="icon-wrap">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </span>
         <span class="sr-only">Next</span>
     </a>
     </div>
@@ -88,6 +114,20 @@
 */?>
 
     
-    </div>
+</div>
+
+    <div><?php echo t('Download');?></div>
+    <ul>
+        <?php foreach($data as $index=>$resource):?>
+            <?php if (in_array($resource['extension'],array('jpg','jpeg','gif','png'))):$counter++;?>
+                <li>
+                    <a href="<?php echo $resource['download_link'];?>">
+                        <i class="fa fa-download" aria-hidden="true"></i> <?php echo $resource['title'];?>
+                    </a>
+                </li>
+            <?php endif;?>            
+        <?php endforeach;?>
+    </ul>
+
 </div>
 <?php endif;?>
