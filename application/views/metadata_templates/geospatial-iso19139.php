@@ -177,7 +177,7 @@ $output['constraints']= render_group('constraints',
 
 
 <!-- distributionInfo section -->
-<?php/* 
+<?php /* 
 $output['distributionInfo']= render_group('distributionInfo',
     $fields=array(
         "distributionFormat"=>'array',
