@@ -91,16 +91,8 @@ function update_order()
 {
     var form_data=$("#form").serialize();
 
-    /*var form_data = {};
-    $(".chk-facet").each(function() {
-        //console.log($( this ).attr("name"), "=", $(this).prop("checked"));
-        form_data[$( this ).attr("name")]=$(this).prop("checked");
-    });*/
-
-
-    console.log(form_data);
     $.post("<?php echo site_url('api/facets/reorder/');?>", form_data, function(data) {		
-			alert("<?php echo t('study_updated'); ?>");
+			alert("<?php echo t('updated'); ?>");
             console.log(data);		
 	})
     .fail(function(data) {
@@ -119,8 +111,6 @@ var sortable_<?php echo $type;?>=new Sortable(list_<?php echo $type;?>, {
     animation: 150,
     ghostClass: 'blue-background-class',
 	onUpdate: function (evt) {
-        //console.log(evt);
-        //update_order();        
 	},
 });
 <?php endforeach;?>

@@ -254,10 +254,25 @@ class Facet_model extends CI_Model {
 	function delete_facet($id)
 	{
 		$this->db->where('id', $id); 
-		return $this->db->delete('facets');
+		$this->db->delete('facets');
+
+		$this->clear_facet_values($sid);
+		$this->clear_facet_terms($sid);
 	}
 
-	function clear_facet_values($sid)
+	function clear_facet_terms($facet_id)
+	{
+		$this->db->where('facet_id', $facet_id);
+		return $this->db->delete('facet_terms');
+	}
+
+	function clear_facet_values($facet_id)
+	{
+		$this->db->where('facet_id', $facet_id);
+		return $this->db->delete('survey_facets');
+	}
+
+	function clear_study_facet_values($sid)
 	{
 		$this->db->where('sid', $sid);
 		return $this->db->delete('survey_facets');
@@ -279,7 +294,8 @@ class Facet_model extends CI_Model {
 		$term=$this->facet_term_exists($facet_id, $value);
 		
 		if (!$term){
-			return $this->db->insert('facet_terms', $options);
+			$this->db->insert('facet_terms', $options);
+			return $this->db->insert_id();
 		}
 
 		return $term['id'];
@@ -481,7 +497,7 @@ class Facet_model extends CI_Model {
         $facet_data=$this->extract_facet_values($type=$study['type'],$study['metadata']);
 
         //remove all existing facet terms for study
-        $this->clear_facet_values($sid);
+        $this->clear_study_facet_values($sid);
 
         //upsert facets
         foreach($facet_data as $facet_key=>$facet_values)
