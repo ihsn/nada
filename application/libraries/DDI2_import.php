@@ -516,11 +516,15 @@ class DDI2_Import{
         //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
         foreach($variable_iterator as $var_obj)
         {
-            //get file id
-            $fid=$data_files[$var_obj->get_file_id()]['id'];
+            $fid=null;
+
+            if (isset($data_files[$var_obj->get_file_id()])){
+                //get file id
+                $fid=$data_files[$var_obj->get_file_id()]['id'];    
+            }            
             
             if(!$fid){
-                throw new exception("var @files attribute not set.");
+                throw new exception("var @files attribute not set. ". $var_obj->get_file_id());
             }
             
             //transform fields to map to variable fields and validate
