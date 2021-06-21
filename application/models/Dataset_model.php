@@ -873,6 +873,29 @@ class Dataset_model extends CI_Model {
 		
 		return false;
 	}
+
+	/**
+	 * 
+	 * return study id by DOI
+	 * 
+	 * 
+	**/
+	function find_by_doi($doi)
+	{
+		if(!$doi){
+			return false;
+		}
+
+		$this->db->select('id');
+		$this->db->where('doi', (string)$doi);
+
+		$query=$this->db->get('surveys')->row_array();
+		
+		if ($query){
+			return $query['id'];
+		}
+	}
+
     
 	function delete_topics($sid)
 	{
@@ -1668,6 +1691,50 @@ class Dataset_model extends CI_Model {
 			fclose($stdout);
 		}
 	}
+
+
+	/**
+	*
+	* assign DOI
+	*/
+	function assign_doi($sid,$doi)
+	{
+		//check if a study with the same DOI already exists
+		$doi_sid=$this->find_by_doi($doi);
+
+		if ($doi_sid && $doi_sid!==$sid){
+			throw new Exception("DOI is already in use. #".$doi_sid);
+		}
+		
+		$data=array(
+			'doi'=>$doi
+		);
+
+		//add doi
+		$this->db->where('id',$sid);
+		$this->db->update('surveys',$data);
+		return TRUE;
+	}
+
+
+	/**
+     * 
+     * Return a comma separated list of country names
+     */
+    function get_country_names_string($nations) 
+    {
+        $max_show=3;
+
+        $nation_str='';
+        if (count($nations)>$max_show){
+            $nation_str=implode(", ", array_slice($nations, 0, $max_show));
+            $nation_str.='...and '. (count($nations) - $max_show). ' more';
+        }else{
+            $nation_str=implode(", ", $nations);
+        }
+
+        return $nation_str;
+    }
 
 }//end-class
 	

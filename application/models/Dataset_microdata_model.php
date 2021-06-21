@@ -583,19 +583,6 @@ class Dataset_microdata_model extends Dataset_model {
         return $nation_names;	
     }
     
-    /**
-     * 
-     * Return a comma separated list of country names
-     */
-    function get_country_names_string($nations)
-    {
-        $nation_str=implode(", ",$nations);
-        if(strlen($nation_str)>150){
-            $nation_str=substr($nation_str,0,145).'...';
-        }
-        return $nation_str;
-    }
-
 
     /**
      * 

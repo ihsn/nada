@@ -325,18 +325,8 @@ class Dataset_timeseries_model extends Dataset_model {
                     $nation_names[]=$nrow['name'];
                 //}
             }
-
-            $max_show=3;
-
-            $nation_str='';
-            if (count($nation_names)>$max_show){
-                $nation_str=implode(", ", array_slice($nation_names, 0, $max_show));
-                $nation_str.='...and '. (count($nation_names) - $max_show). ' more';
-            }else{
-                $nation_str=implode(", ", $nation_names);
-            }
             
-            $output['nation']=$nation_str;//$this->get_country_names_string($this->get_country_names($nations));
+            $output['nation']=$this->get_country_names_string($nations);
             $output['nations']=$nation_names;
         }
         else{
