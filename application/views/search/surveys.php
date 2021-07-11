@@ -96,7 +96,7 @@
                         
                         <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
                             <div class="owner-collection">
-                                <?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a>
+                                <?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('collections/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a>
                             </div>
                         <?php endif;?>
                     </div>
@@ -182,7 +182,7 @@
                 </div>
                 <?php endif;?>
                 <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                    <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
+                    <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('collections/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
                 <?php endif;?>
             </div>
             <div class="survey-stats">                

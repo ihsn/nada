@@ -197,10 +197,6 @@ h5{margin:0px;}
     <!--left side bar -->
     <div class="col-12 col-lg-3 col-md-4">
 
-        <?php if(isset($collection_info)):?>
-            <?php echo $collection_info;?>
-        <?php endif;?>
-
         <nav class="navbar navbar-expand-sm navbar-expand-filters">
             
             <button class="navbar-toggler btn-block navbar-toggler-filter" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

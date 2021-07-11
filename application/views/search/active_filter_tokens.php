@@ -39,6 +39,11 @@ $bg=0;
 		<?php endif;?>        
 	<?php endforeach;?>
     
+    <?php if (isset($search_options->repo) && $search_options->repo!=''):?>
+    <?php if (isset($active_repo) && $active_repo['title']):?>
+        <a href="<?php echo site_url('catalog');?>"><span class="badge badge-primary wb-badge-close repo remove-filter-x repo" data-type="repo" data-value=""><?php echo html_escape($active_repo['title']);?><i class="fa fa-close"></i></span></a>
+    <?php endif;?>
+    <?php endif;?>
 
     <?php if (is_array($search_options->type)):?>
         <?php foreach($search_options->type as $type):?>
