@@ -303,11 +303,6 @@ class Catalog extends MY_Controller {
 
 		$output['filters']=$filters_html;
 
-		//collection info box
-		if(isset($this->active_repo_id)){
-			$output['collection_info']=$this->load->view('search/collection_info',array('repo'=>$this->active_repo),true);
-		}
-
 		//tabs
 		$tabs=array();
 		$tabs['types']=$this->facets['types'];
