@@ -517,6 +517,10 @@ class DDI2_Import{
         foreach($variable_iterator as $var_obj)
         {
             $fid=null;
+            
+            if(!$var_obj){
+                continue;
+            }
 
             if (isset($data_files[$var_obj->get_file_id()])){
                 //get file id
