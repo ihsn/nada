@@ -342,6 +342,7 @@ DROP TABLE IF EXISTS `surveys`;
 CREATE TABLE `surveys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `idno` varchar(200) NOT NULL,
+  `doi` varchar(200) DEFAULT NULL,
   `type` varchar(15) DEFAULT NULL,
   `repositoryid` varchar(100) DEFAULT NULL,
   `title` varchar(255) NOT NULL DEFAULT '',

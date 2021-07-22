@@ -13,6 +13,7 @@ class Catalog_model extends CI_Model {
 					'surveys.id',
 					'repositoryid',
 					'idno',
+					'doi',
 					'title',
 					'authoring_entity',
 					'nation',
@@ -677,7 +678,7 @@ class Catalog_model extends CI_Model {
 		//allowed fields
 		$valid_fields=array('link_technical', 'link_study', 'link_report', 
 							'link_indicator','link_questionnaire',
-							'isshared','formid','changed','isdeleted','link_da','published','data_class_id');
+							'isshared','formid','changed','isdeleted','link_da','published','data_class_id','doi');
 		
 		//pk field name
 		$key_field='id';

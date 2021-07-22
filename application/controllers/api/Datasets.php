@@ -215,6 +215,45 @@ class Datasets extends MY_REST_Controller
 
 
 
+	/**
+	 * 
+	 * Add/update DOI
+	 * 
+	 */
+	function doi_post($idno=null)
+	{
+		try{
+			$input=$this->raw_json_input();
+
+			$doi=array_get_value($input,'doi');
+			$sid=$this->get_sid_from_idno($idno);
+
+			if (empty($doi)){
+				throw new Exception("DOI not set");
+			}
+			
+			$this->Dataset_model->assign_doi($sid,$doi);
+
+			$response=array(
+				'status'=>'success',
+				'doi'=>$doi,
+				'id'=>$sid
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
 
 	/**
 	 * 
@@ -705,8 +744,7 @@ class Datasets extends MY_REST_Controller
 	function variables_post($idno=null,$file_id=null,$type='survey')
 	{
 		try{
-			$options=array();
-			$options=$this->raw_json_input();
+			$options=(array)$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
 			$sid=$this->get_sid_from_idno($idno);
@@ -1187,52 +1225,6 @@ class Datasets extends MY_REST_Controller
 		}				
 	}
 
-	
-
-
-	/**
-	 * 
-	 * 
-	 * Set the owner collection for the study or Transfer ownership
-	 * 
-	 * @sid - study id
-	 * @repositoryid - collection numeric id
-	 * 
-	 */
-	public function transfer_ownership_post(){
-		
-		$sid=$this->input->post("sid");
-		$repositoryid=$this->input->post("repositoryid");
-
-		try{
-			if (!$sid || !$repositoryid){
-				throw new Exception("PARAM_MISSING");
-			}
-
-			//user has permissions on the repo			
-			//$this->acl->user_has_repository_access($repositoryid);
-					
-			//validate repository
-			if ($repositoryid=='central'){
-				$exists=true;
-			}
-			else{
-				$exists=$this->Catalog_model->repository_exists($repositoryid);
-			}
-
-			if (!$exists){
-				throw new Exception(t('COLLECTION_NOT_FOUND'));
-			}
-
-			//transfer ownership
-			$this->Catalog_model->transfer_ownership($repositoryid,$sid);
-			$this->events->emit('db.after.update', 'surveys', $sid);
-			$this->set_response(t('msg_study_ownership_has_changed'), REST_Controller::HTTP_OK);		
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}	
-	}
 
 	//list data access types
 	function list_data_access_types_get()
@@ -1326,6 +1318,7 @@ class Datasets extends MY_REST_Controller
 			);
 
 			$this->dataset_manager->update_options($sid,$options);
+			$this->events->emit('db.after.update', 'surveys', $sid,'atomic');
 
 			$output=array(
 				'status'=>'success',
@@ -2086,5 +2079,149 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
 	}	
+
+
+	/**
+	 * 
+	 * 
+	 * Set the owner collection for the study or Transfer ownership
+	 * 
+	 * @sid - study id
+	 * @repositoryid - collection numeric id
+	 * 
+	 */
+	public function owner_collection_post($idno=null)
+	{		
+		try{
+			
+			//multipart/form-data
+			$options=$this->input->post(null, true);
+
+			//raw json input
+			if (empty($options)){
+				$options=$this->raw_json_input();
+			}			
+			
+			$sid=$this->get_sid_from_idno($idno);			
+			$repositoryid=isset($options["collection_idno"]) ? $options["collection_idno"] : null;
+
+			if (!$repositoryid){
+				throw new Exception("PARAM_MISSING: collection_idno");
+			}
+
+			//user has permissions on the repo			
+			//$this->acl->user_has_repository_access($repositoryid);
+					
+			//validate repository
+			if ($repositoryid=='central'){
+				$exists=true;
+			}
+			else{
+				$exists=$this->Catalog_model->repository_exists($repositoryid);
+			}
+
+			if (!$exists){
+				throw new Exception(t('COLLECTION_NOT_FOUND'));
+			}
+
+			//transfer ownership
+			$this->Catalog_model->transfer_ownership($repositoryid,$sid);
+			$this->events->emit('db.after.update', 'surveys', $sid);
+			$this->set_response(t('msg_study_ownership_has_changed'), REST_Controller::HTTP_OK);		
+		}
+		catch(Exception $e){
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
+
+
+	/**
+	 * 
+	 * Manage collection owner and links for collections
+	 * 
+	 **/
+	function collections_get($idno=null)
+	{
+		try{
+			/*if($idno){
+				return $this->single_get($idno);
+			}*/
+			
+			$offset=(int)$this->input->get("offset");
+			$limit=(int)$this->input->get("limit");
+
+			if (!$limit){
+				$limit=500;
+			}
+			
+			$result=$this->Repository_model->get_related($limit,$offset);
+
+			$response=array(
+				'status'=>'success',
+				'found'=>count($result),
+				'offset'=>$offset,
+				'limit'=>$limit,
+				'datasets'=>$result
+			);		
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * Manage collection owner and links for collections
+	 * 
+	 **/
+	function collections_post()
+	{
+		try{
+			$options=(array)$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			//check for list of lists
+			$key=key($options);
+
+			//convert to list of a list
+			if(!is_numeric($key)){
+				$tmp_options=array();
+				$tmp_options[]=$options;
+				$options=null;
+				$options=$tmp_options;
+			}
+
+			foreach($options as $collection_options){
+				$this->Repository_model->update_collection_studies($collection_options);
+			}
+
+			$response=array(
+				'status'=>'success'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 	
 }

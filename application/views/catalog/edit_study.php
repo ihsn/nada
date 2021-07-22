@@ -566,8 +566,11 @@ background: white;
     margin-bottom: -2px;
 }
 
-.label-repo{text-transform: uppercase;}
-.label-repo-text{color:gray;}
+.label-repo-text{font-size:small;}
+.study-attached-collections{
+	max-height:300px;
+	overflow:auto;
+}
 .alias{text-transform:uppercase;font-size:12px;color:gray;}
 
 .featured_survey label{font-weight:normal;}

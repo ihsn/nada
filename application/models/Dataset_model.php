@@ -40,7 +40,8 @@ class Dataset_model extends CI_Model {
 		'metadata',
 		'link_study',
 		'link_indicator',
-		'thumbnail'
+		'thumbnail',
+		'doi'
 		);
 		
 	
@@ -64,7 +65,8 @@ class Dataset_model extends CI_Model {
 		'total_downloads',
 		'created_by',
 		'changed_by',
-		'formid'
+		'formid',
+		'doi'
 		);
 	
 
@@ -90,16 +92,17 @@ class Dataset_model extends CI_Model {
 	 * 
 	 * @offset - offset
 	 * @limit - number of rows to return
+	 * @fields - (optional) list of fields
 	 * 
 	 */
-	function get_all($limit=0,$offset=0)
+	function get_all($limit=0,$offset=0, $fields=array())
 	{
-		$this->db->select(implode(",",$this->listing_fields));
+		if (empty($fields)){
+			$fields=$this->listing_fields;
+		}
+		
+		$this->db->select(implode(",",$fields));
 		$this->db->order_by('id');
-
-		/*if($sid){
-			$this->db->where('id',$sid);
-		}*/
 
 		if ($limit>0){
 			$this->db->limit($limit, $offset);
@@ -965,6 +968,11 @@ class Dataset_model extends CI_Model {
 
 		//add new info
 		$this->db->insert('survey_repos',$data);
+
+		//update surveys table
+		$this->db->where('id',$sid);
+		$this->db->update('surveys',array('repositoryid'=>$repositoryid));
+
 		return TRUE;
 	}
 

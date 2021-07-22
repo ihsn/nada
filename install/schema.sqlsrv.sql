@@ -333,6 +333,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_grp_repo_access on [dbo].[group_repo_access]
 CREATE TABLE surveys (
   id int NOT NULL IDENTITY(1,1),
   idno varchar(200) NOT NULL,
+  doi varchar(200) DEFAULT NULL,
   type varchar(15) DEFAULT NULL,
   repositoryid varchar(128) NOT NULL,
   title varchar(255) DEFAULT '',

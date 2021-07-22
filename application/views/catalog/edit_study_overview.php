@@ -221,12 +221,38 @@ $selected_page=$this->uri->segment(5);
 			 </td>
 		 </tr>
 
+		 <tr>
+            <td><?php echo t('DOI');?></td>
+            <td>
+				<div class="doi-container">
+					<form method="post" action="<?php echo site_url();?>/admin/catalog/update_doi">
+						<input type="hidden" name="sid" value="<?php echo $id;?>"/>
+
+
+						<div class="input-group">
+							<input
+								class="form-control"
+								placeholder="DOI Handle"
+								name="doi"
+								type="text"
+								id="doi"
+								value="<?php echo get_form_value('doi',isset($doi) ? $doi : '') ; ?>"
+							/>
+							<span class="input-group-btn">
+								<input type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>"  class="btn btn-primary"/>
+							</span>
+						</div>
+
+						<p class="small">Click here to <a href="<?php echo site_url('admin/catalog/doi/'.$id);?>">generate a new DOI</a></p>
+
+												
+					</form>
+				</div>
+            </td>
+        </tr>
 
         </table>
-	<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
-		<!-- survey tabs -->
-    <!--<div style="margin-top:50px;margin-bottom:100px;">
-		<?php //$this->load->view("catalog/study_tabs"); ?>
-	</div>-->
+		<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
+		
 	</div>
 	<!--end survey info block-->

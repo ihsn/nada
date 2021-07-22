@@ -84,9 +84,9 @@ class Dataset_manager{
      * Return all rows
      * 
      */
-    function get_all($limit=100,$offset=0)
+    function get_all($limit=100,$offset=0,$fields=array())
     {
-        return $this->ci->Dataset_model->get_all($limit,$offset);
+        return $this->ci->Dataset_model->get_all($limit,$offset,$fields);
     }
 
 

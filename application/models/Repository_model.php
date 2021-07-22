@@ -4,6 +4,7 @@ class Repository_model extends CI_Model {
     public function __construct()
     {
 		$this->load->library("form_validation");
+		$this->load->model("Dataset_model");
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
     }
@@ -373,7 +374,7 @@ class Repository_model extends CI_Model {
 		}*/		
 		
 		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title'); 
-		$this->db->join('repository_sections', 'repository_sections.id= repositories.section','inner');
+		$this->db->join('repository_sections', 'repository_sections.id= repositories.section','left');
 		$query=$this->db->get('repositories');
 
 		if (!$query){
@@ -884,7 +885,7 @@ class Repository_model extends CI_Model {
 				'isadmin'=>0
 			);
 		
-		//first unlink incaase it is already set
+		//first unlink incase it is already set
 		$this->unlink_study($repositoryid,$sid,$isadmin);
 		return $this->db->insert("survey_repos",$options);
 	}
@@ -904,6 +905,23 @@ class Repository_model extends CI_Model {
 		return $this->db->delete("survey_repos",$options);
 	}
 
+	
+	/**
+	*
+	* unlink study from all collections
+	*
+	**/
+	function unlink_study_all($sid)
+	{
+		$options=array(				
+				'sid'=>$sid,
+				'isadmin'=>0
+		);
+			
+		return $this->db->delete("survey_repos",$options);
+	}
+
+
 	/**
 	*
 	* Return array describing central catalog
@@ -912,7 +930,7 @@ class Repository_model extends CI_Model {
 	{
 		return 	array(
 			'id'			=> 0,
-			'repo_id'			=> 0,
+			'repo_id'		=> 0,
 			'repositoryid'	=> 'central',
 			'title'			=> t('central_data_catalog'),
 			'thumbnail'		=> 'files/icon-blank.png',
@@ -957,6 +975,34 @@ class Repository_model extends CI_Model {
 		foreach($result as $row)
 		{
 			$output[]=$row['sid'];
+		}
+		
+		return $output;
+	}
+
+
+	/**
+	*
+	* Return an array of collection IDs by study
+	*
+	**/
+	function linked_repos_by_study($sid)
+	{
+		$this->db->select('repositoryid');
+		$this->db->where('isadmin',0);
+		$this->db->where('sid',$sid);
+		$query=$this->db->get('survey_repos');
+		
+		if (!$query){
+			return array();
+		}
+		
+		$result=$query->result_array();
+		
+		$output=array();
+		foreach($result as $row)
+		{
+			$output[]=$row['repositoryid'];
 		}
 		
 		return $output;
@@ -1049,7 +1095,7 @@ class Repository_model extends CI_Model {
 		
 		if ($row)
 		{
-				return $row['id'];
+			return $row['id'];
 		}		
 	}
 	
@@ -1418,6 +1464,109 @@ class Repository_model extends CI_Model {
 	}
 
 	
-	
+	/**
+	 * 
+	 * Update linked + owner collections
+	 * 
+	 * $options - array
+	 * 		- study_idno - study idno
+	 * 		- owner_collection - (optional) owner collection ID
+	 * 		- link_collections - list of collection IDs for linking to study
+	 * 		- mode - replace or update
+	 * 
+	 */
+	function update_collection_studies($options)
+	{
+		if(!isset($options['study_idno'])){
+			throw new Exception("study_idno is required");
+		}
+
+		if(!isset($options['link_collections'])){
+			throw new Exception("link_collections is required");
+		}
+
+		if(!is_array($options['link_collections'])){
+			throw new Exception("link_collections is not an array");
+		}
+
+		$study_idno= $options['study_idno'];
+		$owner_collection=isset($options['owner_collection']) ? strtolower($options['owner_collection']) : null;
+		$link_collections=(array)$options['link_collections'];		
+		$mode=isset($options['mode']) && in_array($options['mode'],array('replace','update')) ? $options['mode'] : 'update';
+
+		//get sid
+		$sid=$this->Dataset_model->get_id_by_idno($study_idno);
+
+		if(!$sid){
+			throw new Exception("STUDY_NOT_FOUND: ".$study_idno);
+		}
+		
+		//check/update owner collection
+		if ($owner_collection){
+			$owner_collection_id=$this->get_repositoryid_uid($owner_collection);
+
+			if(!$owner_collection_id && $owner_collection!='central'){
+				throw new Exception("INVALID_COLLECTION_OWNER: ". $owner_collection);
+			}
+
+			//set study collection owner
+			$this->Dataset_model->set_dataset_owner_repo($sid,$owner_collection);
+		}
+
+		//get all linked collections
+		$repos=(array)$this->linked_repos_by_study($sid);
+
+		$link_collections=array_map('strtolower',$link_collections);
+		$repos=array_map('strtolower',$repos);
+
+		//validate all linked collections exist
+		foreach($link_collections as $collection){			
+			if (!$this->get_repositoryid_uid($collection)){
+				throw new Exception("INVALID_COLLECTION_ID: ".$collection);
+			}
+		}
+
+		//update/replace by mode
+		if ($mode=='update'){
+			$repos=array_merge($repos,$link_collections);
+		}
+		else if($mode=='replace'){
+			$repos=$link_collections;
+		}
+
+		if($owner_collection){
+			$repos=array_diff($repos,(array)$owner_collection);
+		}
+
+		//remove all linked
+		$this->unlink_study_all($sid);
+
+		//update linked collections
+		foreach($repos as $repo){
+			$this->link_study($repo,$sid,$isadmin=0);
+		}	
+	}
+
+
+	/**
+	 * 
+	 * Return all datasets with owner and linked collections
+	 * 
+	 * @offset - offset
+	 * @limit - number of rows to return
+	 * 
+	 */
+	function get_related($limit=0,$offset=0)
+	{
+		$this->db->select('surveys.id,idno,surveys.repositoryid as collection_owner,survey_repos.repositoryid as linked_collection');
+		$this->db->join('survey_repos', 'surveys.id= survey_repos.sid','left');
+		$this->db->order_by('surveys.id');
+
+		if ($limit>0){
+			$this->db->limit($limit, $offset);
+		}
+		
+		return $this->db->get("surveys")->result_array();
+	}
 
 }
