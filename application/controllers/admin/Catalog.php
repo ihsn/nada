@@ -2150,20 +2150,66 @@ class Catalog extends MY_Controller {
 	}
 
 
-	function doi($sid=null)
+	function doi($sid=null) 
 	{
 		$this->template->set_template('admin_blank');
  
 		$this->load->model("Dataset_model");
 		$dataset=$this->Dataset_model->get_row($sid);
+
+		$this->config->load('doi');
+		$doi_options=$this->config->item("doi");
 		
 		$options=array();
 		$options['dataset']=$dataset;
+		$options['doi_options']=$doi_options;
 		$content=$this->load->view('catalog/doi', $options,true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
 
+	/*
+	*
+	* Set DOI
+	*
+	*/
+	function update_doi()
+	{
+		//study id
+		$id=$this->input->post("sid");
+
+		if (!is_numeric($id)){
+			show_404();
+		}
+		
+		$survey=$this->Catalog_model->get_survey($id);
+
+		if(!$survey){
+			show_404();
+		}
+
+		//test user study permissiosn
+		//$this->acl->user_has_study_access($id);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
+
+		//is ajax call
+		$ajax=$this->input->get_post('ajax');
+		
+		$doi=$this->input->post("doi");
+
+		try{
+			$result=$this->Dataset_model->assign_doi($id,$doi);
+		}
+		catch(Exception $e){
+			$this->session->set_flashdata('error', $e->getMessage());
+			redirect('admin/catalog/edit/'.$id);
+		}
+
+		$this->session->set_flashdata('message', t('form_update_success'));		
+		
+		$this->events->emit('db.after.update', 'surveys', $id,'atomic');
+		redirect('admin/catalog/edit/'.$id);
+	}
 	
 }
 /* End of file catalog.php */
