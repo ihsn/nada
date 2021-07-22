@@ -440,13 +440,13 @@ class Catalog_search_mysql{
 		$output=array();
 
 		foreach($words as $word){
+			$word=$this->quote_keyword($word);
 			$prefix=substr($word,0,1);
+
 			//has prefix?
 			if(in_array($prefix,$prefixes) && strlen(trim($word))>3){
 				$output[]=$word;
 			}else{
-				$word=trim($word);
-
 				//add prefix for 3 letter keywords
 				if(strlen($word)==3){
 					if(isset($this->ci->db->prefix_short_words) && $this->ci->db->prefix_short_words==true){
@@ -461,6 +461,33 @@ class Catalog_search_mysql{
 		}
 
 		return implode("",$output);
+	}
+
+	function quote_keyword($keyword)
+	{
+		$keyword=trim($keyword);
+		
+		if (strlen(trim($keyword))<3){
+			return $keyword;
+		}
+
+		$prefixes=array(
+			'-',
+			'+'
+		);
+
+		$prefix=substr($keyword,0,1);
+
+		if(!in_array($prefix,$prefixes)){
+			$prefix='';
+		}
+
+		//check keyword includes dashes?
+		if (strpos($keyword, '-') !== false || strpos($keyword, '.') !== false){
+			$keyword='"'.$keyword.'"';
+		}
+
+		return $prefix.$keyword;
 	}
 
 	
@@ -479,9 +506,15 @@ class Catalog_search_mysql{
 		//fulltext index name
 		$study_fulltext_index='keywords, var_keywords';
 
+		$keywords=explode(" ",$study_keywords);
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 
-		$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));			
+		if(count($keywords)==1){//search for keywords + idno
+			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE) or idno=%s)',$study_fulltext_index,$this->ci->db->escape($study_keywords), $this->ci->db->escape($this->study_keywords));
+		}else{
+			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));
+		}
+		
 		return $sql;
 	}
 
