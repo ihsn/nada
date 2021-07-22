@@ -18,7 +18,7 @@
 */
 $config['solr_host'] = "localhost";
 $config['solr_port'] = "8983";
-$config['solr_collection'] = "/solr/nada/";
+$config['solr_collection'] = "nada_dev";
 
 
 
@@ -30,7 +30,7 @@ $config['solr_collection'] = "/solr/nada/";
  * #from the CLI run: 
  * solr create_core -c nada
  * 
- * This will create a core/collection name nada
+ * The core folder e.g. (nada), will include a 'config' folder with the default configurations including the schema file.
  * 
  */
 
@@ -96,7 +96,13 @@ $config['solr_collection'] = "/solr/nada/";
 
     <fieldType name="int" class="solr.TrieIntField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
 
-    <field name="_text_" type="text_en" multiValued="true" indexed="true" stored="false"/>    
+    <!-- doctype - citation, dataset, variable -->
+    <field name="doctype" type="int" indexed="true" stored="true"/>
+
+    <!-- types - survey, geospatial, document, table, image, etc -->
+    <field name="dataset_type" type="text_general" multiValued="false" indexed="true" stored="true"/>
+
+    
     <field name="abstract" type="text_en" indexed="true" stored="false"/>
     <field name="alt_title" type="text_en" indexed="true" stored="false"/>
     <field name="authenty" type="text_en" indexed="true" stored="true"/>
@@ -111,8 +117,8 @@ $config['solr_collection'] = "/solr/nada/";
     <field name="ctype" type="string" indexed="true" stored="true"/>
     <field name="data_coll_end" type="int" indexed="true" stored="true"/>
     <field name="data_coll_start" type="int" indexed="true" stored="true"/>
-    <field name="dataset_type" type="text_general" multiValued="false" indexed="true" stored="true"/>
-    <field name="doctype" type="int" indexed="true" stored="true"/>
+    
+    
     <field name="doi" type="string" indexed="true" stored="false"/>
     <field name="flag" type="string" indexed="true" stored="true"/>
     <field name="form_model" type="string" indexed="true" stored="true"/>
@@ -161,5 +167,6 @@ $config['solr_collection'] = "/solr/nada/";
     <field name="year_start" type="int" indexed="true" stored="true"/>
     <field name="years" type="int" multiValued="true" indexed="true" stored="true"/>
 
+    <field name="_text_" type="text_en" multiValued="true" indexed="true" stored="false"/>
     <copyField source="*" dest="_text_"/>
 */

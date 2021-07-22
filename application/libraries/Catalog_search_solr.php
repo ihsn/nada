@@ -6,7 +6,12 @@
  *
  *
  */
-class Catalog_search_solr{
+
+use Solarium\Core\Client\Adapter\Curl;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+
+ class Catalog_search_solr{
 
 	var $ci;
 
@@ -26,6 +31,7 @@ class Catalog_search_solr{
 	var $dtype=array();//data access type
 	var $sid=''; //comma separated list of survey IDs
 	var $debug=false;
+	var $params=null;
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -57,6 +63,8 @@ class Catalog_search_solr{
 	{
 		$this->ci=& get_instance();
 		$this->ci->config->load('solr');
+		$this->ci->load->model("Facet_model");
+		$this->user_facets=$this->ci->Facet_model->select_all('user');
 
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes'){
@@ -66,6 +74,8 @@ class Catalog_search_solr{
 		if (count($params) > 0){
 			$this->initialize($params);
 		}
+
+		$this->params=$params;
 		//$this->ci->output->enable_profiler(TRUE);
 	}
 
@@ -82,25 +92,26 @@ class Catalog_search_solr{
 		//intialize solr client
 		$this->initialize_solr();
 	}
+	
 
 	private function initialize_solr()
 	{
 		require('vendor/autoload.php');
-		
-		$config = array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $this->ci->config->item('solr_host'),
-                    'port' => $this->ci->config->item('solr_port'),
-                    'path' => $this->ci->config->item('solr_collection'),
-                )
-            )
-        );
-
-		// create a client instance
-		$this->solr_client = new Solarium\Client($config);
-
+		$this->solr_config = array(
+			'endpoint' => array(
+				'localhost' => array(
+					'host' => $this->ci->config->item('solr_host'),
+					'port' => $this->ci->config->item('solr_port'),
+					'path' => '/',
+					'core' => $this->ci->config->item('solr_collection'),
+				)
+			)
+		);
+		$adapter = new Curl();
+		$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+		$this->solr_client =  new Solarium\Client($adapter,$eventDispatcher, $this->solr_config);
 	}
+
 
 	function search($limit=15,$offset=0)
 	{
@@ -121,7 +132,7 @@ class Catalog_search_solr{
         $facetSet = $query->getFacetSet();
 
         //set facet.field
-        $facetSet->createFacetField('dataset_types')->addExcludes(['tag_dataset_type'])->setField('dataset_type');
+        $facetSet->createFacetField('dataset_types')->setField('dataset_type')->getLocalParameters()->addExcludes(['tag_dataset_type']);
 
 		//set edismax options
 		$edismax = $query->getEDisMax();		
@@ -140,15 +151,24 @@ class Catalog_search_solr{
 		}
 
 		//VK
-		if($this->variable_keywords){
+		/*if($this->variable_keywords){
 			$search_query[]='{!join from=sid to=survey_uid}'.$helper->escapeTerm($this->variable_keywords);
-		}
+		}*/
 		
 		if ($topics){
 			$search_query[]=$topics;
 		}
 
-        
+		//custom user defined filters
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$filter_=$this->_build_facet_query('fq_'.$fc['name'],$this->params[$fc['name']]);
+				if($filter_){
+					$query->createFilterQuery('fq_'.$fc['name'])->setQuery($filter_);
+				}
+			}
+		}
+
 		//sort
         $sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
@@ -239,6 +259,7 @@ class Catalog_search_solr{
         $query->setStart($offset)->setRows($limit);
         $query->setFields(array(
             'id:survey_uid',
+			'idno',
             'type:dataset_type',
             'title',
             'nation',
@@ -265,10 +286,7 @@ class Catalog_search_solr{
         }
 
         $resultset = $this->solr_client->select($query);//->getData();
-
-
         $facet = $resultset->getFacetSet()->getFacet('dataset_types');
-        //var_dump($facet);
 
         $dataset_types_facet_counts=array();
         
@@ -281,8 +299,7 @@ class Catalog_search_solr{
             $request = $this->solr_client->createRequest($query);
             $result['request_uri']=$request->getUri();
             $result['debug']=$resultset->getDebug();
-
-            var_dump($result['request_uri']);
+            var_dump(urldecode($result['request_uri']));
         }
 		
 
@@ -294,7 +311,6 @@ class Catalog_search_solr{
 
 		//get search result as array
 		$this->search_result=$resultset->getData();
-
 		$this->search_result=$this->search_result['response']['docs'];
 
 
@@ -521,7 +537,29 @@ class Catalog_search_solr{
 
 		return FALSE;
 	}
+	
 
+	protected function _build_facet_query($facet_name,$values)
+	{
+		if (empty($values)){
+			return false;
+		}
+		
+		$values=(array)$values;
+		foreach($values  as $idx=>$value){
+			if(!empty($value) && is_numeric($value)){
+				$values[$idx]=$value;
+			}
+		}
+
+		$values= implode(' OR ',$values);
+
+		if ($values){
+			return sprintf(' %s:(%s)',$facet_name,$values);
+		}
+		
+		return FALSE;
+	}
 	
 
 	//returns country IDs by country names
@@ -885,7 +923,10 @@ class Catalog_search_solr{
 		// {!join from=survey_uid to=sid}survey AND countries:1
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('_text_:%s',$this->variable_keywords) );
+		if ($this->study_keywords){
+			$query->setQuery(sprintf('_text_:%s',$this->study_keywords) );
+		}
+
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
 
 		//execute search

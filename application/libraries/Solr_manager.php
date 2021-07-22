@@ -6,6 +6,11 @@
  *
  *
  */
+
+use Solarium\Core\Client\Adapter\Curl;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+
 class Solr_manager{
 
 	var $ci;
@@ -17,6 +22,9 @@ class Solr_manager{
 		$this->ci=& get_instance();
 		$this->ci->config->load('solr');
 		$this->ci->load->model('solr_delta_updates_model');
+		$this->ci->load->model("Dataset_model");
+        $this->ci->load->helper('array');
+		$this->ci->load->model("Facet_model");
 
 		$this->initialize_solr();
 
@@ -37,17 +45,25 @@ class Solr_manager{
 				'localhost' => array(
 					'host' => $this->ci->config->item('solr_host'),
 					'port' => $this->ci->config->item('solr_port'),
-					'path' => $this->ci->config->item('solr_collection'),
+					'path' => '/',
+					'core' => $this->ci->config->item('solr_collection'),
 				)
 			)
 		);
 		//$this->solr_client = new Solarium\Client($this->solr_config);
 	}
 
+	function get_solarium_client()
+	{
+		$adapter = new Curl();
+		$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+		return new Solarium\Client($adapter,$eventDispatcher, $this->solr_config);
+	}
+
 
 	public function ping_test()
 	{
-		$client=new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 		$ping = $client->createPing();
 		$result = $client->ping($ping);
 		return $result->getData();
@@ -67,8 +83,6 @@ class Solr_manager{
 	{
 		$start_time=date("h:i:s");
         set_time_limit(0);
-        $this->ci->load->model("Dataset_model");
-        $this->ci->load->helper('array');
 
 		//concat('survey-', surveys.id)  as id,
 		$this->ci->db->select("
@@ -127,6 +141,13 @@ class Solr_manager{
 			$rows[$key]['repositories']=$this->get_survey_repositories($row['survey_uid']);
 			//survey years
             $rows[$key]['years']=$this->get_survey_years($row['survey_uid']);
+
+			//custom user defined facets
+			$user_facets_by_study=$this->ci->Facet_model->facet_terms_by_study($row['survey_uid']);
+
+			foreach($user_facets_by_study as $facet_name=>$facet_terms){
+				$rows[$key]['fq_'.$facet_name]=$facet_terms;
+			}
             
             //metadata
 			//$rows[$key]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
@@ -160,11 +181,11 @@ class Solr_manager{
 
 	function delete_document($query)
 	{
-			$client = new Solarium\Client($this->solr_config);
-			$update = $client->createUpdate();
-			$update->addDeleteQuery($query);
-			$update->addCommit();
-			$result = $client->update($update);
+		$client=$this->get_solarium_client();
+		$update = $client->createUpdate();
+		$update->addDeleteQuery($query);
+		$update->addCommit();
+		$result = $client->update($update);
 	}
 
 
@@ -327,7 +348,7 @@ class Solr_manager{
 			);
 
 			// create a client instance
-			$client = new Solarium\Client($this->solr_config);
+			$client=$this->get_solarium_client();
 
 			// get a select query instance based on the config
 			$query = $client->createSelect($select);
@@ -372,7 +393,7 @@ class Solr_manager{
 				$select['filterquery']['published']['query']='published:'.$published;
 		}
 
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 		$query = $client->createSelect($select);
 		$resultset = $client->select($query);
 		$documents_found=$resultset->getNumFound();
@@ -383,7 +404,7 @@ class Solr_manager{
 	//add documents to index
     function add_documents($rows,$id_prefix='',$apply_commit=true)
     {
-        $client = new Solarium\Client($this->solr_config);
+        $client=$this->get_solarium_client();
         $update = $client->createUpdate();
 
         $docs=array();
@@ -428,7 +449,7 @@ class Solr_manager{
 
 	function commit()
 	{
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 		$update = $client->createUpdate();
 		$update->addCommit();
 		$result = $client->update($update);
@@ -498,7 +519,7 @@ class Solr_manager{
 
 	function survey_atomic_update($id)
 	{
-		$options=$this->get_survey_by_id($id);
+		$options=$this->get_survey_by_id($id,$inc_keywords=false);
 		if($options){
 			$this->atomic_update('id','survey-'.$id,$options);
 		}
@@ -506,7 +527,7 @@ class Solr_manager{
 
 	function atomic_update($key_field,$key_value, $options)
 	{
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 
 		$update = $client->createUpdate();
 		$doc= $update->createDocument();
@@ -516,51 +537,67 @@ class Solr_manager{
 		
 		//set partial update for every field that is given
 		foreach($options as $key=>$value) {
-				if($key!=$key_field){
+			if($key!=$key_field){
 				$doc->setField($key, $value);
 				$doc->setFieldModifier($key, 'set');
-				}
 			}
+		}
 
 		//add document and commit
-		$update->addDocument($doc)->addCommit();
+		$update->addDocument($doc);
+		$update->addCommit();
 
 		// this executes the query and returns the result
 		$result = $client->update($update);
-		return $result;
-
-		/*echo '<b>Update query executed</b><br/>';
+		
+		/*
+		echo '<pre>';
+		print_r($options);
+		echo '<b>Update query executed</b><br/>';
 		echo 'Query status: ' . $result->getStatus(). '<br/>';
-		echo 'Query time: ' . $result->getQueryTime();*/
+		echo 'Query time: ' . $result->getQueryTime();
+		*/
+		return $result;
 	}
 
 
-	//get a single survey
-	public function get_survey_by_id($id)
+	/**
+	 * 
+	 * Return a single study
+	 * 
+	 * @inc_keywords - include study + variable keywords
+	 * 
+	 */
+	public function get_survey_by_id($id,$inc_keywords=true)
 	{
+		$fields="1 as doctype,
+		surveys.id as survey_uid,
+		surveys.idno as idno,
+		surveys.formid,
+		surveys.thumbnail,
+		surveys.type as dataset_type,
+		surveys.title,
+		nation,
+		authoring_entity,
+		forms.model as form_model,
+		surveys.year_start,
+		surveys.year_end,					
+		surveys.repositoryid as repositoryid,
+		link_da,
+		repositories.title as repo_title,					
+		surveys.created,
+		surveys.changed,
+		surveys.varcount,
+		surveys.published,
+		surveys.total_views,		
+		surveys.total_downloads";
+
+		if ($inc_keywords==true){
+			$fields.=',surveys.keywords';
+		}
+
 		//get survey record + study level metadata
-		$this->ci->db->select("1 as doctype,
-				surveys.id as survey_uid,
-                surveys.formid,
-				surveys.thumbnail,
-				surveys.type as dataset_type,
-				surveys.idno as surveyid,
-				surveys.title,
-				nation,
-				authoring_entity,
-				forms.model as form_model,
-				surveys.year_start,
-				surveys.year_end,					
-				surveys.repositoryid as repositoryid,
-				link_da,
-				repositories.title as repo_title,					
-				surveys.created,
-				surveys.changed,
-				surveys.varcount,
-				surveys.published,
-				surveys.total_views,
-				surveys.keywords,
-				surveys.total_downloads",FALSE);
+		$this->ci->db->select($fields,FALSE);
 		$this->ci->db->join("forms","surveys.formid=forms.formid","left");
 		$this->ci->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
 		$this->ci->db->where_in("surveys.id",$id);
@@ -572,6 +609,7 @@ class Solr_manager{
 		}
 
 		$survey['id']='survey-'.$survey['survey_uid']; //id column must use the format SURVEY-1234
+
 		//survey topics
 		//survey countries
 		$survey['countries']=$this->get_survey_countries($survey['survey_uid']);
@@ -580,8 +618,17 @@ class Solr_manager{
 		//survey years
 		$survey['years']=$this->get_survey_years($survey['survey_uid']);
 
-		//variable keywords
-		$survey['var_keywords']=$this->get_survey_variables($survey['survey_uid']);
+		if ($inc_keywords){
+			//variable keywords
+			$survey['var_keywords']=$this->get_survey_variables($survey['survey_uid']);
+		
+			//custom user defined facets
+			$user_facets_by_study=$this->ci->Facet_model->facet_terms_by_study($survey['survey_uid']);
+
+			foreach($user_facets_by_study as $facet_name=>$facet_terms){
+				$survey['fq_'.$facet_name]=$facet_terms;
+			}
+		}
 
 		//decode metadata and convert to text
 		/*if($survey['metadata']){
@@ -695,7 +742,7 @@ class Solr_manager{
 	function clean_index()
 	{
 		// create a client instance
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 
 		// get an update query instance
 		$update = $client->createUpdate();
