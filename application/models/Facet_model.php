@@ -531,6 +531,27 @@ class Facet_model extends CI_Model {
 
     }
 
+
+	/**
+	 * 
+	 * 
+	 * Return an array of all filters + terms for a study
+	 * 
+	 */
+	function facet_terms_by_study($sid)
+	{
+		$this->db->select("facets.name,survey_facets.term_id");
+		$this->db->join('facets', 'survey_facets.facet_id = facets.id','inner');
+		$this->db->where('sid',$sid);
+		$result=$this->db->get('survey_facets')->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['name']][]=$row['term_id'];
+		}
+
+		return $output;
+	}
 	
 
 }
