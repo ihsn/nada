@@ -59,7 +59,7 @@ class Solr extends MY_Controller {
         
         var_dump($result);
 
-        if($loop ==true && $result['last_row_id'] > 0){
+        if($loop ==true && isset($result['last_row_id']) && $result['last_row_id'] > 0){
             $this->full_import_surveys($result['last_row_id'], $limit, $loop);
         }
 	}
