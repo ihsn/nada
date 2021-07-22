@@ -6,7 +6,7 @@ class Admin extends MY_Controller {
         parent::__construct();
        	$this->load->model('Dashboard_model');
 		$this->load->model('Repository_model');
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5'); 
 		$this->load->driver('cache', array('adapter' => 'dummy', 'backup' => 'file'));
 
 		$this->lang->load("general");
