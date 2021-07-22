@@ -67,7 +67,9 @@ class StudyCollections extends MY_Controller {
 		}
 		
 		$this->load->model('repository_model');		
-		$this->repository_model->link_study($collection_id,$sid,0);
+		$result=$this->repository_model->link_study($collection_id,$sid,0);
+
+		echo json_encode(array('result'=>$result));
 	}
 
 
