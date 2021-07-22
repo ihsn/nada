@@ -6,12 +6,11 @@
 			$checked='checked="checked"';
 		}
 	?>
-	<div class="col-md-12d">
+	<div class="col-md-6">
       <div class="checkbox">
         <label>
           <input class="chk" type="checkbox" id="t-<?php echo $coll['repositoryid'];?>" value="<?php echo $coll['repositoryid'];?>" <?php echo $checked;?>/>
-					<span class="label-repo-text" for="t-<?php echo $coll['repositoryid'];?>"><?php echo $coll['title'];?></span>
-					<!--<span class="label label-default label-repo"><?php echo $coll['repositoryid'];?></span>-->
+				<span class="label-repo-text" for="t-<?php echo $coll['repositoryid'];?>"><?php echo $coll['title'];?> (<?php echo strtoupper($coll['repositoryid']);?>)</span>
         </label>
     </div>
 </div>
