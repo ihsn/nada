@@ -377,7 +377,7 @@ class Collections extends MY_REST_Controller
 	 * Delete collection
 	 * 
 	 * 
-	 */
+	 */	
 	function delete_delete($repo_id=null)
 	{
 		try{
@@ -406,6 +406,11 @@ class Collections extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+	function index_delete($repo_id=null)
+	{
+		return $this->delete_delete($repo_id);
 	}
 	
 }
