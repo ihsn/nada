@@ -83,16 +83,6 @@ if ($max_upload>$max_post){
       </select>  
     </div>
 
-    <div class="form-group">
-      <label for="exampleInputEmail1">IDNO</label>
-      <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Unique ID (Leave it empty for auto generated ID)">
-    </div>
-
-    <div class="form-group">
-      <label for="dataset_set">Title</label>
-      <input type="text" class="form-control" id="datasert_title" placeholder="Title">
-    </div>
-
     <button type="submit" class="btn btn-primary">Create</button>
 </form>
 

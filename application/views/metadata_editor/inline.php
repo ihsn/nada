@@ -455,7 +455,7 @@
         // Add a rule.
   VeeValidate.extend('secret', {
     validate: value => value === 'example',
-    message: 'This is not the magic word'
+    message: 'example'
   });
 
 

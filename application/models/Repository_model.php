@@ -1556,7 +1556,7 @@ class Repository_model extends CI_Model {
 	 * @limit - number of rows to return
 	 * 
 	 */
-	function get_related($limit=0,$offset=0)
+	function owner_linked_collections($limit=0,$offset=0,$study_idno=null)
 	{
 		$this->db->select('surveys.id,idno,surveys.repositoryid as collection_owner,survey_repos.repositoryid as linked_collection');
 		$this->db->join('survey_repos', 'surveys.id= survey_repos.sid','left');
@@ -1564,6 +1564,10 @@ class Repository_model extends CI_Model {
 
 		if ($limit>0){
 			$this->db->limit($limit, $offset);
+		}
+
+		if($study_idno){
+			$this->db->where("surveys.idno",$study_idno);
 		}
 		
 		return $this->db->get("surveys")->result_array();
