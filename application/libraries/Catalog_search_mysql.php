@@ -39,7 +39,9 @@ class Catalog_search_mysql{
 						'country'=>'nation',
 						'proddate'=>'year_start',
 						'popularity'=>'total_views',
-						'total_views'=>'total_views'
+						'total_views'=>'total_views',
+						'created'=>'created',
+						'changed'=>'changed'
 					);
 	var	$sort_allowed_order=array('asc','desc');
 	

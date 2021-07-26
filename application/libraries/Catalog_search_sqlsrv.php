@@ -37,7 +37,9 @@ class Catalog_search_sqlsrv{
         'year'=>'year_start',
         'popularity'=>'total_views',
         'collection'=>'repositories.repositoryid',
-        'rank'=>'k.rank'
+        'rank'=>'k.rank',
+		'created'=>'created',
+		'changed'=>'changed'
         );
 
 	var	$sort_allowed_order=array('asc','desc');

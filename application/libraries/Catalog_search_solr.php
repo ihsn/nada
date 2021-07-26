@@ -36,7 +36,9 @@ class Catalog_search_solr{
 		'nation'=>'nation',
 		'year'=>'year_start',
 		'popularity'=>'total_views',
-		'rank'=>'score'
+		'rank'=>'score',
+		'created'=>'created',
+		'changed'=>'changed'
 	);
 
 	var	$sort_allowed_order=array('asc','desc');
