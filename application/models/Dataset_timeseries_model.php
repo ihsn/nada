@@ -18,7 +18,34 @@ class Dataset_timeseries_model extends Dataset_model {
         parent::__construct();
     }
 
-    function create_dataset($type,$options)
+    /**
+     * 
+     * Update dataset
+     * 
+     * @merge_metadata - boolean
+     *  true  - merge/update individual values
+     *  false - replace all metadata with new values (no merge)
+     * 
+     */
+    function update_dataset($sid,$type,$options, $merge_metadata=false)
+	{
+		//need this to validate IDNO for uniqueness
+        $options['sid']=$sid;
+        
+        //merge/replace metadata
+        if ($merge_metadata==true){
+            $metadata=$this->get_metadata($sid);
+            if(is_array($metadata)){
+                unset($metadata['idno']);                
+                $options=$this->array_merge_replace_metadata($metadata,$options);
+                $options=array_remove_nulls($options);
+            }
+        }
+
+        return $this->create_dataset($type,$options,$sid);
+    }
+
+    function create_dataset($type,$options, $sid=null)
 	{
 		//validate schema
         $this->validate_schema($type,$options);
@@ -32,32 +59,26 @@ class Dataset_timeseries_model extends Dataset_model {
 		}
 
 		//validate IDNO field
-        $id=$this->find_by_idno($core_fields['idno']); 
+        $dataset_id=$this->find_by_idno($core_fields['idno']); 
 
-		//overwrite?
-		/*if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
-			return $this->update_dataset($id,$type,$options);
-		}*/
 
-		if($id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$id);
+		if(!empty($sid)){//for updating a study
+            //if IDNO is changed, it should not be an existing IDNO
+            if(is_numeric($dataset_id) && $sid!=$dataset_id ){
+                throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$dataset_id.':'.$core_fields['idno']);
+            }
+
+            $dataset_id=$sid;
         }
-        
-        //split parts of the metadata
-        $data_files=null;
-		$variables=null;
-        $variable_groups=null;
-
-        $study_metadata_sections=array('metadata_creation','series_description','additional');
-
-        /*
-        foreach($options as $key=>$value){		
-			if(in_array($key,$this->$study_metadata_sections)){                
-                $options['metadata'][$key]=$value;
-                unset($options[$key]);
+        else{//for creating new study or overwritting existing one
+            if($dataset_id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
+                throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
             }
         }
-        */
+
+        $options['changed']=date("U");
+        
+        $study_metadata_sections=array('metadata_creation','series_description','additional','tags');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -65,30 +86,14 @@ class Dataset_timeseries_model extends Dataset_model {
                 unset($options[$section]);
             }
         }
-        
-        if(isset($options['data_files'])){
-            $data_files=$options['data_files'];
-            unset($options['data_files']);
-        }
-
-        if(isset($options['variables'])){
-            $variables=$options['variables'];
-            unset($options['variables']);
-        }
-
-        if(isset($options['variable_groups'])){
-            $variable_groups=$options['variable_groups'];
-            unset($options['variable_groups']);
-        }		
-                
+                        
 
 		//start transaction
 		$this->db->trans_start();
         
-        if($id>0){
+        if($dataset_id>0){
             //update
-            $dataset_id=$id;
-            $this->update($id,$type,$options);
+            $this->update($dataset_id,$type,$options);
         }
         else{
 		    //insert record
@@ -101,23 +106,11 @@ class Dataset_timeseries_model extends Dataset_model {
 		//set topics
 
         //update related countries
-        $countries=$core_fields['nations'];
-		$this->Survey_country_model->update_countries($dataset_id,$countries);
+		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
 		//set geographic locations (bounding box)
-
-
-        //data files
-        $this->create_update_data_files($dataset_id,$data_files);
-        
-        //variables
-        $this->create_update_variables($dataset_id,$variables);
-
-
-		//variable groups?
-		//todo
 
 		//complete transaction
 		$this->db->trans_complete();
@@ -315,7 +308,7 @@ class Dataset_timeseries_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'series_description/name');
         $output['idno']=$this->get_array_nested_value($options,'series_description/idno');
 
-        $nations=$this->get_array_nested_value($options,'series_description/geographic_units');	
+        $nations=(array)$this->get_array_nested_value($options,'series_description/geographic_units');	
 
         if (count($nations)>0 && isset($nations[0]['name'])){
             //$nation_names=array_column($nations,"name");
@@ -326,7 +319,7 @@ class Dataset_timeseries_model extends Dataset_model {
                 //}
             }
             
-            $output['nation']=$this->get_country_names_string($nations);
+            $output['nation']=$this->get_country_names_string($nation_names);
             $output['nations']=$nation_names;
         }
         else{

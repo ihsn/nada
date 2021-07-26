@@ -408,6 +408,61 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	private function update_timeseries_database($idno=null)
+	{
+		$this->load->model('Timeseries_db_model');
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			$options['created_by']=$user_id;
+			$options['changed_by']=$user_id;
+			$options['created']=date("U");
+			$options['changed']=date("U");
+			$options['overwrite']="yes";
+						
+			$database=$this->Timeseries_db_model->get_row_by_idno($idno);
+
+			var_dump($idno,$database);
+
+			if(!$database){
+				throw new Exception("DB_NOT_FOUND: ". $database);
+			}
+
+			//get existing metadata
+			$metadata=$database['metadata'];
+
+			//replace metadata with new options
+			$options=array_replace_recursive($metadata,$options);
+
+			//update
+			$this->Timeseries_db_model->create_database($options);
+			
+			$response=array(
+				'status'=>'success'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 	/**
 	 * 
 	 * 
@@ -417,7 +472,7 @@ class Datasets extends MY_REST_Controller
 	 */
 	function create_post($type=null,$idno=null)
 	{
-		if($type=='timeseries-db'){
+		if($type=='timeseries-db' || $type=='timeseriesdb'){
 			return $this->create_timeseries_database($idno);
 		}
 
@@ -493,6 +548,10 @@ class Datasets extends MY_REST_Controller
 	 */
 	function update_post($type=null,$idno=null)
 	{
+		if($type=='timeseries-db' || $type=='timeseriesdb'){
+			return $this->update_timeseries_database($idno);
+		}
+
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -519,7 +578,7 @@ class Datasets extends MY_REST_Controller
         	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
-			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image'){
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='timeseries'){
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{
@@ -2137,7 +2196,7 @@ class Datasets extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Manage collection owner and links for collections
+	 * Return owner and linked collections by studies
 	 * 
 	 **/
 	function collections_get($idno=null)
@@ -2154,7 +2213,7 @@ class Datasets extends MY_REST_Controller
 				$limit=500;
 			}
 			
-			$result=$this->Repository_model->get_related($limit,$offset);
+			$result=$this->Repository_model->owner_linked_collections($limit,$offset, $idno);
 
 			$response=array(
 				'status'=>'success',
