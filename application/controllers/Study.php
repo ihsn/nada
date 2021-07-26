@@ -342,6 +342,13 @@ class Study extends MY_Controller {
 		//formatted related studies
 		$related_studies_formatted=$this->load->view('survey_info/related_studies',array('related_studies'=>$related_studies),true);
 
+		//timeseries database
+		$timeseries_db=null;
+
+		if($dataset_type=='timeseries'){
+			$timeseries_db=$this->Timeseries_db_model->get_database_by_series_id($sid);
+		}
+
 		//default layout template view
 		$display_layout='survey_info/layout';
 
@@ -409,7 +416,7 @@ class Study extends MY_Controller {
 					'timeseries_db'=>array(
 						'label'=>t('timeseries_db'),
 						'url'=>site_url("catalog/$sid/timeseries-db"),
-						'show_tab'=>1
+						'show_tab'=>!empty($timeseries_db)
 					),
 					//hide related materials
 					'related_materials'=>array(
