@@ -68,9 +68,9 @@ class Image_captcha{
 
 		$answer=base64_encode(md5($word));
 
-		$output=sprintf('<div class="image_captcha field">%s 
+		$output=sprintf('<div class="image_captcha field mb-3">%s 
 						<label class="desc">%s</label>
-						<input type="text" maxlength="10" class="captcha_question input-flex" size="5" name="captcha_question"/>						
+						<input type="text" maxlength="10" class="captcha_question input-flex" size="25" name="captcha_question"/>						
 						</div>',$cap['image'],t('captcha_provide_answer'));
 		$output.='<input type="hidden" name="cqa" value="'.$answer.'"/>';
 
