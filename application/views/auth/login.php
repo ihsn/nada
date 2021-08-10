@@ -13,6 +13,15 @@
 .privacy-info{
     font-size:smaller;
 }
+
+.image_captcha {
+    background:gainsboro;
+    padding:10px;
+    margin-bottom:20px;
+}
+.image_captcha input{
+    display:block;
+}
 </style>
 <div class="login-form">
 
@@ -52,7 +61,11 @@
     <div class="form-group">
         <!--<label for="password"><?php echo t('password');?>:</label>-->
         <input class="form-control"  name="password" type="password" id="password"  value="" placeholder="<?php echo t('password');?>"/>
-    </div>    
+    </div>
+    
+    <div class="captcha_container">
+        <?php echo $captcha_question;?>
+    </div>
         
     <div class="login-footer">
         <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn btn-primary btn-block"/>                
