@@ -10,7 +10,8 @@ class Survey_alias_model extends CI_Model {
         parent::__construct();
     }
 	
-	public function insert($data) {
+	public function insert($data) 
+	{
 		$result = $this->db->insert('survey_aliases', $data);
 		return $result;
 	}
@@ -22,8 +23,7 @@ class Survey_alias_model extends CI_Model {
 		$this->db->where('alternate_id',$alternate_id);
         $found=$this->db->count_all_results();
 		
-		if ($found)
-		{
+		if ($found){
 			return $found;
 		}
 		
@@ -34,18 +34,21 @@ class Survey_alias_model extends CI_Model {
         return $this->db->count_all_results();
 	}
 	
-	public function delete($id) {
+	public function delete($id) 
+	{
 		$this->db->where('id', $id); 
 		return $this->db->delete('survey_aliases');
 	}
 	
-	public function single($id) {
+	public function single($id) 
+	{
 		$this->db->select("*");
 		$this->db->where('id', $id); 
 		return $this->db->get('survey_aliases')->row_array();
 	}
 	
-	public function get_aliases($sid) {
+	public function get_aliases($sid) 
+	{
 		$this->db->select("*");
 		$this->db->where('sid', $sid);
 		$this->db->order_by('id', 'DESC');

@@ -574,6 +574,23 @@ class Dataset_model extends CI_Model {
 			}
 		}
 
+		//tags
+		if(isset($options['tags'])){
+			$this->add_survey_tags($sid, $options['tags']);
+			unset($options['tags']);
+		}
+
+		//aliases
+		if (isset($options['aliases'])){
+			$this->add_survey_aliases($sid,$options['aliases']);
+			unset($options['aliases']);
+		}
+
+
+		if(empty($options)){
+			return false;
+		}
+
 		//encode json fields
 		foreach ($this->encoded_fields as $field){
 			if(isset($data[$field])){
@@ -1053,7 +1070,49 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	function add_survey_tags($sid, $tags=array())
+	{
+		$this->load->model("Catalog_tags_model");
+				
+        if (!is_array($tags)){
+            return;
+        }
 
+		$existing_tags=(array)$this->Catalog_tags_model->survey_tags_list($sid);
+
+		//remove duplicates or null
+		$tags=array_unique(array_filter($tags));
+		$tags=array_diff($tags, $existing_tags);
+        
+		foreach ($tags as $tag){
+            $options=array(
+					'sid'	=>$sid,
+					'tag'	=>$tag
+				);
+            $this->db->insert('survey_tags',$options);
+		}
+	}
+
+
+
+	function add_survey_aliases($sid, $aliases=array())
+	{
+		$this->load->model("Survey_alias_model");
+				
+        if (!is_array($aliases)){
+            return;
+        }
+
+		foreach($aliases as $alias){
+			if (!$this->Survey_alias_model->id_exists($alias)){
+				$options = array(
+					'sid'  => $sid,
+					'alternate_id' => $alias,
+				);
+				$this->Survey_alias_model->insert($options);
+			}
+		}
+	}
 
     
     //encode metadata for db storage

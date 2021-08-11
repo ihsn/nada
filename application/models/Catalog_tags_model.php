@@ -10,7 +10,8 @@ class Catalog_tags_model extends CI_Model {
         parent::__construct();
     }
 	
-	public function insert($data) {
+	public function insert($data) 
+	{
 		$result = $this->db->insert('survey_tags', $data);
 		return $result;
 	}
@@ -24,12 +25,14 @@ class Catalog_tags_model extends CI_Model {
         return $this->db->count_all_results();
 	}
 	
-	public function delete($id) {
+	public function delete($id) 
+	{
 		$this->db->where('id', $id); 
 		return $this->db->delete('survey_tags');
 	}
 	
-	public function single($id) {
+	public function single($id) 
+	{
 		$this->db->select("*");
 		$this->db->where('id', $id); 
 		return $this->db->get('survey_tags')->row_array();
@@ -41,6 +44,18 @@ class Catalog_tags_model extends CI_Model {
 	{
 		$this->db->where('sid',$sid);
 		return $this->db->get('survey_tags')->result_array();
+	}
+
+	
+	function survey_tags_list($sid)
+	{
+		$this->db->select("tag");
+		$this->db->where('sid',$sid);
+		$tags=$this->db->get('survey_tags')->result_array();
+		
+		if($tags){
+			return array_column($tags,'tag');
+		}
 	}
 
 
@@ -57,7 +72,8 @@ class Catalog_tags_model extends CI_Model {
 
 	
 	
-	public function tags_from_catelog_id($sid) {
+	public function tags_from_catelog_id($sid) 
+	{
 		$this->db->select("*");
 		$this->db->where('sid', $sid);
 		$this->db->order_by('id', 'DESC');

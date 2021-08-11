@@ -280,7 +280,9 @@ class Datasets extends MY_REST_Controller
 				'published'				=> array_get_value($input,'published'),
 				'link_study'			=> array_get_value($input,'link_study'),
 				'link_indicator'		=> array_get_value($input,'link_indicator'),
-				'thumbnail'				=> array_get_value($input,'thumbnail')
+				'thumbnail'				=> array_get_value($input,'thumbnail'),
+				'tags'					=> array_get_value($input,'tags'),
+				'aliases'				=> array_get_value($input,'aliases')
 			);
 
 			if(!empty($options['formid'])){
@@ -292,6 +294,10 @@ class Datasets extends MY_REST_Controller
 				if($value===false){
 					unset($options[$key]);
 				}
+			}
+
+			if (empty($options)){
+				throw new Exception("NO_PARAMS_PROVIDED");
 			}
 
 			//validate
@@ -316,6 +322,13 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Error $e){
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage()
