@@ -292,7 +292,7 @@ class Datasets extends MY_REST_Controller
 				'link_indicator'		=> array_get_value($input,'link_indicator'),
 				'thumbnail'				=> array_get_value($input,'thumbnail'),
 				'tags'					=> array_get_value($input,'tags'),
-				'aliases'				=> array_get_value($input,'aliases')
+				'aliases'				=> array_get_value($input,'aliases')				
 			);
 
 			if(!empty($options['formid'])){
@@ -306,12 +306,25 @@ class Datasets extends MY_REST_Controller
 				}
 			}
 
+			//linked collections
+			$linked_collections=array_get_value($input,'linked_collections');
+
+			if(is_array($linked_collections)){
+				$collection_options=array(
+					'study_idno'=>$idno,
+					'link_collections'=>$linked_collections
+				);
+
+				$this->Repository_model->update_collection_studies($collection_options);
+			}
+
+
 			if (empty($options)){
 				throw new Exception("NO_PARAMS_PROVIDED");
 			}
 
 			//validate
-			//$this->dataset_manager->validate_options($options);
+			$this->dataset_manager->validate_options($options);
 			
 			//update
 			$this->dataset_manager->update_options($sid,$options);
@@ -446,8 +459,6 @@ class Datasets extends MY_REST_Controller
 			$options['overwrite']="yes";
 						
 			$database=$this->Timeseries_db_model->get_row_by_idno($idno);
-
-			var_dump($idno,$database);
 
 			if(!$database){
 				throw new Exception("DB_NOT_FOUND: ". $database);

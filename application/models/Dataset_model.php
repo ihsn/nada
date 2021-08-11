@@ -574,6 +574,12 @@ class Dataset_model extends CI_Model {
 			}
 		}
 
+		//repositoryid
+		if(isset($options['repositoryid'])){
+			$this->set_dataset_owner_repo($sid,$options['repositoryid']);
+			unset($options['repositoryid']);
+		}
+
 		//tags
 		if(isset($options['tags'])){
 			$this->add_survey_tags($sid, $options['tags']);
@@ -585,7 +591,6 @@ class Dataset_model extends CI_Model {
 			$this->add_survey_aliases($sid,$options['aliases']);
 			unset($options['aliases']);
 		}
-
 
 		if(empty($options)){
 			return false;
@@ -1245,6 +1250,10 @@ class Dataset_model extends CI_Model {
 	//validate repository IDNO
 	public function validate_repository_idno_exists($repo_id)
 	{	
+		if (empty($repo_id)){
+			return true;
+		}
+
 		$this->load->model('Repository_model');
 
 		if (!$this->Repository_model->is_valid_repo($repo_id)) {
