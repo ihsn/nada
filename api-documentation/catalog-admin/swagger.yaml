@@ -25,7 +25,9 @@ tags:
   - name: Citations
     description: Citations represent the publications related to the datasets.
   - name: Filestore
-    description: File storage for uploading and viewing images and other document types.  
+    description: File storage for uploading and viewing images and other document types.
+  - name: Widgets
+    description: "Widgets are embeddable content such as charts, visualizations or any other content. Widgets require Bootstrap 4 with JQuery to work properly, make sure the following lines are included in Widget's HTML and set the page height in pixels e.g. &lt;body style=&quot;`height:500px`&quot;&gt;. \n\n`https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css` \n `https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js` \n `https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js`"
 x-tagGroups:
   - name: Authentication
     tags: 
@@ -407,8 +409,18 @@ paths:
         consumes:
           - application/json
         produces:
-          - application/xml
           - application/json
+        parameters:
+          - in: "path"
+            name: "offset"
+            type: numeric
+            format: numeric
+            description: "Specify the starting row number"
+          - in: "path"
+            name: "limit"
+            type: numeric
+            format: numeric  
+            description: "Specify number of rows to return. Default is 50 rows."
         responses:
           '200':
             description: successful operation

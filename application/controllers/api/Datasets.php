@@ -62,16 +62,25 @@ class Datasets extends MY_REST_Controller
 			}
 			
 			$result=$this->dataset_manager->get_all($limit,$offset);
-			array_walk($result, 'unix_date_to_gmt',array('created','changed'));				
-
+			array_walk($result, 'unix_date_to_gmt',array('created','changed'));
+			
 			$response=array(
 				'status'=>'success',
 				'total'=>$this->dataset_manager->get_total_count(),
-				'found'=>count($result),
+				'found'=>is_array($result) ? count($result) : 0,
 				'offset'=>$offset,
 				'limit'=>$limit,
+				'_links'=>array(),
 				'datasets'=>$result
-			);		
+			);
+			
+			$response['_links']=$this->pagination_links(
+				$endpoint='api/datasets',
+				$response['found'],
+				$offset,
+				$limit
+			);
+
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -82,6 +91,7 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
 
 	function index_delete($idno=null)
 	{
@@ -2295,5 +2305,27 @@ class Datasets extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
-	
+
+
+	private function pagination_links($endpoint, $found, $offset, $limit)
+	{
+		$prev_page=null;
+		$next_page=null;
+
+		if ($found>0 && $offset>0 && $offset-($limit+1) <1){
+			$prev_page=site_url($endpoint.'?offset=0&limit='.$limit);
+		}else if ($found>0 &  $offset>0){
+			$prev_page=site_url($endpoint."?offset=".($offset-($limit+1)).'&limit='.$limit);	
+		}
+
+
+		if ($found>=$limit){
+			$next_page=($found>=$limit ) ? site_url($endpoint."?offset=".($offset+$limit+1).'&limit='.$limit) : '';	
+		}
+		return array(
+			'first'=>site_url($endpoint),
+			'prev'=>$prev_page,
+			'next'=>$next_page
+		);
+	}
 }
