@@ -14,36 +14,39 @@
     font-size:smaller;
 }
 </style>
-<form method="post" id="form-data-classification" action="<?php echo site_url('/admin/catalog/update');?>">
+
+<?php echo form_open(site_url('/admin/catalog/update'), 'id="form-data-classification" ');?>
 
     <div class="row">
-    <div class="col-md-6">
-    <input type="hidden" name="sid" value="<?php echo $id;?>"/>
+    <?php if ($data_classifications_enabled!==false):?>
+        <div class="col-md-6" >
+            <input type="hidden" name="sid" value="<?php echo $id;?>"/>
 
-    <div class="form-group"> 
-        <label><?php echo t('data_classification');?></label>
-        
-        <select name="data-classification-code" id="data-classifications" class="form-control">            
-            <option value="" data-target="select-none" >- Select -</option>
-            <?php foreach($data_classifications as $class_code=>$class_row):?>
-                <option 
-                    value="<?php echo $class_row['id'];?>" 
-                    data-code="<?php echo $class_code;?>"
-                    <?php if ($class_row['id']==$data_class_id){ echo 'selected="selected"'; }?>
-                 ><?php echo t($class_row['title']);?></option>                
-            <?php endforeach;?>
-        </select>
+            <div class="form-group"> 
+                <label><?php echo t('data_classification');?></label>
+                
+                <select name="data-classification-code" id="data-classifications" class="form-control">            
+                    <option value="" data-target="select-none" >- Select -</option>
+                    <?php foreach($data_classifications as $class_code=>$class_row):?>
+                        <option 
+                            value="<?php echo $class_row['id'];?>" 
+                            data-code="<?php echo $class_code;?>"
+                            <?php if ($class_row['id']==$data_class_id){ echo 'selected="selected"'; }?>
+                        ><?php echo t($class_row['title']);?></option>                
+                    <?php endforeach;?>
+                </select>
 
-        <?php if (isset($data_class_id)):?>
-            <?php foreach($data_classifications as $data_class_row):?>
-                <?php if ($data_class_row['id']==$data_class_id) :?>
-                    <span class="info" ><?php echo  $data_class_row['title'];?></span>
+                <?php if (isset($data_class_id)):?>
+                    <?php foreach($data_classifications as $data_class_row):?>
+                        <?php if ($data_class_row['id']==$data_class_id) :?>
+                            <span class="info" ><?php echo  $data_class_row['title'];?></span>
+                        <?php endif;?>
+                    <?php endforeach;?>
                 <?php endif;?>
-            <?php endforeach;?>
-        <?php endif;?>
-    </div>
+            </div>
+        </div>
+    <?php endif;?>
 
-    </div>
     <div class="col-md-6">
         <label><?php echo t('data_access');?></label>
         <div class="data-access-container">
@@ -86,7 +89,7 @@
 
     
 
-</form>
+<?php form_close();?>
 
 
 <script>

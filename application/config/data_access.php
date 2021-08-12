@@ -25,6 +25,15 @@ $config['licensed_access']['dataset_access'] = false;
  *
  */
 
+/**
+ * 
+ * 
+ * Enable or disable data classifications
+ * 
+ */
+$config['data_classifications_enabled']=true;
+
+
 /*
 |--------------------------------------------------------------------------
 | Set licenses types allowed per data classification
@@ -42,5 +51,7 @@ $config['data_access_options'] = array(
         'data_na'
     )
 );
+
+
 
 
