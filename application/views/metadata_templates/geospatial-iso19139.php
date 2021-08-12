@@ -190,7 +190,7 @@ $output['distributionInfo']= render_group('distributionInfo',
 <?php
 $distributionInfo=array(
     render_field('array','distributionFormat', get_field_value('metadata.description.distributionInfo.distributionFormat',$metadata)),
-    render_field('array','distributor', get_field_value('metadata.description.distributionInfo.distributor',$metadata)),
+    render_field('geog_contact','distributor', get_field_value('metadata.description.distributionInfo.distributor',$metadata)),
     render_field('resources','transferOptions.onLine', get_field_value('metadata.description.distributionInfo.transferOptions.onLine',$metadata), array('exclude'=>'pic')),
 );
 

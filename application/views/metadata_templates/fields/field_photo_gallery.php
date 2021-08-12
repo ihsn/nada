@@ -10,6 +10,19 @@
 );    
 ?>
 
+
+<?php 
+//check if there is an image type resource
+$image_exists=false;
+foreach($data as $index=>$resource){
+    if (in_array($resource['extension'],array('jpg','jpeg','gif','png'))){
+        $image_exists=true;
+        break;
+    }
+}
+if (!$image_exists){return false;}
+?>
+
 <style>
 .carousel-container{
     border:1px solid gainsboro;
