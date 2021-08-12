@@ -36,7 +36,8 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 <?php echo ($this->message!="") ? '<div class="alert alert-success">'.$this->message.'</div>' : '';?>
 <?php endif;?>
 
-<form method="post" >
+
+<?php echo form_open('', 'id="form_site_configurations" name="form_site_configurations"');?>
 
 <div style="text-align:right;">
 	<input class="btn btn-primary" type="submit" value="<?php echo t('update');?>" name="submit"/>
@@ -258,7 +259,7 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	<input class="btn btn-primary" type="submit" value="<?php echo t('update');?>" name="submit"/>
 </div>
 
-</form>
+<?php echo form_close();?>
 </div>
 <script type="text/javascript">
 	function toggle_file_url(field_show,field_hide){

@@ -18,7 +18,7 @@
 ?>
 
     <h1 class="page-title mt-5 mb-5"><?php echo t('menu_reorder');?></h1>
-    <form name="menu_order_form" method="post">
+    <?php echo form_open('', 'name="menu_order_form"');?>    
         <div class="mb-3"><?php echo t('menu_reorder_instructions');?></div>
         <ul id="sortable"> 
             <?php foreach($rows as $row): ?>
@@ -30,5 +30,5 @@
         <?php echo anchor('admin/menu',t('cancel'),array('class'=>'btn btn-default') );	
         ?>
         </div>
-    </form>
+    <?php echo form_close();?>
 </div>
