@@ -1797,6 +1797,18 @@ class Catalog extends MY_Controller {
 		$data_classfications = $this->Data_classification_model->get_all();
 		$survey_row['data_classifications']=$data_classfications;
 		$survey_row['data_licenses']=$this->Form_model->get_all();
+
+		$this->config->load('data_access');
+
+		//data classifications is enabled?
+		$data_classifications_enabled=(bool)$this->config->item("data_classifications_enabled");
+		$survey_row['data_classifications_enabled']=$data_classifications_enabled;
+
+		//by default, set classifcation to PUBLIC
+		if($data_classifications_enabled==false){
+			$survey_row['data_class_id']=$data_classfications['public']['id'];
+		}
+
 		$survey_row['data_access_dropdown']=$this->da_by_class($survey_row['data_class_id'],$survey_row['formid'],'html',true);
 
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
