@@ -58,10 +58,23 @@
                     </div>
                     <div class="col">
                         <div class="study-idno">
-                            <?php echo $survey['idno'];?>
+                            <?php echo $survey['idno'];?>                            
                         </div>
                     </div>
                 </div>
+
+                <?php if (isset($survey['doi']) && !empty($survey['doi'])):?>
+                <div class="row mb-2 pb-2  border-bottom">
+                    <div class="col-md-2">
+                        <?php echo t('DOI');?>
+                    </div>
+                    <div class="col">
+                        <div class="study-idno">
+                            <?php echo 'https://doi.org/'.$survey['doi'];?>                            
+                        </div>
+                    </div>
+                </div>
+                <?php endif;?>
 		
                 <?php if (isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
                 <div class="row mb-2 pb-2  border-bottom">
