@@ -547,6 +547,13 @@ class Search_helper_model extends CI_Model {
 	 */
 	function get_active_data_classifications($repositoryid=null)
 	{
+		$this->config->load('data_access');
+		$data_classifications_enabled=(bool)$this->config->item("data_classifications_enabled");
+
+		if($data_classifications_enabled==false){
+			return false;
+		}
+		
 		$this->db->select('surveys.data_class_id as id, data_classifications.code, data_classifications.title, count(surveys.data_class_id) as found');
 		$this->db->join('data_classifications','data_classifications.id=surveys.data_class_id','inner');	
 		$this->db->where('surveys.published',1);
