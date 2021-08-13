@@ -83,6 +83,11 @@ abstract class MY_REST_Controller extends REST_Controller {
      */
     public function get_api_user_id()
 	{
+        //session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
 		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
 			return $this->_apiuser->user_id;
 		}
@@ -114,4 +119,52 @@ abstract class MY_REST_Controller extends REST_Controller {
 
 		return $json;
 	}
+
+
+
+    /**
+	 * 
+	 * 
+	 * Return ID by IDNO
+	 * 
+	 * 
+	 * @idno 		- ID | IDNO
+	 * @id_format 	- ID | IDNO
+	 * 
+	 * Note: to use ID instead of IDNO, must pass id_format in querystring
+	 * 
+	 */
+	public function get_sid_from_idno($idno=null)
+	{		
+		if(!$idno){
+			throw new Exception("IDNO-NOT-PROVIDED");
+		}
+
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			return $idno;
+		}
+
+        $this->load->library("Dataset_manager");
+		$sid=$this->dataset_manager->find_by_idno($idno);
+
+		if(!$sid){
+			throw new Exception("IDNO-NOT-FOUND");
+		}
+
+		return $sid;
+	}
+
+
+    public function early_checks()
+    {
+        //apply ip whitelisting
+        if ($this->config->item('rest_ip_whitelist_enabled') === TRUE)
+        {
+            $this->_check_whitelist_auth();
+        }
+
+    }
+
 }
