@@ -88,7 +88,7 @@ var app = new Vue({
             //dataType: 'json',
             //async: false,
             data: {
-              'doi':vm.doi_form.doi
+              'doi':vm.doi
             },
             success: function (data) {
                 alert("Updated");
