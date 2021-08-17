@@ -7,3 +7,5 @@ ALTER TABLE `api_keys` ADD UNIQUE KEY `idx_api_key_unq` (`api_key`);
 
 
 ALTER TABLE `surveys` ADD `doi` varchar(200) DEFAULT NULL;
+
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(9,'video','Video',40);

@@ -1321,6 +1321,7 @@ INSERT INTO survey_types(id,code,title, weight) VALUES(5,'table','Table',70);
 INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
 INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
 INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
+INSERT INTO survey_types(id,code,title, weight) VALUES(9,'video','Video',40);
 set IDENTITY_INSERT survey_types OFF;
 
 
