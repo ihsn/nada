@@ -41,21 +41,7 @@
         "description": {
           "type": "string",
           "description": "Description"
-        },
-        "thumbnails": {
-          "type": "object",
-          "title": "Thumbnails",
-          "description": "Video thumbnails",
-          "properties": {
-            "url": {
-              "title": "Thumbnail URL",
-              "type": "string"
-            }
-          },
-          "required": [
-            "url"
-          ]
-        },
+        },        
 
         "video_provider": {
           "type": "string",
