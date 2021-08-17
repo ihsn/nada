@@ -91,7 +91,8 @@ class Facets extends MY_REST_Controller
                 'geospatial',
                 'document',
                 'table',
-                'image'
+                'image',
+                'video'
             );
 
             $data=array();

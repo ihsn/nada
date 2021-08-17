@@ -34,7 +34,8 @@ class Facets extends MY_Controller {
 			'geospatial',
 			'document',
 			'table',
-			'image'
+			'image',
+			'video'
 		);
 		
 
@@ -63,7 +64,8 @@ class Facets extends MY_Controller {
 			'geospatial',
 			'document',
 			'table',
-			'image'
+			'image',
+			'video'
 		);
 		
 
@@ -106,7 +108,8 @@ class Facets extends MY_Controller {
 			'geospatial',
 			'document',
 			'table',
-			'image'
+			'image',
+			'video'
 		);
 		
 
