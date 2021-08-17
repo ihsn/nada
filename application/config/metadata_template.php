@@ -70,3 +70,9 @@ $config['visualization']=array(
     'template' => 'metadata_templates/visualization-template',
     'language_translations'=>'fields_visualization'
 ); 
+
+//video
+$config['video']=array(
+    'template' => 'metadata_templates/video-template',
+    'language_translations'=>'fields_video'
+); 

@@ -389,7 +389,7 @@ class Study extends MY_Controller {
 					)
 				);
 				break;
-			
+			case 'video':
 			case 'image':
 				$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(

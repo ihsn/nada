@@ -42,6 +42,7 @@ x-tagGroups:
       - Timeseries
       - Geospatial
       - Images
+      - Videos
       - Documents
       - Tables
       - Visualizations
@@ -825,6 +826,30 @@ paths:
               $ref: 'image-schema.json'
         security:
           - ApiKeyAuth: []
+  /datasets/create/video:
+      post:
+        tags:
+          - Videos
+        summary: Create Vidoe
+        description: Create a new Video
+        operationId: createVideo
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'video-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'video-schema.json'
+        security:
+          - ApiKeyAuth: []        
   /datasets/create/document/{IDNo}:
       post:
         tags:

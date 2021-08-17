@@ -9,6 +9,7 @@ class Dataset_manager{
         'timeseries'=>'timeseries',
         'document'=>'document',
         'image'=>'image',
+        'video'=>'video',
         'table'=>'table',
         'script'=>'script',
         'visualization'=>'visualization'
@@ -27,6 +28,7 @@ class Dataset_manager{
         $this->ci->load->model("Dataset_script_model");
         $this->ci->load->model("Dataset_table_model");
         $this->ci->load->model("Dataset_visualization_model");
+        $this->ci->load->model("Dataset_video_model");
         $this->ci->load->helper("Array");
     }
 

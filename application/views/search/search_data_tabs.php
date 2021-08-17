@@ -16,6 +16,7 @@
             'visualization'=>'<i class="fa fa-pie-chart" aria-hidden="true"></i>',            
             'script'=>'<i class="fa fa-file-code-o" aria-hidden="true"></i>',
             'image'=>'<i class="fa fa-camera" aria-hidden="true"></i>',
+            'video'=>'<i class="fa fa-video-camera" aria-hidden="true"></i>'            
         );
     ?>
 

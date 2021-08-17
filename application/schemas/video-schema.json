@@ -1,0 +1,141 @@
+{
+  "$id": "http://ihsn.org/schemas/video",
+  "id": "http://ihsn.org/schemas/video",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Video schema",
+  "type": "object",
+  "properties": {
+    "repositoryid": {
+      "type": "string",
+      "title": "Collection ID that owns the document",
+      "description": "Abbreviation for the collection that owns the document"
+    },
+    "published": {
+      "type": "integer",
+      "title": "Status",
+      "description": "Status  - 0=draft, 1=published",
+      "default": 0
+    },
+    "overwrite": {
+      "type": "string",
+      "description": "Overwrite document if already exists?",
+      "enum": [
+        "yes",
+        "no"
+      ],
+      "default": "no"
+    },
+    "video_description": {
+      "type": "object",
+      "title": "Video metadata information",
+      "description": "Video description",
+      "properties": {
+        "idno": {
+          "type": "string",
+          "title": "Unique video identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "thumbnails": {
+          "type": "object",
+          "title": "Thumbnails",
+          "description": "Video thumbnails",
+          "properties": {
+            "url": {
+              "title": "Thumbnail URL",
+              "type": "string"
+            }
+          },
+          "required": [
+            "url"
+          ]
+        },
+
+        "video_provider": {
+          "type": "string",
+          "description": "Video provider e.g.  youtube, vimeo, facebook"
+        },
+
+        "video_url": {
+          "type": "string",
+          "description": "Video URL"
+        },
+
+        "embed_url": {
+          "type": "string",
+          "description": "Video embed URL"
+        },
+        
+        "country": {
+          "type": "string",
+          "description": "Country"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language"
+        },
+        "contributor": {
+          "type": "string",
+          "description": "Contributor"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher"
+        },
+        "rights": {
+          "type": "string",
+          "description": "Rights"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author"
+        },
+        "date_created": {
+          "type": "string",
+          "description": "Date of creation (YYYY-MM-DD)"
+        },
+        "date_published": {
+          "type": "string",
+          "description": "Date published (YYYY-MM-DD)"
+        }
+      },
+      "required": [
+        "idno","title"
+      ]
+    },
+
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tag"
+      ]
+    },
+
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
+    }
+
+  },
+  "required": [
+    "video_description"
+  ]
+}

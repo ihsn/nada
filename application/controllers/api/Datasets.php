@@ -612,7 +612,7 @@ class Datasets extends MY_REST_Controller
         	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
-			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='timeseries'){
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries'){
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{

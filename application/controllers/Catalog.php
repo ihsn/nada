@@ -629,6 +629,7 @@ class Catalog extends MY_Controller {
 
 		switch($type){
 			case 'image':
+			case 'video':
 			case 'visualization':
 			case 'document':
 			case 'script':

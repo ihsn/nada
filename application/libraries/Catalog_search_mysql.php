@@ -282,11 +282,11 @@ class Catalog_search_mysql{
 		$this->total_surveys=$query_total_surveys['rowcount'];		
 
 		//combine into one array
-		$result['rows']=$this->search_result;
 		$result['found']=$this->search_found_rows;
 		$result['total']=$this->total_surveys;
 		$result['limit']=$limit;
 		$result['offset']=$offset;
+		$result['rows']=$this->search_result;		
 		$result['citations']=$this->get_survey_citation();
 		//$result['search_counts_by_type']=null;
 		$result['search_counts_by_type']=$this->search_counts_by_type();
@@ -309,8 +309,6 @@ class Catalog_search_mysql{
 			}
 
 			$result['rows']=$this->search_result;
-
-
 		}
 
 		return $result;
