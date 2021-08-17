@@ -225,6 +225,7 @@ $lang['tab_table']="Tables";
 $lang['tab_timeseries']="Time series";
 $lang['tab_visualization']="Visualizations";
 $lang['tab_survey']="Microdata";
+$lang['tab_video']="Videos";
 
 $lang['from']="From";
 $lang['to']="To";
