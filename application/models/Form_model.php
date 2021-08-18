@@ -152,4 +152,35 @@ class Form_model extends CI_Model {
 		return false;
 	}
 
+
+	/**
+	 * 
+	 * Convert data access name to ID
+	 * 
+	 */
+	function map_name_to_id($dtypes)
+	{
+		if(empty($dtypes)){
+			return false;
+		}
+
+		if(!is_array($dtypes)){
+			$dtypes=explode(",",$dtypes);
+		}
+
+		$data_types=$this->get_all();
+		$data_types_list=array();
+		foreach($data_types as $type){
+			$data_types_list[$type['model']]=$type['formid'];
+		}
+
+		$output=array();
+
+		foreach($dtypes as $type){
+			$output[]=isset($data_types_list[$type]) ? $data_types_list[$type] : '-1';
+		}
+
+		return $output;
+	}
+
 }
