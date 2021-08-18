@@ -169,8 +169,8 @@ class Catalog extends MY_REST_Controller
 			'sort_by'			=> $search_options->sort_by,
 			'sort_order'		=> $search_options->sort_order,
 			//'repo'=>$search_options->filter->repo,
-			'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
-			'dtype'				=> $search_options->dtype,
+			'repo'				=> $this->security->xss_clean($this->input->get("repo")),
+			'dtype'				=> $this->Form_model->map_name_to_id($search_options->dtype),
 			'sid'				=> $search_options->sid,
 			'type'				=> $search_options->type,
 			'country_iso3'		=> $search_options->country_iso3,
@@ -511,42 +511,6 @@ class Catalog extends MY_REST_Controller
 	}
 
 	
-	
-	/**
-	 * 
-	 * 
-	 * Return ID by IDNO
-	 * 
-	 * 
-	 * @idno 		- ID | IDNO
-	 * @id_format 	- ID | IDNO
-	 * 
-	 * Note: to use ID instead of IDNO, must pass id_format in querystring
-	 * 
-	 */
-	private function get_sid_from_idno($idno=null)
-	{		
-		if(!$idno){
-			throw new Exception("IDNO-NOT-PROVIDED");
-		}
-
-		$id_format=$this->input->get("id_format");
-
-		if ($id_format=='id'){
-			if(!is_numeric($idno)){
-				throw new Exception("INVALID-IDNO-FORMAT");
-			}
-			return $idno;
-		}
-
-		$sid=$this->dataset_manager->find_by_idno($idno);
-
-		if(!$sid){
-			throw new Exception("IDNO-NOT-FOUND");
-		}
-
-		return $sid;
-	}
 
 	/**
 	 * 
