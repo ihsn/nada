@@ -830,7 +830,7 @@ paths:
       post:
         tags:
           - Videos
-        summary: Create Vidoe
+        summary: Create Video
         description: Create a new Video
         operationId: createVideo
         consumes:
