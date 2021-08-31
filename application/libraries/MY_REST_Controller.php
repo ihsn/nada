@@ -72,6 +72,11 @@ abstract class MY_REST_Controller extends REST_Controller {
 			return $this->ion_auth->get_user($this->_apiuser->user_id);
 		}
 
+        //session user id
+		if ($this->session->userdata('user_id')){
+			return $this->ion_auth->get_user($this->session->userdata('user_id'));
+		}
+
 		return false;
     }
 
