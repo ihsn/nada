@@ -28,7 +28,9 @@ class Catalog_admin_search_model extends CI_Model {
 					'link_da',
 					'published',
 					'surveys.created',
-					'changed'
+					'changed',
+					'surveys.created_by',
+					'surveys.changed_by'
 					);
 	
 	//additional filters on search
@@ -76,12 +78,18 @@ class Catalog_admin_search_model extends CI_Model {
 		
 		//$this->db->start_cache();		
 		
+
+		$this->study_fields[]='users.username as created_by_user';
+
 		//survey fields
 		$this->db->select(implode(",", $this->study_fields));
 		
 		//form fields
 		$this->db->select('forms.model as form_model');
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+
+		//user info
+		$this->db->join('users', 'users.id= surveys.created_by','left');
 		
 		if ($this->active_repo!=NULL && $this->active_repo!='central') 
 		{

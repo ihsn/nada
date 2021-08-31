@@ -64,6 +64,14 @@ $site_navigation_menu=get_site_menu();
         top: 0;
         left: 100%;
       }
+      .dropdown-submenu ul{
+        max-height:550px;
+        overflow-y: scroll;
+      }
+
+      .dropdown-submenu ul li > a{
+        border-bottom:1px solid gainsboro;
+      }
 
       .dropdown-menu > li > a {
           display: block;

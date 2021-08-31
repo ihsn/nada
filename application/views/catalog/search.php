@@ -175,9 +175,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             
                         </div>
                         
-                        
-                        
-                        
                         <div class="links">
                         
                         <span style="float:left;">
@@ -185,6 +182,11 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             <span class="date-changed">
                                 <?php echo t('modified_on')?>:    
                                 <?php echo date($this->config->item('date_format'), $row['changed']); ?>
+                            </span>
+
+                            <span class="date-changed pl-2">
+                                <?php echo t('Created by')?>:    
+                                <?php echo ucwords($row['created_by_user']); ?>
                             </span>
                         </span>
 

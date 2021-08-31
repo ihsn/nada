@@ -1424,7 +1424,7 @@ class Catalog extends MY_Controller {
 		if ($result)
 		{
 			$this->output->set_content_type('application/json');
-			$this->set_output(json_encode(array('success'=>"updated")));
+			$this->output->set_output(json_encode(array('success'=>"updated")));
 			return TRUE;
 		}
 
