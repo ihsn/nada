@@ -160,6 +160,7 @@ $lang['metadata.study_desc.method.data_collection.data_collectors.name']='Name';
 $lang['metadata.study_desc.method.data_collection.data_collectors.abbr']='Abbreviation';
 $lang['metadata.study_desc.method.data_collection.data_collectors.abbreviation']='Abbreviation';
 $lang['metadata.study_desc.method.data_collection.data_collectors.affiliation']='Affiliation';
+$lang['metadata.study_desc.method.data_collection.data_collectors.role']='Role';
 $lang['metadata.study_desc.method.data_collection.collector_training']='Collector training';
 $lang['metadata.study_desc.method.data_collection.collector_training.type']='Response Rate';
 $lang['metadata.study_desc.method.data_collection.collector_training.training']='Training';
