@@ -592,7 +592,8 @@ class Resource_model extends CI_Model {
 	*/
 	function get_resources_by_type($surveyid,$dctype)
 	{
-		$this->db->select('*');
+		$this->db->select('resources.*,surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
 		$this->db->where('survey_id',$surveyid);
 		
 		if ($dctype=='other')
@@ -934,7 +935,7 @@ class Resource_model extends CI_Model {
 	 * Add download links for resources
 	 * 
 	 */
-	function generate_api_download_link($resources,$idno)
+	function generate_api_download_link($resources)
 	{
 		foreach($resources as $idx => $resource){
 			if($this->form_validation->valid_url($resource['filename'])){
@@ -945,7 +946,7 @@ class Resource_model extends CI_Model {
 			}else{
 				if(!empty($resource['filename'])){
 					$resources[$idx]['_links']=array(
-						'download'=> site_url("api/catalog/{$idno}/resources/{$resource['resource_id']}/".$resource['resource_id'].'/'.rawurlencode($resource['filename'])),
+						'download'=> site_url("api/resources/download/{$resource['survey_id']}/{$resource['resource_id']}/".rawurlencode($resource['filename']).'?id_format=id'),
 						'type'=>'download'
 					);
 				}
