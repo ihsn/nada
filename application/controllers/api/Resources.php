@@ -45,13 +45,12 @@ class Resources extends MY_REST_Controller
 			}
 			
 			$sid=$this->get_sid_from_idno($idno);
-
 			$dctype=$this->input->get("dctype");
-
-			$resources=$this->Resource_model->get_resources_by_type($sid,$dctype);
+			$resources=$this->Survey_resource_model->get_resources_by_type($sid,$dctype);
+			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
 
 			if($resources){
-				$resources=$this->Resource_model->generate_api_download_link($resources,$idno);
+				$resources=$this->Survey_resource_model->generate_api_download_link($resources);
 			}
 
 			$response=array(
@@ -85,9 +84,16 @@ class Resources extends MY_REST_Controller
 			
 			if(!$resource){
 				throw new Exception("RESOURCE_NOT_FOUND");
-			}	
+			}
+						
+			$resources=$this->Resource_model->generate_api_download_link(array($resource));
 			
-			$this->set_response($resource, REST_Controller::HTTP_OK);			
+			$response=array(
+				'status'	=> 'success',
+				'resources'	=> $resources
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -364,26 +370,33 @@ class Resources extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
-			$user_id=$this->get_api_user_id();
+			$user=$this->api_user();
+
+			if(!$user){
+				throw new Exception("USER_NOT_LOGGEDIN");
+			}
 
 			if(!$resource_id){
 				throw new Exception("PARAM_NOT_SET: resource_id");
 			}
 
 			$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
-			
+
 			if(!$resource){
 				throw new Exception("RESOURCE_NOT_FOUND");
-			}			
+			}
+			
+			$allow_download=$this->Survey_resource_model->user_has_download_access($user->id,$sid,$resource, $skip_puf=true);
 
-			$allow_download=$this->Survey_resource_model->user_has_download_access($user_id,$sid,$resource);
-
-			if($allow_download!==true){
+			if($allow_download===false){
 				throw new Exception("You don't have permissions to access the file.");
 			}
 
-			$resource_filename=$this->Survey_resource_model->get_resource_filename($resource_id);
-			return $this->Survey_resource_model->download_file($sid,base64_encode($resource_filename));	
+			//$resource_filename=$this->Survey_resource_model->get_resource_filename($resource_id);
+			//return $this->Survey_resource_model->download_file($sid,base64_encode($resource_filename));	
+
+			$this->Survey_resource_model->download($user,$sid,$resource_id);
+			die();
 		}
 		catch(Exception $e){
 			$output=array(
@@ -394,27 +407,6 @@ class Resources extends MY_REST_Controller
 		}
 	}
 
-
-	private function get_sid_from_idno($idno=null)
-	{		
-		if(!$idno){
-			throw new Exception("IDNO-NOT-PROVIDED");
-		}
-
-		$id_format=$this->input->get("id_format");
-
-		if ($id_format=='id'){
-			return $idno;
-		}
-
-		$sid=$this->dataset_manager->find_by_idno($idno);
-
-		if(!$sid){
-			throw new Exception("IDNO-NOT-FOUND");
-		}
-
-		return $sid;
-	}
 
 
 	/**
@@ -476,6 +468,5 @@ class Resources extends MY_REST_Controller
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}	
-	}
-	
+	}	
 }

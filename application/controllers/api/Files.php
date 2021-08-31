@@ -145,19 +145,4 @@ class Files extends MY_REST_Controller
 	}
 
 	
-	private function get_sid_from_idno($idno=null)
-	{
-		if(!$idno){
-			throw new Exception("IDNO-NOT-PROVIDED");
-		}
-
-		$sid=$this->Dataset_model->find_by_idno($idno);
-
-		if(!$sid){
-			throw new Exception("IDNO-NOT-FOUND");
-		}
-
-		return $sid;
-	}
-	
 }
