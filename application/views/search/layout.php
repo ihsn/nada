@@ -177,10 +177,10 @@ h5{margin:0px;}
 
 <div class="container">
 <form method="get" id="catalog-search-form">    
-    <input type="hidden" name="tab_type" id="tab_type" value="<?php echo $search_options->tab_type;?>"/>
+    <input type="hidden" name="tab_type" id="tab_type" value="<?php echo form_prep($search_options->tab_type);?>"/>
     <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
     <input type="hidden" name="view" id="view" value="<?php echo $search_options->view;?>"/>
-    <input type="hidden" name="image_view" id="image_view" value="<?php echo $search_options->image_view;?>"/>
+    <input type="hidden" name="image_view" id="image_view" value="<?php echo form_prep($search_options->image_view);?>"/>
 
     <?php if($search_box_orientation!=='inline'):?>
         <!--search bar-->
