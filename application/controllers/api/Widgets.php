@@ -261,26 +261,4 @@ class Widgets extends MY_REST_Controller
 		}	
     }
 
-
-	private function get_sid_from_idno($idno=null)
-	{		
-		if(!$idno){
-			throw new Exception("IDNO-NOT-PROVIDED");
-		}
-
-		$id_format=$this->input->get("id_format");
-
-		if ($id_format=='id'){
-			return $idno;
-		}
-
-		$sid=$this->dataset_manager->find_by_idno($idno);
-
-		if(!$sid){
-			throw new Exception("IDNO-NOT-FOUND");
-		}
-
-		return $sid;
-	}
-
 }	
