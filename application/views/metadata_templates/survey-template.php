@@ -108,15 +108,15 @@
 <?php $output['data_collection']= render_group('data_collection',
     $fields=array(
             "metadata.study_desc.study_info.coll_dates"=>'array',
-            "metadata.study_desc.study_info.method.data_collection.frequency"=>'text',
+            "metadata.study_desc.method.data_collection.frequency"=>'text',
             "metadata.study_desc.study_info.time_periods"=>'array',
-            "metadata.study_desc.study_info.method.data_collection.sources.data_source"=>'array_list',
-            "metadata.study_desc.study_info.method.data_collection.sources.source_origin"=>'text',
-            "metadata.study_desc.study_info.method.data_collection.coll_mode"=>'text',
-            "metadata.study_desc.study_info.method.data_collection.act_min"=>'text',
-            "metadata.study_desc.study_info.method.data_collection.coll_situation"=>'text',            
+            "metadata.study_desc.method.data_collection.sources.data_source"=>'array_list',
+            "metadata.study_desc.method.data_collection.sources.source_origin"=>'text',
+            "metadata.study_desc.method.data_collection.coll_mode"=>'text',
+            "metadata.study_desc.method.data_collection.act_min"=>'text',
+            "metadata.study_desc.method.data_collection.coll_situation"=>'text',            
             //"metadata.study_desc.method.data_collection.research_instrument"=>'text',
-            "metadata.study_desc.study_info.method.data_collection.data_collectors"=>'array',
+            "metadata.study_desc.method.data_collection.data_collectors"=>'array',
             ),
     $metadata);
 ?>
@@ -125,7 +125,7 @@
 <!-- questionnaires -->
 <?php $output['questionnaires']= render_group('questionnaires',
     $fields=array(
-            "metadata.study_desc.study_info.method.data_collection.research_instrument"=>'text',
+            "metadata.study_desc.method.data_collection.research_instrument"=>'text',
             ),
     $metadata);
 ?>
@@ -134,8 +134,8 @@
 <!-- data_processing -->
 <?php $output['data_processing']= render_group('data_processing',
     $fields=array(
-            "metadata.study_desc.study_info.method.data_collection.cleaning_operations"=>'text',
-            "metadata.study_desc.study_info.method.method_notes"=>'text'
+            "metadata.study_desc.method.data_collection.cleaning_operations"=>'text',
+            "metadata.study_desc.method.method_notes"=>'text'
             ),
     $metadata);
 ?>
@@ -144,8 +144,8 @@
 <!-- data_appraisal -->
 <?php $output['data_appraisal']= render_group('data_appraisal',
     $fields=array(
-        "metadata.study_desc.study_info.method.analysis_info.sampling_error_estimates"=>'text',    
-        "metadata.study_desc.study_info.method.analysis_info.data_appraisal"=>'text'
+        "metadata.study_desc.method.analysis_info.sampling_error_estimates"=>'text',    
+        "metadata.study_desc.method.analysis_info.data_appraisal"=>'text'
             ),
     $metadata);
 ?>
