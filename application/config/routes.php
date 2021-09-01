@@ -165,6 +165,9 @@ $route['catalog/(:num)/get-microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/get_microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/related_materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/related-materials'] = "study/related_materials/$1";
+$route['catalog/(:num)/downloads'] = "study/downloads/$1";
+$route['catalog/(:num)/request-access'] = "study/request_access/$1";
+$route['catalog/(:num)/request-access/(.*)'] = "study/request_access/$1";
 $route['catalog/(:num)/related-datasets'] = "study/related_datasets/$1";
 $route['catalog/(:num)/pdf-documentation'] = "study/pdf_documentation/$1";
 
