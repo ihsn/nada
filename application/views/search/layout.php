@@ -1,5 +1,5 @@
 <style>
- .breadcrumb{display:none;}
+ /* .breadcrumb{display:none;} */
  .search-nav-tabs .nav-item .active{   
     background-color: transparent;
     border:0px;
@@ -25,11 +25,12 @@
 
 .clear-search-button {
     position: absolute;
-    right: 100px;
-    top: 9px;
-    z-index:999;
-    display:none;
+    right: 140px;
+    top: 17px;
+    z-index: 999;
+    display: none;
 }
+
 
 .nav-tabs-auto-overflow {
   overflow-x: auto;
@@ -173,6 +174,24 @@ h5{margin:0px;}
     width: 100%;
 }
 
+.clear-disabled{display:none}
+
+
+.survey-row .icon-da-sm{
+    width:14px;
+    height:14px;
+    background-size:12px;
+}
+
+.btn-data-access{
+    font-size:small;
+    padding:0.12rem .5rem !important
+}
+
+.entry-flags .badge{
+    font-weight:normal;
+}
+
 </style>
 
 <div class="container">
@@ -245,64 +264,37 @@ h5{margin:0px;}
 
 </div>
 
-<style>
-.var-box{
-    border: 1px solid gray;
-    padding: 5px;
-    margin-right: 15px;
-    margin-bottom:15px;
-    background:#6c757d;
-    position:relative;
-    font-size:12px;
-    display:block;
-    float:left;
-    width:160px;
-    height:45px;    
-}
-.var-box .fa{
-    font-size:18px;
-    color:#dee2e6;
-}
-.var-box .faclose{
-    position:absolute;
-    top:-9px;
-    right:-6px;
-    font-size:12px;
-    z-index:1;
-}
-
-.variable-comparison-popup .var-name{
-    text-transform:uppercase;
-}
-</style>
-
-
 
 <!-- variable comparison -->
-<div class="fixed-bottom variable-comparison-popup" style="background: rgba(0, 0, 0, 0.87); color:white;">
+<div class="variable-comparison-popup-backdrop wb-collapsed"></div>
+<div class="fixed-bottom variable-comparison-popup wb-collapsed">
 
-<div class="container pt-2 mt-4 mb-3 d-none d-md-block" >
-       <div class="row">
-           <div class="col-2">
-               <div class="align-middle mt-2"><?php echo t("Compare variables");?></div>
+    <div class="container pt-2 mt-4 mb-3 d-none d-md-block" >
+       <div class="row wb-var-panel">
+           <div class="col-12 wb-var-title">
+               <div class="align-middle mt-2">
+                   <?php echo t("Compare variables");?></div>
+               <div>
+                    <i class="fa fa-angle-up wb-var-handler-up"></i>
+                    <i class="fa fa-angle-down wb-var-handler-down"></i>
+               </div>
             </div>
-            <div class="col var-list">
+            <div class="col-12 var-list wb-var-body">
 
                 <!--<span class="var-box">
                 <i class="fa fa-address-card" aria-hidden="true"></i>
                 <i class="fa fa-window-close faclose var-remove" aria-hidden="true"></i>
                 </span>-->
-
+    
             </div>
-           <div class="col-2">
+           <div class="col-12 wb-var-actions">
                <div class="align-middle mt-2"> 
-                   <a target="_blank" class="btn btn-primary btn-sm rounded" href="<?php echo site_url('catalog/compare');?>"><?php echo t("Compare");?></a>
-                   <button class="btn btn-link btn-sm rounded clear-variables"><?php echo t("Clear");?></button>
+                    <button class="btn btn-link btn-sm rounded clear-variables"><?php echo t("Clear");?></button>
+                    <a target="_blank" class="btn btn-primary btn-sm rounded" href="<?php echo site_url('catalog/compare');?>"><?php echo t("Compare");?></a>                   
                 </div>
            </div>
        </div>
-</div>
-
+    </div>
 </div>
 <!-- end variable comparison -->
 
@@ -338,6 +330,10 @@ var i18n=
     'js_compare_variable_max_limit':"<?php echo t('You have selected the maximum variables to compare');?>",
     'selected':"<?php echo t('selected');?>"
 };
+
+    $(".variable-comparison-popup .wb-var-title" ).click(function() {
+        $(".variable-comparison-popup" ).toggleClass("wb-collapsed");
+    });
 
     //cookie helper functions
     //source: http://www.quirksmode.org/js/cookies.html
@@ -461,9 +457,12 @@ var i18n=
     function compare_variable_popup_update(){
 
         vars=get_selected_variables();
+        $(".variable-comparison-popup").addClass("wb-updating");
+        setTimeout(function() { 
+            $(".variable-comparison-popup").removeClass("wb-updating");
+        }, 1000);
         
         $(".variable-comparison-popup .var-list").html("Loading...");
-
         
         $.get(CI.base_url + '/catalog/variable_cart', function(data) {
             console.log(data);
@@ -494,9 +493,9 @@ var i18n=
 
                 var html =`<div class="var-box" id="var-${row['sid']}__data['vid']" data-value="${row['sid']}/${row['vid']}">
                     <!--<a target="_blank" href="${url}"><i class="fa fa-address-card" aria-hidden="true"></i></a>-->
-                    <a class="text-white font-weight-bold var-name" target="_blank" href="${row['sid']}">${row['name']}</a>
-                    <div class="text-light">${row['idno']}</div>
-                    <i class="fa fa-window-close faclose var-remove" aria-hidden="true" data-value="${row['sid']}/${row['vid']}"></i>
+                    <a class="text-white font-weight-bold var-name dlg link" target="_blank" data-url="${url}" href="${url}">${row['name']}</a>
+                    <div class="text-light var-description">${row['idno']}</div>
+                    <i class="fa fa-times faclose var-remove" aria-hidden="true" data-value="${row['sid']}/${row['vid']}"></i>
                 </div>`;
 
                 $(".variable-comparison-popup .var-list").append(html);
@@ -542,6 +541,42 @@ var i18n=
     $(document).ready(function(){
         compare_variable_popup_update();
         compare_variable_popup_toggle();
+    });
+
+    function toggle_clear(el){
+
+        console.log($(el).closest(".items-container").find(".chk:checked").length);
+
+        if ($(el).closest(".items-container").find(".chk:checked").length >0){
+            $(el).closest(".sidebar-filter").find(".clear-button-container").removeClass("clear-disabled").addClass("clear-enabled");
+            $(el).closest(".sidebar-filter").find(".clear-button-container").find(".selected-items").text($(el).closest(".items-container").find(".chk:checked").length);
+        }else{
+            $(el).closest(".sidebar-filter").find(".clear-button-container").removeClass("clear-enabled").addClass("clear-disabled");
+        }
+    }
+    
+    function init_facet_stats(el){    
+        let selected_items=$(el).find(".items-container").find(".chk:checked").length;
+        let total_items=$(el).find(".items-container").find(".chk").length;
+
+        if (selected_items >0){
+            $(el).closest(".sidebar-filter").find(".clear-button-container").removeClass("clear-disabled").addClass("clear-enabled");
+            $(el).closest(".sidebar-filter").find(".clear-button-container").find(".selected-items").text(selected_items);
+            $(el).closest(".sidebar-filter").find(".clear-button-container").find(".total-items").text(total_items);
+        }else{
+            $(el).closest(".sidebar-filter").find(".clear-button-container").removeClass("clear-enabled").addClass("clear-disabled");
+        }
+    }
+
+    //toggle checkboxes on page load
+    function refresh_facet_options(){
+        jQuery.each($(".sidebar-filter"), function( i, el ) {
+            init_facet_stats($(el));
+        });     
+    }
+
+    $(function() {
+        refresh_facet_options();
     });
 
     
@@ -621,7 +656,7 @@ $(document).ready(function() {
             if (elements.prop("type")=='checkbox'){
                 named_el=$("[name='" + name + "'][value='"+value+"']");
                 console.log(named_el);
-                named_el.prop("checked",false);
+                named_el.trigger('click');
                 console.log(named_el);
             }
             else if(elements.prop("type")=='text' || elements.prop("tagName").toLowerCase()=='select'){
@@ -713,13 +748,15 @@ $(document).ready(function() {
 
     //check/select filter
     $(document.body).on("change",".filters-container .chk, .filters-container select", function(){        
-        change_state();  
+        change_state();
+        toggle_clear(this);
     });
 
     //clear filter
     $(document.body).on("click",".filters-container .lnk-filter-reset", function(){        
-        $(this).closest(".items-container").find(".chk").prop("checked",false);
+        $(this).closest(".filter-box").find(".chk").prop("checked",false);
         change_state();
+        toggle_clear(this);
     });
     
     $(document.body).on("keypress",".search-keywords", function(e){    
@@ -831,6 +868,13 @@ $(document).ready(function() {
             window.simple_dialog("dialog_id",$(vrow).attr("data-title"),$(vrow).attr("data-url"));return false;
         }
     });
+
+    //variable info for compare variable
+    $(document.body).on("click",".var-box .var-name", function(event){        
+        event.stopPropagation();
+        window.simple_dialog("dialog_id",$(this).text(),$(this).attr("href"));return false;
+    });
+
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////

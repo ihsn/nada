@@ -34,14 +34,16 @@
         
         <div class="filter-action-bar row">
                 <?php if($found>0):?>
-                <div class="search-count font-weight-bold col"><?php echo number_format($found). ' '. t('results');?></div>
-                <div class="col mt-1">
+                <div class="search-count mt-1 font-weight-bold col">
+                    <?php echo number_format($found). ' '. t('results');?>
+                </div>
+                <div class="col mt-1 wb-search-toggle">
                     <div class="btn-group btn-group-toggle study-view-toggle" >
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-left toggle_view" data-value="s" ><a href="<?php echo site_url('catalog?'.$study_view);?>"><?php echo t('Study view');?></a></button>
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-right active toggle_view" data-value="v"><?php echo t('Variable view');?></button>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col mt-1 wb-search-sort">
                     <div class="form-inline float-right ">
                         <label for="sort-by-select" class="sort-by-label">
                             <span class="sort-by-title d-none d-sm-block"></span>
@@ -56,8 +58,9 @@
                                 <option value="country" data-sort="desc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>>Country (Z-A)</option>                           
                             </select>
                         </label>
-                        <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm ml-2 mr-2 d-none d-sm-block"><i class="fa fa-print"></i></a>
-                        <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm d-none d-sm-block"><i class="fa fa-file-excel-o"></i></a>
+                        <!-- Take out the print icon -->
+                        <!-- <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm ml-2 mr-2 d-none d-sm-block"><i class="fa fa-print"></i></a> -->
+                        <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-primary btn-sm d-none d-sm-block ml-2"><i class="fas fa-file-export"></i> Export</a>  
                     </div>
                 </div>                  
                 <?php endif;?>
@@ -70,7 +73,7 @@
     <?php if (!empty(trim($active_filters))):?>
         <div class="active-filters">
             <?php echo $active_filters;?>
-            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-primary btn-sm">Reset search</a>
+            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-danger btn-sm">Reset search</a>
         </div>        
     <?php endif;?>
 </div>    

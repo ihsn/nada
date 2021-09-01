@@ -64,21 +64,6 @@
 <input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
 <input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id);?>"/>
-
-    
-<?php 
-    $type_icons=array(
-        'survey'=>'fa-database',
-        'microdata'=>'fa-database',
-        'geospatial'=>'fa-globe',
-        'timeseries'=>'fa-clock-o',
-        'document'=>'fa-file-text-o',
-        'table'=>'fa-table',
-        'visualization'=>'fa-pie-chart',
-        'script'=>'fa-file-code-o',
-        'image'=>'fa-camera',
-    );
-?>
     
 <div id="variables">
     <span class="result-types-summary">
@@ -89,13 +74,11 @@
 
 
     <div class="variable-list-container variable-search">
-            <table class="table table-striped table-hover grid-table variable-list">
-                <thead>
-                <th><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></th>
-                <th><?php echo t('name');?></th>
-                <th><?php echo t('label');?></th>
-                </thead>
-                <tbody>
+            <div class="table-hover grid-table variable-list">
+                
+                <div><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></div>
+
+                <div class="variables-container border-top">
                 <?php foreach($variables['rows'] as $row):?>
                     <?php
                     $compare='';
@@ -107,35 +90,36 @@
                     $var_country_info=array_filter(array($row['nation'], $row['idno']));
                     $var_country_info=implode(" - ", $var_country_info);
                     ?>
-                    <tr  class="vrow" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
-                        <td title="<?php echo t('mark_for_variable_comparison');?>">
+                    <div class="row vrow pb-2 mb-2 border-bottom" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
+                        <div class="col-md-1" title="<?php echo t('mark_for_variable_comparison');?>">
                             <input type="checkbox" class="nada-form-check-input compare" value="<?php echo $row['sid'].'/'
                                 .$row['vid']
                             ?>" <?php echo $compare; ?>/>
-                        </td>
-						<td>
-							<?php echo anchor('catalog/'.$row['sid'].'/variable/'.$row['vid'],$row['name'],array('target'=>'blank_','class'=>'dlg link','title'=>t('variable_info')));?>							
-						</td>
-                        <td>
-                            <div class="labl" ><?php echo ($row['labl']!=='') ? $row['labl'] : $row['name']; ?></div>
-                            <div class="qstn" ><?php echo ($row['qstn']!=='') ? $row['qstn'] : 'n/a'; ?></div>
-                            <div class="var-subtitle var-study-link">
-                                <div><?php echo $var_country_info; ?></div>
-                                <a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo $row['title']; ?> <i class="fa fa-external-link" aria-hidden="true"></i></a>
+                        </div>
+						<div class="col">
+                            <?php $title=array_unique(array_filter(array($row['name'],$row['labl'])));?>
+                            <?php $title=implode(" - ", $title);?>
+                            <div class="title font-weight-bold">
+                                <a href="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']);?>" target="_blank" class="dlg link" title="<?php t('variable_info');?>"><?php echo $title;?></a>
                             </div>
-                        </td>
-                    </tr>
+                            <div class="qstn" ><?php echo ($row['qstn']!=='') ? $row['qstn'] : 'n/a'; ?></div>
+                            <div class="var-subtitle var-study-link mt-2">
+                                <a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo $row['title']; ?> <i class="fa fa-external-link" aria-hidden="true"></i></a>
+                                <div><?php echo $var_country_info; ?></div>
+                            </div>
+                        </div>
+                    </div>
                 <?php endforeach;?>
 
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
 
 
 </div>
     <div class="nada-pagination border-top-none">
         <div class="row mt-3 mb-3 d-flex align-items-lg-center">
-            <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
+            <div class="col-12 col-md-5 col-lg-5 text-center text-md-left mb-2 mb-md-0">
                 <?php echo sprintf(t('showing_variables'),
                     (($variables['limit']*$current_page)-$variables['limit']+1),
                     ($variables['limit']*($current_page-1))+ count($variables['rows']),
@@ -143,7 +127,7 @@
                 ?>
             </div>
 
-            <div class="col-12 col-md-9 col-lg-8 d-flex justify-content-center justify-content-lg-end text-center">
+            <div class="col-12 col-md-8 col-lg-7 d-flex justify-content-center justify-content-lg-end text-center">
                 <nav aria-label="Page navigation">
                     <?php
                     $catalog_url='catalog';

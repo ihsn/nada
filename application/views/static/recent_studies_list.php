@@ -2,6 +2,7 @@
     .recent-studies-list-home h5 {
         margin-bottom:0px;
     }
+    .survey-row{padding-bottom:0px;}
 </style>
 <h3><?php echo t('latest_additions');?></h3>
 <?php
@@ -15,7 +16,7 @@
     foreach($rows as $row):
     $counter++; ?>
 
-        <div class="survey-row recent-studies-list-home">
+        <div class="survey-row recent-studies-list-home border-bottom">
             <div class="row">
                 <div class="col-12 col-lg-12">                    
                     <h5>

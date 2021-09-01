@@ -11,6 +11,12 @@
 .survey-row .survey-stats span{
     font-size:12px;
 }
+
+h5{
+    font-weight:bold!important;
+}
+
+.popular-studies .row{font-size:14px;}
 </style>
 <?php
 //get stats
@@ -29,7 +35,7 @@ $latest_surveys=$this->stats_model->get_latest_surveys(10);
 $this->title='Home';
 ?>
 
-
+<div class="container">
 <div class="row">
     <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
         <div class="ui-tabs wb-tab-heading pt-4 pb-2 pr-4 pl-4 mb-4">
@@ -91,10 +97,10 @@ $this->title='Home';
         </div>
         <?php if (isset($popular_surveys) && is_array($popular_surveys) && count($popular_surveys)>0):?>
             <!-- **** popular studies **** -->
-            <div class="wb-box-sidebar wb-tab-heading mt-4 pt-3 pb-3 pr-4 pl-4">
-                <h5>Most popular studies</h5>
+            <div class="wb-box-sidebar popular-studies wb-tab-heading mt-4 pt-3 pb-3 pr-4 pl-4">
+                <h5 class="pb-3">Most popular studies</h5>
                 <?php foreach($popular_surveys as $survey): ?>
-                    <div class="citation-row" data-url="<?php echo site_url();?>/catalog/<?php echo $survey['id'];?>">
+                    <div class="study-row mb-3 pb-3 border-bottom" data-url="<?php echo site_url();?>/catalog/<?php echo $survey['id'];?>">
                         <div class="row">
                             <div class="col-12 row-body">
                                     <span class="sub-title">
@@ -110,4 +116,5 @@ $this->title='Home';
             </div>
         <?php endif;?>
     </div>
+</div>
 </div>

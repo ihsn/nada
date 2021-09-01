@@ -10,8 +10,7 @@ else{
 
 ?>
 
-
-<div class="citations-container mt-3">
+<div class="container citations-container mt-3"> 
     <div class="row">
         <div class="col-sm-12">
             <?php if(isset($repo['ispublished']) && intval($repo['ispublished'])===0):?>

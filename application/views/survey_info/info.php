@@ -13,7 +13,7 @@
 	$sub_title=implode(", ", $sub_title);
 ?>
 
-<div class="row">
+<div class="row study-info">
 	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
 		<?php 
 			$thumbnail=$survey['owner_repo']['thumbnail'];
@@ -48,7 +48,7 @@
             </div>
 		</div>
 
-		<div class="row">
+		<div class="row study-info-content">
 		
             <div class="col pr-5">
 
@@ -69,8 +69,8 @@
                         <?php echo t('DOI');?>
                     </div>
                     <div class="col">
-                        <div class="study-idno">
-                            <?php echo 'https://doi.org/'.$survey['doi'];?>                            
+                        <div class="study-doi">
+                            <?php echo 'https://doi.org/'.$survey['doi'];?>
                         </div>
                     </div>
                 </div>
@@ -95,9 +95,13 @@
                         <?php echo t('collections');?>
                     </div>
                     <div class="col">
-                        <div class="collections">           
+                        <div class="collections link-col">           
                             <?php foreach($survey['repositories'] as $repository):?>
-                                <div class="collection"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
+                                <span class="collection">
+                                    <a href="<?php echo site_url('collections/'.$repository['repositoryid']);?>">
+                                        <span class="badge badge-primary"><?php echo $repository['title'];?></span>
+                                    </a>                                    
+                                </span>
                             <?php endforeach;?>
                         </div>
                     </div>
@@ -135,7 +139,7 @@
                 </div>
 
                 <?php if($survey['link_study']!='' || $survey['link_indicator']!=''): ?>
-                <div class="row  border-bottom  mb-2 pb-2 mt-2">
+                <div class="row mb-2 pb-2 mt-2">
                     <div class="col-md-2">
                         
                     </div>
@@ -161,6 +165,7 @@
                 </div>
                 <?php endif; ?>
 
+                <?php /*
                 <?php if (!empty($data_classification)):?>
                 <div class="row  mb-2 pb-2 mt-2">
                     <div class="col-md-2">
@@ -174,28 +179,21 @@
                 </div>
                 <?php endif;?>
 
-		    <?php if(isset($data_access_type) && $data_access_type!='data_na'):?>
-			<div class="row  mb-2 pb-2 mt-2">
-				<div class="col-md-2">
-					<?php echo t('license');?>
-				</div>
-				<div class="col">
-					<span class="license">
-						<!--<a href="<?php //echo site_url('licenses/'.$data_access_type);?>">-->
-						<?php echo t('legend_data_'.$data_access_type);?> <i class="fa fa-info-circle" aria-hidden="true"></i>
-						<!--</a>-->
-					<span>
-				</div>
-			
-                <?php /*
-                <a href="<?php echo site_url("catalog/$sid/get-microdata");?>" class="get-microdata-btn badge badge-primary wb-text-link-uppercase" title="<?php echo t('get_microdata');?>">					
-                    <span class="fa fa-download"></span>
-                    <?php echo t('get_microdata');?>
-                </a>
-                */ ?>
-		
-			</div>
-		    <?php endif;?>
+                <?php if(isset($data_access_type) && $data_access_type!='data_na'):?>            
+                <div class="row  mb-2 pb-2 mt-2">
+                    <div class="col-md-2">
+                        <?php echo t('license');?>
+                    </div>
+                    <div class="col">
+                        <span class="license">
+                            <!--<a href="<?php //echo site_url('licenses/'.$data_access_type);?>">-->
+                            <?php echo t('legend_data_'.$data_access_type);?> <i class="fa fa-info-circle" aria-hidden="true"></i>
+                            <!--</a>-->
+                        <span>
+                    </div>		
+                </div>                
+                <?php endif;?>
+                */?>
 	    </div>
 	
 	</div>

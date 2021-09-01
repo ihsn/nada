@@ -67,64 +67,57 @@
 <input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
 <input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id);?>"/>
-
-<?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
-        <!-- survey-row -->
-        <div class="survey-row featured-study">
-            <span class="badge badge-warning featured-study-tag"><?php echo t('featured_study');?></span>
-            <div class="row" data-url="<?php echo site_url('catalog/'.$featured_studies['id']);?>" title="View study">
-                <div class="col-2 col-lg-1">
-                    <i class="icon-da icon-da-<?php echo $featured_studies['model'];?>" title="<?php echo t("legend_data_".$featured_studies['model']);?>"></i>
-                </div>
-                <div class="col-10 col-lg-11">
-                    <h4 class="pr-5">
-                        <a href="<?php echo site_url('catalog/'.$featured_studies['id']); ?>"  title="<?php echo $featured_studies['title']; ?>"><?php echo $featured_studies['title'];?>
-                        </a>
-                    </h4>
-                    <div class="study-country">
-                        <?php echo $featured_studies['nation']. ',';?>
-                        <?php
-                        $survey_year=array();
-                        $survey_year[$featured_studies['year_start']]=$featured_studies['year_start'];
-                        $survey_year[$featured_studies['year_end']]=$featured_studies['year_end'];
-                        $survey_year=implode('-',$survey_year);
-                        ?>
-                        <?php echo $survey_year!=0 ? $survey_year : '';?>
-                    </div>
-                    <div class="sub-title">                                                 
-                        <?php echo $featured_studies['authoring_entity'];?>
-                        
-                        <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                            <div class="owner-collection">
-                                <?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('collections/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a>
-                            </div>
-                        <?php endif;?>
-                    </div>
-                    <div class="survey-stats">
-                        <span><?php echo t('created_on');?>: <?php echo date('M d, Y',$featured_studies['created']);?></span>
-                        <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$featured_studies['changed']);?></span>
-                        <span><?php echo t('views');?>: <?php echo (int)$featured_studies['total_views'];?></span>                        
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- /survey-row -->
-    <?php endif;?>
-
     
 <?php 
     $type_icons=array(
         'survey'=>'fa-database',
         'microdata'=>'fa-database',
         'geospatial'=>'fa-globe',
-        'timeseries'=>'fa-clock-o',
-        'document'=>'fa-file-text-o',
+        'timeseries'=>'fa-chart-line',
+        'document'=>'fa-file-alt',
         'table'=>'fa-table',
         'visualization'=>'fa-pie-chart',
-        'script'=>'fa-file-code-o',
-        'image'=>'fa-camera',
+        'script'=>'fa-file-code',
+        'image'=>'fa-image',
+        'video'=>'fa-video',
     );
+
+
+    //default view with inline icon
+    $row_col1_class="";
+    $row_col2_class="col-md-12";
+    $row_col1_type="";//type_icon, thumbnail, empty(none)
+
+    switch ($tab_type){
+        /*case ''://all
+            $row_col1_type="type_icon_inline";
+            $row_col1_class="col-md-2";
+            $row_col2_class="col-md-10";
+            break;*/
+        case ''://all
+        case 'microdata':
+        case 'survey':
+        case 'table':
+            //no thumbnail/icon
+            break;
+        
+        case 'timeseries':
+        case 'document':
+        case 'script':
+        case 'geospatial':
+            $row_col1_type="thumbnail";
+            $row_col1_class="col-md-2";
+            $row_col2_class="col-md-10";
+            break;
+    }
+
+    if(isset($featured_studies) && $featured_studies!==FALSE ){
+        $featured_studies['featured']=true;        
+        array_unshift($surveys['rows'],$featured_studies);
+    }
+
 ?>
+
     
 <div id="surveys">
     <span class="result-types-summary">
@@ -132,115 +125,148 @@
             <?php //echo json_encode($surveys['search_counts_by_type']);?>
         </span>        
     </span>
-<?php foreach($surveys['rows'] as $row): ?>    
-    <?php if(!isset($row['form_model'])){
-        $row['form_model']='data_na';
-    }
-    ?>
-    <div class="survey-row" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
-    <div class="row">
-        <div class="col-2 col-lg-1">
-            <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i>
-            <?php /* <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i> */?>
-            <?php /*<span class="fa-stack fa-lg fa-nada-<?php echo $row['type'];?>">
-            <i class="fa fa-circle fa-stack-2x"></i>
-            <i class="fa <?php echo $type_icons[$row['type']];?> fa-stack-1x fa-inverse fa-nada-icon"></i>
-            </span> */?>
-        </div>        
+<?php foreach($surveys['rows'] as $key=>$row): ?>    
+    <?php     
+        if(!isset($row['form_model'])){
+            $row['form_model']='data_na';
+        }
         
-        <div class="col-10 col-lg-11">
-            <h5 class="title">
-                <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" >                
-                    <?php echo $row['title'];?> 
-                    <?php /*?>
-                    <?php if(isset($licenses) && !empty($row['license_id'])):?>
-                    <span class="dataset-license-label ">
-                        <?php //echo $row['type'];?>                        
-                        <?php echo $licenses[$row['license_id']];?>
-                    </span>
-                    <?php endif;?>
-                    <?php */ ?>
-                </a>
-            </h5>
-            
-            <div class="study-country">
-                <?php if (isset($row['nation']) && $row['nation']!=''):?>
-                        <?php echo $row['nation']. ',';?>
-                <?php endif;?>
-                <?php 
-                    $survey_year=array();
-                    $survey_year[$row['year_start']]=$row['year_start'];
-                    $survey_year[$row['year_end']]=$row['year_end'];
-                    $survey_year=implode('-',$survey_year);
-                ?>
-                <?php echo $survey_year!=0 ? $survey_year : '';?>                
-            </div>
-            <div class="sub-title">
-                <?php if (isset($row['authoring_entity'])):?>
-                <div>
-                    <span class="study-by"><?php echo $row['authoring_entity'];?></span>
-                </div>
-                <?php endif;?>
-                <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                    <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('collections/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
-                <?php endif;?>
-            </div>
-            <div class="survey-stats">                
-                <span><?php echo t('ID');?>: <?php echo $row['idno'];?></span>
-                <span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span>
-                <span><?php echo t('last_modified');?>: <?php echo date('M d, Y',$row['changed']);?></span>
-                <?php if ((int)$row['total_views']>0):?>
-                    <span><?php echo t('views');?>: <?php echo (int)$row['total_views'];?></span>
-                <?php endif;?>
-                <?php if(isset($row['rank_'])):?>
-                    <span> Score: <?php echo round($row['rank_'],2);?></span>
-                <?php endif;?>
+        $is_featured=isset($row['featured']) ? $row['featured'] : false;
+    ?>
 
-                <?php if(isset($licenses) && !empty($row['license_id'])):?>
-                    <span class="dataset-license-labelz ">
-                        <i class="fa fa-cog"></i>
-                        <?php echo $licenses[$row['license_id']];?>
-                    </span>
-                <?php endif;?>
+    <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'wb-featured featured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
+        <div class="row">            
+            <div class="<?php echo $row_col2_class;?>">
+
+                <?php if ($is_featured): ?>
+                <span class="badge badge-featured wb-featured-mark" >
+                    <i class="fas fa-star"></i> <?php echo t('Featured');?>
+                </span>
+                <?php endif; ?>
+                <h5 class="wb-card-title title">
+                    <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
+                        <i class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>             
+                        <span>
+                            <?php echo $row['title'];?>                             
+                        </span>
+                    </a>
+                </h5>
                 
-                <?php /* ?>
-                <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
-                <?php */?>
-                <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
-                    <span>
-                    <a title="<?php echo t('related_citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo t('citations');?>: <?php echo $surveys['citations'][$row['id']];?></a>
-                    </span>                    
-                <?php endif;?> 
-            </div>
-            
-            <?php if ( isset($row['var_found']) ): ?>            
-                <div class="variables-found" style="clear:both;">
-
-                        <a class="vsearch" href="<?php echo site_url(); ?>/catalog/vsearch/<?php echo $row['id']; ?>/?<?php echo $variable_querystring; ?>">
-                            
-                        <div class="d-flex">                      
-                            <div class="flex-grow-1">
-                                <div class="heading-text"><?php echo sprintf(t('variables_keywords_found'),$row['var_found'],$row['varcount']);?></div>
-                            </div>
-                            <div class="toggle-arrow-bg">
-                                <span class="toggle-arrow">
-                                    <i class="toggle-arrow-right fa fa-caret-right" aria-hidden="true"></i>
-                                    <i class="toggle-arrow-down fa fa-caret-down" aria-hidden="true"></i>
-                                </span>
-                            </div>
-                        </div>
-                            
-                        </a>
-                        <span class="vsearch-result"></span>
-                        <div class="variable-footer">
-                            <input class="btn btn btn-outline-primary btn-sm wb-btn-outline btn-style-1 btn-compare-var" type="button" name="compare-variable" value="Compare variables"/> 
-                            <span class="var-compare-summary"><small><?php echo t('To compare, select two or more variables');?></small></span>
-                        </div>
+                <div class="study-country">
+                    <?php if (isset($row['nation']) && $row['nation']!=''):?>
+                            <?php echo $row['nation']. ',';?>
+                    <?php endif;?>
+                    <?php 
+                        $survey_year=array();
+                        $survey_year[$row['year_start']]=$row['year_start'];
+                        $survey_year[$row['year_end']]=$row['year_end'];
+                        $survey_year=implode('-',$survey_year);
+                    ?>
+                    <?php echo $survey_year!=0 ? $survey_year : '';?>                
                 </div>
-            <?php endif; ?>
+                <div class="sub-title">
+                    <?php if (isset($row['authoring_entity'])):?>
+                    <div>
+                        <span class="study-by"><?php echo $row['authoring_entity'];?></span>
+                    </div>
+                    <?php endif;?>
+                    <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
+                        <span class="owner-collection mr-3"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></span>
+                    <?php endif;?>                    
+                </div>
+                <div class="survey-stats">
+                <span class="study-idno">
+                        <span class="wb-label"><?php echo t('ID')?>:</span> <span class="text-dark wb-value"><?php echo $row['idno'];?></span>
+                    </span>
+
+                    <?php /*<span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span> */ ?>
+                    <span><span class="wb-label"><?php echo t('last_modified');?>:</span> <span class="wb-value"><?php echo date('M d, Y',$row['changed']);?></span></span>
+                    <?php if ((int)$row['total_views']>0):?>
+                        <span><span class="wb-label"><?php echo t('views');?>:</span> <span class="wb-value"><?php echo (int)$row['total_views'];?></span></span>
+                    <?php endif;?>
+                    <?php if(isset($row['rank_'])):?>
+                        <span> <span class="wb-label">Score:</span> <span class="wb-value"><?php echo round($row['rank_'],2);?></span></span>
+                    <?php endif;?>
+
+                    
+                    <?php /* ?>
+                    <span><?php echo t('downloads');?>: <?php echo (int)$row['total_downloads'];?></span>
+                    <?php */?>
+                    <?php if (array_key_exists($row['id'],$surveys['citations'])): ?>
+                        <span>
+                            <span class="wb-label"><?php echo t('citations');?>:</span> <a title="<?php echo t('related_citations');?>" href="<?php echo site_url('catalog/'.$row['id'].'/related_citations');?>"><?php echo $surveys['citations'][$row['id']];?></a>
+                        </span>                    
+                    <?php endif;?>
+                </div>
+
+                <?php //Data license + data classification icons ?>
+                <div class="wb-license-classification">
+                    <span class="badge wb-data-access wb-badge btn-data-license-<?php echo $row['form_model'];?>">
+                        <i class="icon-da-sm icon-da-<?php echo $row['form_model'];?>" ></i> <span class=""><?php echo t("legend_data_".$row['form_model']);?></span>
+                    </span>
+        
+                    <?php if(isset($data_classifications) && !empty($row['data_class_id'])):?>
+                        <?php if(isset($data_classifications[$row['data_class_id']]['code'])):?>
+                            <span class="badge wb-badge-outline wb-badge-data-class wb-badge-data-class-<?php echo $data_classifications[$row['data_class_id']]['code'];?>">                       
+                                <?php echo $data_classifications[$row['data_class_id']]['title'];?>
+                            </span>
+                        <?php endif;?>
+                    <?php endif;?>
+                    
+                    <?php /* //TODO
+                    <span class="text-secondary entry-flags" >
+                        <span class="badge wb-badge-outline badge-secondary">API</span>
+                        <span class="badge wb-badge-outline "><i class="fas fa-chart-area"></i></span>
+                    </span>
+                    */?>
+                </div>
+                
+                <?php if ( isset($row['var_found']) ): ?>            
+                    <div class="mt-3 variables-found" style="clear:both;">
+
+                            <a class="vsearch" href="<?php echo site_url(); ?>/catalog/vsearch/<?php echo $row['id']; ?>/?<?php echo $variable_querystring; ?>">
+                                
+                            <div class="d-flex">                      
+                                <div class="flex-grow-1">
+                                    <div class="heading-text"><?php echo sprintf(t('variables_keywords_found'),$row['var_found'],$row['varcount']);?></div>
+                                </div>
+                                <div class="toggle-arrow-bg">
+                                    <span class="toggle-arrow">
+                                        <i class="toggle-arrow-right fa fa-caret-right" aria-hidden="true"></i>
+                                        <i class="toggle-arrow-down fa fa-caret-down" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                            </div>
+                                
+                            </a>
+                            <span class="vsearch-result"></span>
+                            <div class="variable-footer">
+                                <input class="btn btn btn-outline-primary btn-sm wb-btn-outline btn-style-1 btn-compare-var" type="button" name="compare-variable" value="Compare variables"/> 
+                                <span class="var-compare-summary"><small><?php echo t('To compare, select two or more variables');?></small></span>
+                            </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <?php if($row_col1_class!=""):?>
+
+                <?php //type icon ?>                
+                <?php //type thumbnail ?>
+                <?php if($row_col1_type=="thumbnail"):?>
+                    <div class="<?php echo $row_col1_class;?>  wb-col-media" >
+                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>">
+                        <?php if (!empty($row['thumbnail'])):?>
+                            <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" alt="" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail"/>
+                        <?php endif;?>
+                        </a>
+                    </div>
+                <?php endif;?>
+
+            <?php endif;?>
+
+
         </div>
-        </div>
-    </div>
+    </div> <!-- /.    row -->
 
 <?php endforeach;?>
 </div>
@@ -281,3 +307,10 @@
             <span class="nada-btn change-page-size" data-value="100">100</span>
         </small>
     </div>
+
+    <!-- TODO: Enable the tooltips in this page. Move it in a common place -->
+    <script type="text/javascript">
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>

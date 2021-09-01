@@ -10,6 +10,10 @@
 	border-right:1px solid gainsboro;
 }
 
+.study-info-content {
+    font-size: 14px;
+}
+
 .badge-outline{
 	background:transparent;
 	color:#03a9f4;

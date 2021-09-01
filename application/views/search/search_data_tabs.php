@@ -8,15 +8,15 @@
 
     <?php 
         $type_icons=array(
-            'survey'=>'<i class="fa fa-database" aria-hidden="true"></i>',
-            'geospatial'=>'<i class="fa fa-globe" aria-hidden="true"></i>',
-            'timeseries'=>'<i class="fa fa-clock-o" aria-hidden="true"></i>',
-            'document'=>'<i class="fa fa-file-text-o" aria-hidden="true"></i>',
-            'table'=>'<i class="fa fa-table" aria-hidden="true"></i>',
-            'visualization'=>'<i class="fa fa-pie-chart" aria-hidden="true"></i>',            
-            'script'=>'<i class="fa fa-file-code-o" aria-hidden="true"></i>',
-            'image'=>'<i class="fa fa-camera" aria-hidden="true"></i>',
-            'video'=>'<i class="fa fa-video-camera" aria-hidden="true"></i>'            
+            'survey'=>'<i class="fas fa-database" aria-hidden="true"></i>',
+            'geospatial'=>'<i class="fas fa-globe-americas" aria-hidden="true"></i>',
+            'timeseries'=>'<i class="fas fa-chart-line" aria-hidden="true"></i>',
+            'document'=>'<i class="fas fa-file-alt" aria-hidden="true"></i>',
+            'table'=>'<i class="fa fa-table" aria-hidden="true"></i>',            
+            'visualization'=>'<i class="fas fa-chart-pie" aria-hidden="true"></i>',            
+            'script'=>'<i class="fas fa-file-code" aria-hidden="true"></i>',
+            'image'=>'<i class="fas fa-image" aria-hidden="true"></i>',
+            'video'=>'<i class="fas fa-video" aria-hidden="true"></i>'            
         );
     ?>
 

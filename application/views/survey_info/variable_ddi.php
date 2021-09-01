@@ -29,22 +29,23 @@
 
 
 <div class="variable-container">
+    <h2><?php echo $variable['labl'] . ' ('. $variable['name'].')';?></h2>
+    <h5 class="var-file"><?php echo t('data_file');?>: <a href="<?php echo site_url('catalog/'.$file['sid'].'/data-dictionary/'.$file['file_id']);?>"><?php echo $file['file_name'];?></a></h5>
 
-
-<div class="float-right">
+    <!-- <div class="wb-variables-export _float-right"> -->
+    <div class="wb-variables-export">
         <a href="<?php echo site_url('metadata/export_variable/'.$file['sid'].'/'.$variable['vid'].'/csv'); ?>"  class="badge">
-			<i class="fa fa-file-excel-o" aria-hidden="true"></i> <?php echo t('download_csv');?>
+            <i class="far fa-file-excel"></i>
+            <!-- <?php echo t('download_csv');?> -->
 		</a> 
 
 		<a href="<?php echo site_url('metadata/export_variable/'.$file['sid'].'/'.$variable['vid'].'/json'); ?>"  class="badge">
-		<i class="fa fa-file-code-o" aria-hidden="true"></i> <?php echo t('download_json');?>
+            <i class="fas fa-file-csv"></i>
+            <!-- <?php echo t('download_json');?> -->
 		</a> 
     </div>
-
-    <h2><?php echo $variable['labl'] . ' ('. $variable['name'].')';?></h2>
-    <h5 class="var-file"><?php echo t('data_file');?>: <a href="<?php echo site_url('catalog/'.$file['sid'].'/data-dictionary/'.$file['file_id']);?>"><?php echo $file['file_name'];?></a></h5>
     
-    <h2 class="xsl-subtitle"><?php echo t('overview');?></h2>
+    <h3 class="xsl-subtitle"><?php echo t('overview');?></h3>
 
     <div class="row">
     <?php if(isset($variable['metadata']['var_sumstat'])):?>

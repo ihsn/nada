@@ -29,13 +29,99 @@ $fields_arr=array(
 .study-metadata .resource-info{padding-left:0px;}
 </style>
 
+<?php /* ?>
+<h3>Downloads</h3>
+<p></p>
+
+    <div class="microdata-resources-container mb-3 border-bottom">        
+    <h5>
+        <?php echo t('study_microdata_resources');?> 
+        <span class="badge badge-light"><?php echo t($data_access_type);?></span>
+
+    </h5>
+    
+    <?php //login required for licensed and public use ?>
+    <?php if (!$user_id && ($data_access_type=='licensed' || $data_access_type=='public') ):?>
+        <div class="bg-light p-4 mb-3">
+            <p>To access data for this study, user must be logged in. Click on the links below to login or register for a free account.</p>
+            <div>
+                <a class="btn btn-sm btn-primary mr-2" href="<?php echo site_url('auth/login?destination='.'catalog/'.$sid.'/downloads');?>" >Login</a>
+                <a class="btn btn-sm btn-primary" href="<?php echo site_url('auth/register');?>">Register</a>
+            </div>
+        </div>
+    <?php endif;?>
+
+    <?php //licensed data - show download links + submitted requests + link to add new request ?>
+    <?php if ($lic_requests):?>
+        <div class="licensed-requests">
+            <p>The data for this study are restricted. 
+            To view or download the data, user must submit a request to access data.
+            <a href="">Click here to apply for data access</a>.</p>
+            <div>
+            <?php $this->load->view('survey_info/licensed_requests', array(
+                'rows'=>$lic_requests,
+                'survey_id'=>$sid
+            ));?>
+            </div>
+        </div>
+    <?php endif;?>
+
+
+    <?php if ($data_access_type=='remote' && !empty($link_da)):?>
+        <p>Data for the study is available from an external website, please use the link below:</p>
+        <div class="remote-access-link">
+            <a href="<?php echo $link_da;?>" target="_blank"><?php echo $link_da;?></a>
+        </div>
+    <?php endif;?>
+
+
+
+    <?php //Direct, Open ?>
+    <?php if($microdata_resources && $data_access_type!=='licensed'):?>
+    <div class="microdata-resources p-2" >
+    <?php foreach($microdata_resources as $index=>$resource):?>
+        <div class="row pb-2 pt-2 border-top">
+            <div class="col">            
+                <a target="_blank" href="<?php echo $resource['filename'];?>" class="font-weight-bold">    
+                    <?php echo $resource['title'];?></strong>
+                </a>
+                <?php if (isset($resource['filename'])):?>
+                    <div>
+                        <span class="badge badge-light"><?php echo htmlspecialchars($resource['filename'], ENT_QUOTES);?>
+                        <?php if (!$resource['is_url']):?> 
+                            - <?php echo format_bytes($resource['filesize'],0);?>
+                        <?php endif;?>
+                        </span>
+                    </div>
+                <?php endif;?>
+                <?php if(isset($resource['description'])):?>
+                <div><?php echo nl2br($resource['description']);?></div>
+                <?php endif;?>
+            </div>
+            <div class="col-md-2 col-sm-4">
+            <?php //if (!empty($resource['filename'])):?>
+                <button class="float-right btn btn-primary btn-sm"><i class="fa fa-download" aria-hidden="true"></i> 
+                    <a target="_blank" href="<?php echo $resource['link'];?>" class="text-white"><?php echo t('Download');?></a>
+                </button>
+            <?php //endif;?>                
+            </div>
+        </div>
+
+    <?php endforeach;?>
+    </div>
+
+    </div>
+<?php endif;?>
+
+<?php */ ?>
+
 <?php if(!$resources):?>
     <div>No documentation is available</div>
     <?php return;?>
 <?php endif;?>
 
 <div style="padding-top:20px;">
-    <h2><?php echo t('study_resources');?></h2>
+    <h5><?php echo t('study_resources');?></h5>
     <div class="subtext"><?php echo t('study_documentation_text');?></div>
     <div class="resources">
         <?php $class="resource"; ?>
