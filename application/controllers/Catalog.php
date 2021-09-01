@@ -220,7 +220,7 @@ class Catalog extends MY_Controller {
 		
 		//types filter
 		if(!$this->active_tab){
-			if ($this->is_facet_enabled($this->active_tab,'data_type')){
+			if ($this->is_facet_enabled($this->active_tab,'type')){
 				//$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
 				$filters['data_type']=$this->load->view('search/facet', 
 				array(
