@@ -288,7 +288,7 @@ class Access_licensed extends MY_Controller {
 		
 		if (!$fileinfo || !$request)
 		{
-			show404();
+			show_404();
 		}
 		
 		//disable downloads for requests not approved
