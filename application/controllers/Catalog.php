@@ -290,7 +290,10 @@ class Catalog extends MY_Controller {
 		$output['data_types_nav_bar']=$this->data_types_nav_bar;
 		$output['search_box_orientation']=$this->search_box_orientation;
 
-		$output['featured_studies']=null; //$this->get_featured_study($output['surveys']['rows']);
+		if (isset($output['surveys'])){
+			$output['featured_studies']=$this->get_featured_study($output['surveys']['rows']);
+		}
+
 		if ($output['search_type']=='variable'){
 			$output['search_output']=$this->load->view('search/variables', $output,true);
 		}
@@ -631,14 +634,14 @@ class Catalog extends MY_Controller {
 			case 'image':
 			case 'video':
 			case 'visualization':
-			case 'document':
-			case 'script':
-			case 'timeseries':
+			//case 'document':
+			//case 'script':
+			//case 'timeseries':
 				$dataset_view='search/images';
 				break;
-			case 'table':
+			/*case 'table':
 				$dataset_view='search/tables';
-				break;	
+				break;	*/
 			default:
 				$dataset_view='search/surveys';
 				break;
@@ -895,5 +898,39 @@ class Catalog extends MY_Controller {
 		else{
 			show_404();
 		}
+	}
+
+
+	private function get_featured_study($surveys)
+	{
+		if (!is_array($surveys)){
+			return FALSE;
+		}
+
+		$repos=NULL;
+
+		//build an array of repositoryid
+		foreach($surveys as $survey){
+			if($survey['repositoryid']){
+				$repos[]=$survey['repositoryid'];
+			}
+		}
+
+		if (!$repos){
+			return FALSE;
+		}
+		
+		//count values for each repository
+		$repo_counts = array_count_values($repos);
+
+		//find the repo with most surveys
+		$repositoryid = array_search(max($repo_counts), $repo_counts);
+
+		//echo $repositoryid;
+
+		//get the featured study for the selected repositoryid
+		$featured_study=$this->Repository_model->get_featured_study($repositoryid);
+
+		return $featured_study;
 	}
 }    
