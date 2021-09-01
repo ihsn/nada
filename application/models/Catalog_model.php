@@ -320,7 +320,7 @@ class Catalog_model extends CI_Model {
 		$fields=$this->study_fields;
 		
 		//Data access type + data classication fields
-		$fields[]='surveys.formid, forms.model as model, surveys.data_class_id';		
+		$fields[]='surveys.type,surveys.idno,surveys.formid, forms.model as model, surveys.data_class_id';		
 		
 		//notes
 		//$fields[]='notes.admin_notes as admin_notes';
@@ -611,6 +611,23 @@ class Catalog_model extends CI_Model {
 		if ( count($result) > 0)
 		{
 			return $result['dirpath'];
+		}
+		return false;
+	}
+
+	/**
+	* returns survey remote link
+	*
+	*
+	**/
+	function get_survey_link_da($id)
+	{
+		$this->db->select('link_da'); 
+		$this->db->where('id', $id); 
+		$result=$this->db->get('surveys')->row_array();
+
+		if ( count($result) > 0){
+			return $result['link_da'];
 		}
 		return false;
 	}
