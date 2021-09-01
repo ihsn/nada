@@ -214,22 +214,62 @@ class Study extends MY_Controller {
     }
 
 
+	public function downloads($sid=NULL)
+	{
+		return $this->related_materials($sid);
+	}
 
 	public function related_materials($sid=NULL)
 	{
         $this->load->helper("resource_helper");
         $this->load->model('Resource_model');
+		$this->load->model("Form_model");
+		$this->load->model("Licensed_model");		
+		
+		$user=$this->ion_auth->current_user();
+		$options['user_id']=isset($user->id) ? $user->id : false;
         $options['resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);
         $options['sid']=$sid;
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
+		$microdata_resources=$this->Survey_resource_model->get_microdata_resources($sid);
+		$microdata_resources= $this->Survey_resource_model->format_resources($microdata_resources);
+		$options['microdata_resources']=NULL;
+		$options['lic_requests']=NULL;
 
-        if (!$options['resources']){
-            $content=t("No resources are available");
-        }
-        else{
-            $content=$this->load->view('survey_info/related_resources',$options,TRUE);
-        }
+		$data_access=$this->Form_model->get_form_by_survey($sid);
+		
+		if(empty($data_access)){
+			$options['data_access_type']='data_na';
+		}else{
+			$options['data_access_type']=$data_access['model'];
+		}
 
+		if($data_access['model']=='remote'){
+			$options['link_da']=$this->Catalog_model->get_survey_link_da($sid);
+		}
+
+		//licensed data
+		if ($options['data_access_type']=='licensed' && !empty($user)){
+
+			//licensed requests by user
+			$options['lic_requests']=$this->Licensed_model->get_requests_by_study($sid,$user->id,$active_only=FALSE);
+
+			//check if user has access to a resource download
+			foreach($microdata_resources as $resource){
+				try{
+					$has_access=$this->Survey_resource_model->user_has_download_access($user->id,$sid,$resource);
+					
+					if ($has_access){
+						$options['microdata_resources'][]=$resource;
+					}
+				}
+				catch(Exception $e){
+
+				}				
+			}
+		}
+
+		$content=$this->load->view('survey_info/related_resources',$options,TRUE);
 		$this->render_page($sid, $content,'related_materials');
 	}
 
@@ -366,7 +406,7 @@ class Study extends MY_Controller {
 						'label'=>t('data_dictionary'),
 						'url'=>site_url("catalog/$sid/data-dictionary"),
 						'show_tab'=>$has_datafiles
-					),
+					),					
 					'related_materials'=>array(
 						'label'=>t('related_materials'),
 						'url'=>site_url("catalog/$sid/related-materials"),
@@ -493,7 +533,7 @@ class Study extends MY_Controller {
 		);
 
 		$this->template->write('title', $this->generate_survey_title($dataset),true);
-		$this->template->add_variable("body_class","container-fluid-n");
+		$this->template->add_variable("body_class","container-fluid");
 		$html= $this->load->view($display_layout,$options,true); 
 		$this->template->write('survey_title', "survey title",true);
 		$this->template->write('content', $html,true);
@@ -617,7 +657,7 @@ class Study extends MY_Controller {
 
 	/**
 	*
-	* Download DATA/MICRODATA files for public use and direct only
+	* Download microdata and other documentation
 	**/
 	function download($survey_id,$resource_id)
 	{
@@ -630,101 +670,12 @@ class Study extends MY_Controller {
 		$this->load->model('Public_model');
 		$this->load->model('Form_model');
 
-		$resource=$this->Resource_model->select_single($resource_id);
-		#$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
-		$form_obj=$this->Form_model->get_form_by_survey($survey_id);
-
-		if(empty($form_obj)){
-			$data_access_type='data_na';
-		}else{
-			$data_access_type=$form_obj['model'];
+		try{
+			$this->Survey_resource_model->download($this->user,$survey_id,$resource_id);
 		}
-
-		if ($resource===FALSE){
-			show_error(t('RESOURCE_NOT_FOUND'));
+		catch(Exception $e){
+			show_error($e->getMessage());
 		}
-
-		$file_name=trim($resource['filename']);
-
-		if ($file_name==''){
-			$this->db_logger->write_log('download-file-not-found',$survey_id,'resource='.$resource_id);
-			show_error('RESOURCE_NOT_AVAILABLE!');
-		}
-
-		$dataset_folder=$this->Dataset_model->get_storage_fullpath($survey_id);
-
-		//full path to the resource
-		$resource_path=unix_path($dataset_folder.'/'.$file_name);
-
-		if (!file_exists($resource_path)){
-			show_error('RESOURCE_NOT_FOUND');
-		}
-
-		$allow_download=FALSE;			//allow download or not
-		$resource_is_microdata=FALSE; //whether a resource is a microdata fiel
-
-		//apply checks before download MICRODATA files
-		$microdata_types=array('[dat/micro]','[dat]');
-		foreach($microdata_types as $type){
-			if (stripos($resource['dctype'],$type)!==FALSE){
-				$resource_is_microdata=TRUE;
-			}
-		}
-
-		if($data_access_type=='public' && $resource_is_microdata===TRUE){
-			if(!$this->user){
-				redirect('catalog/'.$survey_id.'/get_microdata','refresh');exit;
-			}
-
-			//check if user has filled the PUF form for a study
-			$request_exists=$this->Public_model->check_user_has_data_access($this->user->id,$survey_id);
-
-			if ($request_exists===FALSE){
-				redirect('catalog/'.$survey_id.'/get_microdata','refresh');
-			}
-
-			$allow_download=TRUE;
-		}
-		else if($data_access_type=='licensed')
-		{
-			//non-microdata requests
-			if($resource_is_microdata===FALSE){
-				$allow_download=TRUE;
-			}
-			else{
-				//Deny licensed requests
-				$this->db_logger->write_log('download-denied-not-microdata',$survey_id,'resource='.$resource_id);
-				show_error("RESOURCE_NOT_AVAILABLE.");
-			}
-		}
-		else if($data_access_type=='direct' || $data_access_type=='open' || $data_access_type=='data_na' ){
-			$allow_download=TRUE;
-		}
-		else if ($data_access_type=='public' && !$resource_is_microdata){
-			$allow_download=TRUE;
-		}
-		else{
-			if ($resource_is_microdata===TRUE){
-				//for any other data access type, disable downloads of microdata resources
-				show_error("INVALID_REQUEST");
-			}
-			else{
-				$allow_download=TRUE;
-			}
-		}
-
-		if ($allow_download){
-			$this->load->helper('download');
-			log_message('info','Downloading file <em>'.$resource_path.'</em>');
-			$this->db_logger->write_log('download',basename($resource_path),($resource_is_microdata ? 'microdata': 'resource'),$survey_id);
-			$this->db_logger->increment_study_download_count($survey_id);
-			force_download2($resource_path);
-		}
-		else{
-			$this->db_logger->write_log('download-denied-2:'.$data_access_type,$survey_id,'resource='.$resource_id);
-			show_error("RESOURCE_NOT_AVAILABLE");
-		}
-
 	}
 
 
@@ -896,6 +847,64 @@ class Study extends MY_Controller {
 				return str_replace(array('"',"\r\n","\r","\n"), " ", $abstract);
 			}
 		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Licensed data request
+	 * 
+	 */
+	public function request_access($sid)
+	{		
+		$this->load->model("Form_model");
+		
+		$user=$this->ion_auth->current_user();
+
+		if(!$user){
+			show_error('LOGIN_TO_CONTINUE');
+		}
+
+		$form_obj=$this->Form_model->get_form_by_survey($sid);
+		
+		if(empty($form_obj)){
+			$data_access_type='data_na';
+		}else{
+			$data_access_type=$form_obj['model'];
+		}
+
+		if($data_access_type=='data_enclave'){
+			$data_access_type='enclave';
+		}
+
+		if ($data_access_type!=='licensed'){
+			show_404();
+		}
+
+		//need this to show a new form
+		$_GET['request']='new';
+
+		$this->load->driver('data_access',array('adapter'=>$data_access_type));
+
+		if ($this->data_access->is_supported($data_access_type)){
+			$content=$this->data_access->process_form($sid,$user);
+
+			if($content==''){
+				$content='NOT_DATA_AVAILABLE';
+			}
+		}
+		else{
+			$content="Data Access Not Available";
+		}
+
+		//echo $content;
+		$this->template->add_variable("body_class","container");
+		$this->template->write('title', '',true);
+		$this->template->write('content', $content,true);
+	  	$this->template->render();
+		return;
+		$this->render_page($sid, $content,'get_microdata');
 	}
 
 
