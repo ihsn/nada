@@ -273,7 +273,9 @@ h5{margin:0px;}
        <div class="row wb-var-panel">
            <div class="col-12 wb-var-title">
                <div class="align-middle mt-2">
-                   <?php echo t("Compare variables");?></div>
+                   <?php echo t("Compare variables");?>
+                   <span class="var-in-cart badge badge-light"></span>
+                </div>
                <div>
                     <i class="fa fa-angle-up wb-var-handler-up"></i>
                     <i class="fa fa-angle-down wb-var-handler-down"></i>
@@ -457,10 +459,10 @@ var i18n=
     function compare_variable_popup_update(){
 
         vars=get_selected_variables();
-        $(".variable-comparison-popup").addClass("wb-updating");
+        /*$(".variable-comparison-popup").addClass("wb-updating");
         setTimeout(function() { 
             $(".variable-comparison-popup").removeClass("wb-updating");
-        }, 1000);
+        }, 1000);*/
         
         $(".variable-comparison-popup .var-list").html("Loading...");
         
@@ -500,6 +502,8 @@ var i18n=
 
                 $(".variable-comparison-popup .var-list").append(html);
             }
+
+            $(".variable-comparison-popup .var-in-cart").html(data.length);
         })
         .fail(function() {
             alert("error");
