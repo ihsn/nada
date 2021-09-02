@@ -77,7 +77,7 @@ class Repository_model extends CI_Model {
 	function select_single($id)
 	{
 		if (!is_numeric($id)){
-			$this->db->where('repositoryid', $id);
+			$this->db->where('repositoryid', (string)$id);
 		}else{
 			$this->db->where('id', $id); 
 		}
