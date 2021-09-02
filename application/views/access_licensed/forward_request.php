@@ -1,6 +1,4 @@
-
-<?php echo form_open('', 'class="form-group" id="form_fw_lic_request" name="form_fw_lic_request"');?>
-
+<form class="form-group" name="form_fw_lic_request" id="form_fw_lic_request">
     <div class="form-group">
          <label><?php echo t('forward_lic_request');?></label>
     </div>
@@ -29,4 +27,4 @@
     <div class="form-group">        
         <input class="btn btn-primary" type="button" name="fwd_request" id="fwd_request" value="<?php echo t('send');?>" onclick="forward_mail(<?php echo $this->uri->segment(4); ?>);"/>
     </div>            
-<?php echo form_close();?>
+</form>

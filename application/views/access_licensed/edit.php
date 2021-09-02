@@ -144,8 +144,8 @@ $(function() {
 	<div role="tabpanel" class="tab-pane" id="tabs-2">
     	<div class="process-request">
     	<div class="bottom-margin-10"><strong><?php echo t('request_status');?>: <em><?php echo t($status); ?></em></strong></div>
-		
-        <?php echo form_open('', 'class="form-group" id="form_request_review" name="form_request_review" autocomplete="off" ');?>
+		<form id="form_request_review" name="form_request_review" method="post" autocomplete="off" class="form-group">
+        
         <div class="field action">
             <div>
            		<strong><?php echo t('select_action');?></strong>
@@ -195,14 +195,14 @@ $(function() {
          </div>
 
         
-		<?php form_close();?>
+		</form>
         
         
         </div>
     </div>
     
-	<div role="tabpanel" class="tab-pane" id="tabs-3">		
-        <?php echo form_open('', 'class="form-group" name="form_compose_email" id="form_compose_email" ');?>    
+	<div role="tabpanel" class="tab-pane" id="tabs-3">
+		<form class="form-group" name="form_compose_email" id="form_compose_email">
             <div class="form-group">
                  <label><?php echo t('compose_email');?></label>
             </div>
@@ -230,12 +230,13 @@ $(function() {
             <div class="form-group">        
             	<input type="button" class="btn btn-primary" name="send" id="send" value="<?php echo t('send');?>" onclick="send_mail(<?php echo $this->uri->segment(4); ?>);"/>
             </div>            
-        <?php form_close();?>
+        </form>
         
         <div>
         	<h3><?php echo t('communicate_history');?></h3>
         	<div><?php $this->load->view('access_licensed/email_history');?></div>
         </div>
+
         
 	</div>
 
