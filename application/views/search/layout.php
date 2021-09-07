@@ -1,5 +1,5 @@
 <style>
- /* .breadcrumb{display:none;} */
+ /* .breadcrumb{display:none;} */ 
  .search-nav-tabs .nav-item .active{   
     background-color: transparent;
     border:0px;
@@ -37,6 +37,7 @@
   overflow-y: hidden;
   display: -webkit-box;
   display: -moz-box;
+  flex-wrap:nowrap;
 }
 .nav-tabs-auto-overflow >li {
   float: none;
