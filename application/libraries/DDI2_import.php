@@ -127,22 +127,33 @@ class DDI2_Import{
             if(!isset($params['formid'])){
                 $this->formid=$dataset_row['formid'];
             }
-		}
 
-		$repositoryid=$this->repositoryid;
-        $ddi_filename=$this->sanitize_filename($idno).".xml";
+            $repositoryid=$this->repositoryid;
+            $ddi_filename=$this->sanitize_filename($idno).".xml";
 
-        //generate survey folder name hash
-        $survey_folder_hash=md5($repositoryid.':'.$idno);
+            $survey_target_filepath=$this->ci->Dataset_model->get_metadata_file_path($sid);
 
-		//survey folder path
-        $survey_folder_path=$this->setup_folder($repositoryid,$survey_folder_hash);
-        
-        //partial relative path to survey folder
-        $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
+            if(!$survey_target_filepath){
+                $survey_folder_hash=md5($repositoryid.':'.$idno);
+                $this->setup_folder($repositoryid,$survey_folder_hash);
+            }
 
-		//target file path
-		$survey_target_filepath=unix_path($survey_folder_path.'/'.$ddi_filename);
+		}else{//new study
+            $repositoryid=$this->repositoryid;
+            $ddi_filename=$this->sanitize_filename($idno).".xml";
+
+            //generate survey folder name hash
+            $survey_folder_hash=md5($repositoryid.':'.$idno);
+
+            //survey folder path
+            $survey_folder_path=$this->setup_folder($repositoryid,$survey_folder_hash);
+            
+            //partial relative path to survey folder
+            $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
+
+            //target file path
+            $survey_target_filepath=unix_path($survey_folder_path.'/'.$ddi_filename);
+        }
 
         //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
         if($this->file_path!==$survey_target_filepath){
