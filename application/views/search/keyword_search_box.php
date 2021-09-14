@@ -5,7 +5,7 @@
         <span class="input-group-append">
             <button class="btn btn-primary btn-search-submit" type="submit" id="submit_search">
                 <!-- <i class="fa fa-search"></i> -->
-                Search
+                <?php echo t('Search');?>
             </button>
             <a href="<?php echo site_url('catalog');?>" class="close clear-search-button" aria-label="Close">
                 <span aria-hidden="true">&times;</span>

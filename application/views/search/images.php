@@ -196,9 +196,10 @@ if (in_array($tab_type, array('document', 'timeseries', 'script'))) {
             <div class="row">
 
                 <div class="<?php echo $body_col_class; ?>">
-                    <h5 class="title">
-                        <a href="<?php echo site_url('catalog/' . $row['id']); ?>" title="<?php echo $row['title']; ?>">
-                            <?php echo $row['title']; ?> <span class="dataset-type-label"><?php echo $row['type']; ?></span>
+                    <h5 class="wb-card-title title">
+                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
+                            <i class="fa fa-image fa-nada-icon wb-title-icon"></i>             
+                            <span><?php echo $row['title'];?></span>
                         </a>
                     </h5>
 

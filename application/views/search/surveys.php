@@ -98,9 +98,6 @@
         case 'microdata':
         case 'survey':
         case 'table':
-            //no thumbnail/icon
-            break;
-        
         case 'timeseries':
         case 'document':
         case 'script':
@@ -132,6 +129,12 @@
         }
         
         $is_featured=isset($row['featured']) ? $row['featured'] : false;
+
+        if (empty($row['thumbnail'])){
+            $row_col2_class="col-md-12";
+        }else{
+            $row_col2_class="col-md-10";
+        }
     ?>
 
     <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'wb-featured featured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
@@ -200,6 +203,7 @@
                 </div>
 
                 <?php //Data license + data classification icons ?>
+                <?php if($row['type']=='survey' || $row['type']=='geospatial'):?>
                 <div class="wb-license-classification">
                     <span class="badge wb-data-access wb-badge btn-data-license-<?php echo $row['form_model'];?>">
                         <i class="icon-da-sm icon-da-<?php echo $row['form_model'];?>" ></i> <span class=""><?php echo t("legend_data_".$row['form_model']);?></span>
@@ -220,6 +224,7 @@
                     </span>
                     */?>
                 </div>
+                <?php endif;?>
                 
                 <?php if ( isset($row['var_found']) ): ?>            
                     <div class="mt-3 variables-found" style="clear:both;">
@@ -252,12 +257,10 @@
 
                 <?php //type icon ?>                
                 <?php //type thumbnail ?>
-                <?php if($row_col1_type=="thumbnail"):?>
+                <?php if (!empty($row['thumbnail'])):?>
                     <div class="<?php echo $row_col1_class;?>  wb-col-media" >
-                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>">
-                        <?php if (!empty($row['thumbnail'])):?>
-                            <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" alt="" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail"/>
-                        <?php endif;?>
+                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>">                        
+                            <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" alt="" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail"/>                        
                         </a>
                     </div>
                 <?php endif;?>
