@@ -244,7 +244,7 @@ class Study extends MY_Controller {
 			$options['data_access_type']=$data_access['model'];
 		}
 
-		if($data_access['model']=='remote'){
+		if(isset($data_access['model']) && $data_access['model']=='remote'){
 			$options['link_da']=$this->Catalog_model->get_survey_link_da($sid);
 		}
 

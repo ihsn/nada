@@ -33,7 +33,7 @@ if(isset($metadata['resources']) ){
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "title"=>'text',
-            "resources"=>'photo_gallery',
+            "resources"=>'photo',
             "metadata.image_description.description.description"=>'text',            
             "metadata.image_description.description.albums"=>'array',
             "idno"=>'text',
