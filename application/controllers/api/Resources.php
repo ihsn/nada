@@ -266,7 +266,11 @@ class Resources extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM: resource_id");
 			}
 
-			$this->Survey_resource_model->delete_single($sid,$resource_id);
+			$isdeleted=$this->Survey_resource_model->delete_single($sid,$resource_id); 
+
+			if(!$isdeleted){
+				throw new Exception("RESOURCE_NOT_FOUND");
+			}
 			
 			$response=array(
 				'status'=>'success',
@@ -275,8 +279,12 @@ class Resources extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+		catch(Exception $e){		
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);		
 		}		
 	}
 

@@ -288,9 +288,28 @@ class Survey_resource_model extends CI_Model {
 	//delete a single resource by dataset
 	function delete_single($sid,$resource_id)
 	{
-		$this->db->where('survey_id', $sid); 
+		if (!$this->check_survey_resource($sid,$resource_id)){
+			return false;
+		}
+
+		$this->db->where('survey_id', $sid);  
 		$this->db->where('resource_id', $resource_id); 
-		return $this->db->delete('resources');
+		$this->db->delete('resources');
+
+		return true;
+	}
+
+	function check_survey_resource($sid,$resource_id)
+	{
+		$this->db->select("resource_id");
+		$this->db->where('survey_id', $sid);  
+		$this->db->where('resource_id', $resource_id);
+		$result=$this->db->get("resources")->result_array();
+
+		if(empty($result)){
+			return false;
+		}
+		return true;
 	}
 	
 
