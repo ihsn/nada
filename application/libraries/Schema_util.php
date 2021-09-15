@@ -173,11 +173,7 @@ class Schema_util
         }
 
         if(isset($schema->items)){            
-            //$this->schema_elements($schema->items, $parent,$output);
             $output[$parent]['items']=$schema->items;
-            /*var_dump($parent);
-            var_dump($output);
-            die();*/
         }
 
         $props=array('properties','allOf');
@@ -189,10 +185,6 @@ class Schema_util
 
             foreach($schema->{$prop_type} as $key=>$value)
             {
-                /*var_dump($prop_type);
-                var_dump($key);
-                die();*/
-
                 if ($prop_type=='allOf'){
 
                     if($parent!==null){
@@ -261,7 +253,8 @@ class Schema_util
             'geospatial',
             'image',
             'timeseries',
-            'resource'
+            'resource',
+            'video'
         );
 
         if(!in_array($schema_name,$schemas)){

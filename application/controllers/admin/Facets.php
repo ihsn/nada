@@ -35,7 +35,8 @@ class Facets extends MY_Controller {
 			'document',
 			'table',
 			'image',
-			'video'
+			'video',
+			'timeseries'
 		);
 		
 
