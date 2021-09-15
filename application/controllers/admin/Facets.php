@@ -1,6 +1,17 @@
 <?php
 class Facets extends MY_Controller {
  
+
+	private $data_types=array(		
+		'survey',
+		'geospatial',
+		'document',
+		'table',
+		'image',
+		'video',
+		'timeseries'
+	);
+
     function __construct() 
     {
         parent::__construct();   
@@ -29,17 +40,7 @@ class Facets extends MY_Controller {
 	{
 		$this->load->library("Schema_util");
 
-		$data_types=array(
-			'survey',
-			'geospatial',
-			'document',
-			'table',
-			'image',
-			'video',
-			'timeseries'
-		);
-		
-
+		$data_types=$this->data_types;
 		$data=array();
 		$data['data_types']=$data_types;
 		//$x=array_keys($this->schema_util->get_schema_elements($schema_name="survey"));
@@ -47,7 +48,6 @@ class Facets extends MY_Controller {
 			$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
 			//$field_keys= array_keys($data['fields'][$type]);
 		}
-
 
 		$content=$this->load->view('facets/create_vue', $data,TRUE);
 		
@@ -60,16 +60,7 @@ class Facets extends MY_Controller {
 	{
 		$this->load->library("Schema_util");
 
-		$data_types=array(
-			'survey',
-			'geospatial',
-			'document',
-			'table',
-			'image',
-			'video'
-		);
-		
-
+		$data_types=$this->data_types;
 		$data=array();
 		$data['data_types']=$data_types;
 		//$x=array_keys($this->schema_util->get_schema_elements($schema_name="survey"));
@@ -103,16 +94,7 @@ class Facets extends MY_Controller {
 		);*/
 		
 		$options['facets']=$this->Facet_model->select_all();
-		$options['data_types']=array(
-			'all',
-			'microdata',
-			'geospatial',
-			'document',
-			'table',
-			'image',
-			'video'
-		);
-		
+		$options['data_types']=array_merge(array('all'),$this->data_types);		
 
 		$facet_sort_options=array();
 

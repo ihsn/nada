@@ -258,7 +258,7 @@ class Schema_util
         );
 
         if(!in_array($schema_name,$schemas)){
-            throw new Exception("Supported schemas are:". implode(", " , $schemas));
+            throw new Exception("INVALID_SCHEMA: ".$schema_name.". Supported schemas are:". implode(", " , $schemas));
         }
 
         $schema_file="api-documentation/catalog-admin/".$schema_name."-schema.json";
