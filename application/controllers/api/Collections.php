@@ -25,8 +25,14 @@ class Collections extends MY_REST_Controller
 			return $this->single_get($repo_id);
 		}
 
+		$published=$this->input->get("published");
+
 		try{			
-			$repos=$this->Repository_model->select_all($published=1);
+			if (is_numeric($published) && ($published==0 || $published==1)){
+				$repos=$this->Repository_model->select_all($published);
+			}else{
+				$repos=$this->Repository_model->select_all();
+			}
 
 			$output=array();
 			$fields=array(
@@ -412,5 +418,30 @@ class Collections extends MY_REST_Controller
 	{
 		return $this->delete_delete($repo_id);
 	}
+
 	
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		if ($this->session->userdata('user_id')){
+			return true;
+		}
+		parent::_auth_override_check();
+	}
+
+
+	//override to support sessions
+	function get_api_user_id()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
+		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->_apiuser->user_id;
+		}
+
+		return false;
+	}
 }

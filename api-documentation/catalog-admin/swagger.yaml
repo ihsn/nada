@@ -143,8 +143,13 @@ paths:
         consumes:
           - application/json
         produces:
-          - application/xml
           - application/json
+        parameters:
+        - name: published
+          in: path
+          title: Filter by published status
+          description: (Optional) Filter by published status - `0`=draft, `1`=published
+          type: integer  
         responses:
           '200':
             description: successful operation
