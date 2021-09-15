@@ -94,7 +94,16 @@ class Facets extends MY_Controller {
 		);*/
 		
 		$options['facets']=$this->Facet_model->select_all();
-		$options['data_types']=array_merge(array('all'),$this->data_types);		
+		$options['data_types']=array(
+			'all',
+			'microdata',
+			'geospatial',
+			'document',
+			'table',
+			'image',
+			'video',
+			'timeseries'
+		);
 
 		$facet_sort_options=array();
 
