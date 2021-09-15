@@ -358,6 +358,14 @@ class Collections extends MY_REST_Controller
 			}
 
 			$datasets=$this->Repository_model->get_all_repo_studies($repo_id);
+			$sid_arr=array_values(array_column($datasets,'id'));
+			$linked_collections=$this->Repository_model->linked_repos_by_studies($sid_arr);
+
+			foreach($datasets as $idx=>$row){
+				if(isset($linked_collections[$row['id']])){
+					$datasets[$idx]['linked_collections']=$linked_collections[$row['id']];
+				}
+			}
 
 			$response=array(
 				'status'=>'success',

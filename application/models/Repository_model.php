@@ -1007,6 +1007,37 @@ class Repository_model extends CI_Model {
 		
 		return $output;
 	}
+
+
+	/**
+	*
+	* Return an array of collection IDs by study
+	*
+	**/
+	function linked_repos_by_studies($sid_arr)
+	{
+		if (empty($sid_arr)){
+			return false;
+		}
+
+		$this->db->select('repositoryid,sid');
+		$this->db->where('isadmin',0);
+		$this->db->where_in('sid',$sid_arr);
+		$query=$this->db->get('survey_repos');
+		
+		if (!$query){
+			return array();
+		}
+
+		$result=$query->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['sid']][]=$row['repositoryid'];
+		}
+		
+		return $output;
+	}
 	
 	/**
 	*
