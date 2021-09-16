@@ -10,19 +10,8 @@ class Citations extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
 		$this->load->model("Citation_model");
-		$this->is_admin_or_die();
 	}
 	
-
-	//override authentication to support both session authentication + api keys
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
-
 	/**
 	 * 
 	 * 
@@ -37,43 +26,62 @@ class Citations extends MY_REST_Controller
 				return $this->single_get($uuid);
 			}
 			
-			//records to show per page
-			$per_page = 50;
+			$per_page = $this->get_page_size($this->input->get("ps"));
 		
-			//current page
 			$offset=(int)$this->input->get('offset');
-			$collection=$this->input->get('collection');
+			if ($offset<0){
+				$offset=0;
+			}
+
+			//$collection=$this->input->get('collection');
+			
+			$published=1; //show only published citations by default
+
+			try{
+				if($this->is_admin()){
+					$published=null; //show all
+
+					if($this->input->get("published")!==false){
+						$published=(int)$this->input->get("published") == 1 ? 1:0;
+					}
+				}
+			}
+			catch(Exception $e){
+				$published=1;
+			}
 	
 			//sort order
 			$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
 			$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'rank';
 	
-			//filter
-			$filter=NULL;
-	
-			$search_options=array(
+			$filter=array(
 				'keywords'=>$this->input->get("keywords"),
+				'from'=>$this->input->get("from"),
+				'to'=>$this->input->get("to"),
+				'ctype'=>array_filter(explode(",",$this->input->get("ctype")))
+			);			
+	
+			$rows=$this->Citation_model->search(
+				$per_page, 
+				$offset,
+				$filter, 
+				$sort_by, 
+				$sort_order,
+				$published
+				//$repository=$collection
 			);
-	
-			//records
-			$rows=$this->Citation_model->search($per_page, $offset,$search_options, $sort_by, $sort_order,$published=1,$repository=$collection);
-	
-			//total records found
+
 			$total = $this->Citation_model->search_count();
-	
-			if ($offset>$total){
-				$offset=$total-$per_page;
-	
-				//search again
-				$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1,$repository=$collection);
-			}
 
 			$response=array(
+				'published' =>$published,
 				'status'	=> 'success',
 				'total'		=> $total,
+				'found'		=> count($rows),
 				'offset'	=> $offset,
 				'per_page'	=> $per_page,
-				'citations'	=> $rows
+				'citations'	=> $rows,
+				
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -81,6 +89,24 @@ class Citations extends MY_REST_Controller
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+	/**
+	 * 
+	 * Get page size
+	 * 
+	 */
+	private function get_page_size($page_size)
+	{
+		$page_size_min=1;
+		$page_size_max=300;
+
+		if($page_size>=$page_size_min && $page_size<=$page_size_max){
+			return $page_size;
+		}
+
+		return 50;//default page size
 	}
 
 
@@ -159,6 +185,7 @@ class Citations extends MY_REST_Controller
 	 **/ 
 	function index_post()
 	{
+		$this->is_admin_or_die();
 		$this->load->model("Dataset_model");
 		try{
 			$options=$this->raw_json_input();
@@ -286,5 +313,34 @@ class Citations extends MY_REST_Controller
 		}
     }
 
+
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		if ($this->input->method()=='get'){
+			return true;
+		}
+
+		if ($this->session->userdata('user_id')){
+			return true;
+		}
+		parent::_auth_override_check();
+	}
+
+
+	//override to support sessions
+	function get_api_user_id()
+	{
+		//session user id
+		if ($this->session->userdata('user_id')){
+			return $this->session->userdata('user_id');
+		}
+
+		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
+			return $this->_apiuser->user_id;
+		}
+
+		return false;
+	}
 	
 }

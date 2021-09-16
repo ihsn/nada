@@ -1777,7 +1777,7 @@ paths:
           - application/xml
           - application/json
         parameters:
-          - name: q
+          - name: keywords
             in: path
             description: Search keywords 
             type: string
@@ -1791,7 +1791,48 @@ paths:
             in: path
             title: "End year"          
             type: integer
-            format: integer  
+            format: integer
+          - name: ctype
+            in: path
+            title: "Citation type"
+            description: Citation types (e.g. book, journal, website). To filter by multiple types, separate by comma. `ctype=book,journal`
+            type: string
+            format: string
+          - name: published
+            in: path
+            title: "Filter by published status"          
+            type: integer
+            format: integer
+            description: By default all citations are returned. `0` = Draft, `1` = Published
+          - name: ps
+            in: path
+            title: Page size
+            description: Number of results per page. Default is 15 records per page
+            type: int
+          - name: offset
+            in: path
+            title: Offset
+            description: Page to return for the search result
+            type: int
+          
+          - name: sort_by
+            in: path
+            title: Sort results
+            description: Sort search results. Valid options are `author`,`title`,`pub_year`
+            type: string
+            enum:
+            - title
+            - author
+            - pub_year
+          - name: sort_order
+            in: path
+            title: Sort order
+            description: Set results sort order. Ascending = `asc`, Descending= `desc`
+            type: string
+            enum:
+            - asc
+            - desc
+
         responses:
           '200':
             description: successful operation
