@@ -1671,6 +1671,17 @@ class Catalog extends MY_Controller {
 		$this->template->render();
 	}
 
+	function widgets($sid)
+	{
+		$this->load->model("Widget_model");
+		$options['widget_storage_root']='files/embed/';
+		$options['widgets']=$this->Widget_model->widgets_by_study($sid);
+		
+		$content= $this->load->view('widgets/related_widgets', $options,TRUE);
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
+
 	/**
 	 * Edit survey - by id
 	 *
@@ -1695,6 +1706,10 @@ class Catalog extends MY_Controller {
 
 		if ($this->uri->segment(5)=='metadata'){
 			return $this->metadata_editor($id);
+		}
+
+		if ($this->uri->segment(5)=='widgets'){
+			return $this->widgets($id);
 		}
 
 		$this->load->model('Citation_model');

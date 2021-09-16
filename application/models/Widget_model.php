@@ -410,11 +410,13 @@ class Widget_model extends CI_Model {
     {
         $this->db->where("sid",$sid);
         $this->db->join('survey_widgets', 'widgets.uuid= survey_widgets.widget_uuid','inner');
-        $query=$this->db->get("widgets");
+        $result=$this->db->get("widgets")->result_array();
 
-        if ($query){
-            return $query->result_array();
+        foreach($result as $key=>$row){
+            $result[$key]['link']=site_url('widgets/view/'.$row['uuid']);
         }
+
+        return $result;
     }
 
     function get_attached_studies($uuid)

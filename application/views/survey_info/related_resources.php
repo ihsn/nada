@@ -122,7 +122,7 @@ $fields_arr=array(
 
 <div style="padding-top:20px;">
     <h5><?php echo t('study_resources');?></h5>
-    <div class="subtext"><?php echo t('study_documentation_text');?></div>
+    <!--<div class="subtext"><?php echo t('study_documentation_text');?></div>-->
     <div class="resources">
         <?php $class="resource"; ?>
         <?php foreach($resources as $key=>$resourcetype):?>
