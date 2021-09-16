@@ -25,7 +25,8 @@
         "metadata.series_description.aliases"=>"array",        
         "metadata.series_description.measurement_unit"=>"text",
         "metadata.series_description.periodicity"=>"text",
-        "metadata.series_description.base_period"=>"text",        
+        "metadata.series_description.base_period"=>"text",
+        "metadata.iframe_embeds"=>'iframe_embed',        
         "metadata.series_description.definition_short"=>"text",
         "metadata.series_description.definition_long"=>"text",
         "metadata.series_description.definition_references"=>"array",
@@ -69,8 +70,7 @@
         "metadata.series_description.related_indicators.uri"=>"text",
         "metadata.series_description.compliance"=>"array",
         "metadata.series_description.series_groups"=>"array",
-        "metadata.additional"=>"object",
-
+        "metadata.additional"=>"object"        
     ),
     $metadata);
 ?>
