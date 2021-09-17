@@ -132,6 +132,7 @@ class DDI2_Import{
             $ddi_filename=$this->sanitize_filename($idno).".xml";
 
             $survey_target_filepath=$this->ci->Dataset_model->get_metadata_file_path($sid);
+            $survey_folder_rel_path =$this->ci->Dataset_model->get_dirpath($sid);            
 
             if(!$survey_target_filepath){
                 $survey_folder_hash=md5($repositoryid.':'.$idno);
