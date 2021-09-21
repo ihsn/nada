@@ -9,6 +9,12 @@
  **/
 ?>
 
+<style>
+.field-metadata__series_description__geographic_units  .field-value{
+    max-height:300px;
+    overflow-y:auto;
+}
+</style>
 
 <?php 
     //rendered html for all sections

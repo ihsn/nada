@@ -55,7 +55,7 @@ $lang['metadata.database_description.keywords.name']='Name';
 $lang['metadata.database_description.keywords.vocabulary']='Vocabulary';
 $lang['metadata.database_description.keywords.uri']='URI';
 
-$lang['metadata.database_description.geographic_units']='Geograhic Units';
+$lang['metadata.database_description.geographic_units']='Geograhic coverage';
 
 $lang['metadata.database_description.geographic_units.name']='Name';
 $lang['metadata.database_description.geographic_units.code']='Code';
