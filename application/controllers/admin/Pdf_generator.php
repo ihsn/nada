@@ -169,7 +169,8 @@ class Pdf_generator extends MY_Controller {
 			show_error("INVALID ID");
 		}
 		
-		$this->acl->user_has_study_access($sid);
+		$survey=$this->Catalog_model->select_single($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
 		
 		$this->load->library("catalog_admin");
 		$this->catalog_admin->delete_study_pdf($sid);
