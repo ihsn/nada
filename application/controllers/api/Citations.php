@@ -9,7 +9,7 @@ class Citations extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
-		$this->load->model("Citation_model");
+		$this->load->model("Citation_model"); 
 	}
 	
 	/**
@@ -115,9 +115,12 @@ class Citations extends MY_REST_Controller
 	 * Get a single citation
 	 * 
 	 */
-	function single_get($id=null)
+	function single_get($uuid=null)
 	{
 		try{
+
+			$id=$this->get_id_from_uuid($uuid);
+
 			if(!is_numeric($id)){
 				throw new Exception("MISSING_PARAM: citationId");
 			}
@@ -187,6 +190,7 @@ class Citations extends MY_REST_Controller
 	{
 		$this->is_admin_or_die();
 		$this->load->model("Dataset_model");
+
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -314,6 +318,40 @@ class Citations extends MY_REST_Controller
     }
 
 
+	/**
+	 * 
+	 *  Delete citation
+	 * 
+	 */
+	public function delete_delete($uuid=null)
+	{
+		try{
+			$id=$this->get_id_from_uuid ($uuid);
+			$this->Citation_model->delete($id);
+			$this->events->emit('db.after.delete', 'citations', $id);
+		
+			$response=array(
+				'status'=>'success',
+				'message'=>'DELETED'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}	
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}	
+	}
+	
+	public function index_delete($uuid=null)
+	{
+		return $this->delete_delete($uuid);
+	}
+
+
 	//override authentication to support both session authentication + api keys
 	function _auth_override_check()
 	{
@@ -341,6 +379,40 @@ class Citations extends MY_REST_Controller
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Return ID by UUID
+	 * 
+	 * 
+	 * @uuid 		- Citation UUID
+	 * @id_format 	- ID | IDNO
+	 * 
+	 * Note: to use ID instead of UUID, must pass id_format in querystring
+	 * 
+	 */
+	public function get_id_from_uuid($uuid=null)
+	{		
+		if(!$uuid){
+			throw new Exception("UUID-NOT-PROVIDED");
+		}
+
+		$id_format=$this->input->get("id_format");
+
+		if ($id_format=='id'){
+			return $uuid;
+		}
+
+		$id=$this->Citation_model->get_id_by_uuid($uuid);
+
+		if(!$id){
+			throw new Exception("IDNO-NOT-FOUND");
+		}
+
+		return $id;
 	}
 	
 }
