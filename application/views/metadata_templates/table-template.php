@@ -68,6 +68,7 @@
             "metadata.table_description.keywords"=>'array',
             "metadata.table_description.themes"=>'array',
             "metadata.table_description.topics"=>'array',
+            "metadata.table_description.definitions"=>'array',
             "metadata.tags"=>'array_comma',
             
             "metadata.table_description.data_years_range"=>'array',
