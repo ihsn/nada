@@ -10,14 +10,26 @@
 
  $hide_column_headings=false;
  $hide_field_title=false;
+ $columns=NULL;
+
+ if (isset($options[$name])){
+    $options=$options[$name];
+}
 
  if(isset($options['hide_column_headings'])){
      $hide_column_headings=$options['hide_column_headings'];
  }
  
+ if(isset($options['columns'])){
+    $columns=$options['columns'];
+}
+
  if(isset($options['hide_field_title'])){
     $hide_field_title=$options['hide_field_title'];
  }
+
+ 
+
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
 <div class="table-responsive field field-<?php echo str_replace(".","__",$name);?>">
@@ -53,6 +65,18 @@
             
             <?php foreach($data as $row):?>
                 <tr>
+                    
+                    <?php foreach($columns as $column_name):?>                        
+                        <td>
+                            <?php if(empty($row[$column_name])){continue;}?>    
+                            <?php if(is_array($row[$column_name])):?>
+                            <?php echo render_field($field_type='array_br',$field_name=$name.'.'.$column_name,$row[$column_name], array('hide_column_headings'=>true));?>
+                            <?php else:?>
+                                <?php echo $row[$column_name];?>
+                            <?php endif;?>    
+                        </td>
+                    <?php endforeach;?>                    
+                    <?php  /*
                     <?php foreach($row as $key=>$value):?>
                         <?php if(!in_array($key,$columns)){continue;}?>
                         <td>
@@ -63,6 +87,7 @@
                             <?php endif;?>    
                         </td>
                     <?php endforeach;?>                    
+                    */ ?>
                 </tr>
             <?php endforeach;?>
         </table>

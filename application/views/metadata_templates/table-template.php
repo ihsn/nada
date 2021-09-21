@@ -63,7 +63,14 @@
             "metadata.table_description.universe"=>'text',
 
             "metadata.table_description.table_columns"=>'array',
-            "metadata.table_description.table_rows"=>'array',
+            "metadata.table_description.table_rows"=>"array",
+            /*"metadata.table_description.table_rows"=>array(
+                'array',
+                'options'=>array(
+                    'hide_column_headings'=>false,
+                    'columns'=>array('label','var_name','dataset')
+                )
+            ),*/
 
             "metadata.table_description.keywords"=>'array',
             "metadata.table_description.themes"=>'array',
@@ -87,7 +94,18 @@
             "metadata.table_description.relations"=>'array',
             "metadata.table_description.citation"=>'text'            
     ),
-    $metadata);
+    $metadata,
+    $options=array(
+            "metadata.table_description.table_rows"=>array(
+                'hide_column_headings'=>false,
+                'columns'=>array('label','var_name','dataset')
+            ),
+            "metadata.table_description.table_columns"=>array(
+                'hide_column_headings'=>false,
+                'columns'=>array('label','var_name','dataset')
+            )
+    )
+);
 ?>
 
 
