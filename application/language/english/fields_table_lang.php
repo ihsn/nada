@@ -146,7 +146,7 @@ $lang['metadata.table_description.relations.type']='Type';
 $lang['metadata.table_description.confidentiality']='Confidentiality';
 
 $lang['metadata.table_description.definitions']='Definitions';
-$lang['metadata.table_description.definitions.name']='Definition';
+$lang['metadata.table_description.definitions.name']='Term';
 $lang['metadata.table_description.definitions.definition']='Definition';
 $lang['metadata.table_description.definitions.uri']='URI';
 
