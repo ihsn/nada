@@ -75,10 +75,12 @@ $lang['metadata.table_description.publisher.uri']='URI';
 $lang['metadata.table_description.table_columns']='Table columns';
 $lang['metadata.table_description.table_columns.var_name']='Variable name';
 $lang['metadata.table_description.table_columns.label']='Label';
+$lang['metadata.table_description.table_columns.dataset']='Dataset';
 
 $lang['metadata.table_description.table_rows']='Table rows';
 $lang['metadata.table_description.table_rows.var_name']='Variable name';
 $lang['metadata.table_description.table_rows.label']='Label';
+$lang['metadata.table_description.table_rows.dataset']='Dataset';
 
 $lang['metadata.table_description.statistics']='Statistics';
 $lang['metadata.table_description.statistics.value']='Value';

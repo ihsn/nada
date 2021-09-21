@@ -327,8 +327,16 @@
               "label": {
                 "title": "Label",
                 "type": "string"
+              },
+              "dataset": {
+                "title": "Dataset",
+                "type": "string",
+                "description": "Identifies the dataset that contains the variable reported in var_name"
               }
-            }
+            },
+            "required": [
+              "var_name"
+            ]
           }
         },
 
@@ -347,8 +355,16 @@
               "label": {
                 "title": "Label",
                 "type": "string"
+              },
+              "dataset": {
+                "title": "Dataset",
+                "type": "string",
+                "description": "Identifies the dataset that contains the variable reported in var_name"
               }
-            }
+            },
+            "required": [
+              "var_name"
+            ]
           }
         },
 
