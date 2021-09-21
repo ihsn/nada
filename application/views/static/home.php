@@ -33,6 +33,18 @@ $popular_surveys=$this->stats_model->get_popular_surveys(5);
 $latest_surveys=$this->stats_model->get_latest_surveys(10);	
 
 $this->title='Home';
+
+$data_types=array(
+    'survey'=>'Microdata',
+    'table'=>'Tables',
+    'document'=>'Documents',
+    'script'=>'Scripts',
+    'geospatial'=>'Geospatial',
+    'video'=>'Videos',
+    'image'=>'Images',
+    'timeseries'=>'Timeseries'
+);
+
 ?>
 
 <div class="container">
@@ -50,54 +62,23 @@ $this->title='Home';
     </div>
     <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
         <!-- *****  Stats ***** -->
-        <div class="wb-box-sidebar wb-tab-heading pt-3 pb-3 pr-4 pl-4 text-center">
+        <?php if (is_array($counts)):?>
+        <div class="wb-box-sidebar wb-tab-heading pt-3 pb-3 pr-4 pl-4 text-center mb-3">
 
             <p>As of <strong><?php echo date("F d, Y",date("U")); ?></strong><br> the catalog contains</p>
-            <?php if(isset($counts['survey']) && $counts['survey']>0):?>
-                <h3 class="mb-0"><?php echo number_format($counts['survey']);?></h3>
-                <p>Surveys</p>
-            <?php endif;?>
-
-            <?php if(isset($counts['timeseries']) && $counts['timeseries']>0):?>
-                <h3 class="mb-0"><?php echo number_format($counts['timeseries']);?></h3>
-                <p>Timeseries</p>
-            <?php endif;?>
-
-            <?php if(isset($counts['table']) && $counts['table']>0):?>
-                <h3 class="mb-0"><?php echo number_format($counts['table']);?></h3>
-                <p>Tables</p>
-            <?php endif;?>
-
-            <?php if(isset($counts['visualization']) && $counts['visualization']>0):?>
-                <h3 class="mb-0"><?php echo number_format($counts['visualization']);?></h3>
-                <p>Visualizations</p>
-            <?php endif;?>
-
-            <?php if(isset($counts['document']) && $counts['document']>0):?>
-                <h3 class="mb-0"><?php echo number_format($counts['document']);?></h3>
-                <p>Documents</p>
-            <?php endif;?>
-
-            <?php if(isset($counts['image']) && $counts['image']>0):?>
-                <h3 class="mb-0"><?php echo number_format($counts['image']);?></h3>
-                <p>Images</p>
-            <?php endif;?>
-<!--
-            <?php if ($variable_count>0):?>
-                <h3 class="mb-0"><?php echo number_format($variable_count);?> </h3>
-                <p>Variables</p>
-            <?php endif;?>
-            <?php if ($citation_count>0):?>
-            <h3 class="mb-0"><?php echo number_format($citation_count);?></h3>
-            <p>Citations</p>
-            <?php endif;?>
-            -->
+            <?php foreach($counts as $data_type=>$count):?>
+                <?php if($count>0):?>
+                    <h3 class="mb-0"><?php echo number_format($count);?></h3>
+                    <p><?php echo isset($data_types[$data_type]) ? $data_types[$data_type] : $data_type;?></p>
+                <?php endif;?>
+            <?php endforeach;?>
+            
             <a class="btn btn-primary btn-block" href="<?php echo site_url('catalog/central');?>" title="Data catalog">Catalog</a>
-
         </div>
+        <?php endif;?>
         <?php if (isset($popular_surveys) && is_array($popular_surveys) && count($popular_surveys)>0):?>
             <!-- **** popular studies **** -->
-            <div class="wb-box-sidebar popular-studies wb-tab-heading mt-4 pt-3 pb-3 pr-4 pl-4">
+            <div class="wb-box-sidebar popular-studies wb-tab-heading pt-3 pb-3 pr-4 pl-4">
                 <h5 class="pb-3">Most popular studies</h5>
                 <?php foreach($popular_surveys as $survey): ?>
                     <div class="study-row mb-3 pb-3 border-bottom" data-url="<?php echo site_url();?>/catalog/<?php echo $survey['id'];?>">
