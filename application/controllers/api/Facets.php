@@ -93,7 +93,8 @@ class Facets extends MY_REST_Controller
                 'table',
                 'image',
                 'video',
-                'timeseries'
+                'timeseries',
+                'scripts'
             );
 
             $data=array();

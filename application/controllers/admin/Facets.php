@@ -9,7 +9,8 @@ class Facets extends MY_Controller {
 		'table',
 		'image',
 		'video',
-		'timeseries'
+		'timeseries',
+		'scripts'
 	);
 
     function __construct() 
@@ -102,7 +103,8 @@ class Facets extends MY_Controller {
 			'table',
 			'image',
 			'video',
-			'timeseries'
+			'timeseries',
+			'scripts'
 		);
 
 		$facet_sort_options=array();
