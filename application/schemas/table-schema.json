@@ -319,15 +319,15 @@
           "items": {
             "type": "object",
             "properties": {
-              "var_name": {
-                "title": "Variable name",
-                "description": "Variable name",
-                "type": "string"
-              },
               "label": {
                 "title": "Label",
                 "type": "string"
               },
+              "var_name": {
+                "title": "Variable name",
+                "description": "Variable name",
+                "type": "string"
+              },              
               "dataset": {
                 "title": "Dataset",
                 "type": "string",
@@ -335,7 +335,7 @@
               }
             },
             "required": [
-              "var_name"
+              "label"
             ]
           }
         },
@@ -347,15 +347,15 @@
           "items": {
             "type": "object",
             "properties": {
-              "var_name": {
-                "title": "Variable name",
-                "description": "Variable name",
-                "type": "string"
-              },
               "label": {
                 "title": "Label",
                 "type": "string"
               },
+              "var_name": {
+                "title": "Variable name",
+                "description": "Variable name",
+                "type": "string"
+              },              
               "dataset": {
                 "title": "Dataset",
                 "type": "string",
@@ -363,7 +363,7 @@
               }
             },
             "required": [
-              "var_name"
+              "label"
             ]
           }
         },
