@@ -150,26 +150,7 @@
         "type": {
           "type": "string",
           "title":"Resource type",
-          "description": "Resource type",
-          "enum": [
-            "article",
-            "book",
-            "booklet",
-            "collection",
-            "conference",
-            "inbook",
-            "incollection",
-            "inproceeding",
-            "manual",
-            "masterthesis",
-            "patent",
-            "phdthesis",
-            "proceedings",
-            "techreport",
-            "working-paper",
-            "website",
-            "other"
-          ]
+          "description": "Valid values include - `article`, `book`, `booklet`, `collection`, `conference`, `inbook`, `incollection`, `inproceeding`,`manual`, `masterthesis`, `patent`, `phdthesis`, `proceedings`, `techreport`, `working-paper`, `website`, `other` "
         },
 
         "status": {
