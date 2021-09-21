@@ -94,7 +94,7 @@ class Facets extends MY_REST_Controller
                 'image',
                 'video',
                 'timeseries',
-                'scripts'
+                'script'
             );
 
             $data=array();
