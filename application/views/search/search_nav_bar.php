@@ -40,8 +40,7 @@
         <div class="filter-action-bar row">
                 <?php if($found>0):?>
                 <div class="search-count mt-1 font-weight-bold col"><?php echo number_format($found). ' '. t('results');?></div>
-                
-                <?php if($show_variable_toggle):?>
+                <?php if($show_variable_toggle && (isset($surveys['search_counts_by_type']) && array_key_exists('survey',$surveys['search_counts_by_type']))):?>
                 <div class="col mt-1 wb-search-toggle">                    
                     <div class="btn-group btn-group-toggle study-view-toggle" >
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s" ><?php echo t('Study view');?></button>
