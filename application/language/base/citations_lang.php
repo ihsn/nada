@@ -1,5 +1,4 @@
 <?php 
-
 $lang['title_citations']="Citations";
 $lang['title']="Title";
 $lang['subtitle']="Subtitle";
@@ -103,8 +102,9 @@ $lang['max_upload_limit']="Max upload limit";
 $lang['export_citations']="Export citations";
 $lang['export_to_csv']="Export to CSV";
 $lang['sort']="Sort";
-$lang['published-status-1']="Published"; 
+$lang['published-status-1']="Published";
 $lang['published-status-0']="Draft";
 
-/* End of file citations_lang.php */
-/* Location: ./application/language/english/citations_lang.php */
+
+/* End of file citations */
+/* Location: ./application/language/english/citations */
