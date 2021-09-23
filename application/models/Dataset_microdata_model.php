@@ -275,7 +275,7 @@ class Dataset_microdata_model extends Dataset_model {
         }
 
         $variables=$this->variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories);
-        
+
         $output=[];
         $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit','var_sumstat','var_format','var_val_range');
 
@@ -330,14 +330,15 @@ class Dataset_microdata_model extends Dataset_model {
 
         foreach($result as $index=>$row)
         {
-            $result[$index]['metadata']=$this->decode_metadata($row['metadata']);
+            $metadata=$this->decode_metadata($row['metadata']);
 
             if(!$include_categories){
-                unset($result[$index]['metadata']['catgry']);
+                unset($metadata['catgry']);
             }
-        }
 
-        return $result;
+            $row['metadata']=$metadata;
+            yield $row;
+        }
     }
 
 
