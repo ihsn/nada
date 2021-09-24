@@ -58,9 +58,10 @@
                                 <option value="country" data-sort="desc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>>Country (Z-A)</option>                           
                             </select>
                         </label>
-                        <!-- Take out the print icon -->
-                        <!-- <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm ml-2 mr-2 d-none d-sm-block"><i class="fa fa-print"></i></a> -->
+                        <?php /* 
+                        <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm ml-2 mr-2 d-none d-sm-block"><i class="fa fa-print"></i></a>
                         <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-primary btn-sm d-none d-sm-block ml-2"><i class="fas fa-file-export"></i> Export</a>  
+                        */?>
                     </div>
                 </div>                  
                 <?php endif;?>
