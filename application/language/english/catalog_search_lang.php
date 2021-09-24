@@ -148,6 +148,7 @@ $lang['data_open_description']="Datasets and the related documentation are made 
 $lang['filter_by_data']="Data Access";
 $lang['legend_na_access']="Data not available";
 $lang['central_data_catalog']="Central Data Catalog";
+$lang['about']="About";
 $lang['data_catalogs']="Data Catalogs";
 $lang['visit_catalog']="Visit catalog";
 $lang['catalog_owned_by']="Collection";

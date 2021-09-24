@@ -193,6 +193,27 @@ h5{margin:0px;}
     font-weight:normal;
 }
 
+.collection-thumbnail-container{
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    border: 1px solid gainsboro;
+    padding:4px;
+    overflow: hidden;
+    margin-right:20px;
+}
+.collection-thumbnail-container img {
+  width:100%;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.collection-info  .badge-pill{
+    font-weight:normal;
+    border:1px solid gainsboro;
+    font-size:14px; 
+}
+
 </style>
 
 <div class="container">
@@ -203,6 +224,35 @@ h5{margin:0px;}
     <input type="hidden" name="image_view" id="image_view" value="<?php echo form_prep($search_options->image_view);?>"/>
 
     <?php if($search_box_orientation!=='inline'):?>
+
+        <?php if($search_options->repo !='' && isset($active_repo['title'])):?>
+            
+        <div class="media mb-5 collection-info" >
+            <div class="collection-thumbnail-container d-none d-sm-block">
+                <?php 
+                    $thumbnail= file_exists($active_repo['thumbnail']) ? $active_repo['thumbnail'] : 'files/icon-blank2.png';
+                    $thumbnail=base_url().'/'.$thumbnail;
+                ?>
+                <img src="<?php echo $thumbnail;?>" class="mr-3"  />                
+            </div>
+            
+            <div class="media-body">
+            
+                <h1>
+                    <?php echo $active_repo['title'];?>                     
+                </h1>
+                <div class="mb-2">
+                    <span class="badge badge-pill badge-secondary"><?php echo $surveys['total'];?> datasets</span>
+                    <a href="<?php echo site_url('collections/'.$active_repo['repositoryid'].'/about');?>" class="badge badge-pill badge-light"><?php echo t('about');?></a>
+                    <a href="<?php echo site_url('catalog');?>" class="badge badge-pill badge-light"><i class="fas fa-long-arrow-alt-left"></i> <?php echo t('central_data_catalog');?></a>
+                </div>
+                <p>
+                    <?php echo $active_repo['short_text'];?>                    
+                </p>                
+            </div>
+        </div>
+        <?php endif;?>
+        
         <!--search bar-->
         <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
