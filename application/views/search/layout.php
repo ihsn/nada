@@ -197,8 +197,6 @@ h5{margin:0px;}
     display: inline-block;
     width: 100px;
     height: 100px;
-    border: 1px solid gainsboro;
-    padding:4px;
     overflow: hidden;
     margin-right:20px;
 }
@@ -212,6 +210,14 @@ h5{margin:0px;}
     font-weight:normal;
     border:1px solid gainsboro;
     font-size:14px; 
+}
+
+.collection-info h1{
+    font-size:1.5em;
+}
+
+.collection-info p{
+    font-size:14px;;
 }
 
 </style>
@@ -233,7 +239,7 @@ h5{margin:0px;}
                     $thumbnail= file_exists($active_repo['thumbnail']) ? $active_repo['thumbnail'] : 'files/icon-blank2.png';
                     $thumbnail=base_url().'/'.$thumbnail;
                 ?>
-                <img src="<?php echo $thumbnail;?>" class="mr-3"  />                
+                <img src="<?php echo $thumbnail;?>" class="mr-3 rounded"  />                
             </div>
             
             <div class="media-body">
@@ -242,7 +248,9 @@ h5{margin:0px;}
                     <?php echo $active_repo['title'];?>                     
                 </h1>
                 <div class="mb-2">
-                    <span class="badge badge-pill badge-secondary"><?php echo $surveys['total'];?> datasets</span>
+                    <?php /*
+                    <span class="badge badge-pill badge-secondary"><?php echo $surveys['total'];?> <?php echo t('studies');?></span>
+                    */?>
                     <a href="<?php echo site_url('collections/'.$active_repo['repositoryid'].'/about');?>" class="badge badge-pill badge-light"><?php echo t('about');?></a>
                     <a href="<?php echo site_url('catalog');?>" class="badge badge-pill badge-light"><i class="fas fa-long-arrow-alt-left"></i> <?php echo t('central_data_catalog');?></a>
                 </div>
