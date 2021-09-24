@@ -4,12 +4,11 @@ require_once 'application/libraries/Auth/AuthInterface.php';
 class DefaultAuth implements AuthInterface
 {
 
-	private $ci;
+	protected $ci;
 
     function __construct()
     {
 		//parent::__construct($skip_auth=TRUE);
-		
 		$this->ci =& get_instance();
 		
 		$this->ci->load->library('Nada_csrf');
