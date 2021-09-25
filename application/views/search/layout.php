@@ -217,7 +217,11 @@ h5{margin:0px;}
 }
 
 .collection-info p{
-    font-size:14px;;
+    font-size:14px;
+}
+
+.items-container .form-check-label{
+    font-size:14px;
 }
 
 </style>
@@ -1038,8 +1042,34 @@ $(document).ready(function() {
         
     //disable even propogations for compare link
     $(document.body).on("click",".var-quick-list .compare-variable", function(event){
-            event.stopPropagation();
+        event.stopPropagation();
     });
+
+    //search facet options
+    $(document.body).on("keyup",".facet-filter-values", function(event){
+        var keywords=$(this).val().toLowerCase();
+        if (keywords.length>0){
+            console.log("showing...");
+            $(this).parent().find(".facet-filter-values-clear").show();
+        }else{
+            console.log("hiding...");
+            $(this).parent().find(".facet-filter-values-clear").hide();
+        }
+        $(this).closest(".items-container").find(".chk").each(function(){
+            if ($(this).data("title").toLowerCase().indexOf(keywords) >-1){
+                $(this).parent().show();
+            }else{
+                $(this).parent().hide();
+            }            
+        });
+    });
+
+    //facet search clear button
+    $(document.body).on("click",".facet-filter-values-clear", function(event){
+        $(this).parent().parent().find('.facet-filter-values').val("").trigger('keyup');
+    });
+    
+    
 
 });
     

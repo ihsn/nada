@@ -67,9 +67,9 @@ $items_checked=false;
         <?php if (count($items)>30):?>
         <div class="wb-card-header">       
             <div class="wb-search-control input-group input-group-sm mb-3">
-                <input type="text" class="form-control" placeholder="Filter...">
+                <input type="text" class="form-control facet-filter-values" placeholder="Filter...">
                 <div class="input-group-append">
-                    <button class="btn btn-link" type="button">
+                    <button class="btn btn-link facet-filter-values-clear" type="button" style="display:none;">
                         <i class="fas fa-times"></i>
                         <!-- <i class="far fa-times-circle"></i> -->
                     </button>
@@ -77,13 +77,14 @@ $items_checked=false;
             </div>
         </div> 
         <?php endif;?>
-        <div class="items-container  collection-items <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
+        <div class="items-container <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
             <?php if($items):?>
                 <?php $k=0;foreach($items as $item_key=>$item):$k++; ?>
                     <div class="form-check item-<?php echo $filter_id;?> <?php echo $k;?> item inactive">
                         <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>" <?php echo form_prep($item_key); ?>>
                             <input class="form-check-input chk chk-<?php echo $filter_id;?>" type="checkbox" name="<?php echo $filter_id;?>[]"
                                    value="<?php echo form_prep($item_key); ?>"
+                                   data-title="<?php echo form_prep($item['title']);?>"
                                    id="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>"
                                 <?php if(isset($search_options->{$filter_id}) && is_array($search_options->{$filter_id}) && in_array($item_key,$search_options->{$filter_id})): $items_checked=true;?>
                                     checked="checked"
