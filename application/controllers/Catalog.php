@@ -101,11 +101,11 @@ class Catalog extends MY_Controller {
 
 		//core facets
 		if ($this->is_facet_enabled($this->active_tab,'collection')){
-			$this->facets['repositories']=$this->Search_helper_model->get_active_repositories();
+			$this->facets['repositories']=$this->Search_helper_model->get_active_repositories($this->active_tab);
 		}
 
 		//if ($this->is_facet_enabled($this->active_tab,'dtype')){
-			$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id);
+			$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id,$this->active_tab);
 		//}
 
 		//if ($this->is_facet_enabled($this->active_tab,'data_class')){
@@ -113,7 +113,7 @@ class Catalog extends MY_Controller {
 		///}
 
 		if ($this->is_facet_enabled($this->active_tab,'country')){
-			$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id);
+			$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id, $this->active_tab);
 		}
 
 		if ($this->is_facet_enabled($this->active_tab,'tag')){
@@ -131,7 +131,12 @@ class Catalog extends MY_Controller {
 				$this->facets[$fc['name']]=array(
 					'type'=>$fc['facet_type'],
 					'title'=>$fc['title'],
-					'values'=>$this->Facet_model->get_facet_values($fc['id'],$published=1)
+					'values'=>$this->Facet_model->get_facet_values($fc['id'],
+						$published=1,
+						$sort_='value',
+						$sort_order_='ASC',
+						$this->active_tab
+						)
 				);
 			}
 		}

@@ -276,6 +276,8 @@ h5{margin:0px;}
 
 
 <div class="row">
+
+    <?php if(isset($filters) && count($filters)>0):?>
     <!--left side bar -->
     <div class="col-12 col-lg-3 col-md-4">
 
@@ -296,11 +298,12 @@ h5{margin:0px;}
 
     </div>
     <!-- end left side bar -->
+    <?php endif;?>
 
 
 
     <!-- listing page -->
-    <div class="col-lg-9 col-md-8">
+    <div class="<?php echo (isset($filters) && count($filters)>0 ) ? 'col-lg-9 col-md-8' : 'col-12';?>">
 
     <?php if($search_box_orientation=='inline'):?>
         <!--search bar-->

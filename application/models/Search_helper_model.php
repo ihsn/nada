@@ -249,7 +249,7 @@ class Search_helper_model extends CI_Model {
 	* Return min/max years 
 	*
 	*/
-	function get_min_max_years($published=1)
+	function get_min_max_years($published=1, $study_type=null)
 	{
 		$this->db->select_min('year_start','min_year');
 		$this->db->select_max('year_end','max_year');
@@ -257,6 +257,10 @@ class Search_helper_model extends CI_Model {
 
 		if($published==1 || $published==0){
 			$this->db->where('published',$published); 
+		}
+
+		if($study_type){
+			$this->db->where('surveys.type',$study_type);
 		}
 
 		$result=$this->db->get('surveys')->row_array();
@@ -345,7 +349,7 @@ class Search_helper_model extends CI_Model {
 	*
 	* @repositoryid	- repositoyr identifier to filter list of countries
 	*/
-	function get_active_countries($repositoryid=NULL)
+	function get_active_countries($repositoryid=NULL, $study_type=NULL)
 	{
 		$this->db->select('cid as id,countries.name as title, count(cid) as found');
 		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
@@ -354,6 +358,10 @@ class Search_helper_model extends CI_Model {
 		$this->db->group_by('cid,countries.name','ASC');
 		$this->db->where('surveys.published',1);
 		$this->db->where('survey_countries.cid >',0);
+
+		if($study_type){
+			$this->db->where('surveys.type',$study_type);
+		}
 
 		if($repositoryid!=NULL){
 			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
@@ -378,7 +386,7 @@ class Search_helper_model extends CI_Model {
 	}
 
 
-	public function get_active_repositories()
+	public function get_active_repositories($study_type=NULL)
 	{
 		$this->db->select('r.repositoryid as id,r.pid,r.title,r.repositoryid,count(sr.sid) as found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
@@ -386,7 +394,12 @@ class Search_helper_model extends CI_Model {
 		$this->db->where('r.ispublished',1);
 		$this->db->where('surveys.published',1);
 		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.weight');
-		$this->db->order_by('r.weight');		
+		$this->db->order_by('r.weight');
+		
+		if($study_type){
+			$this->db->where('surveys.type',$study_type);
+		}
+		
 		$query=$this->db->get('repositories r');
 		
 		if (!$query){
@@ -500,7 +513,7 @@ class Search_helper_model extends CI_Model {
 	 * Returns an array of available DA types for current repo
 	 *
 	 */
-	function get_active_data_types($repositoryid=null)
+	function get_active_data_types($repositoryid=NULL, $study_type=NULL)
 	{
 		$this->db->select('surveys.formid as id,forms.model as code, forms.fname as title');
 		$this->db->join('forms','forms.formid=surveys.formid','inner');			
@@ -509,6 +522,10 @@ class Search_helper_model extends CI_Model {
 		if (trim($repositoryid)!=='' && $repositoryid!='central'){
 			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
 			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+
+		if($study_type){
+			$this->db->where('surveys.type',$study_type);
 		}
 
 		$this->db->group_by('surveys.formid, forms.model, forms.fname');
