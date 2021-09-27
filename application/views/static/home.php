@@ -47,6 +47,49 @@ $data_types=array(
 
 ?>
 
+
+<div class="text-center container wb-library-search mb-5 py-2 pt-3">
+    <div class="container home-page-search-container">
+        <h1 class="wb-library-search-title pt-4 pb-3">Microdata Library</h1>
+        <div class="sub-text mt-3 mb-0">Search in <strong><?php echo $survey_count; ?></strong> datasets</div>
+        <?php /* 
+        <div class="sub-text my-3">Search in <strong><?php echo $survey_count; ?></strong> surveys, <strong><?php echo $variable_count; ?></strong> variables and <strong><?php echo $citation_count; ?></strong> citations</div>
+        */?>
+
+
+        <div class="row justify-content-center">
+            <div class="col-10 col-md-8 ">
+                <form class="wb-search" method="get" action="<?php echo site_url('catalog'); ?>">
+                    <div class="row no-gutters align-items-center wb-controls-wrapper">
+
+                        <!--end of col-->
+                        <div class="col">
+                            <input type="hidden" name="sort_by" value="rank">
+                            <input type="hidden" name="sort_order" value="desc">
+                            <input class="form-control form-control-lg form-control-borderless" type="search" placeholder="Keywords..." name="sk">
+                        </div>
+                        <!--end of col-->
+                        <div class="col-auto">
+                            <button class="btn btn-lg btn-primary" type="submit">Search</button>
+                        </div>
+                        <!--end of col-->
+
+                    </div>
+                </form>
+
+                <div class="wb-library-search--browse my-3">
+                    <a href="<?php echo site_url('catalog'); ?>"><i class="fa fa-list"></i> Browse Catalog </a>
+                </div>
+
+                <div>
+                </div>
+            </div>
+            <!--end of col-->
+        </div>
+    </div>
+</div>
+
+
 <div class="container">
 <div class="row">
     <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
@@ -69,7 +112,7 @@ $data_types=array(
             <?php foreach($counts as $data_type=>$count):?>
                 <?php if($count>0):?>
                     <h3 class="mb-0"><?php echo number_format($count);?></h3>
-                    <p><?php echo isset($data_types[$data_type]) ? $data_types[$data_type] : $data_type;?></p>
+                    <p><a href="<?php echo site_url('catalog/?tab_type='.$data_type);?>"><?php echo isset($data_types[$data_type]) ? $data_types[$data_type] : $data_type;?></a></p>
                 <?php endif;?>
             <?php endforeach;?>
             

@@ -4,6 +4,20 @@
 	if(!$this->input->get("ps")){
 		$ps=15;
 	}
+
+    $type_icons=array(
+        'survey'=>'fa-database',
+        'microdata'=>'fa-database',
+        'geospatial'=>'fa-globe',
+        'timeseries'=>'fa-chart-line',
+        'document'=>'fa-file-alt',
+        'table'=>'fa-table',
+        'visualization'=>'fa-pie-chart',
+        'script'=>'fa-file-code',
+        'image'=>'fa-image',
+        'video'=>'fa-video',
+    );
+    
 ?>
 <?php if ($rows): ?>
 <?php
@@ -20,7 +34,7 @@ $page_url=site_url().'/'.$this->uri->uri_string();
 ?>
 <?php
 if ($this->pagination->cur_page>0) {
-    $to_page=$this->pagination->per_page*$this->pagination->cur_page;
+    $to_page=$this->pagination->per_page*$this->pagination->cur_page; 
 
     if ($to_page> $this->pagination->get_total_rows()){
         $to_page=$this->pagination->get_total_rows();
@@ -55,7 +69,13 @@ else
     <?php foreach($rows as $row): ?>
     <tr id="s_<?php echo $row['id']; ?>">
         <td><?php echo $row['nation'];?></td>
-        <td><a href="<?php echo site_url();?>/catalog/<?php echo $row['id']; ?>"><?php echo $row['title']; ?></a></td>
+        <td><a href="<?php echo site_url('catalog/'.$row['id']); ?>">
+                <?php if(isset($row['type'])):?>
+                <i title="<?php echo $row['type'];?>" class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>
+                <?php endif;?>
+                <?php echo $row['title']; ?>                
+            </a>
+        </td>
         <td><?php echo ($row['year_start']) > 0 ? $row['year_start'] : 'N/A'; ?></td>
         <td><?php echo date($this->config->item('date_format'), $row['created']); ?></td>
         <td><?php echo date($this->config->item('date_format'), $row['changed']); ?></td>

@@ -4,6 +4,22 @@
     }
     .survey-row{padding-bottom:0px;}
 </style>
+<?php
+
+$type_icons=array(
+    'survey'=>'fa-database',
+    'microdata'=>'fa-database',
+    'geospatial'=>'fa-globe',
+    'timeseries'=>'fa-chart-line',
+    'document'=>'fa-file-alt',
+    'table'=>'fa-table',
+    'visualization'=>'fa-pie-chart',
+    'script'=>'fa-file-code',
+    'image'=>'fa-image',
+    'video'=>'fa-video',
+);
+?>
+
 <h3><?php echo t('latest_additions');?></h3>
 <?php
     $regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
@@ -20,12 +36,12 @@
             <div class="row">
                 <div class="col-12 col-lg-12">                    
                     <h5>
-                        <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >                            
+                    <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
+                        <?php if(isset($row['type'])):?>
+                            <i title="<?php echo $row['type'];?>" class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>    
+                        <?php endif;?>                        
                             <?php echo $row['title'];?>
                         </a>
-                        <?php if(isset($row['type'])):?>
-                            <span class="dataset-type"><?php echo $row['type']?></span>
-                        <?php endif;?>
                     </h5>
 
                     <?php if($row['nation'] && $regional_search===true) :?>

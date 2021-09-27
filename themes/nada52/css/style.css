@@ -1962,7 +1962,7 @@ a.active.page-link {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     font-size: 1rem;
-    min-height: 54px;
+    min-height: 48px;
     border-right-width: 0;
     padding: 0.5rem 1.5rem;
 }
@@ -2028,7 +2028,13 @@ a.active.page-link {
 
 /* Search, home */
 
-.wb-library-search {}
+.wb-library-search {
+    
+}
+
+.home-page-search-container{
+    background:#f6f6f6
+}
 
 .wb-library-search--title {
     font-size: 1.5rem;
