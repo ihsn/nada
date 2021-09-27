@@ -22,7 +22,7 @@
 	echo '<td>';
 	echo ini_get('post_max_size');
 	echo '</td>';
-	echo '<td>20M</td>';
+	echo '<td>800M</td>';
 	echo '</tr>';
 	
 	echo '<tr>';
@@ -30,7 +30,7 @@
 	echo '<td>';
 	echo ini_get('upload_max_filesize');
 	echo '</td>';
-	echo '<td>15M</td>';
+	echo '<td>800M</td>';
 	echo '</tr>';
 
 
