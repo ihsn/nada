@@ -78,7 +78,7 @@
         'table'=>'fa-table',
         'visualization'=>'fa-pie-chart',
         'script'=>'fa-file-code',
-        'image'=>'fa-image',
+        'image'=>'fa-image', 
         'video'=>'fa-video',
     );
 
@@ -137,7 +137,7 @@
         }
     ?>
 
-    <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'wb-featured featured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" title="<?php echo t('View study');?>">
+    <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'wb-featured featured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" >
         <div class="row">            
             <div class="<?php echo $row_col2_class;?>">
 
@@ -203,9 +203,9 @@
                 </div>
 
                 <?php //Data license + data classification icons ?>
-                <?php if($row['type']=='survey' || $row['type']=='geospatial'):?>
+                <?php if($row['type']=='survey'):?>
                 <div class="wb-license-classification">
-                    <span class="badge wb-data-access wb-badge btn-data-license-<?php echo $row['form_model'];?>">
+                    <span class="badge wb-data-access wb-badge btn-data-license-<?php echo $row['form_model'];?>" title="<?php echo t("link_data_".$row['form_model'].'_hover');?>">
                         <i class="icon-da-sm icon-da-<?php echo $row['form_model'];?>" ></i> <span class=""><?php echo t("legend_data_".$row['form_model']);?></span>
                     </span>
         

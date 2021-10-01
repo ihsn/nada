@@ -254,7 +254,8 @@ class Schema_util
             'image',
             'timeseries',
             'resource',
-            'video'
+            'video',
+            'script'
         );
 
         if(!in_array($schema_name,$schemas)){

@@ -32,18 +32,17 @@
     <h2><?php echo $variable['labl'] . ' ('. $variable['name'].')';?></h2>
     <h5 class="var-file"><?php echo t('data_file');?>: <a href="<?php echo site_url('catalog/'.$file['sid'].'/data-dictionary/'.$file['file_id']);?>"><?php echo $file['file_name'];?></a></h5>
 
-    <!-- <div class="wb-variables-export _float-right"> -->
+    <?php /* ?>
     <div class="wb-variables-export">
         <a href="<?php echo site_url('metadata/export_variable/'.$file['sid'].'/'.$variable['vid'].'/csv'); ?>"  class="badge">
             <i class="far fa-file-excel"></i>
-            <!-- <?php echo t('download_csv');?> -->
 		</a> 
 
 		<a href="<?php echo site_url('metadata/export_variable/'.$file['sid'].'/'.$variable['vid'].'/json'); ?>"  class="badge">
             <i class="fas fa-file-csv"></i>
-            <!-- <?php echo t('download_json');?> -->
 		</a> 
     </div>
+    <?php */ ?>
     
     <h3 class="xsl-subtitle"><?php echo t('overview');?></h3>
 

@@ -20,9 +20,9 @@ $uri_ = implode("-", $uri_);
 
 
 //default page content wrapper class
-$content_wrap_class = "container page-" . $this->uri->segment(1) . " " . $uri_;
+$content_wrap_class = "container default-wrapper page-" . $this->uri->segment(1) . " " . $uri_;
 if (isset($body_class)) {
-    $content_wrap_class = $body_class . " " . $uri_;
+    $content_wrap_class = $body_class . " " . "page-" . $this->uri->segment(1) . " " . $uri_;
 }
 
 $use_cdn = true;

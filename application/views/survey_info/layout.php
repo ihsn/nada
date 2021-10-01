@@ -220,6 +220,10 @@ else{
     <?php else:?>
     <div class="tab-body-no-sidebar-x"><?php echo $body;?></div>
     <?php endif;?>
+
+	<div class="mt-5">                
+            <a class="btn btn-sm btn-secondary" href="<?php echo site_url('catalog');?>"><i class="fas fa-arrow-circle-left"></i> <?php echo t('Back to Catalog');?></a>
+        </div>
   </div>
 </div>
 <!-- end-tabs-->    
