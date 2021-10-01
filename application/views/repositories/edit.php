@@ -1,6 +1,6 @@
 <style>
 .file{border:1px solid gainsboro;}
-.repo-thumbnail{float:left;width:82px;height:82px;overflow:hidden;border:1px solid gainsboro;margin-right:20px;}
+.repo-thumbnail{float:left;width:100px;height:100px;overflow:hidden;border:1px solid gainsboro;margin-right:20px;}
 .repo-box-1{
     border:1px solid gainsboro;overflow:auto;padding:10px;margin-right:8px;
     background-color: #F8F8F8;
@@ -81,7 +81,7 @@ foreach($sections as $sec){
         <legend for="thumbnail-file"><?php echo t('thumbnail');?><span class="required">*</span></legend>
         
             <div class="repo-thumbnail">
-                <img alt="THUMBNAIL" title="Thumbnail" src="<?php echo $this->data['thumbnail']['value'];?>"/>
+                <img alt="THUMBNAIL" style="width:100%" title="Thumbnail" src="<?php echo base_url();?><?php echo $this->data['thumbnail']['value'];?>"/>
             </div>
             
             <div class="repo-file-upload">
