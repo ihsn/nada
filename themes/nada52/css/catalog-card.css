@@ -59,7 +59,8 @@
 
 .wb-card-title a > i {
   line-height: 1.2;
-  margin-right: .5rem;  
+  margin-right: .3rem;
+  margin-left: -1.5rem;
 }
 
 /* Make button, badges and rest element look alike within this area */
