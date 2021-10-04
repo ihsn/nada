@@ -72,7 +72,11 @@
                             <?php if(is_array($row[$column_name])):?>
                             <?php echo render_field($field_type='array_br',$field_name=$name.'.'.$column_name,$row[$column_name], array('hide_column_headings'=>true));?>
                             <?php else:?>
-                                <?php echo $row[$column_name];?>
+                                <?php if(is_url($row[$column_name])):?>
+                                     <a href="<?php echo $row[$column_name];?>"><i class="fas fa-external-link-alt"></i> <?php echo t('Link');?></a>
+                                <?php else:?>
+                                    <?php echo $row[$column_name];?>
+                                <?php endif;?>
                             <?php endif;?>    
                         </td>
                     <?php endforeach;?>                    

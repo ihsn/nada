@@ -28,15 +28,13 @@
 <?php $output['description']= render_group('description',
     $fields=array(
             "metadata.table_description.title_statement.title"=>'text',
-            "metadata.table_description.title_statement.idno"=>'text',
-
-            "metadata.resources"=>'resources',
-
-            "metadata.table_description.id_numbers"=>'array',
             "metadata.table_description.title_statement.sub_title"=>'text',
             "metadata.table_description.title_statement.alternate_title"=>'text',
             "metadata.table_description.title_statement.translated_title"=>'text',
-
+            "metadata.table_description.title_statement.idno"=>'text',
+            "metadata.resources"=>'resources',
+            "metadata.table_description.id_numbers"=>'array',
+            
             "metadata.iframe_embeds"=>'iframe_embed',
 
             "metadata.table_description.links"=>'array',
