@@ -197,3 +197,153 @@ if ( ! function_exists('array_indexed_elements'))
         return $output;
     }
 }
+
+
+if (! function_exists('array_data_get')) {
+    /**
+     * Get an item from an array or object using "dot" notation.
+     * 
+     * author: https://github.com/rappasoft
+     *
+     * @param  mixed  $target
+     * @param  string|array|int|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    function array_data_get($target, $key, $default = null)
+    {
+        if (is_null($key)) {
+            return $target;
+        }
+
+        $key = is_array($key) ? $key : explode('.', $key);
+
+        foreach ($key as $i => $segment) {
+            unset($key[$i]);
+
+            if (is_null($segment)) {
+                return $target;
+            }
+
+            if ($segment === '*') {
+                if (! is_array($target)) {
+                    return value($default);
+                }
+
+                $result = [];
+
+                foreach ($target as $item) {
+                    $result[] = array_data_get($item, $key);
+                }
+
+                return in_array('*', $key) ? array_collapse($result) : $result;
+            }
+
+            if (array_accessible($target) && array_exists($target, $segment)) {
+                $target = $target[$segment];
+            } elseif (is_object($target) && isset($target->{$segment})) {
+                $target = $target->{$segment};
+            } else {
+                return value($default);
+            }
+        }
+
+        return $target;
+    }
+}
+
+if (!function_exists('value')) {
+    /**
+     * Return the default value of the given value.
+     *
+     * @param  mixed $value
+     * @return mixed
+     */
+    function value($value)
+    {
+        return $value instanceof Closure ? $value() : $value;
+    }
+}
+
+if (! function_exists('array_collapse')) {
+    /**
+     * Collapse an array of arrays into a single array.
+     *
+     * @param  iterable  $array
+     *
+     * @return array
+     */
+    function array_collapse(iterable $array): array
+    {
+        $results = [];
+
+        foreach ($array as $values) {
+            if (!is_array($values)) {
+                continue;
+            }
+
+            $results[] = $values;
+        }
+
+        return array_merge([], ...$results);
+    }
+}
+
+
+if (! function_exists('array_exists')) {
+    /**
+     * Determine if the given key exists in the provided array.
+     *
+     * @param  \ArrayAccess|array  $array
+     * @param  string|int  $key
+     *
+     * @return bool
+     */
+    function array_exists($array, $key): bool
+    {
+        if ($array instanceof ArrayAccess) {
+            return $array->offsetExists($key);
+        }
+
+        return array_key_exists($key, $array);
+    }
+}
+
+if (! function_exists('array_accessible')) {
+    /**
+     * Determine whether the given value is array accessible.
+     *
+     * @param  mixed  $value
+     *
+     * @return bool
+     */
+    function array_accessible($value): bool
+    {
+        return is_array($value) || $value instanceof ArrayAccess;
+    }
+}
+
+
+if (! function_exists('is_array_of_array')) {
+    function is_array_of_array($arr)
+    {
+        if (!is_array($arr)){
+            return false;
+        }
+
+        foreach($arr as $row){
+        if (is_array($row) && is_assoc_array($row)){
+            return false;
+        }
+        }
+        return true;
+  }
+}
+
+
+if (! function_exists('is_assoc_array')) {
+  function is_assoc_array($array){
+    $keys = array_keys($array);
+    return $keys !== array_keys($keys);
+  }
+}
