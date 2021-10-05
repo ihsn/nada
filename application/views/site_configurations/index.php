@@ -215,6 +215,19 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
     </div>
 </fieldset>
 
+
+<fieldset class="field-expanded ">
+
+        <legend><i class="fas fa-chart-line mr-3" style="color:#007bff;"></i><?php echo t('Google Analytics');?></legend>
+    
+    <div class="field">
+            <label for="google_analytics"><?php echo t('Google analytics UA code');?></label>
+            <input class="form-control" name="google_ua_code" type="text" id="google_analytics" placeholder="UA-XXXXXXXX-X"  value="<?php echo get_form_value('google_ua_code',isset($google_ua_code) ? $google_ua_code : ''); ?>"/>
+    </div>
+    
+</fieldset>
+
+
 <fieldset class="field-expanded ">
 	<legend><i class="fas fa-tools mr-3" style="color:#007bff;"></i><?php echo t('mail_settings');?></legend>
 

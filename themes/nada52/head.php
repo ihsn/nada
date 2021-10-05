@@ -58,3 +58,8 @@
 
 <?php if (isset($_styles) ){ echo $_styles;} ?>
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
+
+<?php $google_ua_code=$this->config->item("google_ua_code"); ?>
+<?php if(!empty($google_ua_code)):?>
+    <?php require_once 'google_analytics.php';?>
+<?php endif;?>

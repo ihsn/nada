@@ -105,9 +105,14 @@ class Configurations_model extends CI_Model {
 	*
 	*/
 	function update($options)
-	{		
+	{
 		foreach($options as $key=>$value)
 		{
+			if (!$this->check_key_exists($key)){
+				$this->add($key,$value);
+				return true;
+			}
+
 			$data=array('value'=>$value);
 			$this->db->where('name', $key);
 			$result=$this->db->update('configurations', $data);
