@@ -44,9 +44,19 @@ class Facets extends MY_Controller {
 		$data_types=$this->data_types;
 		$data=array();
 		$data['data_types']=$data_types;
+
+		//$geospatial=json_decode(file_get_contents('application/views/facets/geospatial.json'),true);
+
+		//var_dump($geospatial);
+		//die();
+
 		//$x=array_keys($this->schema_util->get_schema_elements($schema_name="survey"));
 		foreach($data_types as $type){
-			$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
+			if ($type=='geospatial'){
+				$data['fields'][$type]=json_decode($this->load->view('facets/geospatial.json',null,true));
+			}else{
+				$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
+			}
 			//$field_keys= array_keys($data['fields'][$type]);
 		}
 
@@ -66,8 +76,11 @@ class Facets extends MY_Controller {
 		$data['data_types']=$data_types;
 		//$x=array_keys($this->schema_util->get_schema_elements($schema_name="survey"));
 		foreach($data_types as $type){
-			$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
-			//$field_keys= array_keys($data['fields'][$type]);
+			if ($type=='geospatial'){
+				$data['fields'][$type]=json_decode($this->load->view('facets/geospatial.json',null,true));
+			}else{
+				$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
+			}
 		}
 
 		$data['facet']=$this->Facet_model->get_facet_by_name($facet_name);

@@ -10,7 +10,8 @@ class Facet_model extends CI_Model {
         parent::__construct();
 		$this->config->load('facets');
 		$this->load->model("Dataset_model");
-		$this->facets=$this->config->item("user_facets");
+		$this->load->helper("array");
+ 		$this->facets=$this->config->item("user_facets");
 		//$this->output->enable_profiler(FALSE);
 	}
 
@@ -260,8 +261,8 @@ class Facet_model extends CI_Model {
 		$this->db->where('id', $id); 
 		$this->db->delete('facets');
 
-		$this->clear_facet_values($sid);
-		$this->clear_facet_terms($sid);
+		$this->clear_facet_values($id);
+		$this->clear_facet_terms($id);
 	}
 
 	function clear_facet_terms($facet_id)
@@ -368,8 +369,6 @@ class Facet_model extends CI_Model {
 
 	function extract_facet_values($type,$metadata)
 	{
-		$metadata = new \Adbar\Dot($metadata);
-
 		$output=array();
 		$facets=$this->facets_list();
 
@@ -402,7 +401,11 @@ class Facet_model extends CI_Model {
 				}
 
 				//get data for the facet
-				$facet_data=$metadata->get($field_path);
+				$facet_data=array_data_get($metadata, $field_path);
+			
+				if(is_array_of_array($facet_data)){
+					$facet_data=$this->array_of_array_flatten($facet_data);
+				}
 
 				//extract data
 				if (!empty($facet_data) && $field_column!=null){							
@@ -420,7 +423,6 @@ class Facet_model extends CI_Model {
 						$column_data=array_column($facet_data, $field_column);
 						$output[$facet_key]=(array)$column_data;
 					}
-
 				}else{
 					$output[$facet_key]=(array)$facet_data;
 				}
@@ -436,7 +438,6 @@ class Facet_model extends CI_Model {
 
 	/**
 	 *
-	 * recursive function to import all citations
 	 *
 	 * @start_row start importing from a row number or NULL to start from first id
 	 * @limit number of records to read at a time
@@ -521,7 +522,9 @@ class Facet_model extends CI_Model {
 
 				//nested structures - e.g. study_desc/title_statement
                 if(is_array($facet_value)){
-                    throw new Exception("Facet value cannot be a nested array. " . json_encode($facet_data));
+
+                    throw new Exception("Facet value cannot be a nested array. " . $facet_key . json_encode($facet_data));
+					//continue;
                 }
 
                 //create a term for facet if not already exists
@@ -556,6 +559,21 @@ class Facet_model extends CI_Model {
 
 		return $output;
 	}
-	
 
+	function array_of_array_flatten($arr)
+	{
+		$output=array();
+		if(is_array_of_array($arr)){
+			foreach($arr as $values){
+				foreach($values as $nested_row){
+				$output[]=$nested_row;
+				}
+			}
+		}else{
+			return $arr;
+		}
+		return $output;
+	}
+
+  
 }
