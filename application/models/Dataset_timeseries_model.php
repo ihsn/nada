@@ -147,153 +147,6 @@ class Dataset_timeseries_model extends Dataset_model {
     }
 
 
-    /*
-    function update_dataset($sid,$type,$options)
-	{
-		//need this to validate IDNO for uniqueness
-		$options['sid']=$sid;
-
-		//validate schema
-		$this->validate_schema($type,$options);
-
-		//get core fields for listing datasets in the catalog
-        //$data=$this->get_core_fields($type,$options);
-        
-        //get core fields for listing datasets in the catalog
-        $core_fields=$this->get_core_fields($options);
-        $options=array_merge($options,$core_fields);
-		
-		//validate IDNO field
-		$new_id=$this->find_by_idno($core_fields['idno']);
-
-		//if IDNO is changed, it should not be an existing IDNO
-		if(is_numeric($new_id) && $sid!=$new_id ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
-        }
-        
-        $dataset=$this->get_row_detailed($sid);
-        $metadata=$dataset['metadata'];
-        unset($metadata['idno']);
-
-        //replace metadata with new options
-        $options=array_replace_recursive($metadata,$options);
-        $options['changed']=date("U");
-				
-		//split parts of the metadata
-        $data_files=null;
-		$variables=null;
-        $variable_groups=null;
-
-        $study_metadata_sections=array('metadata_cration','database_description','additional');
-
-        foreach($study_metadata_sections as $section){		
-			if(array_key_exists($section,$options)){
-                $options['metadata'][$section]=$options[$section];
-                unset($options[$section]);
-            }
-        }
-        
-        if(isset($options['data_files'])){
-            $data_files=$options['data_files'];
-            unset($options['data_files']);
-        }
-
-        if(isset($options['variables'])){
-            $variables=$options['variables'];
-            unset($options['variables']);
-        }
-
-        if(isset($options['variable_groups'])){
-            $variable_groups=$options['variable_groups'];
-            unset($options['variable_groups']);
-        }
-
-		//start transaction
-		$this->db->trans_start();
-
-		//update
-		$this->update($sid,$type,$options);
-
-		//update years
-		$this->update_years($sid,$options['year_start'],$options['year_end']);
-
-		//set topics
-        //set countries
-        $countries=$this->get_array_nested_value($options,'database_description/geographic_units');
-        
-        $countries=$this->get_country_names($countries);
-		$this->Survey_country_model->update_countries($sid,$countries);
-
-		//set aliases
-
-        //set geographic locations (bounding box)
-        //todo
-
-		 //data files
-         $this->create_update_data_files($sid,$data_files);
-        
-         //variables
-         $this->create_update_variables($sid,$variables);
- 
-		
-		//complete transaction
-		$this->db->trans_complete();
-
-		return $sid;
-    }
-    */
-
-
-    
-    private function create_update_variables($dataset_id,$variables)
-    {        
-        if(is_array($variables)){
-			foreach($variables as $variable){
-				//validate file_id exists
-				$fid=$this->Data_file_model->get_fid_by_fileid($dataset_id,$variable['file_id']);
-		
-				if(!$fid){
-					throw new exception("variable creation failed. Variable 'file_id' not found: ".$variable['file_id']);
-				}
-							
-				$variable['fid']=$variable['file_id'];
-				$this->Variable_model->validate_variable($variable);
-			}
-
-			$result=array();
-			foreach($variables as $variable){
-				$variable['fid']=$variable['file_id'];
-				$variable['metadata']=$variable;
-				$variable_id=$this->Variable_model->insert($dataset_id,$variable);
-			}
-
-			//update survey varcount
-			$this->update_varcount($dataset_id);
-		}
-    }
-
-
-    private function create_update_data_files($dataset_id,$data_files)
-    {        
-		if(is_array($data_files)){
-			//create each data file
-			foreach($data_files as $data_file){					
-                $this->Data_file_model->validate_data_file($data_file);
-                
-				//check if file already exists?
-                $file=$this->Data_file_model->get_file_by_id($dataset_id,$data_file['file_id']);
-                
-				if($file){
-					$this->Data_file_model->update($file['id'],$data_file);
-				}else{
-					$this->Data_file_model->insert($dataset_id,$data_file);
-				}
-			}
-		}
-    }
-
-
-
     /**
 	 * 
 	 * get core fields 
@@ -359,19 +212,6 @@ class Dataset_timeseries_model extends Dataset_model {
         return $nation_names;	
     }
     
-    /**
-     * 
-     * Return a comma separated list of country names
-     */
-    function get_country_names_string($nations)
-    {
-        $nation_str=implode(", ",$nations);
-        if(strlen($nation_str)>150){
-            $nation_str=substr($nation_str,0,145).'...';
-        }
-        return $nation_str;
-    }
-
 
     /**
      * 
@@ -381,7 +221,7 @@ class Dataset_timeseries_model extends Dataset_model {
 	function get_years($options)
 	{
 		$years=array();
-        $data_coll=$this->get_array_nested_value($options,'series_description/series_dates');
+        $data_coll=$this->get_array_nested_value($options,'series_description/time_periods');
 			
         if (is_array($data_coll)){
             //get years from data collection dates				
