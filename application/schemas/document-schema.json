@@ -147,6 +147,127 @@
           ]
         },
 
+        "authors": {
+          "type": "array",
+          "title": "Authors",
+          "description": "Authors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "author_id": {
+                "type": "array",
+                "title": "Author ID",
+                "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "title": "Type",
+                      "description": "Source of identifier, e.g. ORCID"
+                    },
+                    "id": {
+                      "title": "Identifier",
+                      "description": "Author's unique identifier for the corresponding source"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+
+        "editors": {
+          "type": "array",
+          "title": "Editors",
+          "description": "Editors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+
+        "date_created": {
+          "type": "string",
+          "title":"Date created",
+          "description": "Date of creation"
+        },
+        "date_available": {
+          "type": "string",
+          "title":"Date available",
+          "description": "Date (often a range) that the resource will become or did become available."    
+        },
+        "date_modified": {
+          "type": "string",
+          "title":"Date last modified",
+          "description": "Date on which the resource was changed."    
+        },
+        "date_published": {
+          "type": "string",
+          "title":"Date published",
+          "description": "Date on which document was published."    
+        },
+
+        "id_numbers": {
+          "type": "array",
+          "title": "Identifier numbers",
+          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "description":"ID number type such as  ISSN, ISBN, DOI"
+              },
+              "value": {
+                "title": "ID number",
+                "type": "string"               
+              }
+            },
+            "required": [
+              "type","value"
+            ]
+          }
+        },  
+
         "type": {
           "type": "string",
           "title":"Resource type",
@@ -302,50 +423,7 @@
           "title": "Temporal coverage",
           "type": "string",
           "description": "The temporal extent or scope of the content of the resource."
-        },
-
-        "date_created": {
-          "type": "string",
-          "title":"Date created",
-          "description": "Date of creation"
-        },
-        "date_available": {
-          "type": "string",
-          "title":"Date available",
-          "description": "Date (often a range) that the resource will become or did become available."    
-        },
-        "date_modified": {
-          "type": "string",
-          "title":"Date last modified",
-          "description": "Date on which the resource was changed."    
-        },
-        "date_published": {
-          "type": "string",
-          "title":"Date published",
-          "description": "Date on which document was published."    
-        },
-
-        "id_numbers": {
-          "type": "array",
-          "title": "Identifier numbers",
-          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "title": "Type",
-                "description":"ID number type such as  ISSN, ISBN, DOI"
-              },
-              "value": {
-                "title": "ID number",
-                "type": "string"               
-              }
-            },
-            "required": [
-              "type","value"
-            ]
-          }
-        },      
+        },            
 
         "publication_frequency": {
           "type": "string",
@@ -389,14 +467,29 @@
                 "title": "URI",
                 "type": "string"
               }
-            }
+            },
+            "required":["name"]
           }
         },
 
         "bibliographic_citation": {
-          "type": "string",
+          "type": "array",
           "title":"Bibliographic citation",
-          "description": "A bibliographic reference for the resource."    
+          "description": "A bibliographic reference for the resource.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "style": {
+                "title": "Style",
+                "type": "string"
+              },
+              "citation": {
+                "title": "Citation",
+                "type": "string"
+              }
+            },
+            "required":["citation"]
+          }
         },
 
         "chapter": {
@@ -443,91 +536,7 @@
           "title": "Series name",
           "description":"The name given to a series or set of books. When citing an entire book, the title field gives its title and the optional series field gives the name of a series in which the book was published."              
         },
-
-        "creator": {
-          "type": "string",
-          "title": "Creator",
-          "description":"Entity primarily responsible for making the content of the resource."              
-        },
-
-
-        "authors": {
-          "type": "array",
-          "title": "Authors",
-          "description": "Authors",
-          "items": {
-            "type": "object",
-            "properties": {
-              "first_name": {
-                "title": "First name",
-                "type": "string"
-              },
-              "initial": {
-                "title": "Initial",
-                "type": "string"
-              },
-              "last_name": {
-                "title": "Last name",
-                "type": "string"
-              },              
-              "affiliation": {
-                "title": "Affiliation",
-                "type": "string"
-              },
-              "author_id": {
-                "type": "array",
-                "title": "Author ID",
-                "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "title": "Type",
-                      "description": "Source of identifier, e.g. ORCID"
-                    },
-                    "id": {
-                      "title": "Identifier",
-                      "description": "Author's unique identifier for the corresponding source"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "required": [
-            "first_name"
-          ]
-        },
-
-        "editors": {
-          "type": "array",
-          "title": "Editors",
-          "description": "Editors",
-          "items": {
-            "type": "object",
-            "properties": {
-              "first_name": {
-                "title": "First name",
-                "type": "string"
-              },
-              "initial": {
-                "title": "Initial",
-                "type": "string"
-              },
-              "last_name": {
-                "title": "Last name",
-                "type": "string"
-              },              
-              "affiliation": {
-                "title": "Affiliation",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "first_name"
-          ]
-        },
+        
         "translators": {
           "type": "array",
           "title": "Translators",
@@ -582,6 +591,10 @@
               },
               "role": {
                 "title": "Role",
+                "type": "string"
+              },
+              "contribution": {
+                "title": "Contribution",
                 "type": "string"
               }
             }
@@ -1053,18 +1066,14 @@
                 "title": "Vector",
                 "type": "object"
               }
-            }
-          },
-          "required": [
-            "id","vector"
-          ]
+            },
+            "required": [
+              "id","vector"
+            ]
+          }
         }
-
-
       },
-      "required":[
-        "title_statement"
-      ], 
+      "required":["title_statement"],
       "additionalProperties": false
     },
     "tags": {
@@ -1088,44 +1097,11 @@
         "tag"
       ]
     },
-    "resources":{
-      "type":"array",
-      "description":"Resources",
-      "items":{
-        "$ref":"resource-schema.json"
-      }
-    },
-    "files": {
-      "type": "array",
-      "title": "Files [Deprecated]",
-      "description": "Files - `deprecated - use resources`",
-      "items":{
-        "type":"object",
-        "properties":{
-        "file_uri": {
-          "title": "File name or URL",
-          "description":"File name or URL",
-          "type": "string"
-        },
-        "format": {
-          "title": "File format e.g. `application/excel`, `application/pdf`",
-          "description": "The file format, physical medium, or dimensions of the resource.",
-          "type": "string"              
-        },
-        "location": {
-          "title": "Page number or sheet name for the table",
-          "type": "string"              
-        },
-        "note": {
-          "title": "Notes",
-          "type": "string"              
-        }
-      },
-      "required": [
-        "file_uri"
-      ]
-    }
-    }
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
+    }    
   },
   "required":[
     "document_description"

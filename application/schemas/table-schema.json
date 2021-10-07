@@ -884,39 +884,6 @@
         "$ref":"resource-schema.json"
       }
     },
-
-      "files": {
-        "type": "array",
-        "title": "Files [Deprecated]",
-        "description": "Files - `deprecated - use resources`",        
-        "items":{
-          "type":"object",
-          "properties":{
-          "file_uri": {
-            "title": "File name",
-            "description":"File name or URL",
-            "type": "string"
-          },
-          "format": {
-            "title": "File format e.g. `application/excel`, `application/pdf`",
-            "description": "The file format, physical medium, or dimensions of the resource.",
-            "type": "string"              
-          },
-          "location": {
-            "title": "Page number or sheet name for the table",
-            "type": "string"              
-          },
-          "note": {
-            "title": "Notes",
-            "type": "string"              
-          }
-        },
-        "required": [
-          "file_uri"
-        ]
-      }
-    },
-
     "tags": {
       "type": "array",
       "title": "Tags",
@@ -926,6 +893,10 @@
         "properties": {
           "tag": {
             "title": "Tag",
+            "type": "string"
+          },
+          "tag_group": {
+            "title": "Tag group",
             "type": "string"
           }
         }

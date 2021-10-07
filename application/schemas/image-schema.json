@@ -3,13 +3,13 @@
 	"$id": "image-schema.json",
 	"title": "Image data type Schema",
 	"description": "Uses IPTC JSON schema. See for more details - http://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata.",
-	"@comments":"Following changes were made to original IPTC schema. 1) Duplicated type AltLang to AltLangObject 2) AltLang type changed to string 3) Changed schema from Array to Object",
+	"@comments": "Following changes were made to original IPTC schema. 1) Duplicated type AltLang to AltLangObject 2) AltLang type changed to string 3) Changed schema from Array to Object",
 	"properties": {
 		"repositoryid": {
 			"type": "string",
 			"title": "Collection ID that owns the document",
 			"description": "Abbreviation for the collection that owns the document",
-			"default":"central"
+			"default": "central"
 		},
 		"published": {
 			"type": "integer",
@@ -80,7 +80,7 @@
 				}
 			}
 		},
-		"image_description":{
+		"image_description": {
 			"type": "object",
 			"properties": {
 				"idno": {
@@ -89,111 +89,81 @@
 					"type": "string"
 				},
 				"iptc": {
-					"allOf": [{ "$ref": "../schemas/iptc-pmd-schema.json" }]
+					"allOf": [
+						{
+							"$ref": "../schemas/iptc-pmd-schema.json"
+						}
+					]
 				},
 				"license": {
 					"type": "array",
-					"title": "License",          
+					"title": "License",
 					"items": {
 						"type": "object",
 						"properties": {
-						"name": {
-							"title": "License",
-							"type": "string"
-						},
-						"uri": {
-							"title": "URI",
-							"type": "string"
-						}
+							"name": {
+								"title": "License",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
 						}
 					}
 				},
 				"album": {
 					"type": "array",
-					"title": "Album",          
+					"title": "Album",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"name": {
-						  "title": "Name of album",
-						  "type": "string"
-						},
-						"description": {
-							"title": "Description",
-							"type": "string"
-						},
-						"owner": {
-							"title": "Owner",
-							"type": "string"
-						},
-						"uri": {
-						  "title": "URI",
-						  "type": "string"
-						}
-					  }
-					}
-					},
-					"tags": {
-						"type": "array",
-						"title": "Tags",
-						"description": "Tags",
-						"items": {
-							"type": "object",
-							"properties": {
-								"tag": {
-									"title": "Tag",
-									"type": "string"
-								}
-							}
-						},
-						"required": [
-							"tag"
-						]
-					},
-				"files": {
-					"type": "array",
-					"title": "Files - `deprecated` use resources",
-					"description": "Files  - `deprecated` use resources",
-					"items":{
-						"type":"object",
-						"properties":{
-							"file_uri": {
-								"title": "File name",
-								"description":"File name or URL",
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name of album",
 								"type": "string"
 							},
-							"format": {
-								"title": "File format",
-								"description": "The file format, physical medium, or dimensions of the resource.",
-								"type": "string"              
+							"description": {
+								"title": "Description",
+								"type": "string"
 							},
-							"note": {
-								"title": "Notes",
-								"type": "string"              
+							"owner": {
+								"title": "Owner",
+								"type": "string"
 							},
-							"show": {
-								"title": "Show file (images only)",
-								"description": "Show the image file on the page",
-								"type": "boolean"
+							"uri": {
+								"title": "URI",
+								"type": "string"
 							}
-						},
-						"required": ["file_uri"]
+						}
 					}
 				},
-				"resources":{
-					"title":"External resources",
-					"description":"External resources",
+				"tags": {
 					"type": "array",
-					"items":{
-						"$ref": "resource-schema.json"
-					}
-				}	
+					"title": "Tags",
+					"description": "Tags",
+					"items": {
+						"type": "object",
+						"properties": {
+							"tag": {
+								"title": "Tag",
+								"type": "string"
+							},
+							"tag_group": {
+								"title": "Tag group",
+								"type": "string"
+							}
+						}
+					},
+					"required": [
+						"tag"
+					]
+				}
 			}
 		}
 	},
-    "additional": {
-      "type": "object",
-      "description": "Additional metadata",
-      "properties": {}
-    }
+	"additional": {
+		"type": "object",
+		"description": "Additional metadata",
+		"properties": {}
+	}
 }
