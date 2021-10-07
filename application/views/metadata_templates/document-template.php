@@ -1,12 +1,12 @@
 <?php
 /*
- * DDI template - display metadata for DDI fields
+ * Document template
  *
  * @metadata - array containing all metadata
  *
  * @id - survey id
  * @surveyid - IDNO
- * @ all survey table fields
+ * 
  *
  *
  **/
@@ -18,12 +18,6 @@
     $output=array();
 ?>
 
-
-<?php $output['']= render_group('',
-    $fields=array(
-            "metadata.resources"=>'resources_download_buttons'),
-    $metadata);
-?>
 
 <!-- identification section -->
 <?php $output['description']= render_group('description',
