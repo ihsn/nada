@@ -927,7 +927,7 @@ class Citations extends MY_Controller {
             return FALSE;
         }
 
-        $study_fulltext_index='keywords';//'idno,title,nation,abbreviation,authoring_entity,keywords';
+        $study_fulltext_index='keywords,var_keywords';
         $where=array();
 
         $tmp_surveys=explode(",",$exclude_surveys);
