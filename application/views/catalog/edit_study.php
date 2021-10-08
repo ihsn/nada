@@ -594,6 +594,23 @@ background: white;
 	font-size:10px;
 }
 
+.study-thumbnail{
+	width:150px;
+	height:150px;
+	border:1px solid gainsboro;
+}
+
+.study-title{
+	padding:0px;
+	margin:0px;
+}
+
+.edit-page-header{
+	margin-bottom:15px;
+}
+.modal-thumbnail-upload .modal-title{
+	float:left;
+}
 </style>
 
 <div class="container-fluid study-edit-page">
@@ -617,8 +634,11 @@ background: white;
 ?>
 
 <div class="row">
-<div class="col-md-12">
-	<h1><?php echo $title; ?></h1>
+<div class="col-md-12 edit-page-header">
+		
+	<div class="col-md-11">
+		<h1 class="study-title"><?php echo $title; ?></h1>
+	</div>
 </div>
 
 
@@ -690,27 +710,26 @@ background: white;
 <!-- Side Bars -->
 <div class="box">
 	<div class="box-header"><?php echo t('Status');?></div>
-<div class="box-body survey-publish">
+	<div class="box-body survey-publish">
 
-					<div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
-					<?php if (!$published):?>
-							<button type="button" class="btn btn-warning btn-block publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('draft');?></button>
-					<?php else:?>
-							<button type="button" class="btn btn-success btn-block publish" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></button>
-					<?php endif;?>
-					</div>
+		<div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
+			<?php if (!$published):?>
+					<button type="button" class="btn btn-warning btn-block publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('draft');?></button>
+			<?php else:?>
+					<button type="button" class="btn btn-success btn-block publish" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></button>
+			<?php endif;?>
+		</div>
 
-					<div style="margin-top:10px;">
-						<a
-							class="btn btn-danger btn-block"
-							href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"
-						>
-						<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-							<?php echo t('delete_study');?>
-						</a>
-					</div>
-
-</div>
+		<div style="margin-top:10px;">
+			<a
+				class="btn btn-danger btn-block"
+				href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"
+			>
+			<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+				<?php echo t('delete_study');?>
+			</a>
+		</div>
+	</div>
 </div>
 
 <?php if($warnings):?>
@@ -729,6 +748,17 @@ background: white;
 	</div>
 </div>
 <?php endif;?>
+
+
+<div class="box">
+	<div class="box-header"><?php echo t('Thumbnail');?></div>
+	<div class="box-body survey-thumbnail">
+
+	<?php require_once 'application/views/catalog/thumbnail.php';?>	
+
+		
+	</div>
+</div>
 
 <div class="box" >
 <div class="box-header">

@@ -168,6 +168,9 @@ $lang['tab_notes']="Notes";
 $lang['tab_related_data']="Related studies";
 $lang['license']="License";
 $lang['select_license']="Select license";
+$lang['select_study_thumbnail']='Select image file (PNG, JPG, JPEG, GIF)';
+$lang['Thumbnal']='Thumbnail';
+$lang['Upload thumbnal']='Upload thumbnail';
 
 
 /* End of file catalog_admin_lang.php */

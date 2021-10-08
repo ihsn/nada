@@ -32,7 +32,8 @@ class Catalog_model extends CI_Model {
 					'changed',
 					'varcount',
 					'total_views',
-					'total_downloads'
+					'total_downloads',
+					'thumbnail'
 					);
 	
 	//additional filters on search
