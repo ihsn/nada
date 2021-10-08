@@ -1195,7 +1195,7 @@ class Datasets extends MY_REST_Controller
 
 		//ddi upload failed
 		if (!$ddi_upload_result){
-			$error = $this->upload->display_errors();
+			$error = $this->upload->display_errors('','');
 			$this->db_logger->write_log('ddi-upload',$error,'catalog');
 			throw new Exception($error);
 		}
@@ -1366,7 +1366,7 @@ class Datasets extends MY_REST_Controller
 			$upload_result=$this->upload->do_upload('file');
 
 			if(!$upload_result){
-				$error = $this->upload->display_errors();
+				$error = $this->upload->display_errors('','');
 				throw new Exception("FILE_UPLOAD::".$error);
 			}
 		
