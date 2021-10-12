@@ -32,6 +32,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	var $sid=''; //comma separated list of survey IDs
 	var $debug=false;
 	var $params=null;
+	var $solr_options=array();
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -69,6 +70,12 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes'){
 			$this->sort_by='nation';
+		}
+
+		$this->solr_options=$this->ci->config->item("solr_edismax_options");
+
+		if(isset($this->solr_options['solr_debug']) && $this->solr_options['solr_debug']==true){
+			$this->debug=true;
 		}
 
 		if (count($params) > 0){
@@ -121,7 +128,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$countries=$this->_build_countries_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();
-		$repository=$this->_build_repository_query();
+		$repository=!empty($this->repo) ? (string)$this->repo : false;
         $dtype=$this->_build_dtype_query();
         
 		$search_query=array();
@@ -147,14 +154,15 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//SK
 		if($this->study_keywords){
-			$search_query[]='_text_:'.$helper->escapeTerm($this->study_keywords);
+			//$search_query[]='title:('.$helper->escapeTerm($this->study_keywords). ') ';
+			$query->setQuery($helper->escapeTerm($this->study_keywords));
 		}
 
-		//VK
-		/*if($this->variable_keywords){
-			$search_query[]='{!join from=sid to=survey_uid}'.$helper->escapeTerm($this->variable_keywords);
-		}*/
-		
+		//repo filter
+		if($repository){
+			$query->createFilterQuery('repo')->setQuery('repositoryid:'.$helper->escapeTerm($repository));
+		}
+
 		if ($topics){
 			$search_query[]=$topics;
 		}
@@ -242,17 +250,26 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		if($countries){
 			$query->createFilterQuery('countries')->setQuery($countries);
 		}
+
+
+		if($collections){
+			$query->createFilterQuery('collections')->setQuery($collections);
+		}
 				
 
-        //study search //////////////////////////////////////////////////////////////////////////////////////
-        $edismax->setQueryFields("title^2.0 nation^20.0 years^30.0");
+        //study search 
+        $edismax->setQueryFields($this->solr_options['qf']);
+		
+		//$edismax->setQueryFields("title nation years");
 
         //keywords <N all required, else match percent
-        $edismax->setMinimumMatch("3<90%");
+        $edismax->setMinimumMatch($this->solr_options['mm']);
 
         if (count($search_query)>0){
-            $query->setQuery(implode(" AND ",$search_query));
+            //$query->setQuery(implode(" AND ",$search_query));
         }
+
+
 
         //$debug = $query->getDebug();
         $query->createFilterQuery('study_search')->setQuery('doctype:1');
@@ -391,7 +408,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$query = $this->solr_client->createSelect();
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
+		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
 
 		//set start and rows param (comparable to SQL limit) using fluent interface
 		$query->setStart(0)->setRows(100);
@@ -708,26 +725,16 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		$param_list=array();
 
-		foreach($params  as $param)
-		{
-			//escape country names for db
+		foreach($params  as $param){
 			$param_list[]=$this->ci->db->escape($param);
 		}
 
-		if ( count($param_list)>0)
-		{
-			$params= implode(',',$param_list);
-		}
-		else
-		{
-			return FALSE;
-		}
+		if ( count($param_list)>0){
+			$params= implode(' OR ',$param_list);
 
-		if ($param!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_repos where survey_repos.repositoryid in (%s) )',$params);
+			return sprintf(' repositories:(%s)',$params);
 		}
-
+		
 		return FALSE;
 	}
 
@@ -924,7 +931,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//set a query (all prices starting from 12)
 		if ($this->study_keywords){
-			$query->setQuery(sprintf('_text_:%s',$this->study_keywords) );
+			$query->setQuery(sprintf('labl:%s',$this->study_keywords) );
 		}
 
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
@@ -937,6 +944,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//get search result as array
 		$this->search_result=$resultset->getData();
+
+		//get raw query
+		if($this->debug){			
+			var_dump($resultset->getDebug());
+		}
 
 		if ($found_rows>0)
 		{
@@ -955,6 +967,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			{
 				$this->search_result['response']['docs'][$key]['title']=$surveys[$row['sid']]['title'];
 				$this->search_result['response']['docs'][$key]['nation']=$surveys[$row['sid']]['nation'];
+				$this->search_result['response']['docs'][$key]['idno']=$surveys[$row['sid']]['idno'];
 			}
 		}
 
@@ -983,7 +996,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			));
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$this->study_keywords, $surveyid ) );
+		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',$this->study_keywords, $surveyid ) );
 		$query->setStart(0)->setRows(100); //get 0-100 rows
 
 		if($this->debug){
@@ -1020,7 +1033,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$query->setFields(array(
 				'id:survey_uid',
 				'title:title',
-				'nation'
+				'nation',
+				'idno'
 			));
 
 		//filter on survey id
@@ -1047,18 +1061,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		}
 
 		return $output;
-	}
-
-	
-	function _build_repository_query()
-	{
-		$repo=(string)$this->repo;
-
-		if ($repo!='')
-		{
-			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
-		}
-		return FALSE;
 	}
 
 	function _build_dtype_query()
