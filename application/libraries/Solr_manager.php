@@ -238,13 +238,11 @@ class Solr_manager{
 		//find new documents not in SOLR yet
 		$new_documents=array_diff($db_documents,$solr_documents);
 
-		if (count($solr_deleted)>0 && $dry_run!=true)
-		{
+		if (count($solr_deleted)>0 && $dry_run!=true){
 			//remove deleted items from SOLR
 			$delete_query=array();
 
-			foreach($solr_deleted as $del_item)
-			{
+			foreach($solr_deleted as $del_item){
 				$delete_query[]=$prefix.'-'.$del_item;
 			}
 
@@ -255,18 +253,14 @@ class Solr_manager{
 		}
 
 		//add new documents to SOLR
-		if (count($new_documents) && $dry_run!=true)
-		{
-
-			if ($doctype==1)
-			{
+		if (count($new_documents) && $dry_run!=true){
+			if ($doctype==1){
 				foreach($new_documents as $doc_id)
 				{
 					$this->add_survey($doc_id);
 				}
 			}
-			else if($doctype==3)
-			{
+			else if($doctype==3){
 				$this->add_citation($new_documents);
 			}
 		}
@@ -275,32 +269,21 @@ class Solr_manager{
 				'solr_deleted'=>$solr_deleted,
 				'new_docs'=>$new_documents,
 				//'solr_documents'=>$solr_documents
-		);
-		/*
-			echo "<pre>";
-			print_r($delete_query);
-			echo "<HR>";
-			print_r($solr_deleted);
-			echo "<HR>";
-			print_r($new_documents);
-			echo "<HR>";
-		*/
+		);		
 	}
 
 
 
 	function get_all_db_documents($doctype=1)
 	{
-		if ($doctype==1)
-		{
+		if ($doctype==1){
 			//survey
 			$id_column="id";
 			$this->ci->db->select("id");
 			$rows=$this->ci->db->get("surveys")->result_array();
 			return array_column($rows, $id_column);
 		}
-		else if ($doctype==3)
-		{
+		else if ($doctype==3){
 			//citations
 			$id_column="id";
 			$this->ci->db->select("id");
@@ -318,19 +301,18 @@ class Solr_manager{
 	{
 			$field='id';
 
-			switch($doctype)
-			{
-					case '1':
-						$field='survey_uid';
-					break;
+			switch($doctype){
+				case '1':
+					$field='survey_uid';
+				break;
 
-					case '2':
-						$field='var_uid';
-					break;
+				case '2':
+					$field='var_uid';
+				break;
 
-					case '3':
-						$field='citation_id';
-					break;
+				case '3':
+					$field='citation_id';
+				break;
 			}
 
 			//var_dump($field);
@@ -402,7 +384,7 @@ class Solr_manager{
 
 
 	//add documents to index
-    function add_documents($rows,$id_prefix='',$apply_commit=true)
+    function add_documents($rows,$id_prefix='',$apply_commit=false)
     {
         $client=$this->get_solarium_client();
         $update = $client->createUpdate();
@@ -484,7 +466,7 @@ class Solr_manager{
 	* Main function for all delta updates
 	*
 	* @table - table name
-	* @delta_op - operation - refresh, import, replace, update, publish, delete
+	* @delta_op - operation - refresh, import, replace, update, publish, delete, atomic, facet
 	* @obj_id - object id
 	*
 	**/
@@ -492,12 +474,15 @@ class Solr_manager{
 	{
 		switch($table){
 			case 'surveys':
-				if(in_array($delta_op, array('refresh','import','replace','update','create') )){
+				if(in_array($delta_op, array('refresh','import','replace','update','create','facet') )){
 					return $this->add_survey($obj_id);                        
 				}
 				else if(in_array($delta_op, array('publish','atomic') )){
 					return $this->survey_atomic_update($obj_id);
 				}
+				/*else if(in_array($delta_op, array('facet') )){
+					return $this->survey_facets_update($obj_id);
+				}*/
 				else if($delta_op=='delete'){
 					return $this->delete_document("survey_uid:$obj_id OR sid:$obj_id");
 				}
@@ -513,10 +498,8 @@ class Solr_manager{
 	function delete_document_by_id($id,$doc_type)
 	{
 		return $this->run_delta_update($table='surveys', 'delete', $id);
-	}
-
+	}	
 	
-
 	function survey_atomic_update($id)
 	{
 		$options=$this->get_survey_by_id($id,$inc_keywords=false);
@@ -545,7 +528,7 @@ class Solr_manager{
 
 		//add document and commit
 		$update->addDocument($doc);
-		$update->addCommit();
+		//$update->addCommit();
 
 		// this executes the query and returns the result
 		$result = $client->update($update);
@@ -646,7 +629,7 @@ class Solr_manager{
 	{
 		$documents=array();
 		$documents[]=$this->get_survey_by_id($id);		
-		$this->add_documents($documents,$id_prefix='',$commit=true);
+		$this->add_documents($documents,$id_prefix='',$commit=false);
 
 		//delete variables if exist
 		$this->delete_document('sid:'.$id);
@@ -701,15 +684,26 @@ class Solr_manager{
 
 	public function add_citation($id_array)
 	{
-		$this->ci->db->select("3 as doctype,
+		$this->ci->db->select("
+						3 as doctype,
 						id,
 						id as citation_id,
+						uuid as citation_uuid,
 						title,
 						subtitle,
 						authors,
-						ft_keywords,
+						volume,
+						issue,
+						edition,
+						place_publication,
+						publisher,
+						ctype,						
+						abstract,
+						keywords,
+						notes,
+						doi,
 						published,
-						pub_year as pub_date
+						pub_year as pub_date,
 						",FALSE);
 		$this->ci->db->where_in("id",$id_array);
 		$rows=$this->ci->db->get("citations")->result_array();
@@ -787,16 +781,18 @@ class Solr_manager{
 
 		$this->ci->db->select("
 			2 as doctype,
-			uid as id,
-			vid,
-			name,
-			labl,
-			catgry,
-			qstn,
-			sid,			
-			uid as var_uid
+			variables.uid as id,
+			variables.vid,
+			variables.name,
+			variables.labl,
+			variables.catgry,
+			variables.qstn,
+			variables.sid,			
+			variables.uid as var_uid,
+			surveys.idno
 			  ",FALSE);
     	$this->ci->db->limit($limit);
+		$this->ci->db->join("surveys","surveys.id=variables.sid");
 		$this->ci->db->order_by('uid ASC');
 
 		if ($start_row){
@@ -879,10 +875,20 @@ class Solr_manager{
 						3 as doctype,
 						id,
 						id as citation_id,
+						uuid as citation_uuid,
 						title,
 						subtitle,
 						authors,
-						ft_keywords,
+						volume,
+						issue,
+						edition,
+						place_publication,
+						publisher,
+						ctype,						
+						abstract,
+						keywords,
+						notes,
+						doi,
 						published,
 						pub_year as pub_date
 					  ",FALSE);

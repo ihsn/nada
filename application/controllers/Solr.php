@@ -140,8 +140,13 @@ class Solr extends MY_Controller {
 
 	function sync_solr_with_db()
 	{
-		die("disabled");
-		$this->solr_manager->sync_solr_with_db();
+		$this->solr_manager->sync_solr_with_db($dryrun=false);
+	}
+
+
+	function commit()
+	{
+		$this->solr_manager->commit();
 	}
 
 

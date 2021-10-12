@@ -496,7 +496,7 @@ class Facet_model extends CI_Model {
 
 	function index_facets($sid)
     {
-        $study=$this->Dataset_model->get_row_detailed($sid);
+        $study=$this->Dataset_model->get_row_detailed($sid); 
         
         //extract facets
         $facet_data=$this->extract_facet_values($type=$study['type'],$study['metadata']);
@@ -533,9 +533,9 @@ class Facet_model extends CI_Model {
                 //upsert facet value
                 $this->insert_facet_value($sid,$facet_id,$term_id);
             }
-
         }
 
+		$this->events->emit('db.after.update', 'surveys', $sid,'facet');
     }
 
 
@@ -565,8 +565,12 @@ class Facet_model extends CI_Model {
 		$output=array();
 		if(is_array_of_array($arr)){
 			foreach($arr as $values){
-				foreach($values as $nested_row){
-				$output[]=$nested_row;
+				if (!is_array($values)){
+					$output[]=$values;
+				}else{
+					foreach($values as $nested_row){
+						$output[]=$nested_row;
+					}
 				}
 			}
 		}else{
