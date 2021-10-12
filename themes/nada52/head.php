@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/facets.css?v062021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-tab.css?v07052021">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-card.css?v09302021">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-card.css?v10102021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/filter-action-bar.css?v14052021-2">
 
 <?php if($use_cdn):?>
