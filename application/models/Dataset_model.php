@@ -504,7 +504,7 @@ class Dataset_model extends CI_Model {
 	}
 
 	function extract_keywords($metadata,$type='')
-	{
+	{		
 		if($type=='survey'){
 			$type='microdata';
 		}
@@ -539,6 +539,37 @@ class Dataset_model extends CI_Model {
 			$keywords= preg_replace($pattern, '_${0}', $keywords);
 		}
 		
+		return $keywords;
+	}
+
+
+	function extract_var_keywords($keywords)
+	{				
+		$keywords=str_replace(array("\n","\r", ")", "(","?",",","/","\\")," ",$this->array_to_plain_text($keywords));
+
+		$noise_words=explode(",",
+			'about,after,all,also,an,and,another,any,are,as,at,be,because,been,before,
+			being,between,both,but,by,came,can,come,could,did,do,each,for,from,get,
+			got,has,had,he,have,her,here,him,himself,his,how,if,in,into,is,it,like,
+			make,many,me,might,more,most,much,must,my,never,now,of,on,only,or,other,
+			our,out,over,said,same,see,should,since,some,still,such,take,than,that,
+			the,their,them,then,there,these,they,this,those,through,to,too,under,up,
+			very,was,way,we,well,were,what,where,which,while,who,with,would,you,your,a,not			
+			b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,$,1,2,3,4,5,6,7,8,9,0,_'
+		);
+		$noise_words=array_map('trim',$noise_words);
+
+		$keywords= strtolower(preg_replace('/\b('.implode('|',$noise_words).')\b/i','',$keywords));
+		
+		$patterns=array(
+		 	'/\b\d+\b/u', //remove numbers not part of the any words
+			 '/\b[a-z]{1,2}\b/'//words length <3
+		);
+
+		foreach($patterns as $regex){
+			$keywords= preg_replace($regex, '', $keywords);
+		}
+
 		return $keywords;
 	}
 

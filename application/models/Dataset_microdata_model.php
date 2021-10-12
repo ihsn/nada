@@ -274,30 +274,46 @@ class Dataset_microdata_model extends Dataset_model {
             $include_categories=false;
         }
 
-        $variables=$this->variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories);
+        $limit=1000;
+        $max_loop=ceil($total_vars/$limit);
 
-        $output=[];
         $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit','var_sumstat','var_format','var_val_range');
 
         if($include_categories==false){
             $exclude_columns[]="catgry";
         }
-        
-        foreach($variables as $variable){
-            $tmp=array();
-            foreach($variable['metadata'] as $key=>$value){
-                if(!in_array($key,$exclude_columns)){
-                    $tmp[]=$value;
+
+        $counter=0;
+        $output=[];
+        $m=0;
+        $start_uid=0;
+
+        for($vars_processed=0;$vars_processed<$total_vars;){
+            $counter++;
+            if ($counter>$max_loop){break;}
+
+            $variables=$this->variable_chunk_reader($sid, $start_uid, $limit,$include_categories);
+            foreach($variables as $variable){
+                $m++;
+                $start_uid=$variable['uid'];
+
+                $tmp=array();
+                foreach($variable['metadata'] as $key=>$value){
+                    if(!in_array($key,$exclude_columns)){
+                        $tmp[]=$value;
+                    }
                 }
+                $output[]=$this->extract_var_keywords($tmp);
             }
-            
-            $output[]=$this->array_to_plain_text($tmp);
+            $vars_processed=$vars_processed+$limit;
         }
 
         $output=implode(" ",$output);
-
+        $output=array_unique(array_filter(explode(" ",$output)));
+        $output=implode(" ",($output));
+        
         $options=array(
-            'var_keywords'=>$output
+            'var_keywords'=>$output 
         );
 
         $this->db->where('id',$sid);
@@ -313,7 +329,7 @@ class Dataset_microdata_model extends Dataset_model {
     private function variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories=true)
     {
         //$this->db->select("uid,name,labl,qstn");
-        $this->db->select("metadata");
+        $this->db->select("uid,metadata");
         
         /*if($include_categories){
             //$this->db->select("catgry");
