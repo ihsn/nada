@@ -591,7 +591,7 @@ class Study extends MY_Controller {
 	{
 		$this->load->helper('form');
 		$params=array(
-			'study_keywords'=>$this->input->get_post('sk'),
+			'study_keywords'=>$this->input->get_post('vk'),
 			'variable_keywords'=>$this->input->get_post('vk'),
 			'variable_fields'=>$this->input->get_post('vf'),
 			'countries'=>$this->input->get_post('country'),
