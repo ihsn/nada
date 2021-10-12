@@ -102,7 +102,7 @@
                             <div class="title font-weight-bold">
                                 <a href="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']);?>" target="_blank" class="dlg link" title="<?php t('variable_info');?>"><?php echo $title;?></a>
                             </div>
-                            <div class="qstn" ><?php echo ($row['qstn']!=='') ? $row['qstn'] : 'n/a'; ?></div>
+                            <div class="qstn" ><?php echo (isset($row['qstn']) && $row['qstn']!=='') ? $row['qstn'] : 'n/a'; ?></div>
                             <div class="var-subtitle var-study-link mt-2">
                                 <a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo $row['title']; ?> <i class="fa fa-external-link" aria-hidden="true"></i></a>
                                 <div><?php echo $var_country_info; ?></div>

@@ -62,7 +62,9 @@ $search_querystring = '?' . get_querystring(array('sk', 'vk', 'vf', 'view', 'top
 
 <input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by; ?>" />
 <input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order; ?>" />
+<?php if($search_options->ps>15):?>
 <input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps; ?>" />
+<?php endif;?>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id); ?>" />
 
 <?php if (isset($featured_studies) && $featured_studies !== FALSE) : ?>
@@ -191,6 +193,9 @@ if (in_array($tab_type, array('document', 'timeseries', 'script'))) {
         <?php if (!isset($row['form_model'])) : ?>
             <?php $row['form_model'] = 'data_na'; ?>
         <?php endif; ?>
+        <?php if(isset($row['thumbnail']) && is_array($row['thumbnail'])):?>
+            <?php $row['thumbnail']=implode("",$row['thumbnail']);?>
+        <?php endif;?>
 
         <div class="survey-row" data-url="<?php echo site_url('catalog/' . $row['id']); ?>" title="<?php echo t('View study'); ?>">
             <div class="row">

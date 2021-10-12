@@ -65,8 +65,11 @@
 
 <input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>
 <input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
+<?php if($search_options->ps>15):?>
 <input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
+<?php endif;?>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id);?>"/>
+<input type="hidden" name="sid" id="sid" value="<?php echo $search_options->sid;?>"/>
     
 <?php 
     $type_icons=array(
@@ -129,6 +132,10 @@
         }
         
         $is_featured=isset($row['featured']) ? $row['featured'] : false;
+
+        if(isset($row['thumbnail']) && is_array($row['thumbnail'])){
+            $row['thumbnail']=implode("",$row['thumbnail']);
+        }
 
         if (empty($row['thumbnail'])){
             $row_col2_class="col-md-12";
@@ -232,8 +239,8 @@
                             <a class="vsearch" href="<?php echo site_url(); ?>/catalog/vsearch/<?php echo $row['id']; ?>/?<?php echo $variable_querystring; ?>">
                                 
                             <div class="d-flex">                      
-                                <div class="flex-grow-1">
-                                    <div class="heading-text"><?php echo sprintf(t('variables_keywords_found'),$row['var_found'],$row['varcount']);?></div>
+                                <div class="flex-grow-1">                                    
+                                    <div class="heading-text"><?php echo sprintf(t('variables_keywords_found'),$row['var_found'],isset($row['varcount']) ? $row['varcount'] : 'N');?></div>
                                 </div>
                                 <div class="toggle-arrow-bg">
                                     <span class="toggle-arrow">

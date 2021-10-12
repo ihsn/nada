@@ -1,7 +1,9 @@
 <div class="container catalog-search-container">
 <form method="get" id="catalog-search-form">    
     <input type="hidden" name="tab_type" id="tab_type" value="<?php echo form_prep($search_options->tab_type);?>"/>
+    <?php if($search_options->page>1):?>
     <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
+    <?php endif;?>
     <input type="hidden" name="view" id="view" value="<?php echo $search_options->view;?>"/>
     <input type="hidden" name="image_view" id="image_view" value="<?php echo form_prep($search_options->image_view);?>"/>
 
@@ -443,10 +445,9 @@ $(document).ready(function() {
     toggle_reset_search_button();
     var State=History.getState();
 
-    if(!State.data.page_state_data){        
-        console.log("setting first loaded page state");
+    if(!State.data.page_state_data){
         page_first_load=false;
-        let search_state=$("#catalog-search-form :input[value!='']").serialize();
+        let search_state=serialize_form();
         let page_state_data={
                 'search_options': $("#catalog-search-form").serializeArray(),
                 'search_results': null
@@ -489,6 +490,10 @@ $(document).ready(function() {
         el_name="[name='" + name + "']," + "[name='" + name + "[]']";
         elements=$(el_name);
 
+        if (name=="sid"){
+            $("#sid").val("");
+        }
+        
         if (name=='years'){
             $("#from").val("");
             $("#to").val("");

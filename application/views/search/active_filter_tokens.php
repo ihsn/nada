@@ -109,5 +109,5 @@ $bg=0;
     <?php endif;?>
 
     <?php if (isset($search_options->sid) && $search_options->sid!=''):?>
-        <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo html_escape(substr($search_options->sid,0,50)).'... ';?><i class="fa fa-close fas fa-times"></i></span>
+        <span class="badge badge-default wb-badge-close country remove-filter sid" data-type="sid" data-value=""><?php echo html_escape(substr($search_options->sid,0,50)).'... ';?><i class="fa fa-close fas fa-times"></i></span>
     <?php endif;?>
