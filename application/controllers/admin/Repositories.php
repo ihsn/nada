@@ -4,7 +4,7 @@ class Repositories extends MY_Controller {
 	var $errors='';
 	var $search_fields=array('username','email','status'); 
 	var $uploaded_thumbnail_path='';
-	
+	var $html_filter=true;
 	
 	function __construct()
 	{
@@ -16,8 +16,11 @@ class Repositories extends MY_Controller {
 		
 		//collection settings
 		$this->config->load('collections', TRUE);		
-		//var_dump($this->config->item('collection_image_path', 'collections'));
 		
+		if ($this->config->item("collection_html_filter")!=null){
+			$this->html_filter=$this->config->item("collection_html_filter");
+		}
+
 		//language file
 		$this->lang->load('collection');
 		
@@ -235,7 +238,9 @@ class Repositories extends MY_Controller {
 			}
 
 			//sanitize description html
-			$options['long_text']=$this->sanitize_html_input($options['long_text']);
+			if ($this->html_filter===true){			
+				$options['long_text']=$this->sanitize_html_input($options['long_text']);
+			}
 
 			//process thumbnail file uploads
 			if(!empty($_FILES['thumbnail_file']['name']) && !empty($this->uploaded_thumbnail_path) ){
@@ -317,7 +322,7 @@ class Repositories extends MY_Controller {
     function sanitize_html_input($html)
     {
         $this->load->helper('kses');
-        $string=$html;//'<span><p id="<script>alert(1);</script>">this is a test<div>!</div>';
+        $string=$html;
         $allowed_tags = array('b' => array(),
             'h1'    => array("class"=>array()),
             'h2'    => array("class"=>array()),
@@ -332,7 +337,10 @@ class Repositories extends MY_Controller {
             'img' => array('src' => array()),
             'font' => array('size' =>
                 array('minval' => 4, 'maxval' => 20)),
-            'br' => array()
+            'br' => array(),
+			'strong' => array(),
+			'ul'=>array('class'=>array()),
+			'li'=>array()
         );
 
         //don't throw php warnings for non well formed html

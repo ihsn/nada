@@ -1,9 +1,15 @@
 <style>
 	.breadcrumb-container{padding-left:0px;}
+	.repo-thumbnail{
+		width:120px;
+		height:120px;
+	}
+	.contributing-repos h3{
+		margin-top:30px;
+	}
 </style>
 <div class="about-collection">
-<h1 class="mb-5"><?php echo t('Collections');?></h1>
-<?php if($row->repositoryid!=='central'):?>
+<?php if($row->repositoryid!=='central'):?>	
 	<div class="repository-container">
 		<div class="body"><?php echo $row->long_text;?></div>
 	</div>
@@ -20,6 +26,7 @@
 <?php endif;?>
 
 <?php if($additional):?>
+	<h1 class="mb-5"><?php echo t('Collections');?></h1>
 	<?php echo $additional;?>
 <?php endif;?>
 </div>

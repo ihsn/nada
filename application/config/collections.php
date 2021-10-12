@@ -17,6 +17,9 @@ $config['collection_default_thumb']='files/icon-blank.png';
 $config['collection_about_template']='views/repositories/default_about_template';
 
 
+$config['collection_html_filter']=false;
+
+
 
 /* End of file collections.php */
 /* Location: ./system/application/config/collections.php */

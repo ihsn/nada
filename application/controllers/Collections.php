@@ -21,9 +21,6 @@ class Collections extends MY_Controller {
 		$additional_data=NULL;
 		$repo=NULL;
 
-		//unpublished repos are visible to limited admins or admins only
-		//$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
-
 		if ($repositoryid=='central'){
 			
 			$collections=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
@@ -65,8 +62,6 @@ class Collections extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
     }
-
-    
     
 }
 
