@@ -31,6 +31,8 @@ class Catalog_search_sqlsrv{
 	var $tags=array();
 	var $country_iso3='';
 
+	var $params;
+
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
 	
@@ -60,6 +62,9 @@ class Catalog_search_sqlsrv{
 	function __construct($params = array())
 	{
 		$this->ci=& get_instance();
+
+		$this->ci->load->model("Facet_model");
+		$this->user_facets=$this->ci->Facet_model->select_all('user');
 		
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes')
@@ -83,6 +88,7 @@ class Catalog_search_sqlsrv{
 		}
 		//log_message('debug', "Catalog_search Class Initialized");
 		//$this->ci->output->enable_profiler(TRUE);
+		$this->params=$params;
 	}
 	
 	function initialize($params=array())
@@ -131,6 +137,15 @@ class Catalog_search_sqlsrv{
 		
 		//show only publshed studies
 		$where_list[]='published=1';
+
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
 		
 		//create combined where clause
 		$where='';
@@ -261,6 +276,15 @@ class Catalog_search_sqlsrv{
 		//array of all options
 		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections, $created, $tags,$data_class,$countries_iso3,$type);
 
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
+
         //show only publshed studies
         $where_list[]='surveys.published=1';
 
@@ -284,7 +308,7 @@ class Catalog_search_sqlsrv{
 
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,surveys.idno,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
-		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
+		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
 
 		//add ranking if keywords are not empty
 		if(!empty($this->study_keywords)){
@@ -391,8 +415,8 @@ class Catalog_search_sqlsrv{
 			$result['citations']=$this->get_survey_citation();
 		}
 
-		$result['search_counts_by_type']=array();
-		//$result['search_counts_by_type']=$this->search_counts_by_type();
+		//$result['search_counts_by_type']=array();
+		$result['search_counts_by_type']=$this->search_counts_by_type();
 		
 		if ($result['found']>0){
 			//search for variables for SURVEY types
@@ -1093,7 +1117,6 @@ class Catalog_search_sqlsrv{
 	{		
 		//$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
-		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$tags=$this->_build_tags_query();
@@ -1106,8 +1129,17 @@ class Catalog_search_sqlsrv{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$tags);
+		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$tags);
 		
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
+				if($facet_query){
+					$where_list[]=$facet_query;
+				}
+			}
+		}
+
 		//create combined where clause
 		$where='';
 		
@@ -1285,6 +1317,28 @@ class Catalog_search_sqlsrv{
 
         return FALSE;
     }
+
+	protected function _build_facet_query($facet_name,$values)
+	{
+		if (empty($values)){
+			return false;
+		}
+		
+		$values=(array)$values;
+		foreach($values  as $idx=>$value){
+			if(!empty($value)){
+				$values[$idx]=$this->ci->db->escape($value);
+			}
+		}
+
+		$values= implode(',',$values);
+
+		if ($values!=''){
+			return sprintf('surveys.id in (select sid from survey_facets where term_id in (%s))',$values);
+		}
+		
+		return FALSE;
+	}
 
 }// END Search class
 
