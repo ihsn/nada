@@ -91,6 +91,7 @@ class Dataset_geospatial_model extends Dataset_model {
 		//set topics
 
         //update related countries
+        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
@@ -145,7 +146,14 @@ class Dataset_geospatial_model extends Dataset_model {
 
         //todo
         //$nations=$this->get_array_nested_value($options,'database_description/geographic_units');	
-        $output['nation']='';//todo
+        $nations=(array)array_data_get($options, 'description.identificationInfo.*.extent.geographicElement.*.geographicDescription');
+
+        $output['nations']=$nations;
+
+        $nation_str=$this->get_country_names_string($nations);
+        $nation_system_name=$this->Country_model->get_country_system_name($nation_str);
+
+        $output['nation']=($nation_system_name!==false) ? $nation_system_name : $nation_str;
 
         //$auth_entity=$this->get_array_nested_value($options,'database_description/authoring_entity');
         $output['authoring_entity']='';
