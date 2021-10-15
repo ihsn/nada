@@ -241,4 +241,24 @@ class Dataset_geospatial_model extends Dataset_model {
         return $metadata;
 	}    
 
+
+     /**
+     * 
+     * Update all related tables used for facets/filters
+     * 
+     * 
+     */
+    function update_filters($sid, $metadata)
+    {
+        $core_fields=$this->get_core_fields($type='geospatial',$metadata);
+
+        //update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//set topics
+
+        //update related countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+    }
+
 }
