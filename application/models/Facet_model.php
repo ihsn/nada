@@ -156,7 +156,7 @@ class Facet_model extends CI_Model {
 	 * Get facets value by facet
 	 * 
 	 */
-	function get_facet_values($facet_id,$published=null,$sort_by='value', $sort_order='ASC', $study_type=null)
+	function get_facet_values($facet_id,$published=null,$sort_by='value', $sort_order='ASC', $study_type=null, $filter_values=array())
 	{
 		/*
 		select facet_terms.*, survey_facets.* from facet_terms
@@ -165,6 +165,7 @@ class Facet_model extends CI_Model {
 				where facet_terms.facet_id=1 
 				and surveys.published=1;
 		*/
+
 
 		$this->db->select('facet_terms.id,facet_terms.value as title, count(survey_facets.id) as found');
 		$this->db->order_by($sort_by, $sort_order);		
@@ -175,6 +176,9 @@ class Facet_model extends CI_Model {
 
 		if($study_type){
 			$this->db->where('surveys.type',$study_type);
+			if(!empty($filter_values)){
+				$this->db->or_where_in('facet_terms.id',$filter_values);
+			}			
 		}
 
 		if (!empty($published)){

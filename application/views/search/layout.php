@@ -1,3 +1,6 @@
+<style>
+.disabled-facet{background:red;display:none;}
+</style>
 <div class="container catalog-search-container">
 <form method="get" id="catalog-search-form">    
     <input type="hidden" name="tab_type" id="tab_type" value="<?php echo form_prep($search_options->tab_type);?>"/>
@@ -490,6 +493,8 @@ $(document).ready(function() {
         el_name="[name='" + name + "']," + "[name='" + name + "[]']";
         elements=$(el_name);
 
+        console.log(elements);
+
         if (name=="sid"){
             $("#sid").val("");
         }
@@ -581,8 +586,7 @@ $(document).ready(function() {
         el.prop("checked",true);
         reset_page();
         $( "#tab_type" ).val($(this).attr("data-value"));
-        
-        window.location.href='<?php echo site_url('catalog');?>?'+$("#catalog-search-form").serialize();
+        window.location.href='<?php echo site_url('catalog/'. @$active_repo['repositoryid']  );?>?'+serialize_form();
         return false;
     });
 

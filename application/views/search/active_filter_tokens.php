@@ -29,10 +29,13 @@ $bg=0;
                 <?php if (isset($search_options->{$facet_key}) && is_array($search_options->{$facet_key})):?>
                     <?php foreach($search_options->{$facet_key} as $facet_value):?>
                         <?php if (array_key_exists($facet_value,$facets[$facet_key]['values'])):?>
-                            <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" style="background:<?php echo $facet_bg[$bg];?>" 
-                                    data-type="<?php echo $facet_key;?>[]" data-value="<?php echo html_escape($facet_value);?>">
-                                    <?php echo html_escape($facets[$facet_key]['values'][$facet_value]['title']);?><i class="fa fa-close fas fa-times"></i></span>
-                        <?php endif;?>    
+                            <span 
+                                class="badge badge-default badge-secondary wb-badge-close remove-filter type" 
+                                style="background:<?php echo $facet_bg[$bg];?>" 
+                                data-type="<?php echo $facet_key;?>[]" data-value="<?php echo html_escape($facet_value);?>">
+                                <?php echo html_escape($facets[$facet_key]['values'][$facet_value]['title']);?><i class="fa fa-close fas fa-times"></i>
+                            </span>                        
+                        <?php endif;?>                        
                     <?php endforeach;?>
                     <?php $bg++;?>
                 <?php endif;?>

@@ -10,7 +10,7 @@ if (isset($years['min_year']) && isset($years['max_year'])){
     }
 }
 ?>
-<div id="filter-by-year" class="sidebar-filter wb-ihsn-sidebar-filter filter-by-year filter-box">
+<div id="filter-by-year" class="sidebar-filter wb-ihsn-sidebar-filter filter-by-year filter-box <?php echo isset($is_enabled) && $is_enabled===false ? 'disabled-facet' :'' ;?>">
     <?php /*<h6 class="togglable"> <i class="fa fa-search pr-2"></i><?php echo t('filter_by_year');?></h6>*/?>
 
     <h6 class="togglable"> 

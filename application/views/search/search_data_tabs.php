@@ -23,6 +23,9 @@
     <?php foreach($tabs['types'] as $tab):?>
         <?php 
             $tab_target=site_url("catalog/?tab_type={$tab['code']}");
+            if(isset($active_repo) && isset($active_repo['repositoryid'])){
+                $tab_target=site_url("catalog/".$active_repo['repositoryid']."?tab_type={$tab['code']}");
+            }
         ?>
         <li class="nav-item">
             <a class="dataset-type-tab dataset-type-tab-<?php echo $tab['code'];?> nav-link <?php echo $tab['code']==$tabs['active_tab'] ? 'active' : '';?>" data-value="<?php echo $tab['code'];?>" href="<?php echo $tab_target;?>">

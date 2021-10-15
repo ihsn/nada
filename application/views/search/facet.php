@@ -32,10 +32,9 @@ items=array(
 
 //to toggle clear button
 $items_checked=false;
-
 ?>
 
-<div id="filter-by-<?php echo $filter_id;?>" class="sidebar-filter wb-ihsn-sidebar-filter filter-box filter-by-<?php echo $filter_id;?>">
+<div id="filter-by-<?php echo $filter_id;?>" class="sidebar-filter wb-ihsn-sidebar-filter filter-box filter-by-<?php echo $filter_id;?> <?php echo isset($is_enabled) && $is_enabled===false ? 'disabled-facet' :'' ;?>">
     
     <!-- Card Header / Toggle -->
     <h6 class="togglable"> 

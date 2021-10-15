@@ -15,6 +15,9 @@ class Catalog extends MY_Controller {
 		//enable filters
 		var $enabled_filters=array();
 
+		//list of all filters
+		var $filters_list=array();
+
     public function __construct()
 	{
 		parent::__construct($skip_auth=TRUE);
@@ -34,6 +37,7 @@ class Catalog extends MY_Controller {
 		//$this->enabled_filters=$this->config->item('facets_by_type');
 
 		//$this->output->enable_profiler(TRUE);
+		$this->filters_list=array_keys($this->Facet_model->select_all());
 
 		//language files
 		$this->lang->load('general');
@@ -86,12 +90,14 @@ class Catalog extends MY_Controller {
 	{
 
 		$facets=(array)$this->enabled_filters;
+		$filters=$this->filters_list;
+
 
 		//get years
-		if ($this->is_facet_enabled($this->active_tab,'year')){
+		//if ($this->is_facet_enabled($this->active_tab,'year')){
 			$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
 			$this->facets['years']=$years_range;
-		}
+		//}
 
 		$repo_id=null;
 
@@ -100,34 +106,40 @@ class Catalog extends MY_Controller {
 		}
 
 		//core facets
-		if ($this->is_facet_enabled($this->active_tab,'collection')){
-			$this->facets['repositories']=$this->Search_helper_model->get_active_repositories($this->active_tab);
-		}
+		$this->facets['repositories']=$this->Search_helper_model->get_active_repositories(
+			$this->active_tab,
+			$this->input->get("collection")
+		);
 
-		//if ($this->is_facet_enabled($this->active_tab,'dtype')){
-			$this->facets['da_types']=$this->Search_helper_model->get_active_data_types($repo_id,$this->active_tab);
-		//}
+		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types(
+			$repo_id,
+			$this->active_tab,
+			$this->input->get("dtype")
+		);
 
-		//if ($this->is_facet_enabled($this->active_tab,'data_class')){
-			$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);		
-		///}
+		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);
 
-		if ($this->is_facet_enabled($this->active_tab,'country')){
-			$this->facets['countries']=$this->Search_helper_model->get_active_countries($repo_id, $this->active_tab);
-		}
-
-		if ($this->is_facet_enabled($this->active_tab,'tag')){
-			$this->facets['tags']=$this->Search_helper_model->get_active_tags($repo_id,$this->active_tab);
-		}
-
-		//if ($this->is_facet_enabled($this->active_tab,'type')){
-			$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
-		//}
+		$this->facets['countries']=$this->Search_helper_model->get_active_countries(
+			$repo_id, 
+			$this->active_tab, 
+			$this->input->get("country")
+		);
+				
+		$this->facets['tags']=$this->Search_helper_model->get_active_tags(
+			$repo_id,
+			$this->active_tab,
+			$this->input->get("tag")
+		);
+	
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
 		
 		//load user defined facets from db
 		$facets_list=$this->Facet_model->select_all();
+
 		foreach($facets_list as $fc){
-			if($fc['facet_type']=='user' && $this->is_facet_enabled($this->active_tab,$fc['name'])){
+			if($fc['facet_type']=='user' 
+					//&& $this->is_facet_enabled($this->active_tab,$fc['name'])
+					){												
 				$this->facets[$fc['name']]=array(
 					'type'=>$fc['facet_type'],
 					'title'=>$fc['title'],
@@ -135,8 +147,9 @@ class Catalog extends MY_Controller {
 						$published=1,
 						$sort_='value',
 						$sort_order_='ASC',
-						$this->active_tab
-						)
+						$this->active_tab,						
+						$this->input->get($fc['name'])
+					)
 				);
 			}
 		}
@@ -146,87 +159,68 @@ class Catalog extends MY_Controller {
 
 	private function load_facets_html()
 	{
-		//enabled filters by active page/tab
-		$filters=(array)$this->enabled_filters;
+		//$filters=(array)$this->enabled_filters;
+		$filters=$this->filters_list;
 
 		//flip to keep the keys for sorting facets
 		$filters=array_flip($filters);
 		foreach($filters as $key=>$val){
 			$filters[$key]=null;
-		}
+		}		
 
 		//tags
-		if ($this->is_facet_enabled($this->active_tab,'tag')){
-			$filters['tag']=$this->load->view('search/facet', 
-				array(
-					'items'=>$this->facets['tags'], 
-					'filter_id'=>'tag'
-				),true);
-		}
+		$filters['tag']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['tags'], 
+				'filter_id'=>'tag',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'tag')
+			),true);
 			
-		if ($this->is_facet_enabled($this->active_tab,'year')){
-			$filters['year']=$this->load->view('search/filter_years',array('years'=>$this->facets['years']),true);
-		}
+		$filters['year']=$this->load->view('search/filter_years',
+			array(
+				'years'=>$this->facets['years'],
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'year')
+			),true);
 		
 		if(!isset($this->active_repo_id)){
-			/*$filters['repositories']=$this->load->view('search/filter_collections', 
-				array(
-					'repositories'=>$this->facets['repositories'],
-					'search_options'=>$output['search_options']
-				)
-				,true);
-			*/	
-			if ($this->is_facet_enabled($this->active_tab,'collection')){
-				$filters['repositories']=$this->load->view('search/facet', 
-				array(
-					'items'=>$this->facets['repositories'], 
-					'filter_id'=>'collection'
-				),true);
-			}
+			$filters['repositories']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['repositories'], 
+				'filter_id'=>'collection',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'collection')
+			),true);
 		}
-
-		//data access types
-		//$filters['da_types']=$this->load->view('search/filter_da', array('da_types'=>$this->facets['da_types']),true);
 
 		//data classifications
-		if ($this->is_facet_enabled($this->active_tab,'data_class')){
-			$filters['data_class']=$this->load->view('search/facet', 
-				array(
-					'items'=>$this->facets['data_class'], 
-					'filter_id'=>'data_class'
-				),true);
-		}
+		$filters['data_class']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['data_class'], 
+				'filter_id'=>'data_class',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'data_class')
+			),true);
 
 
 		//data types
-		if ($this->is_facet_enabled($this->active_tab,'dtype')){
-			$filters['da_type']=$this->load->view('search/facet', 
-				array(
-					'items'=>$this->facets['da_types'], 
-					'filter_id'=>'dtype'
-				),true);	
-		}
-
-
-		//countries
-		if ( $this->is_facet_enabled($this->active_tab,'country')){		
-			$filters['country']=$this->load->view('search/facet', 
-				array(
-					'items'=>$this->facets['countries'], 
-					'filter_id'=>'country'
-				),true);
-		}
 		
-		//countries			
-		//$filters['countries']=$this->load->view('search/filter_countries', array('countries'=>$this->facets['countries']),true);
-
-		//tags			
-		//$filters['tags']=$this->load->view('search/filter_tags', array('tags'=>$this->facets['tags']),true);		
+		$filters['da_type']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['da_types'], 
+				'filter_id'=>'dtype',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'dtype')
+			),true);	
+		
+		//countries
+		
+		$filters['country']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['countries'], 
+				'filter_id'=>'country',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'country')
+			),true);
 		
 		//types filter
 		if(!$this->active_tab){
 			if ($this->is_facet_enabled($this->active_tab,'type')){
-				//$filters['types']=$this->load->view('search/filter_types', array('types'=>$this->facets['types']),true);
 				$filters['data_type']=$this->load->view('search/facet', 
 				array(
 					'items'=>$this->facets['types'], 
@@ -242,11 +236,11 @@ class Catalog extends MY_Controller {
 				array(
 					'items'=>$facet['values'],
 					'filter_id'=>$facet_key,
-					'title'=>$facet['title']
+					'title'=>$facet['title'],
+					'is_enabled'=>$this->is_facet_enabled($this->active_tab,$facet_key)
 				),true);
 			}
 		}
-
 		return $filters;
 	}
 
@@ -256,10 +250,10 @@ class Catalog extends MY_Controller {
 		if ($type==''){
 			$type='all';
 		}
-
 		if ( in_array($facet,$this->enabled_filters)){
 			return true;
 		}
+		return false;
 	}
 
 	private function get_facets_by_type($type)
