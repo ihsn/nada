@@ -63,7 +63,7 @@ $items_checked=false;
     <?php endif;?>
 
     <div id="facet-<?php echo $filter_id;?>" class="sidebar-filter-entries <?php echo $filter_collapse ? 'collapse' :'';?> <?php echo $filter_id;?>-container items-container">        
-        <?php if (count($items)>30):?>
+        <?php if (count($items)>15):?>
         <div class="wb-card-header">       
             <div class="wb-search-control input-group input-group-sm mb-3">
                 <input type="text" class="form-control facet-filter-values" placeholder="Filter...">
