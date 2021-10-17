@@ -1,7 +1,7 @@
 <style>
 	.repo-thumbnail{
-		width:100px;
-		height:100px;
+		width:80px;
+		height:80px;
 	}
 	</style>
 <?php
@@ -107,8 +107,8 @@ $repository_types=array(
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="repo-row <?php echo $tr_class; ?>">
-			<td><div class="thumb"><a href="<?php echo site_url('catalog/'.$row->repositoryid.'/about');?>"><img class="img-thumbnail repo-thumbnail" src="<?php echo base_url();?><?php echo !empty($row->thumbnail) ? $row->thumbnail : 'files/icon-blank.png'; ?>"/></a></div></td>
-			<td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
+			<td><div class="thumb"><a href="<?php echo site_url('admin/repositories/edit/'.$row->id)?>"><img class="img-thumbnail repo-thumbnail" src="<?php echo base_url();?><?php echo !empty($row->thumbnail) ? $row->thumbnail : 'files/icon-blank.png'; ?>"/></a></div></td>
+			<td><a href="<?php echo site_url();?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
             <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
             <!--<td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>-->
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
@@ -162,7 +162,8 @@ jQuery(document).ready(function(){
 	//weight
 	$(document.body).on("change",".repo-row .weight", function(){ 
 		var id=$(this).attr("data-id");
-		var value=$(this).attr("value");
+		var value=$(this).val();
+		console.log(value, id);
 		$.post(CI.base_url+'/admin/repositories/weight/'+id+'/'+value+'?ajax=1',{submit:"submit"});
 	});	
 

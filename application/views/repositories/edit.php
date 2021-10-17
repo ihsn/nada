@@ -24,7 +24,9 @@ $options_published=array(
 );
 
 $sections=$this->data['section_options'];
-$options_section=array();
+$options_section=array(
+    '0' => t('Select')
+);
 
 foreach($sections as $sec){
 	$options_section[$sec['id']]=$sec['title'];
@@ -110,13 +112,13 @@ foreach($sections as $sec){
         <div class="col-md-2">      
             <div class="form-group">
                 <label for="section"><?php echo t('section');?><span class="required">*</span></label>
-                <?php echo form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''),array('class'=>'form-control'));?>
+                <?php echo form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''),array('class'=>'form-control'));?>                
             </div>
         </div>
         <div class="col-md-2">
             <div class="form-group">
                 <label for="ispublished"><?php echo t('published');?></label>
-                <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''),array('class'=>'form-control'));?>
+                <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''),array('class'=>'form-control'));?>                
             </div>  
         </div>
         </div>

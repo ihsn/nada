@@ -1307,8 +1307,8 @@ class Repository_model extends CI_Model {
 	
 		//set validation rules
 		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[255]');
-		$this->form_validation->set_rules('short_text', t('short_text'), 'xss_clean|trim|required|max_length[500]');
-		$this->form_validation->set_rules('long_text', t('long_text'), 'trim|xss_clean|required|max_length[1000]');
+		$this->form_validation->set_rules('short_text', t('short_text'), 'xss_clean|trim|required|max_length[1000]');
+		$this->form_validation->set_rules('long_text', t('long_text'), 'trim|xss_clean|required');
 		$this->form_validation->set_rules('weight', t('weight'), 'xss_clean|trim|max_length[3]|is_natural');
 		$this->form_validation->set_rules('section', t('section'), 'xss_clean|trim|max_length[3]|is_natural');
 		$this->form_validation->set_rules('ispublished', t('published'), 'required|xss_clean|trim|max_length[1]|is_natural');			
