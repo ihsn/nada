@@ -878,9 +878,10 @@ class Catalog_search_sqlsrv{
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
 		$dtype=$this->_build_dtype_query();
+		$repository = $this->_build_repository_query();
 		
 		//array of all options
-		$where_list=array($variable,$topics,$countries,$years,$dtype);
+		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository);
 
         //show only publshed studies
         $where_list[]='published=1';
@@ -905,35 +906,24 @@ class Catalog_search_sqlsrv{
 		if ($where=='') {
 			return FALSE;
 		}
-
-		//echo $where;exit;
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid, v.qstn, surveys.title as title,surveys.nation as nation, v.sid, surveys.idno",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
-        $this->_build_study_query();
 
+		if ($repository!=''){
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+		}
 
         //get result set
 		$result=$this->ci->db->get("variables as v")->result_array();
-
-        //count search
-		$query_count='select count(*) as rowsfound from surveys ';
-		$query_count.='inner join variables v on v.sid=surveys.id ';
-        $query_count.='inner join forms f on surveys.formid=f.formid ';
         
-		if ($where!='')
-		{
-			$query_count.=' where '.$where;
-		}
-
-		$query_found_rows=$this->ci->db->query($query_count)->row_array();
-
-		$found_rows=$query_found_rows['rowsfound'];
+		$found_rows=$this->vsearch_count();
 
 		$tmp['total']=$this->get_total_variable_count();//$this->ci->db->count_all('variables');
 		$tmp['found']=$found_rows;
@@ -941,6 +931,60 @@ class Catalog_search_sqlsrv{
 		$tmp['offset']=$offset;
 		$tmp['rows']=$result;
 		return $tmp;		
+	}
+
+
+	function vsearch_count()
+	{
+		$variable=$this->_build_variable_query();
+		$topics=$this->_build_topics_query();
+		$countries=$this->_build_countries_query();
+		$years=$this->_build_years_query();
+		$dtype=$this->_build_dtype_query();
+		$repository = $this->_build_repository_query();
+		
+		//array of all options
+		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository);
+
+        //show only publshed studies
+        $where_list[]='published=1';
+
+		//create combined where clause
+		$where='';
+		
+		foreach($where_list as $stmt)
+		{
+			if ($where=='')
+			{
+				$where=$stmt;
+			}
+			else
+			{
+				if ($stmt!==FALSE) {
+					$where.="\r\n".' AND '. $stmt;
+				}
+			}
+		}
+
+		if ($where=='') {
+			return FALSE;
+		}
+		
+		//search
+		$this->ci->db->select("count(*) as rowsfound",FALSE);
+		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
+		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		
+		$this->ci->db->where($where);
+
+		if ($repository!=''){
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+		}
+
+        //get result set
+		$result=$this->ci->db->get("variables as v")->row_array();
+		return $result['rowsfound'];
 	}
 
     function get_total_variable_count()

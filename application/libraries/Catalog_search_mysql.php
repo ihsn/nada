@@ -1038,9 +1038,10 @@ class Catalog_search_mysql{
 		$collections=$this->_build_collections_query();
 		$dtype=$this->_build_dtype_query();
 		$tags=$this->_build_tags_query();
+		$repository=$this->_build_repository_query();
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags);
+		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags,$repository);
 
         //show only publshed studies
         $where_list[]='published=1';
@@ -1082,9 +1083,14 @@ class Catalog_search_mysql{
 		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.qstn, v.vid,  surveys.title as title,surveys.idno, surveys.nation, v.sid",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		
+		if ($repository!=''){
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+		}
+
 		//get resultset
 		$result=$this->ci->db->get("variables as v")->result_array();
 		
