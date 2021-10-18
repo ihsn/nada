@@ -39,7 +39,7 @@
                 </div>
                 <div class="col mt-1 wb-search-toggle">
                     <div class="btn-group btn-group-toggle study-view-toggle" >
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-left toggle_view" data-value="s" ><a href="<?php echo site_url('catalog?'.$study_view);?>"><?php echo t('Study view');?></a></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-left toggle_view" data-value="s" ><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$study_view);?>"><?php echo t('Study view');?></a></button>
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-right active toggle_view" data-value="v"><?php echo t('Variable view');?></button>
                     </div>
                 </div>

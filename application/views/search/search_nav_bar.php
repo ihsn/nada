@@ -44,7 +44,7 @@
                 <div class="col mt-1 wb-search-toggle">                    
                     <div class="btn-group btn-group-toggle study-view-toggle" >
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s" ><?php echo t('Study view');?></button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
                     </div>
                 </div>
                 <?php endif;?>
