@@ -40,7 +40,7 @@ class Repositories extends MY_Controller {
 		$content=$this->load->view('repositories/index-default', $result,true);	
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('repositories_management'),true);
-	  	$this->template->render();	
+	  	$this->template->render();	 
 	}
 	
 	
@@ -59,7 +59,7 @@ class Repositories extends MY_Controller {
 
 		//sort order
 		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
-		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'repositoryid';
+		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'title';
 
 		//filter
 		$filter=NULL;
