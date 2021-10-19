@@ -32,6 +32,7 @@ items=array(
 
 //to toggle clear button
 $items_checked=false;
+$facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')));
 ?>
 
 <div id="filter-by-<?php echo $filter_id;?>" class="sidebar-filter wb-ihsn-sidebar-filter filter-box filter-by-<?php echo $filter_id;?> <?php echo isset($is_enabled) && $is_enabled===false ? 'disabled-facet' :'' ;?>">
@@ -70,7 +71,6 @@ $items_checked=false;
                 <div class="input-group-append">
                     <button class="btn btn-link facet-filter-values-clear" type="button" style="display:none;">
                         <i class="fas fa-times"></i>
-                        <!-- <i class="far fa-times-circle"></i> -->
                     </button>
                 </div>
             </div>
@@ -78,13 +78,16 @@ $items_checked=false;
         <?php endif;?>
         <div class="items-container <?php //echo (count($repositories)>10) ? 'scrollable' : ''; ?>">
             <?php if($items):?>
+
+                <?php //default items with no groups/sections ?>
                 <?php $k=0;foreach($items as $item_key=>$item):$k++; ?>
+                    <?php if (!isset($item['group_name']) || (isset($item['group_name']) && empty($item['group_name'])) ):?>
                     <div class="form-check item-<?php echo $filter_id;?> <?php echo $k;?> item inactive">
                         <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>" <?php echo form_prep($item_key); ?>>
                             <input class="form-check-input chk chk-<?php echo $filter_id;?>" type="checkbox" name="<?php echo $filter_id;?>[]"
-                                   value="<?php echo form_prep($item_key); ?>"
-                                   data-title="<?php echo form_prep($item['title']);?>"
-                                   id="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>"
+                                value="<?php echo form_prep($item_key); ?>"
+                                data-title="<?php echo form_prep($item['title']);?>"
+                                id="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>"
                                 <?php if(isset($search_options->{$filter_id}) && is_array($search_options->{$filter_id}) && in_array($item_key,$search_options->{$filter_id})): $items_checked=true;?>
                                     checked="checked"
                                 <?php endif;?>>
@@ -94,12 +97,43 @@ $items_checked=false;
                                 <?php else:?>
                                     <?php echo $item['title'];?>
                                 <?php endif;?>
-                                 
+                                
                                 <?php if(isset($item['found'])):?>
                                     <span class="count">(<?php echo $item['found']; ?>)</span>
                                 <?php endif;?>
                         </label>
                     </div>
+                    <?php endif;?>
+                <?php endforeach;?>
+
+                <?php //filter by groups/sections ?>
+                <?php foreach($facet_groups as $facet_group):?>
+                    <div class="facet-group-title"><?php echo $facet_group;?></div>
+                    <?php $k=0;foreach($items as $item_key=>$item):$k++; ?>
+                        <?php if (isset($item['group_name']) && $facet_group==$item['group_name'] ):?>
+                        <div class="form-check item-<?php echo $filter_id;?> <?php echo $k;?> item inactive">
+                            <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>" <?php echo form_prep($item_key); ?>>
+                                <input class="form-check-input chk chk-<?php echo $filter_id;?>" type="checkbox" name="<?php echo $filter_id;?>[]"
+                                    value="<?php echo form_prep($item_key); ?>"
+                                    data-title="<?php echo form_prep($item['title']);?>"
+                                    id="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>"
+                                    <?php if(isset($search_options->{$filter_id}) && is_array($search_options->{$filter_id}) && in_array($item_key,$search_options->{$filter_id})): $items_checked=true;?>
+                                        checked="checked"
+                                    <?php endif;?>>
+                                    
+                                    <?php if (isset($item['translated_title'])):?>
+                                        <?php echo $item['translated_title']; ?>
+                                    <?php else:?>
+                                        <?php echo $item['title'];?>
+                                    <?php endif;?>
+                                    
+                                    <?php if(isset($item['found'])):?>
+                                        <span class="count">(<?php echo $item['found']; ?>)</span>
+                                    <?php endif;?>
+                            </label>
+                        </div>
+                        <?php endif;?>
+                    <?php endforeach;?>
                 <?php endforeach;?>
             <?php endif;?>
         </div>

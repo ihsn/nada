@@ -1,5 +1,12 @@
 <style>
 .disabled-facet{background:red;display:none;}
+.facet-group-title{
+    font-size:12px;
+    color:#545b62;
+    margin-top:10px;
+    margin-bottom:10px;
+    font-weight:bold;
+}
 </style>
 <div class="container catalog-search-container">
 <form method="get" id="catalog-search-form">    

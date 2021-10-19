@@ -391,8 +391,9 @@ class Search_helper_model extends CI_Model {
 
 	public function get_active_repositories($study_type=NULL,$filter_values=array())
 	{
-		$this->db->select('r.repositoryid as id,r.pid,r.title,r.repositoryid,count(sr.sid) as found');
+		$this->db->select('r.repositoryid as id,r.pid,r.title,r.repositoryid,count(sr.sid) as found, rsections.title as group_name');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
+		$this->db->join('repository_sections rsections', 'r.section= rsections.id','left');
 		$this->db->join('surveys', 'sr.sid= surveys.id','INNER');
 		$this->db->where('r.ispublished',1);
 		$this->db->where('surveys.published',1);
