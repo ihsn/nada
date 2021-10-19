@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/facets.css?v062021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-tab.css?v07052021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-card.css?v10102021-1">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/filter-action-bar.css?v14052021-2">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/filter-action-bar.css?v14052021-3">
 
 <?php if($use_cdn):?>
     <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>

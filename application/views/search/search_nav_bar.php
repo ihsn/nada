@@ -39,7 +39,20 @@
     <div class="col-12 col-md-12 mt-2 mt-md-0 ">
         <div class="filter-action-bar row">
                 <?php if($found>0):?>
-                <div class="search-count mt-1 font-weight-bold col"><?php echo number_format($found). ' '. t('results');?></div>
+                <?php 
+                /* <div class="search-count mt-1 font-weight-bold col">
+                    <?php echo number_format($found). ' '. t('results');?>
+                </div>
+                */ ?>
+
+                <div class="search-count col-5 text-md-left mb-2 mb-md-0 pt-2">
+                    <?php echo sprintf(t('showing_studies'),
+                        (($surveys['limit']*$current_page)-$surveys['limit']+1),
+                        ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
+                        $surveys['found']);
+                    ?>
+                </div>
+
                 <?php if($show_variable_toggle && (isset($surveys['search_counts_by_type']) && array_key_exists('survey',$surveys['search_counts_by_type']))):?>
                 <div class="col mt-1 wb-search-toggle">                    
                     <div class="btn-group btn-group-toggle study-view-toggle" >

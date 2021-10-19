@@ -34,9 +34,20 @@
         
         <div class="filter-action-bar row">
                 <?php if($found>0):?>
+                <?php /*
                 <div class="search-count mt-1 font-weight-bold col">
                     <?php echo number_format($found). ' '. t('results');?>
                 </div>
+                */?>
+
+                <div class="search-count mt-1 col-5">
+                    <?php echo sprintf(t('showing_variables'),
+                        (($variables['limit']*$current_page)-$variables['limit']+1),
+                        ($variables['limit']*($current_page-1))+ count($variables['rows']),
+                        number_format($variables['found']));
+                    ?>
+                </div>
+
                 <div class="col mt-1 wb-search-toggle">
                     <div class="btn-group btn-group-toggle study-view-toggle" >
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-left toggle_view" data-value="s" ><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$study_view);?>"><?php echo t('Study view');?></a></button>
