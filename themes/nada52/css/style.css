@@ -643,8 +643,7 @@ li.nav-item.dropdown .fas {
     border-bottom: none;
 }
 
-.citation-row:hover,
-.survey-row:hover {
+.citation-row:hover{
     opacity: .8;
     background-color: var(--wbg-lightbluegray);
 }

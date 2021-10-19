@@ -67,50 +67,6 @@ $search_querystring = '?' . get_querystring(array('sk', 'vk', 'vf', 'view', 'top
 <?php endif;?>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id); ?>" />
 
-<?php if (isset($featured_studies) && $featured_studies !== FALSE) : ?>
-    <!-- survey-row -->
-    <div class="survey-row featured-study">
-        <span class="badge badge-warning featured-study-tag"><?php echo t('featured_study'); ?></span>
-        <div class="row" data-url="<?php echo site_url('catalog/' . $featured_studies['id']); ?>" title="View study">
-            <div class="col-2 col-lg-1">
-                <i class="icon-da icon-da-<?php echo $featured_studies['model']; ?>" title="<?php echo t("legend_data_" . $featured_studies['model']); ?>"></i>
-            </div>
-            <div class="col-10 col-lg-11">
-                <h4 class="pr-5">
-                    <a href="<?php echo site_url('catalog/' . $featured_studies['id']); ?>" title="<?php echo $featured_studies['title']; ?>"><?php echo $featured_studies['title']; ?>
-                    </a>
-                </h4>
-                <div class="study-country">
-                    <?php echo $featured_studies['nation'] . ','; ?>
-                    <?php
-                    $survey_year = array();
-                    $survey_year[$featured_studies['year_start']] = $featured_studies['year_start'];
-                    $survey_year[$featured_studies['year_end']] = $featured_studies['year_end'];
-                    $survey_year = implode('-', $survey_year);
-                    ?>
-                    <?php echo $survey_year != 0 ? $survey_year : ''; ?>
-                </div>
-                <div class="sub-title">
-                    <?php echo $featured_studies['authoring_entity']; ?>
-
-                    <?php if (isset($row['repo_title']) && $row['repo_title'] != '') : ?>
-                        <div class="owner-collection">
-                            <?php echo t('catalog_owned_by') ?>: <a href="<?php echo site_url('catalog/' . $row['repositoryid']); ?>"><?php echo $row['repo_title']; ?></a>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                <div class="survey-stats">
-                    <span><?php echo t('created_on'); ?>: <?php echo date('M d, Y', $featured_studies['created']); ?></span>
-                    <span><?php echo t('last_modified'); ?>: <?php echo date('M d, Y', $featured_studies['changed']); ?></span>
-                    <span><?php echo t('views'); ?>: <?php echo (int)$featured_studies['total_views']; ?></span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- /survey-row -->
-<?php endif; ?>
-
-
 
 <span class="result-types-summary">
     <span class="type-summary" data-types='<?php echo htmlentities(json_encode($surveys['search_counts_by_type']), ENT_QUOTES, 'UTF-8'); ?>'>

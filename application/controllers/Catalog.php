@@ -290,7 +290,8 @@ class Catalog extends MY_Controller {
 		$output['search_box_orientation']=$this->search_box_orientation;
 
 		if (isset($output['surveys'])){
-			$output['featured_studies']=$this->get_featured_study($output['surveys']['rows']);
+			//$output['featured_studies']=$this->get_featured_study($output['surveys']['rows']);			
+			$output['featured_studies']=$this->get_featured_studies_by_repo ($this->active_repo_id,$this->active_tab);
 		}
 
 		if ($output['search_type']=='variable'){
@@ -899,7 +900,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 
-
+	
 	private function get_featured_study($surveys)
 	{
 		if (!is_array($surveys)){
@@ -931,5 +932,10 @@ class Catalog extends MY_Controller {
 		$featured_study=$this->Repository_model->get_featured_study($repositoryid);
 
 		return $featured_study;
+	}
+
+	private function get_featured_studies_by_repo($repository_id=null,$study_type=null)
+	{
+		return $this->Repository_model->get_featured_study($repository_id,$study_type);
 	}
 }    

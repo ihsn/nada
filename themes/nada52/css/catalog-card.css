@@ -37,10 +37,12 @@
   background-color: var(--color-highlight-bg);
   border: 1px solid var(--color-highlight) !important; */
   padding-left:45px;
+  border-bottom: 0px !important;
+  margin-bottom: 0px!important;
 }
 
 .survey-row:hover {
-  background: none;
+  /*background: none;*/
   /* opacity: .9; */
 }
 

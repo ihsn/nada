@@ -112,10 +112,11 @@
     }
 
     if(isset($featured_studies) && $featured_studies!==FALSE ){
-        $featured_studies['featured']=true;        
-        array_unshift($surveys['rows'],$featured_studies);
+        foreach($featured_studies as $feature_study){
+            $feature_study['featured']=true;
+            array_unshift($surveys['rows'],$feature_study);
+        }        
     }
-
 ?>
 
     
@@ -125,13 +126,18 @@
             <?php //echo json_encode($surveys['search_counts_by_type']);?>
         </span>        
     </span>
+<?php $is_featured_count=0;?>
 <?php foreach($surveys['rows'] as $key=>$row): ?>    
     <?php     
         if(!isset($row['form_model'])){
             $row['form_model']='data_na';
         }
         
-        $is_featured=isset($row['featured']) ? $row['featured'] : false;
+        $is_featured=isset($row['featured']) ? $row['featured'] : false;        
+
+        if ($is_featured){
+            $is_featured_count++;
+        }
 
         if(isset($row['thumbnail']) && is_array($row['thumbnail'])){
             $row['thumbnail']=implode("",$row['thumbnail']);
@@ -149,9 +155,11 @@
             <div class="<?php echo $row_col2_class;?>">
 
                 <?php if ($is_featured): ?>
+                <?php if($is_featured_count==1):?>
                 <span class="badge badge-featured wb-featured-mark" >
                     <i class="fas fa-star"></i> <?php echo t('Featured');?>
                 </span>
+                <?php endif;?>
                 <?php endif; ?>
                 <h5 class="wb-card-title title">
                     <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   

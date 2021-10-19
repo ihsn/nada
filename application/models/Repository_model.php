@@ -1145,28 +1145,41 @@ class Repository_model extends CI_Model {
 
 
 	//get featured study by repository
-	function get_featured_study($repositoryid)
+	function get_featured_study($repositoryid=null,$study_type=null)
 	{
+		$id=0;
+		if($repositoryid){
+			$id=$this->get_repositoryid_uid($repositoryid);
+		}
+
 		$this->db->select('featured_surveys.sid');
-		$this->db->join('repositories','repositories.id=featured_surveys.repoid','INNER');
-		$this->db->where("repositories.repositoryid",$repositoryid);
-		$this->db->limit(1);
+		$this->db->join('surveys','surveys.id=featured_surveys.sid','INNER');
+		$this->db->where("surveys.published",1);
+		$this->db->where("featured_surveys.repoid",$id);
+		if($study_type){
+			$this->db->where("surveys.type",$study_type);
+		}
+		$this->db->limit(5);
 		$query=$this->db->get('featured_surveys');
 
-		if (!$query)
-		{
+		if (!$query){
 			return FALSE;
 		}
 		
-		$row=$query->row_array();
+		$rows=$query->result_array();
 		
-		if (!$row)
-		{
+		if (!$rows){
 			return FALSE;
 		}
-		
-		//get featured study
-		return $this->Catalog_model->select_single($row['sid']);
+
+		$sid_arr=array_values(array_column($rows,'sid'));
+
+		$studies=array();
+		foreach($sid_arr as $sid){
+			$studies[]=$this->Catalog_model->select_single($sid);
+		}
+
+		return $studies;
 	}
 
 
@@ -1175,24 +1188,21 @@ class Repository_model extends CI_Model {
 	{
 		$repo=$this->get_repository_by_repositoryid($repositoryid);
 		
-		if (!$repo)
-		{
-			return FALSE;
+		$repo_uid=0;//central
+
+		if ($repo){			
+			$repo_uid=$repo['id'];		
 		}
-		
-		$repo_uid=$repo['id'];		
 		
 		$options=array(
 			'repoid'	=>	$repo_uid,
 			'sid'		=>	$sid,
 		);
 		
-		if($status>0)
-		{		
+		if($status>0){
 			$this->db->insert('featured_surveys',$options);
 		}
-		else
-		{
+		else{
 			$this->db->where('repoid',$repo_uid);
 			$this->db->where('sid',(int)$sid);
 			$this->db->delete('featured_surveys');

@@ -14,13 +14,13 @@
     <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme; ?>/css/bootstrap.min.css">
 <?php endif;?>    
 
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v2021-23">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v2021-231">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v2021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/home.css?v03212019">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/facets.css?v062021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-tab.css?v07052021">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-card.css?v10102021">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-card.css?v10102021-1">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/filter-action-bar.css?v14052021-2">
 
 <?php if($use_cdn):?>
