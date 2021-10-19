@@ -397,7 +397,7 @@ class Search_helper_model extends CI_Model {
 		$this->db->join('surveys', 'sr.sid= surveys.id','INNER');
 		$this->db->where('r.ispublished',1);
 		$this->db->where('surveys.published',1);
-		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.weight');
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.weight,rsections.title');
 		$this->db->order_by('r.weight');
 		
 		if($study_type!=NULL){
