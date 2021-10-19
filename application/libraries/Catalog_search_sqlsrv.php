@@ -109,6 +109,7 @@ class Catalog_search_sqlsrv{
 	//build the search query
 	function _search_count($limit=15, $offset=0)
 	{
+		$type=$this->_build_dataset_type_query();
 		$dtype=$this->_build_dtype_query();
 		$study=$this->_build_study_query();
 		$variable=false;//$this->_build_variable_query();
@@ -129,7 +130,7 @@ class Catalog_search_sqlsrv{
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		//array of all options
-		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created, $tags,$countries_iso3,$data_class);
+		$where_list=array($sid,$type,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created, $tags,$countries_iso3,$data_class);
 		
 		if ($repository!=''){
 			$where_list[]=$repository;

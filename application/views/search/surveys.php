@@ -293,9 +293,9 @@
 
             <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
                 <?php echo sprintf(t('showing_studies'),
-                    (($surveys['limit']*$current_page)-$surveys['limit']+1),
-                    ($surveys['limit']*($current_page-1))+ count($surveys['rows']),
-                    $surveys['found']);
+                    number_format(($surveys['limit']*$current_page)-$surveys['limit']+1),
+                    number_format(($surveys['limit']*($current_page-1))+ count($surveys['rows'])),
+                    number_format($surveys['found']));
                 ?>
             </div>
 
