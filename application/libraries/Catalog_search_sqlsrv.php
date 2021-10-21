@@ -1212,8 +1212,8 @@ class Catalog_search_sqlsrv{
 			
 		//study search
 		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
-		$this->ci->db->from('surveys');
-		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->from('surveys');		
+		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->where('surveys.published',1);
 		$this->ci->db->group_by('surveys.type');	
