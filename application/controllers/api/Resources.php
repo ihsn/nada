@@ -153,12 +153,7 @@ class Resources extends MY_REST_Controller
 				}
 
 				//check if resource already exists
-				$resource_exists=false;
-								
-				if (!empty($options['filename'])){
-					$resource_exists=$this->Survey_resource_model->get_survey_resources_by_filepath($sid,$options['filename']);
-				}					
-
+				$resource_exists=$this->Survey_resource_model->check_duplicate($sid,$options['filename'], $options['title'],$options['dctype']);
 				$overwrite=isset($options["overwrite"]) ? $options["overwrite"] : false;
 
 				if($resource_exists){

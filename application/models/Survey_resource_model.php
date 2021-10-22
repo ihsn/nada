@@ -481,6 +481,50 @@ class Survey_resource_model extends CI_Model {
 	}
 	
 	
+	/**
+	*
+	* Check if resource is a duplicate
+	*
+	* @filepath	relative path to the resource
+	*/
+	function check_duplicate($surveyid,$filepath,$title,$dctype=null)
+	{
+		$filepath=$this->normalize_filename($filepath);
+
+		$this->db->where('survey_id', $surveyid); 
+		$this->db->where('filename', $filepath);
+		$this->db->where('title', $title);
+		$resources=$this->db->get('resources')->result_array();
+
+		$dctype=$this->get_dctype_code_from_string($dctype);
+		if ($resources){
+			foreach($resources as $idx=>$resource){
+				$res_dctype=$this->get_dctype_code_from_string($resource['dctype']);
+				if ($dctype!=$res_dctype){
+					unset($resources[$idx]);
+				}
+			}
+		}
+		return $resources;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Return the dctype code from text
+	 * 
+	 * e.g. Document [doc/adm] will return doc/adm
+	 * 
+	 */
+	function get_dctype_code_from_string($dctype)
+	{
+		preg_match_all("/\[([^\]]*)\]/", $dctype, $matches);
+		$result= $matches[1];
+		if ($result){
+			return $result[0];
+		}
+		return $dctype;
+	}
 	
 	
 	/**
