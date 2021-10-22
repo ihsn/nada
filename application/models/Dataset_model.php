@@ -450,6 +450,8 @@ class Dataset_model extends CI_Model {
 		//newly created dataset id
 		$id= $this->db->insert_id();
 
+		$this->update_options($id,$options_=array('repositoryid'=>$options['repositoryid']));
+
 		return $id;
 	}
 
@@ -499,6 +501,8 @@ class Dataset_model extends CI_Model {
 			$error=$this->db->error('message');
 			throw new Exception("DB-ERROR: ".$error['message']);
 		}
+
+		$this->update_options($sid,$options_=array('repositoryid'=>$options['repositoryid']));
 
 		return $sid;
 	}
