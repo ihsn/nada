@@ -374,7 +374,7 @@ class Search_helper_model extends CI_Model {
 			$this->db->escape($repositoryid),
 			$this->db->escape($repositoryid));
 
-			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','left');
 			$this->db->where($subquery,null,false);
 		}
 		
@@ -454,7 +454,7 @@ class Search_helper_model extends CI_Model {
 				$this->db->escape($repositoryid),
 				$this->db->escape($repositoryid));
 
-				$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+				$this->db->join('survey_repos sr', 'sr.sid=surveys.id','left');
 				$this->db->where($subquery,null,false);
 			}
 
@@ -548,7 +548,7 @@ class Search_helper_model extends CI_Model {
 				$this->db->escape($repositoryid),
 				$this->db->escape($repositoryid));
 
-			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','left');
 			$this->db->where($subquery,null,false);
 			//$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
 			//$this->db->where('survey_repos.repositoryid',$repositoryid);
@@ -614,7 +614,7 @@ class Search_helper_model extends CI_Model {
 				$this->db->escape($repositoryid),
 				$this->db->escape($repositoryid));
 
-			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','left');
 			$this->db->where($subquery,null,false);
 			
 			//$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
