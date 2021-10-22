@@ -1493,17 +1493,30 @@ class Catalog_model extends CI_Model {
 	**/
 	function get_survey_repositories($sid=NULL)
 	{
-		if (!is_numeric($sid))
-		{
+		if (!is_numeric($sid)){
 			return FALSE;
 		}
+
+		$output=array();
+
+		//get owner repo
+		$owner_repo=$this->Repository_model->get_survey_owner_repository($sid);
+
+		if($owner_repo){
+			$output[$owner_repo['repositoryid']]=$owner_repo;
+		}
 		
+		//get linked
 		$this->db->select('repositories.repositoryid,title,ispublished');
 		$this->db->join('repositories', 'survey_repos.repositoryid= repositories.repositoryid','INNER');
+		$this->db->where('isadmin',0);
 		$this->db->where('sid',$sid);
 		$query=$this->db->get('survey_repos')->result_array();
 		
-		return $query;
+		foreach($query as $row){
+			$output[$row['repositoryid']]=$row;
+		}
+		return $output;
 	}
 
 	/**

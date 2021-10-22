@@ -729,9 +729,8 @@ class Repository_model extends CI_Model {
 	function get_survey_owner_repository($id)
 	{
 		$this->db->select('repositories.*');
-		$this->db->join('survey_repos','survey_repos.repositoryid=repositories.repositoryid','INNER');
-		$this->db->where('survey_repos.sid',$id);
-		$this->db->where('survey_repos.isadmin',1);
+		$this->db->join('surveys','surveys.repositoryid=repositories.repositoryid','INNER');
+		$this->db->where('surveys.id',$id);
 		$row=$this->db->get('repositories')->row_array();
 		return $row;
 	}
