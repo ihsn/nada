@@ -36,7 +36,7 @@
 		    <h1 class="mt-0 mb-1" id="dataset-title"><?php echo $survey_title;?></h1>
             <div class="clearfix">
 		        <h6 class="sub-title float-left" id="dataset-sub-title"><?php echo $sub_title;?></h6>
-                <?php if(isset($data_access_type) && $data_access_type!='data_na'):?>
+                <?php if(isset($data_access_type) && $data_access_type!='data_na' && $survey['type']=='survey'):?>
                 <a  
                     href="<?php echo site_url("catalog/$sid/get-microdata");?>" 
                     class="get-microdata-btn badge badge-primary wb-text-link-uppercase float-left ml-3" 
