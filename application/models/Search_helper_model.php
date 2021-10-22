@@ -367,8 +367,15 @@ class Search_helper_model extends CI_Model {
 		}
 
 		if($repositoryid!=NULL){
-			$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
-			$this->db->where('survey_repos.repositoryid',$repositoryid);
+			//$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
+			//$this->db->where('survey_repos.repositoryid',$repositoryid);
+
+			$subquery= sprintf('(surveys.repositoryid= %s OR sr.repositoryid = %s)',
+			$this->db->escape($repositoryid),
+			$this->db->escape($repositoryid));
+
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->where($subquery,null,false);
 		}
 		
 		$query=$this->db->get('survey_countries');
@@ -440,8 +447,15 @@ class Search_helper_model extends CI_Model {
 			$this->db->where('surveys.published',1);
 			
 			if($repositoryid!=NULL){
-				$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
-				$this->db->where('survey_repos.repositoryid',$repositoryid);
+				//$this->db->join('survey_repos', 'surveys.id=survey_repos.sid','inner');
+				//$this->db->where('survey_repos.repositoryid',$repositoryid);
+
+				$subquery= sprintf('(surveys.repositoryid= %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+
+				$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+				$this->db->where($subquery,null,false);
 			}
 
 			if($data_type!=NULL){
@@ -530,8 +544,14 @@ class Search_helper_model extends CI_Model {
 		$this->db->where('surveys.published',1);
 
 		if (trim($repositoryid)!=='' && $repositoryid!='central'){
-			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
-			$this->db->where('survey_repos.repositoryid',$repositoryid);
+			$subquery= sprintf('(surveys.repositoryid= %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->where($subquery,null,false);
+			//$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
+			//$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 
 		if($data_type!=NULL){
@@ -590,8 +610,15 @@ class Search_helper_model extends CI_Model {
 		$this->db->group_by('surveys.data_class_id, data_classifications.code, data_classifications.title');
 
 		if (trim($repositoryid)!=='' && $repositoryid!='central'){
-			$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
-			$this->db->where('survey_repos.repositoryid',$repositoryid);
+			$subquery= sprintf('(surveys.repositoryid= %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->where($subquery,null,false);
+			
+			//$this->db->join('survey_repos','survey_repos.sid=surveys.id','inner');	
+			//$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 
 		$result=$this->db->get('surveys')->result_array();
@@ -627,8 +654,14 @@ class Search_helper_model extends CI_Model {
 		//filter by repository
 		if (trim($repositoryid)!=='' && $repositoryid!='central')
 		{
-			$this->db->join('survey_repos sr', 'sr.sid=sc.sid','inner');
-			$this->db->where('sr.repositoryid',$repositoryid);	
+			$subquery= sprintf('(s.repositoryid= %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+
+			$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
+			$this->db->where($subquery,null,false);
+			//$this->db->join('survey_repos sr', 'sr.sid=sc.sid','inner');
+			//$this->db->where('sr.repositoryid',$repositoryid);	
 		}
 		
 		$this->db->group_by('sc.tid, collections.title');
@@ -660,9 +693,16 @@ class Search_helper_model extends CI_Model {
 			$this->db->group_by('survey_types.code, survey_types.title, survey_types.weight');
 
 			//filter by repository
-			if (trim($repositoryid)!=='' && $repositoryid!='central'){
+			if (trim($repositoryid)!=='' && $repositoryid!='central'){				
+				$subquery= sprintf('(s.repositoryid= %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+
 				$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
-				$this->db->where('sr.repositoryid',$repositoryid);	
+				$this->db->where($subquery,null,false);
+
+				//$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
+				//$this->db->where('sr.repositoryid',$repositoryid);
 			}
 
 			$result=$this->db->get('survey_types')->result_array();
