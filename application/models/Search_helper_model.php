@@ -698,7 +698,7 @@ class Search_helper_model extends CI_Model {
 				$this->db->escape($repositoryid),
 				$this->db->escape($repositoryid));
 
-				$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
+				$this->db->join('survey_repos sr', 'sr.sid=s.id','left');
 				$this->db->where($subquery,null,false);
 
 				//$this->db->join('survey_repos sr', 'sr.sid=s.id','inner');
