@@ -395,7 +395,7 @@ class Study extends MY_Controller {
 		switch($dataset_type){
 			case 'survey':
 			case 'microdata':
-				case 'geospatial':
+			case 'geospatial':
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t('microdata_description'),
@@ -431,7 +431,7 @@ class Study extends MY_Controller {
 				break;
 			case 'video':
 			case 'image':
-				$display_layout='survey_info/layout_scripts';
+				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -446,7 +446,7 @@ class Study extends MY_Controller {
 				);
 				break;
 			case 'timeseries':
-				$display_layout='survey_info/layout_scripts';
+				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -467,7 +467,7 @@ class Study extends MY_Controller {
 			case 'table':
 			case 'document':
 			case 'script':
-				$display_layout='survey_info/layout_scripts';
+				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
