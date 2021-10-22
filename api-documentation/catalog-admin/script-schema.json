@@ -805,9 +805,10 @@
                   "type": "string"
                 }
               }
-            }
+            },
+            "additionalProperties": false
           },
-          "required": [
+          "required": [ 
             "name"
           ]
         },
