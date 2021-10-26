@@ -997,6 +997,13 @@
             "name"
           ]
         },
+        "provenance":{
+          "type":"array",
+          "description":"Provenance",
+          "items":{
+            "$ref":"provenance-schema.json"
+          }
+          },
         "tags": {
           "type": "array",
           "title": "Tags (user-defined)",

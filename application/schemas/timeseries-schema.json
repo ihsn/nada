@@ -855,6 +855,34 @@
 			  ]
 		  
 		},
+		"provenance":{
+		  "type":"array",
+		  "description":"Provenance",
+		  "items":{
+			"$ref":"provenance-schema.json"
+		  }
+		},
+		"tags": {
+		  "type": "array",
+		  "title": "Tags (user-defined)",
+		  "description": "Tags",
+		  "items": {
+			"type": "object",
+			"properties": {
+			  "tag": {
+				"title": "Tag",
+				"type": "string"
+			  },
+			  "tag_group": {
+				"title": "Tag group",
+				"type": "string"
+			  }
+			}
+		  },
+		  "required": [
+			"tag"
+		  ]
+		},
 		"additional": {
 		  "type": "object",
 		  "title":"Additional custom metadata",

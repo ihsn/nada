@@ -20,7 +20,60 @@
 			"default": "no"
 		},
 
-
+		"metadata_information": {
+			"type": "object",
+			"title": "Document metadata information",
+			"description": "Document description",
+			"additionalProperties": false,
+			"properties": {
+				"title": {
+					"type": "string",
+					"title": "Document title",
+					"description": "Document title"
+				},
+				"idno": {
+					"type": "string",
+					"title": "Unique ID number for the document"
+				},
+				"producers": {
+					"type": "array",
+					"title": "Producers",
+					"description": "List of producers",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"title": "Name",
+								"description": "Name (required)"
+							},
+							"abbr": {
+								"type": "string",
+								"title": "Abbreviation"
+							},
+							"affiliation": {
+								"type": "string",
+								"title": "Affiliation"
+							},
+							"role": {
+								"type": "string",
+								"title": "Role"
+							}
+						}
+					}
+				},
+				"production_date": {
+					"type": "string",
+					"title": "Date of Production",
+					"description": "Document production date using format(YYYY-MM-DD)"
+				},
+				"version": {
+					"type": "string",
+					"title": "Document version",
+					"description": "Identify and describe the current version of the document"
+				}
+			}
+		},
 		"database_description": {
 			"type": "object",
 			"title": "Database Description",

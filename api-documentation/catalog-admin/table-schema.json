@@ -877,13 +877,13 @@
       "additionalProperties": false
     },
 
-    "resources":{
+    "provenance":{
       "type":"array",
-      "description":"Resources",
+      "description":"Provenance",
       "items":{
-        "$ref":"resource-schema.json"
+        "$ref":"provenance-schema.json"
       }
-    },
+      },
     "tags": {
       "type": "array",
       "title": "Tags",

@@ -664,6 +664,60 @@
 			],
 			"default": "no"
 		},
+		"metadata_information": {
+			"type": "object",
+			"title": "Document metadata information",
+			"description": "Document description",
+			"additionalProperties": false,
+			"properties": {
+				"title": {
+					"type": "string",
+					"title": "Document title",
+					"description": "Document title"
+				},
+				"idno": {
+					"type": "string",
+					"title": "Unique ID number for the document"
+				},
+				"producers": {
+					"type": "array",
+					"title": "Producers",
+					"description": "List of producers",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"title": "Name",
+								"description": "Name (required)"
+							},
+							"abbr": {
+								"type": "string",
+								"title": "Abbreviation"
+							},
+							"affiliation": {
+								"type": "string",
+								"title": "Affiliation"
+							},
+							"role": {
+								"type": "string",
+								"title": "Role"
+							}
+						}
+					}
+				},
+				"production_date": {
+					"type": "string",
+					"title": "Date of Production",
+					"description": "Document production date using format(YYYY-MM-DD)"
+				},
+				"version": {
+					"type": "string",
+					"title": "Document version",
+					"description": "Identify and describe the current version of the document"
+				}
+			}
+		},
 		"description": {
 			"title": "Geospatial schema",
 			"type": "object",
@@ -1946,6 +2000,13 @@
 				"idno"
 			]
 		},
+		"provenance":{
+			"type":"array",
+			"description":"Provenance",
+			"items":{
+			  "$ref":"provenance-schema.json"
+			}
+		  },
 		"tags": {
 			"type": "array",
 			"title": "Tags",
@@ -1966,15 +2027,7 @@
 			"required": [
 				"tag"
 			]
-		},
-		"provenance": {
-			"type": "array",
-			"title": "Provenance",
-			"description": "Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)",
-			"items": {
-				"$ref": "provenance-schema.json"
-			}
-		},
+		},		
 		"additional": {
 			"title": "Additional metadata",
 			"description": "Any additional metadata"
