@@ -137,15 +137,11 @@ class Dataset_geospatial_model extends Dataset_model {
 	function get_core_fields($options)	
 	{
         $output=array();
-        
-        $identification_info=$this->get_array_nested_value($options,'description/identificationInfo');
-        $output['title']=$this->get_array_nested_value($identification_info[0],'citation/title');
-        $output['abbreviation']=$this->get_array_nested_value($options,'citation/alternateTitle');
-        $output['idno']=$this->get_array_nested_value($options,'description/idno');
-        //$output['type']=$this->get_array_nested_value($options,'type');
+                
+        $output['title']=array_data_get($options, 'description.identificationInfo.0.citation.title');
+        //$output['abbreviation']=$this->get_array_nested_value($options,'citation/alternateTitle');
+        $output['idno']=array_data_get($options,'description.idno');
 
-        //todo
-        //$nations=$this->get_array_nested_value($options,'database_description/geographic_units');	
         $nations=(array)array_data_get($options, 'description.identificationInfo.*.extent.geographicElement.*.geographicDescription');
 
         $output['nations']=$nations;
@@ -176,7 +172,7 @@ class Dataset_geospatial_model extends Dataset_model {
         if ($date_creation){
             $years=$this->get_years($date_creation);
         }else{
-            $years=$this->get_years($this->get_array_nested_value($options,'description/dateStamp'));
+            $years=$this->get_years(array_data_get($options,'description.dateStamp'));
         }
 
         $output['year_start']=$years['start'];
@@ -250,12 +246,10 @@ class Dataset_geospatial_model extends Dataset_model {
      */
     function update_filters($sid, $metadata)
     {
-        $core_fields=$this->get_core_fields($type='geospatial',$metadata);
+        $core_fields=$this->get_core_fields($metadata);
 
         //update years
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-		//set topics
 
         //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);

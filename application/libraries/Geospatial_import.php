@@ -121,6 +121,20 @@ class Geospatial_import{
             }    
         }
 
+        //array of array fields        
+        if (isset($output['description']['identificationInfo']['extent']['geographicElement']['geographicBoundingBox'])){
+            $ident_extent_bbox=$output['description']['identificationInfo']['extent']['geographicElement']['geographicBoundingBox'];
+            unset($output['description']['identificationInfo']['extent']['geographicElement']);
+            $output['description']['identificationInfo']['extent']['geographicElement'][]['geographicBoundingBox']=$ident_extent_bbox[0];
+        }
+
+        $identification_info=$output['description']['identificationInfo'];        
+        unset($output['description']['identificationInfo']);
+        $output['description']['identificationInfo'][]=$identification_info;
+
+        //echo '<pre>';
+        //print_r($output);
+
         return $output;
     }
 

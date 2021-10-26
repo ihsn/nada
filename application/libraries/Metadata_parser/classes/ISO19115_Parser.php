@@ -341,21 +341,25 @@ class ISO19115_Parser
             ),
          */
         
-        $keywords=$this->xpath_map['ident_keywords']['data'];
+        $keywords=$this->xpath_map['ident_descriptive_keywords']['data'];
                 
-        $output=array();
+        $output=array();        
         foreach($keywords as $row)
         {
-            foreach($row['keyword'] as $keyword)
-            {                
+            $keywords_arr=implode("\n",$row['keyword']);
+            $keywords_arr=explode("\n",$keywords_arr);
+
+            foreach($keywords_arr as $keyword)
+            {
                 $output[]=array(
-                    'keyword'   =>  $keyword,
-                    'type'      =>  @$row['type'],
-                    'thesaurus' =>  @$row['thesaurus']                
+                    'keyword'   =>  trim($keyword),
+                    'type'      =>  isset($row['type']) ? $row['type'] : '',
+                    'thesaurusName' =>  isset($row['thesaurusName']) ? $row['thesaurusName'] : ''
                 );                
             }
         }
-        $this->xpath_map['ident_keywords']['data']=$output;
+
+        $this->xpath_map['ident_descriptive_keywords']['data']=$output;
     }
     
     
@@ -381,12 +385,23 @@ class ISO19115_Parser
             'ident_description' => array(
                 'type'=>'text',
                 'is_repeated'=>false,
-                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract'
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString'
             ),
             'ident_purpose' => array(
                 'type'=>'text',
                 'is_repeated'=>false,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:purpose'
+            ),
+            'ident_credit' => array(
+                'type'=>'text',
+                'is_repeated'=>false,
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:credit'
+            ),
+
+            'ident_status' => array(
+                'type'=>'text',
+                'is_repeated'=>false,
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode/@codeListValue'
             ),
 
             //recheck https://project-open-data.cio.gov/v1.1/metadata-resources/
@@ -395,6 +410,24 @@ class ISO19115_Parser
                 'is_repeated'=>false,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency/gmd:userDefinedMaintenanceFrequency/gts:TM_PeriodDuration'
             ),*/
+
+
+            'ident_graphic_overview' =>array(
+                'type'=>'complex',
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview',
+                'items'=>array(
+                    'fileName'=>array(
+                        'xpath'=>'gmd:MD_BrowseGraphic/gmd:fileName/gco:CharacterString'
+                    ),
+                    'fileDescription'=>array(
+                        'xpath'=>'gmd:MD_BrowseGraphic/gmd:fileDescription/gco:CharacterString'
+                    ),
+                    'fileType'=>array(
+                        'xpath'=>'gmd:MD_BrowseGraphic/gmd:fileType/gco:CharacterString'
+                    ),
+                    
+                )
+            ),
 
             'ident_dates' =>array(
                 'type'=>'complex',
@@ -409,22 +442,22 @@ class ISO19115_Parser
                 )
             ),
 
-            'ident_keywords' => array(
+            'ident_descriptive_keywords' => array(
                 'type'=>'complex',
                 'is_repeated'=>true,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords',
                 'items'=>array(
-                    'keyword'=> array(
-                        'type'=>'array',
-                        'xpath'=>'gmd:keyword',
-                        'is_repeated'=>true,
-                    ),
                     'type'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:type/gmd:MD_KeywordTypeCode/@codeListValue',
                         'is_repeated'=>false
                     ),
-                    'thesaurus'=> array(
+                    'keyword'=> array(
+                        'type'=>'array',
+                        'xpath'=>'gmd:keyword',
+                        'is_repeated'=>true,
+                    ),                    
+                    'thesaurusName'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:thesaurusName/gmd:CI_Citation/gmd:title',
                         'is_repeated'=>false
@@ -450,7 +483,7 @@ class ISO19115_Parser
             'ident_spatial_rep_type' => array(
                 'type'=>'text',
                 'is_repeated'=>true,
-                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType'
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode/@codeListValue'
             ),
 
             //check:is_repeatable
@@ -472,19 +505,19 @@ class ISO19115_Parser
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox',
                 'is_repeated'=>true,
                 'items'=>array(
-                    'west'=> array(
+                    'westBoundLongitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:westBoundLongitude'
                     ),
-                    'east'=> array(
+                    'eastBoundLongitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:eastBoundLongitude'
                     ),
-                    'south'=> array(
+                    'southBoundLatitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:southBoundLatitude'
                     ),
-                    'north'=> array(
+                    'northBoundLatitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:northBoundLatitude'
                     )
@@ -788,6 +821,7 @@ class ISO19115_Parser
             foreach($complex_obj['items'] as $field_name=>$item)
             {
                 $row->registerXPathNamespace('gmd', 'http://www.isotc211.org/2005/gmd');
+                $row->registerXPathNamespace("gco","http://www.isotc211.org/2005/gco");
                 $sub_result=$row->xpath($item['xpath']);
                 //var_dump($sub_result);
                 //echo "<HR>";

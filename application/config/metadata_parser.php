@@ -294,109 +294,116 @@ $config['survey']=array(
 
 //ISO19139/XML mapping to NADA geospatial JSON schema
 $config['geospatial']=array(
-    #docDesc elements
-    'dataset_description/file_identifier'=>array('xpath'=>'metadata_file_identifier', 'transform_callback'=>'none'),
-    'dataset_description/language'=>array('xpath'=>'metadata_lang', 'transform_callback'=>'none'),
-    'dataset_description/charset_code'=>array('xpath'=>'metadata_charset', 'transform_callback'=>'none'),
-    'dataset_description/hierarchy_level'=>array('xpath'=>'codeBook/docDscr/citation/titlStmt/IDNo', 'transform_callback'=>'none'),
-    'dataset_description/date_stamp'=>array('xpath'=>'metadata_date', 'transform_callback'=>'none'),
-    'dataset_description/contact'=>array(
+    #docDesc elements 
+    'description/idno'=>array('xpath'=>'metadata_file_identifier', 'transform_callback'=>'none'),
+    'description/language'=>array('xpath'=>'metadata_lang', 'transform_callback'=>'none'),
+    'description/characterSet/codeListValue'=>array('xpath'=>'metadata_charset', 'transform_callback'=>'none'),
+    'description/hierarchyLevel'=>array('xpath'=>'codeBook/docDscr/citation/titlStmt/IDNo', 'transform_callback'=>'none'),
+    'description/dateStamp'=>array('xpath'=>'metadata_date', 'transform_callback'=>'none'),
+    'description/contact'=>array(
         'xpath'=>'metadata_contacts', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
-    'dataset_description/identification_info/title'=>array('xpath'=>'ident_title', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/alternate_title'=>array('xpath'=>'ident_alternate_title', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/date'=>array(
+    'description/identificationInfo/citation/title'=>array('xpath'=>'ident_title', 'transform_callback'=>'none'),
+    'description/identificationInfo/citation/alternate_title'=>array('xpath'=>'ident_alternate_title', 'transform_callback'=>'none'),
+    'description/identificationInfo/citation/date'=>array(
         'xpath'=>'ident_dates', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
-    'dataset_description/identification_info/edition'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    /*'dataset_description/identification_info/identifiers'=>array(
+    'description/identificationInfo/citation/edition'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    /*'description/identificationInfo/identifiers'=>array(
         'xpath'=>'--', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),*/
-    'dataset_description/identification_info/presentation_form'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/abstract'=>array('xpath'=>'ident_description', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/purpose'=>array('xpath'=>'ident_purpose', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/credit'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/status'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/point_of_contact'=>array(
+    'description/identificationInfo/citation/presentationForm'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/abstract'=>array('xpath'=>'ident_description', 'transform_callback'=>'none'),
+    'description/identificationInfo/purpose'=>array('xpath'=>'ident_purpose', 'transform_callback'=>'none'),
+    'description/identificationInfo/credit'=>array('xpath'=>'ident_credit', 'transform_callback'=>'none'),
+    'description/identificationInfo/status'=>array('xpath'=>'ident_status', 'transform_callback'=>'none'),
+    'description/identificationInfo/graphicOverview'=>array(
+        'xpath'=>'ident_graphic_overview', 
+        'transform_callback'=>'none',
+        'type'=>'array'
+    ),
+    'description/identificationInfo/pointOfContact'=>array(
         'xpath'=>'ident_contacts', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
-    'dataset_description/distribution_info/distributors'=>array(
+
+
+    'description/distributionInfo/distributor'=>array(
         'xpath'=>'distributor_contacts', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
-    'dataset_description/distribution_info/online_resource'=>array(
+    'description/distribution_info/online_resource'=>array(
         'xpath'=>'distribution_info', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
-    'dataset_description/identification_info/resource_maintenance'=>array(
+    'description/identificationInfo/resource_maintenance'=>array(
         'xpath'=>'codeBook/docDscr/citation/prodStmt/producer', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
 
-    'dataset_description/identification_info/graphic_overview'=>array(
+    'description/identificationInfo/graphic_overview'=>array(
         'xpath'=>'codeBook/docDscr/citation/prodStmt/producer', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
-    'dataset_description/identification_info/keywords'=>array(
-        'xpath'=>'ident_keywords', 
+    'description/identificationInfo/descriptiveKeywords'=>array(
+        'xpath'=>'ident_descriptive_keywords', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
     
 
-    'dataset_description/identification_info/resource_contraints/legal_constraints'=>array(
+    'description/identificationInfo/resource_contraints/legal_constraints'=>array(
         'xpath'=>'codeBook/docDscr/citation/prodStmt/producer', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
-    'dataset_description/identification_info/resource_contraints/use_limitations'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/resource_contraints/other_constraints'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/resource_contraints/use_limitations'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/resource_contraints/other_constraints'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
 
 
-    'dataset_description/identification_info/spatial_representation_type'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/representative_fraction_denominator'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/language'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/identification_info/charset_code'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    /*'dataset_description/identification_info/topics'=>array(
+    'description/identificationInfo/spatial_representation_type'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/representative_fraction_denominator'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/language'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/charset_code'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    /*'description/identificationInfo/topics'=>array(
         'xpath'=>'topic_category', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),*/
 
-    'dataset_description/identification_info/extent/geographic_bounding_box'=>array(
+    'description/identificationInfo/extent/geographicElement/geographicBoundingBox'=>array(
         'xpath'=>'ident_extent_bbox', 
         'transform_callback'=>'none',
         'type'=>'array'
     ),
 
-    'dataset_description/identification_info/supplemental_information'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/identificationInfo/supplemental_information'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
     
-    'dataset_description/data_quality_info/scope'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
-    'dataset_description/data_quality_info/lineage'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/data_quality_info/scope'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/data_quality_info/lineage'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
 
-    'dataset_description/spatial_representation_info/topology_level'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/spatial_representation_info/topology_level'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
     //[needfix in schema]
-    'dataset_description/spatial_representation_info/geomatric_object_code'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
+    'description/spatial_representation_info/geomatric_object_code'=>array('xpath'=>'codeBook/docDscr/citation/prodStmt/prodDate', 'transform_callback'=>'none'),
 
-    'dataset_description/reference_system_info'=>array(
+    'description/reference_system_info'=>array(
         'xpath'=>'codeBook/docDscr/citation/prodStmt/producer', 
         'transform_callback'=>'none',
         'type'=>'array'
