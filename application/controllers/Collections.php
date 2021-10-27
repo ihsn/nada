@@ -8,6 +8,7 @@ class Collections extends MY_Controller {
 		$this->template->set_template('default');
 		$this->load->model('Repository_model');
         $this->load->model("repository_sections_model");
+		$this->load->library("Tokens");
         
 		//$this->output->enable_profiler(TRUE);
 
@@ -46,6 +47,9 @@ class Collections extends MY_Controller {
 			if (!$repo){
 				show_404();
 			}
+
+			$repo['long_text']=$this->tokens->replace_tokens($repo['long_text']);
+			
 		}
 
 		$page_data=array(
