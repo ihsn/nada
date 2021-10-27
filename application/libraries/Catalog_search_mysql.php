@@ -132,7 +132,11 @@ class Catalog_search_mysql{
 			}		
 		}
 
-		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
+		if(empty($study) && $sort_by=='rank_'){
+			$sort_by='title';
+		}
+
+		$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
 		if ($sort_by=='nation')
