@@ -1,4 +1,13 @@
+
+<link rel="stylesheet" href="<?php echo base_url();?>javascript/codemirror/lib/codemirror.css">
+<script src="<?php echo base_url();?>javascript/codemirror/lib/codemirror.js"></script>
+<script src="<?php echo base_url();?>javascript/codemirror/mode/css/css.js"></script>
+
 <style>
+.CodeMirror {
+    border: 1px solid #cccccc;
+    height: auto;
+}
 .file{border:1px solid gainsboro;}
 .repo-thumbnail{float:left;width:100px;height:100px;overflow:hidden;border:1px solid gainsboro;margin-right:20px;}
 .repo-box-1{
@@ -75,7 +84,7 @@ foreach($sections as $sec){
     
     <div class="form-grouop">
         <label for="long_text"><?php echo t('long_description');?><span class="required">*</span></label>
-        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : '',FALSE),'class="form-control"');?>
+        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : '',FALSE),'id="code_editor" class="form-control code_editor"');?>
         <div class="help-block">Limited HTML allowed: P, DIV, SPAN, IMG, A, HR, UL, LI, OL </div>
     </div>
 
@@ -131,3 +140,10 @@ foreach($sections as $sec){
     </div>
 <?php echo form_close();?>
 </div>
+
+<script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("code_editor"), {
+    lineNumbers: true,
+    viewportMargin: Infinity
+    });
+</script>
