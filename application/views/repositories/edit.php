@@ -7,6 +7,8 @@
 .CodeMirror {
     border: 1px solid #cccccc;
     height: auto;
+    resize: vertical;
+    overflow: auto !important;
 }
 .file{border:1px solid gainsboro;}
 .repo-thumbnail{float:left;width:100px;height:100px;overflow:hidden;border:1px solid gainsboro;margin-right:20px;}

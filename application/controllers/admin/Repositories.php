@@ -15,11 +15,8 @@ class Repositories extends MY_Controller {
        	$this->load->model('repository_model');
 		
 		//collection settings
-		$this->config->load('collections', TRUE);		
-		
-		if ($this->config->item("collection_html_filter")!=null){
-			$this->html_filter=$this->config->item("collection_html_filter");
-		}
+		$this->config->load('collections');
+		$this->html_filter=(boolean)$this->config->item("collection_html_filter");
 
 		//language file
 		$this->lang->load('collection');
@@ -238,7 +235,7 @@ class Repositories extends MY_Controller {
 			}
 
 			//sanitize description html
-			if ($this->html_filter===true){			
+			if ($this->html_filter==true){
 				$options['long_text']=$this->sanitize_html_input($options['long_text']);
 			}
 
