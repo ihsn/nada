@@ -146,6 +146,8 @@ foreach($sections as $sec){
 <script>
     var editor = CodeMirror.fromTextArea(document.getElementById("code_editor"), {
     lineNumbers: true,
+    lineWrapping: true,
+    mode: "text/html",
     viewportMargin: Infinity
     });
 </script>
