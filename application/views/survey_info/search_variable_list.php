@@ -7,7 +7,7 @@
             <div class="row var-row <?php echo $tr_class;?>" >
             <div class="icon-toggle"><i class="collapased_ fa fa-angle-down" aria-hidden="true"></i><i class="expanded_ fa fa-angle-up" aria-hidden="true"></i></div>            
                 <div class="col-md-3 var-td p-1">
-                    <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
+                    <a class="var-id text-break" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
                 </div>
                 <div class="col">
                     <div class="p-1">
