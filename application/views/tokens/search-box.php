@@ -1,5 +1,5 @@
-<div class="text-center  wb-library-searchx mb-2 py-2 pt-3">
-    <div class="home-page-search-containerx">
+<div class="text-center">
+    <div class="collection-search-container">
         <div class="sub-text mt-3 mb-0"><strong><?php echo $total_entries;?></strong> <?php echo t('datasets');?></div>
 
         <div class="row justify-content-center">
