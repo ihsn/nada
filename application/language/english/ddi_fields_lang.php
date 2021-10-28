@@ -315,7 +315,7 @@ $lang['cases']='Cases';
 $lang['var_qstn_qstnlit']='Literal question';
 $lang['var_qstn_preqtxt']='Question pretext';
 $lang['var_qstn_postqtxt']='Question post text';
-$lang['var_qstn_ivulnstr']='Interviewer instructions';
+$lang['var_qstn_ivuinstr']='Interviewer instructions';
 
 $lang['data_file']='Data file';
 $lang['overview']='Overview';

@@ -120,10 +120,10 @@
     <!-- data_collection -->
     <?php echo render_group('questions_n_instructions',
         $fields=array(
+            "var_qstn_preqtxt"=>'text',
             "var_qstn_qstnlit"=> 'text',
             "var_catgry"=>'var_category',
-            "var_qstn_ivuinstr"=>'text',
-            "var_qstn_preqtxt"=>'text',
+            "var_qstn_ivuinstr"=>'text',            
             "var_qstn_postqtxt"=>'text',
             "var_qstn_ivulnstr"=>'text'
         ),
