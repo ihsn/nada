@@ -256,11 +256,19 @@ class DdiVariable
     public function get_categories_str()
     {
         $categories=$this->get_categories();
-        if(!is_array($categories))
-        {
+
+        if(!is_array($categories)){
             return null;
         }
-        $categories=array_column($categories,"value");
+
+        if (empty($categories)){
+            return null;
+        }
+
+        $categories_labl=array_column($categories,"labl");
+        $categories=array_merge($categories_labl,array_column($categories,"label"));
+        $categories=array_unique(explode(" ",implode(" ",$categories)));
+
         return implode(" ",$categories);
     }
 

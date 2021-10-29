@@ -311,7 +311,7 @@ class Dataset_microdata_model extends Dataset_model {
         $output=implode(" ",$output);
         $output=array_unique(array_filter(explode(" ",$output)));
         $output=implode(" ",($output));
-        
+
         $options=array(
             'var_keywords'=>$output 
         );
@@ -382,7 +382,9 @@ class Dataset_microdata_model extends Dataset_model {
 			foreach($variables as $variable){
                 $variable['fid']=$variable['file_id'];
                 $variable['qstn']=$this->variable_question_to_str($variable);
-                $variable['catgry']=$this->variable_categories_to_str($variable);
+
+                $variable_categories=isset($variable['var_catgry']) ? $variable['var_catgry'] : null;
+                $variable['catgry']=$this->variable_categories_to_str($variable_categories);
                 //$variable['keywords']=$this->variable_keywords_to_str($variable);
 
 				//all fields are stored as metadata
@@ -445,11 +447,13 @@ class Dataset_microdata_model extends Dataset_model {
      */
     private function variable_categories_to_str($categories)
     {
-        if(!is_array($categories)){
+        if(!is_array($categories) || empty($categories)){
             return null;
         }
 
-        $categories=array_column($categories,"labl");
+        $categories_labl=array_column($categories,"labl");
+        $categories=array_merge($categories_labl,array_column($categories,"label"));
+        $categories=array_unique(explode(" ",implode(" ",$categories)));
         return implode(" ",$categories);
     }
 
