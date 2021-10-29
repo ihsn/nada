@@ -153,7 +153,7 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="p-1">
+                            <div class="p-1 pr-3">
                                 <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>">
                                     <?php echo html_escape($variable['labl']);?>
                                 </a>

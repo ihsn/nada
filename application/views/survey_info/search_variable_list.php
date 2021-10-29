@@ -6,11 +6,11 @@
             <?php $tr_class=""; //if($tr_class=="row-color1") {$tr_class="row-color2";} else{ $tr_class="row-color1"; } ?>
             <div class="row var-row <?php echo $tr_class;?>" >
             <div class="icon-toggle"><i class="collapased_ fa fa-angle-down" aria-hidden="true"></i><i class="expanded_ fa fa-angle-up" aria-hidden="true"></i></div>            
-                <div class="col-md-3 var-td p-1">
+                <div class="col-md-3 var-td p-1 text-truncate">
                     <a class="var-id text-break" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>"><?php echo html_escape($variable['name']);?></a>
                 </div>
                 <div class="col">
-                    <div class="p-1">
+                    <div class="p-1 pr-3">
                         <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>">
                             <?php echo html_escape($variable['labl']);?>
                         </a>
