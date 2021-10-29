@@ -62,6 +62,7 @@ $lang['notification']="Notification";
 $lang['new_user_registration']="New user registration";
 $lang['new_user_registration_received']="A new user registration is received. User details are:";
 $lang['thank_you_for_registration']="Thank you for registering with the <em>%s</em> website. To complete your registration and activate your user account, please visit the following URL:";
+$lang['UNHCR_disclaimer'] = 'All active users receive occasional email announcements. You may request to unsubscribe to these announcements on the Microdata Library website at any time.';
 $lang['your_account_details']="You account details are";
 $lang['do_not_reply_to_this_email']="DO NOT REPLY TO THIS EMAIL";
 $lang['click_url_to_reset_password']="To reset your password, click on the link below or open the url in a web browser";
