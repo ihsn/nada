@@ -155,6 +155,7 @@
             <div class="<?php echo $row_col2_class;?>">
 
                 <?php if ($is_featured): ?>
+                    <?php $row['form_model']=$row['model'];?>
                 <?php if($is_featured_count==1):?>
                 <span class="badge badge-featured wb-featured-mark" >
                     <i class="fas fa-star"></i> <?php echo t('Featured');?>
