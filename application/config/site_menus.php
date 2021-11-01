@@ -2,48 +2,153 @@
 
 $menu=array();
 $menu[]=array(
-			'0'=>array(
-				'title'	=>'dashboard',
-				'url'	=>'/admin/catalog'
-			),
+			'title'	=>'Dashboard',
+			'url'	=>'admin/catalog'
 		);
 $menu[]=array(
-			'0'=>array(
-				'title'	=>'catalog',
-				'url'	=>'/admin/catalog'
+		'title'	=>'Studies',
+		'url'	=>'admin/catalog',
+		'items'	=>array(
+			array(
+				'title'	=>'Manage studies',
+				'url'	=>'admin/catalog'
 			),
-			'1'=>array(
-				'title'	=>'catalog',
-				'url'	=>'/admin/catalog'
+			array(
+				'type'	=>'divider'
 			),
-			'2'=>array(
-				'title'	=>'upload survey',
-				'url'	=>'/admin/catalog/upload'
+			array(
+				'title'	=>'Licensed requests',
+				'url'	=>'admin/licensed_requests'
 			),
-			'3'=>array(
-				'title'	=>'batch import',
-				'url'	=>'/admin/catalog/import'
+			array(
+				'type'	=>'divider'
 			),
-		);
+			array(
+				'title'	=>'Manage collections',
+				'url'	=>'admin/repositories'
+			),
+			array(
+				'type'	=>'divider'
+			),
+			array(
+				'title'	=>'Bulk data access',
+				'url'	=>'admin/da_collections'
+			)
+		)
+);
 $menu[]=array(
-			'0'=>array(
-				'title'	=>'vocabularies',
-				'url'	=>'/admin/catalog'
-			),
-			'1'=>array(
-				'title'	=>'add',
-				'url'	=>'/admin/catalog'
-			),
-			'2'=>array(
-				'title'	=>'upload survey',
-				'url'	=>'/admin/catalog/upload'
-			),
-			'0'=>array(
-				'title'	=>'batch import',
-				'url'	=>'/admin/catalog/import'
-			),
-		);
+	'title'	=>'Citations',
+	'url'	=>'admin/citations',
+	'items'	=>array(
+		array(
+			'title'	=>'All citations',
+			'url'	=>'admin/citations'
+		),
+		array(
+			'title'	=>'Import citations',
+			'url'	=>'admin/citations/import'
+		),
+		array(
+			'title'	=>'Export citations',
+			'url'	=>'admin/citations/export'
+		)
+	)
+);
+$menu[]=array(
+	'title'	=>'Users',
+	'url'	=>'admin/users',
+	'items'	=>array(
+		array(
+			'title'	=>'All users',
+			'url'	=>'admin/users'
+		),
+		array(
+			'title'	=>'Add user',
+			'url'	=>'admin/users/add'
+		),
+		/*array(
+			'title'	=>'Impersonate user',
+			'url'	=>'admin/users/impersonate'
+		)*/
+	)
+);
+
+$menu[]=array(
+	'title'	=>'Menu',
+	'url'	=>'admin/menu',
+	'items'	=>array(
+		array(
+			'title'	=>'All pages',
+			'url'	=>'admin/menu'
+		)
+	)
+);
+
+$menu[]=array(
+	'title'	=>'Data deposit',
+	'url'	=>'admin/datadeposit',
+);
 
 
+$menu[]=array(
+	'title'	=>'Reports',
+	'url'	=>'admin/reports',
+	'items'	=>array(
+		array(
+			'title'	=>'All reports',
+			'url'	=>'admin/reports'
+		)
+	)
+);
+
+
+
+$menu[]=array(
+	'title'	=>'Settings',
+	'url'	=>'admin/configurations',
+	'items'	=>array(
+		array(
+			'title'	=>'Settings',
+			'url'	=>'admin/configurations'
+		),
+		array(
+			'type'	=>'divider'
+		),
+		array(
+			'title'	=>'Regions',
+			'url'	=>'admin/Regions'
+		),
+		array(
+			'type'	=>'divider'
+		),
+		array(
+			'title'	=>'Countries',
+			'url'	=>'admin/countries'
+		),
+		array(
+			'type'	=>'divider'
+		),
+		array(
+			'title'	=>'Translate',
+			'url'	=>'admin/translate'
+		),
+		array(
+			'type'	=>'divider'
+		),
+		array(
+			'title'	=>'Vocabularies',
+			'url'	=>'admin/vocabularies'
+		),
+		array(
+			'type'	=>'divider'
+		),
+		array(
+			'title'	=>'Facets',
+			'url'	=>'admin/facets'
+		),
+	)
+);
+
+$config['site_menu']=$menu;
 /* End of file site_menu.php */
 /* Location: ./system/application/config/site_menu.php */
