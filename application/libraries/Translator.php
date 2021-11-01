@@ -124,7 +124,7 @@ class Translator{
 		$languages=scandir($lang_folder);
 		
 		//get rid of the .,.. entries
-		$languages=array_diff($languages,array(".","..","base"));
+		$languages=array_diff($languages,array(".","..","base",".DS_Store"));
 		
 		return $languages;
 	}

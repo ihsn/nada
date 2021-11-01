@@ -307,7 +307,7 @@ function get_languages()
 {
 	$languages = scandir(APPPATH.'language/');
 	foreach($languages as $lang){
-          if ($lang!=='.' && $lang!=='..'){
+          if ($lang!=='.' && $lang!=='..' && $lang!=='.DS_Store'){
              $output[$lang]=$lang;
           }	
 	}	
