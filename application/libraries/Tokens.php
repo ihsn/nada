@@ -33,38 +33,6 @@ class Tokens
 		$this->ci->load->model("Stats_model");
 	}
 
-
-	/**
-	 * 
-	 * Find tokens
-	 */
-	function find_tokens($html)
-	{
-		preg_match_all("/\[([^\]]*)\]/", $html, $matches);
-		var_dump($matches[1]);
-		/*
-		$result= $matches[1];
-		if ($result){
-			return $result[0];
-		}
-		*/
-
-		foreach($matches[1] as $method){
-			$method=str_replace("-","_",$method);
-			$method_args=explode(":",$method);
-			var_dump($method_args);
-			$method=$method_args[0];
-			unset($method_args[0]);
-
-			var_dump($method);
-
-			if (in_array(($method), array_map('strtolower', get_class_methods($this))) ){				
-				call_user_func_array(array($this, $method), $method_args);
-			}
-		}
-	}
-
-
 	function replace_tokens($html)
 	{
 		preg_match_all("/\[([^\]]*)\]/", $html, $matches);
@@ -121,6 +89,13 @@ class Tokens
 		);
 
 		return $this->ci->load->view("tokens/counts-by-type",$options,true);
+	}
+
+	function cards_featured_entries($repositoryid=null)
+	{
+		$this->ci->load->model("Repository_model");
+		$options['rows']=$this->ci->Repository_model->get_featured_study($repositoryid);
+		return $this->ci->load->view("tokens/cards-featured-entries",$options,true);
 	}
 
 	
