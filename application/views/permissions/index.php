@@ -12,6 +12,13 @@
 .grid-table .br td{border:0px;}
 .h1{margin-top:20px;}
 .group-name{font-weight:bold;}
+.permission-caption label{
+	font-weight:normal;
+	text-transform:capitalize;
+}
+.perms-by-collection td{
+	border:none!important
+}
 </style>
 
 <div class="container-fluid">
@@ -90,6 +97,60 @@
 		<?php endforeach;?> 
 		<tr class="br"><td colspan="2">&nbsp;</td></tr>
 	<?php endforeach;?>
+
+
+	<tr>
+		<td colspan="3"><h2><?php echo t('Permissions by collections');?></h2></td>
+	</tr>
+	<?php foreach ($permissions_collections as $resource=>$rule):?>
+		<tr>
+			<td colspan="3">
+				<table class="table table-sm perms-by-collection">
+					<tr>
+						<td style="width:30%;"><div class="group-name"><?php echo str_replace(" - " , "<BR>",$rule['title']);?></div></td>
+						
+						<?php $x = 0; ?>
+						<?php foreach($rule['permissions'] as $perm):?>
+							<td class="<?php echo ($x++%2==1) ? '' : 'alternate' ?>">
+							<span>
+							
+								<?php 					
+									$is_checked='';
+									if (isset($post_values[$resource])  && in_array($perm['permission'],$post_values[$resource] )){
+										$is_checked='checked="checked"';
+									}
+								?>
+								<input 
+									<?php echo $is_checked;?>
+									type="checkbox" 
+									id="<?php echo $resource;?>.<?php echo $perm['permission'];?>" 
+									name="resource[<?php echo $resource;?>][]" 
+									value="<?php echo $perm['permission'];?>"/>
+								</span>
+							<span>
+								<span class="permission-caption">
+									<label for="<?php echo $resource;?>.<?php echo $perm['permission'];?>">
+										<?php echo $perm['permission'];?>
+									</label>
+								</span>
+								
+								</span>        
+						</td>					
+						<?php endforeach;?>
+					</tr>
+
+
+				</table>
+			</td>
+			<td>
+				
+			</td> 
+	<?php endforeach;?>
+
+
+
+	<?php /* ?>
+
 		<tr>
 			<td colspan="3"><h2><?php echo t('Permissions by collections');?></h2></td>
 		</tr>
@@ -128,9 +189,10 @@
 		<?php endforeach;?> 
 		<tr class="br"><td colspan="2">&nbsp;</td></tr>
 	<?php endforeach;?>
+	<?php */ ?>
 
 	</table>
-	<button type="submit" class="btn btn-primary">Submit</button>
+	<button type="submit" class="btn btn-primary"><?php echo t('submit');?></button>
 </form>
 </div>
 
