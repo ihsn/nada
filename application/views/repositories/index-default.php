@@ -108,8 +108,8 @@ $repository_types=array(
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="repo-row <?php echo $tr_class; ?>">
 			<td><div class="thumb"><a href="<?php echo site_url('admin/repositories/edit/'.$row->id)?>"><img class="img-thumbnail repo-thumbnail" src="<?php echo base_url();?><?php echo !empty($row->thumbnail) ? $row->thumbnail : 'files/icon-blank.png'; ?>"/></a></div></td>
-			<td><a href="<?php echo site_url();?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
-            <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
+			<td><a href="<?php echo site_url('admin/repositories/edit/'.$row->id)?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
+            <td><a href="<?php echo site_url('admin/repositories/edit/'.$row->id);?>"><?php echo $row->title; ?></a></td>
             <!--<td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>-->
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
