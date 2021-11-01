@@ -7,7 +7,7 @@
                 <!-- <i class="fa fa-search"></i> -->
                 <?php echo t('Search');?>
             </button>
-            <a href="<?php echo site_url('catalog');?>" class="close clear-search-button" aria-label="Close">
+            <a href="<?php echo site_url('catalog/'.@$active_repo_id);?>" class="close clear-search-button" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </a>
         </span>

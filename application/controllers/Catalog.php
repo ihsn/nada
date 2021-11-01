@@ -289,11 +289,6 @@ class Catalog extends MY_Controller {
 		$output['data_types_nav_bar']=$this->data_types_nav_bar;
 		$output['search_box_orientation']=$this->search_box_orientation;
 
-		if (isset($output['surveys'])){
-			//$output['featured_studies']=$this->get_featured_study($output['surveys']['rows']);			
-			$output['featured_studies']=$this->get_featured_studies_by_repo ($this->active_repo_id,$this->active_tab);
-		}
-
 		if ($output['search_type']=='variable'){
 			$output['search_output']=$this->load->view('search/variables', $output,true);
 		}
@@ -347,7 +342,6 @@ class Catalog extends MY_Controller {
 
 		$output['facets']=$this->facets;
 		$output['tab_type']=$this->active_tab;
-		$output['featured_studies']=null;//$this->get_featured_study($output['surveys']['rows']);
 		
 		if ($output['search_type']=='variable'){
 			return $this->load->view('search/variables', $output);
@@ -486,7 +480,13 @@ class Catalog extends MY_Controller {
 		$data['search_options']=$search_options;
 		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
 		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
-		$data['sid']=$search_options->sid;		
+		$data['sid']=$search_options->sid;
+
+		//show featured only if no filters or search 
+		if (isset($data['surveys']['found']) && isset($data['surveys']['total']) && $data['surveys']['found']==$data['surveys']['total']){
+			$data['featured_studies']=$this->get_featured_studies_by_repo ($this->active_repo_id,$this->active_tab);
+		}
+
 		return $data;
 	}
 
