@@ -111,7 +111,7 @@ class Repositories extends MY_Controller {
 	//process thumbnail uploads
 	private function process_file_uploads($file_name)
 	{
-		$config['upload_path'] = $this->config->item('collection_image_path', 'collections');
+		$config['upload_path'] = $this->config->item('collection_image_path');
 		$config['allowed_types'] = 'gif|jpg|png';
 		$config['max_size']	= '300';
 		//$config['max_width']  = '300';
@@ -148,7 +148,7 @@ class Repositories extends MY_Controller {
 	function _thumbnail_upload()
 	{
 		if(!empty($_FILES['thumbnail_file']['name'])) {
-			$thumbnail_storage=$this->config->item('collection_image_path', 'collections');
+			$thumbnail_storage=$this->config->item('collection_image_path');
 
 			if(!file_exists($thumbnail_storage)){
 				$error=t('thumbnail_upload_folder_not_set').': '.$thumbnail_storage;
@@ -212,7 +212,7 @@ class Repositories extends MY_Controller {
 						'country'=>'',
 						'type'=>0,
 						'short_text'=>'',
-						'thumbnail'=>$this->config->item('collection_default_thumb', 'collections'),
+						'thumbnail'=>$this->config->item('collection_default_thumb'),
 						'long_text'=>'',
 						'weight'=>0,
 						'ispublished'=>0,
@@ -274,7 +274,7 @@ class Repositories extends MY_Controller {
 				$this->row_data=$row;
 				
 				//validate and clean up thumbnails
-				$default_thumb=$this->config->item('collection_default_thumb', 'collections');					
+				$default_thumb=$this->config->item('collection_default_thumb');
 				$thumb_ext=explode(".",basename($this->row_data['thumbnail']));
 				
 				$thumb_ext=$thumb_ext[count($thumb_ext)-1];

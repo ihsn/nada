@@ -141,8 +141,6 @@ class Da_Collections extends MY_Controller {
 		//$this->load->model('Catalog_admin_search_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
-
-		$this->template->add_css('themes/admin/catalog_admin.css');
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 		
 		$ps=(int)$this->input->get("ps");
