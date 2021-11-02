@@ -1,3 +1,4 @@
+<?php if (isset($rows) && is_array($rows)): ?>
 <style>
     .collection-featured-entries h5 {
         font-size:16px;
@@ -27,7 +28,7 @@ $type_icons=array(
 ?>
 <div class="collection-featured-entries">
 <h3 class="mb-3"><?php echo t('Featured');?></h3>
-<?php if (isset($rows) && count($rows)>0): ?>
+
     <div class="featured-entries-container">
         <div class="row justify-content-md-center-x">
         <?php
@@ -73,5 +74,5 @@ $type_icons=array(
             <?php endforeach;?>
         </div>
     </div>
-<?php endif; ?>
 </div>
+<?php endif; ?>
