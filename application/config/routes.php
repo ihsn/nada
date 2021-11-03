@@ -88,7 +88,7 @@ $route['api/datasets/(:any)/resources/download/(:num)'] = "api/resources/downloa
 
 //dataset files
 $route['api/datasets/(:any)/files'] = "api/files/$1";
-$route['api/datasets/(:any)/files/(:num)'] = "api/files/$1/$2";
+$route['api/datasets/(:any)/files/(.*)'] = "api/files/$1/$2";
 $route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
 
 $route['api/datasets/(:any)/thumbnail'] = "api/datasets/thumbnail/$1";

@@ -116,7 +116,7 @@ class Files extends MY_REST_Controller
 	 * delete a file
 	 * 
 	 **/ 
-	function delete_delete($dataset_idno=null,$filename=null)
+	function index_delete($dataset_idno=null,$filename=null)
 	{
 		$base64_filename=$filename;
 
