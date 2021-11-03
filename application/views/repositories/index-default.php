@@ -27,7 +27,7 @@ $repository_types=array(
 <h1 class="page-title"><?php echo t('repositories');?></h1>
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo $this->input->get('keywords'); ?>"/>
-  <select name="field" id="field">
+  <select name="field" id="field" class="form-control-sm  ml-2">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="body"	<?php echo ($this->input->get('field')=='body') ? 'selected="selected"' : '' ; ?> ><?php echo t('body');?></option>
@@ -93,13 +93,13 @@ $repository_types=array(
     </table>
 
     <!-- grid -->
-    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-sm table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
 				<th>&nbsp;</th>			
 				<th>ID</th>
 				<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
 				<th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
-				<th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
+				<th style="max-width:50px"><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -114,7 +114,7 @@ $repository_types=array(
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
                 <div class="status">
-                <span class="btn btn-xs publish <?php echo ($row->ispublished==1) ? "btn-success" :'btn-danger'; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('draft'); ?></span>
+                <span class="btn btn-sm btn-block publish <?php echo ($row->ispublished==1) ? "btn-success" :'btn-danger'; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('draft'); ?></span>
                 </div>			
 			</td>
 			<td>

@@ -4,6 +4,9 @@
 <script src="<?php echo base_url();?>javascript/codemirror/mode/css/css.js"></script>
 
 <style>
+label{
+    font-weight:bold;
+}
 .CodeMirror {
     border: 1px solid #cccccc;
     height: auto;
@@ -66,17 +69,26 @@ foreach($sections as $sec){
 	$uri_arr=$this->uri->segment_array();
 	$form_action_url=current_url();
 ?>
-<?php echo form_open_multipart($form_action_url, array('class'=>'form') ); ?>
+
+<?php echo form_open_multipart($form_action_url, array('class'=>'form mt-4') ); ?>
 	<input type="hidden" name="id" value="<?php echo get_form_value('id',isset($id) ? $id : ''); ?>"/>
 
-    <div class="form-group">
-        <label for="repositoryid"><?php echo t('repositoryid');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['repositoryid']);?>
-    </div>
+    <div class="row">
 
-    <div class="form-group">
-        <label for="title"><?php echo t('title');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['title']);?>        
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="repositoryid"><?php echo t('repositoryid');?><span class="required">*</span></label>
+                <?php echo form_input($this->data['repositoryid']);?>
+            </div>
+        </div>
+
+        <div class="col">
+        <div class="form-group">
+            <label for="title"><?php echo t('title');?><span class="required">*</span></label>
+            <?php echo form_input($this->data['title']);?>        
+        </div>
+        </div>
+
     </div>
 
      <div class="form-group">
@@ -87,7 +99,29 @@ foreach($sections as $sec){
     <div class="form-grouop">
         <label for="long_text"><?php echo t('long_description');?><span class="required">*</span></label>
         <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : '',FALSE),'id="code_editor" class="form-control code_editor"');?>
-        <div class="help-block">Limited HTML allowed: P, DIV, SPAN, IMG, A, HR, UL, LI, OL </div>
+        <div class="help-block">
+            HTML allowed. 
+            <a class="btn btn-link" data-toggle="collapse" href="#tokens" role="button" aria-expanded="false" aria-controls="tokens">
+                Available tokens
+            </a>
+
+            <div class="collapse" id="tokens">
+                <div class="card card-body bg-light">                    
+                    <dl>                        
+                        <dt>[site-base-url]</dt>
+                        <dd>Website URL</dd>
+                        <dt>[search-box:repositoryID]</dt>
+                        <dd>Show search box for collection</dd>                        
+                        <dt>[latest-entries:repositoryID]</dt>
+                        <dd>Show latest entries for a collection</dd>
+                        <dt>[counts-by-type:repositoryID]</dt>
+                        <dd>Show counts per data type</dd>
+                        <dt>[cards-featured-entries:repositoryID]</dt>
+                        <dd>Cards to display featured entries by collection</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
     </div>
 
     <fieldset class="repo-box-1">
@@ -148,6 +182,7 @@ foreach($sections as $sec){
     lineNumbers: true,
     lineWrapping: true,
     mode: "text/html",
-    viewportMargin: Infinity
+    viewportMargin: Infinity,
     });
+    editor.setSize(null, 300);
 </script>

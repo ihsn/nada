@@ -22,7 +22,7 @@ class Repositories extends MY_Controller {
 		$this->lang->load('collection');
 		
 		//set default template
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		//$this->output->enable_profiler(TRUE);
 	}
