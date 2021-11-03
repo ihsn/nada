@@ -15,6 +15,21 @@ class Catalog_tags_model extends CI_Model {
 		$result = $this->db->insert('survey_tags', $data);
 		return $result;
 	}
+
+	public function upsert($sid,$tag) 
+	{
+		$tag_exists=$this->tag_exists($sid, $tag);
+		
+		if (!$tag_exists){
+
+			$options=array(
+				'sid'=>$sid,
+				'tag'=>$tag
+				);
+			
+			return $this->insert($options);
+		}
+	}
 	
 	public function tag_exists($sid,$tag)
 	{

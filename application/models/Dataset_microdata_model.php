@@ -115,6 +115,9 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
+        
+        //tags
+        $this->add_tags($dataset_id,$this->get_array_nested_value($options,'tags'));
 
 		//set geographic locations (bounding box)
 
@@ -236,6 +239,9 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);
 
 		//set aliases
+
+        //tags
+        $this->add_tags($datsaet_id,$this->get_array_nested_value($options,'tags'));
 
         //set geographic locations (bounding box)
         //todo
@@ -670,5 +676,17 @@ class Dataset_microdata_model extends Dataset_model {
 
         //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+    }
+
+
+
+    function add_tags($sid, $tags)
+    {
+        if(empty($tags)){
+            return false;
+        }
+        
+        $tags=array_column($tags,'tag');
+        return parent::add_survey_tags($sid,$tags);        
     }
 }
