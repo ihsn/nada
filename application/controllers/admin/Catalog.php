@@ -66,7 +66,6 @@ class Catalog extends MY_Controller {
 	{
 		$this->template->set_template('admin5'); 
 		//css files
-		//$this->template->add_css('themes/admin/catalog_admin.css');
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
         $this->template->add_css($inline_styles,'embed');
 
@@ -1198,8 +1197,6 @@ class Catalog extends MY_Controller {
 		//user has permissions on the repo
 		//$this->acl->user_has_repository_access($this->active_repo->id);
 		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
-
-		$this->template->add_css('themes/admin/catalog_admin.css');
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 
 		if (isset($this->active_repo) && $this->active_repo->repositoryid=='central')
