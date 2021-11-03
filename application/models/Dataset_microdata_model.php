@@ -56,7 +56,7 @@ class Dataset_microdata_model extends Dataset_model {
 		$variables=null;
         $variable_groups=null;
 
-        $study_metadata_sections=array('doc_desc','study_desc','additional');
+        $study_metadata_sections=array('doc_desc','study_desc','additional','tags');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
