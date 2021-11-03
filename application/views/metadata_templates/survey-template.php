@@ -36,11 +36,11 @@
             //"metadata.study_desc.study_info.nation"=>'array_comma',
             "metadata.study_desc.geog_units"=>'array',
             "metadata.study_desc.series_statement.series_name"=>'text',
+            "metadata.iframe_embeds"=>'iframe_embed',
             "metadata.study_desc.series_statement.series_info"=>'text',            
             "metadata.study_desc.study_info.abstract"=>'text',
             "metadata.study_desc.study_info.data_kind"=>'text',
-            "metadata.study_desc.study_info.analysis_unit"=>'text',
-            "metadata.iframe_embeds"=>'iframe_embed'
+            "metadata.study_desc.study_info.analysis_unit"=>'text'
     ),
     $metadata);
 ?>
