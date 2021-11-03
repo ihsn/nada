@@ -40,7 +40,7 @@ $type_icons=array(
                 <div class="col-md-3 mb-4">
                     <div class="entry-card h-100">
                     <?php if (empty($row['thumbnail'])):?>
-                        <?php $row['thumbnail']='thumbnail-2.png';?>
+                        <?php $row['thumbnail']='thumbnail-default.png';?>
                     <?php endif;?>
                 
                     <div class=" wb-col-media" >
