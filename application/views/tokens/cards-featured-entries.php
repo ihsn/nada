@@ -10,6 +10,10 @@
         box-shadow: 0px 2px 4px rgb(0 0 0 / 10%);
         background:white;
     }
+
+    .collection-featured-entries  .entry-card img{
+        width:100%;        
+    }
 </style>
 <?php
 
