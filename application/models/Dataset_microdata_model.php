@@ -22,7 +22,7 @@ class Dataset_microdata_model extends Dataset_model {
         $this->load->model('Form_model');
     }
 
-    function create_dataset($type,$options)
+    function create_dataset($type,$options, $sid=null)
 	{
 		//validate schema
         $this->validate_schema($type,$options);
@@ -34,23 +34,32 @@ class Dataset_microdata_model extends Dataset_model {
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($type,$options);
         $options=array_merge($options,$core_fields);
-        
-		if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
-			throw new exception("IDNO-NOT-SET");
-		}
 
-		//validate IDNO field
-        $dataset_id=$this->find_by_idno($core_fields['idno']); 
-
-		//overwrite?
-		/*if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
-			return $this->update_dataset($id,$type,$options);
-		}*/
-
-		if(is_numeric($dataset_id) && isset($options['overwrite']) && $options['overwrite']!=='yes'){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
+        if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
+            throw new exception("IDNO-NOT-SET");
         }
+
+        //validate IDNO field
+        $dataset_id=$this->find_by_idno($core_fields['idno']); 
         
+		if(!empty($sid)){//for updating a study
+            //if IDNO is changed, it should not be an existing IDNO
+            if(is_numeric($dataset_id) && $sid!=$dataset_id ){
+                throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$dataset_id.':'.$core_fields['idno']);
+            }
+
+            $dataset_id=$sid;
+        }
+        else {//create new
+        
+            //overwrite?
+		    if(is_numeric($dataset_id) && isset($options['overwrite']) && $options['overwrite']!=='yes'){
+			    throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
+            }
+        }
+
+        $options['changed']=date("U");
+		
         //split parts of the metadata
         $data_files=null;
 		$variables=null;
@@ -64,7 +73,7 @@ class Dataset_microdata_model extends Dataset_model {
                 unset($options[$section]);
             }
         }
-        
+
         if(isset($options['data_files'])){
             $data_files=$options['data_files'];
             unset($options['data_files']);
@@ -79,12 +88,7 @@ class Dataset_microdata_model extends Dataset_model {
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
         }
-        
-        if(isset($options['additional'])){
-            $options['metadata']['additional']=$options['additional'];
-            unset($options['additional']);
-        }
-                
+
 
 		//start transaction
 		$this->db->trans_start();
@@ -105,11 +109,8 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
 
         //set topics
-        $this->delete_topics($dataset_id);
-        $this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
-
-        //get list of countries
-        //$countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
+        //$this->delete_topics($dataset_id);
+        //$this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
 
 		//update countries
 		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
@@ -117,7 +118,7 @@ class Dataset_microdata_model extends Dataset_model {
 		//set aliases
         
         //tags
-        $this->add_tags($dataset_id,$this->get_array_nested_value($options,'tags'));
+        $this->add_tags($dataset_id,$this->get_array_nested_value($options,'metadata/tags'));
 
 		//set geographic locations (bounding box)
 
@@ -167,101 +168,7 @@ class Dataset_microdata_model extends Dataset_model {
             }
         }
 
-		//validate schema
-		$this->validate_schema($type,$options);
-
-        //get core fields for listing datasets in the catalog
-        $core_fields=$this->get_core_fields($type,$options);
-        $options=array_merge($options,$core_fields);
-		
-		//validate IDNO field
-		$new_id=$this->find_by_idno($core_fields['idno']);
-
-		//if IDNO is changed, it should not be an existing IDNO
-		if(is_numeric($new_id) && $sid!=$new_id ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
-        }                
-
-        $options['changed']=date("U");
-				
-		//split parts of the metadata
-        $data_files=null;
-		$variables=null;
-        $variable_groups=null;
-
-        if(isset($options['doc_desc'])){
-            $options['metadata']['doc_desc']=$options['doc_desc'];
-            unset($options['doc_desc']);
-        }
-
-        if(isset($options['study_desc'])){
-            $options['metadata']['study_desc']=$options['study_desc'];
-            unset($options['study_desc']);
-        }
-        
-        if(isset($options['data_files'])){
-            $data_files=$options['data_files'];
-            unset($options['data_files']);
-        }
-
-        if(isset($options['variables'])){
-            $variables=$options['variables'];
-            unset($options['variables']);
-        }
-
-        if(isset($options['variable_groups'])){
-            $variable_groups=$options['variable_groups'];
-            unset($options['variable_groups']);
-        }
-
-        if(isset($options['additional'])){
-            $options['metadata']['additional']=$options['additional'];
-            unset($options['additional']);
-        }
-
-		//start transaction
-		$this->db->trans_start(); 
-
-		//update
-        $this->update($sid,$type,$options);
-        
-        //set owner repo
-        $this->Dataset_model->set_dataset_owner_repo($sid,$options['repositoryid']); 
-
-		//update years
-		$this->update_years($sid,$options['year_start'],$options['year_end']);
-
-        //set topics
-        $this->delete_topics($sid);
-        $this->update_topics($sid,$this->get_array_nested_value($options,'metadata/study_desc/study_info/topics'));
-
-		//set countries
-		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);
-
-		//set aliases
-
-        //tags
-        $this->add_tags($datsaet_id,$this->get_array_nested_value($options,'tags'));
-
-        //set geographic locations (bounding box)
-        //todo
-
-		 //data files
-         $this->create_update_data_files($sid,$data_files);
-        
-         //variables
-         $this->create_update_variables($sid,$variables);
-
-         //variable groups
-         $this->create_update_variable_groups($sid,$variable_groups);
-		
-		//complete transaction
-        $this->db->trans_complete();
-        
-        //concat variable metadata into a single field for study+variable search
-        $this->index_variable_data($sid);
-
-		return $sid;
+        return $this->create_dataset($type,$options,$sid);        
     }
     
 
@@ -666,16 +573,23 @@ class Dataset_microdata_model extends Dataset_model {
      * 
      */
     function update_filters($sid, $metadata)
-    {
+    {        
+        if (!is_array($metadata)){            
+            return false;
+        }
+
         $core_fields=$this->get_core_fields($type='survey',$metadata);
 
         //update years
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
 
-		//set topics
+		//tags
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
 
         //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+
+        return true;
     }
 
 
