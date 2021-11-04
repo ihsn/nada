@@ -20,14 +20,16 @@ abstract class MY_REST_Controller extends REST_Controller {
     public function is_admin_or_die()
     {
         try{
-            return $this->is_admin();            
+            if (!$this->is_admin()){
+                throw new Exception("ACCESS-DENIED");
+            }
         }   
         catch(Exception $e){
 			$response=array(
-                'status'=>'ACCESS-DENIED',
-                'message'=>'Access denied'
+                'status'=>'failed',
+                'message'=>'ACCESS-DENIED'
             );
-            $this->response($response, REST_Controller::HTTP_BAD_REQUEST,false);
+            $this->response($response, REST_Controller::HTTP_FORBIDDEN,false);
             die();
 		}
     }
@@ -99,7 +101,8 @@ abstract class MY_REST_Controller extends REST_Controller {
 
 		return false;
     }
-    
+
+
 
 	/**
      * 
@@ -170,6 +173,47 @@ abstract class MY_REST_Controller extends REST_Controller {
             $this->_check_whitelist_auth();
         }
 
+    }
+
+    function has_access($resource,$privilege,$repositoryid=null)
+    {
+        $user=$this->api_user();
+
+        try{
+            return $this->acl_manager->has_access($resource, $privilege,$user,$repositoryid);
+        }
+        catch(Exception $e){
+            throw new AclAccessDeniedException('ACCESS-DENIED',$e->getMessage());
+        }        
+    }
+
+
+    function has_dataset_access($privilege, $sid=null,$repositoryid=null)
+    {
+        $user=$this->api_user();
+        $resource='study';
+
+        //get repositoryid
+        if ($sid && !$repositoryid){            
+            $repositoryid=$this->get_dataset_repositoryid($sid);
+        }
+        try{
+            return $this->acl_manager->has_access('study', $privilege,$user,$repositoryid);
+        }
+        catch(Exception $e){
+            throw new AclAccessDeniedException('ACCESS-DENIED',$e->getMessage());
+        }
+    }
+
+    
+    private function get_dataset_repositoryid($sid)
+    {
+        $this->db->select("repositoryid");
+        $this->db->where("id",$sid);
+        $output=$this->db->get("surveys")->row_array();
+        if($output){
+            return $output['repositoryid'];
+        }
     }
 
 }

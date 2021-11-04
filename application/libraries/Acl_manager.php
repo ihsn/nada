@@ -154,6 +154,10 @@ class Acl_manager
 
 	function get_roles_permissions($roles)
 	{
+		if (empty($roles)){
+			return array();
+		}
+
 		$this->ci->db->where_in('role_id',$roles);
 		$result=$this->ci->db->get("role_permissions")->result_array();
 
@@ -387,7 +391,7 @@ class Acl_manager
 			
 			throw new Exception(implode("\n", $debug_info));
 		}else{
-			throw new Exception('Access denied for resource:: '.$resource);
+			throw new AclAccessDeniedException('Access denied for resource:: '.$resource);
 		}
 	}
 

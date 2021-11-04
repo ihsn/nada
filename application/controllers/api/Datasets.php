@@ -13,7 +13,7 @@ class Datasets extends MY_REST_Controller
 		$this->load->model('Variable_model');	
 		$this->load->model('Dataset_model');//remove with Datasets library
 		$this->load->library("Dataset_manager");
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 	}
 
 	//override authentication to support both session authentication + api keys
@@ -24,22 +24,7 @@ class Datasets extends MY_REST_Controller
 		}
 		parent::_auth_override_check();
 	}
-
-
-	//override to support sessions
-	function get_api_user_id()
-	{
-		//session user id
-		if ($this->session->userdata('user_id')){
-			return $this->session->userdata('user_id');
-		}
-
-		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
-			return $this->_apiuser->user_id;
-		}
-
-		return false;
-	}
+	
 	
 	/**
 	 * 
@@ -53,6 +38,8 @@ class Datasets extends MY_REST_Controller
 			if($idno){
 				return $this->single_get($idno);
 			}
+
+			$this->has_dataset_access('view');
 			
 			$offset=(int)$this->input->get("offset");
 			$limit=(int)$this->input->get("limit");
@@ -94,7 +81,7 @@ class Datasets extends MY_REST_Controller
 
 
 	function index_delete($idno=null)
-	{
+	{		
 		return $this->delete_delete($idno);
 	}
 
@@ -108,6 +95,8 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
+
 			$result=$this->dataset_manager->get_row($sid);
 			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
 				
@@ -142,6 +131,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->dataset_manager->find_by_idno($idno);
+			$this->has_dataset_access('view',$sid);
 			
 			if ($sid){
 				$response=array(
@@ -179,8 +169,7 @@ class Datasets extends MY_REST_Controller
 	function replace_idno_post()
 	{
 		try{
-			$input=$this->raw_json_input();			
-
+			$input=$this->raw_json_input();		
 				
 			$old_idno=array_get_value($input,'old_idno');
 			$new_idno=array_get_value($input,'new_idno');
@@ -198,6 +187,8 @@ class Datasets extends MY_REST_Controller
 			if($new_sid=$this->Dataset_model->get_id_by_idno($new_idno)){
 				throw new Exception("NEW_IDNO already in use: ".$new_sid);
 			}
+
+			$this->has_dataset_access('edit',$sid);
 
 			$options=array(
 				'idno'=>$new_idno
@@ -237,6 +228,8 @@ class Datasets extends MY_REST_Controller
 
 			$doi=array_get_value($input,'doi');
 			$sid=$this->get_sid_from_idno($idno);
+
+			$this->has_dataset_access('edit',$sid);
 
 			if (empty($doi)){
 				throw new Exception("DOI not set");
@@ -282,6 +275,7 @@ class Datasets extends MY_REST_Controller
 		try{
 			$input=$this->raw_json_input();
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$options=array(				
 				'repositoryid'			=> array_get_value($input,'owner_collection'),
@@ -372,7 +366,7 @@ class Datasets extends MY_REST_Controller
 			if(!$sid){
 				throw new Exception("PARAM-MISSING::SID");
 			}
-			
+
 			$idno=$this->dataset_manager->get_idno($sid);
 
 			if(!$idno){
@@ -402,6 +396,7 @@ class Datasets extends MY_REST_Controller
 		$this->load->model('Timeseries_db_model');
 
 		try{
+			$this->has_dataset_access('create');
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
@@ -449,6 +444,7 @@ class Datasets extends MY_REST_Controller
 		$this->load->model('Timeseries_db_model');
 
 		try{
+			$this->has_dataset_access('edit');
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
@@ -510,7 +506,7 @@ class Datasets extends MY_REST_Controller
 			return $this->create_timeseries_database($idno);
 		}
 
-		try{
+		try{			
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 			
@@ -527,6 +523,8 @@ class Datasets extends MY_REST_Controller
 			if(isset($options['data_remote_url'])){
 				$options['link_da']=$options['data_remote_url'];
 			}
+
+			$this->has_dataset_access('edit',null,$options['repositoryid']);
 
 			//validate & create dataset
 			$dataset_id=$this->dataset_manager->create_dataset($type,$options);
@@ -586,12 +584,14 @@ class Datasets extends MY_REST_Controller
 			return $this->update_timeseries_database($idno);
 		}
 
-		try{
+		try{			
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 			
 			//get sid from idno
 			$sid=$this->get_sid_from_idno($idno);
+
+			$this->has_dataset_access('edit',$sid);
 
 			//load dataset
 			$dataset=$this->dataset_manager->get_row($sid);
@@ -665,9 +665,9 @@ class Datasets extends MY_REST_Controller
 	 */
 	function datafiles_get($idno=null)
 	{
-		try{			
+		try{
+			$this->has_dataset_access('view');
 			$sid=$this->get_sid_from_idno($idno);
-
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->dataset_manager->get_row($sid);
 
@@ -707,6 +707,7 @@ class Datasets extends MY_REST_Controller
 	function datafiles_post($idno=null)
 	{
 		try{
+			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
 
 			$options=$this->raw_json_input();
@@ -748,6 +749,40 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 * Delete a data file
+	 * 
+	 */
+	function datafile_delete($idno=null, $file_id=null)
+	{
+		try{
+			$this->has_dataset_access('delete');
+			$sid=$this->get_sid_from_idno($idno);
+
+			$user_id=$this->get_api_user_id();        
+			$survey=$this->dataset_manager->get_row($sid);
+
+			if(!$survey){
+				throw new exception("STUDY_NOT_FOUND");
+			}
+
+			$this->Data_file_model->delete_file($sid,$file_id);
+			
+			$response=array(
+				'status'=>'success'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 
 	/**
@@ -758,6 +793,7 @@ class Datasets extends MY_REST_Controller
 	function variables_get($idno=null,$file_id=null)
 	{
 		try{
+			$this->has_dataset_access('view');
 			$sid=$this->get_sid_from_idno($idno);
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->dataset_manager->get_row($sid);
@@ -768,9 +804,6 @@ class Datasets extends MY_REST_Controller
 
 			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
 			
-			//format dates
-			//array_walk($project, 'unix_date_to_gmt_row',array('created','changed','submitted_date','administer_date'));
-
 			$response=array(
 				'variables'=>$survey_variables
 			);
@@ -793,7 +826,8 @@ class Datasets extends MY_REST_Controller
 	 */
 	function variable_get($idno=null,$var_id=null)
 	{
-		try{						
+		try{			
+			$this->has_dataset_access('view');
 			if(!$var_id){
 				throw new Exception("MISSING_PARAM::VAR_ID");
 			}
@@ -837,6 +871,7 @@ class Datasets extends MY_REST_Controller
 	function variables_post($idno=null,$file_id=null,$type='survey')
 	{
 		try{
+			$this->has_dataset_access('edit');
 			$options=(array)$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
@@ -929,7 +964,7 @@ class Datasets extends MY_REST_Controller
 	function batch_delete_vars_delete($idno=null, $file_id=null)
 	{
 		try{
-		
+			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
 			$this->Dataset_model->remove_datafile_variables($sid,$file_id);
 
@@ -961,6 +996,8 @@ class Datasets extends MY_REST_Controller
 	function update_id_put($idno=null,$new_id=null)
 	{
 		try{
+			$this->has_dataset_access('edit');
+
 			if(!is_numeric($new_id)){
 				throw new Exception("INVALID NEW ID");
 			}
@@ -1219,6 +1256,7 @@ class Datasets extends MY_REST_Controller
 	public function delete_delete($idno=null)
 	{
 		try{
+			$this->has_dataset_access('delete');
 			$sid=$this->get_sid_from_idno($idno);
 			$this->dataset_manager->delete($sid);
 			$this->events->emit('db.after.delete', 'surveys', $sid);
@@ -1242,6 +1280,7 @@ class Datasets extends MY_REST_Controller
 	public function delete_by_id_delete($sid=null)
 	{
 		try{
+			$this->has_dataset_access('delete');
 			$this->dataset_manager->delete($sid);
 			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
@@ -1275,6 +1314,7 @@ class Datasets extends MY_REST_Controller
 	public function set_publish_status_put($sid=null,$publish_status=null)
 	{		
 		try{
+			$this->has_dataset_access('publish');
 			if(!is_numeric($sid) || !is_numeric($publish_status)){
 				throw new Exception("MISSING_PARAMS");
 			}
@@ -1311,11 +1351,13 @@ class Datasets extends MY_REST_Controller
 	 **/ 
 	function set_data_access_type_post()
 	{
+		
 		$sid=$this->input->post("sid");
 		$da_type=$this->input->post("da_type");
 		$da_link=$this->input->post("da_link");		
 
 		try{
+			$this->has_dataset_access('edit');
 
 			if (!$sid || !is_numeric($sid)){
 				throw new Exception("INVALID_VALUE: SID");
@@ -1349,8 +1391,9 @@ class Datasets extends MY_REST_Controller
 	{		
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
+			$this->has_dataset_access('edit',$sid);
 
-			$thumbnail_storage_path='files/thumbnails';
+			$thumbnail_storage_path='files/thumbnails'; 
 
 			//upload class configurations for RDF
 			$config['upload_path'] = $thumbnail_storage_path;
@@ -1403,6 +1446,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$options=array(				
 				'thumbnail'	=> null,
@@ -1446,6 +1490,7 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("ID_MISSING");
 			}
 
+			$this->has_dataset_access('edit',$id);
 			$this->load->model("Data_file_model");
 			$this->load->library('DDI2_import');
 
@@ -1517,7 +1562,8 @@ class Datasets extends MY_REST_Controller
 	function ddi2array_post()
 	{
 		try{
-					
+			$this->has_dataset_access('edit');
+
 			//process form
 			$temp_upload_folder=get_catalog_root().'/tmp';
 			
@@ -1605,6 +1651,7 @@ class Datasets extends MY_REST_Controller
 
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$user_id=$this->get_api_user_id();
 			$result=$this->ddi_utils->strip_ddi($sid, $strip, $keep_original=true);
 
@@ -1640,6 +1687,7 @@ class Datasets extends MY_REST_Controller
 	{		
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$this->dataset_manager->refresh_filters($sid);
 
 			$output=array(
@@ -1652,6 +1700,11 @@ class Datasets extends MY_REST_Controller
 		}				
 	}
 
+	public function refresh_filters_get($idno=null)
+	{
+		return $this->refresh_filters_put($idno);
+	}
+
 	/**
 	 * 
 	 *  Reload year facets
@@ -1662,6 +1715,7 @@ class Datasets extends MY_REST_Controller
 	public function refresh_year_facets_get($start_row=NULL, $limit=1000)
 	{		        
         try{
+			$this->has_dataset_access('edit');
 			$output=$this->Dataset_model->refresh_year_facets($start_row, $limit);
 			$output=array(
                 'status'=>'success',
@@ -1691,7 +1745,7 @@ class Datasets extends MY_REST_Controller
 	{		
 		try{
 			$user_id=$this->get_api_user_id();
-			
+			$this->has_dataset_access('edit');
 			if ($dataset_type==null){
 				throw new Exception("DATASET_TYPE_IS_REQUIRED");
 			}
@@ -1700,8 +1754,9 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("PARAM:START-INVALID");
 			}
 			
-			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
+			$datasets=(array)$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
 			
+			$last_processed=null;
 			$output=array();
 			foreach($datasets  as $dataset){
 				$this->dataset_manager->refresh_filters($dataset['id']);
@@ -1734,7 +1789,7 @@ class Datasets extends MY_REST_Controller
 	{		
 		try{
 			$user_id=$this->get_api_user_id();
-			
+			$this->has_dataset_access('edit');
 			if ($dataset_type==null){
 				throw new Exception("DATASET_TYPE_IS_REQUIRED");
 			}
@@ -1776,7 +1831,8 @@ class Datasets extends MY_REST_Controller
 		try{
 			$user_id=$this->get_api_user_id();
 			$sid=$this->get_sid_from_idno($idno);
-						
+			$this->has_dataset_access('edit',$sid);
+
 			$result=$this->dataset_manager->repopulate_index($sid);
 			
 			$output=array(
@@ -1803,7 +1859,7 @@ class Datasets extends MY_REST_Controller
 		}
 
 		try{
-					
+			$this->has_dataset_access('edit',null,$repositoryid);
 			//process form
 			$temp_upload_folder=get_catalog_root().'/tmp';
 			
@@ -1888,6 +1944,7 @@ class Datasets extends MY_REST_Controller
 	function tags_get($idno=null)
 	{
 		try{
+			$this->has_dataset_access('view');
 			$result=$this->dataset_manager->get_dataset_with_tags($idno);
 			$response=array(
 				'status'=>'success',
@@ -1915,6 +1972,7 @@ class Datasets extends MY_REST_Controller
 	function aliases_get($idno=null)
 	{
 		try{
+			$this->has_dataset_access('view');
 			$result=$this->dataset_manager->get_dataset_aliases($idno);
 			$response=array(
 				'status'=>'success',
@@ -1951,9 +2009,8 @@ class Datasets extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 			
-			//get sid from idno
 			$sid=$this->get_sid_from_idno($idno);
-
+			$this->has_dataset_access('edit',$sid);
 			$dataset=$this->dataset_manager->get_row($sid);
 
 			if($dataset['type']!='survey'){
@@ -2061,6 +2118,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
 			$result=$this->Dataset_model->get_keywords($sid);			
 				
 			if(!$result){
@@ -2092,6 +2150,7 @@ class Datasets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$result=$this->Dataset_model->write_ddi($sid,$overwrite=true);
 
 			$response=array(
@@ -2123,6 +2182,7 @@ class Datasets extends MY_REST_Controller
 			header('Content-Encoding: UTF-8');
 
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$result=$this->Dataset_model->write_json($sid,$overwrite=true);
 
 			$response=array(
@@ -2154,8 +2214,7 @@ class Datasets extends MY_REST_Controller
 	 */
 	public function owner_collection_post($idno=null)
 	{		
-		try{
-			
+		try{			
 			//multipart/form-data
 			$options=$this->input->post(null, true);
 
@@ -2164,7 +2223,8 @@ class Datasets extends MY_REST_Controller
 				$options=$this->raw_json_input();
 			}			
 			
-			$sid=$this->get_sid_from_idno($idno);			
+			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$repositoryid=isset($options["collection_idno"]) ? $options["collection_idno"] : null;
 
 			if (!$repositoryid){
@@ -2208,7 +2268,7 @@ class Datasets extends MY_REST_Controller
 			/*if($idno){
 				return $this->single_get($idno);
 			}*/
-			
+			$this->has_access('collection','view');
 			$offset=(int)$this->input->get("offset");
 			$limit=(int)$this->input->get("limit");
 
@@ -2245,6 +2305,7 @@ class Datasets extends MY_REST_Controller
 	function collections_post()
 	{
 		try{
+			$this->has_access('collection','edit');
 			$options=(array)$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 

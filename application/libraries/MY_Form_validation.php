@@ -211,3 +211,25 @@ class ValidationException extends \Exception
         return $this->options; 
     }
 }
+
+/**
+ * 
+ * Custom exception for ACL access denied
+ * 
+ */
+class AclAccessDeniedException extends \Exception
+{
+    private $options;
+
+    public function __construct($message,$options = array('params')) 
+    {
+        parent::__construct($message, $code=0, $previous=NULL);
+        $this->options = $options; 
+    }
+
+    //get errors as array
+    public function GetErrors() 
+    { 
+        return $this->options; 
+    }
+}
