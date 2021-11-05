@@ -14,6 +14,15 @@
     .collection-featured-entries  .entry-card img{
         width:100%;        
     }
+    .collection-featured-entries .img-container
+    {
+        width:  100%;
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-bottom:1px solid #f8f9fa;
+    }
 </style>
 <?php
 
@@ -48,8 +57,10 @@ $type_icons=array(
                     <?php endif;?>
                 
                     <div class=" wb-col-media" >
-                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>">                        
-                            <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" alt="" class="img-fluid entry-thumbnail"/>                        
+                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>">
+                            <div class="img-container" style="background-image:url(<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>)">
+                                <!--<img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" alt="" class="img-fluid entry-thumbnail"/>-->
+                            </div>
                         </a>
                     </div>
                 

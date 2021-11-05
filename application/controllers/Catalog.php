@@ -487,6 +487,12 @@ class Catalog extends MY_Controller {
 			$data['featured_studies']=$this->get_featured_studies_by_repo ($this->active_repo_id,$this->active_tab);
 		}
 
+		//attach related collections
+		if (isset($data['surveys']['rows'])){
+			$sid_arr=array_values(array_column($data['surveys']['rows'],'id'));			
+			$related_collections=$this->Search_helper_model->related_collections($sid_arr);
+			$data['related_collections']=$related_collections;
+		}
 		return $data;
 	}
 

@@ -134,9 +134,11 @@
     background-color: var(--color-badge-dark);
 }
 .badge-featured {
-    background-color: var(--color-badge-featured);
+    /*background-color: var(--color-badge-featured);*/
+    background-color: #e9ecef;
+    margin-left: -10px;
+    font-weight: normal;
 }
-
 
 .wb-badge-outline {
     background-color: #ffffff;

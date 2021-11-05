@@ -111,6 +111,7 @@
             break;
     }
 
+    $survey_rows_count=count($surveys['rows']);
     if(isset($featured_studies) && $featured_studies!==FALSE ){
         foreach($featured_studies as $feature_study){
             $feature_study['featured']=true;
@@ -148,20 +149,43 @@
         }else{
             $row_col2_class="col-md-10";
         }
+
+        $row_collections=array();
+        //var_dump($row);
+        if(isset($row['repo_title'])){
+            
+            $row_collections[]=array(
+                'repositoryid'=>$row['repositoryid'],
+                'title'=>$row['repo_title'],
+                'type'=>'owner'
+            );
+        }
+        
+        if(isset($related_collections) && array_key_exists($row['id'],$related_collections)){
+            foreach($related_collections[$row['id']] as $collection_){
+                $row_collections[]=$collection_;
+            }
+        }
+
+        $collection_links=array();
+        foreach($row_collections as $collection_){
+            $collection_links[]='<a href="'.site_url('catalog/'.$collection_['repositoryid']).'">'.$collection_['title'].'</a>';
+        }
+        $collection_links=implode(", ",$collection_links);
     ?>
 
-    <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'wb-featured featured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" >
-        <div class="row">            
-            <div class="<?php echo $row_col2_class;?>">
-
-                <?php if ($is_featured): ?>
+    <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'xwb-featured xfeatured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" >
+        
+        <?php if ($is_featured): ?>
                     <?php $row['form_model']=$row['model'];?>
-                <?php if($is_featured_count==1):?>
-                <span class="badge badge-featured wb-featured-mark" >
-                    <i class="fas fa-star"></i> <?php echo t('Featured');?>
-                </span>
-                <?php endif;?>
-                <?php endif; ?>
+                    <div class="row mb-2">
+                    <span class="badge badge-featured wb-featured-mark" >
+                        <i class="fas fa-star"></i> <?php echo t('Featured');?>
+                    </span>
+                    </div>      
+        <?php endif; ?>
+        <div class="row">            
+            <div class="<?php echo $row_col2_class;?>">                
                 <h5 class="wb-card-title title">
                     <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
                         <i class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>             
@@ -189,9 +213,23 @@
                         <span class="study-by"><?php echo $row['authoring_entity'];?></span>
                     </div>
                     <?php endif;?>
-                    <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                        <span class="owner-collection mr-3"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></span>
-                    <?php endif;?>                    
+
+                    <?php if ($row_collections):?>
+                        <span class="owner-collection collection-link mr-3"><?php echo t('catalog_owned_by')?>:
+                        <?php /*
+                        <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
+                             <span><a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></span>
+                        <?php endif;?>
+                        
+                            <?php foreach($row_collections as $related_collection):?>
+                                <span>
+                                <a href="<?php echo site_url('catalog/'.$related_collection['repositoryid']);?>"><?php echo $related_collection['title'];?></a>
+                                </span>
+                            <?php endforeach;?>
+                            */?>
+                            <?php echo $collection_links;?>
+                        </span>
+                    <?php endif;?>
                 </div>
                 <div class="survey-stats">
                 <span class="study-idno">
@@ -295,7 +333,7 @@
             <div class="col-12 col-md-3 col-lg-4 text-center text-md-left mb-2 mb-md-0">
                 <?php echo sprintf(t('showing_studies'),
                     number_format(($surveys['limit']*$current_page)-$surveys['limit']+1),
-                    number_format(($surveys['limit']*($current_page-1))+ count($surveys['rows'])),
+                    number_format(($surveys['limit']*($current_page-1))+ $survey_rows_count),
                     number_format($surveys['found']));
                 ?>
             </div>

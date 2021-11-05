@@ -1060,9 +1060,10 @@ class Catalog_search_sqlsrv{
 
 		if ($repo!='')
 		{
-			return sprintf('(surveys.repositoryid= %s OR survey_repos.repositoryid = %s)',
+			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
+			/*return sprintf('(surveys.repositoryid= %s OR survey_repos.repositoryid = %s)',
 				$this->ci->db->escape($repo),
-				$this->ci->db->escape($repo));
+				$this->ci->db->escape($repo));*/
 		}
 		return FALSE;
 	}

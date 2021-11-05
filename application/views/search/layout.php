@@ -21,7 +21,7 @@
 
         <?php if($search_options->repo !='' && isset($active_repo['title'])):?>
             
-        <div class="media mb-5 collection-info" >
+        <div class="media mb-2 collection-info" >
             <div class="collection-thumbnail-container d-none d-sm-block">
                 <?php 
                     $thumbnail= file_exists($active_repo['thumbnail']) ? $active_repo['thumbnail'] : 'files/icon-blank2.png';

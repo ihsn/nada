@@ -1175,10 +1175,23 @@ class Repository_model extends CI_Model {
 
 		$studies=array();
 		foreach($sid_arr as $sid){
-			$studies[]=$this->Catalog_model->select_single($sid);
+			$study=$this->Catalog_model->select_single($sid);
+			$study['repo_title']=$this->get_repo_title($study['repositoryid']);
+			$studies[]=$study;
 		}
 
 		return $studies;
+	}
+
+	function get_repo_title($repositoryid)
+	{
+		$this->db->select('title');
+		$this->db->where('repositoryid',$repositoryid);
+		$result=$this->db->get('repositories')->row_array();
+		
+		if ($result){
+			return $result['title'];
+		}
 	}
 
 

@@ -765,6 +765,36 @@ class Search_helper_model extends CI_Model {
 	}
 
 
+	/**
+	*
+	* Return an array of collection by study
+	*
+	**/
+	function related_collections($sid_arr)
+	{
+		if (empty($sid_arr)){
+			return false;
+		}
+
+		$this->db->select('repositories.repositoryid,sid,title');
+		$this->db->join('repositories', 'repositories.repositoryid=survey_repos.repositoryid','inner');
+		$this->db->where('isadmin',0);
+		$this->db->where_in('sid',$sid_arr);
+		$query=$this->db->get('survey_repos');
+		
+		if (!$query){
+			return array();
+		}
+
+		$result=$query->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['sid']][]=$row;
+		}
+		
+		return $output;
+	}
 
 	
 }//end class
