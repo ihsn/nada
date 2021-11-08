@@ -85,6 +85,12 @@ class Reports extends MY_Controller {
 			
 			case 'downloads-detailed':
 				$data['rows']=$this->Reports_model->downloads_detailed($from,$to);
+
+				foreach($data['rows'] as $row_idx=>$row){
+					if(empty($row['username'])){
+						$data['rows'][$row_idx]['username']='Guest';
+					}
+				}
 				
 				if ($format=='excel')
 				{
@@ -135,8 +141,8 @@ class Reports extends MY_Controller {
 
 				if ($format=='excel')
 				{
-					$output=$this->load->view("reports/users_statistics",$data,TRUE);
-					$this->_export_to_csv($output,'users-statistics-'.date("m-d-y").'.csv');
+					//$output=$this->load->view("reports/users_statistics",$data,TRUE);
+					$this->_export_to_csv($data['rows'],'users-statistics-'.date("m-d-y").'.csv');
 					return;
 				}					
 				$this->load->view("reports/users_statistics",$data);

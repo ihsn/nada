@@ -383,7 +383,7 @@ class Reports_model extends CI_Model {
 	function user_stats($start=NULL,$end=NULL)
 	{
 		$sql='select
-				  *
+				u.id,m.user_id,username,email,created_on,last_login,active,first_name,last_name,company,phone,country
 				  from users u
 				  inner join meta m on u.id=m.user_id';
 
