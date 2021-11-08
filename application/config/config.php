@@ -764,6 +764,17 @@ $config['otp_verification']=0;
 
 $config['enable_access_policy_import']=false;
 
+
+/*
+|--------------------------------------------------------------------------
+| Hide 'Get Microdata' tab for guest users
+|--------------------------------------------------------------------------
+|
+| 
+*/
+$config['guests_hide_microdata_tab']=true;
+
+
 /*
 |--------------------------------------------------------------------------
 | NADA fallback configurations
