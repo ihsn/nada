@@ -16,6 +16,14 @@ class Variable_model extends CI_Model {
         $this->db->delete("variables");
     }
 
+    public function remove_variable($sid,$fid, $vid)
+    {
+        $this->db->where("sid",$sid);
+        $this->db->where("fid",$fid);
+        $this->db->where("vid",$vid);
+        return $this->db->delete("variables");
+    }
+
     //get a single variable
     function select_single($vid)
     {

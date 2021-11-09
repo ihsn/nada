@@ -213,6 +213,26 @@ class Data_file_model extends CI_Model {
         $this->db->where("sid",$sid);
         $this->db->delete("data_files");
     }
+
+	/**
+	 * 
+	 * 
+	 * Delete a single file by file_id
+	 * 
+	 */
+	function delete_file($sid,$file_id)
+	{
+		$this->db->where('sid', $sid);
+		$this->db->where('file_id', $file_id);
+		$deleted=$this->db->delete('data_files');
+		
+		//remove variables
+		if ($deleted){
+			$this->db->where('sid', $sid);
+			$this->db->where('fid', $file_id);
+			$this->db->delete('variables');
+		}
+	}
 	
 	
 	/**
