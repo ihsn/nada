@@ -648,7 +648,7 @@ $config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,
 | max_resource_upload_size	maximum file upload size in MB
 |
 */
-$config['max_resource_upload_size']='300';
+$config['max_resource_upload_size']='3000';
 
 
 /*
