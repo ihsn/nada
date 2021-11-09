@@ -249,10 +249,10 @@ label, legend {
  
   <ul class="nav navbar nav-tabs mb-3">
     <li class="nav-item" > 
-      <a class="nav-link active " href="#edit" rel="tab" data-toggle="tab">Home</a>
+      <a class="nav-link active " href="#edit" rel="tab" data-toggle="tab"><?php echo t('home');?></a>
     </li>
     <li class="nav-item  mr-auto"> 
-      <a class="nav-link" href="#tab-attach-studies" rel="tab" data-toggle="tab">Attach Surveys <span class="badge citation-count"></span></a>
+      <a class="nav-link" href="#tab-attach-studies" rel="tab" data-toggle="tab"><?php echo t('attach_studies');?> <span class="badge citation-count"></span></a>
     </li>
     <li>
         <div class="nav-item form-group text-right mb-0 ">
@@ -410,7 +410,7 @@ label, legend {
         <div id="related-surveys" ><?php echo $survey_list; ?></div>
       </div>
       <div class="col-md-4 sidebar-attach-studies" >
-      <h4 class="m-2">Find surveys</h4>
+      <h4 class="m-2"><?php echo t('find_studies');?></h4>
         <div class="form-group row">
           <div class="col-md-8">
             <input class="form-control" autocomplete="off" type="text" id="sk" placeholder="Search for surveys by title, country and year"/>
