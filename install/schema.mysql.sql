@@ -1034,13 +1034,13 @@ DROP TABLE IF EXISTS `ci_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ci_sessions` (
-  `session_id` varchar(40) NOT NULL DEFAULT '0',
-  `ip_address` varchar(16) DEFAULT '0',
-  `user_agent` varchar(255) DEFAULT NULL,
-  `last_activity` int(11) DEFAULT '0',
-  `user_data` text,
-  PRIMARY KEY (`session_id`)
-) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  `id` varchar(128) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `timestamp` int unsigned NOT NULL DEFAULT '0',
+  `data` blob NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ci_sessions_timestamp` (`timestamp`)
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 

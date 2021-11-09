@@ -51,12 +51,10 @@ class Dashboard_model extends CI_Model {
 		$result['inactive']=$this->db->count_all_results();
 
 		//calc date - n minutes
-		$start_date=date("U")-(60*60);//minus 1 hour
+		$start_date=date("U")-(60*20);//20 mins
 		
 		//get anonymous user sessions from db
-		$this->db->where('last_activity > ',$start_date,FALSE);
-		$this->db->from('ci_sessions');
-		$result['anonymous_users']=$this->db->count_all_results();
+		$result['anonymous_users']=$this->get_sessions_count();
 
 		//get logged in users within last n minutes
 		$this->db->select("username");
@@ -75,6 +73,21 @@ class Dashboard_model extends CI_Model {
 		$result['anonymous_users']=$result['anonymous_users'] - count($result['loggedin_users']);
 
 		return $result;
+	}
+
+	function get_sessions_count()
+	{
+		$start_date=date("U")-(60*20);//20 mins
+		
+		//get anonymous user sessions from db
+		$this->db->select("count(*) as found");
+		$this->db->where('timestamp > ',$start_date,FALSE);
+		$result=$this->db->get('ci_sessions');
+
+		if($result){
+			$result=$result->row_array();
+			return $result['found'];
+		}
 	}
 	
 	function select_all($sort_by='weight', $sort_order='ASC')

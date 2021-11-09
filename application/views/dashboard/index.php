@@ -74,7 +74,6 @@
                 <div class="panel-footer p-2">
                 	<div class="actions">
                 	<a class="btn btn-primary btn-sm btn-nada" href="<?php echo site_url('admin/repositories/active/'.$collection['id'].'?destination=admin/catalog');?>"><?php echo t('Maintenance');?></a>
-                	<a class="btn btn-sm btn-primary btn-admin btn-nada manage-permissions" href="<?php echo site_url('admin/repositories/permissions/'.$collection['id']);?>"><?php echo t('Administrators');?></a>
                     <a class="btn btn-sm btn-primary btn-nada" href="<?php echo site_url('admin/repositories/history/'.$collection['repositoryid'])?>"><?php echo t('History');?></a>
                     <a class="btn btn-sm btn-primary btn-edit btn-nada manage-collection" href="<?php echo site_url('admin/repositories/edit/'.$collection['id']);?>"><?php echo t('Edit');?></a>
                     </div>

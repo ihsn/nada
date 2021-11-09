@@ -1120,14 +1120,16 @@ set IDENTITY_INSERT regions OFF;
 -- Table structure for table ci_sessions
 --
 
+
 CREATE TABLE ci_sessions (
-  session_id varchar(40) NOT NULL DEFAULT '0',
-  ip_address varchar(16) DEFAULT '0',
-  user_agent varchar(255) DEFAULT NULL,
-  last_activity int DEFAULT '0',
-  user_data text,
-  PRIMARY KEY (session_id)
-) ;
+  id varchar(128) NOT NULL,
+  ip_address varchar(45) NOT NULL,
+  timestamp int DEFAULT '0',
+  data blob,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX ci_sess_timestamp ON dbo.ci_sessions (timestamp);
 
 
 
