@@ -296,7 +296,10 @@ $ddi=$this->ddi_writer;
         </sampleFrame>
 
         <deviat><?php $ddi->el('study_desc/method/data_collection/sampling_deviation');?></deviat>
-        <collMode><?php $ddi->el('study_desc/method/data_collection/coll_mode');?></collMode>
+        <?php $coll_mode_arr=(array)$ddi->get_el('study_desc/method/data_collection/coll_mode');?>
+        <?php foreach($coll_mode_arr as $coll_mode):?>
+        <collMode><?php echo $coll_mode;?></collMode>
+        <?php endforeach;?>
         <resInstru><?php $ddi->el('study_desc/method/data_collection/research_instrument');?></resInstru>
 
         <!-- instrumentDevelopment - DDI2.5             

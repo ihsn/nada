@@ -896,11 +896,14 @@ class Dataset_model extends CI_Model {
 
 	function get_metadata_file_path($sid)
 	{
-		$this->db->select('dirpath,metafile');
+		$this->db->select('idno,dirpath,metafile');
 		$this->db->where('id', $sid);
 		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query){
+			if(empty($query['metafile'])){
+				$query['metafile']=$query['idno'].'.xml';
+			}
 			return get_catalog_root() . '/'. $query['dirpath'].'/'.$query['metafile'];
 		}
 		
