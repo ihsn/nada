@@ -77,7 +77,7 @@ $publish_options=array(
             <div class="card search-filters" >
 
                 <div class="col form-row">
-                    <h6 class="col form-row mt-1">Refine by</h6>
+                    <h6 class="col form-row mt-1"><?php echo t('Refine by');?></h6>
                     <h6 class="col form-row d-flex justify-content-end clear-all-filters btn btn-link">Clear all</h6>
                 </div>
                 
@@ -85,7 +85,7 @@ $publish_options=array(
 
                 <?php if (count($citation_flags)>0):?>
                     <div class="filter">
-                        <h6 class="col form-row">Flags</h6>
+                        <h6 class="col form-row"><?php echo t('Flags');?></h6>
                         <?php foreach($citation_flags as $flag_value):?>
                             <?php if($flag_value['flag']!=''):?>
                                 <div class="col form-row" >
@@ -100,7 +100,7 @@ $publish_options=array(
             <hr>                           
                 <?php if(count($citation_creators)>0):?>
                     <div class="filter">
-                    <h6 class="col form-row">By User</h6>
+                    <h6 class="col form-row"><?php echo t('By user');?></h6>
                         <?php foreach($citation_creators as $creator):?>
                             <div class="col form-row">
                                 <label class="no-bold" for="user-<?php echo $creator['id'];?>"><input id="user-<?php echo $creator['id'];?>" type="checkbox" name="user[]" value="<?php echo $creator['id'];?>" <?php echo my_set_checkbox('user', $creator['id']); ?>/> <?php echo $creator['username'];?></label></div>
@@ -109,9 +109,9 @@ $publish_options=array(
                 <?php endif;?>
                 <hr> 
                 <div class="filter">
-                <h6 class="col form-row">Status</h6>
+                <h6 class="col form-row"><?php echo t('status');?></h6>
                     <div class="col form-row">
-                    <label for="published-all"><input id="published-all" type="radio" name="published" value="" <?php echo my_set_radio('published', ""); ?>/> All</label></div>
+                    <label for="published-all"><input id="published-all" type="radio" name="published" value="" <?php echo my_set_radio('published', ""); ?>/> <?php echo t('All');?></label></div>
                     <?php foreach($citation_publish_stats as $row):?>
                         <div class="col form-row"><label for="published-<?php echo $row['published'];?>">
                                 <input id="published-<?php echo $row['published'];?>" type="radio" name="published" value="<?php echo $row['published'];?>" <?php echo my_set_radio('published', 1); ?>/>
@@ -122,9 +122,9 @@ $publish_options=array(
                 </div>
                 <hr> 
                 <div class="filter">
-                <h6 class="col form-row">Other options</h6>
+                <h6 class="col form-row"><?php echo t('Other options');?></h6>
                     <!--<div><label for="opt-no_surveys_attached"><input id="opt-no_surveys_attached" type="checkbox" name="no_survey_attached" value="1" <?php echo my_set_checkbox('no_survey_attached', 1); ?>/> has no surveys</label></div>-->
-                    <div class="col form-row text-capitalize"><label for="opt-has_notes "><input id="opt-has_notes" type="checkbox" name="has_notes" value="1" <?php echo my_set_checkbox('has_notes', 1); ?>/> has notes</label></div>
+                    <div class="col form-row text-capitalize"><label for="opt-has_notes "><input id="opt-has_notes" type="checkbox" name="has_notes" value="1" <?php echo my_set_checkbox('has_notes', 1); ?>/> <?php echo t('has notes');?></label></div>
                 </div>
 
                 <!--url status codes-->
@@ -375,7 +375,7 @@ $publish_options=array(
 
                     <div class="icon-legend small">
                         <!--<span class="glyphicon glyphicon-user"> </span> <?php echo t('icon_user');?>-->
-                        <i class="fa fa-th-large" aria-hidden="true" style="color:red;"></i> <?php echo t('icon_related_study');?>
+                        <i class="fa fa-th-large" aria-hidden="true" style="color:green;"></i> <?php echo t('icon_related_study');?>
                         <i class="fa fa-comment" aria-hidden="true"></i> <?php echo t('icon_note');?>
                         <i class="fa fa-tag" aria-hidden="true" style="color:#007bff;">&nbsp; </i><?php echo t('icon_flag');?>
                         <!--<span class="glyphicon glyphicon-globe"> </span> <?php echo t('publication_link_status');?>-->

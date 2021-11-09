@@ -105,6 +105,12 @@ $lang['export_to_csv']="Export to CSV";
 $lang['sort']="Sort";
 $lang['published-status-1']="Published";
 $lang['published-status-0']="Draft";
+$lang['Refine by']="Refine by";
+$lang['Flags']="Flags";
+$lang['By user']="By user";
+$lang['Other options']="Other options";
+$lang['Has notes']="Has notes";
+$lang['status']="Status";
 
 
 /* End of file citations */
