@@ -24,7 +24,7 @@ class Admin extends MY_Controller {
 		$data['user_stats']=$this->Dashboard_model->get_user_stats();
 		$data['collections']=$this->_repository_stats();
 		$data['failed_email_count']=$this->Dashboard_model->get_failed_email_count();
-		$data['sitelog_count']=$this->Dashboard_model->get_sitelog_count();
+		//$data['sitelog_count']=$this->Dashboard_model->get_sitelog_count();
 		$content=$this->load->view('dashboard/index',$data,TRUE);
 		$this->template->write('title', $data['title'],TRUE);
 		$this->template->write('content', $content,TRUE);
