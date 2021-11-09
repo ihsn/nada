@@ -12,20 +12,16 @@ class Resources extends MY_REST_Controller
 		$this->load->model("Resource_model");	//todo to be deleted
 		$this->load->model("Survey_resource_model");
 		$this->load->library("Dataset_manager");		
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 	}
 	
 
-//override authentication to support both session authentication + api keys
+	//override authentication to support both session authentication + api keys
 	function _auth_override_check()
 	{
-		//session user id
-		if ($this->session->userdata('user_id'))
-		{
-			//var_dump($this->session->userdata('user_id'));
+		if ($this->session->userdata('user_id')){
 			return true;
 		}
-
 		parent::_auth_override_check();
 	}
 
@@ -45,6 +41,8 @@ class Resources extends MY_REST_Controller
 			}
 			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
+
 			$dctype=$this->input->get("dctype");
 			$resources=$this->Survey_resource_model->get_resources_by_type($sid,$dctype);
 			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
@@ -75,6 +73,7 @@ class Resources extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
 
 			if(!is_numeric($resource_id)){
 				throw new Exception("MISSING_PARAM: resourceId");
@@ -114,8 +113,6 @@ class Resources extends MY_REST_Controller
 	 **/ 
 	function index_post($idno=null)
 	{
-		$this->is_admin_or_die();
-
 		//multipart/form-data
 		$options=$this->input->post(null, true);
 
@@ -126,6 +123,7 @@ class Resources extends MY_REST_Controller
 				
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$options['survey_id']=$sid;
 
@@ -198,11 +196,11 @@ class Resources extends MY_REST_Controller
 	//update an existing resource
 	function index_put($idno=null,$resource_id=null)
 	{
-		$this->is_admin_or_die();
 		$options=$this->raw_json_input();
 
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			if(!is_numeric($resource_id)){
 				throw new Exception("MISSING_PARAM: resourceId");
@@ -253,9 +251,9 @@ class Resources extends MY_REST_Controller
 	//delete a single resource by resource id
 	function index_delete($idno=null,$resource_id=null)
 	{
-		$this->is_admin_or_die();
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('delete',$sid);
 
 			if(!is_numeric($resource_id)){
 				throw new Exception("MISSING_PARAM: resource_id");
@@ -288,9 +286,9 @@ class Resources extends MY_REST_Controller
 	//delete all resources by study
 	public function delete_all_delete($idno=null)
 	{	
-		$this->is_admin_or_die();	
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('delete',$sid);
 			$this->Survey_resource_model->delete_all_survey_resources($sid);
 
 			$response=array(
@@ -308,11 +306,11 @@ class Resources extends MY_REST_Controller
 	//import rdf file
 	public function import_rdf_post($idno=NULL)
 	{
-		$this->is_admin_or_die();
 		$this->load->model("Survey_model");	
 		
 		try {
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$result=$this->Survey_resource_model->upload_rdf('file');
 			$uploaded_file_name=$result['file_name'];
@@ -347,10 +345,10 @@ class Resources extends MY_REST_Controller
 	 */
 	function fix_links_put($idno=null)
 	{
-		$this->is_admin_or_die();
 		$this->load->model("Survey_resource_model");		
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$links_fixed=$this->Survey_resource_model->fix_resource_links($sid);
 			$output=array(
 				'links_fixed'=>$links_fixed
@@ -373,6 +371,7 @@ class Resources extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
+			$this->has_dataset_access('edit',$sid);
 			$user=$this->api_user();
 
 			if(!$user){
@@ -421,8 +420,6 @@ class Resources extends MY_REST_Controller
 	 */
 	function download_links_post()
 	{
-		$this->is_admin_or_die();
-
 		//multipart/form-data
 		$options=$this->input->post(null, true);
 
