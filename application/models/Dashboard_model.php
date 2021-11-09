@@ -51,10 +51,10 @@ class Dashboard_model extends CI_Model {
 		$result['inactive']=$this->db->count_all_results();
 
 		//calc date - n minutes
-		$start_date=date("U")-(60*60);//minus 1 hour
+		$start_date=date("U")-(60*20);//20 mins
 		
 		//get anonymous user sessions from db
-		$this->db->where('last_activity > ',$start_date,FALSE);
+		$this->db->where('timestamp > ',$start_date,FALSE);
 		$this->db->from('ci_sessions');
 		$result['anonymous_users']=$this->db->count_all_results();
 
@@ -73,6 +73,9 @@ class Dashboard_model extends CI_Model {
 
 		//remove loggedin users from anonymous users count		
 		$result['anonymous_users']=$result['anonymous_users'] - count($result['loggedin_users']);
+		if($result['anonymous_users']<0){
+			$result['anonymous_users']=0;
+		}
 
 		return $result;
 	}
