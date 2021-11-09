@@ -1004,14 +1004,13 @@ paths:
               $ref: 'datafile-schema.json'
         security:
           - ApiKeyAuth: []         
-  /datasets/batch_delete_vars/{IDNo}/{fileId}:
-      delete:
+  /datasets/datafiles/{IDNo}/{fileId}:
+    delete:
         tags:
           - Survey
-          - Timeseries
-        summary: Batch delete variables
-        description: Batch delete all variables from a datafile or Dataset. Set the '`fileId`' param to '`ALL`' to delete all variables from all datafiles in the Dataset.
-        operationId: deleteDatafileVariables
+        summary: Delete datafile
+        description: Delete file and variables
+        operationId: deleteDatafile
         consumes:
           - application/json
         produces:
@@ -1033,7 +1032,42 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []   
+          - ApiKeyAuth: [] 
+  /datasets/variable/{IDNo}/{fileId}/{varId}:
+      delete:
+        tags:
+          - Survey
+        summary: Delete variable
+        description: Delete a single variable
+        operationId: deleteVariables
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: IDNo
+            in: path
+            description: Dataset IDNo
+            required: true
+            type: string
+            format: string
+          - name: fileId
+            in: path
+            description: File ID
+            required: true
+            type: string
+            format: string 
+          - name: varId
+            in: path
+            description: var ID
+            required: true
+            type: string
+            format: string    
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: [] 
   /datasets/variables/{IDNo}:
       get:
         tags:
@@ -1061,8 +1095,36 @@ paths:
               items:
                 $ref: '#/definitions/VariableList'
         security:
-          - ApiKeyAuth: []
+          - ApiKeyAuth: []      
   /datasets/variables/{IDNo}/{fileId}:
+    delete:
+        tags:
+          - Survey
+        summary: Delete all variables
+        description: Delete all variables from a datafile or Dataset.
+        operationId: deleteVariables
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: IDNo
+            in: path
+            description: Dataset IDNo
+            required: true
+            type: string
+            format: string
+          - name: fileId
+            in: path
+            description: File ID
+            required: true
+            type: string
+            format: string  
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
     get:
       tags:
         - Survey

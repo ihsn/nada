@@ -751,42 +751,6 @@ class Datasets extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Delete a data file
-	 * 
-	 */
-	function datafile_delete($idno=null, $file_id=null)
-	{
-		try{
-			$this->has_dataset_access('delete');
-			$sid=$this->get_sid_from_idno($idno);
-
-			$user_id=$this->get_api_user_id();        
-			$survey=$this->dataset_manager->get_row($sid);
-
-			if(!$survey){
-				throw new exception("STUDY_NOT_FOUND");
-			}
-
-			$this->Data_file_model->delete_file($sid,$file_id);
-			
-			$response=array(
-				'status'=>'success'
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-
-
-	/**
-	 * 
 	 * List dataset variables
 	 * 
 	 */
@@ -953,20 +917,100 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * 
+	 * Delete a single variable
+	 * 
+	 * 
+	 */
+	function variable_delete($idno=null, $file_id=null,$var_id=null)
+	{
+		try{
+			$this->has_dataset_access('edit');
+			$sid=$this->get_sid_from_idno($idno);
+
+			if(!$file_id){
+				throw new Exception("FILE_ID is required");
+			}
+
+			if(!$var_id){
+				throw new Exception("VAR_ID is required");
+			}
+
+			$this->load->model("Variable_model");
+			$this->Variable_model->remove_variable($sid,$file_id, $var_id);
+
+			$response=array(
+				'status'=>'success',
+				'message'=>'DELETED'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 	/**
 	 * 
-	 * Batch delete variables
+	 * Batch delete variables, does not delete datafile definition
 	 * 
 	 * @idno - string - dataset IDNo
 	 * @file_id - string - (optional) file ID e.g. F1
 	 **/ 
-	function batch_delete_vars_delete($idno=null, $file_id=null)
+	function variables_delete($idno=null, $file_id=null)
 	{
 		try{
 			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
 			$this->Dataset_model->remove_datafile_variables($sid,$file_id);
+
+			$response=array(
+				'status'=>'success',
+				'message'=>'DELETED'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * Delete data file and variables
+	 * 
+	 * @idno - string - dataset IDNo
+	 * @file_id - string - file ID e.g. F1
+	 **/ 
+	function datafiles_delete($idno=null, $file_id=null)
+	{
+		try{
+			$this->has_dataset_access('edit');
+			$sid=$this->get_sid_from_idno($idno);
+
+			if (!$file_id){
+				throw new Exception('FILE_ID is required');
+			}
+
+			$survey=$this->dataset_manager->get_row($sid);
+
+			if(!$survey){
+				throw new exception("STUDY_NOT_FOUND");
+			}
+
+			$this->Data_file_model->delete_file($sid,$file_id);
 
 			$response=array(
 				'status'=>'success',
