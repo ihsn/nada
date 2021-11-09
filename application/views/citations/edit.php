@@ -413,7 +413,7 @@ label, legend {
       <h4 class="m-2"><?php echo t('find_studies');?></h4>
         <div class="form-group row">
           <div class="col-md-8">
-            <input class="form-control" autocomplete="off" type="text" id="sk" placeholder="Search for surveys by title, country and year"/>
+            <input class="form-control" autocomplete="off" type="text" id="sk" placeholder="<?php echo t('Search by title, country and year');?>"/>
           </div>
           <div class="col-md-4">
             <input class="btn btn-primary btn-sm" type="button" name="Find" value="Find" id="find_surveys"/>
