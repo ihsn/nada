@@ -3,7 +3,7 @@
 $menu=array();
 $menu[]=array(
 			'title'	=>'Dashboard',
-			'url'	=>'admin/catalog'
+			'url'	=>'admin',
 		);
 $menu[]=array(
 		'title'	=>'Studies',
