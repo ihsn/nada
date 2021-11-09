@@ -40,7 +40,7 @@
 				"idno": {
 					"type": "string",
 					"title": "Unique ID number for the document"
-				},
+				},				
 				"producers": {
 					"type": "array",
 					"title": "Producers",
@@ -88,10 +88,39 @@
 					"description": "Image unique identifier",
 					"type": "string"
 				},
+				"identifiers":{
+					"type":"array",
+					"title":"Other identifiers",
+					"description":"Other identifiers",
+					"items":{
+					  "type":"object",
+					  "properties":{
+						"type":{
+						  "title":"Identifier type",
+						  "description":"Type of identifier e.g. `doi`, `handle`, `other`",
+						  "type":"string"
+						},
+						"identifier":{
+						  "title":"Identifier",
+						  "type":"string"
+						}
+					  },
+					  "required":[
+						"identifier"
+					  ]
+					}
+				  },
 				"iptc": {
 					"allOf": [
 						{
 							"$ref": "../schemas/iptc-pmd-schema.json"
+						}
+					]
+				},
+				"dcmi": {
+					"allOf": [
+						{
+							"$ref": "dcmi-schema.json"
 						}
 					]
 				},
