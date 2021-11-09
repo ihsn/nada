@@ -171,7 +171,7 @@
         foreach($row_collections as $collection_){
             $collection_links[]='<a href="'.site_url('catalog/'.$collection_['repositoryid']).'">'.$collection_['title'].'</a>';
         }
-        $collection_links=implode(", ",$collection_links);
+        $collection_links=implode(" <span class=\"coll-sep\">|</span> ",$collection_links);
     ?>
 
     <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'xwb-featured xfeatured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" >

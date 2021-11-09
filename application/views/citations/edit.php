@@ -249,7 +249,7 @@ label, legend {
  
   <ul class="nav navbar nav-tabs mb-3">
     <li class="nav-item" > 
-      <a class="nav-link active " href="#edit" rel="tab" data-toggle="tab"><?php echo t('home');?></a>
+      <a class="nav-link active " href="#edit" rel="tab" data-toggle="tab"><?php echo t('edit');?></a>
     </li>
     <li class="nav-item  mr-auto"> 
       <a class="nav-link" href="#tab-attach-studies" rel="tab" data-toggle="tab"><?php echo t('attach_studies');?> <span class="badge citation-count"></span></a>
