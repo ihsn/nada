@@ -135,13 +135,13 @@ $menu[]=array(
 		array(
 			'type'	=>'divider'
 		),
-		array(
+		/*array(
 			'title'	=>'Vocabularies',
 			'url'	=>'admin/vocabularies'
 		),
 		array(
 			'type'	=>'divider'
-		),
+		),*/
 		array(
 			'title'	=>'Facets',
 			'url'	=>'admin/facets'
