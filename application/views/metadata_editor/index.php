@@ -237,6 +237,8 @@
         <?php 
             //tree view component
             echo $this->load->view("metadata_editor/vue-form-tree",null,true);
+
+            echo $this->load->view("metadata_editor/vue-simple-array-component.js",null,true);
         ?>
 
         //Metadata Form ///////////////////////////////////////////////////
