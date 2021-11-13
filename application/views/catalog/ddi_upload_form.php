@@ -74,7 +74,7 @@ if ($max_upload>$max_post){
       <label for="exampleInputEmail1">Select data type</label>
       <select name="type" class="form-control">
         <option value="survey">Microdata</option>
-        <option value="geospatial" >Geospatial</option>
+        <!--<option value="geospatial" >Geospatial</option>-->
         <option value="document">Document</option>
         <option value="table">Table</option>
         <option value="timeseries">Timeseries</option>

@@ -32,7 +32,7 @@
     <script>
         console.log(deepdash.eachDeep); // --> all the methods just work
 
-/*
+<?php /*
         //initialize schema validator
         var ajv = Ajv({
                 allErrors : true
@@ -41,14 +41,16 @@
         survey_schema=<?php echo file_get_contents('application/schemas/survey-schema.json');?>;
         ddi_schema=<?php echo file_get_contents('application/schemas/ddi-schema.json');?>;
         datafile_schema=<?php echo file_get_contents('application/schemas/datafile-schema.json');?>;  
-        variable_schema=<?php echo file_get_contents('application/schemas/variable-schema.json');?>;    
+        variable_schema=<?php echo file_get_contents('application/schemas/variable-schema.json');?>;
+        provenance_schema=<?php echo file_get_contents('application/schemas/provenance-schema.json');?>;    
         ajv.addSchema(ddi_schema,'http://ihsn.org/schemas/ddi-schema.json');
         ajv.addSchema(datafile_schema,'http://ihsn.org/schemas/datafile-schema.json');
         ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');
+        ajv.addSchema(provenance_schema,'http://ihsn.org/schemas/provenance-schema.json');
         //ajv.addSchema(survey_schema,'survey-schema');
 
         var validate_x = ajv.compile(survey_schema);
-*/
+*/ ?>
 
 
 
@@ -411,6 +413,8 @@
 
             //nested
             echo $this->load->view("metadata_editor/vue-nested-section-component.js",null,true);
+
+            echo $this->load->view("metadata_editor/vue-simple-array-component.js",null,true);
         ?>
 
         
@@ -552,6 +556,9 @@
                     allErrors : true
                 });
 
+                provenance_schema=<?php echo file_get_contents('application/schemas/provenance-schema.json');?>;        
+                ajv.addSchema(provenance_schema,'http://ihsn.org/schemas/provenance-schema.json');
+
                 if (vm.dataset_type=='survey'){
                     survey_schema=<?php echo file_get_contents('application/schemas/survey-schema.json');?>;
                     ddi_schema=<?php echo file_get_contents('application/schemas/ddi-schema.json');?>;
@@ -559,7 +566,7 @@
                     variable_schema=<?php echo file_get_contents('application/schemas/variable-schema.json');?>;    
                     ajv.addSchema(ddi_schema,'http://ihsn.org/schemas/ddi-schema.json');
                     ajv.addSchema(datafile_schema,'http://ihsn.org/schemas/datafile-schema.json');
-                    ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');
+                    ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');                    
                     //ajv.addSchema(survey_schema,'survey-schema');
                     this.schema_validator= ajv.compile(survey_schema);
                 }
@@ -662,7 +669,9 @@
 
                 removeEmpty: function (obj) {
                     vm=this;
+                    try {
                     $.each(obj, function(key, value){
+                        console.log("no error");
                         if (value === "" || value === null || ($.isArray(value) && value.length === 0) ){
                             delete obj[key];
                         } else if (JSON.stringify(value) == '[{}]' || JSON.stringify(value) == '[[]]'){
@@ -673,46 +682,13 @@
                             $.each(value, function (k,v) { vm.removeEmpty(v); });
                         }
                     });
+                    }catch (error) {
+                    console.error(error);
+                    // expected output: ReferenceError: nonExistentFunction is not defined
+                    // Note - error messages will vary depending on browser
+                    }
                 },
-
-
-                loadData: function(dataset_idno){
-                    vm=this;
-                    let url='https://dev.ihsn.org/nada/index.php/metadata/export/74138/json';
-                    axios.get(url, {
-                        params: {
-                            IDx: 12345
-                        }
-                        /*headers: {
-                            "xname" : "value"
-                        }*/
-                    })
-                    .then(function (response) {
-                        console.log(response);
-                        //get a flat array with path and value
-                        data=deepdash.index(response.data)
-                        console.log(data);
-
-                        console.log(Object.keys(data));
-                        paths=Object.keys(data);
-                        
-                        //update each value using path/values
-                        for (let i = 0; i < paths.length; i++) {
-                            //console.log(paths[i]);
-                            //console.log(data[paths[i]]);
-                            vm.$vuexSet('formData.' + paths[i],data[paths[i]]);
-                        };
-                        
-                        //vm.$vuexSet('formData.study_desc.authoring_entity[0]',response.data['study_desc']['authoring_entity'][0]);
-                    })
-                    .catch(function (error) {                        
-                        console.log(error);                        
-                    })
-                    .then(function () {
-                        // always executed
-                        console.log("request completed");
-                    });
-                },
+                
                 setErrors: function(errors){
                     this.form_errors=[];
                     

@@ -65,6 +65,19 @@ Vue.component('metadata-form', {
                     </div>    
                 </div>
 
+                <div v-if="field.type=='simple_array'">
+                    <div class="form-group form-field form-field-table">
+                        <label :for="'field-' + normalizeClassID(path)">{{title}}</label>
+                        <simple-array-component
+                            :id="'field-' + normalizeClassID(path)" 
+                            :value="formData[field.key]"                            
+                            :path="field.key"
+                            :field="field"
+                            >
+                        </simple-array-component>  
+                    </div>    
+                </div>
+
                 <div v-if="field.type=='nested_array'">
                     <label :for="'field-' + normalizeClassID(field.key)">{{title}}</label>
                     <nested-section 

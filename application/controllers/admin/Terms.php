@@ -4,6 +4,8 @@ class Terms extends MY_Controller {
     function __construct() 
     {
         parent::__construct();
+		show_error('DISABLED-NO-LONGER-SUPPORTED');
+		
 		$this->load->model('term_model');
 		$this->template->set_template('admin5');
 		

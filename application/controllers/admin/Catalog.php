@@ -1655,6 +1655,20 @@ class Catalog extends MY_Controller {
 			$options['metadata']=null;
 		}
 
+		if($survey['type']=='geospatial'){
+			show_error('GEOSPATIAL-TYPE-NOT-SUPPORTED');
+		}
+
+		//fix schema elements with mixed types
+		if ($survey['type']=='survey'){
+			//coll_mode
+			$coll_mode=array_data_get($options['metadata'], 'study_desc.method.data_collection.coll_mode');
+			if(!empty($coll_mode) && !is_array($coll_mode)){
+				set_array_nested_value($options['metadata'],'study_desc.method.data_collection.coll_mode',(array)$coll_mode,'.');
+			}
+		}
+
+
 		$options['metadata_template']=file_get_contents($template_path);
 		$options['metadata_schema']=file_get_contents($schema_path);
 		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);

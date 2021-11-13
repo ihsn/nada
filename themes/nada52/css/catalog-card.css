@@ -32,6 +32,10 @@
     margin: 0.5rem auto;
 }
 
+.survey-row .owner-collection .coll-sep{
+  color:#dee2e6
+}
+
 .survey-row.wb-featured{
   /* opacity: 1;
   background-color: var(--color-highlight-bg);

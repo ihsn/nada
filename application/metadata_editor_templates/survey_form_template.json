@@ -379,7 +379,7 @@
                 {
                     "key": "study_desc.method.data_collection.coll_mode",
                     "title": "Mode of data collection",
-                    "type": "dropdown"
+                    "type": "simple_array"
                 },
                 {
                     "key": "study_desc.method.data_collection.coll_situation",

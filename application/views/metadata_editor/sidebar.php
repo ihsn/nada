@@ -45,48 +45,41 @@
             </div>
 
 
-            <a href="#" class="bg-light list-group-item list-group-item-action">
+            <a href="<?php echo site_url('admin/catalog/edit/'.$survey['id'].'/resources');?>" class="bg-light list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">                    
                     <span class="fas fa-file-alt mr-3"></span>
                     <span class="menu-collapsed">Resources</span>
-                     <span class="ml-auto badge badge-pill badge-secondary ml-2">5</span>
+                     <!--<span class="ml-auto badge badge-pill badge-secondary ml-2">5</span>-->
                 </div>
             </a>
 
-            <a href="#" class="bg-light list-group-item list-group-item-action">
+            <a href="<?php echo site_url('admin/catalog/edit/'.$survey['id'].'/files');?>" class="bg-light list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">                    
                     <span class="fas fa-upload mr-3"></span>
                     <span class="menu-collapsed">Files</span>
-                    <span class="ml-auto badge badge-pill badge-secondary ml-2">5</span>
                 </div>
             </a>
 
-
-
-            
             
             <!-- /END Separator -->
-            <a href="#" class="bg-light list-group-item list-group-item-action">
+            <a href="<?php echo site_url('admin/catalog/edit/'.$survey['id'].'/citations');?>" class="bg-light list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fas fa-book mr-3"></span>
-                    <span class="menu-collapsed">Citations</span>
-                    <span class="ml-auto badge badge-pill badge-secondary ml-2">5</span>
+                    <span class="menu-collapsed">Citations</span>                    
                 </div>
             </a>
 
-            <a href="#" class="bg-light list-group-item list-group-item-action">
+            <a href="<?php echo site_url('admin/catalog/edit/'.$survey['id'].'/related-data');?>" class="bg-light list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fas fa-network-wired  mr-3"></span>
                     <span class="menu-collapsed">Related</span>
-                    <span class="ml-auto badge badge-pill badge-secondary ml-2">5</span>
                 </div>
             </a>
 
-            <a href="#" class="bg-light list-group-item list-group-item-action">
+            <a href="<?php echo site_url('admin/catalog/edit/'.$survey['id'].'/notes');?>" class="bg-light list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fas fa-comment-alt mr-3"></span>
-                    <span class="menu-collapsed">Notes</span>
-                    <span class="ml-auto badge badge-pill badge-secondary ml-2">5</span>
+                    <span class="menu-collapsed">Notes</span>                    
                 </div>
             </a>
             

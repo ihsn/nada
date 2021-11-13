@@ -162,7 +162,7 @@
 
                 {
                     "key": "document_description.id_numbers",
-                    "title": "Identifiers (ISSN/ISBN/DOI)",                
+                    "title": "Identifiers (ISSN/ISBN/DOI)",
                     "type": "array",
                     "props": {
                         "type": {
@@ -170,7 +170,7 @@
                             "title": "ID Type",
                             "type": "text",
                             "help_text": "ID number type such as ISSN, ISBN, DOI"
-                        },                    
+                        },
                         "value": {
                             "key": "value",
                             "title": "Value",
@@ -188,7 +188,21 @@
                 {
                     "key": "document_description.bibliographic_citation",
                     "title": "Bibliographic citation",
-                    "type": "textarea"
+                    "type": "array",
+                    "props": {
+                        "style": {
+                            "key": "style",
+                            "title": "Citation style",
+                            "type": "text",
+                            "help_text": "Citation style e.g. APA"
+                        },                    
+                        "citation": {
+                            "key": "citation",
+                            "title": "Citation",
+                            "type": "textarea"
+                        }
+                    }
+                    
                 },
 
                 {
@@ -487,6 +501,11 @@
                 "title": "Tags",
                 "type": "array",
                 "props": {
+                    "tag_group": {
+                        "key": "tag_group",
+                        "title": "Tag group",
+                        "type": "string"
+                    },
                     "tag": {
                         "key": "tag",
                         "title": "Tag",
@@ -495,43 +514,7 @@
                 }
             }
         ]
-    },    
-    {
-        "type": "section",
-        "id": "document_files",
-        "title": "Files",
-        "class": "recommended",
-        "items": [
-            {
-                "key": "files",
-                "title": "Files",
-                "type": "array",
-                "props": {
-                    "file_uri": {
-                        "key": "file_uri",
-                        "title": "File URI",
-                        "type": "string"
-                    },
-                    "format": {
-                        "key": "format",
-                        "title": "File format",
-                        "help_text": "The file format, physical medium, or dimensions of the resource.",
-                        "type": "string"
-                    },
-                    "location": {
-                        "key": "location",
-                        "title": "Page/Sheet#",
-                        "type": "string"
-                    },
-                    "notes": {
-                        "key": "notes",
-                        "title": "Notes",
-                        "type": "string"
-                    }
-                }
-            }
-        ]
-    },
+    },   
     {
         "type": "section",
         "id": "metadata_information",
