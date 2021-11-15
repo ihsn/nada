@@ -169,8 +169,8 @@ $fields_arr=array(
                                     title="<?php echo t('click_to_view_information');?>" 
                                     alt="<?php echo t('view_more_information');?>" 
                                     id="<?php echo $row['resource_id'];?>">
-                                    <i class="fa fa-plus-square-o icon-expand" aria-hidden="true"></i>
-                                    <i class="fa fa-minus-square-o icon-collapsed" aria-hidden="true"></i>
+                                    <i class="far fa-plus-square icon-expand" aria-hidden="true"></i>
+                                    <i class="far fa-minus-square icon-collapsed" aria-hidden="true"></i>
                                     <?php echo $row['title'];?> 
                                     <?php //var_dump($row);?>                                
                                 </span>

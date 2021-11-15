@@ -9,7 +9,6 @@ class Files extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
-		$this->load->model("Resource_model");	//todo to be deleted
 		$this->load->model("Survey_resource_model");
 		$this->is_admin_or_die();
 	}

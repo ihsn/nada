@@ -600,7 +600,8 @@ class Survey_resource_model extends CI_Model {
 	*/
 	function get_resources_by_type($surveyid,$dctype)
 	{
-		$this->db->select('*');
+		$this->db->select('resources.*,surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
 		$this->db->where('survey_id',$surveyid);
 		
 		if ($dctype=='other')
@@ -611,6 +612,7 @@ class Survey_resource_model extends CI_Model {
 			$this->db->not_like('dctype','doc/qst]');
 			$this->db->not_like('dctype','dat]');
 			$this->db->not_like('dctype','dat/micro]');
+			$this->db->not_like('dctype','[dat/');
 		}
 		else
 		{
@@ -631,7 +633,7 @@ class Survey_resource_model extends CI_Model {
 	 */
 	function is_microdata_resource($dctype)
 	{
-		$microdata_types=array('[dat/micro]','[dat]');
+		$microdata_types=array('[dat/micro]','[dat]','[dat/');
 
 		foreach($microdata_types as $type){
 			if (stripos($dctype,$type)!==FALSE){
@@ -651,7 +653,7 @@ class Survey_resource_model extends CI_Model {
 	function get_microdata_resources($surveyid)
 	{
 		$this->db->select('*');
-		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%')",NULL,FALSE);
+		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);
 		return $this->db->get('resources')->result_array();
 	}
 	
@@ -1028,7 +1030,7 @@ class Survey_resource_model extends CI_Model {
 			$insert_data['filename']=$this->normalize_filename($insert_data['filename']);
 			
 			//check if the resource file already exists
-			$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
+			$resource_exists=$this->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
 			
 			if (!$resource_exists)
 			{										
@@ -1059,6 +1061,26 @@ class Survey_resource_model extends CI_Model {
 		return $filename;
 	}
 
+
+	/**
+	 * 
+	 * Upload an RDF file and import resources
+	 * 
+	 * 
+	 */
+	function import_uploaded_rdf($sid,$tmp_path,$file_field='rdf')
+	{
+		//upload RDF file
+		$uploaded_rdf_path=$this->upload_rdf($tmp_path,$file_field);
+		
+		//import rdf entries
+		$rdf_import_result=$this->import_rdf($sid,$uploaded_rdf_path);
+
+		//delete rdf
+		@unlink($uploaded_rdf_path);
+
+		return $rdf_import_result;
+	}
 
 
 	/**
@@ -1154,38 +1176,44 @@ class Survey_resource_model extends CI_Model {
 	 *
 	 * upload rdf file
 	 *
-	 * @file_field_name 	- name of POST file variable
+	 * @file_field 	- name of POST file variable
 	 *  
 	 **/ 
-	function upload_rdf($file_field_name='file')
-	{
-		$temp_upload_folder=get_catalog_root().'/tmp';
+	function upload_rdf($tmp_path,$file_field='file')
+	{		
+		if (!$tmp_path){
+			$tmp_path=get_catalog_root().'/tmp';
 		
-		if (!file_exists($temp_upload_folder)){
-			@mkdir($temp_upload_folder);
+			if (!file_exists($tmp_path)){
+				@mkdir($tmp_path);
+			}
 		}
 		
-		if (!file_exists($temp_upload_folder)){
-			throw new Exception('DATAFILES-TEMP-FOLDER-NOT-SET');
+		if (!file_exists($tmp_path)){
+			throw new Exception('TEMP-FOLDER-NOT-SET: '.$tmp_path);
 		}
 						
 		//upload class configurations for RDF
-		$config['upload_path'] = $temp_upload_folder;
-		$config['overwrite'] = true;
-		$config['encrypt_name']=false;
+		$config['upload_path'] = $tmp_path;
+		$config['overwrite'] = FALSE;
+		$config['encrypt_name']=TRUE;
 		$config['allowed_types'] = 'rdf|xml';
-		
-		$this->load->library('upload', $config);
+
+		$this->upload->initialize($config);
 
 		//process uploaded rdf file
-		$upload_result=$this->upload->do_upload($file_field_name);
+		$rdf_upload_result=$this->upload->do_upload($file_field);
 
-		if (!$upload_result){
+		if(!$rdf_upload_result){
 			$error = $this->upload->display_errors();
 			throw new Exception("RDF_UPLOAD::".$error);
 		}
+		
+		$upload = $this->upload->data();
 
-		return $this->upload->data();		
+		//path to the uploaded rdf file
+		return $upload['full_path'];
+		
 	}
 
 
@@ -1595,6 +1623,33 @@ class Survey_resource_model extends CI_Model {
 	 * Add download links for resources
 	 * 
 	 */
+	function generate_download_link($resources)
+	{
+		foreach($resources as $idx => $resource){
+			if($this->form_validation->valid_url($resource['filename'])){
+				$resources[$idx]['_links']=array(
+					'download'=>$resource['filename'],
+					'type'=>'link'
+				);				
+			}else{
+				if(!empty($resource['filename'])){
+					$resources[$idx]['_links']=array(
+						'download'=> site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename'])),
+						'type'=>'download'
+					);
+				}
+			}  
+		}
+
+		return $resources;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Add download links for resources
+	 * 
+	 */
 	function generate_api_download_link($resources)
 	{
 		foreach($resources as $idx => $resource){
@@ -1615,4 +1670,170 @@ class Survey_resource_model extends CI_Model {
 
 		return $resources;
 	}
+
+
+
+
+	/**
+	* searche database
+	* 
+	* 	NOTE: search parameters such as keywords are accessed directly from 
+	*	POST/GET variables
+	**/
+    function search($limit = NULL, $offset = NULL)
+    {
+		$this->search_count=$this->search_count();
+		
+		if ($this->search_count==0)
+		{
+			//no point in searching
+			return NULL;
+		}
+
+		//sort
+		$sort_order=$this->input->get('sort_order');
+		$sort_by=$this->input->get('sort_by');
+		
+		$this->db->start_cache();		
+		
+		//select survey fields
+		$this->db->select('*');
+		
+		//build search using the parameters passed to the GET/POST variables
+		$where=$this->_build_search_query();
+
+		$where_clause='';
+		
+		if ($where!=NULL){
+			foreach($where['field'] as $field)
+			{
+				if ( trim($where_clause)!='')
+				{	//$this->db->or_like($field,$where['keywords']);
+					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}
+				else
+				{
+					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}	
+			}	
+		}
+		
+		if ( trim($where_clause)!='')
+		{
+			$where_clause='('.$where_clause.') AND survey_id='.$this->surveyid;
+		}
+		else
+		{
+			$where_clause='survey_id='.$this->db->escape($this->surveyid);
+		}
+		
+		//$this->db->like('surveyid',1);
+		$this->db->where($where_clause, NULL, FALSE);
+
+		//set order by
+		if ($sort_by!='' && $sort_order!=''){
+			$this->db->order_by($sort_by, $sort_order); 
+		}
+		
+	  	$this->db->limit($limit, $offset);
+		$this->db->from('resources');
+		$this->db->stop_cache();
+
+        $result= $this->db->get()->result_array();		
+		return $result;
+    }
+	
+	//builds where clause using the variables from GET
+	function _build_search_query()
+	{		
+		$fields=$this->input->get("field");
+		$keywords=$this->input->get("keywords");
+		
+		$allowed_fields=$this->allowed_fields;
+		
+		if ($keywords=='')
+		{
+			return NULL;
+		}
+		
+		if ($fields=='')
+		{
+			return NULL;
+		}
+		else if ($fields=='all')
+		{			
+			$where['field']=$allowed_fields;
+			$where['keywords']=$keywords;
+			
+			return $where;
+		}
+		else if (in_array($fields, $allowed_fields) )
+		{
+			$where['field']=array($fields);
+			$where['keywords']=$keywords;
+			
+			return $where;
+		}
+		
+		return NULL;
+	}
+
+	//returns the search result count  	
+    function search_count()
+    {
+        //build search using the parameters passed to the GET/POST variables
+		$where=$this->_build_search_query();
+
+		$where_clause='';
+		
+		if ($where!=NULL){
+			foreach($where['field'] as $field)
+			{
+				if ( trim($where_clause)!='')
+				{	//$this->db->or_like($field,$where['keywords']);
+					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}
+				else
+				{
+					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}	
+			}	
+		}
+		
+		if ( trim($where_clause)!='')
+		{
+			$where_clause='('.$where_clause.') AND survey_id='.$this->surveyid;
+		}
+		else
+		{
+			$where_clause='survey_id='.$this->db->escape($this->surveyid);
+		}
+		//print $where_clause;
+		//$this->db->like('surveyid',1);
+		$this->db->where($where_clause,NULL,FALSE);
+		$result=$this->db->count_all_results('resources');
+		return $result;
+    }
+
+
+
+	/**
+	 * 
+	 * Return an associated array using filename as the key
+	 * 
+	 * 
+	 */
+	function get_survey_resources_group_by_filename($sid)
+	{
+		$resources=$this->get_survey_resources($sid);
+		$output=array();
+		
+		foreach($resources as $resource)
+		{
+			$output[$resource['filename']]=$resource;
+		}
+
+		return $output;
+	}
+
 }

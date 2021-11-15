@@ -10,7 +10,7 @@ class Citations extends MY_Controller {
 
 		$this->template->set_template('admin5');
 		$this->load->model('Citation_model');
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );
         $this->load->library( array('acl_manager','form_validation','pagination') );
 
@@ -147,8 +147,6 @@ class Citations extends MY_Controller {
 
     function edit($id=NULL)
     {        
-        $this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-        $this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
         $this->template->add_js('javascript/underscore-min.js');
         $this->template->add_js('javascript/jquery.highlight.js');
 

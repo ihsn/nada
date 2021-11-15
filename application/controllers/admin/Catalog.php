@@ -858,7 +858,7 @@ class Catalog extends MY_Controller {
 
 		//load RDF parser class
 		$this->load->library('RDF_Parser');
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 
 		//parse RDF to array
 		$rdf_array=$this->rdf_parser->parse($rdf_contents);
@@ -898,12 +898,12 @@ class Catalog extends MY_Controller {
 			}
 
 			//check if the resource already exists for the study
-			$resource_exists=$this->Resource_model->survey_resource_exists($surveyid,$insert_data['title'],$insert_data['type'],$insert_data['filename']);
+			$resource_exists=$this->Survey_resource_model->survey_resource_exists($surveyid,$insert_data['title'],$insert_data['type'],$insert_data['filename']);
 
 			if (!$resource_exists)
 			{
 				//insert into db
-				$this->Resource_model->insert($insert_data);
+				$this->Survey_resource_model->insert($insert_data);
 			}
 		}
 	}
@@ -1770,7 +1770,7 @@ class Catalog extends MY_Controller {
 		$survey_row['files']=$this->catalog_admin->get_files_array($id);
 
 		//get microdata attached to the study
-		$survey_row['microdata_files']=$this->resource_model->get_microdata_resources($id); 
+		$survey_row['microdata_files']=$this->Survey_resource_model->get_microdata_resources($id); 
 
 		//get resources
 		//$resources['rows']=$this->catalog_admin->resources($id);

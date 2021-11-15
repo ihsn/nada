@@ -55,8 +55,8 @@ class Pdf_generator extends MY_Controller {
 				if($options['ext_resources']===1)
 				{
 					$this->load->helper('Resource_helper');
-					$this->load->model('Resource_model');					
-					$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);
+					$this->load->model('Survey_resource_model');					
+					$survey['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);
 					$survey['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 					$options['ext_resources_html']=$this->load->view('ddibrowser/report_external_resource',$survey,TRUE);
 				}

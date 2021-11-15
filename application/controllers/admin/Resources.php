@@ -7,7 +7,7 @@ class Resources extends MY_Controller {
 		
 		$this->template->set_template('admin');		
        	
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('managefiles_model');
 		$this->load->helper(array ('querystring_helper','url', 'form','file') );		
@@ -39,7 +39,7 @@ class Resources extends MY_Controller {
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
 
 		//set parent survey
-		$this->Resource_model->surveyid=$surveyid;
+		$this->Survey_resource_model->surveyid=$surveyid;
 				
 		//get records		
 		$result['rows']=$this->_search();
@@ -77,21 +77,21 @@ class Resources extends MY_Controller {
 		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
 
 		//records
-		$rows=$this->Resource_model->search($per_page, $curr_page);
+		$rows=$this->Survey_resource_model->search($per_page, $curr_page);
 
 		//total records in the db
-		$total = $this->Resource_model->search_count;
+		$total = $this->Survey_resource_model->search_count;
 
 		if ($curr_page>$total)
 		{
 			$curr_page=$total-$per_page;
 			
 			//search again
-			$rows=$this->Resource_model->search($per_page, $curr_page);
+			$rows=$this->Survey_resource_model->search($per_page, $curr_page);
 		}
 		
 		//set pagination options
-		$base_url = site_url("admin/catalog/{$this->Resource_model->surveyid}/resources");
+		$base_url = site_url("admin/catalog/{$this->Survey_resource_model->surveyid}/resources");
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
@@ -117,7 +117,7 @@ class Resources extends MY_Controller {
 	function view($resourceid)
 	{
 		//get db row by id
-		$row=$this->Resource_model->select_single($resourceid);
+		$row=$this->Survey_resource_model->select_single($resourceid);
 		
 		$data['row']=$row;
 		$data['textarea_fields']=array('abstract','toc');
@@ -192,7 +192,7 @@ class Resources extends MY_Controller {
 			foreach($delete_arr as $item)
 			{
 				//confirm delete	
-				$this->Resource_model->delete($item);
+				$this->Survey_resource_model->delete($item);
 			}
 
 			//for ajax calls, return output as JSON						
@@ -285,7 +285,7 @@ class Resources extends MY_Controller {
 			
 			if ($id=='add')
 			{
-				//set survey_id
+				//set survey_id 
 				$options['survey_id']=$survey_id;				
 			}
 			else
@@ -299,7 +299,7 @@ class Resources extends MY_Controller {
 						
 			if ($id=='add')
 			{
-				$db_result=$this->Resource_model->insert($options);
+				$db_result=$this->Survey_resource_model->insert($options);
 				
 				//log
 				if ($db_result)
@@ -310,7 +310,7 @@ class Resources extends MY_Controller {
 			else
 			{
 				//update db
-				$db_result=$this->Resource_model->update($id,$options);
+				$db_result=$this->Survey_resource_model->update($id,$options);
 				
 				//log
 				if ($db_result)
@@ -338,7 +338,7 @@ class Resources extends MY_Controller {
 			if (is_numeric($id) && $id>0)
 			{
 				//load values from db
-				$data=$this->Resource_model->select_single($id);
+				$data=$this->Survey_resource_model->select_single($id);
 			}	
 		}
 				
@@ -568,12 +568,12 @@ class Resources extends MY_Controller {
 					}
 					
 					//check if the resource file already exists
-					$resource_exists=FALSE;//$this->Resource_model->get_survey_resources_by_filepath($insert_data['survey_id'],$insert_data['filename']);
+					$resource_exists=FALSE;//$this->Survey_resource_model->get_survey_resources_by_filepath($insert_data['survey_id'],$insert_data['filename']);
 					
 					if (!$resource_exists)
 					{										
 						//insert into db
-						$this->Resource_model->insert($insert_data);
+						$this->Survey_resource_model->insert($insert_data);
 						
 						//log
 						$this->db_logger->write_log('resource-imported',$insert_data['title'].'-'.$insert_data['filename'],'resources',$insert_data['survey_id']);

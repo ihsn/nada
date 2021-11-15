@@ -1203,10 +1203,10 @@ class Datasets extends MY_REST_Controller
 			//Process RDF file if provided
 			$rdf_result=array();
 			$sid=$result['sid'];
-			$this->load->model("Resource_model");
+			$this->load->model("Survey_resource_model");
 			
 			if (!empty($_FILES['rdf']['name'])) {				
-				$rdf_result=$this->Resource_model->import_uploaded_rdf($sid,$temp_upload_folder,$file_field='rdf');
+				$rdf_result=$this->Survey_resource_model->import_uploaded_rdf($sid,$temp_upload_folder,$file_field='rdf');
 			}
 			else 
 			{
@@ -1227,7 +1227,7 @@ class Datasets extends MY_REST_Controller
 					}
 
 					//import
-					$rdf_result=$this->Resource_model->import_rdf($sid,$tmp_rdf_file);
+					$rdf_result=$this->Survey_resource_model->import_rdf($sid,$tmp_rdf_file);
 				}
 			}
 
@@ -2075,10 +2075,10 @@ class Datasets extends MY_REST_Controller
 			//include external resources in the report?
 			if($pdf_options['ext_resources']===1){
 				$this->load->helper('Resource_helper');
-				$this->load->model('Resource_model');
+				$this->load->model('Survey_resource_model');
 				
 				$survey_resources=array();
-				$survey_resources['resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);
+				$survey_resources['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);
 				$survey_resources['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 
 				$pdf_options['ext_resources_html']=$this->load->view('ddibrowser/report_external_resource',$survey_resources,TRUE);

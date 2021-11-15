@@ -89,7 +89,8 @@ class Managefiles_model extends CI_Model {
 				//check if a microdata file
 				$ismicro=FALSE;
 				
-				if(strpos($resource['dctype'],'dat/micro]')!==FALSE || strpos($resource['dctype'],'dat]')!==FALSE)
+				if(strpos($resource['dctype'],'dat/micro]')!==FALSE 
+					|| strpos($resource['dctype'],'dat]')!==FALSE || strpos($resource['dctype'],'[dat/')!==FALSE)
 				{
 					$ismicro=TRUE;
 				}

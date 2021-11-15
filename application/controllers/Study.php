@@ -9,7 +9,7 @@ class Study extends MY_Controller {
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
 		$this->load->model("Survey_type_model");
-        $this->load->model("Resource_model");
+        $this->load->model("Survey_resource_model");
         $this->load->model("Citation_model");
 		$this->load->model("Data_file_model");
 		$this->load->model("Related_study_model");
@@ -56,7 +56,7 @@ class Study extends MY_Controller {
 		$this->template->add_js($json_ld,'inline');
 
 		//if( in_array($survey['type'], array('script', 'document','table'))){
-		$survey['resources']=$this->Resource_model->get_survey_resources_group_by_filename($sid);	    		
+		$survey['resources']=$this->Survey_resource_model->get_survey_resources_group_by_filename($sid);	    		
 		//}
 		
 		$this->metadata_template->initialize($survey['type'],$survey);
@@ -222,13 +222,13 @@ class Study extends MY_Controller {
 	public function related_materials($sid=NULL)
 	{
         $this->load->helper("resource_helper");
-        $this->load->model('Resource_model');
+        $this->load->model('Survey_resource_model');
 		$this->load->model("Form_model");
 		$this->load->model("Licensed_model");		
 		
 		$user=$this->ion_auth->current_user();
 		$options['user_id']=isset($user->id) ? $user->id : false;
-        $options['resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);
+        $options['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);
         $options['sid']=$sid;
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 		$microdata_resources=$this->Survey_resource_model->get_microdata_resources($sid);
@@ -282,7 +282,7 @@ class Study extends MY_Controller {
 		$this->load->library('chicago_citation');
 		$this->lang->load("resource_manager");
 		$this->load->helper("resource_helper");
-		$this->load->model('Resource_model');//get survey related citations
+				
 		$options['citations']=$this->Citation_model->get_citations_by_survey($sid,$this->input->get('sort_by'),$this->input->get('sort_order'));
 		$content=$this->load->view('catalog_search/survey_summary_citations',$options,TRUE);
         $options['sid']=$sid;
@@ -374,7 +374,7 @@ class Study extends MY_Controller {
         }*/
 
         //get a count of related resources for the survey
-		$related_resources_count=$this->Resource_model->get_resources_count_by_survey($sid);
+		$related_resources_count=$this->Survey_resource_model->get_resources_count_by_survey($sid);
 		
 		//get related studies
 		$related_studies=$this->Related_study_model->get_related_studies_list($sid);
@@ -556,10 +556,10 @@ class Study extends MY_Controller {
 		}
 
 		$this->load->model("Repository_model");
-		$this->load->model("Resource_model");
+		$this->load->model("Survey_resource_model");
 		$survey['repositories']=$this->Catalog_model->get_survey_repositories($id);
 		$survey['owner_repo']=$this->Repository_model->get_survey_owner_repository($id);
-		$survey['has_resources']=$this->Resource_model->has_external_resources($id);
+		$survey['has_resources']=$this->Survey_resource_model->has_external_resources($id);
 		$survey['storage_path']=$this->Dataset_model->get_storage_fullpath($id);
 
 		if (!$survey['owner_repo']){
@@ -665,7 +665,7 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Public_model');
 		$this->load->model('Form_model');
@@ -781,18 +781,16 @@ class Study extends MY_Controller {
 			break;
 
 			case 'resources':
-				$this->load->model('Resource_model');
-				$result['resources_microdata']=$this->Resource_model->get_microdata_resources($id);
+				$result['resources_microdata']=$this->Survey_resource_model->get_microdata_resources($id);
 				$data['tab_content']= $this->load->view('ddibrowser/study_review_microdata', $result,TRUE);
 
-				$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($id);
+				$survey['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($id);
 				$data['tab_content'].= $this->load->view('ddibrowser/study_review_resources',$survey,TRUE);
 			break;
 
 			case 'download':
 				$resource_id=$this->uri->segment(5);
-				$this->load->model('Resource_model');
-				$resource_path= $this->Resource_model->get_resource_download_path($resource_id);
+				$resource_path= $this->Survey_resource_model->get_resource_download_path($resource_id);
 
 				if(!$resource_path)
 				{

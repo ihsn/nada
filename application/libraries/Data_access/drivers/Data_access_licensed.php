@@ -211,8 +211,8 @@ class Data_access_licensed extends CI_Driver {
 	//get microdata files by request id
 	function get_data_files($request_id)
 	{
-		$this->CI->load->model('Resource_model');
-		$data['resources_microdata']=$this->CI->Licensed_model->get_request_downloads($request_id);//$this->CI->Resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
+		$this->CI->load->model('Survey_resource_model');
+		$data['resources_microdata']=$this->CI->Licensed_model->get_request_downloads($request_id);//$this->CI->Survey_resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
 		$data['request_id']=$request_id;
 		return $this->CI->load->view('access_licensed/data_files_per_request', $data,TRUE);
 	}

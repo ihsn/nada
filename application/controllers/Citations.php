@@ -9,7 +9,7 @@ class Citations extends MY_Controller {
 
 		$this->template->set_template('default');
 		$this->load->model('Citation_model');
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );
 		$this->load->library( array('form_validation','pagination') );
 		$this->load->library('chicago_citation');

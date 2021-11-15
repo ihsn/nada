@@ -442,7 +442,7 @@ class Licensed_model extends CI_Model {
 	//get a list of licensed surveys for the user
 	function get_survey_licensed_files($surveyid)
 	{		
-		$where=" survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%') ";
+		$where=" survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%') ";
 		
 		$this->db->select('title,filename,resource_id');
 		$this->db->from('resources');

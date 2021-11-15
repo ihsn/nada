@@ -449,9 +449,10 @@ class Survey_model extends CI_Model {
     }
 
 	//import RDF
-	public function import_rdf($surveyid,$filepath){
-		$this->load->model("Resource_model");
-		return $this->Resource_model->import_rdf($surveyid,$filepath);
+	public function import_rdf($surveyid,$filepath)
+	{
+		$this->load->model("Survey_resource_model");
+		return $this->Survey_resource_model->import_rdf($surveyid,$filepath);
 	}
 
 

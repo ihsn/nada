@@ -118,8 +118,8 @@ class Data_access_public extends CI_Driver {
 	//get study microdata files
 	function get_data_files($sid)
 	{
-		$this->CI->load->model('Resource_model');
-		$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);
+		$this->CI->load->model('Survey_resource_model');
+		$result['resources_microdata']=$this->CI->Survey_resource_model->get_microdata_resources($sid);
 		$result['sid']=$sid;
 		$result['storage_path']=$this->CI->Dataset_model->get_storage_fullpath($sid);
 		return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);

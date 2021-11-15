@@ -22,7 +22,7 @@ class Data_access_enclave extends CI_Driver {
 		
 		$this->CI->load->model('Catalog_model');
 		$this->CI->load->model('managefiles_model');
-		$this->CI->load->model('Resource_model');
+		$this->CI->load->model('Survey_resource_model');
 		$this->CI->lang->load('data_enclave');		
 	}
 	

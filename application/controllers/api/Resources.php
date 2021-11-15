@@ -9,7 +9,6 @@ class Resources extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
-		$this->load->model("Resource_model");	//todo to be deleted
 		$this->load->model("Survey_resource_model");
 		$this->load->library("Dataset_manager");		
 		$this->is_authenticated_or_die();
@@ -79,13 +78,13 @@ class Resources extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM: resourceId");
 			}
 			
-			$resource=$this->Resource_model->get_single_resource_by_survey($sid,$resource_id);
+			$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
 			
 			if(!$resource){
 				throw new Exception("RESOURCE_NOT_FOUND");
 			}
 						
-			$resources=$this->Resource_model->generate_api_download_link(array($resource));
+			$resources=$this->Survey_resource_model->generate_api_download_link(array($resource));
 			
 			$response=array(
 				'status'	=> 'success',
@@ -211,7 +210,7 @@ class Resources extends MY_REST_Controller
 				$options['dctype']=$this->Survey_resource_model->get_dctype_label_by_code($options['dctype']);
 			}
 			
-			$resource=$this->Resource_model->get_single_resource_by_survey($sid,$resource_id);
+			$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
 			
 			if(!$resource){
 				throw new Exception("RESOURCE_NOT_FOUND");
@@ -312,7 +311,7 @@ class Resources extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
 
-			$result=$this->Survey_resource_model->upload_rdf('file');
+			$result=$this->Survey_resource_model->upload_rdf($tmp_path=null,'file');
 			$uploaded_file_name=$result['file_name'];
 			$uploaded_path=$result['full_path'];
 
