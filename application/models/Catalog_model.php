@@ -1080,10 +1080,11 @@ class Catalog_model extends CI_Model {
 	* returns a compact list of all surveys
 	*
 	**/
-	function select_all_compact()
+	function select_all_compact($type='survey')
 	{
 		$this->db->select('id, idno,title,nation');
 		$this->db->order_by('nation, title'); 
+		$this->db->where('type',$type);
 		return $this->db->get('surveys')->result_array();		
 	}
 

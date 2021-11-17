@@ -540,7 +540,7 @@ class Catalog extends MY_Controller {
 		$this->acl_manager->has_access_or_die('study', 'batch_refresh',null,$this->active_repo->repositoryid);
 
 		//list of all surveys
-		$data['surveys']=$this->Catalog_model->select_all_compact();
+		$data['surveys']=$this->Catalog_model->select_all_compact('survey');
 		//show
 		$contents=$this->load->view('catalog/ddi_batch_refresh',$data,TRUE);
 		$this->template->write('content', $contents,true);

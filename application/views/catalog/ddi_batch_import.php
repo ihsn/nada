@@ -7,7 +7,9 @@
 
 <?php
 //get repositories list by user access
-$repositories_list=array();
+$repositories_list=array(
+	'central'=> t('central_data_catalog')
+);
 foreach($repositories as $repo){
 	$repositories_list[$repo["repositoryid"]]=$repo['title']. ' ('.strtoupper($repo['repositoryid']).')';
 }
