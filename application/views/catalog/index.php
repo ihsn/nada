@@ -33,7 +33,7 @@
 		<?php if (!$rows): ?>
 			<div>
 				<?php echo t('no_records_found');?>
-				<a href="<?php echo site_url('admin/catalog');?>" class="btn btn-primary btn-sm">Reset search</a>
+				<a href="<?php echo site_url('admin/catalog');?>" class="btn btn-primary btn-sm"><?php echo t('reset_search');?></a>
 			</div>
 		<?php else:?>
 		<form  method="GET" id="catalog-search">

@@ -144,6 +144,7 @@ $lang['data_remote_description']="Related documentation is made freely available
 $lang['data_na_description']="Related documentation is made freely available to users. The datasets are however not available for these studies.";
 $lang['data_open_description']="Datasets and the related documentation are made available freely to users.";
 $lang['filter_by_data']="Data Access";
+$lang['filter_by_region']="Regions";
 $lang['legend_na_access']="Data not available";
 $lang['central_data_catalog']="Central Data Catalog";
 $lang['about']="About";
@@ -264,6 +265,7 @@ $lang['related_publications_text']="The data from this study are used in the fol
 $lang['related_studies']="Related studies";
 
 $lang['variable_group']='Variable group';
+$lang['keywords']="Keywords";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

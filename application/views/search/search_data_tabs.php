@@ -1,7 +1,7 @@
 <div class="search-nav-tabs-container">
 <ul class="nav nav-tabs nav-tabs-auto-overflow mb-5 search-nav-tabs">
     <li class="nav-item">
-        <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#">All         
+        <a class="dataset-type-tab dataset-type-tab-all nav-link <?php echo $tabs['active_tab']=='' ? 'active' : '';?>" data-value="" href="#"><?php echo t('All');?>
         <span class="type-count-all">&nbsp;</span>
         </a>
     </li>

@@ -25,6 +25,7 @@ class Study extends MY_Controller {
 		$this->lang->load('general');
 		$this->lang->load("catalog_search");
 		$this->lang->load('ddibrowser');
+		$this->lang->load('resource_manager');
 		//$this->load->helper('catalog');
 		//$this->output->enable_profiler(TRUE);
 

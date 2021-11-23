@@ -532,7 +532,7 @@ $(document).ready(function() {
 
     function search(){
         search_state=$("#catalog-search-form").serialize();
-        $( "#search-result-container" ).html('Loading, please wait ...');
+        $( "#search-result-container" ).html('<?php echo t('js_loading');?>');
 
         $.get('<?php echo site_url('catalog/search');?>?'+search_state, function( data ) {
             $( "#search-result-container" ).html( data );
@@ -752,7 +752,7 @@ $(document).ready(function() {
 					<div class="modal-body">\
 				</div>\
 					<div class="modal-footer">\
-						<button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>\
+						<button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><?php echo t('Close');?></button>\
 					</div>\
 					</div>\
 					</div>\

@@ -32,7 +32,7 @@ $lang['in_variable_description']="in variable description";
 $lang['sort_results_by']="Sort results by";
 $lang['year']="Year";
 $lang['country']="Country";
-$lang['switch_to_variable_view']="Switch to variable view";
+
 $lang['compare']="Compare";
 $lang['showing_studies']="Showing <b>%d-%d</b> of <b>%d</b>";
 $lang['found_study']="Found <b>%d</b> study out of <b>%d</b>";
@@ -65,7 +65,7 @@ $lang['link_study_website']="Study website";
 $lang['link_study_website_hover']="Study website (with all available documentation)";
 $lang['link_ddi']="Study Metadata (DDI)";
 $lang['link_ddi_hover']="Study metadata in DDI format";
-$lang['switch_to_study_view']="Switch to study view";
+
 $lang['compare_hover']="Compare variables";
 $lang['compare_selected_variables']="Compare selected variables";
 $lang['mark_for_variable_comparison']="Mark for variable comparison";
@@ -202,6 +202,7 @@ $lang['dataset_type_table']="Tables";
 $lang['dataset_type_document']="Documents";
 $lang['dataset_type_geospatial']="Geospatial";
 $lang['dataset_type_image']="Images";
+$lang['All']="Geospatial_all";
 
 $lang['variables']="Variables";
 $lang['total']="Total";
@@ -263,6 +264,24 @@ $lang['related_publications_text']="The data from this study are used in the fol
 $lang['related_studies']="Related studies";
 
 $lang['variable_group']='Variable group';
+$lang['keywords']="Keywords";
+$lang['Relevance']="Relevance";
+$lang['Popularity']="Popularity";
+$lang['Year (Recent &uarr;)']="Year (Recent &uarr;)";
+$lang['Year (Oldest &darr;)']="Year (Oldest &darr;)";
+$lang['Title (A-Z)']="Title (A-Z)";
+$lang['Title (Z-A)']="Title (Z-A)";
+$lang['Country (A-Z)']="Country (A-Z)";
+$lang['Country (Z-A)']="Country (Z-A)";
+
+$lang['Study view']="Study view";
+$lang['Variable view']="Variable view";
+$lang['switch_to_study_view']="Switch to study view";
+$lang['switch_to_variable_view']="Switch to variable view";
+$lang['filter_by_region']="Regions";
+
+$lang['Close']="Close";
+$lang['Back to Catalog']="Back to Catalog";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

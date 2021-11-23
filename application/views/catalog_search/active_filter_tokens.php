@@ -37,7 +37,7 @@ if (!isset($_GET['collection']))
                 <span>
                     <?php if($found!=$total):?>
                         <a href="<?php echo site_url('catalog');?>" class="btn btn btn-outline-primary btn-sm">
-                            <i class="fa fa-refresh"></i> Reset search
+                            <i class="fa fa-refresh"></i> <?php echo t('reset_search');?>
                         </a>
                     <?php endif;?>
                   <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm"><i class="fa fa-print"></i></a>

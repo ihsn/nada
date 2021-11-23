@@ -84,7 +84,7 @@
     <?php if (!empty(trim($active_filters))):?>
         <div class="active-filters">
             <?php echo $active_filters;?>
-            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-danger btn-sm">Reset search</a>
+            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-danger btn-sm"><?php echo t('reset_search');?></a>
         </div>        
     <?php endif;?>
 </div>    
