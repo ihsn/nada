@@ -314,7 +314,7 @@
                 <?php if (!empty($row['thumbnail'])):?>
                     <div class="<?php echo $row_col1_class;?>  wb-col-media" >
                         <a href="<?php echo site_url('catalog/'.$row['id']); ?>">                        
-                            <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>" alt="" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail"/>                        
+                            <img src="<?php echo base_url();?>files/thumbnails/<?php echo basename($row['thumbnail']);?>?v=<?php echo $row['changed'];?>" alt="" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail"/>                        
                         </a>
                     </div>
                 <?php endif;?>

@@ -225,7 +225,7 @@ if (in_array($tab_type, array('document', 'timeseries', 'script'))) {
                 <div class="<?php echo $thumbnail_col_class; ?>">
                     <a href="<?php echo site_url('catalog/' . $row['id']); ?>">
                         <?php if (!empty($row['thumbnail'])) : ?>
-                            <img src="<?php echo base_url(); ?>files/thumbnails/<?php echo basename($row['thumbnail']); ?>" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail" />
+                            <img src="<?php echo base_url(); ?>files/thumbnails/<?php echo basename($row['thumbnail']); ?>?v=<?php echo $row['changed'];?>" class="img-fluid img-thumbnail rounded shadow-sm study-thumbnail" />
                         <?php else : ?>
                             <img src="<?php echo base_url(); ?>files/icon-blank.png" class="img-fluid img-thumbnail rounded shadow-sm w-100 study-thumbnail" />
                         <?php endif; ?>

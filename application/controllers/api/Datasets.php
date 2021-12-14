@@ -1441,9 +1441,9 @@ class Datasets extends MY_REST_Controller
 
 			//upload class configurations for RDF
 			$config['upload_path'] = $thumbnail_storage_path;
-			$config['overwrite'] = TRUE;
+			$config['overwrite'] = false;
 			$config['encrypt_name']=false;
-			$config['file_name']='thumbnail-'.$sid;
+			$config['file_name']='thumbnail-s'.$sid;
 			$config['file_ext_tolower']=true;
 			$config['allowed_types'] = 'jpg|png|gif|jpeg';
 
@@ -2344,6 +2344,11 @@ class Datasets extends MY_REST_Controller
 	/**
 	 * 
 	 * Manage collection owner and links for collections
+	 * 
+	 * @study_idno - study idno
+	 * @owner_collection - (optional) - owner collection
+	 * @link_collections (required - string array) - collections
+	 * @mode - replace | update
 	 * 
 	 **/
 	function collections_post()

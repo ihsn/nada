@@ -24,7 +24,7 @@
 		<div class="col-md-2">
 			<div class="collection-thumb-container">
 				<a href="<?php echo site_url('catalog/'.$survey['owner_repo']['repositoryid']);?>">
-				<img  src="<?php echo base_url().$thumbnail;?>" class="mr-3 img-fluid img-thumbnail" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
+				<img  src="<?php echo base_url().$thumbnail;?>?v=<?php echo $survey['changed']; ?>" class="mr-3 img-fluid img-thumbnail" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
 				</a>
 			</div>		
 		</div>

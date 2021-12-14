@@ -116,8 +116,8 @@
 
 
 <!-- variable comparison -->
-<div class="variable-comparison-popup-backdrop wb-collapsed"></div>
-<div class="fixed-bottom variable-comparison-popup wb-collapsed">
+<div class="variable-comparison-popup-backdrop wb-collapsed" ></div>
+<div class="fixed-bottom variable-comparison-popup wb-collapsed" style="display:none;">
 
     <div class="container pt-2 mt-4 mb-3 d-none d-md-block" >
        <div class="row wb-var-panel">
@@ -356,7 +356,7 @@ var i18n=
             $(".variable-comparison-popup .var-in-cart").html(data.length);
         })
         .fail(function() {
-            alert("error");
+            console.log("error");
         })
 
         
