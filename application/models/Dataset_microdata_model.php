@@ -22,7 +22,17 @@ class Dataset_microdata_model extends Dataset_model {
         $this->load->model('Form_model');
     }
 
-    function create_dataset($type,$options, $sid=null)
+
+    /**
+     * 
+     * 
+     * @type - survey | table | document etc
+     * @options - metadata
+     * @sid - study ID for updating an existing study
+     * @is_update - for partially updating a study
+     * 
+     */
+    function create_dataset($type,$options, $sid=null,$is_update=false)
 	{
 		//validate schema
         $this->validate_schema($type,$options);
@@ -122,15 +132,22 @@ class Dataset_microdata_model extends Dataset_model {
 
 		//set geographic locations (bounding box)
 
+        //for creating new studies, always remove the existing data
+        $remove_existing=true;
+
+        //for partial updates
+        if ($is_update==true){
+            $remove_existing=false;
+        }
 
         //data files
-        $this->create_update_data_files($dataset_id,$data_files, $remove_existing=true);
+        $this->create_update_data_files($dataset_id,$data_files, $remove_existing);
         
         //variables
-        $this->create_update_variables($dataset_id,$variables, $remove_existing=true);
+        $this->create_update_variables($dataset_id,$variables, $remove_existing);
 
 		//variable groups?
-		$this->create_update_variable_groups($dataset_id,$variable_groups, $remove_existing=true);
+		$this->create_update_variable_groups($dataset_id,$variable_groups, $remove_existing);
 
 		//complete transaction
         $this->db->trans_complete();
@@ -168,7 +185,7 @@ class Dataset_microdata_model extends Dataset_model {
             }
         }
 
-        return $this->create_dataset($type,$options,$sid);        
+        return $this->create_dataset($type,$options,$sid,$is_update=true);        
     }
     
 
