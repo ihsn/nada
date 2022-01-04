@@ -1089,7 +1089,7 @@
                         "is_primary":{
                           "title":"Is Primary",
                           "description":"Is a primary unit?",
-                          "type":"boolean",
+                          "type":["boolean","string"],
                           "_ddi_xpath":"stdyDscr/method/dataColl/sampleFrame/frameUnit/@isPrimary"
                         },
                         "unit_type":{
