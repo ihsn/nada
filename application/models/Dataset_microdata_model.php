@@ -183,6 +183,31 @@ class Dataset_microdata_model extends Dataset_model {
                 $options=$this->array_merge_replace_metadata($metadata,$options);
                 $options=array_remove_nulls($options);
             }
+
+            //merge variables
+            if(isset($options['variables'])){
+                foreach($options['variables'] as $idx=>$variable){ 
+                    //validate file_id exists
+                    $fid=$this->Data_file_model->get_fid_by_fileid($sid,$variable['file_id']);
+            
+                    if(!$fid){
+                        throw new exception("variable update failed. Variable 'file_id' not found: ".$variable['file_id']);
+                    }
+        
+                    //partial update variables
+                    $variable_db_value=$this->Variable_model->get_by_var_id($sid, $variable['file_id'], $variable['vid']);
+
+                    if ($variable_db_value){
+                        //merge/replace variable metadata
+                        $variable=array_replace_recursive($variable_db_value['metadata'],$variable);
+                    }
+
+                    $variable['fid']=$variable['file_id'];
+                    $this->Variable_model->validate_variable($variable);
+                    $options['variables'][$idx]=$variable;
+                }
+                $options=array_remove_nulls($options);
+            }
         }
 
         return $this->create_dataset($type,$options,$sid,$is_update=true);        
@@ -296,15 +321,15 @@ class Dataset_microdata_model extends Dataset_model {
         }
         
         if(is_array($variables)){
-			foreach($variables as $variable){ 
+			foreach($variables as $idx=>$variable){ 
 				//validate file_id exists
 				$fid=$this->Data_file_model->get_fid_by_fileid($dataset_id,$variable['file_id']);
 		
 				if(!$fid){
 					throw new exception("variable creation failed. Variable 'file_id' not found: ".$variable['file_id']);
 				}
-							
-				$variable['fid']=$variable['file_id'];
+
+                $variable['fid']=$variable['file_id'];
 				$this->Variable_model->validate_variable($variable);
 			}
 
