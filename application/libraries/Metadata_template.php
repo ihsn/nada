@@ -35,7 +35,7 @@ class Metadata_template {
 	* 
 	* @type - survey, timeseries, geospatial
 	**/ 
-   function initialize($type, $metadata)
+   function initialize($type, $metadata, $template=null)
    {	  
 	  $this->metadata=$metadata;
 	  $this->survey_type=$type;	  
@@ -55,8 +55,12 @@ class Metadata_template {
 	  if (!isset($config[$type]) || !isset($config[$type]['template'])){
 		 throw new Exception("METADATA_VIEW_NOT_DEFINED: ".$type);
 	  }
-	  	  
-	  $this->view_path=$config[$type]['template'];
+	  
+	  if ($template){
+		$this->view_path=$template;
+	  }else{
+	  	$this->view_path=$config[$type]['template'];
+	  }
 
 	  //language file
 	  $lang_file=$config[$type]['language_translations'];

@@ -575,7 +575,7 @@ class Datasets extends MY_REST_Controller
 	 * 
 	 * 
 	 * Update dataset
-	 * @type - survey, timesereis, geospatial
+	 * @type - survey, timeseries, geospatial
 	 * 
 	 */
 	function update_post($type=null,$idno=null)
