@@ -98,16 +98,15 @@ class Pdf_generator extends MY_Controller {
 		$params=array('codepage'=>$options['report_lang']);
 
 		$this->load->library('pdf_report',$params);// e.g. 'codepage' = 'zh-CN';
-		$this->load->library('DDI_Browser','','DDI_Browser');
+		//$this->load->library('DDI_Browser','','DDI_Browser');
 			
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($surveyid);
 		$survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
-		//$survey_folder=$this->Dataset_model->get_storage_fullpath($surveyid);		
-		
-		if ($ddi_file===FALSE || !file_exists($ddi_file)){
+				
+		/*if ($ddi_file===FALSE || !file_exists($ddi_file)){
 			show_error(t('file_not_found'. $ddi_file));
-		}
+		}*/
 	
 		//output report file name
 		$report_file=unix_path($survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$surveyid.'.pdf');
@@ -131,7 +130,8 @@ class Pdf_generator extends MY_Controller {
 			$start_time=date("H:i:s",date("U"));
 
 			//write PDF report to a file
-			$this->pdf_report->generate($report_file,$ddi_file,$options);
+			$this->pdf_report->generate($surveyid,$report_file,$options);
+			//$this->pdf_report->generate($report_file,$ddi_file,$options);
 			$end_time=date("H:i:s",date("U"));
 			
 			//log

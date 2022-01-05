@@ -169,6 +169,32 @@ class Variable_model extends CI_Model {
         return $variable;
     }
 
+    //get multiple variables by VIDs
+    function get_batch_variable_metadata($sid, $file_id=null, $vid_arr=array())
+    {
+        if(empty($vid_arr)){
+            return false;
+        }
+
+        $this->db->select("*");
+        $this->db->where("sid",$sid);
+        $this->db->where_in("vid",$vid_arr);
+
+        if($file_id){
+            $this->db->where("fid",$file_id);
+        }
+
+        $variables=$this->db->get("variables")->result_array();
+
+        foreach($variables as $idx=>$variable){
+            if(isset($variable['metadata'])){
+                $variables[$idx]['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            }
+        }
+
+        return $variables;
+    }
+
 
     function get_uid_by_vid($sid,$vid)
     {
