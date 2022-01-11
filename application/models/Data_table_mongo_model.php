@@ -6,6 +6,8 @@ use JsonSchema\Constraints\Factory;
 use JsonSchema\Constraints\Constraint;
 use League\Csv\Reader;
 
+require_once 'modules/mongodb/vendor/autoload.php';
+
 class Data_table_mongo_model extends CI_Model {
 
     private $geo_fields=array();
@@ -28,7 +30,6 @@ class Data_table_mongo_model extends CI_Model {
         
         //tood: use a config value to set current database
         $this->db_name=$this->config->item("mongodb_database");
-
         $this->mongo_client=$this->get_db_connection();
     }
 
@@ -41,7 +42,7 @@ class Data_table_mongo_model extends CI_Model {
         $port=$this->config->item("mongodb_port");
 
 
-	if (!empty($username) && !empty($password)){
+	    if (!empty($username) && !empty($password)){
             return new MongoDB\Client(
                 "mongodb://${host}:${port}",
                     array(

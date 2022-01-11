@@ -16,9 +16,15 @@ h5{
     font-weight:bold!important;
 }
 
+.home-page-search-container{
+    background:#dee2e6;
+    padding-bottom:30px;
+}
+
 .popular-studies .row{font-size:14px;}
 </style>
 <?php
+$this->template->add_variable("body_class","container-fluid-full");
 //get stats
 $survey_count=$this->stats_model->get_survey_count();
 $variable_count=$this->stats_model->get_variable_count();
@@ -48,14 +54,10 @@ $data_types=array(
 ?>
 
 
-<div class="text-center container wb-library-search mb-5 py-2 pt-3">
-    <div class="container home-page-search-container">
-        <h1 class="wb-library-search-title pt-4 pb-3">Microdata Library</h1>
+<div class="text-center  wb-library-search mb-2 py-2 pt-3">
+    <div class="home-page-search-container">
+        <h1 class="wb-library-search-title pt-5 pb-3"><?php echo $this->config->item("website_title"); ?></h1>
         <div class="sub-text mt-3 mb-0">Search in <strong><?php echo $survey_count; ?></strong> datasets</div>
-        <?php /* 
-        <div class="sub-text my-3">Search in <strong><?php echo $survey_count; ?></strong> surveys, <strong><?php echo $variable_count; ?></strong> variables and <strong><?php echo $citation_count; ?></strong> citations</div>
-        */?>
-
 
         <div class="row justify-content-center">
             <div class="col-10 col-md-8 ">
@@ -89,6 +91,60 @@ $data_types=array(
     </div>
 </div>
 
+
+<?php /*
+//text intro block
+<div class="container">
+    <div class="text-center  py-3" >
+        <p class="text-dark" style="font-size:16px;">NADA is an open-source application ...</p>
+    </div>
+</div>
+*/ ?>
+
+<?php /*
+<div class="container-fluid wb-features-list mb-5">
+    <div class="container container-2">
+        <div class="row justify-content-md-center">
+            <div class="col-4">
+                <div class="card wb-card--solid text-center wb-features-item">
+                    <a href="<?php echo site_url('catalog');?>">
+                        <div class="icon-x">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h5>Browse Catalog</h5>
+                    </a>
+                </div>
+            </div>
+
+
+            <div class="col-4">
+                <div class="card wb-card--solid text-center wb-features-item">
+                    <a href="<?php echo base_url();?>api-documentation/catalog">
+                        <div class="icon-x">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h5>API</h5>
+                    </a>
+                </div>
+            </div>
+
+        
+            <div class="col-4">
+                <div class="card wb-card--solid text-center wb-features-item">
+                    <a href="https://github.com/ihsn/nada" target="_blank">
+                        <div class="icon-x">
+                        <i class="fas fa-download"></i>
+                        </div>
+                        <h5>Download NADA</h5>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+*/?>
 
 <div class="container">
 <div class="row">
