@@ -1,7 +1,6 @@
 *.cache
 trash
 /trash
-modules/mpdf
 .settings
 datafiles
 -*.zip
