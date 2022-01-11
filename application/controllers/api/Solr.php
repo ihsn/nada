@@ -153,6 +153,48 @@ class Solr extends MY_REST_Controller
         }
     }
 
+    public function index_counts_get()
+    {
+        try{
+            $output=$this->solr_manager->get_solr_counts();
+            $output['last_dataset']=$this->solr_manager->get_solr_last_row_id($doctype=1);
+            $output['last_variable']=$this->solr_manager->get_solr_last_row_id($doctype=2);
+            $output['last_citation']=$this->solr_manager->get_solr_last_row_id(3);
+
+            $output=array(
+                'status'=>'success',
+                'result'=>$output
+            );
+            $this->set_response($output, REST_Controller::HTTP_OK);			
+        }
+        catch(Exception $e){
+            $error_output=array(
+                'status'=>'failed',
+                'message'=>$e->getMessage()
+            );
+            $this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
+        }
+    }
+
+    public function index_last_document_id_get()
+    {
+        try{
+            $output=$this->solr_manager->get_solr_last_row_id();
+            $output=array(
+                'status'=>'success',
+                'result'=>$output
+            );
+            $this->set_response($output, REST_Controller::HTTP_OK);			
+        }
+        catch(Exception $e){
+            $error_output=array(
+                'status'=>'failed',
+                'message'=>$e->getMessage()
+            );
+            $this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
+        }
+    }
+
 
     public function clear_index_get()
     {        

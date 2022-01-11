@@ -74,7 +74,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		$this->solr_options=$this->ci->config->item("solr_edismax_options");
 
-		if(isset($this->solr_options['solr_debug']) && $this->solr_options['solr_debug']==true){
+		if($this->ci->config->item('solr_debug')==true){
 			$this->debug=true;
 		}
 

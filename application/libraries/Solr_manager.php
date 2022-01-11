@@ -1198,6 +1198,55 @@ class Solr_manager{
 
 	
 
+	/**
+	* Get the ID of the last row ID
+	* returns only the ID field
+	**/
+	function get_solr_last_row_id($doctype=1)
+	{
+		
+		$client=$this->get_solarium_client();
+		$query = $client->createSelect();
+
+
+		$id_field='survey_uid';
+
+		if($doctype==2){
+			$id_field='var_uid';
+		}
+		else if ($doctype==3){
+			$id_field='citation_uuid';
+		}
+
+		//get one row
+		$query->setRows(1);
+
+		$query->setQuery('doctype:'.$doctype);
+
+		//get only uid field
+		$query->setFields(array($id_field));
+
+		//sort
+		$query->addSort($id_field, $query::SORT_DESC);
+
+		$resultset = $client->select($query);
+
+		if(!$resultset){
+			return false;
+		}
+
+		
+
+		// show documents using the resultset iterator
+		foreach ($resultset as $document) {
+
+			if (!isset($document[$id_field])){
+				var_dump($document);
+				die();
+			}
+			return $document[$id_field];
+		}
+	}
 
 
 
