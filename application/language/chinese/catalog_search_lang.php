@@ -109,7 +109,6 @@ $lang['accesspolicy']="访问政策";
 $lang['study_meta_description']="由%s生产的%s在目录%s中列出。数据和元数据可从以上URL链接处获得。";
 $lang['meta_description_catalog']="此数据目录可让您浏览，搜索和下载研究的元数据及数据。";
 $lang['new_window']="在新窗口中打开";
-$lang['harvested_study_access_complete_metadata']="此页面上提供的信息是从以下贡献信息库获得的：<em>%s</em>. 您可以从这个页面浏览和下载元数据。若要下载相关材料并访问数据，<a href=&quot;%s&quot;>访问原始信息库的调查页面</a>。";
 $lang['data']="数据";
 $lang['by']="来源:";
 $lang['data_direct_description']="数据集和相关文档免费提供给用户。没有必要登录到应用程序。";

@@ -9,7 +9,7 @@ class Citations extends MY_Controller {
 
 		$this->template->set_template('default');
 		$this->load->model('Citation_model');
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );
 		$this->load->library( array('form_validation','pagination') );
 		$this->load->library('chicago_citation');
@@ -35,6 +35,7 @@ class Citations extends MY_Controller {
 
 		$data['rows']=$this->_search();
 		$data['active_repo']=$collection;
+		$data['repo']=$repo;
 		$content=$this->load->view('citations/public_search', $data,true);
 
 		$facet_options=array();
@@ -50,17 +51,18 @@ class Citations extends MY_Controller {
 		);
 
 		//show search form
-		$this->template->write('search_filters', $this->load->view('citations/facets',$facet_options,true),true);
+		$facets_html=$this->load->view('citations/facets',$facet_options,true);
 
 		if ($collection!==''){
 			$page_data=array(
 				'repo'=>$repo,
 				'active_tab'=>'citations',
 				'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($collection),
-				'content'=>$content
+				'content'=>$content,
+				'facets_html'=>$facets_html
 			);
 
-			$content=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
+			$content=$this->load->view("citations/citations_search",$page_data,TRUE);
 		}
 
 		$this->template->write('title', t('citations'),true);
@@ -157,12 +159,12 @@ class Citations extends MY_Controller {
 			show_404();
 		}
 
-		$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
+		//$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
 
 		$content=$this->load->view('citations/citation_info',$citation,TRUE);
 		//$content.='<div class="citation-box">'.$this->chicago_citation->format($citation,'journal').'</div>';
 
-		$repo=$this->get_repo_by_id($this->input->get("collection"));
+		/*$repo=$this->get_repo_by_id($this->input->get("collection"));
 		$collection='central';
 
 		if($repo){
@@ -171,7 +173,7 @@ class Citations extends MY_Controller {
 
 		if ($collection!==''){
 			$content=$this->load->view("catalog_search/study_collection_tabs",array('content'=>$content,'repo'=>$repo,'active_tab'=>'citations'),TRUE);
-		}
+		}*/
 
 
 		//change template if ajax request

@@ -1,3 +1,77 @@
+<style>
+.metadata-sidebar-container .nav .active{
+	background:#e9ecef;		
+}
+.study-metadata-page .page-header .nav-tabs .active a {
+	background: white;
+	font-weight: bold;
+	border-top: 2px solid #0071bc;
+	border-left:1px solid gainsboro;
+	border-right:1px solid gainsboro;
+}
+
+.study-info-content {
+    font-size: 14px;
+}
+
+.badge-outline{
+	background:transparent;
+	color:#03a9f4;
+	border:1px solid #9e9e9e;
+}
+.study-header-right-bar span{
+	display:block;
+	margin-bottom:15px;
+}
+.study-header-right-bar{
+	font-size:14px;
+	color:gray;
+}
+.get-microdata-btn{
+	font-size:14px;
+}
+
+.link-col .badge{
+	font-size:14px;
+	font-weight:normal;
+	background:transparent;
+	border:1px solid #9E9E9E;
+	color:#03a9f4;
+}
+
+.link-col .badge:hover{
+	background:#03a9f4;
+	color:#ffffff;
+}
+
+.study-header-right-bar .stat{
+	margin-bottom:10px;
+	font-size:small;
+}
+
+.study-header-right-bar .stat .stat-label{
+	font-weight:bold;
+	text-transform:uppercase;
+}
+
+.field-metadata__table_description__ref_country .field-value,
+.field-metadata__study_desc__study_info__nation .field-value{
+	max-height:350px;
+	overflow:auto;
+}
+.field-metadata__table_description__ref_country .field-value  ::-webkit-scrollbar,
+.field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+
+.field-metadata__table_description__ref_country .field-value  ::-webkit-scrollbar-thumb,
+.field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+</style>
 <?php
 /*
  * survey info page template
@@ -9,6 +83,7 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 	$country_name=$survey['nation']. ' - ';
 }
 ?>
+
 
 <div class="page-body-full study-metadata-page">
 	<span 
@@ -28,147 +103,8 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 	<?php endif;?>
 <?php endif;?>
 
-<?php 
-	$sub_title=array();
-	if ($survey['nation']!=''){
-		$sub_title[]='<span id="dataset-country">'.$survey['nation'].'</span>';
-	}
-	$dates=array_unique(array($survey['year_start'],$survey['year_end']));
-	$dates=implode(" - ", $dates);
-	if(!empty($dates)){
-		$sub_title[]='<span id="dataset-year">'.$dates.'</span>';
-	}
-	$sub_title=implode(", ", $sub_title);
-?>
 
-<div class="row">
-	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
-	<?php 
-		$thumbnail=$survey['owner_repo']['thumbnail'];
-		if(isset($survey['thumbnail']) && trim($survey['thumbnail'])!='' && file_exists('files/thumbnails/'.$survey['thumbnail'])){
-			$thumbnail='files/thumbnails/'.$survey['thumbnail'];
-		}
-	?>
-	<div class="col-md-2">
-	<div class="collection-thumb-container">
-		<a href="<?php echo site_url('catalog/'.$survey['owner_repo']['repositoryid']);?>">
-		<img  src="<?php echo base_url().$thumbnail;?>" class="mr-3 img-fluid img-thumbnail" alt="<?php echo $survey['owner_repo']['repositoryid'];?>" title="<?php echo $survey['owner_repo']['title'];?>"/>
-		</a>
-		<?php /* ?>
-		<?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?>
-			<?php foreach($survey['repositories'] as $repository):?>
-				<div class="collection"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
-			<?php endforeach;?>
-		<?php endif;?>
-		<?php */ ?>
-	</div>
-	</div>
-	<?php endif;?>		
-	<div class="col-md-10">
-		<h1 class="mt-0 mb-1" id="dataset-title"><?php echo $survey_title;?></h1>
-		<h6 class="sub-title" id="dataset-sub-title"><?php echo $sub_title;?>
-
-		<?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?>                    
-			<?php foreach($survey['repositories'] as $repository):?>
-				<div class="collection badge badge-light"><?php echo anchor('catalog/'.$repository['repositoryid'],$repository['title']);?></div>
-			<?php endforeach;?>                    
-		<?php endif;?>
-
-		</h6>
-					
-
-		<div class="producers mb-3">
-		<?php if (isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
-			<?php echo $survey['authoring_entity'];?>
-		<?php endif;?>
-		</div>
-	
-
-		<div class="dataset-footer-bar mt-2">					
-			
-			<span class="mr-3 link-col float-left">
-				<small>
-					<?php echo t('created_on');?> 
-					<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
-				</small>
-			</span>
-			
-			<span class="mr-3 link-col float-left">
-				<small>
-					<?php echo t('last_modified');?> 
-					<strong><?php echo date("F d, Y",$survey['changed']);?></strong>
-				</small>
-			</span>
-			
-            <?php if ((int)$survey['total_views']>0):?>
-            <span class="mr-3 link-col float-left">
-                <small>
-				<i class="fa fa-eye" aria-hidden="true"></i> 
-				<?php echo t('page_views');?> 
-				<strong><?php echo $survey['total_views'];?></strong>
-			</small>
-            </span>
-			<?php endif;?>
-
-			<?php if ((int)$survey['total_downloads']>0):?>
-            <span class="mr-3 link-col float-left">
-                <small>
-				<i class="fa fa-eye" aria-hidden="true"></i> 
-				<?php echo t('download');?> 
-				<strong><?php echo $survey['total_downloads'];?></strong>
-			</small>
-            </span>
-			<?php endif;?>
-			
-			<?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
-			<?php if (file_exists($report_file)):?>
-				<span class="mr-3 link-col float-left">
-					<small><a href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('pdf');?>" >
-					<i class="fa fa-file-pdf-o" aria-hidden="true"> </i> <?php echo t('documentation_in_pdf');?>
-					</a> 
-					</small>
-				</span>            
-			<?php endif;?>
-
-			<?php if($survey['link_study']!=''): ?>
-				<span class="mr-3 link-col  float-left">
-				<small>
-				<a  target="_blank" href="<?php echo html_escape($survey['link_study']);?>" title="<?php echo t('link_study_website_hover');?>">
-				<i class="fa fa-globe" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
-				</a>
-				</small>
-				</span>
-			<?php endif; ?>
-		
-			<?php if($survey['link_indicator']!=''): ?>
-				<span class="mr-3 link-col float-left">
-					<small>
-						<a target="_blank"  href="<?php echo html_escape($survey['link_indicator']);?>" title="<?php echo t('link_indicators_hover');?>">
-							<i class="fa fa-database" aria-hidden="true"> </i> <?php echo t('link_indicators_hover');?>					
-						</a>
-					</small>
-				</span>
-			<?php endif; ?>
-
-			<span class="mr-3 link-col  float-left">
-				<small><i class="fa fa-download" aria-hidden="true"> </i> <?php echo t('metadata');?></small>
-				<?php if($survey['type']=='survey'):?>
-					<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" title="<?php echo t('metadata_in_ddi_xml');?>">
-						<span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
-					</a>
-				<?php endif;?>
-
-				<a href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" title="<?php echo t('metadata_in_json');?>">
-					<span class="badge badge-info"><?php echo t('JSON');?></span>
-				</a>
-			</span>			
-
-		</div>
-
-	</div>
-</div>
-
-
+<?php $this->load->view('survey_info/info',null); ?>
 
 
 <?php 
@@ -207,8 +143,9 @@ $tab_urls['related_citations']=array(
 		'related_publications'
 );
 
-$tab_urls['study_description']=array(
+$tab_urls['description']=array(
 		'study-description',
+		'description',
 		'overview',
 		'sampling',
 		'datacollection',
@@ -217,7 +154,7 @@ $tab_urls['study_description']=array(
 );
 
 if (!$page_tabs['related_materials'] && in_array($tab,$tab_urls['related_materials'])){
-	$active_tab='study-description';
+	$active_tab='description';
 }
 
 //enable disable right side bar for related studies
@@ -240,14 +177,14 @@ if($this->config->item("guests_hide_microdata_tab")===true && !$this->ion_auth->
 	<?php foreach($page_tabs as $tab_name=>$tab):?>
 		<?php if ($tab['show_tab']==0){continue;};?>
 		<?php if($tab_name=='get_microdata'):?>
-			<li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?>" >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab" data-id="related-materials" title="<?php echo $tab['hover_text'];?>">
+			<li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" >
+				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase " role="tab" data-id="related-materials" >
 					<span class="get-microdata icon-da-<?php echo $data_access_type;?>"></span> <?php echo $tab['label'];?>
 				</a>
 			</li>                            
 		<?php else:?>
 			<li class="nav-item tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>"  >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab"  data-id="related-materials" title="<?php echo $tab['hover_text'];?>"><?php echo $tab['label'];?></a>
+				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab"  data-id="related-materials" ><?php echo $tab['label'];?></a>
 			</li>
 		<?php endif;?>
 	<?php endforeach;?>
@@ -277,8 +214,8 @@ if($this->config->item("guests_hide_microdata_tab")===true && !$this->ion_auth->
   	
     <?php if(in_array($active_tab,array('data-dictionary'))):?>
     <?php 
-    $section='test';
-    $sidebar='side bar content';
+    	$section='test';
+    	$sidebar='side bar content';
     ?>
     <div style="overflow:hidden;clear:both">
         <div class="tab-sidebar sidebar-<?php echo $section;?>"><?php echo isset($sidebar) ? $sidebar : ''; ?></div>
@@ -287,6 +224,10 @@ if($this->config->item("guests_hide_microdata_tab")===true && !$this->ion_auth->
     <?php else:?>
     <div class="tab-body-no-sidebar-x"><?php echo $body;?></div>
     <?php endif;?>
+
+	<div class="mt-5">                
+            <a class="btn btn-sm btn-secondary" href="<?php echo site_url('catalog');?>"><i class="fas fa-arrow-circle-left"></i> <?php echo t('Back to Catalog');?></a>
+        </div>
   </div>
 </div>
 <!-- end-tabs-->    
@@ -309,6 +250,12 @@ if($this->config->item("guests_hide_microdata_tab")===true && !$this->ion_auth->
 			$(".show-datafiles").hide();
 			return false;
 		});
+
+		//setup bootstrap scrollspy
+		$("body").attr('data-spy', 'scroll');
+		$("body").attr('data-target', '#dataset-metadata-sidebar');
+		$("body").attr('data-offset', '0');
+		$("body").scrollspy('refresh');
 
 	});	
 	

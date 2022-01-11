@@ -1,23 +1,35 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
+use Solarium\Component\ComponentTraits\MoreLikeThisTrait;
+use Solarium\Component\RequestBuilder\ComponentRequestBuilderInterface;
 use Solarium\Component\RequestBuilder\MoreLikeThis as RequestBuilder;
+use Solarium\Component\ResponseParser\ComponentParserInterface;
 use Solarium\Component\ResponseParser\MoreLikeThis as ResponseParser;
 
 /**
  * MoreLikeThis component.
  *
- * @see http://wiki.apache.org/solr/MoreLikeThis
+ * @see https://solr.apache.org/guide/morelikethis.html
  */
-class MoreLikeThis extends AbstractComponent
+class MoreLikeThis extends AbstractComponent implements MoreLikeThisInterface
 {
+    use MoreLikeThisTrait;
+
     /**
      * Get component type.
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return ComponentAwareQueryInterface::COMPONENT_MORELIKETHIS;
     }
@@ -27,7 +39,7 @@ class MoreLikeThis extends AbstractComponent
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): ComponentRequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -37,7 +49,7 @@ class MoreLikeThis extends AbstractComponent
      *
      * @return ResponseParser
      */
-    public function getResponseParser()
+    public function getResponseParser(): ?ComponentParserInterface
     {
         return new ResponseParser();
     }
@@ -46,22 +58,26 @@ class MoreLikeThis extends AbstractComponent
      * Set fields option.
      *
      * The fields to use for similarity. NOTE: if possible, these should have a
-     * stored TermVector
+     * stored TermVector.
      *
      * When using string input you can separate multiple fields with commas.
+     *
+     * @see https://solr.apache.org/guide/morelikethis.html#common-handler-and-component-parameters
      *
      * @param string|array $fields
      *
      * @return self Provides fluent interface
      */
-    public function setFields($fields)
+    public function setFields($fields): self
     {
-        if (is_string($fields)) {
+        if (\is_string($fields)) {
             $fields = explode(',', $fields);
             $fields = array_map('trim', $fields);
         }
 
-        return $this->setOption('fields', $fields);
+        $this->setOption('fields', $fields);
+
+        return $this;
     }
 
     /**
@@ -69,7 +85,7 @@ class MoreLikeThis extends AbstractComponent
      *
      * @return array
      */
-    public function getFields()
+    public function getFields(): array
     {
         $fields = $this->getOption('fields');
         if (null === $fields) {
@@ -80,226 +96,21 @@ class MoreLikeThis extends AbstractComponent
     }
 
     /**
-     * Set minimumtermfrequency option.
-     *
-     * Minimum Term Frequency - the frequency below which terms will be ignored
-     * in the source doc.
-     *
-     * @param int $minimum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMinimumTermFrequency($minimum)
-    {
-        return $this->setOption('minimumtermfrequency', $minimum);
-    }
-
-    /**
-     * Get minimumtermfrequency option.
-     *
-     * @return int|null
-     */
-    public function getMinimumTermFrequency()
-    {
-        return $this->getOption('minimumtermfrequency');
-    }
-
-    /**
-     * Set minimumdocumentfrequency option.
-     *
-     * Minimum Document Frequency - the frequency at which words will be
-     * ignored which do not occur in at least this many docs.
-     *
-     * @param int $minimum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMinimumDocumentFrequency($minimum)
-    {
-        return $this->setOption('minimumdocumentfrequency', $minimum);
-    }
-
-    /**
-     * Get minimumdocumentfrequency option.
-     *
-     * @return int|null
-     */
-    public function getMinimumDocumentFrequency()
-    {
-        return $this->getOption('minimumdocumentfrequency');
-    }
-
-    /**
-     * Set minimumwordlength option.
-     *
-     * Minimum word length below which words will be ignored.
-     *
-     * @param int $minimum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMinimumWordLength($minimum)
-    {
-        return $this->setOption('minimumwordlength', $minimum);
-    }
-
-    /**
-     * Get minimumwordlength option.
-     *
-     * @return int|null
-     */
-    public function getMinimumWordLength()
-    {
-        return $this->getOption('minimumwordlength');
-    }
-
-    /**
-     * Set maximumwordlength option.
-     *
-     * Maximum word length above which words will be ignored.
-     *
-     * @param int $maximum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMaximumWordLength($maximum)
-    {
-        return $this->setOption('maximumwordlength', $maximum);
-    }
-
-    /**
-     * Get maximumwordlength option.
-     *
-     * @return int|null
-     */
-    public function getMaximumWordLength()
-    {
-        return $this->getOption('maximumwordlength');
-    }
-
-    /**
-     * Set maximumqueryterms option.
-     *
-     * Maximum number of query terms that will be included in any generated
-     * query.
-     *
-     * @param int $maximum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMaximumQueryTerms($maximum)
-    {
-        return $this->setOption('maximumqueryterms', $maximum);
-    }
-
-    /**
-     * Get maximumqueryterms option.
-     *
-     * @return int|null
-     */
-    public function getMaximumQueryTerms()
-    {
-        return $this->getOption('maximumqueryterms');
-    }
-
-    /**
-     * Set maximumnumberoftokens option.
-     *
-     * Maximum number of tokens to parse in each example doc field that is not
-     * stored with TermVector support.
-     *
-     * @param int $maximum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMaximumNumberOfTokens($maximum)
-    {
-        return $this->setOption('maximumnumberoftokens', $maximum);
-    }
-
-    /**
-     * Get maximumnumberoftokens option.
-     *
-     * @return int|null
-     */
-    public function getMaximumNumberOfTokens()
-    {
-        return $this->getOption('maximumnumberoftokens');
-    }
-
-    /**
-     * Set boost option.
-     *
-     * If true the query will be boosted by the interesting term relevance.
-     *
-     * @param bool $boost
-     *
-     * @return self Provides fluent interface
-     */
-    public function setBoost($boost)
-    {
-        return $this->setOption('boost', $boost);
-    }
-
-    /**
-     * Get boost option.
-     *
-     * @return bool|null
-     */
-    public function getBoost()
-    {
-        return $this->getOption('boost');
-    }
-
-    /**
-     * Set queryfields option.
-     *
-     * Query fields and their boosts using the same format as that used in
-     * DisMaxQParserPlugin. These fields must also be specified in fields.
-     *
-     * When using string input you can separate multiple fields with commas.
-     *
-     * @param string $queryFields
-     *
-     * @return self Provides fluent interface
-     */
-    public function setQueryFields($queryFields)
-    {
-        if (is_string($queryFields)) {
-            $queryFields = explode(',', $queryFields);
-            $queryFields = array_map('trim', $queryFields);
-        }
-
-        return $this->setOption('queryfields', $queryFields);
-    }
-
-    /**
-     * Get queryfields option.
-     *
-     * @return array
-     */
-    public function getQueryFields()
-    {
-        $queryfields = $this->getOption('queryfields');
-        if (null === $queryfields) {
-            $queryfields = [];
-        }
-
-        return $queryfields;
-    }
-
-    /**
      * Set count option.
      *
-     * The number of similar documents to return for each result
+     * The number of similar documents to return for each result.
+     *
+     * @see https://solr.apache.org/guide/morelikethis.html#search-component-parameters
      *
      * @param int $count
      *
      * @return self Provides fluent interface
      */
-    public function setCount($count)
+    public function setCount(int $count): self
     {
-        return $this->setOption('count', $count);
+        $this->setOption('count', $count);
+
+        return $this;
     }
 
     /**
@@ -307,8 +118,93 @@ class MoreLikeThis extends AbstractComponent
      *
      * @return int|null
      */
-    public function getCount()
+    public function getCount(): ?int
     {
         return $this->getOption('count');
+    }
+
+    /**
+     * Set the match.include parameter, which is either 'true' or 'false'.
+     *
+     * This doesn't actually do anything for the MoreLikeThisComponent as
+     * this parameter is only for the MoreLikeThisHandler.
+     *
+     * @see https://solr.apache.org/guide/morelikethis.html#request-handler-parameters
+     *
+     * @param bool $include
+     *
+     * @return self Provides fluent interface
+     *
+     * @deprecated Will be removed in Solarium 8. This parameter is only accessible through the MoreLikeThisHandler.
+     */
+    public function setMatchInclude(bool $include): self
+    {
+        return $this;
+    }
+
+    /**
+     * Get the match.include parameter.
+     *
+     * This always returns null for the MoreLikeThisComponent as
+     * this parameter is only for the MoreLikeThisHandler.
+     *
+     * @return bool|null
+     *
+     * @deprecated Will be removed in Solarium 8. This parameter is only accessible through the MoreLikeThisHandler.
+     */
+    public function getMatchInclude(): ?bool
+    {
+        return null;
+    }
+
+    /**
+     * Set the mlt.match.offset parameter.
+     *
+     * This doesn't actually do anything for the MoreLikeThisComponent as
+     * this parameter is only for the MoreLikeThisHandler.
+     *
+     * @see https://solr.apache.org/guide/morelikethis.html#request-handler-parameters
+     *
+     * @param int $offset
+     *
+     * @return self Provides fluent interface
+     *
+     * @deprecated Will be removed in Solarium 8. This parameter is only accessible through the MoreLikeThisHandler.
+     */
+    public function setMatchOffset(int $offset): self
+    {
+        return $this;
+    }
+
+    /**
+     * Get the mlt.match.offset parameter.
+     *
+     * This always returns null for the MoreLikeThisComponent as
+     * this parameter is only for the MoreLikeThisHandler.
+     *
+     * @return int|null
+     *
+     * @deprecated Will be removed in Solarium 8. This parameter is only accessible through the MoreLikeThisHandler.
+     */
+    public function getMatchOffset(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Initialize options.
+     */
+    protected function init()
+    {
+        foreach ($this->options as $name => $value) {
+            switch ($name) {
+                case 'fields':
+                    $this->setFields($value);
+                    break;
+                case 'queryfields':
+                    $this->setQueryFields($value);
+                    break;
+            }
+        }
     }
 }

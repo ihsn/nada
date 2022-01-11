@@ -22,9 +22,10 @@
                 <td>
 					<?php echo anchor('catalog/'.$survey_id.'/get_microdata/?requestid='.$request['id'],($request['request_title']==NULL) ? $request['title'] : $request['request_title']);?>
                 </td>
+                <td><?php echo t($request['status']);?></td>
                 <td><?php echo date("F d, Y",$request['created']); ?></td>
                 <td><?php echo $request['expiry_date']!=NULL ? date("F d, Y",$request['expiry_date']) : 'N/A'; ?></td>
-                <td><?php echo t($request['status']);?></td>    
+                    
                 <td>
 					<?php if($request['status']=='APPROVED'):?>
                     	<span class="btn-download-microdata"><?php echo anchor('catalog/'.$survey_id.'/get_microdata/?requestid='.$request['id'],t('Download') );?></span>

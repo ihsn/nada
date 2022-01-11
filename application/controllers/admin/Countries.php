@@ -5,9 +5,10 @@ class Countries extends MY_Controller {
     {
         parent::__construct();   
 		$this->load->model('country_model');
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
     	
 		$this->lang->load('general');
+		$this->acl_manager->has_access_or_die('countries', 'edit');
 		//$this->lang->load('country');	
 		//$this->output->enable_profiler(TRUE);	
 	}

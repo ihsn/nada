@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Server\CoreAdmin\Result;
 
 /**
@@ -30,12 +37,12 @@ class StatusResult
     /**
      * @var \DateTime|null
      */
-    protected $startTime = null;
+    protected $startTime;
 
     /**
      * @var \DateTime|null
      */
-    protected $lastModified = null;
+    protected $lastModified;
 
     /**
      * @return string
@@ -47,10 +54,14 @@ class StatusResult
 
     /**
      * @param string $coreName
+     *
+     * @return self
      */
-    public function setCoreName(string $coreName)
+    public function setCoreName(string $coreName): self
     {
         $this->coreName = $coreName;
+
+        return $this;
     }
 
     /**
@@ -63,10 +74,14 @@ class StatusResult
 
     /**
      * @param int $numberOfDocuments
+     *
+     * @return self
      */
-    public function setNumberOfDocuments(int $numberOfDocuments)
+    public function setNumberOfDocuments(int $numberOfDocuments): self
     {
         $this->numberOfDocuments = $numberOfDocuments;
+
+        return $this;
     }
 
     /**
@@ -79,10 +94,14 @@ class StatusResult
 
     /**
      * @param int $uptime
+     *
+     * @return self
      */
-    public function setUptime(int $uptime)
+    public function setUptime(int $uptime): self
     {
         $this->uptime = $uptime;
+
+        return $this;
     }
 
     /**
@@ -95,41 +114,53 @@ class StatusResult
 
     /**
      * @param int $version
+     *
+     * @return self
      */
-    public function setVersion(int $version)
+    public function setVersion(int $version): self
     {
         $this->version = $version;
+
+        return $this;
     }
 
     /**
      * @return \DateTime|null
      */
-    public function getStartTime()
+    public function getStartTime(): ?\DateTime
     {
         return $this->startTime;
     }
 
     /**
      * @param \DateTime|null $startTime
+     *
+     * @return self
      */
-    public function setStartTime($startTime)
+    public function setStartTime(?\DateTime $startTime): self
     {
         $this->startTime = $startTime;
+
+        return $this;
     }
 
     /**
      * @return \DateTime|null
      */
-    public function getLastModified()
+    public function getLastModified(): ?\DateTime
     {
         return $this->lastModified;
     }
 
     /**
      * @param \DateTime|null $lastModified
+     *
+     * @return $this
      */
-    public function setLastModified($lastModified)
+    public function setLastModified(?\DateTime $lastModified): self
     {
         $this->lastModified = $lastModified;
+
+        return $this;
     }
 }

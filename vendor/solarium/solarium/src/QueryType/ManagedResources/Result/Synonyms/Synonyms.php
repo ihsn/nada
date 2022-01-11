@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\ManagedResources\Result\Synonyms;
 
 /**
@@ -21,16 +28,16 @@ class Synonyms
      * Synonyms constructor.
      *
      * @param string $term
-     * @param $synonyms
+     * @param array  $synonyms
      */
-    public function __construct($term, $synonyms)
+    public function __construct(string $term, array $synonyms)
     {
         $this->term = $term;
         $this->synonyms = $synonyms;
     }
 
     /**
-     * Set the term.
+     * Get the term.
      *
      * @return string
      */
@@ -40,14 +47,22 @@ class Synonyms
     }
 
     /**
+     * Set the term.
+     *
      * @param string $term
+     *
+     * @return self
      */
-    public function setTerm(string $term)
+    public function setTerm(string $term): self
     {
         $this->term = $term;
+
+        return $this;
     }
 
     /**
+     * Get the synonyms.
+     *
      * @return array
      */
     public function getSynonyms(): array
@@ -59,9 +74,13 @@ class Synonyms
      * Sets the synonyms. To set a list of symmetric synonyms leave the term empty.
      *
      * @param array $synonyms
+     *
+     * @return self
      */
-    public function setSynonyms(array $synonyms)
+    public function setSynonyms(array $synonyms): self
     {
         $this->synonyms = $synonyms;
+
+        return $this;
     }
 }

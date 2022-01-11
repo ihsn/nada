@@ -15,7 +15,8 @@ class Catalog_history_model extends CI_Model {
 					'year_end',
 					'published',
 					'created',
-					'changed'					
+					'changed',
+					'type'
 				);
 	
 	//additional filters on search
@@ -59,7 +60,7 @@ class Catalog_history_model extends CI_Model {
 		
 		//select survey fields
 		$this->db->select('surveys.id,surveys.repositoryid,idno,title,nation,
-							changed,created,published,year_start');
+							changed,created,published,year_start,type');
 		
 		$this->db->where("published",1);
 

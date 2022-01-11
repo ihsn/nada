@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Debug;
 
 /**
@@ -27,7 +34,7 @@ class Timing implements \IteratorAggregate, \Countable
      * @param float $time
      * @param array $phases
      */
-    public function __construct($time, $phases)
+    public function __construct(float $time, array $phases)
     {
         $this->time = $time;
         $this->phases = $phases;
@@ -38,7 +45,7 @@ class Timing implements \IteratorAggregate, \Countable
      *
      * @return float
      */
-    public function getTime()
+    public function getTime(): float
     {
         return $this->time;
     }
@@ -50,11 +57,9 @@ class Timing implements \IteratorAggregate, \Countable
      *
      * @return TimingPhase|null
      */
-    public function getPhase($key)
+    public function getPhase($key): ?TimingPhase
     {
-        if (isset($this->phases[$key])) {
-            return $this->phases[$key];
-        }
+        return $this->phases[$key] ?? null;
     }
 
     /**
@@ -62,7 +67,7 @@ class Timing implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getPhases()
+    public function getPhases(): array
     {
         return $this->phases;
     }
@@ -72,7 +77,7 @@ class Timing implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->phases);
     }
@@ -82,8 +87,8 @@ class Timing implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->phases);
+        return \count($this->phases);
     }
 }

@@ -35,111 +35,158 @@
     .metadata-content-body{
         border-left:1px solid gainsboro;
     }
+
+    .metadata-container .badge{
+        border-radius: .25rem !important;
+        font-size:100%;
+        font-weight:normal;
+    }
     
 </style>
 
+<?php /* ?>
+    <div class="col">
+        <h4><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.title','.');?></h4>
+        <h6><?php echo get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.sub_title','.');?></h6>
 
+        <?php if ($translated_title=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.translated_title','.')):?>
+        <div>(<?php echo $translated_title?>)</div>
+        <?php endif;?>
 
+        
+        <?php 
+            $abbr=array();
+            $abbr[]=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.alternate_title','.');        
+            $prod_dates=get_array_nested_value ($metadata, 'metadata.project_desc.production_date','.');
+            $abbr[]= implode(" - ", $prod_dates);
+            $abbr= implode(", ", array_filter($abbr));
+        ?>
 
+        <?php if (!empty($abbr)):?>
+        <div>
+            <?php echo $abbr;?>
+        </div>
+        <?php endif;?>
 
+        <?php if($idno=get_array_nested_value ($metadata, 'metadata.project_desc.title_statement.idno','.')):?>
+            <div><?php echo $idno;?></div>
+        <?php endif;?>    
+        
+        <?php if($abstract=get_array_nested_value ($metadata, 'metadata.project_desc.abstract','.')):?>
+            <p class="mt-2"><?php echo $abstract;?></p>
+        <?php endif;?>
+
+    </div>
+<?php */ ?>    
 <?php 
-
 
     //rendered html for all sections
     $output=array();
+
+    $template=array(
+        'Overview'=>array(
+            "metadata.project_desc.abstract"=>'text',
+            "metadata.project_desc.keywords" =>'array_badge',
+            "metadata.project_desc.output" =>'script_output_type',
+
+            "metadata.project_desc.authoring_entity"=>'script_authoring_entity',
+            "metadata.project_desc.contributors"=>'array',
+            "metadata.project_desc.curators" =>'array',
+            "metadata.project_desc.sponsors"=>'array',
+            "metadata.project_desc.acknowledgements"=>'array',
+            "metadata.project_desc.topics" =>'array',
+
+            //"metadata.project_desc.title_statement.title"=>'text',
+            //"metadata.project_desc.title_statement.sub_title" =>'text',
+            //"metadata.project_desc.title_statement.alternate_title"=>'text',
+            //"metadata.project_desc.title_statement.translated_title"=>'text',
+
+            //"metadata.project_desc.production_date"=>'array',            
+            
+            "metadata.project_desc.language" =>'array_badge',
+            "metadata.project_desc.process"=>'array'
+            
+        ),
+        
+        /*'process'=>array(
+            
+            "metadata.project_desc.project_website" =>'text',            
+        ),*/
+
+        'Methods, software and scripts'=>array(
+            "metadata.project_desc.methods"=>'array_badge',
+            "metadata.project_desc.software"=>'array',
+            "metadata.project_desc.license"=>'array',
+            "metadata.project_desc.repository_url" =>'array',
+
+
+            "metadata.project_desc.scripts"=>'script_file_v2',
+            "metadata.project_desc.technology_environment"=>'text',
+            "metadata.project_desc.technology_requirements"=>'text',
+            "metadata.project_desc.reproduction_instructions"=>'text'
+            
+        ),        
+
+
+        'scripts'=> array(
+            
+        ),
+        'methods'=>array(
+            
+        ),
+        
+        'datasets' => array(
+            "metadata.project_desc.datasets"=>'script_datasets',
+            "metadata.project_desc.geographic_units"=>'array',
+            
+            "metadata.project_desc.themes" =>'array_badge',
+            
+            "metadata.project_desc.tags" =>'array_badge',
+            "metadata.project_desc.disciplines" =>'array',   
+            "metadata.project_desc.review_process"=>'array',
+            "metadata.project_desc.disclaimer"=>'text',
+            "metadata.project_desc.confidentiality"=>'text',
+            "metadata.project_desc.citation_requirement"=>'text',
+
+            
+        ),  
+
+        /*'version'=>array(
+            "metadata.project_desc.version_statement.version"=>'text',
+            "metadata.project_desc.version_statement.version_date"=>'text',
+            "metadata.project_desc.version_statement.version_resp"=>'text',
+            "metadata.project_desc.version_statement.version_notes"=>'text'
+        ),*/
+
+        /*'language'=> array(
+            "metadata.project_desc.language" =>'array_badge'
+        ),*/
+        
+              
+        'related_projects' => array(
+            "metadata.project_desc.related_projects"=>'array',
+        ),
+        'contacts' => array(
+            "metadata.project_desc.contacts"=>'array'
+        ),
+        
+        'metadata_production'=>array(
+            "metadata.doc_desc.idno"=>'text',
+            "metadata.doc_desc.producers"=>'array',
+            "metadata.doc_desc.prod_date"=>'text',
+            "metadata.doc_desc.version"=>'text'
+        )
+    );
 ?>
 
 <?php
-
-$template=array(
-    'identification'=>array(
-    "metadata.project_desc.title_statement.title"=>'text',
-    "metadata.project_desc.title_statement.sub_title" =>'text',
-    "metadata.project_desc.title_statement..alternate_title"=>'text',
-    "metadata.project_desc.title_statement.translated_title"=>'text',
-    "metadata.project_desc.geographic_coverage"=>'nation',    
-	"metadata.project_desc.abstract" =>'text',
-	"metadata.project_desc.output_type" =>'text',
-	"metadata.project_desc.publication_url" =>'text',    
-    "metadata.project_desc.authoring_entity"=>'array',
-    "metadata.project_desc.contributor"=>'array',
-    "metadata.project_desc.curator" =>'array',
-	"metadata.project_desc.doi" =>'text',
-	"metadata.project_desc.repository_url" =>'array',
-	"metadata.project_desc.project_website" =>'text',
-    "idno"=>'text',
-	"metadata.project_desc.language" =>'array'
-    ),
-    'version'=>array(
-        "metadata.project_desc.version_statement.version"=>'text',
-        "metadata.project_desc.version_statement.version_date"=>'text',
-        "metadata.project_desc.version_statement.version_resp"=>'text',
-	"metadata.project_desc.version_statement.version_notes"=>'text'
-    ),
-    'methods'=>array(
-        "metadata.project_desc.methods"=>'array',
-    ),
-    'software'=>array(
-        "metadata.project_desc.software"=>'script_software',
-        "metadata.project_desc.technology_environment"=>'text',
-        "metadata.project_desc.technology_requirements"=>'text',
-        "metadata.project_desc.license"=>'text',
-        "metadata.project_desc.pub_research"=>'text',
-        "metadata.project_desc.data_included"=>'text',
-        "metadata.project_desc.data_url"=>'text',
-        "metadata.project_desc.contact"=>'array',
-
-        "metadata.project_desc.disclaimer"=>'text',
-        "metadata.project_desc.confidentiality"=>'text',
-        "metadata.project_desc.citation_requirement"=>'text',
-        "metadata.project_desc.data_desc"=>'array',
-        "metadata.project_desc.review_process"=>'array',
-        "metadata.project_desc.sponsor"=>'array',
-        "metadata.project_desc.acknowledgements"=>'array',
-        "metadata.project_desc.related_proejcts"=>'array',
-        "metadata.project_desc.contacts"=>'array',
-    ),
-
-    'scripts'=>array(
-	    "metadata.project_desc.script_files"=>'script_file'
-    ),
-    
-    'metadata_production'=>array(
-        "metadata_production.copyright"=>'array',
-        "doc_producer"=>'array',
-        "doc_version"=>'text',
-        "doc_idno"=>'text'
-    )
-);
-?>
-
-<?php
-$output=array(); 
 foreach($template as $section=>$fields){
-    $output[$section]=render_group($section,$fields,$metadata);
+    $output[$section]=render_group($section,$fields,$metadata, array('resources'=>$metadata['resources']));
 }
 ?>
 
-
-
-<!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2  d-none d-sm-block">
-<div class="navbar-collapse sticky-top">
-
-    <ul class="navbar-nav flex-column wb--full-width">
-    <?php foreach($output as $key=>$value):?>            
-        <?php if(trim($value)!==""):?>    
-        <li class="nav-item">
-            <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
-        </li>
-        <?php endif;?>
-    <?php endforeach;?>
-    </ul>
-</div>
-</div>
-<!--metadata content-->
-<div class="col-12 col-sm-10 col-lg-10 wb-border-left">
-    <?php echo implode('',$output);?>
-</div>
-
+<?php 
+    //renders html
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'hide_sidebar'=>true));
+?>
 

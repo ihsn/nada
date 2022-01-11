@@ -28,6 +28,12 @@ $config['timeseries']=array(
     'language_translations'=>'fields_timeseries'
 ); 
 
+$config['timeseriesdb']=array(
+    'template' => 'metadata_templates/timeseriesdb-template',
+    'language_translations'=>'fields_timeseriesdb'
+); 
+
+
 $config['script']=array(
     'template' => 'metadata_templates/script-template',
     'language_translations'=>'fields_scripts'
@@ -63,4 +69,10 @@ $config['image']=array(
 $config['visualization']=array(
     'template' => 'metadata_templates/visualization-template',
     'language_translations'=>'fields_visualization'
+); 
+
+//video
+$config['video']=array(
+    'template' => 'metadata_templates/video-template',
+    'language_translations'=>'fields_video'
 ); 

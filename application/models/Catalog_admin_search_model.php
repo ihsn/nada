@@ -10,6 +10,7 @@ class Catalog_admin_search_model extends CI_Model {
 	
 	//fields for the study description
 	var $study_fields=array(
+					'surveys.type',
 					'surveys.id',
 					'surveys.repositoryid',
 					'idno',
@@ -22,13 +23,14 @@ class Catalog_admin_search_model extends CI_Model {
 					'link_study',
 					'link_report',
 					'link_indicator',
-					'link_questionnaire',
 					'year_start',
 					'year_end',
 					'link_da',
 					'published',
 					'surveys.created',
-					'changed'
+					'changed',
+					'surveys.created_by',
+					'surveys.changed_by'
 					);
 	
 	//additional filters on search
@@ -76,12 +78,18 @@ class Catalog_admin_search_model extends CI_Model {
 		
 		//$this->db->start_cache();		
 		
+
+		$this->study_fields[]='users.username as created_by_user';
+
 		//survey fields
 		$this->db->select(implode(",", $this->study_fields));
 		
 		//form fields
-		$this->db->select('forms.model as form_model, forms.path as form_path');
+		$this->db->select('forms.model as form_model');
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+
+		//user info
+		$this->db->join('users', 'users.id= surveys.created_by','left');
 		
 		if ($this->active_repo!=NULL && $this->active_repo!='central') 
 		{
@@ -207,7 +215,29 @@ class Catalog_admin_search_model extends CI_Model {
 					$where_clause.= sprintf('  surveys.id in (%s)',$tags_sub_query);
 				}
 			}	
-		}		
+		}
+		
+		
+		//data types
+		//search tags
+		$types=$this->get_param('type');
+
+		if(!empty($types) &&  count($types)>0)
+		{
+			foreach($types as $key=>$value){
+				$types[$key]= "'" . $value . "'";
+			}
+			
+			if ( trim($where_clause)!='')
+			{	
+				$where_clause.= ' AND ' . '(surveys.type in ('.implode(",",$types).') )';
+			}
+			else
+			{
+				$where_clause.= '(surveys.type in ('.implode(",",$types).') )';
+			}			
+		}
+			
 		
 		$active_repo_filter='';
 		

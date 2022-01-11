@@ -1,9 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Event;
 
 use Solarium\Core\Query\QueryInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * PostCreateQuery event, see Events for details.
@@ -29,10 +36,10 @@ class PostCreateQuery extends Event
      * Event constructor.
      *
      * @param string         $type
-     * @param array          $options
+     * @param array|null     $options
      * @param QueryInterface $query
      */
-    public function __construct($type, $options, QueryInterface $query)
+    public function __construct(string $type, ?array $options, QueryInterface $query)
     {
         $this->type = $type;
         $this->options = $options;
@@ -44,7 +51,7 @@ class PostCreateQuery extends Event
      *
      * @return QueryInterface
      */
-    public function getQuery()
+    public function getQuery(): QueryInterface
     {
         return $this->query;
     }
@@ -54,7 +61,7 @@ class PostCreateQuery extends Event
      *
      * @return string
      */
-    public function getQueryType()
+    public function getQueryType(): string
     {
         return $this->type;
     }
@@ -62,9 +69,9 @@ class PostCreateQuery extends Event
     /**
      * Get the options for this event.
      *
-     * @return string
+     * @return array|null
      */
-    public function getOptions()
+    public function getOptions(): ?array
     {
         return $this->options;
     }

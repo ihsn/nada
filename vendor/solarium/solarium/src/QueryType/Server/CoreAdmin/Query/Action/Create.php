@@ -1,15 +1,23 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Server\CoreAdmin\Query\Action;
 
 use Solarium\QueryType\Server\CoreAdmin\Query\Query as CoreAdminQuery;
+use Solarium\QueryType\Server\Query\Action\AbstractAsyncAction;
 
 /**
  * Class Create.
  *
- * @see https://lucene.apache.org/solr/guide/6_6/coreadmin-api.html#CoreAdminAPI-Input.1
+ * @see https://solr.apache.org/guide/coreadmin-api.html#coreadmin-create
  */
-class Create extends AbstractAsyncAction
+class Create extends AbstractAsyncAction implements CoreActionInterface
 {
     /**
      * Returns the action type of the core admin action.
@@ -25,19 +33,23 @@ class Create extends AbstractAsyncAction
      * Set the core name that should be reloaded.
      *
      * @param string $core
+     *
+     * @return self Provides fluent interface
      */
-    public function setCore(string $core)
+    public function setCore(string $core): CoreActionInterface
     {
         // for some reason the core is called "name" in the create action
         $this->setOption('name', $core);
+
+        return $this;
     }
 
     /**
      * Get the related core name.
      *
-     * @return string
+     * @return string|null
      */
-    public function getCore(): string
+    public function getCore(): ?string
     {
         // for some reason the core is called "name" in the create action
         return $this->getOption('name');
@@ -50,17 +62,19 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setInstanceDir(string $instanceDir)
+    public function setInstanceDir(string $instanceDir): self
     {
-        return $this->setOption('instanceDir', $instanceDir);
+        $this->setOption('instanceDir', $instanceDir);
+
+        return $this;
     }
 
     /**
      * Get the instanceDir.
      *
-     * @return string
+     * @return string|null
      */
-    public function getInstanceDir(): string
+    public function getInstanceDir(): ?string
     {
         return (string) $this->getOption('instanceDir');
     }
@@ -72,17 +86,19 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setConfig(string $config)
+    public function setConfig(string $config): self
     {
-        return $this->setOption('config', $config);
+        $this->setOption('config', $config);
+
+        return $this;
     }
 
     /**
      * Get the config.
      *
-     * @return string
+     * @return string|null
      */
-    public function getConfig(): string
+    public function getConfig(): ?string
     {
         return $this->getOption('config');
     }
@@ -94,19 +110,21 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setSchema(string $schema)
+    public function setSchema(string $schema): self
     {
-        return $this->setOption('schema', $schema);
+        $this->setOption('schema', $schema);
+
+        return $this;
     }
 
     /**
      * Get the schema.
      *
-     * @return string
+     * @return string|null
      */
-    public function getSchema(): string
+    public function getSchema(): ?string
     {
-        return (string) $this->getOption('schema');
+        return $this->getOption('schema');
     }
 
     /**
@@ -116,19 +134,21 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setDataDir(string $dataDir)
+    public function setDataDir(string $dataDir): self
     {
-        return $this->setOption('dataDir', $dataDir);
+        $this->setOption('dataDir', $dataDir);
+
+        return $this;
     }
 
     /**
      * Get the schema.
      *
-     * @return string
+     * @return string|null
      */
-    public function getDataDir(): string
+    public function getDataDir(): ?string
     {
-        return (string) $this->getOption('dataDir');
+        return $this->getOption('dataDir');
     }
 
     /**
@@ -138,19 +158,21 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setConfigSet(string $configSet)
+    public function setConfigSet(string $configSet): self
     {
-        return $this->setOption('configSet', $configSet);
+        $this->setOption('configSet', $configSet);
+
+        return $this;
     }
 
     /**
      * Get the configSet.
      *
-     * @return string
+     * @return string|null
      */
-    public function getConfigSet(): string
+    public function getConfigSet(): ?string
     {
-        return (string) $this->getOption('configSet');
+        return $this->getOption('configSet');
     }
 
     /**
@@ -160,19 +182,21 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setCollection(string $collection)
+    public function setCollection(string $collection): self
     {
-        return $this->setOption('collection', $collection);
+        $this->setOption('collection', $collection);
+
+        return $this;
     }
 
     /**
      * Get the collection.
      *
-     * @return string
+     * @return string|null
      */
-    public function getCollection(): string
+    public function getCollection(): ?string
     {
-        return (string) $this->getOption('collection');
+        return $this->getOption('collection');
     }
 
     /**
@@ -182,19 +206,21 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setShard($shard)
+    public function setShard($shard): self
     {
-        return $this->setOption('shard', $shard);
+        $this->setOption('shard', $shard);
+
+        return $this;
     }
 
     /**
      * Get the collection.
      *
-     * @return string
+     * @return string|null
      */
-    public function getShard(): string
+    public function getShard(): ?string
     {
-        return (string) $this->getOption('shard');
+        return $this->getOption('shard');
     }
 
     /**
@@ -205,20 +231,25 @@ class Create extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setCoreProperty(string $name, string $value)
+    public function setCoreProperty(string $name, string $value): self
     {
         $option = 'property.'.$name;
-        return $this->setOption($option, $value);
+        $this->setOption($option, $value);
+
+        return $this;
     }
 
     /**
      * Get a previously added core property.
+     *
+     * @param mixed $name
      *
      * @return string
      */
     public function getCoreProperty($name): string
     {
         $option = 'property.'.$name;
-        return (string) $this->getOption($option);
+
+        return $this->getOption($option);
     }
 }

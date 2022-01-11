@@ -1,20 +1,28 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\ParallelExecution;
 
+use Solarium\Component\QueryInterface;
+use Solarium\Core\Client\Adapter\Curl;
 use Solarium\Core\Client\Endpoint;
 use Solarium\Core\Plugin\AbstractPlugin;
-use Solarium\Core\Query\AbstractQuery;
 use Solarium\Exception\HttpException;
-use Solarium\Plugin\ParallelExecution\Event\Events;
+use Solarium\Exception\RuntimeException;
 use Solarium\Plugin\ParallelExecution\Event\ExecuteEnd as ExecuteEndEvent;
 use Solarium\Plugin\ParallelExecution\Event\ExecuteStart as ExecuteStartEvent;
 
 /**
  * ParallelExecution plugin.
  *
- * You can use this plugin to run multiple queries parallel. This functionality depends on the curl adapter so you
- * do need to have curl available in your PHP environment.
+ * You can use this plugin to run multiple queries parallel. This functionality depends on the cURL adapter so you
+ * do need to have cURL available in your PHP environment.
  *
  * While query execution is parallel, the results only become available as soon as all requests have finished. So the
  * time of the slowest query will be the effective execution time for all queries.
@@ -33,9 +41,9 @@ class ParallelExecution extends AbstractPlugin
     ];
 
     /**
-     * Queries (and optionally clients) to execute.
+     * Queries to execute coupled with the keys of the endpoints to execute them against.
      *
-     * @var AbstractQuery[]
+     * @var array
      */
     protected $queries = [];
 
@@ -43,14 +51,14 @@ class ParallelExecution extends AbstractPlugin
      * Add a query to execute.
      *
      * @param string               $key
-     * @param AbstractQuery        $query
-     * @param null|string|Endpoint $endpoint
+     * @param QueryInterface       $query
+     * @param string|Endpoint|null $endpoint
      *
      * @return self Provides fluent interface
      */
-    public function addQuery($key, $query, $endpoint = null)
+    public function addQuery(string $key, QueryInterface $query, $endpoint = null)
     {
-        if (is_object($endpoint)) {
+        if (\is_object($endpoint)) {
             $endpoint = $endpoint->getKey();
         }
 
@@ -67,11 +75,11 @@ class ParallelExecution extends AbstractPlugin
     }
 
     /**
-     * Get queries (and coupled client instances).
+     * Get queries and coupled endpoint keys.
      *
-     * @return AbstractQuery[]
+     * @return array
      */
-    public function getQueries()
+    public function getQueries(): array
     {
         return $this->queries;
     }
@@ -81,7 +89,7 @@ class ParallelExecution extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function clearQueries()
+    public function clearQueries(): self
     {
         $this->queries = [];
 
@@ -91,14 +99,19 @@ class ParallelExecution extends AbstractPlugin
     // @codeCoverageIgnoreStart
 
     /**
-     * Execute queries parallel.
+     * Execute queries parallelly.
+     *
+     * @throws RuntimeException
      *
      * @return \Solarium\Core\Query\Result\Result[]
      */
-    public function execute()
+    public function execute(): array
     {
         // create handles and add all handles to the multihandle
         $adapter = $this->client->getAdapter();
+        if (!($adapter instanceof Curl)) {
+            throw new RuntimeException('Parallel execution requires the CurlAdapter');
+        }
         $multiHandle = curl_multi_init();
         $handles = [];
         foreach ($this->queries as $key => $data) {
@@ -110,24 +123,26 @@ class ParallelExecution extends AbstractPlugin
         }
 
         // executing multihandle (all requests)
-        $this->client->getEventDispatcher()->dispatch(Events::EXECUTE_START, new ExecuteStartEvent());
+        $event = new ExecuteStartEvent();
+        $this->client->getEventDispatcher()->dispatch($event);
 
         do {
             $mrc = curl_multi_exec($multiHandle, $active);
-        } while (CURLM_CALL_MULTI_PERFORM == $mrc);
+        } while (CURLM_CALL_MULTI_PERFORM === $mrc);
 
         $timeout = $this->getOption('curlmultiselecttimeout');
-        while ($active && CURLM_OK == $mrc) {
-            if (curl_multi_select($multiHandle, $timeout) == -1) {
+        while ($active && CURLM_OK === $mrc) {
+            if (-1 === curl_multi_select($multiHandle, $timeout)) {
                 usleep(100);
             }
 
             do {
                 $mrc = curl_multi_exec($multiHandle, $active);
-            } while (CURLM_CALL_MULTI_PERFORM == $mrc);
+            } while (CURLM_CALL_MULTI_PERFORM === $mrc);
         }
 
-        $this->client->getEventDispatcher()->dispatch(Events::EXECUTE_END, new ExecuteEndEvent());
+        $event = new ExecuteEndEvent();
+        $this->client->getEventDispatcher()->dispatch($event);
 
         // get the results
         $results = [];
@@ -151,10 +166,10 @@ class ParallelExecution extends AbstractPlugin
      */
 
     /**
-     * Set curl adapter (the only type that supports parallelexecution).
+     * Set cURL adapter (the only type that supports ParallelExecution).
      */
     protected function initPluginType()
     {
-        $this->client->setAdapter('Solarium\Core\Client\Adapter\Curl');
+        $this->client->setAdapter(new Curl());
     }
 }

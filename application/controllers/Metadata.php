@@ -6,6 +6,7 @@ class Metadata extends MY_Controller {
     public function __construct()
     {
         parent::__construct($skip_auth=TRUE);
+        $this->load->library("Dataset_manager");
         $this->load->model("Dataset_model");
         $this->load->helper("download");
 	}
@@ -17,8 +18,8 @@ class Metadata extends MY_Controller {
      * 
      * @format - JSON, DDI
      * 
-     */
-	function export($sid=null,$format='json')
+     */	
+    function export($sid=null,$format='json')
 	{
         $dataset=$this->Dataset_model->get_row($sid); 
 
@@ -28,7 +29,7 @@ class Metadata extends MY_Controller {
 
         if($format=='json'){
             if (!$this->input->get("detailed")){
-                $metadata=$this->Dataset_model->get_metadata($sid);
+                $metadata=$this->dataset_manager->get_metadata($sid,$dataset['type']);
                 $this->output
                     ->set_content_type('application/json')
                     ->set_output(json_encode($metadata));

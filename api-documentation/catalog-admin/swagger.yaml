@@ -25,7 +25,9 @@ tags:
   - name: Citations
     description: Citations represent the publications related to the datasets.
   - name: Filestore
-    description: File storage for uploading and viewing images and other document types.  
+    description: File storage for uploading and viewing images and other document types.
+  - name: Widgets
+    description: "Widgets are embeddable content such as charts, visualizations or any other content. Widgets require Bootstrap 4 with JQuery to work properly, make sure the following lines are included in Widget's HTML and set the page height in pixels e.g. &lt;body style=&quot;`height:500px`&quot;&gt;. \n\n`https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css` \n `https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js` \n `https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js`"
 x-tagGroups:
   - name: Authentication
     tags: 
@@ -40,12 +42,14 @@ x-tagGroups:
       - Timeseries
       - Geospatial
       - Images
+      - Videos
       - Documents
       - Tables
       - Visualizations
       - Citations
       - Filestore
       - Reports
+      - Widgets
 schemes:
   - http
 paths:
@@ -139,8 +143,13 @@ paths:
         consumes:
           - application/json
         produces:
-          - application/xml
           - application/json
+        parameters:
+        - name: published
+          in: path
+          title: Filter by published status
+          description: (Optional) Filter by published status - `0`=draft, `1`=published
+          type: integer  
         responses:
           '200':
             description: successful operation
@@ -152,25 +161,71 @@ paths:
         tags:
           - Collections
         summary: Create collection
-        description: Create new collection
+        description: Create a new collection
         operationId: postCollection
-        consumes:
-          - application/json
         produces:
-          - application/xml
           - application/json
         parameters:
-          - in: "path"
-            name: "repositoryId"
+          - in: "formData"
+            name: "repositoryid"
+            title: "Collection's unique IDNo"
             type: string
-            format: string
             required: true
-            description: Collection IDNo
-          - in: "body"
-            name: "body"
+            description: Collection identifier containing numbers and letters only
+          
+          - in: "formData"
+            name: title
+            type: string 
             required: true
-            schema:
-              $ref: "#/definitions/Collection"
+            description: Collection Title 
+          
+          - in: "formData"
+            name: short_text
+            type: string 
+            required: true
+            description: A short description for the collection
+          
+          - in: "formData"
+            name: long_text
+            type: string 
+            required: true
+            description: Detailed collection description. This field supports basic html and image tags.
+          
+          - in: "formData"
+            name: thumbnail
+            type: string 
+            title: Thumbnail image
+            description: Upload an image file or provide path/url
+          
+          - in: "formData"
+            name: weight
+            type: integer 
+            description: Provide weight to arrange display of collection  
+            
+          - in: "formData"
+            name: section
+            type: integer
+            required: true
+            description: 
+              Section/Group. To see a list of sections available, see api endpoint `collections/sections`
+    
+              * `2` = Regional collection
+    
+              * `3` = Specialized collection
+            
+          - in: "formData"
+            name: ispublished
+            type: integer
+            required: true
+            description:
+              Set status to draft or published
+    
+              * `0` = draft
+    
+              * `1` = published
+          
+        consumes:
+          - multipart/form-data    
         responses:
           '200':
             description: successful operation
@@ -202,7 +257,154 @@ paths:
             schema:
               $ref: '#/definitions/Collection'
         security:
-          - ApiKeyAuth: []        
+          - ApiKeyAuth: []
+  /collections/update:
+      post:
+        tags:
+          - Collections
+        summary: Update collection
+        description: Update collection by providing values for the fields that you want to update. For updating `repositoryid`, use the endpoint `collections/rename`
+        operationId: updateCollection
+        produces:
+          - application/json
+        parameters:
+          - in: "formData"
+            name: "repositoryid"
+            type: string
+            required: true
+            title: "Collection's unique IDNo"
+            description: Collection identifier containing numbers and letters only
+          
+          - in: "formData"
+            name: title
+            type: string 
+            required: true
+            description: Collection Title 
+          
+          - in: "formData"
+            name: short_text
+            type: string 
+            required: true
+            description: A short description for the collection
+          
+          - in: "formData"
+            name: long_text
+            type: string 
+            required: true
+            description: Detailed collection description. This field supports basic html and image tags.
+          
+          - in: "formData"
+            name: thumbnail
+            type: string 
+            title: Thumbnail image
+            description: Upload an image file or provide path/url
+          
+          - in: "formData"
+            name: weight
+            type: integer 
+            description: Provide weight to arrange display of collection  
+            
+          - in: "formData"
+            name: section
+            type: integer
+            required: true
+            description: 
+              Section/Group. To see a list of sections available, see api endpoint `collections/sections`
+    
+              * `2` = Regional collection
+    
+              * `3` = Specialized collection
+            
+          - in: "formData"
+            name: ispublished
+            type: integer
+            required: true
+            description:
+              Set status to draft or published
+    
+              * `0` = draft
+    
+              * `1` = published
+          
+        consumes:
+          - multipart/form-data    
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: '#/definitions/Collection'
+        security:
+          - ApiKeyAuth: []
+  /collections/rename:
+    post:
+      tags:
+        - Collections
+      summary: Rename collection
+      description: Rename a collection ID
+      operationId: renameCollection
+      produces:
+        - application/json
+      parameters:
+        - in: "formData"
+          name: "old_repositoryid"
+          type: string
+          required: true
+          description: "Old ID for collection"
+        
+        - in: "formData"
+          name: "new_repositoryid"
+          type: string 
+          required: true
+          description: "New ID for collection"
+
+      consumes:
+        - multipart/form-data
+
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []
+  
+  /datasets/collections:
+      get:
+        tags:
+          - Collections
+        summary: List datasets by collections
+        description: List all datasets with collection owner and all linked collections
+        operationId: listDatasetsByCollections
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+      post:
+        tags:
+          - Datasets
+          - Collections
+        summary: Attach studies to collections
+        description: Attach studies to collections
+        operationId: collectionStudies
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: '#/definitions/CollectionLinkStudies'
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+  
   /datasets:
       get:
         tags:
@@ -213,8 +415,18 @@ paths:
         consumes:
           - application/json
         produces:
-          - application/xml
           - application/json
+        parameters:
+          - in: "path"
+            name: "offset"
+            type: numeric
+            format: numeric
+            description: "Specify the starting row number"
+          - in: "path"
+            name: "limit"
+            type: numeric
+            format: numeric  
+            description: "Specify number of rows to return. Default is 50 rows."
         responses:
           '200':
             description: successful operation
@@ -328,8 +540,42 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []        
-  /datasets/find_by_id{datasetID}:
+          - ApiKeyAuth: []
+  /datasets/owner_collection/{IDNo}:
+    post:
+      tags:
+        - Datasets
+      summary: Set owner collection
+      description: Collection that owns the study
+      operationId: datasetOwnerCollection
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "IDNo"
+          description: Dataset IDNo
+          type: string
+          format: string
+          required: true
+        - in: body
+          name: owner_collection
+          schema:
+            type: object
+            required:
+              - collection_idno
+            properties:
+              collection_idno:
+                type: string
+
+      consumes:
+        - application/json
+
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []
+  /datasets/find_by_id/{datasetID}:
       get:
         tags:
           - Datasets
@@ -376,7 +622,29 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []                        
+          - ApiKeyAuth: []   
+  /datasets/replace_idno:
+    post:
+      tags:
+        - Datasets
+      summary: Replace IDNO
+      description: Replace IDNO
+      operationId: replaceIdno
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: '#/definitions/ReplaceIdno'
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - ApiKeyAuth: []                                          
   /datasets/create/survey/{IDNo}:
       post:
         tags:
@@ -491,13 +759,37 @@ paths:
               $ref: 'geospatial-schema.json'
         security:
           - ApiKeyAuth: []                      
+  /datasets/create/timeseriesdb:
+    post:
+      tags:
+        - Timeseries
+      summary: Create timeseries database
+      description: Create a new timeseries database
+      operationId: createTimeseriesDB
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'timeseries-db-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'timeseries-db-schema.json'
+      security:
+        - ApiKeyAuth: [] 
   /datasets/create/timeseries:
       post:
         tags:
           - Timeseries
         summary: Create timeseries dataset
         description: Create a new timeseries project
-        operationId: createTimseries
+        operationId: createTimeSeries
         consumes:
           - application/json
         produces:
@@ -514,7 +806,7 @@ paths:
             schema:
               $ref: 'timeseries-schema.json'
         security:
-          - ApiKeyAuth: []
+          - ApiKeyAuth: []         
   /datasets/create/image:
       post:
         tags:
@@ -539,6 +831,30 @@ paths:
               $ref: 'image-schema.json'
         security:
           - ApiKeyAuth: []
+  /datasets/create/video:
+      post:
+        tags:
+          - Videos
+        summary: Create Video
+        description: Create a new Video
+        operationId: createVideo
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'video-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'video-schema.json'
+        security:
+          - ApiKeyAuth: []        
   /datasets/create/document/{IDNo}:
       post:
         tags:
@@ -632,7 +948,7 @@ paths:
         - ApiKeyAuth: []              
           
           
-  /datasets/datafiles:
+  /datasets/{IDNo}/datafiles:
       get:
         tags:
           - Survey
@@ -688,14 +1004,13 @@ paths:
               $ref: 'datafile-schema.json'
         security:
           - ApiKeyAuth: []         
-  /datasets/batch_delete_vars/{IDNo}/{fileId}:
-      delete:
+  /datasets/datafiles/{IDNo}/{fileId}:
+    delete:
         tags:
           - Survey
-          - Timeseries
-        summary: Batch delete variables
-        description: Batch delete all variables from a datafile or Dataset. Set the '`fileId`' param to '`ALL`' to delete all variables from all datafiles in the Dataset.
-        operationId: deleteDatafileVariables
+        summary: Delete datafile
+        description: Delete file and variables
+        operationId: deleteDatafile
         consumes:
           - application/json
         produces:
@@ -717,7 +1032,42 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []   
+          - ApiKeyAuth: [] 
+  /datasets/variable/{IDNo}/{fileId}/{varId}:
+      delete:
+        tags:
+          - Survey
+        summary: Delete variable
+        description: Delete a single variable
+        operationId: deleteVariables
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: IDNo
+            in: path
+            description: Dataset IDNo
+            required: true
+            type: string
+            format: string
+          - name: fileId
+            in: path
+            description: File ID
+            required: true
+            type: string
+            format: string 
+          - name: varId
+            in: path
+            description: var ID
+            required: true
+            type: string
+            format: string    
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: [] 
   /datasets/variables/{IDNo}:
       get:
         tags:
@@ -745,8 +1095,36 @@ paths:
               items:
                 $ref: '#/definitions/VariableList'
         security:
-          - ApiKeyAuth: []
+          - ApiKeyAuth: []      
   /datasets/variables/{IDNo}/{fileId}:
+    delete:
+        tags:
+          - Survey
+        summary: Delete all variables
+        description: Delete all variables from a datafile or Dataset.
+        operationId: deleteVariables
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: IDNo
+            in: path
+            description: Dataset IDNo
+            required: true
+            type: string
+            format: string
+          - name: fileId
+            in: path
+            description: File ID
+            required: true
+            type: string
+            format: string  
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
     get:
       tags:
         - Survey
@@ -819,7 +1197,6 @@ paths:
       get:
         tags:
           - Survey
-          - Timeseries
         summary: Get variable
         description: Get a single variable with full metadata
         operationId: getDatasetVariable
@@ -961,7 +1338,29 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []
-
+  /datasets/generate_ddi/{IDNo}:
+      get:
+        tags:
+          - Datasets
+        summary: Generate DDI file
+        description: Generate DDI/XML file
+        operationId: generateDDIget
+        consumes:
+          - application/json
+        produces:
+          - application/xml
+          - application/json
+        parameters:
+          - in: "path"
+            name: "IDNo"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
   /datasets/strip_ddi/{IDNo}/{options}:
       put:
         tags:
@@ -1001,10 +1400,11 @@ paths:
           - in: "path"
             name: "datasetIDNo"
             type: string
-            requried: true
+            required: true
           - in: "path"
             name: "newId"
-            type: numeric                       
+            type: number
+            required: true
         consumes:
           - application/json
         produces:
@@ -1026,7 +1426,7 @@ paths:
           - in: "path"
             name: "datasetIDNo"
             type: string
-            requried: true
+            required: true
           - in: "body"
             name: "body"
             required: true
@@ -1042,8 +1442,7 @@ paths:
         security:
           - ApiKeyAuth: []        
 
-
-  /datasets/tags/{datasetIDNo}:
+  /datasets/tags:
       get:
         tags:
           - Survey
@@ -1052,13 +1451,34 @@ paths:
           - Table
           - Geospatial
         summary: List tags
-        description: List datasets with tags  
+        description: List tags in use
+        operationId: datasetTags
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  /datasets/tags/{datasetIDNo}:
+      get:
+        tags:
+          - Survey
+          - Timeseries
+          - Document
+          - Table
+          - Geospatial
+        summary: List tags by dataset
+        description: List tags used by a dataset
         operationId: datasetTagsByIDNo
         parameters:
           - in: "path"
             name: "datasetIDNo"
-            title: (Optional) IDNO
+            description: Dataset IDNO
             type: string
+            required: true
         consumes:
           - application/json
         produces:
@@ -1141,12 +1561,12 @@ paths:
             name: "body"
             required: true
             schema:
-              $ref: '#/definitions/Resource'    
+              $ref: 'resource-schema.json'  
         responses:
           '200':
             description: successful operation
             schema:
-              $ref: '#/definitions/Resource'
+              $ref: 'resource-schema.json'
         security:
           - ApiKeyAuth: []       
   /datasets/{datasetIDNo}/resources/{resourceId}:
@@ -1272,13 +1692,13 @@ paths:
               required: true
               type: file
               format: file
-              responses:
-                '200':
-                  description: successful operation
-                  schema:
-                    $ref: '#/definitions/Resource'
-              security:
-                - ApiKeyAuth: []                   
+          responses:
+            '200':
+              description: successful operation
+              schema:
+                $ref: '#/definitions/Resource'
+          security:
+            - ApiKeyAuth: []                   
   /datasets/{datasetIDNo}/files:
     get:
       tags:
@@ -1336,9 +1756,8 @@ paths:
         - name: resourceId
           in: path
           description: (Optional) Uploaded file is attached to the resource
-          required: false
-          type: int
-          format: int
+          type: number
+          format: number
       responses:
         '200':
           description: successful operation
@@ -1420,7 +1839,7 @@ paths:
           - application/xml
           - application/json
         parameters:
-          - name: q
+          - name: keywords
             in: path
             description: Search keywords 
             type: string
@@ -1434,7 +1853,48 @@ paths:
             in: path
             title: "End year"          
             type: integer
-            format: integer  
+            format: integer
+          - name: ctype
+            in: path
+            title: "Citation type"
+            description: Citation types (e.g. book, journal, website). To filter by multiple types, separate by comma. `ctype=book,journal`
+            type: string
+            format: string
+          - name: published
+            in: path
+            title: "Filter by published status"          
+            type: integer
+            format: integer
+            description: By default all citations are returned. `0` = Draft, `1` = Published
+          - name: ps
+            in: path
+            title: Page size
+            description: Number of results per page. Default is 15 records per page
+            type: int
+          - name: offset
+            in: path
+            title: Offset
+            description: Page to return for the search result
+            type: int
+          
+          - name: sort_by
+            in: path
+            title: Sort results
+            description: Sort search results. Valid options are `author`,`title`,`pub_year`
+            type: string
+            enum:
+            - title
+            - author
+            - pub_year
+          - name: sort_order
+            in: path
+            title: Sort order
+            description: Set results sort order. Ascending = `asc`, Descending= `desc`
+            type: string
+            enum:
+            - asc
+            - desc
+
         responses:
           '200':
             description: successful operation
@@ -1462,28 +1922,31 @@ paths:
         responses:
           '200':
             description: successful operation
-            schema:
-              $ref: '#/definitions/Collection'
         security:
           - ApiKeyAuth: []       
-  /citations/{citationId}:
+  /citations/{uuid}:
       get:
         tags:
           - Citations
         summary: Get citation
-        description: Get a single citation
+        description: Get a single citation. To use the internal IDs for citations, use the parameter `id_format`. For example, `?id_format=id` will use the numeric autogenerated IDs.
         operationId: singleCitation
         consumes:
           - application/json
         produces:
-          - application/xml
           - application/json
         parameters:
           - in: "path"
-            name: "repositoryId"
+            name: "uuid"
             type: string
             format: string
+            title: Citation UUID or ID
             required: true
+          - in: "path"
+            name: "id_format"
+            type: string
+            format: string
+            title: Specify citationId format, default format is `uuid`. Valid values `id` or `uuid`.   
         responses:
           '200':
             description: successful operation
@@ -1491,7 +1954,25 @@ paths:
                $ref: '../schemas/citation-schema.json'
         security:
           - ApiKeyAuth: []
-
+      delete:
+        tags:
+          - Citations
+        summary: Delete a citation
+        description: Delete a single citation
+        operationId: deleteCitation
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "uuid"
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: [] 
   /filestore:
       get:
         tags:
@@ -1629,6 +2110,101 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: [] 
+  
+  /widgets/:
+      get:
+        tags:
+          - Widgets
+        summary: List all widgets
+        description: List all widgets
+        operationId: listWidgets
+        consumes:
+          - application/json
+        produces:
+          - application/json        
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []    
+  /widgets/{uuid}:    
+      post:
+        tags:
+          - Widgets
+        summary: Create a new widget
+        description: Create a new widget
+        operationId: createWidget
+        consumes:
+          - multipart/form-data
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "uuid"
+            type: string
+            format: string
+            required: true
+            description: "UUID - Unique identifier"
+          - name: file
+            in: formData
+            description: Upload a zip file containing HTML, CSS, JS, etc.
+            required: true
+            type: file
+            format: file
+          - name: title
+            in: formData
+            description: Title
+            required: true
+            type: string
+            format: string 
+          - name: thumbnail
+            in: formData
+            description: Name of the image file to use as thumbnail
+            required: true
+            type: string
+            format: string 
+          - name: description
+            in: formData
+            description: Description
+            type: string
+            format: string   
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  /widgets/attach_to_study:
+      post:
+        tags:
+          - Widgets
+        summary: Attach widget to a study
+        description: Attach widget to a study
+        operationId: attachWidget
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: attach_dataset
+            schema:
+              type: object
+              required:
+                - idno
+                - uuid
+              properties:
+                idno:
+                  type: string
+                  title: Study IDNO
+                uuid:
+                  type: string
+                  title: Widget UUID
+          
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []                       
 ###############################################################
 securityDefinitions:
   ApiKeyAuth:
@@ -1666,7 +2242,7 @@ definitions:
       title:
         type: string  
       ispublished:
-        type: byte
+        type: integer
         description:
           Set status to draft or published
 
@@ -1674,58 +2250,95 @@ definitions:
 
           * `1` = published
         enum:
-          - (0) draft
-          - (1) published
+          - 0
+          - 1
     xml:
       name: CollectionList
   Collection:
     type: object
     properties:
-      id:
-        type: integer
-        format: int64
-        readOnly: true
       repositoryid:
         type: string
-        required: true
-        title: "Collection's unique IDNo"        
+        title: "Collection's unique IDNo"
+        description: Collection identifier containing numbers and letters only
       title:
         type: string 
-        required: true
         description: Collection Title 
       short_text:
-        required: true
         type: string 
         description: A short description for the collection
       long_text:
         type: string 
-        required: true
         description: Detailed collection description. This field supports basic html and image tags.
       thumbnail:
         type: string 
         title: Thumbnail image
         description: Upload an image file or provide path/url
       weight:
-        type: string 
+        type: integer 
         description: Provide weight to arrange display of collection  
       section:
-        type: int
-        description: Section ID. To see a list of sections available, see api endpoint `collections/sections`
-        required: true
+        type: integer
+        description: 
+          Section/Group. To see a list of sections available, see api endpoint `collections/sections`
+
+          * `2` = Regional collection
+
+          * `3` = Specialized collection
       ispublished:
-        type: byte
-        required: true
+        type: integer
         description:
           Set status to draft or published
 
           * `0` = draft
 
           * `1` = published
-        enum:
-          - (0) draft
-          - (1) published
+    required:
+      - repositoryid
+      - title
+      - short_text
+      - long_text
+      - ispublished      
     xml:
-      name: Collection    
+      name: Collection
+
+  CollectionLinkStudies:
+    type: array
+    items:
+      type: object
+      properties:
+        study_idno:
+          type: string
+          title: "Study IDNO"
+        owner_collection:
+          type: string 
+          title: Collection's id that owns the dataset/study
+          description: (optional) if a value is provided, it will replace the owner collection for the study
+        link_collections:
+          type: array
+          description: List of collections that will display the dataset/study
+          items:
+            type: string
+        mode:
+          type: string
+          title: Update or replace the linked collections
+          description:
+            Select flag to update or replace existing linked collections for the study.
+
+            * `replace` = replace linked collections for the study with the provided list
+
+            * `update` = (Default) add/update linked collections list
+          enum:
+            - replace
+            - update
+          default: 'update'
+      required:
+        - study_idno
+        - mode
+        - link_collections
+    xml:
+      name: CollectionLinkStudies 
+  
   DatasetList:
     type: object
     properties:
@@ -1756,7 +2369,7 @@ definitions:
         items:
           type: string
       published:
-        type: byte
+        type: integer
         description:
           Set status to draft or published
 
@@ -1764,8 +2377,8 @@ definitions:
 
           * `1` = published
         enum:
-          - (0) draft
-          - (1) published
+          - 0
+          - 1
       created:
         type: string
         format: date-time
@@ -1776,95 +2389,7 @@ definitions:
         readOnly: true           
     xml:
       name: Dataset
-  ProjectAccessPolicy:
-    type: object
-    properties:
-      id:
-        type: integer
-        format: int64
-        readOnly: true
-      access_policy:
-        type: string
-        description:
-          Select the access policy suitable for your data.
-          
-          * `direct` - Direct access
-
-          * `public` - Public access
-          
-          * `licensed` - Licensed access, require users to register and submit request for access
-          
-          * `enclave` - Data Enclave
-          
-          * `remote` - Date available from remote repository
-          
-          * `other` - Other
-
-        enum:
-          - open
-          - direct
-          - public
-          - licensed
-          - enclave
-          - remote
-          - other
-      to_catalog:
-        type: string
-        description:
-          
-          Select catalog for publishing the data
-
-          * `internal` - Internal catalog
-          
-          * `external` -External public catalog
-        enum:
-          - internal
-          - external  
-      is_embargoed:
-        type: boolean
-        description: Is the data embargoed?
-        enum:
-          - 0 [No]
-          - 1 [Yes]
-      embargoed_notes:
-        type: string
-        description: indicate the terms of the embargo e.g. time period and any other special instructions.
-      disclosure_risk: 
-        type: string      
-        description: Safeguarding the identity and privacy of respondents that have provided the data is important. If the data files you are depositing contain any identifying variables (e.g., names, official ID numbers, precise GIS coordinates, etc) or any variables deemed otherwise sensitive in your study setting (e.g., ethnicity, tribe, religion, etc) please list these below so that access to these can be suppressed. 
-      library_notes: 
-        type: string      
-        description: Notes for the deposit reviewers
-      cc:
-        type: string
-        description: Enter the email addresses seperated by semicolon(;) of additional people you would like to receive a summary copy of your submission.
-      created:
-        type: string
-        format: date-time
-        readOnly: true         
-      changed:
-        type: string
-        format: date-time
-        readOnly: true     
-    xml:
-      name: MetadataSchema    
-  MetadataSchema:
-    type: object
-    properties:
-      id:
-        type: integer
-        format: int64
-        readOnly: true
-      project_type:
-        type: string
-        enum:
-          - survey
-          - geospatial
-      other_fields:
-        type: object
-        description: Schema for one of the supported types    
-    xml:
-      name: MetadataSchema
+  
   ResourceFile:
     type: object
     properties:
@@ -1907,15 +2432,6 @@ definitions:
   Resource:
     type: object
     properties:
-      id:
-        type: integer
-        format: int64
-        readOnly: true
-      dataset_id:
-        type: integer
-        format: int64
-        description: Dataset ID
-        readOnly: true
       dctype:
         type: string
         example: doc/adm
@@ -2057,7 +2573,18 @@ definitions:
         type: string
         description: Variable label
     xml:
-      name: ResourceFile        
+      name: ResourceFile
+  ReplaceIdno:
+    type: object
+    properties:
+      old_idno:
+        type: string
+        description: Old IDNO for study      
+      new_idno:
+        type: string
+        description: New IDNO for study        
+    xml:
+      name: ReplaceIdno              
   DatasetOptions:
     type: object
     properties:
@@ -2124,16 +2651,3 @@ definitions:
         description: URL to the indicators website
     xml:
       name: datasetOptions
-  
-  
-  
-  ApiResponse:
-    type: object
-    properties:
-      code:
-        type: integer
-        format: int32
-      type:
-        type: string
-      message:
-        type: string

@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
 /**
@@ -17,12 +24,12 @@ interface QueryInterface
      *
      * @return self Provides fluent interface
      */
-    public function setQuery($query, $bind = null);
+    public function setQuery(string $query, array $bind = null): self;
 
     /**
      * Get query option.
      *
      * @return string|null
      */
-    public function getQuery();
+    public function getQuery(): ?string;
 }

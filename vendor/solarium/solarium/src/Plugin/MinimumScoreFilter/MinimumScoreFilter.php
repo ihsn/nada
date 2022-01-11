@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\MinimumScoreFilter;
 
 use Solarium\Core\Plugin\AbstractPlugin;
@@ -23,6 +30,6 @@ class MinimumScoreFilter extends AbstractPlugin
      */
     protected function initPluginType()
     {
-        $this->client->registerQueryType(self::QUERY_TYPE, 'Solarium\Plugin\MinimumScoreFilter\Query');
+        $this->client->registerQueryType(self::QUERY_TYPE, Query::class);
     }
 }

@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Highlighting;
 
 /**
@@ -19,7 +26,7 @@ class Highlighting implements \IteratorAggregate, \Countable
      *
      * @param array $results
      */
-    public function __construct($results)
+    public function __construct(array $results)
     {
         $this->results = $results;
     }
@@ -31,11 +38,9 @@ class Highlighting implements \IteratorAggregate, \Countable
      *
      * @return Result|null
      */
-    public function getResult($key)
+    public function getResult($key): ?Result
     {
-        if (isset($this->results[$key])) {
-            return $this->results[$key];
-        }
+        return $this->results[$key] ?? null;
     }
 
     /**
@@ -43,7 +48,7 @@ class Highlighting implements \IteratorAggregate, \Countable
      *
      * @return Result[]
      */
-    public function getResults()
+    public function getResults(): array
     {
         return $this->results;
     }
@@ -53,7 +58,7 @@ class Highlighting implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->results);
     }
@@ -63,8 +68,8 @@ class Highlighting implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->results);
+        return \count($this->results);
     }
 }

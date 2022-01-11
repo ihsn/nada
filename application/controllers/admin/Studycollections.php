@@ -13,7 +13,7 @@ class StudyCollections extends MY_Controller {
        	$this->load->model('Catalog_model');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
-		$this->load->helper("catalog");
+		//$this->load->helper("catalog");
 		$this->template->set_template('admin');
 		
 		//load language file
@@ -67,7 +67,9 @@ class StudyCollections extends MY_Controller {
 		}
 		
 		$this->load->model('repository_model');		
-		$this->repository_model->link_study($collection_id,$sid,0);
+		$result=$this->repository_model->link_study($collection_id,$sid,0);
+
+		echo json_encode(array('result'=>$result));
 	}
 
 

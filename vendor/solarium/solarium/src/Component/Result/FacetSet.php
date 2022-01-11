@@ -1,27 +1,34 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result;
 
-use Solarium\Component\Facet\FacetInterface;
+use Solarium\Component\Result\Facet\FacetResultInterface;
 
 /**
  * Select component facetset result.
  */
-class FacetSet implements \IteratorAggregate, \Countable
+class FacetSet implements \IteratorAggregate, \Countable, FacetResultInterface
 {
     /**
      * Facet array.
      *
-     * @var array
+     * @var FacetResultInterface[]
      */
     protected $facets;
 
     /**
      * Constructor.
      *
-     * @param array $facets
+     * @param FacetResultInterface[] $facets
      */
-    public function __construct($facets)
+    public function __construct(array $facets)
     {
         $this->facets = $facets;
     }
@@ -31,21 +38,19 @@ class FacetSet implements \IteratorAggregate, \Countable
      *
      * @param mixed $key
      *
-     * @return FacetInterface
+     * @return FacetResultInterface|null
      */
-    public function getFacet($key)
+    public function getFacet($key): ?FacetResultInterface
     {
-        if (isset($this->facets[$key])) {
-            return $this->facets[$key];
-        }
+        return $this->facets[$key] ?? null;
     }
 
     /**
-     * Get all results.
+     * Get all facet results.
      *
-     * @return FacetInterface[]
+     * @return FacetResultInterface[]
      */
-    public function getFacets()
+    public function getFacets(): array
     {
         return $this->facets;
     }
@@ -55,7 +60,7 @@ class FacetSet implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->facets);
     }
@@ -67,6 +72,6 @@ class FacetSet implements \IteratorAggregate, \Countable
      */
     public function count()
     {
-        return count($this->facets);
+        return \count($this->facets);
     }
 }

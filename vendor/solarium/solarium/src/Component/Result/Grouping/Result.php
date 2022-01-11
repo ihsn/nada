@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Grouping;
 
 /**
@@ -21,7 +28,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @param array $groups
      */
-    public function __construct($groups)
+    public function __construct(array $groups)
     {
         $this->groups = $groups;
     }
@@ -31,7 +38,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getGroups()
+    public function getGroups(): array
     {
         return $this->groups;
     }
@@ -41,9 +48,9 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @param string $key
      *
-     * @return FieldGroup|QueryGroup
+     * @return FieldGroup|QueryGroup|null
      */
-    public function getGroup($key)
+    public function getGroup(string $key)
     {
         if (isset($this->groups[$key])) {
             return $this->groups[$key];
@@ -55,7 +62,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->groups);
     }
@@ -65,8 +72,8 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->groups);
+        return \count($this->groups);
     }
 }

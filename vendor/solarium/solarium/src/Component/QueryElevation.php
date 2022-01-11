@@ -1,13 +1,21 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
+use Solarium\Component\RequestBuilder\ComponentRequestBuilderInterface;
 use Solarium\Component\RequestBuilder\QueryElevation as RequestBuilder;
 
 /**
  * QueryElevation component.
  *
- * @see https://lucene.apache.org/solr/guide/the-query-elevation-component.html
+ * @see https://solr.apache.org/guide/the-query-elevation-component.html
  */
 class QueryElevation extends AbstractComponent
 {
@@ -32,7 +40,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return ComponentAwareQueryInterface::COMPONENT_QUERYELEVATION;
     }
@@ -42,7 +50,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): ComponentRequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -54,7 +62,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return self fluent interface
      */
-    public function addTransformer($transformer)
+    public function addTransformer(string $transformer): self
     {
         $this->transformers[$transformer] = true;
 
@@ -70,9 +78,9 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function addTransformers($transformers)
+    public function addTransformers($transformers): self
     {
-        if (is_string($transformers)) {
+        if (\is_string($transformers)) {
             $transformers = explode(',', $transformers);
             $transformers = array_map('trim', $transformers);
         }
@@ -91,7 +99,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function removeTransformer($transformer)
+    public function removeTransformer(string $transformer): self
     {
         if (isset($this->transformers[$transformer])) {
             unset($this->transformers[$transformer]);
@@ -105,7 +113,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return self fluent interface
      */
-    public function clearTransformers()
+    public function clearTransformers(): self
     {
         $this->transformers = [];
 
@@ -117,7 +125,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return array
      */
-    public function getTransformers()
+    public function getTransformers(): array
     {
         return array_keys($this->transformers);
     }
@@ -131,7 +139,7 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setTransformers($transformers)
+    public function setTransformers($transformers): self
     {
         $this->clearTransformers();
         $this->addTransformers($transformers);
@@ -146,17 +154,19 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setEnableElevation($enable)
+    public function setEnableElevation(bool $enable): self
     {
-        return $this->setOption('enableElevation', $enable);
+        $this->setOption('enableElevation', $enable);
+
+        return $this;
     }
 
     /**
      * Get enable elevation.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getEnableElevation()
+    public function getEnableElevation(): ?bool
     {
         return $this->getOption('enableElevation');
     }
@@ -168,17 +178,19 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setForceElevation($force)
+    public function setForceElevation(bool $force): self
     {
-        return $this->setOption('forceElevation', $force);
+        $this->setOption('forceElevation', $force);
+
+        return $this;
     }
 
     /**
      * Get force elevation.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getForceElevation()
+    public function getForceElevation(): ?bool
     {
         return $this->getOption('forceElevation');
     }
@@ -190,19 +202,45 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setExclusive($exclusive)
+    public function setExclusive(bool $exclusive): self
     {
-        return $this->setOption('exclusive', $exclusive);
+        $this->setOption('exclusive', $exclusive);
+
+        return $this;
     }
 
     /**
      * Get exclusive.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getExclusive()
+    public function getExclusive(): ?bool
     {
         return $this->getOption('exclusive');
+    }
+
+    /**
+     * Set use configured elevated order.
+     *
+     * @param bool $useConfiguredElevatedOrder
+     *
+     * @return self Provides fluent interface
+     */
+    public function setUseConfiguredElevatedOrder(bool $useConfiguredElevatedOrder): self
+    {
+        $this->setOption('useConfiguredElevatedOrder', $useConfiguredElevatedOrder);
+
+        return $this;
+    }
+
+    /**
+     * Get use configured elevated order.
+     *
+     * @return bool|null
+     */
+    public function getUseConfiguredElevatedOrder(): ?bool
+    {
+        return $this->getOption('useConfiguredElevatedOrder');
     }
 
     /**
@@ -212,23 +250,25 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setMarkExcludes($mark)
+    public function setMarkExcludes(bool $mark): self
     {
-        if (true === $mark || 'true' === $mark) {
+        if ($mark) {
             $this->addTransformer('[excluded]');
         } else {
             $this->removeTransformer('[excluded]');
         }
 
-        return $this->setOption('markExcludes', $mark);
+        $this->setOption('markExcludes', $mark);
+
+        return $this;
     }
 
     /**
      * Get mark excludes.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getMarkExcludes()
+    public function getMarkExcludes(): ?bool
     {
         return $this->getOption('markExcludes');
     }
@@ -240,22 +280,24 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setElevateIds($ids)
+    public function setElevateIds($ids): self
     {
-        if (is_string($ids)) {
+        if (\is_string($ids)) {
             $ids = explode(',', $ids);
             $ids = array_map('trim', $ids);
         }
 
-        return $this->setOption('elevateIds', $ids);
+        $this->setOption('elevateIds', $ids);
+
+        return $this;
     }
 
     /**
      * Get elevated document ids.
      *
-     * @return null|array
+     * @return array|null
      */
-    public function getElevateIds()
+    public function getElevateIds(): ?array
     {
         return $this->getOption('elevateIds');
     }
@@ -267,22 +309,24 @@ class QueryElevation extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setExcludeIds($ids)
+    public function setExcludeIds($ids): self
     {
-        if (is_string($ids)) {
+        if (\is_string($ids)) {
             $ids = explode(',', $ids);
             $ids = array_map('trim', $ids);
         }
 
-        return $this->setOption('excludeIds', $ids);
+        $this->setOption('excludeIds', $ids);
+
+        return $this;
     }
 
     /**
      * Get excluded document ids.
      *
-     * @return null|array
+     * @return array|null
      */
-    public function getExcludeIds()
+    public function getExcludeIds(): ?array
     {
         return $this->getOption('excludeIds');
     }

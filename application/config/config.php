@@ -457,11 +457,24 @@ $config['global_xss_filtering'] = FALSE;
 | 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
 */
 $config['csrf_protection'] = FALSE;
-$config['csrf_token_name'] = 'csrf_test_name';
-$config['csrf_cookie_name'] = 'csrf_cookie_name';
+$config['csrf_token_name'] = 'ncsrf';
+$config['csrf_cookie_name'] = 'ccsrf';
 $config['csrf_expire'] = 7200;
-$config['csrf_regenerate'] = TRUE;
-$config['csrf_exclude_uris'] = array();
+$config['csrf_regenerate'] = FALSE;
+$config['csrf_exclude_uris'] = array(
+    'auth/.*+',
+    'admin/citations/find_duplicates',
+    'admin/citations/find_surveys',
+    'api/.*+',
+    'catalog/.*+',
+    'admin/catalog/update',
+    'admin/pdf_generator/.*+',
+    'admin/survey_alias/.*+',
+    'admin/catalog_tags/.*+',
+    'admin/catalog/set_featured_study/.*+',
+    'admin/catalog/update_doi.*+',
+    'admin/catalog_notes.*+'
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -624,7 +637,7 @@ $config['site_user_register']='yes';
 |
 | allowed_resource_types	comma seperated list of file extensions that are allowed for uploading external resources
 */
-$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar';
+$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar,do,r';
 
 
 /*
@@ -635,7 +648,7 @@ $config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,
 | max_resource_upload_size	maximum file upload size in MB
 |
 */
-$config['max_resource_upload_size']='300';
+$config['max_resource_upload_size']='3000';
 
 
 /*
@@ -774,6 +787,24 @@ $config['enable_access_policy_import']=false;
 */
 $config['guests_hide_microdata_tab']=true;
 
+//show tabs for each data type on search page
+$config['data_types_nav_bar']=false;
+
+//catalog search box location
+$config['search_box_orientation']='default'; //inline, default
+
+
+/*
+|--------------------------------------------------------------------------
+| Google Maps API key
+|--------------------------------------------------------------------------
+|
+| API key for Google maps
+| 
+| 
+*/
+
+$config['google_maps_api_key']='';
 
 /*
 |--------------------------------------------------------------------------

@@ -7,6 +7,7 @@
  * @id - survey id
  * @surveyid - IDNO
  * @ all survey table fields
+ * @section = array - names of sections 
  *
  *
  **/
@@ -19,18 +20,23 @@
 ?>
 
 
+
+
+
 <!-- identification section -->
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "idno"=>'text',
             "title"=>'text',
-            "metadata.study_desc.title_statement.sub_title"=>'text',
+            "metadata.study_desc.title_statement.sub_title"=>'text',            
             "metadata.study_desc.title_statement.alternate_title"=>'text',
             "metadata.study_desc.title_statement.translated_title"=>'text',
-            "metadata.study_desc.study_info.nation"=>'nation',
             "metadata.study_desc.study_info.nation"=>'array',
+            //"metadata.study_desc.study_info.nation"=>'array_badge',
+            //"metadata.study_desc.study_info.nation"=>'array_comma',
             "metadata.study_desc.geog_units"=>'array',
             "metadata.study_desc.series_statement.series_name"=>'text',
+            "metadata.iframe_embeds"=>'iframe_embed',
             "metadata.study_desc.series_statement.series_info"=>'text',            
             "metadata.study_desc.study_info.abstract"=>'text',
             "metadata.study_desc.study_info.data_kind"=>'text',
@@ -104,7 +110,8 @@
             "metadata.study_desc.study_info.coll_dates"=>'array',
             "metadata.study_desc.method.data_collection.frequency"=>'text',
             "metadata.study_desc.study_info.time_periods"=>'array',
-            "metadata.study_desc.method.data_collection.sources.data_source"=>'text',
+            "metadata.study_desc.method.data_collection.sources.data_source"=>'array_list',
+            "metadata.study_desc.method.data_collection.sources.source_origin"=>'text',
             "metadata.study_desc.method.data_collection.coll_mode"=>'text',
             "metadata.study_desc.method.data_collection.act_min"=>'text',
             "metadata.study_desc.method.data_collection.coll_situation"=>'text',            
@@ -128,7 +135,7 @@
 <?php $output['data_processing']= render_group('data_processing',
     $fields=array(
             "metadata.study_desc.method.data_collection.cleaning_operations"=>'text',
-            "metadata.study_desc.method.data_collection.method_notes"=>'text'
+            "metadata.study_desc.method.method_notes"=>'text'
             ),
     $metadata);
 ?>
@@ -147,16 +154,17 @@
 <!-- data_access -->
 <?php $output['data_access']= render_group('data_access',
     $fields=array(
-            "metadata.study_desc.data_access.dataset_use.contact"=>'array',
             "metadata.study_desc.distribution_statement.contact"=>'array',
             "metadata.study_desc.data_access.dataset_use.conf_dec"=>'array_comma',
             "metadata.study_desc.data_access.dataset_use.conf_dec.form_url"=>'text',
             "metadata.study_desc.data_access.dataset_use.conditions"=>'text',
+            "metadata.study_desc.data_access.dataset_use.restrictions"=>'text',
             "metadata.study_desc.data_access.dataset_use.cit_req"=>'text',
+            "metadata.study_desc.data_access.dataset_use.contact"=>'array',
             "metadata.study_desc.data_access.dataset_use.deposit_req">'text',
-            "metadata.study_desc.data_access.dataset_availability.access_place"=>'text', 
+            "metadata.study_desc.data_access.dataset_availability.access_place"=>'text',
             "metadata.study_desc.data_access.dataset_availability.original_archive"=>'text', 
-            "metadata.study_desc.data_access.dataset_availability.availability_status"=>'text'
+            "metadata.study_desc.data_access.dataset_availability.availability_status"=>'text',            
             ),
     $metadata);
 ?>
@@ -184,26 +192,36 @@
 ?>
 
 
-<!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2  d-none d-sm-block">
-<div class="navbar-collapse sticky-top">
-
-    <ul class="navbar-nav flex-column wb--full-width">
-    <?php foreach($output as $key=>$value):?>            
-        <?php if(trim($value)!==""):?>    
-        <li class="nav-item">
-            <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
-        </li>
+<?php if (isset($sections) && count($sections)>0):?>
+    <!-- show only selected sections -->
+    <div class="metadata-sections-container mb-5">
+    <?php foreach($sections as $section):?>
+        <?php if(isset($output[$section])):?>
+            <?php echo $output[$section];?>
         <?php endif;?>
     <?php endforeach;?>
-    </ul>
-</div>
-</div>
-<!--metadata content-->
-<div class="col-12 col-sm-10 col-lg-10 wb-border-left">
-    <?php echo implode('',$output);?>
-    <?php //echo html_entity_decode(implode('',$output));?>
-</div>
+    </div>
+<?php else:?>
+    <!-- sidebar with section links -->
+    <div class="col-sm-2 col-lg-2  d-none d-sm-block">
+        <div class="navbar-collapse sticky-top">
+            <ul class="navbar-nav flex-column wb--full-width">
+                <?php foreach($output as $key=>$value):?>
+                    <?php if(trim($value)!==""):?>
+                    <li class="nav-item">
+                        <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
+                    </li>
+                    <?php endif;?>
+                <?php endforeach;?>
+            </ul>
+        </div>
+    </div>
+    <!--metadata content-->
+    <div class="col-12 col-sm-10 col-lg-10 wb-border-left">
+        <?php echo implode('',$output);?>
+        <?php //echo html_entity_decode(implode('',$output));?>
+    </div>
+<?php endif;?>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-linkify/2.1.8/linkify-jquery.min.js"></script>

@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme; ?>/css/bootstrap.min.css">
 <?php endif;?>    
 
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v03212019">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v03212019212">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v03212019">
 
 <?php if($use_cdn):?>
@@ -26,9 +26,6 @@
     <script src="<?php echo base_url().$bootstrap_theme ?>/js/popper.min.js"></script>
     <script src="<?php echo base_url().$bootstrap_theme ?>/js/bootstrap.min.js"></script>
 <?php endif;?>
-
-<script src="<?php echo base_url().$bootstrap_theme ?>/js/script.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>javascript/jquery.ba-bbq.js"></script>
 
 <script type="text/javascript">
     var CI = {'base_url': '<?php echo site_url(); ?>'};

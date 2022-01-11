@@ -14,44 +14,23 @@
  * @return	array
  */	
 if ( ! function_exists('get_site_menu'))
-{
-  
-function get_site_menu()
-{
-  	$ci =& get_instance();
-	//$ci->load->model("Catalog_model");
-	
-	$ci->load->library('site_menu');
-
-	if ($ci->acl->user_has_unlimited_access())
+{  
+	function get_site_menu()
 	{
-		return $ci->site_menu->get_formatted_menu_tree();
-	}
-	
-	//parent and children menu items [level1 and level2 only]
-	$menu_array=$ci->site_menu->get_menu_items_array();
+		$ci =& get_instance();
+		//$ci->load->model("Catalog_model");
+		
+		$ci->load->library('site_menu');
+		return $ci->site_menu->get_formatted_menu_tree(); 
 
-	$items=array();
+		/*$ci->load->config("site_menus");
+		$ci->load->language("site_menu");
+    
+    	$options['items']=$ci->config->item("site_menu");
+    	$content=$ci->load->view('admin/site_menu.php',$options,true);
 
-	//remove menu items that user has no access
-	foreach($menu_array['parents'] as $item)
-	{
-		if ($ci->acl->user_has_url_access($user_id=NULL,$url=$item['url']))
-		{
-			$items['parents'][]=$item;
-		}
+		return $content;*/
 	}
-	
-	foreach($menu_array['children'] as $item)
-	{
-		if ($ci->acl->user_has_url_access($user_id=NULL,$url=$item['url']))
-		{
-			$items['children'][]=$item;
-		}
-	}
-	
-	return $ci->site_menu->get_formatted_menu_tree($items);
-}
   
 }
 

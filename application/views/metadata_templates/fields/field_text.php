@@ -1,5 +1,11 @@
 <?php //var_dump($data);return;?>
-<?php if (isset($data) && $data !=''):?>
+<?php
+    $show_empty=false;
+    if(isset($options['show_empty'])){
+        $show_empty=$options['show_empty'];
+    }
+?>
+<?php if ( (isset($data) && $data !='') || $show_empty==true ):?>
 <div class="field field-<?php echo $name;?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value">
@@ -11,7 +17,12 @@
             <span><?php echo nl2br(html_escape($value));?></span>
         <?php endforeach;?>
         <?php else:?>
-            <span><?php echo nl2br(html_escape($data));?></span>
+            <?php if(!empty($data)):?>
+                <span><?php echo nl2br(html_escape($data));?></span>
+            <?php else: //for empt values when show_empty is true ?>
+                -
+            <?php endif;?>
+
         <?php endif;?>
     </div>
 </div>

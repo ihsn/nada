@@ -150,6 +150,39 @@ if ( ! function_exists('get_file_extension'))
 }
 
 
+/**
+ * 
+ *  Return file extension info array 
+ * 
+ *  @output
+ * 	- ext - file ext
+ *  - link_type - download | view
+ * 
+ */
+if ( ! function_exists('get_file_extension_info'))
+{
+	function get_file_extension_info($ext) 
+	{ 
+		$link_type='download';
+
+		switch($ext){
+			case 'html':
+			case 'aspx':			
+			case 'php':
+				$link_type='view';
+			break;
+		}
+
+		return array(
+			'ext'=>$ext,
+			'link_type'=>$link_type
+		);
+
+	}
+}
+
+
+
 if ( ! function_exists('get_file_icon'))
 {
 	function get_file_icon($ext)

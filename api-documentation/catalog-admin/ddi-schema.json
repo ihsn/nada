@@ -107,6 +107,29 @@
               "description":"The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)",
               "_ddi_xpath":"stdyDscr/citation/titlStmt/IDNo"
             },
+            "identifiers":{
+              "type":"array",
+              "title":"Other identifiers",
+              "description":"Other identifiers",
+              "items":{
+                "type":"object",
+                "properties":{
+                  "type":{
+                    "title":"Identifier type",
+                    "description":"Type of identifier e.g. `doi`, `handle`, `other`",
+                    "type":"string"
+                  },
+                  "identifier":{
+                    "title":"Identifier",
+                    "type":"string"
+                  }
+                },
+                "required":[
+                  "identifier"
+                ]
+              }
+            },
+
             "title":{
               "type":"string",
               "title":"Survey title",
@@ -814,10 +837,14 @@
                         "title":"Funding Agency/Sponsor",
                         "type":"string"
                       },
+                      "affiliation":{
+                        "title":"Affiliation",
+                        "type":"string"
+                      },
                       "abbr":{
                         "title":"Abbreviation",
                         "type":"string"
-                      },
+                      },                      
                       "role":{
                         "title":"Role",
                         "type":"string"
@@ -959,12 +986,16 @@
                         "title":"Name",
                         "type":"string"
                       },
+                      "affiliation":{
+                        "title":"Affiliation",
+                        "type":"string"
+                      },
                       "abbr":{
                         "title":"Abbreviation",
                         "type":"string"
-                      },
-                      "affiliation":{
-                        "title":"Affiliation",
+                      },                      
+                      "role":{
+                        "title":"Role",
                         "type":"string"
                       }
                     }
@@ -1058,7 +1089,7 @@
                         "is_primary":{
                           "title":"Is Primary",
                           "description":"Is a primary unit?",
-                          "type":"boolean",
+                          "type":["boolean","string"],
                           "_ddi_xpath":"stdyDscr/method/dataColl/sampleFrame/frameUnit/@isPrimary"
                         },
                         "unit_type":{
@@ -1115,7 +1146,7 @@
                 },
                 "coll_mode":{
                   "title":"Mode of data collection",
-                  "type":"string",
+                  "type":["string","array"],
                   "description":"The mode of data collection is the manner in which the interview was conducted or information was gathered.  In most cases, the response will be 'face to face interview'. But for some specific kinds of datasets, such as for example data on rain fall, the response will be different.",
                   "_ddi_xpath":"stdyDscr/method/dataColl/collMode",
                   "enum_":[
@@ -1125,7 +1156,10 @@
                     "Focus Group[foc]",
                     "Internet[int]",
                     "Other[oth]"
-                  ]
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
                 },
                 "research_instrument":{
                   "title":"Type of Research Instrument",

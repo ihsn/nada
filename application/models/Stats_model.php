@@ -37,17 +37,23 @@ class Stats_model extends CI_Model {
 	}
 	
 
-	function get_latest_surveys($limit=10)
+	
+	function get_latest_surveys($limit=10,$repositoryid=null)
 	{
-		$this->db->select("surveys.id,surveys.title,surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created");
+		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created, surveys.changed");
 		$this->db->join("forms", "surveys.formid=forms.formid","left");
 		$this->db->where("surveys.published", 1); 
-		$this->db->order_by("surveys.created", "desc"); 
+		$this->db->order_by("surveys.changed", "desc"); 
+
+		if($repositoryid){
+			$this->db->join('survey_repos', 'surveys.id= survey_repos.sid','inner');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+
 		$this->db->limit($limit);
 		$query=$this->db->get("surveys");
 
-		if ($query)
-		{
+		if ($query){
 			return $query->result_array();
 		}	
 		return FALSE;
@@ -57,10 +63,16 @@ class Stats_model extends CI_Model {
 	*
 	* Get total survey count
 	*/
-	function get_survey_count()
+	function get_survey_count($repositoryid=null)
 	{
-		$this->db->where('published',1);
-		$this->db->select('count(id) as total');
+		$this->db->where('surveys.published',1);
+		$this->db->select('count(surveys.id) as total');
+
+		if($repositoryid){
+			$this->db->join('survey_repos', 'surveys.id= survey_repos.sid','inner');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+
 		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query)
@@ -82,8 +94,7 @@ class Stats_model extends CI_Model {
 		$this->db->where('surveys.published',1);
 		$query=$this->db->get('surveys')->row_array();
 		
-		if ($query)
-		{
+		if ($query){
 			return $query['total'];
 		}
 		
@@ -97,6 +108,31 @@ class Stats_model extends CI_Model {
 	function get_citation_count()
 	{
 		return $this->db->count_all('citations');
-	}	
+	}
+	
+	
+
+	function get_counts_by_type($repositoryid=null)
+	{
+		//$result=$this->db->query('select count(id) as total,type from surveys where published=1 group by type')->result_array();
+
+		$this->db->select("count(surveys.id) as total,type");
+		$this->db->where("surveys.published",1);
+		$this->db->group_by("surveys.type");
+
+		if($repositoryid){
+			$this->db->join('survey_repos', 'surveys.id= survey_repos.sid','inner');
+			$this->db->where('survey_repos.repositoryid',$repositoryid);
+		}
+
+		$result=$this->db->get("surveys")->result_array();
+
+		$output=array();
+		foreach($result as $row){
+			$output[$row['type']]=$row['total'];
+		}
+
+		return $output;
+	}
 	
 }

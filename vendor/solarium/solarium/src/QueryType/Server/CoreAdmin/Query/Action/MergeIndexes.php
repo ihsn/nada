@@ -1,11 +1,26 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Server\CoreAdmin\Query\Action;
 
 use Solarium\QueryType\Server\CoreAdmin\Query\Query as CoreAdminQuery;
+use Solarium\QueryType\Server\Query\Action\AbstractAsyncAction;
 
-class MergeIndexes extends AbstractAsyncAction
+/**
+ * Class MergeIndexes.
+ *
+ * @see https://solr.apache.org/guide/coreadmin-api.html#coreadmin-mergeindexes
+ */
+class MergeIndexes extends AbstractAsyncAction implements CoreActionInterface
 {
+    use CoreActionTrait;
+
     /**
      * Returns the action type of the core admin action.
      *
@@ -23,19 +38,21 @@ class MergeIndexes extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setIndexDir(array $indexDir)
+    public function setIndexDir(array $indexDir): self
     {
-        return $this->setOption('indexDir', $indexDir);
+        $this->setOption('indexDir', $indexDir);
+
+        return $this;
     }
 
     /**
      * Get the other core that should be the new name.
      *
-     * @return string[]
+     * @return string[]|null
      */
-    public function getIndexDir(): array
+    public function getIndexDir(): ?array
     {
-        return (array) $this->getOption('indexDir');
+        return $this->getOption('indexDir');
     }
 
     /**
@@ -45,18 +62,20 @@ class MergeIndexes extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setSrcCore(array $srcCore)
+    public function setSrcCore(array $srcCore): self
     {
-        return $this->setOption('srcCore', $srcCore);
+        $this->setOption('srcCore', $srcCore);
+
+        return $this;
     }
 
     /**
      * Get the other core that should be the new name.
      *
-     * @return string[]
+     * @return string[]|null
      */
-    public function getSrcCore(): array
+    public function getSrcCore(): ?array
     {
-        return (array) $this->getOption('srcCore');
+        return $this->getOption('srcCore');
     }
 }

@@ -106,20 +106,16 @@ class DDI_Writer
      * @output - 'php://output' or file path
      * 
      * */
-	function generate_ddi($sid=null, $output='php://output')
+	function generate_ddi($id=null, $output='php://output')
 	{
         $this->ci->load->model('Data_file_model');
         $this->ci->load->model("Variable_model");
         $this->ci->load->model("Variable_group_model");        
 
-        if(!$sid){
-            throw new Exception('STUDY NOT FOUND');
-        }
-
-        $dataset=$this->ci->Dataset_model->get_row_detailed($sid);
+        $dataset=$this->ci->Dataset_model->get_row_detailed($id);
 
         if (!$dataset['type']=='survey'){
-            throw new Exception('Dataaset type is not `survey`:: '. $sid . ' - ' . $dataset['type']);
+            throw new Exception('Dataaset type is not `survey`:: '. $id . ' - ' . $dataset['type']);
         }
 
         $writer = new XMLWriter;
@@ -144,7 +140,7 @@ class DDI_Writer
         $writer->writeRaw($this->get_study_desc_xml($dataset));
 
         //file description
-        $files=$this->ci->Data_file_model->get_all_by_survey($sid);
+        $files=$this->ci->Data_file_model->get_all_by_survey($id);
         $writer->writeRaw("\n");
         
         foreach($files as $file){
@@ -157,14 +153,14 @@ class DDI_Writer
         $writer->writeRaw("\n");
 
         //variable groups
-        $var_groups=$this->ci->Variable_group_model->select_all($sid);
+        $var_groups=$this->ci->Variable_group_model->select_all($id);
         foreach($var_groups as $var_group){
             $writer->writeRaw($this->get_vargroup_desc_xml($var_group));
             $writer->writeRaw("\n");
         }
 
         //variables
-        foreach($this->ci->Variable_model->chunk_reader_generator($sid) as $variable){
+        foreach($this->ci->Variable_model->chunk_reader_generator($id) as $variable){
             $writer->writeRaw($this->get_var_desc_xml($variable['metadata']));
             $writer->writeRaw("\n");
         }        

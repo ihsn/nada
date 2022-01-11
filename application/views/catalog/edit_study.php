@@ -1,6 +1,8 @@
 <?php
 $sid=$this->uri->segment(4);
 $selected_page=$this->uri->segment(5);
+
+$study_type=isset($type) ? $type : 'survey';
 ?>
 
 <script type="text/javascript">
@@ -50,19 +52,29 @@ $(document).ready(function () {
 		//study publish/unpublish
 		$(document.body).on("click","#survey .publish, .survey-publish .publish", function(){
 			var studyid=$(this).attr("data-sid");
-			if ($(this).attr("data-value")==0){
-				$(this).attr("data-value",1);
-				$(this).html("<?php echo t('published');?>");
-				$(this).removeClass("btn-warning");
-				$(this).addClass("btn-success");
-				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1',{submit:"submit"});
+			if ($(this).attr("data-value")==0){				
+				$this=this;				
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1', {submit:"submit"}, function( data ) {
+					$($this).attr("data-value",1);
+					$($this).html("<?php echo t('published');?>");
+					$($this).removeClass("btn-warning");
+					$($this).addClass("btn-success");
+				})
+				.fail(function(xhr, status, error) {
+					alert(xhr.responseText);
+				});
 			}
 			else{
-				$(this).html("<?php echo t('draft');?>");
-				$(this).attr("data-value",0);
-				$(this).removeClass("btn-success");
-				$(this).addClass("btn-warning");
-				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1',{submit:"submit"});
+				$this=this;	
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1', {submit:"submit"}, function( data ) {
+					$($this).html("<?php echo t('draft');?>");
+					$($this).attr("data-value",0);
+					$($this).removeClass("btn-success");
+					$($this).addClass("btn-warning");
+				})
+				.fail(function(xhr, status, error) {
+					console.log(xhr,status,error);
+				});
 			}
 		});
 
@@ -556,11 +568,51 @@ background: white;
     margin-bottom: -2px;
 }
 
-.label-repo{text-transform: uppercase;}
-.label-repo-text{color:gray;}
+.label-repo-text{font-size:small;}
+.study-attached-collections{
+	max-height:300px;
+	overflow:auto;
+}
 .alias{text-transform:uppercase;font-size:12px;color:gray;}
 
 .featured_survey label{font-weight:normal;}
+
+.label-tag{
+	color:black;
+	background:transparent;
+	border:1px solid gainsboro;
+	margin-right:2px;
+	font-weight:normal;
+}
+
+.label-tag-error{
+	background:red;
+	color:white;
+}
+
+.label-tag-error a{
+	color:white;
+	font-weight:normal;
+	font-size:10px;
+}
+
+.study-thumbnail{
+	width:150px;
+	height:150px;
+	border:1px solid gainsboro;
+}
+
+.study-title{
+	padding:0px;
+	margin:0px;
+}
+
+.edit-page-header{
+	margin-bottom:15px;
+}
+.modal-thumbnail-upload .modal-title{
+	float:left;
+}
 </style>
 
 <div class="container-fluid study-edit-page">
@@ -584,8 +636,11 @@ background: white;
 ?>
 
 <div class="row">
-<div class="col-md-12">
-	<h1><?php echo $title; ?></h1>
+<div class="col-md-12 edit-page-header">
+		
+	<div class="col-md-11">
+		<h1 class="study-title"><?php echo $title; ?></h1>
+	</div>
 </div>
 
 
@@ -595,14 +650,17 @@ background: white;
 			<!-- Nav tabs -->
 			<ul class="nav nav-tabs" role="tablist">
 				<li role="presentation" <?php echo $selected_page=='' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" aria-controls="home" role="tab" ><?php echo t('tab_overview');?></a></li>
+				<li role="presentation" <?php echo $selected_page=='metadata' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>" aria-controls="metadata-editor" role="tab" ><?php echo t('Metadata');?> </a></li>
 				<li role="presentation" <?php echo $selected_page=='files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/files');?>" aria-controls="profile" role="tab" ><?php echo t('tab_manage_files');?> <span class="badge badge-light"><?php echo count($files);?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='resources' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/resources');?>" aria-controls="resources" role="tab" ><?php echo t('tab_resources');?> <span class="badge badge-light"><?php echo $resources['total'];?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='citations' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/citations');?>" aria-controls="settings" role="tab" ><?php echo t('tab_citations');?> <span class="badge badge-light"><?php echo is_array($selected_citations) ? count($selected_citations) : '';?></span></a></li>
+
 				<?php /* ?>
-				<li role="presentation" <?php echo $selected_page=='data-files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/data-files');?>" aria-controls="data-files" role="tab" ><?php echo t('tab_data_files');?> <span class="badge badge-light"><?php echo $data_files['total'];?></span></a></li>
-				<?php */ ?>
+				<li role="presentation" <?php echo $selected_page=='data-files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/data-files');?>" aria-controls="data-files" role="tab" ><?php echo t('tab_data_files');?> <span class="badge badge-light"><?php echo $data_files['total'];?></span></a></li>-->
+				<?php */?>
 				<li role="presentation" <?php echo $selected_page=='notes' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/notes');?>" aria-controls="settings" role="tab" ><?php echo t('tab_notes');?> <span class="badge badge-light"><?php echo is_array($study_notes) && count($study_notes) >0 ? count($study_notes) : '';?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='related-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/related-data');?>" aria-controls="settings" role="tab" ><?php echo t('tab_related_data');?> <span class="badge badge-light"><?php echo is_array($related_studies) ? count($related_studies) : '';?></span></a></li>
+				
 			</ul>
 
 		</div>
@@ -636,6 +694,9 @@ background: white;
 				case 'files':
 					echo $files_formatted;
 				break;
+				case 'metadata':
+					echo $metadata_editor;
+				break;
 				default:
 					$this->load->view('catalog/edit_study_overview');
 			}//end-switch
@@ -651,27 +712,26 @@ background: white;
 <!-- Side Bars -->
 <div class="box">
 	<div class="box-header"><?php echo t('Status');?></div>
-<div class="box-body survey-publish">
+	<div class="box-body survey-publish">
 
-					<div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
-					<?php if (!$published):?>
-							<button type="button" class="btn btn-warning btn-block publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('draft');?></button>
-					<?php else:?>
-							<button type="button" class="btn btn-success btn-block publish" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></button>
-					<?php endif;?>
-					</div>
+		<div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
+			<?php if (!$published):?>
+					<button type="button" class="btn btn-warning btn-block publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('draft');?></button>
+			<?php else:?>
+					<button type="button" class="btn btn-success btn-block publish" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></button>
+			<?php endif;?>
+		</div>
 
-					<div style="margin-top:10px;">
-						<a
-							class="btn btn-danger btn-block"
-							href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"
-						>
-						<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-							<?php echo t('delete_study');?>
-						</a>
-					</div>
-
-</div>
+		<div style="margin-top:10px;">
+			<a
+				class="btn btn-danger btn-block"
+				href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"
+			>
+			<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+				<?php echo t('delete_study');?>
+			</a>
+		</div>
+	</div>
 </div>
 
 <?php if($warnings):?>
@@ -691,6 +751,17 @@ background: white;
 </div>
 <?php endif;?>
 
+
+<div class="box">
+	<div class="box-header"><?php echo t('Thumbnail');?></div>
+	<div class="box-body survey-thumbnail">
+
+	<?php require_once 'application/views/catalog/thumbnail.php';?>	
+
+		
+	</div>
+</div>
+
 <div class="box" >
 <div class="box-header">
 	<span><?php echo t('Survey options');?></span>
@@ -702,11 +773,13 @@ background: white;
         <li><a target="_blank" href="<?php echo site_url();?>/catalog/<?php echo $sid;?>"><?php echo t('browse_metadata');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/resources/import/<?php echo $sid;?>"><?php echo t('upload_rdf');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/resources/fixlinks/<?php echo $sid;?>"><?php echo t('link_resources');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>"><?php echo t('generate_pdf');?></a></li>
+		<?php if($study_type=='survey'):?>
+			<li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>"><?php echo t('generate_pdf');?></a></li>
+			<li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>"><?php echo t('replace_ddi');?></a></li>
+			<li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>"><?php echo t('export_ddi');?></a></li>
+			<li><a href="<?php echo site_url();?>/admin/catalog/refresh/<?php echo $sid;?>"><?php echo t('refresh_ddi');?></a></li>
+		<?php endif;?>
         <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>"><?php echo t('transfer_study_ownership');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>"><?php echo t('replace_ddi');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>"><?php echo t('export_ddi');?></a></li>
-        <li><a href="<?php echo site_url();?>/admin/catalog/refresh/<?php echo $sid;?>"><?php echo t('refresh_ddi');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>"><?php echo t('export_rdf');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/catalog/delete/<?php echo $sid;?>"><?php echo t('delete_study');?></a></li>
     </ul>

@@ -7,7 +7,7 @@ class Resources extends MY_Controller {
 		
 		$this->template->set_template('admin');		
        	
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('managefiles_model');
 		$this->load->helper(array ('querystring_helper','url', 'form','file') );		
@@ -33,13 +33,13 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissions
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
 		
 		//get survey folder path
 		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
 
 		//set parent survey
-		$this->Resource_model->surveyid=$surveyid;
+		$this->Survey_resource_model->surveyid=$surveyid;
 				
 		//get records		
 		$result['rows']=$this->_search();
@@ -77,21 +77,21 @@ class Resources extends MY_Controller {
 		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
 
 		//records
-		$rows=$this->Resource_model->search($per_page, $curr_page);
+		$rows=$this->Survey_resource_model->search($per_page, $curr_page);
 
 		//total records in the db
-		$total = $this->Resource_model->search_count;
+		$total = $this->Survey_resource_model->search_count;
 
 		if ($curr_page>$total)
 		{
 			$curr_page=$total-$per_page;
 			
 			//search again
-			$rows=$this->Resource_model->search($per_page, $curr_page);
+			$rows=$this->Survey_resource_model->search($per_page, $curr_page);
 		}
 		
 		//set pagination options
-		$base_url = site_url("admin/catalog/{$this->Resource_model->surveyid}/resources");
+		$base_url = site_url("admin/catalog/{$this->Survey_resource_model->surveyid}/resources");
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
@@ -117,7 +117,7 @@ class Resources extends MY_Controller {
 	function view($resourceid)
 	{
 		//get db row by id
-		$row=$this->Resource_model->select_single($resourceid);
+		$row=$this->Survey_resource_model->select_single($resourceid);
 		
 		$data['row']=$row;
 		$data['textarea_fields']=array('abstract','toc');
@@ -192,7 +192,7 @@ class Resources extends MY_Controller {
 			foreach($delete_arr as $item)
 			{
 				//confirm delete	
-				$this->Resource_model->delete($item);
+				$this->Survey_resource_model->delete($item);
 			}
 
 			//for ajax calls, return output as JSON						
@@ -235,7 +235,7 @@ class Resources extends MY_Controller {
 		$survey_id=$this->uri->segment(5);
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($survey_id);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($survey_id));
 		
 		if (!is_numeric($survey_id) && $survey_id<1)
 		{
@@ -285,7 +285,7 @@ class Resources extends MY_Controller {
 			
 			if ($id=='add')
 			{
-				//set survey_id
+				//set survey_id 
 				$options['survey_id']=$survey_id;				
 			}
 			else
@@ -299,7 +299,7 @@ class Resources extends MY_Controller {
 						
 			if ($id=='add')
 			{
-				$db_result=$this->Resource_model->insert($options);
+				$db_result=$this->Survey_resource_model->insert($options);
 				
 				//log
 				if ($db_result)
@@ -310,7 +310,7 @@ class Resources extends MY_Controller {
 			else
 			{
 				//update db
-				$db_result=$this->Resource_model->update($id,$options);
+				$db_result=$this->Survey_resource_model->update($id,$options);
 				
 				//log
 				if ($db_result)
@@ -338,7 +338,7 @@ class Resources extends MY_Controller {
 			if (is_numeric($id) && $id>0)
 			{
 				//load values from db
-				$data=$this->Resource_model->select_single($id);
+				$data=$this->Survey_resource_model->select_single($id);
 			}	
 		}
 				
@@ -449,7 +449,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
 		
 		$this->load->library('form_validation');
 		
@@ -471,7 +471,7 @@ class Resources extends MY_Controller {
 	function do_import($sid)
 	{
 		//test user study permissiosn
-		$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
 		
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
@@ -573,7 +573,7 @@ class Resources extends MY_Controller {
 					if (!$resource_exists)
 					{										
 						//insert into db
-						$this->Resource_model->insert($insert_data);
+						$this->Survey_resource_model->insert($insert_data);
 						
 						//log
 						$this->db_logger->write_log('resource-imported',$insert_data['title'].'-'.$insert_data['filename'],'resources',$insert_data['survey_id']);
@@ -687,7 +687,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
 	
 		$this->load->library('catalog_admin');		
 		$fixed_count=$this->catalog_admin->fix_resource_links($surveyid);		
@@ -740,7 +740,7 @@ class Resources extends MY_Controller {
 			show_error("INVALID");
 		}
 		
-		$this->acl->user_has_study_access($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
 		
 		if($_FILES)
 		{
@@ -834,7 +834,7 @@ class Resources extends MY_Controller {
 		}
 		
 		//test user study permissiosn
-		$this->acl->user_has_study_access($surveyid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
 		
 		$resource_folder=unix_path($survey_path);
 		

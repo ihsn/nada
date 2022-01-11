@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
 use Solarium\Component\Facet\FacetInterface;
@@ -21,27 +28,26 @@ trait FacetSetTrait
     /**
      * Add a facet.
      *
-     *
      * @param \Solarium\Component\Facet\FacetInterface|array $facet
      *
      * @throws InvalidArgumentException
      *
      * @return self Provides fluent interface
      */
-    public function addFacet($facet)
+    public function addFacet($facet): FacetSetInterface
     {
-        if (is_array($facet)) {
+        if (\is_array($facet)) {
             $facet = $this->createFacet($facet['type'], $facet, false);
         }
 
         $key = $facet->getKey();
 
-        if (0 === strlen($key)) {
+        if (0 === \strlen($key)) {
             throw new InvalidArgumentException('A facet must have a key value');
         }
 
         //double add calls for the same facet are ignored, but non-unique keys cause an exception
-        if (array_key_exists($key, $this->facets) && $this->facets[$key] !== $facet) {
+        if (\array_key_exists($key, $this->facets) && $this->facets[$key] !== $facet) {
             throw new InvalidArgumentException('A facet must have a unique key value within a query');
         }
 
@@ -57,12 +63,12 @@ trait FacetSetTrait
      *
      * @return self Provides fluent interface
      */
-    public function addFacets(array $facets)
+    public function addFacets(array $facets): FacetSetInterface
     {
         foreach ($facets as $key => $facet) {
             // in case of a config array: add key to config
-            if (is_array($facet) && !isset($facet['key'])) {
-                $facet['key'] = $key;
+            if (\is_array($facet) && !isset($facet['local_key'])) {
+                $facet['local_key'] = $key;
             }
 
             $this->addFacet($facet);
@@ -76,13 +82,11 @@ trait FacetSetTrait
      *
      * @param string $key
      *
-     * @return FacetInterface
+     * @return FacetInterface|null
      */
-    public function getFacet($key)
+    public function getFacet(string $key): ?FacetInterface
     {
-        if (isset($this->facets[$key])) {
-            return $this->facets[$key];
-        }
+        return $this->facets[$key] ?? null;
     }
 
     /**
@@ -90,7 +94,7 @@ trait FacetSetTrait
      *
      * @return FacetInterface[]
      */
-    public function getFacets()
+    public function getFacets(): array
     {
         return $this->facets;
     }
@@ -104,9 +108,9 @@ trait FacetSetTrait
      *
      * @return self Provides fluent interface
      */
-    public function removeFacet($facet)
+    public function removeFacet($facet): FacetSetInterface
     {
-        if (is_object($facet)) {
+        if (\is_object($facet)) {
             $facet = $facet->getKey();
         }
 
@@ -122,7 +126,7 @@ trait FacetSetTrait
      *
      * @return self Provides fluent interface
      */
-    public function clearFacets()
+    public function clearFacets(): FacetSetInterface
     {
         $this->facets = [];
 
@@ -135,11 +139,15 @@ trait FacetSetTrait
      * This overwrites any existing facets
      *
      * @param array $facets
+     *
+     * @return self
      */
-    public function setFacets($facets)
+    public function setFacets(array $facets): FacetSetInterface
     {
         $this->clearFacets();
         $this->addFacets($facets);
+
+        return $this;
     }
 
     /**
@@ -152,7 +160,6 @@ trait FacetSetTrait
      * When no key is supplied the facet cannot be added, in that case you will need to add it manually
      * after setting the key, by using the addFacet method.
      *
-     *
      * @param string            $type
      * @param array|object|null $options
      * @param bool              $add
@@ -161,17 +168,17 @@ trait FacetSetTrait
      *
      * @return \Solarium\Component\Facet\FacetInterface
      */
-    public function createFacet(string $type, $options = null, bool $add = true)
+    public function createFacet(string $type, $options = null, bool $add = true): FacetInterface
     {
         $type = strtolower($type);
 
         if (!isset($this->facetTypes[$type])) {
-            throw new OutOfBoundsException('Facettype unknown: '.$type);
+            throw new OutOfBoundsException(sprintf('Facettype unknown: %s', $type));
         }
 
         $class = $this->facetTypes[$type];
 
-        if (is_string($options)) {
+        if (\is_string($options)) {
             /** @var FacetInterface $facet */
             $facet = new $class();
             $facet->setKey($options);
@@ -194,10 +201,12 @@ trait FacetSetTrait
      */
     protected function init()
     {
+        parent::init();
+
         if (isset($this->options['facet'])) {
             foreach ($this->options['facet'] as $key => $config) {
-                if (!isset($config['key'])) {
-                    $config['key'] = $key;
+                if (!isset($config['local_key'])) {
+                    $config['local_key'] = (string) $key;
                 }
 
                 $this->addFacet($config);

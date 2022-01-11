@@ -1,8 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Client;
 
 use Solarium\Core\Configurable;
+use Solarium\Exception\UnexpectedValueException;
 
 /**
  * Class for describing an endpoint.
@@ -21,9 +29,11 @@ class Endpoint extends Configurable
         'scheme' => 'http',
         'host' => '127.0.0.1',
         'port' => 8983,
-        'path' => '/solr',
+        'path' => '/',
+        'context' => 'solr',
+        'collection' => null,
         'core' => null,
-        'timeout' => 5,
+        'leader' => false,
     ];
 
     /**
@@ -36,7 +46,7 @@ class Endpoint extends Configurable
      */
     public function __toString()
     {
-        $output = __CLASS__.'::__toString'."\n".'base uri: '.$this->getCoreBaseUri()."\n".'host: '.$this->getHost()."\n".'port: '.$this->getPort()."\n".'path: '.$this->getPath()."\n".'core: '.$this->getCore()."\n".'timeout: '.$this->getTimeout()."\n".'authentication: '.print_r($this->getAuthentication(), 1);
+        $output = __CLASS__.'::__toString'."\n".'host: '.$this->getHost()."\n".'port: '.$this->getPort()."\n".'path: '.$this->getPath()."\n".'context: '.$this->getContext()."\n".'collection: '.$this->getCollection()."\n".'core: '.$this->getCore()."\n".'authentication: '.print_r($this->getAuthentication(), true);
 
         return $output;
     }
@@ -44,9 +54,9 @@ class Endpoint extends Configurable
     /**
      * Get key value.
      *
-     * @return string
+     * @return string|null
      */
-    public function getKey()
+    public function getKey(): ?string
     {
         return $this->getOption('key');
     }
@@ -58,9 +68,11 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setKey($value)
+    public function setKey(string $value): self
     {
-        return $this->setOption('key', $value);
+        $this->setOption('key', $value);
+
+        return $this;
     }
 
     /**
@@ -70,17 +82,19 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setHost($host)
+    public function setHost(string $host): self
     {
-        return $this->setOption('host', $host);
+        $this->setOption('host', $host);
+
+        return $this;
     }
 
     /**
      * Get host option.
      *
-     * @return string
+     * @return string|null
      */
-    public function getHost()
+    public function getHost(): ?string
     {
         return $this->getOption('host');
     }
@@ -92,17 +106,19 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setPort($port)
+    public function setPort(int $port): self
     {
-        return $this->setOption('port', $port);
+        $this->setOption('port', $port);
+
+        return $this;
     }
 
     /**
      * Get port option.
      *
-     * @return int
+     * @return int|null
      */
-    public function getPort()
+    public function getPort(): ?int
     {
         return $this->getOption('port');
     }
@@ -116,23 +132,71 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setPath($path)
+    public function setPath(string $path): self
     {
-        if ('/' == substr($path, -1)) {
-            $path = substr($path, 0, -1);
-        }
+        $this->setOption('path', rtrim($path, '/'));
 
-        return $this->setOption('path', $path);
+        return $this;
     }
 
     /**
      * Get path option.
      *
-     * @return string
+     * @return string|null
      */
-    public function getPath()
+    public function getPath(): ?string
     {
         return $this->getOption('path');
+    }
+
+    /**
+     * Set context option.
+     *
+     * If the context has a leading or trailing slash it will be removed.
+     *
+     * @param string $context
+     *
+     * @return self Provides fluent interface
+     */
+    public function setContext(string $context): self
+    {
+        $this->setOption('context', trim($context, '/'));
+
+        return $this;
+    }
+
+    /**
+     * Get context option.
+     *
+     * @return string|null
+     */
+    public function getContext(): ?string
+    {
+        return $this->getOption('context');
+    }
+
+    /**
+     * Set collection option.
+     *
+     * @param string $collection
+     *
+     * @return self Provides fluent interface
+     */
+    public function setCollection(string $collection): self
+    {
+        $this->setOption('collection', $collection);
+
+        return $this;
+    }
+
+    /**
+     * Get collection option.
+     *
+     * @return string|null
+     */
+    public function getCollection(): ?string
+    {
+        return $this->getOption('collection');
     }
 
     /**
@@ -142,41 +206,21 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setCore($core)
+    public function setCore(string $core): self
     {
-        return $this->setOption('core', $core);
+        $this->setOption('core', $core);
+
+        return $this;
     }
 
     /**
      * Get core option.
      *
-     * @return string
+     * @return string|null
      */
-    public function getCore()
+    public function getCore(): ?string
     {
         return $this->getOption('core');
-    }
-
-    /**
-     * Set timeout option.
-     *
-     * @param int $timeout
-     *
-     * @return self Provides fluent interface
-     */
-    public function setTimeout($timeout)
-    {
-        return $this->setOption('timeout', $timeout);
-    }
-
-    /**
-     * Get timeout option.
-     *
-     * @return string
-     */
-    public function getTimeout()
-    {
-        return $this->getOption('timeout');
     }
 
     /**
@@ -186,56 +230,114 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setScheme($scheme)
+    public function setScheme(string $scheme): self
     {
-        return $this->setOption('scheme', $scheme);
+        $this->setOption('scheme', $scheme);
+
+        return $this;
     }
 
     /**
      * Get scheme option.
      *
-     * @return string
+     * @return string|null
      */
-    public function getScheme()
+    public function getScheme(): ?string
     {
         return $this->getOption('scheme');
     }
 
     /**
-     * Get the base url for all requests.
+     * Get the V1 base url for all SolrCloud requests.
      *
-     * Based on host, path, port and core options.
+     * Based on host, path, port and collection options.
+     *
+     * @throws UnexpectedValueException
      *
      * @return string
      */
-    public function getCoreBaseUri()
+    public function getCollectionBaseUri(): string
     {
         $uri = $this->getServerUri();
-        $core = $this->getCore();
+        $context = $this->getContext();
+        $collection = $this->getCollection();
 
-        if (!empty($core)) {
-            $uri .= $core.'/';
+        if ($collection) {
+            $uri .= $context.'/'.$collection.'/';
+        } else {
+            throw new UnexpectedValueException('No collection set.');
         }
 
         return $uri;
     }
 
     /**
-     * Get the base url for all requests.
+     * Get the V1 base url for all requests.
      *
      * Based on host, path, port and core options.
      *
-     * @deprecated Please use getCoreBaseUri or getServerUri now, will be removed in Solarium 5
+     * @throws UnexpectedValueException
      *
      * @return string
      */
-    public function getBaseUri()
+    public function getCoreBaseUri(): string
     {
-        $message = 'Endpoint::getBaseUri is deprecated since Solarium 4.2, will be removed in Solarium 5.'.
-            'please use getServerUri or getCoreBaseUri now.';
-        @trigger_error($message, E_USER_DEPRECATED);
+        $uri = $this->getServerUri();
+        $context = $this->getContext();
+        $core = $this->getCore();
 
-        return $this->getCoreBaseUri();
+        if ($core) {
+            // V1 API
+            $uri .= $context.'/'.$core.'/';
+        } else {
+            throw new UnexpectedValueException('No core set.');
+        }
+
+        return $uri;
+    }
+
+    /**
+     * Get the base url for all V1 API requests.
+     *
+     * @throws UnexpectedValueException
+     *
+     * @return string
+     */
+    public function getBaseUri(): string
+    {
+        try {
+            return $this->getCollectionBaseUri();
+        } catch (UnexpectedValueException $e) {
+            try {
+                return $this->getCoreBaseUri();
+            } catch (UnexpectedValueException $e) {
+                throw new UnexpectedValueException('Neither collection nor core set.');
+            }
+        }
+    }
+
+    /**
+     * Get the base url for all V1 API requests.
+     *
+     * @throws UnexpectedValueException
+     *
+     * @return string
+     */
+    public function getV1BaseUri(): string
+    {
+        return $this->getServerUri().$this->getContext().'/';
+    }
+
+    /**
+     * Get the base url for all V2 API requests.
+     *
+     * @throws UnexpectedValueException
+     *
+     * @return string
+     */
+    public function getV2BaseUri(): string
+    {
+        return $this->getServerUri().'api/';
     }
 
     /**
@@ -243,7 +345,7 @@ class Endpoint extends Configurable
      *
      * @return string
      */
-    public function getServerUri()
+    public function getServerUri(): string
     {
         return $this->getScheme().'://'.$this->getHost().':'.$this->getPort().$this->getPath().'/';
     }
@@ -258,7 +360,7 @@ class Endpoint extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setAuthentication($username, $password)
+    public function setAuthentication(string $username, string $password): self
     {
         $this->setOption('username', $username);
         $this->setOption('password', $password);
@@ -271,7 +373,7 @@ class Endpoint extends Configurable
      *
      * @return array
      */
-    public function getAuthentication()
+    public function getAuthentication(): array
     {
         return [
             'username' => $this->getOption('username'),
@@ -280,11 +382,37 @@ class Endpoint extends Configurable
     }
 
     /**
+     * If the shard is a leader or not. Only in SolrCloud.
+     *
+     * @param bool $leader
+     *
+     * @return self Provides fluent interface
+     */
+    public function setLeader(bool $leader): self
+    {
+        $this->setOption('leader', $leader);
+
+        return $this;
+    }
+
+    /**
+     * If the shard is a leader or not. Only in SolrCloud.
+     *
+     * @return bool|null
+     */
+    public function isLeader(): ?bool
+    {
+        return $this->getOption('leader');
+    }
+
+    /**
      * Initialization hook.
      *
      * In this case the path needs to be cleaned of trailing slashes.
+     * The context needs to be cleaned of leading and trailing slashes.
      *
      * @see setPath()
+     * @see setContext()
      */
     protected function init()
     {
@@ -292,6 +420,9 @@ class Endpoint extends Configurable
             switch ($name) {
                 case 'path':
                     $this->setPath($value);
+                    break;
+                case 'context':
+                    $this->setContext($value);
                     break;
             }
         }

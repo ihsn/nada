@@ -1,6 +1,6 @@
 <style>
 .form-control{width:200px;display:inline;}
-.input-fixed-3{width:50px;display:inline;}
+.input-fixed-3{width:50px;display:inline;text-align:center;}
 .field{margin-bottom:15px;clear:both;}
 label{display:block;float:left;width:200px;}
 .field-note{font-style:italic;padding-left:5px;color:gray;}
@@ -8,21 +8,17 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 .field-expanded,.always-visible{background-color:#F8F8F8;border:1px solid gainsboro;margin-top:5px;margin-bottom:10px;margin-right:8px;}
 .always-visible{padding:10px;}
 .field-expanded .field, .always-visible .field {padding:5px;}
-.field-expanded legend, .field-collapsed legend, .always-visible legend{background:white;padding-left:5px;padding-right:5px;font-weight:bold; cursor:pointer;}
+.field-expanded legend, .field-collapsed legend, .always-visible legend{background:white;padding-left:5px;padding-right:5px;font-weight:normal; cursor:pointer;}
 .field-collapsed{background:none; border:0px;border-top:1px solid gainsboro;margin-top:5px;margin-bottom:5px;}
 .field-collapsed legend {background-position:left top; }
-.field-collapsed legend:before {
-    content: "\f0da";
-    font-family: FontAwesome;
-    padding-right:5px;
-}
+
 .field-collapsed .field{display:none;}
 .field-expanded .field label, .always-visible label{font-weight:normal;}
 .instructions{font-weight:bold;}
 
 </style>
-<div class="container-fluid">
-<h1 class="page-title"><?php echo t('site_configurations');?></h1>
+<div class="container-fluid mt-5">
+<h3 class="page-title"><?php echo t('site_configurations');?></h3>
 
 <?php if (validation_errors() ) : ?>
     <div class="alert alert-danger">
@@ -40,14 +36,15 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 <?php echo ($this->message!="") ? '<div class="alert alert-success">'.$this->message.'</div>' : '';?>
 <?php endif;?>
 
-<form method="post" >
+
+<?php echo form_open('', 'id="form_site_configurations" name="form_site_configurations"');?>
 
 <div style="text-align:right;">
 	<input class="btn btn-primary" type="submit" value="<?php echo t('update');?>" name="submit"/>
 </div>
 
-<fieldset class="field-expanded">
-        <legend><?php echo t('general_site_settings');?></legend>
+<fieldset class="field-expanded  ">
+        <legend><i class="fas fa-cogs mr-3" style="color:#007bff;"></i><?php echo t('general_site_settings');?></legend>
     <div class="field form-group">
             <label for="<?php echo 'website_title'; ?>"><?php echo t('website_title');?></label>
             <input class="form-control" name="website_title" type="text" id="website_title"  value="<?php echo get_form_value('website_title',isset($website_title) ? $website_title : ''); ?>"/>
@@ -84,8 +81,8 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
     </div>
 </fieldset>
 
-<fieldset class="field-expanded">
-	<legend><?php echo t('language');?></legend>
+<fieldset class="field-expanded ">
+	<legend><i class="fas fa-language mr-3" style="color:#007bff;"></i><?php echo t('language');?></legend>
     <div class="field">
             <label for="<?php echo 'language'; ?>"><?php echo t('language');?></label>
             <?php echo form_dropdown('language', get_languages(), get_form_value("language",isset($language) ? $language: '')); ?> 
@@ -93,8 +90,8 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 </fieldset>
 
 
-<fieldset class="field-expanded">
-	<legend><?php echo t('use_html_editor_for_html');?></legend>
+<fieldset class="field-expanded ">
+	<legend><i class="fas fa-edit mr-3" style="color:#007bff;"></i><?php echo t('use_html_editor_for_html');?></legend>
     <div class="field" >
         <label style="height:50px;" for="use_html_editor"><?php echo t('use_html_editor');?></label>
         <input type="radio" value="yes" name="use_html_editor" <?php echo ($use_html_editor=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('yes');?> 
@@ -102,8 +99,8 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
     </div>
 </fieldset>
 
-<fieldset class="field-expanded">
-	<legend><?php echo t('survey_catalog_settings');?></legend>
+<fieldset class="field-expanded ">
+	<legend><i class="fas fa-user-cog mr-3" style="color:#007bff;"></i><?php echo t('survey_catalog_settings');?></legend>
 	<div class="field">
         <label for="<?php echo 'catalog_root'; ?>"><?php echo t('catalog_folder');?></label>
         <input class="form-control" name="catalog_root" type="text" id="catalog_root"  value="<?php echo get_form_value('catalog_root',isset($catalog_root) ? $catalog_root : ''); ?>"/>
@@ -162,18 +159,18 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
         </div>
 	</div>
     
-    <div class="field">
+    <div class="field list-group">
     	<div class="instructions"><?php echo t('instruction_weight'); ?></div>
     	<div>
         <label for="<?php echo 'da_search_weight'; ?>"><?php echo t('da_search_weight');?></label>
         <input class="input-fixed-3" name="da_search_weight" type="text" id="da_search_weight"  value="<?php echo get_form_value('da_search_weight',isset($da_search_weight) ? $da_search_weight : ''); ?>"/>
         
         </div>
-        
+        <div>
         <label for="<?php echo 'regional_search_weight'; ?>"><?php echo t('regional_search_weight');?></label>
         <input class="input-fixed-3" name="regional_search_weight" type="text" id="regional_search_weight"  value="<?php echo get_form_value('regional_search_weight',isset($regional_search_weight) ? $regional_search_weight : ''); ?>"/>
-        <br/>
-    
+       
+</div>
     <div>
         <label for="<?php echo 'topic_search_weight'; ?>"><?php echo t('topic_search_weight');?></label>
         <input class="input-fixed-3" name="topic_search_weight" type="text" id="topic_search_weight"  value="<?php echo get_form_value('topic_search_weight',isset($topic_search_weight) ? $topic_search_weight : ''); ?>"/>
@@ -197,8 +194,8 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	</div>
 </fieldset>
 
-<fieldset class="field-expanded">
-	<legend><?php echo t('site_login');?></legend>
+<fieldset class="field-expanded ">
+	<legend><i class="fas fa-user-circle mr-3" style="color:#007bff;"></i><?php echo t('site_login');?></legend>
     <div class="field">
             <label style="height:50px;" for="<?php echo 'site_password_protect'; ?>"><?php echo t('password_protect_website');?></label>
             <div>
@@ -218,11 +215,24 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
     </div>
 </fieldset>
 
-<fieldset class="field-expanded">
-	<legend><?php echo t('mail_settings');?></legend>
 
-        <div class="field">
-        <a class="btn btn-default btn-sm" href="<?php echo site_url('admin/configurations/test_email');?>"><?php echo t('test_email_configurations');?></a>
+<fieldset class="field-expanded ">
+
+        <legend><i class="fas fa-chart-line mr-3" style="color:#007bff;"></i><?php echo t('Google Analytics');?></legend>
+    
+    <div class="field">
+            <label for="google_analytics"><?php echo t('Google analytics UA code');?></label>
+            <input class="form-control" name="google_ua_code" type="text" id="google_analytics" placeholder="UA-XXXXXXXX-X"  value="<?php echo get_form_value('google_ua_code',isset($google_ua_code) ? $google_ua_code : ''); ?>"/>
+    </div>
+    
+</fieldset>
+
+
+<fieldset class="field-expanded ">
+	<legend><i class="fas fa-tools mr-3" style="color:#007bff;"></i><?php echo t('mail_settings');?></legend>
+
+        <div class="field m-3">
+        <a class="btn btn-outline-primary" href="<?php echo site_url('admin/configurations/test_email');?>"><i class="fas fa-tools mr-1" style="color:#007bff;"></i><?php echo t('test_email_configurations');?></a>
         </div>
 
     <?php if (file_exists(APPPATH.'/config/email.php')):?>
@@ -262,7 +272,7 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
 	<input class="btn btn-primary" type="submit" value="<?php echo t('update');?>" name="submit"/>
 </div>
 
-</form>
+<?php echo form_close();?>
 </div>
 <script type="text/javascript">
 	function toggle_file_url(field_show,field_hide){
@@ -297,7 +307,7 @@ function get_languages()
 {
 	$languages = scandir(APPPATH.'language/');
 	foreach($languages as $lang){
-          if ($lang!=='.' && $lang!=='..'){
+          if ($lang!=='.' && $lang!=='..' && $lang!=='.DS_Store'){
              $output[$lang]=$lang;
           }	
 	}	

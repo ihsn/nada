@@ -42,8 +42,8 @@ class Survey_resource_model extends CI_Model {
 	{
 		//allowed fields
 		$valid_fields=array(
-			//'resource_id',
-			//'survey_id',
+			'resource_id',
+			'survey_id',
 			'dctype',
 			'title',
 			'subtitle',
@@ -70,9 +70,6 @@ class Survey_resource_model extends CI_Model {
 			$options['filename']=$this->normalize_filename($options['filename']);
 		}
 		
-		//pk field name
-		$key_field='resource_id';
-		
 		$update_arr=array();
 
 		//build update statement
@@ -85,7 +82,7 @@ class Survey_resource_model extends CI_Model {
 		}
 		
 		//update db
-		$this->db->where($key_field, $resource_id);
+		$this->db->where('resource_id', $resource_id);
 		$result=$this->db->update('resources', $update_arr); 
 		
 		return $result;		
@@ -291,9 +288,28 @@ class Survey_resource_model extends CI_Model {
 	//delete a single resource by dataset
 	function delete_single($sid,$resource_id)
 	{
-		$this->db->where('survey_id', $sid); 
+		if (!$this->check_survey_resource($sid,$resource_id)){
+			return false;
+		}
+
+		$this->db->where('survey_id', $sid);  
 		$this->db->where('resource_id', $resource_id); 
-		return $this->db->delete('resources');
+		$this->db->delete('resources');
+
+		return true;
+	}
+
+	function check_survey_resource($sid,$resource_id)
+	{
+		$this->db->select("resource_id");
+		$this->db->where('survey_id', $sid);  
+		$this->db->where('resource_id', $resource_id);
+		$result=$this->db->get("resources")->result_array();
+
+		if(empty($result)){
+			return false;
+		}
+		return true;
 	}
 	
 
@@ -465,6 +481,50 @@ class Survey_resource_model extends CI_Model {
 	}
 	
 	
+	/**
+	*
+	* Check if resource is a duplicate
+	*
+	* @filepath	relative path to the resource
+	*/
+	function check_duplicate($surveyid,$filepath,$title,$dctype=null)
+	{
+		$filepath=$this->normalize_filename($filepath);
+
+		$this->db->where('survey_id', $surveyid); 
+		$this->db->where('filename', $filepath);
+		$this->db->where('title', $title);
+		$resources=$this->db->get('resources')->result_array();
+
+		$dctype=$this->get_dctype_code_from_string($dctype);
+		if ($resources){
+			foreach($resources as $idx=>$resource){
+				$res_dctype=$this->get_dctype_code_from_string($resource['dctype']);
+				if ($dctype!=$res_dctype){
+					unset($resources[$idx]);
+				}
+			}
+		}
+		return $resources;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Return the dctype code from text
+	 * 
+	 * e.g. Document [doc/adm] will return doc/adm
+	 * 
+	 */
+	function get_dctype_code_from_string($dctype)
+	{
+		preg_match_all("/\[([^\]]*)\]/", $dctype, $matches);
+		$result= $matches[1];
+		if ($result){
+			return $result[0];
+		}
+		return $dctype;
+	}
 	
 	
 	/**
@@ -540,7 +600,8 @@ class Survey_resource_model extends CI_Model {
 	*/
 	function get_resources_by_type($surveyid,$dctype)
 	{
-		$this->db->select('*');
+		$this->db->select('resources.*,surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
 		$this->db->where('survey_id',$surveyid);
 		
 		if ($dctype=='other')
@@ -551,12 +612,37 @@ class Survey_resource_model extends CI_Model {
 			$this->db->not_like('dctype','doc/qst]');
 			$this->db->not_like('dctype','dat]');
 			$this->db->not_like('dctype','dat/micro]');
+			$this->db->not_like('dctype','[dat/');
 		}
 		else
 		{
 			$this->db->like('dctype',$dctype);
 		}	
-		return $this->db->get('resources')->result_array();
+		
+		$result= $this->db->get('resources')->result_array();
+		foreach($result as $row_idx=>$row){
+			$result[$row_idx]['is_microdata']=$this->is_microdata_resource($row['dctype']);
+		}
+		return $result;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Return true or false if type is microdata
+	 */
+	function is_microdata_resource($dctype)
+	{
+		$microdata_types=array('[dat/micro]','[dat]','[dat/');
+
+		foreach($microdata_types as $type){
+			if (stripos($dctype,$type)!==FALSE){
+				return true;
+			}
+		}
+
+		return false;
+
 	}
 	
 	
@@ -567,7 +653,7 @@ class Survey_resource_model extends CI_Model {
 	function get_microdata_resources($surveyid)
 	{
 		$this->db->select('*');
-		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%')",NULL,FALSE);
+		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);
 		return $this->db->get('resources')->result_array();
 	}
 	
@@ -622,39 +708,187 @@ class Survey_resource_model extends CI_Model {
 		switch($data_access_type){
 			case 'direct':
 			case 'open':
+			case 'public':
 				return true;
 				break;
-		 	case 'licensed':
+			case 'licensed':
+
+				if (!$user_id){
+					throw new Exception(t("reason_login_licensed_access"));
+				}
+
 				$req_entries=$this->Licensed_model->get_requests_by_file($resource_obj['resource_id'],$user_id);
 
-				if (!$req_entries){
-					return false;
-				}
-				
 				foreach($req_entries as $req){
 					if(strtoupper(trim($req['status']))=='APPROVED' 
 						&& $req['expiry']> date("U") 
-						&& $req['downloads'] < $req['download_limit'])
+						&& (int)$req['downloads'] < (int)$req['download_limit'])
 					{
 						return true;
 					}
 				}
 			
-				return false;
+				throw new Exception("Access expired or you have reached the download limit for the file.");
 				break;
 
-			case 'public':
+			/*case 'public':
 				$puf_request=$this->Public_model->check_user_has_data_access($user_id,$survey_id);
 
 				if ($puf_request===FALSE){
-					return false;
+					throw new Exception("For PUF files, user must accept terms of use.");
 				}
 				
 				return true;
 				break;
+			*/
+			default:
+				throw new Exception("Unsupported");
+		}
+	}
+
+	/**
+	 * 
+	 * Same as user_has_download_access except it returns an array with access info
+	 */
+	function get_user_download_access_info($user_id,$survey_id,$resource_obj) 
+	{
+		$this->load->model("Licensed_model");
+		$this->load->model("Public_model");
+
+		$microdata_types=array('[dat/micro]','[dat]');
+		$resource_is_microdata=false;
+
+		foreach($microdata_types as $type){
+			if (stripos($resource_obj['dctype'],$type)!==FALSE){
+				$resource_is_microdata=TRUE;	
+			}
+		}
+
+		if ($resource_is_microdata===false){
+			return array(
+				'access'=>true,
+				'is_microdata'=>false
+			);
+		}
+		
+		$data_access_type=$this->Catalog_model->get_survey_form_model($survey_id);
+
+		switch($data_access_type){
+			case 'direct':
+			case 'open':
+				return array(
+					'access'=>true,
+					'is_microdata'=>true,
+					'license'=>$data_access_type
+				);
+				break;
+			case 'licensed':
+
+				if (!$user_id){
+					throw new Exception(t("reason_login_licensed_access"));
+				}
+
+				$req_entries=$this->Licensed_model->get_requests_by_file($resource_obj['resource_id'],$user_id);
+
+				foreach($req_entries as $req){
+					if(strtoupper(trim($req['status']))=='APPROVED' 
+						&& $req['expiry']> date("U") 
+						&& (int)$req['downloads'] < (int)$req['download_limit'])
+					{
+						return array(
+							'access'=>true,
+							'is_microdata'=>true,
+							'license'=>$data_access_type,
+							'access_request'=>$req
+						);
+					}
+				}
+			
+				return array(
+					'access'=>false,
+					'is_microdata'=>true,
+					'license'=>$data_access_type,
+					'access_request'=>$req,
+					'error'=>'expired'
+				);
+
+				break;
+
+			case 'public':
+
+				//TODO: remove - for api access, at the time of api key creation, user must accept terms of use
+				$puf_request=$this->Public_model->check_user_has_data_access($user_id,$survey_id);
+				
+				/*if ($puf_request===FALSE){
+					return array(
+						'access'=>false,
+						'is_microdata'=>true,
+						'license'=>$data_access_type,
+						'error'=>'puf'
+					);
+				}*/
+				
+				return array(
+					'access'=>true,
+					'is_microdata'=>true,
+					'license'=>$data_access_type,
+					'access_request'=>$puf_request
+				);
+
+				break;
 			default:
 				return false;	
 		}		
+	}
+
+
+	function download($user,$survey_id,$resource_id)
+	{
+		//get resource
+		$resource=$this->select_single($resource_id);
+
+		if(!$resource){
+			throw new Exception("RESOURCE_NOT_FOUND");
+		}
+
+		$user_id=isset($user->id) ? $user->id : false;
+
+		$download_req=$this->get_user_download_access_info($user_id,$survey_id,$resource);
+
+		if (!$download_req){
+			throw new Exception("FILE_NOT_AVAILABLE");
+		}
+
+		//resource is microdata type
+
+		//get survey + license type
+
+		//for public use
+
+		//for licensed
+
+		//download file
+
+		//full path to the resource
+		$resource_path=$this->get_resource_download_path($resource_id);
+
+		if (!file_exists($resource_path)){
+			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
+		}
+		
+		//licensed access increment download count
+		if ($download_req['is_microdata']===true && $download_req['license']=='licensed'){
+			$lic_request_info=$download_req['access_request'];
+
+			//increment the download count for licensed file
+			$this->Licensed_model->update_download_stats($resource_id,$lic_request_info['requestid'],$user->email);
+		}
+
+		$this->load->helper('download');
+		log_message('info','Downloading file <em>'.$resource_path.'</em>');
+		$this->db_logger->write_log('download',basename($resource_path),($download_req['is_microdata'] ? 'microdata': 'resource'),$survey_id);
+		$this->db_logger->increment_study_download_count($survey_id);
+		force_download2($resource_path);		
 	}
 	
 	
@@ -706,27 +940,24 @@ class Survey_resource_model extends CI_Model {
 
 	
 	function get_resource_download_path($resource_id)
-	{
-		$this->load->model('catalog_model');
-		
+	{		
 		//resource info
 		$resource=$this->select_single($resource_id);
 		
-		if (!$resource)
-		{
+		if (!$resource){
 			return FALSE;
 		}
 		
 		//get survey folder path
-		$survey_folder=$this->catalog_model->get_survey_path_full($resource['survey_id']);
+		$survey_folder=$this->Catalog_model->get_survey_path_full($resource['survey_id']);
 						
 		//build complete filepath to be downloaded
 		$file_path=unix_path($survey_folder.'/'.$resource['filename']);
 
 		return $file_path;		
 	}
-	
-	
+
+
 	/**
 	*
 	* Check if resource already exists for a study
@@ -799,7 +1030,7 @@ class Survey_resource_model extends CI_Model {
 			$insert_data['filename']=$this->normalize_filename($insert_data['filename']);
 			
 			//check if the resource file already exists
-			$resource_exists=$this->Resource_model->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
+			$resource_exists=$this->get_survey_resources_by_filepath($surveyid,$insert_data['filename']);
 			
 			if (!$resource_exists)
 			{										
@@ -830,6 +1061,26 @@ class Survey_resource_model extends CI_Model {
 		return $filename;
 	}
 
+
+	/**
+	 * 
+	 * Upload an RDF file and import resources
+	 * 
+	 * 
+	 */
+	function import_uploaded_rdf($sid,$tmp_path,$file_field='rdf')
+	{
+		//upload RDF file
+		$uploaded_rdf_path=$this->upload_rdf($tmp_path,$file_field);
+		
+		//import rdf entries
+		$rdf_import_result=$this->import_rdf($sid,$uploaded_rdf_path);
+
+		//delete rdf
+		@unlink($uploaded_rdf_path);
+
+		return $rdf_import_result;
+	}
 
 
 	/**
@@ -925,38 +1176,44 @@ class Survey_resource_model extends CI_Model {
 	 *
 	 * upload rdf file
 	 *
-	 * @file_field_name 	- name of POST file variable
+	 * @file_field 	- name of POST file variable
 	 *  
 	 **/ 
-	function upload_rdf($file_field_name='file')
-	{
-		$temp_upload_folder=get_catalog_root().'/tmp';
+	function upload_rdf($tmp_path,$file_field='file')
+	{		
+		if (!$tmp_path){
+			$tmp_path=get_catalog_root().'/tmp';
 		
-		if (!file_exists($temp_upload_folder)){
-			@mkdir($temp_upload_folder);
+			if (!file_exists($tmp_path)){
+				@mkdir($tmp_path);
+			}
 		}
 		
-		if (!file_exists($temp_upload_folder)){
-			throw new Exception('DATAFILES-TEMP-FOLDER-NOT-SET');
+		if (!file_exists($tmp_path)){
+			throw new Exception('TEMP-FOLDER-NOT-SET: '.$tmp_path);
 		}
 						
 		//upload class configurations for RDF
-		$config['upload_path'] = $temp_upload_folder;
-		$config['overwrite'] = true;
-		$config['encrypt_name']=false;
+		$config['upload_path'] = $tmp_path;
+		$config['overwrite'] = FALSE;
+		$config['encrypt_name']=TRUE;
 		$config['allowed_types'] = 'rdf|xml';
-		
-		$this->load->library('upload', $config);
+
+		$this->upload->initialize($config);
 
 		//process uploaded rdf file
-		$upload_result=$this->upload->do_upload($file_field_name);
+		$rdf_upload_result=$this->upload->do_upload($file_field);
 
-		if (!$upload_result){
+		if(!$rdf_upload_result){
 			$error = $this->upload->display_errors();
 			throw new Exception("RDF_UPLOAD::".$error);
 		}
+		
+		$upload = $this->upload->data();
 
-		return $this->upload->data();		
+		//path to the uploaded rdf file
+		return $upload['full_path'];
+		
 	}
 
 
@@ -1233,8 +1490,11 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception("idno_arr is is not an array");
 		}
 
+		//default fields
+		$fields="resource_id,survey_id,filename,surveys.idno";
+
 		foreach (array_chunk($idno_arr, 100, true) as $chunk) {
-			$this->db->select("resource_id,survey_id,filename,surveys.idno");
+			$this->db->select($fields);
 			$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
 			$this->db->where_in("surveys.idno",$chunk);
 			$resources=$this->db->get('resources')->result_array();
@@ -1256,6 +1516,324 @@ class Survey_resource_model extends CI_Model {
 				}				
 			}
 		}
+	}
+
+
+	/**
+	 * 
+	 * Get resources by studies
+	 * 
+	 * @additional_fields = array of additional fields to include
+	 * 
+	 */
+	function get_resources_by_studies($idno_arr,$additional_fields=null)
+	{
+		if (!is_array($idno_arr)){
+			throw new Exception("idno_arr is is not an array");
+		}
+
+		//default fields
+		$fields="resource_id,survey_id,filename,surveys.idno";
+
+		if(is_array($additional_fields)){
+			$fields=$fields . ',' . implode(",",$additional_fields);
+		}
+
+		foreach (array_chunk($idno_arr, 100, true) as $chunk) {
+			$this->db->select($fields);
+			$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
+			$this->db->where_in("surveys.idno",$chunk);
+			$resources=$this->db->get('resources')->result_array();
+			
+			if ($resources){
+				$output=array();
+				foreach($resources as $resource){
+					$link='';
+					if($this->form_validation->valid_url($resource['filename'])){
+						$link=$resource['filename'];
+					}else{
+						$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+					}
+					
+					$resource['link']=$link;
+					$resource['ext']=strtolower(pathinfo($resource['filename'],PATHINFO_EXTENSION));
+					
+					yield $resource;
+				}				
+			}
+		}
+	}
+
+
+	/**
+	 * 
+	 * Format resources
+	 * 
+	 * add download link + file sizes
+	 * 
+	 */
+	function format_resources($resources)
+	{
+		if (empty($resources)){
+			return false;
+		}
+
+		$output=array();
+		foreach($resources as $resource){
+			$link='';
+			if($this->form_validation->valid_url($resource['filename'])){
+				$link=$resource['filename'];
+				$resource['is_url']=true;
+			}else{
+				$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+				$resource['filesize']=$this->get_resource_filesize($resource);
+				$resource['is_url']=false;
+			}
+			
+			$resource['link']=$link;
+			$resource['ext']=strtolower(pathinfo($resource['filename'],PATHINFO_EXTENSION));
+			
+			$output[]=$resource;
+		}
+		
+		return $output;
+	}
+
+
+	function get_resource_filesize($resource)
+	{
+		if (!$resource){
+			return FALSE;
+		}
+		
+		$survey_folder=$this->Catalog_model->get_survey_path_full($resource['survey_id']);						
+		$file_path=unix_path($survey_folder.'/'.$resource['filename']);
+
+		if (file_exists($file_path)){
+			return filesize($file_path);
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Add download links for resources
+	 * 
+	 */
+	function generate_download_link($resources)
+	{
+		foreach($resources as $idx => $resource){
+			if($this->form_validation->valid_url($resource['filename'])){
+				$resources[$idx]['_links']=array(
+					'download'=>$resource['filename'],
+					'type'=>'link'
+				);				
+			}else{
+				if(!empty($resource['filename'])){
+					$resources[$idx]['_links']=array(
+						'download'=> site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename'])),
+						'type'=>'download'
+					);
+				}
+			}  
+		}
+
+		return $resources;
+	}
+
+	/**
+	 * 
+	 * 
+	 * Add download links for resources
+	 * 
+	 */
+	function generate_api_download_link($resources)
+	{
+		foreach($resources as $idx => $resource){
+			if($this->form_validation->valid_url($resource['filename'])){
+				$resources[$idx]['_links']=array(
+					'download'=>$resource['filename'],
+					'type'=>'link'
+				);				
+			}else{
+				if(!empty($resource['filename'])){
+					$resources[$idx]['_links']=array(
+						'download'=> site_url("api/resources/download/{$resource['survey_id']}/{$resource['resource_id']}/".rawurlencode($resource['filename']).'?id_format=id'),
+						'type'=>'download'
+					);
+				}
+			}  
+		}
+
+		return $resources;
+	}
+
+
+
+
+	/**
+	* searche database
+	* 
+	* 	NOTE: search parameters such as keywords are accessed directly from 
+	*	POST/GET variables
+	**/
+    function search($limit = NULL, $offset = NULL)
+    {
+		$this->search_count=$this->search_count();
+		
+		if ($this->search_count==0)
+		{
+			//no point in searching
+			return NULL;
+		}
+
+		//sort
+		$sort_order=$this->input->get('sort_order');
+		$sort_by=$this->input->get('sort_by');
+		
+		$this->db->start_cache();		
+		
+		//select survey fields
+		$this->db->select('*');
+		
+		//build search using the parameters passed to the GET/POST variables
+		$where=$this->_build_search_query();
+
+		$where_clause='';
+		
+		if ($where!=NULL){
+			foreach($where['field'] as $field)
+			{
+				if ( trim($where_clause)!='')
+				{	//$this->db->or_like($field,$where['keywords']);
+					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}
+				else
+				{
+					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}	
+			}	
+		}
+		
+		if ( trim($where_clause)!='')
+		{
+			$where_clause='('.$where_clause.') AND survey_id='.$this->surveyid;
+		}
+		else
+		{
+			$where_clause='survey_id='.$this->db->escape($this->surveyid);
+		}
+		
+		//$this->db->like('surveyid',1);
+		$this->db->where($where_clause, NULL, FALSE);
+
+		//set order by
+		if ($sort_by!='' && $sort_order!=''){
+			$this->db->order_by($sort_by, $sort_order); 
+		}
+		
+	  	$this->db->limit($limit, $offset);
+		$this->db->from('resources');
+		$this->db->stop_cache();
+
+        $result= $this->db->get()->result_array();		
+		return $result;
+    }
+	
+	//builds where clause using the variables from GET
+	function _build_search_query()
+	{		
+		$fields=$this->input->get("field");
+		$keywords=$this->input->get("keywords");
+		
+		$allowed_fields=$this->allowed_fields;
+		
+		if ($keywords=='')
+		{
+			return NULL;
+		}
+		
+		if ($fields=='')
+		{
+			return NULL;
+		}
+		else if ($fields=='all')
+		{			
+			$where['field']=$allowed_fields;
+			$where['keywords']=$keywords;
+			
+			return $where;
+		}
+		else if (in_array($fields, $allowed_fields) )
+		{
+			$where['field']=array($fields);
+			$where['keywords']=$keywords;
+			
+			return $where;
+		}
+		
+		return NULL;
+	}
+
+	//returns the search result count  	
+    function search_count()
+    {
+        //build search using the parameters passed to the GET/POST variables
+		$where=$this->_build_search_query();
+
+		$where_clause='';
+		
+		if ($where!=NULL){
+			foreach($where['field'] as $field)
+			{
+				if ( trim($where_clause)!='')
+				{	//$this->db->or_like($field,$where['keywords']);
+					$where_clause.= ' OR '.$field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}
+				else
+				{
+					$where_clause= $field.' LIKE '.$this->db->escape('%'.$where['keywords'].'%'); 
+				}	
+			}	
+		}
+		
+		if ( trim($where_clause)!='')
+		{
+			$where_clause='('.$where_clause.') AND survey_id='.$this->surveyid;
+		}
+		else
+		{
+			$where_clause='survey_id='.$this->db->escape($this->surveyid);
+		}
+		//print $where_clause;
+		//$this->db->like('surveyid',1);
+		$this->db->where($where_clause,NULL,FALSE);
+		$result=$this->db->count_all_results('resources');
+		return $result;
+    }
+
+
+
+	/**
+	 * 
+	 * Return an associated array using filename as the key
+	 * 
+	 * 
+	 */
+	function get_survey_resources_group_by_filename($sid)
+	{
+		$resources=$this->get_survey_resources($sid);
+		$output=array();
+		
+		foreach($resources as $resource)
+		{
+			$output[$resource['filename']]=$resource;
+		}
+
+		return $output;
 	}
 
 }

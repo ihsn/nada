@@ -30,7 +30,8 @@ class Pdf_generator extends MY_Controller {
 			show_error("INVALID ID");
 		}
 		
-		$this->acl->user_has_study_access($sid);
+		$survey=$this->Catalog_model->select_single($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
 		
 		$this->form_validation->set_rules('website_title', t('website_title'), 'xss_clean|trim|required|max_length[255]');
 		$this->form_validation->set_rules('study_title', t('study_title'), 'xss_clean|trim|required|max_length[400]');
@@ -54,16 +55,15 @@ class Pdf_generator extends MY_Controller {
 				if($options['ext_resources']===1)
 				{
 					$this->load->helper('Resource_helper');
-					$this->load->model('Resource_model');					
-					$survey['resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);
+					$this->load->model('Survey_resource_model');					
+					$survey['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);
 					$survey['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 					$options['ext_resources_html']=$this->load->view('ddibrowser/report_external_resource',$survey,TRUE);
 				}
 				//echo $options['ext_resources_html'];exit;
 				$this->_export_pdf($sid,$options);
 		}
-		else{
-			$survey=$this->Catalog_model->select_single($sid);			
+		else{						
 			$data['publisher']=$survey['authoring_entity'];
 			if (@json_decode($data['publisher']))
 			{
@@ -98,16 +98,15 @@ class Pdf_generator extends MY_Controller {
 		$params=array('codepage'=>$options['report_lang']);
 
 		$this->load->library('pdf_report',$params);// e.g. 'codepage' = 'zh-CN';
-		$this->load->library('DDI_Browser','','DDI_Browser');
+		//$this->load->library('DDI_Browser','','DDI_Browser');
 			
 		//get ddi file path from db
 		$ddi_file=$this->Catalog_model->get_survey_ddi_path($surveyid);
 		$survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
-		//$survey_folder=$this->Dataset_model->get_storage_fullpath($surveyid);		
-		
-		if ($ddi_file===FALSE || !file_exists($ddi_file)){
+				
+		/*if ($ddi_file===FALSE || !file_exists($ddi_file)){
 			show_error(t('file_not_found'. $ddi_file));
-		}
+		}*/
 	
 		//output report file name
 		$report_file=unix_path($survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$surveyid.'.pdf');
@@ -131,7 +130,8 @@ class Pdf_generator extends MY_Controller {
 			$start_time=date("H:i:s",date("U"));
 
 			//write PDF report to a file
-			$this->pdf_report->generate($report_file,$ddi_file,$options);
+			$this->pdf_report->generate($surveyid,$report_file,$options);
+			//$this->pdf_report->generate($report_file,$ddi_file,$options);
 			$end_time=date("H:i:s",date("U"));
 			
 			//log
@@ -169,7 +169,8 @@ class Pdf_generator extends MY_Controller {
 			show_error("INVALID ID");
 		}
 		
-		$this->acl->user_has_study_access($sid);
+		$survey=$this->Catalog_model->select_single($sid);
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
 		
 		$this->load->library("catalog_admin");
 		$this->catalog_admin->delete_study_pdf($sid);

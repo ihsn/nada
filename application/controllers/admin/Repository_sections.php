@@ -14,11 +14,13 @@ class Repository_Sections extends MY_Controller {
 		$this->lang->load('collection');
 		
 		//set default template
-		$this->template->set_template('admin');
-		
+		$this->template->set_template('admin5');		
 	}
 	
-	public function index() {
+	public function index() 
+	{
+		$this->acl_manager->has_access_or_die('collection_type', 'view');
+
 		//get array of db rows		
 		$result['rows']=$this->_search();
 		
@@ -36,6 +38,8 @@ class Repository_Sections extends MY_Controller {
 	
 	public function edit($id=NULL)	
 	{
+		$this->acl_manager->has_access_or_die('collection_type', 'edit');
+
 		$this->html_form_url=site_url().'/admin/repository_sections';		
 		
 		if (!is_numeric($id)  && $id!=NULL)
@@ -139,6 +143,8 @@ class Repository_Sections extends MY_Controller {
 	
 	function delete($id)
 	{			
+		$this->acl_manager->has_access_or_die('collection_type', 'delete');
+
 		//array of id to be deleted
 		$delete_arr=array();
 	

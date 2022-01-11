@@ -30,7 +30,7 @@ class Catalog_Admin
 
 		$this->ci->load->helper('file');
 		$this->ci->load->model("managefiles_model");
-		$this->ci->load->model("resource_model");
+		$this->ci->load->model("Survey_resource_model");
 		$this->ci->load->model("form_model");		
 
 		$this->ci->lang->load("resource_manager");
@@ -89,7 +89,7 @@ class Catalog_Admin
 
 		$this->ci->load->helper('file');
 		$this->ci->load->model("managefiles_model");
-		$this->ci->load->model("resource_model");
+		$this->ci->load->model("Survey_resource_model");
 		$this->ci->load->model("form_model");
 
 		//get survey folder path
@@ -126,7 +126,7 @@ class Catalog_Admin
 	function get_formatted_resources($sid)
 	{
 		//get all resoruces attached to a survey
-		$resources=$this->ci->resource_model->get_survey_resources($sid);
+		$resources=$this->ci->Survey_resource_model->get_survey_resources($sid);
 
 		//total resources
 		$output['total'] = count($resources);
@@ -335,7 +335,7 @@ class Catalog_Admin
 
 		//load RDF parser class
 		$this->ci->load->library('RDF_Parser');
-		$this->ci->load->model('Resource_model');
+		$this->ci->load->model('Survey_resource_model');
 
 		//parse RDF to array
 		$rdf_array=$this->ci->rdf_parser->parse($rdf_contents);
@@ -375,13 +375,10 @@ class Catalog_Admin
 			}
 
 			//check if the resource file already exists
-			$resource_exists=$this->ci->Resource_model->get_resources_by_filepath($insert_data['filename']);
+			//$resource_exists=$this->ci->Survey_resource_model->get_survey_resources_by_filepath($insert_data['filename']);
 
-			if (!$resource_exists)
-			{
-				//insert into db
-				$this->ci->Resource_model->insert($insert_data);
-			}
+			//insert into db
+			$this->ci->Survey_resource_model->insert($insert_data);
 		}
 	}
 
@@ -392,7 +389,7 @@ class Catalog_Admin
 	**/
 	function get_study_warnings($sid)
 	{
-		$this->ci->load->model('resource_model');
+		$this->ci->load->model('Survey_resource_model');
 		$this->ci->load->model('Catalog_model');
 		$warnings=array();
 
@@ -413,41 +410,14 @@ class Catalog_Admin
 		}
 
 		//study data access model
-		$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
+		//$study_da_model=$this->ci->Catalog_model->get_survey_form_model($sid);
 
 		//get study resources count  grouped by resource type
-		$resources=$this->ci->resource_model->get_grouped_resources_count($sid);
+		$resources=$this->ci->Survey_resource_model->get_grouped_resources_count($sid);
 
 		if (!$resources)
 		{
 			$warnings[]='warning_study_has_no_external_resources';
-		}
-
-		if(in_array($study_da_model,array('public','licensed','direct')))
-		{
-			//has microdata assigned for puf/lic/direct?
-			$has_microdata=FALSE;
-			$has_questionnaire=FALSE;
-			foreach($resources as $res)
-			{
-				if ( strpos($res['dctype'],'[dat/micro]') || strpos($res['dctype'],'[dat]'))
-				{
-					$has_microdata=TRUE;
-				}
-				if ( strpos($res['dctype'],'[doc/qst]') )
-				{
-					$has_questionnaire=TRUE;
-				}
-			}
-
-			if(!$has_microdata)
-			{
-				$warnings[]='warning_study_has_no_microdata';
-			}
-			if(!$has_questionnaire)
-			{
-				$warnings[]='warning_study_has_no_questionnaire';
-			}
 		}
 
 		//pdf documentation?
@@ -478,14 +448,14 @@ class Catalog_Admin
 	function fix_resource_links($surveyid)
 	{
 		$this->ci->load->model('Catalog_model');
-		$this->ci->load->model('Resource_model');
+		$this->ci->load->model('Survey_resource_model');
 		$this->ci->load->model('Managefiles_model');
 
 		//get survey folder path
 		$survey_folder=$this->ci->Catalog_model->get_survey_path_full($surveyid);
 
 		//get survey resources
-		$resources=$this->ci->Resource_model->get_survey_resource_files($surveyid);
+		$resources=$this->ci->Survey_resource_model->get_survey_resource_files($surveyid);
 
 		//hold broken resources
 		$broken_links=array();
@@ -523,7 +493,7 @@ class Catalog_Admin
 					$match=$file['relative'];
 
 					//update path in database
-					$this->ci->Resource_model->update($resource['resource_id'],array('filename'=>$file['relative'].'/'.$file['name']));
+					$this->ci->Survey_resource_model->update($resource['resource_id'],array('filename'=>$file['relative'].'/'.$file['name']));
 
 					//update the count
 					$fixed_count++;

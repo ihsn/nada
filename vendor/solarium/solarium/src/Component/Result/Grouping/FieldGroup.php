@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Grouping;
 
 /**
@@ -33,11 +40,11 @@ class FieldGroup implements \IteratorAggregate, \Countable
     /**
      * Constructor.
      *
-     * @param int   $matches
-     * @param int   $numberOfGroups
-     * @param array $groups
+     * @param int|null $matches
+     * @param int|null $numberOfGroups
+     * @param array    $groups
      */
-    public function __construct($matches, $numberOfGroups, $groups)
+    public function __construct(?int $matches, ?int $numberOfGroups, array $groups)
     {
         $this->matches = $matches;
         $this->numberOfGroups = $numberOfGroups;
@@ -49,7 +56,7 @@ class FieldGroup implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function getMatches()
+    public function getMatches(): int
     {
         return $this->matches;
     }
@@ -61,7 +68,7 @@ class FieldGroup implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function getNumberOfGroups()
+    public function getNumberOfGroups(): int
     {
         return $this->numberOfGroups;
     }
@@ -71,7 +78,7 @@ class FieldGroup implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getValueGroups()
+    public function getValueGroups(): array
     {
         return $this->valueGroups;
     }
@@ -81,7 +88,7 @@ class FieldGroup implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->valueGroups);
     }
@@ -91,8 +98,8 @@ class FieldGroup implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->valueGroups);
+        return \count($this->valueGroups);
     }
 }

@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium;
 
 use Solarium\Core\Client\Client as CoreClient;
@@ -34,7 +41,7 @@ class Client extends CoreClient
      *
      * @var string
      */
-    const VERSION = '4.0.0';
+    const VERSION = '6.2.1';
 
     /**
      * Check for an exact version.
@@ -64,9 +71,9 @@ class Client extends CoreClient
      *
      * @return bool
      */
-    public static function checkExact($version)
+    public static function checkExact(string $version): bool
     {
-        return substr(self::VERSION, 0, strlen($version)) == $version;
+        return 0 === strpos(self::VERSION, $version);
     }
 
     /**
@@ -92,7 +99,7 @@ class Client extends CoreClient
      *
      * @return bool
      */
-    public static function checkMinimal($version)
+    public static function checkMinimal(string $version): bool
     {
         return version_compare(self::VERSION, $version, '>=');
     }

@@ -1,6 +1,7 @@
 <style type="text/css">
-.var-compare-container .compare-box .survey-link{margin-bottom:10px;}
-.var-compare-container .compare-box .variable-content{}
+.var-compare-container .compare-box .survey-link{
+	margin-bottom:10px;
+}
 </style>
 
 <script type="text/javascript">
@@ -85,40 +86,71 @@ function readCookie(name) {
 function eraseCookie(name) {
 	createCookie(name,"",-1);
 }
+
+$( document ).ready(function() {
+	$(".compare-header #wb-variables-fullscreen" ).click(function() {
+		$("body").toggleClass("wb-fullscreen");
+	});  
+});
 </script>
 
+<div class="compare-header clearfix py-3 px-3">
+	<div class="container">
+		<div class="row">
+			<div class="col">
+				
+				<h1 class="title float-left" ><?php echo t('title_compare_variables');?></h1>
+				<div class="action-bar float-right">
+					<span class="wb-actions-records">
+						<a href="<?php echo current_url(); ?>" onClick="window.location.reload();return false;" class="refresh btn btn-outline-primary btn-sm">
+							<i class="fas fa-sync"></i>
+							<?php echo t('refresh');?>
+						</a> 
+						<a href="<?php echo current_url(); ?>#clear" onClick="remove_all();return false;" title="Clear selection of variables to be compared" class="clear btn btn-outline-primary btn-sm">
+							<?php echo t('clear');?>
+						</a> 
+					</span>
+					<span class="wb-actions-export">
+						<small>Download variables as </small>
+						<a href="<?php echo site_url('catalog/compare/print/pdf'); ?>"  class="download btn btn-outline-primary btn-sm">
+							<!-- <i class="fa fa-file-pdf-o" aria-hidden="true"></i>  -->
+							<i class="fas fa-file-pdf"></i>
+							<?php echo t('download_pdf');?>
+						</a> 
+
+						<a href="<?php echo site_url('catalog/compare/export/csv'); ?>"  class="download btn btn-outline-primary btn-sm">
+							<!-- <i class="fas fa-file-excel" aria-hidden="true"></i>  -->
+							<i class="fas fa-file-excel"></i>
+							<?php echo t('download_csv');?>
+						</a> 
+
+						<a href="<?php echo site_url('catalog/compare/export/json'); ?>"  class="download btn btn-outline-primary btn-sm">
+							<!-- <i class="fa fa-file-code-o" aria-hidden="true"></i>  -->
+							<i class="far fa-file-code"></i>
+							<?php echo t('download_json');?>
+						</a> 
+
+						<a href="#" class="fullscreen btn btn-sm" id="wb-variables-fullscreen">
+							<i class="fas fa-expand-alt"></i>
+							<i class="fas fa-compress-alt"></i>
+						</a> 
+					</span>
+				</div>
+			</div>
+		</div>
+
+
+	</div>
+</div>    
 
 <div class="var-compare-container">
 
 <?php if (!$list): ?>
 	<div class="error"><?php echo t('no_variables_to_compare');?></div>
+	<?php return;?>
 <?php endif;?>
-
-<div class="compare-header clearfix">
-	<h1 class="title float-left" ><?php echo t('title_compare_variables');?></h1>
-    <div class="action-bar float-right">
-		<a href="<?php echo current_url(); ?>" onClick="window.location.reload();return false;" class="refresh btn btn-outline-primary btn-sm">
-			<i class="fa fa-refresh" aria-hidden="true"></i><?php echo t('refresh');?>
-		</a> 
-		<a href="<?php echo current_url(); ?>#clear" onClick="remove_all();return false;" title="Clear selection of variables to be compared" class="clear btn btn-outline-primary btn-sm">
-			<i class="fa fa-trash" aria-hidden="true"></i> <?php echo t('clear');?>
-		</a> 
-
-		<a href="<?php echo site_url('catalog/compare/print/pdf'); ?>"  class="download btn btn-outline-primary btn-sm">
-			<i class="fa fa-file-pdf-o" aria-hidden="true"></i> <?php echo t('download_pdf');?>
-		</a> 
-
-		<a href="<?php echo site_url('catalog/compare/export/csv'); ?>"  class="download btn btn-outline-primary btn-sm">
-			<i class="fa fa-file-excel-o" aria-hidden="true"></i> <?php echo t('download_csv');?>
-		</a> 
-
-		<a href="<?php echo site_url('catalog/compare/export/json'); ?>"  class="download btn btn-outline-primary btn-sm">
-		<i class="fa fa-file-code-o" aria-hidden="true"></i> <?php echo t('download_json');?>
-		</a> 
-
-    </div>
-</div>    
   
+<div class="wb-var-table-wrapper">
 	<?php $tr_class=""; ?>
 	<table class="draggable" cellpadding="0" cellspacing="5" >
 	    <tr  class="<?php echo $tr_class; ?>" valign="top">
@@ -137,6 +169,7 @@ function eraseCookie(name) {
                      </div>
     	        	<div class="compare-box-body" >
                             <div class="survey-link">
+								<div><?php echo $item['dataset']['nation'];?></div>
 								<?php echo anchor("catalog/".$item['sid'],$survey_title,array('target'=>'_blank'));?>
                             </div>
                             <div class="variable-content">
@@ -149,4 +182,6 @@ function eraseCookie(name) {
 		<?php endforeach;?>
     </tr>
 	</table>
+</div>
+
 </div> <!--end var-compare-container-->

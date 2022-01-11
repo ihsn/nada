@@ -83,9 +83,9 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 </td>
 </tr>
 <tr style="background:gainsboro;">
-    <td style="padding:5px;padding-left:0px" class="form-inline">
+    <td style="padding:5px;padding-left:0px" xclass="form-inline">
         <input type="checkbox" value="-1" id="chk_toggle" style="margin-left:8px;"/>
-        <select id="batch_actions" class="form-control">
+        <select id="batch_actions" class="form-control-sm">
             <option value="-1"><?php echo t('batch_actions');?></option>
             <option value="transfer"><?php echo t('transfer_ownership');?></option>
             <option value="publish"><?php echo t('publish');?></option>
@@ -95,9 +95,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
         <input class="btn btn-secondary btn-sm" type="button" id="batch_actions_apply" name="batch_actions_apply" value="<?php echo t('apply');?>"/>
         <span style="padding-right:20px"></span>
         </td>
-    <td align="right">
-
-    </td>
+        <td></td>
 </tr>
 </table>
 
@@ -117,11 +115,11 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
             <td><input type="checkbox" value="<?php echo $row['id']; ?>" class="chk"/></td>
             <td>
                     <div class="survey-row">
-                    	<div class="data-access-icon data-access-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></div>
+                        <div class="data-access-icon">
+                            <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></i>
+                        </div>
                         <h3>
                             <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo $row['title'];?></a>
-                            <!--<span class="data-access-type"><?php echo t($row['form_model']);?></span>-->
-                            
                         </h3>
                         <?php 
 							$study_years=array_unique(array($row['year_start'],$row['year_end']));
@@ -130,7 +128,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                         <div class="sub-title">
 							<?php echo $row['nation'];?>
 							 <?php if ($study_years==0):?>
-                            	<!--<span class="label label-warning"><?php echo t('Year Missing');?></span>-->
                             <?php else:?>
 	                            <?php echo $study_years;?>
                             <?php endif;?>
@@ -138,15 +135,15 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             <span class="dataset-idno"><?php echo $row['idno'];?></span>
                         </div>
 
-                        <!--
-                        <div class="table-row">
-                        	<span class="cell-label"><?php echo t('ID');?>:</span>
-							<span class="cell-value"><?php echo $row['idno'];?></span>
-                        </div>						
-                        !-->
-
                         <div class="table-row">
                             
+                            <span class="subgroup">                        	
+                            <span>
+                                
+                                	<span class="badge badge-info"><?php echo strtoupper($row['type']);?></span>                              
+                            </span>
+                            </span>
+
                             <span class="subgroup">
                         	<span><?php echo t('collection');?>:</span>
                             <span>
@@ -164,7 +161,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                               <?php endif;?>  
                             </span>
                             </span>
-
                             
                             <?php if (isset($row['tags']) &&  count($row['tags'])>0):?>
                             <span class="subgroup">
@@ -179,9 +175,6 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             
                         </div>
                         
-                        
-                        
-                        
                         <div class="links">
                         
                         <span style="float:left;">
@@ -189,6 +182,11 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             <span class="date-changed">
                                 <?php echo t('modified_on')?>:    
                                 <?php echo date($this->config->item('date_format'), $row['changed']); ?>
+                            </span>
+
+                            <span class="date-changed pl-2">
+                                <?php echo t('Created by')?>:    
+                                <?php echo ucwords($row['created_by_user']); ?>
                             </span>
                         </span>
 
@@ -213,8 +211,8 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
             <td class="col-published">
                         <div class="actions">
                         	<div class="status">
-                                <?php $published_checked=(!$row['published']) ? '' :'checked="checked"';?>                             
-                                <input class="publish-toggle" type="checkbox" data-sid="<?php echo $row['id'];?>" <?php echo $published_checked;?> data-toggle="toggle" data-on="<?php echo t('published');?>" data-off="<?php echo t('draft');?>" data-onstyle="success" data-offstyle="danger">
+                                <?php $published_checked=(!$row['published']) ? '' :'checked="checked"';?>
+                                <input class="publish-toggle" data-size="sm" type="checkbox" data-sid="<?php echo $row['id'];?>" <?php echo $published_checked;?> data-toggle="toggle" data-on="<?php echo t('published');?>" data-off="<?php echo t('draft');?>" data-onstyle="success" data-offstyle="danger">
                             </div>
                             
                             <?php if (isset($row['pending_lic_requests'])):?>

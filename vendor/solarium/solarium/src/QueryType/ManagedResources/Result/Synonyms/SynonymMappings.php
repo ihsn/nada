@@ -1,10 +1,22 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\ManagedResources\Result\Synonyms;
 
+use Solarium\Core\Client\Response;
+use Solarium\Core\Query\AbstractQuery;
 use Solarium\Core\Query\Result\QueryType as BaseResult;
 use Solarium\Core\Query\Result\Result;
 
+/**
+ * SynonymMappings.
+ */
 class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countable
 {
     /**
@@ -15,18 +27,18 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     protected $name = 'synonymMappings';
 
     /**
-     * ResourceId looked up using the managed resources component.
-     *
-     * @var string
-     */
-    protected $resourceId;
-
-    /**
      * Whether or not to ignore the case.
      *
-     * @var bool
+     * @var bool|null
      */
     protected $ignoreCase;
+
+    /**
+     * Format.
+     *
+     * @var string|null
+     */
+    protected $format;
 
     /**
      * Datetime when the resource was initialized.
@@ -38,7 +50,7 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     /**
      * Datetime when the resource was last updated.
      *
-     * @var string
+     * @var string|null
      */
     protected $updatedSinceInit;
 
@@ -50,12 +62,22 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     protected $items = [];
 
     /**
+     * @var bool
+     */
+    protected $wasSuccessful = false;
+
+    /**
+     * @var string
+     */
+    protected $statusMessage = 'ERROR';
+
+    /**
      * Constructor.
      *
-     * @param $query
-     * @param $response
+     * @param \Solarium\Core\Query\AbstractQuery $query
+     * @param \Solarium\Core\Client\Response     $response
      */
-    public function __construct($query, $response)
+    public function __construct(AbstractQuery $query, Response $response)
     {
         Result::__construct($query, $response);
     }
@@ -73,11 +95,12 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     /**
      * Get all items.
      *
-     * @return Synonyms[]
+     * @return \Solarium\QueryType\ManagedResources\Result\Synonyms\Synonyms[]
      */
     public function getItems(): array
     {
         $this->parseResponse();
+
         return $this->items;
     }
 
@@ -89,6 +112,7 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     public function getIterator(): \ArrayIterator
     {
         $this->parseResponse();
+
         return new \ArrayIterator($this->items);
     }
 
@@ -100,25 +124,28 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     public function count(): int
     {
         $this->parseResponse();
+
         return \count($this->items);
     }
 
     /**
-     * @return string
+     * @return bool|null
      */
-    public function getResourceId(): string
+    public function isIgnoreCase(): ?bool
     {
         $this->parseResponse();
-        return $this->resourceId;
+
+        return $this->ignoreCase;
     }
 
     /**
-     * @return bool
+     * @return string|null
      */
-    public function isIgnoreCase(): bool
+    public function getFormat(): ?string
     {
         $this->parseResponse();
-        return $this->ignoreCase;
+
+        return $this->format;
     }
 
     /**
@@ -127,6 +154,37 @@ class SynonymMappings extends BaseResult implements \IteratorAggregate, \Countab
     public function getInitializedOn(): string
     {
         $this->parseResponse();
+
         return $this->initializedOn;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getUpdatedSinceInit(): ?string
+    {
+        $this->parseResponse();
+
+        return $this->updatedSinceInit;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getWasSuccessful(): bool
+    {
+        $this->parseResponse();
+
+        return $this->wasSuccessful;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatusMessage(): string
+    {
+        $this->parseResponse();
+
+        return $this->statusMessage;
     }
 }

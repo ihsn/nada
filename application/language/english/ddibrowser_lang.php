@@ -169,11 +169,6 @@ $lang['include_variable_desc']="Variable description";
 $lang['include_external_resources']="External resource";
 $lang['Report options']="Report options:";
 $lang['processing_pdf_report']="Generating PDF report, it may take few minutes or longer...";
-$lang['get_microdata']="Get Microdata";
-$lang['study_description']="Study Description";
-$lang['data_dictionary']="Data Description";
-$lang['related_materials']="Documentation";
-$lang['related_citations']="Related Publications";
 $lang['citations']="Citations";
 $lang['review_study']="Review";
 $lang['add_note']="Add note";
@@ -214,6 +209,7 @@ $lang['universe']='Universe';
 $lang['notes']='Notes';
 $lang['text']='Note';
 $lang['definition']='Definition';
+
 
 /* End of file ddibrowser_lang.php */
 /* Location: ./application/language/english/ddibrowser_lang.php */

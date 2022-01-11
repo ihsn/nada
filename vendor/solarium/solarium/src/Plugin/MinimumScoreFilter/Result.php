@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\MinimumScoreFilter;
 
 use Solarium\QueryType\Select\Result\Result as SelectResult;
@@ -16,16 +23,18 @@ class Result extends SelectResult
      *
      * @param array $mapData
      */
-    protected function mapData($mapData)
+    protected function mapData(array $mapData)
     {
         foreach ($mapData as $key => $data) {
-            if ('documents' == $key) {
+            if ('documents' === $key && $data) {
                 $filter = new Filter();
-                $mode = $this->getQuery()->getFilterMode();
-                $ratio = $this->getQuery()->getFilterRatio();
+                /** @var Query $query */
+                $query = $this->getQuery();
+                $mode = $query->getFilterMode();
+                $ratio = $query->getFilterRatio();
                 $data = $filter->filterDocuments($data, $mapData['maxscore'], $ratio, $mode);
             }
-            $this->$key = $data;
+            $this->{$key} = $data;
         }
     }
 }

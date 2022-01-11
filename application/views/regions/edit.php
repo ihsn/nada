@@ -32,35 +32,36 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
     margin-right:10px;
 }
 .clear-all{color:navy;font-weight:normal;cursor:pointer;margin-left:10px;}
-.form-custom-width{
-    width:400px;
-}
+
 </style>
-<div class='container-fluid'>
-    <div class="text-right page-links">
-        <a href="<?php echo site_url(); ?>/admin/regions" class="btn btn-default">
-    	<span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('regions');?></a>
-    </div>
-
-<?php if ($row_id):?>
-	<h1><?php echo t('Edit Region'); ?></h1>
-<?php else:?>
-	<h1><?php echo t('Create New Region'); ?></h1>
-<?php endif;?>    
-	<?php if (validation_errors() ) : ?>
-        <div class="alert alert-danger">
-            <?php echo validation_errors(); ?>
+<div class="text-right page-links">
+            <a href="<?php echo site_url(); ?>/admin/regions" class="btn btn-outline-primary btn-sm">
+            <span class="fas fa-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('Regions');?></a>
         </div>
-    <?php endif; ?>
-    
-    <?php $error=$this->session->flashdata('error');?>
-    <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+<div class='container-fluid'>
+    <div class="row">
+    <div class="col-md-6">
         
-    <?php $message=$this->session->flashdata('message');?>
-    <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
 
-	
-    <?php echo form_open($form_action_url, array('class'=>'form form-custom-width'));?>
+        <?php if ($row_id):?>
+            <h3 class="page-title mt-5 mb-3"><?php echo t('Edit Region'); ?></h3>
+        <?php else:?>
+            <h3 class="page-title mt-5 mb-3"><?php echo t('Create New Region'); ?></h3>
+        <?php endif;?>    
+            <?php if (validation_errors() ) : ?>
+                <div class="alert alert-danger">
+                    <?php echo validation_errors(); ?>
+                </div>
+            <?php endif; ?>
+    
+        <?php $error=$this->session->flashdata('error');?>
+        <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+            
+        <?php $message=$this->session->flashdata('message');?>
+        <?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
+
+        
+        <?php echo form_open($form_action_url, array('class'=>'form form-custom-width'));?>
 
     
     <div class="form-group">
@@ -80,11 +81,12 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
 
     <div class="field" id="country-selection">
         <label for="pid"><?php echo t('Select Countries');?><span class="required">*</span> 
-        	<span class"selected-container">
+        	<span class="selected-container">
 				<?php echo t('selected');?>: <span class="selected"><?php echo count($countries);?></span>
                 <span class="clear-all"><?php echo t('clear');?></span>
             </span>
         </label>
+        
         <div class="country-selection">
         <?php foreach($country_list as $country):?>
         <?php $is_checked=in_array($country['countryid'],$countries) ? 'checked="checked"' : '';?>
@@ -99,12 +101,14 @@ $countries=get_form_value('country',isset($row['countries']) ? $row['countries']
     </div>
 
     <div style="margin-top:10px;">
-	<?php echo form_submit('submit', t('update'),array('class'=>'btn btn-primary'));?>
-    <?php echo anchor('admin/regions/', t('cancel'),array('class'=>'btn btn-default'));?>
+	<?php echo form_submit('submit', t('update'),array('class'=>'btn btn-primary btn-sm'));?>
+    <?php echo anchor('admin/regions/', t('cancel'),array('class'=>'btn btn-secondary btn-sm'));?>
 </div>
       
     <?php echo form_close();?>
 
+</div>
+</div>
 </div>
 
 

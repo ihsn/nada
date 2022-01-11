@@ -437,21 +437,51 @@
 		"Location": {
 			"type": "object",
 			"properties": {
-				"city": {
+				"name": {
 					"$ref": "#/definitions/AltLang",
-					"title": "City name",
-					"description": "Name of the city the Location is located in"
+					"title": "Name",
+					"description": "Full name of the location"
 				},
-				"countryCode": {
-					"title": "Country ISO code",
-					"description": "ISO code of the country the Location is located in",
-					"type": "string"
+				"identifiers": {
+					"title": "Identifier",
+					"description": "Globally unique identifier of the location",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"format": "uri"
+					}
+				},
+				"worldRegion": {
+					"$ref": "#/definitions/AltLang",
+					"title": "World region name",
+					"description": "Name of the world region the Location is located in"
 				},
 				"countryName": {
 					"$ref": "#/definitions/AltLang",
 					"title": "Country name",
 					"description": "Name of the country the Location is located in"
 				},
+				"countryCode": {
+					"title": "Country ISO code",
+					"description": "ISO code of the country the Location is located in",
+					"type": "string"
+				},
+				"provinceState": {
+					"$ref": "#/definitions/AltLang",
+					"title": "State/Province name",
+					"description": "Name of the state or province the Location is located in"
+				},
+				"city": {
+					"$ref": "#/definitions/AltLang",
+					"title": "City name",
+					"description": "Name of the city the Location is located in"
+				},
+				"sublocation": {
+					"$ref": "#/definitions/AltLang",
+					"title": "Sublocation name",
+					"description": "Name of a sub location the Location is located in"
+				},
+
 				"gpsAltitude": {
 					"title": "GPS-Altitude",
 					"description": "Altitude in meters of a WGS84 based position of this Location",
@@ -466,35 +496,6 @@
 					"title": "GPS-Longitude",
 					"description": "Longitude of a WGS84 based position of this Location",
 					"type": "number"
-				},
-				"identifiers": {
-					"title": "Identifier",
-					"description": "Globally unique identifier of the location",
-					"type": "array",
-					"items": {
-						"type": "string",
-						"format": "uri"
-					}
-				},
-				"name": {
-					"$ref": "#/definitions/AltLang",
-					"title": "Name",
-					"description": "Full name of the location"
-				},
-				"provinceState": {
-					"$ref": "#/definitions/AltLang",
-					"title": "State/Province name",
-					"description": "Name of the state or province the Location is located in"
-				},
-				"sublocation": {
-					"$ref": "#/definitions/AltLang",
-					"title": "Sublocation name",
-					"description": "Name of a sub location the Location is located in"
-				},
-				"worldRegion": {
-					"$ref": "#/definitions/AltLang",
-					"title": "World region name",
-					"description": "Name of the world region the Location is located in"
 				}
 			},
 			"additionalProperties": false

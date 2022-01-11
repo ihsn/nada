@@ -1,14 +1,23 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
+use Solarium\Component\RequestBuilder\ComponentRequestBuilderInterface;
 use Solarium\Component\RequestBuilder\Debug as RequestBuilder;
+use Solarium\Component\ResponseParser\ComponentParserInterface;
 use Solarium\Component\ResponseParser\Debug as ResponseParser;
 
 /**
  * Debug component.
  *
- * @see http://wiki.apache.org/solr/CommonQueryParameters#Debugging
+ * @see https://solr.apache.org/guide/common-query-parameters.html#debug-parameter
  */
 class Debug extends AbstractComponent
 {
@@ -17,7 +26,7 @@ class Debug extends AbstractComponent
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return ComponentAwareQueryInterface::COMPONENT_DEBUG;
     }
@@ -27,7 +36,7 @@ class Debug extends AbstractComponent
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): ComponentRequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -37,7 +46,7 @@ class Debug extends AbstractComponent
      *
      * @return ResponseParser
      */
-    public function getResponseParser()
+    public function getResponseParser(): ?ComponentParserInterface
     {
         return new ResponseParser();
     }
@@ -47,7 +56,7 @@ class Debug extends AbstractComponent
      *
      * @return string|null
      */
-    public function getExplainOther()
+    public function getExplainOther(): ?string
     {
         return $this->getOption('explainother');
     }
@@ -55,12 +64,16 @@ class Debug extends AbstractComponent
     /**
      * Set the explainOther query.
      *
+     * @see https://solr.apache.org/guide/common-query-parameters.html#explainother-parameter
+     *
      * @param string $query
      *
      * @return self Provides fluent interface
      */
-    public function setExplainOther($query)
+    public function setExplainOther(string $query): self
     {
-        return $this->setOption('explainother', $query);
+        $this->setOption('explainother', $query);
+
+        return $this;
     }
 }

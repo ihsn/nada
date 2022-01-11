@@ -15,10 +15,22 @@ class Form_model extends CI_Model {
 		return $this->db->get('forms')->row_array();
 	}
 	
+
 	//return all forms
 	function get_all()
 	{
-		return $this->db->get('forms')->result_array();
+		$query= $this->db->get('forms')->result_array();
+
+		$result=array();
+
+		if($query){
+			foreach($query as $row){
+				$result[$row['model']]=$row;
+			}
+			return $result;
+		}
+		
+		return FALSE;
 	}
 
 	/**
@@ -138,6 +150,37 @@ class Form_model extends CI_Model {
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * 
+	 * Convert data access name to ID
+	 * 
+	 */
+	function map_name_to_id($dtypes)
+	{
+		if(empty($dtypes)){
+			return false;
+		}
+
+		if(!is_array($dtypes)){
+			$dtypes=explode(",",$dtypes);
+		}
+
+		$data_types=$this->get_all();
+		$data_types_list=array();
+		foreach($data_types as $type){
+			$data_types_list[$type['model']]=$type['formid'];
+		}
+
+		$output=array();
+
+		foreach($dtypes as $type){
+			$output[]=isset($data_types_list[$type]) ? $data_types_list[$type] : '-1';
+		}
+
+		return $output;
 	}
 
 }

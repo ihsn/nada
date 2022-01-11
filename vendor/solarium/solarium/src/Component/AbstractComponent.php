@@ -1,8 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
 use Solarium\Component\RequestBuilder\ComponentRequestBuilderInterface;
+use Solarium\Component\ResponseParser\ComponentParserInterface;
 use Solarium\Core\Configurable;
 use Solarium\Core\Query\AbstractQuery;
 use Solarium\Core\Query\Helper;
@@ -22,20 +30,23 @@ abstract class AbstractComponent extends Configurable
      *
      * @return string
      */
-    abstract public function getType();
+    abstract public function getType(): string;
 
     /**
      * Get the request builder class for this query.
      *
      * @return ComponentRequestBuilderInterface
      */
-    abstract public function getRequestBuilder();
+    abstract public function getRequestBuilder(): ComponentRequestBuilderInterface;
 
     /**
      * This component has no response parser...
+     *
+     * @return \Solarium\Component\ResponseParser\ComponentParserInterface|null
      */
-    public function getResponseParser()
+    public function getResponseParser(): ?ComponentParserInterface
     {
+        return null;
     }
 
     /**
@@ -45,7 +56,7 @@ abstract class AbstractComponent extends Configurable
      *
      * @return self Provides fluent interface
      */
-    public function setQueryInstance(AbstractQuery $instance)
+    public function setQueryInstance(AbstractQuery $instance): self
     {
         $this->queryInstance = $instance;
 
@@ -55,9 +66,9 @@ abstract class AbstractComponent extends Configurable
     /**
      * Get parent query instance.
      *
-     * @return AbstractQuery
+     * @return AbstractQuery|null
      */
-    public function getQueryInstance()
+    public function getQueryInstance(): ?AbstractQuery
     {
         return $this->queryInstance;
     }
@@ -67,12 +78,12 @@ abstract class AbstractComponent extends Configurable
      *
      * @return \Solarium\Core\Query\Helper
      */
-    public function getHelper()
+    public function getHelper(): Helper
     {
         if ($queryInstance = $this->getQueryInstance()) {
-            return $this->getQueryInstance()->getHelper();
-        } else {
-            return new Helper();
+            return $queryInstance->getHelper();
         }
+
+        return new Helper();
     }
 }

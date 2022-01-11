@@ -1,9 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\BufferedAdd\Event;
 
-use Solarium\QueryType\Select\Result\DocumentInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Solarium\Core\Query\DocumentInterface;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * AddDocument event, see Events for details.
@@ -20,7 +29,7 @@ class AddDocument extends Event
      *
      * @param DocumentInterface $document
      */
-    public function __construct($document)
+    public function __construct(DocumentInterface $document)
     {
         $this->document = $document;
     }
@@ -30,7 +39,7 @@ class AddDocument extends Event
      *
      * @return DocumentInterface
      */
-    public function getDocument()
+    public function getDocument(): DocumentInterface
     {
         return $this->document;
     }

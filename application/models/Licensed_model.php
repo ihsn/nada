@@ -442,7 +442,7 @@ class Licensed_model extends CI_Model {
 	//get a list of licensed surveys for the user
 	function get_survey_licensed_files($surveyid)
 	{		
-		$where=" survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%') ";
+		$where=" survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%') ";
 		
 		$this->db->select('title,filename,resource_id');
 		$this->db->from('resources');
@@ -690,8 +690,8 @@ class Licensed_model extends CI_Model {
 		//set Limit clause
 	  	$this->db->select('lic_requests.request_title,lic_requests.id, lic_requests.userid, lic_requests.created, lic_requests.status,users.username');
 		$this->db->join($this->tables['users'], $this->tables['users'].'.id = lic_requests.userid');
-		$this->db->join('survey_lic_requests', 'survey_lic_requests.id = lic_requests.id',"left");
-		//$this->db->join('survey_repos', 'survey_lic_requests.sid = survey_repos.sid',"left");
+		$this->db->join('survey_lic_requests', 'survey_lic_requests.id = lic_requests.id');
+		//$this->db->join('survey_repos', 'survey_lic_requests.sid = survey_repos.sid');
 		$this->db->group_by('lic_requests.request_title,lic_requests.id, lic_requests.userid, lic_requests.created, lic_requests.status,users.username');
 
 		$this->db->limit($limit, $offset);

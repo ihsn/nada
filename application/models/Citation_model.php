@@ -1693,7 +1693,27 @@ class Citation_model extends CI_Model {
 		}
 
 		return $output;
+	}
 
+
+	function validate_schema($data)
+	{
+		$this->load->library("Schema_validator");
+		return $this->schema_validator->validate_schema('application/schemas/citation-schema.json',$data);
+	}
+
+
+	function get_id_by_uuid($uuid)
+	{		
+		$this->db->select('id');
+		$this->db->where('uuid', $uuid);
+		$result=$this->db->get('citations')->row_array();
+
+		if ($result){
+			return $result['id'];
+		}
+		
+		return false;
 	}
 
 }

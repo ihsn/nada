@@ -22,6 +22,10 @@ $lang['Countries']="Countries";
 $lang['Regions']="Regions";
 $lang['Vocabularies']="Vocabularies";
 $lang['Central Data Catalog']="Central Data Catalog";
+$lang['Bulk data access']="Bulk data access";
+$lang['Facets']="Facets";
+$lang['Translate']="Translate";
+$lang['Data deposit']='Data deposit';
 
 /* End of file site_menu_lang.php */
 /* Location: ./application/language/english/site_menu_lang.php */

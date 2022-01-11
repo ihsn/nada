@@ -8,7 +8,7 @@ class Configurations extends MY_Controller {
 		$this->load->helper(array('form', 'url'));		
 		$this->load->library( array('form_validation','pagination') );
        	$this->load->model('Configurations_model');		
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		$this->lang->load("configurations");
 		
@@ -16,6 +16,8 @@ class Configurations extends MY_Controller {
 		$this->_init_default_configs();
 		
 		//$this->output->enable_profiler(TRUE);
+
+		$this->acl_manager->has_access_or_die('configurations', 'edit');
 	}
 	
 	private function _skip_field($field) {

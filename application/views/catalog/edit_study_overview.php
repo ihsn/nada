@@ -40,11 +40,11 @@ $selected_page=$this->uri->segment(5);
             <td><div class="survey-countries">
 				<?php foreach($countries as $country):?>
                 	<?php if((int)$country['cid']<1):?>
-                        <span class="country error" id="country-<?php echo $country['id'];?>" title="<?php echo t('Fix country code');?>">
+                        <span class="country label-tag label-tag-error" id="country-<?php echo $country['id'];?>" title="<?php echo t('Fix country code');?>">
                             <a href="<?php echo site_url('admin/countries/mappings');?>"><?php echo $country['country_name'];?></a>
                         </span>
                     <?php else:?>
-                    	<span class="country" id="country-<?php echo $country['id'];?>">
+                    	<span class="label label-tag country" id="country-<?php echo $country['id'];?>">
                             <?php echo $country['country_name'];?>
                         </span>
                     <?php endif;?>
@@ -52,12 +52,6 @@ $selected_page=$this->uri->segment(5);
                 </div>
             </td>
         </tr>
- <?php /* ?>
-       <tr>
-            <td><?php echo t('producer');?></td>
-            <td><?php echo $authoring_entity; ?></td>
-		</tr>
-<?php */ ?>		
         <tr>
             <td><?php echo t('folder');?></td>
             <td><?php echo $dirpath;?></td>
@@ -76,20 +70,6 @@ $selected_page=$this->uri->segment(5);
             </td>
         </tr>
 			
-			<!--
-        <tr>
-            <td><?php echo t('Status');?></td>
-            <td>
-                <div class="status" title="<?php echo t('click_to_publish_unpublish');?>">
-                <?php if (!$published):?>
-                    <span class="btn btn-warning publish" data-value="0" data-sid="<?php echo $sid;?>"><?php echo t('draft');?></span>
-                <?php else:?>
-                    <span class="btn btn-success publish" data-value="1"  data-sid="<?php echo $sid;?>"><?php echo t('published');?></span>
-                <?php endif;?>
-                </div>
-            </td>
-        </tr>
-			-->
         <tr>
             <td><?php echo t('metadata_in_pdf');?></td>
             <td>
@@ -104,7 +84,7 @@ $selected_page=$this->uri->segment(5);
                     <?php endif;?>
                 </span>
 
-								<?php if ($pdf_documentation['status']=='na'):?>
+				<?php if ($pdf_documentation['status']=='na'):?>
 	            		<span class="label label-warning"  title="<?php echo t('pdf_not_generated');?>"><i class="glyphicon glyphicon-exclamation-sign"></i> <?php echo t('pdf_not_generated');?></span>
 	                <?php else:?>
 	                	<?php if ($pdf_documentation['status']=='uptodate'):?>
@@ -112,61 +92,30 @@ $selected_page=$this->uri->segment(5);
 	                    <?php else:?>
 	                    	<span class="label label-warning" title="<?php echo t('pdf_outdated');?>"><i class="glyphicon glyphicon-exclamation-sign"></i> <?php echo t('pdf_outdated');?></span>
 	                    <?php endif;?>
-	                <?php endif;?>
+	            <?php endif;?>
             </td>
 		</tr>
+		
+		<!-- data classification -->
 		<tr>
-				<td><?php echo t('data_access');?></td>
-				<td>
-		<div class="collapsible">
-				<div class="box-caption">
-						<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-					<?php error_reporting(0); ?>
-					<?php echo $this->forms_list[$formid];?>
+			<td><?php echo t('data_access');?></td>
+			<td>
+				<div class="collapsiblex">
+					<div class="box-caption">
+					</div>
+
+					<div class="box-body collapsex">
+						<?php $this->load->view('catalog/data_access',null);?>
+					</div>
 				</div>
-
-				<div class="box-body collapse">
-							<form method="post" id="da-form" action="<?php echo site_url();?>/admin/catalog/update">
-									<input type="hidden" name="sid" value="<?php echo $id;?>"/>
-
-							<div class="field">
-								<label><?php echo t('msg_select_data_access_type');?></label>
-								<?php echo form_dropdown('formid', $this->forms_list, get_form_value("formid",isset($formid) ? $formid : ''),'id="formid"'); ?>
-							</div>
-
-							<div class="field link-da">
-									<label for="link_da"><?php echo t('remote_data_access_url');?></label>
-									<input name="link_da" type="text" id="link_da" class="input-flex" value="<?php echo get_form_value('link_da',isset($link_da) ? $link_da : ''); ?>"/>
-							</div>
-
-							<div class="study-microdata model-<?php echo $model;?>">
-							<?php if (count($microdata_files)>0):?>
-									<div class="microdata-applies-to"><?php echo t('data_selection_apply_to_files');?></div>
-											<ul>
-											<?php foreach($microdata_files as $mf):?>
-											<li><?php echo basename($mf['filename']);?></li>
-											<?php endforeach;?>
-											</ul>
-							<?php else:?>
-									<div class="no-microdata-assigned"><?php echo sprintf(t('study_no_data_files_assigned'),'');?></div>
-							<?php endif;?>
-							</div>
-
-							<div class="field">
-							<input type="submit" value="<?php echo t('update');?>" name="submit" class="btn btn-default"/>
-							<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle btn btn-link"/>
-							</div>
-							</form>
-				</div>
-		</div>
-
-				</td>
+			</td>
 		</tr>
+
         <tr>
             <td><?php echo t('indicator_database');?></td>
             <td>
 
-							<div class="collapsible">
+				<div class="collapsible">
                   <div class="box-caption">
 										<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                       <?php if ($link_indicator):?>
@@ -272,12 +221,38 @@ $selected_page=$this->uri->segment(5);
 			 </td>
 		 </tr>
 
+		 <tr>
+            <td><?php echo t('DOI');?></td>
+            <td>
+				<div class="doi-container">
+					<form method="post" action="<?php echo site_url();?>/admin/catalog/update_doi">
+						<input type="hidden" name="sid" value="<?php echo $id;?>"/>
+
+
+						<div class="input-group">
+							<input
+								class="form-control"
+								placeholder="DOI Handle"
+								name="doi"
+								type="text"
+								id="doi"
+								value="<?php echo get_form_value('doi',isset($doi) ? $doi : '') ; ?>"
+							/>
+							<span class="input-group-btn">
+								<input type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>"  class="btn btn-primary"/>
+							</span>
+						</div>
+
+						<p class="small">Click here to <a href="<?php echo site_url('admin/catalog/doi/'.$id);?>">generate a new DOI</a></p>
+
+												
+					</form>
+				</div>
+            </td>
+        </tr>
 
         </table>
-	<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
-		<!-- survey tabs -->
-    <!--<div style="margin-top:50px;margin-bottom:100px;">
-		<?php //$this->load->view("catalog/study_tabs"); ?>
-	</div>-->
+		<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
+		
 	</div>
 	<!--end survey info block-->

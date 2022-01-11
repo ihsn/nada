@@ -4,12 +4,11 @@ require_once 'application/libraries/Auth/AuthInterface.php';
 class DefaultAuth implements AuthInterface
 {
 
-	private $ci;
+	protected $ci;
 
     function __construct()
     {
 		//parent::__construct($skip_auth=TRUE);
-		
 		$this->ci =& get_instance();
 		
 		$this->ci->load->library('Nada_csrf');
@@ -162,6 +161,7 @@ class DefaultAuth implements AuthInterface
         //validate form input
     	$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]');
 	    $this->ci->form_validation->set_rules('password', t('password'), 'required|max_length[100]');
+		$this->ci->form_validation->set_rules($this->ci->captcha_lib->get_question_field(), t('captcha'), 'trim|required|callback_validate_captcha');
 
         if ($this->ci->form_validation->run() == true) { //check to see if the user is logging in
         	//check for "remember me"
@@ -229,7 +229,8 @@ class DefaultAuth implements AuthInterface
                                               'id'      => 'password',
                                               'type'    => 'password',
                                              );
-
+			$this->data['captcha_question']=$this->ci->captcha_lib->get_html();
+			
 			$content=$this->ci->load->view('auth/login', $this->data,TRUE);
 
 			$this->ci->template->write('content', $content,true);

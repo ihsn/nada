@@ -14,3 +14,7 @@ CREATE TABLE `ci_sessions` (
   PRIMARY KEY (`id`),
   KEY `ci_sessions_timestamp` (`timestamp`)
 );
+
+ALTER TABLE `surveys` ADD `doi` varchar(200) DEFAULT NULL;
+
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(9,'video','Video',40);

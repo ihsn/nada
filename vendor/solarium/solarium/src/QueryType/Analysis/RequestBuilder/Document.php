@@ -1,8 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Analysis\RequestBuilder;
 
 use Solarium\Core\Client\Request;
+use Solarium\Core\Query\AbstractQuery;
 use Solarium\Core\Query\AbstractRequestBuilder as BaseRequestBuilder;
 use Solarium\Core\Query\QueryInterface;
 use Solarium\QueryType\Analysis\Query\Document as QueryDocument;
@@ -15,11 +23,11 @@ class Document extends BaseRequestBuilder
     /**
      * Build request for an analysis document query.
      *
-     * @param QueryInterface|QueryDocument $query
+     * @param AbstractQuery|QueryInterface|QueryDocument $query
      *
      * @return Request
      */
-    public function build(QueryInterface $query)
+    public function build(AbstractQuery $query): Request
     {
         $request = parent::build($query);
         $request->setRawData($this->getRawData($query));
@@ -35,7 +43,7 @@ class Document extends BaseRequestBuilder
      *
      * @return string
      */
-    public function getRawData($query)
+    public function getRawData(QueryDocument $query): string
     {
         $xml = '<docs>';
 
@@ -43,7 +51,7 @@ class Document extends BaseRequestBuilder
             $xml .= '<doc>';
 
             foreach ($doc->getFields() as $name => $value) {
-                if (is_array($value)) {
+                if (\is_array($value)) {
                     foreach ($value as $multival) {
                         $xml .= $this->buildFieldXml($name, $multival);
                     }
@@ -64,12 +72,12 @@ class Document extends BaseRequestBuilder
      * Build XML for a field.
      *
      * @param string $name
-     * @param mixed  $value
+     * @param string $value
      *
      * @return string
      */
-    protected function buildFieldXml($name, $value)
+    protected function buildFieldXml(string $name, string $value): string
     {
-        return '<field name="'.$name.'">'.htmlspecialchars($value, ENT_NOQUOTES, 'UTF-8').'</field>';
+        return '<field name="'.$name.'">'.$this->getHelper()->escapeXMLCharacterData($value).'</field>';
     }
 }

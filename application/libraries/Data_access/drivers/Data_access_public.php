@@ -26,22 +26,16 @@ class Data_access_public extends CI_Driver {
 		$this->CI->load->model('Form_model');
 		$this->CI->lang->load('public_access_terms');
 		$this->CI->lang->load('public_request');
+		$this->CI->lang->load('data_access');
 
 		//check if user is logged in
-		if (!$user)
-		{
-			$this->CI->session->set_flashdata('reason', t('reason_login_public_access'));
-			$destination=$this->CI->uri->uri_string();
-			$this->CI->session->set_userdata("destination",$destination);
-
-			//redirect to the login page
-			redirect("auth/login/?destination=$destination", 'refresh');
+		if (!$user){
+			return $this->CI->load->view("access_public/login_message",array('sid'=>$sid),true);
 		}
 
 		$survey=$this->CI->Catalog_model->select_single($sid);
 
-		if(!$survey)
-		{
+		if(!$survey){
 			show_ERROR("INVALID_STUDY_ID");
 		}
 
@@ -58,6 +52,7 @@ class Data_access_public extends CI_Driver {
 		$data->survey_uid=$survey["id"];
 		$data->proddate=$survey["year_start"];
 		$data->abstract=$this->CI->input->post("abstract");
+		$data->form_obj=$this->CI->Form_model->get_form_by_survey($sid);
 
 		//check if the user has requested this survey in the past, if yes, don't show the request form
 		$request_exists=$this->CI->Form_model->check_user_public_request($user->id,$sid);
@@ -123,8 +118,8 @@ class Data_access_public extends CI_Driver {
 	//get study microdata files
 	function get_data_files($sid)
 	{
-		$this->CI->load->model('Resource_model');
-		$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);
+		$this->CI->load->model('Survey_resource_model');
+		$result['resources_microdata']=$this->CI->Survey_resource_model->get_microdata_resources($sid);
 		$result['sid']=$sid;
 		$result['storage_path']=$this->CI->Dataset_model->get_storage_fullpath($sid);
 		return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);

@@ -22,37 +22,60 @@ class Dataset_microdata_model extends Dataset_model {
         $this->load->model('Form_model');
     }
 
-    function create_dataset($type,$options)
+
+    /**
+     * 
+     * 
+     * @type - survey | table | document etc
+     * @options - metadata
+     * @sid - study ID for updating an existing study
+     * @is_update - for partially updating a study
+     * 
+     */
+    function create_dataset($type,$options, $sid=null,$is_update=false)
 	{
 		//validate schema
         $this->validate_schema($type,$options);
 
+        if (!isset($options['overwrite'])){
+            $options['overwrite']='no';
+        }
+
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($type,$options);
         $options=array_merge($options,$core_fields);
-        
-		if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
-			throw new exception("IDNO-NOT-SET");
-		}
 
-		//validate IDNO field
-        $id=$this->find_by_idno($core_fields['idno']); 
-
-		//overwrite?
-		if($id>0 && isset($options['overwrite']) && $options['overwrite']=='yes'){
-			return $this->update_dataset($id,$type,$options);
-		}
-
-		if(is_numeric($id) ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$id);
+        if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
+            throw new exception("IDNO-NOT-SET");
         }
+
+        //validate IDNO field
+        $dataset_id=$this->find_by_idno($core_fields['idno']); 
         
+		if(!empty($sid)){//for updating a study
+            //if IDNO is changed, it should not be an existing IDNO
+            if(is_numeric($dataset_id) && $sid!=$dataset_id ){
+                throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$dataset_id.':'.$core_fields['idno']);
+            }
+
+            $dataset_id=$sid;
+        }
+        else {//create new
+        
+            //overwrite?
+		    if(is_numeric($dataset_id) && isset($options['overwrite']) && $options['overwrite']!=='yes'){
+			    throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
+            }
+        }
+
+        $options['changed']=date("U");
+		
         //split parts of the metadata
         $data_files=null;
 		$variables=null;
         $variable_groups=null;
 
-        $study_metadata_sections=array('doc_desc','study_desc','additional');
+        $study_metadata_sections=array('doc_desc','study_desc','additional','tags');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -60,7 +83,7 @@ class Dataset_microdata_model extends Dataset_model {
                 unset($options[$section]);
             }
         }
-        
+
         if(isset($options['data_files'])){
             $data_files=$options['data_files'];
             unset($options['data_files']);
@@ -74,14 +97,20 @@ class Dataset_microdata_model extends Dataset_model {
         if(isset($options['variable_groups'])){
             $variable_groups=$options['variable_groups'];
             unset($options['variable_groups']);
-        }		
-                
+        }
+
 
 		//start transaction
 		$this->db->trans_start();
-				
-		//insert record
-        $dataset_id=$this->insert($type,$options);
+
+        if (!empty($dataset_id)){
+            //update/replace existing study
+            $this->update($dataset_id,$type,$options);
+        }
+        else{
+		    //insert record
+            $dataset_id=$this->insert($type,$options);
+        }
         
         //set owner repo
         $this->Dataset_model->set_dataset_owner_repo($dataset_id,$options['repositoryid']); 
@@ -90,36 +119,47 @@ class Dataset_microdata_model extends Dataset_model {
 		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
 
         //set topics
-        $this->delete_topics($dataset_id);
-        $this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
-
-        //get list of countries
-        //$countries=$this->get_country_names($this->get_array_nested_value($options,'study_desc/study_info/nation'));
+        //$this->delete_topics($dataset_id);
+        //$this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
 
 		//update countries
 		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
+        
+        //tags
+        $this->add_tags($dataset_id,$this->get_array_nested_value($options,'metadata/tags'));
 
 		//set geographic locations (bounding box)
 
+        //for creating new studies, always remove the existing data
+        $remove_existing=true;
+
+        //for partial updates
+        if ($is_update==true){
+            $remove_existing=false;
+        }
 
         //data files
-        $this->create_update_data_files($dataset_id,$data_files);
+        $this->create_update_data_files($dataset_id,$data_files, $remove_existing);
         
         //variables
-        $this->create_update_variables($dataset_id,$variables);
+        $this->create_update_variables($dataset_id,$variables, $remove_existing);
 
 		//variable groups?
-		$this->create_update_variable_groups($dataset_id,$variable_groups);
+		$this->create_update_variable_groups($dataset_id,$variable_groups, $remove_existing);
 
 		//complete transaction
-		$this->db->trans_complete();
+        $this->db->trans_complete();
+        
+        $this->index_variable_data($dataset_id);
 
 		return $dataset_id;
     }
 
 
+
+    
 
     /**
      * 
@@ -133,129 +173,175 @@ class Dataset_microdata_model extends Dataset_model {
     function update_dataset($sid,$type,$options, $merge_metadata=false)
 	{
 		//need this to validate IDNO for uniqueness
-		$options['sid']=$sid;
-
-		//validate schema
-		$this->validate_schema($type,$options);
-
-		//get core fields for listing datasets in the catalog
-        //$data=$this->get_core_fields($type,$options);
-        
-        //get core fields for listing datasets in the catalog
-        $core_fields=$this->get_core_fields($type,$options);
-        $options=array_merge($options,$core_fields);
-		
-		//validate IDNO field
-		$new_id=$this->find_by_idno($core_fields['idno']);
-
-		//if IDNO is changed, it should not be an existing IDNO
-		if(is_numeric($new_id) && $sid!=$new_id ){
-			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
-        }
+        $options['sid']=$sid;
         
         //merge/replace metadata
         if ($merge_metadata==true){
-            $dataset=$this->get_row_detailed($sid);
-            $metadata=$dataset['metadata'];
-
+            $metadata=$this->get_metadata($sid);
             if(is_array($metadata)){
-                unset($metadata['idno']);
-                
-                //replace metadata with new options
-                $options=array_replace_recursive($metadata,$options);
+                unset($metadata['idno']);                
+                $options=$this->array_merge_replace_metadata($metadata,$options);
+                $options=array_remove_nulls($options);
+            }
+
+            //merge variables
+            if(isset($options['variables'])){
+                foreach($options['variables'] as $idx=>$variable){ 
+                    //validate file_id exists
+                    $fid=$this->Data_file_model->get_fid_by_fileid($sid,$variable['file_id']);
+            
+                    if(!$fid){
+                        throw new exception("variable update failed. Variable 'file_id' not found: ".$variable['file_id']);
+                    }
+        
+                    //partial update variables
+                    $variable_db_value=$this->Variable_model->get_by_var_id($sid, $variable['file_id'], $variable['vid']);
+
+                    if ($variable_db_value){
+                        //merge/replace variable metadata
+                        $variable=array_replace_recursive($variable_db_value['metadata'],$variable);
+                    }
+
+                    $variable['fid']=$variable['file_id'];
+                    $this->Variable_model->validate_variable($variable);
+                    $options['variables'][$idx]=$variable;
+                }
+                $options=array_remove_nulls($options);
             }
         }
+
+        return $this->create_dataset($type,$options,$sid,$is_update=true);        
+    }
+    
+
+    /**
+     * 
+     * 
+     * Store all variables text into a single field
+     * 
+     */
+    function index_variable_data($sid)
+    {
+        $total_vars=$this->Variable_model->get_variables_count($sid);
+        $include_categories=true;
+
+        if($total_vars>8000){
+            $include_categories=false;
+        }
+
+        $limit=1000;
+        $max_loop=ceil($total_vars/$limit);
+
+        $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit','var_sumstat','var_format','var_val_range');
+
+        if($include_categories==false){
+            $exclude_columns[]="catgry";
+        }
+
+        $counter=0;
+        $output=[];
+        $m=0;
+        $start_uid=0;
+
+        for($vars_processed=0;$vars_processed<$total_vars;){
+            $counter++;
+            if ($counter>$max_loop){break;}
+
+            $variables=$this->variable_chunk_reader($sid, $start_uid, $limit,$include_categories);
+            foreach($variables as $variable){
+                $m++;
+                $start_uid=$variable['uid'];
+
+                $tmp=array();
+                foreach($variable['metadata'] as $key=>$value){
+                    if(!in_array($key,$exclude_columns)){
+                        $tmp[]=$value;
+                    }
+                }
+                $output[]=$this->extract_var_keywords($tmp);
+            }
+            $vars_processed=$vars_processed+$limit;
+        }
+
+        $output=implode(" ",$output);
+        $output=array_unique(array_filter(explode(" ",$output)));
+        $output=implode(" ",($output));
+
+        $options=array(
+            'var_keywords'=>$output 
+        );
+
+        $this->db->where('id',$sid);
+        $this->db->update("surveys",$options);
+    }
+
+
+    /**
+     * 
+     * Read variables in chunks
+     * 
+     */
+    private function variable_chunk_reader($sid, $start_id=0, $limit=0,$include_categories=true)
+    {
+        //$this->db->select("uid,name,labl,qstn");
+        $this->db->select("uid,metadata");
         
-        $options['changed']=date("U");
-				
-		//split parts of the metadata
-        $data_files=null;
-		$variables=null;
-        $variable_groups=null;
+        /*if($include_categories){
+            //$this->db->select("catgry");
+        }*/
 
-        if(isset($options['doc_desc'])){
-            $options['metadata']['doc_desc']=$options['doc_desc'];
-            unset($options['doc_desc']);
+        if($limit>0){
+            $this->db->limit($limit);
         }
 
-        if(isset($options['study_desc'])){
-            $options['metadata']['study_desc']=$options['study_desc'];
-            unset($options['study_desc']);
+        $this->db->where('sid',$sid);
+        $this->db->order_by('uid');
+        $this->db->where('uid>=',$start_id);
+        $result=$this->db->get('variables')->result_array();
+
+        foreach($result as $index=>$row)
+        {
+            $metadata=$this->decode_metadata($row['metadata']);
+
+            if(!$include_categories){
+                unset($metadata['catgry']);
+            }
+
+            $row['metadata']=$metadata;
+            yield $row;
         }
-        
-        if(isset($options['data_files'])){
-            $data_files=$options['data_files'];
-            unset($options['data_files']);
-        }
+    }
 
-        if(isset($options['variables'])){
-            $variables=$options['variables'];
-            unset($options['variables']);
-        }
-
-        if(isset($options['variable_groups'])){
-            $variable_groups=$options['variable_groups'];
-            unset($options['variable_groups']);
-        }
-
-		//start transaction
-		$this->db->trans_start(); 
-
-		//update
-        $this->update($sid,$type,$options);
-        
-        //set owner repo
-        $this->Dataset_model->set_dataset_owner_repo($sid,$options['repositoryid']); 
-
-		//update years
-		$this->update_years($sid,$options['year_start'],$options['year_end']);
-
-        //set topics
-        $this->delete_topics($sid);
-        $this->update_topics($sid,$this->get_array_nested_value($options,'metadata/study_desc/study_info/topics'));
-
-		//set countries
-		$this->Survey_country_model->update_countries($sid,$core_fields['nations']);
-
-		//set aliases
-
-        //set geographic locations (bounding box)
-        //todo
-
-		 //data files
-         $this->create_update_data_files($sid,$data_files);
-        
-         //variables
-         $this->create_update_variables($sid,$variables);
-
-         //variable groups
-         $this->create_update_variable_groups($sid,$variable_groups);
-		
-		//complete transaction
-		$this->db->trans_complete();
-
-		return $sid;
-	}
 
     
-    private function create_update_variables($dataset_id,$variables)
-    {        
+    private function create_update_variables($dataset_id,$variables, $remove_existing=false)
+    {
+        if ($remove_existing==true){
+            $this->Variable_model->remove_all_variables($dataset_id);
+        }
+        
         if(is_array($variables)){
-			foreach($variables as $variable){
+			foreach($variables as $idx=>$variable){ 
 				//validate file_id exists
 				$fid=$this->Data_file_model->get_fid_by_fileid($dataset_id,$variable['file_id']);
 		
 				if(!$fid){
 					throw new exception("variable creation failed. Variable 'file_id' not found: ".$variable['file_id']);
 				}
-							
-				$variable['fid']=$variable['file_id'];
+
+                $variable['fid']=$variable['file_id'];
 				$this->Variable_model->validate_variable($variable);
 			}
 
 			$result=array();
 			foreach($variables as $variable){
-				$variable['fid']=$variable['file_id'];
+                $variable['fid']=$variable['file_id'];
+                $variable['qstn']=$this->variable_question_to_str($variable);
+
+                $variable_categories=isset($variable['var_catgry']) ? $variable['var_catgry'] : null;
+                $variable['catgry']=$this->variable_categories_to_str($variable_categories);
+                //$variable['keywords']=$this->variable_keywords_to_str($variable);
+
 				//all fields are stored as metadata
 				$variable['metadata']=$variable;
 				$variable_id=$this->Variable_model->insert($dataset_id,$variable);
@@ -266,11 +352,72 @@ class Dataset_microdata_model extends Dataset_model {
 		}
     }
 
-
-    private function create_update_variable_groups($dataset_id,$variable_groups)
+    /*private function variable_keywords_to_str($variable)
     {
-        //delete existing variable groups
-        $this->Variable_group_model->delete($dataset_id);
+        $fields=array(
+            'var_notes',
+            'var_txt'
+        );
+
+        $output=[];
+        foreach($fields as $field){
+            if(isset($variable[$field])){
+                $output[]=$variable[$field];
+            }            
+        }
+        
+        return implode("\r\n",$output);
+    }*/
+
+
+    /**
+     * 
+     * Get variable literal + pre/post + interviewer instructions as text
+     * 
+     */
+    private function variable_question_to_str($variable)
+    {
+        $qstn_fields=array(
+            'var_qstn_preqtxt',
+            'var_qstn_qstnlit',
+            'var_qstn_postqtxt',
+            'var_qstn_ivulnstr'
+        );
+
+        $output=[];
+        foreach($qstn_fields as $field){
+            if(isset($variable[$field])){
+                $output[]=$variable[$field];
+            }            
+        }
+        
+        return implode("\r\n",$output);
+    }
+
+    /**
+     * 
+     *  Get variable categories as string 
+     * 
+     * 
+     */
+    private function variable_categories_to_str($categories)
+    {
+        if(!is_array($categories) || empty($categories)){
+            return null;
+        }
+
+        $categories_labl=array_column($categories,"labl");
+        $categories=array_merge($categories_labl,array_column($categories,"label"));
+        $categories=array_unique(explode(" ",implode(" ",$categories)));
+        return implode(" ",$categories);
+    }
+
+
+    private function create_update_variable_groups($dataset_id,$variable_groups, $remove_existing=false)
+    {
+        if($remove_existing){
+            $this->Variable_group_model->delete($dataset_id);
+        }
         
         if(is_array($variable_groups)){
 			foreach($variable_groups as $vgroup){
@@ -280,8 +427,17 @@ class Dataset_microdata_model extends Dataset_model {
     }
 
 
-    private function create_update_data_files($dataset_id,$data_files)
-    {        
+    /**
+     * 
+     * Create data files for Surveys
+     * 
+     */
+    private function create_update_data_files($dataset_id,$data_files, $remove_existing=false)
+    {
+        if ($remove_existing==true){
+            $this->Data_file_model->remove_all_files($dataset_id);
+        }
+
 		if(is_array($data_files)){
 			//create each data file
 			foreach($data_files as $data_file){					
@@ -395,25 +551,14 @@ class Dataset_microdata_model extends Dataset_model {
             return false;
         }
 
+        $nation_names=array();
+
         foreach($nations as $nation){
             $nation_names[]=$nation['name'];
         }	
         return $nation_names;	
     }
     
-    /**
-     * 
-     * Return a comma separated list of country names
-     */
-    function get_country_names_string($nations)
-    {
-        $nation_str=implode(", ",$nations);
-        if(strlen($nation_str)>150){
-            $nation_str=substr($nation_str,0,145).'...';
-        }
-        return $nation_str;
-    }
-
 
     /**
      * 
@@ -462,4 +607,42 @@ class Dataset_microdata_model extends Dataset_model {
 		);
 	}
 
+
+    /**
+     * 
+     * Update all related tables used for facets/filters
+     * 
+     * 
+     */
+    function update_filters($sid, $metadata)
+    {        
+        if (!is_array($metadata)){            
+            return false;
+        }
+
+        $core_fields=$this->get_core_fields($type='survey',$metadata);
+
+        //update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//tags
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
+
+        //update related countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+
+        return true;
+    }
+
+
+
+    function add_tags($sid, $tags)
+    {
+        if(empty($tags)){
+            return false;
+        }
+        
+        $tags=array_column($tags,'tag');
+        return parent::add_survey_tags($sid,$tags);        
+    }
 }

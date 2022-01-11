@@ -1,8 +1,8 @@
 <style>.form{ max-width:800px;}</style>
 <?php
 $select_[0]=t('__select__');
-$option_types = array_merge($select_,$this->resource_model->get_dc_types());
-$option_formats=array_merge($select_,$this->resource_model->get_dc_formats());
+$option_types = array_merge($select_,$this->Survey_resource_model->get_dc_types());
+$option_formats=array_merge($select_,$this->Survey_resource_model->get_dc_formats());
 
 //translate types
 foreach($option_types as $key=>$value)

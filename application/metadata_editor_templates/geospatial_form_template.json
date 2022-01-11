@@ -1,0 +1,128 @@
+{
+    "type": "template",
+    "title": "Geospecial project",
+    "items": [
+        {
+            "type": "section",
+            "id": "metadata_information",
+            "title": "Metadata information",
+            "class": "recommended",
+            "items": [
+                {
+                    "key": "metadata_information.title",
+                    "type": "text",
+                    "title": "Document title"
+                },
+                {
+                    "key": "metadata_information.idno",
+                    "type": "text",
+                    "title": "Document IDNO"
+                },
+                {
+                    "key": "metadata_information.producers",
+                    "title": "Producers",
+                    "type": "array",
+                    "props": {
+                        "name": {
+                            "key": "name",
+                            "type": "text",
+                            "title": "Name",
+                            "description": "Name (required)"
+                        },
+                        "abbr": {
+                            "key": "abbr",
+                            "type": "text",
+                            "title": "Abbreviation"
+                        },
+                        "affiliation": {
+                            "key": "affiliation",
+                            "type": "text",
+                            "title": "Affiliation"
+                        },
+                        "role": {
+                            "key": "role",
+                            "type": "text",
+                            "title": "Role"
+                        }
+                    }
+                },
+                {
+                    "key": "metadata_information.production_date",
+                    "type": "text",
+                    "title": "Date of production",
+                    "help_text": "Document production date using format(YYYY-MM-DD)"
+                },
+                {
+                    "key": "metadata_information.version",
+                    "type": "text",
+                    "title": "Document version",
+                    "help_text": "Identify and describe the current version of the document"
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "id": "metadata_information",
+            "title": "Description",
+            "class": "recommended",
+            "items": [
+                {
+                    "key": "description.idno",
+                    "type": "text",
+                    "class": "required",
+                    "title": "Unique identifier",
+                    "rules": "required|idno|alpha_dash|min:5|max:80"
+                },
+                {
+                    "key": "description.language",
+                    "type": "text",
+                    "title": "Language"
+                },
+                {
+                    "key": "description.characterSet",
+                    "title": "Character encoding",
+                    "type": "array",
+                    "props": {
+                        "codeListValue": {
+                            "key": "codeListValue",
+                            "type": "text",
+                            "title": "Characterset code"
+                        },
+                        "codeList": {
+                            "key": "codeList",
+                            "type": "text",
+                            "title": "Codelist used"
+                        }
+                    }
+                },
+                {
+                    "key": "description.dataSetURI",
+                    "type": "text",
+                    "title": "Dataset URI that uniquely identify the dataset"
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "id": "description.identificationInfo",
+            "title": "Identification information",
+            "class": "recommended",
+            "items": [
+                {
+                    "key": "description.identificationInfo",
+                    "title": "Identification info",
+                    "type": "nested_array",
+                    "props": {
+                        "abstract": {
+                            "key": "abstract",
+                            "title": "Abstract",
+                            "type": "string"
+                        }
+                        
+                    }
+
+                }
+            ]
+        }
+    ]
+}

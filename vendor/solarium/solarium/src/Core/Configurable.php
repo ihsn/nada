@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core;
 
 use Solarium\Exception\InvalidArgumentException;
@@ -28,7 +35,6 @@ class Configurable implements ConfigurableInterface
      *
      * After handling the options the {@link _init()} method is called.
      *
-     *
      * @param array|\Zend_Config $options
      *
      * @throws InvalidArgumentException
@@ -51,24 +57,23 @@ class Configurable implements ConfigurableInterface
      * If $options does not have the toArray method, the internal method will
      * be used instead.
      *
-     *
      * @param array|\Zend_Config $options
      * @param bool               $overwrite True for overwriting existing options, false
      *                                      for merging (new values overwrite old ones if needed)
      *
      * @throws InvalidArgumentException
+     *
+     * @return self
      */
-    public function setOptions($options, $overwrite = false)
+    public function setOptions($options, bool $overwrite = false): ConfigurableInterface
     {
         if (null !== $options) {
             // first convert to array if needed
-            if (!is_array($options)) {
-                if (is_object($options)) {
+            if (!\is_array($options)) {
+                if (\is_object($options)) {
                     $options = (!method_exists($options, 'toArray') ? $this->toArray($options) : $options->toArray());
                 } else {
-                    throw new InvalidArgumentException(
-                        'Options value given to the setOptions() method must be an array or a Zend_Config object'
-                    );
+                    throw new InvalidArgumentException('Options value given to the setOptions() method must be an array or a Zend_Config object');
                 }
             }
 
@@ -78,9 +83,14 @@ class Configurable implements ConfigurableInterface
                 $this->options = array_merge($this->options, $options);
             }
 
+            if (true === \is_callable([$this, 'initLocalParameters'])) {
+                $this->initLocalParameters();
+            }
             // re-init for new options
             $this->init();
         }
+
+        return $this;
     }
 
     /**
@@ -90,13 +100,11 @@ class Configurable implements ConfigurableInterface
      *
      * @param string $name
      *
-     * @return mixed
+     * @return mixed|null
      */
-    public function getOption($name)
+    public function getOption(string $name)
     {
-        if (isset($this->options[$name])) {
-            return $this->options[$name];
-        }
+        return $this->options[$name] ?? null;
     }
 
     /**
@@ -104,7 +112,7 @@ class Configurable implements ConfigurableInterface
      *
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
@@ -135,7 +143,7 @@ class Configurable implements ConfigurableInterface
      *
      * @return self Provides fluent interface
      */
-    protected function setOption($name, $value)
+    protected function setOption(string $name, $value): self
     {
         $this->options[$name] = $value;
 
@@ -145,16 +153,14 @@ class Configurable implements ConfigurableInterface
     /**
      * Turns an object array into an associative multidimensional array.
      *
-     * @param $object
+     * @param $object object|object[]
      *
-     * @return array|object
+     * @return array
      */
-    protected function toArray($object)
+    protected function toArray($object): array
     {
-        if (is_object($object)) {
-            // get_object_vars() does not handle recursive objects well,
-            // so use set-type without scope operator instead
-            settype($object, 'array');
+        if (\is_object($object)) {
+            return (array) $object;
         }
 
         /*
@@ -162,10 +168,6 @@ class Configurable implements ConfigurableInterface
         * Using __METHOD__ (Magic constant)
         * for recursive call
         */
-        if (is_array($object)) {
-            return array_map(__METHOD__, $object);
-        }
-
-        return $object;
+        return array_map(__METHOD__, $object);
     }
 }

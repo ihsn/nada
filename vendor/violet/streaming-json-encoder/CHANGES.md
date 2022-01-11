@@ -1,5 +1,21 @@
 # Changelog #
 
+## v1.1.4 (2022-01-02) ##
+
+* Improve Github action workflow
+* Fix additional PHP 8.1 deprecations
+* Fix issue with `JsonStream::getContents()` no returning buffer contents
+
+## v1.1.3 (2021-12-27) ##
+
+* Add support for PHP 8.1
+
+## v1.1.2 (2020-11-29) ##
+
+ * HHVM support has been dropped due to HHVM's renewed focus on Hack
+ * CI build has been migrated to github actions
+ * The CI build now tests for PHP version from 5.6 to 8.0
+
 ## v1.1.1 (2017-07-09) ##
 
  * Return `UNKNOWN_ERROR` as error code if valid error constant is not found

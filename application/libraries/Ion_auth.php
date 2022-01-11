@@ -383,6 +383,16 @@ class Ion_auth
 		} 
 		return $this->ci->ion_auth_model->is_admin($this->ci->session->userdata("user_id"));
 	}
+
+
+	function can_access_site_admin($user_id=null)
+	{
+		if(!$user_id){
+			$user_id=$this->ci->session->userdata("user_id");
+		}
+
+		return $this->ci->acl_manager->has_site_admin_access();
+	}
 	
 	/**
 	 * is_group

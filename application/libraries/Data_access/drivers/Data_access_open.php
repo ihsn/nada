@@ -22,7 +22,7 @@ class Data_access_open extends CI_Driver {
 		
 		$this->CI->load->model('Catalog_model');
 		$this->CI->load->model('managefiles_model');
-		$this->CI->load->model('Resource_model');
+		$this->CI->load->model('Survey_resource_model');
 		$this->CI->lang->load('open_data');		
 	}
 	
@@ -31,7 +31,7 @@ class Data_access_open extends CI_Driver {
 		if ($this->CI->input->post("accept"))
 		{
 			//get study microdata files
-			$result['resources_microdata']=$this->CI->Resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
+			$result['resources_microdata']=$this->CI->Survey_resource_model->get_microdata_resources($sid);//$this->CI->managefiles_model->get_data_files($sid);
 			$result['sid']=$sid;
 			$result['storage_path']=$this->CI->Dataset_model->get_storage_fullpath($sid);
 			return $this->CI->load->view('catalog_search/survey_summary_microdata', $result,TRUE);		

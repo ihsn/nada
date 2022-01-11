@@ -90,23 +90,24 @@ class Filestore_model extends CI_Model {
             //create the folder
             $this->create_folder($upload_path);
         }
-
+        
 		$config['upload_path'] = $upload_path;
 		$config['overwrite'] = $overwrite;
-		$config['encrypt_name']=false;
-		$config['allowed_types'] = 'jpg|jpeg|bmp|gif|png|pdf|txt|csv|xls|xlsx';
+        $config['encrypt_name']=false;
+        //$config['remove_spaces']=false;
+		$config['allowed_types'] = 'jpg|jpeg|bmp|gif|png|pdf|txt|csv|xls|xlsx|ppt|pptx|doc|docx|zip';
         
         $this->upload->initialize($config);
 		
-		$upload_result=$this->upload->do_upload($file_field);
-
+        $upload_result=$this->upload->do_upload($file_field);
+        
 		if(!$upload_result){
             $error = $this->upload->display_errors();            
 			throw new Exception("UPLOAD_FAILED::".$upload_path. ' - error:: '.$error);
         }
 
         $upload_data = $this->upload->data();
-        
+
         if($file){
             return $upload_data;
         }
@@ -116,7 +117,7 @@ class Filestore_model extends CI_Model {
 
         //add to db
         $options=array(
-            'file_name'=>$file_name,
+            'file_name'=>$upload_data['file_name'],
             'file_path'=>$upload_path_rel,
             'is_image'=>$upload_data['is_image'],
             'file_ext'=>$file_info->getExtension()
@@ -152,9 +153,24 @@ class Filestore_model extends CI_Model {
     }
 
 
+    /**
+     * 
+     * Replace spaces in filename with underscores
+     * 
+     */
+    function file_remove_spaces($file_name)
+    {
+        $file_parts=explode(" ",$file_name);
+        $file_parts=array_filter($file_parts);
+        $file_name=implode("_",$file_parts);
+        return $file_name;
+    }
+
+
 
     function photo($filename)
-    {        
+    {   
+        $filename=$this->file_remove_spaces($filename);
         $file=$this->find($filename);
 
         if(!$file){
@@ -179,6 +195,7 @@ class Filestore_model extends CI_Model {
 
     function download($filename,$disposition='attachment')
     {
+        $filename=$this->file_remove_spaces($filename);
         $file=$this->find($filename);
 
         if(!$file){
@@ -239,6 +256,7 @@ class Filestore_model extends CI_Model {
      */
     function find($filename)
     {
+        $filename=$this->file_remove_spaces($filename);
         $this->db->select("*");
         $this->db->where('file_name',$filename);
         return $this->db->get("filestore")->row_array();
@@ -248,6 +266,7 @@ class Filestore_model extends CI_Model {
 
     function delete($filename)
     {
+        $filename=$this->file_remove_spaces($filename);
         $file=$this->find($filename);
 
         if(!$file){

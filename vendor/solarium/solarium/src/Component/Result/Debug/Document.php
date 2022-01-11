@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Debug;
 
 /**
@@ -17,7 +24,7 @@ class Document extends Detail implements \IteratorAggregate, \Countable
     /**
      * Details.
      *
-     * @var array
+     * @var \Solarium\Component\Result\Debug\Detail[]
      */
     protected $details;
 
@@ -30,7 +37,7 @@ class Document extends Detail implements \IteratorAggregate, \Countable
      * @param string $description
      * @param array  $details
      */
-    public function __construct($key, $match, $value, $description, $details)
+    public function __construct(string $key, bool $match, float $value, string $description, array $details)
     {
         parent::__construct($match, $value, $description);
         $this->key = $key;
@@ -42,7 +49,7 @@ class Document extends Detail implements \IteratorAggregate, \Countable
      *
      * @return string
      */
-    public function getKey()
+    public function getKey(): string
     {
         return $this->key;
     }
@@ -50,9 +57,9 @@ class Document extends Detail implements \IteratorAggregate, \Countable
     /**
      * Get details.
      *
-     * @return array
+     * @return \Solarium\Component\Result\Debug\Detail[]
      */
-    public function getDetails()
+    public function getDetails(): array
     {
         return $this->details;
     }
@@ -62,7 +69,7 @@ class Document extends Detail implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->details);
     }
@@ -72,8 +79,18 @@ class Document extends Detail implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->details);
+        return \count($this->details);
+    }
+
+    public function __toString()
+    {
+        $string = '';
+        foreach ($this->getDetails() as $detail) {
+            $string .= '  '.$detail.PHP_EOL;
+        }
+
+        return $string;
     }
 }

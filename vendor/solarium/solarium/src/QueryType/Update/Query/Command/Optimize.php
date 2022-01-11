@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Update\Query\Command;
 
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
@@ -7,7 +14,7 @@ use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 /**
  * Update query optimize command.
  *
- * @see http://wiki.apache.org/solr/UpdateXmlMessages#A.22commit.22_and_.22optimize.22
+ * @see https://solr.apache.org/guide/uploading-data-with-index-handlers.html#commit-and-optimize-during-updates
  */
 class Optimize extends AbstractCommand
 {
@@ -16,7 +23,7 @@ class Optimize extends AbstractCommand
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return UpdateQuery::COMMAND_OPTIMIZE;
     }
@@ -24,9 +31,9 @@ class Optimize extends AbstractCommand
     /**
      * Get softCommit option.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getSoftCommit()
+    public function getSoftCommit(): ?bool
     {
         return $this->getOption('softcommit');
     }
@@ -38,17 +45,19 @@ class Optimize extends AbstractCommand
      *
      * @return self Provides fluent interface
      */
-    public function setSoftCommit($softCommit)
+    public function setSoftCommit(bool $softCommit): self
     {
-        return $this->setOption('softcommit', $softCommit);
+        $this->setOption('softcommit', $softCommit);
+
+        return $this;
     }
 
     /**
      * Get waitSearcher option.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getWaitSearcher()
+    public function getWaitSearcher(): ?bool
     {
         return $this->getOption('waitsearcher');
     }
@@ -60,17 +69,19 @@ class Optimize extends AbstractCommand
      *
      * @return self Provides fluent interface
      */
-    public function setWaitSearcher($waitSearcher)
+    public function setWaitSearcher(bool $waitSearcher): self
     {
-        return $this->setOption('waitsearcher', $waitSearcher);
+        $this->setOption('waitsearcher', $waitSearcher);
+
+        return $this;
     }
 
     /**
      * Get maxSegments option.
      *
-     * @return bool
+     * @return int|null
      */
-    public function getMaxSegments()
+    public function getMaxSegments(): ?int
     {
         return $this->getOption('maxsegments');
     }
@@ -78,12 +89,14 @@ class Optimize extends AbstractCommand
     /**
      * Set maxSegments option.
      *
-     * @param bool $maxSegments
+     * @param int $maxSegments
      *
      * @return self Provides fluent interface
      */
-    public function setMaxSegments($maxSegments)
+    public function setMaxSegments(int $maxSegments): self
     {
-        return $this->setOption('maxsegments', $maxSegments);
+        $this->setOption('maxsegments', $maxSegments);
+
+        return $this;
     }
 }

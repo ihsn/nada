@@ -18,9 +18,7 @@ class Reports extends MY_REST_Controller
 	function _auth_override_check()
 	{
 		//session user id
-		if ($this->session->userdata('user_id'))
-		{
-			//var_dump($this->session->userdata('user_id'));
+		if ($this->session->userdata('user_id')){
 			return true;
 		}
 

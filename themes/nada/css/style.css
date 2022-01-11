@@ -184,10 +184,22 @@ li.nav-item.dropdown .fa {
 .togglable {
   cursor: pointer;
   transition: all .25s; }
-  .togglable:hover {
-    color: #0071bc; }
-  .togglable .fa-filter:hover {
-    color: #0071bc; }
+
+.togglable:hover {
+  color: #0071bc; }
+
+.togglable .fa-filter:hover {
+  color: #0071bc; }
+
+.sidebar-filter .icon-collapsed{
+    display:none;
+}
+.sidebar-filter .collapsed .icon-collapsed{
+    display:block;
+}
+.sidebar-filter .collapsed .icon-expanded{
+    display:none;
+}
 
 .wb-sidebar-filter-collapse {
   display: none; }
@@ -221,14 +233,7 @@ li.nav-item.dropdown .fa {
   .survey-row h2,
   .survey-row h3 {
     margin-top: 10px; }
-  .citation-row img,
-  .survey-row img {
-    margin-top: 1rem;
-    max-width: 100%;
-    height: auto;
-    margin-left: auto;
-    margin-right: auto;
-    display: block; }
+
   .citation-row .study-country,
   .citation-row .sub-title,
   .citation-row .owner-collection,
@@ -371,8 +376,6 @@ ul.share-bar {
   height: auto;
   margin-top: .8rem; }
 
-.wb-box-sidebar p {
-  font-size: .75rem; }
 
 .wb-table-sm {
   font-size: .75rem; }
@@ -784,6 +787,52 @@ footer {
   background-size: 12px;
 }
 
+
+.icon-da-research{
+  background: url('../images/public-use-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_public{
+  background: url('../images/research-public-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_license{
+  background: url('../images/licensed-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-research_public_lic{
+  background: url('../images/research-public-lic-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
+.icon-da-cc40{
+  background: url('../images/ccby40-round-32x32.svg') no-repeat 0 2px;
+  width: 12px;
+  height: 14px;
+  display: inline-block;
+  background-size: 12px;
+}
+
+
 .icon-da-data_na,
 .icon-da-{
   background: url('../images/not-available-round-32x32.svg') no-repeat 0 2px;
@@ -833,9 +882,12 @@ footer {
   border-bottom: 1px solid #ffffff;
 }
 #surveys .variables-found .vsearch .heading-text{
-  padding: 7px 15px;
+  padding: 8px 15px;
 }
 
+.toggle-arrow-bg{
+  background:#ccc;
+}
 #surveys .variables-found .vsearch .toggle-arrow {
       font-size: 17px;
       padding: 4px 15px;
@@ -1161,6 +1213,14 @@ a.active.page-link {
   color: #721c24;
 }
 
+
+.login-form .reason{ 
+  padding: 15px;
+  font-size: 16px;
+  background: #f1e5bc;
+  margin-bottom: 46px;
+  font-weight: bold;
+}
 .lang-container{
   font-size:smaller;
   padding-left:15px;

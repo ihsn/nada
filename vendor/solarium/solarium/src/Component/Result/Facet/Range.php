@@ -1,6 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Facet;
+
+use Solarium\Component\Result\Facet\Pivot\Pivot;
 
 /**
  * Select range facet result.
@@ -38,44 +47,52 @@ class Range extends Field
     /**
      * The lower bound of the ranges.
      *
-     * @var string
+     * @var string|int
      */
     protected $start;
 
     /**
      * The upper bound of all ranges.
      *
-     * @var string
+     * @var string|int
      */
     protected $end;
 
     /**
      * The gap between each range.
      *
-     * @var string
+     * @var string|int
      */
     protected $gap;
 
     /**
+     * @var \Solarium\Component\Result\Facet\Pivot\Pivot|null
+     */
+    protected $pivot;
+
+    /**
      * Constructor.
      *
-     * @param array $values
-     * @param int   $before
-     * @param int   $after
-     * @param int   $between
-     * @param int   $start
-     * @param int   $end
-     * @param int   $gap
+     * @param array           $values
+     * @param int|null        $before
+     * @param int|null        $after
+     * @param int|null        $between
+     * @param string|int|null $start
+     * @param string|int|null $end
+     * @param string|int|null $gap
+     * @param Pivot|null      $pivot
      */
-    public function __construct($values, $before, $after, $between, $start, $end, $gap)
+    public function __construct(array $values, ?int $before, ?int $after, ?int $between, $start, $end, $gap, ?Pivot $pivot = null)
     {
         parent::__construct($values);
+
         $this->before = $before;
         $this->after = $after;
         $this->between = $between;
         $this->start = $start;
         $this->end = $end;
         $this->gap = $gap;
+        $this->pivot = $pivot;
     }
 
     /**
@@ -84,9 +101,9 @@ class Range extends Field
      * Count of all records with field values lower then lower bound of the first range
      * Only available if the 'other' setting was used in the query facet.
      *
-     * @return int
+     * @return int|null
      */
-    public function getBefore()
+    public function getBefore(): ?int
     {
         return $this->before;
     }
@@ -97,9 +114,9 @@ class Range extends Field
      * Count of all records with field values greater then the upper bound of the last range
      * Only available if the 'other' setting was used in the query facet.
      *
-     * @return int
+     * @return int|null
      */
-    public function getAfter()
+    public function getAfter(): ?int
     {
         return $this->after;
     }
@@ -110,9 +127,9 @@ class Range extends Field
      * Count all records with field values between the start and end bounds of all ranges
      * Only available if the 'other' setting was used in the query facet.
      *
-     * @return int
+     * @return int|null
      */
-    public function getBetween()
+    public function getBetween(): ?int
     {
         return $this->between;
     }
@@ -124,9 +141,9 @@ class Range extends Field
      *
      * @return string
      */
-    public function getStart()
+    public function getStart(): string
     {
-        return $this->start;
+        return (string) $this->start;
     }
 
     /**
@@ -136,9 +153,9 @@ class Range extends Field
      *
      * @return string
      */
-    public function getEnd()
+    public function getEnd(): string
     {
-        return $this->end;
+        return (string) $this->end;
     }
 
     /**
@@ -148,8 +165,16 @@ class Range extends Field
      *
      * @return string
      */
-    public function getGap()
+    public function getGap(): string
     {
-        return $this->gap;
+        return (string) $this->gap;
+    }
+
+    /**
+     * @return \Solarium\Component\Result\Facet\Pivot\Pivot|null
+     */
+    public function getPivot(): ?Pivot
+    {
+        return $this->pivot;
     }
 }

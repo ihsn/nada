@@ -1,6 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
- * DDI to PDF documentation
+ * Generate PDF reports
  * 
  *
  *
@@ -15,12 +15,10 @@ class PDF_Report{
 	{
 		$this->ci =& get_instance();
 		
-		if (isset($params['codepage']) )
-		{
+		if (isset($params['codepage']) ){
 			$codepage=$params['codepage'];
 		}
-		else
-		{
+		else{
 			$codepage=$this->ci->config->item("pdf_codepage");		
 		}
 			
@@ -29,130 +27,128 @@ class PDF_Report{
 		//to use core fonts only - works only for latin languages
 		//$this->ci->load->library('my_mpdf',array('codepage'=>$codepage, 'mode'=>'c'));
 
-		$this->ci->load->helper('xslt_helper');
-		$this->ci->lang->load("ddibrowser");
+		//$this->ci->load->helper('xslt_helper');
+		//$this->ci->lang->load("ddibrowser");
+
+		$this->ci->load->model("Dataset_model");
+		$this->ci->load->model("Catalog_model");
+		$this->ci->load->model("Survey_type_model");
+        $this->ci->load->model("Survey_resource_model");
+        $this->ci->load->model("Citation_model");
+		$this->ci->load->model("Data_file_model");
+		$this->ci->load->model("Related_study_model");
+		$this->ci->load->model("Variable_model");
+		$this->ci->load->model("Timeseries_db_model");
+		$this->ci->load->model("Widget_model");
+		
+		$this->ci->load->library("Metadata_template");
+		$this->ci->load->library("Dataset_manager");
+
+		$this->ci->load->helper("resource_helper");
+		$this->ci->load->helper("metadata_view");
+		$this->ci->load->helper('array');
     }
 	
-	
+
+	function generate($sid, $output_filename, $options=array())
+	{		
+		$study=$this->ci->Dataset_model->get_row($sid);
+
+		if (!$study){
+			throw new exception("study_not_found: ".$sid);
+		}
+
+		if ($study['type']=='survey'){
+			return $this->generate_pdf_ddi($sid,$output_filename,$options);
+		}
+	}
+
 	/**
-	*
-	* Generate PDF report from DDI
-	*
-	* @survey_options 	array	{header_title, titl, nation,proddate, refno, producer, sponsor}
-	**/
-	function generate($output_filename, $ddi_file, $options=array())
-	{
-		$mpdf=$this->ci->my_mpdf;
-		//$mpdf=new mPDF('win-1251');
-		//$mpdf->useOnlyCoreFonts = false;
-	
-		//supress all errors
-		$error_level=error_reporting();
-		error_reporting(E_ERROR);		
-		
+	 * 
+	 * 
+	 * Generate report for Microdata
+	 * 
+	 */
+	function generate_pdf_ddi($sid=null,$output_filename,$options=array())
+    {        
+        $files=$this->ci->Data_file_model->get_all_by_survey($sid);
+
+        //$params['tempDir'] = FCPATH.'/datafiles/tmp';
+        
+        $mpdf=$this->ci->my_mpdf;
+
 		$stylesheet='body,html,*{font-size:12px;font-family:arial,verdana}'."\r\n";
-		$stylesheet.= @file_get_contents(APPPATH.'../themes/ddibrowser/ddi.css');
-		$mpdf->WriteHTML($stylesheet,1);
-		
-		// Set a simple Footer including the page number
-		$mpdf->defaultfooterfontsize = 8;	/* in pts */
-		$mpdf->defaultfooterfontstyle = '';	/* blank, B, I, or BI */
-		$mpdf->defaultfooterline = 0; 	/* 1 to include line below header/above footer */
+		$stylesheet.= @file_get_contents(APPPATH.'views/pdf_reports/ddi.css');
+        $mpdf->WriteHTML($stylesheet,1);
+
+        //footer
+		$mpdf->defaultfooterfontsize = 8;	// in pts
+		$mpdf->defaultfooterfontstyle = '';	// blank, B, I, or BI
+		$mpdf->defaultfooterline = 0; 	// 1 to include line below header/above footer
 		$mpdf->setFooter('{PAGENO}');
-		
-		//add cover page
-		$coverpage=$this->ci->load->view('ddibrowser/coverpage',$options,TRUE);		
+
+		//coverpage
+		$coverpage=$this->ci->load->view('pdf_reports/coverpage',$options,TRUE);	        
 		$mpdf->AddPage();
 		$mpdf->Bookmark(t("cover"),0);
 		$mpdf->WriteHTML( $coverpage );
-
-		$mpdf->defaultheaderfontsize = 8;	/* in pts */
-		$mpdf->defaultheaderfontstyle = '';	/* blank, B, I, or BI */
-		$mpdf->defaultheaderline = 0; 	/* 1 to include line below header/above footer */
+        
+        //header
+		$mpdf->defaultheaderfontsize = 8;	// in pts
+		$mpdf->defaultheaderfontstyle = '';	// blank, B, I, or BI
+		$mpdf->defaultheaderline = 0; 	// 1 to include line below header/above footer
 		$mpdf->SetHeader($options['study_title']);
-		
-		$mpdf->AddPage();
-		$mpdf->Bookmark(t("overview"),0);
-		$mpdf->WriteHTML( $this->get_section($ddi_file,"overview") );
 
-		$mpdf->AddPage();
-		$mpdf->Bookmark(t("sampling"),1);
-		$mpdf->WriteHTML( $this->get_section($ddi_file,"sampling") );
-		
-		$mpdf->AddPage();
-		$mpdf->Bookmark(t("questionnaires"),1);
-		$mpdf->WriteHTML( $this->get_section($ddi_file,"questionnaires") );
-		
-		$mpdf->AddPage();
-		$mpdf->Bookmark(t("data_collection"),1);
-		$mpdf->WriteHTML( $this->get_section($ddi_file,"datacollection") );
-		
-		$mpdf->AddPage();
-		$mpdf->Bookmark(t("data_processing"),1);
-		$mpdf->WriteHTML( $this->get_section($ddi_file,"dataprocessing") );
-		
-		$mpdf->AddPage();
-		$mpdf->Bookmark(t("data_appraisal"),1);
-		$mpdf->WriteHTML( $this->get_section($ddi_file,"dataappraisal") );
-		
-		//generate variable listing
-		if(isset($options['toc_variable']) && $options['toc_variable']===1)
-		{		
+        //study description
+        $mpdf->AddPage();
+		$mpdf->Bookmark(t("overview"),0);
+		$mpdf->WriteHTML($this->study_metadata_html($sid));
+        
+        //data files list
+		$data_files_html=$this->datafiles_html($sid);
+		if ($data_files_html){
 			$mpdf->AddPage();
 			$mpdf->Bookmark(t("file_description"),0);
-			$mpdf->WriteHTML( "<h1>".t("file_description")."</h1>");
-			
-			$datafiles_str=$this->get_section($ddi_file,"datafiles-list");
-			$start_pos=strpos($datafiles_str,'{START}');
-			$datafiles_str=substr($datafiles_str,$start_pos);
-			$datafiles_str=str_replace('{START}','',$datafiles_str);
-			$datafiles_arr=explode('{BR}',$datafiles_str);
-	
-			$mpdf->AddPage();
-			$mpdf->Bookmark(t("variable_list"),0);
-			$mpdf->WriteHTML( "<h1>".t("variable_list")."</h1>");
-			
-			foreach($datafiles_arr as $value)
-			{
-				$value=trim($value);
-				if ($value!="")
-				{
-					//explode datafile id,name
-					$value_arr=explode("=",$value);
-					$value_arr[1]=str_replace('.NSDstat','',$value_arr[1]);
-					$mpdf->AddPage();
-					$mpdf->Bookmark($value_arr[1],1);
-					//$mpdf->WriteHTML( "TODO");
-					$mpdf->WriteHTML( $this->get_section($ddi_file,"variable-list", $value_arr[0]) );
-				}	
-				set_time_limit(0);
-			}
+			$mpdf->WriteHTML($data_files_html);
 		}
 
-		if(isset($options['data_dic_desc']) && $options['data_dic_desc']===1)
-		{		
-			//print each variable details
-			$mpdf->AddPage();
-			$mpdf->Bookmark(t("variable_description"),0);
-			
-			foreach($datafiles_arr as $value)
-			{
-				$value=trim($value);
-				if ($value!="")
-				{
-					//explode datafile id,name
-					$value_arr=explode("=",$value);
-					$value_arr[1]=str_replace('.NSDstat','',$value_arr[1]);
-					$mpdf->AddPage();
-					$mpdf->Bookmark($value_arr[1],1);
-					//$mpdf->WriteHTML( "TODO");
-					$mpdf->WriteHTML( $this->get_section($ddi_file,"datafile-vars-detail", $value_arr[0]) );
-				}	
-				set_time_limit(0);
-			}
-			
-		}//end-if
-		
+        //list variables
+        if (!empty($files) && isset($options['toc_variable']) && $options['toc_variable']===1){		
+            $mpdf->AddPage();
+            $mpdf->Bookmark(t("variable_list"),0);
+
+            foreach($files as $file){            
+                $mpdf->AddPage();            
+                $mpdf->Bookmark($file['file_name'],1);
+
+                $variables=$this->data_file_variables_list($sid,$file['file_id']);
+                $mpdf->WriteHTML($variables);
+            }
+        }
+        
+        //data file and variables detailed
+        if (!empty($files) && isset($options['data_dic_desc']) && $options['data_dic_desc']===1){
+            $mpdf->AddPage();
+            $mpdf->Bookmark(t("variable_description"),0);
+
+            foreach($files as $file){            
+                $mpdf->AddPage();            
+                $mpdf->Bookmark($file['file_id'],1);
+
+                foreach($this->variables_html($sid,$file['file_id']) as $var){
+					if (strlen($var)>1000000){
+						$var_list=explode("<line-break/>",$var);
+						foreach($var_list as $var_){
+							$mpdf->WriteHTML($var_);
+						}						
+					}else{
+                    	$mpdf->WriteHTML($var);
+					}
+                }
+            }
+        }
+
+
 		//ext_resources_html
 		if(isset($options['ext_resources']) && $options['ext_resources']===1)
 		{
@@ -160,96 +156,124 @@ class PDF_Report{
 			$mpdf->Bookmark(t("external_resources"),0);
 			$mpdf->WriteHTML( $options['ext_resources_html']);
 		}
-					
-		$mpdf->Output($output_filename,"F");
-		
-		//restore error level
-		error_reporting($error_level);
-	}		
 
+        $mpdf->Output($output_filename,"F");
+		return true;
+    }
 
-	function get_section($xml, $section, $param1=NULL)
+	/**
+	 * 
+	 * 
+	 * Get study level metadata as HTML
+	 * 
+	 */
+	function study_metadata_html($sid=NULL)
 	{
-		$params=array();
-		
-		switch($section)
-		{
-			case 'overview':
-				$xslt=APPPATH.'../xslt/ddi_overview.xslt';
-			break;
-			
-			case 'sampling':
-				$xslt=APPPATH.'../xslt/ddi_sampling.xslt';		
-			break;
-	
-			case 'questionnaires':
-				$xslt=APPPATH.'../xslt/ddi_questionnaires.xslt';		
-			break;
-	
-			case 'datacollection':
-				$xslt=APPPATH.'../xslt/ddi_datacollection.xslt';		
-			break;
-			
-			case 'dataprocessing':
-				$xslt=APPPATH.'../xslt/ddi_dataprocessing.xslt';		
-			break;
-	
-			case 'dataappraisal':
-				$xslt=APPPATH.'../xslt/ddi_dataappraisal.xslt';		
-			break;
-		
-			case 'datafiles-list':
-				$xslt=APPPATH.'../xslt/ddi_datafile_list.xslt';		
-			break;		
-			
-			case 'datafile':
-				$xslt=APPPATH.'../xslt/ddi_datafile.xslt';
-				$params=array('file'=>$param1);
-			break;		
-	
-			case 'variable-list':
-				$xslt=APPPATH.'../xslt/dataset_variables.xslt';
-				$params=array('file'=>$param1);
-				//return "skipped";
-			break;		
-	
-			case 'datafile-vars-detail':
-				$xslt=APPPATH.'../xslt/ddi_datafile_variables.xslt';
-				$params=array('file'=>$param1);
-			break;				
+		$survey=$this->ci->Dataset_model->get_row($sid);
+
+		if (!$survey){
+			return false;
 		}
 
-		//needed for finding/creating the language translation file
-		$this->ci->load->library("DDI_Browser");
-						
-		//language
-		$language=array('lang'=>$this->ci->config->item("language"));
-		
-		if(!$language)
-		{
-			//default language
-			$language=array('lang'=>"english");
-		}	
-		
-		//get the xml translation file path
-		$language_file=$this->ci->DDI_Browser->get_language_path($language['lang']);
+		$survey['metadata']=(array)$this->ci->dataset_manager->get_metadata($sid,$survey['type']);
+		$survey['resources']=$this->ci->Survey_resource_model->get_survey_resources_group_by_filename($sid);
 
-		if ($language_file)
-		{
-			//change to the language file (without .xml) in cache
-			$language['lang']=unix_path(FCPATH.$language_file);
-		}		
-
-		//add language to params
-		$parameters=array_merge( array('lang'=> $language['lang']), $params);
+        $template_path='pdf_reports/survey-template';
 		
-		$output= xsl_transform($xml,$xslt,$parameters);
-		
-		//$output=str_replace('php-survey-id',$surveyid, $output);
-		$output=str_replace('<table ','<table repeat_header="1" ', $output);
-		return url_filter($output);
+		$this->ci->metadata_template->initialize($survey['type'],$survey, $template_path);
+		$output=$this->ci->metadata_template->render_html();
+		return $output;
 	}
-	
+
+
+	/**
+	 * 
+	 * Return a list of data files
+	 * 
+	 */
+	function datafiles_html($sid=NULL)
+    {
+        //$this->load->model("Variable_group_model"); 
+		$options['files']=$this->ci->Data_file_model->get_all_by_survey($sid);
+		//$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
+        $options['sid']=$sid;
+		$content=$this->ci->load->view('pdf_reports/data_files',$options,TRUE);
+		//$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
+        return $content;
+    }
+
+
+	/**
+	 * 
+	 * HTML list of variables by data file
+	 * 
+	 */
+	public function data_file_variables_list($sid, $file_id)
+    {
+		$offset=0;
+		$limit=15000;
+
+		$this->ci->lang->load('ddi_fields');
+		$this->ci->load->model("Variable_group_model");
+        $options['sid']=$sid;
+		$options['file_id']=$file_id;
+		$options['variable_groups_html']=$this->ci->Variable_group_model->get_vgroup_tree_html($sid);
+		$options['file_list']=$this->ci->Data_file_model->get_all_by_survey($sid);
+        $options['file']=$this->ci->Data_file_model->get_file_by_id($sid,$file_id);
+		$options['variables']=$this->ci->Variable_model->paginate_file_variables($sid, $file_id,$limit,$offset);
+		$options['file_variables_count']=$this->ci->Variable_model->get_file_variables_count($sid,$file_id);
+
+        if (!$options['file']){
+            show_404();
+		}
+		
+        $content=$this->ci->load->view('pdf_reports/variables_by_file',$options,TRUE);
+        return $content;
+    }
+
+	function variables_html($sid,$file_id)
+    {
+        //echo '<pre>';
+        $total_vars=$this->ci->Variable_model->get_file_variables_count($sid,$file_id);
+
+        if($total_vars<1){
+            return false;
+        }
+
+        $file_info=$this->ci->Data_file_model->get_file_by_id($sid,$file_id);
+
+        $offset=0;
+        $limit=10;//per page
+        $total_pages=ceil($total_vars/$limit);
+        
+        for($page=0;$page<=$total_pages;){            
+            $variables=$this->ci->Variable_model->paginate_file_variables($sid, $file_id,$limit,$offset);
+            $vid_arr=array_column($variables,'vid');
+            
+            //vars with detailed metadata
+            $variables=$this->ci->Variable_model->get_batch_variable_metadata($sid,$file_id,$vid_arr);
+
+            yield $this->variable_details($sid,$file_info, $variables);
+
+            $page++;
+            $offset=$offset+$limit;
+        }
+    }
+
+
+    public function variable_details($sid,$file_info, $variables)
+    {
+		$this->ci->lang->load('ddi_fields');
+
+        $options['sid']=$sid;
+        $options['file_id']=$file_info['id'];
+        $options['file']=$file_info;
+		$options['variables']=$variables;
+
+		$content=$this->ci->load->view('pdf_reports/variables_ddi',$options,TRUE);		
+        return $content;
+    }
+
 }// END PDF_Report Class
 
 /* End of file PDF_Report.php */

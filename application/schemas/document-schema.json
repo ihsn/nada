@@ -147,30 +147,138 @@
           ]
         },
 
+        "authors": {
+          "type": "array",
+          "title": "Authors",
+          "description": "Authors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              },
+              "author_id": {
+                "type": "array",
+                "title": "Author ID",
+                "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "title": "Type",
+                      "description": "Source of identifier, e.g. ORCID"
+                    },
+                    "id": {
+                      "title": "Identifier",
+                      "description": "Author's unique identifier for the corresponding source"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+
+        "editors": {
+          "type": "array",
+          "title": "Editors",
+          "description": "Editors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": {
+                "title": "First name",
+                "type": "string"
+              },
+              "initial": {
+                "title": "Initial",
+                "type": "string"
+              },
+              "last_name": {
+                "title": "Last name",
+                "type": "string"
+              },              
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "first_name"
+          ]
+        },
+
+        "date_created": {
+          "type": "string",
+          "title":"Date created",
+          "description": "Date of creation"
+        },
+        "date_available": {
+          "type": "string",
+          "title":"Date available",
+          "description": "Date (often a range) that the resource will become or did become available."    
+        },
+        "date_modified": {
+          "type": "string",
+          "title":"Date last modified",
+          "description": "Date on which the resource was changed."    
+        },
+        "date_published": {
+          "type": "string",
+          "title":"Date published",
+          "description": "Date on which document was published."    
+        },
+
+        "id_numbers": {
+          "type": "array",
+          "title": "Identifier numbers",
+          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Type",
+                "description":"ID number type such as  ISSN, ISBN, DOI"
+              },
+              "value": {
+                "title": "ID number",
+                "type": "string"               
+              }
+            },
+            "required": [
+              "type","value"
+            ]
+          }
+        },  
+
         "type": {
           "type": "string",
           "title":"Resource type",
-          "description": "Resource type",
-          "enum": [
-            "article",
-            "book",
-            "booklet",
-            "collection",
-            "conference",
-            "inbook",
-            "incollection",
-            "inproceeding",
-            "manual",
-            "masterthesis",
-            "patent",
-            "phdthesis",
-            "proceedings",
-            "techreport",
-            "working-paper",
-            "website",
-            "other"
-          ]
-        },        
+          "description": "Valid values include - `article`, `book`, `booklet`, `collection`, `conference`, `inbook`, `incollection`, `inproceeding`,`manual`, `masterthesis`, `patent`, `phdthesis`, `proceedings`, `techreport`, `working-paper`, `website`, `other` "
+        },
+
+        "status": {
+          "title": "Status",
+          "type": "string",
+          "description": "Status of the document - e.g. `Draft`, `Draft released for comment`, `Final draft released for comment`, `Final` "
+        },
 
         "description": {
           "title": "Description",
@@ -251,6 +359,61 @@
           }
         },
 
+        "geographic_units": {
+          "title": "Geographic locations",
+          "description": "List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic coverahe of the research project.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Location name",
+                "description": "Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'",
+                "type": "string"
+              },
+              "code": {
+                "title": "Location code",
+                "description": "Code of the geographic unit (for countries, preferred = ISO3 code)",
+                "type": "string"
+              },
+              "type": {
+                "title": "Type",
+                "description": "Type of geographic unit e.g. country, state, region, province, town, etc",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+
+        "bbox":{
+          "title":"Geographic bounding box",
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "west":{
+                "title":"West",
+                "type":"string"
+              },
+              "east":{
+                "title":"East",
+                "type":"string"
+              },
+              "south":{
+                "title":"South",
+                "type":"string"
+              },
+              "north":{
+                "title":"North",
+                "type":"string"
+              }
+            }
+          }
+        },
+
         "spatial_coverage": {
           "title": "Spatial coverage",
           "type": "string",
@@ -260,48 +423,7 @@
           "title": "Temporal coverage",
           "type": "string",
           "description": "The temporal extent or scope of the content of the resource."
-        },
-
-        "date_created": {
-          "type": "string",
-          "title":"Date created",
-          "description": "Date of creation"
-        },
-        "date_available": {
-          "type": "string",
-          "title":"Date available",
-          "description": "Date (often a range) that the resource will become or did become available."    
-        },
-        "date_modified": {
-          "type": "string",
-          "title":"Date last modified",
-          "description": "Date on which the resource was changed."    
-        },
-        "date_published": {
-          "type": "string",
-          "title":"Date published",
-          "description": "Date on which document was published."    
-        },
-
-        "id_numbers": {
-          "type": "object",
-          "title": "Identifier numbers",
-          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",          
-          "properties": {
-            "type": {
-              "title": "Type",
-              "description":"ID number type such as  ISSN, ISBN, DOI",
-              "type": "string"
-            },
-            "value": {
-              "title": "ID number",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "type","value"
-          ]
-        },        
+        },            
 
         "publication_frequency": {
           "type": "string",
@@ -345,14 +467,29 @@
                 "title": "URI",
                 "type": "string"
               }
-            }
+            },
+            "required":["name"]
           }
         },
 
         "bibliographic_citation": {
-          "type": "string",
+          "type": "array",
           "title":"Bibliographic citation",
-          "description": "A bibliographic reference for the resource."    
+          "description": "A bibliographic reference for the resource.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "style": {
+                "title": "Style",
+                "type": "string"
+              },
+              "citation": {
+                "title": "Citation",
+                "type": "string"
+              }
+            },
+            "required":["citation"]
+          }
         },
 
         "chapter": {
@@ -399,73 +536,7 @@
           "title": "Series name",
           "description":"The name given to a series or set of books. When citing an entire book, the title field gives its title and the optional series field gives the name of a series in which the book was published."              
         },
-
-        "creator": {
-          "type": "string",
-          "title": "Creator",
-          "description":"Entity primarily responsible for making the content of the resource."              
-        },
-
-
-        "authors": {
-          "type": "array",
-          "title": "Editors",
-          "description": "Editors",
-          "items": {
-            "type": "object",
-            "properties": {
-              "first_name": {
-                "title": "First name",
-                "type": "string"
-              },
-              "initial": {
-                "title": "Initial",
-                "type": "string"
-              },
-              "last_name": {
-                "title": "Last name",
-                "type": "string"
-              },              
-              "affiliation": {
-                "title": "Affiliation",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "first_name"
-          ]
-        },
-
-        "editors": {
-          "type": "array",
-          "title": "Editors",
-          "description": "Editors",
-          "items": {
-            "type": "object",
-            "properties": {
-              "first_name": {
-                "title": "First name",
-                "type": "string"
-              },
-              "initial": {
-                "title": "Initial",
-                "type": "string"
-              },
-              "last_name": {
-                "title": "Last name",
-                "type": "string"
-              },              
-              "affiliation": {
-                "title": "Affiliation",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "first_name"
-          ]
-        },
+        
         "translators": {
           "type": "array",
           "title": "Translators",
@@ -517,6 +588,14 @@
               "affiliation": {
                 "title": "Affiliation",
                 "type": "string"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string"
+              },
+              "contribution": {
+                "title": "Contribution",
+                "type": "string"
               }
             }
           },
@@ -524,6 +603,44 @@
             "first_name"
           ]
         },
+
+        "contacts": {
+					"type": "array",
+					"title": "Contacts",
+					"description": "Contacts",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"type": "string"
+							},
+							"role": {
+								"title": "Role",
+								"type": "string"
+							},
+							"affiliation": {
+								"title": "Affiliation",
+								"type": "string"
+							},
+							"email": {
+								"title": "Email",
+								"type": "string"
+							},
+							"telephone": {
+								"title": "Telephone",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
+						}
+					},
+					"required": [
+						"name"
+					]
+				},
 
         "publisher": {
           "type": "string",
@@ -555,6 +672,12 @@
           "description":"Terms Governing Use and Reproduction"
         },
 
+        "disclaimer": {
+          "type": "string",
+          "title": "Disclaimer",
+          "description":"Disclaimer"
+        },
+
         "security_classification": {
           "type": "string",
           "title": "Security classification control",
@@ -572,13 +695,7 @@
           "title": "Sources",
           "description": "Description of sources used. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. ",
           "_ddi_xpath":"stdyDscr/method/dataColl/sources",
-            "properties": {
-              "data_source":{
-                "type":"array",
-                "title":"Data Sources",
-                "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
-                "_ddi_xpath":"stdyDscr/method/dataColl/sources/dataSrc"
-              },
+            "properties": {              
               "source_origin":{
                 "type":"string",
                 "title":"Origin of Source",
@@ -599,6 +716,33 @@
               }                
             }
         },
+
+        "data_sources":{
+          "type":"array",
+          "title":"Data Sources",
+          "description":"Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Dataset name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "description": "Link to the dataset",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",                
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
                 
         "keywords":{
           "allOf": [ 
@@ -610,9 +754,36 @@
         "themes":{
           "type":"array",
           "description":"Themes",
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ]
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent Identifier",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         },
         "topics": {
           "type": "array",
@@ -646,7 +817,7 @@
               }
             },
             "required": [
-              "id","name"
+              "name"
             ]
           }
         },
@@ -658,8 +829,17 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
               "name": {
                 "title": "Discipline title or name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent discipline Identifier",
+                "description":"Parent discipline ID",
                 "type": "string"
               },
               "vocabulary": {
@@ -683,28 +863,7 @@
           "title": "Audience",
           "type": "string",
           "description":"A category of user for whom the resource is intended."
-        },
-        "location": {
-          "type": "array",
-          "title": "Location(s)",
-          "description": "Physical or electroninc locations of a resource",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "title": "Name",
-                "type": "string"
-              },
-              "uri": {
-                "title": "URI",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "name"
-          ]
-        },
+        },        
 
         "mandate": {
           "title": "Audience",
@@ -752,25 +911,36 @@
             "name"
           ]
         },
-
-
-        "tags": {
-          "type": "array",
-          "title": "Tags",
-          "description": "Tags",
-          "items": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "title": "Tag",
-                "type": "string"
+        "reproducibility": {
+          "title": "Reproducibility",
+          "type": "object",
+          "properties":{
+            "statement": {
+              "title": "Statement",
+              "type": "string"
+            },
+            "links": {
+              "title": "Link",
+              "type": "array",
+              "items":{
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "title": "URI",
+                    "type": "string"
+                  },
+                  "description": {
+                    "title": "Description",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                "uri"
+              ]
               }
             }
-          },
-          "required": [
-            "tag"
-          ]
-        },
+          }          
+        },        
 
         "lda_topics": {
           "type": "array",
@@ -803,7 +973,7 @@
                     },
                     "nb_topics": {
                       "title": "Number of topics",
-                      "type": "string"
+                      "type": "number"
                     },
                     "description": {
                       "title": "Description",
@@ -831,11 +1001,11 @@
                   "properties": {
                     "topic_id": {
                       "title": "Topic identifier",
-                      "type": "string"
+                      "type": ["integer", "string"]
                     },
                     "topic_score": {
                       "title": "Topic score",
-                      "type": "string"
+                      "type": ["number", "string"]
                     },
                     "topic_label": {
                       "title": "Topic label",
@@ -851,6 +1021,10 @@
                           "word": {
                             "title": "Word",
                             "type": "string"
+                          },
+                          "word_weight": {
+                            "title": "Word weight",
+                            "type": "number"
                           }
                         }
                       },
@@ -864,44 +1038,79 @@
                   "topic_id"
                 ]
               }
-            }
+              
+            },
+            "additionalProperties": false
+          }
+        },
+        "embeddings":{
+          "type": "array",
+          "title": "Word embeddings",
+          "description": "Word embeddings",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Vector Model ID",
+                "type": "string"
+              },
+              "description": {
+                "title": "Vector Model Description",
+                "type": "string"
+              },
+              "date": {
+                "title": "Date (YYYY-MM-DD)",
+                "type": "string"
+              },
+              "vector": {
+                "title": "Vector",
+                "type": "object"
+              }
+            },
+            "required": [
+              "id","vector"
+            ]
           }
         }
-
-
+      },
+      "required":["title_statement"],
+      "additionalProperties": false
+    },
+    "provenance":{
+      "type":"array",
+      "description":"Provenance",
+      "items":{
+        "$ref":"provenance-schema.json"
       }
     },
-
-    "files": {
+    "tags": {
       "type": "array",
-      "title": "Files",
-      "description": "Files",
-      "items":{
-        "type":"object",
-        "properties":{
-        "file_uri": {
-          "title": "File name or URL",
-          "description":"File name or URL",
-          "type": "string"
-        },
-        "format": {
-          "title": "File format e.g. `application/excel`, `application/pdf`",
-          "description": "The file format, physical medium, or dimensions of the resource.",
-          "type": "string"              
-        },
-        "location": {
-          "title": "Page number or sheet name for the table",
-          "type": "string"              
-        },
-        "note": {
-          "title": "Notes",
-          "type": "string"              
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          },
+          "tag_group": {
+            "title": "Tag group",
+            "type": "string"
+          }
         }
       },
       "required": [
-        "file_uri"
+        "tag"
       ]
-    }
-    }
-  }
+    },
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
+    }    
+  },
+  "required":[
+    "document_description"
+  ]
 }

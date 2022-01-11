@@ -47,7 +47,7 @@ $lang['metadata.study_desc.production_statement.funding_agencies.name']='Name';
 $lang['metadata.study_desc.production_statement.funding_agencies.abbr']='Abbreviation';
 $lang['metadata.study_desc.production_statement.funding_agencies.abbreviation']='Abbreviation';
 $lang['metadata.study_desc.production_statement.funding_agencies.role']='Role';
-$lang['metadata.study_desc.production_statement.grant_no']='Grant number';
+$lang['metadata.study_desc.production_statement.funding_agencies.grant']='Grant number';
 $lang['metadata.study_desc.distribution_statement']='Distribution Statement';
 $lang['metadata.study_desc.distribution_statement.distributors']='Distributor';
 $lang['metadata.study_desc.distribution_statement.distributors.name']='Organization name';
@@ -160,6 +160,7 @@ $lang['metadata.study_desc.method.data_collection.data_collectors.name']='Name';
 $lang['metadata.study_desc.method.data_collection.data_collectors.abbr']='Abbreviation';
 $lang['metadata.study_desc.method.data_collection.data_collectors.abbreviation']='Abbreviation';
 $lang['metadata.study_desc.method.data_collection.data_collectors.affiliation']='Affiliation';
+$lang['metadata.study_desc.method.data_collection.data_collectors.role']='Role';
 $lang['metadata.study_desc.method.data_collection.collector_training']='Collector training';
 $lang['metadata.study_desc.method.data_collection.collector_training.type']='Response Rate';
 $lang['metadata.study_desc.method.data_collection.collector_training.training']='Training';
@@ -243,10 +244,14 @@ $lang['metadata.study_desc.data_access.dataset_use.conditions']='Access conditio
 $lang['metadata.study_desc.data_access.dataset_use.disclaimer']='Disclaimer';
 $lang['metadata.study_desc.data_access.notes']='Notes';
 $lang['metadata.study_desc.method.data_collection.method_notes']='Other Processing';
-
+$lang['metadata.study_desc.study_info.method.method_notes']='Method notes';
+$lang['metadata.study_desc.study_info.method.data_collection.sources.source_origin']='Source origin';
+$lang['metadata.study_desc.study_info.method.data_collection.sources.data_source']='Data source';
+$lang['metadata.study_desc.study_info.method.data_collection.sources.data_source.source']='Source';
 
 
 $lang['var_vald']='Valid';
+$lang['var_valid cases']='Valid cases';
 $lang['var_vald_wgtd']='Valid (weighted)';
 $lang['var_intrvl']='Type';
 $lang['var_invd']='Invalid';
@@ -310,10 +315,11 @@ $lang['cases']='Cases';
 $lang['var_qstn_qstnlit']='Literal question';
 $lang['var_qstn_preqtxt']='Question pretext';
 $lang['var_qstn_postqtxt']='Question post text';
-$lang['var_qstn_ivulnstr']='Interviewer instructions';
+$lang['var_qstn_ivuinstr']='Interviewer instructions';
 
 $lang['data_file']='Data file';
 $lang['overview']='Overview';
 $lang['contacts']='Contacts';
 
 $lang['others']='Others';
+$lang['producer']='Producer';

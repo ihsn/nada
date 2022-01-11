@@ -7,20 +7,11 @@
 
 <?php
 //get repositories list by user access
-$user_repositories=$this->acl->get_user_repositories();
-$repositories_list=array();
-foreach($user_repositories as $repo)
-{
-	$repositories_list[$repo["repositoryid"]]=$repo['title'];
-}
-
-//active repository
-$active_repository='';
-
-//get active repo
-if (isset($active_repo) && $active_repo!=NULL)
-{
-	$active_repository=$active_repo->repositoryid;
+$repositories_list=array(
+	'central'=> t('central_data_catalog')
+);
+foreach($repositories as $repo){
+	$repositories_list[$repo["repositoryid"]]=$repo['title']. ' ('.strtoupper($repo['repositoryid']).')';
 }
 ?>
 
@@ -164,9 +155,9 @@ var batch_import = {
 		obj=this;
 		//set error hanlder
 		$.ajaxSetup({
-				error:function(x,e){					
-					alert("Error code: " + x.status);
-					obj.abort();					
+				error:function(x,e){	
+					alert("Error code: " + x.status + " " + x.responseText);
+					obj.abort();
 				}
 			});		
 		

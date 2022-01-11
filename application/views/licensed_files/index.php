@@ -1,4 +1,4 @@
-<div class="body-container" style="padding:10px;">
+<div class="container-fluid" style="padding:10px;">
 <?php if (!isset($hide_form)):?>
 
 <?php $message=$this->session->flashdata('message');?>

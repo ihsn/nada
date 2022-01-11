@@ -1,11 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Facet;
 
 /**
- * Facet base class.
+ * Facet interface.
  *
- * @see http://wiki.apache.org/solr/SimpleFacetParameters
+ * @see https://solr.apache.org/guide/faceting.html
  */
 interface FacetInterface
 {
@@ -16,21 +23,21 @@ interface FacetInterface
      *
      * @return string
      */
-    public function getType();
+    public function getType(): string;
 
     /**
-     * Get key value.
+     * Get key.
      *
-     * @return string
+     * @return string|null
      */
-    public function getKey();
+    public function getKey(): ?string;
 
     /**
-     * Set key value.
+     * Set key.
      *
-     * @param string $value
+     * @param string $key
      *
-     * @return FacetInterface
+     * @return self
      */
-    public function setKey($value);
+    public function setKey(string $key): self;
 }

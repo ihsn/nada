@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Spellcheck\Result;
 
 use Solarium\Core\Query\Result\QueryType as BaseResult;
@@ -54,9 +61,11 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
      *
      * This is not the HTTP status code! The normal value for success is 0.
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return int
      */
-    public function getStatus()
+    public function getStatus(): int
     {
         $this->parseResponse();
 
@@ -69,9 +78,11 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
      * This doesn't include things like the HTTP responsetime. Purely the Solr
      * query execution time.
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return int
      */
-    public function getQueryTime()
+    public function getQueryTime(): int
     {
         $this->parseResponse();
 
@@ -81,9 +92,11 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
     /**
      * Get all results.
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return array
      */
-    public function getResults()
+    public function getResults(): array
     {
         $this->parseResponse();
 
@@ -93,9 +106,11 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
     /**
      * Get flat results.
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return array
      */
-    public function getAll()
+    public function getAll(): array
     {
         $this->parseResponse();
 
@@ -107,25 +122,25 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
      *
      * @param string $term
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return array
      */
-    public function getTerm($term)
+    public function getTerm(string $term): ?Term
     {
         $this->parseResponse();
 
-        if (isset($this->results[$term])) {
-            return $this->results[$term];
-        }
-
-        return [];
+        return $this->results[$term] ?? null;
     }
 
     /**
      * IteratorAggregate implementation.
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         $this->parseResponse();
 
@@ -135,21 +150,25 @@ class Result extends BaseResult implements \IteratorAggregate, \Countable
     /**
      * Countable implementation.
      *
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         $this->parseResponse();
 
-        return count($this->results);
+        return \count($this->results);
     }
 
     /**
      * Get collation.
      *
-     * @return null|string
+     * @throws \Solarium\Exception\UnexpectedValueException
+     *
+     * @return string|null
      */
-    public function getCollation()
+    public function getCollation(): ?string
     {
         $this->parseResponse();
 

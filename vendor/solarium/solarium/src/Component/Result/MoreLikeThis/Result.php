@@ -1,8 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\MoreLikeThis;
 
-use Solarium\QueryType\Select\Result\DocumentInterface;
+use Solarium\Core\Query\DocumentInterface;
 
 /**
  * Select component morelikethis result item.
@@ -35,11 +42,11 @@ class Result implements \IteratorAggregate, \Countable
     /**
      * Constructor.
      *
-     * @param int        $numFound
-     * @param float|null $maxScore
-     * @param array      $documents
+     * @param int   $numFound
+     * @param float $maxScore
+     * @param array $documents
      */
-    public function __construct($numFound, $maxScore, $documents)
+    public function __construct(int $numFound, float $maxScore = null, array $documents = [])
     {
         $this->numFound = $numFound;
         $this->maximumScore = $maxScore;
@@ -47,14 +54,14 @@ class Result implements \IteratorAggregate, \Countable
     }
 
     /**
-     * get Solr numFound.
+     * Get Solr numFound.
      *
      * Returns the number of MLT documents found by Solr (this is NOT the
      * number of documents fetched from Solr!)
      *
      * @return int
      */
-    public function getNumFound()
+    public function getNumFound(): int
     {
         return $this->numFound;
     }
@@ -64,7 +71,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return float
      */
-    public function getMaximumScore()
+    public function getMaximumScore(): ?float
     {
         return $this->maximumScore;
     }
@@ -74,7 +81,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return DocumentInterface[]
      */
-    public function getDocuments()
+    public function getDocuments(): array
     {
         return $this->documents;
     }
@@ -84,7 +91,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->documents);
     }
@@ -94,8 +101,8 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->documents);
+        return \count($this->documents);
     }
 }

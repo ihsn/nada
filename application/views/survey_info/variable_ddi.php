@@ -29,22 +29,22 @@
 
 
 <div class="variable-container">
+    <h2><?php echo $variable['labl'] . ' ('. $variable['name'].')';?></h2>
+    <h5 class="var-file"><?php echo t('data_file');?>: <a href="<?php echo site_url('catalog/'.$file['sid'].'/data-dictionary/'.$file['file_id']);?>"><?php echo $file['file_name'];?></a></h5>
 
-
-<div class="float-right">
+    <?php /* ?>
+    <div class="wb-variables-export">
         <a href="<?php echo site_url('metadata/export_variable/'.$file['sid'].'/'.$variable['vid'].'/csv'); ?>"  class="badge">
-			<i class="fa fa-file-excel-o" aria-hidden="true"></i> <?php echo t('download_csv');?>
+            <i class="far fa-file-excel"></i>
 		</a> 
 
 		<a href="<?php echo site_url('metadata/export_variable/'.$file['sid'].'/'.$variable['vid'].'/json'); ?>"  class="badge">
-		<i class="fa fa-file-code-o" aria-hidden="true"></i> <?php echo t('download_json');?>
+            <i class="fas fa-file-csv"></i>
 		</a> 
     </div>
-
-    <h2><?php echo $variable['labl'] . ' ('. $variable['name'].')';?></h2>
-    <h5 class="var-file"><?php echo t('data_file');?>: <a href="<?php echo site_url('catalog/'.$file['sid'].'/data-dictionary/'.$file['file_id']);?>"><?php echo $file['file_name'];?></a></h5>
+    <?php */ ?>
     
-    <h2 class="xsl-subtitle"><?php echo t('overview');?></h2>
+    <h3 class="xsl-subtitle"><?php echo t('overview');?></h3>
 
     <div class="row">
     <?php if(isset($variable['metadata']['var_sumstat'])):?>
@@ -53,7 +53,7 @@
                 <?php $wgtd=isset($sumstat->wgtd) && $sumstat->wgtd=='wgtd' ? '_wgtd' : '';?>
                 <div class="fld-inline sum-stat sum-stat-<?php echo $sumstat->type;?>-<?php echo $wgtd;?>">
                     <span class="fld-name sum-stat-type"><?php echo t('var_'.$sumstat->type. $wgtd);?>: </span>
-                    <span class="fld-value sum-stat-value"><?php echo $sumstat->value;?></span>
+                    <span class="fld-value sum-stat-value"><?php echo isset($sumstat->value) ? $sumstat->value : '-';?></span>
                 </div>
             <?php endforeach;?>
         </div>
@@ -120,10 +120,10 @@
     <!-- data_collection -->
     <?php echo render_group('questions_n_instructions',
         $fields=array(
+            "var_qstn_preqtxt"=>'text',
             "var_qstn_qstnlit"=> 'text',
             "var_catgry"=>'var_category',
-            "var_qstn_ivuinstr"=>'text',
-            "var_qstn_preqtxt"=>'text',
+            "var_qstn_ivuinstr"=>'text',            
             "var_qstn_postqtxt"=>'text',
             "var_qstn_ivulnstr"=>'text'
         ),
