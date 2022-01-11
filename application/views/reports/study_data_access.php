@@ -23,7 +23,7 @@ Public use and Licensed Studies with no data files attached
         <tr>
             <td><?php echo $k++;?></td>
             <td><?php echo strtoupper($row['repositoryid']);?></td>
-            <td><a href="<?php echo site_url();?>/catalog/<?php echo $row['id'];?>"><?php echo $row['nation'].' - '.$row['titl'];?></a></td>
+            <td><a href="<?php echo site_url();?>/catalog/<?php echo $row['id'];?>"><?php echo $row['nation'].' - '.$row['title'];?></a></td>
         </tr>
     <?php endforeach;?>
     </table>

@@ -262,7 +262,7 @@ class Reports extends MY_Controller {
 		$column_names=array_keys($rows[0]);
 		
 		//unix timestamp type columns that needs to be formatted as readable date types
-		$date_columns=array('logtime','created','changed','updated','posted');
+		$date_columns=array('logtime','created','changed','updated','posted','created_on','last_login');
 		
 		//$date_type_idx=array();
 		
@@ -292,7 +292,7 @@ class Reports extends MY_Controller {
 		$date_format=$this->config->item('date_format_long');
 
 		if(!$date_format){
-			$date_format="Y/M/d H:i:s";
+			$date_format="Y/M/d";
 		}
 	            
 		//data rows

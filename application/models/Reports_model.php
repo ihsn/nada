@@ -62,7 +62,8 @@ class Reports_model extends CI_Model {
 						s.title as title, 
 						n.section as section,						
 						s.nation as country,
-						s.year_start as year,
+						s.year_start,
+						s.year_end,
 						count(*) as visits 
 				FROM sitelogs n
 					  inner join surveys s on n. surveyid=s.id
@@ -451,7 +452,7 @@ class Reports_model extends CI_Model {
 		//return survey details with no data attached
 		if (count($output)>0)
 		{
-			$this->db->select("id,titl,repositoryid,nation");
+			$this->db->select("id,title,repositoryid,nation");
 			$this->db->where_in("id",array_keys($output));
 			return $this->db->get("surveys")->result_array();
 		}
