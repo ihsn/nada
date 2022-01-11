@@ -1,10 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\RequestBuilder;
 
 use Solarium\Component\Highlighting\Field as HighlightingField;
 use Solarium\Component\Highlighting\Highlighting as HighlightingComponent;
 use Solarium\Core\Client\Request;
+use Solarium\Core\ConfigurableInterface;
 
 /**
  * Add select component Highlighting to the request.
@@ -19,13 +27,13 @@ class Highlighting implements ComponentRequestBuilderInterface
      *
      * @return Request
      */
-    public function buildComponent($component, $request)
+    public function buildComponent(ConfigurableInterface $component, Request $request): Request
     {
         // enable highlighting
         $request->addParam('hl', 'true');
 
         // set global highlighting params
-        if (count($component->getFields()) > 0) {
+        if (\count($component->getFields()) > 0) {
             $request->addParam('hl.fl', implode(',', array_keys($component->getFields())));
         }
         $request->addParam('hl.snippets', $component->getSnippets());
@@ -58,6 +66,7 @@ class Highlighting implements ComponentRequestBuilderInterface
         $request->addParam('hl.bs.type', $component->getBoundaryScannerType());
         $request->addParam('hl.bs.language', $component->getBoundaryScannerLanguage());
         $request->addParam('hl.bs.country', $component->getBoundaryScannerCountry());
+        $request->addParam('h1.method', $component->getMethod());
 
         // set per-field highlighting params
         foreach ($component->getFields() as $field) {

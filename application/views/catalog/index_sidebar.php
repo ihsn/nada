@@ -139,4 +139,29 @@
 		</div>    
 	</div>
 
+	<!-- data types -->
+	<?php if (isset($this->catalog_data_types) && count($this->catalog_data_types)>0):?>
+	<div class="box survey-types">
+		<div class="box-header"><?php echo t('Data types');?>
+		   <span class="pull-right" title="toggle_box">
+		   	<i class="fa fa-chevron-circle-down open_" aria-hidden="true"></i>
+			<i class="fa fa-chevron-circle-right close_ " aria-hidden="true"></i>
+		   </span>
+		</div>
+		<div class="survey-types-body box-body">
+			<div class="pad5 scrollable">
+			<?php $c=0;?>
+			<?php foreach($this->catalog_data_types as $type): $c++?>
+				<div>
+					<label for="type-<?php echo $c;?>">
+					<input type="checkbox" id="type-<?php echo $c;?>" name="type[]" value="<?php echo $type['code'];?>" <?php echo my_set_checkbox('type', $type['code']);?>/>
+					<?php echo $type['title'];?> <span class="result-count">(<?php echo $type['found'];?>)</span>
+					</label>
+				</div>
+			<?php endforeach;?>
+			</div>
+		</div>
+	</div>
+	<?php endif;?>
+
 </form>

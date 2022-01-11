@@ -147,8 +147,6 @@ class Install extends CI_Controller {
 		$this->is_already_installed();			
 		
         $this->load->library('form_validation');
-		
-		
         $this->data['page_title'] = t("create_admin_account");		
               		
         //validate form input
@@ -187,7 +185,7 @@ class Install extends CI_Controller {
 				//$data=$additional_data;
 				$data['username']=$username;
 				$data['active']=1;
-				$data['group_id']=1;	
+				//$data['group_id']=1;	
 												
 				//update user group to ADMIN and ACTIVATE account
 				$this->ion_auth->update_user($user->id, $data);	
@@ -205,8 +203,7 @@ class Install extends CI_Controller {
 			}
 			else
 			{
-				$this->error=$this->ion_auth->errors();
-				
+				$this->error=$this->ion_auth->errors();				
 				var_dump($this->error);
 			}        	
 		} 

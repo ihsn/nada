@@ -1,9 +1,17 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\RequestBuilder;
 
 use Solarium\Component\TermsInterface;
 use Solarium\Core\Client\Request;
+use Solarium\Core\ConfigurableInterface;
 
 /**
  * Build a Terms query request.
@@ -18,7 +26,7 @@ class Terms implements ComponentRequestBuilderInterface
      *
      * @return Request
      */
-    public function buildComponent($component, $request)
+    public function buildComponent(ConfigurableInterface $component, Request $request): Request
     {
         $request->addParam('terms', true);
         $request->addParam('terms.lower', $component->getLowerbound());

@@ -21,7 +21,11 @@ $lang['Countries']="Países";
 $lang['Regions']="Regiones";
 $lang['Vocabularies']="Vocabularios";
 $lang['Central Data Catalog']="Catálogo Central de Datos";
+$lang['Bulk data access']="Acceso a datos masivos";
+$lang['Facets']="Facetas";
+$lang['Translate']="Traducir";
+$lang['Data deposit']="depositar datos";
 
 
-/* End of file site_menu_lang.php */
-/* Location: ./application/language/spanish/site_menu_lang.php */
+/* End of file site_menu */
+/* Location: ./application/language/spanish/site_menu */

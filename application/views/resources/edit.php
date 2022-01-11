@@ -10,8 +10,8 @@
 
 <?php
 $select_[0]=t('__select__');
-$option_types = array_merge($select_,$this->Resource_model->get_dc_types());
-$option_formats=array_merge($select_,$this->Resource_model->get_dc_formats());
+$option_types = array_merge($select_,$this->Survey_resource_model->get_dc_types());
+$option_formats=array_merge($select_,$this->Survey_resource_model->get_dc_formats());
 
 //translate types
 foreach($option_types as $key=>$value)
@@ -48,7 +48,7 @@ foreach($option_formats as $key=>$value)
 <?php echo form_open_multipart(current_url(), array('class'=>'form') ); ?>
 <input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
 <div class="form-group">
-	<label for="dctype"><?php echo t('type');?></label>
+	<label for="dctype"><?php echo t('type');?></label> 
     <?php echo form_dropdown('dctype', $option_types, get_form_value("dctype",isset($dctype) ? $dctype : ''),'class="form-control"'); ?>
 </div>
 

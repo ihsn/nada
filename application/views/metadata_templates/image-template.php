@@ -8,6 +8,22 @@
 ?>
 
 
+<?php
+if(isset($metadata['resources']) ){    
+    foreach($metadata['resources'] as $resource_filename => $resource){
+        if($this->form_validation->valid_url($resource['filename'])){
+            $metadata['resources'][$resource_filename]['download_link']=$resource['filename'];
+            $metadata['resources'][$resource_filename]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        }else{
+            $metadata['resources'][$resource_filename]['download_link']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+            $metadata['resources'][$resource_filename]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        }  
+    }
+} 
+
+//$metadata['metadata']['resources']=$metadata['resources'];
+?>
+
 <?php 
     //rendered html for all sections
     $output=array();
@@ -17,15 +33,14 @@
 <?php $output['identification']= render_group('identification',
     $fields=array(
             "title"=>'text',
-            "metadata.image_description.description.description"=>'text',
+            "resources"=>'photo',
+            "metadata.image_description.description.description"=>'text',            
             "metadata.image_description.description.albums"=>'array',
             "idno"=>'text',
-
     ),
-    $metadata);
+    $metadata    
+);
 ?>
-
-
 
 <!-- metadata_production -->
 <?php $output['image_description']= render_group('image_description',
@@ -110,13 +125,15 @@
         "metadata.image_description.iptc.photoVideoMetadataIPTC.jobid"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.jobtitle"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.keywords"=>"array",
+        "metadata.image_description.tags"=>"array",
         
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr"=>"object",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.linkedRightsExpr"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprEncType"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprLangId"=>"text",
 
-        "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"object",
+        "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"map_leaflet",
+        //"metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown"=>"object",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.city"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryCode"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryName"=>"text",
@@ -180,7 +197,15 @@
         "metadata.image_description.iptc.photoVideoMetadataIPTC.usageTerms"=>"text",
         "metadata.image_description.iptc.photoVideoMetadataIPTC.webstatementRights"=>"text"
             ),
-    $metadata);
+    $metadata,
+    $options=array(
+        'metadata.image_description.iptc.photoVideoMetadataIPTC.locationsShown'=> array(
+            'latitude'=>'gpsLatitude',
+            'longitude'=>'gpsLongitude',
+            'loc_info'=>'countryName',
+            'api_key'=>$this->config->item("google_maps_api_key"))
+    )
+);
 ?>
 
 
@@ -227,22 +252,7 @@
 ?>
 
 
-<!-- sidebar with section links -->
-<div class="col-sm-2 col-lg-2 hidden-sm-down">
-<div class="navbar-collapse sticky-top">
-
-    <ul class="navbar-nav flex-column wb--full-width">
-    <?php foreach($output as $key=>$value):?>            
-        <?php if(trim($value)!==""):?>    
-        <li class="nav-item">
-            <a href="<?php echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
-        </li>
-        <?php endif;?>
-    <?php endforeach;?>
-    </ul>
-</div>
-</div>
-<!--metadata content-->
-<div class="col-12 col-sm-10 col-lg-10 wb-border-left">
-    <?php echo implode('',$output);?>
-</div>
+<?php 
+    //renders html
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output));
+?>

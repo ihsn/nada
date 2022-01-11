@@ -1,21 +1,27 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\RequestBuilder;
+
+use Solarium\Core\Query\AbstractRequestBuilder as BaseRequestBuilder;
 
 /**
  * Class for describing a sub request.
  */
-class SubRequest implements RequestParamsInterface
+class SubRequest extends BaseRequestBuilder implements RequestParamsInterface
 {
     use RequestParamsTrait;
 
     /**
-     * Request params.
+     * Query parser.
      *
-     * Multivalue params are supported using a multidimensional array:
-     * 'fq' => array('cat:1','published:1')
-     *
-     * @var array
+     * @var string
      */
     protected $queryParser = 'rerank';
 
@@ -24,7 +30,7 @@ class SubRequest implements RequestParamsInterface
      *
      * @return string
      */
-    public function getQueryParser()
+    public function getQueryParser(): string
     {
         return $this->queryParser;
     }
@@ -36,7 +42,7 @@ class SubRequest implements RequestParamsInterface
      *
      * @return self Provides fluent interface
      */
-    public function setQueryParser(string $value)
+    public function setQueryParser(string $value): self
     {
         $this->queryParser = $value;
 
@@ -46,18 +52,18 @@ class SubRequest implements RequestParamsInterface
     /**
      * returns the complete sub request as string.
      *
-     * @param string $separator
-     *
      * @return string
      */
-    public function getSubQuery($separator = ' ')
+    public function getSubQuery(): string
     {
         $queryString = '';
-        foreach ($this->getParams() as $key => $value) {
-            $queryString .= $separator.$key.'='.$value;
-        }
-        if ($queryString) {
-            $queryString = '{!'.$this->getQueryParser().$queryString.'}';
+        $params = $this->getParams();
+
+        if (0 !== \count($params)) {
+            $queryString = $this->getHelper()->qparser(
+                $this->getQueryParser(),
+                $params
+            );
         }
 
         return $queryString;

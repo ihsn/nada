@@ -9,7 +9,6 @@ class Files extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
-		$this->load->model("Resource_model");	//todo to be deleted
 		$this->load->model("Survey_resource_model");
 		$this->is_admin_or_die();
 	}
@@ -116,7 +115,7 @@ class Files extends MY_REST_Controller
 	 * delete a file
 	 * 
 	 **/ 
-	function delete_delete($dataset_idno=null,$filename=null)
+	function index_delete($dataset_idno=null,$filename=null)
 	{
 		$base64_filename=$filename;
 
@@ -144,20 +143,5 @@ class Files extends MY_REST_Controller
 		}
 	}
 
-	
-	private function get_sid_from_idno($idno=null)
-	{
-		if(!$idno){
-			throw new Exception("IDNO-NOT-PROVIDED");
-		}
-
-		$sid=$this->Dataset_model->find_by_idno($idno);
-
-		if(!$sid){
-			throw new Exception("IDNO-NOT-FOUND");
-		}
-
-		return $sid;
-	}
 	
 }

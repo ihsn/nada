@@ -1,9 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Graph;
 
 use Solarium\Core\Client\Client;
 use Solarium\Core\Query\AbstractQuery;
+use Solarium\Core\Query\RequestBuilderInterface;
+use Solarium\Core\Query\ResponseParserInterface;
 use Solarium\QueryType\Stream\RequestBuilder;
 
 /**
@@ -18,7 +27,7 @@ class Query extends AbstractQuery
      */
     protected $options = [
         'handler' => 'graph',
-        'resultclass' => 'Solarium\QueryType\Graph\Result',
+        'resultclass' => Result::class,
     ];
 
     /**
@@ -26,7 +35,7 @@ class Query extends AbstractQuery
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return Client::QUERY_GRAPH;
     }
@@ -36,16 +45,19 @@ class Query extends AbstractQuery
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): RequestBuilderInterface
     {
         return new RequestBuilder();
     }
 
     /**
      * No response parser required since we pass through GraphML.
+     *
+     * @return \Solarium\Core\Query\ResponseParserInterface|null
      */
-    public function getResponseParser()
+    public function getResponseParser(): ?ResponseParserInterface
     {
+        return null;
     }
 
     /**
@@ -55,17 +67,19 @@ class Query extends AbstractQuery
      *
      * @return self Provides fluent interface
      */
-    public function setExpression($expr)
+    public function setExpression(string $expr): self
     {
-        return $this->setOption('expr', $expr);
+        $this->setOption('expr', $expr);
+
+        return $this;
     }
 
     /**
      * Get the expression.
      *
-     * @return string
+     * @return string|null
      */
-    public function getExpression()
+    public function getExpression(): ?string
     {
         return $this->getOption('expr');
     }

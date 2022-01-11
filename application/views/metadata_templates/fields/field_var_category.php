@@ -3,7 +3,7 @@
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value">
 
-            <?php
+            <?php            
             $show_stats=false;
             $stats_col=array();
             $stats_col_wgtd=array();
@@ -22,26 +22,27 @@
                 $data[$data_idx]['stats_wgtd_value']=null;
                 $data[$data_idx]['stats_non_wgtd_value']=null;
 
-                if(!is_array($item['stats'])){
+                if(!isset($item['stats']) || !is_array($item['stats'])){
                     continue;
                 }
 
-                foreach($item['stats'] as $stat_row){
+                foreach($item['stats'] as $stat_row){                    
                     //non-weighted stats
-                    if(!$stat_row['wgtd']){
+                    if(!isset($stat_row['wgtd']) || empty($stat_row['wgtd']) ){
                         $data[$data_idx]['stats_non_wgtd_value']=$stat_row['value'];
-                        if(!$item['is_missing']){
+                        if(!isset($item['is_missing']) || !empty($item['is_missing'])){
                             $stats_col[]=$stat_row['value'];
                         }
                     }//weighted stats
                     else if ($stat_row['wgtd']=='wgtd'){
                         $data[$data_idx]['stats_wgtd_value']=$stat_row['value'];
-                        if(!$item['is_missing']){
+                        if(!isset($item['is_missing']) || !empty($item['is_missing'])){
                             $stats_col_wgtd[]=$stat_row['value'];
                         }    
                     }
                 }
             }
+
             if (count($stats_col)>0){
                 $show_stats=true;
                 $sum_cases=array_sum($stats_col);
@@ -87,7 +88,7 @@
 
                     <tr>
                         <td><?php echo isset($cat->value) ? $cat->value : '';?></td>
-                        <td><?php echo isset($cat->labl) ? $cat->labl : '';?></td>
+                        <td><?php echo isset($cat->labl) ? $cat->labl : '';?> <?php echo isset($cat->label) ? $cat->label : '';?></td>
                         
                         <?php if($show_stats && $sum_cases>0):?>
                         <td><?php echo (int)$cat->stats_non_wgtd_value;?></td>

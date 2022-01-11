@@ -9,6 +9,7 @@ class Dataset_manager{
         'timeseries'=>'timeseries',
         'document'=>'document',
         'image'=>'image',
+        'video'=>'video',
         'table'=>'table',
         'script'=>'script',
         'visualization'=>'visualization'
@@ -18,6 +19,7 @@ class Dataset_manager{
     {
         $this->ci =& get_instance();
         $this->ci->load->model("Dataset_model");
+        $this->ci->load->model("Facet_model");
         $this->ci->load->model("Dataset_microdata_model");
         $this->ci->load->model("Dataset_timeseries_model");
         $this->ci->load->model("Dataset_geospatial_model");
@@ -26,20 +28,28 @@ class Dataset_manager{
         $this->ci->load->model("Dataset_script_model");
         $this->ci->load->model("Dataset_table_model");
         $this->ci->load->model("Dataset_visualization_model");
+        $this->ci->load->model("Dataset_video_model");
+        $this->ci->load->helper("Array");
     }
 
     function create_dataset($type,$options)
     {
         $this->validate_type($type);
-        //return $this->ci->Dataset_microdata_model->create_dataset($type,$options);
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->create_dataset($type,$options);
+        $new_id=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->create_dataset($type,$options);
+
+        if ($new_id>0){            
+            $this->ci->Facet_model->index_facets($new_id);
+        }
+        return $new_id;
     }
 
 
-    function update_dataset($sid,$type,$options)
+    function update_dataset($sid,$type,$options,$merge_data=false)
     {
         $this->validate_type($type);
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options);
+        $result=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data);
+        $this->ci->Facet_model->index_facets($sid);
+        return $result;
     }
 
 
@@ -76,9 +86,27 @@ class Dataset_manager{
      * Return all rows
      * 
      */
-    function get_all()
+    function get_all($limit=100,$offset=0,$fields=array())
     {
-        return $this->ci->Dataset_model->get_all();
+        return $this->ci->Dataset_model->get_all($limit,$offset,$fields);
+    }
+
+
+
+    /**
+     * 
+     * Return total number of studies in the catalog
+     * 
+     */
+    function get_total_count()
+    {
+        return $this->ci->Dataset_model->get_total_count();
+    }
+
+
+    function get_list_by_type($dataset_type, $limit, $start)
+    {
+        return $this->ci->Dataset_model->get_list_by_type($dataset_type, $limit, $start);
     }
 
 
@@ -98,15 +126,65 @@ class Dataset_manager{
      * Get metadata
      * 
      */
-    function get_metadata($sid)
+    function get_metadata($sid,$type=null)
     {
-        return $this->ci->Dataset_model->get_metadata($sid);
+        if (empty($type)){
+            return $this->ci->Dataset_model->get_metadata($sid);
+        }else{
+            return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->get_metadata($sid);
+        }
     }
+
+
+    /**
+     * 
+     * 
+     * Reload facets/filters data
+     * 
+     */
+    function refresh_filters($sid)
+    {
+        $dataset=$this->get_row($sid);
+        $metadata=$this->get_metadata($sid);
+        $type=$dataset['type'];
+
+        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_filters($sid,$metadata);
+    }
+
+
+    /**
+     * 
+     * 
+     * Repopulate dataset index
+     * 
+     */
+    function repopulate_index($sid)
+    {
+        //return $this->ci->Dataset_model->repopulate_index($sid);
+
+        $metadata=$this->ci->Dataset_model->get_metadata($sid);
+		$type=$this->ci->Dataset_model->get_type($sid);
+
+		$data=array(
+			'keywords'=>$this->ci->Dataset_model->extract_keywords($metadata,$type)
+		);
+
+		if($type=='survey'){
+			$this->ci->Dataset_microdata_model->index_variable_data($sid);
+		}
+		
+		$this->ci->db->where('id',$sid);
+		return $this->ci->db->update('surveys',$data);
+    }
+
+
+
 
     function validate_options($options)
     {
-        return $this->ci->validate_options($options);
+        return $this->ci->Dataset_model->validate_options($options);
     }
+    
 
     public function get_data_access_type_id($name)
     {
@@ -163,6 +241,11 @@ class Dataset_manager{
     function remove_datafile_variables($sid,$file_id)
     {
         return $this->ci->Dataset_microdata_model->remove_datafile_variables($sid,$file_id);
+    }
+
+    function index_variable_data($sid)
+    {
+        return $this->ci->Dataset_microdata_model->index_variable_data($sid);
     }
 
     function get_dataset_with_tags($idno=null)

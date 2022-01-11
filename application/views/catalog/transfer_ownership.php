@@ -1,13 +1,11 @@
 <style>
 .field{margin-top:15px;}
 </style>
+
 <?php
-//get repositories list by user access
-$user_repositories=$this->acl->get_user_repositories();
 $repositories_list=array('0'=>'--SELECT--');
-foreach($user_repositories as $repo)
-{
-	$repositories_list[$repo["repositoryid"]]=$repo['title'];
+foreach($repositories as $repo){
+	$repositories_list[$repo["repositoryid"]]=$repo['title']. ' ('.strtoupper($repo['repositoryid']).')';
 }
 ?>
 <div style="padding:10px;">

@@ -6,6 +6,11 @@
  *
  *
  */
+
+use Solarium\Core\Client\Adapter\Curl;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+
 class Solr_manager{
 
 	var $ci;
@@ -17,6 +22,9 @@ class Solr_manager{
 		$this->ci=& get_instance();
 		$this->ci->config->load('solr');
 		$this->ci->load->model('solr_delta_updates_model');
+		$this->ci->load->model("Dataset_model");
+        $this->ci->load->helper('array');
+		$this->ci->load->model("Facet_model");
 
 		$this->initialize_solr();
 
@@ -37,17 +45,25 @@ class Solr_manager{
 				'localhost' => array(
 					'host' => $this->ci->config->item('solr_host'),
 					'port' => $this->ci->config->item('solr_port'),
-					'path' => $this->ci->config->item('solr_collection'),
+					'path' => '/',
+					'core' => $this->ci->config->item('solr_collection'),
 				)
 			)
 		);
 		//$this->solr_client = new Solarium\Client($this->solr_config);
 	}
 
+	function get_solarium_client()
+	{
+		$adapter = new Curl();
+		$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+		return new Solarium\Client($adapter,$eventDispatcher, $this->solr_config);
+	}
+
 
 	public function ping_test()
 	{
-		$client=new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 		$ping = $client->createPing();
 		$result = $client->ping($ping);
 		return $result->getData();
@@ -67,13 +83,12 @@ class Solr_manager{
 	{
 		$start_time=date("h:i:s");
         set_time_limit(0);
-        $this->ci->load->model("Dataset_model");
-        $this->ci->load->helper('array');
 
 		//concat('survey-', surveys.id)  as id,
 		$this->ci->db->select("
 			1 as doctype,
             surveys.id,
+            surveys.thumbnail as thumbnail,
             surveys.type as dataset_type,
             surveys.id as survey_uid,
             surveys.idno as idno,
@@ -126,6 +141,13 @@ class Solr_manager{
 			$rows[$key]['repositories']=$this->get_survey_repositories($row['survey_uid']);
 			//survey years
             $rows[$key]['years']=$this->get_survey_years($row['survey_uid']);
+
+			//custom user defined facets
+			$user_facets_by_study=$this->ci->Facet_model->facet_terms_by_study($row['survey_uid']);
+
+			foreach($user_facets_by_study as $facet_name=>$facet_terms){
+				$rows[$key]['fq_'.$facet_name]=$facet_terms;
+			}
             
             //metadata
 			//$rows[$key]['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($row['metadata']));
@@ -159,11 +181,11 @@ class Solr_manager{
 
 	function delete_document($query)
 	{
-			$client = new Solarium\Client($this->solr_config);
-			$update = $client->createUpdate();
-			$update->addDeleteQuery($query);
-			$update->addCommit();
-			$result = $client->update($update);
+		$client=$this->get_solarium_client();
+		$update = $client->createUpdate();
+		$update->addDeleteQuery($query);
+		$update->addCommit();
+		$result = $client->update($update);
 	}
 
 
@@ -216,13 +238,11 @@ class Solr_manager{
 		//find new documents not in SOLR yet
 		$new_documents=array_diff($db_documents,$solr_documents);
 
-		if (count($solr_deleted)>0 && $dry_run!=true)
-		{
+		if (count($solr_deleted)>0 && $dry_run!=true){
 			//remove deleted items from SOLR
 			$delete_query=array();
 
-			foreach($solr_deleted as $del_item)
-			{
+			foreach($solr_deleted as $del_item){
 				$delete_query[]=$prefix.'-'.$del_item;
 			}
 
@@ -233,18 +253,14 @@ class Solr_manager{
 		}
 
 		//add new documents to SOLR
-		if (count($new_documents) && $dry_run!=true)
-		{
-
-			if ($doctype==1)
-			{
+		if (count($new_documents) && $dry_run!=true){
+			if ($doctype==1){
 				foreach($new_documents as $doc_id)
 				{
 					$this->add_survey($doc_id);
 				}
 			}
-			else if($doctype==3)
-			{
+			else if($doctype==3){
 				$this->add_citation($new_documents);
 			}
 		}
@@ -253,32 +269,21 @@ class Solr_manager{
 				'solr_deleted'=>$solr_deleted,
 				'new_docs'=>$new_documents,
 				//'solr_documents'=>$solr_documents
-		);
-		/*
-			echo "<pre>";
-			print_r($delete_query);
-			echo "<HR>";
-			print_r($solr_deleted);
-			echo "<HR>";
-			print_r($new_documents);
-			echo "<HR>";
-		*/
+		);		
 	}
 
 
 
 	function get_all_db_documents($doctype=1)
 	{
-		if ($doctype==1)
-		{
+		if ($doctype==1){
 			//survey
 			$id_column="id";
 			$this->ci->db->select("id");
 			$rows=$this->ci->db->get("surveys")->result_array();
 			return array_column($rows, $id_column);
 		}
-		else if ($doctype==3)
-		{
+		else if ($doctype==3){
 			//citations
 			$id_column="id";
 			$this->ci->db->select("id");
@@ -296,19 +301,18 @@ class Solr_manager{
 	{
 			$field='id';
 
-			switch($doctype)
-			{
-					case '1':
-						$field='survey_uid';
-					break;
+			switch($doctype){
+				case '1':
+					$field='survey_uid';
+				break;
 
-					case '2':
-						$field='var_uid';
-					break;
+				case '2':
+					$field='var_uid';
+				break;
 
-					case '3':
-						$field='citation_id';
-					break;
+				case '3':
+					$field='citation_id';
+				break;
 			}
 
 			//var_dump($field);
@@ -326,7 +330,7 @@ class Solr_manager{
 			);
 
 			// create a client instance
-			$client = new Solarium\Client($this->solr_config);
+			$client=$this->get_solarium_client();
 
 			// get a select query instance based on the config
 			$query = $client->createSelect($select);
@@ -371,7 +375,7 @@ class Solr_manager{
 				$select['filterquery']['published']['query']='published:'.$published;
 		}
 
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 		$query = $client->createSelect($select);
 		$resultset = $client->select($query);
 		$documents_found=$resultset->getNumFound();
@@ -380,9 +384,9 @@ class Solr_manager{
 
 
 	//add documents to index
-    function add_documents($rows,$id_prefix='',$apply_commit=true)
+    function add_documents($rows,$id_prefix='',$apply_commit=false)
     {
-        $client = new Solarium\Client($this->solr_config);
+        $client=$this->get_solarium_client();
         $update = $client->createUpdate();
 
         $docs=array();
@@ -427,7 +431,7 @@ class Solr_manager{
 
 	function commit()
 	{
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 		$update = $client->createUpdate();
 		$update->addCommit();
 		$result = $client->update($update);
@@ -462,7 +466,7 @@ class Solr_manager{
 	* Main function for all delta updates
 	*
 	* @table - table name
-	* @delta_op - operation - refresh, import, replace, update, publish, delete
+	* @delta_op - operation - refresh, import, replace, update, publish, delete, atomic, facet
 	* @obj_id - object id
 	*
 	**/
@@ -470,19 +474,22 @@ class Solr_manager{
 	{
 		switch($table){
 			case 'surveys':
-				if(in_array($delta_op, array('refresh','import','replace','update','create') )){
+				if(in_array($delta_op, array('refresh','import','replace','update','create','facet') )){
 					return $this->add_survey($obj_id);                        
 				}
 				else if(in_array($delta_op, array('publish','atomic') )){
 					return $this->survey_atomic_update($obj_id);
 				}
+				/*else if(in_array($delta_op, array('facet') )){
+					return $this->survey_facets_update($obj_id);
+				}*/
 				else if($delta_op=='delete'){
 					return $this->delete_document("survey_uid:$obj_id OR sid:$obj_id");
 				}
 			break;
 
 			case 'citations':
-				throw  new exception("update handler not implemented for citations");
+				//throw  new exception("update handler not implemented for citations");
 			break;
 		}
 	}
@@ -491,13 +498,11 @@ class Solr_manager{
 	function delete_document_by_id($id,$doc_type)
 	{
 		return $this->run_delta_update($table='surveys', 'delete', $id);
-	}
-
+	}	
 	
-
 	function survey_atomic_update($id)
 	{
-		$options=$this->get_survey_by_id($id);
+		$options=$this->get_survey_by_id($id,$inc_keywords=false);
 		if($options){
 			$this->atomic_update('id','survey-'.$id,$options);
 		}
@@ -505,7 +510,7 @@ class Solr_manager{
 
 	function atomic_update($key_field,$key_value, $options)
 	{
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 
 		$update = $client->createUpdate();
 		$doc= $update->createDocument();
@@ -515,49 +520,67 @@ class Solr_manager{
 		
 		//set partial update for every field that is given
 		foreach($options as $key=>$value) {
-				if($key!=$key_field){
+			if($key!=$key_field){
 				$doc->setField($key, $value);
 				$doc->setFieldModifier($key, 'set');
-				}
 			}
+		}
 
 		//add document and commit
-		$update->addDocument($doc)->addCommit();
+		$update->addDocument($doc);
+		//$update->addCommit();
 
 		// this executes the query and returns the result
 		$result = $client->update($update);
-		return $result;
-
-		/*echo '<b>Update query executed</b><br/>';
+		
+		/*
+		echo '<pre>';
+		print_r($options);
+		echo '<b>Update query executed</b><br/>';
 		echo 'Query status: ' . $result->getStatus(). '<br/>';
-		echo 'Query time: ' . $result->getQueryTime();*/
+		echo 'Query time: ' . $result->getQueryTime();
+		*/
+		return $result;
 	}
 
 
-	//get a single survey
-	public function get_survey_by_id($id)
+	/**
+	 * 
+	 * Return a single study
+	 * 
+	 * @inc_keywords - include study + variable keywords
+	 * 
+	 */
+	public function get_survey_by_id($id,$inc_keywords=true)
 	{
+		$fields="1 as doctype,
+		surveys.id as survey_uid,
+		surveys.idno as idno,
+		surveys.formid,
+		surveys.thumbnail,
+		surveys.type as dataset_type,
+		surveys.title,
+		nation,
+		authoring_entity,
+		forms.model as form_model,
+		surveys.year_start,
+		surveys.year_end,					
+		surveys.repositoryid as repositoryid,
+		link_da,
+		repositories.title as repo_title,					
+		surveys.created,
+		surveys.changed,
+		surveys.varcount,
+		surveys.published,
+		surveys.total_views,		
+		surveys.total_downloads";
+
+		if ($inc_keywords==true){
+			$fields.=',surveys.keywords';
+		}
+
 		//get survey record + study level metadata
-		$this->ci->db->select("1 as doctype,
-				surveys.id as survey_uid,
-				surveys.formid,
-				surveys.idno as surveyid,
-				surveys.title,
-				nation,
-				authoring_entity,
-				forms.model as form_model,
-				surveys.year_start,
-				surveys.year_end,					
-				surveys.repositoryid as repositoryid,
-				link_da,
-				repositories.title as repo_title,					
-				surveys.created,
-				surveys.changed,
-				surveys.varcount,
-				surveys.published,
-				surveys.total_views,
-				surveys.metadata,
-				surveys.total_downloads",FALSE);
+		$this->ci->db->select($fields,FALSE);
 		$this->ci->db->join("forms","surveys.formid=forms.formid","left");
 		$this->ci->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
 		$this->ci->db->where_in("surveys.id",$id);
@@ -569,6 +592,7 @@ class Solr_manager{
 		}
 
 		$survey['id']='survey-'.$survey['survey_uid']; //id column must use the format SURVEY-1234
+
 		//survey topics
 		//survey countries
 		$survey['countries']=$this->get_survey_countries($survey['survey_uid']);
@@ -576,12 +600,25 @@ class Solr_manager{
 		$survey['repositories']=$this->get_survey_repositories($survey['survey_uid']);
 		//survey years
 		$survey['years']=$this->get_survey_years($survey['survey_uid']);
+
+		if ($inc_keywords){
+			//variable keywords
+			$survey['var_keywords']=$this->get_survey_variables($survey['survey_uid']);
+		
+			//custom user defined facets
+			$user_facets_by_study=$this->ci->Facet_model->facet_terms_by_study($survey['survey_uid']);
+
+			foreach($user_facets_by_study as $facet_name=>$facet_terms){
+				$survey['fq_'.$facet_name]=$facet_terms;
+			}
+		}
+
 		//decode metadata and convert to text
-		if($survey['metadata']){
+		/*if($survey['metadata']){
 			$this->ci->load->helper('array');
 			$this->ci->load->model("Dataset_model");
 			$survey['metadata']=array_to_plain_text($this->ci->Dataset_model->decode_metadata($survey['metadata']));
-		}
+		}*/
 		return $survey;
 	}
 
@@ -591,8 +628,8 @@ class Solr_manager{
 	public function add_survey($id)
 	{
 		$documents=array();
-		$documents[]=$this->get_survey_by_id($id);
-		$this->add_documents($documents,$commit=true);
+		$documents[]=$this->get_survey_by_id($id);		
+		$this->add_documents($documents,$id_prefix='',$commit=false);
 
 		//delete variables if exist
 		$this->delete_document('sid:'.$id);
@@ -607,7 +644,7 @@ class Solr_manager{
 		set_time_limit(0);
 
 		$this->ci->db->select("2 as doctype,
-			concat('v-',uid)  as id,
+			uid as id,
 			vid,
 			name,
 			labl,
@@ -634,8 +671,7 @@ class Solr_manager{
 
 		//row variable id
 		$last_row_id=$rows[ count($rows)-1]['var_uid'];
-
-		$this->add_documents($rows);
+		$this->add_documents($rows,'v-');
 		unset($rows);
 
 		if ($loop){
@@ -648,15 +684,26 @@ class Solr_manager{
 
 	public function add_citation($id_array)
 	{
-		$this->ci->db->select("3 as doctype,
-						concat('cit-',id) as id,
+		$this->ci->db->select("
+						3 as doctype,
+						id,
 						id as citation_id,
+						uuid as citation_uuid,
 						title,
 						subtitle,
 						authors,
-						ft_keywords,
+						volume,
+						issue,
+						edition,
+						place_publication,
+						publisher,
+						ctype,						
+						abstract,
+						keywords,
+						notes,
+						doi,
 						published,
-						pub_year as pub_date
+						pub_year as pub_date,
 						",FALSE);
 		$this->ci->db->where_in("id",$id_array);
 		$rows=$this->ci->db->get("citations")->result_array();
@@ -667,7 +714,7 @@ class Solr_manager{
 			return false;
 		}
 
-		$this->add_documents($rows);
+		$this->add_documents($rows,$_prefix='cit-');
 	}
 
 
@@ -689,7 +736,7 @@ class Solr_manager{
 	function clean_index()
 	{
 		// create a client instance
-		$client = new Solarium\Client($this->solr_config);
+		$client=$this->get_solarium_client();
 
 		// get an update query instance
 		$update = $client->createUpdate();
@@ -734,16 +781,18 @@ class Solr_manager{
 
 		$this->ci->db->select("
 			2 as doctype,
-			uid as id,
-			vid,
-			name,
-			labl,
-			catgry,
-			qstn,
-			sid,			
-			uid as var_uid
+			variables.uid as id,
+			variables.vid,
+			variables.name,
+			variables.labl,
+			variables.catgry,
+			variables.qstn,
+			variables.sid,			
+			variables.uid as var_uid,
+			surveys.idno
 			  ",FALSE);
     	$this->ci->db->limit($limit);
+		$this->ci->db->join("surveys","surveys.id=variables.sid");
 		$this->ci->db->order_by('uid ASC');
 
 		if ($start_row){
@@ -826,10 +875,20 @@ class Solr_manager{
 						3 as doctype,
 						id,
 						id as citation_id,
+						uuid as citation_uuid,
 						title,
 						subtitle,
 						authors,
-						ft_keywords,
+						volume,
+						issue,
+						edition,
+						place_publication,
+						publisher,
+						ctype,						
+						abstract,
+						keywords,
+						notes,
+						doi,
 						published,
 						pub_year as pub_date
 					  ",FALSE);
@@ -1028,6 +1087,170 @@ class Solr_manager{
 			'citations'=>$citations
 		);
 	}
+
+
+
+
+/**
+	 *
+	 * recursive function to import all surveys
+	 *
+	 * @start_row start importing from a row number or NULL to start from first id
+	 * @limit number of records to read at a time
+	 * @loop whether to recursively call the function till the end of rows
+	 *
+	 * */
+	public function dataset_to_json($start_row=NULL, $limit=10, $loop=TRUE)
+	{
+		$start_time=date("h:i:s");
+        set_time_limit(0);
+        $this->ci->load->model("Dataset_model");
+        $this->ci->load->helper('array');
+
+		//concat('survey-', surveys.id)  as id,
+		$this->ci->db->select("
+			1 as doctype,
+            surveys.id,
+            surveys.thumbnail as thumbnail,
+            surveys.type as dataset_type,
+            surveys.id as survey_uid,
+            surveys.idno as idno,
+            surveys.formid,        
+            forms.model as form_model,
+            surveys.title as title,
+            nation,
+            surveys.year_start,
+            surveys.year_end,
+            surveys.repositoryid as repositoryid,
+            repositories.title as repo_title,
+            surveys.created,
+            surveys.changed,
+            surveys.varcount,
+            surveys.published,
+            surveys.total_views,
+			surveys.keywords,
+			surveys.metadata,
+            surveys.authoring_entity,
+            surveys.total_downloads",FALSE);
+        $this->ci->db->join("forms","surveys.formid=forms.formid","left");
+        $this->ci->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
+        $this->ci->db->limit($limit);
+        $this->ci->db->order_by('surveys.id ASC');
+
+		if ($start_row){
+			$this->ci->db->where("surveys.id >",$start_row,false);
+		}
+
+		//echo "start time= ".date("H:i:s")."\r\n";		
+
+        $rows=$this->ci->db->get("surveys")->result_array();
+		////echo $this->ci->db->last_query();die();
+		//echo "\r\n".count($rows). "rows found\r\n";
+
+		//echo "finished reading db rows= ".date("H:i:s")."\r\n";
+		//die();
+
+		if (!$rows){
+			return false;
+		}
+
+		$last_row_id=NULL;
+
+		foreach($rows as $key=>$row)
+		{
+			//survey topics
+			//survey countries
+			$row['countries']=$this->get_survey_countries($row['survey_uid']);
+			//survey repositories
+			$row['repositories']=$this->get_survey_repositories($row['survey_uid']);
+			//survey years
+            $row['years']=$this->get_survey_years($row['survey_uid']);
+            
+            //metadata
+			$row['metadata']=$this->ci->Dataset_model->decode_metadata($row['metadata']);
+			
+			//array of variable keywords
+			$row['var_keywords']=$this->get_survey_variables($row['survey_uid']);
+
+			//row survey id
+			$last_row_id=$row['survey_uid'];
+
+			//print_r($row);die();
+
+			//save each document as json file
+			file_put_contents($output_file='imports/'.$row['survey_uid'].'.json',json_encode($row,JSON_PRETTY_PRINT));
+		}
+
+		//echo "finish time= ".date("H:i:s")."\r\n";
+
+		if ($loop==true){
+			//recursively call to fetch next batch of rows
+			$this->dataset_to_json($last_row_id,$limit,$loop);
+		}
+
+		return array(
+			'rows_processed'=>count($rows),
+			'last_row_id'=>$last_row_id,
+			'start_time'=>$start_time,
+			'end_time'=>date("h:i:s")
+		);
+	}
+
+	
+
+	/**
+	* Get the ID of the last row ID
+	* returns only the ID field
+	**/
+	function get_solr_last_row_id($doctype=1)
+	{
+		
+		$client=$this->get_solarium_client();
+		$query = $client->createSelect();
+
+
+		$id_field='survey_uid';
+
+		if($doctype==2){
+			$id_field='var_uid';
+		}
+		else if ($doctype==3){
+			$id_field='citation_uuid';
+		}
+
+		//get one row
+		$query->setRows(1);
+
+		$query->setQuery('doctype:'.$doctype);
+
+		//get only uid field
+		$query->setFields(array($id_field));
+
+		//sort
+		$query->addSort($id_field, $query::SORT_DESC);
+
+		$resultset = $client->select($query);
+
+		if(!$resultset){
+			return false;
+		}
+
+		
+
+		// show documents using the resultset iterator
+		foreach ($resultset as $document) {
+
+			if (!isset($document[$id_field])){
+				var_dump($document);
+				die();
+			}
+			return $document[$id_field];
+		}
+	}
+
+
+
+
 }// END  class
 
 /* End of file Solr.php */

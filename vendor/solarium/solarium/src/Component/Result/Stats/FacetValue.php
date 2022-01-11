@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Stats;
 
 /**
@@ -7,6 +14,8 @@ namespace Solarium\Component\Result\Stats;
  */
 class FacetValue
 {
+    use ResultTrait;
+
     /**
      * Facet value.
      *
@@ -15,19 +24,12 @@ class FacetValue
     protected $value;
 
     /**
-     * Stats data.
-     *
-     * @var array
-     */
-    protected $stats;
-
-    /**
      * Constructor.
      *
      * @param string $value
      * @param array  $stats
      */
-    public function __construct($value, $stats)
+    public function __construct(string $value, array $stats)
     {
         $this->value = $value;
         $this->stats = $stats;
@@ -38,98 +40,20 @@ class FacetValue
      *
      * @return string
      */
-    public function getValue()
+    public function getValue(): ?string
     {
         return $this->value;
     }
 
     /**
-     * Get min value.
-     *
-     * @return string
-     */
-    public function getMin()
-    {
-        return $this->stats['min'];
-    }
-
-    /**
-     * Get max value.
-     *
-     * @return string
-     */
-    public function getMax()
-    {
-        return $this->stats['max'];
-    }
-
-    /**
-     * Get sum value.
-     *
-     * @return string
-     */
-    public function getSum()
-    {
-        return $this->stats['sum'];
-    }
-
-    /**
-     * Get count value.
-     *
-     * @return string
-     */
-    public function getCount()
-    {
-        return $this->stats['count'];
-    }
-
-    /**
-     * Get missing value.
-     *
-     * @return string
-     */
-    public function getMissing()
-    {
-        return $this->stats['missing'];
-    }
-
-    /**
-     * Get sumOfSquares value.
-     *
-     * @return string
-     */
-    public function getSumOfSquares()
-    {
-        return $this->stats['sumOfSquares'];
-    }
-
-    /**
-     * Get mean value.
-     *
-     * @return string
-     */
-    public function getMean()
-    {
-        return $this->stats['mean'];
-    }
-
-    /**
-     * Get stddev value.
-     *
-     * @return string
-     */
-    public function getStddev()
-    {
-        return $this->stats['stddev'];
-    }
-
-    /**
      * Get facet stats.
      *
-     * @return array
+     * @return array|null
+     *
+     * @deprecated Will be removed in Solarium 7
      */
-    public function getFacets()
+    public function getFacets(): ?array
     {
-        return $this->stats['facets'];
+        return null;
     }
 }

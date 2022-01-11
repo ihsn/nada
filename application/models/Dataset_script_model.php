@@ -67,7 +67,7 @@ class Dataset_script_model extends Dataset_model {
 		//set topics
 
         //update related countries
-		$this->Survey_country_model->update_countries($dataset_id,$countries=array());
+		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
 
 		//set aliases
 
@@ -94,56 +94,82 @@ class Dataset_script_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'project_desc/title_statement/title');
         $output['idno']=$this->get_array_nested_value($options,'project_desc/title_statement/idno');
 
-        $output['nation']='';
+        $nations=(array)array_data_get($options, 'project_desc.geographic_units.*.name');        
+        $output['nations']=$nations;
+        $nation_str=$this->get_country_names_string($nations);
+        $nation_system_name=$this->Country_model->get_country_system_name($nation_str);
+
+        $output['nation']=($nation_system_name!==false) ? $nation_system_name : $nation_str;
+
         $output['abbreviation']=$this->get_array_nested_value($options,'abbreviation');
         
         $auth_entity=$this->get_array_nested_value($options,'project_desc/authoring_entity');
         $output['authoring_entity']=$this->array_column_to_string($auth_entity,$column_name='name', $max_length=300);
 
-        $date=explode("-",$this->get_array_nested_value($options,'project_desc/production_date'));
-
-		if(is_array($date)){
-			$output['year_start']=(int)$date[0];
-			$output['year_end']=(int)$date[0];			
-        }
-        
+        $years=$this->get_years($options);
+        $output['year_start']=$years['start'];
+        $output['year_end']=$years['end'];
         return $output;
     }
-    
 
     /**
      * 
-     * Return an array of country names
+     * get years
      * 
-     */
-	function get_country_names($nations)
+     **/
+	function get_years($options)
 	{
-        if(empty($nations)){
-            return false;
+		$years=array();
+        $data_coll=$this->get_array_nested_value($options,'project_desc/production_date');
+			
+        if (is_array($data_coll)){
+            //get years from data collection dates				
+            foreach($data_coll as $date){
+                $year_=substr($date,0,4);
+                if((int)$year_>0){
+                    $years[]=$year_;
+                }					
+            }
         }
 
-        foreach($nations as $nation){
-            $nation_names[]=$nation['name'];
-        }	
-        return $nation_names;	
-    }
-    
-    /**
+		$start=0;
+		$end=0;
+		
+		if (count($years)>0){
+			$start=min($years);
+			$end=max($years);
+		}
+
+		if ($start==0){
+			$start=$end;
+		}
+
+		if($end==0){
+			$start=$end;
+		}
+
+		return array(
+			'start'=>$start,
+			'end'=>$end
+		);
+	}
+
+     /**
      * 
-     * Return a comma separated list of country names
+     * Update all related tables used for facets/filters
+     * 
+     * 
      */
-    function get_country_names_string($nations)
+    function update_filters($sid, $metadata)
     {
-        if(empty($nations)){
-            return false;
-        }
+        $core_fields=$this->get_core_fields($type='script',$metadata);
 
-        $nation_str=implode(", ",$nations);
-        if(strlen($nation_str)>150){
-            $nation_str=substr($nation_str,0,145).'...';
-        }
-        return $nation_str;
+        //update years
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+
+		//set topics
+
+        //update related countries
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
     }
-
-
 }

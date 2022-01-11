@@ -172,7 +172,7 @@ class Access_licensed extends MY_Controller {
 	{				
 			$this->load->helper('file');
 			$this->load->helper("resource_helper");
-			$this->load->model("Resource_model");
+			$this->load->model("Survey_resource_model");
 			
 			$request=$this->Licensed_model->get_request_by_id($request_id);		
 			$sid=$this->input->get("sid");
@@ -191,10 +191,9 @@ class Access_licensed extends MY_Controller {
 			if (!array_key_exists($sid,$request['surveys'])){
 				show_error("INVALID-REQUEST");
 			}
-			
 			//get files by request id and survey id
 			$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
-			$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
+			$data['external_resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);		
 			$data['request']=$request;
 			$data['survey_folder']=$this->Dataset_model->get_storage_fullpath($sid);
 			$data['sid']=$sid;
@@ -211,7 +210,7 @@ class Access_licensed extends MY_Controller {
 	{
 		$this->load->helper('file');
 		$this->load->helper("resource_helper");
-		$this->load->model("Resource_model");
+		$this->load->model("Survey_resource_model");
 		
 		if (!is_numeric($sid) || !is_numeric($request_id))
 		{
@@ -234,7 +233,7 @@ class Access_licensed extends MY_Controller {
 		
 		//get files by request id and survey id
 		$data['microdata_resources']=$this->Licensed_model->get_request_downloads_by_study($request_id,$sid);
-		$data['external_resources']=$this->Resource_model->get_grouped_resources_by_survey($sid);		
+		$data['external_resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);		
 		$data['request']=$request;
 		$data['survey_folder']=$this->Dataset_model->get_storage_fullpath($sid);
 		$data['sid']=$sid;
@@ -288,7 +287,7 @@ class Access_licensed extends MY_Controller {
 		
 		if (!$fileinfo || !$request)
 		{
-			show404();
+			show_404();
 		}
 		
 		//disable downloads for requests not approved

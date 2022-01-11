@@ -15,8 +15,7 @@ class Reports extends MY_Controller {
  
 	function index()
 	{	
-		$this->template->set_template('admin');		
-		
+		$this->template->set_template('admin5');		
 		//javascript/css needed for showing the date picker
 		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');	
@@ -85,6 +84,12 @@ class Reports extends MY_Controller {
 			
 			case 'downloads-detailed':
 				$data['rows']=$this->Reports_model->downloads_detailed($from,$to);
+
+				foreach($data['rows'] as $row_idx=>$row){
+					if(empty($row['username'])){
+						$data['rows'][$row_idx]['username']='Guest';
+					}
+				}
 				
 				if ($format=='excel')
 				{
@@ -135,8 +140,8 @@ class Reports extends MY_Controller {
 
 				if ($format=='excel')
 				{
-					$output=$this->load->view("reports/users_statistics",$data,TRUE);
-					$this->_export_to_csv($output,'users-statistics-'.date("m-d-y").'.csv');
+					//$output=$this->load->view("reports/users_statistics",$data,TRUE);
+					$this->_export_to_csv($data['rows'],'users-statistics-'.date("m-d-y").'.csv');
 					return;
 				}					
 				$this->load->view("reports/users_statistics",$data);
@@ -256,7 +261,7 @@ class Reports extends MY_Controller {
 		$column_names=array_keys($rows[0]);
 		
 		//unix timestamp type columns that needs to be formatted as readable date types
-		$date_columns=array('logtime','created','changed','updated','posted');
+		$date_columns=array('logtime','created','changed','updated','posted','created_on','last_login');
 		
 		//$date_type_idx=array();
 		
@@ -272,16 +277,22 @@ class Reports extends MY_Controller {
 			$date_type_idx[]=$idx;			
 		    }*/
 		    
-		    if (in_array($col,$date_columns))
-		    {
-			$date_columns_found[]=$col;			
+		    if (in_array($col,$date_columns)){
+				$date_columns_found[]=$col;			
 		    }
 		}
 
         //UTF8 BOM
         echo "\xEF\xBB\xBF";
 
-		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');	
+		fputcsv($outstream, $column_names,$delimiter=",", $enclosure='"');
+		
+		//get data format
+		$date_format=$this->config->item('date_format_long');
+
+		if(!$date_format){
+			$date_format="Y/M/d";
+		}
 	            
 		//data rows
 		foreach($rows as $row)
@@ -290,7 +301,7 @@ class Reports extends MY_Controller {
 		    {			
 				foreach($date_columns_found as $col)
 				{
-					$row[$col]=date("M/d/Y H:i:s", $row[$col]);
+					$row[$col]=date($date_format, $row[$col]); 
 				}			
 		    }
 		    

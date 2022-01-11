@@ -13,6 +13,7 @@ class DDI2_Import{
     private $repositoryid='central';
     private $published=0;
     private $formid=6;//data not available
+    private $link_da=null;
     private $catalog_root; //storage folder path
     private $overwrite=false;
 
@@ -66,7 +67,8 @@ class DDI2_Import{
         //optional params
         $optional=array(
             'published',
-            'formid'
+            'formid',
+            'link_da'
         );
         
         foreach($required as $field){
@@ -83,7 +85,7 @@ class DDI2_Import{
                 $this->{$field}=$params[$field];
             }
         }
-        
+
         //parser to read metadata
         $parser=$this->ci->metadata_parser->get_reader();
 
@@ -117,24 +119,42 @@ class DDI2_Import{
             
             //load existing options
             $dataset_row=$this->ci->dataset_manager->get_row($sid);
-            $this->repositoryid=$dataset_row['repositoryid'];
-            $this->formid=$dataset_row['formid'];
-		}
 
-		$repositoryid=$this->repositoryid;
-        $ddi_filename=$this->sanitize_filename($idno).".xml";
+            if(!isset($params['repositoryid'])){
+                $this->repositoryid=$dataset_row['repositoryid'];
+            }
 
-        //generate survey folder name hash
-        $survey_folder_hash=md5($repositoryid.':'.$idno);
+            if(!isset($params['formid'])){
+                $this->formid=$dataset_row['formid'];
+            }
 
-		//survey folder path
-        $survey_folder_path=$this->setup_folder($repositoryid,$survey_folder_hash);
-        
-        //partial relative path to survey folder
-        $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
+            $repositoryid=$this->repositoryid;
+            $ddi_filename=$this->sanitize_filename($idno).".xml";
 
-		//target file path
-		$survey_target_filepath=unix_path($survey_folder_path.'/'.$ddi_filename);
+            $survey_target_filepath=$this->ci->Dataset_model->get_metadata_file_path($sid);
+            $survey_folder_rel_path =$this->ci->Dataset_model->get_dirpath($sid);            
+
+            if(!$survey_target_filepath){
+                $survey_folder_hash=md5($repositoryid.':'.$idno);
+                $this->setup_folder($repositoryid,$survey_folder_hash);
+            }
+
+		}else{//new study
+            $repositoryid=$this->repositoryid;
+            $ddi_filename=$this->sanitize_filename($idno).".xml";
+
+            //generate survey folder name hash
+            $survey_folder_hash=md5($repositoryid.':'.$idno);
+
+            //survey folder path
+            $survey_folder_path=$this->setup_folder($repositoryid,$survey_folder_hash);
+            
+            //partial relative path to survey folder
+            $survey_folder_rel_path=$repositoryid.'/'.$survey_folder_hash;
+
+            //target file path
+            $survey_target_filepath=unix_path($survey_folder_path.'/'.$ddi_filename);
+        }
 
         //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
         if($this->file_path!==$survey_target_filepath){
@@ -166,6 +186,10 @@ class DDI2_Import{
 
         if ($this->formid!=null){
             $options['formid']=$this->formid;
+        }
+
+        if ($this->link_da!=null){
+            $options['link_da']=$this->link_da;
         }
 
         if ($this->repositoryid!=null){
@@ -234,6 +258,9 @@ class DDI2_Import{
 
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
+
+        //index variable keywords
+        $this->ci->dataset_manager->index_variable_data($sid);
                     
         return array(
             'sid'=>$sid,
@@ -501,11 +528,19 @@ class DDI2_Import{
         //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
         foreach($variable_iterator as $var_obj)
         {
-            //get file id
-            $fid=$data_files[$var_obj->get_file_id()]['id'];
+            $fid=null;
+            
+            if(!$var_obj){
+                continue;
+            }
+
+            if (isset($data_files[$var_obj->get_file_id()])){
+                //get file id
+                $fid=$data_files[$var_obj->get_file_id()]['id'];    
+            }            
             
             if(!$fid){
-                throw new exception("var @files attribute not set.");
+                throw new exception("var @files attribute not set. ". $var_obj->get_file_id());
             }
             
             //transform fields to map to variable fields and validate
@@ -536,11 +571,12 @@ class DDI2_Import{
                 'name'			=> $var_obj->get_name(),
                 'labl'			=> $var_obj->get_label(),
                 'qstn'			=> $var_obj->get_question(),
-                //'catgry'		=> $var_obj->get_categories_str(),
+                'catgry'		=> $var_obj->get_categories_str(),
+                'keywords'      => $var_obj->get_notes(),
                 'sid'	        => $sid,
                 'metadata'      => $variable
             );
-        
+
             if(!$batch_inserts){
                 $variable_id=$this->ci->Variable_model->insert($sid,$variable);
 

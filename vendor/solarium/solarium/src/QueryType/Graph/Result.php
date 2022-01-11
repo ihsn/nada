@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Graph;
 
 use Solarium\Core\Query\Result\Result as BaseResult;
@@ -14,7 +21,7 @@ class Result extends BaseResult
      *
      * @return int
      */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->response->getStatusCode();
     }
@@ -22,11 +29,11 @@ class Result extends BaseResult
     /**
      * Get Solr response body.
      *
-     * @return string The response body
+     * @return array The response body
      */
-    public function getData()
+    public function getData(): array
     {
-        return $this->response->getBody();
+        return ['body' => $this->response->getBody()];
     }
 
     /**
@@ -36,8 +43,8 @@ class Result extends BaseResult
      *
      * @return string GraphML XML document
      */
-    public function getGraphML()
+    public function getGraphML(): string
     {
-        return $this->getData();
+        return $this->response->getBody();
     }
 }

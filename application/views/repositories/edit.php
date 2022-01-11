@@ -1,6 +1,20 @@
+
+<link rel="stylesheet" href="<?php echo base_url();?>javascript/codemirror/lib/codemirror.css">
+<script src="<?php echo base_url();?>javascript/codemirror/lib/codemirror.js"></script>
+<script src="<?php echo base_url();?>javascript/codemirror/mode/css/css.js"></script>
+
 <style>
+label{
+    font-weight:bold;
+}
+.CodeMirror {
+    border: 1px solid #cccccc;
+    height: auto;
+    resize: vertical;
+    overflow: auto !important;
+}
 .file{border:1px solid gainsboro;}
-.repo-thumbnail{float:left;width:82px;height:82px;overflow:hidden;border:1px solid gainsboro;margin-right:20px;}
+.repo-thumbnail{float:left;width:100px;height:100px;overflow:hidden;border:1px solid gainsboro;margin-right:20px;}
 .repo-box-1{
     border:1px solid gainsboro;overflow:auto;padding:10px;margin-right:8px;
     background-color: #F8F8F8;
@@ -24,7 +38,9 @@ $options_published=array(
 );
 
 $sections=$this->data['section_options'];
-$options_section=array();
+$options_section=array(
+    '0' => t('Select')
+);
 
 foreach($sections as $sec){
 	$options_section[$sec['id']]=$sec['title'];
@@ -53,17 +69,26 @@ foreach($sections as $sec){
 	$uri_arr=$this->uri->segment_array();
 	$form_action_url=current_url();
 ?>
-<?php echo form_open_multipart($form_action_url, array('class'=>'form') ); ?>
+
+<?php echo form_open_multipart($form_action_url, array('class'=>'form mt-4') ); ?>
 	<input type="hidden" name="id" value="<?php echo get_form_value('id',isset($id) ? $id : ''); ?>"/>
 
-    <div class="form-group">
-        <label for="repositoryid"><?php echo t('repositoryid');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['repositoryid']);?>
-    </div>
+    <div class="row">
 
-    <div class="form-group">
-        <label for="title"><?php echo t('title');?><span class="required">*</span></label>
-        <?php echo form_input($this->data['title']);?>        
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="repositoryid"><?php echo t('repositoryid');?><span class="required">*</span></label>
+                <?php echo form_input($this->data['repositoryid']);?>
+            </div>
+        </div>
+
+        <div class="col">
+        <div class="form-group">
+            <label for="title"><?php echo t('title');?><span class="required">*</span></label>
+            <?php echo form_input($this->data['title']);?>        
+        </div>
+        </div>
+
     </div>
 
      <div class="form-group">
@@ -73,15 +98,37 @@ foreach($sections as $sec){
     
     <div class="form-grouop">
         <label for="long_text"><?php echo t('long_description');?><span class="required">*</span></label>
-        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : '',FALSE),'class="form-control"');?>
-        <div class="help-block">Limited HTML allowed: P, DIV, SPAN, IMG, A, HR, UL, LI, OL </div>
+        <?php echo form_textarea('long_text', set_value('long_text',isset($this->data['long_text']) ? $this->data['long_text'] : '',FALSE),'id="code_editor" class="form-control code_editor"');?>
+        <div class="help-block">
+            HTML allowed. 
+            <a class="btn btn-link" data-toggle="collapse" href="#tokens" role="button" aria-expanded="false" aria-controls="tokens">
+                Available tokens
+            </a>
+
+            <div class="collapse" id="tokens">
+                <div class="card card-body bg-light">                    
+                    <dl>                        
+                        <dt>[site-base-url]</dt>
+                        <dd>Website URL</dd>
+                        <dt>[search-box:repositoryID]</dt>
+                        <dd>Show search box for collection</dd>                        
+                        <dt>[latest-entries:repositoryID]</dt>
+                        <dd>Show latest entries for a collection</dd>
+                        <dt>[counts-by-type:repositoryID]</dt>
+                        <dd>Show counts per data type</dd>
+                        <dt>[cards-featured-entries:repositoryID]</dt>
+                        <dd>Cards to display featured entries by collection</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
     </div>
 
     <fieldset class="repo-box-1">
         <legend for="thumbnail-file"><?php echo t('thumbnail');?><span class="required">*</span></legend>
         
             <div class="repo-thumbnail">
-                <img alt="THUMBNAIL" title="Thumbnail" src="<?php echo $this->data['thumbnail']['value'];?>"/>
+                <img alt="THUMBNAIL" style="width:100%" title="Thumbnail" src="<?php echo base_url();?><?php echo $this->data['thumbnail']['value'];?>"/>
             </div>
             
             <div class="repo-file-upload">
@@ -110,13 +157,13 @@ foreach($sections as $sec){
         <div class="col-md-2">      
             <div class="form-group">
                 <label for="section"><?php echo t('section');?><span class="required">*</span></label>
-                <?php echo form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''),array('class'=>'form-control'));?>
+                <?php echo form_dropdown('section', $options_section,get_form_value('section',isset($this->data['section']) ? $this->data['section'] : ''),array('class'=>'form-control'));?>                
             </div>
         </div>
         <div class="col-md-2">
             <div class="form-group">
                 <label for="ispublished"><?php echo t('published');?></label>
-                <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''),array('class'=>'form-control'));?>
+                <?php echo form_dropdown('ispublished', $options_published,get_form_value('ispublished',isset($this->data['ispublished']) ? $this->data['ispublished'] : ''),array('class'=>'form-control'));?>                
             </div>  
         </div>
         </div>
@@ -129,3 +176,13 @@ foreach($sections as $sec){
     </div>
 <?php echo form_close();?>
 </div>
+
+<script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("code_editor"), {
+    lineNumbers: true,
+    lineWrapping: true,
+    mode: "text/html",
+    viewportMargin: Infinity,
+    });
+    editor.setSize(null, 300);
+</script>

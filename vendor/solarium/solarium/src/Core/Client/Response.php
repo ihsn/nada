@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Client;
 
 use Solarium\Exception\HttpException;
@@ -43,12 +50,12 @@ class Response
      * @param string $body
      * @param array  $headers
      */
-    public function __construct($body, $headers = [])
+    public function __construct(string $body, array $headers = [])
     {
         $this->body = $body;
-        $this->headers = $headers;
-
-        $this->setHeaders($headers);
+        if ($headers) {
+            $this->setHeaders($headers);
+        }
     }
 
     /**
@@ -56,7 +63,7 @@ class Response
      *
      * @return string
      */
-    public function getBody()
+    public function getBody(): string
     {
         return $this->body;
     }
@@ -66,7 +73,7 @@ class Response
      *
      * @return array
      */
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->headers;
     }
@@ -76,7 +83,7 @@ class Response
      *
      * @return int
      */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }
@@ -86,7 +93,7 @@ class Response
      *
      * @return string
      */
-    public function getStatusMessage()
+    public function getStatusMessage(): string
     {
         return $this->statusMessage;
     }
@@ -94,19 +101,20 @@ class Response
     /**
      * Set headers.
      *
-     *
      * @param array $headers
      *
      * @throws HttpException
+     *
+     * @return self Provides fluent interface
      */
-    public function setHeaders($headers)
+    public function setHeaders(array $headers): self
     {
         $this->headers = $headers;
 
         // get the status header
         $statusHeader = null;
         foreach ($headers as $header) {
-            if ('HTTP' == substr($header, 0, 4)) {
+            if (0 === strpos($header, 'HTTP')) {
                 $statusHeader = $header;
                 break;
             }
@@ -122,5 +130,7 @@ class Response
         $statusInfo = explode(' ', $statusHeader, 3);
         $this->statusCode = (int) $statusInfo[1];
         $this->statusMessage = $statusInfo[2];
+
+        return $this;
     }
 }

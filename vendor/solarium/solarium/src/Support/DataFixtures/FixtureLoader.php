@@ -1,6 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Support\DataFixtures;
+
+use ReflectionException;
 
 /**
  * This class is just a convenience wrapper around the fixture loading process.
@@ -39,8 +48,12 @@ class FixtureLoader
     /**
      * @param string $dir
      * @param bool   $append
+     *
+     * @throws ReflectionException
+     *
+     * @return self
      */
-    public function loadFixturesFromDir($dir, $append = true)
+    public function loadFixturesFromDir(string $dir, bool $append = true): self
     {
         if (!$append) {
             $this->purger->purge();
@@ -49,5 +62,7 @@ class FixtureLoader
         $this->loader->loadFromDirectory($dir);
 
         $this->executor->execute($this->loader->getFixtures());
+
+        return $this;
     }
 }

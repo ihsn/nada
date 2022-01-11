@@ -88,7 +88,7 @@ $route['api/datasets/(:any)/resources/download/(:num)'] = "api/resources/downloa
 
 //dataset files
 $route['api/datasets/(:any)/files'] = "api/files/$1";
-$route['api/datasets/(:any)/files/(:num)'] = "api/files/$1/$2";
+$route['api/datasets/(:any)/files/(.*)'] = "api/files/$1/$2";
 $route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
 
 $route['api/datasets/(:any)/thumbnail'] = "api/datasets/thumbnail/$1";
@@ -124,6 +124,8 @@ $route['api/datadeposits'] = "api/datadeposits/projects";
 */
 
 
+//collections
+$route['collections/(.*)'] = "collections/index/$1";
 
 //for new study page
 $route['catalog/(:num)/study-description'] = "study/metadata/$1";
@@ -133,6 +135,9 @@ $route['catalog/(:num)/data_dictionary'] = "study/data_dictionary/$1";
 $route['catalog/(:num)/variable-groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
+
+//timeseries db info page
+$route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
 $route['catalog/(:num)/variable_groups/(.*)'] = "study/variable_groups/$1/$2";
@@ -160,6 +165,9 @@ $route['catalog/(:num)/get-microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/get_microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/related_materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/related-materials'] = "study/related_materials/$1";
+$route['catalog/(:num)/downloads'] = "study/downloads/$1";
+$route['catalog/(:num)/request-access'] = "study/request_access/$1";
+$route['catalog/(:num)/request-access/(.*)'] = "study/request_access/$1";
 $route['catalog/(:num)/related-datasets'] = "study/related_datasets/$1";
 $route['catalog/(:num)/pdf-documentation'] = "study/pdf_documentation/$1";
 
@@ -178,6 +186,9 @@ $route['switch_language/(.*)'] = "page/switch_language/$1";
 
 //forms {pubic,direct, etc}
 $route['forms/(.*)'] = "forms";
+
+//$route['embed/(.*)'] = "embed/index/$1";
+//$route['embed/(.*)'] = "embed/index/$1";
 
 //admin paths
 $route['admin'] = "admin/admin";

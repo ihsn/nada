@@ -1,8 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Grouping;
 
-use Solarium\QueryType\Select\Query\Query;
+use Solarium\Core\Query\AbstractQuery;
 
 /**
  * Select component grouping field value group result.
@@ -28,7 +35,7 @@ class ValueGroup implements \IteratorAggregate, \Countable
     /**
      * Start position.
      *
-     * @var int
+     * @var int|null
      */
     protected $start;
 
@@ -42,26 +49,26 @@ class ValueGroup implements \IteratorAggregate, \Countable
     /**
      * Maximum score in group.
      *
-     * @var float
+     * @var float|null
      */
     protected $maximumScore;
 
     /**
-     * @var Query
+     * @var AbstractQuery
      */
     protected $query;
 
     /**
      * Constructor.
      *
-     * @param string $value
-     * @param int    $numFound
-     * @param int    $start
-     * @param array  $documents
-     * @param float  $maxScore
-     * @param Query  $query
+     * @param string|null   $value
+     * @param int|null      $numFound
+     * @param int|null      $start
+     * @param array         $documents
+     * @param float|null    $maxScore
+     * @param AbstractQuery $query
      */
-    public function __construct($value, $numFound, $start, $documents, $maxScore = null, $query = null)
+    public function __construct(?string $value, ?int $numFound, ?int $start, array $documents, ?float $maxScore = null, ?AbstractQuery $query = null)
     {
         $this->value = $value;
         $this->numFound = $numFound;
@@ -74,9 +81,9 @@ class ValueGroup implements \IteratorAggregate, \Countable
     /**
      * Get value.
      *
-     * @return string
+     * @return string|null
      */
-    public function getValue()
+    public function getValue(): ?string
     {
         return $this->value;
     }
@@ -84,9 +91,9 @@ class ValueGroup implements \IteratorAggregate, \Countable
     /**
      * Get numFound.
      *
-     * @return int
+     * @return int|null
      */
-    public function getNumFound()
+    public function getNumFound(): ?int
     {
         return $this->numFound;
     }
@@ -94,9 +101,9 @@ class ValueGroup implements \IteratorAggregate, \Countable
     /**
      * Get start.
      *
-     * @return int
+     * @return int|null
      */
-    public function getStart()
+    public function getStart(): ?int
     {
         return $this->start;
     }
@@ -104,9 +111,9 @@ class ValueGroup implements \IteratorAggregate, \Countable
     /**
      * Get maximumScore value.
      *
-     * @return int
+     * @return float|null
      */
-    public function getMaximumScore()
+    public function getMaximumScore(): ?float
     {
         return $this->maximumScore;
     }
@@ -116,7 +123,7 @@ class ValueGroup implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getDocuments()
+    public function getDocuments(): array
     {
         return $this->documents;
     }
@@ -126,7 +133,7 @@ class ValueGroup implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->getDocuments());
     }
@@ -136,8 +143,8 @@ class ValueGroup implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->getDocuments());
+        return \count($this->getDocuments());
     }
 }

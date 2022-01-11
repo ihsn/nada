@@ -1,9 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Event;
 
 use Solarium\Core\Query\QueryInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * PreCreateQuery event, see Events for details.
@@ -11,7 +18,7 @@ use Symfony\Component\EventDispatcher\Event;
 class PreCreateQuery extends Event
 {
     /**
-     * @var null|QueryInterface
+     * @var QueryInterface|null
      */
     protected $query;
 
@@ -31,7 +38,7 @@ class PreCreateQuery extends Event
      * @param string     $type
      * @param array|null $options
      */
-    public function __construct($type, $options)
+    public function __construct(string $type, array $options = null)
     {
         $this->type = $type;
         $this->options = $options;
@@ -40,9 +47,9 @@ class PreCreateQuery extends Event
     /**
      * Get the query object for this event.
      *
-     * @return QueryInterface
+     * @return QueryInterface|null
      */
-    public function getQuery()
+    public function getQuery(): ?QueryInterface
     {
         return $this->query;
     }
@@ -51,10 +58,14 @@ class PreCreateQuery extends Event
      * Set the query object for this event, this overrides default execution.
      *
      * @param QueryInterface $query
+     *
+     * @return self Provides fluent interface
      */
-    public function setQuery($query)
+    public function setQuery(QueryInterface $query): self
     {
         $this->query = $query;
+
+        return $this;
     }
 
     /**
@@ -62,7 +73,7 @@ class PreCreateQuery extends Event
      *
      * @return string
      */
-    public function getQueryType()
+    public function getQueryType(): string
     {
         return $this->type;
     }
@@ -72,7 +83,7 @@ class PreCreateQuery extends Event
      *
      * @return array|null
      */
-    public function getOptions()
+    public function getOptions(): ?array
     {
         return $this->options;
     }

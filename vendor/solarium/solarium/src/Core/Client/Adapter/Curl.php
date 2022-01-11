@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Client\Adapter;
 
 use Solarium\Core\Client\Endpoint;
@@ -15,8 +22,11 @@ use Solarium\Exception\RuntimeException;
  *
  * @author Intervals <info@myintervals.com>
  */
-class Curl extends Configurable implements AdapterInterface
+class Curl extends Configurable implements AdapterInterface, TimeoutAwareInterface, ConnectionTimeoutAwareInterface
 {
+    use TimeoutAwareTrait;
+    use ConnectionTimeoutAwareTrait;
+
     /**
      * Execute a Solr request using the cURL Http.
      *
@@ -25,22 +35,21 @@ class Curl extends Configurable implements AdapterInterface
      *
      * @return Response
      */
-    public function execute($request, $endpoint)
+    public function execute(Request $request, Endpoint $endpoint): Response
     {
         return $this->getData($request, $endpoint);
     }
 
     /**
-     * Get the response for a curl handle.
+     * Get the response for a cURL handle.
      *
      * @param resource $handle
      * @param string   $httpResponse
      *
      * @return Response
      */
-    public function getResponse($handle, $httpResponse)
+    public function getResponse($handle, $httpResponse): Response
     {
-        // @codeCoverageIgnoreStart
         if (false !== $httpResponse && null !== $httpResponse) {
             $data = $httpResponse;
             $info = curl_getinfo($handle);
@@ -55,25 +64,21 @@ class Curl extends Configurable implements AdapterInterface
         curl_close($handle);
 
         return new Response($data, $headers);
-        // @codeCoverageIgnoreEnd
     }
 
     /**
-     * Create curl handle for a request.
-     *
+     * Create cURL handle for a request.
      *
      * @param Request  $request
      * @param Endpoint $endpoint
      *
      * @throws InvalidArgumentException
      *
-     * @return resource
+     * @return resource|\CurlHandle
      */
     public function createHandle($request, $endpoint)
     {
-        // @codeCoverageIgnoreStart
-        $baseUri = $request->getIsServerRequest() ? $endpoint->getServerUri() : $endpoint->getCoreBaseUri();
-        $uri = $baseUri.$request->getUri();
+        $uri = AdapterHelper::buildUri($request, $endpoint);
 
         $method = $request->getMethod();
         $options = $this->createOptions($request, $endpoint);
@@ -81,21 +86,23 @@ class Curl extends Configurable implements AdapterInterface
         $handler = curl_init();
         curl_setopt($handler, CURLOPT_URL, $uri);
         curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
-        if (!(function_exists('ini_get') && ini_get('open_basedir'))) {
+        if (!(\function_exists('ini_get') && ini_get('open_basedir'))) {
             curl_setopt($handler, CURLOPT_FOLLOWLOCATION, true);
         }
         curl_setopt($handler, CURLOPT_TIMEOUT, $options['timeout']);
-        curl_setopt($handler, CURLOPT_CONNECTTIMEOUT, $options['timeout']);
+        curl_setopt($handler, CURLOPT_CONNECTTIMEOUT, $options['connection_timeout']);
 
         if (null !== ($proxy = $this->getOption('proxy'))) {
             curl_setopt($handler, CURLOPT_PROXY, $proxy);
         }
 
         if (!isset($options['headers']['Content-Type'])) {
-            if (Request::METHOD_GET == $method) {
-                $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+            $charset = $request->getParam('ie') ?? 'utf-8';
+
+            if (Request::METHOD_GET === $method) {
+                $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded; charset='.$charset;
             } else {
-                $options['headers']['Content-Type'] = 'application/xml; charset=utf-8';
+                $options['headers']['Content-Type'] = 'application/xml; charset='.$charset;
             }
         }
 
@@ -110,7 +117,7 @@ class Curl extends Configurable implements AdapterInterface
             curl_setopt($handler, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         }
 
-        if (count($options['headers'])) {
+        if (\count($options['headers'])) {
             $headers = [];
             foreach ($options['headers'] as $key => $value) {
                 $headers[] = $key.': '.$value;
@@ -118,43 +125,39 @@ class Curl extends Configurable implements AdapterInterface
             curl_setopt($handler, CURLOPT_HTTPHEADER, $headers);
         }
 
-        if (Request::METHOD_POST == $method) {
+        if (Request::METHOD_POST === $method) {
             curl_setopt($handler, CURLOPT_POST, true);
 
             if ($request->getFileUpload()) {
-                $helper = new AdapterHelper();
-                $data = $helper->buildUploadBodyFromRequest($request);
+                $data = AdapterHelper::buildUploadBodyFromRequest($request);
                 curl_setopt($handler, CURLOPT_POSTFIELDS, $data);
             } else {
                 curl_setopt($handler, CURLOPT_POSTFIELDS, $request->getRawData());
             }
-        } elseif (Request::METHOD_GET == $method) {
+        } elseif (Request::METHOD_GET === $method) {
             curl_setopt($handler, CURLOPT_HTTPGET, true);
-        } elseif (Request::METHOD_HEAD == $method) {
-            curl_setopt($handler, CURLOPT_CUSTOMREQUEST, 'HEAD');
-        } elseif (Request::METHOD_DELETE == $method) {
+        } elseif (Request::METHOD_HEAD === $method) {
+            curl_setopt($handler, CURLOPT_NOBODY, true);
+        } elseif (Request::METHOD_DELETE === $method) {
             curl_setopt($handler, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        } elseif (Request::METHOD_PUT == $method) {
+        } elseif (Request::METHOD_PUT === $method) {
             curl_setopt($handler, CURLOPT_CUSTOMREQUEST, 'PUT');
 
             if ($request->getFileUpload()) {
-                $helper = new AdapterHelper();
-                $data = $helper->buildUploadBodyFromRequest($request);
+                $data = AdapterHelper::buildUploadBodyFromRequest($request);
                 curl_setopt($handler, CURLOPT_POSTFIELDS, $data);
             } else {
                 curl_setopt($handler, CURLOPT_POSTFIELDS, $request->getRawData());
             }
         } else {
-            throw new InvalidArgumentException("unsupported method: $method");
+            throw new InvalidArgumentException(sprintf('unsupported method: %s', $method));
         }
 
         return $handler;
-        // @codeCoverageIgnoreEnd
     }
 
     /**
      * Check result of a request.
-     *
      *
      * @param string   $data
      * @param array    $headers
@@ -162,12 +165,12 @@ class Curl extends Configurable implements AdapterInterface
      *
      * @throws HttpException
      */
-    public function check($data, $headers, $handle)
+    public function check($data, $headers, $handle): void
     {
         // if there is no data and there are no headers it's a total failure,
         // a connection to the host was impossible.
-        if (empty($data) && 0 == count($headers)) {
-            throw new HttpException('HTTP request failed, '.curl_error($handle));
+        if (empty($data) && 0 === \count($headers)) {
+            throw new HttpException(sprintf('HTTP request failed, %s', curl_error($handle)));
         }
     }
 
@@ -179,14 +182,12 @@ class Curl extends Configurable implements AdapterInterface
      *
      * @return Response
      */
-    protected function getData($request, $endpoint)
+    protected function getData($request, $endpoint): Response
     {
-        // @codeCoverageIgnoreStart
         $handle = $this->createHandle($request, $endpoint);
         $httpResponse = curl_exec($handle);
 
         return $this->getResponse($handle, $httpResponse);
-        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -198,13 +199,11 @@ class Curl extends Configurable implements AdapterInterface
      */
     protected function init()
     {
-        // @codeCoverageIgnoreStart
-        if (!function_exists('curl_init')) {
+        if (!\function_exists('curl_init')) {
             throw new RuntimeException('cURL is not available, install it to use the CurlHttp adapter');
         }
 
         parent::init();
-        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -217,9 +216,9 @@ class Curl extends Configurable implements AdapterInterface
      */
     protected function createOptions($request, $endpoint)
     {
-        // @codeCoverageIgnoreStart
         $options = [
-            'timeout' => $endpoint->getTimeout(),
+            'timeout' => $this->timeout,
+            'connection_timeout' => $this->connectionTimeout ?? $this->timeout,
         ];
         foreach ($request->getHeaders() as $headerLine) {
             list($header, $value) = explode(':', $headerLine);
@@ -229,6 +228,5 @@ class Curl extends Configurable implements AdapterInterface
         }
 
         return $options;
-        // @codeCoverageIgnoreEnd
     }
 }

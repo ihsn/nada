@@ -1,17 +1,27 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\RealtimeGet;
 
 use Solarium\Core\Client\Client;
 use Solarium\Core\Query\AbstractQuery as BaseQuery;
+use Solarium\Core\Query\RequestBuilderInterface;
+use Solarium\Core\Query\ResponseParserInterface;
 use Solarium\QueryType\Select\ResponseParser;
+use Solarium\QueryType\Select\Result\Document;
 
 /**
  * Get query.
  *
  * Realtime Get query for one or multiple document IDs
  *
- * @see http://wiki.apache.org/solr/RealTimeGet
+ * @see https://solr.apache.org/guide/realtime-get.html
  */
 class Query extends BaseQuery
 {
@@ -21,8 +31,8 @@ class Query extends BaseQuery
      * @var array
      */
     protected $options = [
-        'resultclass' => 'Solarium\QueryType\RealtimeGet\Result',
-        'documentclass' => 'Solarium\QueryType\Select\Result\Document',
+        'resultclass' => Result::class,
+        'documentclass' => Document::class,
         'handler' => 'get',
         'omitheader' => true,
     ];
@@ -39,7 +49,7 @@ class Query extends BaseQuery
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return Client::QUERY_REALTIME_GET;
     }
@@ -49,7 +59,7 @@ class Query extends BaseQuery
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): RequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -59,7 +69,7 @@ class Query extends BaseQuery
      *
      * @return ResponseParser
      */
-    public function getResponseParser()
+    public function getResponseParser(): ResponseParserInterface
     {
         return new ResponseParser();
     }
@@ -71,7 +81,7 @@ class Query extends BaseQuery
      *
      * @return self Provides fluent interface
      */
-    public function addId($id)
+    public function addId(string $id): self
     {
         $this->ids[$id] = true;
 
@@ -85,9 +95,9 @@ class Query extends BaseQuery
      *
      * @return self Provides fluent interface
      */
-    public function addIds($ids)
+    public function addIds($ids): self
     {
-        if (is_string($ids)) {
+        if (\is_string($ids)) {
             $ids = explode(',', $ids);
             $ids = array_map('trim', $ids);
         }
@@ -106,7 +116,7 @@ class Query extends BaseQuery
      *
      * @return self Provides fluent interface
      */
-    public function removeId($id)
+    public function removeId(string $id): self
     {
         if (isset($this->ids[$id])) {
             unset($this->ids[$id]);
@@ -120,7 +130,7 @@ class Query extends BaseQuery
      *
      * @return self Provides fluent interface
      */
-    public function clearIds()
+    public function clearIds(): self
     {
         $this->ids = [];
 
@@ -132,7 +142,7 @@ class Query extends BaseQuery
      *
      * @return array
      */
-    public function getIds()
+    public function getIds(): array
     {
         return array_keys($this->ids);
     }
@@ -146,7 +156,7 @@ class Query extends BaseQuery
      *
      * @return self Provides fluent interface
      */
-    public function setIds($ids)
+    public function setIds(array $ids): self
     {
         $this->clearIds();
         $this->addIds($ids);
@@ -163,9 +173,11 @@ class Query extends BaseQuery
      *
      * @return self Provides fluent interface
      */
-    public function setDocumentClass($value)
+    public function setDocumentClass(string $value): self
     {
-        return $this->setOption('documentclass', $value);
+        $this->setOption('documentclass', $value);
+
+        return $this;
     }
 
     /**
@@ -175,7 +187,7 @@ class Query extends BaseQuery
      *
      * @return string
      */
-    public function getDocumentClass()
+    public function getDocumentClass(): string
     {
         return $this->getOption('documentclass');
     }
@@ -185,7 +197,7 @@ class Query extends BaseQuery
      *
      * @return array
      */
-    public function getComponents()
+    public function getComponents(): array
     {
         return [];
     }

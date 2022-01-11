@@ -8,10 +8,11 @@ class Translate extends MY_Controller {
     public function __construct()
     {
         parent::__construct();
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 
 		$this->lang->load("general");
 		$this->load->library('translator');
+		$this->acl_manager->has_access_or_die('translate', 'edit');
 		//$this->output->enable_profiler(TRUE);
     }
  

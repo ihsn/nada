@@ -1,9 +1,17 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Spellcheck;
 
 use Solarium\Core\Query\AbstractResponseParser as ResponseParserAbstract;
-use Solarium\Core\Query\ResponseParserInterface as ResponseParserInterface;
+use Solarium\Core\Query\ResponseParserInterface;
+use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Spellcheck\Result\Result;
 
 /**
@@ -14,11 +22,11 @@ class ResponseParser extends ResponseParserAbstract implements ResponseParserInt
     /**
      * Get result data for the response.
      *
-     * @param Result $result
+     * @param \Solarium\Core\Query\Result\ResultInterface $result
      *
      * @return array
      */
-    public function parse($result)
+    public function parse(ResultInterface $result): array
     {
         $data = $result->getData();
         $query = $result->getQuery();
@@ -27,26 +35,26 @@ class ResponseParser extends ResponseParserAbstract implements ResponseParserInt
         $allSuggestions = [];
         $collation = null;
 
-        if (isset($data['spellcheck']['suggestions']) && is_array($data['spellcheck']['suggestions'])) {
+        if (isset($data['spellcheck']['suggestions']) && \is_array($data['spellcheck']['suggestions'])) {
             $suggestResults = $data['spellcheck']['suggestions'];
             $termClass = $query->getOption('termclass');
 
-            if ($query->getResponseWriter() == $query::WT_JSON) {
+            if ($query->getResponseWriter() === $query::WT_JSON) {
                 $suggestResults = $this->convertToKeyValueArray($suggestResults);
             }
 
             foreach ($suggestResults as $term => $termData) {
-                if ('collation' == $term) {
+                if ('collation' === $term) {
                     $collation = $termData;
                 } else {
-                    if (!array_key_exists(0, $termData)) {
+                    if (!\array_key_exists(0, $termData)) {
                         $termData = [$termData];
                     }
 
                     foreach ($termData as $currentTermData) {
                         $allSuggestions[] = $this->createTerm($termClass, $currentTermData);
 
-                        if (!array_key_exists($term, $suggestions)) {
+                        if (!\array_key_exists($term, $suggestions)) {
                             $suggestions[$term] = $this->createTerm($termClass, $currentTermData);
                         }
                     }
@@ -64,6 +72,12 @@ class ResponseParser extends ResponseParserAbstract implements ResponseParserInt
         );
     }
 
+    /**
+     * @param string $termClass
+     * @param array  $termData
+     *
+     * @return mixed
+     */
     private function createTerm($termClass, array $termData)
     {
         return new $termClass(

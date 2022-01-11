@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Facet;
 
 /**
@@ -8,7 +15,7 @@ namespace Solarium\Component\Result\Facet;
  * Since a query facet has only a single result, the count for the query, this
  * is a very simple object.
  */
-class Query
+class Query implements FacetResultInterface
 {
     /**
      * Value (count).

@@ -2,11 +2,14 @@
 .input-fixed-1{width:300px;}
 </style>
 <div class='container-fluid'>
-    <div class="text-right page-links">
-        <a href="<?php echo site_url(); ?>/admin/countries" class="btn btn-default">
-    	<span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('home');?></a>
+<div class="text-right page-links">
+        <a href="<?php echo site_url(); ?>/admin/countries" class="btn btn-outline-primary btn-sm">
+    	<span class="fas fa-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('home');?></a>
     </div>
-	<h1><?php echo t('edit_country'); ?></h1>
+<div class="row">
+	<div class="col-md-6">
+    
+	<h3 class="mt-5"><?php echo t('edit_country'); ?></h3>
 	<?php if (validation_errors() ) : ?>
         <div class="alert alert-danger">
             <?php echo validation_errors(); ?>
@@ -37,7 +40,7 @@
 	?>
     
     <div class="row">
-    <div class="col-md-6">
+    <div class="col">
     <?php echo form_open($form_action_url, array('class'=>'form'));?>
     
     <div class="form-group">
@@ -60,11 +63,13 @@
     </div>
 	
 	
-      <?php echo form_submit('submit', t('update'),'class="btn btn-primary"');?>
-      <?php echo anchor('admin/countries/', t('cancel'),'class="btn btn-default"' );?>
+      <?php echo form_submit('submit', t('update'),'class="btn btn-primary btn-sm"');?>
+      <?php echo anchor('admin/countries/', t('cancel'),'class="btn btn-secondary btn-sm"' );?>
       
     <?php echo form_close();?>
     </div>
     </div>
 
 </div>
+        </div>
+        </div>

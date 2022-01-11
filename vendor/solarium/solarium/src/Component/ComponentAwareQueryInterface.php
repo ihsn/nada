@@ -1,6 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
+
+use Solarium\Exception\OutOfBoundsException;
 
 /**
  * Trait query types supporting components.
@@ -83,11 +92,16 @@ interface ComponentAwareQueryInterface
     const COMPONENT_RERANKQUERY = 'rerankquery';
 
     /**
+     * Query component analytics.
+     */
+    const COMPONENT_ANALYTICS = 'analytics';
+
+    /**
      * Get all registered component types.
      *
      * @return array
      */
-    public function getComponentTypes();
+    public function getComponentTypes(): array;
 
     /**
      * Register a component type.
@@ -97,14 +111,14 @@ interface ComponentAwareQueryInterface
      *
      * @return self Provides fluent interface
      */
-    public function registerComponentType($key, $component);
+    public function registerComponentType(string $key, string $component);
 
     /**
      * Get all registered components.
      *
      * @return AbstractComponent[]
      */
-    public function getComponents();
+    public function getComponents(): array;
 
     /**
      * Get a component instance by key.
@@ -112,16 +126,15 @@ interface ComponentAwareQueryInterface
      * You can optionally supply an autoload class to create a new component
      * instance if there is no registered component for the given key yet.
      *
-     *
      * @param string      $key      Use one of the constants
      * @param string|bool $autoload Class to autoload if component needs to be created
      * @param array|null  $config   Configuration to use for autoload
      *
-     * @throws \Solarium\Exception\OutOfBoundsException
+     * @throws OutOfBoundsException
      *
      * @return object|null
      */
-    public function getComponent($key, $autoload = false, $config = null);
+    public function getComponent(string $key, $autoload = false, array $config = null);
 
     /**
      * Set a component instance.
@@ -133,7 +146,7 @@ interface ComponentAwareQueryInterface
      *
      * @return self Provides fluent interface
      */
-    public function setComponent($key, $component);
+    public function setComponent(string $key, AbstractComponent $component): self;
 
     /**
      * Remove a component instance.
@@ -144,5 +157,5 @@ interface ComponentAwareQueryInterface
      *
      * @return self Provides fluent interface
      */
-    public function removeComponent($component);
+    public function removeComponent($component): self;
 }

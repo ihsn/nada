@@ -1,9 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Ping;
 
 use Solarium\Core\Client\Client;
 use Solarium\Core\Query\AbstractQuery as BaseQuery;
+use Solarium\Core\Query\RequestBuilderInterface;
+use Solarium\Core\Query\ResponseParserInterface;
 
 /**
  * Ping query.
@@ -20,7 +29,7 @@ class Query extends BaseQuery
      * @var array
      */
     protected $options = [
-        'resultclass' => 'Solarium\QueryType\Ping\Result',
+        'resultclass' => Result::class,
         'handler' => 'admin/ping',
         'omitheader' => true,
     ];
@@ -30,7 +39,7 @@ class Query extends BaseQuery
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return Client::QUERY_PING;
     }
@@ -40,15 +49,18 @@ class Query extends BaseQuery
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): RequestBuilderInterface
     {
         return new RequestBuilder();
     }
 
     /**
      * The ping query has no response parser so we return a null value.
+     *
+     * @return \Solarium\Core\Query\ResponseParserInterface|null
      */
-    public function getResponseParser()
+    public function getResponseParser(): ?ResponseParserInterface
     {
+        return null;
     }
 }

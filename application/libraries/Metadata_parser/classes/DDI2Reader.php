@@ -434,7 +434,7 @@ class DDI2Reader
         //$this->variable_iterator = new varIterator($xml_file);
 
         //generator
-        $this->varialbe_iterator=$this->getVariables($xml_file);
+        $this->variable_iterator=$this->getVariables($xml_file);
         $this->metadata_array=$this->extract_study_meta_array();
     }
 

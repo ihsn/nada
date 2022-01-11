@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Query\Result;
 
 use Solarium\Core\Client\Response;
@@ -17,14 +24,14 @@ interface ResultInterface
      *
      * @return Response
      */
-    public function getResponse();
+    public function getResponse(): Response;
 
     /**
      * Get query instance.
      *
      * @return AbstractQuery
      */
-    public function getQuery();
+    public function getQuery(): AbstractQuery;
 
     /**
      * Get Solr response data.
@@ -33,5 +40,5 @@ interface ResultInterface
      *
      * @return array
      */
-    public function getData();
+    public function getData(): array;
 }

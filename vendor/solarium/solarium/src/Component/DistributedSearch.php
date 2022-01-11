@@ -1,14 +1,22 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
+use Solarium\Component\RequestBuilder\ComponentRequestBuilderInterface;
 use Solarium\Component\RequestBuilder\DistributedSearch as RequestBuilder;
 
 /**
  * Distributed Search (sharding) component.
  *
- * @see http://wiki.apache.org/solr/DistributedSearch
- * @see http://wiki.apache.org/solr/SolrCloud/
+ * @see https://solr.apache.org/guide/distributed-search-with-index-sharding.html
+ * @see https://solr.apache.org/guide/solrcloud.html
  */
 class DistributedSearch extends AbstractComponent
 {
@@ -38,7 +46,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return ComponentAwareQueryInterface::COMPONENT_DISTRIBUTEDSEARCH;
     }
@@ -48,7 +56,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): ComponentRequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -61,9 +69,9 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      *
-     * @see http://wiki.apache.org/solr/DistributedSearch
+     * @see https://solr.apache.org/guide/distributed-search-with-index-sharding.html
      */
-    public function addShard($key, $shard)
+    public function addShard(string $key, string $shard): self
     {
         $this->shards[$key] = $shard;
 
@@ -89,7 +97,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function addShards(array $shards)
+    public function addShards(array $shards): self
     {
         foreach ($shards as $key => $shard) {
             $this->addShard($key, $shard);
@@ -105,7 +113,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function removeShard($key)
+    public function removeShard(string $key): self
     {
         if (isset($this->shards[$key])) {
             unset($this->shards[$key]);
@@ -119,7 +127,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function clearShards()
+    public function clearShards(): self
     {
         $this->shards = [];
 
@@ -147,7 +155,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setShards(array $shards)
+    public function setShards(array $shards): self
     {
         $this->clearShards();
         $this->addShards($shards);
@@ -160,7 +168,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return array
      */
-    public function getShards()
+    public function getShards(): array
     {
         return $this->shards;
     }
@@ -173,7 +181,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setShardRequestHandler($handler)
+    public function setShardRequestHandler(string $handler): self
     {
         $this->setOption('shardhandler', $handler);
 
@@ -183,9 +191,9 @@ class DistributedSearch extends AbstractComponent
     /**
      * Get a shard request handler (shards.qt).
      *
-     * @return self Provides fluent interface
+     * @return ?string
      */
-    public function getShardRequestHandler()
+    public function getShardRequestHandler(): ?string
     {
         return $this->getOption('shardhandler');
     }
@@ -198,9 +206,9 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      *
-     * @see http://wiki.apache.org/solr/SolrCloud/
+     * @see https://solr.apache.org/guide/solrcloud.html
      */
-    public function addCollection($key, $collection)
+    public function addCollection(string $key, string $collection): self
     {
         $this->collections[$key] = $collection;
 
@@ -214,7 +222,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function addCollections(array $collections)
+    public function addCollections(array $collections): self
     {
         foreach ($collections as $key => $collection) {
             $this->addCollection($key, $collection);
@@ -230,7 +238,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function removeCollection($key)
+    public function removeCollection(string $key): self
     {
         if (isset($this->collections[$key])) {
             unset($this->collections[$key]);
@@ -244,7 +252,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function clearCollections()
+    public function clearCollections(): self
     {
         $this->collections = [];
 
@@ -260,7 +268,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setCollections(array $collections)
+    public function setCollections(array $collections): self
     {
         $this->clearCollections();
         $this->addCollections($collections);
@@ -273,7 +281,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return array
      */
-    public function getCollections()
+    public function getCollections(): array
     {
         return $this->collections;
     }
@@ -286,9 +294,9 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      *
-     * @see https://cwiki.apache.org/confluence/display/solr/Distributed+Requests
+     * @see https://solr.apache.org/guide/distributed-requests.html
      */
-    public function addReplica($key, $replica)
+    public function addReplica(string $key, string $replica): self
     {
         $this->replicas[$key] = $replica;
 
@@ -302,7 +310,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function addReplicas(array $replicas)
+    public function addReplicas(array $replicas): self
     {
         foreach ($replicas as $key => $replica) {
             $this->addReplica($key, $replica);
@@ -318,7 +326,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function removeReplica($key)
+    public function removeReplica(string $key): self
     {
         if (isset($this->replicas[$key])) {
             unset($this->replicas[$key]);
@@ -332,7 +340,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function clearReplicas()
+    public function clearReplicas(): self
     {
         $this->replicas = [];
 
@@ -348,7 +356,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return self Provides fluent interface
      */
-    public function setReplicas(array $replicas)
+    public function setReplicas(array $replicas): self
     {
         $this->clearReplicas();
         $this->addReplicas($replicas);
@@ -361,7 +369,7 @@ class DistributedSearch extends AbstractComponent
      *
      * @return array
      */
-    public function getReplicas()
+    public function getReplicas(): array
     {
         return $this->replicas;
     }

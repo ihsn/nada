@@ -9,7 +9,6 @@
 	<p><b><?php echo anchor('auth/activate/'. $id .'/'. $activation, site_url().'/auth/activate/'. $id .'/'. $activation);?></b></p>
 	<p><?php echo t('your_account_details');?>:</p>
     <p><?php echo t('username');?>: <?php echo $email; ?></p>
-    <p><?php echo t('password');?>: <?php echo $password; ?></p>
     <p>&nbsp;</p>
     <p>&nbsp;</p>
     <p>-----------------------------------------------------------

@@ -165,6 +165,31 @@ class MY_Form_validation extends CI_Form_validation {
         return implode("<BR/>",$output);
     }
 
+
+    //check if the email address exists in db
+	function check_user_email_exists($email)
+	{
+		$user_data=$this->CI->ion_auth->get_user_by_email($email);
+
+		if ($user_data)
+		{
+			$this->set_message('check_user_email_exists', t('callback_email_exists'));
+			return FALSE;
+		}
+		return TRUE;
+    }
+    
+    //check country name is selected
+	function check_user_country_valid($country)
+	{
+		if (strlen($country)<4)
+		{
+			$this->set_message('check_user_country_valid', t('callback_country_invalid'));
+			return FALSE;
+		}
+		return TRUE;
+	}
+
 }//end class
 
 
@@ -182,6 +207,28 @@ class ValidationException extends \Exception
 
     //get validation errors as array
     public function GetValidationErrors() 
+    { 
+        return $this->options; 
+    }
+}
+
+/**
+ * 
+ * Custom exception for ACL access denied
+ * 
+ */
+class AclAccessDeniedException extends \Exception
+{
+    private $options;
+
+    public function __construct($message,$options = array('params')) 
+    {
+        parent::__construct($message, $code=0, $previous=NULL);
+        $this->options = $options; 
+    }
+
+    //get errors as array
+    public function GetErrors() 
     { 
         return $this->options; 
     }

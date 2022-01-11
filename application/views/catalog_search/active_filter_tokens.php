@@ -37,11 +37,11 @@ if (!isset($_GET['collection']))
                 <span>
                     <?php if($found!=$total):?>
                         <a href="<?php echo site_url('catalog');?>" class="btn btn btn-outline-primary btn-sm">
-                            <i class="fa fa-refresh"></i> Reset search
+                            <i class="fa fa-refresh"></i> <?php echo t('reset_search');?>
                         </a>
                     <?php endif;?>
                   <a target="_blank" href="<?php echo site_url('catalog/export/print').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm"><i class="fa fa-print"></i></a>
-                  <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm"><i class="fa fa-file-excel-o"></i></a>
+                  <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-success btn-sm"><i class="fas fa-file-excel"></i></a>
                 </span>
             </div>
         </div>
@@ -51,7 +51,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->country)):?>
             <?php foreach($search_options->country as $country):?>
                 <?php if (array_key_exists($country,$countries)):?>
-                    <span class="badge badge-default wb-badge-close remove-filter country" data-type="country" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close remove-filter country" data-type="country" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?><i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -66,7 +66,7 @@ if (!isset($_GET['collection']))
                         <?php else: ?>
                             <?php echo $topics[$topic]['title']; ?>
                         <?php endif;?>
-                        <i class="fa fa-close"></i></span>
+                        <i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -74,7 +74,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->collection)):?>
             <?php foreach($search_options->collection as $collection):?>
                 <?php if (array_key_exists($collection,$repositories)):?>
-                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -82,27 +82,27 @@ if (!isset($_GET['collection']))
         <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
             <?php foreach($search_options->dtype as $dtype):?>
                 <?php if (array_key_exists($dtype,$data_access_types)):?>
-                    <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?><i class="fa fa-close"></i></span>
+                    <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?><i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
 
         <?php if ($search_options->from!='' && $search_options->to!=''):?>
             <?php if ( $search_options->from!=$min_year || $search_options->to!=$max_year ):?>
-                <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo html_escape($search_options->from);?>-<?php echo html_escape($search_options->to);?><i class="fa fa-close"></i></span>
+                <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo html_escape($search_options->from);?>-<?php echo html_escape($search_options->to);?><i class="fas fa-times"></i></span>
             <?php endif;?>
         <?php endif;?>
 
         <?php if (isset($search_options->sk) && $search_options->sk!=''):?>
-            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sk" data-value=""><?php echo html_escape(substr($search_options->sk,0,50));?><i class="fa fa-close"></i></span>
+            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sk" data-value=""><?php echo html_escape(substr($search_options->sk,0,50));?><i class="fas fa-times"></i></span>
         <?php endif;?>
 
         <?php if (isset($search_options->vk) && $search_options->vk!=''):?>
-            <span class="badge badge-default wb-badge-close country remove-filter vk" data-type="vk" data-value=""><?php echo html_escape(substr($search_options->vk,0,50));?><i class="fa fa-close"></i></span>
+            <span class="badge badge-default wb-badge-close country remove-filter vk" data-type="vk" data-value=""><?php echo html_escape(substr($search_options->vk,0,50));?><i class="fas fa-times"></i></span>
         <?php endif;?>
 
         <?php if (isset($search_options->sid) && $search_options->sid!=''):?>
-            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo html_escape(substr($search_options->sid,0,50)).'... ';?><i class="fa fa-close"></i></span>
+            <span class="badge badge-default wb-badge-close country remove-filter sk" data-type="sid" data-value=""><?php echo html_escape(substr($search_options->sid,0,50)).'... ';?><i class="fas fa-times"></i></span>
         <?php endif;?>
     </div>
 

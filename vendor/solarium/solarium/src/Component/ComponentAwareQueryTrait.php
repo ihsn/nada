@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
 use Solarium\Exception\OutOfBoundsException;
@@ -28,7 +35,7 @@ trait ComponentAwareQueryTrait
      *
      * @return array
      */
-    public function getComponentTypes()
+    public function getComponentTypes(): array
     {
         return $this->componentTypes;
     }
@@ -41,7 +48,7 @@ trait ComponentAwareQueryTrait
      *
      * @return self Provides fluent interface
      */
-    public function registerComponentType($key, $component)
+    public function registerComponentType(string $key, string $component)
     {
         $this->componentTypes[$key] = $component;
 
@@ -53,7 +60,7 @@ trait ComponentAwareQueryTrait
      *
      * @return AbstractComponent[]
      */
-    public function getComponents()
+    public function getComponents(): array
     {
         return $this->components;
     }
@@ -64,7 +71,6 @@ trait ComponentAwareQueryTrait
      * You can optionally supply an autoload class to create a new component
      * instance if there is no registered component for the given key yet.
      *
-     *
      * @param string      $key      Use one of the constants
      * @param string|bool $autoload Class to autoload if component needs to be created
      * @param array|null  $config   Configuration to use for autoload
@@ -73,13 +79,15 @@ trait ComponentAwareQueryTrait
      *
      * @return object|null
      */
-    public function getComponent($key, $autoload = false, $config = null)
+    public function getComponent(string $key, $autoload = false, array $config = null)
     {
         if (isset($this->components[$key])) {
             return $this->components[$key];
-        } elseif (true === $autoload) {
+        }
+
+        if (true === $autoload) {
             if (!isset($this->componentTypes[$key])) {
-                throw new OutOfBoundsException('Cannot autoload unknown component: '.$key);
+                throw new OutOfBoundsException(sprintf('Cannot autoload unknown component: %s', $key));
             }
 
             $className = $this->componentTypes[$key];
@@ -103,7 +111,7 @@ trait ComponentAwareQueryTrait
      *
      * @return self Provides fluent interface
      */
-    public function setComponent($key, $component)
+    public function setComponent(string $key, AbstractComponent $component): ComponentAwareQueryInterface
     {
         $component->setQueryInstance($this);
         $this->components[$key] = $component;
@@ -120,9 +128,9 @@ trait ComponentAwareQueryTrait
      *
      * @return self Provides fluent interface
      */
-    public function removeComponent($component)
+    public function removeComponent($component): ComponentAwareQueryInterface
     {
-        if (is_object($component)) {
+        if (\is_object($component)) {
             foreach ($this->components as $key => $instance) {
                 if ($instance === $component) {
                     unset($this->components[$key]);
@@ -142,11 +150,15 @@ trait ComponentAwareQueryTrait
      * Build component instances based on config.
      *
      * @param array $configs
+     *
+     * @return self Provides fluent interface
      */
-    protected function createComponents($configs)
+    protected function createComponents(array $configs): ComponentAwareQueryInterface
     {
         foreach ($configs as $type => $config) {
             $this->getComponent($type, true, $config);
         }
+
+        return $this;
     }
 }

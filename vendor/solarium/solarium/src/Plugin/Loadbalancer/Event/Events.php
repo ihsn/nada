@@ -1,9 +1,18 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\Loadbalancer\Event;
 
 /**
  * Event definitions.
+ *
+ * @codeCoverageIgnore
  */
 class Events
 {
@@ -14,5 +23,12 @@ class Events
      *
      * @var string
      */
-    const ENDPOINT_FAILURE = 'solarium.loadbalancer.endpointFailure';
+    public const ENDPOINT_FAILURE = EndpointFailure::class;
+
+    /**
+     * Not instantiable.
+     */
+    private function __construct()
+    {
+    }
 }

@@ -6,6 +6,7 @@ class Metadata extends MY_Controller {
     public function __construct()
     {
         parent::__construct($skip_auth=TRUE);
+        $this->load->library("Dataset_manager");
         $this->load->model("Dataset_model");
         $this->load->helper("download");
 	}
@@ -17,27 +18,28 @@ class Metadata extends MY_Controller {
      * 
      * @format - JSON, DDI
      * 
-     */
-	function export($sid=null,$format='json')
+     */	
+    function export($sid=null,$format='json')
 	{
-        $dataset=$this->Dataset_model->get_row($sid);
+        $dataset=$this->Dataset_model->get_row($sid); 
 
         if(!$dataset){
             show_404();
         }
 
         if($format=='json'){
-            $metadata=$this->Dataset_model->get_metadata($sid);
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode($metadata));
-            return;
+            if (!$this->input->get("detailed")){
+                $metadata=$this->dataset_manager->get_metadata($sid,$dataset['type']);
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode($metadata));
+                return;
+            }
+            //download JSON file
+            $this->Dataset_model->download_metadata_json($sid);
         }
         else if($format=='ddi' && $dataset['type']=='survey'){
-            $ddi_path=$this->Dataset_model->get_metadata_file_path($sid);
-            if(file_exists($ddi_path)){
-                force_download2($ddi_path);
-            }
+            $this->Dataset_model->download_metadata_ddi($sid);
         }
     }
     

@@ -1,14 +1,26 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Server\CoreAdmin\Query\Action;
 
 use Solarium\QueryType\Server\CoreAdmin\Query\Query as CoreAdminQuery;
+use Solarium\QueryType\Server\Query\Action\AbstractAsyncAction;
 
 /**
- * @see https://lucene.apache.org/solr/guide/6_6/coreadmin-api.html#CoreAdminAPI-UNLOAD
+ * Class Unload.
+ *
+ * @see https://solr.apache.org/guide/coreadmin-api.html#coreadmin-unload
  */
-class Unload extends AbstractAsyncAction
+class Unload extends AbstractAsyncAction implements CoreActionInterface
 {
+    use CoreActionTrait;
+
     /**
      * Returns the action type of the core admin action.
      *
@@ -26,19 +38,21 @@ class Unload extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setDeleteIndex(bool $deleteIndex)
+    public function setDeleteIndex(bool $deleteIndex): self
     {
-        return $this->setOption('deleteIndex', $deleteIndex);
+        $this->setOption('deleteIndex', $deleteIndex);
+
+        return $this;
     }
 
     /**
      * Indicates if a deletion was forced.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getDeleteIndex(): bool
+    public function getDeleteIndex(): ?bool
     {
-        return (string) $this->getOption('deleteIndex');
+        return $this->getOption('deleteIndex');
     }
 
     /**
@@ -48,19 +62,21 @@ class Unload extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setDeleteDataDir(bool $deleteDataDir)
+    public function setDeleteDataDir(bool $deleteDataDir): self
     {
-        return $this->setOption('deleteDataDir', $deleteDataDir);
+        $this->setOption('deleteDataDir', $deleteDataDir);
+
+        return $this;
     }
 
     /**
      * Indicates if a deletion of the dataDir was forced.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getDeleteDataDir(): bool
+    public function getDeleteDataDir(): ?bool
     {
-        return (string) $this->getOption('deleteDataDir');
+        return $this->getOption('deleteDataDir');
     }
 
     /**
@@ -70,18 +86,20 @@ class Unload extends AbstractAsyncAction
      *
      * @return self Provides fluent interface
      */
-    public function setDeleteInstanceDir(bool $deleteInstanceDir)
+    public function setDeleteInstanceDir(bool $deleteInstanceDir): self
     {
-        return $this->setOption('deleteInstanceDir', $deleteInstanceDir);
+        $this->setOption('deleteInstanceDir', $deleteInstanceDir);
+
+        return $this;
     }
 
     /**
      * Indicates if a deletion of the instanceDir was forced.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getDeleteInstanceDir(): bool
+    public function getDeleteInstanceDir(): ?bool
     {
-        return (string) $this->getOption('deleteInstanceDir');
+        return $this->getOption('deleteInstanceDir');
     }
 }

@@ -4,7 +4,7 @@ class Repositories extends MY_Controller {
 	var $errors='';
 	var $search_fields=array('username','email','status'); 
 	var $uploaded_thumbnail_path='';
-	
+	var $html_filter=true;
 	
 	function __construct()
 	{
@@ -15,14 +15,14 @@ class Repositories extends MY_Controller {
        	$this->load->model('repository_model');
 		
 		//collection settings
-		$this->config->load('collections', TRUE);		
-		//var_dump($this->config->item('collection_image_path', 'collections'));
-		
+		$this->config->load('collections');
+		$this->html_filter=(boolean)$this->config->item("collection_html_filter");
+
 		//language file
 		$this->lang->load('collection');
 		
 		//set default template
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		//$this->output->enable_profiler(TRUE);
 	}
@@ -31,12 +31,13 @@ class Repositories extends MY_Controller {
 	
 	//list repositories
 	function index()
-	{					
+	{
+		$this->acl_manager->has_access_or_die('collection', 'view');
 		$result['rows']=$this->_search();
 		$content=$this->load->view('repositories/index-default', $result,true);	
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('repositories_management'),true);
-	  	$this->template->render();	
+	  	$this->template->render();	 
 	}
 	
 	
@@ -46,6 +47,7 @@ class Repositories extends MY_Controller {
 	 **/
 	function _search()
 	{
+		$this->acl_manager->has_access_or_die('collection', 'view');
 		//records to show per page
 		$per_page = 100;
 				
@@ -54,7 +56,7 @@ class Repositories extends MY_Controller {
 
 		//sort order
 		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
-		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'repositoryid';
+		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'title';
 
 		//filter
 		$filter=NULL;
@@ -109,7 +111,7 @@ class Repositories extends MY_Controller {
 	//process thumbnail uploads
 	private function process_file_uploads($file_name)
 	{
-		$config['upload_path'] = $this->config->item('collection_image_path', 'collections');
+		$config['upload_path'] = $this->config->item('collection_image_path');
 		$config['allowed_types'] = 'gif|jpg|png';
 		$config['max_size']	= '300';
 		//$config['max_width']  = '300';
@@ -146,7 +148,7 @@ class Repositories extends MY_Controller {
 	function _thumbnail_upload()
 	{
 		if(!empty($_FILES['thumbnail_file']['name'])) {
-			$thumbnail_storage=$this->config->item('collection_image_path', 'collections');
+			$thumbnail_storage=$this->config->item('collection_image_path');
 
 			if(!file_exists($thumbnail_storage)){
 				$error=t('thumbnail_upload_folder_not_set').': '.$thumbnail_storage;
@@ -176,7 +178,8 @@ class Repositories extends MY_Controller {
 	*/
 	function edit($id=NULL)	
 	{
-        $this->load->helper('security');
+		$this->acl_manager->has_access_or_die('collection', 'edit');
+		$this->load->helper('security');
 
         if (!is_numeric($id)  && $id!==NULL){
 			show_error('Invalid ID provided');exit;		
@@ -209,7 +212,7 @@ class Repositories extends MY_Controller {
 						'country'=>'',
 						'type'=>0,
 						'short_text'=>'',
-						'thumbnail'=>$this->config->item('collection_default_thumb', 'collections'),
+						'thumbnail'=>$this->config->item('collection_default_thumb'),
 						'long_text'=>'',
 						'weight'=>0,
 						'ispublished'=>0,
@@ -232,7 +235,9 @@ class Repositories extends MY_Controller {
 			}
 
 			//sanitize description html
-			$options['long_text']=$this->sanitize_html_input($options['long_text']);
+			if ($this->html_filter==true){
+				$options['long_text']=$this->sanitize_html_input($options['long_text']);
+			}
 
 			//process thumbnail file uploads
 			if(!empty($_FILES['thumbnail_file']['name']) && !empty($this->uploaded_thumbnail_path) ){
@@ -248,11 +253,6 @@ class Repositories extends MY_Controller {
 			}
 							
 			if ($db_result===TRUE){
-				/*if (isset($options['ispublished']) && is_numeric($id)){
-					//update collection studies status
-					$this->publish($id,$options['ispublished']);
-				}*/
-			
 				//update successful
 				$this->session->set_flashdata('message', t('form_update_success'));
 				redirect("admin/repositories", "refresh");				
@@ -274,7 +274,7 @@ class Repositories extends MY_Controller {
 				$this->row_data=$row;
 				
 				//validate and clean up thumbnails
-				$default_thumb=$this->config->item('collection_default_thumb', 'collections');					
+				$default_thumb=$this->config->item('collection_default_thumb');
 				$thumb_ext=explode(".",basename($this->row_data['thumbnail']));
 				
 				$thumb_ext=$thumb_ext[count($thumb_ext)-1];
@@ -303,8 +303,6 @@ class Repositories extends MY_Controller {
 		$this->data['long_text']=$this->form_validation->set_value('long_text',$this->row_data['long_text']);
 		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
-		//$this->data['group_da_public']=$this->form_validation->set_value('group_da_public',$this->row_data['group_da_public']);
-		//$this->data['group_da_licensed']=$this->form_validation->set_value('group_da_licensed',$this->row_data['group_da_licensed']);
 		$this->data['section']=$this->form_validation->set_value('section',$this->row_data['section']);
 		
 		$content=$this->load->view('repositories/edit',NULL,true);									
@@ -321,7 +319,7 @@ class Repositories extends MY_Controller {
     function sanitize_html_input($html)
     {
         $this->load->helper('kses');
-        $string=$html;//'<span><p id="<script>alert(1);</script>">this is a test<div>!</div>';
+        $string=$html;
         $allowed_tags = array('b' => array(),
             'h1'    => array("class"=>array()),
             'h2'    => array("class"=>array()),
@@ -336,7 +334,10 @@ class Repositories extends MY_Controller {
             'img' => array('src' => array()),
             'font' => array('size' =>
                 array('minval' => 4, 'maxval' => 20)),
-            'br' => array()
+            'br' => array(),
+			'strong' => array(),
+			'ul'=>array('class'=>array()),
+			'li'=>array()
         );
 
         //don't throw php warnings for non well formed html
@@ -351,16 +352,6 @@ class Repositories extends MY_Controller {
         libxml_use_internal_errors($libxml_error_setting);
 
         return wp_kses($html, $allowed_tags);
-        /*die();
-        $doc = new DOMDocument();
-        $doc->loadHTML($string);
-
-        $doc->removeChild($doc->firstChild);
-        echo $doc->saveXML();
-
-           echo str_replace("<body>","",$doc->saveHTML());
-        */
-
     }
 	
 	/**
@@ -417,6 +408,7 @@ class Repositories extends MY_Controller {
 	*/
 	function delete($id)
 	{		
+		$this->acl_manager->has_access_or_die('collection', 'delete');
 		//array of id to be deleted
 		$delete_arr=array();
 	
@@ -497,8 +489,7 @@ class Repositories extends MY_Controller {
 		else
 		{
 			//ask for confirmation
-			$content=$this->load->view('repositories/delete', NULL,true);
-			
+			$content=$this->load->view('repositories/delete', NULL,true);			
 			$this->template->write('content', $content,true);
 	  		$this->template->render();
 		}		
@@ -515,27 +506,20 @@ class Repositories extends MY_Controller {
 	**/
 	function users($id=NULL)
 	{
-			show_error("feature no longer supported");
-/*		if (!is_numeric($id))
-		{
-			show_error("INVALID_ID");
-		}
-*/
+		show_error("feature no longer supported");
+
 		//get all repos
 		$repos=$this->repository_model->get_repositories();
 		
 		//get repository info from db
 		$repo=$this->repository_model->select_single($id);
 		
-		if (!$repo)
-		{
-			//show_error("NOT-FOUND");
+		if (!$repo){
 			$repo=current($repos);
 		}
 		
 		//get a list of all catalog-admins
 		$users=$this->ion_auth_model->get_admin_users('catalog-admin');
-		//$users=$this->repository_model->get_catalog_admins($id);
 				
 		//get user for the current repository
 		$repo_users=$this->repository_model->get_repository_admins($repo['id']);
@@ -573,8 +557,10 @@ class Repositories extends MY_Controller {
 		$this->lang->load('collection');
 		$this->page_title=t('select_active_repository');
 		
-		//get array of repos user has access to
-		$data['repos']=$this->acl->get_user_repositories();
+		$data['repos']=$this->Repository_model->select_all();
+		
+		array_unshift($data['repos'], $this->Repository_model->get_central_catalog_array()	);
+
 		$content=$this->load->view('repositories/select_active_repo',$data,TRUE);
 		
 		$this->template->write('content', $content,true);
@@ -592,7 +578,7 @@ class Repositories extends MY_Controller {
 			show_error("INVALID_ID");
 		}
 		
-		$result=$this->acl->set_active_repo($repositoryid);
+		$result=$this->Repository_model->set_active_repo($repositoryid);
 		
 		if ($result)
 		{
@@ -612,83 +598,14 @@ class Repositories extends MY_Controller {
 	**/
 	function reset_repo()
 	{
-		$this->acl->clear_active_repo();
-	}
-	
-	
-	/**
-	*
-	* Manage group permissions for the repository
-	**/
-	function permissions($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_error("INVALID_ID");
-		}
-		
-		$data['repo']=$this->Repository_model->select_single($id);
-		
-		if (!$data['repo'])
-		{
-			show_error("INVALID-ID");
-		}
-		
-		if ($this->input->post("group_id"))
-		{
-			$this->Permissions_model->update_repo_permissions($id,$this->input->post("group_id"));			
-			$this->session->set_flashdata('message', t('form_update_success'));			
-		}
-
-		
-		//get all user groups
-		$data['user_groups']=$this->ion_auth_model->get_user_groups();
-		
-		//get all users accounts of type ADMIN with LIMITED access
-		$data['limited_users']=$this->ion_auth_model->get_limited_admins();
-		
-		//echo '<pre>';
-		//var_dump($data['limited_users']);exit;
-		
-		foreach($data['limited_users'] as $key=>$user)
-		{
-			//get user permissions for the current repository
-			$data['limited_users'][$key]['permissions']=$this->ion_auth_model->get_user_perms_by_repo($id,$user['id']);
-		}
-		
-		$data['users_by_repo']=$this->ion_auth_model->get_repo_users($id);
-		
-		foreach($data['users_by_repo'] as $key=>$user)
-		{
-			//get user permissions for the current repository
-			$data['users_by_repo'][$key]['permissions']=$this->ion_auth_model->get_user_perms_by_repo($id,$user['user_id']);
-		}
-		
-		
-		//get existing group permissions assigned to the current repository
-		$repo_user_groups=array();//$this->ion_auth_model->get_user_groups_by_repo($id);
-		
-		if(!$repo_user_groups)
-		{
-			//no user groups assigned to repo
-			$data['repo_user_groups']=array();
-		}
-		else
-		{		
-			foreach($repo_user_groups as $group)
-			{
-				$data['repo_user_groups'][]=$group['group_id'];
-			}
-		}
-				
-		$content=$this->load->view('repositories/permissions',$data,TRUE);
-		$this->template->write('content', $content,true);
-		$this->template->render();
+		$this->Repository_model->clear_active_repo();
 	}
 	
 	//publish/unpublish repository
 	function publish($id,$status)
 	{
+		$this->acl_manager->has_access_or_die('collection', 'publish');
+
 		if(!is_numeric($id) || !in_array($status,array(0,1)))
 		{
 			show_error('INVALID-PARAMS');
@@ -699,16 +616,14 @@ class Repositories extends MY_Controller {
 		);
 		
 		$this->Repository_model->update($id,$options);
-
-        //publish/unpublish studies in the collection based on the publish status of the collection
-		//$this->Repository_model->update_repo_studies_status($id,$status);
 	}
-	
-	
+		
 
 	//change repo weight
 	function weight($id,$weight)
 	{
+		$this->acl_manager->has_access_or_die('collection', 'edit');
+
 		if(!is_numeric($id) || !is_numeric($weight))
 		{
 			show_error('INVALID-PARAMS');
@@ -723,10 +638,12 @@ class Repositories extends MY_Controller {
 	
 	/**
 	*
-	*Show collection history
+	* Show collection history
+	*
 	**/
 	function history($repositoryid)
 	{
+		$this->acl_manager->has_access_or_die('collection', 'view');
 		$data['rows']=$this->repository_model->repo_survey_list($repositoryid);		
 		$content=$this->load->view('repositories/history', $data,true);	
 		$this->template->write('content', $content,true);

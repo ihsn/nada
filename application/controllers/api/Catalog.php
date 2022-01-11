@@ -12,9 +12,28 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Dataset_model');
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');
+		$this->load->model("Form_model");
 		$this->load->library('Dataset_manager');
 	}
 
+	/**
+	 * 
+	 * Get page size
+	 * 
+	 */
+	private function get_page_size()
+	{
+		$page_size_min=1;
+		$page_size_max=300;
+
+		$page_size=(int)$this->input->get('ps');
+
+		if($page_size>=$page_size_min && $page_size<=$page_size_max){
+			return $page_size;
+		}
+
+		return 15;//default page size
+	}
 	
 	/**
 	 * 
@@ -62,6 +81,42 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+	/**
+	 * 
+	 * Return a list of all study IDNOs in the catalog
+	 * 
+	 * 
+	 */
+	function list_idno_get($type=null)
+	{	
+		try{
+
+			$result=$this->Dataset_model->get_list_all($type,$published=1);
+
+			$response=array(
+				'status'=>'success',
+				'total'=>count($result),
+				'records'=>$result				
+			);			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Error $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 	
 	
 	/**
@@ -71,25 +126,57 @@ class Catalog extends MY_REST_Controller
 	 */
 	function search_get()
 	{
+		$search_options=new StdClass;
+		$limit=$this->get_page_size();
+
+		//page parameters
+		$search_options->collection		=xss_clean($this->input->get("collection"));
+		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
+		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
+		$search_options->vf				=xss_clean($this->input->get("vf"));
+		$search_options->country		=xss_clean($this->input->get("country"));
+		$search_options->view			=xss_clean($this->input->get("view"));
+		$search_options->topic			=xss_clean($this->input->get("topic"));
+		$search_options->from			=xss_clean($this->input->get("from"));
+		$search_options->to				=xss_clean($this->input->get("to"));
+		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
+		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
+		$search_options->page			=(int)xss_clean($this->input->get("page"));
+		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
+		$search_options->dtype			=xss_clean($this->input->get("dtype"));
+		$search_options->tag			=xss_clean($this->input->get("tag"));
+		$search_options->sid			=xss_clean($this->input->get("sid"));
+		$search_options->type			=xss_clean($this->input->get("type"));
+		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
+		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
+		$search_options->ps				=xss_clean($this->input->get("ps"));
+		$offset=						($search_options->page-1)*$limit;
+
+
+		if($search_options->tab_type!=''){
+			$search_options->type=$search_options->tab_type;
+		}
+
 		$params=array(
-				'study_keywords'	=>	$this->security->xss_clean($this->input->get("sk")),
-				'variable_keywords'	=>	$this->security->xss_clean($this->input->get("vk")),
-				'variable_fields'	=>	array('name','labl'),
-				'countries'			=>  $this->security->xss_clean($this->input->get("country")),
-				'from'				=>	$this->security->xss_clean($this->input->get("from")),
-				'to'				=>	$this->security->xss_clean($this->input->get("to")),
-				'collections'		=>	$this->security->xss_clean($this->input->get("collection")),
-				'dtype'				=>	$this->security->xss_clean($this->input->get("dtype")),
-				'repo'				=>	$this->security->xss_clean($this->input->get("repo")),
-				'ps'				=>	$this->security->xss_clean($this->input->get("ps")),
-				'sid'				=>	$this->security->xss_clean($this->input->get("sid")),
-				'topics'			=>  $this->security->xss_clean($this->input->get("topic")),
-				'tags'				=>  $this->security->xss_clean($this->input->get("tag")),
-				'sort_by'			=>  $this->security->xss_clean($this->input->get("sort_by")),
-				'sort_order'		=>  $this->security->xss_clean($this->input->get("sort_order")),
-				'type'				=>  $this->security->xss_clean($this->input->get("type")),
-				'country_iso3'		=>  $this->security->xss_clean($this->input->get("country_iso3")),
-				'created'			=>  $this->security->xss_clean($this->input->get("created")),
+			'collections'		=> $search_options->collection,
+			'study_keywords'	=> $search_options->sk,
+			//'variable_keywords'	=> $search_options->vk,
+			//'variable_fields'	=> array('name','labl'),//$search_options->vf,
+			'countries'			=> $search_options->country,
+			'topics'			=> $search_options->topic,
+			'from'				=> $search_options->from,
+			'to'				=> $search_options->to,
+			'tags'				=> $search_options->tag,
+			'sort_by'			=> $search_options->sort_by,
+			'sort_order'		=> $search_options->sort_order,
+			//'repo'=>$search_options->filter->repo,
+			'repo'				=> $this->security->xss_clean($this->input->get("repo")),
+			'dtype'				=> $this->Form_model->map_name_to_id($search_options->dtype),
+			'sid'				=> $search_options->sid,
+			'type'				=> $search_options->type,
+			'country_iso3'		=> $search_options->country_iso3,
+			'ps'				=> $this->security->xss_clean($this->input->get("ps")),
+			'created'			=> $this->security->xss_clean($this->input->get("created")),
 		);
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
@@ -107,7 +194,7 @@ class Catalog extends MY_REST_Controller
 			$limit=$params['ps'];
 		}
 
-		$page=$this->input->get('page');
+		$page=(int)$this->input->get('page');		
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$limit;
 
@@ -118,11 +205,30 @@ class Catalog extends MY_REST_Controller
 
 			if(isset($result['rows'])){
 				
+				$result['page']=$page;
+
 				$iso3_codes=array();
 
 				if ($this->input->get("inc_iso")){
 					//iso3 codes
 					$iso3_codes=$this->Dataset_model->get_dataset_country_codes(array_column($result['rows'],'id') );	
+				}
+
+				//include external resources
+				$include_resources=$this->input->get("include_resources");
+				$resources=array();
+				if ($include_resources=='true'){
+					if (isset($result['rows'][0]['idno'])){
+						$resources_iterator=$this->Survey_resource_model->get_resources_by_studies(array_column($result['rows'],'idno'),array("resources.title","resources.dcformat"));
+						foreach($resources_iterator as $resource){
+							$resources[$resource['idno']][]=array(
+								'resource_id'=>$resource['resource_id'],
+								'link'=>$resource['link'],
+								'ext'=>$resource['ext'],
+								'title'=>$resource['title']
+							);
+						}						
+					}
 				}
 				
 				//convert date format
@@ -136,6 +242,13 @@ class Catalog extends MY_REST_Controller
 					//attach iso3 codes to study
 					if (isset($iso3_codes[$row['id']])){
 						$result['rows'][$idx]['iso3'] = implode(",",$iso3_codes[$row['id']]);
+					}
+
+					//attach external resources
+					if ($include_resources=='true'){
+						if (isset($resources[$row['idno']])){
+							$result['rows'][$idx]['resources']=$resources[$row['idno']];
+						}	
 					}
 				}
 
@@ -252,18 +365,13 @@ class Catalog extends MY_REST_Controller
 	**/
 	function data_access_codes_get()
 	{
-		try{
-			$this->db->select("*");
-			$query=$this->db->get("forms");
-			$content=NULL;
-			
-			if ($query){
-				$content=$query->result_array();
-			}
+		try{			
+			$content=$this->Form_model->get_all();
 
 			$output=array();
 			foreach($content as $row){
 				$output[]=array(
+					'id'=>$row['formid'],
 					'type'=>$row['model'],
 					'title'=>$row['fname']
 				);
@@ -398,43 +506,6 @@ class Catalog extends MY_REST_Controller
 		return $output;
 	}
 
-	
-	
-	/**
-	 * 
-	 * 
-	 * Return ID by IDNO
-	 * 
-	 * 
-	 * @idno 		- ID | IDNO
-	 * @id_format 	- ID | IDNO
-	 * 
-	 * Note: to use ID instead of IDNO, must pass id_format in querystring
-	 * 
-	 */
-	private function get_sid_from_idno($idno=null)
-	{		
-		if(!$idno){
-			throw new Exception("IDNO-NOT-PROVIDED");
-		}
-
-		$id_format=$this->input->get("id_format");
-
-		if ($id_format=='id'){
-			if(!is_numeric($idno)){
-				throw new Exception("INVALID-IDNO-FORMAT");
-			}
-			return $idno;
-		}
-
-		$sid=$this->dataset_manager->find_by_idno($idno);
-
-		if(!$sid){
-			throw new Exception("IDNO-NOT-FOUND");
-		}
-
-		return $sid;
-	}
 
 	/**
 	 * 
@@ -539,7 +610,7 @@ class Catalog extends MY_REST_Controller
 				throw new exception("FILE-ID-REQUIRED");
 			}
 
-			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id);
+			$survey_variables=$this->Variable_model->list_by_dataset($sid,$file_id,$metadata_detailed=$this->input->get("metadata_detailed")=='true');
 			
 			$response=array(
 				'total'=> count($survey_variables),
@@ -1001,5 +1072,132 @@ class Catalog extends MY_REST_Controller
 			}
 		}
 		return $output;
+	}
+
+
+
+	/**
+	 * 
+	 * Get DDI
+	 * 
+	 */
+	function ddi_get($idno=null)
+	{
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+			$dataset=$this->Dataset_model->get_row($sid);
+
+			if (!$dataset){
+				throw new Exception("IDNO_NOT_FOUND");
+			}
+
+			if($dataset['type']!='survey'){
+				throw new Exception("DDI is only available for Survey/MICRODATA types");
+			}
+            $this->Dataset_model->download_metadata_ddi($sid);
+			die();
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+
+
+	/**
+	 * 
+	 * Get JSON
+	 * 
+	 */
+	function json_get($idno=null)
+	{
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+			$dataset=$this->Dataset_model->get_row($sid);
+			
+			if (!$dataset){
+				throw new Exception("IDNO_NOT_FOUND");
+			}
+
+			$this->Dataset_model->download_metadata_json($sid);
+			die();
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+	/**
+	 * 
+	 * Download RDF for external resources
+	 * 
+	 */
+	function rdf_get($idno=null)
+	{
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+			$this->load->model('Catalog_model');
+
+			header("Content-Type: application/xml");
+			header('Content-Encoding: UTF-8');
+			header( "Content-Disposition: attachment;filename=study-$idno.rdf");
+
+			echo $this->Catalog_model->get_survey_rdf($sid);
+			die();
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+
+	/**
+	 * 
+	 * Get study external resources
+	 * 
+	 */
+	function resources_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$this->load->model("Survey_resource_model");
+			$resources=$this->Survey_resource_model->get_survey_resources($sid);
+			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
+			
+			foreach($resources as $idx=>$resource){				
+				if($this->form_validation->valid_url($resource['filename'])){
+					$resources[$idx]['url']=$resource['filename'];
+				}else{
+					$resources[$idx]['url']=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+				}				
+			}
+			
+			$response=array(
+				'status'=>'success',
+				'total'=>count($resources),
+				'resources'=>$resources
+			);
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);			
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
 	}
 }

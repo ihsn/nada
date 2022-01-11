@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\Loadbalancer;
 
 use Solarium\Exception\InvalidArgumentException;
@@ -36,12 +43,11 @@ class WeightedRandomChoice
     /**
      * Constructor.
      *
-     *
      * @param array $choices
      *
      * @throws InvalidArgumentException
      */
-    public function __construct($choices)
+    public function __construct(array $choices)
     {
         $i = 0;
         foreach ($choices as $key => $weight) {
@@ -60,16 +66,15 @@ class WeightedRandomChoice
     /**
      * Get a (weighted) random entry.
      *
-     *
      * @param array $excludes Keys to exclude
      *
      * @throws RuntimeException
      *
      * @return string
      */
-    public function getRandom($excludes = [])
+    public function getRandom(array $excludes = []): string
     {
-        if (count($excludes) == count($this->values)) {
+        if (\count($excludes) === \count($this->values)) {
             throw new RuntimeException('No more server entries available');
         }
 
@@ -77,7 +82,7 @@ class WeightedRandomChoice
         $result = null;
         while (1) {
             $result = $this->values[$this->getKey()];
-            if (!in_array($result, $excludes, true)) {
+            if (!\in_array($result, $excludes, true)) {
                 break;
             }
         }
@@ -90,10 +95,12 @@ class WeightedRandomChoice
      *
      * @return int
      */
-    protected function getKey()
+    protected function getKey(): int
     {
+        // We don't need cryptographically secure values, therefore mt_rand is the better choice over random_int().
+        /** @noinspection RandomApiMigrationInspection */
         $random = mt_rand(1, $this->totalWeight);
-        $high = count($this->lookup) - 1;
+        $high = \count($this->lookup) - 1;
         $low = 0;
 
         while ($low < $high) {

@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Facet;
 
 use Solarium\Component\FacetSetInterface;
@@ -7,20 +14,16 @@ use Solarium\Component\FacetSetInterface;
 /**
  * Facet range.
  *
- * @see http://wiki.apache.org/solr/SimpleFacetParameters#Facet_by_Range
+ * @see https://solr.apache.org/guide/faceting.html#range-faceting
  */
-class Range extends AbstractRange implements ExcludeTagsInterface
+class Range extends AbstractRange
 {
-    use ExcludeTagsTrait {
-        init as excludeTagsInit;
-    }
-
     /**
      * Get the facet type.
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return FacetSetInterface::FACET_RANGE;
     }
@@ -32,17 +35,19 @@ class Range extends AbstractRange implements ExcludeTagsInterface
      *
      * @return self Provides fluent interface
      */
-    public function setMinCount($minCount)
+    public function setMinCount(int $minCount): self
     {
-        return $this->setOption('mincount', $minCount);
+        $this->setOption('mincount', $minCount);
+
+        return $this;
     }
 
     /**
      * Get the facet mincount.
      *
-     * @return int
+     * @return int|null
      */
-    public function getMinCount()
+    public function getMinCount(): ?int
     {
         return $this->getOption('mincount');
     }
@@ -56,6 +61,15 @@ class Range extends AbstractRange implements ExcludeTagsInterface
     protected function init()
     {
         parent::init();
-        $this->excludeTagsInit();
+
+        foreach ($this->options as $name => $value) {
+            switch ($name) {
+                case 'exclude':
+                    $this->getLocalParameters()->addExcludes($value);
+                    break;
+                case 'pivot':
+                    $this->setPivot(new Pivot($value));
+            }
+        }
     }
 }

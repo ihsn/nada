@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
 /**
@@ -17,7 +24,7 @@ trait QueryTrait
      *
      * @return self Provides fluent interface
      */
-    public function setQuery($query, $bind = null)
+    public function setQuery(string $query, array $bind = null): QueryInterface
     {
         if (null !== $bind) {
             $helper = $this->getHelper();
@@ -32,7 +39,7 @@ trait QueryTrait
      *
      * @return string|null
      */
-    public function getQuery()
+    public function getQuery(): ?string
     {
         return $this->getOption('query');
     }

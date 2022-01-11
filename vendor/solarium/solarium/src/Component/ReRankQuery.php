@@ -1,13 +1,21 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
+use Solarium\Component\RequestBuilder\ComponentRequestBuilderInterface;
 use Solarium\Component\RequestBuilder\ReRankQuery as RequestBuilder;
 
 /**
  * Rerank query.
  *
- * @see https://lucene.apache.org/solr/guide/7_3/query-re-ranking.html#rerank-query-parser
+ * @see https://solr.apache.org/guide/query-re-ranking.html#rerank-query-parser
  */
 class ReRankQuery extends AbstractComponent implements QueryInterface
 {
@@ -18,7 +26,7 @@ class ReRankQuery extends AbstractComponent implements QueryInterface
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return ComponentAwareQueryInterface::COMPONENT_RERANKQUERY;
     }
@@ -28,7 +36,7 @@ class ReRankQuery extends AbstractComponent implements QueryInterface
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): ComponentRequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -36,9 +44,9 @@ class ReRankQuery extends AbstractComponent implements QueryInterface
     /**
      * Get reRankDocs value.
      *
-     * @return int
+     * @return int|null
      */
-    public function getDocs()
+    public function getDocs(): ?int
     {
         return $this->getOption('docs');
     }
@@ -48,19 +56,21 @@ class ReRankQuery extends AbstractComponent implements QueryInterface
      *
      * @param int $value
      *
-     * @return self Provides fluent interface
+     * @return self
      */
-    public function setDocs(int $value)
+    public function setDocs(int $value): self
     {
-        return $this->setOption('docs', $value);
+        $this->setOption('docs', $value);
+
+        return $this;
     }
 
     /**
      * Get reRankWeight value.
      *
-     * @return float
+     * @return float|null
      */
-    public function getWeight()
+    public function getWeight(): ?float
     {
         return $this->getOption('weight');
     }
@@ -72,8 +82,10 @@ class ReRankQuery extends AbstractComponent implements QueryInterface
      *
      * @return self Provides fluent interface
      */
-    public function setWeight(float $value)
+    public function setWeight(float $value): self
     {
-        return $this->setOption('weight', $value);
+        $this->setOption('weight', $value);
+
+        return $this;
     }
 }

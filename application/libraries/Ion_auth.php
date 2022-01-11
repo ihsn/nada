@@ -227,41 +227,7 @@ class Ion_auth
 	 **/
 	public function forgotten_password_complete($code)
 	{
-	    $identity     = $this->ci->config->item('identity');
-	    $profile      = $this->ci->ion_auth_model->profile($code);
-		$new_password = $this->ci->ion_auth_model->forgotten_password_complete($code);
-
-		if ($new_password) 
-		{
-			$data = array(
-				'identity'     	=> $profile->{$identity},
-				'new_password' 	=> $new_password,
-			);
-            
-			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_forgot_password_complete'), $data, true);
-				
-			$this->ci->email->clear();
-			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
-			$this->ci->email->to($profile->email);
-			$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('new_password'));
-			$this->ci->email->message($message);
-
-			if ($this->ci->email->send())
-			{
-				$this->set_error('password_change_successful');
-				return TRUE;
-			}
-			else
-			{
-				$this->set_error('password_change_unsuccessful');
-				return FALSE;
-			}
-		}
-		else
-		{
-			$this->set_error('password_change_unsuccessful');
-			return FALSE;
-		}
+		return $this->ci->ion_auth_model->forgotten_password_complete($code);
 	}
 
 	/**
@@ -416,6 +382,16 @@ class Ion_auth
 			return $this->ci->ion_auth_model->is_admin($user_id);	
 		} 
 		return $this->ci->ion_auth_model->is_admin($this->ci->session->userdata("user_id"));
+	}
+
+
+	function can_access_site_admin($user_id=null)
+	{
+		if(!$user_id){
+			$user_id=$this->ci->session->userdata("user_id");
+		}
+
+		return $this->ci->acl_manager->has_site_admin_access();
 	}
 	
 	/**

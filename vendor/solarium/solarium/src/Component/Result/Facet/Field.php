@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Facet;
 
 /**
@@ -9,7 +16,7 @@ namespace Solarium\Component\Result\Facet;
  * value and its count. You can access the values as an array using
  * {@link getValues()} or iterate this object.
  */
-class Field implements \IteratorAggregate, \Countable
+class Field implements FacetResultInterface, \IteratorAggregate, \Countable
 {
     /**
      * Value array.
@@ -33,7 +40,7 @@ class Field implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getValues()
+    public function getValues(): array
     {
         return $this->values;
     }
@@ -43,7 +50,7 @@ class Field implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->values);
     }
@@ -53,8 +60,8 @@ class Field implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->values);
+        return \count($this->values);
     }
 }

@@ -1,21 +1,27 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\Loadbalancer;
 
 use Solarium\Core\Client\Client;
 use Solarium\Core\Client\Endpoint;
 use Solarium\Core\Client\Request;
 use Solarium\Core\Client\Response;
-use Solarium\Core\Event\Events as CoreEvents;
-use Solarium\Core\Event\PreCreateRequest as PreCreateRequestEvent;
-use Solarium\Core\Event\PreExecuteRequest as PreExecuteRequestEvent;
+use Solarium\Core\Event\Events;
+use Solarium\Core\Event\PreCreateRequest;
+use Solarium\Core\Event\PreExecuteRequest;
 use Solarium\Core\Plugin\AbstractPlugin;
 use Solarium\Exception\HttpException;
 use Solarium\Exception\InvalidArgumentException;
 use Solarium\Exception\OutOfBoundsException;
 use Solarium\Exception\RuntimeException;
 use Solarium\Plugin\Loadbalancer\Event\EndpointFailure as EndpointFailureEvent;
-use Solarium\Plugin\Loadbalancer\Event\Events;
 
 /**
  * Loadbalancer plugin.
@@ -63,7 +69,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * The value can be null if no queries have been executed, or if the last executed query didn't use loadbalancing.
      *
-     * @var null|string
+     * @var string|null
      */
     protected $lastEndpoint;
 
@@ -112,17 +118,19 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function setFailoverEnabled($value)
+    public function setFailoverEnabled(bool $value): self
     {
-        return $this->setOption('failoverenabled', $value);
+        $this->setOption('failoverenabled', $value);
+
+        return $this;
     }
 
     /**
      * Get failoverenabled option.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getFailoverEnabled()
+    public function getFailoverEnabled(): ?bool
     {
         return $this->getOption('failoverenabled');
     }
@@ -134,24 +142,25 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function setFailoverMaxRetries($value)
+    public function setFailoverMaxRetries(int $value): self
     {
-        return $this->setOption('failovermaxretries', $value);
+        $this->setOption('failovermaxretries', $value);
+
+        return $this;
     }
 
     /**
      * Get failovermaxretries option.
      *
-     * @return int
+     * @return int|null
      */
-    public function getFailoverMaxRetries()
+    public function getFailoverMaxRetries(): ?int
     {
         return $this->getOption('failovermaxretries');
     }
 
     /**
      * Add an endpoint to the loadbalacing 'pool'.
-     *
      *
      * @param Endpoint|string $endpoint
      * @param int             $weight   Must be a positive number
@@ -160,13 +169,13 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function addEndpoint($endpoint, $weight = 1)
+    public function addEndpoint($endpoint, int $weight = 1): self
     {
-        if (!is_string($endpoint)) {
+        if (!\is_string($endpoint)) {
             $endpoint = $endpoint->getKey();
         }
 
-        if (array_key_exists($endpoint, $this->endpoints)) {
+        if (\array_key_exists($endpoint, $this->endpoints)) {
             throw new InvalidArgumentException('An endpoint for the loadbalancer plugin must have a unique key');
         }
 
@@ -185,7 +194,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function addEndpoints(array $endpoints)
+    public function addEndpoints(array $endpoints): self
     {
         foreach ($endpoints as $endpoint => $weight) {
             $this->addEndpoint($endpoint, $weight);
@@ -199,7 +208,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return Endpoint[]
      */
-    public function getEndpoints()
+    public function getEndpoints(): array
     {
         return $this->endpoints;
     }
@@ -209,9 +218,11 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function clearEndpoints()
+    public function clearEndpoints(): self
     {
         $this->endpoints = [];
+
+        return $this;
     }
 
     /**
@@ -221,9 +232,9 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function removeEndpoint($endpoint)
+    public function removeEndpoint($endpoint): self
     {
-        if (!is_string($endpoint)) {
+        if (!\is_string($endpoint)) {
             $endpoint = $endpoint->getKey();
         }
 
@@ -240,11 +251,15 @@ class Loadbalancer extends AbstractPlugin
      * This overwrites any existing endpoints
      *
      * @param array $endpoints
+     *
+     * @return self Provides fluent interface
      */
-    public function setEndpoints($endpoints)
+    public function setEndpoints($endpoints): self
     {
         $this->clearEndpoints();
         $this->addEndpoints($endpoints);
+
+        return $this;
     }
 
     /**
@@ -256,20 +271,19 @@ class Loadbalancer extends AbstractPlugin
      * If the next query cannot be loadbalanced (for instance based on the querytype) this setting is ignored
      * but will still be reset.
      *
-     *
-     * @param string|null|Endpoint $endpoint
+     * @param string|Endpoint|null $endpoint
      *
      * @throws OutOfBoundsException
      *
      * @return self Provides fluent interface
      */
-    public function setForcedEndpointForNextQuery($endpoint)
+    public function setForcedEndpointForNextQuery($endpoint): self
     {
-        if (!is_string($endpoint)) {
+        if (!\is_string($endpoint)) {
             $endpoint = $endpoint->getKey();
         }
 
-        if (null !== $endpoint && !array_key_exists($endpoint, $this->endpoints)) {
+        if (null !== $endpoint && !\array_key_exists($endpoint, $this->endpoints)) {
             throw new OutOfBoundsException('Unknown endpoint forced for next query');
         }
 
@@ -283,7 +297,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return string|null
      */
-    public function getForcedEndpointForNextQuery()
+    public function getForcedEndpointForNextQuery(): ?string
     {
         return $this->nextEndpoint;
     }
@@ -293,7 +307,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return array
      */
-    public function getBlockedQueryTypes()
+    public function getBlockedQueryTypes(): array
     {
         return array_keys($this->blockedQueryTypes);
     }
@@ -307,7 +321,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function setBlockedQueryTypes($types)
+    public function setBlockedQueryTypes(array $types): self
     {
         $this->clearBlockedQueryTypes();
         $this->addBlockedQueryTypes($types);
@@ -322,9 +336,9 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function addBlockedQueryType($type)
+    public function addBlockedQueryType(string $type): self
     {
-        if (!array_key_exists($type, $this->blockedQueryTypes)) {
+        if (!\array_key_exists($type, $this->blockedQueryTypes)) {
             $this->blockedQueryTypes[$type] = true;
         }
 
@@ -340,23 +354,29 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function addBlockedQueryTypes($types)
+    public function addBlockedQueryTypes(array $types): self
     {
         foreach ($types as $type) {
             $this->addBlockedQueryType($type);
         }
+
+        return $this;
     }
 
     /**
      * Remove a single querytype from the block list.
      *
      * @param string $type
+     *
+     * @return self Provides fluent interface
      */
-    public function removeBlockedQueryType($type)
+    public function removeBlockedQueryType(string $type): self
     {
-        if (array_key_exists($type, $this->blockedQueryTypes)) {
+        if (\array_key_exists($type, $this->blockedQueryTypes)) {
             unset($this->blockedQueryTypes[$type]);
         }
+
+        return $this;
     }
 
     /**
@@ -364,9 +384,11 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return self Provides fluent interface
      */
-    public function clearBlockedQueryTypes()
+    public function clearBlockedQueryTypes(): self
     {
         $this->blockedQueryTypes = [];
+
+        return $this;
     }
 
     /**
@@ -374,9 +396,9 @@ class Loadbalancer extends AbstractPlugin
      *
      * May return a null value if no query has been executed yet, or the last query could not be loadbalanced.
      *
-     * @return null|string
+     * @return string|null
      */
-    public function getLastEndpoint()
+    public function getLastEndpoint(): ?string
     {
         return $this->lastEndpoint;
     }
@@ -384,20 +406,30 @@ class Loadbalancer extends AbstractPlugin
     /**
      * Event hook to capture querytype.
      *
-     * @param PreCreateRequestEvent $event
+     * @param object $event
+     *
+     * @return self Provides fluent interface
      */
-    public function preCreateRequest(PreCreateRequestEvent $event)
+    public function preCreateRequest($event): self
     {
+        // We need to accept event proxies or decorators.
+        /* @var PreCreateRequest $event */
         $this->queryType = $event->getQuery()->getType();
+
+        return $this;
     }
 
     /**
      * Event hook to adjust client settings just before query execution.
      *
-     * @param PreExecuteRequestEvent $event
+     * @param object $event
+     *
+     * @return self Provides fluent interface
      */
-    public function preExecuteRequest(PreExecuteRequestEvent $event)
+    public function preExecuteRequest($event): self
     {
+        // We need to accept event proxies or decorators.
+        /* @var PreExecuteRequest $event */
         $adapter = $this->client->getAdapter();
 
         // save adapter presets (once) to allow the settings to be restored later
@@ -406,7 +438,7 @@ class Loadbalancer extends AbstractPlugin
         }
 
         // check querytype: is loadbalancing allowed?
-        if (!array_key_exists($this->queryType, $this->blockedQueryTypes)) {
+        if (!\array_key_exists($this->queryType, $this->blockedQueryTypes)) {
             $response = $this->getLoadbalancedResponse($event->getRequest());
         } else {
             $endpoint = $this->client->getEndpoint($this->defaultEndpoint);
@@ -417,11 +449,12 @@ class Loadbalancer extends AbstractPlugin
         }
 
         $event->setResponse($response);
+
+        return $this;
     }
 
     /**
      * Execute a request using the adapter.
-     *
      *
      * @param Request $request
      *
@@ -429,7 +462,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return Response $response
      */
-    protected function getLoadbalancedResponse($request)
+    protected function getLoadbalancedResponse(Request $request): Response
     {
         $this->endpointExcludes = []; // reset for each query
         $adapter = $this->client->getAdapter();
@@ -443,10 +476,8 @@ class Loadbalancer extends AbstractPlugin
                 } catch (HttpException $e) {
                     // ignore HTTP errors and try again
                     // but do issue an event for things like logging
-                    $this->client->getEventDispatcher()->dispatch(
-                        Events::ENDPOINT_FAILURE,
-                        new EndpointFailureEvent($endpoint, $e)
-                    );
+                    $event = new EndpointFailureEvent($endpoint, $e);
+                    $this->client->getEventDispatcher()->dispatch($event);
                 }
             }
 
@@ -465,7 +496,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return Endpoint
      */
-    protected function getRandomEndpoint()
+    protected function getRandomEndpoint(): Endpoint
     {
         // determine the endpoint to use
         if (null !== $this->nextEndpoint) {
@@ -487,7 +518,7 @@ class Loadbalancer extends AbstractPlugin
      *
      * @return WeightedRandomChoice
      */
-    protected function getRandomizer()
+    protected function getRandomizer(): WeightedRandomChoice
     {
         if (null === $this->randomizer) {
             $this->randomizer = new WeightedRandomChoice($this->endpoints);
@@ -524,7 +555,10 @@ class Loadbalancer extends AbstractPlugin
     protected function initPluginType()
     {
         $dispatcher = $this->client->getEventDispatcher();
-        $dispatcher->addListener(CoreEvents::PRE_EXECUTE_REQUEST, [$this, 'preExecuteRequest']);
-        $dispatcher->addListener(CoreEvents::PRE_CREATE_REQUEST, [$this, 'preCreateRequest']);
+        if (is_subclass_of($dispatcher, '\Symfony\Component\EventDispatcher\EventDispatcherInterface')) {
+            // The Loadbalancer plugin needs to be the last plugin executed on PRE_EXECUTE_REQUEST. Set Priority to 0.
+            $dispatcher->addListener(Events::PRE_EXECUTE_REQUEST, [$this, 'preExecuteRequest'], 0);
+            $dispatcher->addListener(Events::PRE_CREATE_REQUEST, [$this, 'preCreateRequest']);
+        }
     }
 }

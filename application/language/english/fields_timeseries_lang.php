@@ -1,109 +1,122 @@
 <?php 
 
 $lang['metadata_production']="Metadata production";
-$lang['identification']="Identification";
-$lang['abbr']="Abbreviation";
-$lang['affiliation']="Affiliation";
-$lang['role']="Role";
-$lang['uri']="URI";
-$lang['type']="Type";
-$lang['note']="Note";
-$lang['code']="Code";
-$lang['grant']="Grant";
-$lang['abbreviation']="Abbreviation";
-$lang['vocabulary']="Vocabulary";
-$lang['id']="ID";
-$lang['parent']="Parent";
-$lang['period']="Period";
-$lang['start']="Start";
-$lang['end']="End";
-$lang['revision']="Revision";
-$lang['email']="Email";
+$lang['api_documentation']="API documentation";
+$lang['links']="Series links";
+$lang['geographic_units']="Geographic information";
+$lang['license_rights']="License";
 
-$lang['metadata.database_description.title']="Title";
-$lang['metadata.database_description.abbreviation']="Abbreviation";
-$lang['metadata.database_description.authoring_entity']="Authoring entities";
-$lang['metadata.database_description.abstract']="Abstract";
-$lang['metadata.database_description.url']="Website";
-$lang['metadata.database_description.type']="Type";
-$lang['metadata.database_description.doi']="DOI";
-$lang['metadata.database_description.date_created']="Date created";
-$lang['metadata.database_description.revision_dates']="Revision date";
-$lang['metadata.database_description.date_published']="Date published";
-$lang['metadata.database_description.update_frequency']="Update frequency";
-$lang['metadata.database_description.update_schedule']="Update schedule";
-$lang['metadata.database_description.time_coverage']="Time coverage";
-$lang['metadata.database_description.periodicity']="Periodicity";
-$lang['metadata.database_description.themes']="Themes";
-$lang['metadata.database_description.topics']="Topics";
-$lang['metadata.database_description.keywords']="Keywords";
-$lang['metadata.database_description.geographic_coverage_note']="Geographic coverage note";
-$lang['metadata.database_description.geographic_granularity']="Geographic granularity";
-$lang['metadata.database_description.geographic_area_count']="Geographic area count";
-$lang['metadata.database_description.sponsors']="Sponsors";
-$lang['metadata.database_description.contacts']="Contacts";
-$lang['metadata.database_description.languages']="Languages";
-$lang['metadata.database_description.access_options']="Access options";
-$lang['metadata.database_description.license']="License";
-$lang['metadata.database_description.citation']="Citation";
-$lang['metadata.database_description.notes']="Notes";
-$lang['metadata.database_description.disclaimer']="Disclaimer";
-$lang['metadata.database_description.copyright']="Copyright";
-$lang['metadata.metadata_creation.idno']="Reference ID";
-$lang['metadata.metadata_creation.producers']="Producers";
-$lang['metadata.metadata_creation.prod_date']="Production date";
-$lang['metadata.metadata_creation.version']="Version";
+$lang['metadata.metadata_creation']='Metadata creation';
+$lang['metadata.metadata_creation.producers']='Producers';
+$lang['metadata.metadata_creation.producers.name']='Name';
+$lang['metadata.metadata_creation.producers.abbr']='Abbreviation';
+$lang['metadata.metadata_creation.producers.affiliation']='Affiliation';
+$lang['metadata.metadata_creation.producers.role']='Role';
+$lang['metadata.metadata_creation.prod_date']='Date of Production';
+$lang['metadata.metadata_creation.version']='Document version';
+$lang['metadata.series_description']='';
+$lang['metadata.series_description.idno']='Series unique ID';
+$lang['metadata.series_description.name']='Series Name';
+$lang['metadata.series_description.database_id']='Database ID';
+$lang['metadata.series_description.aliases']='Series other names';
+$lang['metadata.series_description.aliases.alias']='Alias';
+$lang['metadata.series_description.measurement_unit']='Series unit of measure';
+$lang['metadata.series_description.periodicity']='Periodicity of data';
+$lang['metadata.series_description.base_period']='Base period';
+$lang['metadata.series_description.definition_short']='Definition short';
+$lang['metadata.series_description.definition_long']='Definition long';
+$lang['metadata.series_description.definition_references']='Definition references';
+$lang['metadata.series_description.definition_references.source']='Source';
+$lang['metadata.series_description.definition_references.uri']='URI';
+$lang['metadata.series_description.definition_references.note']='Note';
+$lang['metadata.series_description.statistical_concept']='Statistical concept';
+$lang['metadata.series_description.concepts']='Related concepts';
+$lang['metadata.series_description.concepts.name']='Name';
+$lang['metadata.series_description.concepts.definition']='Definition';
+$lang['metadata.series_description.concepts.uri']='URI';
+$lang['metadata.series_description.methodology']='Methodology';
+$lang['metadata.series_description.imputation']='Imputations';
+$lang['metadata.series_description.quality_checks']='Quality control methods';
+$lang['metadata.series_description.quality_note']='Note on data quality';
+$lang['metadata.series_description.series_break']='Breaks in series';
+$lang['metadata.series_description.limitation']='Limitations  and exceptions';
+$lang['metadata.series_description.themes']='Themes';
+$lang['metadata.series_description.themes.name']='Name';
+$lang['metadata.series_description.themes.vocabulary']='Vocabulary name';
+$lang['metadata.series_description.themes.uri']='Vocabulary URI';
+$lang['metadata.series_description.topics']='Topics';
+$lang['metadata.series_description.topics.id']='Unique Identifier';
+$lang['metadata.series_description.topics.name']='Topic';
+$lang['metadata.series_description.topics.parent_id']='Parent topic Identifier';
+$lang['metadata.series_description.topics.vocabulary']='Vocabulary';
+$lang['metadata.series_description.topics.uri']='Vocabulary URI';
+$lang['metadata.series_description.disciplines']='Disciplines';
+$lang['metadata.series_description.disciplines.name']='Discipline title or name';
+$lang['metadata.series_description.disciplines.vocabulary']='Vocabulary';
+$lang['metadata.series_description.disciplines.uri']='URI';
+$lang['metadata.series_description.relevance']='Relevance';
+$lang['metadata.series_description.time_periods']='Series dates';
+$lang['metadata.series_description.time_periods.start']='Start';
+$lang['metadata.series_description.time_periods.end']='End';
+$lang['metadata.series_description.geographic_units']='Geographic coverage';
+$lang['metadata.series_description.geographic_units.name']='Location name';
+$lang['metadata.series_description.geographic_units.code']='Location code';
+$lang['metadata.series_description.geographic_units.type']='Type';
+$lang['metadata.series_description.aggregation_method']='Aggregation method';
+$lang['metadata.series_description.license']='Access license';
+$lang['metadata.series_description.license.name']='License';
+$lang['metadata.series_description.license.uri']='License Link';
+$lang['metadata.series_description.confidentiality']='Confidentiality statement';
+$lang['metadata.series_description.confidentiality_status']='Confidentiality status';
+$lang['metadata.series_description.confidentiality_note']='Confidentiality note';
+$lang['metadata.series_description.links']='Series links';
+$lang['metadata.series_description.links.type']='Link type';
+$lang['metadata.series_description.links.description']='Description';
+$lang['metadata.series_description.links.url']='Link';
+$lang['metadata.series_description.links.uri']='Link';
+$lang['metadata.series_description.links.format']='Format';
 
 
 
-$lang['fid']="File ID";
-$lang['vid']="Series indicator ID";
-$lang['name']="Name";
-$lang['labl']="Label";
-$lang['ser_aliases']="Other names";
-$lang['ser_measure_unit']="Measurement unit";
-$lang['ser_periodicity']="Periodicity of data";
-$lang['ser_base_period']="Base period";
-$lang['ser_def_short']="Definition (short)";
-$lang['ser_def_long']="Definition (long)";
-$lang['ser_methodology']="Methodology";
-$lang['ser_imputation']="Imputation";
-$lang['ser_qlty_ctrl_methods']="Quality control methods";
-$lang['ser_data_qlty_note']="Notes on data quality";
-$lang['ser_break']="Breaks in series";
-$lang['ser_stst_concept']="Statistical concept";
-$lang['ser_limitation']="Limitation and exceptions";
-$lang['ser_topics']="Topics";
-$lang['ser_relevance']="Relevance";
-$lang['ser_dates']="Series dates";
-$lang['ser_geog_areas_data']="Geographic areas with data";
-$lang['ser_aggr_method']="Aggregation method";
-$lang['ser_access_license']="Access license";
-$lang['ser_links']="Series access links";
-$lang['ser_origin_source']="Origin source";
-$lang['ser_origin_source_note']="Notes from original source";
-$lang['ser_keywords']="Keywords";
-$lang['ser_notes']="Notes";
-$lang['ser_rel_indicators']="Related indicators";
-$lang['ser_int_res_comp']="Compliance with international resolution";
-$lang['ser_groups']="Series group";
+//tobo removed
+$lang['metadata.series_description.series_links']='Series links';
+$lang['metadata.series_description.series_links.type']='Link type';
+$lang['metadata.series_description.series_links.description']='Description';
+$lang['metadata.series_description.series_links.url']='Link';
 
 
 
 
+$lang['metadata.series_description.api_documentation']='';
+$lang['metadata.series_description.api_documentation.description']='Description';
 
+$lang['metadata.series_description.api_documentation.uri']='Documentation Link';
+$lang['metadata.series_description.api_documentation.url']='Documentation Link';
 
+$lang['metadata.series_description.sources']='Original sources';
+$lang['metadata.series_description.sources.id']='Source ID';
+$lang['metadata.series_description.sources.name']='Name';
+$lang['metadata.series_description.sources.organization']='Organization';
+$lang['metadata.series_description.sources.type']='Type';
+$lang['metadata.series_description.sources.note']='Note';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+$lang['metadata.series_description.source_notes']='Notes from original sources';
+$lang['metadata.series_description.keywords']='Keywords';
+$lang['metadata.series_description.keywords.name']='Keyword';
+$lang['metadata.series_description.keywords.vocabulary']='Vocabulary';
+$lang['metadata.series_description.keywords.uri']='URI';
+$lang['metadata.series_description.notes']='Notes';
+$lang['metadata.series_description.notes.note']='Note';
+$lang['metadata.series_description.related_indicators']='';
+$lang['metadata.series_description.related_indicators.code']='Indicator code';
+$lang['metadata.series_description.related_indicators.label']='Indicator name';
+$lang['metadata.series_description.related_indicators.uri']='URI';
+$lang['metadata.series_description.compliance']='Compliance with international resolution';
+$lang['metadata.series_description.compliance.standard']='Standard name';
+$lang['metadata.series_description.compliance.organization']='Organization name';
+$lang['metadata.series_description.compliance.uri']='URI';
+$lang['metadata.series_description.series_groups']='Series groups';
+$lang['metadata.series_description.series_groups.name']='Name';
+$lang['metadata.series_description.series_groups.version']='Version';
+$lang['metadata.series_description.series_groups.uri']='URI';
+$lang['metadata.additional']='Additional custom metadata';

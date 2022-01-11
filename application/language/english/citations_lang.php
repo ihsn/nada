@@ -1,5 +1,4 @@
 <?php 
-
 $lang['title_citations']="Citations";
 $lang['title']="Title";
 $lang['subtitle']="Subtitle";
@@ -95,15 +94,25 @@ $lang['citation_owner']="Owner";
 $lang['created']="Created";
 $lang['citation_string_invalid']="Unexpected or incorrect Citation format";
 $lang['attach_to_survey']="Attach citation(s) to the following studies (use CTRL/SHIFT to select multiple studies)";
-$lang['attach_studies']="Attach studies";
+$lang['attach_studies']="Attach datasets";
+$lang['find_studies']="Find datasets";
 $lang['citations_text']="A bibliography of publications that have cited the use of a dataset listed in this catalog.  Selecting a publication from the list will show which study dataset was used and provide a link to the study in the catalog.";
 $lang['allowed_file_types']="Allowed file types";
 $lang['attach_file']="Attach file";
 $lang['max_upload_limit']="Max upload limit";
 $lang['export_citations']="Export citations";
+$lang['export_to_csv']="Export to CSV";
 $lang['sort']="Sort";
-$lang['published-status-1']="Published"; 
+$lang['published-status-1']="Published";
 $lang['published-status-0']="Draft";
+$lang['Refine by']="Refine by";
+$lang['Flags']="Flags";
+$lang['By user']="By user";
+$lang['Other options']="Other options";
+$lang['Has notes']="Has notes";
+$lang['status']="Status";
+$lang['Search by title, country and year']="Search by title, country and year";
 
-/* End of file citations_lang.php */
-/* Location: ./application/language/english/citations_lang.php */
+
+/* End of file citations */
+/* Location: ./application/language/english/citations */

@@ -459,7 +459,7 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 	protected function _limit($sql)
 	{
 		// As of SQL Server 2012 (11.0.*) OFFSET is supported
-		if (version_compare($this->version(), '11', '>='))
+		if (version_compare($this->version(), '21', '>='))
 		{
 			// SQL Server OFFSET-FETCH can be used only with the ORDER BY clause
 			empty($this->qb_orderby) && $sql .= ' ORDER BY 1';
@@ -477,6 +477,7 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 			// We have to strip the ORDER BY clause
 			$sql = trim(substr($sql, 0, strrpos($sql, $orderby)));
 
+			/*
 			// Get the fields to select from our subquery, so that we can avoid CI_rownum appearing in the actual results
 			if (count($this->qb_select) === 0 OR strpos(implode(',', $this->qb_select), '*') !== FALSE)
 			{
@@ -493,8 +494,12 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 					$select[] = preg_match('/(?:\s|\.)'.$field_regexp.'$/i', $this->qb_select[$i], $m)
 						? $m[1] : $this->qb_select[$i];
 				}
-				$select = implode(', ', $select);
+				$select = implode(', ', $select);								
 			}
+			*/
+
+			//need more testing
+			$select="*";
 
 			return 'SELECT '.$select." FROM (\n\n"
 				.preg_replace('/^(SELECT( DISTINCT)?)/i', '\\1 ROW_NUMBER() OVER('.trim($orderby).') AS '.$this->escape_identifiers('CI_rownum').', ', $sql)

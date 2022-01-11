@@ -1,35 +1,93 @@
 <?php
 
-$lang['identification']='Identification';
-$lang['metadata.dataset_description.identification_info.title']='Title';
-$lang['metadata.dataset_description.identification_info.alternate_title']='Alternate title';
-$lang['metadata.dataset_description.identification_info.edition']='Edition';
-$lang['metadata.dataset_description.identification_info.identifier']='Identifier';
-$lang['metadata.dataset_description.identification_info.presentation_form']='Presentation form';
-$lang['metadata.dataset_description.identification_info.date']='Dates';
-$lang['metadata.dataset_description.identification_info.abstract']='Abstract';
-$lang['metadata.dataset_description.identification_info.purpose']='Purpose';
-$lang['metadata.dataset_description.identification_info.credit']='Credits';
-$lang['metadata.dataset_description.identification_info.status']='Status';
-$lang['metadata.dataset_description.identification_info.point_of_contact']='Point of contact';
-$lang['metadata.dataset_description.identification_info.resource_maintenance.maintenance_frequency']='Maintenance frequency';
-$lang['metadata.dataset_description.identification_info.keywords']='Keywords';
-$lang['metadata.dataset_description.identification_info.topics']='Topics';
-$lang['metadata.dataset_description.identification_info.spatial_representation_type']='Spatial representation';
-$lang['metadata.dataset_description.identification_info.graphic_overview']='Graphic overview';
-$lang['graphic_overview']='Graphic overview';
-$lang['resource_constraints']='Resource constraints';
-$lang['metadata.dataset_description.identification_info.resource_constraints.access_constraints']='Access constraints';
-$lang['metadata.dataset_description.identification_info.resource_constraints.use_constraints']='Use constraints';
-$lang['metadata.dataset_description.identification_info.resource_constraints.other_constraints']='Other constraints';
-$lang['metadata.dataset_description.identification_info.use_limitation']='Use limitation';
-$lang['metadata_production']='Metadata production';
-$lang['metadata.dataset_description.language']='Language';
-$lang['metadata.dataset_description.charset_code']='Characterset code';
-$lang['metadata.metadata_maintenance.update_frequency']='Update frequency';
-$lang['metadata.metadata_maintenance.note']='Note';
-$lang['metadata.metadata_maintenance.contact']='Contact';
-$lang['metadata.metadata_maintenance.version']='Version';
-
+$lang['identificationInfo']='Identification';
+$lang['contact']='Contacts';
+$lang['keywords']='Keywords';
+$lang['metadata.additional']='Additional metadata';
 $lang['spatial_extent']='Spatial extent';
 $lang['distribution']='Distribution';
+
+$lang['citation.title']='Title';
+$lang['citation.date']='Date';
+$lang['citation.date.date']='Date';
+$lang['citation.date.type']='Type';
+$lang['citation.edition']='Edition';
+$lang['citation.editionDate']='Edition date';
+
+$lang['citation.otherCitationDetails']='Citation';
+
+$lang['citation.identifier']='Identifier';
+$lang['citation.citedResponsibleParty']='Responsible party';
+$lang['citation.presentationForm']='Presentation form';
+$lang['citation.series.name']='Series name';
+$lang['citation.series.issueIdentification']='Series issue identification';
+$lang['abstract']='Abstract';
+$lang['credit']='Credit';
+$lang['status']='Status';
+$lang['pointOfContact']='Point of contact';
+$lang['resourceMaintenance']='Resource maintenance';
+$lang['resourceMaintenance.maintenanceOrUpdateFrequency']='Update frequency';
+
+$lang['graphicOverview']='Graphic overview';
+$lang['graphicOverview.fileName']='File';
+$lang['graphicOverview.fileDescription']='Description';
+$lang['graphicOverview.fileType']='File type';
+
+$lang['resourceFormats']='Resource formats';
+$lang['resourceFormats.name']='Name';
+$lang['resourceFormats.specification']='Specification';
+
+
+$lang['descriptiveKeywords']='Descriptive keywords';
+$lang['descriptiveKeywords.type']='Type';
+$lang['descriptiveKeywords.thesaurusName']='Thesaurus';
+$lang['descriptiveKeywords.keyword']='Keyword';
+
+$lang['spatialRepresentationType']='Spatial representation type';
+$lang['language']='Language';
+$lang['characterset']='Characterset';
+$lang['topicCategory']='Topic category';
+
+$lang['constraints']='Constraints';
+$lang['legalConstraints.accessConstraints']='Access constraints';
+$lang['legalConstraints.useConstraints']='Use constraints';
+$lang['legalConstraints.useLimitation']='Use limitations';
+
+
+$lang['distributionInfo']='Distribution';
+$lang['distributionFormat']='Distribution format';
+$lang['distributionFormat.name']='Name';
+$lang['distributionFormat.specification']='Specification';
+$lang['distributionFormat.fileDecompressionTechnique']='Compression';
+
+
+$lang['distributor']='Distributor';
+$lang['distributor.organisationName']='Name';
+
+$lang['transferOptions']='Transfer options';
+$lang['transferOptions.onLine']='Online resources';
+$lang['onLine.linkage']='Link';
+$lang['onLine.name']='Name';
+$lang['onLine.protocol']='Protocol';
+$lang['onLine.function']='Function';
+
+$lang['dataQualityInfo']='Data quality';
+$lang['scope']='Scope';
+$lang['lineage.statement']='Lineage statement';
+
+$lang['description']='Metadata production';
+$lang['metadata.description.fileIdentifier']='File identifier';
+$lang['metadata.description.language']='Language';
+$lang['metadata.description.hierarchyLevel']='Hierarchy level';
+$lang['metadata.description.contact']='Contacts';
+$lang['metadata.description.dateStamp']='Date stamp';
+$lang['metadata.description.metadataStandardName']='Metadata standard';
+$lang['metadata.description.referenceSystemInfo']='Reference system';
+$lang['metadata.description.referenceSystemInfo.code']='Code';
+$lang['metadata.description.referenceSystemInfo.codeSpace']='Code Space';
+
+$lang['feature_catalogue']='Feature catalogue';
+$lang['lineage.processStep']='Lineage process step';
+$lang['lineage.processStep.processor']='Processor';
+$lang['resourceMaintenance.maintenanceAndUpdateFrequency']='Update frequency';
+

@@ -1,6 +1,7 @@
 <style>
 	.repo-thumbnail{
-		max-width:150px;
+		width:80px;
+		height:80px;
 	}
 	</style>
 <?php
@@ -26,7 +27,7 @@ $repository_types=array(
 <h1 class="page-title"><?php echo t('repositories');?></h1>
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo $this->input->get('keywords'); ?>"/>
-  <select name="field" id="field">
+  <select name="field" id="field" class="form-control-sm  ml-2">
     <option value="all"		<?php echo ($this->input->get('field')=='all') ? 'selected="selected"' : '' ; ?> ><?php echo t('all_fields');?></option>
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="body"	<?php echo ($this->input->get('field')=='body') ? 'selected="selected"' : '' ; ?> ><?php echo t('body');?></option>
@@ -92,13 +93,13 @@ $repository_types=array(
     </table>
 
     <!-- grid -->
-    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-sm table-striped" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
 				<th>&nbsp;</th>			
 				<th>ID</th>
 				<th><?php echo create_sort_link($sort_by,$sort_order,'title',t('title'),$page_url); ?></th>
 				<th><?php echo create_sort_link($sort_by,$sort_order,'weight',t('weight'),$page_url); ?></th>
-				<th><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
+				<th style="max-width:50px"><?php echo create_sort_link($sort_by,$sort_order,'ispublished',t('status'),$page_url); ?></th>
 			<th><?php echo t('actions');?></th>
         </tr>
 	<?php $tr_class=""; ?>
@@ -106,20 +107,19 @@ $repository_types=array(
     	<?php $row=(object)$row;?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="repo-row <?php echo $tr_class; ?>">
-						<td><div class="thumb"><a href="<?php echo site_url('catalog/'.$row->repositoryid.'/about');?>"><img class="img-thumbnail repo-thumbnail" src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></div></td>
-						<td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
-            <td><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a></td>
+			<td><div class="thumb"><a href="<?php echo site_url('admin/repositories/edit/'.$row->id)?>"><img class="img-thumbnail repo-thumbnail" src="<?php echo base_url();?><?php echo !empty($row->thumbnail) ? $row->thumbnail : 'files/icon-blank.png'; ?>"/></a></div></td>
+			<td><a href="<?php echo site_url('admin/repositories/edit/'.$row->id)?>"><?php echo strtoupper($row->repositoryid); ?></a></td>
+            <td><a href="<?php echo site_url('admin/repositories/edit/'.$row->id);?>"><?php echo $row->title; ?></a></td>
             <!--<td><?php echo (array_key_exists($row->type,$repository_types) ) ? $repository_types[(int)$row->type] : $row->type; ?></td>-->
             <td><input class="weight" type="textbox" value="<?php echo (int)$row->weight; ?>" data-id="<?php echo $row->id;?>" size="2"/></td>
             <td>
                 <div class="status">
-                <span class="btn btn-xs publish <?php echo ($row->ispublished==1) ? "btn-success" :'btn-danger'; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('draft'); ?></span>
+                <span class="btn btn-sm btn-block publish <?php echo ($row->ispublished==1) ? "btn-success" :'btn-danger'; ?>" data-value="<?php echo $row->ispublished;?>" data-id="<?php echo $row->id;?>"><?php echo ($row->ispublished==1) ? t('published') : t('draft'); ?></span>
                 </div>			
 			</td>
 			<td>
             	<a href="<?php echo current_url();?>/edit/<?php echo $row->id;?>"><?php echo t('edit');?></a> | 
                 <a href="<?php echo current_url();?>/delete/<?php echo $row->id;?>"><?php echo t('delete');?></a> |
-                <a href="<?php echo current_url();?>/permissions/<?php echo $row->id;?>"><?php echo t('permissions');?></a> |
                 <a target="_blank" href="<?php echo site_url('catalog/'.$row->repositoryid);?>/about"><?php echo t('preview');?></a>
             </td>
         </tr>
@@ -162,7 +162,8 @@ jQuery(document).ready(function(){
 	//weight
 	$(document.body).on("change",".repo-row .weight", function(){ 
 		var id=$(this).attr("data-id");
-		var value=$(this).attr("value");
+		var value=$(this).val();
+		console.log(value, id);
 		$.post(CI.base_url+'/admin/repositories/weight/'+id+'/'+value+'?ajax=1',{submit:"submit"});
 	});	
 

@@ -6,7 +6,12 @@
  *
  *
  */
-class Catalog_search_solr{
+
+use Solarium\Core\Client\Adapter\Curl;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+
+ class Catalog_search_solr{
 
 	var $ci;
 
@@ -21,10 +26,14 @@ class Catalog_search_solr{
 	var $from=0;
 	var $to=0;
 	var $repo='';
-	var $collections=array();
+    var $collections=array();
+    var $type=array();
 	var $dtype=array();//data access type
 	var $sid=''; //comma separated list of survey IDs
+	var $varcount='';
 	var $debug=false;
+	var $params=null;
+	var $solr_options=array();
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -32,10 +41,13 @@ class Catalog_search_solr{
 	//allowed sort options
 	var $sort_allowed_fields=array(
 		'title'=>'title',
-		'nation'=>'nation',
+        'nation'=>'nation',
+        'country'=>'nation',
 		'year'=>'year_start',
 		'popularity'=>'total_views',
-		'rank'=>'score'
+		'rank'=>'score',
+		'created'=>'created',
+		'changed'=>'changed'
 	);
 
 	var	$sort_allowed_order=array('asc','desc');
@@ -55,15 +67,25 @@ class Catalog_search_solr{
 	{
 		$this->ci=& get_instance();
 		$this->ci->config->load('solr');
+		$this->ci->load->model("Facet_model");
+		$this->user_facets=$this->ci->Facet_model->select_all('user');
 
 		//change default sort if regional search is ON
 		if ($this->ci->config->item("regional_search")=='yes'){
 			$this->sort_by='nation';
 		}
 
+		$this->solr_options=$this->ci->config->item("solr_edismax_options");
+
+		if($this->ci->config->item('solr_debug')==true){
+			$this->debug=true;
+		}
+
 		if (count($params) > 0){
 			$this->initialize($params);
 		}
+
+		$this->params=$params;
 		//$this->ci->output->enable_profiler(TRUE);
 	}
 
@@ -80,31 +102,47 @@ class Catalog_search_solr{
 		//intialize solr client
 		$this->initialize_solr();
 	}
+	
 
 	private function initialize_solr()
 	{
 		require('vendor/autoload.php');
-		
-		$config = array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $this->ci->config->item('solr_host'),
-                    'port' => $this->ci->config->item('solr_port'),
-                    'path' => $this->ci->config->item('solr_collection'),
-                )
-            )
-        );
-
-		// create a client instance
-		$this->solr_client = new Solarium\Client($config);
-
+		$this->solr_config = array(
+			'endpoint' => array(
+				'localhost' => array(
+					'host' => $this->ci->config->item('solr_host'),
+					'port' => $this->ci->config->item('solr_port'),
+					'path' => '/',
+					'core' => $this->ci->config->item('solr_collection'),
+				)
+			)
+		);
+		$adapter = new Curl();
+		$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+		$this->solr_client =  new Solarium\Client($adapter,$eventDispatcher, $this->solr_config);
 	}
+
 
 	function search($limit=15,$offset=0)
 	{
+        $study=$this->_build_study_query();
+        $dataset_types=$this->_build_dataset_type_query();
+		$topics=$this->_build_topics_query();
+		$countries=$this->_build_countries_query();
+		$collections=$this->_build_collections_query();
+		$years=$this->_build_years_query();
+		$repository=!empty($this->repo) ? (string)$this->repo : false;
+        $dtype=$this->_build_dtype_query();
+        
 		$search_query=array();
 		$result=array();
-		$query = $this->solr_client->createSelect();
+        $query = $this->solr_client->createSelect();
+        
+        // get the facetset component
+        $facetSet = $query->getFacetSet();
+
+        //set facet.field
+        $facetSet->createFacetField('dataset_types')->setField('dataset_type')->getLocalParameters()->addExcludes(['tag_dataset_type']);
 
 		//set edismax options
 		$edismax = $query->getEDisMax();		
@@ -112,44 +150,102 @@ class Catalog_search_solr{
 		$query->createFilterQuery('published')->setQuery('published:1');
 		$helper = $query->getHelper();
 
+        //dataset type filter
+		if($dataset_types){
+            $query->createFilterQuery('dataset_type')->addTag('tag_dataset_type')->setQuery($dataset_types);
+		}
+
 		//SK
 		if($this->study_keywords){
-			$search_query[]='_text_:'.$helper->escapeTerm($this->study_keywords);
+			//$search_query[]='title:('.$helper->escapeTerm($this->study_keywords). ') ';
+			$query->setQuery($helper->escapeTerm($this->study_keywords));
 		}
 
-		//VK
-		if($this->variable_keywords){
-			$search_query[]='{!join from=sid to=survey_uid}'.$helper->escapeTerm($this->variable_keywords);
+		//repo filter
+		if($repository){
+			$query->createFilterQuery('repo')->setQuery('repositoryid:'.$helper->escapeTerm($repository));
 		}
-
-		$study=$this->_build_study_query();
-		$variable=$this->_build_variable_query();
-		$topics=$this->_build_topics_query();
-		$countries=$this->_build_countries_query();
-		$collections=$this->_build_collections_query();
-		$years=$this->_build_years_query();
-		$repository=$this->_build_repository_query();
-		$dtype=$this->_build_dtype_query();
-
 
 		if ($topics){
 			$search_query[]=$topics;
 		}
 
-		//$sid=$this->_build_sid_query();
-
-		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-
-		$sort_by='title';
-		if (array_key_exists($this->sort_by,$this->sort_allowed_fields)){
-			$sort_by=$this->sort_by;
+		//custom user defined filters
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$filter_=$this->_build_facet_query('fq_'.$fc['name'],$this->params[$fc['name']]);
+				if($filter_){
+					$query->createFilterQuery('fq_'.$fc['name'])->setQuery($filter_);
+				}
+			}
 		}
+
+		//sort
+        $sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
+		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
+		
+		//order desc by RANK for keyword search
+		if(!empty($study) && empty($this->sort_by)){
+			$sort_by='rank';
+			$sort_order='desc';
+		}
+
+		if(empty($study) && $this->sort_by=='rank'){
+			$sort_by='title';
+			$sort_order='asc';
+		}
+
+        $sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=> (strtolower($sort_order)=='asc') ? $query::SORT_ASC : $query::SORT_DESC);
+        $sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
+		$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+		
+		//multi-column sort
+		switch($sort_by){
+
+			case 'country':
+			case 'nation':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>$query::SORT_DESC);
+				break;
+			
+			case 'title':
+				$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>$query::SORT_DESC);
+				break;
+				break;
+
+			case 'year':			
+				$sort_options[2]=array('sort_by'=>'country', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+				$sort_options[3]=array('sort_by'=>'popularity', 'sort_order'=>$query::SORT_DESC);
+				break;
+
+			case 'rank':
+				if(!empty($study)){
+					$sort_options[0]=$sort_options[0]=array('sort_by'=>'rank', 'sort_order'=>$query::SORT_DESC);
+				}
+				break;
+        }
+        
+        //multi-sort
+		foreach($sort_options as $sort){            
+			$query->addSort($this->sort_allowed_fields[$sort['sort_by']], $sort['sort_order']);
+		}
+        //end-sort
+		
 
 		//years filter
 		if ($years)	{
 			foreach($years as $key=>$year){
 				$query->createFilterQuery('years'.$key)->setQuery($year);
 			}
+		}
+
+		//varcount filter
+		if ($varcount)	{
+			$query->createFilterQuery('varcount')->setQuery($varcount);
 		}
 
 		//dtype filter
@@ -163,172 +259,74 @@ class Catalog_search_solr{
 			$query->createFilterQuery('countries')->setQuery($countries);
 		}
 
-		$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=> (strtolower($sort_order)=='asc') ? $query::SORT_ASC : $query::SORT_DESC);
 
-
-		//multi-column sort
-		if ($sort_by=='nation'){
-			$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
+		if($collections){
+			$query->createFilterQuery('collections')->setQuery($collections);
 		}
-		elseif ($sort_by=='title'){
-			//$sort_options[1]=array('sort_by'=>'year', 'sort_order'=>$query::SORT_DESC);
-			//$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>$query::SORT_ASC);
-		}
-		if ($sort_by=='year'){
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>$query::SORT_ASC);
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>$query::SORT_ASC);
-		}
+				
 
-		//multi-sort
-		foreach($sort_options as $sort){
-			$query->addSort($this->sort_allowed_fields[$sort['sort_by']], $sort['sort_order']);
-		}
+        //study search 
+        $edismax->setQueryFields($this->solr_options['qf']);
+		
+		//$edismax->setQueryFields("title nation years");
 
-		/////////////////// variable search ///////////////////////////////////////////////////////
-		if ($variable!==FALSE){
-			/*
-			//set keyword search query
-			if (count($search_query)>0){
-				$query->setQuery(implode(" AND ",$search_query));
-			}
+        //keywords <N all required, else match percent
+        $edismax->setMinimumMatch($this->solr_options['mm']);
 
-			//set filter - varcount > 0
-			$query->createFilterQuery('varcount')->setQuery('!varcount:0');
-			
-			$query->setStart($offset)->setRows($limit);
-			$query->setFields(array(
-				'id:survey_uid',
-				'type:dataset_type',
-				'survey_uid',
-				'title',
-				'nation',
-				'formid',
-				'form_model',
-				'repositoryid',
-				'repo_title',
-				'total_views',
-				'total_downloads',
-				'link_da',
-				'authoring_entity',
-				'created',
-				'changed',
-				'year_start',
-				'year_end',
-				'varcount'
-			));
+        if (count($search_query)>0){
+            //$query->setQuery(implode(" AND ",$search_query));
+        }
 
-			//enable debugging
-			if ($this->debug){
-				$debug = $query->getDebug();
-			}
 
-			//execute search
-			$resultset = $this->solr_client->select($query);//->getData();
 
-			//get raw query
-			if($this->debug){
-				$request = $this->solr_client->createRequest($query);
-				$result['request_uri']=$request->getUri();
-				$result['debug']=$resultset->getDebug();
+        //$debug = $query->getDebug();
+        $query->createFilterQuery('study_search')->setQuery('doctype:1');
+        $query->setStart($offset)->setRows($limit);
+        $query->setFields(array(
+            'id:survey_uid',
+			'idno',
+            'type:dataset_type',
+            'title',
+            'nation',
+            'formid',
+            'form_model',
+            'repositoryid',
+            'repo_title',
+            'total_views',
+            'total_downloads',
+            'link_da',
+            'created',
+            'changed',
+            'year_start',
+            'year_end',
+            'authoring_entity',
+            'rank:score',
+            'thumbnail',
+            'varcount'
+        ));
 
-				echo '<pre>';
-				echo ($result['request_uri']);
-				echo '</pre>';
-			}
+        //enable debugging
+        if ($this->debug){
+            $debug = $query->getDebug();
+        }
 
-			//get the total number of documents found by solr
-			$this->search_found_rows=$resultset->getNumFound();
+        $resultset = $this->solr_client->select($query);//->getData();
+        $facet = $resultset->getFacetSet()->getFacet('dataset_types');
 
-			//get total survey count from index
-			$this->total_surveys=$this->solr_total_count($doctype=1);
+        $dataset_types_facet_counts=array();
+        
+        foreach ($facet as $value => $count) {
+            $dataset_types_facet_counts[$value]=$count;
+        }
 
-			//get search result as array
-			$this->search_result=$resultset->getData();
-
-			$this->search_result=$this->search_result['response']['docs'];
-
-			$vars_found_per_survey=array();
-
-			//get variables counts per survey
-			if ($this->search_found_rows>0)
-			{
-				$survey_arr=array();
-				foreach($resultset as $doc){
-					$survey_arr[]=$doc->survey_uid;
-				}
-
-				$vars_found_per_survey=$this->get_var_count_by_surveys($survey_arr,$this->variable_keywords);
-			}
-
-			//add variable counts to the main search result
-			foreach($this->search_result as $key=>$row){
-				if (array_key_exists($row['survey_uid'],$vars_found_per_survey)){
-					$this->search_result[$key]['var_found']=$vars_found_per_survey[$row['survey_uid']];
-				}
-			}
-
-			$result['rows']=$this->search_result;
-			$result['found']=$this->search_found_rows;
-			$result['total']=$this->total_surveys;
-			$result['limit']=$limit;
-			$result['offset']=$offset;
-			$result['citations']=$this->get_survey_citation();
-
-			return $result;*/
-			throw new exception ("VARIABLE_SEARCH_DISABLED");
-		}
-		else
-		{
-			//study search //////////////////////////////////////////////////////////////////////////////////////
-			$edismax->setQueryFields("title^2.0 nation^20.0 years^30.0");
-
-			//keywords <N all required, else match percent
-			$edismax->setMinimumMatch("3<90%");
-
-			if (count($search_query)>0){
-				$query->setQuery(implode(" AND ",$search_query));
-			}
-
-			//$debug = $query->getDebug();
-			$query->createFilterQuery('study_search')->setQuery('doctype:1');
-			$query->setStart($offset)->setRows($limit);
-			$query->setFields(array(
-				'id:survey_uid',
-				'type:dataset_type',
-				'idno',
-				'title',
-				'nation',
-				'formid',
-				'form_model',
-				'repositoryid',
-				'repo_title',
-				'total_views',
-				'total_downloads',
-				'link_da',
-				'created',
-				'changed',
-                'year_start',
-                'year_end',
-				'authoring_entity',
-				'score',
-				'varcount'
-			));
-
-			//enable debugging
-			if ($this->debug){
-				$debug = $query->getDebug();
-			}
-
-			$resultset = $this->solr_client->select($query);//->getData();
-
-			//get raw query
-			if($this->debug){
-				$request = $this->solr_client->createRequest($query);
-				$result['request_uri']=$request->getUri();
-				$result['debug']=$resultset->getDebug();
-			}
-		}
+        //get raw query
+        if($this->debug){
+            $request = $this->solr_client->createRequest($query);
+            $result['request_uri']=$request->getUri();
+            $result['debug']=$resultset->getDebug();
+            var_dump(urldecode($result['request_uri']));
+        }
+		
 
 		//get the total number of documents found by solr
 		$this->search_found_rows=$resultset->getNumFound();
@@ -338,7 +336,6 @@ class Catalog_search_solr{
 
 		//get search result as array
 		$this->search_result=$resultset->getData();
-
 		$this->search_result=$this->search_result['response']['docs'];
 
 
@@ -366,9 +363,9 @@ class Catalog_search_solr{
 		$result['total']=$this->total_surveys;
 		$result['limit']=$limit;
 		$result['offset']=$offset;
-		$result['citations']=$this->get_survey_citation();
-
-
+        $result['citations']=$this->get_survey_citation();
+        $result['search_counts_by_type']=$dataset_types_facet_counts;
+        
 		if ($result['found']>0){
 			//search for variables for SURVEY types
 			$id_list=array_column($this->search_result, "id");
@@ -392,7 +389,10 @@ class Catalog_search_solr{
 		}
 
 		return $result;
-	}
+    }
+    
+
+    
 
 
 	//find variables by survey list
@@ -416,7 +416,7 @@ class Catalog_search_solr{
 		$query = $this->solr_client->createSelect();
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
+		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
 
 		//set start and rows param (comparable to SQL limit) using fluent interface
 		$query->setStart(0)->setRows(100);
@@ -562,7 +562,29 @@ class Catalog_search_solr{
 
 		return FALSE;
 	}
+	
 
+	protected function _build_facet_query($facet_name,$values)
+	{
+		if (empty($values)){
+			return false;
+		}
+		
+		$values=(array)$values;
+		foreach($values  as $idx=>$value){
+			if(!empty($value) && is_numeric($value)){
+				$values[$idx]=$value;
+			}
+		}
+
+		$values= implode(' OR ',$values);
+
+		if ($values){
+			return sprintf(' %s:(%s)',$facet_name,$values);
+		}
+		
+		return FALSE;
+	}
 	
 
 	//returns country IDs by country names
@@ -645,7 +667,57 @@ class Catalog_search_solr{
 		}
 
 		return FALSE;
+    }
+    
+
+    function _build_dataset_type_query()
+	{
+		$types=(array)$this->type;//must always be an array
+
+		if (!is_array($types)){
+			return FALSE;
+		}
+		
+		$types_list=array();
+				
+		foreach($types  as $type){
+			if(!empty($type)){
+				$types_list[]=$this->ci->db->escape($type);
+			}
+        }
+
+		$types= implode(',',$types_list);
+
+		if ($types!=''){
+            return sprintf(' dataset_type:(%s)',$types);
+		}
+		
+		return FALSE;
+    }
+    
+
+
+
+	function _build_varcount_query()
+	{
+		//handles only these cases
+
+		//varcount= 
+		// >0
+		// 0 
+
+		$varcount=$this->varcount;
+
+		if ($varcount=='>0'){
+			return sprintf('varcount:[%s TO %s]',1, '*');
+		}
+		else if ($varcount=='0'){
+			return sprintf('varcount:%s',0);
+		}
+
+		return FALSE;
 	}
+
 
 	function _build_sid_query()
 	{
@@ -669,39 +741,7 @@ class Catalog_search_solr{
 	}
 
 
-	function _build_centers_query()
-	{
-		$centers=$this->center;//must always be an array
-
-		if (!is_array($centers))
-		{
-			return FALSE;
-		}
-
-		$centers_list=array();
-
-		foreach($centers  as $center)
-		{
-			//escape country names for db
-			$centers_list[]=$this->ci->db->escape($center);
-		}
-
-		if ( count($centers_list)>0)
-		{
-			$centers= implode(',',$centers_list);
-		}
-		else
-		{
-			return FALSE;
-		}
-
-		if ($centers!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_centers where id in (%s) )',$centers);
-		}
-
-		return FALSE;
-	}
+	
 
 
 	function _build_collections_query()
@@ -715,26 +755,16 @@ class Catalog_search_solr{
 
 		$param_list=array();
 
-		foreach($params  as $param)
-		{
-			//escape country names for db
+		foreach($params  as $param){
 			$param_list[]=$this->ci->db->escape($param);
 		}
 
-		if ( count($param_list)>0)
-		{
-			$params= implode(',',$param_list);
-		}
-		else
-		{
-			return FALSE;
-		}
+		if ( count($param_list)>0){
+			$params= implode(' OR ',$param_list);
 
-		if ($param!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_repos where survey_repos.repositoryid in (%s) )',$params);
+			return sprintf(' repositories:(%s)',$params);
 		}
-
+		
 		return FALSE;
 	}
 
@@ -930,7 +960,10 @@ class Catalog_search_solr{
 		// {!join from=survey_uid to=sid}survey AND countries:1
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('_text_:%s',$this->variable_keywords) );
+		if ($this->study_keywords){
+			$query->setQuery(sprintf('labl:%s',$this->study_keywords) );
+		}
+
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
 
 		//execute search
@@ -941,6 +974,11 @@ class Catalog_search_solr{
 
 		//get search result as array
 		$this->search_result=$resultset->getData();
+
+		//get raw query
+		if($this->debug){			
+			var_dump($resultset->getDebug());
+		}
 
 		if ($found_rows>0)
 		{
@@ -959,6 +997,7 @@ class Catalog_search_solr{
 			{
 				$this->search_result['response']['docs'][$key]['title']=$surveys[$row['sid']]['title'];
 				$this->search_result['response']['docs'][$key]['nation']=$surveys[$row['sid']]['nation'];
+				$this->search_result['response']['docs'][$key]['idno']=$surveys[$row['sid']]['idno'];
 			}
 		}
 
@@ -987,7 +1026,7 @@ class Catalog_search_solr{
 			));
 
 		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND _text_:(%s) AND sid:(%s)',$this->study_keywords, $surveyid ) );
+		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',$this->study_keywords, $surveyid ) );
 		$query->setStart(0)->setRows(100); //get 0-100 rows
 
 		if($this->debug){
@@ -1024,7 +1063,8 @@ class Catalog_search_solr{
 		$query->setFields(array(
 				'id:survey_uid',
 				'title:title',
-				'nation'
+				'nation',
+				'idno'
 			));
 
 		//filter on survey id
@@ -1053,21 +1093,9 @@ class Catalog_search_solr{
 		return $output;
 	}
 
-	
-	function _build_repository_query()
-	{
-		$repo=(string)$this->repo;
-
-		if ($repo!='')
-		{
-			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
-		}
-		return FALSE;
-	}
-
 	function _build_dtype_query()
 	{
-		$dtypes=$this->dtype;
+		$dtypes=(array)$this->dtype;
 
 		if (!is_array($dtypes) || count($dtypes)<1)
 		{

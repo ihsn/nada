@@ -7,8 +7,8 @@
 <div class="container-fluid">
 
 <div class="text-right page-links">
-	<a href="<?php echo site_url(); ?>/admin/countries" class="btn btn-default">
-    	<span class="glyphicon glyphicon-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('countries');?></a>
+	<a href="<?php echo site_url(); ?>/admin/countries" class="btn btn-outline-primary btn-sm">
+    	<span class="fas fa-home ico-add-color right-margin-5" aria-hidden="true"></span> <?php echo t('countries');?></a>
 </div>
 
 
@@ -18,16 +18,16 @@
 <?php $error=$this->session->flashdata('error');?>
 <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
-<h1 class="page-title"><?php echo t('Fix Country Mapping');?></h1>
+<h3 class="page-title mt-3"><?php echo t('Fix Country Mapping');?></h3>
 
 <div class="country-dropdown" style="display:none;">
-<?php echo form_dropdown('cid', $country_list,NULL,'class="form-control form-control-custom"'); ?>
+<?php echo form_dropdown('cid', $country_list,NULL,'class="form-control-sm form-control-custom"'); ?>
 </div>
 
 <?php if($rows):?>
 	<div><?php echo t('Total rows');?>: <?php echo count($rows);?></div>
 	 <!-- grid -->
-    <table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
+    <table class="table table-striped table-sm" width="100%" cellspacing="0" cellpadding="0">
     	<tr class="header">
         	<th><?php echo t('Country');?></th>
             <th><?php echo t('Assign Country');?></th>
@@ -48,7 +48,7 @@
             	<form method="get" action="<?php echo site_url('admin/countries/fix_mappings');?>">
                     <input type="hidden" name="name" value="<?php echo $row->country_name;?>"/>
                     <span class="country-list"></span>
-                    <input type="submit" name="Submit" value="Update" class="btn btn-primary"/>
+                    <input type="submit" name="Submit" value="Update" class="btn btn-primary btn-sm"/>
             	</form>
             </td>
 			<td>

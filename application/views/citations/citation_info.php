@@ -6,7 +6,7 @@
 <?php endif;?>
 <?php */?>
 
-<h2><?php echo t('citation_information'); ?></h2>
+<h2><?php echo $title;?></h2>
 <table class="table table-striped grid-table  nada-table">
     <tbody>
         <?php if ($ctype!=''):?>

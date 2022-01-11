@@ -23,16 +23,11 @@
 			<td><?php echo date("m-d-Y H:i:s",$row->lastdownloaded); ?></td>
             <td><?php echo date("m-d-Y H:i:s",$row->expiry); ?></td>
             <td>
-            	<?php
-					if ($row->expiry < date("U") || $row->downloads>=$row->download_limit)
-					{
-						echo '<img src="images/icon_cancel.gif" alt="EXPIRED"/>';
-					}
-					else
-					{
-						echo '<img src="images/tick.png" alt="ACTIVE"/>';
-					}
-				?>
+            	<?php if ($row->expiry < date("U") || $row->downloads>=$row->download_limit):?>
+					<span class="label label-danger"><?php echo t('EXPIRED');?></span>
+				<?php else:?>
+					<span class="label label-success"><?php echo t('ACTIVE');?></span>
+				<?php endif;?>
             </td>
         </tr>
     <?php endforeach;?>

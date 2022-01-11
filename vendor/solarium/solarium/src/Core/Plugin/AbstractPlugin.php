@@ -1,8 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Plugin;
 
-use Solarium\Core\Client\Client;
+use Solarium\Core\Client\ClientInterface;
 use Solarium\Core\Configurable;
 
 /**
@@ -13,7 +20,7 @@ abstract class AbstractPlugin extends Configurable implements PluginInterface
     /**
      * Client instance.
      *
-     * @var Client
+     * @var ClientInterface
      */
     protected $client;
 
@@ -22,10 +29,10 @@ abstract class AbstractPlugin extends Configurable implements PluginInterface
      *
      * This method is called when the plugin is registered to a client instance
      *
-     * @param Client $client
-     * @param array  $options
+     * @param ClientInterface $client
+     * @param array           $options
      */
-    public function initPlugin($client, $options)
+    public function initPlugin(ClientInterface $client, array $options)
     {
         $this->client = $client;
         parent::__construct($options);

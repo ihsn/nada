@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Plugin\ParallelExecution\Event;
 
 /**
@@ -15,7 +22,7 @@ class Events
      *
      * @var string
      */
-    const EXECUTE_START = 'solarium.parallelExecution.executeStart';
+    public const EXECUTE_START = ExecuteStart::class;
 
     /**
      * This event is called just after parallel HTTP request execution, before further result handling.
@@ -23,5 +30,12 @@ class Events
      *
      * @var string
      */
-    const EXECUTE_END = 'solarium.parallelExecution.executeEnd';
+    public const EXECUTE_END = ExecuteEnd::class;
+
+    /**
+     * Not instantiable.
+     */
+    private function __construct()
+    {
+    }
 }

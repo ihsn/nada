@@ -28,6 +28,11 @@
             ],
             "default": "data_na"
           },
+          "data_remote_url": {
+            "type": "string",
+            "title": "Link to the external website",
+            "description": "For `access_policy` = `remote`, provide a link to the external website"
+          },
           "published": {
             "type": "integer",
             "description": "Status of the survey - 0=draft, 1=published",
@@ -44,7 +49,35 @@
     { "$ref": "ddi-schema.json" },
     {
       "type": "object",
-      "properties": {
+      "properties": {        
+        "provenance":{
+          "type":"array",
+          "description":"Provenance",
+          "items":{
+            "$ref":"provenance-schema.json"
+          }
+        },
+         "tags": {
+          "type": "array",
+          "title": "Tags (user-defined)",
+          "description": "Tags",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tag": {
+                "title": "Tag",
+                "type": "string"
+              },
+              "tag_group": {
+                "title": "Tag group",
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
         "additional": {
           "type": "object",
           "description": "Additional metadata not covered by DDI elements",

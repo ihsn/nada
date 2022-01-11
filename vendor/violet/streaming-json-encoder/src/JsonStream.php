@@ -8,7 +8,7 @@ use Psr\Http\Message\StreamInterface;
  * Provides a http stream interface for encoding JSON.
  *
  * @author Riikka Kalliomäki <riikka.kalliomaki@gmail.com>
- * @copyright Copyright (c) 2016-2017 Riikka Kalliomäki
+ * @copyright Copyright (c) 2016-2020 Riikka Kalliomäki
  * @license http://opensource.org/licenses/mit-license.php MIT License
  */
 class JsonStream implements StreamInterface
@@ -261,6 +261,10 @@ class JsonStream implements StreamInterface
      */
     public function read($length)
     {
+        if ($this->eof()) {
+            return '';
+        }
+
         $length = max(0, (int) $length);
         $encoder = $this->getEncoder();
 
@@ -288,8 +292,12 @@ class JsonStream implements StreamInterface
      */
     public function getContents()
     {
+        if ($this->eof()) {
+            return '';
+        }
+
         $encoder = $this->getEncoder();
-        $output = '';
+        $output = $this->buffer;
 
         while ($encoder->valid()) {
             $output .= $encoder->current();

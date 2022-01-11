@@ -1,11 +1,20 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Facet\Pivot;
+
+use Solarium\Component\Result\Facet\FacetResultInterface;
 
 /**
  * Select field pivot result.
  */
-class Pivot implements \IteratorAggregate, \Countable
+class Pivot implements FacetResultInterface, \IteratorAggregate, \Countable
 {
     /**
      * Value array.
@@ -19,7 +28,7 @@ class Pivot implements \IteratorAggregate, \Countable
      *
      * @param array $data
      */
-    public function __construct($data)
+    public function __construct(array $data)
     {
         foreach ($data as $pivotData) {
             $this->pivot[] = new PivotItem($pivotData);
@@ -31,7 +40,7 @@ class Pivot implements \IteratorAggregate, \Countable
      *
      * @return Pivot[]
      */
-    public function getPivot()
+    public function getPivot(): array
     {
         return $this->pivot;
     }
@@ -41,7 +50,7 @@ class Pivot implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->pivot);
     }
@@ -51,8 +60,8 @@ class Pivot implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->pivot);
+        return \count($this->pivot);
     }
 }

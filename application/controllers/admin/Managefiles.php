@@ -13,7 +13,7 @@ class Managefiles extends MY_Controller {
         $this->template->set_template('admin');
 		$this->load->helper('file');		
 		$this->load->model("managefiles_model");
-		$this->load->model("resource_model");
+		$this->load->model("Survey_resource_model");
 		$this->load->model("form_model");
 		$this->load->model("catalog_model");
 		
@@ -188,15 +188,15 @@ class Managefiles extends MY_Controller {
 			if (!is_numeric($resource_id))
 			{
 				//insert
-				$db_result=$this->resource_model->insert($options);
+				$db_result=$this->Survey_resource_model->insert($options);
 			}
 			else
 			{
 				//update db
-				$db_result=$this->resource_model->update($resource_id,$options);
+				$db_result=$this->Survey_resource_model->update($resource_id,$options);
 			}
-						
-			if ($db_result===TRUE)
+
+			if ($db_result!==FALSE)
 			{
 				//update successful
 				$this->session->set_flashdata('message', t('form_update_success'));

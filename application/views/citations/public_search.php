@@ -22,7 +22,14 @@
         <?php $message=$this->session->flashdata('message');?>
         <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
-        <h3><?php echo t('citations');?></h3>
+        <h1><?php echo t('citations');?> 
+        <?php if (isset($repo['repositoryid']) && $repo['repositoryid']!=='central'):?>
+            <span class="badge badge-light font-weight-normal"><?php echo $repo['title'];?>
+        </span>
+            
+        <?php endif;?>
+        </h1>
+
     <?php endif; ?>
 
     <?php if ($rows): ?>

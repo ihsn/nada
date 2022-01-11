@@ -1,9 +1,29 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\ManagedResources\Result\Resources;
 
+/**
+ * Resource.
+ */
 class Resource
 {
+    /**
+     * Resource type stopwords.
+     */
+    const TYPE_STOPWORDS = 'stopwords';
+
+    /**
+     * Resource type synonyms.
+     */
+    const TYPE_SYNONYMS = 'synonyms';
+
     /**
      * @var string
      */
@@ -18,16 +38,6 @@ class Resource
      * @var string
      */
     protected $class;
-
-    /**
-     * Resource type stopwords.
-     */
-    const TYPE_STOPWORDS = 'stopwords';
-
-    /**
-     * Resource type synonyms.
-     */
-    const TYPE_SYNONYMS = 'synonyms';
 
     /**
      * Resource constructor.
@@ -51,10 +61,14 @@ class Resource
 
     /**
      * @param string $resourceId
+     *
+     * @return self
      */
-    public function setResourceId(string $resourceId)
+    public function setResourceId(string $resourceId): self
     {
         $this->resourceId = $resourceId;
+
+        return $this;
     }
 
     /**
@@ -67,10 +81,14 @@ class Resource
 
     /**
      * @param int $numObservers
+     *
+     * @return self
      */
-    public function setNumObservers(int $numObservers)
+    public function setNumObservers(int $numObservers): self
     {
         $this->numObservers = $numObservers;
+
+        return $this;
     }
 
     /**
@@ -83,10 +101,14 @@ class Resource
 
     /**
      * @param string $class
+     *
+     * @return self
      */
-    public function setClass(string $class)
+    public function setClass(string $class): self
     {
         $this->class = $class;
+
+        return $this;
     }
 
     /*
@@ -96,9 +118,9 @@ class Resource
      */
     public function getType(): string
     {
-        if (0 === strncmp($this->resourceId, '/schema/analysis/stopwords', strlen('/schema/analysis/stopwords'))) {
+        if (0 === strncmp($this->resourceId, '/schema/analysis/stopwords', \strlen('/schema/analysis/stopwords'))) {
             return self::TYPE_STOPWORDS;
-        } elseif (0 === strncmp($this->resourceId, '/schema/analysis/synonyms', strlen('/schema/analysis/synonyms'))) {
+        } elseif (0 === strncmp($this->resourceId, '/schema/analysis/synonyms', \strlen('/schema/analysis/synonyms'))) {
             return self::TYPE_SYNONYMS;
         }
 

@@ -1,0 +1,338 @@
+{
+  "$id": "http://ihsn.org/schemas/video",
+  "id": "http://ihsn.org/schemas/video",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Video schema based on the elements from Dublin Core and Schema.org's VideoObject",
+  "type": "object",
+  "properties": {
+    "repositoryid": {
+      "type": "string",
+      "title": "Collection ID that owns the document",
+      "description": "Abbreviation for the collection that owns the document"
+    },
+    "published": {
+      "type": "integer",
+      "title": "Status",
+      "description": "Status  - 0=draft, 1=published",
+      "default": 0
+    },
+    "overwrite": {
+      "type": "string",
+      "description": "Overwrite document if already exists?",
+      "enum": [
+        "yes",
+        "no"
+      ],
+      "default": "no"
+    },
+    "metadata_information": {
+			"type": "object",
+			"title": "Document metadata information",
+			"description": "Document description",
+			"additionalProperties": false,
+			"properties": {
+				"title": {
+					"type": "string",
+					"title": "Document title",
+					"description": "Document title"
+				},
+				"idno": {
+					"type": "string",
+					"title": "Unique ID number for the document"
+				},
+				"producers": {
+					"type": "array",
+					"title": "Producers",
+					"description": "List of producers",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"title": "Name",
+								"description": "Name (required)"
+							},
+							"abbr": {
+								"type": "string",
+								"title": "Abbreviation"
+							},
+							"affiliation": {
+								"type": "string",
+								"title": "Affiliation"
+							},
+							"role": {
+								"type": "string",
+								"title": "Role"
+							}
+						}
+					}
+				},
+				"production_date": {
+					"type": "string",
+					"title": "Date of Production",
+					"description": "Document production date using format(YYYY-MM-DD)"
+				},
+				"version": {
+					"type": "string",
+					"title": "Document version",
+					"description": "Identify and describe the current version of the document"
+				}
+			}
+		},
+    "video_description": {
+      "type": "object",
+      "title": "Video metadata information",
+      "description": "Video description",
+      "properties": {
+        "idno": {
+          "type": "string",
+          "title": "Unique video identifier"
+        },        
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "alt_title": {
+          "type": "string",
+          "description": "Alternate title or other title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre"
+        },
+        "keywords": {
+          "type": "string",
+          "description": "Keywords"
+        },
+
+        "topics":{
+          "type":"array",
+          "title":"Topic Classification",
+          "description":"Topic Classification",
+          "items":{
+            "type":"object",
+            "properties":{
+              "topic":{
+                "title":"Topic",
+                "type":"string"
+              },
+              "vocab":{
+                "title":"Vocab",
+                "type":"string"
+              },
+              "uri":{
+                "title":"URI",
+                "type":"string"
+              }
+            },
+            "required":[
+              "topic"
+            ]
+          }
+        },
+
+        "persons":{
+          "type":"array",
+          "title":"Persons shown in the video",
+          "items":{
+            "type":"object",
+            "properties":{
+              "name":{
+                "title":"Name",
+                "type":"string"
+              },
+              "role":{
+                "title":"Role",
+                "type":"string"
+              }
+            },
+            "required":[
+              "name"
+            ]
+          }
+        },
+        "main_entity": {
+          "type": "string",
+          "description": "Primary entity described in the video"
+        },
+
+        "video_provider": {
+          "type": "string",
+          "description": "Video provider e.g.  youtube, vimeo, facebook"
+        },
+
+        "video_url": {
+          "type": "string",
+          "description": "Video URL"
+        },
+
+        "embed_url": {
+          "type": "string",
+          "description": "Video embed URL"
+        },
+        "encoding_format": {
+          "type": "string",
+          "title":"Encoding format",
+          "description": "Media type using a MIME format"
+        },
+        "duration": {
+          "type": "string",
+          "title":"Duration",
+          "description": "The duration of the video in ISO 8601 date time format - `hh:mm:ss`"
+        },
+
+        "content_location": {
+          "type": "string",
+          "description": "Location depicted or described in the video"
+        },
+
+        "spatial_coverage": {
+          "type": "string",
+          "description": "Place(s) which are the focus of the content"
+        },
+
+        "content_reference_time": {
+          "type": "string",
+          "description": "Specific time described by a creative work, for works that emphasize a particular moment within an Event"
+        },
+
+        "temporal_coverage": {
+          "type": "string",
+          "description": "Period that the content applies to using ISO 8601 date time format"
+        },
+
+        "audience": {
+          "type": "string",
+          "description": "Intended audience"
+        },
+        
+        "country": {
+          "type": "string",
+          "description": "Country"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher"
+        },
+        "contributor": {
+          "type": "string",
+          "description": "Contributor"
+        },
+        "funder": {
+          "type": "string",
+          "description": "Funder"
+        },
+        "translator": {
+          "type": "string",
+          "title": "Translator",
+          "description": "Organization or person who adapts a creative work to different languages"
+        },
+        "rights": {
+          "type": "string",
+          "description": "Rights"
+        },
+        "copyright_holder": {
+          "type": "string",
+          "title": "Copyright holder",
+          "description": "The party holding the legal copyright"
+        },
+
+        "copyright_notice": {
+          "type": "string",
+          "title": "Copyright text",
+          "description": "Text of a notice describing the copyright"
+        },
+
+        "copyright_year": {
+          "type": "string",
+          "title": "Copyright year",
+          "description": "Year during which claimed copyright for the video was first asserted"
+        },
+
+
+
+        "date_created": {
+          "type": "string",
+          "description": "Date of creation (YYYY-MM-DD)"
+        },
+        "date_published": {
+          "type": "string",
+          "description": "Date published (YYYY-MM-DD)"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version"
+        },
+        "status": {
+          "type": "string",
+          "title":"Creative work status",
+          "description": "Status of a creative work in terms of its stage in lifecycle. e.g. `incomplete`, `draft`, `published`, `obsolete`"
+        },
+        "is_based_on": {
+          "type": "string",
+          "title":"A resource from which this work is derived",
+          "description": "A resource from which this work is derived or from which it is a modification or adaption"
+        },
+        "is_part_of": {
+          "type": "string",
+          "title":"Indicate an item that this item is part of"
+        }
+        
+      },
+      "required": [
+        "idno","title"
+      ]
+    },
+    "provenance":{
+      "type":"array",
+      "description":"Provenance",
+      "items":{
+        "$ref":"provenance-schema.json"
+      }
+      },
+
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          },
+          "tag_group": {
+            "title": "Tag group",
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tag"
+      ]
+    },
+
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
+    }
+
+  },
+  "required": [
+    "video_description"
+  ]
+}

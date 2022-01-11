@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Facet;
 
 use Solarium\Component\Facet\FacetInterface;
@@ -54,7 +61,7 @@ class Bucket implements \IteratorAggregate, \Countable
      *
      * @return string
      */
-    public function getValue()
+    public function getValue(): string
     {
         return $this->value;
     }
@@ -64,7 +71,7 @@ class Bucket implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function getCount()
+    public function getCount(): int
     {
         return $this->count;
     }
@@ -74,9 +81,19 @@ class Bucket implements \IteratorAggregate, \Countable
      *
      * @return FacetInterface[]
      */
-    public function getFacets()
+    public function getFacets(): array
     {
         return $this->facetSet->getFacets();
+    }
+
+    /**
+     * Get nested facet set.
+     *
+     * @return FacetSet
+     */
+    public function getFacetSet(): FacetSet
+    {
+        return $this->facetSet;
     }
 
     /**
@@ -84,7 +101,7 @@ class Bucket implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return $this->facetSet->getIterator();
     }
@@ -94,8 +111,8 @@ class Bucket implements \IteratorAggregate, \Countable
      *
      * @return int the amount of nested facets
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->facetSet->getFacets());
+        return \count($this->facetSet->getFacets());
     }
 }

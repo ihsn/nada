@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Highlighting;
 
 /**
@@ -19,7 +26,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @param array $fields
      */
-    public function __construct($fields)
+    public function __construct(array $fields)
     {
         $this->fields = $fields;
     }
@@ -29,7 +36,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getFields()
+    public function getFields(): array
     {
         return $this->fields;
     }
@@ -41,7 +48,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getField($key)
+    public function getField($key): array
     {
         if (isset($this->fields[$key])) {
             return $this->fields[$key];
@@ -55,7 +62,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->fields);
     }
@@ -65,8 +72,8 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->fields);
+        return \count($this->fields);
     }
 }

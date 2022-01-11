@@ -93,7 +93,6 @@ INSERT INTO `site_menu` VALUES
 (32,8,'-','-',0,1,'vocabularies'),
 (33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),
 (34,2,'Manage studies','admin/catalog',100,1,'catalog'),
-(35,5,'Impersonate user','admin/users/impersonate',50,1,'users'),
 (101,8,'Translate','admin/translate',0,1,'translate');
 
 insert into site_menu(pid,title,url,weight,depth,module) 
@@ -139,17 +138,15 @@ CREATE TABLE `variables` (
   `labl` varchar(255) DEFAULT '',
   `qstn` text,
   `catgry` text,
-  `metadata` mediumtext,
+  `keywords` text,
+  `metadata` mediumtext,  
   PRIMARY KEY (`uid`),
   UNIQUE KEY `idxSurvey` (`vid`,`sid`),
   KEY `idxsurveyidfk` (`sid`),
-  FULLTEXT KEY `idx_qstn` (`qstn`),
-  FULLTEXT KEY `idx_labl` (`labl`),
-  FULLTEXT KEY `idxCatgry` (`catgry`),
-  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`),
-  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`),
-  FULLTEXT KEY `idx_nm` (`name`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+  FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`,`catgry`),
+  FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`,`keywords`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -177,21 +174,6 @@ CREATE TABLE `variable_groups` (
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
---
--- Table structure for table `users_groups`
---
-
-DROP TABLE IF EXISTS `users_groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `users_groups` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `group_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `user_group_UNQ` (`user_id`,`group_id`)
-) AUTO_INCREMENT=148 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `survey_relationships`
@@ -350,23 +332,6 @@ INSERT INTO `dcformats` VALUES (1,'Compressed, Generic [application/x-compressed
 UNLOCK TABLES;
 
 --
--- Table structure for table `group_repo_access`
---
-
-DROP TABLE IF EXISTS `group_repo_access`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `group_repo_access` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `group_id` int(11) DEFAULT NULL,
-  `repo_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `grp_repo_UNIQUE` (`group_id`,`repo_id`)
-) DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
---
 -- Table structure for table `surveys`
 --
 
@@ -377,6 +342,7 @@ DROP TABLE IF EXISTS `surveys`;
 CREATE TABLE `surveys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `idno` varchar(200) NOT NULL,
+  `doi` varchar(200) DEFAULT NULL,
   `type` varchar(15) DEFAULT NULL,
   `repositoryid` varchar(100) DEFAULT NULL,
   `title` varchar(255) NOT NULL DEFAULT '',
@@ -394,7 +360,7 @@ CREATE TABLE `surveys` (
   `link_indicator` varchar(255) DEFAULT NULL COMMENT 'indicators',
   `link_questionnaire` varchar(255) DEFAULT NULL,
   `formid` int(11) DEFAULT NULL,
-  `keywords` text,
+  `data_class_id` int(11) DEFAULT NULL,
   `link_da` varchar(255) DEFAULT NULL,
   `published` tinyint(4) DEFAULT NULL,
   `total_views` int(11) DEFAULT '0',
@@ -404,16 +370,16 @@ CREATE TABLE `surveys` (
   `changed` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `changed_by` int(11) DEFAULT NULL,
-  `metadata` mediumtext,
-  `variable_data` mediumtext,
   `ts_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `thumbnail` varchar(300) DEFAULT NULL,
+  `metadata` mediumtext,
+  `var_keywords` mediumtext,
+  `keywords` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
   FULLTEXT KEY `ft_titl` (`title`),
-  FULLTEXT KEY `ft_all` (`title`,`authoring_entity`,`nation`,`abbreviation`,`keywords`,`idno`),
-  FULLTEXT KEY `ft_keywords` (`keywords`)
+  FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -438,9 +404,30 @@ CREATE TABLE `dctypes` (
 
 LOCK TABLES `dctypes` WRITE;
 /*!40000 ALTER TABLE `dctypes` DISABLE KEYS */;
-INSERT INTO `dctypes` VALUES (1,'Document, Administrative [doc/adm]'),(2,'Document, Analytical [doc/anl]'),(3,'Document, Other [doc/oth]'),(4,'Document, Questionnaire [doc/qst]'),(5,'Document, Reference [doc/ref]'),(6,'Document, Report [doc/rep]'),(7,'Document, Technical [doc/tec]'),(8,'Audio [aud]'),(9,'Database [dat]'),(10,'Map [map]'),(11,'Microdata File [dat/micro]'),(12,'Photo [pic]'),(13,'Program [prg]'),(14,'Table [tbl]'),(15,'Video [vid]'),(16,'Web Site [web]');
+INSERT INTO `dctypes` VALUES 
+(1,'Document, Administrative [doc/adm]'),
+(2,'Document, Analytical [doc/anl]'),
+(3,'Document, Other [doc/oth]'),
+(4,'Document, Questionnaire [doc/qst]'),
+(5,'Document, Reference [doc/ref]'),
+(6,'Document, Report [doc/rep]'),
+(7,'Document, Technical [doc/tec]'),
+(8,'Audio [aud]'),
+(9,'Database [dat]'),
+(10,'Map [map]'),
+(11,'Microdata File [dat/micro]'),
+(12,'Photo [pic]'),
+(13,'Program [prg]'),
+(14,'Table [tbl]'),
+(15,'Video [vid]'),
+(16,'Web Site [web]');
 /*!40000 ALTER TABLE `dctypes` ENABLE KEYS */;
 UNLOCK TABLES;
+
+-- additional types
+INSERT INTO `dctypes` (`title`) VALUES ('Data, Geospatial [dat/geo]');
+INSERT INTO `dctypes` (`title`) VALUES ('Data, Table [dat/table]');
+INSERT INTO `dctypes` (`title`) VALUES ('Data, Document [dat/doc]');
 
 --
 -- Table structure for table `da_collections`
@@ -457,24 +444,6 @@ CREATE TABLE `da_collections` (
 ) DEFAULT CHARSET=utf8 COMMENT='data access by collection/set';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-
---
--- Table structure for table `cache`
---
-
-DROP TABLE IF EXISTS `cache`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `cache` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(100) CHARACTER SET utf8 NOT NULL,
-  `data` text,
-  `created` int(11) DEFAULT NULL,
-  `expiry` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uid_UNIQUE` (`uid`)
-) DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 
 --
@@ -599,34 +568,6 @@ CREATE TABLE `citations` (
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
-
-
-
---
--- Table structure for table `permission_urls`
---
-
-DROP TABLE IF EXISTS `permission_urls`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `permission_urls` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `url` varchar(255) DEFAULT NULL,
-  `permission_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `url_UNIQUE` (`url`)
-) AUTO_INCREMENT=150 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `permission_urls`
---
-
-LOCK TABLES `permission_urls` WRITE;
-/*!40000 ALTER TABLE `permission_urls` DISABLE KEYS */;
-INSERT INTO `permission_urls` VALUES (1,'admin/catalog/upload',1),(4,'admin/menu',4),(5,'admin/menu/add',5),(6,'admin/menu/edit/*',6),(7,'admin/menu/add_link',7),(8,'admin/menu/menu_sort',8),(9,'admin/vocabularies',9),(10,'admin/terms/*',10),(12,'admin/users/*',12),(14,'ddibrowser',14),(16,'page/*',16),(18,'citations',18),(22,'backup*',22),(23,'access_licensed*',23),(25,'switch_language*',25),(27,'translate/*',27),(34,'admin/catalog/do_upload',1),(48,'admin/datadeposit*',40),(51,'admin/catalog/delete',42),(52,'admin/catalog/export-ddi',43),(53,'admin/catalog/import-rdf',44),(54,'admin/repositories/*',45),(55,'admin/repositories',45),(88,'admin/catalog/replace_ddi/*',46),(100,'admin/catalog/edit/*',49),(101,'admin/catalog/update/*',49),(102,'admin/catalog/update',49),(103,'admin/managefiles/*',49),(104,'admin/resources/*',49),(112,'admin/catalog',2),(113,'admin/catalog/survey/*',2),(114,'admin/catalog/search',2),(116,'access_public/*',30),(119,'admin/catalog/copy_ddi',62),(124,'admin/repositories/select',61),(125,'admin/repositories/active/*',61),(126,'admin/catalog/publish',41),(127,'admin/catalog/publish/*',41),(131,'admin/catalog/copy_study',63),(132,'admin/catalog/do_copy_study/*',63),(133,'admin/citations',64),(134,'admin/citations/edit',65),(135,'admin/citations/edit/*',65),(136,'admin/citations/delete/*',66),(137,'admin/citations/import',67),(138,'admin/citations/export',68),(141,'admin',3),(142,'admin/users/exit_impersonate',3),(143,'admin/licensed_requests',69),(145,'admin/licensed_requests/*',70),(147,'admin/users',11),(148,'admin/reports/*',71),(149,'admin/reports',71);
-/*!40000 ALTER TABLE `permission_urls` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `survey_aliases`
@@ -781,33 +722,6 @@ CREATE TABLE `country_aliases` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
-
---
--- Table structure for table `group_permissions`
---
-
-DROP TABLE IF EXISTS `group_permissions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `group_permissions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `group_id` int(11) NOT NULL,
-  `permission_id` int(11) NOT NULL COMMENT 'permissions bit value',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `grp_perms_UNIQUE` (`group_id`,`permission_id`)
-) AUTO_INCREMENT=340 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `group_permissions`
---
-
-LOCK TABLES `group_permissions` WRITE;
-/*!40000 ALTER TABLE `group_permissions` DISABLE KEYS */;
-INSERT INTO `group_permissions` VALUES (5,1,2),(6,1,14),(292,3,1),(289,3,2),(301,3,3),(299,3,14),(293,3,41),(295,3,42),(296,3,43),(297,3,44),(291,3,46),(294,3,49),(300,3,61),(290,3,62),(298,3,63),(334,4,2),(339,4,3),(335,4,16),(338,4,61),(336,4,69),(337,4,70),(313,5,3),(312,5,71),(287,9,2),(288,9,63),(227,10,2),(229,10,3),(228,10,45);
-/*!40000 ALTER TABLE `group_permissions` ENABLE KEYS */;
-UNLOCK TABLES;
-
 --
 -- Table structure for table `survey_repos`
 --
@@ -834,34 +748,7 @@ LOCK TABLES `survey_repos` WRITE;
 /*!40000 ALTER TABLE `survey_repos` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `repo_perms_urls`
---
 
-DROP TABLE IF EXISTS `repo_perms_urls`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `repo_perms_urls` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `repo_pg_id` int(11) DEFAULT NULL COMMENT 'repo permission group id',
-  `url` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) AUTO_INCREMENT=69 DEFAULT CHARSET=utf8 COMMENT='list of URLs defining a permission group for collections';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `repo_perms_urls`
---
-
-LOCK TABLES `repo_perms_urls` WRITE;
-/*!40000 ALTER TABLE `repo_perms_urls` DISABLE KEYS */;
-INSERT INTO `repo_perms_urls` VALUES (5,2,'admin/catalog/copy_ddi'),(6,2,'admin/catalog/copy_study'),(7,2,'admin/catalog/delete'),(8,2,'admin/catalog/do_copy_study/*'),(9,2,'admin/catalog/do_upload'),(10,2,'admin/catalog/edit/*'),(11,2,'admin/catalog/export-ddi'),(12,2,'admin/catalog/import-rdf'),(15,2,'admin/catalog/repladce_ddi/*'),(16,2,'admin/catalog/search'),(17,2,'admin/catalog/survey/*'),(18,2,'admin/catalog/update'),(19,2,'admin/catalog/update/*'),(20,2,'admin/catalog/upload'),(28,3,'admin/licensed_requests'),(29,3,'admin/licensed_requests/*'),(30,2,'admin/managefiles/*'),(41,2,'admin/resources/*'),(64,1,'admin/catalog/*'),(67,2,'admin/pdf_generator/*'),
-(68,1,'admin/pdf_generator/*'),
-(69,1,'admin/catalog/add_study'),
-(70,1,'admin/catalog/batch_import'),
-(71,1,'admin/catalog/refresh/*');
-/*!40000 ALTER TABLE `repo_perms_urls` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 --
@@ -917,40 +804,6 @@ CREATE TABLE `url_mappings` (
 
 
 
---
--- Table structure for table `groups`
---
-
-DROP TABLE IF EXISTS `groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `groups` (
-  `id` tinyint(3) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `group_type` varchar(40) DEFAULT NULL,
-  `access_type` varchar(45) DEFAULT NULL,
-  `weight` int(11) DEFAULT '0',
-  `is_collection_group` tinyint(4) DEFAULT '0' COMMENT 'does group control collection access? 1=yes',
-  PRIMARY KEY (`id`)
-) AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `groups`
---
-
-LOCK TABLES `groups` WRITE;
-/*!40000 ALTER TABLE `groups` DISABLE KEYS */;
-INSERT INTO `groups` VALUES 
-(1,'admin','It is the site administrator and has access to all site content','admin','unlimited',0,0),
-(2,'user','General user account with no access to site administration','user','none',-99,0),
-(3,'Collection administrators','Users can manage and review studies for collections they are assigned to','admin','limited',0,1),
-(5,'Report viewer','Can only generate/view reports','admin','limited',0,0),
-(11,'Citation manager','has full control over the citations','admin','limited',0,0),
-(12,'Global Licensed Reviewer','This account can review licensed data requests from all collections','admin','limited',0,0);
-/*!40000 ALTER TABLE `groups` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `survey_relationship_types`
@@ -1034,33 +887,6 @@ CREATE TABLE `tags` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
-
---
--- Table structure for table `permissions`
---
-
-DROP TABLE IF EXISTS `permissions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `permissions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `label` varchar(45) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `section` varchar(45) DEFAULT NULL,
-  `weight` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) AUTO_INCREMENT=72 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `permissions`
---
-
-LOCK TABLES `permissions` WRITE;
-/*!40000 ALTER TABLE `permissions` DISABLE KEYS */;
-INSERT INTO `permissions` VALUES (1,'Upload DDI file','this is a test description','catalog',3),(2,'View catalog','this is a test description','catalog',0),(3,'Access site administration','this is a test description','site_admin',0),(4,'Access Menus','this is a test description','menu_admin',0),(5,'Add menu page','this is a test description','menu_admin',0),(6,'Edit menu','this is a test description','menu_admin',0),(7,'Add menu link','this is a test description','menu_admin',0),(8,'Sort menu items','this is a test description','menu_admin',0),(9,'Access vocabularies','this is a test description','vocab',0),(10,'Access vocabulary terms','this is a test description','vocab',0),(11,'View user accounts','View list of all user accounts','user_admin',0),(12,'Edit user information','this is a test description','user_admin',0),(14,'Access DDI Browser','this is a test description','ddibrowser',0),(16,'Access site pages','this is a test description','general_site',0),(18,'View citations','this is a test description','general_site',0),(22,'Site backup','this is a test description','site_admin',0),(23,'View licensed request form','this is a test description','general_site',0),(25,'Switch site language','this is a test description','general_site',0),(27,'Translate site','this is a test description','site_admin',0),(30,'Public use files','this is a test description','general_site',0),(40,'Data Deposit','Data Deposit','site_admin',0),(41,'Publish/Unpublish study','Allows publishing study','catalog',3),(42,'Delete Study','delete study','catalog',4),(43,'Export DDI','Export','catalog',5),(44,'Import RDF','Import RDF for study resources','catalog',5),(45,'Manage Repositories','Manage repositories','repositories',9),(46,'Replace DDI','Replace a DDI file','catalog',3),(49,'Edit survey','Edit survey','catalog',4),(61,'Select collection','','repositories',1),(62,'Copy DDI','copy DDI','catalog',0),(63,'Copy studies from other collections','','catalog',6),(64,'View citations','','citation',1),(65,'Edit citation','','citation',2),(66,'Delete citation','Delete a citation','citation',3),(67,'Import citations','','citation',4),(68,'Export citations','Export citations to various formats','citation',5),(69,'View licensed requests','View list of licensed data requests','Licensed requests',0),(70,'Edit request','Edit a licensed data request','Licensed requests',1),(71,'Reports','View and generate admin reports','reports',0);
-/*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `survey_years`
@@ -1173,48 +999,6 @@ INSERT INTO `countries` VALUES (1,'Afghanistan','AFG'),(2,'Albania','ALB'),(3,'A
 /*!40000 ALTER TABLE `countries` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `repo_perms_groups`
---
-
-DROP TABLE IF EXISTS `repo_perms_groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `repo_perms_groups` (
-  `repo_pg_id` int(11) NOT NULL AUTO_INCREMENT,
-  `title` varchar(45) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `weight` int(11) DEFAULT '0',
-  PRIMARY KEY (`repo_pg_id`)
-) AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='Permission group names';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `repo_perms_groups`
---
-
-LOCK TABLES `repo_perms_groups` WRITE;
-/*!40000 ALTER TABLE `repo_perms_groups` DISABLE KEYS */;
-INSERT INTO `repo_perms_groups` VALUES (1,'Manage studies (full access)','Full control over the studies including adding, updating, publishing, copying from other collections, etc.',0),(2,'Manage studies (limited access)','All access except can\'t publish or unpublish studies',1),(3,'Manage licensed requests','Allows user to view and process licensed data requests for the collection',2),(4,'Reviewer','Allows user to review studies from the front-end regardless of study publish/unpublish status',3);
-/*!40000 ALTER TABLE `repo_perms_groups` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user_repo_permissions`
---
-
-DROP TABLE IF EXISTS `user_repo_permissions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `user_repo_permissions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `repo_id` int(11) DEFAULT NULL,
-  `repo_pg_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8 COMMENT='set user permission for a collection';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 
 
 --
@@ -1271,13 +1055,13 @@ DROP TABLE IF EXISTS `ci_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ci_sessions` (
-  `session_id` varchar(40) NOT NULL DEFAULT '0',
-  `ip_address` varchar(16) DEFAULT '0',
-  `user_agent` varchar(255) DEFAULT NULL,
-  `last_activity` int(11) DEFAULT '0',
-  `user_data` text,
-  PRIMARY KEY (`session_id`)
-) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  `id` varchar(128) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `timestamp` int unsigned NOT NULL DEFAULT '0',
+  `data` blob NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ci_sessions_timestamp` (`timestamp`)
+);
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1334,7 +1118,7 @@ DROP TABLE IF EXISTS `configurations`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `configurations` (
   `name` varchar(200) NOT NULL,
-  `value` varchar(255) NOT NULL,
+  `value` varchar(5000) NOT NULL,
   `label` varchar(255) DEFAULT NULL,
   `helptext` varchar(255) DEFAULT NULL,
   `item_group` varchar(255) DEFAULT NULL,
@@ -1389,6 +1173,8 @@ INSERT INTO `configurations` VALUES ('website_webmaster_email','','Site webmaste
 INSERT INTO `configurations` VALUES ('website_webmaster_name','noreply','Webmaster name','-','website');
 INSERT INTO `configurations` VALUES ('year_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('year_search_weight','1',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `configurations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1407,18 +1193,31 @@ CREATE TABLE `featured_surveys` (
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
+
+
+
 --
 -- Table structure for table `survey_types`
 --
 
-CREATE  TABLE `survey_types` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
-  `title` VARCHAR(255) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `title_UNIQUE` (`title` ASC) 
-)
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_general_ci;
+CREATE TABLE `survey_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL,
+  `title` varchar(250) DEFAULT NULL,
+  `weight` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `title_UNIQUE` (`code`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(1,'survey','Survey',100);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(2,'geospatial','Geospatial',90);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(3,'timeseries','Time series',80);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(4,'document','Document',50);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(5,'table','Table',70);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(6,'image','Photo',40);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(7,'script','Script',30);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(8,'visualization','Visualization',60);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(9,'video','Video',40);
 
 
 -- 
@@ -1482,6 +1281,7 @@ CREATE TABLE `api_logs` (
   `uri` varchar(255) NOT NULL,
   `method` varchar(6) NOT NULL,
   `params` text,
+  `user_id` int DEFAULT NULL,
   `api_key` varchar(40) NOT NULL,
   `ip_address` varchar(45) NOT NULL,
   `time` int(11) NOT NULL,
@@ -1523,4 +1323,166 @@ CREATE TABLE `filestore` (
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_filestore_file` (`file_name`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `ts_databases` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idno` varchar(150) DEFAULT NULL,
+  `title` varchar(300) DEFAULT NULL,
+  `abstract` text,
+  `published` tinyint(4) DEFAULT NULL,
+  `created` varchar(45) DEFAULT NULL,
+  `changed` varchar(45) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  `metadata` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idno_UNIQUE` (`idno`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `data_classifications` (
+  `id` int(11) NOT NULL,
+  `code` varchar(45) DEFAULT NULL,
+  `title` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code_UNIQUE` (`code`)
+) DEFAULT CHARSET=utf8;
+
+
+LOCK TABLES `data_classifications` WRITE;
+/*!40000 ALTER TABLE `data_classifications` DISABLE KEYS */;
+INSERT INTO `data_classifications` (id,code,title) VALUES 
+(1,'public','Public use'),
+(2,'official','Official use'),
+(3,'confidential','Confidential');
+/*!40000 ALTER TABLE `data_classifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `weight` int(11) DEFAULT '0',
+  `is_admin` tinyint(4) DEFAULT '0',
+  `is_locked` tinyint(4) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+insert into roles(id,name,description, weight, is_admin, is_locked) values 
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
+(2,'user','General user account with no access to site administration', 0,1,1);
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+CREATE TABLE `role_permissions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_id` varchar(45) NOT NULL,
+  `resource` varchar(45) DEFAULT NULL,
+  `permissions` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `user_roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `role_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- migrate admins from previous version
+--
+
+insert into user_roles (user_id, role_id) 
+	select user_id, group_id from users_groups;
+
+
+
+
+CREATE TABLE `widgets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(100) NOT NULL,
+  `title` varchar(250) NOT NULL,
+  `thumbnail` varchar(300) DEFAULT NULL,
+  `description` varchar(450) DEFAULT NULL,
+  `storage_path` varchar(255) DEFAULT NULL,
+  `published` int DEFAULT NULL,
+  `created` int DEFAULT NULL,
+  `changed` int DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `changed_by` int DEFAULT NULL,
+  `options` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid_UNIQUE` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE `survey_widgets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sid` int NOT NULL,
+  `widget_uuid` varchar(145) NOT NULL,
+  `url` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sid_uuid` (`sid`,`widget_uuid`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- Facets
+--
+
+  CREATE TABLE `facets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) DEFAULT NULL,
+  `title` varchar(45) DEFAULT NULL,
+  `facet_type` varchar(10) DEFAULT NULL,
+  `enabled` int DEFAULT '0',
+  `mappings` mediumtext,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+insert into facets(name,title,facet_type,enabled)
+values 
+('year','Years','core',1),
+('data_class','Data classifications','core',1),
+('dtype','License','core',1),
+('country','Countries','core',1),
+('collection','Collections','core',1),
+('type','Data types','core',1),
+('tag','Tags','core',1);
+
+--
+-- Facet terms
+--
+
+CREATE TABLE `facet_terms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `facet_id` int(11) DEFAULT NULL,
+  `value` varchar(300) DEFAULT NULL,
+  `weight` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+--
+-- Survey facets
+--
+
+CREATE TABLE `survey_facets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) DEFAULT NULL,
+  `facet_id` int(11) DEFAULT NULL,
+  `term_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

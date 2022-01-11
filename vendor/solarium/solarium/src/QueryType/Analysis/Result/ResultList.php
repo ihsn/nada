@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Analysis\Result;
 
 /**
@@ -27,7 +34,7 @@ class ResultList implements \IteratorAggregate, \Countable
      * @param string $name
      * @param array  $items
      */
-    public function __construct($name, $items)
+    public function __construct(string $name, array $items)
     {
         $this->name = $name;
         $this->items = $items;
@@ -38,7 +45,7 @@ class ResultList implements \IteratorAggregate, \Countable
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -48,7 +55,7 @@ class ResultList implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getItems()
+    public function getItems(): array
     {
         return $this->items;
     }
@@ -58,7 +65,7 @@ class ResultList implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->items);
     }
@@ -68,8 +75,8 @@ class ResultList implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->items);
+        return \count($this->items);
     }
 }

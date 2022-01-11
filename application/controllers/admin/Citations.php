@@ -8,11 +8,11 @@ class Citations extends MY_Controller {
     {
         parent::__construct();
 
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		$this->load->model('Citation_model');
-		$this->load->model('Resource_model');
+		$this->load->model('Survey_resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );
-		$this->load->library( array('form_validation','pagination') );
+        $this->load->library( array('acl_manager','form_validation','pagination') );
 
         $this->lang->load('general');
         $this->lang->load('citations');
@@ -24,29 +24,16 @@ class Citations extends MY_Controller {
 
     function index()
     {
-        //get records
+        $this->acl_manager->has_access_or_die('citation', 'view');
         $data['rows']=$this->_search();
-        //list of users who created citations
         $data['citation_creators']=$this->Citation_model->get_citations_user_list();
-
-        //flags assigned to citations
         $data['citation_flags']=$this->Citation_model->get_citations_flag_list();
-
-        //citation url stats
         $data['citation_url_stats']=$this->Citation_model->get_citations_url_stats();
-
         $data['citation_publish_stats']=$this->Citation_model->get_citations_publish_stats();
 
-		//load the contents of the page into a variable
-		$content=$this->load->view('citations/index', $data,true);
-
-		//page title
+        $content=$this->load->view('citations/index', $data,true);
 		$this->template->write('title', t('title_citations'),true);
-
-		//pass data to the site's template
 		$this->template->write('content', $content,true);
-
-		//render final output
 	  	$this->template->render();
 	}
 
@@ -154,12 +141,12 @@ class Citations extends MY_Controller {
 	}
 
 	function add()
-	{
-		$this->edit(NULL);
+	{        
+        $this->edit(NULL);
 	}
 
     function edit($id=NULL)
-    {
+    {        
         $this->template->add_js('javascript/underscore-min.js');
         $this->template->add_js('javascript/jquery.highlight.js');
 
@@ -173,10 +160,12 @@ class Citations extends MY_Controller {
 		}
 
         if ($id==NULL){
+            $this->acl_manager->has_access_or_die('citation', 'create');
             $data['form_title']=t('add_new_citation');
             $this->html_form_url.='/add';
         }
         else{
+            $this->acl_manager->has_access_or_die('citation', 'edit');
             $data['form_title']=t('edit_citation');
             $this->html_form_url.='/edit/'.$id;
         }
@@ -572,8 +561,9 @@ class Citations extends MY_Controller {
 	*/
 	function delete($id=NULL)
 	{
-		if ($id==NULL)
-		{
+        $this->acl_manager->has_access_or_die('citation', 'delete');
+
+		if ($id==NULL){
 			return FALSE;
 		}
 
@@ -683,6 +673,10 @@ class Citations extends MY_Controller {
 	**/
 	function import()
 	{
+        $this->acl_manager->has_access_or_die('citation', 'create');
+		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
+		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
+
 		$this->form_validation->set_rules('citation_string', t('citation_string'), 'xss_clean|trim|required');
 		$string=$this->input->post("citation_string");
 
@@ -831,13 +825,13 @@ class Citations extends MY_Controller {
 	*/
 	function publish($id=NULL,$publish=NULL)
 	{
-		if (!is_numeric($id) || !is_numeric($publish))
-		{
+        $this->acl_manager->has_access_or_die('citation', 'publish');
+
+		if (!is_numeric($id) || !is_numeric($publish)){
 			show_404();
 		}
 
 		$result=$this->Citation_model->update($id,array('published'=>$publish));
-
 		echo json_encode(array('result'=>(int)$result) );
 	}
 
@@ -847,6 +841,8 @@ class Citations extends MY_Controller {
      */
 	function export($format=null)
 	{
+        $this->acl_manager->has_access_or_die('citation', 'view');
+
         if($format=='json'){            
             $filename='citations-'.date("m-d-y-his").'.json';
             header( 'Content-Type: application/json');
@@ -929,7 +925,7 @@ class Citations extends MY_Controller {
             return FALSE;
         }
 
-        $study_fulltext_index='keywords';//'idno,title,nation,abbreviation,authoring_entity,keywords';
+        $study_fulltext_index='keywords,var_keywords';
         $where=array();
 
         $tmp_surveys=explode(",",$exclude_surveys);
@@ -963,7 +959,7 @@ class Citations extends MY_Controller {
 					KEY_TBL.*
 					FROM surveys
 					INNER JOIN
-						freetexttable (surveys,(ft_keywords),%s,100) as KEY_TBL
+						freetexttable (surveys,(keywords),%s,100) as KEY_TBL
 					ON surveys.id=KEY_TBL.[KEY]
 					WHERE KEY_TBL.RANK >=10
 					ORDER BY KEY_TBL.RANK DESC;",$this->db->escape($keywords));
@@ -1010,23 +1006,8 @@ class Citations extends MY_Controller {
     function validate_url_single($id)
     {
         echo "<pre>";
-
         $status=$this->Citation_model->update_url_status_single($id);
-
-        var_dump($status);
-        exit;
-        $url=$this->input->get("url");
-
-        $this->Citation_model->get_url_header($url);exit;
-
-        echo $url;
-        echo "<HR>";
-        $url=str_replace(" ","%20",$url);
-        $url="http://www-wds.worldbank.org/external/default/main?pagePK=64193027&piPK=64187937&theSitePK=523679&menuPK=64187510&searchMenuPK=64187283&siteName=WDS&entityID=000009265_3980420172958";
-        echo $url;
-        echo '<pre>';
-        print_r(get_headers($url,1));
-        exit;
+        var_dump($status);        
     }
 
 
@@ -1057,19 +1038,6 @@ class Citations extends MY_Controller {
         echo $url;
         echo "<HR>";
         $url=str_replace(" ","%20",$url);
-        echo $url;
-        /*
-                $url_parts=explode("//",$url);
-
-                $url_parts[1]=rawurlencode($url_parts[1]);
-                $url=implode("//",$url_parts);
-
-                print_r($url_parts);
-        */
-        //$url=rawurlencode($url);
-        //$url="http://www.sctimst.ac.in/About SCTIMST/Organisation/AMCHSS../Publications/Working Paper Series/resources/wp_8.pdf";
-
-
         echo $url;
         echo '<pre>';
         print_r(get_headers($url,1));

@@ -20,10 +20,10 @@ $config['captcha_driver']='none';
 */
 
 //folder where images will be created. It needs to be an absolute path.
-$config['captcha_img_path'] = APPPATH.'/../cache/captcha';
+$config['captcha_img_path'] = APPPATH.'/../files/captcha/';
 
 //url path to load captcha images
-$config['captcha_img_url'] = base_url().'cache/captcha';
+$config['captcha_img_url'] = base_url().'files/captcha';
 
 //path to the TTF font to use with captcha. 
 $config['captcha_font_path'] = APPPATH.'/../modules/captcha/Merienda/Merienda-Bold.ttf';

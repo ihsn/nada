@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Terms;
 
 /**
@@ -27,7 +34,7 @@ class Result implements \IteratorAggregate, \Countable
      * @param array $results
      * @param array $all
      */
-    public function __construct($results, $all)
+    public function __construct(array $results, array $all)
     {
         $this->results = $results;
         $this->all = $all;
@@ -38,7 +45,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getResults()
+    public function getResults(): array
     {
         return $this->results;
     }
@@ -48,7 +55,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getAll()
+    public function getAll(): array
     {
         return $this->all;
     }
@@ -60,13 +67,9 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return Field|null
      */
-    public function getField($field)
+    public function getField($field): ?Field
     {
-        if (isset($this->results[$field])) {
-            return $this->results[$field];
-        }
-
-        return null;
+        return $this->results[$field] ?? null;
     }
 
     /**
@@ -74,7 +77,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->results);
     }
@@ -84,8 +87,8 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->results);
+        return \count($this->results);
     }
 }

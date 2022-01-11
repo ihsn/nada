@@ -1182,15 +1182,17 @@ abstract class REST_Controller extends CI_Controller {
      * @return bool TRUE the data was inserted; otherwise, FALSE
      */
     protected function _log_request($authorized = FALSE)
-    {
+    {        
         // Insert the request into the log table
         $is_inserted = $this->rest->db
             ->insert(
                 $this->config->item('rest_logs_table'), [
                 'uri' => $this->uri->uri_string(),
                 'method' => $this->request->method,
-                'params' => $this->_args ? ($this->config->item('rest_logs_json_params') === TRUE ? json_encode($this->_args) : serialize($this->_args)) : NULL,
-                'api_key' => isset($this->rest->key) ? $this->rest->key : '',
+                //'params' => $this->_args ? ($this->config->item('rest_logs_json_params') === TRUE ? json_encode($this->_args) : serialize($this->_args)) : NULL,
+                'params' =>$this->input->server('QUERY_STRING'),
+                'api_key' => isset($this->rest->key) ? substr($this->rest->key,1,10) : '',
+                'user_id'=> isset($this->rest->user_id) ? $this->rest->user_id : null,
                 'ip_address' => $this->input->ip_address(),
                 'time' => time(),
                 'authorized' => $authorized

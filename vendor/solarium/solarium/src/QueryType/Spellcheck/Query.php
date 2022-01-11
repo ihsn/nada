@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Spellcheck;
 
 use Solarium\Component\ComponentTraits\SpellcheckTrait;
@@ -8,16 +15,22 @@ use Solarium\Component\QueryTrait;
 use Solarium\Component\SpellcheckInterface;
 use Solarium\Core\Client\Client;
 use Solarium\Core\Query\AbstractQuery as BaseQuery;
+use Solarium\Core\Query\RequestBuilderInterface;
+use Solarium\Core\Query\ResponseParserInterface;
+use Solarium\QueryType\Spellcheck\Result\Result;
+use Solarium\QueryType\Spellcheck\Result\Term;
 
 /**
  * Spellcheck Query.
  *
- * Can be used for an autocomplete feature. See http://wiki.apache.org/solr/SpellcheckComponent for more info.
+ * Can be used for an autocomplete feature.
+ *
+ * @see https://solr.apache.org/guide/spell-checking.html
  */
 class Query extends BaseQuery implements SpellcheckInterface, QueryInterface
 {
-    use SpellcheckTrait;
     use QueryTrait;
+    use SpellcheckTrait;
 
     /**
      * Default options.
@@ -26,8 +39,8 @@ class Query extends BaseQuery implements SpellcheckInterface, QueryInterface
      */
     protected $options = [
         'handler' => 'spell',
-        'resultclass' => 'Solarium\QueryType\Spellcheck\Result\Result',
-        'termclass' => 'Solarium\QueryType\Spellcheck\Result\Term',
+        'resultclass' => Result::class,
+        'termclass' => Term::class,
         'omitheader' => true,
         'build' => false,
     ];
@@ -37,7 +50,7 @@ class Query extends BaseQuery implements SpellcheckInterface, QueryInterface
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return Client::QUERY_SPELLCHECK;
     }
@@ -47,7 +60,7 @@ class Query extends BaseQuery implements SpellcheckInterface, QueryInterface
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): RequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -57,7 +70,7 @@ class Query extends BaseQuery implements SpellcheckInterface, QueryInterface
      *
      * @return ResponseParser
      */
-    public function getResponseParser()
+    public function getResponseParser(): ResponseParserInterface
     {
         return new ResponseParser();
     }

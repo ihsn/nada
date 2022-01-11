@@ -1,8 +1,16 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Ping;
 
 use Solarium\Core\Client\Request;
+use Solarium\Core\Query\AbstractQuery;
 use Solarium\Core\Query\AbstractRequestBuilder as BaseRequestBuilder;
 use Solarium\Core\Query\QueryInterface;
 
@@ -18,7 +26,7 @@ class RequestBuilder extends BaseRequestBuilder
      *
      * @return Request
      */
-    public function build(QueryInterface $query)
+    public function build(AbstractQuery $query): Request
     {
         $request = parent::build($query);
         $request->setMethod(Request::METHOD_GET);

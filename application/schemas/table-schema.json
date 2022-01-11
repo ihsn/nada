@@ -26,6 +26,24 @@
           "uri":{
             "title":"URI",
             "type":"string"
+          },
+          "author_id": {
+            "type": "array",
+            "title": "Author ID",
+            "description": "Unique identifier of an author, which may be provided by services like ORCID or other",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "title": "Type",
+                  "description": "Source of identifier, e.g. ORCID"
+                },
+                "id": {
+                  "title": "Identifier",
+                  "description": "Author's unique identifier for the corresponding source"
+                }
+              }
+            }
           }
         },
         "required":[
@@ -301,16 +319,24 @@
           "items": {
             "type": "object",
             "properties": {
+              "label": {
+                "title": "Label",
+                "type": "string"
+              },
               "var_name": {
                 "title": "Variable name",
                 "description": "Variable name",
                 "type": "string"
-              },
-              "label": {
-                "title": "Label",
-                "type": "string"
+              },              
+              "dataset": {
+                "title": "Dataset",
+                "type": "string",
+                "description": "Identifies the dataset that contains the variable reported in var_name"
               }
-            }
+            },
+            "required": [
+              "label"
+            ]
           }
         },
 
@@ -321,17 +347,48 @@
           "items": {
             "type": "object",
             "properties": {
+              "label": {
+                "title": "Label",
+                "type": "string"
+              },
               "var_name": {
                 "title": "Variable name",
                 "description": "Variable name",
                 "type": "string"
+              },              
+              "dataset": {
+                "title": "Dataset",
+                "type": "string",
+                "description": "Identifies the dataset that contains the variable reported in var_name"
+              }
+            },
+            "required": [
+              "label"
+            ]
+          }
+        },
+
+        "table_footnotes": {
+          "type": "array",
+          "title": "Chart footnotes",
+          "description": "Footnotes",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "title": "Footnote number",
+                "description":"Footnote number",
+                "type": "string"
               },
-              "label": {
-                "title": "Label",
+              "text": {
+                "title": "Footnote text",
                 "type": "string"
               }
-            }
-          }
+            },
+            "required": [
+              "text"
+            ]
+          } 
         },
 
         "table_series": {
@@ -814,59 +871,41 @@
           "required": [
             "name"
           ]
-        },
-        "tags": {
-          "type": "array",
-          "title": "Tags",
-          "description": "Tags",
-          "items": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "title": "Tag",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "tag"
-          ]
-        }
+        }        
         
       },
       "additionalProperties": false
     },
-      "files": {
-        "type": "array",
-        "title": "Table file",
-        "description": "Table file",          
-        "items":{
-          "type":"object",
-          "properties":{
-          "file_uri": {
-            "title": "File name",
-            "description":"File name or URL",
+
+    "provenance":{
+      "type":"array",
+      "description":"Provenance",
+      "items":{
+        "$ref":"provenance-schema.json"
+      }
+      },
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
             "type": "string"
           },
-          "format": {
-            "title": "File format e.g. `application/excel`, `application/pdf`",
-            "description": "The file format, physical medium, or dimensions of the resource.",
-            "type": "string"              
-          },
-          "location": {
-            "title": "Page number or sheet name for the table",
-            "type": "string"              
-          },
-          "note": {
-            "title": "Notes",
-            "type": "string"              
+          "tag_group": {
+            "title": "Tag group",
+            "type": "string"
           }
-        },
-        "required": [
-          "file_uri"
-        ]
-      }
+        }
+      },
+      "required": [
+        "tag"
+      ]
     },
+
     "additional": {
       "type": "object",
       "description": "Additional metadata",

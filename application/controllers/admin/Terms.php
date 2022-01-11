@@ -4,11 +4,14 @@ class Terms extends MY_Controller {
     function __construct() 
     {
         parent::__construct();
+		show_error('DISABLED-NO-LONGER-SUPPORTED');
+		
 		$this->load->model('term_model');
-		$this->template->set_template('admin');
+		$this->template->set_template('admin5');
 		
 		$this->lang->load('general');
 		$this->lang->load('vocabularies');	
+		$this->acl_manager->has_access_or_die('vocabularies', 'edit');
     }
  
 	function index($vid=NULL)

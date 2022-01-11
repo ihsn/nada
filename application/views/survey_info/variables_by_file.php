@@ -103,23 +103,38 @@
     <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">
 
         <div class="container-fluid" id="datafile-container">        
-        <h4><?php echo t('data_file');?>: <?php echo $file['file_name'];?></h4>
+            <h4><?php echo t('data_file');?>: <?php echo $file['file_name'];?></h4>
+            
+            <?php if($file['description']!=''):?>
+                <p><?php echo nl2br($file['description']);?></p>
+            <?php endif;?>
         
-        <?php if($file['description']!=''):?>
-            <p><?php echo nl2br($file['description']);?></p>
-        <?php endif;?>
-    
-        <table class="data-file-bg1">            
-            <tr>
-                <td><?php echo t('cases');?>: </td>
-                <td><?php echo $file['case_count'];?></td>
-            </tr>
-            <tr>
-                <td><?php echo t('variables');?>: </td>
-                <td><?php echo $file['var_count'];?></td>
-            </tr>
-        </table>
+            <table class="data-file-bg1">
+                <tr>
+                    <td style="width:100px;"><?php echo t('cases');?>: </td>
+                    <td><?php echo $file['case_count'];?></td>
+                </tr>
+                <tr>
+                    <td><?php echo t('variables');?>: </td>
+                    <td><?php echo $file['var_count'];?></td>
+                </tr>
 
+                <?php if(isset($file['producer']) && !empty($file['producer'])):?>
+                <tr>
+                    <td><?php echo t('producer');?>: </td>
+                    <td><?php echo $file['producer'];?></td>
+                </tr>
+                <?php endif;?>
+
+                <?php if(isset($file['notes']) && !empty($file['notes'])):?>
+                <tr>
+                    <td><?php echo t('notes');?>: </td>
+                    <td><?php echo nl2br($file['notes']);?></td>
+                </tr>
+                <?php endif;?>
+
+            </table>
+            
         </div>
 
         
@@ -138,7 +153,7 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="p-1">
+                            <div class="p-1 pr-3">
                                 <a class="var-id" id="<?php echo md5($variable['vid']);?>" href="<?php echo site_url("catalog/$sid/variable/$file_id/{$variable['vid']}");?>?name=<?php echo urlencode($variable['name']);?>">
                                     <?php echo html_escape($variable['labl']);?>
                                 </a>

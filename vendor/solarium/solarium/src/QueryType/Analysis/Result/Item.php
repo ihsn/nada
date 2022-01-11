@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Analysis\Result;
 
 /**
@@ -68,7 +75,7 @@ class Item
      *
      * @param array $analysis
      */
-    public function __construct($analysis)
+    public function __construct(array $analysis)
     {
         $this->text = $analysis['text'];
         $this->start = $analysis['start'];
@@ -91,7 +98,7 @@ class Item
      *
      * @return string
      */
-    public function getText()
+    public function getText(): string
     {
         return $this->text;
     }
@@ -101,9 +108,9 @@ class Item
      *
      * This values is not available in all cases
      *
-     * @return string
+     * @return string|null
      */
-    public function getRawText()
+    public function getRawText(): ?string
     {
         return $this->rawText;
     }
@@ -113,7 +120,7 @@ class Item
      *
      * @return int
      */
-    public function getStart()
+    public function getStart(): int
     {
         return $this->start;
     }
@@ -123,7 +130,7 @@ class Item
      *
      * @return int
      */
-    public function getEnd()
+    public function getEnd(): int
     {
         return $this->end;
     }
@@ -133,7 +140,7 @@ class Item
      *
      * @return int
      */
-    public function getPosition()
+    public function getPosition(): int
     {
         return $this->position;
     }
@@ -143,9 +150,9 @@ class Item
      *
      * @return array
      */
-    public function getPositionHistory()
+    public function getPositionHistory(): array
     {
-        if (is_array($this->positionHistory)) {
+        if (\is_array($this->positionHistory)) {
             return $this->positionHistory;
         }
 
@@ -157,7 +164,7 @@ class Item
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
@@ -165,9 +172,9 @@ class Item
     /**
      * Get match value.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getMatch()
+    public function getMatch(): ?bool
     {
         return $this->match;
     }

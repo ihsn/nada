@@ -24,6 +24,9 @@ class ISO19115_Parser
         
         //register all namespaces used by the standard
         $this->xml_obj->registerXPathNamespace("gco","http://www.isotc211.org/2005/gco");
+
+        $this->xml_obj->registerXPathNamespace('gmd', 'http://www.isotc211.org/2005/gmd');
+
         
         //automatically register namespaces found in the xml file
         foreach($this->xml_obj->getDocNamespaces() as $strPrefix => $strNamespace) {
@@ -338,21 +341,25 @@ class ISO19115_Parser
             ),
          */
         
-        $keywords=$this->xpath_map['ident_keywords']['data'];
+        $keywords=$this->xpath_map['ident_descriptive_keywords']['data'];
                 
-        $output=array();
+        $output=array();        
         foreach($keywords as $row)
         {
-            foreach($row['keyword'] as $keyword)
-            {                
+            $keywords_arr=implode("\n",$row['keyword']);
+            $keywords_arr=explode("\n",$keywords_arr);
+
+            foreach($keywords_arr as $keyword)
+            {
                 $output[]=array(
-                    'keyword'   =>  $keyword,
-                    'type'      =>  @$row['type'],
-                    'thesaurus' =>  @$row['thesaurus']                
+                    'keyword'   =>  trim($keyword),
+                    'type'      =>  isset($row['type']) ? $row['type'] : '',
+                    'thesaurusName' =>  isset($row['thesaurusName']) ? $row['thesaurusName'] : ''
                 );                
             }
         }
-        $this->xpath_map['ident_keywords']['data']=$output;
+
+        $this->xpath_map['ident_descriptive_keywords']['data']=$output;
     }
     
     
@@ -378,19 +385,48 @@ class ISO19115_Parser
             'ident_description' => array(
                 'type'=>'text',
                 'is_repeated'=>false,
-                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract'
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString'
             ),
             'ident_purpose' => array(
                 'type'=>'text',
                 'is_repeated'=>false,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:purpose'
             ),
+            'ident_credit' => array(
+                'type'=>'text',
+                'is_repeated'=>false,
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:credit'
+            ),
+
+            'ident_status' => array(
+                'type'=>'text',
+                'is_repeated'=>false,
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode/@codeListValue'
+            ),
 
             //recheck https://project-open-data.cio.gov/v1.1/metadata-resources/
-            'ident_modified' => array(
+            /*'ident_modified' => array(
                 'type'=>'text',
                 'is_repeated'=>false,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceMaintenance/gmd:MD_MaintenanceInformation/gmd:maintenanceAndUpdateFrequency/gmd:userDefinedMaintenanceFrequency/gts:TM_PeriodDuration'
+            ),*/
+
+
+            'ident_graphic_overview' =>array(
+                'type'=>'complex',
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:graphicOverview',
+                'items'=>array(
+                    'fileName'=>array(
+                        'xpath'=>'gmd:MD_BrowseGraphic/gmd:fileName/gco:CharacterString'
+                    ),
+                    'fileDescription'=>array(
+                        'xpath'=>'gmd:MD_BrowseGraphic/gmd:fileDescription/gco:CharacterString'
+                    ),
+                    'fileType'=>array(
+                        'xpath'=>'gmd:MD_BrowseGraphic/gmd:fileType/gco:CharacterString'
+                    ),
+                    
+                )
             ),
 
             'ident_dates' =>array(
@@ -406,22 +442,22 @@ class ISO19115_Parser
                 )
             ),
 
-            'ident_keywords' => array(
+            'ident_descriptive_keywords' => array(
                 'type'=>'complex',
                 'is_repeated'=>true,
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords/gmd:MD_Keywords',
                 'items'=>array(
-                    'keyword'=> array(
-                        'type'=>'array',
-                        'xpath'=>'gmd:keyword',
-                        'is_repeated'=>true,
-                    ),
                     'type'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:type/gmd:MD_KeywordTypeCode/@codeListValue',
                         'is_repeated'=>false
                     ),
-                    'thesaurus'=> array(
+                    'keyword'=> array(
+                        'type'=>'array',
+                        'xpath'=>'gmd:keyword',
+                        'is_repeated'=>true,
+                    ),                    
+                    'thesaurusName'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:thesaurusName/gmd:CI_Citation/gmd:title',
                         'is_repeated'=>false
@@ -447,7 +483,7 @@ class ISO19115_Parser
             'ident_spatial_rep_type' => array(
                 'type'=>'text',
                 'is_repeated'=>true,
-                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType'
+                'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode/@codeListValue'
             ),
 
             //check:is_repeatable
@@ -469,19 +505,19 @@ class ISO19115_Parser
                 'xpath'=>'//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox',
                 'is_repeated'=>true,
                 'items'=>array(
-                    'west'=> array(
+                    'westBoundLongitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:westBoundLongitude'
                     ),
-                    'east'=> array(
+                    'eastBoundLongitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:eastBoundLongitude'
                     ),
-                    'south'=> array(
+                    'southBoundLatitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:southBoundLatitude'
                     ),
-                    'north'=> array(
+                    'northBoundLatitude'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:northBoundLatitude'
                     )
@@ -569,7 +605,11 @@ class ISO19115_Parser
                 'xpath'=>$root_tag.'/gmd:contact/gmd:CI_ResponsibleParty',
                 'is_repeated'=>true,
                 'items'=>array(
-                    'org_name'=> array(
+                    'person_name'=> array(
+                        'type'=>'text',
+                        'xpath'=>'gmd:individualName'
+                    ),
+                    'organisation'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:organisationName'
                     ),
@@ -659,7 +699,7 @@ class ISO19115_Parser
                         'type'=>'text',
                         'xpath'=>'gmd:distributorFormat'
                     ),
-                    'resource_url'=> array(
+                    'url'=> array(
                         'type'=>'array',
                         'xpath'=>'gmd:distributorTransferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:linkage',
                     ),
@@ -679,10 +719,10 @@ class ISO19115_Parser
                         'type'=>'array',
                         'xpath'=>'gmd:distributorTransferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:description',
                     ),
-                    'function'=> array(
+                    /*'function'=> array(
                         'type'=>'array',
                         'xpath'=>'gmd:distributorTransferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine/gmd:CI_OnlineResource/gmd:function',
-                    )
+                    )*/
                 )
             ),
 
@@ -696,7 +736,7 @@ class ISO19115_Parser
                         'xpath'=>'gmd:distributionFormat/gmd:MD_Format/gmd:name',
                         'is_repeated'=>true
                     ),
-                    'resource_url'=> array(
+                    'url'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine//gmd:linkage',
                         'is_repeated'=>true
@@ -716,11 +756,11 @@ class ISO19115_Parser
                         'xpath'=>'gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine//gmd:description',
                         'is_repeated'=>true
                     ),
-                    'function'=> array(
+                    /*'function'=> array(
                         'type'=>'text',
                         'xpath'=>'gmd:transferOptions/gmd:MD_DigitalTransferOptions/gmd:onLine//gmd:function',
                         'is_repeated'=>true
-                    ),
+                    ),*/
                 )
             ),
 
@@ -780,6 +820,8 @@ class ISO19115_Parser
             $elements=array();
             foreach($complex_obj['items'] as $field_name=>$item)
             {
+                $row->registerXPathNamespace('gmd', 'http://www.isotc211.org/2005/gmd');
+                $row->registerXPathNamespace("gco","http://www.isotc211.org/2005/gco");
                 $sub_result=$row->xpath($item['xpath']);
                 //var_dump($sub_result);
                 //echo "<HR>";
@@ -810,7 +852,6 @@ class ISO19115_Parser
 
     private function xpath_query($xpath,$is_repeated=false)
     {
-        //echo $xpath;
         $result = $this->xml_obj->xpath($xpath);
 
         if (!$result) {

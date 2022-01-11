@@ -1,52 +1,68 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Server\CoreAdmin;
 
 use Solarium\Core\Query\AbstractResponseParser as ResponseParserAbstract;
 use Solarium\Core\Query\ResponseParserInterface;
+use Solarium\Core\Query\Result\ResultInterface;
+use Solarium\QueryType\Server\CoreAdmin\Query\Action\CoreActionInterface;
 use Solarium\QueryType\Server\CoreAdmin\Query\Query;
 use Solarium\QueryType\Server\CoreAdmin\Result\Result;
 use Solarium\QueryType\Server\CoreAdmin\Result\StatusResult;
 
 /**
- * Parse update response data.
+ * Parse CoreAdmin response data.
  */
 class ResponseParser extends ResponseParserAbstract implements ResponseParserInterface
 {
     /**
      * Parse response data.
      *
-     * @param Result $result
+     * @param Result|ResultInterface $result
+     *
+     * @throws \Exception
      *
      * @return array
      */
-    public function parse($result)
+    public function parse(ResultInterface $result): array
     {
         $data = $result->getData();
         $data = $this->parseStatus($data, $result);
         $data = $this->addHeaderInfo($data, $data);
+
         return $data;
     }
 
     /**
-     * @param array  $data
-     * @param Result $result
+     * @param array                  $data
+     * @param Result|ResultInterface $result
+     *
+     * @throws \Exception
      *
      * @return array
      */
-    protected function parseStatus(array $data, Result $result)
+    protected function parseStatus(array $data, ResultInterface $result): array
     {
-        $action = $result->getQuery()->getAction();
+        /** @var Query $query */
+        $query = $result->getQuery();
+        /** @var CoreActionInterface $action */
+        $action = $query->getAction();
         $type = $action->getType();
 
-        $data['wasSuccessful'] = 200 === $result->getResponse()->getStatusCode();
-        $data['statusMessage'] = $result->getResponse()->getStatusMessage();
+        $data = parent::parseStatus($data, $result);
 
         if (Query::ACTION_STATUS !== $type) {
             return $data;
         }
 
-        if (!is_array($data['status'])) {
+        if (!\is_array($data['status'])) {
             return $data;
         }
 

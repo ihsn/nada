@@ -31,12 +31,12 @@ font-size:12px;
     </div>
     
 <div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/catalog" class="btn btn-primary" title="<?php echo t('catalog_home');?>"><?php echo t('catalog_home');?></a>
-	<a href="<?php echo site_url(); ?>/admin/catalog/upload" class="btn btn-primary" title="<?php echo t('upload_ddi_hover');?>"><?php echo t('upload_ddi');?></a> 
-    <a href="<?php echo site_url(); ?>/admin/catalog/batch_import" class="btn btn-primary" title="<?php echo t('import_ddi_hover');?>"><?php echo t('import_ddi');?></a>
+	<a href="<?php echo site_url('admin/catalog'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('catalog_home');?>"><?php echo t('catalog_home');?></a>
+	<a href="<?php echo site_url('admin/catalog/upload'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('upload_ddi_hover');?>"><?php echo t('upload_ddi');?></a> 
+    <a href="<?php echo site_url('admin/catalog/batch_import'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('import_ddi_hover');?>"><?php echo t('import_ddi');?></a>
     <?php if(strtolower($repositoryid)!=='central'):?>
-		<a href="<?php echo site_url(); ?>/admin/catalog/copy_study" class="btn btn-primary" title="<?php echo t('copy_studies');?>"><?php echo t('copy_studies');?></a>
+		<a href="<?php echo site_url('admin/catalog/copy_study'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('copy_studies');?>"><?php echo t('copy_studies');?></a>
     <?php endif;?>
-    <a href="<?php echo site_url(); ?>/admin/licensed_requests" class="btn btn-primary" title="<?php echo t('licensed_requests');?>"><?php echo t('licensed_requests');?></a>
+    <a href="<?php echo site_url('admin/licensed_requests'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('licensed_requests');?>"><?php echo t('licensed_requests');?></a>
 </div>    
 </div>

@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component;
 
 use Solarium\Component\Facet\FacetInterface;
@@ -70,7 +77,7 @@ interface FacetSetInterface
      *
      * @return \Solarium\Component\FacetSet
      */
-    public function addFacet($facet);
+    public function addFacet($facet): self;
 
     /**
      * Add multiple facets.
@@ -79,23 +86,23 @@ interface FacetSetInterface
      *
      * @return \Solarium\Component\FacetSet
      */
-    public function addFacets(array $facets);
+    public function addFacets(array $facets): self;
 
     /**
      * Get a facet.
      *
      * @param string $key
      *
-     * @return FacetInterface
+     * @return FacetInterface|null
      */
-    public function getFacet($key);
+    public function getFacet(string $key): ?FacetInterface;
 
     /**
      * Get all facets.
      *
      * @return FacetInterface[]
      */
-    public function getFacets();
+    public function getFacets(): array;
 
     /**
      * Remove a single facet.
@@ -106,14 +113,14 @@ interface FacetSetInterface
      *
      * @return \Solarium\Component\FacetSet
      */
-    public function removeFacet($facet);
+    public function removeFacet($facet): self;
 
     /**
      * Remove all facets.
      *
      * @return \Solarium\Component\FacetSet
      */
-    public function clearFacets();
+    public function clearFacets(): self;
 
     /**
      * Set multiple facets.
@@ -121,8 +128,10 @@ interface FacetSetInterface
      * This overwrites any existing facets
      *
      * @param FacetInterface[] $facets
+     *
+     * @return \Solarium\Component\FacetSet
      */
-    public function setFacets($facets);
+    public function setFacets(array $facets): self;
 
     /**
      * Create a facet instance.
@@ -134,7 +143,6 @@ interface FacetSetInterface
      * When no key is supplied the facet cannot be added, in that case you will need to add it manually
      * after setting the key, by using the addFacet method.
      *
-     *
      * @param string            $type
      * @param array|object|null $options
      * @param bool              $add
@@ -143,5 +151,5 @@ interface FacetSetInterface
      *
      * @return FacetInterface
      */
-    public function createFacet(string $type, $options = null, bool $add = true);
+    public function createFacet(string $type, $options = null, bool $add = true): FacetInterface;
 }

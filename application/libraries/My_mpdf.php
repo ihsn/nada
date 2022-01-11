@@ -1,6 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-//require_once(APPPATH."../modules/mpdf/mpdf_source.php");
+require_once(APPPATH."../modules/mpdf/vendor/autoload.php");
 
 //require_once 'vendor/autoload.php';
 

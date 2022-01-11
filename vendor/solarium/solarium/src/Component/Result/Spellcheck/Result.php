@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Component\Result\Spellcheck;
 
 /**
@@ -45,15 +52,15 @@ class Result implements \IteratorAggregate, \Countable
     /**
      * Get the collation result.
      *
-     * @param int $key
+     * @param int|null $key
      *
-     * @return Collation
+     * @return Collation|null
      */
-    public function getCollation($key = null)
+    public function getCollation(?int $key = null): ?Collation
     {
-        $nrOfCollations = count($this->collations);
-        if (0 == $nrOfCollations) {
-            return;
+        $nrOfCollations = \count($this->collations);
+        if (0 === $nrOfCollations) {
+            return null;
         }
 
         if (null === $key) {
@@ -68,7 +75,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return Collation[]
      */
-    public function getCollations()
+    public function getCollations(): array
     {
         return $this->collations;
     }
@@ -80,23 +87,21 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return bool
      */
-    public function getCorrectlySpelled()
+    public function getCorrectlySpelled(): bool
     {
         return $this->correctlySpelled;
     }
 
     /**
-     * Get a result by key.
+     * Get a suggestion by key.
      *
      * @param mixed $key
      *
      * @return Suggestion|null
      */
-    public function getSuggestion($key)
+    public function getSuggestion($key): ?Suggestion
     {
-        if (isset($this->suggestions[$key])) {
-            return $this->suggestions[$key];
-        }
+        return $this->suggestions[$key] ?? null;
     }
 
     /**
@@ -104,7 +109,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return Suggestion[]
      */
-    public function getSuggestions()
+    public function getSuggestions(): array
     {
         return $this->suggestions;
     }
@@ -114,7 +119,7 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->suggestions);
     }
@@ -124,8 +129,8 @@ class Result implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->suggestions);
+        return \count($this->suggestions);
     }
 }

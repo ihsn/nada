@@ -1,7 +1,15 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Analysis\ResponseParser;
 
+use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Analysis\Result\ResultList;
 
 /**
@@ -12,12 +20,12 @@ class Document extends Field
     /**
      * Parse implementation.
      *
-     * @param array $result
-     * @param array $data
+     * @param ResultInterface $result
+     * @param array           $data
      *
      * @return ResultList[]
      */
-    protected function parseAnalysis($result, $data)
+    protected function parseAnalysis(ResultInterface $result, array $data): array
     {
         $documents = [];
         foreach ($data as $documentKey => $documentData) {

@@ -70,9 +70,9 @@ class Data_access extends CI_Driver_Library {
 	}
 	
 	
-	function process_form($sid,$user=FALSE)
+	function process_form($sid,$user=FALSE, $additional_html='')
 	{
-        return $this->{$this->_adapter}->process_form($sid,$user);
+        return $this->{$this->_adapter}->process_form($sid,$user, $additional_html);
 	}
 	
 }

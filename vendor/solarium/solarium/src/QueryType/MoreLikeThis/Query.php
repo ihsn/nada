@@ -1,9 +1,21 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\MoreLikeThis;
 
+use Solarium\Component\ComponentTraits\MoreLikeThisTrait;
+use Solarium\Component\MoreLikeThisInterface;
 use Solarium\Core\Client\Client;
+use Solarium\Core\Query\RequestBuilderInterface;
+use Solarium\Core\Query\ResponseParserInterface;
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
+use Solarium\QueryType\Select\Result\Document;
 
 /**
  * MoreLikeThis Query.
@@ -11,9 +23,13 @@ use Solarium\QueryType\Select\Query\Query as SelectQuery;
  * Can be used to select documents and/or facets from Solr. This querytype has
  * lots of options and there are many Solarium subclasses for it.
  * See the Solr documentation and the relevant Solarium classes for more info.
+ *
+ * @see https://solr.apache.org/guide/other-parsers.html#more-like-this-query-parser
  */
-class Query extends SelectQuery
+class Query extends SelectQuery implements MoreLikeThisInterface
 {
+    use MoreLikeThisTrait;
+
     /**
      * Default options.
      *
@@ -21,15 +37,15 @@ class Query extends SelectQuery
      */
     protected $options = [
         'handler' => 'mlt',
-        'resultclass' => 'Solarium\QueryType\MoreLikeThis\Result',
-        'documentclass' => 'Solarium\QueryType\Select\Result\Document',
+        'resultclass' => Result::class,
+        'documentclass' => Document::class,
         'query' => '*:*',
         'start' => 0,
         'rows' => 10,
         'fields' => '*,score',
-        'interestingTerms' => 'none',
         'matchinclude' => false,
         'matchoffset' => 0,
+        'interestingTerms' => 'none',
         'stream' => false,
         'omitheader' => true,
     ];
@@ -39,7 +55,7 @@ class Query extends SelectQuery
      *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return Client::QUERY_MORELIKETHIS;
     }
@@ -49,7 +65,7 @@ class Query extends SelectQuery
      *
      * @return RequestBuilder
      */
-    public function getRequestBuilder()
+    public function getRequestBuilder(): RequestBuilderInterface
     {
         return new RequestBuilder();
     }
@@ -59,7 +75,7 @@ class Query extends SelectQuery
      *
      * @return ResponseParser
      */
-    public function getResponseParser()
+    public function getResponseParser(): ResponseParserInterface
     {
         return new ResponseParser();
     }
@@ -69,120 +85,53 @@ class Query extends SelectQuery
      *
      * Set to true to post query content instead of using the URL param
      *
-     * @see http://wiki.apache.org/solr/ContentStream ContentStream
+     * @see https://solr.apache.org/guide/content-streams.html
      *
      * @param bool $stream
      *
      * @return self Provides fluent interface
      */
-    public function setQueryStream($stream)
+    public function setQueryStream(bool $stream): self
     {
-        return $this->setOption('stream', $stream);
+        $this->setOption('stream', $stream);
+
+        return $this;
     }
 
     /**
      * Get stream option.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getQueryStream()
+    public function getQueryStream(): ?bool
     {
         return $this->getOption('stream');
-    }
-
-    /**
-     * Set the interestingTerms parameter.  Must be one of: none, list, details.
-     *
-     * @see http://wiki.apache.org/solr/MoreLikeThisHandler#Params
-     *
-     * @param string $term
-     *
-     * @return self Provides fluent interface
-     */
-    public function setInterestingTerms($term)
-    {
-        return $this->setOption('interestingTerms', $term);
-    }
-
-    /**
-     * Get the interestingTerm parameter.
-     *
-     * @return string
-     */
-    public function getInterestingTerms()
-    {
-        return $this->getOption('interestingTerms');
-    }
-
-    /**
-     * Set the match.include parameter, which is either 'true' or 'false'.
-     *
-     * @see http://wiki.apache.org/solr/MoreLikeThisHandler#Params
-     *
-     * @param bool $include
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMatchInclude($include)
-    {
-        return $this->setOption('matchinclude', $include);
-    }
-
-    /**
-     * Get the match.include parameter.
-     *
-     * @return string
-     */
-    public function getMatchInclude()
-    {
-        return $this->getOption('matchinclude');
-    }
-
-    /**
-     * Set the mlt.match.offset parameter, which determines the which result from the query should be used for MLT
-     * For paging of MLT use setStart / setRows.
-     *
-     * @see http://wiki.apache.org/solr/MoreLikeThisHandler#Params
-     *
-     * @param int $offset
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMatchOffset($offset)
-    {
-        return $this->setOption('matchoffset', $offset);
-    }
-
-    /**
-     * Get the mlt.match.offset parameter.
-     *
-     * @return int
-     */
-    public function getMatchOffset()
-    {
-        return $this->getOption('matchoffset');
     }
 
     /**
      * Set MLT fields option.
      *
      * The fields to use for similarity. NOTE: if possible, these should have a
-     * stored TermVector
+     * stored TermVector.
      *
      * Separate multiple fields with commas if you use string input.
+     *
+     * @see https://solr.apache.org/guide/morelikethis.html#common-handler-and-component-parameters
      *
      * @param string|array $fields
      *
      * @return self Provides fluent interface
      */
-    public function setMltFields($fields)
+    public function setMltFields($fields): self
     {
-        if (is_string($fields)) {
+        if (\is_string($fields)) {
             $fields = explode(',', $fields);
             $fields = array_map('trim', $fields);
         }
 
-        return $this->setOption('mltfields', $fields);
+        $this->setOption('mltfields', $fields);
+
+        return $this;
     }
 
     /**
@@ -190,7 +139,7 @@ class Query extends SelectQuery
      *
      * @return array
      */
-    public function getMltFields()
+    public function getMltFields(): array
     {
         $value = $this->getOption('mltfields');
         if (null === $value) {
@@ -201,211 +150,55 @@ class Query extends SelectQuery
     }
 
     /**
-     * Set minimumtermfrequency option.
+     * Set the match.include parameter, which is either 'true' or 'false'.
      *
-     * Minimum Term Frequency - the frequency below which terms will be ignored
-     * in the source doc.
+     * @see https://solr.apache.org/guide/morelikethis.html#request-handler-parameters
      *
-     * @param int $minimum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMinimumTermFrequency($minimum)
-    {
-        return $this->setOption('minimumtermfrequency', $minimum);
-    }
-
-    /**
-     * Get minimumtermfrequency option.
-     *
-     * @return int|null
-     */
-    public function getMinimumTermFrequency()
-    {
-        return $this->getOption('minimumtermfrequency');
-    }
-
-    /**
-     * Set minimumdocumentfrequency option.
-     *
-     * Minimum Document Frequency - the frequency at which words will be
-     * ignored which do not occur in at least this many docs.
-     *
-     * @param int $minimum
+     * @param bool $include
      *
      * @return self Provides fluent interface
      */
-    public function setMinimumDocumentFrequency($minimum)
+    public function setMatchInclude(bool $include): self
     {
-        return $this->setOption('minimumdocumentfrequency', $minimum);
+        $this->setOption('matchinclude', $include);
+
+        return $this;
     }
 
     /**
-     * Get minimumdocumentfrequency option.
-     *
-     * @return int|null
-     */
-    public function getMinimumDocumentFrequency()
-    {
-        return $this->getOption('minimumdocumentfrequency');
-    }
-
-    /**
-     * Set minimumwordlength option.
-     *
-     * Minimum word length below which words will be ignored.
-     *
-     * @param int $minimum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMinimumWordLength($minimum)
-    {
-        return $this->setOption('minimumwordlength', $minimum);
-    }
-
-    /**
-     * Get minimumwordlength option.
-     *
-     * @return int|null
-     */
-    public function getMinimumWordLength()
-    {
-        return $this->getOption('minimumwordlength');
-    }
-
-    /**
-     * Set maximumwordlength option.
-     *
-     * Maximum word length above which words will be ignored.
-     *
-     * @param int $maximum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMaximumWordLength($maximum)
-    {
-        return $this->setOption('maximumwordlength', $maximum);
-    }
-
-    /**
-     * Get maximumwordlength option.
-     *
-     * @return int|null
-     */
-    public function getMaximumWordLength()
-    {
-        return $this->getOption('maximumwordlength');
-    }
-
-    /**
-     * Set maximumqueryterms option.
-     *
-     * Maximum number of query terms that will be included in any generated
-     * query.
-     *
-     * @param int $maximum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMaximumQueryTerms($maximum)
-    {
-        return $this->setOption('maximumqueryterms', $maximum);
-    }
-
-    /**
-     * Get maximumqueryterms option.
-     *
-     * @return int|null
-     */
-    public function getMaximumQueryTerms()
-    {
-        return $this->getOption('maximumqueryterms');
-    }
-
-    /**
-     * Set maximumnumberoftokens option.
-     *
-     * Maximum number of tokens to parse in each example doc field that is not
-     * stored with TermVector support.
-     *
-     * @param int $maximum
-     *
-     * @return self Provides fluent interface
-     */
-    public function setMaximumNumberOfTokens($maximum)
-    {
-        return $this->setOption('maximumnumberoftokens', $maximum);
-    }
-
-    /**
-     * Get maximumnumberoftokens option.
-     *
-     * @return int|null
-     */
-    public function getMaximumNumberOfTokens()
-    {
-        return $this->getOption('maximumnumberoftokens');
-    }
-
-    /**
-     * Set boost option.
-     *
-     * If true the query will be boosted by the interesting term relevance.
-     *
-     * @param bool $boost
-     *
-     * @return self Provides fluent interface
-     */
-    public function setBoost($boost)
-    {
-        return $this->setOption('boost', $boost);
-    }
-
-    /**
-     * Get boost option.
+     * Get the match.include parameter.
      *
      * @return bool|null
      */
-    public function getBoost()
+    public function getMatchInclude(): ?bool
     {
-        return $this->getOption('boost');
+        return $this->getOption('matchinclude');
     }
 
     /**
-     * Set queryfields option.
+     * Set the mlt.match.offset parameter, which determines on which result from the query MLT should operate.
+     * For paging of MLT use setStart / setRows.
      *
-     * Query fields and their boosts using the same format as that used in
-     * DisMaxQParserPlugin. These fields must also be specified in fields.
+     * @see https://solr.apache.org/guide/morelikethis.html#request-handler-parameters
      *
-     * Separate multiple fields with commas if you use string input.
-     *
-     * @param string|array $queryFields
+     * @param int $offset
      *
      * @return self Provides fluent interface
      */
-    public function setQueryFields($queryFields)
+    public function setMatchOffset(int $offset): self
     {
-        if (is_string($queryFields)) {
-            $queryFields = explode(',', $queryFields);
-            $queryFields = array_map('trim', $queryFields);
-        }
+        $this->setOption('matchoffset', $offset);
 
-        return $this->setOption('queryfields', $queryFields);
+        return $this;
     }
 
     /**
-     * Get queryfields option.
+     * Get the mlt.match.offset parameter.
      *
-     * @return array
+     * @return int|null
      */
-    public function getQueryFields()
+    public function getMatchOffset(): ?int
     {
-        $value = $this->getOption('queryfields');
-        if (null === $value) {
-            $value = [];
-        }
-
-        return $value;
+        return $this->getOption('matchoffset');
     }
 }

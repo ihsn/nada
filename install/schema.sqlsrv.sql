@@ -99,6 +99,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_vocabularies on [dbo].[vocabularies](
 -- Table structure for table variables
 --
 
+
+
 CREATE TABLE variables (
   uid int NOT NULL IDENTITY(1,1),
   sid int NOT NULL,
@@ -109,6 +111,7 @@ CREATE TABLE variables (
   qstn text,
   catgry text,
   metadata text,
+  keywords text,
   PRIMARY KEY (uid)
 ) ;
 
@@ -330,6 +333,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_grp_repo_access on [dbo].[group_repo_access]
 CREATE TABLE surveys (
   id int NOT NULL IDENTITY(1,1),
   idno varchar(200) NOT NULL,
+  doi varchar(200) DEFAULT NULL,
   type varchar(15) DEFAULT NULL,
   repositoryid varchar(128) NOT NULL,
   title varchar(255) DEFAULT '',
@@ -347,6 +351,7 @@ CREATE TABLE surveys (
   link_indicator varchar(255) DEFAULT NULL,
   link_questionnaire varchar(255) DEFAULT NULL,
   formid int DEFAULT NULL,
+  data_class_id int DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
   published tinyint DEFAULT NULL,  
   total_views int DEFAULT '0',
@@ -358,7 +363,7 @@ CREATE TABLE surveys (
   changed_by int DEFAULT NULL,
   thumbnail varchar(300) DEFAULT NULL,
   metadata text,
-  variable_data text,
+  var_keywords text,
   keywords text,  
   PRIMARY KEY (id)
 );
@@ -387,6 +392,11 @@ set IDENTITY_INSERT dctypes ON;
 INSERT INTO dctypes (id,title)
 VALUES (1,'Document, Administrative [doc/adm]'),(2,'Document, Analytical [doc/anl]'),(3,'Document, Other [doc/oth]'),(4,'Document, Questionnaire [doc/qst]'),(5,'Document, Reference [doc/ref]'),(6,'Document, Report [doc/rep]'),(7,'Document, Technical [doc/tec]'),(8,'Audio [aud]'),(9,'Database [dat]'),(10,'Map [map]'),(11,'Microdata File [dat/micro]'),(12,'Photo [pic]'),(13,'Program [prg]'),(14,'Table [tbl]'),(15,'Video [vid]'),(16,'Web Site [web]');
 set IDENTITY_INSERT dctypes OFF;
+
+-- additional types
+INSERT INTO dctypes (title) VALUES ('Data, Geospatial [dat/geo]');
+INSERT INTO dctypes (title) VALUES ('Data, Table [dat/table]');
+INSERT INTO dctypes (title) VALUES ('Data, Document [dat/doc]');
 
 --
 -- Table structure for table da_collections
@@ -719,6 +729,13 @@ set IDENTITY_INSERT group_permissions ON;
 INSERT INTO group_permissions (id,group_id,permission_id)
 VALUES (5,1,2),(6,1,14),(292,3,1),(289,3,2),(301,3,3),(299,3,14),(293,3,41),(295,3,42),(296,3,43),(297,3,44),(291,3,46),(294,3,49),(300,3,61),(290,3,62),(298,3,63),(334,4,2),(339,4,3),(335,4,16),(338,4,61),(336,4,69),(337,4,70),(313,5,3),(312,5,71),(287,9,2),(288,9,63),(227,10,2),(229,10,3),(228,10,45);
 set IDENTITY_INSERT group_permissions OFF;
+
+--- permissions for citation manager group
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 64)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 65)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 66)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 67)
+INSERT INTO group_permissions (group_id, permission_id) VALUES (11, 68)
 
 --
 -- Table structure for table survey_repos
@@ -1115,15 +1132,16 @@ set IDENTITY_INSERT regions OFF;
 -- Table structure for table ci_sessions
 --
 
-CREATE TABLE ci_sessions (
-  session_id varchar(40) NOT NULL DEFAULT '0',
-  ip_address varchar(16) DEFAULT '0',
-  user_agent varchar(255) DEFAULT NULL,
-  last_activity int DEFAULT '0',
-  user_data text,
-  PRIMARY KEY (session_id)
-) ;
 
+CREATE TABLE ci_sessions (
+  id varchar(128) NOT NULL,
+  ip_address varchar(45) NOT NULL,
+  timestamp int DEFAULT '0',
+  data blob,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX ci_sess_timestamp ON dbo.ci_sessions (timestamp);
 
 
 --
@@ -1170,7 +1188,7 @@ CREATE TABLE sitelogs (
 
 CREATE TABLE configurations (
   name varchar(200) NOT NULL,
-  value varchar(255) NOT NULL,
+  value varchar(5000) NOT NULL,
   label varchar(255) DEFAULT NULL,
   helptext varchar(255) DEFAULT NULL,
   item_group varchar(255) DEFAULT NULL,
@@ -1240,13 +1258,14 @@ CREATE FULLTEXT CATALOG ft AS DEFAULT;
 --drop existing fulltext index
 DROP FULLTEXT INDEX ON surveys;
 
+
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 ( 
-  keywords		Language 1033
+  keywords		Language 1033,
+  var_keywords		Language 1033
  ) 
 KEY INDEX pk_idx_surveys ; 
-
 
 
 
@@ -1294,15 +1313,29 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_featured_surveys on [dbo].[featured_surveys]
 -- Table structure for table survey_types
 --
 
-CREATE  TABLE survey_types (
-  id INT NOT NULL IDENTITY(1,1),
-  title VARCHAR(255) NOT NULL ,
+CREATE TABLE survey_types (
+  id int NOT NULL identity(1,1),
+  code varchar(50) NOT NULL,
+  title varchar(250) DEFAULT NULL,
+  weight int DEFAULT '0',
   PRIMARY KEY (id)
 );
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_survey_types on [dbo].[survey_types](
-	[title] ASC
+	[code] ASC
 );
+
+set IDENTITY_INSERT survey_types ON;
+INSERT INTO survey_types(id,code,title, weight) VALUES(1,'survey','Survey',100);
+INSERT INTO survey_types(id,code,title, weight) VALUES(2,'geospatial','Geospatial',90);
+INSERT INTO survey_types(id,code,title, weight) VALUES(3,'timeseries','Time series',80);
+INSERT INTO survey_types(id,code,title, weight) VALUES(4,'document','Document',50);
+INSERT INTO survey_types(id,code,title, weight) VALUES(5,'table','Table',70);
+INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
+INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
+INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
+INSERT INTO survey_types(id,code,title, weight) VALUES(9,'video','Video',40);
+set IDENTITY_INSERT survey_types OFF;
 
 
 -- 
@@ -1378,6 +1411,7 @@ CREATE TABLE api_logs (
   uri varchar(255) NOT NULL,
   method varchar(6) NOT NULL,
   params text,
+  user_id int default NULL,
   api_key varchar(40) NOT NULL,
   ip_address varchar(45) NOT NULL,
   time int NOT NULL,
@@ -1427,3 +1461,67 @@ CREATE TABLE filestore (
 CREATE UNIQUE NONCLUSTERED INDEX IX_filestore on [dbo].[filestore](	
 	[file_name] ASC
 );
+
+
+
+CREATE TABLE data_classifications (
+  id int NOT NULL,
+  code varchar(45) DEFAULT NULL,
+  title varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_data_class on [dbo].[data_classifications](
+	[code] ASC
+);
+
+
+
+INSERT INTO data_classifications (id,code,title) VALUES 
+(1,'public','Public use'),
+(2,'official','Official use'),
+(3,'confidential','Confidential');
+
+
+CREATE TABLE roles (
+  id int NOT NULL identity(1,1),
+  name varchar(100) NOT NULL,
+  description varchar(255) NOT NULL,
+  weight int DEFAULT '0',
+  is_admin tinyint DEFAULT '0',
+  is_locked tinyint DEFAULT '0',
+  PRIMARY KEY (id)
+);
+
+
+set IDENTITY_INSERT roles ON;
+insert into roles(id,name,description, weight, is_admin, is_locked) values 
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
+(2,'user','General user account with no access to site administration', 0,1,1);
+set IDENTITY_INSERT roles OFF;
+
+
+
+CREATE TABLE role_permissions (
+  id int NOT NULL identity(1,1),
+  role_id varchar(45) NOT NULL,
+  resource varchar(45) DEFAULT NULL,
+  permissions varchar(500) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE user_roles (
+  id int NOT NULL identity(1,1),
+  user_id int DEFAULT NULL,
+  role_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+--
+-- migrate admins from previous version
+--
+
+insert into user_roles (user_id, role_id) 
+	select user_id, group_id from users_groups;

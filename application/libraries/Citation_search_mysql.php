@@ -164,6 +164,7 @@ class Citation_search_mysql{
         //$this->ci->db->group_by('citations.id');
 
         $fulltext_index='citations.title,citations.subtitle,citations.authors,citations.doi,citations.keywords,citations.abstract,citations.notes,citations.organization';
+        //$fulltext_index='citations.title, citations.subtitle,citations.authors,citations.authors,citations.translators';
         $country_fulltext_index='surveys.nation';
 
         if (is_numeric($published)){
@@ -193,13 +194,13 @@ class Citation_search_mysql{
                         //$this->ci->db->or_where(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE)',$country_fulltext_index,$this->ci->db->escape($keywords)));
                         $this->ci->db->where($keywords_where, NUll,FALSE);
 
-                        $this->ci->db->select(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE) as rank',$fulltext_index,$this->ci->db->escape($keywords)),false);
+                        $this->ci->db->select(sprintf('MATCH(%s) AGAINST(%s IN BOOLEAN MODE) as rank_',$fulltext_index,$this->ci->db->escape($keywords)),false);
                         $sort_on_rank=true;
 
                         break;
                     
                     case 'ctype':
-                        if (is_array($keywords)){                            
+                        if (is_array($keywords) && !empty($keywords)){
                             $this->ci->db->where_in ('citations.ctype',$keywords);
                         }
                         break;    
@@ -267,7 +268,7 @@ class Citation_search_mysql{
             {
                 if ($sort_on_rank){
                     //default sort on rank
-                    $this->ci->db->order_by('rank', $sort_order='desc');
+                    $this->ci->db->order_by('rank_', $sort_order='desc');
                 }
             }
         }

@@ -1,264 +1,405 @@
 <?php
 class Catalog extends MY_Controller {
 
-	//active repository object
-	var $active_repo=NULL;
+		//active repository object
+		var $active_repo=NULL;
+
+		var $active_repo_id=NULL;
+
+		//active tab - default ALL
+		var $active_tab=NULL;
+
+		//facets data + count
+		var $facets= array();
+
+		//enable filters
+		var $enabled_filters=array();
+
+		//list of all filters
+		var $filters_list=array();
 
     public function __construct()
-    {
-        parent::__construct($skip_auth=TRUE);
+	{
+		parent::__construct($skip_auth=TRUE);
 
-       	$this->template->set_template('default');
-		$this->template->write('sidebar', $this->_menu(),true);
-
+		$this->template->set_template('default');
 		$this->load->helper('pagination_helper');
 		$this->load->model('Search_helper_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Vocabulary_model');
 		$this->load->model('Repository_model');
 		$this->load->model('Form_model');
+		$this->load->model('Data_classification_model');
+		$this->load->model('Facet_model');
+
+		//load facets configurations
+		$this->load->config("facets");
+		//$this->enabled_filters=$this->config->item('facets_by_type');
+
 		//$this->output->enable_profiler(TRUE);
+		$this->filters_list=array_keys($this->Facet_model->select_all());
 
 		//language files
 		$this->lang->load('general');
 		$this->lang->load('catalog_search');
 
 		//configuration settings
-		$this->limit= $this->get_page_size();
-		$this->topic_search=($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
+		//$this->topic_search=true;//($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
 		$this->regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
-		$this->center_search=($this->config->item("center_search")===FALSE) ? 'no' : $this->config->item("center_search");
 		$this->collection_search=($this->config->item("collection_search")===FALSE) ? 'no' : $this->config->item("collection_search");
 		$this->da_search=($this->config->item("da_search")===FALSE) ? 'no' : $this->config->item("da_search");
+		$this->data_types_nav_bar=$this->config->item("data_types_nav_bar");
+		$this->search_box_orientation=$this->config->item("search_box_orientation")== FALSE ? 'default' : $this->config->item("search_box_orientation");
+	}
 
-		//set template for print
-		if ($this->input->get("print")==='yes')
+
+	/**
+	 * 
+	 * 
+	 * Get data type for the active tab/page
+	 * 
+	 */
+	private function get_active_data_type()
+	{
+		if($this->active_tab==''){
+			return 'all';
+		}else
 		{
-			$this->template->set_template('blank');
+			return $this->active_tab;
 		}
+	}
+
+
+	private function set_enabled_filters($active_tab=null)
+	{
+		$tab=$this->get_active_data_type();
+
+		if($tab=='survey'){
+			$tab='microdata';
+		}
+
+		$this->enabled_filters=(array)json_decode($this->config->item('facets_'.$tab),true);
+	}
+
+	/**
+	 * 
+	 * Load data for all facets
+	 * 
+	 */
+	private function load_facets_data($active_tab=null)
+	{
+
+		$facets=(array)$this->enabled_filters;
+		$filters=$this->filters_list;
+
+
+		//get years
+		//if ($this->is_facet_enabled($this->active_tab,'year')){
+			$years_range=$this->Search_helper_model->get_min_max_years();//get_years_range();
+			$this->facets['years']=$years_range;
+		//}
+
+		$repo_id=null;
+
+		if(isset($this->active_repo['repositoryid'])){
+			$repo_id=$this->active_repo['repositoryid'];
+		}
+
+		//core facets
+		$this->facets['repositories']=$this->Search_helper_model->get_active_repositories(
+			$this->active_tab,
+			$this->input->get("collection")
+		);
+
+		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types(
+			$repo_id,
+			$this->active_tab,
+			$this->input->get("dtype")
+		);
+
+		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);
+
+		$this->facets['countries']=$this->Search_helper_model->get_active_countries(
+			$repo_id, 
+			$this->active_tab, 
+			$this->input->get("country")
+		);
+				
+		$this->facets['tags']=$this->Search_helper_model->get_active_tags(
+			$repo_id,
+			$this->active_tab,
+			$this->input->get("tag")
+		);
+	
+		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
+		
+		//load user defined facets from db
+		$facets_list=$this->Facet_model->select_all();
+
+		foreach($facets_list as $fc){
+			if($fc['facet_type']=='user' 
+					//&& $this->is_facet_enabled($this->active_tab,$fc['name'])
+					){												
+				$this->facets[$fc['name']]=array(
+					'type'=>$fc['facet_type'],
+					'title'=>$fc['title'],
+					'values'=>$this->Facet_model->get_facet_values($fc['id'],
+						$published=1,
+						$sort_='value',
+						$sort_order_='ASC',
+						$this->active_tab,						
+						$this->input->get($fc['name'])
+					)
+				);
+			}
+		}
+
+	}
+
+
+	private function load_facets_html()
+	{
+		//$filters=(array)$this->enabled_filters;
+		$filters=$this->filters_list;
+
+		//flip to keep the keys for sorting facets
+		$filters=array_flip($filters);
+		foreach($filters as $key=>$val){
+			$filters[$key]=null;
+		}		
+
+		//tags
+		$filters['tag']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['tags'], 
+				'filter_id'=>'tag',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'tag')
+			),true);
+			
+		$filters['year']=$this->load->view('search/filter_years',
+			array(
+				'years'=>$this->facets['years'],
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'year')
+			),true);
+		
+		if(!isset($this->active_repo_id)){
+			$filters['repositories']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['repositories'], 
+				'filter_id'=>'collection',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'collection')
+			),true);
+		}
+
+		//data classifications
+		$filters['data_class']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['data_class'], 
+				'filter_id'=>'data_class',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'data_class')
+			),true);
+
+
+		//data types
+		
+		$filters['da_type']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['da_types'], 
+				'filter_id'=>'dtype',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'dtype')
+			),true);	
+		
+		//countries
+		
+		$filters['country']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['countries'], 
+				'filter_id'=>'country',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'country')
+			),true);
+		
+		//types filter
+		if(!$this->active_tab){
+			if ($this->is_facet_enabled($this->active_tab,'type')){
+				$filters['data_type']=$this->load->view('search/facet', 
+				array(
+					'items'=>$this->facets['types'], 
+					'filter_id'=>'type'
+				),true);
+			}
+		}
+
+		//user defined facets
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$filters[$facet_key]=$this->load->view('search/facet', 
+				array(
+					'items'=>$facet['values'],
+					'filter_id'=>$facet_key,
+					'title'=>$facet['title'],
+					'is_enabled'=>$this->is_facet_enabled($this->active_tab,$facet_key)
+				),true);
+			}
+		}
+		return $filters;
+	}
+
+
+	private function is_facet_enabled($type,$facet)
+	{
+		if ($type==''){
+			$type='all';
+		}
+		if ( in_array($facet,$this->enabled_filters)){
+			return true;
+		}
+		return false;
+	}
+
+	private function get_facets_by_type($type)
+	{
+		if ($type==''){
+			$type='all';
+		}
+
+		if (isset($this->enabled_filters[$type])){
+			return $this->enabled_filters[$type];
+		}
+		return false;
 	}
 
 	
+	/**
+	 * 
+	 * Load filters/facets, search interface and UI
+	 * 
+	 * calls the /search to load the search results
+	 * 
+	 */
+	function index()
+    {
+		$this->active_tab=xss_clean($this->input->get("tab_type"));
+		$dataset_view=$this->get_type_pageview($this->active_tab);
+		
+		$output= $this->_search();
+		$output['tab_type']=$this->active_tab;
+		$output['facets']=$this->facets;
+		
+		//enable/disable types navbar tabs
+		$output['data_types_nav_bar']=$this->data_types_nav_bar;
+		$output['search_box_orientation']=$this->search_box_orientation;
+
+		if ($output['search_type']=='variable'){
+			$output['search_output']=$this->load->view('search/variables', $output,true);
+		}
+		else{
+			$output['search_output']=$this->load->view($dataset_view, $output,true);
+		}
+		
+
+		$filters_html=$this->load_facets_html();
+
+		$output['filters']=$filters_html;
+
+		//tabs
+		$tabs=array();
+		$tabs['types']=$this->facets['types'];
+
+		//variable view is enabled
+		if(isset($output['variables'])){
+			$tabs['search_counts_by_type']=array();
+			$tabs['active_tab']="survey";
+		}else{
+			$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
+			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
+		}
+
+		$output['tabs']=$tabs;		
+
+		//load js
+		$this->template->add_js('javascript/jquery.history.min.js');		
+
+		$content=$this->load->view('search/layout',$output,true);
+		$this->template->write('title', t('data_catalog'),true);
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
+	
 
 	/**
-	*
-	* Return the page size from querystring, session, config
-	*
-	**/
-	function get_page_size()
-	{
-		//default from the config
-		$limit=($this->config->item("catalog_records_per_page")===FALSE) ? 15 : $this->config->item("catalog_records_per_page");
-
-		//check from querystring
-		$ps=(int)$this->input->get_post("ps");
-
-		if (is_numeric($ps))
-		{
-			$limit=$ps;
-		}
-
-		//check cookie
-		if(is_numeric($cookie_ps=$this->input->cookie('ps',TRUE)))
-		{
-			$limit= $cookie_ps;
-		}
-
-		if (!is_numeric($limit) || $limit<=0)
-		{
-			return 15;
-		}
-
-		//set max size limit
-		if($limit>50000)
-		{
-			return 50000;
-		}
-
-		return $limit;
-	}
-
-
-
-	function index()
-	{
-		if ($this->input->get('ajax') )
-		{
-			$this->search();return;
-		}
-
-		//unpublished repos are visible to limited admins or admins only
-		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$this->active_repo['repositoryid']);
-
-		$embed_js=$this->load->view('catalog_search/js_translations',NULL,TRUE);
-		$this->template->add_js($embed_js,'embed');
-
-		$this->template->add_js('javascript/datacatalog.js');
-		$this->template->add_js('javascript/jquery.blockui.js');		
-
-		//page description metatags
-		$this->template->add_meta("description",t('meta_description_catalog'));
-
-		//get list of all repositories
-		//$this->repositories=$this->Catalog_model->get_repositories();
-
-		$search_options=new StdClass;
-		$data=array();
-
-		$this->da_search='yes';
-
-		//get list of DA types available for current repository
-		if ($this->da_search)
-		{
-			$data['da_types']=$this->Search_helper_model->get_active_data_types($this->active_repo['repositoryid']);
-		}
-
-		//get year min/max
-		$data['min_year']=$this->Search_helper_model->get_min_year();
-		$data['max_year']=$this->Search_helper_model->get_max_year();
-
-		if ($this->regional_search)
-		{
-			//get list of active countries
-			$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
-		}
-
-		$search_output= $this->_search();
-
-		if ($search_output['search_type']=='variable')
-		{
-			$data['search_result']=$this->load->view('catalog_search/variable_list', $search_output,TRUE);
-		}
-		else
-		{
-			//get featured studies for the resultset
-			$search_output['featured_studies']=$this->get_featured_study($search_output['surveys']['rows']);
-
-			//display result using study view
-			$data['search_result']=$this->load->view('catalog_search/survey_list', $search_output,TRUE);
-		}
-
-		//$data['search_result']=$this->_search();
-		$data['active_repo']=$this->active_repo['repositoryid'];
-
-		if($this->topic_search=='yes')
-		{
-			//get vocabulary id from config
-			$vid=$this->config->item("topics_vocab");
-
-			if ($vid!==FALSE && is_numeric($vid))
-			{
-				$this->load->model('Term_model');
-				$data['topics']=$this->Term_model->get_terms_by_repo($vid,$active_only=TRUE,$data['active_repo']);				
-				$data['topic_search']=TRUE;
-			}
-			else
-			{
-				//hide the topics box
-				$data['topic_search']='no';
-			}
-		}
-
-		//collection/repo filter
-		$data['repositories']=$this->Repository_model->get_repositories_with_survey_counts();
-
-		//get years
-		$min_year=$this->Search_helper_model->get_min_year();
-		$max_year=$this->Search_helper_model->get_max_year();
-
-		foreach (range($max_year, $min_year) as $year)
-		{
-        	$data['years'][$year]=$year;
-        }
-
-		//set page title
-		if (isset($this->active_repo) && $this->active_repo!=='')
-		{
-			$this->page_title=t($this->active_repo['title']);
-		}
-		else
-		{
-			$this->page_title=t('central_data_catalog');
-		}
-
-		//show search form
-		$this->template->write('search_filters', $this->load->view('catalog_search/catalog_facets', $data,true),true);
-
-		$page_data=array(
-			'repo'=>$this->active_repo,
-			'active_tab'=>'catalog',
-			'repositories'=>$data['repositories'],
-			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
-		);
-
-		$page_data['content']=$this->load->view('catalog_search/catalog_search_result', $data,true);
-
-		//show page contents in tabs
-		$content=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
-
-		//render final output
-		$this->template->write('title', $this->page_title,true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
-	}
-
-
-
-
+	 * 
+	 * 
+	 * Return search results without facts or filters
+	 * 
+	 */
 	function search()
 	{
+		$this->active_tab=xss_clean($this->input->get("tab_type"));		
+		$dataset_view=$this->get_type_pageview($this->active_tab);
+		//$this->load_facets_data();
+
 		$output= $this->_search();
 
-		if ($output['search_type']=='variable')
-		{
-			$this->load->view('catalog_search/variable_list', $output);
+		$output['facets']=$this->facets;
+		$output['tab_type']=$this->active_tab;
+		
+		if ($output['search_type']=='variable'){
+			return $this->load->view('search/variables', $output);
 		}
-		else
-		{
-			//get featured studies for the resultset
-			$output['featured_studies']=$this->get_featured_study($output['surveys']['rows']);
-
-			$this->load->view('catalog_search/survey_list', $output);
+		else{
+			return $this->load->view($dataset_view, $output);
 		}
 	}
 
 
 	function _search()
 	{
-		//all keys that needs to be persisted
-		$get_keys_array=array('sort_order','sort_by','sk','vk','vf','from','to','country','view','topic','page','repo','sid','collection');
-
 		$this->load->helper('security');
+		$this->set_enabled_filters();
+
+		//load data for facets
+		$this->load_facets_data();
 
 		//get year min/max
-		$data['min_year']=$this->Search_helper_model->get_min_year();
-		$data['max_year']=$this->Search_helper_model->get_max_year();
+		//$data['min_year']=$this->facets['years']['min_year'];
+		//$data['max_year']=$this->facets['years']['max_year'];
 
 		$search_options=new StdClass;
-		$search_options->filter= new StdClass;
+		$limit=$this->get_page_size();
 
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
 		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
-		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));
+		$search_options->image_view		=xss_clean($this->input->get("image_view"));
 		$search_options->topic			=xss_clean($this->input->get("topic"));
 		$search_options->from			=(int)xss_clean($this->input->get("from"));
 		$search_options->to				=(int)xss_clean($this->input->get("to"));
 		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
 		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
 		$search_options->page			=(int)xss_clean($this->input->get("page"));
-		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;
-		$search_options->filter->repo	=xss_clean($this->active_repo['repositoryid']);
+		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
-		$search_options->sid			=$this->clean_sid(xss_clean($this->input->get("sid")));
-        $search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
-		$offset=						($search_options->page-1)*$this->limit;
+		$search_options->data_class		=xss_clean($this->input->get("data_class"));
+		$search_options->tag			=xss_clean($this->input->get("tag"));
+		$search_options->sid			=xss_clean($this->input->get("sid"));
+		$search_options->type			=xss_clean($this->input->get("type"));
+		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
+		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
+		$search_options->repo			=xss_clean($this->active_repo_id);
+		$search_options->ps				=$limit;
+		$offset=						($search_options->page-1)*$limit;
+
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$search_options->{$facet_key}=xss_clean($this->input->get($facet_key));
+			}
+		}
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('proddate','title','labl','nation','popularity','rank');
+		$allowed_fields = array('year','title','nation','country','popularity','rank');
 		$allowed_order=array('asc','desc');
 
 		//load default sort options from config if not set
@@ -268,146 +409,111 @@ class Catalog extends MY_Controller {
 		}
 
 		//set default sort options, if passed values are not valid
-		if (!in_array(trim($search_options->sort_by),$allowed_fields))
-		{
+		if (!in_array(trim($search_options->sort_by),$allowed_fields)){
 			$search_options->sort_by='';
 		}
 
 		//default for sort order if no valid values found
-		if (!in_array($search_options->sort_order,$allowed_order))
-		{
+		if (!in_array($search_options->sort_order,$allowed_order)){
 			$search_options->sort_order='';
 		}
 
 		//log
-		$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
+		if ($this->input->get('sk')){		
+			$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
+		}
 
 		//get list of all repositories
-		$data['repositories']=$this->Catalog_model->get_repositories();
+		$data['repositories']=$this->Search_helper_model->get_repositories_list($published=1);
 
-		if ($this->regional_search)
-		{
-			$data['countries']=$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
+		//country int code + name
+		if (is_array($search_options->country) && count($search_options->country)>0){						
+			$data['countries']=$this->Search_helper_model->get_countries_list($search_options->country);//$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
 		}
 
-		if($this->topic_search=='yes')
-		{
-			//get vocabulary id from config
-			$vid=$this->config->item("topics_vocab");
+		$data['tags']=array();//$this->Search_helper_model->get_active_tags($this->active_repo['repositoryid']);
 
-			if ($vid!==FALSE && is_numeric($vid))
-			{
-				//$this->load->model('Vocabulary_model');
-				$this->load->model('term_model');
+		$data['active_repo']=$this->active_repo;
+		$data['active_repo_id']=$this->active_repo_id;
 
-				//get topics by vid
-				$data['topics']=$this->Vocabulary_model->get_terms_array($vid,$active_only=TRUE);//$this->Vocabulary_model->get_tree($vid);
-				$data['topic_search']=TRUE;
-			}
-			else
-			{
-				//hide the topics box
-				$data['topic_search']='no';
-			}
-		}
-
-
-		//which view to use for display
-		if ($search_options->vk!='' && $search_options->view=='v')
-		{
-			//variable search
-			$params=array(
-				'collections'=>$search_options->collection,
-				'study_keywords'=>$search_options->sk,
-				'variable_keywords'=>$search_options->vk,
-				'variable_fields'=>$search_options->vf,
-				'countries'=>$search_options->country,
-				'topics'=>$search_options->topic,
-				'from'=>$search_options->from,
-				'to'=>$search_options->to,
-				'sort_by'=>$search_options->sort_by,
-				'sort_order'=>$search_options->sort_order,
-				'repo'=>$search_options->filter->repo,
-				'dtype'=>$search_options->dtype
-			);
-
-			$this->load->library('catalog_search',$params);
-			$search_result=$this->catalog_search->vsearch($this->limit,$offset);
-
-			$data=array_merge($search_result,$data);
-			$data['current_page']=$search_options->page;
-			$data['search_options']=$search_options;
-			$data['data_access_types']=$this->Form_model->get_form_list();
-			$data['search_type']='variable';
-			return $data;
-
+		if($search_options->tab_type!=''){
+			$search_options->type=$search_options->tab_type;
 		}
 
 		$params=array(
 			'collections'=>$search_options->collection,
 			'study_keywords'=>$search_options->sk,
-			'variable_keywords'=>$search_options->vk,
+			//'variable_keywords'=>$search_options->vk,
 			'variable_fields'=>$search_options->vf,
 			'countries'=>$search_options->country,
-			'topics'=>$search_options->topic,
 			'from'=>$search_options->from,
 			'to'=>$search_options->to,
+			'tags'=>$search_options->tag,
 			'sort_by'=>$search_options->sort_by,
 			'sort_order'=>$search_options->sort_order,
-			'repo'=>$search_options->filter->repo,
+			'repo'=>$search_options->repo,
 			'dtype'=>$search_options->dtype,
+			'data_class'=>$search_options->data_class,
 			'sid'=>$search_options->sid,
+			'type'=>$search_options->type,
             'country_iso3'=>$search_options->country_iso3,
 		);
 
+		foreach($this->facets as $facet_key=>$facet){
+			if(isset($facet['type']) && isset($facet['type'])=='user'){
+				$params[$facet_key]=xss_clean($this->input->get($facet_key));
+			}
+		}
+
 		$this->load->library('catalog_search',$params);
-		$data['surveys']=$this->catalog_search->search($this->limit,$offset);
+		$data['is_regional_search']=$this->regional_search;
+		
+		if($search_options->view=='v'){			
+			$data['variables']=$this->catalog_search->vsearch($limit,$offset);
+			$data['search_type']='variable';
+		}else{
+			$data['surveys']=$this->catalog_search->search($limit,$offset);
+			$data['search_type']='study';
+		}
+
 		$data['current_page']=$search_options->page;
 		$data['search_options']=$search_options;
-		$data['data_access_types']=$this->Form_model->get_form_list();
+		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
+		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
 		$data['sid']=$search_options->sid;
-		$data['search_type']='study';
+
+		//show featured only if no filters or search 
+		if (isset($data['surveys']['found']) && isset($data['surveys']['total']) && $data['surveys']['found']==$data['surveys']['total']){
+			$data['featured_studies']=$this->get_featured_studies_by_repo ($this->active_repo_id,$this->active_tab);
+		}
+
+		//attach related collections
+		if (isset($data['surveys']['rows'])){
+			$sid_arr=array_values(array_column($data['surveys']['rows'],'id'));			
+			$related_collections=$this->Search_helper_model->related_collections($sid_arr);
+			$data['related_collections']=$related_collections;
+		}
 		return $data;
 	}
 
 
 	/**
 	 * 
-	 * Get a comma seperated list of SIDs
+	 * 
+	 * Variable search for a single Survey
 	 * 
 	 */
-	private function clean_sid($sid){
-		$sid_list=explode(",",$sid);
-		
-		$output=array();
-		foreach($sid_list as $id){
-			if(is_numeric($id)){
-				$output[]=$id;
-			}
-		}
-		return implode(",",$output);
-	}
-
-
-
-	/**
-	* variable search
-	*
-	*/
 	function vsearch($sid=NULL)
 	{
-		if ($sid==NULL || !is_numeric($sid))
-		{
-			echo t('error_invalid_parameters');
-			return;
+		if ($sid==NULL || !is_numeric($sid)){
+			die(t('error_invalid_parameters'));			
 		}
 
 		$params=array(
 			'study_keywords'=>$this->input->get_post('sk'),
-			'variable_keywords'=>$this->input->get_post('vk'),
+			'variable_keywords'=>$this->input->get_post('sk'),
 			'variable_fields'=>$this->input->get_post('vf'),
-			'countries'=>$this->input->get_post('country'),
-			'topics'=>$this->input->get_post('topic'),
+			'countries'=>$this->input->get_post('country'),			
 			'from'=>$this->input->get_post('from'),
 			'to'=>$this->input->get_post('to'),
 			'sort_by'=>$this->input->get_post('sort_by'),
@@ -419,6 +525,235 @@ class Catalog extends MY_Controller {
 
 		$this->load->view("catalog_search/var_quick_list", $data);
 	}
+
+
+
+	/**
+	 * 
+	 * Catalog history
+	 * 
+	 */
+	function history()
+	{
+		$this->load->library("pagination");
+		$this->load->model("Catalog_history_model");
+
+		$per_page = $this->input->get("ps");
+
+		if($per_page===FALSE || !is_numeric($per_page)){
+			$per_page=100;
+		}
+
+		$curr_page=$this->input->get('per_page');
+		$filter=array();
+		$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+		$total = $this->Catalog_history_model->search_count;
+
+		if ($curr_page>$total){
+			$curr_page=$total-$per_page;
+			$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
+		}
+
+		//set pagination options
+		$base_url = site_url('catalog/history');
+		$config['base_url'] = $base_url;
+		$config['total_rows'] = $total;
+		$config['per_page'] = $per_page;
+		$config['page_query_string'] = TRUE;
+		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
+		$config['next_link'] = t('page_next');
+		$config['num_links'] = 5;
+		$config['prev_link'] = t('page_prev');
+		$config['first_link'] = t('page_first');
+		$config['last_link'] = t('last');
+		$config['full_tag_open'] = '<ul class="pagination pagination-md page-nums">' ;
+		$config['full_tag_close'] = '</ul>';
+		
+		$this->pagination->initialize($config);
+		$content=$this->load->view('search/history', $data,true);
+		$this->template->write('content', $content,true);
+		$this->template->write('title', t('catalog_history'),true);
+	  	$this->template->render();	
+	}
+
+
+	function export($format='print')
+	{
+		$output= $this->_search();
+
+		switch($format){
+			case 'print':
+				$content=$this->load->view('search/surveys', $output,TRUE);
+				$this->template->set_template('blank');
+				$this->template->write('title', t('studies'),true);
+				$this->template->write('content', $content,true);
+				$this->template->render();
+			break;
+
+			case 'csv':
+				$rows=$output['surveys']['rows'];
+				$cols=explode(",",'id,idno,title,nation,authoring_entity,year_start,year_end,created,changed');
+				$filename='search-'.date("m-d-y-his").'.csv';
+				header('Content-Encoding: UTF-8');
+				header( 'Content-Type: text/csv' );
+				header( 'Content-Disposition: attachment;filename='.$filename);
+				$fp = fopen('php://output', 'w');
+
+				echo "\xEF\xBB\xBF"; // UTF-8 BOM
+
+				//add column names
+				fputcsv($fp, $cols);
+
+				foreach($rows as $row){
+					$data=array();
+					foreach($cols as $col){
+						$data[$col]=$row[$col];
+					}
+
+					if( isset($data['changed'])){
+						$data['changed']=date("M-d-y",$data['changed']);
+						$data['created']=date("M-d-y",$data['created']);
+					}
+
+					fputcsv($fp, $data);
+				}
+
+				fclose($fp);
+
+			break;
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * Get pageview by dataset type
+	 * 
+	 */
+	private function get_type_pageview($type) 
+	{
+		//default view
+		$dataset_view='search/surveys';
+
+		switch($type){
+			case 'image':
+			case 'video':
+			case 'visualization':
+			//case 'document':
+			//case 'script':
+			//case 'timeseries':
+				$dataset_view='search/images';
+				break;
+			/*case 'table':
+				$dataset_view='search/tables';
+				break;	*/
+			default:
+				$dataset_view='search/surveys';
+				break;
+		}
+
+		return $dataset_view;
+	}
+
+
+	/**
+	 * 
+	 * Get page size
+	 * 
+	 */
+	private function get_page_size()
+	{
+		$page_size_min=15;
+		$page_size_max=100;
+
+		$page_size=(int)$this->input->get('ps');
+
+		if($page_size>=$page_size_min && $page_size<=$page_size_max){
+			return $page_size;
+		}
+
+		return 15;//default page size
+	}
+
+
+	function _remap($method)
+	{
+		$method=strtolower($method);
+
+		if ($method=='search'){
+			$this->_set_active_repo($this->input->get("repo"));
+			$this->search();
+		}
+		else if (in_array(($method), array_map('strtolower', get_class_methods($this))) ){
+		  $uri = $this->uri->segment_array();
+          unset($uri[1]);
+          unset($uri[2]);
+          call_user_func_array(array($this, $method), $uri);
+		}
+		else{
+
+			//get repository id
+			$repo_code=$this->uri->segment(2);
+
+			//set active repos
+			$this->_set_active_repo($method);
+			
+			//valid repo?
+			if ($this->active_repo || $repo_code=='central'){
+				//about?
+				if ($this->uri->segment(3)=='about'){
+					$this->about_repository();
+					return;
+				}
+				//load the default listing page
+				$this->index();
+			}
+			else{
+				//show_404();
+				$this->index();
+			}
+		}
+	  }
+	  
+
+	private function _set_active_repo($repo)
+	{
+		$this->load->model("repository_model");
+
+		$repo=trim(strtolower($repo));
+		//get an array of all valid repository names from db
+		$repositories=$this->Catalog_model->get_repository_array();
+		$repositories[]='central';
+
+		//repo names to lower case
+		foreach($repositories as $key=>$value){
+			$repositories[$key]=strtolower($value);
+		}
+
+		//check if URI matches to a repository name
+		if (in_array($repo,$repositories)){
+			//repository options
+			if ($repo=='central'){
+				$this->active_repo=null;
+				$this->active_repo_id=null;
+				//$this->active_repo=$this->repository_model->get_central_catalog_array();
+			}
+			else{
+				//set active repo
+				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repo);
+				$this->active_repo_id=$this->active_repo['repositoryid'];
+			}
+		}
+	}
+
+
+	function about_repository()
+	{		
+		$repositoryid=$this->uri->segment(2);
+		redirect('collections/'.$repositoryid);		
+	}
+
 
 
 	/**
@@ -513,257 +848,47 @@ class Catalog extends MY_Controller {
 	  	$this->template->render();
 	}
 
-
-
 	/**
 	*
-	* Returns a JSON data for filtering by country selection
+	* List all variables selected for comparison
 	*
 	**/
-	function filter_by_country()
+	function variable_cart()
 	{
-		$countries=$this->security->xss_clean($this->input->get('country'));
-		$year_from=(integer)$this->security->xss_clean($this->input->get('from'));
-		$year_to=(integer)$this->security->xss_clean($this->input->get('to'));
+		$this->lang->load('ddi_fields');
+		$this->lang->load('catalog_search');
+		$this->load->model("Dataset_model");
+		$this->load->model("Variable_model");
+		$this->load->model("Data_file_model");
+		$this->load->helper("metadata_view");		
 
-		if (!is_array($countries))
-		{
-			exit;
-		}
+		$items=explode(",",$this->input->cookie('variable-compare', TRUE));
+		$list=array();
 
-		$this->load->model('Search_helper_model');
-
-		$data=$this->Search_helper_model->filter_by_countries($countries,$year_from, $year_to);
-		echo json_encode($data);
-	}
-
-
-
-	/**
-	* Return JSON data to filter search box by topic
-	*
-	*/
-	function filter_by_topic()
-	{
-		$topics=$this->input->get('topic');
-		$min_year=(integer)$this->input->get('from');
-		$max_year=(integer)$this->input->get('to');
-
-		if (!is_array($topics))
-		{
-			exit;
-		}
-
-		$this->load->model('Search_helper_model');
-		$data=$this->Search_helper_model->filter_by_topics($topics,$min_year,$max_year);
-		echo json_encode($data);
-	}
-
-	/**
-	* Return JSON data to filter search box by topic
-	*
-	*/
-	function filter_by_collection()
-	{
-		$collections=$this->input->get('collection');
-		$min_year=(integer)$this->input->get('from');
-		$max_year=(integer)$this->input->get('to');
-
-		if (!is_array($topics))
-		{
-			exit;
-		}
-
-		$this->load->model('Search_helper_model');
-		$data=$this->Search_helper_model->filter_by_collections($collections,$min_year,$max_year);
-		echo json_encode($data);
-	}
-
-	/**
-	* return data to filter search box by year
-	*
-	*/
-	function filter_by_years()
-	{
-		$min_year=$this->input->get('from');
-		$max_year=$this->input->get('to');
-
-		if (!is_numeric($min_year) || !is_numeric($max_year))
-		{
+		if (!$items){
 			return false;
 		}
 
-		//get filtered list of countries and min/min years
-		$data=$this->Search_helper_model->filter_by_years($min_year, $max_year);
-
-		if (!isset($data["topics"]))
-		{
-			$data['topics']=array('NULL');
-		}
-		if (!isset($data["countries"]))
-		{
-			$data['countries']=array('NULL');
-		}
-
-		echo json_encode($data);
-	}
-
-
-
-	/**
-	* Search help page
-	*
-	*/
-	function help()
-	{
-		if ($this->uri->segment(4)!==FALSE)
-      {
-        show_404();
-      }
-
-	  	$this->lang->load("search_help");
-
-      	echo t('keyword_search_help');exit;
-	}
-
-
-	/**
-	* Data Catalog RSS feeds
-	*
-	* By default shows 50 latest surveys
-	*
-	* //TODO:
-	*	- get all records
-	* 	- get all records as zip file
-	* 	- get data by date ranges
-	* 	- paginate?
-	*/
-	function rss()
-	{
-		$limit=50;
-
-		if (is_numeric($this->input->get('limit')))
-		{
-			$limit=$this->input->get('limit');
-		}
-
-		$data['records']=$this->Catalog_model->select($limit,$offset=0,$sort_by='changed',$sort_order='desc');
-        $contents=$this->load->view('catalog_search/rss', $data,TRUE);
-
-		if ($this->input->get('format')=='zip')
-		{
-			$this->_rss_zip($contents);
-		}
-		else
-		{
-			header("Content-Type: application/xml");
-			echo $contents;
-		}
-	}
-
-
-	/**
-	* Creates a zip file for data catalog rss
-	*
-	*/
-	function _rss_zip($data)
-	{
-		$this->load->library('zip');
-
-		$name = 'rss.txt';
-		$this->zip->add_data($name, $data);
-
-		//start file download
-		$this->zip->download('rss.zip');
-	}
-
-
-	/**
-	* Returns survey external resources (RDF)
-	*
-	*
-	*/
-	function rdf($id=NULL)
-	{
-		if (!is_numeric($id) )
-		{
-			show_404();return;
-		}
-
-		$this->load->model('Catalog_model');
-		//$this->Catalog_model->increment_study_download_count($id);
-
-		header("Content-Type: application/xml");
-		header('Content-Encoding: UTF-8');
-		header( "Content-Disposition: attachment;filename=study-$id.rdf");
-
-		echo $this->Catalog_model->get_survey_rdf($id);
-	}
-
-
-	/**
-	* Returns survey DDI file
-	* as .xml or .zip
-	*
-	*/
-	function ddi($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-
-		$format=$this->input->get("format");
-
-		//required for getting ddi file path
-		$this->load->model('Catalog_model');
-		$this->load->helper('download');
-
-		//get ddi file path from db
-		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
-
-		if ($ddi_file===FALSE)
-		{
-			show_404();
-		}
-
-		//$this->Catalog_model->increment_study_download_count($id);
-
-		if (file_exists($ddi_file))
-		{
-			if($format=='zip')
-			{
-				$this->load->library('zip');
-
-				//zip file path
-				$zip_file=$ddi_file.'.zip';
-
-				//create zip if not created already
-				if (!file_exists($zip_file))
-				{
-					$this->zip->read_file($ddi_file);
-					$this->zip->archive($zip_file);
-				}
-
-				//download zip file
-				if (file_exists($zip_file))
-				{
-					force_download2($zip_file);
-					return;
+		foreach($items as $item=>$value){
+			$tmp=explode('/',$value);
+			if (isset($tmp[1])){
+				$variable=$this->Variable_model->variable_basic_info($tmp[0],$tmp[1]);
+				if(!empty($variable)){
+					$list[]=$variable;
 				}
 			}
-
-			//download the xml file
-			force_download2($ddi_file);
-			return;
 		}
-		else
-		{
-			show_404();
-		}
+		
+		$this->output
+			->set_content_type('application/json')
+			->set_output(json_encode($list));
+		return;
 	}
 
 
+	function idno($codebookid=NULL){
+		return $this->study($codebookid); 
+	}
 
 	function study($codebookid=NULL)
 	{		
@@ -781,511 +906,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 
-
-
-	/**
-	*
-	* Output JSON survey metadata including citations, external resources, etc
-	*
-	**/
-	function _survey_json($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			return FALSE;
-		}
-
-		$this->load->model('Catalog_model');
-
-		//output JSON
-		echo $this->Catalog_model->survey_to_json($id);
-	}
-
-
-
-	/**
-	* show study related citations
-	*
-	*/
-	function citations($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-
-		$this->load->model('Catalog_model');
-		$this->load->model('Citation_model');
-		$this->load->library('chicago_citation');
-
-		//get survey
-		$survey=$this->Catalog_model->select_single($id);
-
-		if ($survey===FALSE)
-		{
-			show_404();
-		}
-		//$this->template->set_template('blank');
-
-		if ($this->input->get('ajax') || $this->input->get('print') )
-		{
-			$this->template->set_template('blank');
-		}
-
-		//get survey folder path - NEEDED BY THE VIEW
-		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
-
-		//get survey related citations
-		$survey['citations']=$this->Citation_model->get_citations_by_survey($id);
-		//get survey basic info
-		$survey['survey']=$this->Catalog_model->get_survey($id);
-
-		$content_body=$this->load->view('catalog_search/survey_summary_citations',$survey,TRUE);
-		$this->template->write('title', t('citations'),true);
-		$this->template->write('content', $content_body,true);
-	  	$this->template->render();
-	}
-
-
-
-	function export($format='print')
-	{
-		$output= $this->_search();
-
-		switch($format)
-		{
-			case 'print':
-				if ($output['search_type']=='variable'){
-					$content=$this->load->view('catalog_search/variable_list_print', $output,TRUE);
-				}
-				else{
-					$content=$this->load->view('catalog_search/survey_list_print', $output,TRUE);
-				}
-
-				$this->template->set_template('blank');
-				$this->template->write('title', t('studies'),true);
-				$this->template->write('content', $content,true);
-				$this->template->render();
-			break;
-
-			case 'csv':
-
-					if ($output['search_type']=='variable')
-					{
-						$rows=$output['rows'];
-						$cols=explode(",",'uid,name,labl,vid,title,nation');
-					}
-					else
-					{
-						$rows=$output['surveys']['rows'];
-						$cols=explode(",",'id,idno,title,nation,authoring_entity,year_start,year_end,created,changed');
-					}
-
-					//var_dump($output['surveys']);exit;
-
-					$filename='search-'.date("m-d-y-his").'.csv';
-					header('Content-Encoding: UTF-8');
-					header( 'Content-Type: text/csv' );
-					header( 'Content-Disposition: attachment;filename='.$filename);
-					$fp = fopen('php://output', 'w');
-
-					echo "\xEF\xBB\xBF"; // UTF-8 BOM
-
-					//add column names
-					fputcsv($fp, $cols);
-
-					foreach($rows as $row)
-					{
-						$data=array();
-						foreach($cols as $col)
-						{
-							$data[$col]=$row[$col];
-						}
-
-						if( isset($data['changed'])){
-							$data['changed']=date("M-d-y",$data['changed']);
-							$data['created']=date("M-d-y",$data['created']);
-						}
-
-						fputcsv($fp, $data);
-					}
-
-					fclose($fp);
-
-			break;
-		}
-	}
-
-
-	function access_policy($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-
-		$this->load->model('Catalog_model');
-		$this->load->library('DDI_Browser','','DDI_Browser');
-		$this->load->helper('url_filter');
-		$this->load->library('cache');
-
-		//get ddi file path from db
-		$ddi_file=$this->Catalog_model->get_survey_ddi_path($id);
-
-		//survey folder path
-		$this->survey_folder=$this->Catalog_model->get_survey_path_full($id);
-
-		if ($ddi_file===FALSE)
-		{
-			show_error(t('file_not_found'));
-		}
-
-		//log
-		$this->db_logger->write_log('survey',$this->uri->segment(4),'accesspolicy',$id);
-
-		//get survey info
-		$survey=$this->Catalog_model->select_single($id);
-		$this->survey=$survey;
-		$this->ddi_file=$ddi_file;
-
-		//language
-		$language=array('lang'=>$this->config->item("language"));
-
-		if(!$language)
-		{
-			//default language
-			$language=array('lang'=>"english");
-		}
-
-		//get the xml translation file path
-		$language_file=$this->DDI_Browser->get_language_path($language['lang']);
-
-		if ($language_file)
-		{
-			//change to the language file (without .xml) in cache
-			$language['lang']=unix_path(FCPATH.$language_file);
-		}
-
-		$html=NULL;
-		$section='accesspolicy';
-		$html= $this->cache->get( md5($section.$ddi_file.$language['lang']));
-
-		if ($html===FALSE)
-		{
-			$html=$this->DDI_Browser->get_access_policy_html($ddi_file,$language);
-			$html=html_entity_decode(url_filter($html));
-			$this->cache->write($html, md5($section.$ddi_file.$language['lang']), 100);
-		}
-
-		$html='<h1>'.$survey['nation'].' - '.$survey['title'].'</h1><br/><br/>'.$html;
-
-		$this->template->add_css('themes/ddibrowser/ddi.css');
-		$this->template->add_meta(sprintf('<link rel="canonical" href="%s" />',js_base_url().'catalog/access_policy/'.$id),NULL,'inline');
-		$this->template->write('title', t('accesspolicy'),true);
-
-		$this->template->write('content', $html,true);
-	  	$this->template->render();
-	}
-
-
-
-	function _remap($method)
-	{
-		$method=strtolower($method);
-
-		if ($method=='search'){
-			$this->_set_active_repo($this->input->get("repo"));
-			$this->search();
-		}
-		else if (in_array(($method), array_map('strtolower', get_class_methods($this))) ){
-		  $uri = $this->uri->segment_array();
-          unset($uri[1]);
-          unset($uri[2]);
-          call_user_func_array(array($this, $method), $uri);
-		}
-		else{
-
-			//get repository id
-			$repo_code=$this->uri->segment(2);
-
-			//set active repos
-			$this->_set_active_repo($method);
-			
-			//valid repo?			
-			if ($this->active_repo || $repo_code=='central'){
-				//about?
-				if ($this->uri->segment(3)=='about'){
-					$this->about_repository();
-					return;
-				}
-				//load the default listing page
-				$this->index();
-			}
-			else{
-				//show_404();
-				$this->index();
-			}
-		}
-  	}
-
-
-	private function _set_active_repo($repo)
-	{
-		$this->load->model("repository_model");
-
-		$repo=trim(strtolower($repo));
-		//get an array of all valid repository names from db
-		$repositories=$this->Catalog_model->get_repository_array();
-		$repositories[]='central';
-
-		//repo names to lower case
-		foreach($repositories as $key=>$value){
-			$repositories[$key]=strtolower($value);
-		}
-
-		//check if URI matches to a repository name
-		if (in_array($repo,$repositories)){
-			//repository options
-			if ($repo=='central'){
-				$this->active_repo=null;
-				//$this->active_repo=$this->repository_model->get_central_catalog_array();
-			}
-			else{
-				//set active repo
-				$this->active_repo=$this->repository_model->get_repository_by_repositoryid($repo);
-			}
-		}
-	}
-
-
-	function about_repository()
-	{
-		$repositoryid=$this->uri->segment(2);
-		$this->load->model("repository_model");
-		$additional_data=NULL;
-		$repo=NULL;
-
-		//unpublished repos are visible to limited admins or admins only
-		$this->acl->user_has_unpublished_repo_access_or_die(NULL,$repositoryid);
-
-		if ($repositoryid=='central')
-		{
-			$this->load->model("repository_model");
-			$this->load->model("repository_sections_model");
-			$collections=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
-			$sections=array();
-
-			foreach($collections as $key=>$collection)
-			{
-				$sections[$collection['section']]=$collection['section_title'];
-			}
-
-			$data['sections']=$sections;
-			$data['rows']=$collections;
-			$data['show_unpublished']=FALSE;
-			$additional_data=$this->load->view("repositories/index_public",$data,TRUE);
-			$repo=array(
-					'repositoryid'	=>'central',
-					'title'			=>t('central_data_catalog')
-			);
-		}
-		else
-		{
-			$repo=$this->repository_model->get_repository_by_repositoryid($repositoryid);
-
-			if (!$repo)
-			{
-				show_404();
-			}
-		}
-
-		$page_data=array(
-			'repo'=>$this->active_repo,
-			'active_tab'=>'about',
-			'repo_citations_count'=>$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid'])
-		);
-
-		$page_data['content']=$this->load->view("catalog_search/about_collection",array('row'=>(object)$repo, 'additional'=>$additional_data),TRUE);
-		$contents=$this->load->view("catalog_search/study_collection_tabs",$page_data,TRUE);
-
-		//set page title
-		$this->template->write('title', $repo['title'],true);
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();
-	}
-
-
-	/**
-	*
-	* A table showing when new studies were added
-	**/
-	function history()
-	{
-		$this->load->library("pagination");
-		$this->load->model("Catalog_history_model");
-
-		//records to show per page
-		$per_page = $this->input->get("ps");
-
-		if($per_page===FALSE || !is_numeric($per_page))
-		{
-			$per_page=100;
-		}
-
-		//current page
-		$curr_page=$this->input->get('per_page');
-
-		//filter to further limit search
-		$filter=array();
-
-		//records
-		$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
-
-		//total records in the db
-		$total = $this->Catalog_history_model->search_count;
-
-		if ($curr_page>$total)
-		{
-			$curr_page=$total-$per_page;
-
-			//search again
-			$data['rows']=$this->Catalog_history_model->search($per_page, $curr_page,$filter);
-		}
-
-		//set pagination options
-		$base_url = site_url('catalog/history');
-		$config['base_url'] = $base_url;
-		$config['total_rows'] = $total;
-		$config['per_page'] = $per_page;
-		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('sort_by','sort_order','keywords', 'field','ps'));//pass any additional querystrings
-		$config['next_link'] = t('page_next');
-		$config['num_links'] = 5;
-		$config['prev_link'] = t('page_prev');
-		$config['first_link'] = t('page_first');
-		$config['last_link'] = t('last');
-		$config['full_tag_open'] = '<ul class="pagination pagination-md page-nums">' ;
-		$config['full_tag_close'] = '</ul>';
-		
-		
-
-		//intialize pagination
-		$this->pagination->initialize($config);
-
-		//load the contents of the page into a variable
-		$content=$this->load->view('catalog_search/history', $data,true);
-
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('catalog_history'),true);
-
-		//render final output
-	  	$this->template->render();
-	}
-
-
-
-	/**
-	*
-	* Country selection dialog
-	**/
-	function country_selection($repo=NULL)
-	{
-		if($repo==NULL)
-		{
-			$repo=$this->active_repo['repositoryid'];
-		}
-
-		//check if a valid repo name
-		if($this->Repository_model->repository_exists($repo)==0)
-		{
-			$repo='central';
-		}
-
-		$this->load->model("country_region_model");
-		//regions+countries tree
-		$data['regions']=$this->country_region_model->get_tree_region_countries($repo);
-		//array of countries
-		$data['countries']=$this->Search_helper_model->get_active_countries($repo);
-		$data['repositoryid']=$repo;
-
-		$this->load->view('catalog_search/country_selection',$data);
-	}
-
-	function get_country_selection_tab($repo=NULL,$section='alphabatical',$region_id=NULL)
-	{
-		if($repo==NULL)
-		{
-			$repo=$this->active_repo['repositoryid'];
-		}
-
-		//check if a valid repo name
-		if($this->Repository_model->repository_exists($repo)==0 || $repo=='central')
-		{
-			$repo=NULL;
-		}
-
-		$this->load->model("country_region_model");
-
-		//regions+countries tree
-		$data['regions']=$this->country_region_model->get_tree_region_countries($repo);
-
-		//array of countries
-		$data['countries']=$this->Search_helper_model->get_active_countries($repo);
-
-		switch($section)
-		{
-			case 'alphabatical':
-				$this->load->view('catalog_search/country_selection_alphabatical',$data);
-			break;
-
-			case 'region':
-				$data['region_id']=$region_id;
-				$this->load->view('catalog_search/country_selection_regional',$data);
-			break;
-		}
-	}
-
-	//topic selection dialog
-	function topic_selection($repo=NULL)
-	{
-		if($repo==NULL)
-		{
-			$repo=$this->active_repo['repositoryid'];
-		}
-
-		//check if a valid repo name
-		if($this->Repository_model->repository_exists($repo)==0)
-		{
-			$repo=NULL;
-		}
-
-		$this->load->model("vocabulary_model");
-        $vocab_id=$this->config->item("topics_vocab");
-
-        if (!$vocab_id){
-            $vocab_id=1;
-        }
-
-		$data['topics']=$this->vocabulary_model->get_tree($vid=$vocab_id,$active_only=TRUE,$repo);
-		$this->load->view('catalog_search/topic_selection',$data);
-	}
-
-
-	function collection_selection()
-	{
-		$this->load->model('Repository_model');
-		$data['repositories']=$this->Repository_model->get_repositories_tree();
-		$this->load->view('catalog_search/collection_selection',$data);
-	}
-
-
-	function help_da()
-	{
-		$this->load->view("catalog_search/help_da");
-	}
-
-
+	
 	private function get_featured_study($surveys)
 	{
 		if (!is_array($surveys)){
@@ -1318,6 +939,9 @@ class Catalog extends MY_Controller {
 
 		return $featured_study;
 	}
-}
-/* End of file catalog.php */
-/* Location: ./controllers/catalog.php */
+
+	private function get_featured_studies_by_repo($repository_id=null,$study_type=null)
+	{
+		return $this->Repository_model->get_featured_study($repository_id,$study_type);
+	}
+}    

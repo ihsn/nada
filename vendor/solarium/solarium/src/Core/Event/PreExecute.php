@@ -1,10 +1,17 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\Core\Event;
 
 use Solarium\Core\Query\QueryInterface;
 use Solarium\Core\Query\Result\ResultInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * PostExecute event, see Events for details.
@@ -36,7 +43,7 @@ class PreExecute extends Event
      *
      * @return QueryInterface
      */
-    public function getQuery()
+    public function getQuery(): QueryInterface
     {
         return $this->query;
     }
@@ -44,9 +51,9 @@ class PreExecute extends Event
     /**
      * Get the result object for this event.
      *
-     * @return ResultInterface
+     * @return ResultInterface|null
      */
-    public function getResult()
+    public function getResult(): ?ResultInterface
     {
         return $this->result;
     }
@@ -55,9 +62,13 @@ class PreExecute extends Event
      * Set the result object for this event, overrides default execution.
      *
      * @param ResultInterface $result
+     *
+     * @return self Provides fluent interface
      */
-    public function setResult($result)
+    public function setResult(ResultInterface $result): self
     {
         $this->result = $result;
+
+        return $this;
     }
 }

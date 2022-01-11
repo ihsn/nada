@@ -1,55 +1,41 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\ManagedResources\Query;
 
-use InvalidArgumentException;
 use Solarium\Core\Client\Client;
-use Solarium\Core\Query\AbstractQuery as BaseQuery;
-use Solarium\QueryType\ManagedResources\Query\Stopwords\Command\AbstractCommand;
-use Solarium\QueryType\ManagedResources\RequestBuilder\Stopwords as RequestBuilder;
-use Solarium\QueryType\ManagedResources\ResponseParser\Stopwords as ResponseParser;
+use Solarium\Core\Query\ResponseParserInterface;
+use Solarium\QueryType\ManagedResources\Query\Command\Config;
+use Solarium\QueryType\ManagedResources\Query\Command\Delete;
+use Solarium\QueryType\ManagedResources\Query\Command\Exists;
+use Solarium\QueryType\ManagedResources\Query\Command\Remove;
+use Solarium\QueryType\ManagedResources\Query\Command\Stopwords\Add;
+use Solarium\QueryType\ManagedResources\Query\Command\Stopwords\Create;
+use Solarium\QueryType\ManagedResources\Query\Stopwords\InitArgs;
+use Solarium\QueryType\ManagedResources\ResponseParser\Command as CommandResponseParser;
+use Solarium\QueryType\ManagedResources\ResponseParser\Exists as ExistsResponseParser;
+use Solarium\QueryType\ManagedResources\ResponseParser\Remove as RemoveResponseParser;
+use Solarium\QueryType\ManagedResources\ResponseParser\Stopword as StopwordResponseParser;
+use Solarium\QueryType\ManagedResources\ResponseParser\Stopwords as StopwordsResponseParser;
+use Solarium\QueryType\ManagedResources\Result\Stopwords\WordSet;
 
-class Stopwords extends BaseQuery
+/**
+ * Stopwords.
+ */
+class Stopwords extends AbstractQuery
 {
     /**
-     * Stopwords command add.
-     */
-    const COMMAND_ADD = 'add';
-
-    /**
-     * Stopwords command delete.
-     */
-    const COMMAND_DELETE = 'delete';
-
-    /**
-     * Stopwords command delete.
-     */
-    const COMMAND_EXISTS = 'exists';
-
-    /**
-     * Name of the stopwords resource.
+     * Default result class if no command is set.
      *
      * @var string
      */
-    protected $name = '';
-
-    /**
-     * Command.
-     *
-     * @var AbstractCommand
-     */
-    protected $command;
-
-    /**
-     * Stopwords command types.
-     *
-     * @var array
-     */
-    protected $commandTypes = [
-        self::COMMAND_ADD => 'Solarium\QueryType\ManagedResources\Query\Stopwords\Command\Add',
-        self::COMMAND_DELETE => 'Solarium\QueryType\ManagedResources\Query\Stopwords\Command\Delete',
-        self::COMMAND_EXISTS => 'Solarium\QueryType\ManagedResources\Query\Stopwords\Command\Exists',
-    ];
+    protected $defaultResultClass = WordSet::class;
 
     /**
      * Default options.
@@ -58,8 +44,22 @@ class Stopwords extends BaseQuery
      */
     protected $options = [
         'handler' => 'schema/analysis/stopwords/',
-        'resultclass' => 'Solarium\QueryType\ManagedResources\Result\Stopwords\WordSet',
+        'resultclass' => WordSet::class,
         'omitheader' => true,
+    ];
+
+    /**
+     * Command types.
+     *
+     * @var array
+     */
+    protected $commandTypes = [
+        self::COMMAND_ADD => Add::class,
+        self::COMMAND_CONFIG => Config::class,
+        self::COMMAND_CREATE => Create::class,
+        self::COMMAND_DELETE => Delete::class,
+        self::COMMAND_EXISTS => Exists::class,
+        self::COMMAND_REMOVE => Remove::class,
     ];
 
     /**
@@ -73,101 +73,38 @@ class Stopwords extends BaseQuery
     }
 
     /**
-     * Get the request builder class for this query.
-     *
-     * @return RequestBuilder
-     */
-    public function getRequestBuilder(): RequestBuilder
-    {
-        return new RequestBuilder();
-    }
-
-    /**
      * Get the response parser class for this query.
      *
-     * @return ResponseParser
+     * @return \Solarium\Core\Query\ResponseParserInterface
      */
-    public function getResponseParser(): ResponseParser
+    public function getResponseParser(): ResponseParserInterface
     {
-        return new ResponseParser();
-    }
-
-    /**
-     * Get the name of the stopwords resource.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * Set the name of the stopwords resource.
-     *
-     * @param string $name
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-    }
-
-    /**
-     * Create a command instance.
-     *
-     * @param string $type
-     * @param mixed  $options
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return AbstractCommand
-     */
-    public function createCommand($type, $options = null): AbstractCommand
-    {
-        $type = strtolower($type);
-
-        if (!isset($this->commandTypes[$type])) {
-            throw new InvalidArgumentException('Stopwords commandtype unknown: '.$type);
+        if (null === $this->command) {
+            if (null === $this->term) {
+                $parser = new StopwordsResponseParser();
+            } else {
+                $parser = new StopwordResponseParser();
+            }
+        } elseif (self::COMMAND_EXISTS === $this->command->getType()) {
+            $parser = new ExistsResponseParser();
+        } elseif (self::COMMAND_REMOVE === $this->command->getType()) {
+            $parser = new RemoveResponseParser();
+        } else {
+            $parser = new CommandResponseParser();
         }
 
-        $class = $this->commandTypes[$type];
-
-        return new $class($options);
+        return $parser;
     }
 
     /**
-     * Get command for this stopwords query.
+     * Create an init args instance.
      *
-     * @return AbstractCommand|null
+     * @param array $initArgs
+     *
+     * @return \Solarium\QueryType\ManagedResources\Query\Stopwords\InitArgs
      */
-    public function getCommand()
+    public function createInitArgs(array $initArgs = null): InitArgsInterface
     {
-        return $this->command;
-    }
-
-    /**
-     * Set a command to the stopwords query.
-     *
-     * @param AbstractCommand $command
-     *
-     * @return self Provides fluent interface
-     */
-    public function setCommand(AbstractCommand $command): self
-    {
-        $this->command = $command;
-
-        return $this;
-    }
-
-    /**
-     * Remove command.
-     *
-     * @return self Provides fluent interface
-     */
-    public function removeCommand(): self
-    {
-        $this->command = null;
-
-        return $this;
+        return new InitArgs($initArgs);
     }
 }

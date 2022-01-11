@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * This file is part of the Solarium package.
+ *
+ * For the full copyright and license information, please view the COPYING
+ * file that was distributed with this source code.
+ */
+
 namespace Solarium\QueryType\Analysis\Result;
 
 use Solarium\Core\Query\Result\QueryType as BaseResult;
@@ -40,7 +47,7 @@ class Field extends BaseResult implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function getStatus()
+    public function getStatus(): int
     {
         $this->parseResponse();
 
@@ -55,7 +62,7 @@ class Field extends BaseResult implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function getQueryTime()
+    public function getQueryTime(): int
     {
         $this->parseResponse();
 
@@ -67,7 +74,7 @@ class Field extends BaseResult implements \IteratorAggregate, \Countable
      *
      * @return array
      */
-    public function getLists()
+    public function getLists(): array
     {
         $this->parseResponse();
 
@@ -79,7 +86,7 @@ class Field extends BaseResult implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         $this->parseResponse();
 
@@ -91,10 +98,10 @@ class Field extends BaseResult implements \IteratorAggregate, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         $this->parseResponse();
 
-        return count($this->items);
+        return \count($this->items);
     }
 }
