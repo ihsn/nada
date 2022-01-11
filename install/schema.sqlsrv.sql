@@ -393,6 +393,11 @@ INSERT INTO dctypes (id,title)
 VALUES (1,'Document, Administrative [doc/adm]'),(2,'Document, Analytical [doc/anl]'),(3,'Document, Other [doc/oth]'),(4,'Document, Questionnaire [doc/qst]'),(5,'Document, Reference [doc/ref]'),(6,'Document, Report [doc/rep]'),(7,'Document, Technical [doc/tec]'),(8,'Audio [aud]'),(9,'Database [dat]'),(10,'Map [map]'),(11,'Microdata File [dat/micro]'),(12,'Photo [pic]'),(13,'Program [prg]'),(14,'Table [tbl]'),(15,'Video [vid]'),(16,'Web Site [web]');
 set IDENTITY_INSERT dctypes OFF;
 
+-- additional types
+INSERT INTO dctypes (title) VALUES ('Data, Geospatial [dat/geo]');
+INSERT INTO dctypes (title) VALUES ('Data, Table [dat/table]');
+INSERT INTO dctypes (title) VALUES ('Data, Document [dat/doc]');
+
 --
 -- Table structure for table da_collections
 --
@@ -1400,6 +1405,7 @@ CREATE TABLE api_logs (
   uri varchar(255) NOT NULL,
   method varchar(6) NOT NULL,
   params text,
+  user_id int default NULL,
   api_key varchar(40) NOT NULL,
   ip_address varchar(45) NOT NULL,
   time int NOT NULL,
