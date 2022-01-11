@@ -777,7 +777,8 @@ $config['otp_verification']=0;
 
 $config['enable_access_policy_import']=false;
 
-$config['data_types_nav_bar']=true;
+//show tabs for each data type on search page
+$config['data_types_nav_bar']=false;
 
 //catalog search box location
 $config['search_box_orientation']='default'; //inline, default
