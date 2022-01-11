@@ -53,7 +53,7 @@
                 <?php $wgtd=isset($sumstat->wgtd) && $sumstat->wgtd=='wgtd' ? '_wgtd' : '';?>
                 <div class="fld-inline sum-stat sum-stat-<?php echo $sumstat->type;?>-<?php echo $wgtd;?>">
                     <span class="fld-name sum-stat-type"><?php echo t('var_'.$sumstat->type. $wgtd);?>: </span>
-                    <span class="fld-value sum-stat-value"><?php echo $sumstat->value;?></span>
+                    <span class="fld-value sum-stat-value"><?php echo isset($sumstat->value) ? $sumstat->value : '-';?></span>
                 </div>
             <?php endforeach;?>
         </div>
