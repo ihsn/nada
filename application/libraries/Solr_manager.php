@@ -489,7 +489,7 @@ class Solr_manager{
 			break;
 
 			case 'citations':
-				throw  new exception("update handler not implemented for citations");
+				//throw  new exception("update handler not implemented for citations");
 			break;
 		}
 	}
