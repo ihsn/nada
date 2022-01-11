@@ -184,8 +184,6 @@ class Catalog extends MY_REST_Controller
 		//convert country names or iso codes into country IDs
 		$params['countries']=$this->get_countries_id($params['countries']);
 
-		$params['dtype']=$this->get_dtype_id($params['dtype']);
-
 		//collections to array
 		$params['collections']=explode(",",$params['collections']);		
 		
@@ -508,46 +506,6 @@ class Catalog extends MY_REST_Controller
 		return $output;
 	}
 
-
-
-	/**
-	 * 
-	 * 
-	 * Get numeric IDs for data license
-	 * 
-	 * @dtypes - comma separated string or array
-	 * @todo - move to model
-	 */
-	private function get_dtype_id($dtypes)
-	{
-		if(empty($dtypes)){
-			return false;
-		}
-
-		if(!is_array($dtypes)){
-			$dtypes=explode(",",$dtypes);
-		}
-
-		$forms=$this->Form_model->get_all();
-
-		$form_list=array();
-		foreach($forms as $idx=>$form){
-			$form_list[$form['model']]=$form['formid'];
-		}
-
-		foreach($dtypes as $key=>$val){
-			if (!is_numeric($val) && isset($form_list[$val])){
-				$dtypes[$key]=$form_list[$val];
-			}else{
-				//invalid values
-				$dtypes[$key]=-1;
-			}
-		}
-		
-		return $dtypes;
-	}
-
-	
 
 	/**
 	 * 

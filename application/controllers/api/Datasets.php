@@ -32,12 +32,6 @@ class Datasets extends MY_REST_Controller
 	 * Return all datasets
 	 * 
 	 */
-	/**
-	 * 
-	 * 
-	 * Return all datasets
-	 * 
-	 */
 	function index_get($idno=null)
 	{
 		try{
