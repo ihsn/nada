@@ -10,7 +10,7 @@
 |
 */
 $template['active_template'] = 'default';
-$template['theme_name']='nada';
+$template['theme_name']='nada52';
 
 
 /*
@@ -84,8 +84,8 @@ $template['installer']['theme_folder'] = 'nada';
 
 
 //blank template file with only the body and no layout
-$template['blank']['template'] = '../../themes/nada/blank';
-$template['blank']['theme_folder'] = 'nada';
+$template['blank']['template'] = '../../themes/nada52/blank';
+$template['blank']['theme_folder'] = 'nada52';
 
 $template['blank_iframe']['template'] =  '../../themes/wb2/blank';
 $template['blank_iframe']['theme_folder'] = 'wb2';

@@ -13,7 +13,7 @@
                 $target="";
             }
             //if internal link, add site url
-            if (substr($item['url'], 0, 7) != 'http://'){
+            if (!is_url($item['url'])){
                 $item['url']=site_url($item['url']);
             }
             ?>
