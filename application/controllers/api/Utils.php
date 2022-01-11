@@ -2,12 +2,13 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
-class Utils extends REST_Controller
+class Utils extends MY_REST_Controller
 {
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->helper("date");
+		$this->is_admin_or_die();
 	}
 	
 

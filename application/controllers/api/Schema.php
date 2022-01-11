@@ -18,11 +18,6 @@ class Schema extends MY_REST_Controller {
     }
 
     
-
-    
-
-
-
     function fields_get($schema_name)
     {
         try{

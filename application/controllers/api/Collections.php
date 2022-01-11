@@ -9,7 +9,7 @@ class Collections extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model("Repository_model");
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 	}
 
 	/**
@@ -20,14 +20,16 @@ class Collections extends MY_REST_Controller
 	 * 
 	 */
 	function index_get($repo_id=null)
-	{	
+	{			
 		if($repo_id){
 			return $this->single_get($repo_id);
 		}
 
 		$published=$this->input->get("published");
 
-		try{			
+		try{
+			$this->has_access($resource_='collection',$privilege='view');
+
 			if (is_numeric($published) && ($published==0 || $published==1)){
 				$repos=$this->Repository_model->select_all($published);
 			}else{
@@ -78,8 +80,6 @@ class Collections extends MY_REST_Controller
 	 */
 	function index_post()
 	{
-		$this->is_admin_or_die();
-
 		//multipart/form-data
 		$options=$this->input->post(null, true);
 
@@ -89,6 +89,7 @@ class Collections extends MY_REST_Controller
 		}
 
 		try{
+			$this->has_access($resource_='collection',$privilege='edit');
 			$user_id=$this->get_api_user_id();
 			
 			//validate
@@ -145,8 +146,6 @@ class Collections extends MY_REST_Controller
 	 */
 	function update_post()
 	{
-		$this->is_admin_or_die();
-
 		//multipart/form-data
 		$options=$this->input->post(null, true);
 
@@ -156,6 +155,7 @@ class Collections extends MY_REST_Controller
 		}
 
 		try{
+			$this->has_access($resource_='collection',$privilege='edit');
 			$user_id=$this->get_api_user_id();
 			
 			if(!isset($options['repositoryid'])){
@@ -226,8 +226,6 @@ class Collections extends MY_REST_Controller
 	 */
 	function rename_post()
 	{
-		$this->is_admin_or_die();
-
 		//multipart/form-data
 		$options=$this->input->post(null, true);
 
@@ -237,6 +235,7 @@ class Collections extends MY_REST_Controller
 		}
 
 		try{
+			$this->has_access($resource_='collection',$privilege='edit');
 			$user_id=$this->get_api_user_id();
 			
 			if(!isset($options['old_repositoryid'])){
@@ -301,6 +300,7 @@ class Collections extends MY_REST_Controller
 	function single_get($repo_id=null)
 	{
 		try{
+			$this->has_access($resource_='collection',$privilege='view');
 			if(!($repo_id)){
 				throw new Exception("MISSING_PARAM: repositoryId");
 			}			
@@ -347,6 +347,8 @@ class Collections extends MY_REST_Controller
 	function datasets_get($repo_id=null)
 	{
 		try{
+			$this->has_access($resource_='collection',$privilege='view');
+
 			if(!($repo_id)){
 				throw new Exception("MISSING_PARAM: repositoryId");
 			}			
@@ -395,6 +397,8 @@ class Collections extends MY_REST_Controller
 	function delete_delete($repo_id=null)
 	{
 		try{
+			$this->has_access($resource_='collection',$privilege='delete');
+
 			if(!($repo_id)){
 				throw new Exception("MISSING_PARAM: repositoryId");
 			}			
@@ -436,20 +440,5 @@ class Collections extends MY_REST_Controller
 		}
 		parent::_auth_override_check();
 	}
-
-
-	//override to support sessions
-	function get_api_user_id()
-	{
-		//session user id
-		if ($this->session->userdata('user_id')){
-			return $this->session->userdata('user_id');
-		}
-
-		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
-			return $this->_apiuser->user_id;
-		}
-
-		return false;
-	}
+	
 }

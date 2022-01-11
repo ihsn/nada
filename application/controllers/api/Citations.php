@@ -188,7 +188,7 @@ class Citations extends MY_REST_Controller
 	 **/ 
 	function index_post()
 	{
-		$this->is_admin_or_die();
+		$this->has_access($resource_='citation',$privilege='edit');
 		$this->load->model("Dataset_model");
 
 		try{
@@ -326,7 +326,8 @@ class Citations extends MY_REST_Controller
 	public function delete_delete($uuid=null)
 	{
 		try{
-			$id=$this->get_id_from_uuid ($uuid);
+			$this->has_access($resource_='citation',$privilege='delete');
+			$id=$this->get_id_from_uuid ($uuid);			
 			$this->Citation_model->delete($id);
 			$this->events->emit('db.after.delete', 'citations', $id);
 		
@@ -363,22 +364,6 @@ class Citations extends MY_REST_Controller
 			return true;
 		}
 		parent::_auth_override_check();
-	}
-
-
-	//override to support sessions
-	function get_api_user_id()
-	{
-		//session user id
-		if ($this->session->userdata('user_id')){
-			return $this->session->userdata('user_id');
-		}
-
-		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
-			return $this->_apiuser->user_id;
-		}
-
-		return false;
 	}
 
 
