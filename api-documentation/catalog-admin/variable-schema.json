@@ -39,18 +39,22 @@
 			"description": "indicates whether the variable is a weight",
 			"default": 0
 		},		
-		"var_start_pos": {
+		"loc_start_pos": {
 			"type": "integer",
 			"title": "Variable start position"
 		},
-		"var_end_pos": {
+		"loc_end_pos": {
 			"type": "integer",
 			"title": "Variable end position"
 		},
-		"var_width": {
+		"loc_width": {
 			"type": "integer",
             "title": "Variable width"		
         },
+		"loc_rec_seg_no": {
+			"type": "integer",
+            "title": "Record segment number, deck or card number the variable is located on"
+        },		
 		"var_imputation": {
 			"type": "string",
 			"title": "Imputation"

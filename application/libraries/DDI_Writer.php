@@ -308,31 +308,39 @@ class DDI_Writer
                 'dcml'=>$var['var_dcml'],
                 'intrvl'=>$var['var_intrvl'],
             ],
-            'location._attributes'=>[
-                'StartPos'=>$var['var_start_pos'],
-                'EndPos'=>$var['var_end_pos'],
-                'width'=>$var['var_width'],
-                //'RecSegNo'=>$var[''],
-            ],            
-            'labl'=>$var['labl'],
 
-            'imputation'=>$var['labl'],
-            'security'=>$var['labl'],
-            'embargo'=>$var['labl'],
-            'respUnit'=>$var['labl'],            
+            'varFormat'=>[
+                '_value'=> (string)$var['var_format.value'],
+                '_attributes'=>[
+                    'type'=>$var['var_format.type'],
+                    //'schema'=>$var['var_format.schema'],//not supported
+                    'formatname'=>$var['var_format.name']
+                ]
+            ],
+
+            'location'=>[
+                '_attributes'=>[
+                    'StartPos'=>$var['loc_start_pos'],
+                    'EndPos'=>$var['loc_end_pos'],
+                    'width'=>$var['loc_width'],
+                    'RecSegNo'=>$var['loc_rec_seg_no'],
+                ]
+            ],
+
+            'labl'=>$var['labl'],
+            'imputation'=>$var['var_imputation'],
+            'security'=>$var['var_security'],
+            'respUnit'=>$var['var_respunit'],            
             'qstn.preQTxt'=>$var['var_qstn_preqtxt'],
             'qstn.qstnLit'=>$var['var_qstn_qstnlit'],
             'qstn.postQTxt'=>$var['var_qstn_postqtxt'],
             'qstn.ivuInstr'=>$var['var_qstn_ivulnstr'],
 
             //'valrng'=>$var[''],//repeatable field - not supported
-            'universe'=>$var['var_universe'],  
-
+            'universe'=>$var['var_universe'],
             'sumStat'=> [], //repeatable
             
-
             'catgry'=>[],
-
             'notes'=>$var['var_notes'],
             'txt'=>$var['var_txt'],
             'codInstr'=>$var['var_codinstr'],
