@@ -1,11 +1,11 @@
 <?php 
-$lang['title_terms_and_conditions']="شروط النفاذ";
+$lang['title_terms_and_conditions']="الأحكام والشروط";
 $lang['terms_text']=" <ol> 
   <li>البيانات والمواد الأخرى الموجودة في  أرشيف البيانات الوطنية لن 
     يتم إعادة توزيعها أو بيعها لغيرهم من الأفراد والمؤسسات ، أو الكائنات 
     دون موافقة خطية من أرشيف البيانات الوطنية.<li/>
  
-  <li>      سيتم استخدام هاته البيانات لاغراض البحوث الاحصائية و العلمية فقط. سيتم نشر البيانات التجميعية  فقط  <li/>
+  <li>      سيتم استخدام هذه البيانات لاغراض البحوث الاحصائية و العلمية فقط. سيتم نشر البيانات التجميعية  فقط  <li/>
 <li>لن يسمح بالمحاولة لاعادة تحديد هوية الافراد المجيبين. لن يسمح باستعمال بيانات الافراد او المؤسسات الذين تم اكتشافهم من دون قصد. اذا تم تحديد هوية فرد او مؤسسة من دون قصد يجب اعلام المركز والارشيف الوطني  فورا
 . <li/> 
   
@@ -24,8 +24,8 @@ $lang['terms_text']=" <ol>
 <p/>  
 ";
 $lang['form_removed_and_not_available']="تم حذف النموذج ولم يعد متوفر";
-$lang['survey_data_files']="ملفات البيانات";
+$lang['survey_data_files']="ملفات بيانات المسح";
 
 
-/* End of file direct_access_terms_lang.php */
-/* Location: ./application/language/arabic/direct_access_terms_lang.php */
+/* End of file direct_access_terms */
+/* Location: ./application/language/arabic/direct_access_terms */
