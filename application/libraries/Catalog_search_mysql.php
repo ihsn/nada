@@ -21,6 +21,7 @@ class Catalog_search_mysql{
 	var $topics=array();
 	var $tags=array();
 	var $countries=array();
+	var $regions=array();
 	var $from=0;
 	var $to=0;
 	var $repo='';
@@ -107,6 +108,7 @@ class Catalog_search_mysql{
 		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$regions=$this->_build_regions_query();
 		$tags=$this->_build_tags_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
@@ -159,7 +161,7 @@ class Catalog_search_mysql{
 		}
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type);
+		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type,$regions);
 		
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -331,6 +333,7 @@ class Catalog_search_mysql{
 		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$regions=$this->_build_regions_query();
 		$tags=$this->_build_tags_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();		
@@ -341,7 +344,7 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3);
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3,$regions);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -739,6 +742,42 @@ class Catalog_search_mysql{
 	}
 
 
+	/**
+	*
+	* build where for regions
+	*/
+	protected function _build_regions_query()
+	{
+		$regions=$this->regions;//must always be an array
+
+		if (!is_array($regions)){
+			return FALSE;
+		}
+		
+		if ( !count($regions)>0){
+			return false;
+		}
+
+		foreach($regions as $idx=>$region){
+			if(!is_numeric($region)){
+				unset($regions[$idx]);
+			}
+		}
+		
+		$regions= implode(',',$regions);
+
+		if ($regions!=''){
+			//return sprintf('surveys.id in (select sid from survey_countries where cid in (%s))',$regions);
+
+			return sprintf('surveys.id in (select sid from region_countries
+				inner join survey_countries on region_countries.country_id=survey_countries.cid
+					where region_countries.region_id in (%s))',$regions);
+		}
+		
+		return FALSE;
+	}
+
+
     /**
      *
      * build where countries by iso3 code
@@ -1038,6 +1077,7 @@ class Catalog_search_mysql{
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$regions=$this->_build_regions_query();
 		$years=$this->_build_years_query();
 		$collections=$this->_build_collections_query();
 		$dtype=$this->_build_dtype_query();
@@ -1045,7 +1085,7 @@ class Catalog_search_mysql{
 		$repository=$this->_build_repository_query();
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags,$repository);
+		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags,$repository,$regions);
 
         //show only publshed studies
         $where_list[]='published=1';
