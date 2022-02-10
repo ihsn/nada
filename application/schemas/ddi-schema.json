@@ -322,6 +322,10 @@
                   "affiliation":{
                     "title":"Affiliation",
                     "type":"string"
+                  },
+                  "uri":{
+                    "title":"URI",
+                    "type":"string"
                   }
                 },
                 "required":[
@@ -348,6 +352,10 @@
                   "email":{
                     "title":"Email",
                     "type":"string"
+                  },
+                  "uri":{
+                    "title":"URI",
+                    "type":"string"
                   }
                 }
               },
@@ -373,6 +381,10 @@
                   },
                   "affiliation":{
                     "title":"Affiliation",
+                    "type":"string"
+                  },
+                  "uri":{
+                    "title":"URI",
                     "type":"string"
                   }
                 }
@@ -1287,54 +1299,73 @@
             "study_class":{
               "title":"Class of the Study",
               "description":"Generally used to give the data archive's class or study status number, which indicates the processing status of the study. May also be used as a text field to describe processing status. Example: `DDA Class C`, `Study is available from http://example.com` ",
-              "type":"string",
+              "type":["string","array"],
               "_ddi_xpath":"stdyDscr/method/stdyClas"
             },
+
             "data_processing":{
-              "type":"string",
+              "type":"array",
               "title":"Data Processing",
               "description":"Describes various data processing procedures not captured elsewhere in the documentation, such as topcoding, recoding, suppression, tabulation, etc. The `type` attribute supports better classification of this activity, including the optional use of a controlled vocabulary",
-              "_ddi_xpath":"stdyDscr/method/dataProcessing"
+              "_ddi_xpath":"stdyDscr/method/dataProcessing",
+              "items":{
+                "type":"object",
+                "properties":{
+                  "data_processing":{
+                    "title":"Data processing",                    
+                    "type":"string"
+                  },
+                  "source":{
+                    "title":"Source",
+                    "type":"string"
+                  },
+                  "type":{
+                    "title":"Data processing type",
+                    "type":"string"
+                  }
+                },
+                "required":[
+                  "data_processing"
+                ]
+              }
             },
-            "data_processing_type":{
-              "type":"string",
-              "title":"Data Processing type",
-              "description":"Data procssing type",
-              "_ddi_xpath":"stdyDscr/method/dataProcessing/@type"
-            },
+                        
             "coding_instructions":{
-              "type":"object",
+              "type":"array",
               "title":"Coding Instructions",
               "_ddi_xpath":"stdyDscr/method/codingInstructions",
               "description":"Describe specific coding instructions used in data processing, cleaning, assession, or tabulation.",
-              "properties":{
-                "related_processes":{
-                  "title":"Related processes",
-                  "type":"string",
-                  "_ddi_xpath":"stdyDscr/method/codingInstructions/@relatedProcesses"
-                },
-                "type":{
-                  "title":"Coding instructions type",
-                  "type":"string",
-                  "_ddi_xpath":"stdyDscr/method/codingInstructions/@type"
-                },
-                "txt":{
-                  "title":"Coding instructions text",
-                  "type":"string",
-                  "_ddi_xpath":"stdyDscr/method/codingInstructions/txt"
-                },
-                "command":{
-                  "title":"Command",
-                  "description":"Provide command code for the coding instruction. The formalLanguage attribute identifies the language of the command code.",
-                  "type":"string",
-                  "_ddi_xpath":"stdyDscr/method/codingInstructions/command"
-                },
-                "command_language":{
-                  "title":"Language of the command code",
-                  "description":"Identifies the language of the command code. e.g. `SPSS`, `R`, `STATA` ",
-                  "type":"string",
-                  "_ddi_xpath":"stdyDscr/method/codingInstructions/command/@formalLanguage"
-                }
+              "items":{
+                "type":"object",
+                  "properties":{
+                    "related_processes":{
+                      "title":"Related processes",
+                      "type":"string",
+                      "_ddi_xpath":"stdyDscr/method/codingInstructions/@relatedProcesses"
+                    },
+                    "type":{
+                      "title":"Coding instructions type",
+                      "type":"string",
+                      "_ddi_xpath":"stdyDscr/method/codingInstructions/@type"
+                    },
+                    "txt":{
+                      "title":"Coding instructions text",
+                      "type":"string",
+                      "_ddi_xpath":"stdyDscr/method/codingInstructions/txt"
+                    },
+                    "command":{
+                      "title":"Command",
+                      "description":"Provide command code for the coding instruction. The formalLanguage attribute identifies the language of the command code.",
+                      "type":"string",
+                      "_ddi_xpath":"stdyDscr/method/codingInstructions/command"
+                    },
+                    "command_language":{
+                      "title":"Language of the command code",
+                      "description":"Identifies the language of the command code. e.g. `SPSS`, `R`, `STATA` ",
+                      "type":"string",
+                      "_ddi_xpath":"stdyDscr/method/codingInstructions/command/@formalLanguage"
+                    }
+                  }
               }
             }
           }
