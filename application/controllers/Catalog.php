@@ -111,11 +111,14 @@ class Catalog extends MY_Controller {
 			$this->input->get("collection")
 		);
 
-		$this->facets['regions']=$this->Search_helper_model->get_active_regions(
-			$repo_id,
-			$this->active_tab,
-			$this->input->get("region")
-		);
+		$this->facets['regions']=array();
+		if ($this->is_facet_enabled($this->active_tab,'region')){
+			$this->facets['regions']=$this->Search_helper_model->get_active_regions(
+				$repo_id,
+				$this->active_tab,
+				$this->input->get("region")
+			);
+		}
 		
 		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types(
 			$repo_id,
