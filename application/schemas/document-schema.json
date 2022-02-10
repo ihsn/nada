@@ -519,12 +519,7 @@
           "type": "string",
           "title": "Volume number",
           "description":"Volume number"
-        },
-        "issue": {
-          "type": "string",
-          "title": "Issue number",
-          "description":"Issue number"
-        },
+        },        
 
         "number": {
           "type": "string",
