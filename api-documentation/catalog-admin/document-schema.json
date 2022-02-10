@@ -518,12 +518,18 @@
         "volume": {
           "type": "string",
           "title": "Volume number",
-          "description":"Volume number"              
+          "description":"Volume number"
         },
         "issue": {
           "type": "string",
           "title": "Issue number",
-          "description":"Issue number"              
+          "description":"Issue number"
+        },
+
+        "number": {
+          "type": "string",
+          "title": "Number",
+          "description":"The number of a journal, magazine, technical report, or of a work in a series. An issue of a journal or magazine is usually identified by its volume and number; the organization that issues a technical report usually gives it a number; and sometimes books are given numbers in a named series."
         },
 
         "pages": {
@@ -535,6 +541,60 @@
           "type": "string",
           "title": "Series name",
           "description":"The name given to a series or set of books. When citing an entire book, the title field gives its title and the optional series field gives the name of a series in which the book was published."              
+        },
+
+        "publisher": {
+          "type": "string",
+          "title": "Publisher",
+          "description":"Entity responsible for making the resource available"              
+        },
+
+        "publisher_address": {
+          "type": "string",
+          "title":"Publisher's address",
+          "description": "For major publishing houses, just the city is given. For small publishers, you can help the reader by giving the complete address."    
+        }, 
+
+        "annote": {
+          "type": "string",
+          "title": "Annotation",
+          "description":"For annotation, element will not be used by standard bibliography styles like the MLA, APA or Chicago, but may be used by others that produce an annotated bibliography."
+        },
+
+        "booktitle": {
+          "type": "string",
+          "title": "Book title",
+          "description":"Title of a book, part of which is being cited"
+        },
+
+        "crossref": {
+          "type": "string",
+          "title": "Book title",
+          "description":"The database key of the entry being cross referenced"
+        },
+
+        "howpublished": {
+          "type": "string",
+          "title": "Store the notice for unusual publications",
+          "description":"The element is used to store the notice for unusual publications. The first word should be capitalized. For example, `WebPage`, or `Distributed at the local tourist office`"
+        },
+
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "description":"A key is a field used for alphabetizing, cross referencing, and creating a label when the `author' information is missing"
+        },
+
+        "organization": {
+          "type": "string",
+          "title": "Organization",
+          "description":"The organization that sponsors a conference or that publishes a manual"
+        },
+
+        "url": {
+          "type": "string",
+          "title": "URL",
+          "description":"URL of the document, preferably a permanent URL"
         },
         
         "translators": {
@@ -641,18 +701,6 @@
 						"name"
 					]
 				},
-
-        "publisher": {
-          "type": "string",
-          "title": "Publisher",
-          "description":"Entity responsible for making the resource available"              
-        },
-
-        "publisher_address": {
-          "type": "string",
-          "title":"Publisher's address",
-          "description": "For major publishing houses, just the city is given. For small publishers, you can help the reader by giving the complete address."    
-        }, 
 
         "rights": {
           "type": "string",
