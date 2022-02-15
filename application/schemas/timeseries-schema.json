@@ -794,10 +794,10 @@
 						"additionalProperties": false
 					  }
 					},
-				  "word_vectors":{
+				  "embeddings":{
 					  "type": "array",
-					  "title": "Word vectors",
-					  "description": "Word vectors",
+					  "title": "Word embeddings",
+						"description": "Word embeddings",
 					  "items": {
 						"type": "object",
 						"properties": {
@@ -833,6 +833,11 @@
 							  "name": {
 								  "type": "string",
 								  "title": "Name"
+							  },
+							  "description": {
+								  "type": "string",
+								  "title": "Description",
+								  "description":"A brief description of the series group."
 							  },
 							  "version": {
 								  "type": "string",

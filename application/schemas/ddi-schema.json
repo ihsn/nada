@@ -1325,21 +1325,17 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "data_processing": {
-                    "title": "Data processing",
-                    "type": "string"
-                  },
-                  "source": {
-                    "title": "Source",
-                    "type": "string"
-                  },
                   "type": {
                     "title": "Data processing type",
+                    "type": "string"
+                  },
+                  "description": {
+                    "title": "Data processing description",
                     "type": "string"
                   }
                 },
                 "required": [
-                  "data_processing"
+                  "description"
                 ]
               }
             },
@@ -1372,8 +1368,8 @@
                     "type": "string",
                     "_ddi_xpath": "stdyDscr/method/codingInstructions/command"
                   },
-                  "command_language": {
-                    "title": "Language of the command code",
+                  "formal_language": {
+                    "title": "Identify the language of the command code",
                     "description": "Identifies the language of the command code. e.g. `SPSS`, `R`, `STATA` ",
                     "type": "string",
                     "_ddi_xpath": "stdyDscr/method/codingInstructions/command/@formalLanguage"

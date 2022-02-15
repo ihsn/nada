@@ -454,9 +454,30 @@
           "items": {
             "type": "object",
             "properties": {
-              "source": {
-                "title": "Source",
+              "name": {
+                "title": "Name",
+                "type": "string",
+                "description": "The name (title) of the data source. For example, a table data may be extracted from the `Population Census 2020`."
+              },
+              "abbreviation": {
+                "title": "Abbreviation",
+                "description":"The abbreviation (acronym) of the data source.",
                 "type": "string"
+              },              
+              "source_id": {
+                "title": "Source ID",
+                "description":"A unique identifier for the source, such as a Digital Object Identifier (DOI).",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",
+                "type": "string",
+                "description":"A note that describes how the source was used, possibly mentioning issues in the use of the source."
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string",
+                "description":"A link (URL) to the source dataset."
               }
             }
           }
@@ -621,9 +642,36 @@
         "themes":{
           "type":"array",
           "description":"Themes",
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ]
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent Identifier",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         },
         "topics": {
           "type": "array",
@@ -669,8 +717,17 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
               "name": {
                 "title": "Discipline title or name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent discipline Identifier",
+                "description":"Parent discipline ID",
                 "type": "string"
               },
               "vocabulary": {
@@ -784,6 +841,12 @@
         "confidentiality": {
           "type": "string",
           "title":"Confidentiality"
+        },
+
+        "sdc": {
+          "type": "string",
+          "title":"Statistical disclosure control",
+          "description":"Information on statistical disclosure control measures applied to the table. This can include cell suppression, or other techniques. Specialized packages have been developed for this purpose, like [*sdcTable: Methods for Statistical Disclosure Control in Tabular Data*](https://cran.r-project.org/web/packages/sdcTable/index.html) and https://cran.r-project.org/web/packages/sdcTable/sdcTable.pdf \nThe information provided here should be such that it does not provide intruders with useful information for reverse-engineering the protection measures applied to the table."
         },
 
         "contacts": {

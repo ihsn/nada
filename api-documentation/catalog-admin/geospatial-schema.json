@@ -2030,7 +2030,8 @@
 		},		
 		"additional": {
 			"title": "Additional metadata",
-			"description": "Any additional metadata"
+			"description": "Any additional metadata",
+			"type":"object"
 		}
 	},
 	"required": [

@@ -103,7 +103,7 @@ class Variable_model extends CI_Model {
 
         foreach($variables as $key=>$variable){            
             $variables[$key]['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
-            $variable=$this->map_variable_fields($variable);
+            $variables[$key]=$this->map_variable_fields($variables[$key]);
         }
 
         return $variables;
@@ -381,7 +381,9 @@ class Variable_model extends CI_Model {
         }
 
         $this->db->insert("variables",$options);
-        return $this->db->insert_id();
+        $insert_id=$this->db->insert_id();
+        $this->update_survey_timestamp($sid);
+        return $insert_id;
     }
 
     public function update($sid,$uid,$options)
@@ -415,8 +417,23 @@ class Variable_model extends CI_Model {
         $this->db->where('sid',$sid);
         $this->db->where('uid',$uid);
         $this->db->update("variables",$options);
+        $this->update_survey_timestamp($sid);
         return $uid;
     }
+
+    private function update_survey_timestamp($sid,$changed=null)
+    {
+        if(!$changed){
+            $changed=date("U");
+        }
+
+        $options=array(
+            'changed'=>$changed
+        );
+
+        $this->db->where("id",$sid);
+        $this->db->update('surveys',$options);
+    }    
 
 
     public function batch_insert($sid,$variables)
@@ -445,6 +462,7 @@ class Variable_model extends CI_Model {
         }
 
         $this->db->insert_batch('variables', $variables);
+        $this->update_survey_timestamp($sid);
     }
 
 
@@ -589,13 +607,15 @@ class Variable_model extends CI_Model {
             'var_rec_seg_no'=>'loc_rec_seg_no',
         );
 
-        foreach($variable['metadata'] as $key=>$value){
-            //complex types e.g. repeatable array types
-			if(array_key_exists($key,$mappings)){ 
-				$variable['metadata'][$mappings[$key]]=$value;
-                unset($variable['metadata'][$key]);
-			}
-		}
+        if (isset($variable['metadata'])){
+            foreach($variable['metadata'] as $key=>$value){
+                //complex types e.g. repeatable array types
+                if(array_key_exists($key,$mappings)){ 
+                    $variable['metadata'][$mappings[$key]]=$value;
+                    unset($variable['metadata'][$key]);
+                }
+            }
+        }
 
         return $variable;
     }
