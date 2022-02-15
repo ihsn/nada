@@ -301,7 +301,7 @@ class Study extends MY_Controller {
 
 	
 	public function get_microdata($sid)
-	{		
+	{
 		$this->load->model("Form_model");		
 
 		$form_obj=$this->Form_model->get_form_by_survey($sid);
@@ -327,6 +327,14 @@ class Study extends MY_Controller {
 		}
 		else{
 			$content="Data Access Not Available";
+		}
+
+		$user=$this->ion_auth->current_user();		
+		$this->load->model("Data_access_whitelist_model");
+		$user_whitelisted=$this->Data_access_whitelist_model->has_access($user->id,$sid);
+
+		if($user_whitelisted){
+			$content=$this->Data_access_whitelist_model->get_data_files($sid);
 		}
 
 		$this->render_page($sid, $content,'get_microdata');

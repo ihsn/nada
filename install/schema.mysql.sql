@@ -1486,3 +1486,12 @@ CREATE TABLE `survey_facets` (
   `term_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE `data_access_whitelist` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `repository_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1;
