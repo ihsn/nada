@@ -188,18 +188,18 @@
 					]
 				}
 			}
+		},
+		"provenance":{
+			"type":"array",
+			"description":"Provenance",
+			"items":{
+			  "$ref":"provenance-schema.json"
+			}
+		  },
+		"additional": {
+			"type": "object",
+			"description": "Additional metadata",
+			"properties": {}
 		}
-	},
-	"provenance":{
-		"type":"array",
-		"description":"Provenance",
-		"items":{
-		  "$ref":"provenance-schema.json"
-		}
-	  },
-	"additional": {
-		"type": "object",
-		"description": "Additional metadata",
-		"properties": {}
-	}
+	}	
 }

@@ -1,104 +1,101 @@
 {
-  "$id": "http://ihsn.org/schemas/timeseries",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Timeseries Schema",
-  "description": "Schema for timeseries data type",
-  "type": "object",
-  "properties": {
-    
-    "repositoryid": {
-      "type": "string",
-      "title": "Collection ID that owns the series",
-      "description": "Collection that owns the series"
-    },
-
-    "access_policy": {
-      "type": "string",
-      "title": "Data access policy",
-      "description": "Data access policy for attached microdata resources",
-      "enum": [
-        "direct",
-        "open",
-        "public",
-        "licensed",
-        "remote",
-        "na"
-      ],
-      "default": "na"
-    },
-    
-    "data_remote_url": {
-      "type": "string",
-      "title": "Data website URL",
-      "description": "Link to the website where the data is available, this is only needed if `access_policy` is set to `remote`."
-    },
-    "published": {
-      "type": "integer",
-      "title": "Status",
-      "description": "Status of the study - 0=draft, 1=published",
-      "default": 0
-    },
-    "overwrite": {
-      "type": "string",
-      "description": "Overwrite database if already exists?",            
-      "enum":["yes","no"],
-      "default": "no"
-    },
-
-    "metadata_creation": {      
-      "type": "object",
-      "title": "Metadata creation",
-      "description": "Information on who generated the documentation",
-      "properties": {        
-        
-        "producers": {
-          "type": "array",
-          "title": "Producers",
-          "description": "List of producers",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "title": "Name",
-                "description": "Name (required)",
-                "type": "string"
-              },
-              "abbr": {
-                "title": "Abbreviation",
-                "type": "string"
-              },
-              "affiliation": {
-                "type": "string",
-                "title": "Affiliation"
-              },
-              "role": {
-                "title": "Role",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "name"
-          ]
-        },
-        "prod_date": {
-          "title": "Date of Production",
-          "description": "Document production date using format(YYYY-MM-DD)",
-          "type": "string"
-        },
-        "version": {
-          "title": "Document version",
-          "description": "Identify and describe the current version of the document",
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-         
-      "series_description":{         
-        "description" :"Series information",
-        "type": "object",
-			"properties": {				
+	"$id": "http://ihsn.org/schemas/timeseries",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Timeseries Schema",
+	"description": "Schema for timeseries data type",
+	"type": "object",
+	"properties": {
+		"repositoryid": {
+			"type": "string",
+			"title": "Collection ID that owns the series",
+			"description": "Collection that owns the series"
+		},
+		"access_policy": {
+			"type": "string",
+			"title": "Data access policy",
+			"description": "Data access policy for attached microdata resources",
+			"enum": [
+				"direct",
+				"open",
+				"public",
+				"licensed",
+				"remote",
+				"na"
+			],
+			"default": "na"
+		},
+		"data_remote_url": {
+			"type": "string",
+			"title": "Data website URL",
+			"description": "Link to the website where the data is available, this is only needed if `access_policy` is set to `remote`."
+		},
+		"published": {
+			"type": "integer",
+			"title": "Status",
+			"description": "Status of the study - 0=draft, 1=published",
+			"default": 0
+		},
+		"overwrite": {
+			"type": "string",
+			"description": "Overwrite database if already exists?",
+			"enum": [
+				"yes",
+				"no"
+			],
+			"default": "no"
+		},
+		"metadata_creation": {
+			"type": "object",
+			"title": "Metadata creation",
+			"description": "Information on who generated the documentation",
+			"properties": {
+				"producers": {
+					"type": "array",
+					"title": "Producers",
+					"description": "List of producers",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"description": "Name (required)",
+								"type": "string"
+							},
+							"abbr": {
+								"title": "Abbreviation",
+								"type": "string"
+							},
+							"affiliation": {
+								"type": "string",
+								"title": "Affiliation"
+							},
+							"role": {
+								"title": "Role",
+								"type": "string"
+							}
+						}
+					},
+					"required": [
+						"name"
+					]
+				},
+				"prod_date": {
+					"title": "Date of Production",
+					"description": "Document production date using format(YYYY-MM-DD)",
+					"type": "string"
+				},
+				"version": {
+					"title": "Document version",
+					"description": "Identify and describe the current version of the document",
+					"type": "string"
+				}
+			},
+			"additionalProperties": false
+		},
+		"series_description": {
+			"description": "Series information",
+			"type": "object",
+			"properties": {
 				"idno": {
 					"type": "string",
 					"title": "Series unique ID",
@@ -162,6 +159,26 @@
 					"type": "string",
 					"title": "Series unit of measure"
 				},
+				"dimensions": {
+					"type": "array",
+					"title": "Dimensions",
+					"items": {
+						"type": "object",
+						"properties": {
+							"label": {
+								"title": "Label",
+								"type": "string"
+							},
+							"description": {
+								"title": "Description",
+								"type": "string"
+							}
+						},
+						"required": [
+							"label"
+						]
+					}
+				},
 				"periodicity": {
 					"type": "string",
 					"title": "Periodicity of data"
@@ -205,12 +222,10 @@
 						]
 					}
 				},
-
 				"statistical_concept": {
 					"type": "string",
 					"title": "Statistical concept"
 				},
-
 				"concepts": {
 					"type": "array",
 					"title": "Related concepts",
@@ -228,10 +243,10 @@
 								"type": "string"
 							},
 							"uri": {
-                "title": "URI",
-                "description": "Website link",
-                "type": "string"
-              }
+								"title": "URI",
+								"description": "Website link",
+								"type": "string"
+							}
 						},
 						"required": [
 							"name"
@@ -266,99 +281,94 @@
 					"type": "string",
 					"title": "Breaks in series"
 				},
-				
 				"limitation": {
 					"type": "string",
 					"title": "Limitations  and exceptions"
-				},				
-
-				"themes":{
-					"type":"array",
-					"title":"Themes",
-					"items":{
-						"type":"object",
-						"properties":{
-							"name":{
-								"title":"Name",
-								"type":"string"
+				},
+				"themes": {
+					"type": "array",
+					"title": "Themes",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"type": "string"
 							},
-							"vocabulary":{
-								"title":"Vocabulary name",
-								"type":"string"
+							"vocabulary": {
+								"title": "Vocabulary name",
+								"type": "string"
 							},
-							"uri":{
-								"title":"Vocabulary URI",
-								"type":"string"
+							"uri": {
+								"title": "Vocabulary URI",
+								"type": "string"
 							}
 						}
 					}
 				},
-        "topics": {
-          "type": "array",
-          "title": "Topics",
-          "description": "Topics covered by the table (ideally, the list of topics will be a controlled vocabulary)",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "title": "Unique Identifier",
-                "type": "string"
-              },
-              "name": {
-                "title": "Topic",
-                "type": "string"
-              },
-              "parent_id": {
-                "title": "Parent topic Identifier",
-                "description":"For subtopics, provide the ID of the parent topic",
-                "type": "string"
-              },
-              "vocabulary": {
-                "title": "Vocabulary",
-                "description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
-                "type": "string"
-              },
-              "uri": {
-                "title": "Vocabulary URI",
-                "description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
-                "type": "string"
-              }
-            },
-            "required": [
-              "name"
-            ]
-          }
-        },
-
-        "disciplines": {
-          "type": "array",
-          "title": "Disciplines",
-          "description": "Disciplines e.g. `Social sciences, economics`, `Natural sciences, biology`",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "title": "Discipline title or name",
-                "type": "string"
-              },
-              "vocabulary": {
-                "title": "Vocabulary",
-                "description": "Vocabulary",
-                "type": "string"
-              },
-              "uri": {
-                "title": "URI",
-                "description": "Website link",
-                "type": "string"
-              }
-            },
-            "required": [
-              "name"
-            ]
-          }
-        },
-
-
+				"topics": {
+					"type": "array",
+					"title": "Topics",
+					"description": "Topics covered by the table (ideally, the list of topics will be a controlled vocabulary)",
+					"items": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"title": "Unique Identifier",
+								"type": "string"
+							},
+							"name": {
+								"title": "Topic",
+								"type": "string"
+							},
+							"parent_id": {
+								"title": "Parent topic Identifier",
+								"description": "For subtopics, provide the ID of the parent topic",
+								"type": "string"
+							},
+							"vocabulary": {
+								"title": "Vocabulary",
+								"description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
+								"type": "string"
+							},
+							"uri": {
+								"title": "Vocabulary URI",
+								"description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
+								"type": "string"
+							}
+						},
+						"required": [
+							"name"
+						]
+					}
+				},
+				"disciplines": {
+					"type": "array",
+					"title": "Disciplines",
+					"description": "Disciplines e.g. `Social sciences, economics`, `Natural sciences, biology`",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Discipline title or name",
+								"type": "string"
+							},
+							"vocabulary": {
+								"title": "Vocabulary",
+								"description": "Vocabulary",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "Website link",
+								"type": "string"
+							}
+						},
+						"required": [
+							"name"
+						]
+					}
+				},
 				"relevance": {
 					"type": "string",
 					"title": "Relavance"
@@ -406,6 +416,31 @@
 						"required": [
 							"name"
 						]
+					}
+				},
+				"bbox": {
+					"title": "Geographic bounding box",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"west": {
+								"title": "West",
+								"type": "string"
+							},
+							"east": {
+								"title": "East",
+								"type": "string"
+							},
+							"south": {
+								"title": "South",
+								"type": "string"
+							},
+							"north": {
+								"title": "North",
+								"type": "string"
+							}
+						}
 					}
 				},
 				"aggregation_method": {
@@ -480,48 +515,81 @@
 						}
 					}
 				},
-				"sources":{
-					"type":"array",
-					"title":"Sources",
-					"description":"Sources",
+				"authoring_entity": {
+					"type": "array",
+					"title": "Authoring entity",
+					"description": "The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"id": {
-						  "title": "Source ID",
-						  "type": "string"
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Agency Name",
+								"type": "string",
+								"description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+							},
+							"affiliation": {
+								"title": "Affiliation",
+								"type": "string"
+							},
+							"abbreviation": {
+								"title": "Abbreviation",
+								"description": "Abbreviation"
+							},
+							"email": {
+								"title": "Email",
+								"description": "Email"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
 						},
-						"name": {
-						  "title": "Name",
-						  "description": "Source name",
-						  "type": "string"
-						},
-						"organization": {
-						  "title": "Organization",                
-						  "type": "string"
-						},
-						"type": {
-							"title": "Source type",                
-							"type": "string"
-						},
-						"note": {
-							"title": "Note",                
-							"type": "string"
-						}
-					  },
-					  "required": [
-						"name"
-					  ]
+						"required": [
+							"name"
+						]
 					}
-				  },
-
+				},
+				"sources": {
+					"type": "array",
+					"title": "Sources",
+					"description": "Sources",
+					"items": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"title": "Source ID",
+								"type": "string"
+							},
+							"name": {
+								"title": "Name",
+								"description": "Source name",
+								"type": "string"
+							},
+							"organization": {
+								"title": "Organization",
+								"type": "string"
+							},
+							"type": {
+								"title": "Source type",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"name"
+						]
+					}
+				},
 				"sources_note": {
 					"type": "string",
 					"title": "Notes form original sources"
 				},
 				"keywords": {
 					"type": "array",
-					"description": "Keywords",					
+					"description": "Keywords",
 					"items": {
 						"type": "object",
 						"properties": {
@@ -545,7 +613,7 @@
 				},
 				"acronyms": {
 					"type": "array",
-					"description": "Acronyms",					
+					"description": "Acronyms",
 					"items": {
 						"type": "object",
 						"properties": {
@@ -563,7 +631,8 @@
 							}
 						},
 						"required": [
-							"acronym", "expansion"
+							"acronym",
+							"expansion"
 						]
 					}
 				},
@@ -699,130 +768,137 @@
 					"title": "LDA topics",
 					"description": "LDA topics",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"model_info": {
-						  "type": "array",
-						  "title": "Model information",
-						  "items": {
-							"type": "object",
-							"properties": {
-							  "source": {
-								"title": "Source",
-								"type": "string"
-							  },
-							  "author": {
-								"title": "Author",
-								"type": "string"
-							  },
-							  "version": {
-								"title": "Version",
-								"type": "string"
-							  },
-							  "model_id": {
-								"title": "Model Identifier",
-								"type": "string"
-							  },
-							  "nb_topics": {
-								"title": "Number of topics",
-								"type": "number"
-							  },
-							  "description": {
-								"title": "Description",
-								"type": "string"
-							  },
-							  "corpus": {
-								"title": "Corpus name",
-								"type": "string"
-							  },
-							  "uri": {
-								"title": "URI",
-								"type": "string"
-							  }
-							}
-						  },
-						  "required": [
-							"model_id"
-						  ]
-						},              
-						"topic_description": {
-						  "type": "array",
-						  "title": "Topic information",
-						  "items": {
-							"type": "object",
-							"properties": {
-							  "topic_id": {
-								"title": "Topic identifier",
-								"type": ["integer", "string"]
-							  },
-							  "topic_score": {
-								"title": "Topic score",
-								"type": ["number", "string"]
-							  },
-							  "topic_label": {
-								"title": "Topic label",
-								"type": "string"
-							  },
-							  "topic_words": {
+						"type": "object",
+						"properties": {
+							"model_info": {
 								"type": "array",
-								"title": "Topic words",
-								"description": "Words",
+								"title": "Model information",
 								"items": {
-								  "type": "object",
-								  "properties": {
-									"word": {
-									  "title": "Word",
-									  "type": "string"
-									},
-									"word_weight": {
-									  "title": "Word weight",
-									  "type": "number"
+									"type": "object",
+									"properties": {
+										"source": {
+											"title": "Source",
+											"type": "string"
+										},
+										"author": {
+											"title": "Author",
+											"type": "string"
+										},
+										"version": {
+											"title": "Version",
+											"type": "string"
+										},
+										"model_id": {
+											"title": "Model Identifier",
+											"type": "string"
+										},
+										"nb_topics": {
+											"title": "Number of topics",
+											"type": "number"
+										},
+										"description": {
+											"title": "Description",
+											"type": "string"
+										},
+										"corpus": {
+											"title": "Corpus name",
+											"type": "string"
+										},
+										"uri": {
+											"title": "URI",
+											"type": "string"
+										}
 									}
-								  }
 								},
 								"required": [
-								  "word"
+									"model_id"
 								]
-							  }
+							},
+							"topic_description": {
+								"type": "array",
+								"title": "Topic information",
+								"items": {
+									"type": "object",
+									"properties": {
+										"topic_id": {
+											"title": "Topic identifier",
+											"type": [
+												"integer",
+												"string"
+											]
+										},
+										"topic_score": {
+											"title": "Topic score",
+											"type": [
+												"number",
+												"string"
+											]
+										},
+										"topic_label": {
+											"title": "Topic label",
+											"type": "string"
+										},
+										"topic_words": {
+											"type": "array",
+											"title": "Topic words",
+											"description": "Words",
+											"items": {
+												"type": "object",
+												"properties": {
+													"word": {
+														"title": "Word",
+														"type": "string"
+													},
+													"word_weight": {
+														"title": "Word weight",
+														"type": "number"
+													}
+												}
+											},
+											"required": [
+												"word"
+											]
+										}
+									}
+								},
+								"required": [
+									"topic_id"
+								]
 							}
-						  },
-						  "required": [
-							"topic_id"
-						  ]
-						}						
-					  },
-					  "additionalProperties": false
+						},
+						"additionalProperties": false
 					}
-				  },
-				"embeddings":{
+				},
+				"embeddings": {
 					"type": "array",
 					"title": "Word embeddings",
-          			"description": "Word embeddings",
+					"description": "Word embeddings",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"id": {
-						  "title": "Vector Model ID",
-						  "type": "string"
-						},
-						"description": {
-						  "title": "Vector Model Description",
-						  "type": "string"
-						},
-						"date": {
-						  "title": "Date (YYYY-MM-DD)",
-						  "type": "string"
-						},
-						"vector": {
-						  "title": "Vector",
-						  "type": "object"
+						"type": "object",
+						"properties": {
+							"id": {
+								"title": "Vector Model ID",
+								"type": "string"
+							},
+							"description": {
+								"title": "Vector Model Description",
+								"type": "string"
+							},
+							"date": {
+								"title": "Date (YYYY-MM-DD)",
+								"type": "string"
+							},
+							"vector": {
+								"title": "Vector",
+								"type": "object"
+							}
 						}
-					  }
 					},
 					"required": [
-					  "id","vector"
+						"id",
+						"vector"
 					]
-				  },
+				},
 				"series_groups": {
 					"type": "array",
 					"title": "Series groups",
@@ -837,7 +913,7 @@
 							"description": {
 								"type": "string",
 								"title": "Description",
-								"description":"A brief description of the series group."
+								"description": "A brief description of the series group."
 							},
 							"version": {
 								"type": "string",
@@ -858,44 +934,43 @@
 				"idno",
 				"name"
 			]
-        
-      },
-	  "provenance":{
-		"type":"array",
-		"description":"Provenance",
-		"items":{
-		  "$ref":"provenance-schema.json"
-		}
-	  },
-	  "tags": {
-		"type": "array",
-		"title": "Tags (user-defined)",
-		"description": "Tags",
-		"items": {
-		  "type": "object",
-		  "properties": {
-			"tag": {
-			  "title": "Tag",
-			  "type": "string"
-			},
-			"tag_group": {
-			  "title": "Tag group",
-			  "type": "string"
-			}
-		  }
 		},
-		"required": [
-		  "tag"
-		]
-	  },
-      "additional": {
-        "type": "object",
-        "title":"Additional custom metadata",
-        "description": "Any other custom metadata not covered by the schema",
-        "properties": {}
-      }
-    },    
-    "required": [
-      "series_description"
-    ]
-  }
+		"provenance": {
+			"type": "array",
+			"description": "Provenance",
+			"items": {
+				"$ref": "provenance-schema.json"
+			}
+		},
+		"tags": {
+			"type": "array",
+			"title": "Tags (user-defined)",
+			"description": "Tags",
+			"items": {
+				"type": "object",
+				"properties": {
+					"tag": {
+						"title": "Tag",
+						"type": "string"
+					},
+					"tag_group": {
+						"title": "Tag group",
+						"type": "string"
+					}
+				}
+			},
+			"required": [
+				"tag"
+			]
+		},
+		"additional": {
+			"type": "object",
+			"title": "Additional custom metadata",
+			"description": "Any other custom metadata not covered by the schema",
+			"properties": {}
+		}
+	},
+	"required": [
+		"series_description"
+	]
+}

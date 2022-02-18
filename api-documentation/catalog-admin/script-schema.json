@@ -96,6 +96,28 @@
               "title": "Unique user defined ID",
               "description": "The ID number of a research project is a unique number that is used to identify a particular project. Define and use a consistent scheme to use."
             },
+            "identifiers": {
+              "type": "array",
+              "title": "Other identifiers",
+              "description": "Other identifiers",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "title": "Identifier type",
+                    "description": "Type of identifier e.g. `doi`, `handle`, `other`",
+                    "type": "string"
+                  },
+                  "identifier": {
+                    "title": "Identifier",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "identifier"
+                ]
+              }
+            },
             "title": {
               "type": "string",
               "title": "Project title",
@@ -275,19 +297,22 @@
           }
         },
         "errata": {
-          "type": "object",
+          "type": "array",
           "title": "Errata",
           "description": "List of corrected errors in data, scripts or output",
-          "properties": {
-            "erratum_date": {
-              "title": "Date of erratum",
-              "description": "Date when the erratum was reported or published",
-              "type": "string"
-            },
-            "erratum_description": {
-              "title": "Description of the erratum",
-              "description": "A description of the erratum, with information on which data, scripts, or output were impacted",
-              "type": "string"
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "title": "Date of erratum",
+                "description": "Date when the erratum was reported or published",
+                "type": "string"
+              },
+              "description": {
+                "title": "Description of the erratum",
+                "description": "A description of the erratum, with information on which data, scripts, or output were impacted",
+                "type": "string"
+              }
             }
           }
         },
@@ -538,6 +563,18 @@
           "description": "Acknowledgement statement",
           "type": "string"
         },
+        "disclaimer": {
+          "title": "Disclaimer",
+          "type": "string"
+        },
+        "confidentiality": {
+          "title": "Confidentiality",
+          "type": "string"
+        },
+        "citation_requirement": {
+          "type": "string",
+          "description": "Citation requirement (can include a specific recommended citation)"
+        },
         "related_projects": {
           "type": "array",
           "title": "Related research projects",
@@ -747,6 +784,10 @@
             }
           }
         },
+        "copyright": {
+          "title": "Copyright",
+          "type": "string"
+        },
         "technology_environment": {
           "title": "Technology environment",
           "description": "Notes about the technology environment used by the authors to implement the project",
@@ -808,7 +849,7 @@
             },
             "additionalProperties": false
           },
-          "required": [ 
+          "required": [
             "name"
           ]
         },
@@ -996,52 +1037,41 @@
           "required": [
             "name"
           ]
-        },
-        "provenance":{
-          "type":"array",
-          "description":"Provenance",
-          "items":{
-            "$ref":"provenance-schema.json"
-          }
-          },
-        "tags": {
-          "type": "array",
-          "title": "Tags (user-defined)",
-          "description": "Tags",
-          "items": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "title": "Tag",
-                "type": "string"
-              },
-              "tag_group": {
-                "title": "Tag group",
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "tag"
-          ]
-        },
-        "copyright": {
-          "title": "Copyright",
-          "type": "string"
-        },
-        "disclaimer": {
-          "title": "Disclaimer",
-          "type": "string"
-        },
-        "confidentiality": {
-          "title": "Confidentiality",
-          "type": "string"
-        },
-        "citation_requirement": {
-          "type": "string",
-          "description": "Citation requirement (can include a specific recommended citation)"
-        }
+        }        
+      }      
+    },
+    "provenance": {
+      "type": "array",
+      "description": "Provenance",
+      "items": {
+        "$ref": "provenance-schema.json"
       }
+    },
+    "tags": {
+      "type": "array",
+      "title": "Tags (user-defined)",
+      "description": "Tags",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          },
+          "tag_group": {
+            "title": "Tag group",
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "tag"
+      ]
+    },
+    "additional": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {}
     }
   }
 }

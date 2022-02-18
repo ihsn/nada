@@ -5,21 +5,21 @@
 	"description": "Schema for timeseries database",
 	"type": "object",
 	"properties": {
-
 		"published": {
 			"type": "integer",
 			"title": "Status",
 			"description": "0=draft, 1=published",
 			"default": 0
 		},
-
 		"overwrite": {
 			"type": "string",
 			"description": "Overwrite database if already exists?",
-			"enum": ["yes", "no"],
+			"enum": [
+				"yes",
+				"no"
+			],
 			"default": "no"
 		},
-
 		"metadata_information": {
 			"type": "object",
 			"title": "Document metadata information",
@@ -79,16 +79,36 @@
 			"title": "Database Description",
 			"description": "Database Description",
 			"properties": {
-
 				"title_statement": {
 					"type": "object",
 					"description": "Study title",
-
 					"properties": {
 						"idno": {
 							"type": "string",
 							"title": "Unique user defined ID",
-							"description": "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)"
+							"description": "The ID number of a database is a unique number that is used to identify a particular database."
+						},
+						"identifiers": {
+							"type": "array",
+							"title": "Other identifiers",
+							"description": "Other identifiers",
+							"items": {
+								"type": "object",
+								"properties": {
+									"type": {
+										"title": "Identifier type",
+										"description": "Type of identifier e.g. `doi`, `handle`, `other`",
+										"type": "string"
+									},
+									"identifier": {
+										"title": "Identifier",
+										"type": "string"
+									}
+								},
+								"required": [
+									"identifier"
+								]
+							}
 						},
 						"title": {
 							"type": "string",
@@ -99,13 +119,11 @@
 							"type": "string",
 							"title": "Survey subtitle",
 							"description": "A short subtitle for the survey"
-
 						},
 						"alternate_title": {
 							"type": "string",
 							"title": "Abbreviation or Acronym",
 							"description": "The abbreviation of a survey is usually the first letter of each word of the titled survey. The survey reference year(s) may be included."
-
 						},
 						"translated_title": {
 							"title": "Translated Title",
@@ -118,7 +136,6 @@
 						"title"
 					]
 				},
-
 				"authoring_entity": {
 					"type": "array",
 					"title": "Authoring entity",
@@ -130,12 +147,7 @@
 								"title": "Agency Name",
 								"type": "string",
 								"description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
-							},
-							"role": {
-								"title": "Role",
-								"type": "string",
-								"description": "Title of the person (if any) responsible for the work's substantive and intellectual content."
-							},
+							},							
 							"affiliation": {
 								"title": "Affiliation",
 								"type": "string"
@@ -147,6 +159,10 @@
 							"email": {
 								"title": "Email",
 								"description": "Email"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
 							}
 						},
 						"required": [
@@ -210,7 +226,8 @@
 							}
 						},
 						"required": [
-							"version", "date"
+							"version",
+							"date"
 						]
 					}
 				},
@@ -331,7 +348,8 @@
 							}
 						},
 						"required": [
-							"id", "name"
+							"id",
+							"name"
 						]
 					}
 				},
@@ -418,18 +436,15 @@
 						}
 					}
 				},
-
 				"geographic_granularity": {
 					"title": "Geographic granularity",
 					"description": "Granularity of geographic coverage e.g. `national`, `regional`, `provincial`",
 					"type": "string"
 				},
-
 				"geographic_area_count": {
 					"description": "Number of geographic areas",
 					"type": "string"
 				},
-
 				"sponsors": {
 					"type": "array",
 					"title": "Sponsor/Funding Agency",
@@ -467,7 +482,6 @@
 						"name"
 					]
 				},
-
 				"acknowledgments": {
 					"type": "array",
 					"title": "Other Acknowledgments",
@@ -497,12 +511,10 @@
 						"name"
 					]
 				},
-
 				"acknowledgement_statement": {
 					"title": "An overall statement of acknowledgment, which can be used as an alternative (or supplement) to the itemized list provided in `acknowledgments`.",
 					"type": "string"
 				},
-
 				"contacts": {
 					"type": "array",
 					"title": "Contacts",
@@ -540,7 +552,6 @@
 						"name"
 					]
 				},
-
 				"links": {
 					"type": "array",
 					"title": "Related links",
@@ -562,7 +573,6 @@
 						"uri"
 					]
 				},
-
 				"languages": {
 					"type": "array",
 					"description": "Supported languages",
@@ -655,7 +665,6 @@
 						}
 					}
 				},
-
 				"disclaimer": {
 					"title": "Disclaimer",
 					"type": "string"
@@ -670,7 +679,6 @@
 			],
 			"additionalProperties": false
 		},
-
 		"additional": {
 			"type": "object",
 			"title": "Additional custom metadata",

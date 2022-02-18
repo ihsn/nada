@@ -87,7 +87,29 @@
         "idno": {
           "type": "string",
           "title": "Unique video identifier"
-        },        
+        },
+        "identifiers": {
+          "type": "array",
+          "title": "Other identifiers",
+          "description": "Other identifiers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Identifier type",
+                "description": "Type of identifier e.g. `doi`, `handle`, `other`",
+                "type": "string"
+              },
+              "identifier": {
+                "title": "Identifier",
+                "type": "string"
+              }
+            },
+            "required": [
+              "identifier"
+            ]
+          }
+        },
         "title": {
           "type": "string",
           "description": "Title"
