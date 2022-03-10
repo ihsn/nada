@@ -62,7 +62,7 @@
 						}
 					}
 				},
-				"production_date": {
+				"prod_date": {
 					"type": "string",
 					"title": "Date of Production",
 					"description": "Document production date using format(YYYY-MM-DD)"
@@ -154,11 +154,13 @@
 							},
 							"abbreviation": {
 								"title": "Abbreviation",
-								"description": "Abbreviation"
+								"description": "Abbreviation",
+								"type": "string"
 							},
 							"email": {
 								"title": "Email",
-								"description": "Email"
+								"description": "Email",
+								"type": "string"
 							},
 							"uri": {
 								"title": "URI",
@@ -289,33 +291,40 @@
 						}
 					}
 				},
-				"themes": {
-					"type": "array",
-					"title": "Themes",
-					"description": "Themes",
+				"themes":{
+					"type":"array",
+					"description":"Themes",
 					"items": {
-						"type": "object",
-						"properties": {
-							"name": {
-								"title": "Topic",
-								"type": "string"
-							},
-							"vocabulary": {
-								"title": "Vocabulary",
-								"description": "Name of the controlled vocabulary, if the topic is from a taxonomy.",
-								"type": "string"
-							},
-							"uri": {
-								"title": "Vocabulary URI",
-								"description": "Link to the controlled vocabulary web page, if the topic is from a taxonomy.",
-								"type": "string"
-							}
+					  "type": "object",
+					  "properties": {
+						"id": {
+						  "title": "Unique Identifier",
+						  "type": "string"
 						},
-						"required": [
-							"name"
-						]
+						"name": {
+						  "title": "Name",
+						  "type": "string"
+						},
+						"parent_id": {
+						  "title": "Parent Identifier",
+						  "type": "string"
+						},
+						"vocabulary": {
+						  "title": "Vocabulary",
+						  "description": "Name of the controlled vocabulary",
+						  "type": "string"
+						},
+						"uri": {
+						  "title": "Vocabulary URI",
+						  "description": "Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
+						  "type": "string"
+						}
+					  },
+					  "required": [
+						"name"
+					  ]
 					}
-				},
+				  },
 				"topics": {
 					"type": "array",
 					"title": "Topics",
@@ -629,8 +638,8 @@
 					"items": {
 						"type": "object",
 						"properties": {
-							"type": {
-								"title": "Type",
+							"name": {
+								"title": "Name",
 								"type": "string"
 							},
 							"uri": {
@@ -644,7 +653,7 @@
 						}
 					},
 					"required": [
-						"type"
+						"name"
 					]
 				},
 				"citation": {

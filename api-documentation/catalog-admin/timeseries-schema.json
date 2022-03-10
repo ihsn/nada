@@ -49,6 +49,17 @@
 			"title": "Metadata creation",
 			"description": "Information on who generated the documentation",
 			"properties": {
+				"title": {
+					"title": "Document title",
+					"description": "Document title",
+					"type": "string",
+					"_ddi_xpath": "docDscr/citation/titlStmt/titl"
+				},
+				"idno": {
+					"title": "Unique ID number for the document",
+					"type": "string",
+					"_ddi_xpath": "docDscr/citation/titlStmt/IDNo"
+				},
 				"producers": {
 					"type": "array",
 					"title": "Producers",
@@ -100,6 +111,10 @@
 					"type": "string",
 					"title": "Series unique ID",
 					"description": "Unique series ID"
+				},
+				"doi": {
+					"type": "string",
+					"title": "DOI handle"
 				},
 				"name": {
 					"type": "string",
@@ -154,6 +169,28 @@
 							"identifier"
 						]
 					}
+				},
+				"languages": {
+					"type": "array",
+					"description": "Supported languages",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"description": "Language title",
+								"type": "string"
+							},
+							"code": {
+								"title": "code",
+								"Descripton": "Language code",
+								"type": "string"
+							}
+						}
+					},
+					"required": [
+						"name"
+					]
 				},
 				"measurement_unit": {
 					"type": "string",
@@ -287,23 +324,36 @@
 				},
 				"themes": {
 					"type": "array",
-					"title": "Themes",
+					"description": "Themes",
 					"items": {
 						"type": "object",
 						"properties": {
+							"id": {
+								"title": "Unique Identifier",
+								"type": "string"
+							},
 							"name": {
 								"title": "Name",
 								"type": "string"
 							},
+							"parent_id": {
+								"title": "Parent Identifier",
+								"type": "string"
+							},
 							"vocabulary": {
-								"title": "Vocabulary name",
+								"title": "Vocabulary",
+								"description": "Name of the controlled vocabulary",
 								"type": "string"
 							},
 							"uri": {
 								"title": "Vocabulary URI",
+								"description": "Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
 								"type": "string"
 							}
-						}
+						},
+						"required": [
+							"name"
+						]
 					}
 				},
 				"topics": {
@@ -390,6 +440,24 @@
 						}
 					}
 				},
+				"ref_country": {
+					"type": "array",
+					"title": "Reference country",
+					"description": "List of countries for which data are available",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Country name",
+								"type": "string"
+							},
+							"code": {
+								"title": "Country code",
+								"type": "string"
+							}
+						}
+					}
+				},
 				"geographic_units": {
 					"title": "Geographic locations",
 					"description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
@@ -452,18 +520,29 @@
 					"title": "Dissaggregation"
 				},
 				"license": {
-					"type": "object",
-					"title": "Access licence",
-					"properties": {
-						"name": {
-							"type": "string",
-							"title": "Name"
-						},
-						"uri": {
-							"type": "string",
-							"title": "URI"
+					"type": "array",
+					"title": "License",
+					"description": "License information",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"type": "string"
+							}
 						}
-					}
+					},
+					"required": [
+						"name"
+					]
 				},
 				"confidentiality": {
 					"type": "string",
@@ -685,9 +764,13 @@
 								"type": "string",
 								"title": "Standard name"
 							},
-							"organization": {
+							"abbreviation": {
 								"type": "string",
-								"title": "Organization name"
+								"title": "Abbreviation"
+							},
+							"custodian": {
+								"type": "string",
+								"title": "Name of the custodian organization"
 							},
 							"uri": {
 								"type": "string",
@@ -708,6 +791,14 @@
 							"name": {
 								"type": "string",
 								"title": "Name"
+							},
+							"abbreviation": {
+								"type": "string",
+								"title": "Abbreviation"
+							},
+							"custodian": {
+								"type": "string",
+								"title": "Custodian"
 							},
 							"description": {
 								"type": "string",
@@ -963,6 +1054,136 @@
 				"tag"
 			]
 		},
+		"lda_topics": {
+			"type": "array",
+			"title": "LDA topics",
+			"description": "LDA topics",
+			"items": {
+			  "type": "object",
+			  "properties": {
+				"model_info": {
+				  "type": "array",
+				  "title": "Model information",
+				  "items": {
+					"type": "object",
+					"properties": {
+					  "source": {
+						"title": "Source",
+						"type": "string"
+					  },
+					  "author": {
+						"title": "Author",
+						"type": "string"
+					  },
+					  "version": {
+						"title": "Version",
+						"type": "string"
+					  },
+					  "model_id": {
+						"title": "Model Identifier",
+						"type": "string"
+					  },
+					  "nb_topics": {
+						"title": "Number of topics",
+						"type": "number"
+					  },
+					  "description": {
+						"title": "Description",
+						"type": "string"
+					  },
+					  "corpus": {
+						"title": "Corpus name",
+						"type": "string"
+					  },
+					  "uri": {
+						"title": "URI",
+						"type": "string"
+					  }
+					}
+				  },
+				  "required": [
+					"model_id"
+				  ]
+				},              
+				"topic_description": {
+				  "type": "array",
+				  "title": "Topic information",
+				  "items": {
+					"type": "object",
+					"properties": {
+					  "topic_id": {
+						"title": "Topic identifier",
+						"type": ["integer", "string"]
+					  },
+					  "topic_score": {
+						"title": "Topic score",
+						"type": ["number", "string"]
+					  },
+					  "topic_label": {
+						"title": "Topic label",
+						"type": "string"
+					  },
+					  "topic_words": {
+						"type": "array",
+						"title": "Topic words",
+						"description": "Words",
+						"items": {
+						  "type": "object",
+						  "properties": {
+							"word": {
+							  "title": "Word",
+							  "type": "string"
+							},
+							"word_weight": {
+							  "title": "Word weight",
+							  "type": "number"
+							}
+						  }
+						},
+						"required": [
+						  "word"
+						]
+					  }
+					}
+				  },
+				  "required": [
+					"topic_id"
+				  ]
+				}
+				
+			  },
+			  "additionalProperties": false
+			}
+		  },
+		  "embeddings":{
+			"type": "array",
+			"title": "Word embeddings",
+			"description": "Word embeddings",
+			"items": {
+			  "type": "object",
+			  "properties": {
+				"id": {
+				  "title": "Vector Model ID",
+				  "type": "string"
+				},
+				"description": {
+				  "title": "Vector Model Description",
+				  "type": "string"
+				},
+				"date": {
+				  "title": "Date (YYYY-MM-DD)",
+				  "type": "string"
+				},
+				"vector": {
+				  "title": "Vector",
+				  "type": "object"
+				}
+			  },
+			  "required": [
+				"id","vector"
+			  ]
+			}
+		  },
 		"additional": {
 			"type": "object",
 			"title": "Additional custom metadata",
