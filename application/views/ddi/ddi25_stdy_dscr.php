@@ -51,7 +51,7 @@ $ddi=$this->ddi_writer;
         <?php endforeach;?>
 
         <?php //contacts ?>
-        <?php $contacts=$ddi->get_el('study_desc/distribution_statement/contact');?>
+        <?php $contacts=(array)$ddi->get_el('study_desc/distribution_statement/contact');?>
         <?php foreach($contacts as $contact):?>   
           <contact affiliation="<?php echo $ddi->attr_val($contact,'affiliation');?>" URI="<?php echo $ddi->attr_val($contact,'uri');?>" email="<?php echo $ddi->attr_val($contact,'email');?>"><?php echo $ddi->el_val($contact,'name');?></contact>
         <?php endforeach;?>
@@ -68,23 +68,23 @@ $ddi=$this->ddi_writer;
 
      <serStmt>
         <serName><?php $ddi->el('study_desc/series_statement/series_name');?></serName>
-        <serInfo><?php $ddi->el('study_desc/series_statement/series_info');?></serInfo>
+        <serInfo><![CDATA[<?php $ddi->el('study_desc/series_statement/series_info');?>]]></serInfo>
      </serStmt>
 
      <verStmt>
         <version date="<?php $ddi->el('study_desc/version_statement/version_date');?>" ><?php $ddi->el('study_desc/version_statement/version');?></version>
         <verResp><?php $ddi->el('study_desc/version_statement/version_resp');?></verResp>
-        <notes><?php $ddi->el('study_desc/version_statement/version_notes');?></notes>
+        <notes><![CDATA[<?php $ddi->el('study_desc/version_statement/version_notes');?>]]></notes>
      </verStmt>
      
-     <biblCit format="<?php $ddi->el('study_desc/bib_citation_format');?>"><?php $ddi->el('study_desc/bib_citation');?></biblCit>
+     <biblCit format="<?php $ddi->el('study_desc/bib_citation_format');?>"><![CDATA[<?php $ddi->el('study_desc/bib_citation');?>]]></biblCit>
 
       <?php //holdings ?>
       <?php $holdings=(array)$ddi->get_el('study_desc/holdings');?>
       <?php foreach($holdings as $holding):?>   
         <holdings location="<?php echo $ddi->attr_val($holding,'location');?>" callno="<?php echo $ddi->attr_val($holding,'callno');?>" URI="<?php echo $ddi->attr_val($holding,'uri');?>"><?php echo $ddi->el_val($holding,'name');?></holdings>
       <?php endforeach;?>
-      <notes><?php $ddi->el('study_desc/study_notes');?></notes>
+      <notes><![CDATA[<?php $ddi->el('study_desc/study_notes');?>]]></notes>
   </citation>
   
   <?php  /*
@@ -105,7 +105,7 @@ $ddi=$this->ddi_writer;
      between DDI 2 and DDI 3 structures.
      --> 
      */?>
-     <studyBudget><?php $ddi->el('study_desc/study_info/study_budget');?></studyBudget>
+     <studyBudget><![CDATA[<?php $ddi->el('study_desc/study_info/study_budget');?>]]></studyBudget>
      <subject>
       <?php //keywords ?>
       <?php $keywords=(array)$ddi->get_el('study_desc/study_info/keywords');?>
@@ -120,7 +120,7 @@ $ddi=$this->ddi_writer;
       <?php endforeach;?>
 
     </subject>
-     <abstract><?php $ddi->el('study_desc/study_info/abstract');?></abstract>
+     <abstract><![CDATA[<?php $ddi->el('study_desc/study_info/abstract');?>]]></abstract>
      <sumDscr>
         <?php //time periods ?>
         <?php $time_periods=(array)$ddi->get_el('study_desc/study_info/time_periods');?>
@@ -175,11 +175,11 @@ $ddi=$this->ddi_writer;
         </boundPoly>
         */ ?>  
 
-        <anlyUnit><?php $ddi->el('study_desc/study_info/analysis_unit');?></anlyUnit>
-        <universe><?php $ddi->el('study_desc/study_info/universe');?></universe>
+        <anlyUnit><![CDATA[<?php $ddi->el('study_desc/study_info/analysis_unit');?>]]></anlyUnit>
+        <universe><![CDATA[<?php $ddi->el('study_desc/study_info/universe');?>]]></universe>
         <dataKind><?php $ddi->el('study_desc/study_info/data_kind');?></dataKind>
      </sumDscr>
-     
+     <?php /*
      <!-- qualityStatement - ddi2.5 - complex type
      
      This structure consists of two parts, standardsCompliance and otherQualityStatements. 
@@ -188,6 +188,7 @@ $ddi=$this->ddi_writer;
      Enter any additional quality statements in otherQualityStatements.
      
      -->
+     */?>
      <qualityStatement>
         <standardsCompliance>
           <standard> 
@@ -199,9 +200,9 @@ $ddi=$this->ddi_writer;
         <otherQualityStatement><?php $ddi->el('study_desc/study_info/quality_statement/other_quality_statement');?></otherQualityStatement>
      </qualityStatement> 
      
-     <notes><?php $ddi->el('study_desc/study_info/notes');?></notes>
+     <notes><![CDATA[<?php $ddi->el('study_desc/study_info/notes');?>]]></notes>
 
-    <!-- exPostEvaluation ddi2.5
+    <?php /* <!-- exPostEvaluation ddi2.5
       Use this section to describe evaluation procedures not address in data evaluation processes. 
       These may include issues such as timing of the study, sequencing issues, cost/budget issues, 
       relevance, instituional or legal arrangments etc. of the study. 
@@ -209,7 +210,7 @@ $ddi=$this->ddi_writer;
       The completionDate attribute holds the date the evaluation was completed. 
       The type attribute is an optional type to identify the type of evaluation with or without 
       the use of a controlled vocabulary.
-    -->
+    --> */ ?>
     <exPostEvaluation completionDate="<?php $ddi->el('study_desc/study_info/ex_post_evaluation/completion_date');?>" type="<?php $ddi->el('study_desc/study_info/ex_post_evaluation/type');?>"> 
         <?php //evaluators?>  
         <?php $evals=(array)$ddi->get_el('study_desc/study_info/ex_post_evaluation/evaluator');?>
@@ -271,7 +272,7 @@ $ddi=$this->ddi_writer;
         <collectorTraining type="<?php $ddi->el('study_desc/method/data_collection/collector_training/type');?>"><?php $ddi->el('study_desc/method/data_collection/collector_training/training');?></collectorTraining>
 
         <frequenc><?php $ddi->el('study_desc/method/data_collection/frequency');?></frequenc>
-        <sampProc><?php $ddi->el('study_desc/method/data_collection/sampling_procedure');?></sampProc>
+        <sampProc><![CDATA[<?php $ddi->el('study_desc/method/data_collection/sampling_procedure');?>]]></sampProc>
         
         <sampleFrame>
           <sampleFrameName><?php $ddi->el('study_desc/method/data_collection/sample_frame/name');?></sampleFrameName>
@@ -300,11 +301,13 @@ $ddi=$this->ddi_writer;
         <?php foreach($coll_mode_arr as $coll_mode):?>
         <collMode><?php echo $coll_mode;?></collMode>
         <?php endforeach;?>
-        <resInstru><?php $ddi->el('study_desc/method/data_collection/research_instrument');?></resInstru>
+        <resInstru><![CDATA[<?php $ddi->el('study_desc/method/data_collection/research_instrument');?>]]></resInstru>
 
+        <?php /*
         <!-- instrumentDevelopment - DDI2.5             
         Describe any development work on the data collection instrument. Type attribute allows for the optional use of a defined development type with or without use of a controlled vocabulary.
         -->
+        */?>
         <instrumentDevelopment type="<?php $ddi->el('study_desc/method/data_collection/instru_development_type');?>"><?php $ddi->el('study_desc/method/data_collection/instru_development');?></instrumentDevelopment>
 
         <?php /*
@@ -323,19 +326,19 @@ $ddi=$this->ddi_writer;
         </sources>
         */?>
 
-        <collSitu><?php $ddi->el('study_desc/method/data_collection/coll_situation');?></collSitu>
-        <actMin><?php $ddi->el('study_desc/method/data_collection/act_min');?></actMin>
-        <ConOps><?php $ddi->el('study_desc/method/data_collection/control_operations');?></ConOps>
-        <weight><?php $ddi->el('study_desc/method/data_collection/weight');?></weight>
-        <cleanOps><?php $ddi->el('study_desc/method/data_collection/cleaning_operations');?></cleanOps>
+        <collSitu><![CDATA[<?php $ddi->el('study_desc/method/data_collection/coll_situation');?>]]></collSitu>
+        <actMin><![CDATA[<?php $ddi->el('study_desc/method/data_collection/act_min');?>]]></actMin>
+        <ConOps><![CDATA[<?php $ddi->el('study_desc/method/data_collection/control_operations');?>]]></ConOps>
+        <weight><![CDATA[<?php $ddi->el('study_desc/method/data_collection/weight');?>]]></weight>
+        <cleanOps><![CDATA[<?php $ddi->el('study_desc/method/data_collection/cleaning_operations');?>]]></cleanOps>
      </dataColl>
-     <notes><?php $ddi->el('study_desc/method/method_notes');?></notes>
+     <notes><![CDATA[<?php $ddi->el('study_desc/method/method_notes');?>]]></notes>
      <anlyInfo>
-        <respRate><?php $ddi->el('study_desc/method/analysis_info/response_rate');?></respRate>
-        <EstSmpErr><?php $ddi->el('study_desc/method/analysis_info/sampling_error_estimates');?></EstSmpErr>
-        <dataAppr><?php $ddi->el('study_desc/method/analysis_info/data_appraisal');?></dataAppr>
+        <respRate><![CDATA[<?php $ddi->el('study_desc/method/analysis_info/response_rate');?>]]></respRate>
+        <EstSmpErr><![CDATA[<?php $ddi->el('study_desc/method/analysis_info/sampling_error_estimates');?>]]></EstSmpErr>
+        <dataAppr><![CDATA[<?php $ddi->el('study_desc/method/analysis_info/data_appraisal');?>]]></dataAppr>
      </anlyInfo>
-     <stdyClas><?php $ddi->el('study_desc/method/study_class');?></stdyClas>
+     <stdyClas><![CDATA[<?php $ddi->el('study_desc/method/study_class');?>]]></stdyClas>
 
      <dataProcessing type="<?php $ddi->el('study_desc/method/data_processing_type');?>"><?php $ddi->el('study_desc/method/data_processing');?></dataProcessing>
 
@@ -361,7 +364,7 @@ $ddi=$this->ddi_writer;
         <collSize><?php $ddi->el('study_desc/data_access/dataset_availability/coll_size');?></collSize>
         <complete><?php $ddi->el('study_desc/data_access/dataset_availability/complete');?></complete>
         <fileQnty><?php $ddi->el('study_desc/data_access/dataset_availability/file_quantity');?></fileQnty>
-        <notes><?php $ddi->el('study_desc/data_access/dataset_availability/notes');?></notes>
+        <notes><![CDATA[<?php $ddi->el('study_desc/data_access/dataset_availability/notes');?>]]></notes>
      </setAvail>
 
 
@@ -385,12 +388,12 @@ $ddi=$this->ddi_writer;
           <contact affiliation="<?php echo $ddi->attr_val($contact,'affiliation');?>" URI="<?php echo $ddi->attr_val($contact,'uri');?>" email="<?php echo $ddi->attr_val($contact,'email');?>"><?php echo $ddi->el_val($contact,'name');?></contact>
         <?php endforeach;?>
         
-        <citReq><?php $ddi->el('study_desc/data_access/dataset_use/cit_req');?></citReq>
-        <deposReq><?php $ddi->el('study_desc/data_access/dataset_use/deposit_req');?></deposReq>
-        <conditions><?php $ddi->el('study_desc/data_access/dataset_use/conditions');?></conditions>
-        <disclaimer><?php $ddi->el('study_desc/data_access/dataset_use/disclaimer');?></disclaimer>
+        <citReq><![CDATA[<?php $ddi->el('study_desc/data_access/dataset_use/cit_req');?>]]></citReq>
+        <deposReq><![CDATA[<?php $ddi->el('study_desc/data_access/dataset_use/deposit_req');?>]]></deposReq>
+        <conditions><![CDATA[<?php $ddi->el('study_desc/data_access/dataset_use/conditions');?>]]></conditions>
+        <disclaimer><![CDATA[<?php $ddi->el('study_desc/data_access/dataset_use/disclaimer');?>]]></disclaimer>
      </useStmt>
-     <notes><?php $ddi->el('study_desc/data_access/notes');?></notes>
+     <notes><![CDATA[<?php $ddi->el('study_desc/data_access/notes');?>]]></notes>
   </dataAccs>
-  <notes><?php $ddi->el('study_desc/notes');?></notes>      
+  <notes><![CDATA[<?php $ddi->el('study_desc/notes');?>]]></notes>      
 </stdyDscr>

@@ -344,16 +344,7 @@ class DDI_Writer
             'notes'=>$var['var_notes'],
             'txt'=>$var['var_txt'],
             'codInstr'=>$var['var_codinstr'],
-            'concept'=>$var['var_concept'],
-
-            'varFormat'=>[
-                '_value'=> (string)$var['var_format.value'],
-                '_attributes'=>[
-                    'type'=>$var['var_format.type'],
-                    //'schema'=>$var['var_format.schema'],//not supported
-                    'formatname'=>$var['var_format.name']
-                ]
-            ]
+            'concept'=>$var['var_concept']            
         ]);
 
 
