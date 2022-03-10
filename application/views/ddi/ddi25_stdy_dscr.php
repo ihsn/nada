@@ -260,6 +260,7 @@ $ddi=$this->ddi_writer;
           <dataCollector abbr="<?php echo $ddi->attr_val($collector,'abbreviation');?>" affiliation="<?php echo $ddi->attr_val($collector,'affiliation');?>"><?php echo $ddi->el_val($collector,'name');?></dataCollector>
         <?php endforeach;?> 
         
+        <?php /*
         <!-- collectorTraining - DDI2.5
         
         Collector Training
@@ -268,7 +269,8 @@ $ddi=$this->ddi_writer;
         compliance with standards etc. This is repeatable for language and to capture different aspects of the 
         training process. The type attribute allows specification of the type of training being described.
         
-        -->        
+        --> 
+        */?>       
         <collectorTraining type="<?php $ddi->el('study_desc/method/data_collection/collector_training/type');?>"><?php $ddi->el('study_desc/method/data_collection/collector_training/training');?></collectorTraining>
 
         <frequenc><?php $ddi->el('study_desc/method/data_collection/frequency');?></frequenc>
