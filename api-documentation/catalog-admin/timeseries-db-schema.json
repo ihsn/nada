@@ -386,6 +386,24 @@
 						]
 					}
 				},
+				"ref_country": {
+					"type": "array",
+					"title": "Reference country",
+					"description": "List of countries for which data are available",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Country name",
+								"type": "string"
+							},
+							"code": {
+								"title": "Country code",
+								"type": "string"
+							}
+						}
+					}
+				},
 				"geographic_units": {
 					"title": "Geographic locations",
 					"description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
