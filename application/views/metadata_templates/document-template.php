@@ -24,6 +24,7 @@
     $fields=array(
         "metadata.document_description.title_statement.idno"=>"text",
         "metadata.document_description.title_statement.title"=>"text",
+        "metadata.document_description.identifiers"=>"array",
         
         "metadata.resources"=>'resources',
         
@@ -32,7 +33,11 @@
 
         "metadata.document_description.title_statement.sub_title"=>"text",
         "metadata.document_description.title_statement.alternate_title"=>"text",
-        "metadata.document_description.title_statement.abbreviated_title"=>"text",
+        "metadata.document_description.title_statement.translated_title"=>"text",
+
+
+        
+
         "metadata.document_description.type"=>"text",
         "metadata.document_description.status"=>"text",
         "metadata.document_description.description"=>"text",
@@ -42,6 +47,8 @@
         "metadata.document_description.notes"=>"array",
         "metadata.document_description.scope"=>"text",
         "metadata.document_description.ref_country"=>"array",
+        "metadata.document_description.geographic_units"=>"array",
+        "metadata.document_description.bbox"=>"bounding_box",
         "metadata.document_description.spatial_coverage"=>"text",
         "metadata.document_description.temporal_coverage"=>"text",
         "metadata.document_description.date_created"=>"text",
@@ -61,8 +68,8 @@
         "metadata.document_description.institution"=>"text",
         
         "metadata.document_description.volume"=>"text",
-        "metadata.document_description.issue"=>"text",
-        "metadata.document_description.pages"=>"text"        
+        "metadata.document_description.number"=>"text",
+        "metadata.document_description.pages"=>"text"
     ),
     $metadata);
     ?>
@@ -83,8 +90,16 @@
             "metadata.document_description.editors"=>"array",
             "metadata.document_description.translators"=>"array",
             "metadata.document_description.contributors"=>"array",
+            "metadata.document_description.contacts"=>"array",
             "metadata.document_description.publisher"=>"text",
-            "metadata.document_description.publisher_address"=>"text"
+            "metadata.document_description.publisher_address"=>"text",
+            "metadata.document_description.annote"=>"text",
+            "metadata.document_description.booktitle"=>"text",
+            "metadata.document_description.crossref"=>"text",
+            "metadata.document_description.howpublished"=>"text",
+            "metadata.document_description.key"=>"text",
+            "metadata.document_description.organization"=>"text",
+            "metadata.document_description.url"=>"text"
         ),
         $metadata);
         ?>
@@ -103,6 +118,7 @@
             "metadata.document_description.rights"=>"text",
             "metadata.document_description.copyright"=>"text",
             "metadata.document_description.usage_terms"=>"text",
+            "metadata.document_description.disclaimer"=>"text",
             "metadata.document_description.security_classification"=>"text",
             "metadata.document_description.access_restrictions"=>"text"
         ),
@@ -111,15 +127,9 @@
     
     <?php $output['themes_topics']= render_group('themes_topics',
         $fields=array( 
-        "metadata.document_description.sources.data_source"=>"array",
-        "metadata.document_description.keywords"=>"",
-        "metadata.document_description.keywords.name"=>"text",
-        "metadata.document_description.keywords.vocabulary"=>"text",
-        "metadata.document_description.keywords.uri"=>"text",
-        "metadata.document_description.themes"=>"",
-        "metadata.document_description.themes.name"=>"text",
-        "metadata.document_description.themes.vocabulary"=>"text",
-        "metadata.document_description.themes.uri"=>"text",
+        "metadata.document_description.sources"=>"array",
+        "metadata.document_description.data_sources"=>"array",
+        "metadata.document_description.themes"=>"array",
         "metadata.document_description.topics"=>"array",
         "metadata.document_description.disciplines"=>"array",
         "metadata.document_description.audience"=>"text",        
@@ -133,10 +143,12 @@
 
 <?php $output['lda_topics']= render_group('lda_topics',
         $fields=array(  
-        "metadata.document_description.lda_topics"=>"lda_topics",
-        "metadata.document_description.lda_topics.model_info"=>"array",        
-        "metadata.document_description.lda_topics.topic_description"=>"array",
-        "metadata.document_description.lda_topics.topic_description.topic_words.word"=>"text",
+        "metadata.lda_topics"=>"lda_topics",
+        "metadata.lda_topics.model_info"=>"array",        
+        "metadata.lda_topics.topic_description"=>"array",
+        "metadata.lda_topics.topic_description.topic_words.word"=>"text",
+        "metadata.embeddings"=>"array",
+        "metadata.additional"=>"dump",
     ),
     $metadata);
 ?>
@@ -149,7 +161,8 @@
         "metadata.metadata_information.title"=>"text",
         "metadata.metadata_information.idno"=>"text",
         "metadata.metadata_information.producers"=>"array",
-        "metadata.metadata_information.version"=>"text",
+        "metadata.metadata_information.production_date"=>"text",
+        "metadata.metadata_information.version"=>"text",        
     ),
     $metadata);
 ?>

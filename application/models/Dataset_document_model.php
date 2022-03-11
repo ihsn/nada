@@ -78,7 +78,7 @@ class Dataset_document_model extends Dataset_model {
         $options['changed']=date("U");
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','document_description','files','resources','tags','additional');
+        $study_metadata_sections=array('metadata_information','document_description','files','resources','provenance','embeddings','lda_topics','tags','additional');
 
         //external resources
         $external_resources=$this->get_array_nested_value($options,'resources');

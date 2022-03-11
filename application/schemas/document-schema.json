@@ -1139,7 +1139,7 @@
           },
           "vector": {
             "title": "Vector",
-            "type": "object"
+            "type": ["object","array"]
           }
         },
         "required": [
