@@ -337,6 +337,7 @@ CREATE TABLE surveys (
   type varchar(15) DEFAULT NULL,
   repositoryid varchar(128) NOT NULL,
   title varchar(255) DEFAULT '',
+  subtitle varchar(255) DEFAULT '',
   abbreviation varchar(45) DEFAULT NULL,
   authoring_entity varchar(max) DEFAULT NULL,
   nation varchar(150) DEFAULT '',

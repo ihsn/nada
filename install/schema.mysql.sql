@@ -346,6 +346,7 @@ CREATE TABLE `surveys` (
   `type` varchar(15) DEFAULT NULL,
   `repositoryid` varchar(100) DEFAULT NULL,
   `title` varchar(255) NOT NULL DEFAULT '',
+  `subtitle` varchar(255) DEFAULT NULL,
   `abbreviation` varchar(45) DEFAULT NULL,
   `authoring_entity` text,
   `nation` varchar(150) DEFAULT '',

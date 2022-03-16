@@ -190,7 +190,7 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,surveys.subtitle,nation,authoring_entity';
 		$study_fields.=',forms.model as form_model, data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
 		$study_fields.=',surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
 
@@ -373,7 +373,7 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity,forms.model as form_model,data_class_id,surveys.year_start,surveys.year_end';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,surveys.subtitle,nation,authoring_entity,forms.model as form_model,data_class_id,surveys.year_start,surveys.year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
 
 		//build final search sql query

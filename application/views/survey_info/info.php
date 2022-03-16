@@ -1,18 +1,24 @@
 <?php 
-	$sub_title=array();
-	if ($survey['nation']!=''){
-		$sub_title[]='<span id="dataset-country">'.$survey['nation'].'</span>';
-	}
+
+    $sub_title=array();
+    
+    if ($survey['type']=='document' && isset($survey['metadata']['document_description']['authors'])){
+        $sub_title[]= '<span id="dataset-country">'.authors_to_string($survey['metadata']['document_description']['authors']).'</span>';
+    }else{        
+        if ($survey['nation']!=''){
+            $sub_title[]='<span id="dataset-country">'.$survey['nation'].'</span>';
+        }
+    }
 
     $dates=array_unique(array($survey['year_start'],$survey['year_end']));
-	$dates=implode(" - ", $dates);
+    $dates=implode(" - ", $dates);
 
     if(!empty($dates)){
-		$sub_title[]='<span id="dataset-year">'.$dates.'</span>';
-	}
+        $sub_title[]='<span id="dataset-year">'.$dates.'</span>';
+    }
+    
 	$sub_title=implode(", ", $sub_title);
 ?>
-
 <div class="row study-info">
 	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
 		<?php 
@@ -33,7 +39,12 @@
 	<div class="col">
 		
 		<div>
-		    <h1 class="mt-0 mb-1" id="dataset-title"><?php echo $survey_title;?></h1>
+		    <h1 class="mt-0 mb-1" id="dataset-title">
+                <span><?php echo $survey_title;?></span>
+                <?php if (isset($survey['subtitle'])):?>
+                    <div class="study-subtitle"><?php echo $survey['subtitle'];?></div>
+                <?php endif;?>
+            </h1>
             <div class="clearfix">
 		        <h6 class="sub-title float-left" id="dataset-sub-title"><?php echo $sub_title;?></h6>
                 <?php if(isset($data_access_type) && $data_access_type!='data_na' && $survey['type']=='survey'):?>
@@ -76,7 +87,7 @@
                 </div>
                 <?php endif;?>
 		
-                <?php if (isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
+                <?php if ($survey['type']!='document' && isset($survey['authoring_entity']) && !empty($survey['authoring_entity'])):?>
                 <div class="row mb-2 pb-2  border-bottom">
                     <div class="col-md-2">
                         <?php echo t('producers');?>
@@ -84,6 +95,19 @@
                     <div class="col">
                         <div class="producers">
                             <?php echo $survey['authoring_entity'];?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif;?>
+                
+                <?php if ($survey['type']=='document' && isset($survey['metadata']['document_description']['abstract']) ):?>
+                <div class="row mb-2 pb-2  border-bottom">
+                    <div class="col-md-2">
+                        <?php echo t('abstract');?>
+                    </div>
+                    <div class="col">
+                        <div class="abstract" id="study-abstract">
+                            <?php echo ($survey['metadata']['document_description']['abstract']);?>
                         </div>
                     </div>
                 </div>

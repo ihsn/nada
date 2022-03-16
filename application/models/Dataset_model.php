@@ -20,6 +20,7 @@ class Dataset_model extends CI_Model {
 		'repositoryid',
 		'idno',
 		'title',
+		'subtitle',
 		'abbreviation',
 		'authoring_entity',
 		'nation',
@@ -1848,6 +1849,36 @@ class Dataset_model extends CI_Model {
         }
 
         return $nation_str;
+    }
+
+
+	function update_locations($sid, $bounds=array())
+    {
+		var_dump($bounds);
+
+        //delete any existing locations
+        $this->db->delete('survey_locations',array('sid' => $sid));
+
+        if(!is_array($bounds)){
+            return false;
+        }
+        
+        foreach($bounds as $bbox)
+        {
+            $north=$bbox['north'];
+            $south=$bbox['south'];
+            $east=$bbox['east'];
+            $west=$bbox['west'];
+
+            $this->load->helper("gis_helper");
+            $bbox_wkt=$this->db->escape(bbox_to_wkt($north, $south, $east, $west));
+
+            $this->db->set('sid',$sid);
+            $this->db->set('location','ST_GeomFromText('.$bbox_wkt.')',false);
+            $this->db->insert('survey_locations');
+
+			echo $this->db->last_query();
+        }
     }
 
 }//end-class

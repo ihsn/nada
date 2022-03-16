@@ -190,7 +190,10 @@
                     <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
                         <i class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>             
                         <span>
-                            <?php echo $row['title'];?>                             
+                            <?php echo $row['title'];?>
+                            <?php if(isset($row['subtitle'])):?>
+                                <div class="study-subtitle"><?php echo $row['subtitle'];?></div>
+                            <?php endif;?>
                         </span>
                     </a>
                 </h5>

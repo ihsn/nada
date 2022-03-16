@@ -140,6 +140,7 @@ class Dataset_document_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'document_description/title_statement/title');
+        $output['subtitle']=$this->get_array_nested_value($options,'document_description/title_statement/sub_title');
         $output['idno']=$this->get_array_nested_value($options,'document_description/title_statement/idno');
 
         $nations=(array)$this->get_array_nested_value($options,'document_description/ref_country');

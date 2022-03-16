@@ -227,5 +227,23 @@ function get_string_value($data,$type='text')
     throw new Exception("TYPE_NOT_SUPPORTED: ".$type);
 }
 
-/* End of file search_helper.php */
-/* Location: ./application/helpers/search_helper.php */
+
+if ( ! function_exists('authors_to_string'))
+{
+    function authors_to_string($authors=array())
+    {
+		$output=array();
+        foreach($authors as $author){
+			$author_name=array(
+				isset($author['first_name']) ? $author['first_name'] : '', 
+				isset($author['last_name']) ? $author['last_name']: ''
+			);
+			$output[]=implode(" ", array_filter($author_name));
+		}
+
+		return implode(", ", $output);
+    }
+}
+
+/* End of file metadata_view_helper.php */
+/* Location: ./application/helpers/metadata_view_helper.php */
