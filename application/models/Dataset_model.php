@@ -1854,8 +1854,6 @@ class Dataset_model extends CI_Model {
 
 	function update_locations($sid, $bounds=array())
     {
-		var_dump($bounds);
-
         //delete any existing locations
         $this->db->delete('survey_locations',array('sid' => $sid));
 
@@ -1876,8 +1874,6 @@ class Dataset_model extends CI_Model {
             $this->db->set('sid',$sid);
             $this->db->set('location','ST_GeomFromText('.$bbox_wkt.')',false);
             $this->db->insert('survey_locations');
-
-			echo $this->db->last_query();
         }
     }
 

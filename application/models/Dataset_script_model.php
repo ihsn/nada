@@ -40,7 +40,7 @@ class Dataset_script_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('doc_desc','project_desc','additional');
+        $study_metadata_sections=array('doc_desc','project_desc','provenance','embeddings','lda_topics','tags','additional');
 
         $options['metadata']=array();
 
@@ -92,6 +92,7 @@ class Dataset_script_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'project_desc/title_statement/title');
+        $output['subtitle']=$this->get_array_nested_value($options,'project_desc/title_statement/sub_title');
         $output['idno']=$this->get_array_nested_value($options,'project_desc/title_statement/idno');
 
         $nations=(array)array_data_get($options, 'project_desc.geographic_units.*.name');        

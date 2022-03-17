@@ -80,7 +80,7 @@ class Dataset_table_model extends Dataset_model {
 
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('metadata_information','table_description','files','resources','tags','additional');
+        $study_metadata_sections=array('metadata_information','table_description','files','resources','provenance','embeddings','lda_topics','tags','additional');
 
         //external resources
         $external_resources=$this->get_array_nested_value($options,'resources');
@@ -144,6 +144,7 @@ class Dataset_table_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'table_description/title_statement/title');
+        $output['subtitle']=$this->get_array_nested_value($options,'table_description/title_statement/sub_title');
         $output['idno']=$this->get_array_nested_value($options,'table_description/title_statement/idno');
 
         $nations=(array)$this->get_array_nested_value($options,'table_description/ref_country');

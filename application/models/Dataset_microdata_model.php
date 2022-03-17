@@ -75,7 +75,7 @@ class Dataset_microdata_model extends Dataset_model {
 		$variables=null;
         $variable_groups=null;
 
-        $study_metadata_sections=array('doc_desc','study_desc','additional','tags');
+        $study_metadata_sections=array('doc_desc','study_desc','provenance','embeddings','lda_topics','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -469,11 +469,9 @@ class Dataset_microdata_model extends Dataset_model {
 	{
 		$output=array();
 
-        $title=array();
-        $title[]=$this->get_array_nested_value($options,'study_desc/title_statement/title');
-        $title[]=$this->get_array_nested_value($options,'study_desc/title_statement/sub_title');
-        $title=array_filter($title);
-        $output['title']=implode(", ",$title);
+        $output['title']=$this->get_array_nested_value($options,'study_desc/title_statement/title');
+        $output['subtitle']=$this->get_array_nested_value($options,'study_desc/title_statement/sub_title');
+        
         $output['idno']=$this->get_array_nested_value($options,'study_desc/title_statement/idno');
 
         $nations=(array)$this->get_array_nested_value($options,'study_desc/study_info/nation');

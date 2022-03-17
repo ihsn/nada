@@ -89,6 +89,7 @@ class Dataset_visualization_model extends Dataset_model {
 	{        
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'visualization_description/title_statement/title');
+        $output['subtitle']=$this->get_array_nested_value($options,'visualization_description/title_statement/sub_title');
         $output['idno']=$this->get_array_nested_value($options,'visualization_description/title_statement/idno');
 
         //todo

@@ -54,7 +54,7 @@ class Dataset_geospatial_model extends Dataset_model {
         $options['changed']=date("U");
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('description','tags','provenance','additional');
+        $study_metadata_sections=array('description','provenance','embeddings','lda_topics','tags','additional');
 
         foreach($study_metadata_sections as $section){
 			if(array_key_exists($section,$options)){
@@ -96,6 +96,8 @@ class Dataset_geospatial_model extends Dataset_model {
 		//set aliases
 
 		//set geographic locations (bounding box)
+        $bbox=$this->get_bbox_array($options['metadata']);
+        $this->update_locations($dataset_id, $bbox);
 
 		//complete transaction
 		$this->db->trans_complete();
@@ -177,7 +179,7 @@ class Dataset_geospatial_model extends Dataset_model {
 
         $output['year_start']=$years['start'];
         $output['year_end']=$years['end'];
-        
+
         return $output;
     }
     
@@ -253,6 +255,24 @@ class Dataset_geospatial_model extends Dataset_model {
 
         //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+    }
+
+
+    function get_bbox_array($metadata)
+    {
+        $bbox_arr=(array)array_data_get($metadata, 'description.identificationInfo.*.extent.geographicElement.*.geographicBoundingBox');
+
+        $bbox=array();
+        foreach($bbox_arr as $row){
+            $bbox[]=array(
+                'north'=>$row['northBoundLatitude'],
+                'south'=>$row['southBoundLatitude'],
+                'east'=>$row['eastBoundLongitude'],
+                'west'=>$row['westBoundLongitude']
+            );
+        }
+
+        return $bbox;
     }
 
 }
