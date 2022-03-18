@@ -78,7 +78,8 @@ class Dataset_timeseries_model extends Dataset_model {
 
         $options['changed']=date("U");
         
-        $study_metadata_sections=array('metadata_creation','series_description','additional','tags');
+        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional');
+        
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){

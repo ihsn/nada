@@ -538,7 +538,7 @@
 						"name"
 					]
 				},
-				"acknowledgement_statement": {
+				"acknowledgment_statement": {
 					"title": "An overall statement of acknowledgment, which can be used as an alternative (or supplement) to the itemized list provided in `acknowledgments`.",
 					"type": "string"
 				},
@@ -705,6 +705,13 @@
 				"title_statement"
 			],
 			"additionalProperties": false
+		},
+		"provenance": {
+			"type": "array",
+			"description": "Provenance",
+			"items": {
+				"$ref": "provenance-schema.json"
+			}
 		},
 		"additional": {
 			"type": "object",
