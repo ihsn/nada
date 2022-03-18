@@ -44,7 +44,7 @@
 			],
 			"default": "no"
 		},
-		"metadata_creation": {
+		"metadata_information": {
 			"type": "object",
 			"title": "Metadata creation",
 			"description": "Information on who generated the documentation",
