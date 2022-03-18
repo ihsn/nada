@@ -100,7 +100,7 @@
 
     <?php $output['contributors']= render_group('contributors',
         $fields=array(            
-            "metadata.document_description.creator"=>"text",            
+            "metadata.document_description.creator"=>"text",
             "metadata.document_description.translators"=>"array",
             "metadata.document_description.contributors"=>"array",
             "metadata.document_description.contacts"=>"array"            
