@@ -10,6 +10,8 @@
 	<p><?php echo t('your_account_details');?>:</p>
     <p><?php echo t('username');?>: <?php echo $email; ?></p>
     <p>&nbsp;</p>
+    <p><?php echo t('UNHCR_disclaimer');?></p>
+    <p>&nbsp;</p>
     <p>&nbsp;</p>
     <p>-----------------------------------------------------------
     <br/><?php echo $this->config->item('website_title'); ?> - <?php echo site_url(); ?></p>
