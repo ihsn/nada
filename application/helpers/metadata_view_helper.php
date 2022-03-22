@@ -118,6 +118,30 @@ if ( ! function_exists('render_group'))
 	}
 }
 
+
+if ( ! function_exists('render_group_array'))
+{
+	function render_group_array($name, $fields, $metadata,$options=array())
+	{
+		$ci =& get_instance();
+
+		$output=[];
+		foreach($fields as $field_name=>$field_type){
+			$value=get_field_value($field_name,$metadata);
+			//$field_options=isset($field_type['options'])
+			if (is_array($field_type)){
+				$output[$field_name]= render_field($field_type[0],$field_name,$value,$options=$field_type['options']);
+			}
+			else{
+				$output[$field_name]= render_field($field_type,$field_name,$value,$options);
+			}
+		}
+    
+		return $output;
+	}
+}
+
+
 if ( ! function_exists('render_group_text'))
 {
 	function render_group_text($section_name, $html)
@@ -134,7 +158,7 @@ if ( ! function_exists('render_group_text'))
 
 
 
-if ( ! function_exists('render_columns'))
+if ( ! function_exists('render_columns')) 
 {
 	function render_columns($name, $fields, $metadata,$options=array())
 	{

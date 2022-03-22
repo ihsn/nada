@@ -25,45 +25,42 @@
     $output=array();
 ?>
 
+<!-- description -->
+<?php 
+    $description= array(
+        render_field("text","title",get_field_value("metadata.document_description.title_statement.title",$metadata)),
+        render_field("text","subtitle",get_field_value("metadata.document_description.title_statement.sub_title",$metadata)),
+        render_field("text","alternate_title",get_field_value("metadata.document_description.title_statement.alternate_title",$metadata)),
+        render_field("text","translated_title",get_field_value("metadata.document_description.title_statement.translated_title",$metadata)),
 
-<!-- identification section -->
-<?php $output['description']= render_group('description',
-    $fields=array(
-        "metadata.document_description.title_statement.title"=>"text",
-        "metadata.document_description.title_statement.sub_title"=>"text",
-        "metadata.document_description.title_statement.alternate_title"=>"text",
-        "metadata.document_description.title_statement.translated_title"=>"text",
+        render_columns("",
+            $fields=array(
+                "metadata.document_description.date_created"=>"text",
+                "metadata.document_description.date_available"=>"text",
+                "metadata.document_description.date_published"=>"text",
+                "metadata.document_description.date_modified"=>"text"
+            ),
+        $metadata),
+                    
+        render_field("array","metadata.document_description.authors",get_field_value("metadata.document_description.authors",$metadata)),
+        render_field("array","metadata.document_description.editors",get_field_value("metadata.document_description.editors",$metadata)),
+        render_field("text","metadata.document_description.type",get_field_value("metadata.document_description.type",$metadata)),
+        render_field("text","metadata.document_description.publication_frequency",get_field_value("metadata.document_description.publication_frequency",$metadata)),
+        render_field("text","metadata.document_description.series",get_field_value("metadata.document_description.series",$metadata)),
+        render_field("text","metadata.document_description.status",get_field_value("metadata.document_description.status",$metadata)),
+        render_field("text","metadata.document_description.abstract",get_field_value("metadata.document_description.abstract",$metadata)),
+        render_field("text","metadata.document_description.description",get_field_value("metadata.document_description.description",$metadata)),
+        render_field("text","metadata.document_description.audience",get_field_value("metadata.document_description.audience",$metadata)),
+        render_field("text","metadata.document_description.mandate",get_field_value("metadata.document_description.mandate",$metadata)),
+        render_field("text","metadata.document_description.title_statement.idno",get_field_value("metadata.document_description.title_statement.idno",$metadata)),
+        render_field("array","metadata.document_description.identifiers",get_field_value("metadata.document_description.identifiers",$metadata)),
+        render_field("array","metadata.document_description.languages",get_field_value("metadata.document_description.languages",$metadata)),        
+        render_field("resources","metadata.resources",get_field_value("metadata.resources",$metadata))
+    );
 
+    $output["dscription"]=render_group_text ("description",implode("",$description));
 
-        "metadata.document_description.date_created"=>"text",
-        "metadata.document_description.date_available"=>"text",
-        "metadata.document_description.date_published"=>"text",
-        "metadata.document_description.date_modified"=>"text",
-
-
-        "metadata.document_description.authors"=>"array",
-        "metadata.document_description.editors"=>"array",
-        "metadata.document_description.type"=>"text",
-        "metadata.document_description.publication_frequency"=>"text",
-        "metadata.document_description.series"=>"text",
-        "metadata.document_description.status"=>"text",
-        "metadata.document_description.abstract"=>"text",
-        "metadata.document_description.description"=>"text",
-
-        "metadata.document_description.audience"=>"text",
-        "metadata.document_description.mandate"=>"text",
-
-        "metadata.document_description.title_statement.idno"=>"text",
-        "metadata.document_description.identifiers"=>"array",
-
-        "metadata.document_description.languages"=>"array",
-        
-        "metadata.resources"=>'resources',
-    ),
-    $metadata);
-    ?>
-
- 
+?>
 
 <?php $output['scope and coverage']= render_group('scope and coverage',
     $fields=array(
@@ -77,7 +74,7 @@
         "metadata.document_description.toc_structured"=>"array",
 
         "metadata.document_description.keywords"=>"array",
-        "metadata.tags"=>"array_comma",
+        "metadata.tags"=>"tags",
         "metadata.document_description.topics"=>"array",
         "metadata.document_description.themes"=>"array",
         "metadata.document_description.disciplines"=>"array",
