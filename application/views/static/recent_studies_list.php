@@ -3,6 +3,15 @@
         margin-bottom:0px;
     }
     .survey-row{padding-bottom:0px;}
+    .study-subtitle{
+        font-size:smaller;
+    }
+    .study-type-icon{
+        width:36px;
+    }
+    .survey-row{
+        padding:10px 5px;
+    }
 </style>
 <?php
 
@@ -34,27 +43,40 @@ $type_icons=array(
 
         <div class="survey-row recent-studies-list-home border-bottom">
             <div class="row">
-                <div class="col-12 col-lg-12">                    
-                    <h5>
-                    <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
-                        <?php if(isset($row['type'])):?>
-                            <i title="<?php echo $row['type'];?>" class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>    
-                        <?php endif;?>                        
-                            <?php echo $row['title'];?>
-                        </a>
-                    </h5>
+                <div class="col-12 col-lg-12">
+                                
+                    <div class="d-flex flex-row ">
 
-                    <?php if($row['nation'] && $regional_search===true) :?>
-                        <strong><?php echo $row['nation'];?></strong>
-                    <?php endif;?>
+                        <div class="study-type-icon">
+                            <?php if(isset($row['type'])):?>
+                                <i title="<?php echo $row['type'];?>" class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>    
+                            <?php endif;?>                    
+                        </div>
+                        <div>                        
+                            <h5><a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
+                                <span class="study-title"><?php echo $row['title'];?>
+                                    <?php if(isset($row['subtitle'])):?>
+                                        <div class="study-subtitle"><?php echo $row['subtitle'];?></div>
+                                    <?php endif;?>
+                                </span>
+                                </a>
+                            </h5>
+                            
+                            <div>
+                                <?php if($row['nation'] && $regional_search===true) :?>
+                                    <strong><?php echo $row['nation'];?></strong>
+                                <?php endif;?>
 
-                    <?php if (isset($row['authoring_entity']) && $row['authoring_entity']!=''):?>
-                        <div class="sub-title"><?php echo $row['authoring_entity'];?></div>
-                    <?php endif;?>
+                                <?php if (isset($row['authoring_entity']) && $row['authoring_entity']!=''):?>
+                                    <div class="sub-title"><?php echo $row['authoring_entity'];?></div>
+                                <?php endif;?>
 
-                    <div class="survey-stats">                        
-                        <span><?php echo date("M d, Y",$row['changed']);?></span>
-                    </div>
+                                <div class="survey-stats">                        
+                                    <span><?php echo date("M d, Y",$row['changed']);?></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                        
                 </div>
             </div>
         </div>
