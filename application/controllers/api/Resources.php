@@ -311,14 +311,8 @@ class Resources extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
 
-			$result=$this->Survey_resource_model->upload_rdf($tmp_path=null,'file');
-			$uploaded_file_name=$result['file_name'];
-			$uploaded_path=$result['full_path'];
-
-			//import entries
+			$uploaded_path=$this->Survey_resource_model->upload_rdf($tmp_path=null,'file');
 			$imported_count=$this->Survey_resource_model->import_rdf($sid,$uploaded_path);
-
-			//delete rdf
 			@unlink($uploaded_path);
 
 			$output=array(

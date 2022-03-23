@@ -28,6 +28,7 @@ class Survey_resource_model extends CI_Model {
 		parent::__construct();
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
+		$this->load->library('upload');
 		//$this->output->enable_profiler(TRUE);
     }
 	
@@ -653,7 +654,9 @@ class Survey_resource_model extends CI_Model {
 	function get_microdata_resources($surveyid)
 	{
 		$this->db->select('*');
-		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);
+		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);		
+		$this->db->order_by("dcdate","desc");
+		$this->db->order_by("title","asc");
 		return $this->db->get('resources')->result_array();
 	}
 	
