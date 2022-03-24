@@ -28,7 +28,6 @@ class Survey_resource_model extends CI_Model {
 		parent::__construct();
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
-		$this->load->library('upload');
 		//$this->output->enable_profiler(TRUE);
     }
 	
@@ -1222,7 +1221,7 @@ class Survey_resource_model extends CI_Model {
 		$config['encrypt_name']=TRUE;
 		$config['allowed_types'] = 'rdf|xml';
 
-		$this->upload->initialize($config);
+		$this->load->library('upload', $config);
 
 		//process uploaded rdf file
 		$rdf_upload_result=$this->upload->do_upload($file_field);
