@@ -329,12 +329,14 @@ class Study extends MY_Controller {
 			$content="Data Access Not Available";
 		}
 
-		$user=$this->ion_auth->current_user();		
-		$this->load->model("Data_access_whitelist_model");
-		$user_whitelisted=$this->Data_access_whitelist_model->has_access($user->id,$sid);
+		$user=$this->ion_auth->current_user();
+		
+		if($user){
+			$user_whitelisted=$this->Data_access_whitelist_model->has_access($user->id,$sid);
 
-		if($user_whitelisted){
-			$content=$this->Data_access_whitelist_model->get_data_files($sid);
+			if($user_whitelisted){
+				$content=$this->Data_access_whitelist_model->get_data_files($sid);
+			}
 		}
 
 		$this->render_page($sid, $content,'get_microdata');

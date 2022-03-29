@@ -38,8 +38,13 @@ class Dataaccess_whitelist extends MY_Controller {
     		redirect("admin/dataaccess_whitelist","refresh");        
         }
 
-        $result=$this->Data_access_whitelist_model->insert($repository_id,$user_id);
-        
+        try{
+            $result=$this->Data_access_whitelist_model->insert($repository_id,$user_id);
+        }
+        catch(Exception $e){
+            $this->session->set_flashdata('error', $e->getMessage());
+		    redirect("admin/dataaccess_whitelist","refresh");
+        }
         $this->session->set_flashdata('message', t('form_update_success'));
 		redirect("admin/dataaccess_whitelist","refresh");        
     }

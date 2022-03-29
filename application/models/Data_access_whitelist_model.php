@@ -81,6 +81,7 @@ class Data_access_whitelist_model extends CI_Model {
 	{
 		$this->db->select("*");
 		$this->db->where('repository_id', $repository_id); 
+		$this->db->where('user_id', $user_id); 
 		$result=$this->db->get("data_access_whitelist")->result_array(); 
 
 		if ($result)
