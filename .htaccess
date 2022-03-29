@@ -1,2 +1,11 @@
 Options -Indexes
 
+<ifModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "same-origin"
+
+    #always connect via https
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
