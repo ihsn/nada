@@ -343,7 +343,15 @@ class Variable_model extends CI_Model {
         return $this->db->count_all_results();        
     }
 
-    public function insert($sid,$options)
+
+    /**
+     * 
+     * 
+     * @is_upsert - if true, do upsert instead of insert
+     * 
+     * 
+     */
+    public function insert($sid,$options,$is_upsert=true)
     {
         $valid_fields=array(
             'name',
@@ -357,17 +365,17 @@ class Variable_model extends CI_Model {
             'metadata'
         );
 
-        //check if variable already exists
-        $uid=$this->get_uid_by_vid($sid,$options['vid']);
+        if ($is_upsert==true){            
+            //check if variable already exists
+            $uid=$this->get_uid_by_vid($sid,$options['vid']);
 
-        if($uid){
-            return $this->update($sid,$uid,$options);
+            if($uid){
+                return $this->update($sid,$uid,$options);
+            }
         }
 
-        foreach($options as $key=>$value)
-        {
-            if(!in_array($key,$valid_fields))
-            {
+        foreach($options as $key=>$value){
+            if(!in_array($key,$valid_fields)){
                 unset($options[$key]);
             }
         }
@@ -382,7 +390,7 @@ class Variable_model extends CI_Model {
 
         $this->db->insert("variables",$options);
         $insert_id=$this->db->insert_id();
-        $this->update_survey_timestamp($sid);
+        //$this->update_survey_timestamp($sid);
         return $insert_id;
     }
 
@@ -406,7 +414,7 @@ class Variable_model extends CI_Model {
             }
         }
 
-        $options['sid']=$sid;        
+        $options['sid']=$sid;
 
         //metadata
         if(isset($options['metadata'])){
@@ -417,11 +425,11 @@ class Variable_model extends CI_Model {
         $this->db->where('sid',$sid);
         $this->db->where('uid',$uid);
         $this->db->update("variables",$options);
-        $this->update_survey_timestamp($sid);
+        //$this->update_survey_timestamp($sid);
         return $uid;
     }
 
-    private function update_survey_timestamp($sid,$changed=null)
+    function update_survey_timestamp($sid,$changed=null)
     {
         if(!$changed){
             $changed=date("U");

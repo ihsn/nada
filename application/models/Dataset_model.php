@@ -379,7 +379,7 @@ class Dataset_model extends CI_Model {
         $reference = $data;
         foreach ($paths as $key) {
             if (!array_key_exists($key, $reference)) {
-                return false;
+                return null;
             }
             $reference = $reference[$key];
         }
