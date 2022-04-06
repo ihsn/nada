@@ -1222,6 +1222,7 @@ class Survey_resource_model extends CI_Model {
 		$config['allowed_types'] = 'rdf|xml';
 
 		$this->load->library('upload', $config);
+		$this->upload->initialize($config);
 
 		//process uploaded rdf file
 		$rdf_upload_result=$this->upload->do_upload($file_field);
