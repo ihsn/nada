@@ -303,6 +303,10 @@ class Resources extends MY_REST_Controller
 		}
 	}
 
+	public function delete_all_post($idno=null){
+		return $this->delete_all_delete($idno);
+	}
+
 
 	//import rdf file
 	public function import_rdf_post($idno=NULL)
