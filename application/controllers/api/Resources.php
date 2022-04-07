@@ -244,9 +244,6 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
-
-
-
 	//delete a single resource by resource id
 	function index_delete($idno=null,$resource_id=null)
 	{
@@ -280,6 +277,11 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
+	//delete using post
+	function delete_post($idno=null,$resource_id=null)
+	{
+		return $this->index_delete($idno,$resource_id);
+	}
 
 
 	//delete all resources by study
