@@ -443,7 +443,6 @@ class Study extends MY_Controller {
 				break;
 			case 'video':
 			case 'image':
-				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -458,7 +457,6 @@ class Study extends MY_Controller {
 				);
 				break;
 			case 'timeseries':
-				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -488,7 +486,9 @@ class Study extends MY_Controller {
 					),
 					//hide related materials
 					'related_materials'=>array(
-						'show_tab'=> 0
+						'show_tab'=> (int)$related_resources_count,
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
 					)
 				);
 				break;
