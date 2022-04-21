@@ -84,6 +84,7 @@ class Dataset_model extends CI_Model {
 		$this->load->model("Vocabulary_model");
 		$this->load->model("Term_model");
 		$this->load->model("Survey_resource_model");
+		$this->load->model("Catalog_tags_model");
 	}
 	
 	
@@ -290,12 +291,22 @@ class Dataset_model extends CI_Model {
     //returns survey metadata array
     function get_metadata($sid)
     {
-        $this->db->select("metadata");
+        $this->db->select("type,metadata");
         $this->db->where("id",$sid);
         $survey=$this->db->get("surveys")->row_array();
 
         if ($survey){
-            return $this->decode_metadata($survey['metadata']);
+            $metadata= $this->decode_metadata($survey['metadata']);
+			$metadata['schematype']=$survey['type'];
+
+			//tags
+			$tags=$this->Catalog_tags_model->survey_tags_with_key($sid);
+
+			if($tags){
+				$metadata['tags']=$tags;
+			}
+
+			return $metadata;
         }
 	}
 
@@ -1854,6 +1865,7 @@ class Dataset_model extends CI_Model {
 
 	function update_locations($sid, $bounds=array())
     {
+		return false;//disabled
         //delete any existing locations
         $this->db->delete('survey_locations',array('sid' => $sid));
 
@@ -1872,7 +1884,7 @@ class Dataset_model extends CI_Model {
             $bbox_wkt=$this->db->escape(bbox_to_wkt($north, $south, $east, $west));
 
             $this->db->set('sid',$sid);
-            $this->db->set('location','ST_GeomFromText('.$bbox_wkt.')',false);
+            $this->db->set('location',$bbox_wkt);
             $this->db->insert('survey_locations');
         }
     }
