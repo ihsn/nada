@@ -191,6 +191,10 @@ class Study extends MY_Controller {
 				$variable_template='variable_ddi';
 			break;
 
+			case 'geospatial':
+				$variable_template='geospatial_features';
+			break;
+
 			case 'timeseries':
 				$variable_template='timeseries';
 			break;
