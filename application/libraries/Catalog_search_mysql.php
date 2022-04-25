@@ -1083,9 +1083,10 @@ class Catalog_search_mysql{
 		$dtype=$this->_build_dtype_query();
 		$tags=$this->_build_tags_query();
 		$repository=$this->_build_repository_query();
+		$type=$this->_build_dataset_type_query();
 		
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags,$repository,$regions);
+		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags,$repository,$regions,$type);
 
         //show only publshed studies
         $where_list[]='published=1';
@@ -1198,7 +1199,7 @@ class Catalog_search_mysql{
 
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn, v.fid");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		$this->ci->db->where('sid',$sid);

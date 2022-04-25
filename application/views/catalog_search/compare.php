@@ -161,7 +161,7 @@ $( document ).ready(function() {
                 <?php if ($survey_title!==FALSE && $variable_name!==FALSE):?>
             	<div class="compare-box" >
 	            	<div class="compare-box-title" title="<?php echo t('click_drag_move');?>">
-						<div class="var-name" ><?php echo $variable_name;?></div>
+						<div class="var-name text-truncate" style="max-width:70%" ><?php echo $variable_name;?></div>
                         <div class="var-links" >
 							<?php echo anchor('catalog/compare/#remove='.$item['sid'].'/'.$item['vid'],t('remove'),array('class'=>'remove btn btn-outline-primary btn-sm','title'=>t('remove'),'id'=>$item['sid'].'/'.$item['vid']));?>
                         </div>

@@ -540,10 +540,10 @@ class Catalog extends MY_Controller {
 			'sort_order'=>$this->input->get_post('sort_order'),
 			'repo'=>$this->input->get_post('repo')
 		);
+
 		$this->load->library('catalog_search',$params);
 		$data['variables']=$this->catalog_search->v_quick_search($sid);
-
-		$this->load->view("catalog_search/var_quick_list", $data);
+		$this->load->view("catalog_search/var_quick_list", $data); 
 	}
 
 
@@ -829,7 +829,11 @@ class Catalog extends MY_Controller {
 			}
 		}
 
-		//PDF
+		$view_types=array(
+			'survey'=>'variable_ddi',
+			'geospatial'=>'geospatial_features'
+		);
+
 		foreach($items as $item=>$value){
 			$tmp=explode('/',$value);
 			if (isset($tmp[1])){
@@ -841,7 +845,8 @@ class Catalog extends MY_Controller {
 					'dataset'=>$this->Dataset_model->get_row($tmp[0])
 				);
 
-				$item_data['html']=$this->load->view('survey_info/variable_ddi',$item_data,true);
+				$view_name=isset($view_types[$item_data['dataset']['type']]) ? $view_types[$item_data['dataset']['type']] : 'survey';
+				$item_data['html']=$this->load->view('survey_info/'.$view_name,$item_data,true);
 				$list[]=$item_data;
 			}
 		}		

@@ -1720,106 +1720,6 @@ class Datasets extends MY_REST_Controller
 	}
 
 
-	/**
-	 * 
-	 *  Reload facets/filters
-	 * 
-	 * @sid - study id
-	 * 
-	 */
-	public function refresh_filters_put($idno=null)
-	{		
-		try{
-			$sid=$this->get_sid_from_idno($idno);
-			$this->has_dataset_access('edit',$sid);
-			$this->dataset_manager->refresh_filters($sid);
-
-			$output=array(
-				'status'=>'success'				
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}				
-	}
-
-	public function refresh_filters_get($idno=null)
-	{
-		return $this->refresh_filters_put($idno);
-	}
-
-	/**
-	 * 
-	 *  Reload year facets
-	 * 
-	 * @sid - study id
-	 * 
-	 */
-	public function refresh_year_facets_get($start_row=NULL, $limit=1000)
-	{		        
-        try{
-			$this->has_dataset_access('edit');
-			$output=$this->Dataset_model->refresh_year_facets($start_row, $limit);
-			$output=array(
-                'status'=>'success',
-                'result'=>$output
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);			
-		}
-		catch(Exception $e){
-            $error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
-		}
-    }
-
-	/**
-	 * 
-	 *  Batch Reload facets/filters by dataset type
-	 * 
-	 * @dataset_type - dataset type - microdata, timeseries, etc
-	 * @limit - number of items to process per request
-	 * @start - starting dataset id
-	 * 
-	 */
-	public function batch_refresh_filters_get($dataset_type=null, $limit=100, $start=0)
-	{		
-		try{
-			$user_id=$this->get_api_user_id();
-			$this->has_dataset_access('edit');
-			if ($dataset_type==null){
-				throw new Exception("DATASET_TYPE_IS_REQUIRED");
-			}
-
-			if(!is_numeric($start)){
-				throw new Exception("PARAM:START-INVALID");
-			}
-			
-			$datasets=(array)$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
-			
-			$last_processed=null;
-			$output=array();
-			foreach($datasets  as $dataset){
-				$this->dataset_manager->refresh_filters($dataset['id']);
-				$output[]=$dataset['id'];
-				$last_processed=$dataset['id'];
-			}
-			
-			$output=array(
-				'status'=>'success',
-				'datasets_updated'=>$output,
-				'last_processed'=>$last_processed			
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}				
-	}
-
 
 	/**
 	 * 
@@ -1829,14 +1729,15 @@ class Datasets extends MY_REST_Controller
 	 * @start - starting dataset id
 	 * 
 	 */
-	public function batch_repopulate_index_put($dataset_type=null, $limit=100, $start=0)
+	public function batch_repopulate_index_get($dataset_type=null, $limit=100, $start=0)
 	{		
 		try{
 			$user_id=$this->get_api_user_id();
 			$this->has_dataset_access('edit');
-			if ($dataset_type==null){
+
+			/*if ($dataset_type==null){
 				throw new Exception("DATASET_TYPE_IS_REQUIRED");
-			}
+			}*/
 
 			if(!is_numeric($start)){
 				throw new Exception("PARAM:START-INVALID");
@@ -1845,7 +1746,8 @@ class Datasets extends MY_REST_Controller
 			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
 			
 			$output=array();
-			foreach($datasets  as $dataset){
+			$last_processed=0;
+			foreach($datasets as $dataset){
 				$this->dataset_manager->repopulate_index($dataset['id']);
 				$output[]=$dataset['id'];
 				$last_processed=$dataset['id'];

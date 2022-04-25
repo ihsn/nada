@@ -880,9 +880,10 @@ class Catalog_search_sqlsrv{
 		$years=$this->_build_years_query();
 		$dtype=$this->_build_dtype_query();
 		$repository = $this->_build_repository_query();
+		$type=$this->_build_dataset_type_query();
 		
 		//array of all options
-		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository);
+		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository,$type);
 
         //show only publshed studies
         $where_list[]='published=1';
