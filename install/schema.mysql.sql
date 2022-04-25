@@ -1252,6 +1252,7 @@ CREATE TABLE `data_files` (
   `missing_data` varchar(255) DEFAULT NULL,
   `version` varchar(255) DEFAULT NULL,
   `notes` varchar(255) DEFAULT NULL,
+  `metadata` varchar(5000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_file` (`sid`,`file_id`)  
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

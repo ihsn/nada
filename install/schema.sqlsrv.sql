@@ -1369,6 +1369,7 @@ CREATE TABLE data_files (
   missing_data varchar(255) DEFAULT NULL,
   version varchar(255) DEFAULT NULL,
   notes varchar(255) DEFAULT NULL,
+  metadata varchar(max) DEFAULT NULL,
   PRIMARY KEY (id)  
 );
 
