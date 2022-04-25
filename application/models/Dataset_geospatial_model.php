@@ -298,12 +298,18 @@ class Dataset_geospatial_model extends Dataset_model {
         $file_counter=1;
         foreach($feature_catalog['featureType'] as $feature_type)
         {
+            $file_metadata=$feature_type;
+            if (isset($file_metadata['carrierOfCharacteristics'])){
+                unset($file_metadata['carrierOfCharacteristics']);
+            }
+            
             $file_id='F'.$file_counter++;
             $data_file=array(
                 'sid'=>$sid,
                 'file_id'=>$file_id,
                 'file_name'=>$feature_type['typeName'],
-                'description'=>$feature_type['definition']                
+                'description'=>$feature_type['definition'],
+                'metadata'=> json_encode($file_metadata)
             );
 
             $file=$this->Data_file_model->get_file_by_id($sid,$file_id);
