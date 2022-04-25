@@ -132,10 +132,13 @@ class Dataset_model extends CI_Model {
 	 * 
 	 * 
 	 */
-	function get_list_by_type($dataset_type, $limit=100, $start=0)
+	function get_list_by_type($dataset_type=null, $limit=100, $start=0)
 	{
 		$this->db->select('id,idno');
-		$this->db->where('type',$dataset_type);
+		
+		if($dataset_type){
+			$this->db->where('type',$dataset_type);
+		}
 
 		if(is_numeric($start)){
 			$this->db->where('id>',$start);
@@ -1147,6 +1150,16 @@ class Dataset_model extends CI_Model {
             $this->db->insert('survey_tags',$options);
 		}
 	}
+
+	function add_tags($sid, $tags)
+    {
+        if(empty($tags)){
+            return false;
+        }
+        
+        $tags=array_column($tags,'tag');
+        return $this->add_survey_tags($sid,$tags);        
+    }
 
 
 

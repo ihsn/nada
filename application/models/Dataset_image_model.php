@@ -59,22 +59,9 @@ class Dataset_image_model extends Dataset_model {
             $dataset_id=$this->insert($type,$options);
         }
 
-		//update years
-        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
-        
-        //countries
-        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
+        $this->update_filters($dataset_id,$options['metadata']);
 
-		//set topics
-
-        //update tags
-        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
-
-		//set aliases
-
-		//set geographic locations (bounding box)
-
-		//complete transaction
+        //complete transaction
 		$this->db->trans_complete();
 
 		return $dataset_id;
@@ -230,6 +217,25 @@ class Dataset_image_model extends Dataset_model {
 
         return $output;
     }
-    
+ 
+    /**
+     * 
+     * Update all related tables used for facets/filters
+     * 
+     * 
+     */
+    function update_filters($sid, $metadata=null)
+    {
+        if (!is_array($metadata)){            
+            return false;
+        }
+
+        $core_fields=$this->get_core_fields($metadata);
+
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
+        return true;
+    }
 
 }

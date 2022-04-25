@@ -61,7 +61,7 @@ class Dataset_microdata_model extends Dataset_model {
         }
 
         //get core fields for listing datasets in the catalog
-        $core_fields=$this->get_core_fields($type,$options);
+        $core_fields=$this->get_core_fields($options);
         $options=array_merge($options,$core_fields);
 
         if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
@@ -113,22 +113,8 @@ class Dataset_microdata_model extends Dataset_model {
         //set owner repo
         $this->Dataset_model->set_dataset_owner_repo($dataset_id,$options['repositoryid']); 
 
-		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
-
-        //set topics
-        //$this->delete_topics($dataset_id);
-        //$this->update_topics($dataset_id,$this->get_array_nested_value($options,'study_desc/study_info/topics'));
-
-		//update countries
-		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
-
-		//set aliases
-        
-        //tags
-        $this->add_tags($dataset_id,$this->get_array_nested_value($options,'metadata/tags'));
-
-		//set geographic locations (bounding box)
+        //facets/filters
+        $this->update_filters($dataset_id,$options['metadata']);
 
         //for creating new studies, always remove the existing data
         $remove_existing=true;
@@ -468,7 +454,7 @@ class Dataset_microdata_model extends Dataset_model {
 	 * 
 	 * 
 	 */
-	function get_core_fields($type,$options)
+	function get_core_fields($options)
 	{
 		$output=array();
 
@@ -614,35 +600,17 @@ class Dataset_microdata_model extends Dataset_model {
      * 
      * 
      */
-    function update_filters($sid, $metadata)
+    function update_filters($sid, $metadata=null)
     {        
         if (!is_array($metadata)){            
             return false;
         }
 
-        $core_fields=$this->get_core_fields($type='survey',$metadata);
-
-        //update years
-		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-		//tags
+        $core_fields=$this->get_core_fields($metadata);
+		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);        
         $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
-
-        //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
-
         return true;
     }
 
-
-
-    function add_tags($sid, $tags)
-    {
-        if(empty($tags)){
-            return false;
-        }
-        
-        $tags=array_column($tags,'tag');
-        return parent::add_survey_tags($sid,$tags);        
-    }
 }

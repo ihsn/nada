@@ -71,7 +71,6 @@ class Dataset_geospatial_model extends Dataset_model {
             unset($options['metadata']['description']['distributionInfo']['transferOptions']['onLine']);
         }
 
-
 		//start transaction
 		$this->db->trans_start();
 
@@ -88,30 +87,17 @@ class Dataset_geospatial_model extends Dataset_model {
             $dataset_id=$this->insert($type,$options);
         }
 
-		//update years
-        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
+        $this->update_filters($dataset_id,$options['metadata']);
 
-        $this->add_tags($dataset_id,$this->get_array_nested_value($options,'metadata/tags'));
-        
         //import external resources
         $this->update_resources($dataset_id,$external_resources);
-
-		//set topics
 
         //feature catalog
         $this->upsert_feature_catalog($dataset_id,$feature_catalog);
 
+        //update surveys.keywords
         $this->update_feature_keywords($dataset_id,$feature_catalog);
         
-        //update related countries
-        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
-
-		//set aliases
-
-		//set geographic locations (bounding box)
-        $bbox=$this->get_bbox_array($options['metadata']);
-        $this->update_locations($dataset_id, $bbox);
-
 		//complete transaction
 		$this->db->trans_complete();
 
@@ -253,21 +239,29 @@ class Dataset_geospatial_model extends Dataset_model {
 	}    
 
 
-     /**
+    
+    /**
      * 
      * Update all related tables used for facets/filters
      * 
      * 
      */
-    function update_filters($sid, $metadata)
+    function update_filters($sid, $metadata=null)
     {
+        if (!is_array($metadata)){            
+            return false;
+        }
+
         $core_fields=$this->get_core_fields($metadata);
 
-        //update years
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-        //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
+
+        $bbox=$this->get_bbox_array($metadata);
+        $this->update_locations($sid, $bbox);
+
+        return true;
     }
 
 
@@ -277,6 +271,9 @@ class Dataset_geospatial_model extends Dataset_model {
 
         $bbox=array();
         foreach($bbox_arr as $row){
+            if (!isset($row['northBoundLatitude'])){
+                continue;
+            }
             $bbox[]=array(
                 'north'=>$row['northBoundLatitude'],
                 'south'=>$row['southBoundLatitude'],
@@ -336,11 +333,17 @@ class Dataset_geospatial_model extends Dataset_model {
         foreach($car_chars as $variable){
             $vid='V'.$var_counter++;
             $listed_values=isset($variable['listedValue']) ? $variable['listedValue'] : '';
+            $labl=isset($variable['definition']) ? $variable['definition'] : '';
+            
+            if ($labl>255){
+                $labl=substr(0,250).'...';
+            }
+
             $variable_metadata=array(
                 'fid'=>$fid,
                 'vid'=>$fid.'-'.$vid,
                 'name'=>isset($variable['memberName']) ? $variable['memberName'] : '',
-                //'labl'=>$variable['memberName'],
+                'labl'=>$labl,
                 'qstn'=>isset($variable['definition']) ? $variable['definition'] : '',
                 'catgry'=>$this->listed_values_to_str($listed_values),
                 'metadata'=>$variable
@@ -409,16 +412,5 @@ class Dataset_geospatial_model extends Dataset_model {
         }
 
         return implode(" ",$output);
-    }
-
-
-    function add_tags($sid, $tags)
-    {
-        if(empty($tags)){
-            return false;
-        }
-        
-        $tags=array_column($tags,'tag');
-        return parent::add_survey_tags($sid,$tags);        
     }
 }

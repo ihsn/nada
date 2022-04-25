@@ -78,16 +78,14 @@ class Dataset_timeseries_model extends Dataset_model {
 
         $options['changed']=date("U");
         
-        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional');
-        
+        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional');        
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
                 $options['metadata'][$section]=$options[$section];
                 unset($options[$section]);
             }
-        }
-                        
+        }                        
 
 		//start transaction
 		$this->db->trans_start();
@@ -101,17 +99,7 @@ class Dataset_timeseries_model extends Dataset_model {
             $dataset_id=$this->insert($type,$options);
         }
 
-		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
-
-		//set topics
-
-        //update related countries
-		$this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
-
-		//set aliases
-
-		//set geographic locations (bounding box)
+        $this->update_filters($dataset_id,$options['metadata']);
 
 		//complete transaction
 		$this->db->trans_complete();
@@ -126,25 +114,18 @@ class Dataset_timeseries_model extends Dataset_model {
      * 
      * 
      */
-    function update_filters($sid, $metadata)
+    function update_filters($sid, $metadata=null)
     {
+        if (!is_array($metadata)){            
+            return false;
+        }
+
         $core_fields=$this->get_core_fields($metadata);
 
-        //update years
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-		//set topics
-
-        //update countries field for dataset
-        $dataset_options=array(
-            'nation'=>$core_fields['nation']
-        );
-
-        $this->update_options($sid,$dataset_options);
-
-        //update related countries
-        $countries=$core_fields['nations'];
-		$this->Survey_country_model->update_countries($sid,$countries);
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
+        return true;
     }
 
 
