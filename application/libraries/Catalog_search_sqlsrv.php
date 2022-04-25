@@ -911,7 +911,7 @@ class Catalog_search_sqlsrv{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.fid,v.uid,v.name,v.labl,v.vid, v.qstn, surveys.title as title,surveys.nation as nation, v.sid, surveys.idno",FALSE);
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid, v.qstn, surveys.title as title,surveys.nation as nation, v.sid, surveys.idno",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
@@ -1037,7 +1037,7 @@ class Catalog_search_sqlsrv{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		$this->ci->db->where('v.sid',$surveyid);
