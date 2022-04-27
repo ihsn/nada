@@ -341,7 +341,7 @@ class Dataset_geospatial_model extends Dataset_model {
             $listed_values=isset($variable['listedValue']) ? $variable['listedValue'] : '';
             $labl=isset($variable['definition']) ? $variable['definition'] : '';
             
-            if ($labl>255){
+            if (strlen($labl)>255){
                 $labl=substr(0,250).'...';
             }
 
