@@ -40,7 +40,7 @@
                 <?php if (isset($script['file_name'])):?> 
                     <?php if (isset($options['resources']) && array_key_exists($script['file_name'],$options['resources'])):?>                        
                         <?php 
-                            $resource = $options['resources'][$script['file_name']];                            
+                            $resource = $options['resources'][basename($script['file_name'])];
                         ?>
                         <a 
                             href="<?php echo site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}");?>" 
@@ -54,9 +54,9 @@
                     <?php if (isset($options['resources']) && 
                             isset($script['zip_package']) &&                             
                             !array_key_exists($script['file_name'],$options['resources']) &&
-                            array_key_exists($script['zip_package'],$options['resources'])):?>                        
+                            array_key_exists(basename($script['zip_package']),$options['resources'])):?>                        
                         <?php 
-                            $resource = $options['resources'][$script['zip_package']];                            
+                            $resource = $options['resources'][basename($script['zip_package'])];                            
                         ?>
                         <a 
                             href="<?php echo site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}");?>" 
@@ -81,6 +81,9 @@
                                 </div>
                                 <div class="col">
                                     <?php if($field_name=='zip_package' || $field_name=='file_name'):?>
+                                        <?php
+                                            $value=basename($value);
+                                        ?>
                                         <?php if (isset($options['resources']) &&                 
                                                 array_key_exists($value,$options['resources'])):?>                        
                                             <?php 
