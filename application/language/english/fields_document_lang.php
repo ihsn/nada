@@ -207,6 +207,9 @@ $lang['metadata.files.note']='Notes';
 $lang['metadata.tags']='Tags';
 $lang['metadata.tags.tag']='Tag';
 
+$lang['scope and coverage']='Scope and coverage';
+$lang['bibliographic information']='Bibliographic information';
+
 
 $lang['metadata.embeddings']='Embeddings';
 $lang['metadata.embeddings.id']='ID';

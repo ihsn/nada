@@ -1,7 +1,7 @@
 <?php 
 
     $column_class='col-3';//set boostrap column size
-    $show_empty=true; //show empty fields
+    $show_empty=false; //show empty fields
 
     if (isset($options['column_class'])){
         $column_class=$options['column_class'];

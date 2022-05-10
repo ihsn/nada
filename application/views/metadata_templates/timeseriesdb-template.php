@@ -10,6 +10,16 @@
 ?>
 
 
+<style>
+.field-metadata__database_description__geographic_units  .field-value{
+    max-height:300px;
+    overflow-y:auto;
+}
+
+
+</style>
+
+
 <?php 
     //rendered html for all sections
     $output=array();
@@ -64,9 +74,7 @@
 
         "metadata.database_description.notes"=>"array",
         "metadata.database_description.disclaimer"=>"text",
-        "metadata.database_description.copyright"=>"text",
-
-        "metadata.additional"=>"object",
+        "metadata.database_description.copyright"=>"text",        
     ),
     $metadata);
 ?>

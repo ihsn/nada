@@ -16,6 +16,11 @@
     .field-label{
         font-weight:bold;
     }
+    .field-metadata__document_description__ref_country .field-value{
+        max-height:300px;
+        overflow-y:auto;
+    }
+    
 </style>
 
 
@@ -23,6 +28,15 @@
 <?php 
     //rendered html for all sections
     $output=array();
+
+    //remove vectors
+    if (isset($metadata['metadata']['embeddings'])){
+        foreach($metadata['metadata']['embeddings'] as $embed_key=>$embedding){
+            if (isset($embedding['vector'])){
+                unset($metadata['metadata']['embeddings'][$embed_key]['vector']);
+            }
+        }
+    }
 ?>
 
 <!-- description -->
@@ -42,7 +56,7 @@
             ),
         $metadata),
                     
-        render_field("array","metadata.document_description.authors",get_field_value("metadata.document_description.authors",$metadata)),
+        render_field("array_authors","metadata.document_description.authors",get_field_value("metadata.document_description.authors",$metadata)),
         render_field("array","metadata.document_description.editors",get_field_value("metadata.document_description.editors",$metadata)),
         render_field("text","metadata.document_description.type",get_field_value("metadata.document_description.type",$metadata)),
         render_field("text","metadata.document_description.publication_frequency",get_field_value("metadata.document_description.publication_frequency",$metadata)),
@@ -58,7 +72,7 @@
         render_field("resources","metadata.resources",get_field_value("metadata.resources",$metadata))
     );
 
-    $output["dscription"]=render_group_text ("description",implode("",$description));
+    $output["description"]=render_group_text ("description",implode("",$description));
 
 ?>
 

@@ -628,6 +628,23 @@
             }
           }
         },
+        "api_documentation": {
+          "type":"array",
+          "description": "API Documentation",
+          "items":{          
+					"type": "object",					
+					"properties": {
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"uri": {
+							"title": "URI",
+							"type": "string"
+						}
+					}
+          }
+				},
         "publications": {
           "type": "array",
           "title": "Publications",

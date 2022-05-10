@@ -70,7 +70,7 @@
         
         "metadata.series_description.related_indicators"=>"array",        
         "metadata.series_description.compliance"=>"array",
-        "metadata.series_description.framework"=>"array",
+        "metadata.series_description.framework"=>"array_vertical",
         "metadata.series_description.series_groups"=>"array",
         "metadata.additional"=>"object"        
     ),
@@ -80,8 +80,7 @@
 
 <?php $output['api_documentation']= render_group('api_documentation',
     $fields=array(
-        "metadata.series_description.api_documentation.description"=>"text",
-        "metadata.series_description.api_documentation.url"=>"text",
+        "metadata.series_description.api_documentation"=>"array"
     ),
     $metadata);
 ?>

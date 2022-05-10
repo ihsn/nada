@@ -628,6 +628,23 @@
             }
           }
         },
+        "api_documentation": {
+          "type": "array",
+          "description": "API Documentation",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "title": "Description",
+                "type": "string"
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string"
+              }
+            }
+          }
+        },
         "publications": {
           "type": "array",
           "title": "Publications",
@@ -1020,7 +1037,7 @@
             "required": [
               "model_id"
             ]
-          },              
+          },
           "topic_description": {
             "type": "array",
             "title": "Topic information",
@@ -1029,11 +1046,17 @@
               "properties": {
                 "topic_id": {
                   "title": "Topic identifier",
-                  "type": ["integer", "string"]
+                  "type": [
+                    "integer",
+                    "string"
+                  ]
                 },
                 "topic_score": {
                   "title": "Topic score",
-                  "type": ["number", "string"]
+                  "type": [
+                    "number",
+                    "string"
+                  ]
                 },
                 "topic_label": {
                   "title": "Topic label",
@@ -1066,12 +1089,11 @@
               "topic_id"
             ]
           }
-          
         },
         "additionalProperties": false
       }
     },
-    "embeddings":{
+    "embeddings": {
       "type": "array",
       "title": "Word embeddings",
       "description": "Word embeddings",
@@ -1096,7 +1118,8 @@
           }
         },
         "required": [
-          "id","vector"
+          "id",
+          "vector"
         ]
       }
     },

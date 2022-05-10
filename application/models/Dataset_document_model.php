@@ -144,17 +144,22 @@ class Dataset_document_model extends Dataset_model {
         if(is_array($authors)){
             $authors_str=array();
             foreach($authors as $author){
-                $tmp=array();
-                $tmp[]=$this->get_array_nested_value($author,'first_name');
-                $tmp[]=$this->get_array_nested_value($author,'last_name');
 
-                $authors_str[]=implode(" ", $tmp);
+                $fullname=$this->get_array_nested_value($author,'full_name');
+
+                if (!empty($fullname)){
+                    $authors_str[]=$fullname;
+                }
+                else{
+                    $tmp=array();
+                    $tmp[]=$this->get_array_nested_value($author,'first_name');
+                    $tmp[]=$this->get_array_nested_value($author,'last_name');
+                    $authors_str[]=implode(" ", $tmp);
+                }
             }
 
             $output['authoring_entity']=implode(", ",$authors_str);
         }
-
-        
 
         $years=$this->get_years($options);
         $output['year_start']=$years['start'];

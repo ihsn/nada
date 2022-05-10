@@ -3,7 +3,7 @@
     $sub_title=array();
     
     if ($survey['type']=='document' && isset($survey['metadata']['document_description']['authors'])){
-        $sub_title[]= '<span id="dataset-country">'.authors_to_string($survey['metadata']['document_description']['authors']).'</span>';
+        $sub_title[]= '<span id="dataset-country">'.$survey['authoring_entity'].'</span>';
     }else{        
         if ($survey['nation']!=''){
             $sub_title[]='<span id="dataset-country">'.$survey['nation'].'</span>';
