@@ -270,8 +270,11 @@ $ddi=$this->ddi_writer;
         training process. The type attribute allows specification of the type of training being described.
         
         --> 
-        */?>       
-        <collectorTraining type="<?php $ddi->el('study_desc/method/data_collection/collector_training/type');?>"><?php $ddi->el('study_desc/method/data_collection/collector_training/training');?></collectorTraining>
+        */?>
+        <?php $collector_trainings=(array)$ddi->get_el('study_desc/method/data_collection/collector_training');?>
+        <?php foreach($collector_trainings as $coll_train):?>
+        <collectorTraining type="<?php echo $ddi->attr_val($coll_train,'type');?>"><?php echo $ddi->el_val($coll_train,'training');?></collectorTraining>
+        <?php endforeach;?>
 
         <frequenc><?php $ddi->el('study_desc/method/data_collection/frequency');?></frequenc>
         <sampProc><![CDATA[<?php $ddi->el('study_desc/method/data_collection/sampling_procedure');?>]]></sampProc>

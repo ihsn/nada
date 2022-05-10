@@ -347,11 +347,11 @@ class Variable_model extends CI_Model {
     /**
      * 
      * 
-     * @is_upsert - if true, do upsert instead of insert
+     * insert new variable
      * 
      * 
      */
-    public function insert($sid,$options,$is_upsert=true)
+    public function insert($sid,$options)
     {
         $valid_fields=array(
             'name',
@@ -364,15 +364,6 @@ class Variable_model extends CI_Model {
             'vid',
             'metadata'
         );
-
-        if ($is_upsert==true){            
-            //check if variable already exists
-            $uid=$this->get_uid_by_vid($sid,$options['vid']);
-
-            if($uid){
-                return $this->update($sid,$uid,$options);
-            }
-        }
 
         foreach($options as $key=>$value){
             if(!in_array($key,$valid_fields)){

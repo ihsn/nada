@@ -829,24 +829,19 @@ class Datasets extends MY_REST_Controller
 	 * 
 	 * Create variables for Datasets
 	 * @idno - dataset IDNo
-	 * @file_id - user defined file id e.g. F1
-	 * 
+	 * @merge_metadata - true|false 
+	 * 	- true = partial update metadata 
+	 *  - false = replace all metadata with new
 	 */
-	function variables_post($idno=null,$file_id=null,$type='survey')
+	function variables_post($idno=null,$merge_metadata=false)
 	{
 		try{
 			$this->has_dataset_access('edit');
 			$options=(array)$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
+			$merge_metadata=$merge_metadata==='true';
 
 			$sid=$this->get_sid_from_idno($idno);
-
-			//get file id
-			$fid=$this->Data_file_model->get_fid_by_fileid($sid,$file_id);
-
-			if(!$fid){
-				throw new exception("FILE_NOT_FOUND: ".$file_id);
-			}
 
 			//check if a single variable input is provided or a list of variables
 			$key=key($options);
@@ -858,23 +853,46 @@ class Datasets extends MY_REST_Controller
 				$options=null;
 				$options=$tmp_options;
 			}
+
+			$valid_data_files=$this->Data_file_model->list_fileid($sid);
 			
 			//validate all variables
 			foreach($options as $key=>$variable){
-				$variable['fid']=$file_id;
-				$this->Variable_model->validate_variable($variable);
-			}
 
-			$result=array();
-			foreach($options as $variable)
-			{
-				$variable['fid']=$file_id;
-				//all fields are stored as metadata
-				$variable['metadata']=$variable;
-				$variable_id=$this->Variable_model->insert($sid,$variable);
-				//$variable=$this->Variable_model->select_single($variable_id);
-				//$result[$variable['vid']]=$variable;
-				$result[$variable['vid']]=$variable_id;
+				if (!isset($variable['file_id'])){
+					throw new Exception("`file_id` is required");
+				}
+
+				if (!in_array($variable['file_id'],$valid_data_files)){
+					throw new Exception("Invalid `file_id`: valid values are: ". implode(", ", $valid_data_files ));
+				}
+
+				if (isset($variable['vid']) && !empty($variable['vid'])){
+					//check if variable already exists
+					$uid=$this->Variable_model->get_uid_by_vid($sid,$variable['vid']);
+					$variable['fid']=$variable['file_id'];
+		
+					if($uid){
+						$var_mt=$this->Variable_model->get_var_by_vid($sid,$variable['vid']);
+						$var_mt=isset($var_mt['metadata']) ? $var_mt['metadata']: array();
+						
+						//replace metadata with new options
+						if($merge_metadata==true){
+							$variable=array_replace_recursive($var_mt,$variable);
+						}
+												
+						$this->Variable_model->validate_variable($variable);						
+						$variable['metadata']=$variable;
+						$this->Variable_model->update($sid,$uid,$variable);
+					}
+					else{
+						$this->Variable_model->validate_variable($variable);
+						$variable['metadata']=$variable;
+						$this->Variable_model->insert($sid,$variable);
+					}
+
+					$result[]=$variable['vid'];
+				}
 			}
 
 			//update survey varcount

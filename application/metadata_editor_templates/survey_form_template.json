@@ -131,7 +131,7 @@
             "title": "Overview",
             "items": [
                 {
-                    "key": "study_desc.study_info.notes",
+                    "key": "study_desc.study_info.abstract",
                     "title": "Abstract",
                     "type": "textarea"
                 },
@@ -156,7 +156,7 @@
             "title": "Scope",
             "items": [
                 {
-                    "key": "study_desc.study_notes",
+                    "key": "study_desc.study_info.notes",
                     "title": "Description of scope",
                     "type": "textarea"
                 }
