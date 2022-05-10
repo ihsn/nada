@@ -12,7 +12,7 @@ $ddi=$this->ddi_writer;
         <IDNo><?php $ddi->el('study_desc/title_statement/idno');?></IDNo>
       </titlStmt>      
       <rspStmt>
-        <?php $authoring_entities=$ddi->get_el('study_desc/authoring_entity');?>
+        <?php $authoring_entities=(array)$ddi->get_el('study_desc/authoring_entity');?>
         <?php foreach($authoring_entities as $auth_entity):?>
         <AuthEnty affiliation="<?php echo $ddi->attr_val($auth_entity,'affiliation');?>"><?php echo $ddi->el_Val($auth_entity,'name');?></AuthEnty>
         <?php endforeach;?>

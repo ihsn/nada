@@ -143,9 +143,11 @@ class DDI_Writer
         $files=$this->ci->Data_file_model->get_all_by_survey($id);
         $writer->writeRaw("\n");
         
-        foreach($files as $file){
-            $writer->writeRaw($this->get_file_desc_xml($file));
-            $writer->writeRaw("\n");
+        if (!empty($files)){
+            foreach($files as $file){
+                $writer->writeRaw($this->get_file_desc_xml($file));
+                $writer->writeRaw("\n");
+            }
         }
 
         //dataDscr
