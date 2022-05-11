@@ -35,7 +35,7 @@
         
             <div class="file-description"><?php echo nl2br($file['description']);?></div>
         </td>
-        <?php if(!empty($case_counts_col)):?>)
+        <?php if(!empty($case_counts_col)):?>
             <td><?php echo $file['case_count'];?></td>
         <?php endif;?>
         <?php if(!empty($case_counts_col)):?>
