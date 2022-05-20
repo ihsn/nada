@@ -172,7 +172,7 @@
                             <?php if($survey['link_study']!=''): ?>						
                                 <a  target="_blank" href="<?php echo html_escape($survey['link_study']);?>" title="<?php echo t('link_study_website_hover');?>">
                                     <span class="mr-2">
-                                        <i class="fa fa-globe" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
+                                        <i class="fa fa-globe-americas" aria-hidden="true"> </i> <?php echo t('link_study_website');?>
                                     </span>
                                 </a>
                             <?php endif; ?>

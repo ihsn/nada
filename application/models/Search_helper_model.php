@@ -748,12 +748,22 @@ class Search_helper_model extends CI_Model {
 	*/	
 	function get_countries_list($countries)
 	{
-		$this->db->select('countryid,name');
-		
+		$countries_list=array();
+
 		if(is_array($countries) && count($countries)>0){
-			$this->db->where_in('countryid',$countries);
+			
+			foreach($countries as $country_id){
+				if(is_numeric($country_id)){
+					$countries_list[]=$country_id;
+				}
+			}
+			if(count($countries_list)==0){
+				return false;
+			}
 		}
 		
+		$this->db->select('countryid,name');
+		$this->db->where_in('countryid',$countries);
 		$result=$this->db->get('countries')->result_array();
 		
 		$output=array();

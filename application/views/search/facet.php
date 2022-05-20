@@ -95,7 +95,7 @@ $facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')
                                 <?php if (isset($item['translated_title'])):?>
                                     <?php echo $item['translated_title']; ?>
                                 <?php else:?>
-                                    <?php echo $item['title'];?>
+                                    <?php echo t($item['title']);?>
                                 <?php endif;?>
                                 
                                 <?php if(isset($item['found'])):?>
@@ -124,7 +124,7 @@ $facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')
                                     <?php if (isset($item['translated_title'])):?>
                                         <?php echo $item['translated_title']; ?>
                                     <?php else:?>
-                                        <?php echo $item['title'];?>
+                                        <?php echo t($item['title']);?>
                                     <?php endif;?>
                                     
                                     <?php if(isset($item['found'])):?>

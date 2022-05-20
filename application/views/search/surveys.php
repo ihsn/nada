@@ -75,7 +75,7 @@
     $type_icons=array(
         'survey'=>'fa-database',
         'microdata'=>'fa-database',
-        'geospatial'=>'fa-globe',
+        'geospatial'=>'fa-globe-americas',
         'timeseries'=>'fa-chart-line',
         'document'=>'fa-file-alt',
         'table'=>'fa-table',

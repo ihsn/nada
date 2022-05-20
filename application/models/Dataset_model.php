@@ -110,7 +110,14 @@ class Dataset_model extends CI_Model {
 			$this->db->limit($limit, $offset);
 		}
 		
-		$result= $this->db->get("surveys")->result_array();
+		$result= $this->db->get("surveys");
+		
+		if ($result){
+			$result=$result->result_array();
+		}else{
+			$error=$this->db->error();
+			throw  new Exception(implode(", ", $error));
+		}
 
 		if($result){
 			return $this->decode_encoded_fields_rows($result);
