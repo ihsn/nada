@@ -328,7 +328,7 @@ class Catalog_search_mysql{
 	 */
 	public function search_counts_by_type()
 	{		
-		//$type=$this->_build_dataset_type_query();
+		$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
@@ -344,7 +344,7 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3,$regions);
+		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3,$regions,$type);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
