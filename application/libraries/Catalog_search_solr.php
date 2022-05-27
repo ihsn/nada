@@ -73,6 +73,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		}
 
 		$this->solr_options=$this->ci->config->item("solr_edismax_options");
+		$this->solr_variable_options=$this->ci->config->item("solr_edismax_variable_options");
 
 		if($this->ci->config->item('solr_debug')==true){
 			$this->debug=true;
@@ -866,11 +867,13 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	//search on variables
 	function vsearch($limit = 15, $offset = 0)
 	{
+        $dataset_types=$this->_build_dataset_type_query();
 		$countries=$this->_build_countries_query();
+		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();
-		$dtype=$this->_build_dtype_query();
+		$repository=!empty($this->repo) ? (string)$this->repo : false;
+        $dtype=$this->_build_dtype_query();
 
-		//get a select query instance
 		$query = $this->solr_client->createSelect();
 
 		$query->setFields(array(
@@ -880,91 +883,97 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 				'qstn',
 				'sid'
 			));
+		
+		$edismax = $query->getEDisMax();
+		$helper = $query->getHelper();
 
 		//vk
-		if($this->variable_keywords)
-		{
-			//$search_query[]='{!join from=sid to=survey_uid}'.$this->variable_keywords;
-			//{!join from=survey_uid to=sid}survey AND countries:1
+		//$search_query[]='{!join from=sid to=survey_uid}'.$this->variable_keywords;
+		//{!join from=survey_uid to=sid}survey AND countries:1
 
-			//join FQ must have all the other filters for countries, years, topics, data access types in the same FQ to work
+		//join FQ must have all the other filters for countries, years, topics, data access types in the same FQ to work
 
-			$join_fq=array();
+		$join_fq=array();
+		$sk="*";
 
-			$sk=$this->study_keywords;
+		//survey keyword search
+		$var_survey_join=sprintf("{!join from=survey_uid to=sid} %s",$sk);
 
-			if (trim($sk)=="")
-			{
-				$sk="*";
-			}
+		//published content only
+		$join_fq[]='published:1';
 
-			//survey keyword search
-			$var_survey_join=sprintf("{!join from=survey_uid to=sid} %s",$sk);
-
-			//published content only
-			$join_fq[]='published:1';
-
-			//countries filter
-			if($countries){
-				$join_fq[]=$countries;
-			}
-
-			//years filter
-			if ($years)	{
-				foreach($years as $key=>$year){
-					$join_fq[]=$year;
-				}
-			}
-
-			//dtype filter
-			if($dtype){
-				$join_fq[]=$dtype;
-			}
-
-			$join_query=$var_survey_join . ' AND '.implode(" AND ",$join_fq);
-			$query->createFilterQuery('variable_join')->setQuery($join_query);
+		if($countries){
+			$join_fq[]=$countries;
 		}
 
-		// create a filterquery
+		if ($years)	{
+			foreach($years as $key=>$year){
+				$join_fq[]=$year;
+			}
+		}
+
+		if($dtype){
+			$join_fq[]=$dtype;
+		}
+
+		if($repository){
+			$join_fq[]=$repository;
+		}
+
+		if($collections){
+			$join_fq[]=$collections;
+		}
+
+		if($dataset_types){
+			$join_fq[]=$dataset_types;
+		}
+
+		//custom user defined filters
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$filter_=$this->_build_facet_query('fq_'.$fc['name'],$this->params[$fc['name']]);
+				if($filter_){
+					$join_fq[]=$filter_;
+					//$query->createFilterQuery('fq_'.$fc['name'])->setQuery($filter_);
+				}
+			}
+		}
+
+		$join_query=$var_survey_join . ' AND '.implode(" AND ",$join_fq);
+		$query->createFilterQuery('variable_join')->setQuery($join_query);
+
 		$query->createFilterQuery('doctype_vsearch')->setQuery('doctype:2');
 		// {!join from=survey_uid to=sid}survey AND countries:1
-
-		//set a query (all prices starting from 12)
-		if ($this->study_keywords){
-			$query->setQuery(sprintf('labl:%s',$this->study_keywords) );
+		
+		$edismax->setQueryFields($this->solr_variable_options['qf']);
+        $edismax->setMinimumMatch($this->solr_variable_options['mm']);
+		
+		if($this->study_keywords){
+			$query->setQuery($helper->escapeTerm($this->study_keywords));
 		}
 
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
 
-		//execute search
 		$resultset = $this->solr_client->select($query);
-
-		//get the total number of documents found by solr
 		$found_rows=$resultset->getNumFound();
-
-		//get search result as array
 		$this->search_result=$resultset->getData();
 
 		//get raw query
-		if($this->debug){			
-			var_dump($resultset->getDebug());
+		if($this->debug){
+			$request = $this->solr_client->createRequest($query);
+			echo 'Request URI: ' . $request->getUri() . '<br/>';
 		}
 
 		if ($found_rows>0)
 		{
 			//get the survey title, country info for all found variables
 			$survey_list=array();
-			foreach($this->search_result['response']['docs'] as $row)
-			{
+			foreach($this->search_result['response']['docs'] as $row){
 				$survey_list[]=$row['sid'];
 			}
 
-			//get survey info from db
 			$surveys=$this->_get_survey_by_id($survey_list);
-
-			//update the resultset with survey info
-			foreach($this->search_result['response']['docs'] as $key=>$row)
-			{
+			foreach($this->search_result['response']['docs'] as $key=>$row){
 				$this->search_result['response']['docs'][$key]['title']=$surveys[$row['sid']]['title'];
 				$this->search_result['response']['docs'][$key]['nation']=$surveys[$row['sid']]['nation'];
 				$this->search_result['response']['docs'][$key]['idno']=$surveys[$row['sid']]['idno'];
@@ -978,6 +987,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$tmp['rows']=$this->search_result['response']['docs'];
 		return $tmp;		
 	}
+
 
 	//search for variables for a single survey
 	function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
