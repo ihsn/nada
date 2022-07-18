@@ -257,6 +257,15 @@ class Datasets extends MY_REST_Controller
 
 
 
+	/**
+	 * 
+	 * Alias for index_put method when PUT is not enabled
+	 * 
+	 */
+	function options_post($idno=null)
+	{
+		return $this->index_put($idno);
+	}
 
 	/**
 	 * 
