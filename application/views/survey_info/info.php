@@ -81,7 +81,11 @@
                     </div>
                     <div class="col">
                         <div class="study-doi">
-                            <?php echo 'https://doi.org/'.$survey['doi'];?>
+                            <?php if (strtolower(substr($survey['doi'],0,4))=='http'):?>
+                                <a target="_blank" href="<?php echo html_escape($survey['doi']);?>"><?php echo $survey['doi'];?></a>
+                            <?php else:?>                                
+                                <a target="_blank" href="<?php echo html_escape('https://doi.org/'.$survey['doi']);?>"><?php echo 'https://doi.org/'.$survey['doi'];?></a>
+                            <?php endif;?>
                         </div>
                     </div>
                 </div>
