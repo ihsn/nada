@@ -42,7 +42,6 @@ class Survey_resource_model extends CI_Model {
 	{
 		//allowed fields
 		$valid_fields=array(
-			'resource_id',
 			'survey_id',
 			'dctype',
 			'title',
