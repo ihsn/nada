@@ -6,7 +6,7 @@
     <?php foreach($data as $row):?>
         <div class="mb-3">
         <?php if (isset($row['description'])):?>
-            <div class="mb-2"><?php echo $row['description'];?></div>
+            <div class="mb-2"><?php echo nl2br(html_escape($row['description']));?></div>
         <?php endif;?>
 
         <?php if (isset($row['dateTime'])):?>

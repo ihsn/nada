@@ -86,7 +86,8 @@ $ident_fields=array(
    //"graphicOverview"=>'array',
     "resourceFormats"=>'array',
     "descriptiveKeywords"=>'array',
-    "spatialRepresentationType"=>"text",        
+    "spatialRepresentationType"=>"text",
+    "spatialResolution"=>'object',
     "topicCategory"=>"text",
 );
 
