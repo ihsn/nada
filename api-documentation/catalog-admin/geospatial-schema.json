@@ -1263,14 +1263,18 @@
 							"spatialResolution": {
 								"title": "Spatial Resolution",
 								"description": "Spatial resolution of the resource",
-								"type": "number",
+								"type": "object",
 								"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:spatialResolution/gmd:MD_Resolution/gco:Distance",
 								"properties": {
 									"uom": {
 										"title": "Unit Of Measure",
 										"description": "Unit considered for the resolution measure",
-										"type": "string",
-										"propertyType": "attribute"
+										"type": "string"										
+									},
+									"value": {
+										"title": "Value",
+										"description": "Value",
+										"type": "number"
 									}
 								}
 							},
