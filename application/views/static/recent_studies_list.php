@@ -63,8 +63,8 @@ $type_icons=array(
                             </h5>
                             
                             <div>
-                                <?php if($row['nation'] && $regional_search===true) :?>
-                                    <strong><?php echo $row['nation'];?></strong>
+                                <?php if($row['nation']) :?>
+                                    <span class="text-secondary"><?php echo $row['nation'];?></span>
                                 <?php endif;?>
 
                                 <?php if (isset($row['authoring_entity']) && $row['authoring_entity']!=''):?>
