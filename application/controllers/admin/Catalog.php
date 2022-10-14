@@ -24,7 +24,7 @@ class Catalog extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin'); 
+		$this->template->set_template('admin');
 		$this->load->library("Dataset_manager");
 
 		//load language file
@@ -64,10 +64,10 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
-		$this->template->set_template('admin5'); 
+		$this->template->set_template('admin5');
 		//css files
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
-        $this->template->add_css($inline_styles,'embed');
+	        $this->template->add_css($inline_styles,'embed');
 
 
 		//js files
@@ -301,29 +301,82 @@ class Catalog extends MY_Controller {
 
 	function upload()
 	{
-		$this->add_study();
+		//user has permissions on the repo
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'create',null,$this->active_repo->repositoryid);
+
+		// @TODO: File Validation Rules
+		// Files XML or RDF should be allowed in one field, they are exclusive
+		$this->form_validation->set_rules('userfile',t('msg_select_ddi'),'callback_upload_file_check');
+		// RRE - One call back check both
+		//$this->form_validation->set_rules('rdf-file',t('msg_select_ddi'),'callback_upload_file_check');
+
+//		$this->form_validation->set_rules('userfile',t('msg_select_ddi'),'uploaded[userfile]|ext_in[userfile.xml]]');
+//		$this->form_validation->set_rules('rdf-file',t('msg_select_ddi'),'uploaded[rdf-file]|mime_in[rdf-file.xml]|ext_in[rdf-file.xml]');
+
+		if ($this->form_validation->run() == FALSE) {
+
+			$this->template->set_template('admin');
+
+			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+			return;
+		} else {
+
+			$new_survey=$this->add_study();
+
+			if (!empty($new_survey)){
+				// RRE Clear Errors
+				$this->session->unset_userdata('error');
+				//redirect('admin/catalog/edit/'.$result['sid'],'refresh');
+				redirect('admin/catalog/edit/'.$new_survey,'refresh');
+				return;
+			}
+
+		}
+		return redirect('admin/catalog/upload');
+	}
+
+	/**
+	 * Upload Form Validation file
+	 *
+	 * @return TRUE | FALSE
+	 * RRE - Validation runs for xml and rdf files
+	 *   Rules: $_FILES Array()
+	 *	fields: xml - userfile,rdf -  rdf-file
+	 *	rdf files requires xml
+	 * matching file names
+	 **/
+	function upload_file_check()
+	{
+		if (empty($_FILES['userfile']['name'])) {
+			$this->form_validation->set_message('upload_file_check','{field} '.t('msg_select_ddi'));
+			return FALSE;
+		}
+
+		if (!empty($_FILES['rdf-file']['name'])) {
+			if (strtolower(basename($_FILES['rdf-file']['name'],'.rdf')) <> strtolower(basename($_FILES['userfile']['name'],'.xml'))) {
+				$this->form_validation->set_message('upload_file_check','{field} '.t('Files need to have the same Name'));
+				return FALSE;
+			}
+		}
+		return TRUE;
 	}
 
 	/**
 	 * Upload form for DDI (xml) file
 	 *
 	 * @return void
+	 * @return Survey ID | NULL
+	 * @TODO: Due a possible Duplicated Record Error or Parse Error
+	 * 	Message should be returned to the form
 	 **/
 	function add_study()
 	{
-		//user has permissions on the repo
-		//$this->acl->user_has_repository_access($this->active_repo->id);
-		$this->acl_manager->has_access_or_die('study', 'create',null,$this->active_repo->repositoryid);
+		// @TODO: Move the Form one level up, add_study calls the model
 
-		$this->template->set_template('admin');
-
-		//show upload form when no DDI is uploaded
-		if(!$this->input->post("submit")){
-			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-			return;
-		}
+		//process form
 
 		$overwrite=$this->input->post("overwrite");
 		$repositoryid=$this->input->post("repositoryid");
@@ -335,8 +388,7 @@ class Catalog extends MY_Controller {
 			$overwrite=FALSE;
 		}
 
-		//process form
-
+		// Uploads the xml File
 		$temp_upload_folder=$this->get_temp_upload_folder();
 
 		//upload class configurations for DDI
@@ -347,8 +399,8 @@ class Catalog extends MY_Controller {
 
 		$this->load->library('upload', $config);
 
-		//process uploaded ddi file
-		$ddi_upload_result=$this->upload->do_upload();
+
+		$ddi_upload_result=$this->upload->do_upload('userfile');
 
 		$uploaded_ddi_path=NULL;
 
@@ -357,7 +409,8 @@ class Catalog extends MY_Controller {
 			$error = $this->upload->display_errors();
 			$this->db_logger->write_log('ddi-upload',$error,'catalog');
 			$this->session->set_flashdata('error', $error);
-			redirect('admin/catalog/add_study','refresh');
+			return NULL;
+			//redirect('admin/catalog/add_study','refresh');
 		}
 		else //successful upload
 		{
@@ -369,7 +422,7 @@ class Catalog extends MY_Controller {
 
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
-		
+
 		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$uploaded_ddi_path;
@@ -390,8 +443,11 @@ class Catalog extends MY_Controller {
 
 			$this->events->emit('db.after.update', 'surveys', $result['sid'],'refresh');
 			$this->session->set_flashdata('success', $result);
-			redirect('admin/catalog/edit/'.$result['sid'],'refresh');return;
+
+			//redirect('admin/catalog/edit/'.$result['sid'],'refresh');return;
+			return $result['sid'];
 		}
+		// @TODO: Find how to replicate this error
 		catch(ValidationException $e){
 			$error_output=array(
 				'status'=>'failed',
@@ -399,13 +455,19 @@ class Catalog extends MY_Controller {
 				'errors'=>$e->GetValidationErrors()
 			);
 
-			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';			
+			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';
 			$this->session->set_flashdata('error', $error_str);
-			redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/upload','refresh');
+
+			// @TODO: Find how to replicate this error
+return;
 		}
 		catch(Exception $e){
 			$this->session->set_flashdata('error', $e->getMessage());
-			redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/upload','refresh');
+			return NULL;
 		}
 	}
 
@@ -413,7 +475,7 @@ class Catalog extends MY_Controller {
 	private function upload_rdf_file($sid)
 	{
 		$this->load->library('catalog_admin');
-		
+
 		//upload class configurations for RDF
 		$config['upload_path'] = $this->get_temp_upload_folder();
 		$config['overwrite'] = FALSE;
@@ -423,7 +485,8 @@ class Catalog extends MY_Controller {
 		$this->upload->initialize($config);
 
 		//process uploaded rdf file
-		$rdf_upload_result=$this->upload->do_upload('rdf');
+		//$rdf_upload_result=$this->upload->do_upload('rdf');
+		$rdf_upload_result=$this->upload->do_upload('rdf-file');
 
 		$uploaded_rdf_path='';
 
@@ -445,9 +508,9 @@ class Catalog extends MY_Controller {
 		return true;
 	}
 
-	
+
 	/**
-	 * 
+	 *
 	 * Sanitize file name
 	 */
 	private function sanitize_filename($name)
