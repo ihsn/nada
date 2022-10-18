@@ -67,9 +67,9 @@ class Catalog extends MY_Controller {
 		$this->template->set_template('admin5');
 		//css files
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
-	        $this->template->add_css($inline_styles,'embed');
-
-
+    
+    $this->template->add_css($inline_styles,'embed');
+    
 		//js files
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 		$this->template->add_js('javascript/catalog_admin.js');
@@ -144,6 +144,7 @@ class Catalog extends MY_Controller {
 	 **/
 	function _search()
 	{
+
 		//records to show per page
 		$per_page = $this->input->get("ps");
 
@@ -153,7 +154,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//current page
-		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
+		$curr_page=$this->input->get('per_page'); //$this->uri->segment(4);
 
 		//filter to further limit search
 		$filter=array();
@@ -174,7 +175,6 @@ class Catalog extends MY_Controller {
 
 		//survey rows
 		$surveys=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
-
 		$survey_id_array=array();
 
 		if(is_array($surveys))
@@ -266,13 +266,13 @@ class Catalog extends MY_Controller {
 		return $data;
 	}
 
-	
+
 	//return temp upload folder path
 	private function get_temp_upload_folder()
 	{
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
-		
+
 		//if not fixed path, use a relative path
 		if (!file_exists($catalog_root) )
 		{
