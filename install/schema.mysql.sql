@@ -346,6 +346,7 @@ CREATE TABLE `surveys` (
   `type` varchar(15) DEFAULT NULL,
   `repositoryid` varchar(100) DEFAULT NULL,
   `title` varchar(255) NOT NULL DEFAULT '',
+  `subtitle` varchar(255) DEFAULT NULL,
   `abbreviation` varchar(45) DEFAULT NULL,
   `authoring_entity` text,
   `nation` varchar(150) DEFAULT '',
@@ -1251,6 +1252,7 @@ CREATE TABLE `data_files` (
   `missing_data` varchar(255) DEFAULT NULL,
   `version` varchar(255) DEFAULT NULL,
   `notes` varchar(255) DEFAULT NULL,
+  `metadata` varchar(5000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_file` (`sid`,`file_id`)  
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
@@ -1486,3 +1488,12 @@ CREATE TABLE `survey_facets` (
   `term_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE `data_access_whitelist` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `repository_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1;

@@ -183,6 +183,16 @@ class DDI2Reader
             )
         );
 
+        $xpath_group["codeBook/stdyDscr/method/dataColl/collectorTraining"] = array(
+            'label' => 'Collector training',
+            'type' => 'table',
+            'cols' => array(
+                '.' => 'txt',
+                '@type' => 'type',
+                '.' => 'training'
+            )
+        );
+
         $xpath_group["codeBook/stdyDscr/dataAccs/useStmt/specPerm"] = array(
             'label' => 'Special permissions',
             'type' => 'table',

@@ -54,7 +54,7 @@ class Dataset_geospatial_model extends Dataset_model {
         $options['changed']=date("U");
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('description','tags','provenance','additional');
+        $study_metadata_sections=array('description','provenance','embeddings','lda_topics','tags','additional');
 
         foreach($study_metadata_sections as $section){
 			if(array_key_exists($section,$options)){
@@ -71,9 +71,14 @@ class Dataset_geospatial_model extends Dataset_model {
             unset($options['metadata']['description']['distributionInfo']['transferOptions']['onLine']);
         }
 
-
 		//start transaction
 		$this->db->trans_start();
+
+        $feature_catalog=isset($options['metadata']['description']['feature_catalogue']) ? $options['metadata']['description']['feature_catalogue'] : null;
+
+        if (isset($options['metadata']['description']['feature_catalogue'])){
+            //unset($options['metadata']['description']['feature_catalogue']);
+        }
         
         if($dataset_id>0){
             $this->update($dataset_id,$type,$options);
@@ -82,21 +87,17 @@ class Dataset_geospatial_model extends Dataset_model {
             $dataset_id=$this->insert($type,$options);
         }
 
-		//update years
-        $this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
-        
+        $this->update_filters($dataset_id,$options['metadata']);
+
         //import external resources
         $this->update_resources($dataset_id,$external_resources);
 
-		//set topics
+        //feature catalog
+        $this->upsert_feature_catalog($dataset_id,$feature_catalog);
 
-        //update related countries
-        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
-
-		//set aliases
-
-		//set geographic locations (bounding box)
-
+        //update surveys.keywords
+        $this->update_feature_keywords($dataset_id,$feature_catalog);
+        
 		//complete transaction
 		$this->db->trans_complete();
 
@@ -177,7 +178,7 @@ class Dataset_geospatial_model extends Dataset_model {
 
         $output['year_start']=$years['start'];
         $output['year_end']=$years['end'];
-        
+
         return $output;
     }
     
@@ -238,21 +239,184 @@ class Dataset_geospatial_model extends Dataset_model {
 	}    
 
 
-     /**
+    
+    /**
      * 
      * Update all related tables used for facets/filters
      * 
      * 
      */
-    function update_filters($sid, $metadata)
+    function update_filters($sid, $metadata=null)
     {
+        if (!is_array($metadata)){            
+            return false;
+        }
+
         $core_fields=$this->get_core_fields($metadata);
 
-        //update years
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-        //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
+
+        $bbox=$this->get_bbox_array($metadata);
+        $this->update_locations($sid, $bbox);
+
+        return true;
     }
 
+
+    function get_bbox_array($metadata)
+    {
+        $bbox_arr=(array)array_data_get($metadata, 'description.identificationInfo.*.extent.geographicElement.*.geographicBoundingBox');
+
+        $bbox=array();
+        foreach($bbox_arr as $row){
+            if (!isset($row['northBoundLatitude'])){
+                continue;
+            }
+            $bbox[]=array(
+                'north'=>$row['northBoundLatitude'],
+                'south'=>$row['southBoundLatitude'],
+                'east'=>$row['eastBoundLongitude'],
+                'west'=>$row['westBoundLongitude']
+            );
+        }
+
+        return $bbox;
+    }
+
+
+    function upsert_feature_catalog($sid,$feature_catalog)
+    {
+        $this->Data_file_model->remove_all_files($sid);
+
+        if (!isset($feature_catalog['featureType'])){
+            return false;
+        }
+
+        //featureType [data file]
+        $file_counter=1;
+        foreach($feature_catalog['featureType'] as $feature_type)
+        {
+            $file_metadata=$feature_type;
+            if (isset($file_metadata['carrierOfCharacteristics'])){
+                unset($file_metadata['carrierOfCharacteristics']);
+            }
+            
+            $file_id='F'.$file_counter++;
+            $data_file=array(
+                'sid'=>$sid,
+                'file_id'=>$file_id,
+                'file_name'=>$feature_type['typeName'],
+                'description'=>$feature_type['definition'],
+                'metadata'=> json_encode($file_metadata)
+            );
+
+            $file=$this->Data_file_model->get_file_by_id($sid,$file_id);
+                
+            if($file){
+                $this->Data_file_model->update($file['id'],$data_file);
+            }else{
+                $this->Data_file_model->insert($sid,$data_file);
+            }
+
+            $car_chars=isset($feature_type['carrierOfCharacteristics']) ? $feature_type['carrierOfCharacteristics'] : null;
+            $this->upsert_carrierOfCharacteristics($sid,$file_id,$car_chars,true);
+        }
+    }
+
+    private function upsert_carrierOfCharacteristics($sid,$fid,$car_chars, $remove_existing=false)
+    {        
+        if ($remove_existing==true){
+            $this->delete_variables($sid,$fid);
+        }
+        
+        if(!is_array($car_chars)){
+            return false;
+        }
+
+        $var_counter=1;
+        foreach($car_chars as $variable){
+            $vid='V'.$var_counter++;
+            $listed_values=isset($variable['listedValue']) ? $variable['listedValue'] : '';
+            $labl=isset($variable['definition']) ? $variable['definition'] : '';
+            
+            if (strlen($labl)>255){
+                $labl=substr(0,250).'...';
+            }
+
+            $variable_metadata=array(
+                'fid'=>$fid,
+                'vid'=>$fid.'-'.$vid,
+                'name'=>isset($variable['memberName']) ? $variable['memberName'] : '',
+                'labl'=>$labl,
+                'qstn'=>isset($variable['definition']) ? $variable['definition'] : '',
+                'catgry'=>$this->listed_values_to_str($listed_values),
+                'metadata'=>$variable
+            );
+
+            $variable_id=$this->Variable_model->insert($sid,$variable_metadata, $upsert=!$remove_existing);
+        }
+
+        //update survey varcount
+        $this->update_varcount($sid);
+        $this->Variable_model->update_survey_timestamp($sid);
+    }
+
+    function delete_variables($sid,$fid)
+    {
+        $this->db->where('sid',$sid);
+        $this->db->where('fid',$fid);
+        $this->db->delete('variables');
+    }
+
+
+    function update_feature_keywords($sid,$feature_catalog)
+    {
+        if (!isset($feature_catalog['featureType'])){
+            return '';
+        }
+
+        $output=array();
+        foreach($feature_catalog['featureType'] as $feature_type)
+        {
+            $output[]=$feature_type['typeName'];
+            $output[]=$feature_type['definition'];
+
+            $car_chars=isset($feature_type['carrierOfCharacteristics']) ? $feature_type['carrierOfCharacteristics'] : null;
+            foreach($car_chars as $variable)
+            {
+                $output[]=isset($variable['memberName']) ? $variable['memberName'] : '';
+                $output[]=isset($variable['definition']) ? $variable['definition'] : '';
+
+                if (isset($variable['listedValue'])){                    
+                    $output[]=$this->listed_values_to_str($variable['listedValue']);
+                }
+            }
+        }
+
+        $output= implode(" ", $output);
+
+        $options=array(
+            'var_keywords'=>$output
+        );
+
+        $this->db->where('id',$sid);    
+        $this->db->update("surveys",$options);
+    }
+
+    //convert listed values array to string
+    function listed_values_to_str($listed_values)
+    {
+        if (!is_array($listed_values)){
+            return '';
+        }
+        $output=array();
+        foreach($listed_values as $lv){
+            $output[]=isset($lv['label']) ? $lv['label'] : '';
+            $output[]=isset($lv['definition']) ? $lv['definition'] : '';
+        }
+
+        return implode(" ",$output);
+    }
 }

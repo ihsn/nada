@@ -65,26 +65,8 @@
 
     <div id="accordion-script-files">
         
-        
-        <table class="tablex table-sm">
-            <thead class="border-bottom">
-            <tr>
-                <td><input type="checkbox" class="checkbox_toggle mr-2" id="script_chk_toggle" /> </td>
-                <td>
-                    <label for="script_chk_toggle" class="my-0">Select/Deselect</label>
-                    <span class="ml-5 script_download_selection"></span>
-                    <button 
-                        type="button" 
-                        class="script_batch_download btn btn-primary btn-sm mr-2 float-right">
-                        <i class="fa fa-download" aria-hidden="true"></i>  Download selected files
-                    </button>
-                </td>
-            </tr>
-            </thead>
         <?php $k=0;foreach($data as $script):$k++;?>
-            <tr class="script-file-container border-top">
-                <td style="vertical-align:top"><input type="checkbox" class="mr-2 chk_script_download" id="chk_<?php echo $k;?>" /></td>
-                <td>
+            <div class="script-file-container border-top">
                     <div class="mb-0" >
                         <label class="my-0 font-weight-bold" for="chk_<?php echo $k;?>"><?php echo $script['title'];?></label>
                     </div>                
@@ -126,11 +108,8 @@
                     </div>
                 </div>
                 </div>
-                </td>
-            </tr>
+        </div>
         <?php endforeach;?>
-        </table>
-
         
     </div>
     </div>

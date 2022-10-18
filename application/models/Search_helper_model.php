@@ -748,17 +748,52 @@ class Search_helper_model extends CI_Model {
 	*/	
 	function get_countries_list($countries)
 	{
-		$this->db->select('countryid,name');
-		
+		$countries_list=array();
+
 		if(is_array($countries) && count($countries)>0){
-			$this->db->where_in('countryid',$countries);
+			
+			foreach($countries as $country_id){
+				if(is_numeric($country_id)){
+					$countries_list[]=$country_id;
+				}
+			}
+			if(count($countries_list)==0){
+				return false;
+			}
 		}
 		
+		$this->db->select('countryid,name');
+		$this->db->where_in('countryid',$countries);
 		$result=$this->db->get('countries')->result_array();
 		
 		$output=array();
 		foreach($result as $row){
 			$output[$row['countryid']]=$row['name'];
+		}
+		
+		return $output;
+	}
+
+	/**
+	* 
+	* Returns a list of regions
+	*
+	* @countries - array of region integer codes
+	*
+	*/	
+	function get_regions_list($regions=null)
+	{
+		$this->db->select('id,title');
+		
+		if(is_array($regions) && count($regions)>0){
+			$this->db->where_in('id',$regions);
+		}
+		
+		$result=$this->db->get('regions')->result_array();
+		
+		$output=array();
+		foreach($result as $row){
+			$output[$row['id']]=$row['title'];
 		}
 		
 		return $output;
@@ -796,5 +831,56 @@ class Search_helper_model extends CI_Model {
 		return $output;
 	}
 
+
+	public function get_active_regions($repositoryid=NULL, $study_type=NULL,$filter_values=array())
+	{
+		//parent regions
+		$this->db->select('parent_regions.title as group_name,regions.id,regions.title,regions.weight,count(distinct surveys.id) as found');
+		$this->db->join('regions', 'parent_regions.id= regions.pid','INNER');
+
+		$this->db->join('region_countries', 'region_countries.region_id=regions.id','INNER');
+		$this->db->join('countries', 'countries.countryid=region_countries.country_id','INNER');
+		$this->db->join('survey_countries', 'survey_countries.cid=countries.countryid','INNER');
+		$this->db->join('surveys', 'surveys.id=survey_countries.sid','INNER');		
+
+		$this->db->order_by('parent_regions.id,regions.weight');
+		$this->db->group_by('parent_regions.title, regions.id, regions.title, regions.weight');
+		$this->db->where('surveys.published',1);
+
+		//filter by repository
+		if (trim($repositoryid)!=='' && $repositoryid!='central')
+		{
+			$subquery= sprintf('(surveys.repositoryid= %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+
+			$this->db->join('survey_repos sr', 'sr.sid=surveys.id','inner');
+			$this->db->where($subquery,null,false);
+		}
+
+		if($study_type!=NULL){
+			$this->db->where('surveys.type',$study_type);
+			if($filter_values!=NULL){
+				$this->db->or_where_in('regions.id',$filter_values);
+			}			
+		}
+
+		$query=$this->db->get('regions as parent_regions');
+		
+		if (!$query){
+			return FALSE;
+		}
+		
+		$rows=$query->result_array();
+		
+		$regions=array();
+		foreach($rows as $row)
+		{
+			$regions[$row['id']]=$row;
+		}
+		
+		return $regions;
+	}
+	
 	
 }//end class

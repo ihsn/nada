@@ -138,43 +138,59 @@ class Dataset_manager{
 
     /**
      * 
+     * Repopulate indexes
      * 
-     * Reload facets/filters data
-     * 
+     * @sid_arr - array of IDs
+     * @index_options (array)
+     *  - study | all study level options (core, facets,keywords, var_keywords)
+     *  - core | only subtitle field for now
+     *  - facets | tags, years
+     *  - keywords | study keywords
+     *  - var_keywords | variable keywords
+     *  - var | all fields for vars
      */
-    function refresh_filters($sid)
+    function repopulate_index($sid, $index_options=array('core','facets','keywords'))
     {
-        $dataset=$this->get_row($sid);
-        $metadata=$this->get_metadata($sid);
-        $type=$dataset['type'];
-
-        return $this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_filters($sid,$metadata);
-    }
-
-
-    /**
-     * 
-     * 
-     * Repopulate dataset index
-     * 
-     */
-    function repopulate_index($sid)
-    {
-        //return $this->ci->Dataset_model->repopulate_index($sid);
-
         $metadata=$this->ci->Dataset_model->get_metadata($sid);
-		$type=$this->ci->Dataset_model->get_type($sid);
+        $type=$metadata['schematype'];
+        $core_fields=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->get_core_fields($metadata);
 
-		$data=array(
-			'keywords'=>$this->ci->Dataset_model->extract_keywords($metadata,$type)
-		);
+        //core/subtitle
+        if (in_array('core',$index_options) || in_array('study',$index_options)){
 
-		if($type=='survey'){
-			$this->ci->Dataset_microdata_model->index_variable_data($sid);
-		}
-		
-		$this->ci->db->where('id',$sid);
-		return $this->ci->db->update('surveys',$data);
+            $this->ci->Dataset_model->update_options($sid,array(
+                'subtitle'=>isset($core_fields['subtitle']) ? $core_fields['subtitle']: null,
+                'year_start'=>$core_fields['year_start'],
+                'year_end'=>$core_fields['year_end'],
+                ));
+        }
+
+        //study keywords
+        if (in_array('keywords',$index_options) || in_array('study',$index_options)){
+            $data=array(
+                'keywords'=>$this->ci->Dataset_model->extract_keywords($metadata,$type)
+            );
+    
+            $this->ci->db->where('id',$sid);
+            $this->ci->db->update('surveys',$data);
+        }
+
+        //microdata variable keywords
+        if (in_array('var_keywords',$index_options) || in_array('study',$index_options)){
+            if($type=='survey'){
+                $this->ci->Dataset_microdata_model->index_variable_data($sid);
+            }    
+        }
+
+        //facets
+        if (in_array('facets',$index_options) || in_array('study',$index_options)){
+            $this->ci->{'Dataset_'.$this->types[$metadata['schematype']].'_model'}->update_filters($sid,$metadata);
+        }
+
+        //variables
+        if (in_array('var',$index_options)){
+            //todo
+        }
     }
 
 

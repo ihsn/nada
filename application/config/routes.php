@@ -82,6 +82,7 @@ $route['api/datasets/(:any)/variables/(:any)'] = "api/datasets/variables/$1/$2";
 //dataset resources
 $route['api/datasets/(:any)/resources'] = "api/resources/$1";
 $route['api/datasets/(:any)/resources/(:num)'] = "api/resources/$1/$2";
+$route['api/datasets/(:any)/resources/delete/(:num)'] = "api/resources/delete/$1/$2";
 $route['api/datasets/(:any)/resources/delete_all'] = "api/resources/delete_all/$1";
 $route['api/datasets/(:any)/resources/import_rdf'] = "api/resources/import_rdf/$1";
 $route['api/datasets/(:any)/resources/download/(:num)'] = "api/resources/download/$1/$2";
