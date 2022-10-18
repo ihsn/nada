@@ -727,12 +727,13 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$param_list=array();
 
 		foreach($params  as $param){
-			$param_list[]=$this->ci->db->escape($param);
+			if (trim($param)!==''){
+				$param_list[]=$this->ci->db->escape($param);
+			}
 		}
 
 		if ( count($param_list)>0){
 			$params= implode(' OR ',$param_list);
-
 			return sprintf(' repositories:(%s)',$params);
 		}
 		
