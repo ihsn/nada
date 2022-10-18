@@ -93,12 +93,12 @@ class Catalog extends MY_Controller {
 		//data access types
 		$this->data_access_types=$this->Form_model->get_all();
 		//data types
-		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid); 
+		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid);
 
 		if ($db_rows['rows'])
 		{
 			$sid_list=array();
-			foreach($db_rows['rows'] as $row) 
+			foreach($db_rows['rows'] as $row)
 			{
 				$sid_list[]=$row['id'];
 			}
@@ -120,10 +120,10 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
-	
+
 
 	function search()
-	{		
+	{
 		if (isset($this->active_repo) && $this->active_repo!=null){
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
@@ -544,9 +544,9 @@ return;
             'file_type'=>'survey',
             'file_path'=>$new_ddi_file
         );
-        
+
 		$this->load->library('Metadata_parser', $parser_params);
-		
+
 		 //parser to read metadata
 		 $parser=$this->metadata_parser->get_reader();
 
@@ -701,14 +701,14 @@ return;
 		}
 	}
 
-	
+
 
 	/**
 	*
 	* Clear files from the imports folder
 	**/
 	function clear_import_folder()
-	{		
+	{
 		$this->load->helper('file');
 		$import_folder=$this->config->item('ddi_import_folder');
 
@@ -743,17 +743,16 @@ return;
 	{
 		//import folder path
 		$import_folder=$this->config->item('ddi_import_folder');
-
 		if (!file_exists($import_folder)){
 			show_error('FOLDER-NOT-SET');
 		}
 
 		$config = array(
-				'max_tmp_file_age' 		=> 900,
-				'max_execution_time' 	=> 300,
-				'target_dir' 			=> $import_folder,
+				'max_tmp_file_age'	=> 900,
+				'max_execution_time'	=> 300,
+				'target_dir' 		=> $import_folder,
 				'allowed_extensions'	=>'xml|rdf',
-				'overwrite_file'		=>TRUE
+				'overwrite_file'	=>TRUE
 				);
 
 		$this->load->library('Chunked_uploader', $config, 'uploader');
@@ -783,7 +782,6 @@ return;
 	}
 
 
-
 	/**
 	 * Imports multiple ddi files from the server folder
 	 *
@@ -802,20 +800,25 @@ return;
 		$import_folder=$this->config->item('ddi_import_folder');
 
 		if (!file_exists($import_folder) ){
-			$import_folder="/datasets";
+			// @TODO: Review datasets directory does not exist either
+			// $import_folder="/datasets";
+			$import_folder="/datafiles/tmp";
 		}
 
 		//read files
 		$files['files']=get_dir_file_info($import_folder);
 
 		if ( $files['files']){
-			foreach($files['files'] as $key=>$value){				
-				if (substr($value['name'],-4)!='.xml'){
+			foreach($files['files'] as $key=>$value){
+				//if (substr($value['name'],-4)!='.xml'){
+				//if (! in_array(pathinfo($value['name'], PATHINFO_EXTENSION), array('xml','rdf'))) {
+				if (! in_array(pathinfo($value['name'], PATHINFO_EXTENSION), array('xml'))) {
+					// @TODO: Check if rdf files should be processed
 					unset($files['files'][$key]);
 				}
 			}
 		}
-		
+
 		$options=array(
 			'repositories'=>$this->Repository_model->select_all(),
 			'files'=>$files['files'],
@@ -855,10 +858,10 @@ return;
 			echo json_encode(array('error'=>t('REPO_ACCESS_DENIED')) );
 			exit;
 		}
-		
+
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
-		
+
 		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$ddi_file;
@@ -890,7 +893,7 @@ return;
 				'message'=>$e->getMessage(),
 				'errors'=>$e->GetValidationErrors()
 			);
-			
+
 			$error=print_r($e->GetValidationErrors(),true);
 			echo json_encode(array('error'=>$error) );
 			die();
@@ -902,7 +905,7 @@ return;
 		}
 	}
 
-	
+
 
 	/**
 	*

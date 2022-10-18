@@ -329,7 +329,7 @@ class Chunked_upload_request {
 	private $_file_type; // mime-type of file
 
 	/**
-	 * Initialises new object with values from the $_REQUEST and 
+	 * Initialises new object with values from the $_REQUEST and
 	 * $_SERVER arrays
 	 */
 
@@ -344,25 +344,33 @@ class Chunked_upload_request {
 		$this->_file_type = isset($_SERVER['HTTP_X_FILE_TYPE'])
 				? $_SERVER['HTTP_X_FILE_TYPE']
 				: '';
+
+		// @TODO: Fatal error: Unparenthesized 'a ? b : c ? d : e' is not supported. 
+		//	Use either '(a ? b : c) ? d : e' or 'a ? b : (c ? d : e)
 		// attempt to get file name from $_REQUEST, otherwise look for X_FILE_NAME header
 		$name = isset($_REQUEST["name"])
 				? $_REQUEST["name"]
-				: (isset($_SERVER['HTTP_X_FILE_NAME'])
+				: (
+					(isset($_SERVER['HTTP_X_FILE_NAME'])
 						? $_SERVER['HTTP_X_FILE_NAME']
-						: 'file');
+						: 'file')
+				  );
+
 		// clean the filename for security
 		$this->_name = preg_replace('/[^\w\._]+/', '_', $name);
 		// attempt to get the content-type from $_SERVER array
 		$this->_content_type = (isset($_SERVER["HTTP_CONTENT_TYPE"]))
 				? $_SERVER["HTTP_CONTENT_TYPE"]
-				: (isset($_SERVER["CONTENT_TYPE"]))
+				: (
+					 (isset($_SERVER["CONTENT_TYPE"]))
 						? $_SERVER["CONTENT_TYPE"]
-						: '';
+						: ''
+				   );
 	}
 
 	/**
 	 * Returns the original filename (from client machine)
-	 * @return string file name 
+	 * @return string file name
 	 */
 	public function get_name()
 	{

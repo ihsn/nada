@@ -6,8 +6,7 @@
 // Convert divs to queue widgets when the DOM is ready
 $(function() {
 
-	function log()
-	{
+	function log() {
 	}
 
 	$("#uploader").pluploadQueue({
@@ -21,9 +20,11 @@ $(function() {
 		multipart_params: { 'upload_folder': 'default', 'overwrite':0},
 
 		// Specify what files to browse for
-		filters : [
+		filters : {
+			mime_types: [
 			{title : "External Resources", extensions : "<?php echo $allowed_extensions;?>"}
-		],
+			]
+		},
 
 		// Flash settings
 		flash_swf_url : 'javascript/plupload/js/Moxie.swf',
@@ -79,12 +80,12 @@ $(function() {
 
 			FileUploaded: function(up, file, info) {
 				// Called when a file has finished uploading
-				//console.log('[FileUploaded] File:', file, "Info:", info);
+				console.log('[FileUploaded] File:', file, "Info:", info);
 			},
 
 			ChunkUploaded: function(up, file, info) {
 				// Called when a file chunk has finished uploading
-				//log('[ChunkUploaded] File:', file, "Info:", info);
+				log('[ChunkUploaded] File:', file, "Info:", info);
 			},
 
 			UploadComplete: function (up, file) {
