@@ -7,11 +7,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Solarium\QueryType\Stream;
+namespace Solarium\QueryType\Server\Api;
+
+use Solarium\QueryType\Server\Query\AbstractResult;
 
 /**
- * @deprecated use ExpressionBuilder instead
+ * API result.
  */
-class Expression extends ExpressionBuilder
+class Result extends AbstractResult
 {
 }

@@ -885,7 +885,11 @@ class LocalParameters implements \ArrayAccess
 
     #[\ReturnTypeWillChange]
     /**
-     * {@inheritdoc}
+     * ArrayAccess implementation.
+     *
+     * @param mixed $offset
+     *
+     * @return mixed
      */
     public function offsetGet($offset)
     {
@@ -906,6 +910,23 @@ class LocalParameters implements \ArrayAccess
     public function offsetUnset($offset): void
     {
         unset($this->parameters[$offset]);
+    }
+
+    /**
+     * Get all local parameters in a key => value format.
+     *
+     * @return array
+     */
+    public function getParameters(): array
+    {
+        $params = [];
+
+        /** @var LocalParameterInterface $parameter */
+        foreach ($this->parameters as $parameter) {
+            $params[$parameter->getType()] = $parameter->getValues();
+        }
+
+        return $params;
     }
 
     /**
@@ -1012,22 +1033,5 @@ class LocalParameters implements \ArrayAccess
         }
 
         return $this->parameters[$type];
-    }
-
-    /**
-     * Get all local parameters in a key => value format.
-     *
-     * @return array
-     */
-    public function getParameters(): array
-    {
-        $params = [];
-
-        /** @var LocalParameterInterface $parameter */
-        foreach ($this->parameters as $parameter) {
-            $params[$parameter->getType()] = $parameter->getValues();
-        }
-
-        return $params;
     }
 }
