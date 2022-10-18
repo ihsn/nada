@@ -328,7 +328,7 @@ class Catalog_search_mysql{
 	 */
 	public function search_counts_by_type()
 	{		
-		$type=$this->_build_dataset_type_query();
+		$type=false;//$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();

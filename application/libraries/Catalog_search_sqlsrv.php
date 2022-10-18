@@ -871,6 +871,10 @@ class Catalog_search_sqlsrv{
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
+		if ($sort_by=='title'){
+			$sort_by="surveys.title";
+		}
+
 		//$variable_keywords=$this->variable_keywords;
 		//$variable_fields=$this->variable_fields;
 
@@ -1165,7 +1169,7 @@ class Catalog_search_sqlsrv{
 	 */
 	public function search_counts_by_type()
 	{		
-		$type=$this->_build_dataset_type_query();
+		$type=false;//$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
