@@ -139,7 +139,7 @@
                     "title": "Art Work or Object",
                     "class": "required",
                     "help_text": "A set of metadata about artwork or an object in the image",
-                    "type": "array",
+                    "type": "nested_array",
                     "props": {
                         "circaDateCreated": {
                             "key": "circaDateCreated",

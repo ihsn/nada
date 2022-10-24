@@ -149,6 +149,10 @@ class Resources extends MY_REST_Controller
 					$options['filename']=$uploaded_file_name;
 				}
 
+				if(!isset($options['filename'])){
+					$options['filename']=null;
+				}
+				
 				//check if resource already exists
 				$resource_exists=$this->Survey_resource_model->check_duplicate($sid,$options['filename'], $options['title'],$options['dctype']);
 				$overwrite=isset($options["overwrite"]) ? $options["overwrite"] : false;
@@ -244,9 +248,6 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
-
-
-
 	//delete a single resource by resource id
 	function index_delete($idno=null,$resource_id=null)
 	{
@@ -280,6 +281,11 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
+	//delete using post
+	function delete_post($idno=null,$resource_id=null)
+	{
+		return $this->index_delete($idno,$resource_id);
+	}
 
 
 	//delete all resources by study
@@ -301,6 +307,10 @@ class Resources extends MY_REST_Controller
 		}
 	}
 
+	public function delete_all_post($idno=null){
+		return $this->delete_all_delete($idno);
+	}
+
 
 	//import rdf file
 	public function import_rdf_post($idno=NULL)
@@ -311,14 +321,8 @@ class Resources extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
 
-			$result=$this->Survey_resource_model->upload_rdf($tmp_path=null,'file');
-			$uploaded_file_name=$result['file_name'];
-			$uploaded_path=$result['full_path'];
-
-			//import entries
+			$uploaded_path=$this->Survey_resource_model->upload_rdf($tmp_path=null,'file');
 			$imported_count=$this->Survey_resource_model->import_rdf($sid,$uploaded_path);
-
-			//delete rdf
 			@unlink($uploaded_path);
 
 			$output=array(

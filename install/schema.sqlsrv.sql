@@ -337,6 +337,7 @@ CREATE TABLE surveys (
   type varchar(15) DEFAULT NULL,
   repositoryid varchar(128) NOT NULL,
   title varchar(255) DEFAULT '',
+  subtitle varchar(255) DEFAULT '',
   abbreviation varchar(45) DEFAULT NULL,
   authoring_entity varchar(max) DEFAULT NULL,
   nation varchar(150) DEFAULT '',
@@ -1374,6 +1375,7 @@ CREATE TABLE data_files (
   missing_data varchar(255) DEFAULT NULL,
   version varchar(255) DEFAULT NULL,
   notes varchar(255) DEFAULT NULL,
+  metadata varchar(max) DEFAULT NULL,
   PRIMARY KEY (id)  
 );
 
@@ -1525,3 +1527,13 @@ CREATE TABLE user_roles (
 
 insert into user_roles (user_id, role_id) 
 	select user_id, group_id from users_groups;
+
+
+
+
+CREATE TABLE data_access_whitelist (
+  id int NOT NULL identity(1,1),
+  user_id int DEFAULT NULL,
+  repository_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);

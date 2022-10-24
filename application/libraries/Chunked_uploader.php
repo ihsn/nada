@@ -353,11 +353,11 @@ class Chunked_upload_request {
 		// clean the filename for security
 		$this->_name = preg_replace('/[^\w\._]+/', '_', $name);
 		// attempt to get the content-type from $_SERVER array
-		$this->_content_type = (isset($_SERVER["HTTP_CONTENT_TYPE"]))
-				? $_SERVER["HTTP_CONTENT_TYPE"]
-				: (isset($_SERVER["CONTENT_TYPE"]))
-						? $_SERVER["CONTENT_TYPE"]
-						: '';
+		$this->_content_type = (isset($_SERVER["HTTP_CONTENT_TYPE"])) ? $_SERVER["HTTP_CONTENT_TYPE"]: '';
+		
+		if ($this->_content_type==''){
+			$this->_content_type=(isset($_SERVER["CONTENT_TYPE"])) ? $_SERVER["CONTENT_TYPE"]: '';
+		}
 	}
 
 	/**

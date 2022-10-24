@@ -88,13 +88,13 @@ function eraseCookie(name) {
 }
 
 $( document ).ready(function() {
-	$(".compare-header #wb-variables-fullscreen" ).click(function() {
+	$(".compare-header #variables-compare-fullscreen" ).click(function() {
 		$("body").toggleClass("wb-fullscreen");
 	});  
 });
 </script>
 
-<div class="compare-header clearfix py-3 px-3">
+<div class="compare-header clearfix py-4 px-3">
 	<div class="container">
 		<div class="row">
 			<div class="col">
@@ -130,7 +130,7 @@ $( document ).ready(function() {
 							<?php echo t('download_json');?>
 						</a> 
 
-						<a href="#" class="fullscreen btn btn-sm" id="wb-variables-fullscreen">
+						<a href="#" class="fullscreen btn btn-sm" id="variables-compare-fullscreen">
 							<i class="fas fa-expand-alt"></i>
 							<i class="fas fa-compress-alt"></i>
 						</a> 
@@ -161,7 +161,7 @@ $( document ).ready(function() {
                 <?php if ($survey_title!==FALSE && $variable_name!==FALSE):?>
             	<div class="compare-box" >
 	            	<div class="compare-box-title" title="<?php echo t('click_drag_move');?>">
-						<div class="var-name" ><?php echo $variable_name;?></div>
+						<div class="var-name text-truncate" style="max-width:70%" ><?php echo $variable_name;?></div>
                         <div class="var-links" >
 							<?php echo anchor('catalog/compare/#remove='.$item['sid'].'/'.$item['vid'],t('remove'),array('class'=>'remove btn btn-outline-primary btn-sm','title'=>t('remove'),'id'=>$item['sid'].'/'.$item['vid']));?>
                         </div>

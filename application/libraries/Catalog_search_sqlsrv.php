@@ -873,6 +873,10 @@ class Catalog_search_sqlsrv{
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
+		if ($sort_by=='title'){
+			$sort_by="surveys.title";
+		}
+
 		//$variable_keywords=$this->variable_keywords;
 		//$variable_fields=$this->variable_fields;
 
@@ -882,9 +886,10 @@ class Catalog_search_sqlsrv{
 		$years=$this->_build_years_query();
 		$dtype=$this->_build_dtype_query();
 		$repository = $this->_build_repository_query();
+		$type=$this->_build_dataset_type_query();
 		
 		//array of all options
-		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository);
+		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository,$type);
 
         //show only publshed studies
         $where_list[]='published=1';
@@ -1038,7 +1043,7 @@ class Catalog_search_sqlsrv{
 		
 		//search
 		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn");
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid");
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);
 		$this->ci->db->where('v.sid',$surveyid);
@@ -1166,7 +1171,7 @@ class Catalog_search_sqlsrv{
 	 */
 	public function search_counts_by_type()
 	{		
-		//$type=$this->_build_dataset_type_query();
+		$type=false;//$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
@@ -1180,7 +1185,7 @@ class Catalog_search_sqlsrv{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$tags);
+		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$tags,$type);
 		
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){

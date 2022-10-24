@@ -30,6 +30,17 @@ $config['solr_edismax_options']=array(
   'bf'=>''
 );
 
+//variable search
+$config['solr_edismax_variable_options']=array(
+  'qf'=>'labl^20.0 name^20.0 catgry qstn', //query fields - qf="title^20 nation keywords"
+  'pf'=>'', //phrase fields
+  'mm'=>'3<90%', //minimum match - 3, 2, 75%, -25% 
+  'ps'=>'',
+  'qs'=>'',
+  'bq'=>'',
+  'bf'=>''
+);
+
 $config['solr_debug']=false;
 
 

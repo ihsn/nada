@@ -173,8 +173,13 @@ $config['survey']=array(
         'transform_callback'=>'transform_ddi_datacollector','type'=>'array'
     ),
     #method > data collection > collector training
-    'study_desc/method/data_collection/collector_training/type'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/collectorTraining/@type', 'transform_callback'=>'none'),
-    'study_desc/method/data_collection/collector_training/training'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/collectorTraining', 'transform_callback'=>'none'),
+    //'study_desc/method/data_collection/collector_training/type'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/collectorTraining/@type', 'transform_callback'=>'none'),
+    //'study_desc/method/data_collection/collector_training/training'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/collectorTraining', 'transform_callback'=>'none'),
+    'study_desc/method/data_collection/collector_training'=>array(
+        'xpath'=>'codeBook/stdyDscr/method/dataColl/collectorTraining', 
+        'transform_callback'=>'none',
+        'type'=>'array'
+    ),
 
     'study_desc/method/data_collection/frequency'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/frequenc', 'transform_callback'=>'none'),
     'study_desc/method/data_collection/sampling_procedure'=>array('xpath'=>'codeBook/stdyDscr/method/dataColl/sampProc', 'transform_callback'=>'none'),

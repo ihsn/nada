@@ -6,25 +6,27 @@
     <?php foreach($data as $row):?>
         <div class="mb-3">
         <?php if (isset($row['description'])):?>
-            <div class="mb-2"><?php echo $row['description'];?></div>
+            <div class="mb-2"><?php echo nl2br(html_escape($row['description']));?></div>
         <?php endif;?>
 
         <?php if (isset($row['dateTime'])):?>
-            <div class="mb-3"><span class="font-weight-bold">Date:</span> <?php echo $row['dateTime'];?></div>    
+            <div class="mb-3"><span class="font-weight-bold"><?php echo t('Date');?>:</span> <?php echo $row['dateTime'];?></div>    
         <?php endif;?>
 
+        <?php if (isset($row['processor'])):?>
         <div>
             <?php echo render_field($field_type='geog_contact',$field_name=$name.'.processor',$row['processor'], array('hide_column_headings'=>false));?>            
         </div>
+        <?php endif;?>
 
         <?php if(isset($row['source'])):?>
             <div class="xsl-caption field-caption"><?php echo t('Sources');?></div>
 
             <table class="table table-striped  table-sm">
                 <tr>
-                    <th>Description</th>
-                    <th>Citation source</th>
-                    <th>Organization</th>
+                    <th><?php echo t('Description');?></th>
+                    <th><?php echo t('Citation source');?></th>
+                    <th><?php echo t('Organization');?></th>
                 </td>
             <?php foreach($row['source'] as $source):?>
                 <tr>

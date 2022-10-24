@@ -131,7 +131,7 @@ class Attach_related_data extends MY_Controller {
 
 
 		//set pagination options
-		$base_url = site_url('admin/dialog_select_studies/index/'.$skey);
+		$base_url = site_url('admin/catalog/attach_related_data/'.$skey);
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $limit;

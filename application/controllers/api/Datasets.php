@@ -257,6 +257,15 @@ class Datasets extends MY_REST_Controller
 
 
 
+	/**
+	 * 
+	 * Alias for index_put method when PUT is not enabled
+	 * 
+	 */
+	function options_post($idno=null)
+	{
+		return $this->index_put($idno);
+	}
 
 	/**
 	 * 
@@ -829,24 +838,19 @@ class Datasets extends MY_REST_Controller
 	 * 
 	 * Create variables for Datasets
 	 * @idno - dataset IDNo
-	 * @file_id - user defined file id e.g. F1
-	 * 
+	 * @merge_metadata - true|false 
+	 * 	- true = partial update metadata 
+	 *  - false = replace all metadata with new
 	 */
-	function variables_post($idno=null,$file_id=null,$type='survey')
+	function variables_post($idno=null,$merge_metadata=false)
 	{
 		try{
 			$this->has_dataset_access('edit');
 			$options=(array)$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
+			$merge_metadata=$merge_metadata==='true';
 
 			$sid=$this->get_sid_from_idno($idno);
-
-			//get file id
-			$fid=$this->Data_file_model->get_fid_by_fileid($sid,$file_id);
-
-			if(!$fid){
-				throw new exception("FILE_NOT_FOUND: ".$file_id);
-			}
 
 			//check if a single variable input is provided or a list of variables
 			$key=key($options);
@@ -858,23 +862,46 @@ class Datasets extends MY_REST_Controller
 				$options=null;
 				$options=$tmp_options;
 			}
+
+			$valid_data_files=$this->Data_file_model->list_fileid($sid);
 			
 			//validate all variables
 			foreach($options as $key=>$variable){
-				$variable['fid']=$file_id;
-				$this->Variable_model->validate_variable($variable);
-			}
 
-			$result=array();
-			foreach($options as $variable)
-			{
-				$variable['fid']=$file_id;
-				//all fields are stored as metadata
-				$variable['metadata']=$variable;
-				$variable_id=$this->Variable_model->insert($sid,$variable);
-				//$variable=$this->Variable_model->select_single($variable_id);
-				//$result[$variable['vid']]=$variable;
-				$result[$variable['vid']]=$variable_id;
+				if (!isset($variable['file_id'])){
+					throw new Exception("`file_id` is required");
+				}
+
+				if (!in_array($variable['file_id'],$valid_data_files)){
+					throw new Exception("Invalid `file_id`: valid values are: ". implode(", ", $valid_data_files ));
+				}
+
+				if (isset($variable['vid']) && !empty($variable['vid'])){
+					//check if variable already exists
+					$uid=$this->Variable_model->get_uid_by_vid($sid,$variable['vid']);
+					$variable['fid']=$variable['file_id'];
+		
+					if($uid){
+						$var_mt=$this->Variable_model->get_var_by_vid($sid,$variable['vid']);
+						$var_mt=isset($var_mt['metadata']) ? $var_mt['metadata']: array();
+						
+						//replace metadata with new options
+						if($merge_metadata==true){
+							$variable=array_replace_recursive($var_mt,$variable);
+						}
+												
+						$this->Variable_model->validate_variable($variable);						
+						$variable['metadata']=$variable;
+						$this->Variable_model->update($sid,$uid,$variable);
+					}
+					else{
+						$this->Variable_model->validate_variable($variable);
+						$variable['metadata']=$variable;
+						$this->Variable_model->insert($sid,$variable);
+					}
+
+					$result[]=$variable['vid'];
+				}
 			}
 
 			//update survey varcount
@@ -1720,106 +1747,6 @@ class Datasets extends MY_REST_Controller
 	}
 
 
-	/**
-	 * 
-	 *  Reload facets/filters
-	 * 
-	 * @sid - study id
-	 * 
-	 */
-	public function refresh_filters_put($idno=null)
-	{		
-		try{
-			$sid=$this->get_sid_from_idno($idno);
-			$this->has_dataset_access('edit',$sid);
-			$this->dataset_manager->refresh_filters($sid);
-
-			$output=array(
-				'status'=>'success'				
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}				
-	}
-
-	public function refresh_filters_get($idno=null)
-	{
-		return $this->refresh_filters_put($idno);
-	}
-
-	/**
-	 * 
-	 *  Reload year facets
-	 * 
-	 * @sid - study id
-	 * 
-	 */
-	public function refresh_year_facets_get($start_row=NULL, $limit=1000)
-	{		        
-        try{
-			$this->has_dataset_access('edit');
-			$output=$this->Dataset_model->refresh_year_facets($start_row, $limit);
-			$output=array(
-                'status'=>'success',
-                'result'=>$output
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);			
-		}
-		catch(Exception $e){
-            $error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
-		}
-    }
-
-	/**
-	 * 
-	 *  Batch Reload facets/filters by dataset type
-	 * 
-	 * @dataset_type - dataset type - microdata, timeseries, etc
-	 * @limit - number of items to process per request
-	 * @start - starting dataset id
-	 * 
-	 */
-	public function batch_refresh_filters_get($dataset_type=null, $limit=100, $start=0)
-	{		
-		try{
-			$user_id=$this->get_api_user_id();
-			$this->has_dataset_access('edit');
-			if ($dataset_type==null){
-				throw new Exception("DATASET_TYPE_IS_REQUIRED");
-			}
-
-			if(!is_numeric($start)){
-				throw new Exception("PARAM:START-INVALID");
-			}
-			
-			$datasets=(array)$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
-			
-			$last_processed=null;
-			$output=array();
-			foreach($datasets  as $dataset){
-				$this->dataset_manager->refresh_filters($dataset['id']);
-				$output[]=$dataset['id'];
-				$last_processed=$dataset['id'];
-			}
-			
-			$output=array(
-				'status'=>'success',
-				'datasets_updated'=>$output,
-				'last_processed'=>$last_processed			
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
-		}				
-	}
-
 
 	/**
 	 * 
@@ -1829,14 +1756,15 @@ class Datasets extends MY_REST_Controller
 	 * @start - starting dataset id
 	 * 
 	 */
-	public function batch_repopulate_index_put($dataset_type=null, $limit=100, $start=0)
+	public function batch_repopulate_index_get($dataset_type=null, $limit=100, $start=0)
 	{		
 		try{
 			$user_id=$this->get_api_user_id();
 			$this->has_dataset_access('edit');
-			if ($dataset_type==null){
+
+			/*if ($dataset_type==null){
 				throw new Exception("DATASET_TYPE_IS_REQUIRED");
-			}
+			}*/
 
 			if(!is_numeric($start)){
 				throw new Exception("PARAM:START-INVALID");
@@ -1845,7 +1773,8 @@ class Datasets extends MY_REST_Controller
 			$datasets=$this->dataset_manager->get_list_by_type($dataset_type, $limit, $start);
 			
 			$output=array();
-			foreach($datasets  as $dataset){
+			$last_processed=0;
+			foreach($datasets as $dataset){
 				$this->dataset_manager->repopulate_index($dataset['id']);
 				$output[]=$dataset['id'];
 				$last_processed=$dataset['id'];
@@ -2087,43 +2016,25 @@ class Datasets extends MY_REST_Controller
 			$log_threshold= $this->config->item("log_threshold");
 			$this->config->set_item("log_threshold",0);	//disable logging temporarily
 			
-			$report_link='';		
 			$params=array('codepage'=>$pdf_options['report_lang']);
 
 			$this->load->library('pdf_report',$params);// e.g. 'codepage' = 'zh-CN';
 			$this->load->library('DDI_Browser','','DDI_Browser');
 				
-			//get ddi file path from db
-			$ddi_file=$this->Catalog_model->get_survey_ddi_path($sid);
 			$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
 			
-			if ($ddi_file===FALSE || !file_exists($ddi_file)){
-				throw new Exception('FILE_NOT_FOUND: '. $ddi_file);
-			}
-		
 			//output report file name
 			$report_file=unix_path($survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$sid.'.pdf');
 						
-			if ($report_link=='')
-			{			
-				//change error logging to 0	
-				$log_threshold= $this->config->item("log_threshold");
-				$this->config->set_item("log_threshold",0);
+			//change error logging to 0	
+			$log_threshold= $this->config->item("log_threshold");
+			$this->config->set_item("log_threshold",0);
 
-				$start_time=date("H:i:s",date("U"));
-
-				//write PDF report to a file
-				$this->pdf_report->generate($report_file,$ddi_file,$pdf_options);
-				$end_time=date("H:i:s",date("U"));
-				
-				//log
-				$this->db_logger->write_log('survey','report generated '.$start_time.' -  '. $end_time,'ddi-report',$sid);
-
-				//reset threshold level			
-				$this->config->set_item("log_threshold",$log_threshold);
-				
-				$report_link=$report_file;
-			}
+			//write PDF report to a file
+			$this->pdf_report->generate($sid,$report_file,$pdf_options);			
+			
+			//reset threshold level			
+			$this->config->set_item("log_threshold",$log_threshold);
 			
 			$response=array(
 				'status'=>  'success',

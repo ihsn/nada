@@ -54,13 +54,7 @@ $(function() {
 <nav class="navbar navbar-default" style="background:#337ab7;">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header" >
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
+    <div class="navbar-header" >      
       <div class="navbar-brand">
 				<a style="color:white;" href="<?php echo site_url('admin/catalog/edit/'.$survey_id.'/related-data');?>">
 					<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> <?php echo $survey_title;?></a>
@@ -77,7 +71,7 @@ $(function() {
 
 <div class="body-container container-fluid">
 
-	<h2><span><?php echo t('attach_related_data');?></span></h2>
+	<h2 class="mt-2"><?php echo t('attach_related_data');?></h2>
 
 <!-- search form-->
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="catalog-search">

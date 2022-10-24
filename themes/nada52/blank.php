@@ -43,13 +43,6 @@ $use_cdn=false;
 
 <!-- page footer -->
 <?php //include_once 'footer.php';?>
-    <script>
-        $( document ).ready(function() {
-            $(".compare-header #wb-variables-fullscreen" ).click(function() {
-                $("body").toggleClass("wb-fullscreen");
-            });  
-        });
-    </script>
 </body>
 
 </html>

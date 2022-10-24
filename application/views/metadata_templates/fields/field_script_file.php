@@ -40,7 +40,7 @@
                 <?php if (isset($script['file_name'])):?> 
                     <?php if (isset($options['resources']) && array_key_exists($script['file_name'],$options['resources'])):?>                        
                         <?php 
-                            $resource = $options['resources'][$script['file_name']];                            
+                            $resource = $options['resources'][basename($script['file_name'])];
                         ?>
                         <a 
                             href="<?php echo site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}");?>" 
@@ -52,10 +52,11 @@
                     <?php endif;?>
                     <?php //for zip packages ?>
                     <?php if (isset($options['resources']) && 
-                            isset($script['zip_package']) && 
-                            array_key_exists($script['zip_package'],$options['resources'])):?>                        
+                            isset($script['zip_package']) &&                             
+                            !array_key_exists($script['file_name'],$options['resources']) &&
+                            array_key_exists(basename($script['zip_package']),$options['resources'])):?>                        
                         <?php 
-                            $resource = $options['resources'][$script['zip_package']];                            
+                            $resource = $options['resources'][basename($script['zip_package'])];                            
                         ?>
                         <a 
                             href="<?php echo site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}");?>" 
@@ -68,12 +69,40 @@
                 <?php endif;?>
             </div>
 
-            <div id="script-body-<?php echo $k;?>" class="collapse show" aria-labelledby="script-<?php echo $k;?>" data-parent="#accordion-script-files">
+            <div id="script-body-<?php echo $k;?>" class="collapse show" aria-labelledby="script-<?php echo $k;?>" xdata-parent="#accordion-script-files">
                 <div class="card-body" style="padding:15px;">
-                    <?php foreach($script_file_template as $field_name=>$field_type):?>
-                        <?php $value=get_field_value($field_name,$script); ?>
-                        <?php echo render_field($field_type,'metadata.project_desc.scripts.'.$field_name,$value);?>
-                    <?php endforeach;?>        
+                <?php foreach($script_file_template as $field_name=>$field_type):?>
+                            <?php $value=get_field_value($field_name,$script); ?>
+
+                            <?php if(empty($value) || $value==''){continue;}?>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="text-secondary"><?php echo t('metadata.project_desc.scripts.'.$field_name);?></div>
+                                </div>
+                                <div class="col">
+                                    <?php if($field_name=='zip_package' || $field_name=='file_name'):?>
+                                        <?php
+                                            $value=basename($value);
+                                        ?>
+                                        <?php if (isset($options['resources']) &&                 
+                                                array_key_exists($value,$options['resources'])):?>                        
+                                            <?php 
+                                                $resource = $options['resources'][$value];
+                                            ?>
+                                            <a class="download_script download_<?php echo $field_name;?>" href="<?php echo site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}");?>" >
+                                            <i class="fa fa-download" aria-hidden="true"></i> <?php print_r($value);?>
+                                            </a>
+                                        <?php else:?>
+                                            <?php echo $value;?>
+                                        <?php endif;?>
+                                    <?php elseif(is_array($value)):?>
+                                        <?php echo render_field($field_type,'metadata.project_desc.scripts.'.$field_name,$value,array('hide_field_title'=>true));?>
+                                    <?php else:?>
+                                        <?php print_r($value);?>
+                                    <?php endif;?>
+                                </div>
+                            </div>
+                        <?php endforeach;?>        
                 </div>
             </div>
             </div>

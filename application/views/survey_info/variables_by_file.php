@@ -110,14 +110,19 @@
             <?php endif;?>
         
             <table class="data-file-bg1">
+                <?php if ($file['case_count']):?>
                 <tr>
                     <td style="width:100px;"><?php echo t('cases');?>: </td>
                     <td><?php echo $file['case_count'];?></td>
                 </tr>
+                <?php endif;?>
+                
+                <?php if ($file['var_count']):?>
                 <tr>
                     <td><?php echo t('variables');?>: </td>
                     <td><?php echo $file['var_count'];?></td>
                 </tr>
+                <?php endif;?>
 
                 <?php if(isset($file['producer']) && !empty($file['producer'])):?>
                 <tr>

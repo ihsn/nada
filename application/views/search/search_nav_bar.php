@@ -18,7 +18,7 @@
     $variable_view=http_build_query($variable_view);
 
     $show_variable_toggle=false;
-    if (isset($search_options->tab_type) && in_array($search_options->tab_type,array("","survey"))){
+    if (isset($search_options->tab_type) && in_array($search_options->tab_type,array("","survey","geospatial"))){
         $show_variable_toggle=true;
     }
 
@@ -54,7 +54,7 @@
                 </div>
 
                 <?php if($show_variable_toggle && (isset($surveys['search_counts_by_type']) && array_key_exists('survey',$surveys['search_counts_by_type']))):?>
-                <div class="col mt-1 wb-search-toggle">                    
+                <div class="col mt-1 wb-search-toggle">               
                     <div class="btn-group btn-group-toggle study-view-toggle" >
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s" ><?php echo t('Study view');?></button>
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
