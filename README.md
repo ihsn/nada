@@ -4,10 +4,12 @@ NADA is an open source microdata cataloging system, compliant with the Data Docu
 
 ## Getting Started
 
+- [NADA documentation ](https://ihsn.github.io/nada-documentation)
+- [API/Schemas documentation](https://ihsn.github.io/nada-api-redoc/catalog-admin/)
 
 ### Server Requirements
 
-* PHP version 7 or later
+* PHP version 7.3 or later
 * MySQL or Microsoft SQL Server database
 * Apache, IIS or NGINX
 

@@ -24,7 +24,7 @@ class Catalog extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin'); 
+		$this->template->set_template('admin');
 		$this->load->library("Dataset_manager");
 
 		//load language file
@@ -64,11 +64,10 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
-		$this->template->set_template('admin5'); 
+		$this->template->set_template('admin5');
 		//css files
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
-        $this->template->add_css($inline_styles,'embed');
-
+		$this->template->add_css($inline_styles,'embed');
 
 		//js files
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
@@ -93,12 +92,12 @@ class Catalog extends MY_Controller {
 		//data access types
 		$this->data_access_types=$this->Form_model->get_all();
 		//data types
-		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid); 
+		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid);
 
 		if ($db_rows['rows'])
 		{
 			$sid_list=array();
-			foreach($db_rows['rows'] as $row) 
+			foreach($db_rows['rows'] as $row)
 			{
 				$sid_list[]=$row['id'];
 			}
@@ -120,10 +119,10 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
 	}
-	
+
 
 	function search()
-	{		
+	{
 		if (isset($this->active_repo) && $this->active_repo!=null){
 			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
 		}
@@ -144,6 +143,7 @@ class Catalog extends MY_Controller {
 	 **/
 	function _search()
 	{
+
 		//records to show per page
 		$per_page = $this->input->get("ps");
 
@@ -153,7 +153,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//current page
-		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
+		$curr_page=$this->input->get('per_page'); //$this->uri->segment(4);
 
 		//filter to further limit search
 		$filter=array();
@@ -174,7 +174,6 @@ class Catalog extends MY_Controller {
 
 		//survey rows
 		$surveys=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
-
 		$survey_id_array=array();
 
 		if(is_array($surveys))
@@ -266,13 +265,13 @@ class Catalog extends MY_Controller {
 		return $data;
 	}
 
-	
+
 	//return temp upload folder path
 	private function get_temp_upload_folder()
 	{
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
-		
+
 		//if not fixed path, use a relative path
 		if (!file_exists($catalog_root) )
 		{
@@ -369,7 +368,7 @@ class Catalog extends MY_Controller {
 
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
-		
+
 		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$uploaded_ddi_path;
@@ -413,7 +412,7 @@ class Catalog extends MY_Controller {
 	private function upload_rdf_file($sid)
 	{
 		$this->load->library('catalog_admin');
-		
+
 		//upload class configurations for RDF
 		$config['upload_path'] = $this->get_temp_upload_folder();
 		$config['overwrite'] = FALSE;
@@ -445,9 +444,9 @@ class Catalog extends MY_Controller {
 		return true;
 	}
 
-	
+
 	/**
-	 * 
+	 *
 	 * Sanitize file name
 	 */
 	private function sanitize_filename($name)
