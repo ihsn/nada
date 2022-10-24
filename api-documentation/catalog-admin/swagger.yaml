@@ -1416,7 +1416,7 @@ paths:
           - ApiKeyAuth: []
   
   /datasets/generate_pdf/{datasetIDNo}:
-      put:
+      post:
         tags:
           - Survey
         summary: Generate PDF

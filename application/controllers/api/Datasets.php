@@ -2016,43 +2016,25 @@ class Datasets extends MY_REST_Controller
 			$log_threshold= $this->config->item("log_threshold");
 			$this->config->set_item("log_threshold",0);	//disable logging temporarily
 			
-			$report_link='';		
 			$params=array('codepage'=>$pdf_options['report_lang']);
 
 			$this->load->library('pdf_report',$params);// e.g. 'codepage' = 'zh-CN';
 			$this->load->library('DDI_Browser','','DDI_Browser');
 				
-			//get ddi file path from db
-			$ddi_file=$this->Catalog_model->get_survey_ddi_path($sid);
 			$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
 			
-			if ($ddi_file===FALSE || !file_exists($ddi_file)){
-				throw new Exception('FILE_NOT_FOUND: '. $ddi_file);
-			}
-		
 			//output report file name
 			$report_file=unix_path($survey_folder.'/ddi-documentation-'.$this->config->item("language").'-'.$sid.'.pdf');
 						
-			if ($report_link=='')
-			{			
-				//change error logging to 0	
-				$log_threshold= $this->config->item("log_threshold");
-				$this->config->set_item("log_threshold",0);
+			//change error logging to 0	
+			$log_threshold= $this->config->item("log_threshold");
+			$this->config->set_item("log_threshold",0);
 
-				$start_time=date("H:i:s",date("U"));
-
-				//write PDF report to a file
-				$this->pdf_report->generate($report_file,$ddi_file,$pdf_options);
-				$end_time=date("H:i:s",date("U"));
-				
-				//log
-				$this->db_logger->write_log('survey','report generated '.$start_time.' -  '. $end_time,'ddi-report',$sid);
-
-				//reset threshold level			
-				$this->config->set_item("log_threshold",$log_threshold);
-				
-				$report_link=$report_file;
-			}
+			//write PDF report to a file
+			$this->pdf_report->generate($sid,$report_file,$pdf_options);			
+			
+			//reset threshold level			
+			$this->config->set_item("log_threshold",$log_threshold);
 			
 			$response=array(
 				'status'=>  'success',
