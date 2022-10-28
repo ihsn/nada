@@ -30,6 +30,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
     var $type=array();
 	var $dtype=array();//data access type
 	var $sid=''; //comma separated list of survey IDs
+	var $created='';
 	var $debug=false;
 	var $params=null;
 	var $solr_options=array();
@@ -244,7 +245,12 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		//dtype filter
 		if ($dtype){
 			$query->createFilterQuery('dtype')->setQuery($dtype);
+		}
 
+		//created
+		$created_range=$this->_build_created_query();
+		if($created_range!==false){
+			$query->createFilterQuery('created')->setQuery($created_range);
 		}
 
 		//countries filter
@@ -269,8 +275,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         if (count($search_query)>0){
             //$query->setQuery(implode(" AND ",$search_query));
         }
-
-
 
         //$debug = $query->getDebug();
         $query->createFilterQuery('study_search')->setQuery('doctype:1');
@@ -1099,6 +1103,35 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		}
 
 		return FALSE;
+	}
+
+
+
+	protected function _build_created_query()
+	{
+		$created_range=explode("-",$this->created);
+		
+		if(empty($created_range)){
+			return false;
+		}
+
+		$created_start=strtotime($created_range[0]);
+
+		if (empty($created_start)){
+			return false;
+		}
+
+		if (isset($created_range[1]) && strtotime($created_range[1])){
+			$created_end= + strtotime($created_range[1]) + 86399;
+		}
+		else{
+			$created_end= $created_start + 86399;
+		}		
+
+		if (!empty($created_end)){
+			return sprintf('created:[%s TO %s]',$created_start,$created_end);			
+		}
+		return false;
 	}
 
 }// END Search class
