@@ -6,7 +6,9 @@
     .study-subtitle{
         font-size:smaller;
     }
-    .study-type-icon{
+    .study-type-icon,
+    .study-type-icon .fa-nada-icon
+    {
         width:36px;
     }
     .survey-row{
