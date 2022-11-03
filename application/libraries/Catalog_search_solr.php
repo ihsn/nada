@@ -34,6 +34,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	var $debug=false;
 	var $params=null;
 	var $solr_options=array();
+	var $varcount='';
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -132,7 +133,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$years=$this->_build_years_query();
 		$repository=!empty($this->repo) ? (string)$this->repo : false;
         $dtype=$this->_build_dtype_query();
-        
+		$varcount=$this->_build_varcount_query();
+
 		$search_query=array();
 		$result=array();
         $query = $this->solr_client->createSelect();
@@ -162,7 +164,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//repo filter
 		if($repository){
-			$query->createFilterQuery('repo')->setQuery('repositoryid:'.$helper->escapeTerm($repository));
+			$query->createFilterQuery('repo')->setQuery('repositories:'.$helper->escapeTerm($repository));
 		}
 
 		if ($topics){
@@ -261,6 +263,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		if($collections){
 			$query->createFilterQuery('collections')->setQuery($collections);
+		}
+
+		//varcount filter
+		if ($varcount)	{
+			$query->createFilterQuery('varcount')->setQuery($varcount);
 		}
 				
 
@@ -1132,6 +1139,26 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			return sprintf('created:[%s TO %s]',$created_start,$created_end);			
 		}
 		return false;
+	}
+
+	function _build_varcount_query()
+	{
+		//handles only these cases
+
+		//varcount= 
+		// >0
+		// 0 
+
+		$varcount=$this->varcount;
+
+		if ($varcount=='>0'){
+			return sprintf('varcount:[%s TO %s]',1, '*');
+		}
+		else if ($varcount=='0'){
+			return sprintf('varcount:%s',0);
+		}
+
+		return FALSE;
 	}
 
 }// END Search class
