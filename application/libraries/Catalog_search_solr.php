@@ -474,8 +474,16 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	//1=survey, 2=variable
 	function solr_total_count($doctype=1)
 	{
+		$repository=!empty($this->repo) ? (string)$this->repo : false;
 		$query = $this->solr_client->createSelect();
 		$query->setQuery('doctype:'.$doctype);
+
+		//repo filter
+		if($repository){
+			$helper = $query->getHelper();
+			$query->createFilterQuery('repo')->setQuery('repositories:'.$helper->escapeTerm($repository));
+		}
+
 		$query->createFilterQuery('published')->setQuery('published:1');
 		$query->setStart(0)->setRows(0);
 		$resultset = $this->solr_client->select($query);
