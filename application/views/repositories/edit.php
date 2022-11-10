@@ -70,7 +70,7 @@ foreach($sections as $sec){
 	$form_action_url=current_url();
 ?>
 
-<?php echo form_open_multipart($form_action_url, array('class'=>'form mt-4') ); ?>
+<?php echo form_open_multipart($form_action_url, array('class'=>'form mt-4 mb-5') ); ?>
 	<input type="hidden" name="id" value="<?php echo get_form_value('id',isset($id) ? $id : ''); ?>"/>
 
     <div class="row">
@@ -168,12 +168,45 @@ foreach($sections as $sec){
         </div>
         </div>
 
+        
+        <div class="mt-3">
+            <label>Collection email notifications</label>
+            <p>Provide emails for users that should receive notifications for studies in this collection</p>
+        </div>
+        <div class="row">
+            <div class="col-6">            
+            
+            <table class="table table-sm table-bordered">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+            <?php for($i=0;$i<=4;$i++):?>
+            <tr>
+                <td>
+                    <div class="form-groupx">
+                        <span><input class="form-control form-control-sm" type="text" name="owners[<?php echo $i;?>][name]" value="<?php echo html_escape(isset($this->data["owners"][$i]["name"]) ? $this->data["owners"][$i]["name"] : '') ;?>"/></span>
+                    </div>
+                </td>
+                <td>
+                    <div class="form-groupx">
+                        <span><input class="form-control form-control-sm" type="text" name="owners[<?php echo $i;?>][email]" value="<?php echo html_escape(isset($this->data["owners"][$i]["name"]) ? $this->data["owners"][$i]["email"] : '') ;?>"/></span>
+                    </div>
+                </td>
+            </tr>
+            <?php endfor;?>
+            </table>
+            </div>
+        </div>
+
+
 
 
     <div>
 		<?php echo form_submit('submit', 'Submit',array('class'=>'btn btn-primary'));?>
      	<?php echo anchor('admin/repositories',t('cancel'),array('class'=>'btn btn-default') );?>
     </div>
+
 <?php echo form_close();?>
 </div>
 

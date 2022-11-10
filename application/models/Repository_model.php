@@ -81,7 +81,12 @@ class Repository_model extends CI_Model {
 		}else{
 			$this->db->where('id', $id); 
 		}
-		return $this->db->get('repositories')->row_array();
+		$repo= $this->db->get('repositories')->row_array();
+
+		if(isset($repo['owners'])){
+			$repo['owners']=$this->decode_owners($repo['owners']);
+		}
+		return $repo;
 	}
 	
 	
@@ -140,6 +145,21 @@ class Repository_model extends CI_Model {
 	}
 	
 	
+	function encode_owners($owners)
+	{
+		$output=array();
+		foreach($owners as $key=>$owner){
+			if (isset($owner['email']) && !empty($owner['email'])){
+				$output[]=$owner;
+			}
+		}
+		return json_encode($output);
+	}
+
+	function decode_owners($owners)
+	{
+		return json_decode($owners,true);
+	}
 
 	/**
 	* update 
@@ -181,6 +201,17 @@ class Repository_model extends CI_Model {
 			if (in_array($key,$valid_fields) )
 			{
 				$data[$key]=$value;
+			}
+		}
+
+		//owners
+		if (isset($options['owners'])){
+			$owners=$this->encode_owners($options['owners']);
+			if (!empty($owners)){
+				$data['owners']=$owners;
+			}
+			else{
+				die("no owners found");
 			}
 		}
 
@@ -229,6 +260,17 @@ class Repository_model extends CI_Model {
 			if (in_array($key,$valid_fields) )
 			{
 				$data[$key]=$value;
+			}
+		}
+
+		//owners
+		if (isset($options['owners'])){
+			$owners=$this->encode_owners($options['owners']);
+			if (!empty($owners)){
+				$data['owners']=$owners;
+			}
+			else{
+				die("no owners found");
 			}
 		}
 		
