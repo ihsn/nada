@@ -80,8 +80,8 @@ $(function() {
     <option value="title"	<?php echo ($this->input->get('field')=='title') ? 'selected="selected"' : '' ; ?> ><?php echo t('title');?></option>
     <option value="nation"	<?php echo ($this->input->get('field')=='nation') ? 'selected="selected"' : '' ; ?> ><?php echo t('country');?></option>
     <option value="year_start"	<?php echo ($this->input->get('field')=='year_start') ? 'selected="selected"' : '' ; ?> ><?php echo t('year');?></option>
-    <option value="surveyid"><?php echo t('survey_id');?></option>
-    <option value="authoring_entity"><?php echo t('producer');?></option>
+    <option value="idno" <?php echo ($this->input->get('field')=='idno') ? 'selected="selected"' : '' ; ?>><?php echo t('survey_id');?></option>
+    <option value="authoring_entity" <?php echo ($this->input->get('field')=='authoring_entity') ? 'selected="selected"' : '' ; ?>><?php echo t('producer');?></option>
   </select>
   <input type="submit" value="<?php echo t('search');?>" name="search" class="btn-search-submit"/>
   <?php if ($this->input->get("keywords")!=''): ?>
