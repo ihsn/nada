@@ -12,7 +12,7 @@
         <?php foreach($data as $lda_topic):?>
             <!-- LDA model info -->
             <?php if(isset($lda_topic['model_info'])):?>
-                <?php echo render_field($field_type='array',$field_name='lda_model',$value=$lda_topic['model_info']);?>
+                <?php echo render_field($field_type='lda_model',$field_name='lda_model',$value=$lda_topic['model_info']);?>
             <?php endif;?>
 
             <!-- LDA topics -->

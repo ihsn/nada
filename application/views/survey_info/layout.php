@@ -14,6 +14,11 @@
     font-size: 14px;
 }
 
+.study-subtitle{
+	font-size:.7em;
+	margin-bottom:10px;
+}
+
 .badge-outline{
 	background:transparent;
 	color:#03a9f4;

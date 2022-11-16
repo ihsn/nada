@@ -79,6 +79,14 @@ $bg=0;
         <?php endforeach;?>
     <?php endif;?>
 
+    <?php if (isset($search_options->region) && is_array($search_options->region)):?>
+        <?php foreach($search_options->region as $region):?>
+            <?php if (array_key_exists($region,$regions)):?>
+                <span class="badge badge-default wb-badge-close country remove-filter region" data-type="region[]" data-value="<?php echo $region;?>"><?php echo $regions[$region]['title'];?><i class="fas fa-times"></i></span>
+            <?php endif;?>
+        <?php endforeach;?>
+    <?php endif;?>
+
     <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
         <?php foreach($search_options->dtype as $dtype):?>
             <?php if (array_key_exists($dtype,$data_access_types)):?>

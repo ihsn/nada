@@ -693,6 +693,13 @@ class Data_table_mongo_model extends CI_Model {
                 );
                 continue;
             }
+            if (substr($val,0,4)=='&lt;' && is_numeric(substr($val,4))){
+                $output[]=array(
+                    'type'=>'lte',
+                    'value'=>substr($val,4)
+                );
+                continue;
+            }
             
             $range=explode("-",$val);
 

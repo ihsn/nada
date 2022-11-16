@@ -191,6 +191,10 @@ class Study extends MY_Controller {
 				$variable_template='variable_ddi';
 			break;
 
+			case 'geospatial':
+				$variable_template='geospatial_features';
+			break;
+
 			case 'timeseries':
 				$variable_template='timeseries';
 			break;
@@ -301,8 +305,9 @@ class Study extends MY_Controller {
 
 	
 	public function get_microdata($sid)
-	{		
-		$this->load->model("Form_model");		
+	{
+		$this->load->model("Form_model");	
+		$this->load->model("Data_access_whitelist_model");
 
 		$form_obj=$this->Form_model->get_form_by_survey($sid);
 		
@@ -327,6 +332,16 @@ class Study extends MY_Controller {
 		}
 		else{
 			$content="Data Access Not Available";
+		}
+
+		$user=$this->ion_auth->current_user();
+		
+		if($user){
+			$user_whitelisted=$this->Data_access_whitelist_model->has_access($user->id,$sid);
+
+			if($user_whitelisted){
+				$content=$this->Data_access_whitelist_model->get_data_files($sid);
+			}
 		}
 
 		$this->render_page($sid, $content,'get_microdata');
@@ -432,7 +447,6 @@ class Study extends MY_Controller {
 				break;
 			case 'video':
 			case 'image':
-				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -447,7 +461,6 @@ class Study extends MY_Controller {
 				);
 				break;
 			case 'timeseries':
-				//$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -477,7 +490,9 @@ class Study extends MY_Controller {
 					),
 					//hide related materials
 					'related_materials'=>array(
-						'show_tab'=> 0
+						'show_tab'=> (int)$related_resources_count,
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
 					)
 				);
 				break;

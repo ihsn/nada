@@ -70,7 +70,7 @@
                         <td>
                             <?php if(empty($row[$column_name])){continue;}?>    
                             <?php if(is_array($row[$column_name])):?>
-                            <?php echo render_field($field_type='array_br',$field_name=$name.'.'.$column_name,$row[$column_name], array('hide_column_headings'=>true));?>
+                            <?php echo render_field($field_type='array_badge',$field_name=$name.'.'.$column_name,$row[$column_name], array('hide_column_headings'=>true));?>
                             <?php else:?>
                                 <?php if(is_url($row[$column_name])):?>
                                      <a target="_blank" href="<?php echo html_escape($row[$column_name]);?>"><i class="fas fa-external-link-alt"></i> <?php echo t('Link');?></a>

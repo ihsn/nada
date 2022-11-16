@@ -74,6 +74,33 @@
 						"type": "string"
 					}
 				},
+
+				"sceneCodesLabelled": {
+					"title": "Scene Codes",
+					"description": "Describes the scene of a photo content. Specifies one ore more terms from the IPTC \"Scene-NewsCodes\". Each Scene is represented as a string of 6 digits in an unordered list.",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties":{
+							"code": {
+								"title": "Scene Code",
+								"description": "Scene code as a string of 6 digits",
+								"type": "string"
+							},
+							"label": {
+								"title": "Scene Label",
+								"description": "Label",
+								"type": "string"
+							},
+							"description": {
+								"title": "Scene Description",
+								"description": "Description of the scene",
+								"type": "string"
+							}
+						}
+					}
+				},
+
 				"subjectCodes": {
 					"title": "Subject Code",
 					"description": "Specifies one or more Subjects from the IPTC Subject-NewsCodes taxonomy to categorise the image. Each Subject is represented as a string of 8 digits in an unordered list.",
@@ -82,6 +109,34 @@
 						"type": "string"
 					}
 				},
+
+
+				"subjectCodesLabelled": {
+					"title": "Subject Codes",
+					"description": "Specifies one or more Subjects from the IPTC Subject-NewsCodes taxonomy to categorise the image. Each Subject is represented as a string of 8 digits in an unordered list.",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties":{
+							"code": {
+								"title": "Subject Code",
+								"description": "Subject code as a string of 8 digits",
+								"type": "string"
+							},
+							"label": {
+								"title": "Subject Label",
+								"description": "Label",
+								"type": "string"
+							},
+							"description": {
+								"title": "Subject Description",
+								"description": "Description of the scene",
+								"type": "string"
+							}
+						}
+					}
+				},
+
 				"creatorNames": {
 					"title": "Creator",
 					"description": "Contains the name of the photographer, but in cases where the photographer should not be identified the name of a company or organisation may be appropriate.",

@@ -139,7 +139,7 @@ else{
     $type_icons=array(
         'survey'=>'fa-database',
         'microdata'=>'fa-database',
-        'geospatial'=>'fa-globe',
+        'geospatial'=>'fa-globe-americas',
         'timeseries'=>'fa-clock-o',
         'document'=>'fa-file-text-o',
         'table'=>'fa-table',

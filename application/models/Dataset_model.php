@@ -20,6 +20,7 @@ class Dataset_model extends CI_Model {
 		'repositoryid',
 		'idno',
 		'title',
+		'subtitle',
 		'abbreviation',
 		'authoring_entity',
 		'nation',
@@ -83,6 +84,7 @@ class Dataset_model extends CI_Model {
 		$this->load->model("Vocabulary_model");
 		$this->load->model("Term_model");
 		$this->load->model("Survey_resource_model");
+		$this->load->model("Catalog_tags_model");
 	}
 	
 	
@@ -108,7 +110,14 @@ class Dataset_model extends CI_Model {
 			$this->db->limit($limit, $offset);
 		}
 		
-		$result= $this->db->get("surveys")->result_array();
+		$result= $this->db->get("surveys");
+		
+		if ($result){
+			$result=$result->result_array();
+		}else{
+			$error=$this->db->error();
+			throw  new Exception(implode(", ", $error));
+		}
 
 		if($result){
 			return $this->decode_encoded_fields_rows($result);
@@ -130,10 +139,13 @@ class Dataset_model extends CI_Model {
 	 * 
 	 * 
 	 */
-	function get_list_by_type($dataset_type, $limit=100, $start=0)
+	function get_list_by_type($dataset_type=null, $limit=100, $start=0)
 	{
 		$this->db->select('id,idno');
-		$this->db->where('type',$dataset_type);
+		
+		if($dataset_type){
+			$this->db->where('type',$dataset_type);
+		}
 
 		if(is_numeric($start)){
 			$this->db->where('id>',$start);
@@ -289,12 +301,22 @@ class Dataset_model extends CI_Model {
     //returns survey metadata array
     function get_metadata($sid)
     {
-        $this->db->select("metadata");
+        $this->db->select("type,metadata");
         $this->db->where("id",$sid);
         $survey=$this->db->get("surveys")->row_array();
 
         if ($survey){
-            return $this->decode_metadata($survey['metadata']);
+            $metadata= $this->decode_metadata($survey['metadata']);
+			$metadata['schematype']=$survey['type'];
+
+			//tags
+			$tags=$this->Catalog_tags_model->survey_tags_with_key($sid);
+
+			if($tags){
+				$metadata['tags']=$tags;
+			}
+
+			return $metadata;
         }
 	}
 
@@ -378,7 +400,7 @@ class Dataset_model extends CI_Model {
         $reference = $data;
         foreach ($paths as $key) {
             if (!array_key_exists($key, $reference)) {
-                return false;
+                return null;
             }
             $reference = $reference[$key];
         }
@@ -1142,6 +1164,16 @@ class Dataset_model extends CI_Model {
 		}
 	}
 
+	function add_tags($sid, $tags)
+    {
+        if(empty($tags)){
+            return false;
+        }
+        
+        $tags=array_column($tags,'tag');
+        return $this->add_survey_tags($sid,$tags);        
+    }
+
 
 
 	function add_survey_aliases($sid, $aliases=array())
@@ -1854,6 +1886,34 @@ class Dataset_model extends CI_Model {
         }
 
         return $nation_str;
-    }	
+    }
+
+
+	function update_locations($sid, $bounds=array())
+    {
+		return false;//disabled
+        //delete any existing locations
+        $this->db->delete('survey_locations',array('sid' => $sid));
+
+        if(!is_array($bounds)){
+            return false;
+        }
+        
+        foreach($bounds as $bbox)
+        {
+            $north=$bbox['north'];
+            $south=$bbox['south'];
+            $east=$bbox['east'];
+            $west=$bbox['west'];
+
+            $this->load->helper("gis_helper");
+            $bbox_wkt=$this->db->escape(bbox_to_wkt($north, $south, $east, $west));
+
+            $this->db->set('sid',$sid);
+            $this->db->set('location',$bbox_wkt);
+            $this->db->insert('survey_locations');
+        }
+    }
+
 }//end-class
 	

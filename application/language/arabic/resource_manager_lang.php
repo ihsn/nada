@@ -16,68 +16,67 @@ $lang['upload_files']="تحميل الملفات";
 $lang['not_linked']="غير مرتبطة";
 $lang['data_files']="ملفات البيانات";
 $lang['other_resources']="الموارد الأخرى";
-$lang['total_files_count']="عدد مجموع الملفات: ";
+$lang['total_files_count']="مجموع عدد الملفات: ";
 $lang['data_selection_apply_to_files']="سوف يتم تطبيق نوع النفاذ الى البيانات على الملفات التالية";
 $lang['links']="روابط";
-$lang['study_no_data_files_assigned']="لم يتم تحديد ملفات البيانات في هذه الدراسة , لتعيين ملفات البيانات استخدام تبويب  %s ";
+$lang['study_no_data_files_assigned']="لم يتم تعيين أي ملفات كـبيانات جزئية لهذه الدراسة.";
 $lang['add_external_resource']="إضافة الموارد الخارجية ";
 $lang['edit_external_resource']="تعديل الموارد الخارجية ";
 $lang['import_external_resources']="استيراد الموارد الخارجية ";
 $lang['error_import_failed']="لم يتم استيراد الملف.";
-$lang['resource_already_exists']="الموارد موجودة بالفعل ، لم يتم الاستيراد : ";
+$lang['resource_already_exists']="المورد موجود بالفعل ، تم تخطي الاستيراد:";
 $lang['n_resources_imported']="d% موارد تم استيرادها.";
 $lang['link_resource_home']="الصفحة الرئيسية للموارد";
-$lang['authors']="الكتّاب";
+$lang['authors']="الكتّاب/المؤلفون";
 $lang['language']="اللغة";
-$lang['format']="الصيغة";
+$lang['format']="الصيغة/التنسيق";
 $lang['country']="البلد";
-$lang['contributors']="المساهمين";
-$lang['publishers']="الناشرين";
+$lang['contributors']="المساهمون";
+$lang['publishers']="الناشرون";
 $lang['description']=" الوصف";
-$lang['abstract']="خلاصة";
+$lang['abstract']="ملخص";
 $lang['table_of_contents']="جدول المحتويات";
 $lang['resource_url_filepath']="عنوان URL أو عنوان نسبي إلى المورد ";
-$lang['resource_type']=" نوع من المورد";
+$lang['resource_type']=" نوع المورد";
 $lang['legend_file_exist']="تم العثور على ملف";
 $lang['legend_file_no_exist']="لم يتم العثور على ملف";
-$lang['link_add_new_resource']="أضف مورد";
-$lang['link_import_rdf']=" rdf استرد ملف ";
-$lang['link_fix_broken']="إقامة روابط";
+$lang['link_add_new_resource']="أضف مورد جديد";
+$lang['link_import_rdf']="استيراد ملف RDF";
+$lang['link_fix_broken']="ربط الموارد";
 $lang['title_import_rdf']="استيراد الموارد الخارجية";
-$lang['select_rdf_file']="(RDF.)حدد الملف ";
-$lang['create_folder_structure']="إنشاء هيكل الدليل";
-$lang['title_fix_broken']="إقامة روابط";
-$lang['instruction_fix_broken']="هذه الأداة سوف تصلح المسارات إلى الموارد الخارجية لمطابقة مسارات الموزع. أولا حمل جميع الملفات المشار إليها في المواردالخارحية الخاصة بك ، ثم انقر فوق &quot;أصلح&quot; لتحديث وصلات هذه الملفات.";
+$lang['select_rdf_file']="حدد ملفًا (.RDF)";
+$lang['create_folder_structure']="إنشاء هيكل المجلد";
+$lang['title_fix_broken']="ربط الموارد";
+$lang['instruction_fix_broken']="ستصحح هذه الأداة مسارات الملفات للموارد الخارجية بحيث تتطابق مع تلك الموجودة على هذا الخادم. قم أولاً بتحميل جميع الملفات المشار إليها في الموارد الخارجية الخاصة بك ، ثم انقر فوق أصلح لتحديث الروابط إلى هذه الملفات.";
 $lang['fix_it']="أصلح";
-$lang['n_resources_fixed']="d% تم تحديث الموارد.ويرد  مفصل الانتاج النصي أدناه :
- ";
-$lang['legend_not_fixed']="لم يصلح";
-$lang['legend_fixed']="اّصلح";
+$lang['n_resources_fixed']="تم تحديث d% من الموارد. ";
+$lang['legend_not_fixed']="لم يتم الإصلاح";
+$lang['legend_fixed']="تم الإصلاح";
 $lang['indicator_database']="قاعدة بيانات المؤشرات";
-$lang['study_website']="موقع الدراسة";
-$lang['home_folder_hover']="مصدر ملف الدراسة";
-$lang['home_folder']="الدليل الرئيسي";
-$lang['folder_view']="عرض الملف";
-$lang['folder_view_hover']="اذهب الى عرض الملف";
-$lang['switch_view']="تغيير العرض";
-$lang['switch_view_hover']="غير كيفية عرض الصفحة";
+$lang['study_website']="الموقع الإلكتروني للدراسة";
+$lang['home_folder_hover']="المجلد الأصلي للدراسة";
+$lang['home_folder']="المجلد الرئيسي";
+$lang['folder_view']="عرض المجلد";
+$lang['folder_view_hover']="قم بالتبديل إلى عرض المجلد";
+$lang['switch_view']="تبديل/تغيير العرض";
+$lang['switch_view_hover']="بدل/غير كيفية عرض الصفحة";
 $lang['upload_files_hover']="تحميل الملفات";
-$lang['switch_view_details']="عرض التفاصيل";
-$lang['Licensed data files']="ملفات البيانات بموجب ترخيص";
-$lang['Direct access']="النفاذ المباشر";
-$lang['Public use files']="الملفات للاستخدم العام";
-$lang['Data accessible only in data enclave']="البيانات المتوفرة علي الموقع فقط";
-$lang['--Data not accessible to users--']="--البيانات الغير متوفرة--";
-$lang['msg_no_data_access_type_assigned']="لا تتوفر اية امكانية للنفاذ الي هذه الدراسة. ولذلك ،لا تتوفر ملفات للتحميل عبر هذا الموقع.";
-$lang['msg_licensed_data_access_type_assigned']="تم اختيار نوع &quot;ملف مرخص&quot; لهذه الدراسة وهذا يعني انه على المستخدمين تسجيل الدخول";
-$lang['msg_direct_data_access_type_assigned']="تم اختيار نوع &quot;نفاذ مباشر&quot; لهذه الدراسة وهذا يعني انه على المستخدمين تسجيل الدخول والحصول على ترخيص لتحميل البيانات من الموقع  ";
-$lang['msg_public_data_access_type_assigned']="تم اختيار نوع &quot; للاستخدام العام لهذه الدراسة وهذا يعني انه على المستخدمين تسجيل الدخول فقط  لتحميل البيانات من الموقع";
-$lang['msg_enclave_data_access_type_assigned']="تم اختيار نوع &quot;النفاذ الى البيانات في مركز لهذه الدراسة وهذا يعني انه لا توجد بيانات متاحة للتحميل على موقع الواب";
-$lang['Document, Administrative [doc/adm]']="وثيقة إدارية [doc/adm]";
-$lang['Document, Analytical [doc/anl]']="وثيقة تحليلات [doc/anl]";
-$lang['Document, Other [doc/oth]']="الوثيقة ، غيرها [doc/oth] 
+$lang['switch_view_details']="التبديل إلى عرض التفاصيل";
+$lang['Licensed data files']="ملفات البيانات المرخصة";
+$lang['Direct access']="النفاذ/الوصول المباشر";
+$lang['Public use files']="الملفات للاستخدم العام PUF";
+$lang['Data accessible only in data enclave']="يمكن الوصول إلى البيانات فقط في مركز البيانات";
+$lang['--Data not accessible to users--']="- البيانات غير متاحة للمستخدمين -";
+$lang['msg_no_data_access_type_assigned']="لم يتم تعيين نوع وصول إلى البيانات لهذه الدراسة. هذا يعني أنه لن تتوفر أي بيانات لهذه الدراسة للتنزيل من هذا الموقع.";
+$lang['msg_licensed_data_access_type_assigned']="تم تعيين نوع الملف المرخص لهذه الدراسة. هذا يعني أنه سيُطلب من المستخدمين التسجيل وتسجيل الدخول وكذلك إكمال نموذج طلب الملف المرخص.";
+$lang['msg_direct_data_access_type_assigned']="تم تعيين نوع الوصول المباشر لهذه الدراسة. هذا يعني أن المستخدمين سيكونون قادرين على تنزيل البيانات مباشرة دون الحاجة إلى تسجيلهم على الموقع.";
+$lang['msg_public_data_access_type_assigned']="تم تعيين نوع الاستخدام العام لهذه الدراسة. هذا يعني أنه سيُطلب من المستخدمين التسجيل وتسجيل الدخول إلى موقعك قبل التمكن من تنزيل بياناتك.";
+$lang['msg_enclave_data_access_type_assigned']="تم اختيار نوع &quot;النفاذ الى البيانات في المركز لهذه الدراسة وهذا يعني انه لا توجد بيانات متاحة للتحميل على موقع الويب";
+$lang['Document, Administrative [doc/adm]']="وثيقة، إدارية [doc/adm]";
+$lang['Document, Analytical [doc/anl]']="وثيقة تحليلية [doc/anl]";
+$lang['Document, Other [doc/oth]']="وثيقة، غير ذلك [doc/oth] 
 ";
-$lang['Document, Questionnaire [doc/qst]']="وثيقة ، استبيان  [doc/qst]";
+$lang['Document, Questionnaire [doc/qst]']="وثيقة ، إستمارة [doc/qst]";
 $lang['Document, Reference [doc/ref]']="وثيقة، مرجع [doc/ref] 
 ";
 $lang['Document, Report [doc/rep]']="وثيقة، تقرير [doc/rep]";
@@ -85,31 +84,31 @@ $lang['Document, Technical [doc/tec]']="وثيقة، تقنية [doc/tec]
 ";
 $lang['Audio [aud]']="الصوت [aud] 
 ";
-$lang['Database [dat]']="قاعدة البيانات [dat] 
+$lang['Database [dat]']="قاعدة بيانات [dat] 
 ";
 $lang['Map [map]']="خريطة [map] 
  
 ";
 $lang['Microdata File [dat/micro]']="ملف البيانات الجزئية [dat/micro] 
 ";
-$lang['Photo [pic]']="الصور [pic] 
+$lang['Photo [pic]']="صورة [pic] 
 ";
 $lang['Program [prg]']="برنامج [prg]";
 $lang['Table [tbl]']="جدول  [tbl] 
 ";
-$lang['Video [vid]']="الفيديو [vid]";
-$lang['Web Site [web]']="موقع الواب  [web]";
+$lang['Video [vid]']="فيديو [vid]";
+$lang['Web Site [web]']="موقع الكتروني[web]";
 $lang['Compressed, Generic [application/x-compressed]']="مضغوط ، عام [application/x-compressed] 
  
 ";
 $lang['Compressed, ZIP [application/zip]']="مضغوط ،ZIP [application/zip] 
 ";
-$lang['Data, CSPro [application/x-cspro]']="بيانات    CSPro [application/x-cspro]
+$lang['Data, CSPro [application/x-cspro]']="بياناتCSPro     [application/x-cspro]
 
     ";
 $lang['Data, dBase [application/dbase]']="بيانات ، dBase [application/dbase] 
 ";
-$lang['Data, Microsoft Access [application/msaccess]']="بيانات ، Microsoft Access [application/msaccess]";
+$lang['Data, Microsoft Access [application/msaccess]']="بيانات ، ميكروسوفت اكسس  [application/msaccess]";
 $lang['Data, SAS [application/x-sas]']="بيانات ، SAS [application/x-sas]";
 $lang['Data, SPSS [application/x-spss]']="بيانات ، SPSS [application/x-spss] 
 ";
@@ -119,17 +118,17 @@ $lang['Document, Generic [text]']="وثيقة، عام [text]
 ";
 $lang['Document, HTML [text/html]']="وثيقة، HTML [text/html] 
 ";
-$lang['Document, Microsoft Excel [application/msexcel]']="وثيقة، Microsoft Excel [application/msexcel] 
+$lang['Document, Microsoft Excel [application/msexcel]']="وثيقة، ميكروسوفت اكسل [application/msexcel] 
 ";
-$lang['Document, Microsoft PowerPoint [application/mspowerpoint]']="وثيقة، Microsoft PowerPoint [application/mspowerpoint] 
+$lang['Document, Microsoft PowerPoint [application/mspowerpoint]']="وثيقة، ميكروسوفت بوربوينت  [application/mspowerpoint] 
 ";
-$lang['Document, Microsoft Word [application/msword]']="وثيقة، Microsoft Word [application/msword] 
+$lang['Document, Microsoft Word [application/msword]']="وثيقة، ميكروسوفت وورد  [application/msword] 
 ";
 $lang['Document, PDF [application/pdf]']="وثيقة، PDF [application/pdf] 
 ";
 $lang['Document, Postscript [application/postscript]']="وثيقة، Postscript [application/postscript] 
 ";
-$lang['Document, Plain [text/plain]']="وثيقة، [text/plain]";
+$lang['Document, Plain [text/plain]']="وثيقة، نص [text/plain]";
 $lang['Document, WordPerfect [text/wordperfect]']="وثيقة، WordPerfect [text/wordperfect] 
 ";
 $lang['Image, GIF [image/gif]']="صور ، GIF [image/gif] 
@@ -140,11 +139,12 @@ $lang['Image, PNG [image/png]']=" صور ،PNG [image/png]
 ";
 $lang['Image, TIFF [image/tiff]']="صور ، TIFF [image/tiff]";
 $lang['status']="حالة";
-$lang['file_delete_success']="تم حذف ملف بنجاح";
+$lang['file_delete_success']="تم حذف الملف بنجاح";
 $lang['additional_info']="معلومات إضافية";
-$lang['remote_data_access_url']="عنوان المستودع الخارجي
-";
+$lang['remote_data_access_url']="قم بتوفير URL إلى مستودع خارجي";
+$lang['upload_external_resources']="تحميل الموارد الخارجية";
+$lang['return_to_study_edit_page']="العودة إلى صفحة تحرير الدراسة";
 
 
-/* End of file resource_manager_lang.php */
-/* Location: ./application/language/arabic/resource_manager_lang.php */
+/* End of file resource_manager */
+/* Location: ./application/language/arabic/resource_manager */

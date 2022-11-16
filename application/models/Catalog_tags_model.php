@@ -61,6 +61,13 @@ class Catalog_tags_model extends CI_Model {
 		return $this->db->get('survey_tags')->result_array();
 	}
 
+	function survey_tags_with_key($sid)
+	{
+		$this->db->select("tag");
+		$this->db->where('sid',$sid);
+		return $this->db->get('survey_tags')->result_array();
+	}
+
 	
 	function survey_tags_list($sid)
 	{

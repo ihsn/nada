@@ -49,33 +49,20 @@
 		"ArtworkOrObject": {
 			"type": "object",
 			"properties": {
-				"circaDateCreated": {
-					"title": "Circa Date Created {Artwork or Object detail}",
-					"description": "Approximate date or range of dates associated with the creation and production of an artwork or object or its components.",
-					"type": "string"
+				"title": {
+					"$ref": "#/definitions/AltLang",
+					"description": "A reference for the artwork or object in the image.",
+					"title": "Title {Artwork or Object detail}"
 				},
 				"contentDescription": {
 					"$ref": "#/definitions/AltLang",
 					"description": "A textual description of the content depicted in the artwork or object.",
 					"title": "Content Description {Artwork or Object detail}"
 				},
-				"contributionDescription": {
+				"physicalDescription": {
 					"$ref": "#/definitions/AltLang",
-					"description": "A textual description about a contribution made to an artwork or an object.",
-					"title": "Contribution Description {Artwork or Object detail}"
-				},
-				"copyrightNotice": {
-					"$ref": "#/definitions/AltLang",
-					"description": "Contains any necessary copyright notice for claiming the intellectual property for artwork or an object in the image and should identify the current owner of the copyright of this  work with associated intellectual property rights.",
-					"title": "Copyright Notice {Artwork or Object detail}"
-				},
-				"creatorIdentifiers": {
-					"title": "Creator ID {Artwork or Object detail}",
-					"description": "Globally unique identifier for the creator of artwork or object.",
-					"type": "array",
-					"items": {
-						"type": "string"
-					}
+					"description": "A textual description of the physical characteristics of the artwork or object, without reference to the content depicted.",
+					"title": "Physical Description {Artwork or Object detail}"
 				},
 				"creatorNames": {
 					"title": "Creator {Artwork or Object detail}",
@@ -85,27 +72,26 @@
 						"type": "string"
 					}
 				},
-				"currentCopyrightOwnerIdentifier": {
-					"title": "Current Copyright Owner ID {Artwork or Object detail}",
-					"description": "Globally unique identifier for the current owner of the copyright of the artwork or object.",
-					"type": "string",
-					"format": "uri"
+				"creatorIdentifiers": {
+					"title": "Creator ID {Artwork or Object detail}",
+					"description": "Globally unique identifier for the creator of artwork or object.",
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
 				},
-				"currentCopyrightOwnerName": {
-					"title": "Current Copyright Owner Name {Artwork or Object detail}",
-					"description": "Name of the current owner of the copyright of the artwork or object.",
-					"type": "string"
+				"contributionDescription": {
+					"$ref": "#/definitions/AltLang",
+					"description": "A textual description about a contribution made to an artwork or an object.",
+					"title": "Contribution Description {Artwork or Object detail}"
 				},
-				"currentLicensorIdentifier": {
-					"title": "Current Licensor ID {Artwork or Object detail}",
-					"description": "Globally unique identifier for the current licensor of the artwork or object.",
-					"type": "string",
-					"format": "uri"
-				},
-				"currentLicensorName": {
-					"title": "Current Licensor Name {Artwork or Object detail}",
-					"description": "Name of the current licensor of the artwork or object.",
-					"type": "string"
+				"stylePeriod": {
+					"title": "Style Period {Artwork or Object detail}",
+					"description": "The style, historical or artistic period, movement, group, or school whose characteristics are represented in the artwork or object.",
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
 				},
 				"dateCreated": {
 					"title": "Date Created {Artwork or Object detail}",
@@ -113,10 +99,10 @@
 					"type": "string",
 					"format": "date-time"
 				},
-				"physicalDescription": {
-					"$ref": "#/definitions/AltLang",
-					"description": "A textual description of the physical characteristics of the artwork or object, without reference to the content depicted.",
-					"title": "Physical Description {Artwork or Object detail}"
+				"circaDateCreated": {
+					"title": "Circa Date Created {Artwork or Object detail}",
+					"description": "Approximate date or range of dates associated with the creation and production of an artwork or object or its components.",
+					"type": "string"
 				},
 				"source": {
 					"title": "Source {Artwork or Object detail}",
@@ -134,19 +120,38 @@
 					"type": "string",
 					"format": "uri"
 				},
-				"stylePeriod": {
-					"title": "Style Period {Artwork or Object detail}",
-					"description": "The style, historical or artistic period, movement, group, or school whose characteristics are represented in the artwork or object.",
-					"type": "array",
-					"items": {
-						"type": "string"
-					}
+				"currentCopyrightOwnerName": {
+					"title": "Current Copyright Owner Name {Artwork or Object detail}",
+					"description": "Name of the current owner of the copyright of the artwork or object.",
+					"type": "string"
+				},				
+				"currentCopyrightOwnerIdentifier": {
+					"title": "Current Copyright Owner ID {Artwork or Object detail}",
+					"description": "Globally unique identifier for the current owner of the copyright of the artwork or object.",
+					"type": "string",
+					"format": "uri"
 				},
-				"title": {
+
+				"copyrightNotice": {
 					"$ref": "#/definitions/AltLang",
-					"description": "A reference for the artwork or object in the image.",
-					"title": "Title {Artwork or Object detail}"
+					"description": "Contains any necessary copyright notice for claiming the intellectual property for artwork or an object in the image and should identify the current owner of the copyright of this  work with associated intellectual property rights.",
+					"title": "Copyright Notice {Artwork or Object detail}"
+				},
+
+
+				"currentLicensorName": {
+					"title": "Current Licensor Name {Artwork or Object detail}",
+					"description": "Name of the current licensor of the artwork or object.",
+					"type": "string"
+				},
+
+				"currentLicensorIdentifier": {
+					"title": "Current Licensor ID {Artwork or Object detail}",
+					"description": "Globally unique identifier for the current licensor of the artwork or object.",
+					"type": "string",
+					"format": "uri"
 				}
+
 			},
 			"additionalProperties": false
 		},

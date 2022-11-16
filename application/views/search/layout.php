@@ -7,6 +7,9 @@
     margin-bottom:10px;
     font-weight:bold;
 }
+.study-subtitle{
+    font-size:small;
+}
 </style>
 <div class="container catalog-search-container">
 <form method="get" id="catalog-search-form">    

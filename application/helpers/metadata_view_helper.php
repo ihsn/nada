@@ -118,6 +118,30 @@ if ( ! function_exists('render_group'))
 	}
 }
 
+
+if ( ! function_exists('render_group_array'))
+{
+	function render_group_array($name, $fields, $metadata,$options=array())
+	{
+		$ci =& get_instance();
+
+		$output=[];
+		foreach($fields as $field_name=>$field_type){
+			$value=get_field_value($field_name,$metadata);
+			//$field_options=isset($field_type['options'])
+			if (is_array($field_type)){
+				$output[$field_name]= render_field($field_type[0],$field_name,$value,$options=$field_type['options']);
+			}
+			else{
+				$output[$field_name]= render_field($field_type,$field_name,$value,$options);
+			}
+		}
+    
+		return $output;
+	}
+}
+
+
 if ( ! function_exists('render_group_text'))
 {
 	function render_group_text($section_name, $html)
@@ -134,7 +158,7 @@ if ( ! function_exists('render_group_text'))
 
 
 
-if ( ! function_exists('render_columns'))
+if ( ! function_exists('render_columns')) 
 {
 	function render_columns($name, $fields, $metadata,$options=array())
 	{
@@ -227,5 +251,23 @@ function get_string_value($data,$type='text')
     throw new Exception("TYPE_NOT_SUPPORTED: ".$type);
 }
 
-/* End of file search_helper.php */
-/* Location: ./application/helpers/search_helper.php */
+
+if ( ! function_exists('authors_to_string'))
+{
+    function authors_to_string($authors=array())
+    {
+		$output=array();
+        foreach($authors as $author){
+			$author_name=array(
+				isset($author['first_name']) ? $author['first_name'] : '', 
+				isset($author['last_name']) ? $author['last_name']: ''
+			);
+			$output[]=implode(" ", array_filter($author_name));
+		}
+
+		return implode(", ", $output);
+    }
+}
+
+/* End of file metadata_view_helper.php */
+/* Location: ./application/helpers/metadata_view_helper.php */

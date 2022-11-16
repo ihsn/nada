@@ -11,6 +11,8 @@ $lang['metadata.database_description.authoring_entity.name']='Name';
 $lang['metadata.database_description.authoring_entity.role']='Role';
 $lang['metadata.database_description.authoring_entity.affiliation']='Affiliation';
 $lang['metadata.database_description.authoring_entity.abbreviation']='Abbreviation';
+$lang['metadata.database_description.authoring_entity.email']='Email';
+$lang['metadata.database_description.authoring_entity.uri']='URI';
 
 
 $lang['metadata.database_description.abstract']='Abstract';
@@ -31,13 +33,16 @@ $lang['metadata.database_description.version.notes']='Notes';
 $lang['metadata.database_description.update_frequency']='Update frequency';
 $lang['metadata.database_description.update_schedule']='Update schedule';
 $lang['metadata.database_description.update_schedule.update']='Schedule';
-$lang['metadata.database_description.time_coverage']='Time';
+$lang['metadata.database_description.time_coverage']='Time coverage';
 $lang['metadata.database_description.time_coverage_note']='Time coverage note';
+$lang['metadata.database_description.time_coverage.start']='Start';
+$lang['metadata.database_description.time_coverage.end']='End';
 $lang['metadata.database_description.periodicity']='Periodicity';
 $lang['metadata.database_description.periodicity.period']='Period';
 
 $lang['metadata.database_description.themes']='Themes';
 $lang['metadata.database_description.themes.name']='Theme';
+$lang['metadata.database_description.themes.id']='ID';
 $lang['metadata.database_description.themes.vocabulary']='Vocabulary';
 $lang['metadata.database_description.themes.uri']='URI';
 
@@ -48,6 +53,11 @@ $lang['metadata.database_description.topics.parent_id']='Parent Topic';
 $lang['metadata.database_description.topics.vocabulary']='Vocabulary';
 $lang['metadata.database_description.topics.uri']='URI';
 
+$lang['metadata.database_description.ref_country']='Reference countries';
+$lang['metadata.database_description.ref_country.name']='Name';
+$lang['metadata.database_description.ref_country.code']='Code';
+
+$lang['metadata.database_description.acknowledgment_statement']='Acknowledgement statement';
 
 
 $lang['metadata.database_description.keywords']='Keywords';
@@ -55,7 +65,7 @@ $lang['metadata.database_description.keywords.name']='Name';
 $lang['metadata.database_description.keywords.vocabulary']='Vocabulary';
 $lang['metadata.database_description.keywords.uri']='URI';
 
-$lang['metadata.database_description.geographic_units']='Geograhic coverage';
+$lang['metadata.database_description.geographic_units']='Geographic coverage';
 
 $lang['metadata.database_description.geographic_units.name']='Name';
 $lang['metadata.database_description.geographic_units.code']='Code';
@@ -111,6 +121,7 @@ $lang['metadata.database_description.license']='License';
 $lang['metadata.database_description.license.type']='Type';
 $lang['metadata.database_description.license.uri']='URI';
 $lang['metadata.database_description.license.note']='Note';
+$lang['metadata.database_description.license.name']='Name';
 
 $lang['metadata.database_description.citation']='Citation';
 
