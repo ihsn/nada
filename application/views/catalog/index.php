@@ -11,11 +11,23 @@
 <div class="container-fluid">
 <?php //$this->load->view('catalog/catalog_page_links');?>
 
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+<?php $error=$this->session->flashdata('error'); ?>
+<?php if ($error!=""):?>
+	<div class="alert alert-danger alert-dismissible">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">×</span>
+		</button><?php echo $error;?>
+	</div>
+<?php endif;?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="alert alert-success">'.$message.'</div>' : '';?>
+<?php if ($message!=""):?>
+	<div class="alert alert-success alert-dismissible">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">×</span>
+		</button><?php echo $message;?>
+	</div>
+<?php endif;?>
 
 <h1 class="page-title">
 	<?php echo t('catalog_maintenance');?>

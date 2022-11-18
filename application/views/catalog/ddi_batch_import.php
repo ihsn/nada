@@ -27,15 +27,33 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 
 <div class="container-fluid">
 
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+<?php $error=$this->session->flashdata('error'); ?>
+<?php if ($error!=""):?>
+        <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                </button><?php echo $error;?>
+        </div>
+<?php endif;?>
+
+<?php $message=$this->session->flashdata('message');?>
+<?php if ($message!=""):?>
+        <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                </button><?php echo $message;?>
+        </div>
+<?php endif;?>
 
 <h1 class="page-title"><?php echo t('batch_import_title');?> <span class="label label-default"><?php echo $repositories_list[$active_repository];?></span></h1>
 <div>
 
 <?php if ( count($files)==0 || $files===false) :?>
-    <div class="alert alert-warning">
-		<?php echo sprintf(t('import_ddi_no_files_found'),$this->config->item('ddi_import_folder'));?>
+    <div class="alert alert-warning alert-dismissible">
+	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+		<span aria-hidden="true">×</span>
+	</button>
+	<?php echo sprintf(t('import_ddi_no_files_found'),$this->config->item('ddi_import_folder'));?>
     </div>
     <?php echo $batch_uploader;?>
     <?php return; ?>
@@ -58,7 +76,7 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 <div class="note" id="batch-import-box" style="display:none;" >
 <!--    <div id="batch-import-processing" style="padding:5px;border-bottom:1px solid gainsboro;margin-bottom:10px;">Processing survey...</div>
 -->
-    <div id="batch-import-processing" class="alert alert-info">Processing survey...</div>
+    <div id="batch-import-processing" class="alert alert-info alert-dismissible">Processing survey...</div>
     <div id="batch-import-log" ></div>
 </div>
 
@@ -73,7 +91,7 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 
 <div class="uploader-body state-hidden"><?php echo $batch_uploader;?></div>
 
-<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0"> 
+<table class="table table-striped" width="100%" cellspacing="0" cellpadding="0">
 <tr align="left" class="header">
 	<th><input type="checkbox" value="-1" id="chk_toggle"/></th>
     <th><?php echo t('name');?></th>
@@ -94,7 +112,7 @@ $batch_uploader=$this->load->view('catalog/batch_file_upload',$batch_upload_opti
 
 </div>
 <script language="javascript">
-//translations	
+//translations
 var i18n=
 {
 'cancel_import_process':"<?php echo t('cancel_import_process');?>",
@@ -146,7 +164,10 @@ var batch_import = {
 			this.import_single(this.queue[this.queue_idx++].id);
 		}
 		else{
-			$("#batch-import-processing").html(i18n.import_completed);
+			html='<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
+			html+='<span aria-hidden="true">×</span></button>';
+			html+=i18n.import_completed;
+			$("#batch-import-processing").html(html);
 			this.isprocessing=false;
 		}
 
@@ -174,12 +195,18 @@ var batch_import = {
 			 if (data.success){
 				obj.queue[obj.queue_idx-1].status=data.success;
 				// $("#batch-import-log").append('<div class="log" style="color:green;">#' + (obj.queue_idx) + ': '  + obj.queue[obj.queue_idx-1].name + ' - ' + data.success+ '</div>');
-				$("#batch-import-log").append('<div class="alert alert-success">#' + (obj.queue_idx) + ': '  + obj.queue[obj.queue_idx-1].name + ' - ' + data.success+ '</div>');
+				$("#batch-import-log").append('<div class="alert alert-success alert-dismissible">' +
+					'<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+					'<span aria-hidden="true">×</span></button>' +
+					'#' + (obj.queue_idx) + ': '  + obj.queue[obj.queue_idx-1].name + ' - ' + data.success+ '</div>');
 			 }
 			 else{
 			 	obj.queue[obj.queue_idx-1].status=data.error;
 				//$("#batch-import-log").append('<div class="log" style="color:red">#' + (obj.queue_idx) + ': '  +  obj.queue[obj.queue_idx-1].name + ' - ' + data.error+ '</div>');
-				$("#batch-import-log").append('<div class="alert alert-danger">#' + (obj.queue_idx) + ': '  +  obj.queue[obj.queue_idx-1].name + ' - ' + data.error+ '</div>');
+				$("#batch-import-log").append('<div class="alert alert-danger alert-dismissible">' +
+					'<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+					'<span aria-hidden="true">×</span></button>' +
+					'#' + (obj.queue_idx) + ': '  +  obj.queue[obj.queue_idx-1].name + ' - ' + data.error+ '</div>');
 			 }
 			 obj.process_queue();
 		}//end-func
@@ -196,18 +223,18 @@ var batch_import = {
 //checkbox select/deselect
 jQuery(document).ready(function(){
 	$("#chk_toggle").click(
-			function (e) 
+			function (e)
 			{
-				$('.chk').each(function(){ 
-                    this.checked = (e.target).checked; 
-                }); 
+				$('.chk').each(function(){
+                    this.checked = (e.target).checked;
+                });
 			}
 	);
-	
+
 	$(".batch-uploader").click(function(e){
 		$(".uploader-body").toggleClass("state-hidden");
 	});
-	
+
 });
 
 </script>

@@ -24,11 +24,23 @@ if ($max_upload>$max_post){
 <div class="container-fluid content-container ddi-upload">
 <?php //include 'catalog_page_links.php'; ?>
 
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
+<?php $error=$this->session->flashdata('error'); ?>
+<?php if ($error!=""):?>
+        <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                </button><?php echo $error;?>
+        </div>
+<?php endif;?>
 
 <?php $message=$this->session->flashdata('message');?>
-<?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
+<?php if ($message!=""):?>
+        <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                </button><?php echo $message;?>
+        </div>
+<?php endif;?>
 
 <?php echo validation_errors(); ?>
 
@@ -69,7 +81,7 @@ if ($max_upload>$max_post){
   <h2 style="margin:0px;margin-bottom:15px;"><?php echo t('Create new study');?> </h2>
 
 
-  <form class="form"  method="get" action="<?php echo site_url('admin/catalog/create');?>">    
+  <form class="form"  method="get" action="<?php echo site_url('admin/catalog/create');?>">
 
     <div class="form-group">
       <label for="exampleInputEmail1">Select data type</label>

@@ -64,12 +64,16 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
+		// @TODO: Confirm Cleaning of Erros and Messages from previous Forms
+		$this->session->unset_userdata('error');
+		$this->session->unset_userdata('message');
+
 		$this->template->set_template('admin5');
 		//css files
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
-    
-    $this->template->add_css($inline_styles,'embed');
-    
+
+		$this->template->add_css($inline_styles,'embed');
+
 		//js files
 		$this->template->add_js('var site_url="'.site_url().'";','embed');
 		$this->template->add_js('javascript/catalog_admin.js');
@@ -317,7 +321,6 @@ class Catalog extends MY_Controller {
 		if ($this->form_validation->run() == FALSE) {
 
 			$this->template->set_template('admin');
-
 			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
 			$this->template->write('content', $content,true);
 	  		$this->template->render();
@@ -328,6 +331,7 @@ class Catalog extends MY_Controller {
 
 			if (!empty($new_survey)){
 				// RRE Clear Errors
+				// @TODO: Review if messages should be unset too
 				$this->session->unset_userdata('error');
 				//redirect('admin/catalog/edit/'.$result['sid'],'refresh');
 				redirect('admin/catalog/edit/'.$new_survey,'refresh');
@@ -389,6 +393,7 @@ class Catalog extends MY_Controller {
 		}
 
 		// Uploads the xml File
+		// @TODO: review if the file should reamin in the directory after the process is executed
 		$temp_upload_folder=$this->get_temp_upload_folder();
 
 		//upload class configurations for DDI
@@ -399,7 +404,7 @@ class Catalog extends MY_Controller {
 
 		$this->load->library('upload', $config);
 
-
+		// @TODO: Review ONLY XML file is in this reference, RDF files ? or XML RDF pair?
 		$ddi_upload_result=$this->upload->do_upload('userfile');
 
 		$uploaded_ddi_path=NULL;
@@ -434,7 +439,7 @@ class Catalog extends MY_Controller {
 			'overwrite'=>$overwrite
 		);
 
-		try{
+		try {
 			//import ddi
 			$result=$this->ddi2_import->import($params);
 
@@ -448,26 +453,37 @@ class Catalog extends MY_Controller {
 			return $result['sid'];
 		}
 		// @TODO: Find how to replicate this error
-		catch(ValidationException $e){
+		catch (ValidationException $e){
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
 				'errors'=>$e->GetValidationErrors()
 			);
 
-			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';
+// RRE  @TODO: Multiple errors in the xml validation
+			// $error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';
+			$arr_errors=$e->GetValidationErrors();
+			$error_str='Validation Error<br/><pre class="error-pre">';
+			foreach ($arr_errors as $key_error) {
+				$error_str.=$key_error['message'].'<br>';
+			}
+			$error_str.='</pre>';
 			$this->session->set_flashdata('error', $error_str);
 			//redirect('admin/catalog/add_study','refresh');return;
 			//redirect('admin/catalog/upload','refresh');
 
-			// @TODO: Find how to replicate this error
-return;
+			return NULL;
 		}
-		catch(Exception $e){
+		catch (Exception $e){
 			$this->session->set_flashdata('error', $e->getMessage());
 			//redirect('admin/catalog/add_study','refresh');return;
 			//redirect('admin/catalog/upload','refresh');
 			return NULL;
+		}
+		finally {
+			// @TODO: Review if this is OK.
+			unlink($ddi_path);
+
 		}
 	}
 
@@ -556,7 +572,7 @@ return;
 		 if ($new_idno!==$this->sanitize_filename($new_idno)){
 			 throw new Exception(t('IDNO_INVALID_FORMAT').': '.$new_idno);
 		 }
- 
+
 		 //check if the study already exists, find the sid		
 		$new_ddi_sid=$this->dataset_manager->find_by_idno($new_idno);
 
@@ -801,6 +817,8 @@ return;
 
 		if (!file_exists($import_folder) ){
 			// @TODO: Review datasets directory does not exist either
+			// @TODO: Review if this default should set config->item('ddi_import_folder')
+			//	The next calls to config->item('ddi_import_folder') will fail if this is not set.
 			// $import_folder="/datasets";
 			$import_folder="/datafiles/tmp";
 		}
