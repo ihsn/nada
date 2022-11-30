@@ -24,7 +24,6 @@ CREATE TABLE `repositories` (
   `section` int(11) DEFAULT NULL,
   `group_da_public` tinyint(1) DEFAULT '0',
   `group_da_licensed` tinyint(1) DEFAULT '0',
-  `owners` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Ind_unq` (`repositoryid`)
 ) DEFAULT CHARSET=utf8;

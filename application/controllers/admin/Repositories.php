@@ -195,9 +195,6 @@ class Repositories extends MY_Controller {
 		$this->form_validation->set_rules('section', t('section'), 'xss_clean|trim|max_length[3]|is_natural');
 		$this->form_validation->set_rules('published', t('published'), 'xss_clean|trim|max_length[1]|is_natural');
 		$this->form_validation->set_rules('thumbnailfile', 'thumbnail_upload', 'callback__thumbnail_upload');
-
-		//owners
-		$this->form_validation->set_rules('owners', t('owners'), 'callback__owners_email_check');
 		
 		if (is_numeric($id)){
 			$this->page_title=t('edit_repository');
@@ -221,8 +218,7 @@ class Repositories extends MY_Controller {
 						'ispublished'=>0,
 						'section'=>0,//default
 						'group_da_public'=>0,
-						'group_da_licensed'=>0,
-						'owners'=>array()
+						'group_da_licensed'=>0
 						);
 												
 		//process form
@@ -235,11 +231,7 @@ class Repositories extends MY_Controller {
 							
 			//read post values to pass to db
 			foreach($post_arr as $key=>$value){
-				if($key=='owners'){
-					$options[$key]=$this->input->post($key,true);
-				}else{
-					$options[$key]=$this->input->post($key);
-				}
+				$options[$key]=$this->input->post($key);
 			}
 
 			//sanitize description html
@@ -273,7 +265,7 @@ class Repositories extends MY_Controller {
 		else //first time page is loaded or validation failed
 		{
 			if ($id!=NULL){
-				$row=$this->repository_model->select_single($id);
+				$row=$this->repository_model->select_single($id);				
 				
 				if(!$row){
 					show_error('ID was not found');
@@ -312,12 +304,6 @@ class Repositories extends MY_Controller {
 		$this->data['ispublished']=$this->form_validation->set_value('ispublished',$this->row_data['ispublished']);
 		$this->data['section_options']=$this->Repository_model->get_repository_sections();
 		$this->data['section']=$this->form_validation->set_value('section',$this->row_data['section']);
-
-		$owners=$this->input->post("owners",true);
-		if (!$owners){
-			$owners=isset($this->row_data['owners']) ? $this->row_data['owners']: [];
-		}
-		$this->data['owners']=$owners;
 		
 		$content=$this->load->view('repositories/edit',NULL,true);									
 		$this->template->write('content', $content,true);
@@ -389,22 +375,6 @@ class Repositories extends MY_Controller {
 			return FALSE;
 		}
 			return TRUE;
-	}
-
-	function _owners_email_check($owners)
-	{
-		$owners=$this->input->post('owners',true);
-		foreach($owners as $owner)
-		{
-			if (!empty($owner['email'])){
-				if (!$this->form_validation->valid_email($owner['email'])){
-					$this->form_validation->set_message('_owners_email_check', t('invalid_email'). ': '.$owner['email']);
-					return FALSE;
-				}
-			}
-		}
-
-		return true;
 	}
 
 
