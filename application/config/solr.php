@@ -18,10 +18,21 @@
 */
 $config['solr_host'] = "localhost";
 $config['solr_port'] = "8983";
-$config['solr_collection'] = "nada";
+$config['solr_collection'] = "nada52";
 
 $config['solr_edismax_options']=array(
   'qf'=>'title^20.0 nation^20.0 years^30.0 authoring_entity idno keywords', //query fields - qf="title^20 nation keywords"
+  'pf'=>'', //phrase fields
+  'mm'=>'3<90%', //minimum match - 3, 2, 75%, -25% 
+  'ps'=>'',
+  'qs'=>'',
+  'bq'=>'',
+  'bf'=>''
+);
+
+//variable search
+$config['solr_edismax_variable_options']=array(
+  'qf'=>'labl^20.0 name^20.0 catgry qstn', //query fields - qf="title^20 nation keywords"
   'pf'=>'', //phrase fields
   'mm'=>'3<90%', //minimum match - 3, 2, 75%, -25% 
   'ps'=>'',
