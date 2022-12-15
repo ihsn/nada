@@ -509,5 +509,79 @@ class Catalog_Admin
 		return $fixed_count;
 	}
 
+	function replace_ddi($sid,$new_ddi_file)
+	{
+		$this->ci->load->model("Survey_alias_model");
+		$this->ci->load->model("Dataset_model");
+		//$this->ci->load->model("Data_file_model");
+		$this->ci->load->library('Dataset_manager');
+
+		//get survey info
+		$survey=$this->ci->Dataset_model->get_row($sid);
+		$user=$this->ci->ion_auth->current_user();
+
+		if (!$survey){
+			throw new Exception("SURVEY_NOT_FOUND");
+		}
+
+		//get ddi path
+		$survey_ddi_path=$this->ci->Catalog_model->get_survey_ddi_path($sid);
+
+		$parser_params=array(
+            'file_type'=>'survey',
+            'file_path'=>$new_ddi_file
+        );
+        
+		require_once dirname(__FILE__).'/Metadata_parser/classes/DDI2Reader.php';
+        require_once dirname(__FILE__).'/Metadata_parser/classes/DdiVariableIterator.php';
+        
+		$this->ddi2reader= new DDI2Reader($new_ddi_file);
+		$new_idno=$this->ddi2reader->get_study_IDNO();
+
+		$this->ddi2reader=null;
+		 
+		 //sanitize ID to remove anything except a-Z1-9 characters
+		 /*if ($new_idno!==$this->sanitize_filename($new_idno)){
+			 throw new Exception(t('IDNO_INVALID_FORMAT').': '.$new_idno);
+		 }*/
+ 
+		 //check if the study already exists, find the sid		
+		$new_ddi_sid=$this->ci->dataset_manager->find_by_idno($new_idno);
+
+		//check if uploaded study ID is used by another study in the catalog
+		if(!empty($new_ddi_sid) && $new_ddi_sid!=$sid){			
+			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$new_ddi_sid));
+			$this->db_logger->write_log('ddi-replace-error',$error,'catalog');
+			throw new Exception($error);
+		}
+
+		//copy
+		$survey_folder_path=$this->ci->Dataset_model->get_storage_fullpath($sid);
+		$survey_target_ddi=unix_path($survey_folder_path.'/'.$new_idno.'.xml');
+
+		if (!@rename($new_ddi_file,$survey_target_ddi)){
+			throw new Exception("COPY_FAILED: ".$survey_target_ddi);
+		}
+
+		//update survey metadata to point to new file
+		$survey_options=array(
+			'metafile'=>$new_idno.'.xml'
+		);
+		
+		$this->ci->Dataset_model->update_options($sid,$survey_options);
+
+		//if Survey ID has changed then add the OLD ID as alias
+		if (!$this->ci->Survey_alias_model->id_exists($new_idno)){
+			$alias_options = array(
+				'sid'  => $sid,
+				'alternate_id' => $new_idno,
+			);
+			$this->ci->Survey_alias_model->insert($alias_options);
+		}
+
+		return $survey_target_ddi;
+	}
+
+
 }//end class
 

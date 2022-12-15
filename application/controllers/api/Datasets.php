@@ -1283,6 +1283,84 @@ class Datasets extends MY_REST_Controller
 		}		
 	}
 
+
+	/** 
+	 * 
+	 * 
+	 * Replace DDI
+	 * 
+	 * replace DDI with a new DDI
+	 * 
+	 * 
+	 * 
+	 **/ 
+	function replace_ddi_post($idno=null)
+	{		
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+					
+			//process form
+			$temp_upload_folder=get_catalog_root().'/tmp';
+			
+			if (!file_exists($temp_upload_folder)){
+				@mkdir($temp_upload_folder);
+			}
+			
+			if (!file_exists($temp_upload_folder)){
+				show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
+			}
+
+			if(empty($_FILES['file'])) {
+				throw new Exception("No file was uploaded");
+			}
+
+			$this->load->library("Catalog_admin");
+			$uploaded_ddi_path=$this->process_file_upload($temp_upload_folder,$allowed_file_types='xml',$file_field_name='file');			
+			
+			$ddi_path=$this->catalog_admin->replace_ddi($sid,$uploaded_ddi_path);
+
+			$survey=$this->dataset_manager->get_row($sid);
+
+			if(!$survey){
+				throw new Exception("Survey was not found");
+			}
+
+			//replace metadata
+			$this->load->library('DDI2_import');
+			$params=array(
+				'file_type'=>'survey', 
+				'file_path'=>$ddi_path,
+				'repositoryid'=>$survey['repositoryid'],
+				'published'=>$survey['published'],
+				'user_id'=>$this->get_api_user_id(),
+				'formid'=>$survey['formid'],
+				'link_da'=>$survey['remote_data_url'],
+				'overwrite'=>'yes'
+			);
+
+			$result=$this->ddi2_import->import($params);
+			
+			$response=array(
+				'status'=>'success',
+				'result'=>$survey
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
+
+
+
+
+
+
 	private function process_file_upload($temp_upload_folder,$allowed_file_types='xml',$file_field_name='file')
 	{
 		//upload class configurations for DDI
@@ -1303,6 +1381,7 @@ class Datasets extends MY_REST_Controller
 
 		//ddi upload failed
 		if (!$ddi_upload_result){
+			var_dump("upoaded faild",$ddi_upload_result);
 			$error = $this->upload->display_errors('','');
 			$this->db_logger->write_log('ddi-upload',$error,'catalog');
 			throw new Exception($error);
