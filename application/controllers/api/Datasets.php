@@ -1357,10 +1357,6 @@ class Datasets extends MY_REST_Controller
 	}
 
 
-
-
-
-
 	private function process_file_upload($temp_upload_folder,$allowed_file_types='xml',$file_field_name='file')
 	{
 		//upload class configurations for DDI
@@ -1381,7 +1377,6 @@ class Datasets extends MY_REST_Controller
 
 		//ddi upload failed
 		if (!$ddi_upload_result){
-			var_dump("upoaded faild",$ddi_upload_result);
 			$error = $this->upload->display_errors('','');
 			$this->db_logger->write_log('ddi-upload',$error,'catalog');
 			throw new Exception($error);
