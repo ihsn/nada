@@ -524,14 +524,6 @@ class Catalog_Admin
 			throw new Exception("SURVEY_NOT_FOUND");
 		}
 
-		//get ddi path
-		$survey_ddi_path=$this->ci->Catalog_model->get_survey_ddi_path($sid);
-
-		$parser_params=array(
-            'file_type'=>'survey',
-            'file_path'=>$new_ddi_file
-        );
-        
 		require_once dirname(__FILE__).'/Metadata_parser/classes/DDI2Reader.php';
         require_once dirname(__FILE__).'/Metadata_parser/classes/DdiVariableIterator.php';
         
@@ -570,14 +562,9 @@ class Catalog_Admin
 		
 		$this->ci->Dataset_model->update_options($sid,$survey_options);
 
-		//if Survey ID has changed then add the OLD ID as alias
-		if (!$this->ci->Survey_alias_model->id_exists($new_idno)){
-			$alias_options = array(
-				'sid'  => $sid,
-				'alternate_id' => $new_idno,
-			);
-			$this->ci->Survey_alias_model->insert($alias_options);
-		}
+		//add aliases
+		$this->ci->Survey_alias_model->upsert($sid,$survey['idno']);
+		$this->ci->Survey_alias_model->upsert($sid,$new_idno);
 
 		return $survey_target_ddi;
 	}
