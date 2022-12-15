@@ -1337,6 +1337,33 @@ paths:
           '200':
             description: successful operation
         security:
+          - ApiKeyAuth: []                  
+  /datasets/replace_ddi/{IDNo}:
+      post:
+        tags:
+          - Survey
+        summary: Replace DDI
+        description: Replace DDI
+        operationId: replaceDDI
+        parameters:
+          - in: "path"
+            name: "IDNo"
+            type: string
+            format: string
+            required: true
+          - in: "formData"
+            name: "file"
+            type: file
+            description: "Upload DDI XML file"
+            required: true
+        consumes:
+          - multipart/form-data
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
           - ApiKeyAuth: []
   /datasets/generate_ddi/{IDNo}:
       get:
