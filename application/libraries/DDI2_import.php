@@ -156,11 +156,14 @@ class DDI2_Import{
             $survey_target_filepath=unix_path($survey_folder_path.'/'.$ddi_filename);
         }
 
+        //windows path fix
+        $survey_target_filepath=str_replace(':\\',':/',unix_path($survey_target_filepath));
+
         //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
         if(unix_path($this->file_path)!==$survey_target_filepath){
             $copied=$this->copy_file($this->file_path, $survey_target_filepath);
         }
-        
+
         $options=$this->transform_ddi_fields($parser->get_metadata_array());                
         $options['created_by']=$this->user_id;
 		$options['changed_by']=$this->user_id;
