@@ -157,7 +157,7 @@ class DDI2_Import{
         }
 
         //copy the xml file to the survey folder - skip copying if source and target are the same (e.g. for ddi refresh)
-        if($this->file_path!==$survey_target_filepath){
+        if(unix_path($this->file_path)!==$survey_target_filepath){
             $copied=$this->copy_file($this->file_path, $survey_target_filepath);
         }
         
