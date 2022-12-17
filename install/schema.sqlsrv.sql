@@ -1531,3 +1531,106 @@ CREATE TABLE data_access_whitelist (
   repository_id int DEFAULT NULL,
   PRIMARY KEY (id)
 );
+
+
+CREATE TABLE widgets (
+  id int NOT NULL identity(1,1),
+  uuid varchar(100) NOT NULL,
+  title varchar(250) NOT NULL,
+  thumbnail varchar(300) DEFAULT NULL,
+  description varchar(450) DEFAULT NULL,
+  storage_path varchar(255) DEFAULT NULL,
+  published int DEFAULT NULL,
+  created int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  created_by int DEFAULT NULL,
+  changed_by int DEFAULT NULL,
+  options text,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_widgets on [dbo].[widgets](
+    [uuid] ASC
+);
+
+
+
+CREATE TABLE survey_widgets (
+  id int NOT NULL identity(1,1),
+  sid int NOT NULL,
+  widget_uuid varchar(145) NOT NULL,
+  url varchar(500) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE ts_databases (
+  id int NOT NULL identity(1,1),
+  idno varchar(150) DEFAULT NULL,
+  title varchar(300) DEFAULT NULL,
+  abstract text,
+  published int DEFAULT NULL,
+  created varchar(45) DEFAULT NULL,
+  changed varchar(45) DEFAULT NULL,
+  created_by int DEFAULT NULL,
+  changed_by int DEFAULT NULL,
+  metadata text,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_ts_db on [dbo].[ts_databases](
+    [idno] ASC
+);
+
+ 
+
+ 
+ CREATE TABLE facets (
+  id int NOT NULL IDENTITY(1,1),
+  name varchar(20) DEFAULT NULL,
+  title varchar(45) DEFAULT NULL,
+  facet_type varchar(10) DEFAULT NULL,
+  enabled int DEFAULT '0',
+  mappings text,
+  PRIMARY KEY (id)
+  );
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_facets on [dbo].[facets](
+  [id] ASC
+);
+
+
+insert into facets(name,title,facet_type,enabled)
+values
+('year','Years','core',1),
+('data_class','Data classifications','core',1),
+('dtype','License','core',1),
+('country','Countries','core',1),
+('collection','Collections','core',1),
+('type','Data types','core',1),
+('tag','Tags','core',1);
+
+
+CREATE TABLE facet_terms (
+  id int NOT NULL IDENTITY(1,1),
+  facet_id int DEFAULT NULL,
+  value varchar(300) DEFAULT NULL,
+  weight int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_facet_terms on [dbo].[facet_terms](
+  [id] ASC
+);
+
+ 
+CREATE TABLE survey_facets (
+  id int NOT NULL IDENTITY(1,1),
+  sid int DEFAULT NULL,
+  facet_id int DEFAULT NULL,
+  term_id int DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+INSERT INTO configurations VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);
