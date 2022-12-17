@@ -66,19 +66,7 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
             <label for="<?php echo 'website_webmaster_email'; ?>"><?php echo t('webmaster_email');?></label>
             <input class="form-control" name="website_webmaster_email" type="text" id="website_webmaster_email"  value="<?php echo get_form_value('website_webmaster_email',isset($website_webmaster_email) ? $website_webmaster_email : ''); ?>"/>
     </div>    
-    <div class="field">
-            <label for="<?php echo 'cache_default_expires'; ?>"><?php echo t('cache_expiry');?></label>
-            <input class="form-control" name="cache_default_expires" type="text" id="cache_default_expires"  value="<?php echo get_form_value('cache_default_expires',isset($cache_default_expires) ? $cache_default_expires : '7200'); ?>"/>
-            <span class="field-note"><?php echo t('cache_default_expires_msg');?></span>
-    </div>
-	<div class="field">
-            <label for="<?php echo 'cache_disabled'; ?>"><?php echo t('cache_disabled');?></label>
-            <span style="display:inline-block;padding-right:5px;" class="input-flex">
-            <input type="radio" value="1" name="cache_disabled" <?php echo (get_form_value('cache_disabled',isset($cache_disabled) ? $cache_disabled : '0')=='1') ? 'checked="checked"' : ''; ?>/> <?php echo t('yes');?> 
-        	<input type="radio" value="0" name="cache_disabled" <?php echo (get_form_value('cache_disabled',isset($cache_disabled) ? $cache_disabled : '0')!='1') ? 'checked="checked"' : ''; ?>/> <?php echo t('no');?>
-            </span>
-            <span class="field-note"><?php echo t('cache_disabled_msg');?></span>
-    </div>
+    
 </fieldset>
 
 <fieldset class="field-expanded ">

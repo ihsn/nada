@@ -13,7 +13,8 @@ class Data_file_model extends CI_Model {
 		'data_checks',
 		'missing_data',
 		'version',
-		'notes'
+		'notes',
+		'metadata'
 	);
 
     public function __construct()
@@ -166,12 +167,10 @@ class Data_file_model extends CI_Model {
 			}
 		}
 
-		$data['sid']=$sid;
-		
+		$data['sid']=$sid;		
 		$result=$this->db->insert('data_files', $data);
 
-		if ($result===false)
-		{
+		if ($result===false){
 			throw new MY_Exception($this->db->_error_message());
 		}
 		

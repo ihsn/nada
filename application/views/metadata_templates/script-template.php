@@ -12,7 +12,7 @@
 <style>
     .accordion-title{
         cursor:pointer;
-        font-size:1.2em;
+        font-size:1em;
         color:#0275d8;
         font-weight:normal;
     }
@@ -22,6 +22,11 @@
 
     #accordion-script-files .card{
         margin-top:5px;
+        border-radius:0px;
+    }
+
+    #accordion-script-files .card-header {
+        padding: 0.25rem 1rem;
     }
 
     [data-toggle="collapse"] i:before{
@@ -120,7 +125,7 @@
             "metadata.project_desc.repository_url" =>'array',
 
 
-            "metadata.project_desc.scripts"=>'script_file_v2',
+            "metadata.project_desc.scripts"=>'script_file',
             "metadata.project_desc.technology_environment"=>'text',
             "metadata.project_desc.technology_requirements"=>'text',
             "metadata.project_desc.reproduction_instructions"=>'text'
@@ -187,6 +192,6 @@ foreach($template as $section=>$fields){
 
 <?php 
     //renders html
-    $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'hide_sidebar'=>true));
+    $this->load->view('metadata_templates/metadata_output', array('output'=>$output, 'hide_sidebar'=>FALSE));
 ?>
 

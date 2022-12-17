@@ -42,7 +42,6 @@ class Survey_resource_model extends CI_Model {
 	{
 		//allowed fields
 		$valid_fields=array(
-			'resource_id',
 			'survey_id',
 			'dctype',
 			'title',
@@ -653,7 +652,9 @@ class Survey_resource_model extends CI_Model {
 	function get_microdata_resources($surveyid)
 	{
 		$this->db->select('*');
-		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);
+		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);		
+		$this->db->order_by("dcdate","desc");
+		$this->db->order_by("title","asc");
 		return $this->db->get('resources')->result_array();
 	}
 	
@@ -804,14 +805,7 @@ class Survey_resource_model extends CI_Model {
 					}
 				}
 			
-				return array(
-					'access'=>false,
-					'is_microdata'=>true,
-					'license'=>$data_access_type,
-					'access_request'=>$req,
-					'error'=>'expired'
-				);
-
+				return false;
 				break;
 
 			case 'public':
@@ -842,6 +836,31 @@ class Survey_resource_model extends CI_Model {
 	}
 
 
+	function whitelist_download($user_id,$survey_id,$resource)
+	{
+		$this->load->model("Data_access_whitelist_model");
+		$user_whitelisted=$this->Data_access_whitelist_model->has_access($user_id,$survey_id);
+
+		if(!$user_whitelisted){
+			return false;
+		}
+
+		$resource_path=$this->get_resource_download_path($resource['resource_id']);
+
+		if (!file_exists($resource_path)){
+			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		$is_microdata=$this->is_microdata_resource($resource);
+		
+		$this->load->helper('download');
+		log_message('info','Downloading file <em>'.$resource_path.'</em>');
+		$this->db_logger->write_log('download',basename($resource_path),($is_microdata ? 'microdata': 'resource'),$survey_id);
+		$this->db_logger->increment_study_download_count($survey_id);
+		force_download2($resource_path);
+	}
+	
+
 	function download($user,$survey_id,$resource_id)
 	{
 		//get resource
@@ -852,7 +871,9 @@ class Survey_resource_model extends CI_Model {
 		}
 
 		$user_id=isset($user->id) ? $user->id : false;
-
+		
+		$this->whitelist_download($user_id,$survey_id,$resource);
+		
 		$download_req=$this->get_user_download_access_info($user_id,$survey_id,$resource);
 
 		if (!$download_req){
@@ -1199,6 +1220,7 @@ class Survey_resource_model extends CI_Model {
 		$config['encrypt_name']=TRUE;
 		$config['allowed_types'] = 'rdf|xml';
 
+		$this->load->library('upload', $config);
 		$this->upload->initialize($config);
 
 		//process uploaded rdf file

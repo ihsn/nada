@@ -31,8 +31,9 @@ class Variable_model extends CI_Model {
         $this->db->where("uid",$vid);
         $variable=$this->db->get("variables")->row_array();
 
-        if(isset($variable['metadata'])){            
+        if(isset($variable['metadata'])){                   
             $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            $variable=$this->map_variable_fields($variable);
         }
 
         return $variable;
@@ -50,8 +51,9 @@ class Variable_model extends CI_Model {
         $this->db->where("sid",$sid);
         $variables=$this->db->get("variables")->result_array();
 
-        foreach($variables as $key=>$variable){
+        foreach($variables as $key=>$variable){            
             $variables[$key]['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            $variable=$this->map_variable_fields($variable);
         }
 
         return $variables;
@@ -99,8 +101,9 @@ class Variable_model extends CI_Model {
         
         $variables=$this->db->get("variables")->result_array();
 
-        foreach($variables as $key=>$variable){
+        foreach($variables as $key=>$variable){            
             $variables[$key]['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            $variables[$key]=$this->map_variable_fields($variables[$key]);
         }
 
         return $variables;
@@ -120,8 +123,9 @@ class Variable_model extends CI_Model {
         
         $variable=$this->db->get("variables")->row_array();
 
-        if(isset($variable['metadata'])){            
+        if(isset($variable['metadata'])){                 
             $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            $variable=$this->map_variable_fields($variable);
         }
 
         return $variable;
@@ -141,8 +145,9 @@ class Variable_model extends CI_Model {
 
         $variable=$this->db->get("variables")->row_array();
 
-        if(isset($variable['metadata'])){
+        if(isset($variable['metadata'])){            
             $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            $variable=$this->map_variable_fields($variable);
         }
 
         return $variable;
@@ -162,8 +167,9 @@ class Variable_model extends CI_Model {
 
         $variable=$this->db->get("variables")->row_array();
 
-        if(isset($variable['metadata'])){
+        if(isset($variable['metadata'])){            
             $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+            $variable=$this->map_variable_fields($variable);
         }
 
         return $variable;
@@ -189,6 +195,7 @@ class Variable_model extends CI_Model {
         foreach($variables as $idx=>$variable){
             if(isset($variable['metadata'])){
                 $variables[$idx]['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
+                $variables[$idx]=$this->map_variable_fields($variables[$idx]);
             }
         }
 
@@ -336,6 +343,14 @@ class Variable_model extends CI_Model {
         return $this->db->count_all_results();        
     }
 
+
+    /**
+     * 
+     * 
+     * insert new variable
+     * 
+     * 
+     */
     public function insert($sid,$options)
     {
         $valid_fields=array(
@@ -350,17 +365,8 @@ class Variable_model extends CI_Model {
             'metadata'
         );
 
-        //check if variable already exists
-        $uid=$this->get_uid_by_vid($sid,$options['vid']);
-
-        if($uid){
-            return $this->update($sid,$uid,$options);
-        }
-
-        foreach($options as $key=>$value)
-        {
-            if(!in_array($key,$valid_fields))
-            {
+        foreach($options as $key=>$value){
+            if(!in_array($key,$valid_fields)){
                 unset($options[$key]);
             }
         }
@@ -369,11 +375,14 @@ class Variable_model extends CI_Model {
 
         //metadata
         if(isset($options['metadata'])){
+            $options=$this->map_variable_fields($options);
             $options['metadata']=$this->Dataset_model->encode_metadata($options['metadata']);
         }
 
         $this->db->insert("variables",$options);
-        return $this->db->insert_id();
+        $insert_id=$this->db->insert_id();
+        //$this->update_survey_timestamp($sid);
+        return $insert_id;
     }
 
     public function update($sid,$uid,$options)
@@ -396,18 +405,34 @@ class Variable_model extends CI_Model {
             }
         }
 
-        $options['sid']=$sid;        
+        $options['sid']=$sid;
 
         //metadata
         if(isset($options['metadata'])){
+            $options=$this->map_variable_fields($options);
             $options['metadata']=$this->Dataset_model->encode_metadata($options['metadata']);
         }
 
         $this->db->where('sid',$sid);
         $this->db->where('uid',$uid);
         $this->db->update("variables",$options);
+        //$this->update_survey_timestamp($sid);
         return $uid;
     }
+
+    function update_survey_timestamp($sid,$changed=null)
+    {
+        if(!$changed){
+            $changed=date("U");
+        }
+
+        $options=array(
+            'changed'=>$changed
+        );
+
+        $this->db->where("id",$sid);
+        $this->db->update('surveys',$options);
+    }    
 
 
     public function batch_insert($sid,$variables)
@@ -430,11 +455,13 @@ class Variable_model extends CI_Model {
             $variables[$key]=array_intersect_key($variable,array_flip($valid_fields));
             $variables[$key]['sid']=$sid;
             if(isset($variable['metadata'])){
+                $variable=$this->map_variable_fields($variable);
                 $variables[$key]['metadata']=$this->Dataset_model->encode_metadata($variable['metadata']);
             }
         }
 
         $this->db->insert_batch('variables', $variables);
+        $this->update_survey_timestamp($sid);
     }
 
 
@@ -563,6 +590,32 @@ class Variable_model extends CI_Model {
         $this->db->join('surveys','surveys.id=variables.sid');
         
         $variable=$this->db->get("variables")->row_array();        
+        return $variable;
+    }
+
+    /**
+     * 
+     * Fix for inconsistent variable schema fields
+     */
+    function map_variable_fields($variable)
+    {
+        $mappings=array(
+            'var_start_pos'=>'loc_start_pos',
+            'var_end_pos'=>'loc_end_pos',
+            'var_width'=>'loc_width',
+            'var_rec_seg_no'=>'loc_rec_seg_no',
+        );
+
+        if (isset($variable['metadata'])){
+            foreach($variable['metadata'] as $key=>$value){
+                //complex types e.g. repeatable array types
+                if(array_key_exists($key,$mappings)){ 
+                    $variable['metadata'][$mappings[$key]]=$value;
+                    unset($variable['metadata'][$key]);
+                }
+            }
+        }
+
         return $variable;
     }
 	

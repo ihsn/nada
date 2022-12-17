@@ -18,6 +18,12 @@ $lang['metadata.series_description']='';
 $lang['metadata.series_description.idno']='Series unique ID';
 $lang['metadata.series_description.name']='Series Name';
 $lang['metadata.series_description.database_id']='Database ID';
+$lang['metadata.series_description.alternate_identifiers']='Identifiers';
+$lang['metadata.series_description.alternate_identifiers.identifier']='ID';
+$lang['metadata.series_description.alternate_identifiers.name']='Name';
+$lang['metadata.series_description.alternate_identifiers.database']='Database';
+$lang['metadata.series_description.alternate_identifiers.uri']='URI';
+$lang['metadata.series_description.alternate_identifiers.notes']='Notes';
 $lang['metadata.series_description.aliases']='Series other names';
 $lang['metadata.series_description.aliases.alias']='Alias';
 $lang['metadata.series_description.measurement_unit']='Series unit of measure';
@@ -42,16 +48,17 @@ $lang['metadata.series_description.series_break']='Breaks in series';
 $lang['metadata.series_description.limitation']='Limitations  and exceptions';
 $lang['metadata.series_description.themes']='Themes';
 $lang['metadata.series_description.themes.name']='Name';
+$lang['metadata.series_description.themes.id']='ID';
 $lang['metadata.series_description.themes.vocabulary']='Vocabulary name';
 $lang['metadata.series_description.themes.uri']='Vocabulary URI';
 $lang['metadata.series_description.topics']='Topics';
-$lang['metadata.series_description.topics.id']='Unique Identifier';
+$lang['metadata.series_description.topics.id']='ID';
 $lang['metadata.series_description.topics.name']='Topic';
 $lang['metadata.series_description.topics.parent_id']='Parent topic Identifier';
 $lang['metadata.series_description.topics.vocabulary']='Vocabulary';
 $lang['metadata.series_description.topics.uri']='Vocabulary URI';
 $lang['metadata.series_description.disciplines']='Disciplines';
-$lang['metadata.series_description.disciplines.name']='Discipline title or name';
+$lang['metadata.series_description.disciplines.name']='Name';
 $lang['metadata.series_description.disciplines.vocabulary']='Vocabulary';
 $lang['metadata.series_description.disciplines.uri']='URI';
 $lang['metadata.series_description.relevance']='Relevance';
@@ -66,6 +73,8 @@ $lang['metadata.series_description.aggregation_method']='Aggregation method';
 $lang['metadata.series_description.license']='Access license';
 $lang['metadata.series_description.license.name']='License';
 $lang['metadata.series_description.license.uri']='License Link';
+$lang['metadata.series_description.license.note']='Note';
+
 $lang['metadata.series_description.confidentiality']='Confidentiality statement';
 $lang['metadata.series_description.confidentiality_status']='Confidentiality status';
 $lang['metadata.series_description.confidentiality_note']='Confidentiality note';
@@ -76,6 +85,41 @@ $lang['metadata.series_description.links.url']='Link';
 $lang['metadata.series_description.links.uri']='Link';
 $lang['metadata.series_description.links.format']='Format';
 
+$lang['metadata.series_description.acronyms']='Acronyms';
+$lang['metadata.series_description.acronyms.acronym']='Acronym';
+$lang['metadata.series_description.acronyms.expansion']='Expansion';
+$lang['metadata.series_description.acronyms.occurrence']='Occurrence';
+
+$lang['metadata.series_description.framework']='Framework';
+$lang['metadata.series_description.framework.name']='Name';
+$lang['metadata.series_description.framework.description']='Description';
+$lang['metadata.series_description.framework.custodian']='Custodian';
+$lang['metadata.series_description.framework.goal_id']='Goal ID#';
+$lang['metadata.series_description.framework.goal_name']='Goal name';
+$lang['metadata.series_description.framework.goal_description']='Goal description';
+$lang['metadata.series_description.framework.target_id']='Target ID#';
+$lang['metadata.series_description.framework.target_name']='Target name';
+$lang['metadata.series_description.framework.target_description']='Target description';
+$lang['metadata.series_description.framework.indicator_id']='Indicator ID#';
+$lang['metadata.series_description.framework.indicator_name']='Indicator name';
+$lang['metadata.series_description.framework.indicator_description']='Indicator description';
+$lang['metadata.series_description.framework.uri']='URI';
+$lang['metadata.series_description.framework.notes']='Notes';
+
+
+
+$lang['metadata.series_description.ref_country']='Reference countries';
+$lang['metadata.series_description.ref_country.name']='Name';
+$lang['metadata.series_description.ref_country.code']='Code';
+
+$lang['metadata.series_description.disaggregation']='Disaggregation';
+
+$lang['metadata.series_description.authoring_entity']='Authoring entity';
+$lang['metadata.series_description.authoring_entity.name']='Name';
+$lang['metadata.series_description.authoring_entity.affiliation']='Affiliation';
+$lang['metadata.series_description.authoring_entity.abbreviation']='Abbreviation';
+$lang['metadata.series_description.authoring_entity.email']='Email';
+$lang['metadata.series_description.authoring_entity.uri']='URI';
 
 
 //tobo removed
@@ -85,13 +129,19 @@ $lang['metadata.series_description.series_links.description']='Description';
 $lang['metadata.series_description.series_links.url']='Link';
 
 
+$lang['metadata.series_description.dimensions']='Dimensions';
+$lang['metadata.series_description.dimensions.label']='Label';
+$lang['metadata.series_description.dimensions.description']='Description';
+$lang['metadata.series_description.missing']='Missing';
+
+$lang['metadata.series_description.sources_discrepancies']='Sources discrepancies';
+$lang['metadata.series_description.sources_note']='Sources note';
 
 
-$lang['metadata.series_description.api_documentation']='';
+$lang['metadata.series_description.api_documentation']='Api documentation';
 $lang['metadata.series_description.api_documentation.description']='Description';
-
 $lang['metadata.series_description.api_documentation.uri']='Documentation Link';
-$lang['metadata.series_description.api_documentation.url']='Documentation Link';
+
 
 $lang['metadata.series_description.sources']='Original sources';
 $lang['metadata.series_description.sources.id']='Source ID';
@@ -107,13 +157,14 @@ $lang['metadata.series_description.keywords.vocabulary']='Vocabulary';
 $lang['metadata.series_description.keywords.uri']='URI';
 $lang['metadata.series_description.notes']='Notes';
 $lang['metadata.series_description.notes.note']='Note';
-$lang['metadata.series_description.related_indicators']='';
-$lang['metadata.series_description.related_indicators.code']='Indicator code';
-$lang['metadata.series_description.related_indicators.label']='Indicator name';
+$lang['metadata.series_description.related_indicators']='Related indicators';
+$lang['metadata.series_description.related_indicators.code']='Code';
+$lang['metadata.series_description.related_indicators.label']='Label';
 $lang['metadata.series_description.related_indicators.uri']='URI';
 $lang['metadata.series_description.compliance']='Compliance with international resolution';
-$lang['metadata.series_description.compliance.standard']='Standard name';
-$lang['metadata.series_description.compliance.organization']='Organization name';
+$lang['metadata.series_description.compliance.standard']='Standard';
+$lang['metadata.series_description.compliance.custodian']='Custodian';
+$lang['metadata.series_description.compliance.organization']='Organization';
 $lang['metadata.series_description.compliance.uri']='URI';
 $lang['metadata.series_description.series_groups']='Series groups';
 $lang['metadata.series_description.series_groups.name']='Name';

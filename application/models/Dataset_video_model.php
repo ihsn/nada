@@ -105,23 +105,12 @@ class Dataset_video_model extends Dataset_model {
             $dataset_id=$this->insert($type,$options);
         }
 
-		//update years
-		$this->update_years($dataset_id,$core_fields['year_start'],$core_fields['year_end']);
-
-		//update tags
-        $this->update_survey_tags($dataset_id, $this->get_tags($options['metadata']));
+        $this->update_filters($dataset_id,$options['metadata']);
 
         //import external resources
         $this->update_resources($dataset_id,$external_resources);
 
-        //update related countries
-        $this->Survey_country_model->update_countries($dataset_id,$core_fields['nations']);
-
-		//set aliases
-
-		//set geographic locations (bounding box)
-
-		//complete transaction
+        //complete transaction
 		$this->db->trans_complete();
 
 		return $dataset_id;
@@ -190,17 +179,19 @@ class Dataset_video_model extends Dataset_model {
      * 
      * 
      */
-    function update_filters($sid, $metadata)
+    function update_filters($sid, $metadata=null)
     {
+        if (!is_array($metadata)){            
+            return false;
+        }
+
         $core_fields=$this->get_core_fields($metadata);
 
-        //update years
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-
-		//set topics
-
-        //update related countries
         $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+        $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
+
+        return true;
     }
 
 

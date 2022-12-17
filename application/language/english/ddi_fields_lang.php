@@ -323,3 +323,6 @@ $lang['contacts']='Contacts';
 
 $lang['others']='Others';
 $lang['producer']='Producer';
+
+$lang['loc_start_pos']='Start';
+$lang['loc_end_pos']='End';

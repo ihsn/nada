@@ -3,29 +3,29 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Draft Schema for Table data type",
   "type": "object",
-  "definitions":{
-    "authoring_entity":{
-      "type":"array",
-      "title":"Authoring entity/Primary investigators",
-      "description":"The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
-      "items":{
-        "type":"object",
-        "properties":{
-          "name":{
-            "title":"Agency Name",
-            "type":"string"
+  "definitions": {
+    "authoring_entity": {
+      "type": "array",
+      "title": "Authoring entity/Primary investigators",
+      "description": "The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Agency Name",
+            "type": "string"
           },
-          "affiliation":{
-            "title":"Affiliation",
-            "type":"string"
+          "affiliation": {
+            "title": "Affiliation",
+            "type": "string"
           },
-          "abbreviation":{
-            "title":"Abbreviation",
-            "type":"string"
+          "abbreviation": {
+            "title": "Abbreviation",
+            "type": "string"
           },
-          "uri":{
-            "title":"URI",
-            "type":"string"
+          "uri": {
+            "title": "URI",
+            "type": "string"
           },
           "author_id": {
             "type": "array",
@@ -46,92 +46,95 @@
             }
           }
         },
-        "required":[
+        "required": [
           "name"
         ]
       }
     },
-    "contributor":{
-      "type":"array",
-      "items":{
-        "type":"object",
-        "properties":{
-          "name":{
-            "title":"Name",
-            "type":"string"
+    "contributor": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
           },
-          "affiliation":{
-            "title":"Affiliation",
-            "type":"string"
+          "affiliation": {
+            "title": "Affiliation",
+            "type": "string"
           },
-          "abbreviation":{
-            "title":"Abbreviation",
-            "type":"string"
+          "abbreviation": {
+            "title": "Abbreviation",
+            "type": "string"
           },
-          "role":{
-            "title":"Role",
-            "type":"string"
+          "role": {
+            "title": "Role",
+            "type": "string"
           },
-          "uri":{
-            "title":"URI",
-            "type":"string"
+          "uri": {
+            "title": "URI",
+            "type": "string"
           }
         },
-        "required":[
+        "required": [
           "name"
         ]
       }
     },
-    "keyword":{
-      "type":"array",
-      "items":{
-        "type":"object",
-        "properties":{
-          "name":{
-            "title":"Name",
-            "type":"string"
+    "keyword": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
           },
-          "vocabulary":{
-            "title":"Vocabulary name",
-            "type":"string"
+          "vocabulary": {
+            "title": "Vocabulary name",
+            "type": "string"
           },
-          "uri":{
-            "title":"Vocabulary URI",
-            "type":"string"
+          "uri": {
+            "title": "Vocabulary URI",
+            "type": "string"
           }
         }
       }
     }
   },
-  "properties": {    
-
+  "properties": {
     "repositoryid": {
       "type": "string",
       "title": "Collection ID that owns the document",
       "description": "Abbreviation for the collection that owns the document"
     },
-
     "published": {
       "type": "integer",
       "title": "Status",
       "description": "Status  - 0=draft, 1=published",
       "default": 0
     },
-    
     "overwrite": {
       "type": "string",
-      "description": "Overwrite document if already exists?",            
-      "enum":["yes","no"],
+      "description": "Overwrite document if already exists?",
+      "enum": [
+        "yes",
+        "no"
+      ],
       "default": "no"
     },
-
-    "metadata_information": {      
+    "metadata_information": {
       "type": "object",
       "title": "Document metadata information",
       "description": "Document description",
-      "properties": {        
+      "properties": {
         "idno": {
           "title": "Unique ID number for the document",
+          "type": "string"
+        },
+        "title": {
+          "title": "Document title",
           "type": "string"
         },
         "producers": {
@@ -181,8 +184,7 @@
       "type": "object",
       "title": "Table Description",
       "description": "Table Description",
-      "properties": {  
-
+      "properties": {
         "title_statement": {
           "type": "object",
           "description": "Title statement",
@@ -212,10 +214,9 @@
               "title": "Abbreviation or Acronym",
               "description": "Any form of the title used as a substitute or alternative to the formal title of the resource."
             },
-            "abbreviated_title": {
-              "title": "Abbreviated Title",
-              "description": "Title as abbreviated for indexing or identification.",
-              "type": "string"              
+            "translated_title": {
+              "title": "Translated title",
+              "type": "string"
             }
           },
           "required": [
@@ -223,99 +224,98 @@
             "title"
           ]
         },
-
-        "id_numbers": {
-          "type": "object",
-          "title": "Identifier numbers",
-          "description": "Numbers e.g. ISSN, ISBN, DOI, etc.",          
-          "properties": {
-            "type": {
-              "title": "Type",
-              "description":"ID number type such as  ISSN, ISBN, DOI",
-              "type": "string"
+        "identifiers": {
+          "type": "array",
+          "title": "Other identifiers",
+          "description": "Other identifiers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "title": "Identifier type",
+                "description": "Type of identifier e.g. `doi`, `handle`, `other`",
+                "type": "string"
+              },
+              "identifier": {
+                "title": "Identifier",
+                "type": "string"
+              }
             },
-            "value": {
-              "title": "ID number",
-              "type": "string"              
-            }
-          },
-          "required": [
-            "type","value"
-          ]
-        },        
-        
+            "required": [
+              "identifier"
+            ]
+          }
+        },
         "authoring_entity": {
           "title": "Authoring entity",
-          "$ref":"#/definitions/authoring_entity",
+          "$ref": "#/definitions/authoring_entity",
           "description": "Authoring entity"
         },
         "contributors": {
           "title": "Contributors",
-          "$ref":"#/definitions/contributor",
+          "$ref": "#/definitions/contributor",
           "description": "Contributors"
         },
-        "publisher":{
-          "type":"array",
-          "title":"Publisher",
-          "description":"Publisher",
-          "items":{
-            "type":"object",
-            "properties":{
-              "name":{
-                "title":"Name",
-                "type":"string"
+        "publisher": {
+          "type": "array",
+          "title": "Publisher",
+          "description": "Publisher",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
               },
-              "affiliation":{
-                "title":"Affiliation",
-                "type":"string"
+              "affiliation": {
+                "title": "Affiliation",
+                "type": "string"
               },
-              "abbreviation":{
-                "title":"Abbreviation",
-                "type":"string"
+              "abbreviation": {
+                "title": "Abbreviation",
+                "type": "string"
               },
-              "role":{
-                "title":"Role",
-                "type":"string"
+              "role": {
+                "title": "Role",
+                "type": "string"
               },
-              "uri":{
-                "title":"URI",
-                "type":"string"
+              "uri": {
+                "title": "URI",
+                "type": "string"
               }
             },
-            "required":[
+            "required": [
               "name"
             ]
           }
         },
         "date_created": {
           "type": "string",
-          "title":"Date created",
+          "title": "Date created",
           "description": "Date created"
         },
         "date_published": {
           "type": "string",
-          "title":"Date published"
+          "title": "Date published"
         },
         "date_modified": {
           "type": "string",
-          "title":"Date last modified",
-          "description": "Date on which the resource was changed."    
+          "title": "Date last modified",
+          "description": "Date on which the resource was changed."
         },
-
         "version": {
           "title": "Version",
-          "type": "string"        
+          "type": "string"
         },
         "description": {
           "title": "Description",
           "type": "string",
-          "description":"Description"
+          "description": "Description"
         },
-
         "table_columns": {
           "type": "array",
           "title": "Table column names",
-          "description": "List of table column names", 
+          "description": "List of table column names",
           "items": {
             "type": "object",
             "properties": {
@@ -327,7 +327,7 @@
                 "title": "Variable name",
                 "description": "Variable name",
                 "type": "string"
-              },              
+              },
               "dataset": {
                 "title": "Dataset",
                 "type": "string",
@@ -339,11 +339,10 @@
             ]
           }
         },
-
         "table_rows": {
           "type": "array",
           "title": "Table row level data",
-          "description": "Table row level data",  
+          "description": "Table row level data",
           "items": {
             "type": "object",
             "properties": {
@@ -355,7 +354,7 @@
                 "title": "Variable name",
                 "description": "Variable name",
                 "type": "string"
-              },              
+              },
               "dataset": {
                 "title": "Dataset",
                 "type": "string",
@@ -367,7 +366,6 @@
             ]
           }
         },
-
         "table_footnotes": {
           "type": "array",
           "title": "Chart footnotes",
@@ -377,7 +375,7 @@
             "properties": {
               "number": {
                 "title": "Footnote number",
-                "description":"Footnote number",
+                "description": "Footnote number",
                 "type": "string"
               },
               "text": {
@@ -388,13 +386,12 @@
             "required": [
               "text"
             ]
-          } 
+          }
         },
-
         "table_series": {
           "type": "array",
           "title": "Table series",
-          "description": "Table series", 
+          "description": "Table series",
           "items": {
             "type": "object",
             "properties": {
@@ -421,10 +418,9 @@
             ]
           }
         },
-
         "statistics": {
           "type": "array",
-          "title": "Statistics",          
+          "title": "Statistics",
           "items": {
             "type": "object",
             "properties": {
@@ -437,7 +433,7 @@
         },
         "unit_observation": {
           "type": "array",
-          "title": "Unit observation",          
+          "title": "Unit observation",
           "items": {
             "type": "object",
             "properties": {
@@ -450,19 +446,38 @@
         },
         "data_sources": {
           "type": "array",
-          "title": "Data sources",          
+          "title": "Data sources",
           "items": {
             "type": "object",
             "properties": {
-              "source": {
-                "title": "Source",
+              "name": {
+                "title": "Name",
+                "type": "string",
+                "description": "The name (title) of the data source. For example, a table data may be extracted from the `Population Census 2020`."
+              },
+              "abbreviation": {
+                "title": "Abbreviation",
+                "description": "The abbreviation (acronym) of the data source.",
                 "type": "string"
+              },
+              "source_id": {
+                "title": "Source ID",
+                "description": "A unique identifier for the source, such as a Digital Object Identifier (DOI).",
+                "type": "string"
+              },
+              "note": {
+                "title": "Note",
+                "type": "string",
+                "description": "A note that describes how the source was used, possibly mentioning issues in the use of the source."
+              },
+              "uri": {
+                "title": "URI",
+                "type": "string",
+                "description": "A link (URL) to the source dataset."
               }
             }
           }
         },
-        
-        
         "time_periods": {
           "type": "array",
           "title": "Time periods",
@@ -485,11 +500,10 @@
               "from"
             ]
           }
-        },   
-        
+        },
         "universe": {
           "type": "array",
-          "title": "Universe",          
+          "title": "Universe",
           "items": {
             "type": "object",
             "properties": {
@@ -500,10 +514,9 @@
             }
           }
         },
-
         "ref_country": {
           "type": "array",
-          "title": "Reference country",          
+          "title": "Reference country",
           "items": {
             "type": "object",
             "properties": {
@@ -518,7 +531,6 @@
             }
           }
         },
-
         "geographic_units": {
           "title": "Geographic locations",
           "description": "List of geographic units (regions, countries, states, provinces, etc.) for which data are available in the database.",
@@ -540,19 +552,43 @@
                 "title": "Type",
                 "description": "Type of geographic unit e.g. country, state, region, province etc",
                 "type": "string"
-              }          
+              }
             },
             "required": [
               "name"
             ]
           }
-        }, 
+        },
         "geographic_granularity": {
           "description": "Granularity of geographic coverage. examples `national`, `regional`, `provincial`",
           "type": "string",
-          "title":"Geographic granularity"
+          "title": "Geographic granularity"
         },
-        
+        "bbox": {
+          "title": "Geographic bounding box",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "west": {
+                "title": "West",
+                "type": "string"
+              },
+              "east": {
+                "title": "East",
+                "type": "string"
+              },
+              "south": {
+                "title": "South",
+                "type": "string"
+              },
+              "north": {
+                "title": "North",
+                "type": "string"
+              }
+            }
+          }
+        },
         "languages": {
           "type": "array",
           "description": "languages",
@@ -575,10 +611,9 @@
             "name"
           ]
         },
-
         "links": {
           "type": "array",
-          "title": "Links",          
+          "title": "Links",
           "items": {
             "type": "object",
             "properties": {
@@ -593,10 +628,26 @@
             }
           }
         },
-
+        "api_documentation": {
+          "type":"array",
+          "description": "API Documentation",
+          "items":{          
+					"type": "object",					
+					"properties": {
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"uri": {
+							"title": "URI",
+							"type": "string"
+						}
+					}
+          }
+				},
         "publications": {
           "type": "array",
-          "title": "Publications",          
+          "title": "Publications",
           "items": {
             "type": "object",
             "properties": {
@@ -611,19 +662,48 @@
             }
           }
         },
-        "keywords":{
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
+        "keywords": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/keyword"
+            }
           ],
-          "title":"Keywords",
-          "description":"Keywords"
+          "title": "Keywords",
+          "description": "Keywords"
         },
-        "themes":{
-          "type":"array",
-          "description":"Themes",
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ]
+        "themes": {
+          "type": "array",
+          "description": "Themes",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent Identifier",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary",
+                "description": "Name of the controlled vocabulary",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "description": "Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         },
         "topics": {
           "type": "array",
@@ -642,7 +722,7 @@
               },
               "parent_id": {
                 "title": "Parent topic Identifier",
-                "description":"For subtopics, provide the ID of the parent topic",
+                "description": "For subtopics, provide the ID of the parent topic",
                 "type": "string"
               },
               "vocabulary": {
@@ -657,11 +737,11 @@
               }
             },
             "required": [
-              "id","name"
+              "id",
+              "name"
             ]
           }
         },
-
         "disciplines": {
           "type": "array",
           "title": "Disciplines",
@@ -669,8 +749,17 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "title": "Unique Identifier",
+                "type": "string"
+              },
               "name": {
                 "title": "Discipline title or name",
+                "type": "string"
+              },
+              "parent_id": {
+                "title": "Parent discipline Identifier",
+                "description": "Parent discipline ID",
                 "type": "string"
               },
               "vocabulary": {
@@ -689,7 +778,6 @@
             ]
           }
         },
-
         "definitions": {
           "type": "array",
           "title": "Definitions",
@@ -717,7 +805,6 @@
             ]
           }
         },
-
         "classifications": {
           "type": "array",
           "title": "Classifications",
@@ -750,16 +837,13 @@
             ]
           }
         },
-
-
         "rights": {
           "type": "string",
           "title": "Rights"
         },
-
         "license": {
           "type": "array",
-          "title": "License",          
+          "title": "License",
           "items": {
             "type": "object",
             "properties": {
@@ -774,18 +858,20 @@
             }
           }
         },
-
         "citation": {
           "type": "string",
-          "title":"Citation",
-          "description": "A bibliographic reference for the resource."    
+          "title": "Citation",
+          "description": "A bibliographic reference for the resource."
         },
-
         "confidentiality": {
           "type": "string",
-          "title":"Confidentiality"
+          "title": "Confidentiality"
         },
-
+        "sdc": {
+          "type": "string",
+          "title": "Statistical disclosure control",
+          "description": "Information on statistical disclosure control measures applied to the table. This can include cell suppression, or other techniques. Specialized packages have been developed for this purpose, like [*sdcTable: Methods for Statistical Disclosure Control in Tabular Data*](https://cran.r-project.org/web/packages/sdcTable/index.html) and https://cran.r-project.org/web/packages/sdcTable/sdcTable.pdf \nThe information provided here should be such that it does not provide intruders with useful information for reverse-engineering the protection measures applied to the table."
+        },
         "contacts": {
           "type": "array",
           "title": "Contacts",
@@ -823,10 +909,9 @@
             "name"
           ]
         },
-
         "notes": {
           "type": "array",
-          "title": "Notes",          
+          "title": "Notes",
           "items": {
             "type": "object",
             "properties": {
@@ -837,7 +922,6 @@
             }
           }
         },
-                
         "relations": {
           "type": "array",
           "title": "Relations",
@@ -852,7 +936,7 @@
               "type": {
                 "title": "Type",
                 "type": "string",
-                "enum":[
+                "enum": [
                   "isPartOf",
                   "hasPart",
                   "isVersionOf",
@@ -871,19 +955,17 @@
           "required": [
             "name"
           ]
-        }        
-        
+        }
       },
       "additionalProperties": false
     },
-
-    "provenance":{
-      "type":"array",
-      "description":"Provenance",
-      "items":{
-        "$ref":"provenance-schema.json"
+    "provenance": {
+      "type": "array",
+      "description": "Provenance",
+      "items": {
+        "$ref": "provenance-schema.json"
       }
-      },
+    },
     "tags": {
       "type": "array",
       "title": "Tags",
@@ -905,7 +987,136 @@
         "tag"
       ]
     },
-
+    "lda_topics": {
+      "type": "array",
+      "title": "LDA topics",
+      "description": "LDA topics",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_info": {
+            "type": "array",
+            "title": "Model information",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "title": "Source",
+                  "type": "string"
+                },
+                "author": {
+                  "title": "Author",
+                  "type": "string"
+                },
+                "version": {
+                  "title": "Version",
+                  "type": "string"
+                },
+                "model_id": {
+                  "title": "Model Identifier",
+                  "type": "string"
+                },
+                "nb_topics": {
+                  "title": "Number of topics",
+                  "type": "number"
+                },
+                "description": {
+                  "title": "Description",
+                  "type": "string"
+                },
+                "corpus": {
+                  "title": "Corpus name",
+                  "type": "string"
+                },
+                "uri": {
+                  "title": "URI",
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "model_id"
+            ]
+          },              
+          "topic_description": {
+            "type": "array",
+            "title": "Topic information",
+            "items": {
+              "type": "object",
+              "properties": {
+                "topic_id": {
+                  "title": "Topic identifier",
+                  "type": ["integer", "string"]
+                },
+                "topic_score": {
+                  "title": "Topic score",
+                  "type": ["number", "string"]
+                },
+                "topic_label": {
+                  "title": "Topic label",
+                  "type": "string"
+                },
+                "topic_words": {
+                  "type": "array",
+                  "title": "Topic words",
+                  "description": "Words",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "word": {
+                        "title": "Word",
+                        "type": "string"
+                      },
+                      "word_weight": {
+                        "title": "Word weight",
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "required": [
+                    "word"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "topic_id"
+            ]
+          }
+          
+        },
+        "additionalProperties": false
+      }
+    },
+    "embeddings":{
+      "type": "array",
+      "title": "Word embeddings",
+      "description": "Word embeddings",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Vector Model ID",
+            "type": "string"
+          },
+          "description": {
+            "title": "Vector Model Description",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "vector": {
+            "title": "Vector",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id","vector"
+        ]
+      }
+    },
     "additional": {
       "type": "object",
       "description": "Additional metadata",

@@ -61,7 +61,7 @@
 
     <!--other stats-->
     <?php
-    $stat_keys=array("var_intrvl","var_dcml","var_loc_start_pos","var_loc_end_pos","loc_width");
+    $stat_keys=array("var_intrvl","var_dcml","loc_start_pos","loc_end_pos","loc_width");
     ?>
         
     <div class="col-md-6">

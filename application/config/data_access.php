@@ -31,7 +31,7 @@ $config['licensed_access']['dataset_access'] = false;
  * Enable or disable data classifications
  * 
  */
-$config['data_classifications_enabled']=true;
+$config['data_classifications_enabled']=false;
 
 
 /*
@@ -42,7 +42,7 @@ $config['data_classifications_enabled']=true;
 */
 $config['data_access_options'] = array(
     'public'=> array(
-        'cc40', 'open', 'direct','public','licensed','remote', 'data_na'
+        'cc40', 'open', 'direct','public','licensed','remote', 'data_na','data_enclave'
     ),
     'official'=> array(
         'research_license','data_na'

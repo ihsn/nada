@@ -10,7 +10,6 @@
 namespace Solarium\QueryType\Update\Query;
 
 use Solarium\Core\Query\AbstractDocument;
-use Solarium\Core\Query\Helper;
 use Solarium\Exception\RuntimeException;
 
 /**
@@ -26,7 +25,7 @@ use Solarium\Exception\RuntimeException;
  * stored. You will lose that data because it is impossible to retrieve it from
  * Solr. Always update from the original data source.
  *
- * Atomic updates are also support, using the field modifiers.
+ * Atomic updates are also supported, using the field modifiers.
  */
 class Document extends AbstractDocument
 {
@@ -38,13 +37,6 @@ class Document extends AbstractDocument
      * @var string
      */
     const MODIFIER_SET = 'set';
-
-    /**
-     * Directive to increment a numeric value by a specific amount. Must be specified as a single numeric value.
-     *
-     * @var string
-     */
-    const MODIFIER_INC = 'inc';
 
     /**
      * Directive to add the specified values to a multiValued field. May be specified as a single value, or as a list.
@@ -76,6 +68,13 @@ class Document extends AbstractDocument
      * @var string
      */
     const MODIFIER_REMOVEREGEX = 'removeregex';
+
+    /**
+     * Directive to increment a numeric value by a specific amount. Must be specified as a single numeric value.
+     *
+     * @var string
+     */
+    const MODIFIER_INC = 'inc';
 
     /**
      * This value has the same effect as not setting a version.
@@ -140,15 +139,6 @@ class Document extends AbstractDocument
     protected $version;
 
     /**
-     * Helper instance.
-     *
-     * @var Helper
-     */
-    protected $helper;
-
-    protected $filterControlCharacters = true;
-
-    /**
      * Constructor.
      *
      * @param array $fields
@@ -167,8 +157,8 @@ class Document extends AbstractDocument
      * object, by field name.
      *
      * If you supply NULL as the value the field will be removed
-     * If you supply an array a multivalue field will be created.
-     * In all cases any existing (multi)value will be overwritten.
+     * If you supply a numerically indexed array of values a multivalue field will be created.
+     * In all cases any existing (multi)value or child document(s) will be overwritten.
      *
      * @param string $name
      * @param mixed  $value
@@ -196,6 +186,9 @@ class Document extends AbstractDocument
      * If a field already has a value it will be converted
      * to a multivalue field.
      *
+     * If the value is a nested child document, the field will
+     * always be converted to a multivalue field.
+     *
      * @param string      $key
      * @param mixed       $value
      * @param float|null  $boost
@@ -206,21 +199,24 @@ class Document extends AbstractDocument
     public function addField(string $key, $value, ?float $boost = null, ?string $modifier = null): self
     {
         if (!isset($this->fields[$key])) {
+            // convert nested child document to array
+            if (\is_array($value) && !is_numeric(array_key_first($value))) {
+                $value = [$value];
+            }
+
             $this->setField($key, $value, $boost, $modifier);
         } else {
-            // convert single value to array if needed
-            if (!\is_array($this->fields[$key])) {
+            // convert single value or child document to array if needed
+            if (!\is_array($this->fields[$key]) || !is_numeric(array_key_first($this->fields[$key]))) {
                 $this->fields[$key] = [$this->fields[$key]];
             }
 
-            if ($this->filterControlCharacters && \is_string($value)) {
-                $value = $this->getHelper()->filterControlCharacters($value);
-            }
-
             $this->fields[$key][] = $value;
+
             if (null !== $boost) {
                 $this->setFieldBoost($key, $boost);
             }
+
             if (null !== $modifier) {
                 $this->setFieldModifier($key, $modifier);
             }
@@ -232,9 +228,9 @@ class Document extends AbstractDocument
     /**
      * Set a field value.
      *
-     * If you supply NULL as the value the field will be removed
-     * If you supply an array a multivalue field will be created.
-     * In all cases any existing (multi)value will be overwritten.
+     * If you supply NULL as the value and no modifier the field will be removed
+     * If you supply a numerically indexed array of values a multivalue field will be created.
+     * In all cases any existing (multi)value or child document(s) will be overwritten.
      *
      * @param string      $key
      * @param mixed       $value
@@ -248,23 +244,12 @@ class Document extends AbstractDocument
         if (null === $value && null === $modifier) {
             $this->removeField($key);
         } else {
-            if (\is_array($value)) {
-                $this->fields[$key] = [];
-
-                foreach ($value as $v) {
-                    $this->addField($key, $v);
-                }
-            } else {
-                if ($this->filterControlCharacters && \is_string($value)) {
-                    $value = $this->getHelper()->filterControlCharacters($value);
-                }
-
-                $this->fields[$key] = $value;
-            }
+            $this->fields[$key] = $value;
 
             if (null !== $boost) {
                 $this->setFieldBoost($key, $boost);
             }
+
             if (null !== $modifier) {
                 $this->setFieldModifier($key, $modifier);
             }
@@ -432,7 +417,7 @@ class Document extends AbstractDocument
      */
     public function setFieldModifier(string $key, string $modifier = null): self
     {
-        if (!\in_array($modifier, [self::MODIFIER_ADD, self::MODIFIER_ADD_DISTINCT, self::MODIFIER_REMOVE, self::MODIFIER_REMOVEREGEX, self::MODIFIER_INC, self::MODIFIER_SET], true)) {
+        if (!\in_array($modifier, [self::MODIFIER_SET, self::MODIFIER_ADD, self::MODIFIER_ADD_DISTINCT, self::MODIFIER_REMOVE, self::MODIFIER_REMOVEREGEX, self::MODIFIER_INC], true)) {
             throw new RuntimeException('Attempt to set an atomic update modifier that is not supported');
         }
         $this->modifiers[$key] = $modifier;
@@ -494,43 +479,21 @@ class Document extends AbstractDocument
         return $this->version;
     }
 
+    #[\ReturnTypeWillChange]
     /**
-     * Get a helper instance.
-     *
-     * Uses lazy loading: the helper is instantiated on first use
-     *
-     * @return Helper
+     * {@inheritdoc}
      */
-    public function getHelper(): Helper
+    public function jsonSerialize()
     {
-        if (null === $this->helper) {
-            $this->helper = new Helper();
+        $fields = $this->getFields();
+
+        foreach ($this->modifiers as $key => $modifier) {
+            // isset($fields[$key]) wouldn't let you set a field to null
+            if (\array_key_exists($key, $fields)) {
+                $fields[$key] = [$modifier => $fields[$key]];
+            }
         }
 
-        return $this->helper;
-    }
-
-    /**
-     * Whether values should be filtered for control characters automatically.
-     *
-     * @param bool $filterControlCharacters
-     *
-     * @return self
-     */
-    public function setFilterControlCharacters(bool $filterControlCharacters): self
-    {
-        $this->filterControlCharacters = $filterControlCharacters;
-
-        return $this;
-    }
-
-    /**
-     * Returns whether values should be filtered automatically or control characters.
-     *
-     * @return bool
-     */
-    public function getFilterControlCharacters(): bool
-    {
-        return $this->filterControlCharacters;
+        return $fields;
     }
 }

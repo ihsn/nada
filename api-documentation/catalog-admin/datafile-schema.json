@@ -12,6 +12,11 @@
 			"type": "string",
 			"title" : "File name"
 		},
+		"file_type": {
+			"type": "string",
+			"title" : "File type",
+			"description": "Types of data files include raw data (ASCII, EBCDIC, etc.) and software-dependent files such as SAS datasets, SPSS export files, etc."
+		},
 		"description": {
 			"type": "string",
 			"title": "File description"

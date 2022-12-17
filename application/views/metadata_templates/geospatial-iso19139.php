@@ -14,7 +14,10 @@
 
 if($resources){
     foreach($resources as $idx => $resource){
-        $resource_filename=$resource['filename'];
+        if (!isset($resource['filename'])){
+            unset($resources[$idx]);
+            continue;
+        }
         /*if($this->form_validation->valid_url($resource['filename'])){
             $resources[$idx]['download_link']=$resource['filename'];
             $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
@@ -23,7 +26,7 @@ if($resources){
             $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
         }*/  
         $resources[$idx]['download_link']=$resource['filename'];
-            $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
+        $resources[$idx]['extension']=pathinfo($resource['filename'],PATHINFO_EXTENSION);
     }
 $metadata['metadata']['description']['distributionInfo']['transferOptions']['onLine']=$resources;
 } 
@@ -86,7 +89,8 @@ $ident_fields=array(
    //"graphicOverview"=>'array',
     "resourceFormats"=>'array',
     "descriptiveKeywords"=>'array',
-    "spatialRepresentationType"=>"text",        
+    "spatialRepresentationType"=>"text",
+    "spatialResolution"=>'object',
     "topicCategory"=>"text",
 );
 

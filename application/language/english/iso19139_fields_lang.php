@@ -8,6 +8,7 @@ $lang['spatial_extent']='Spatial extent';
 $lang['distribution']='Distribution';
 
 $lang['citation.title']='Title';
+$lang['citation.alternateTitle']='Alternate title';
 $lang['citation.date']='Date';
 $lang['citation.date.date']='Date';
 $lang['citation.date.type']='Type';
@@ -91,3 +92,6 @@ $lang['lineage.processStep']='Lineage process step';
 $lang['lineage.processStep.processor']='Processor';
 $lang['resourceMaintenance.maintenanceAndUpdateFrequency']='Update frequency';
 
+$lang['spatialResolution']='Spatial resolution';
+$lang['spatialResolution.uom']='Unit of measurement';
+$lang['spatialResolution.value']='Value';

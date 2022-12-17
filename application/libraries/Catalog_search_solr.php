@@ -30,10 +30,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
     var $type=array();
 	var $dtype=array();//data access type
 	var $sid=''; //comma separated list of survey IDs
-	var $varcount='';
+	var $created='';
 	var $debug=false;
 	var $params=null;
 	var $solr_options=array();
+	var $varcount='';
 
 	//allowed variable search fields
 	var $variable_allowed_fields=array('labl','name','qstn','catgry');
@@ -45,9 +46,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         'country'=>'nation',
 		'year'=>'year_start',
 		'popularity'=>'total_views',
-		'rank'=>'score',
-		'created'=>'created',
-		'changed'=>'changed'
+		'rank'=>'score'
 	);
 
 	var	$sort_allowed_order=array('asc','desc');
@@ -76,6 +75,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		}
 
 		$this->solr_options=$this->ci->config->item("solr_edismax_options");
+		$this->solr_variable_options=$this->ci->config->item("solr_edismax_variable_options");
 
 		if($this->ci->config->item('solr_debug')==true){
 			$this->debug=true;
@@ -133,7 +133,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$years=$this->_build_years_query();
 		$repository=!empty($this->repo) ? (string)$this->repo : false;
         $dtype=$this->_build_dtype_query();
-        
+		$varcount=$this->_build_varcount_query();
+
 		$search_query=array();
 		$result=array();
         $query = $this->solr_client->createSelect();
@@ -163,7 +164,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//repo filter
 		if($repository){
-			$query->createFilterQuery('repo')->setQuery('repositoryid:'.$helper->escapeTerm($repository));
+			$query->createFilterQuery('repo')->setQuery('repositories:'.$helper->escapeTerm($repository));
 		}
 
 		if ($topics){
@@ -243,15 +244,15 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			}
 		}
 
-		//varcount filter
-		if ($varcount)	{
-			$query->createFilterQuery('varcount')->setQuery($varcount);
-		}
-
 		//dtype filter
 		if ($dtype){
 			$query->createFilterQuery('dtype')->setQuery($dtype);
+		}
 
+		//created
+		$created_range=$this->_build_created_query();
+		if($created_range!==false){
+			$query->createFilterQuery('created')->setQuery($created_range);
 		}
 
 		//countries filter
@@ -262,6 +263,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		if($collections){
 			$query->createFilterQuery('collections')->setQuery($collections);
+		}
+
+		//varcount filter
+		if ($varcount)	{
+			$query->createFilterQuery('varcount')->setQuery($varcount);
 		}
 				
 
@@ -276,8 +282,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         if (count($search_query)>0){
             //$query->setQuery(implode(" AND ",$search_query));
         }
-
-
 
         //$debug = $query->getDebug();
         $query->createFilterQuery('study_search')->setQuery('doctype:1');
@@ -470,8 +474,16 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	//1=survey, 2=variable
 	function solr_total_count($doctype=1)
 	{
+		$repository=!empty($this->repo) ? (string)$this->repo : false;
 		$query = $this->solr_client->createSelect();
 		$query->setQuery('doctype:'.$doctype);
+
+		//repo filter
+		if($repository){
+			$helper = $query->getHelper();
+			$query->createFilterQuery('repo')->setQuery('repositories:'.$helper->escapeTerm($repository));
+		}
+
 		$query->createFilterQuery('published')->setQuery('published:1');
 		$query->setStart(0)->setRows(0);
 		$resultset = $this->solr_client->select($query);
@@ -697,28 +709,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
     
 
 
-
-	function _build_varcount_query()
-	{
-		//handles only these cases
-
-		//varcount= 
-		// >0
-		// 0 
-
-		$varcount=$this->varcount;
-
-		if ($varcount=='>0'){
-			return sprintf('varcount:[%s TO %s]',1, '*');
-		}
-		else if ($varcount=='0'){
-			return sprintf('varcount:%s',0);
-		}
-
-		return FALSE;
-	}
-
-
 	function _build_sid_query()
 	{
 		$sid=explode(",",$this->sid);
@@ -756,12 +746,13 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$param_list=array();
 
 		foreach($params  as $param){
-			$param_list[]=$this->ci->db->escape($param);
+			if (trim($param)!==''){
+				$param_list[]=$this->ci->db->escape($param);
+			}
 		}
 
 		if ( count($param_list)>0){
 			$params= implode(' OR ',$param_list);
-
 			return sprintf(' repositories:(%s)',$params);
 		}
 		
@@ -896,11 +887,13 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	//search on variables
 	function vsearch($limit = 15, $offset = 0)
 	{
+        $dataset_types=$this->_build_dataset_type_query();
 		$countries=$this->_build_countries_query();
+		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();
-		$dtype=$this->_build_dtype_query();
+		$repository=!empty($this->repo) ? (string)$this->repo : false;
+        $dtype=$this->_build_dtype_query();
 
-		//get a select query instance
 		$query = $this->solr_client->createSelect();
 
 		$query->setFields(array(
@@ -910,91 +903,97 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 				'qstn',
 				'sid'
 			));
+		
+		$edismax = $query->getEDisMax();
+		$helper = $query->getHelper();
 
 		//vk
-		if($this->variable_keywords)
-		{
-			//$search_query[]='{!join from=sid to=survey_uid}'.$this->variable_keywords;
-			//{!join from=survey_uid to=sid}survey AND countries:1
+		//$search_query[]='{!join from=sid to=survey_uid}'.$this->variable_keywords;
+		//{!join from=survey_uid to=sid}survey AND countries:1
 
-			//join FQ must have all the other filters for countries, years, topics, data access types in the same FQ to work
+		//join FQ must have all the other filters for countries, years, topics, data access types in the same FQ to work
 
-			$join_fq=array();
+		$join_fq=array();
+		$sk="*";
 
-			$sk=$this->study_keywords;
+		//survey keyword search
+		$var_survey_join=sprintf("{!join from=survey_uid to=sid} %s",$sk);
 
-			if (trim($sk)=="")
-			{
-				$sk="*";
-			}
+		//published content only
+		$join_fq[]='published:1';
 
-			//survey keyword search
-			$var_survey_join=sprintf("{!join from=survey_uid to=sid} %s",$sk);
-
-			//published content only
-			$join_fq[]='published:1';
-
-			//countries filter
-			if($countries){
-				$join_fq[]=$countries;
-			}
-
-			//years filter
-			if ($years)	{
-				foreach($years as $key=>$year){
-					$join_fq[]=$year;
-				}
-			}
-
-			//dtype filter
-			if($dtype){
-				$join_fq[]=$dtype;
-			}
-
-			$join_query=$var_survey_join . ' AND '.implode(" AND ",$join_fq);
-			$query->createFilterQuery('variable_join')->setQuery($join_query);
+		if($countries){
+			$join_fq[]=$countries;
 		}
 
-		// create a filterquery
+		if ($years)	{
+			foreach($years as $key=>$year){
+				$join_fq[]=$year;
+			}
+		}
+
+		if($dtype){
+			$join_fq[]=$dtype;
+		}
+
+		if($repository){
+			$join_fq[]=$repository;
+		}
+
+		if($collections){
+			$join_fq[]=$collections;
+		}
+
+		if($dataset_types){
+			$join_fq[]=$dataset_types;
+		}
+
+		//custom user defined filters
+		foreach($this->user_facets as $fc){
+			if (array_key_exists($fc['name'],$this->params)){
+				$filter_=$this->_build_facet_query('fq_'.$fc['name'],$this->params[$fc['name']]);
+				if($filter_){
+					$join_fq[]=$filter_;
+					//$query->createFilterQuery('fq_'.$fc['name'])->setQuery($filter_);
+				}
+			}
+		}
+
+		$join_query=$var_survey_join . ' AND '.implode(" AND ",$join_fq);
+		$query->createFilterQuery('variable_join')->setQuery($join_query);
+
 		$query->createFilterQuery('doctype_vsearch')->setQuery('doctype:2');
 		// {!join from=survey_uid to=sid}survey AND countries:1
-
-		//set a query (all prices starting from 12)
-		if ($this->study_keywords){
-			$query->setQuery(sprintf('labl:%s',$this->study_keywords) );
+		
+		$edismax->setQueryFields($this->solr_variable_options['qf']);
+        $edismax->setMinimumMatch($this->solr_variable_options['mm']);
+		
+		if($this->study_keywords){
+			$query->setQuery($helper->escapeTerm($this->study_keywords));
 		}
 
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
 
-		//execute search
 		$resultset = $this->solr_client->select($query);
-
-		//get the total number of documents found by solr
 		$found_rows=$resultset->getNumFound();
-
-		//get search result as array
 		$this->search_result=$resultset->getData();
 
 		//get raw query
-		if($this->debug){			
-			var_dump($resultset->getDebug());
+		if($this->debug){
+			$request = $this->solr_client->createRequest($query);
+			echo 'Request URI: ' . $request->getUri() . '<br/>';
 		}
 
 		if ($found_rows>0)
 		{
 			//get the survey title, country info for all found variables
 			$survey_list=array();
-			foreach($this->search_result['response']['docs'] as $row)
-			{
+			foreach($this->search_result['response']['docs'] as $row){
 				$survey_list[]=$row['sid'];
 			}
 
-			//get survey info from db
 			$surveys=$this->_get_survey_by_id($survey_list);
-
-			//update the resultset with survey info
-			foreach($this->search_result['response']['docs'] as $key=>$row)
-			{
+			foreach($this->search_result['response']['docs'] as $key=>$row){
 				$this->search_result['response']['docs'][$key]['title']=$surveys[$row['sid']]['title'];
 				$this->search_result['response']['docs'][$key]['nation']=$surveys[$row['sid']]['nation'];
 				$this->search_result['response']['docs'][$key]['idno']=$surveys[$row['sid']]['idno'];
@@ -1008,6 +1007,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$tmp['rows']=$this->search_result['response']['docs'];
 		return $tmp;		
 	}
+
 
 	//search for variables for a single survey
 	function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
@@ -1095,7 +1095,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 	function _build_dtype_query()
 	{
-		$dtypes=(array)$this->dtype;
+		$dtypes=$this->dtype;
 
 		if (!is_array($dtypes) || count($dtypes)<1)
 		{
@@ -1115,6 +1115,55 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		if ($types_str!='')
 		{
 			return sprintf(' formid:(%s)',$types_str);
+		}
+
+		return FALSE;
+	}
+
+
+
+	protected function _build_created_query()
+	{
+		$created_range=explode("-",$this->created);
+		
+		if(empty($created_range)){
+			return false;
+		}
+
+		$created_start=strtotime($created_range[0]);
+
+		if (empty($created_start)){
+			return false;
+		}
+
+		if (isset($created_range[1]) && strtotime($created_range[1])){
+			$created_end= + strtotime($created_range[1]) + 86399;
+		}
+		else{
+			$created_end= $created_start + 86399;
+		}		
+
+		if (!empty($created_end)){
+			return sprintf('created:[%s TO %s]',$created_start,$created_end);			
+		}
+		return false;
+	}
+
+	function _build_varcount_query()
+	{
+		//handles only these cases
+
+		//varcount= 
+		// >0
+		// 0 
+
+		$varcount=$this->varcount;
+
+		if ($varcount=='>0'){
+			return sprintf('varcount:[%s TO %s]',1, '*');
+		}
+		else if ($varcount=='0'){
+			return sprintf('varcount:%s',0);
 		}
 
 		return FALSE;

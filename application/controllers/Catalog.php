@@ -111,6 +111,15 @@ class Catalog extends MY_Controller {
 			$this->input->get("collection")
 		);
 
+		$this->facets['regions']=array();
+		if ($this->is_facet_enabled($this->active_tab,'region')){
+			$this->facets['regions']=$this->Search_helper_model->get_active_regions(
+				$repo_id,
+				$this->active_tab,
+				$this->input->get("region")
+			);
+		}
+		
 		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types(
 			$repo_id,
 			$this->active_tab,
@@ -190,6 +199,14 @@ class Catalog extends MY_Controller {
 				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'collection')
 			),true);
 		}
+
+		//regions
+		$filters['regions']=$this->load->view('search/facet', 
+			array(
+				'items'=>$this->facets['regions'], 
+				'filter_id'=>'region',
+				'is_enabled'=>$this->is_facet_enabled($this->active_tab,'region')
+			),true);
 
 		//data classifications
 		$filters['data_class']=$this->load->view('search/facet', 
@@ -372,6 +389,7 @@ class Catalog extends MY_Controller {
 		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
+		$search_options->region			=xss_clean($this->input->get("region"));
 		$search_options->view			=xss_clean($this->input->get("view"));
 		$search_options->image_view		=xss_clean($this->input->get("image_view"));
 		$search_options->topic			=xss_clean($this->input->get("topic"));
@@ -446,6 +464,7 @@ class Catalog extends MY_Controller {
 			//'variable_keywords'=>$search_options->vk,
 			'variable_fields'=>$search_options->vf,
 			'countries'=>$search_options->country,
+			'regions'=>$search_options->region,
 			'from'=>$search_options->from,
 			'to'=>$search_options->to,
 			'tags'=>$search_options->tag,
@@ -480,6 +499,7 @@ class Catalog extends MY_Controller {
 		$data['search_options']=$search_options;
 		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
 		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
+		$data['regions']=$this->facets['regions'];
 		$data['sid']=$search_options->sid;
 
 		//show featured only if no filters or search 
@@ -520,10 +540,10 @@ class Catalog extends MY_Controller {
 			'sort_order'=>$this->input->get_post('sort_order'),
 			'repo'=>$this->input->get_post('repo')
 		);
+
 		$this->load->library('catalog_search',$params);
 		$data['variables']=$this->catalog_search->v_quick_search($sid);
-
-		$this->load->view("catalog_search/var_quick_list", $data);
+		$this->load->view("catalog_search/var_quick_list", $data); 
 	}
 
 
@@ -809,7 +829,11 @@ class Catalog extends MY_Controller {
 			}
 		}
 
-		//PDF
+		$view_types=array(
+			'survey'=>'variable_ddi',
+			'geospatial'=>'geospatial_features'
+		);
+
 		foreach($items as $item=>$value){
 			$tmp=explode('/',$value);
 			if (isset($tmp[1])){
@@ -821,7 +845,8 @@ class Catalog extends MY_Controller {
 					'dataset'=>$this->Dataset_model->get_row($tmp[0])
 				);
 
-				$item_data['html']=$this->load->view('survey_info/variable_ddi',$item_data,true);
+				$view_name=isset($view_types[$item_data['dataset']['type']]) ? $view_types[$item_data['dataset']['type']] : 'survey';
+				$item_data['html']=$this->load->view('survey_info/'.$view_name,$item_data,true);
 				$list[]=$item_data;
 			}
 		}		

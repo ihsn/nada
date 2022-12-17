@@ -20,7 +20,7 @@
                     "class": "required",
                     "required": true,
                     "help_text": "help text for idno",
-                    "rules":"required|idno|alpha_dash|min:5|max:80"
+                    "rules":"required|idno|min:5|max:80"
                 },
                 {
                     "key": "study_desc.title_statement.title",
@@ -131,7 +131,7 @@
             "title": "Overview",
             "items": [
                 {
-                    "key": "study_desc.study_info.notes",
+                    "key": "study_desc.study_info.abstract",
                     "title": "Abstract",
                     "type": "textarea"
                 },
@@ -156,7 +156,7 @@
             "title": "Scope",
             "items": [
                 {
-                    "key": "study_desc.study_notes",
+                    "key": "study_desc.study_info.notes",
                     "title": "Description of scope",
                     "type": "textarea"
                 }

@@ -37,8 +37,8 @@ x-tagGroups:
       - Collections
       - Datasets
       - External resources 
-      - Survey
       - Scripts
+      - Survey      
       - Timeseries
       - Geospatial
       - Images
@@ -1158,11 +1158,12 @@ paths:
               $ref: '#/definitions/VariableList'
       security:
         - ApiKeyAuth: []    
+  /datasets/variables/{IDNo}/{partialUpdate}:
     post:
       tags:
         - Survey
       summary: Create variable
-      description: Create a new variable for a data file. To create multiple variables at once, pass them as a list of variables.
+      description: Create or update a variable. To create multiple variables at once, pass them as a list of variables.
       operationId: createDatasetVariable
       consumes:
         - application/json
@@ -1175,12 +1176,11 @@ paths:
           required: true
           type: string
           format: string
-        - name: fileId
+        - name: partialUpdate
           in: path
-          description: File ID - user defined unique file identifier
-          required: true
-          type: string
-          format: string  
+          description: To update partial metadata, set value to `true`. Default is `false` to replace all metadata fields.
+          type: boolean
+          format: boolean  
         - in: "body"
           name: "body"
           required: true
@@ -1337,6 +1337,33 @@ paths:
           '200':
             description: successful operation
         security:
+          - ApiKeyAuth: []                  
+  /datasets/replace_ddi/{IDNo}:
+      post:
+        tags:
+          - Survey
+        summary: Replace DDI
+        description: Replace DDI
+        operationId: replaceDDI
+        parameters:
+          - in: "path"
+            name: "IDNo"
+            type: string
+            format: string
+            required: true
+          - in: "formData"
+            name: "file"
+            type: file
+            description: "Upload DDI XML file"
+            required: true
+        consumes:
+          - multipart/form-data
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation
+        security:
           - ApiKeyAuth: []
   /datasets/generate_ddi/{IDNo}:
       get:
@@ -1416,7 +1443,7 @@ paths:
           - ApiKeyAuth: []
   
   /datasets/generate_pdf/{datasetIDNo}:
-      put:
+      post:
         tags:
           - Survey
         summary: Generate PDF

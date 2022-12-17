@@ -11,23 +11,23 @@ class Attach_related_data extends MY_Controller {
 
   public function __construct()
   {
-	parent::__construct();
+		parent::__construct();
 
-	$this->load->model('Catalog_admin_search_model');
-	$this->load->model("Related_study_model");
-	$this->load->model("Catalog_model");
+		$this->load->model('Catalog_admin_search_model');
+		$this->load->model("Related_study_model");
+		$this->load->model("Catalog_model");
 
-	$this->load->library('pagination');
-	$this->load->helper('querystring_helper','url');
-	$this->load->helper('form');
-	$this->template->set_template('admin_blank');
+		$this->load->library('pagination');
+		$this->load->helper('querystring_helper','url');
+		$this->load->helper('form');
+		$this->template->set_template('admin_blank');
 
-	//load language file
-	$this->lang->load('general');
-	$this->lang->load('catalog_search');
-	$this->lang->load('catalog_admin');
+		//load language file
+		$this->lang->load('general');
+		$this->lang->load('catalog_search');
+		$this->lang->load('catalog_admin');
 
-	//$this->output->enable_profiler(TRUE);
+		//$this->output->enable_profiler(TRUE);
 	}
 
 
@@ -60,12 +60,6 @@ class Attach_related_data extends MY_Controller {
 				'relationship_id'=>$row['relationship_id']
 			);
 		}
-
-
-
-		//echo '<pre>';
-		//var_dump($db_rows['related_studies']);
-		//echo '</pre>';
 
 		$content=$this->load->view('catalog/select_related_studies', $db_rows,TRUE);
 		$this->template->write('content', $content,true);
@@ -105,7 +99,7 @@ class Attach_related_data extends MY_Controller {
 			}
 		}
 
-		$allowed_fields=array('titl','nation','surveyid','proddate','authenty');
+		$allowed_fields=array('title','nation','idno','year_start','authoring_entity');
 		$field=$this->input->get("field");
 		$keywords=$this->input->get("keywords");
 
@@ -131,7 +125,7 @@ class Attach_related_data extends MY_Controller {
 
 
 		//set pagination options
-		$base_url = site_url('admin/dialog_select_studies/index/'.$skey);
+		$base_url = site_url('admin/catalog/attach_related_data/'.$skey);
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $limit;

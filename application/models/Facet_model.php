@@ -23,7 +23,7 @@ class Facet_model extends CI_Model {
 
 	function get_core_facets_list()
 	{
-		return ['tag','topic','country','year','collection','data_class','dtype','type'];
+		return ['tag','topic','country','year','collection','data_class','dtype','type','region'];
 	}
 	
 	
