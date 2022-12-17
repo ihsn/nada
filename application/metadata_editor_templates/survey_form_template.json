@@ -20,7 +20,7 @@
                     "class": "required",
                     "required": true,
                     "help_text": "help text for idno",
-                    "rules":"required|idno|alpha_dash|min:5|max:80"
+                    "rules":"required|idno|min:5|max:80"
                 },
                 {
                     "key": "study_desc.title_statement.title",

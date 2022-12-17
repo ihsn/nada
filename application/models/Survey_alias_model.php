@@ -15,6 +15,18 @@ class Survey_alias_model extends CI_Model {
 		$result = $this->db->insert('survey_aliases', $data);
 		return $result;
 	}
+
+	public function upsert($sid,$alias_idno)
+	{
+		if (!$this->alias_exists($alias_idno))
+		{
+			$alias_options = array(
+				'sid'  => $sid,
+				'alternate_id' => $alias_idno,
+			);
+			$this->insert($alias_options);
+		}
+	}
 	
 	public function id_exists($alternate_id)
 	{
@@ -31,6 +43,14 @@ class Survey_alias_model extends CI_Model {
 		$this->db->select('id');		
 		$this->db->from('surveys');		
 		$this->db->where('idno',$alternate_id);				
+        return $this->db->count_all_results();
+	}
+
+	public function alias_exists($alternate_id)
+	{
+		$this->db->select('sid');		
+		$this->db->from('survey_aliases');		
+		$this->db->where('alternate_id',$alternate_id);
         return $this->db->count_all_results();
 	}
 	

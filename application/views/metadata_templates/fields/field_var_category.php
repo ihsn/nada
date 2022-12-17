@@ -26,17 +26,20 @@
                     continue;
                 }
 
-                foreach($item['stats'] as $stat_row){                    
+                foreach($item['stats'] as $stat_row){                          
                     //non-weighted stats
-                    if(!isset($stat_row['wgtd']) || empty($stat_row['wgtd']) ){
+                    $wgtd_=isset($stat_row['wgtd']) ? $stat_row['wgtd'] : '';
+                    if($wgtd_!=='wgtd'){
                         $data[$data_idx]['stats_non_wgtd_value']=$stat_row['value'];
-                        if(!isset($item['is_missing']) || !empty($item['is_missing'])){
+                        $ismissing_=isset($item['is_missing']) ? $item['is_missing'] : '';
+                        if($ismissing_==''){
                             $stats_col[]=$stat_row['value'];
                         }
                     }//weighted stats
-                    else if ($stat_row['wgtd']=='wgtd'){
+                    else if ($stat_row['wgtd']==='wgtd'){
                         $data[$data_idx]['stats_wgtd_value']=$stat_row['value'];
-                        if(!isset($item['is_missing']) || !empty($item['is_missing'])){
+                        $ismissing_=isset($item['is_missing']) ? $item['is_missing'] : '';
+                        if($ismissing_==''){
                             $stats_col_wgtd[]=$stat_row['value'];
                         }    
                     }
@@ -46,6 +49,7 @@
             if (count($stats_col)>0){
                 $show_stats=true;
                 $sum_cases=array_sum($stats_col);
+                
                 
                 $cat_count=count($stats_col);
                 $last_cat=$data[$cat_count-1];
