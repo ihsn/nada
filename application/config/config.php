@@ -785,7 +785,7 @@ $config['enable_access_policy_import']=false;
 |
 | 
 */
-$config['guests_hide_microdata_tab']=true;
+$config['guests_hide_microdata_tab']=false;
 
 //show tabs for each data type on search page
 $config['data_types_nav_bar']=false;

@@ -473,11 +473,12 @@ $(document).ready(function() {
     
 
     function reset_page(){
-        $("#page").val(1);
+        $("#page").val(1);        
     }    
 
     //submit search form
     $(document.body).on("click","#submit_search", function(){                    
+        $("#sort_by").val("");
         reset_page();
         change_state();
         return false;
@@ -584,7 +585,6 @@ $(document).ready(function() {
     $(document.body).on("change","#sort-by-select", function(){
         let sort_order=$(this).find(':selected').data('sort');
         let sort_by=$(this).val();
-        window.x=$(this);
         $("#sort_by").val(sort_by);
         $("#sort_order").val(sort_order);
         change_state();
@@ -609,6 +609,7 @@ $(document).ready(function() {
 
     //check/select filter
     $(document.body).on("change",".filters-container .chk, .filters-container select", function(){        
+        reset_page();
         change_state();
         toggle_clear(this);
     });

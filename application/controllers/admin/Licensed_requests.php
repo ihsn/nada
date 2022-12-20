@@ -25,11 +25,12 @@ class Licensed_requests extends MY_Controller {
 		else
 		{
 			//set active repo
-			$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo());
-			if($repo_obj){
-				$repo_obj=(object)$repo_obj;
-			}
-		}	
+			$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo());			
+		}
+		
+		if($repo_obj){
+			$repo_obj=(object)$repo_obj;
+		}
 
 		if (!$repo_obj)
 		{
@@ -41,7 +42,6 @@ class Licensed_requests extends MY_Controller {
 		{
 			//set active repo
 			$this->active_repo=$repo_obj;
-			//var_dump($repo_obj);
 			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
 		}
 		

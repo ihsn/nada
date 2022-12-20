@@ -15,7 +15,13 @@ class Datadeposits extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
-
+	function _auth_override_check()
+	{
+		if ($this->session->userdata('user_id')){
+			return true;
+		}
+		parent::_auth_override_check();
+	}
 
 	/** 
 	 * 
@@ -198,7 +204,62 @@ class Datadeposits extends MY_REST_Controller
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-	}    
+	} 
+	
+	
+	public function export_get($format,$id) 
+	{
+		try{
+			$this->load->library('DDI_Study_Export');
+			$this->load->model('DD_study_model');
+			$this->load->model('DD_resource_model');
+			$this->load->helper('download');
+
+			$data['project'] = $this->DD_project_model->project_id2($id,null);
+
+			if (!$data['project']){
+				throw  new Exception("Project was not found");
+			}
+
+			if ($format == 'ddi') {
+				$data['record'] = $this->DD_study_model->get_study_array($id);
+				$this->ddi_study_export->load_template('application/templates/ddi_export_template.xml');
+				
+				$data['data']   = $this->ddi_study_export->to_ddi($data['record']);
+				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->id}_".date('d_m_y')."_ddi.xml"));
+				force_download($title, $data['data']);
+				die();
+	
+			} else if ($format == 'rdf') {
+				$data['files']  = $this->DD_resource_model->get_project_resources($id);
+				$data['data']   = $this->_resources_to_RDF($data['files']);
+				$title          = strtolower(str_replace(' ', '_', "{$data['project'][0]->id}_".date('d_m_y')."_rdf.xml"));
+				force_download($title, $data['data']);
+				die();
+			}
+			
+		}
+		catch(Exception $e){
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	private function _resources_to_RDF($resources) 
+	{
+		$content = '';;
+		$RDF     = "<?xml version='1.0' encoding='UTF-8'?>" . PHP_EOL;
+		$RDF    .= "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\">" . PHP_EOL;
+		foreach ($resources as $resource) {
+			$content .= "<rdf:Description rdf:about=\"{$resource['filename']}\">\n<rdf:label>\n{$resource['title']}\n</rdf:label>\n<rdf:title>\n{$resource['title']}\n</rdf:title>\n<dc:format>\n{$resource['dcformat']}\n</dc:format>\n<dc:creator>\n{$resource['author']}\n</dc:creator>\n<dc:type>\n{$resource['dctype']}\n</dc:type>\n<dcterms:created>\n{$resource['created']}\n</dcterms:created>\n<dc:description>\n{$resource['filename']}\n</dc:description>\n</rdf:Description>\n";
+		}
+		$RDF    .= $content;
+		$RDF    .= "</rdf:RDF>";
+		return $RDF;
+	}
 
 	
 }

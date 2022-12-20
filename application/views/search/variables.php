@@ -57,7 +57,7 @@
 	//page querystring for variable sub-search
     $search_querystring='?'.get_querystring( array('sk', 'vk', 'vf','view','topic','country'));
     
-    $compare_items=explode(",",$this->input->cookie('variable-compare', TRUE));
+    $compare_items=explode(",",(string)$this->input->cookie('variable-compare', TRUE));
 ?>
 
 <input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>

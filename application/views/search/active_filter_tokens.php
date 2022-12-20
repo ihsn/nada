@@ -107,7 +107,7 @@ $bg=0;
         <?php endforeach;?>
     <?php endif;?>
 
-    <?php if ($search_options->from!='' && $search_options->to!=''):?>
+    <?php if ((int)$search_options->from>0 && (int)$search_options->to>0):?>
             <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo $search_options->from;?>-<?php echo $search_options->to;?><i class="fas fa-times"></i></span>
     <?php endif;?>
 
