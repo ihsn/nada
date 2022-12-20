@@ -301,35 +301,24 @@ class Resources extends MY_Controller {
 			{
 				$db_result=$this->Survey_resource_model->insert($options);
 				
-				//log
-				if ($db_result)
-				{
+				if ($db_result){
 					$this->db_logger->write_log('resource-added',$options['title'].'-'.$options['filename'],'resources',$survey_id);
 				}	
 			}
 			else
 			{
-				//update db
 				$db_result=$this->Survey_resource_model->update($id,$options);
 				
-				//log
-				if ($db_result)
-				{
+				if ($db_result){
 					$this->db_logger->write_log('resource-updated',$options['title'].'-'.$options['filename'],'resources',$survey_id);
 				}
 			}
 						
-			if ($db_result===TRUE)
-			{
-				//update successful
+			if ($db_result!=false){
 				$this->session->set_flashdata('message', t('form_update_success') );
-				
-				//redirect back to the list
 				redirect("admin/catalog/edit/$survey_id/resources");
 			}
-			else
-			{
-				//update failed
+			else{
 				$this->form_validation->set_error(t('form_update_fail'));				
 			}
 		}
