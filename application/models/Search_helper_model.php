@@ -537,7 +537,7 @@ class Search_helper_model extends CI_Model {
 	 * Returns an array of available DA types for current repo
 	 *
 	 */
-	function get_active_data_types($repositoryid=NULL, $data_type=NULL,$filter_values=array())
+	function get_active_data_types($repositoryid='', $data_type='',$filter_values=array())
 	{
 		$this->db->select('surveys.formid as id,forms.model as code, forms.fname as title');
 		$this->db->join('forms','forms.formid=surveys.formid','inner');			
@@ -554,7 +554,7 @@ class Search_helper_model extends CI_Model {
 			//$this->db->where('survey_repos.repositoryid',$repositoryid);
 		}
 
-		if($data_type!=NULL){
+		if($data_type!=''){
 			$this->db->where('surveys.type',$data_type);
 			if($filter_values!=NULL){
 				$this->db->or_where_in('surveys.formid',$filter_values);

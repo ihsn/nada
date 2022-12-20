@@ -99,7 +99,7 @@ class Catalog extends MY_Controller {
 			$this->facets['years']=$years_range;
 		//}
 
-		$repo_id=null;
+		$repo_id='';
 
 		if(isset($this->active_repo['repositoryid'])){
 			$repo_id=$this->active_repo['repositoryid'];
@@ -295,7 +295,7 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
     {
-		$this->active_tab=xss_clean($this->input->get("tab_type"));
+		$this->active_tab=xss_clean((string)$this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($this->active_tab);
 		
 		$output= $this->_search();
@@ -740,6 +740,7 @@ class Catalog extends MY_Controller {
 	private function _set_active_repo($repo)
 	{
 		$this->load->model("repository_model");
+		$repo=(string)$repo;
 
 		$repo=trim(strtolower($repo));
 		//get an array of all valid repository names from db
