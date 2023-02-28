@@ -99,6 +99,7 @@ $config['solr_debug']=false;
   <field name="citation_id" type="pint" indexed="true" stored="true"/>
   <field name="citation_uuid" type="text_general" multiValued="false" indexed="true" stored="true"/>
   <field name="countries" type="pint" multiValued="true" indexed="true" stored="true"/>
+  <field name="regions" type="pint" multiValued="true" indexed="true" stored="true"/>
   <field name="country" type="text_general" indexed="true" stored="false"/>
   <field name="created" type="pint" indexed="true" stored="true"/>
   <field name="ctype" type="string" indexed="true" stored="true"/>
