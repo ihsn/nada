@@ -1064,7 +1064,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$query->setFields(array(
 				'vid',
 				'labl',
-				'name'
+				'name',
+				'fid'
 			));
 
 		//set a query (all prices starting from 12)

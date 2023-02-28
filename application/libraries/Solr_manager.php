@@ -649,6 +649,7 @@ class Solr_manager{
 
 		$this->ci->db->select("2 as doctype,
 			uid as id,
+			fid,
 			vid,
 			name,
 			labl,
@@ -786,6 +787,7 @@ class Solr_manager{
 		$this->ci->db->select("
 			2 as doctype,
 			variables.uid as id,
+			variables.fid,
 			variables.vid,
 			variables.name,
 			variables.labl,

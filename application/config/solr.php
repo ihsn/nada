@@ -20,6 +20,7 @@ $config['solr_host'] = "localhost";
 $config['solr_port'] = "8983";
 $config['solr_collection'] = "nada";
 
+
 $config['solr_edismax_options']=array(
   'qf'=>'title^20.0 nation^20.0 years^30.0 authoring_entity idno keywords', //query fields - qf="title^20 nation keywords"
   'pf'=>'', //phrase fields
@@ -152,6 +153,7 @@ $config['solr_debug']=false;
   <field name="varcount" type="pint" indexed="true" stored="true"/>
   <field name="varid" type="string" indexed="false" stored="true"/>
   <field name="vid" type="string" multiValued="false" indexed="true" stored="true"/>
+  <field name="fid" type="string" multiValued="false" indexed="true" stored="true"/>
   <field name="volume" type="string" indexed="true" multiValued="false" />
   <field name="issue" type="string" indexed="true" multiValued="false" />
   <field name="edition" type="string" indexed="true" multiValued="false" />
