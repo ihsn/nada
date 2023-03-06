@@ -556,7 +556,10 @@ class Datasets extends MY_REST_Controller
 
 			$response=array(
 				'status'=>'success',
-				'dataset'=>$dataset
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])				
+				)
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -641,7 +644,10 @@ class Datasets extends MY_REST_Controller
 
 			$response=array(
 				'status'=>'success',
-				'dataset'=>$dataset				
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])				
+				)
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);

@@ -566,7 +566,7 @@
 
         "crossref": {
           "type": "string",
-          "title": "Book title",
+          "title": "Cross reference",
           "description":"The database key of the entry being cross referenced"
         },
 
@@ -910,9 +910,8 @@
         },        
 
         "mandate": {
-          "title": "Audience",
-          "type": "string",
-          "description":"A category of user for whom the resource is intended."
+          "title": "Mandate",
+          "type": "string"          
         },
 
         "pricing": {
