@@ -453,7 +453,7 @@
                 "title": "Funding Agency/Sponsor",
                 "type": "string"
               },
-              "abbr": {
+              "abbreviation": {
                 "title": "Abbreviation",
                 "type": "string"
               },
@@ -913,8 +913,8 @@
                       "title": "Person or organization name",
                       "type": "string"
                     },
-                    "abbr": {
-                      "title": "Abbreviation",
+                    "affiliation": {
+                      "title": "Affiliation",
                       "type": "string"
                     },
                     "role": {
@@ -976,6 +976,10 @@
                     "uri": {
                       "title": "License URI",
                       "type": "string"
+                    },
+                    "note":{
+                      "title":"Note",
+                      "type":"string"
                     }
                   }
                 }

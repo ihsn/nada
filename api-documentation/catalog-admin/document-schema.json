@@ -646,10 +646,6 @@
                 "title": "Affiliation",
                 "type": "string"
               },
-              "role": {
-                "title": "Role",
-                "type": "string"
-              },
               "contribution": {
                 "title": "Contribution",
                 "type": "string"

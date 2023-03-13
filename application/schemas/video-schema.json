@@ -389,7 +389,7 @@
                 "title": "Affiliation",
                 "type": "string"
               },
-              "abbreviation": {
+              "abbr": {
                 "title": "Abbreviation",
                 "type": "string"
               },

@@ -99,7 +99,7 @@
 			"title": "Backward skip",
 			"description": "Contains a reference to IDs of possible preceding questions. This can be used to document backward skip instructions."
 		},
-		"var_qstn_ivulnstr": {
+		"var_qstn_ivuinstr": {
 			"type": "string",
 			"title": "Interviewer instructions"
 		},
