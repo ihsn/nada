@@ -112,15 +112,17 @@ class Dataset_script_model extends Dataset_model {
 	{
 		$years=array();
         $data_coll=$this->get_array_nested_value($options,'project_desc/production_date');
-			
-        if (is_array($data_coll)){
-            //get years from data collection dates				
-            foreach($data_coll as $date){
-                $year_=substr($date,0,4);
-                if((int)$year_>0){
-                    $years[]=$year_;
-                }					
-            }
+
+        if (!is_array($data_coll)){
+            $data_coll=array($data_coll);
+        }
+        
+        //get years
+        foreach($data_coll as $date){
+            $year_=substr($date,0,4);
+            if((int)$year_>0){
+                $years[]=$year_;
+            }					
         }
 
 		$start=0;
