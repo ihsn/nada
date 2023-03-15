@@ -41,6 +41,13 @@
         <?php            
             if(!isset($columns)){
              $columns=array_keys($data[0]);
+             foreach($data as $row){                 
+                 foreach(array_keys($row) as $row_col){
+                    if (!in_array($row_col,$columns)){
+                        $columns[]=$row_col;
+                    }
+                 }                 
+             }
             }
 
             //remove empty columns

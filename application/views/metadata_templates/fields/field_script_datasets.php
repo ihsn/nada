@@ -31,10 +31,19 @@
                 <?php if (isset($row['idno']) || isset($row['access_type']) ):?>
                     <div>
                         <?php if (isset($row['idno'])):?>
-                            <span class="text-secondary"><?php echo $row['idno'];?></span>
+                            <span class="text-secondary mr-4"><?php echo $row['idno'];?></span>
                         <?php endif;?>
                         <?php if (!empty($row['access_type'])):?>
-                            <span class="ml-4 text-secondary">Data access type: <?php echo $row['access_type'];?></span>
+                            <span class="mr-4 text-secondary">Data access type: <?php echo $row['access_type'];?></span>
+                            <?php if (isset($row['license_uri'])):?>
+                                <span class="mr-4 text-secondary">License: 
+                                    <a targe="_blank" href="<?php echo $row['license_uri'];?>"><?php echo isset($row['license']) ? $row['license'] : 'license info';?></a>
+                                </span>
+                            <?php else:?>
+                                <span class="mr-4 text-secondary">License: 
+                                    <?php echo isset($row['license']) ? $row['license'] : '';?>
+                                </span>
+                            <?php endif;?>    
                         <?php endif;?>
                     </div>
                 <?php endif;?>    
