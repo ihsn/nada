@@ -137,7 +137,7 @@
             "metadata.project_desc.software"=>'array',
             "metadata.project_desc.technology_environment"=>'text',
             "metadata.project_desc.technology_requirements"=>'text',
-            "metadata.project_desc.reproduction_instructions"=>'text',            
+            "metadata.project_desc.reproduction_instructions"=>'text_markdown',            
             "metadata.project_desc.scripts"=>'script_file'                    
         ),        
 
@@ -163,7 +163,7 @@
             "metadata.project_desc.version_statement.version"=>'text',
             "metadata.project_desc.version_statement.version_date"=>'text',
             "metadata.project_desc.version_statement.version_resp"=>'text',
-            "metadata.project_desc.version_statement.version_notes"=>'text_markdown'
+            "metadata.project_desc.version_statement.version_notes"=>'text'
         ),
 
         'errata'=>array(
