@@ -40,9 +40,11 @@
                                     <a targe="_blank" href="<?php echo $row['license_uri'];?>"><?php echo isset($row['license']) ? $row['license'] : 'license info';?></a>
                                 </span>
                             <?php else:?>
+                                <?php if (isset($row['license'])):?>
                                 <span class="mr-4 text-secondary">License: 
                                     <?php echo isset($row['license']) ? $row['license'] : '';?>
                                 </span>
+                                <?php endif;?>    
                             <?php endif;?>    
                         <?php endif;?>
                     </div>
