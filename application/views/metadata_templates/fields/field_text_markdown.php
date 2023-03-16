@@ -6,7 +6,7 @@
     }
 ?>
 <?php if ( (isset($data) && $data !='') || $show_empty==true ):?>
-<div class="field field-markdown field-<?php echo $name;?>">MARKDOWN
+<div class="field field-markdown field-<?php echo $name;?>">
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <div class="field-value">
         <?php if (is_array($data)):?>
