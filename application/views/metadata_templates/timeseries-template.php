@@ -26,7 +26,6 @@
 <?php $output['overview']= render_group('overview',
     $fields=array(
         "metadata.series_description.idno"=>"text",
-        "metadata.series_description.doi"=>"text",
         "metadata.series_description.name"=>"text",
         "metadata.series_description.database_id"=>"text",
         "metadata.series_description.aliases"=>"array",
@@ -40,8 +39,10 @@
         "metadata.series_description.definition_short"=>"text",
         "metadata.series_description.definition_long"=>"text",
         "metadata.series_description.definition_references"=>"array",
+        "metadata.series_description.statistical_concept"=>"text",
         "metadata.series_description.concepts"=>"array",
         "metadata.series_description.methodology"=>"text",
+        "metadata.series_description.derivation"=>"text",
         "metadata.series_description.imputation"=>"text",
         "metadata.series_description.missing"=>"text",
         "metadata.series_description.quality_checks"=>"text",
@@ -54,8 +55,6 @@
         "metadata.series_description.disciplines"=>"array",
         "metadata.series_description.relevance"=>"text",
         "metadata.series_description.time_periods"=>"array",
-        "metadata.series_description.ref_country"=>"array",
-
         "metadata.series_description.aggregation_method"=>"text",
         "metadata.series_description.disaggregation"=>"text",
 
@@ -66,13 +65,25 @@
         "metadata.series_description.sources_note"=>"text",
         "metadata.series_description.keywords"=>"array",
         "metadata.series_description.acronyms"=>"array",
+        "metadata.series_description.errata"=>"array",
         "metadata.series_description.notes"=>"array",
         
         "metadata.series_description.related_indicators"=>"array",        
         "metadata.series_description.compliance"=>"array",
         "metadata.series_description.framework"=>"array_vertical",
         "metadata.series_description.series_groups"=>"array",
+        "metadata.tags"=>"array",
         "metadata.additional"=>"object"        
+    ),
+    $metadata);
+?>
+
+
+<?php $output['geographic_units']= render_group('geographic_units',
+    $fields=array(
+        "metadata.series_description.geographic_units"=>"array",
+        "metadata.series_description.bbox"=>"bounding_box",
+        "metadata.series_description.ref_country"=>"array"
     ),
     $metadata);
 ?>
@@ -94,14 +105,6 @@
     $metadata);
 ?>
 
-
-<?php $output['geographic_units']= render_group('geographic_units',
-    $fields=array(
-        "metadata.series_description.geographic_units"=>"array",
-        "metadata.series_description.bbox"=>"bounding_box",
-    ),
-    $metadata);
-?>
 
 
 <?php $output['license_rights']= render_group('license_rights',
@@ -131,11 +134,11 @@
 
 <?php $output['metadata_production']= render_group('metadata_production',
     $fields=array(
-        "metadata.metadata_information.title"=>"text",
-        "metadata.metadata_information.idno"=>"text",
-        "metadata.metadata_information.producers"=>"array",
-        "metadata.metadata_information.prod_date"=>"text",
-        "metadata.metadata_information.version"=>"text",
+        "metadata.series_description.title"=>"text",
+        "metadata.series_description.idno"=>"text",
+        "metadata.series_description.producers"=>"array",
+        "metadata.series_description.prod_date"=>"text",
+        "metadata.series_description.version"=>"text",
     ),
     $metadata);
 ?>

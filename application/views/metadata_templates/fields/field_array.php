@@ -60,7 +60,7 @@
             }
             $columns=$non_empty_columns;
         ?>
-        
+        <div class="table-responsive table-overflow-max-height-400">
         <table class="table table-bordered table-striped table-condensed xsl-table table-grid">
             <?php if($hide_column_headings!==true):?>
             <tr>
@@ -102,6 +102,7 @@
                 </tr>
             <?php endforeach;?>
         </table>
+        </div>
         <?php else:?>
         <table class="table xsl-table table-grid">            
                <?php foreach($data as $row):?>

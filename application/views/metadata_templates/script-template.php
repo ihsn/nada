@@ -163,7 +163,7 @@
             "metadata.project_desc.version_statement.version"=>'text',
             "metadata.project_desc.version_statement.version_date"=>'text',
             "metadata.project_desc.version_statement.version_resp"=>'text',
-            "metadata.project_desc.version_statement.version_notes"=>'text'
+            "metadata.project_desc.version_statement.version_notes"=>'text_markdown'
         ),
 
         'errata'=>array(
