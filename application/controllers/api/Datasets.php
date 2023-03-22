@@ -1621,6 +1621,12 @@ class Datasets extends MY_REST_Controller
 		}
 	}
 
+	//alias for thumbnail_delete when REST DELETE method is not supported
+	function thumbnail_delete_post($idno=null)
+	{
+		return $this->thumbnail_delete($idno);
+	}
+
 
 
 	/**

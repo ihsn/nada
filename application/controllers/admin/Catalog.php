@@ -2247,6 +2247,45 @@ class Catalog extends MY_Controller {
 		$this->events->emit('db.after.update', 'surveys', $id,'atomic');
 		redirect('admin/catalog/edit/'.$id);
 	}
+
+
+	function generate_ddi($sid=null)
+	{
+		if (!$sid){
+			show_404();
+		}
+
+		$this->load->model("Dataset_model");
+		$survey=$this->Catalog_model->get_survey($sid);
+
+		if(!$survey){
+			show_404();
+		}
+
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$survey['repositoryid']);
+		
+		try{
+			$result=$this->Dataset_model->write_ddi($sid,$overwrite=true);
+			$this->session->set_flashdata('message', t('form_update_success'));
+			redirect('admin/catalog/edit/'.$sid);
+		}
+		catch(Exception $e){
+			$this->session->set_flashdata('error', $e->getMessage());
+			redirect('admin/catalog/edit/'.$sid);
+		}
+	}
+
+	function batch_generate_ddi()
+	{
+		$this->acl_manager->has_access_or_die('study', 'batch_refresh',null,$this->active_repo->repositoryid);
+
+		//list of all surveys
+		$data['surveys']=$this->Catalog_model->select_all_compact('survey');
+
+		$contents=$this->load->view('catalog/ddi_batch_generate',$data,TRUE);
+		$this->template->write('content', $contents,true);
+	  	$this->template->render();
+	}
 	
 }
 /* End of file catalog.php */

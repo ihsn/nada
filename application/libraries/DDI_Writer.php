@@ -263,7 +263,8 @@ class DDI_Writer
                 $arr[$key] = $this->remove_empty($arr[$key]);
             }
     
-            if (empty($arr[$key])) {
+            //remove empty but keep if value is 0
+            if (empty($arr[$key]) && strlen((string)$arr[$key]) == 0) {
                 unset($arr[$key]);
             }
         }
@@ -315,7 +316,7 @@ class DDI_Writer
                 '_value'=> (string)$var['var_format.value'],
                 '_attributes'=>[
                     'type'=>$var['var_format.type'],
-                    //'schema'=>$var['var_format.schema'],//not supported
+                    'schema'=>$var['var_format.schema'],
                     'formatname'=>$var['var_format.name']
                 ]
             ],
@@ -336,9 +337,18 @@ class DDI_Writer
             'qstn.preQTxt'=>$var['var_qstn_preqtxt'],
             'qstn.qstnLit'=>$var['var_qstn_qstnlit'],
             'qstn.postQTxt'=>$var['var_qstn_postqtxt'],
-            'qstn.ivuInstr'=>$var['var_qstn_ivulnstr'],
+            'qstn.ivuInstr'=>$var['var_qstn_ivuinstr'],
 
-            //'valrng'=>$var[''],//repeatable field - not supported
+            'valrng'=>[
+                'range'=>[
+                    '_attributes'=>[
+                        'UNITS'=>$var['var_val_range.units'],
+                        'min'=>$var['var_val_range.min'],
+                        'max'=>$var['var_val_range.max'],
+                    ]
+                ]
+            ],
+            
             'universe'=>$var['var_universe'],
             'sumStat'=> [], //repeatable
             
@@ -366,16 +376,23 @@ class DDI_Writer
         $categories=new \Adbar\Dot($var->get('var_catgry'));
         foreach($categories->all() as $idx=>$cat){
             $output->set([
-                'catgry.'.$idx.'.catValu'=> $categories["{$idx}.value"],
-                'catgry.'.$idx.'.labl'=> $categories["{$idx}.labl"],
-                'catgry.'.$idx.'.catStat'=>[                    
-                    '_attributes'=>[
-                        'type'=>$sumstats["{$idx}.type"],
-                        'wgtd'=>$sumstats["{$idx}.wgtd"]
-                    ],
-                    '_value'=> (string)$categories["{$idx}.stats.value"]
-                ]
+                'catgry.'.$idx.'.catValu'=> $cat["value"],
+                'catgry.'.$idx.'.labl'=> $cat["labl"]
             ]);
+            foreach($categories[$idx]['stats'] as $catIdx=>$catStat){
+                
+                    $output->set([
+                        'catgry.'.$idx.'.catStat.'.$catIdx=>[                    
+                            '_attributes'=>[
+                                'type'=>$catStat['type'],
+                                'wgtd'=>$catStat['wgtd']
+                            ],
+                            '_value'=> (string)$catStat["value"]
+                        ]
+                    ]);                
+            }
+
+            
         }
         
         $output = $this->remove_empty($output->all());

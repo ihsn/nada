@@ -366,7 +366,7 @@ class Dataset_microdata_model extends Dataset_model {
             'var_qstn_preqtxt',
             'var_qstn_qstnlit',
             'var_qstn_postqtxt',
-            'var_qstn_ivulnstr'
+            'var_qstn_ivuinstr'
         );
 
         $output=[];

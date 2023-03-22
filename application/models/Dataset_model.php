@@ -1781,16 +1781,16 @@ class Dataset_model extends CI_Model {
 		$dataset=$this->Dataset_model->get_row($sid); 
 		$ddi_path=$this->get_metadata_file_path($sid);
 
-		$generate_file=false;
+		/*$generate_file=false;
 		if (file_exists($ddi_path) && filemtime($ddi_path) < $dataset['changed']){
 			$generate_file=true;
 		}
 		
 		if(!file_exists($ddi_path)){
 			$generate_file=true;
-		}
+		}*/
 
-		if($generate_file){
+		if(!file_exists($ddi_path)){
 			try{
 				$result=$this->write_ddi($sid,$overwrite=true);
 			}
