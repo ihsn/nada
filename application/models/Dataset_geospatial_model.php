@@ -139,11 +139,11 @@ class Dataset_geospatial_model extends Dataset_model {
 	{
         $output=array();
                 
-        $output['title']=array_data_get($options, 'description.identificationInfo.0.citation.title');
+        $output['title']=array_data_get($options, 'description.identificationInfo.citation.title');
         //$output['abbreviation']=$this->get_array_nested_value($options,'citation/alternateTitle');
         $output['idno']=array_data_get($options,'description.idno');
 
-        $nations=(array)array_data_get($options, 'description.identificationInfo.*.extent.geographicElement.*.geographicDescription');
+        $nations=(array)array_data_get($options, 'description.identificationInfo.extent.geographicElement.*.geographicDescription');
 
         $output['nations']=$nations;
 
@@ -159,8 +159,8 @@ class Dataset_geospatial_model extends Dataset_model {
         //$dates=$this->get_array_nested_value($options,'dataset_metadata/identificationInfo/citation/date');
 
         $dates=array();
-        if (isset($options['description']['identificationInfo'][0]['citation']['date'])){
-            $dates=$options['description']['identificationInfo'][0]['citation']['date'];
+        if (isset($options['description']['identificationInfo']['citation']['date'])){
+            $dates=$options['description']['identificationInfo']['citation']['date'];
         }
 
         $date_creation=null;
@@ -267,7 +267,7 @@ class Dataset_geospatial_model extends Dataset_model {
 
     function get_bbox_array($metadata)
     {
-        $bbox_arr=(array)array_data_get($metadata, 'description.identificationInfo.*.extent.geographicElement.*.geographicBoundingBox');
+        $bbox_arr=(array)array_data_get($metadata, 'description.identificationInfo.extent.geographicElement.*.geographicBoundingBox');
 
         $bbox=array();
         foreach($bbox_arr as $row){
