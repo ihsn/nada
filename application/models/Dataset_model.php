@@ -312,12 +312,73 @@ class Dataset_model extends CI_Model {
 			//tags
 			$tags=$this->Catalog_tags_model->survey_tags_with_key($sid);
 
+			//other identifiers e.g. DOI
+			$this->add_identifiers_to_metadata($sid, $survey['type'], $metadata);
+
+
 			if($tags){
 				$metadata['tags']=$tags;
 			}
 
 			return $metadata;
         }
+	}
+
+
+	/**
+	 * 
+	 * Add identifiers to metadata 
+	 * 	- doi
+	 *  - aliases
+	 *  - other identifiers
+	 */
+	function add_identifiers_to_metadata($sid, $type, &$metadata)
+	{
+		$mappings=[
+			'survey'=>'study_desc/title_statement/identifiers'
+		];
+
+		$doi=$this->get_doi($sid);
+
+		if (!$doi){
+			return;
+		}
+
+		if ($type=='survey'){
+
+			$identifiers=get_array_nested_value($metadata,$mappings[$type],"/");
+
+			$doi_identifier=[
+				'type'=>'DOI',				
+				'identifier'=>$doi
+			];
+
+			if (!is_array($identifiers)){
+				set_array_nested_value($metadata,$mappings[$type],$doi_identifier,"/");
+			}
+			
+			//check if DOI already exists
+			foreach($idenfiers as $identifier){
+				if ($identifier['type']=='DOI' && $identifier['identifier']==$doi){
+					return;
+				}
+			}
+
+			$identifiers[]=$doi_identifier;
+			set_array_nested_value($metadata,$mappings[$type],$identifiers,"/");
+		}
+	}
+
+
+	function get_doi($sid)
+	{
+		$this->db->select("doi");
+		$this->db->where("id",$sid);
+		$survey=$this->db->get("surveys")->row_array();
+
+		if ($survey){
+			return $survey['doi'];
+		}
 	}
 
 	/**
