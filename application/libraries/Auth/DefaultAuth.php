@@ -146,17 +146,9 @@ class DefaultAuth implements AuthInterface
     //log the user in
     function login()
     {
+		
 		$this->ci->template->set_template('blank');
         $this->data['title'] = t("login");
-
-		if($this->ci->input->get('destination'))
-		{
-			$destination=$this->ci->input->get('destination');
-			$this->ci->session->unset_userdata('destination');
-		}
-		else {
-        	$destination=$this->ci->session->userdata("destination");
-		}
 
         //validate form input
     	$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]');
@@ -195,8 +187,11 @@ class DefaultAuth implements AuthInterface
 				//log
 				$this->ci->db_logger->write_log('login',$this->ci->input->post('email'));
 
+				$destination=$this->ci->session->userdata("destination");
+
 				if ($destination!="")
 				{
+					$this->ci->session->unset_userdata('destination');
 					redirect($destination, 'refresh');
 				}
 				else
