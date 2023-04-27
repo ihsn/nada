@@ -135,6 +135,10 @@ class Dataset_microdata_model extends Dataset_model {
 
 		//complete transaction
         $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE){
+            throw new Exception("DB_TRANSACTION_ERROR: Failed to update database". implode(",",$this->db->error()));
+        }
         
         $this->index_variable_data($dataset_id);
 
@@ -307,6 +311,7 @@ class Dataset_microdata_model extends Dataset_model {
         if(!is_array($variables)){
             return false;
         }
+        
 
         $valid_data_files=(array)$this->Data_file_model->list_fileid($dataset_id);
         foreach($variables as $idx=>$variable){ 
@@ -315,6 +320,7 @@ class Dataset_microdata_model extends Dataset_model {
             }
 
             $variable['fid']=$variable['file_id'];
+            $this->validate_schema($type='variable',$variable);
             $this->Variable_model->validate_variable($variable);
         }
 
