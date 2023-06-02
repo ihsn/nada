@@ -64,9 +64,14 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
+		// @TODO: Confirm Cleaning of Erros and Messages from previous Forms
+		$this->session->unset_userdata('error');
+		$this->session->unset_userdata('message');
+
 		$this->template->set_template('admin5');
 		//css files
 		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
+
 		$this->template->add_css($inline_styles,'embed');
 
 		//js files
@@ -300,29 +305,82 @@ class Catalog extends MY_Controller {
 
 	function upload()
 	{
-		$this->add_study();
+		//user has permissions on the repo
+		//$this->acl->user_has_repository_access($this->active_repo->id);
+		$this->acl_manager->has_access_or_die('study', 'create',null,$this->active_repo->repositoryid);
+
+		// @TODO: File Validation Rules
+		// Files XML or RDF should be allowed in one field, they are exclusive
+		$this->form_validation->set_rules('userfile',t('msg_select_ddi'),'callback_upload_file_check');
+		// RRE - One call back check both
+		//$this->form_validation->set_rules('rdf-file',t('msg_select_ddi'),'callback_upload_file_check');
+
+//		$this->form_validation->set_rules('userfile',t('msg_select_ddi'),'uploaded[userfile]|ext_in[userfile.xml]]');
+//		$this->form_validation->set_rules('rdf-file',t('msg_select_ddi'),'uploaded[rdf-file]|mime_in[rdf-file.xml]|ext_in[rdf-file.xml]');
+
+		if ($this->form_validation->run() == FALSE) {
+
+			$this->template->set_template('admin');
+			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
+			$this->template->write('content', $content,true);
+	  		$this->template->render();
+			return;
+		} else {
+
+			$new_survey=$this->add_study();
+
+			if (!empty($new_survey)){
+				// RRE Clear Errors
+				// @TODO: Review if messages should be unset too
+				$this->session->unset_userdata('error');
+				//redirect('admin/catalog/edit/'.$result['sid'],'refresh');
+				redirect('admin/catalog/edit/'.$new_survey,'refresh');
+				return;
+			}
+
+		}
+		return redirect('admin/catalog/upload');
+	}
+
+	/**
+	 * Upload Form Validation file
+	 *
+	 * @return TRUE | FALSE
+	 * RRE - Validation runs for xml and rdf files
+	 *   Rules: $_FILES Array()
+	 *	fields: xml - userfile,rdf -  rdf-file
+	 *	rdf files requires xml
+	 * matching file names
+	 **/
+	function upload_file_check()
+	{
+		if (empty($_FILES['userfile']['name'])) {
+			$this->form_validation->set_message('upload_file_check','{field} '.t('msg_select_ddi'));
+			return FALSE;
+		}
+
+		if (!empty($_FILES['rdf-file']['name'])) {
+			if (strtolower(basename($_FILES['rdf-file']['name'],'.rdf')) <> strtolower(basename($_FILES['userfile']['name'],'.xml'))) {
+				$this->form_validation->set_message('upload_file_check','{field} '.t('Files need to have the same Name'));
+				return FALSE;
+			}
+		}
+		return TRUE;
 	}
 
 	/**
 	 * Upload form for DDI (xml) file
 	 *
 	 * @return void
+	 * @return Survey ID | NULL
+	 * @TODO: Due a possible Duplicated Record Error or Parse Error
+	 * 	Message should be returned to the form
 	 **/
 	function add_study()
 	{
-		//user has permissions on the repo
-		//$this->acl->user_has_repository_access($this->active_repo->id);
-		$this->acl_manager->has_access_or_die('study', 'create',null,$this->active_repo->repositoryid);
+		// @TODO: Move the Form one level up, add_study calls the model
 
-		$this->template->set_template('admin');
-
-		//show upload form when no DDI is uploaded
-		if(!$this->input->post("submit")){
-			$content=$this->load->view('catalog/ddi_upload_form', array('active_repo'=>$this->active_repo),true);
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-			return;
-		}
+		//process form
 
 		$overwrite=$this->input->post("overwrite");
 		$repositoryid=$this->input->post("repositoryid");
@@ -334,8 +392,8 @@ class Catalog extends MY_Controller {
 			$overwrite=FALSE;
 		}
 
-		//process form
-
+		// Uploads the xml File
+		// @TODO: review if the file should reamin in the directory after the process is executed
 		$temp_upload_folder=$this->get_temp_upload_folder();
 
 		//upload class configurations for DDI
@@ -346,8 +404,8 @@ class Catalog extends MY_Controller {
 
 		$this->load->library('upload', $config);
 
-		//process uploaded ddi file
-		$ddi_upload_result=$this->upload->do_upload();
+		// @TODO: Review ONLY XML file is in this reference, RDF files ? or XML RDF pair?
+		$ddi_upload_result=$this->upload->do_upload('userfile');
 
 		$uploaded_ddi_path=NULL;
 
@@ -356,7 +414,8 @@ class Catalog extends MY_Controller {
 			$error = $this->upload->display_errors();
 			$this->db_logger->write_log('ddi-upload',$error,'catalog');
 			$this->session->set_flashdata('error', $error);
-			redirect('admin/catalog/add_study','refresh');
+			return NULL;
+			//redirect('admin/catalog/add_study','refresh');
 		}
 		else //successful upload
 		{
@@ -380,7 +439,7 @@ class Catalog extends MY_Controller {
 			'overwrite'=>$overwrite
 		);
 
-		try{
+		try {
 			//import ddi
 			$result=$this->ddi2_import->import($params);
 
@@ -389,22 +448,42 @@ class Catalog extends MY_Controller {
 
 			$this->events->emit('db.after.update', 'surveys', $result['sid'],'refresh');
 			$this->session->set_flashdata('success', $result);
-			redirect('admin/catalog/edit/'.$result['sid'],'refresh');return;
+
+			//redirect('admin/catalog/edit/'.$result['sid'],'refresh');return;
+			return $result['sid'];
 		}
-		catch(ValidationException $e){
+		// @TODO: Find how to replicate this error
+		catch (ValidationException $e){
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
 				'errors'=>$e->GetValidationErrors()
 			);
 
-			$error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';			
+// RRE  @TODO: Multiple errors in the xml validation
+			// $error_str='Validation Error<br/><pre class="error-pre">'.print_r($e->GetValidationErrors(),true).'</pre>';
+			$arr_errors=$e->GetValidationErrors();
+			$error_str='Validation Error<br/><pre class="error-pre">';
+			foreach ($arr_errors as $key_error) {
+				$error_str.=$key_error['message'].'<br>';
+			}
+			$error_str.='</pre>';
 			$this->session->set_flashdata('error', $error_str);
-			redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/upload','refresh');
+
+			return NULL;
 		}
-		catch(Exception $e){
+		catch (Exception $e){
 			$this->session->set_flashdata('error', $e->getMessage());
-			redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/add_study','refresh');return;
+			//redirect('admin/catalog/upload','refresh');
+			return NULL;
+		}
+		finally {
+			// @TODO: Review if this is OK.
+			unlink($ddi_path);
+
 		}
 	}
 
@@ -422,7 +501,8 @@ class Catalog extends MY_Controller {
 		$this->upload->initialize($config);
 
 		//process uploaded rdf file
-		$rdf_upload_result=$this->upload->do_upload('rdf');
+		//$rdf_upload_result=$this->upload->do_upload('rdf');
+		$rdf_upload_result=$this->upload->do_upload('rdf-file');
 
 		$uploaded_rdf_path='';
 
@@ -480,9 +560,9 @@ class Catalog extends MY_Controller {
             'file_type'=>'survey',
             'file_path'=>$new_ddi_file
         );
-        
+
 		$this->load->library('Metadata_parser', $parser_params);
-		
+
 		 //parser to read metadata
 		 $parser=$this->metadata_parser->get_reader();
 
@@ -492,7 +572,7 @@ class Catalog extends MY_Controller {
 		 if ($new_idno!==$this->sanitize_filename($new_idno)){
 			 throw new Exception(t('IDNO_INVALID_FORMAT').': '.$new_idno);
 		 }
- 
+
 		 //check if the study already exists, find the sid		
 		$new_ddi_sid=$this->dataset_manager->find_by_idno($new_idno);
 
@@ -637,14 +717,14 @@ class Catalog extends MY_Controller {
 		}
 	}
 
-	
+
 
 	/**
 	*
 	* Clear files from the imports folder
 	**/
 	function clear_import_folder()
-	{		
+	{
 		$this->load->helper('file');
 		$import_folder=$this->config->item('ddi_import_folder');
 
@@ -679,17 +759,16 @@ class Catalog extends MY_Controller {
 	{
 		//import folder path
 		$import_folder=$this->config->item('ddi_import_folder');
-
 		if (!file_exists($import_folder)){
 			show_error('FOLDER-NOT-SET');
 		}
 
 		$config = array(
-				'max_tmp_file_age' 		=> 900,
-				'max_execution_time' 	=> 300,
-				'target_dir' 			=> $import_folder,
+				'max_tmp_file_age'	=> 900,
+				'max_execution_time'	=> 300,
+				'target_dir' 		=> $import_folder,
 				'allowed_extensions'	=>'xml|rdf',
-				'overwrite_file'		=>TRUE
+				'overwrite_file'	=>TRUE
 				);
 
 		$this->load->library('Chunked_uploader', $config, 'uploader');
@@ -719,7 +798,6 @@ class Catalog extends MY_Controller {
 	}
 
 
-
 	/**
 	 * Imports multiple ddi files from the server folder
 	 *
@@ -738,20 +816,27 @@ class Catalog extends MY_Controller {
 		$import_folder=$this->config->item('ddi_import_folder');
 
 		if (!file_exists($import_folder) ){
-			$import_folder="/datasets";
+			// @TODO: Review datasets directory does not exist either
+			// @TODO: Review if this default should set config->item('ddi_import_folder')
+			//	The next calls to config->item('ddi_import_folder') will fail if this is not set.
+			// $import_folder="/datasets";
+			$import_folder="/datafiles/tmp";
 		}
 
 		//read files
 		$files['files']=get_dir_file_info($import_folder);
 
 		if ( $files['files']){
-			foreach($files['files'] as $key=>$value){				
-				if (substr($value['name'],-4)!='.xml'){
+			foreach($files['files'] as $key=>$value){
+				//if (substr($value['name'],-4)!='.xml'){
+				//if (! in_array(pathinfo($value['name'], PATHINFO_EXTENSION), array('xml','rdf'))) {
+				if (! in_array(pathinfo($value['name'], PATHINFO_EXTENSION), array('xml'))) {
+					// @TODO: Check if rdf files should be processed
 					unset($files['files'][$key]);
 				}
 			}
 		}
-		
+
 		$options=array(
 			'repositories'=>$this->Repository_model->select_all(),
 			'files'=>$files['files'],
@@ -791,10 +876,10 @@ class Catalog extends MY_Controller {
 			echo json_encode(array('error'=>t('REPO_ACCESS_DENIED')) );
 			exit;
 		}
-		
+
 		$this->load->model("Data_file_model");
 		$this->load->library('DDI2_import');
-		
+
 		$user=$this->ion_auth->current_user();
 
 		$ddi_path=$ddi_file;
@@ -826,7 +911,7 @@ class Catalog extends MY_Controller {
 				'message'=>$e->getMessage(),
 				'errors'=>$e->GetValidationErrors()
 			);
-			
+
 			$error=print_r($e->GetValidationErrors(),true);
 			echo json_encode(array('error'=>$error) );
 			die();
@@ -838,7 +923,7 @@ class Catalog extends MY_Controller {
 		}
 	}
 
-	
+
 
 	/**
 	*

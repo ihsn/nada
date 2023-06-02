@@ -52,8 +52,8 @@ $(document).ready(function () {
 		//study publish/unpublish
 		$(document.body).on("click","#survey .publish, .survey-publish .publish", function(){
 			var studyid=$(this).attr("data-sid");
-			if ($(this).attr("data-value")==0){				
-				$this=this;				
+			if ($(this).attr("data-value")==0){
+				$this=this;
 				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1', {submit:"submit"}, function( data ) {
 					$($this).attr("data-value",1);
 					$($this).html("<?php echo t('published');?>");
@@ -65,7 +65,7 @@ $(document).ready(function () {
 				});
 			}
 			else{
-				$this=this;	
+				$this=this;
 				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1', {submit:"submit"}, function( data ) {
 					$($this).html("<?php echo t('draft');?>");
 					$($this).attr("data-value",0);
@@ -617,13 +617,16 @@ background: white;
 
 <div class="container-fluid study-edit-page">
 
-
-<?php $error=$this->session->flashdata('error');?>
-<?php echo ($error!="") ? '<div class="error">'.$error.'</div>' : '';?>
+<?php if ($error!=""):?>
+	<div class="alert alert-danger alert-dismissible">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<?php echo $error;?>
+	</div>
+<?php endif;?>
 
 <?php $message=$this->session->flashdata('message');?>
 <?php if ($message!=""):?>
-	<div style="margin-top:15px;" class="success alert alert-success alert-dismissible">
+	<div class="alert alert-success alert-dismissible">
 		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 		<?php echo $message;?>
 	</div>
@@ -637,7 +640,7 @@ background: white;
 
 <div class="row">
 <div class="col-md-12 edit-page-header">
-		
+
 	<div class="col-md-11">
 		<h1 class="study-title"><?php echo $title; ?></h1>
 	</div>
