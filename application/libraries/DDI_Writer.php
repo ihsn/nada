@@ -262,10 +262,11 @@ class DDI_Writer
             if (is_array($value)) {
                 $arr[$key] = $this->remove_empty($arr[$key]);
             }
-    
-            //remove empty but keep if value is 0
-            if (empty($arr[$key]) && strlen((string)$arr[$key]) == 0) {
-                unset($arr[$key]);
+            else{
+                //remove empty but keep if value is 0
+                if (empty($arr[$key]) && strlen((string)$arr[$key]) == 0) {
+                    unset($arr[$key]);
+                }
             }
         }
     

@@ -15,7 +15,7 @@ class Widgets extends MY_REST_Controller
 
     /**
 	 * 
-	 * list files
+	 * list all widgets
 	 * 
 	 **/
 	function index_get($uuid=null)
@@ -59,7 +59,7 @@ class Widgets extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Check a file exists
+	 * Get info for a single widget
 	 * 
 	 **/
 	private function single($uuid=null)
@@ -152,6 +152,12 @@ class Widgets extends MY_REST_Controller
 		}
 	}
 
+	//alias for delete
+	function delete_post($uuid=null)
+	{
+		return $this->index_delete($uuid);
+	}
+
 
 
 	/**
@@ -197,7 +203,7 @@ class Widgets extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Dettach Widget link to a study
+	 * Detach Widget link to a study
 	 * 
 	 **/ 
 	function detach_study_post()
@@ -241,7 +247,7 @@ class Widgets extends MY_REST_Controller
 	
 	/**
 	 * 
-	 * Widgets by dataset
+	 * Widgets by study/dataset
 	 * 
 	 **/
 	function by_dataset_get($idno=null)
