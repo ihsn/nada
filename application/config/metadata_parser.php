@@ -234,8 +234,8 @@ $config['survey']=array(
     'study_desc/method/analysis_info/data_appraisal'=>array('xpath'=>'codeBook/stdyDscr/method/anlyInfo/dataAppr', 'transform_callback'=>'none'),
 
     'study_desc/method/study_class'=>array('xpath'=>'codeBook/stdyDscr/method/stdyClas', 'transform_callback'=>'none'),
-    'study_desc/method/data_processing'=>array('xpath'=>'codeBook/stdyDscr/method/dataProcessing', 'transform_callback'=>'none'),
-    'study_desc/method/data_processing_type'=>array('xpath'=>'codeBook/stdyDscr/method/dataProcessing/@type', 'transform_callback'=>'none'),
+    'study_desc/method/data_processing'=>array('xpath'=>'codeBook/stdyDscr/method/dataProcessing', 'transform_callback'=>'none', 'type'=>'array'),
+    #'study_desc/method/data_processing_type'=>array('xpath'=>'codeBook/stdyDscr/method/dataProcessing/@type', 'transform_callback'=>'none'),
 
     #coding instructions
     'study_desc/method/coding_instructions/related_processes'=>array('xpath'=>'codeBook/stdyDscr/method/codingInstructions/@relatedProcesses', 'transform_callback'=>'none'),
