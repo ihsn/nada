@@ -144,6 +144,23 @@
             "title"
           ]
         },
+        "reproducibility_status": {
+          "type": "object",
+          "title": "Reproducibility status",
+          "description": "Information on the reproducibility status of the project, using a controlled vocabulary",
+          "properties": {
+            "status": {
+              "type": "string",
+              "title": "status",
+              "description": "Status"
+            },
+            "note": {
+              "type": "string",
+              "title": "Note",
+              "description": "Note"
+            }
+          }
+        },
         "abstract": {
           "type": "string",
           "title": "Abstract"
@@ -977,9 +994,9 @@
                       "title": "License URI",
                       "type": "string"
                     },
-                    "note":{
-                      "title":"Note",
-                      "type":"string"
+                    "note": {
+                      "title": "Note",
+                      "type": "string"
                     }
                   }
                 }
@@ -1155,7 +1172,7 @@
             "required": [
               "model_id"
             ]
-          },              
+          },
           "topic_description": {
             "type": "array",
             "title": "Topic information",
@@ -1164,11 +1181,17 @@
               "properties": {
                 "topic_id": {
                   "title": "Topic identifier",
-                  "type": ["integer", "string"]
+                  "type": [
+                    "integer",
+                    "string"
+                  ]
                 },
                 "topic_score": {
                   "title": "Topic score",
-                  "type": ["number", "string"]
+                  "type": [
+                    "number",
+                    "string"
+                  ]
                 },
                 "topic_label": {
                   "title": "Topic label",
@@ -1201,12 +1224,11 @@
               "topic_id"
             ]
           }
-          
         },
         "additionalProperties": false
       }
     },
-    "embeddings":{
+    "embeddings": {
       "type": "array",
       "title": "Word embeddings",
       "description": "Word embeddings",
@@ -1231,7 +1253,8 @@
           }
         },
         "required": [
-          "id","vector"
+          "id",
+          "vector"
         ]
       }
     },
