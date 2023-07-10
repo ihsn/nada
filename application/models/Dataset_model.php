@@ -315,7 +315,6 @@ class Dataset_model extends CI_Model {
 			//other identifiers e.g. DOI
 			$this->add_identifiers_to_metadata($sid, $survey['type'], $metadata);
 
-
 			if($tags){
 				$metadata['tags']=$tags;
 			}
@@ -335,7 +334,8 @@ class Dataset_model extends CI_Model {
 	function add_identifiers_to_metadata($sid, $type, &$metadata)
 	{
 		$mappings=[
-			'survey'=>'study_desc/title_statement/identifiers'
+			'survey'=>'study_desc/title_statement/identifiers',
+			'script'=>'project_desc/title_statement/identifiers'
 		];
 
 		$doi=$this->get_doi($sid);

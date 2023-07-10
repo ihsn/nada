@@ -54,6 +54,9 @@ class Study extends MY_Controller {
 		$survey['metadata']=(array)$this->dataset_manager->get_metadata($sid,$survey['type']);
 		$survey['metadata']['iframe_embeds']=$this->Widget_model->widgets_by_study($sid);
 
+		$this->template->add_js('javascript/linkify.min.js');
+		$this->template->add_js('javascript/linkify-jquery.min.js');		
+
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
 
@@ -71,8 +74,45 @@ class Study extends MY_Controller {
 			$this->template->add_meta($name="description", $meta_description,$type='pair');
 		}
 
-		$output=$this->load->view('survey_info/metadata', array('content'=>$output), TRUE);
+		if ($survey['type']=='script'){
+			$output=$this->render_metadata_html($survey);
+		}
+		else{
+			$output=$this->load->view('survey_info/metadata', array('content'=>$output), TRUE);
+		}
+
 		$this->render_page($sid, $output, $active_tab='description');
+	}
+
+	/**
+	 * 
+	 * Render HTML page with project metadata
+	 * 
+	 * @project - array
+	 * 
+	 */
+	function render_metadata_html($project)
+	{
+		$this->load->library("Display_template");
+		try{
+
+			$template=$this->display_template->get_template_project_type($project['type']);
+
+			//get external resources
+			$project['resources']=$this->Survey_resource_model->get_survey_resources($project['id']);
+			$this->display_template->initialize($project,$template['template']);
+
+			$page_options=array(
+                'html'=>$this->display_template->render_html(),
+                'sidebar'=>$this->display_template->get_sidebar_items()
+            );
+
+            return $this->load->view('display_templates/index',$page_options,true);
+			
+		}
+		catch(Exception $e){
+			show_error($e->getMessage());
+		}
 	}
 
 
@@ -482,7 +522,7 @@ class Study extends MY_Controller {
 			case 'table':
 			case 'document':
 			case 'script':
-				//$display_layout='survey_info/layout_scripts';
+				$display_layout='survey_info/layout_scripts';
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -548,6 +588,12 @@ class Study extends MY_Controller {
 			'related_studies_count'=>count($related_studies),
 			'related_studies_formatted'=>$related_studies_formatted
 		);
+
+		//reproduciblity package?
+		if ($dataset['type']=='script'){
+			$this->load->library("Script_helper");
+			$options['reproducibility_package']=$this->script_helper->get_reproducibility_package_resource($sid);
+		}
 
 		$this->template->write('title', $this->generate_survey_title($dataset),true);
 		$this->template->add_variable("body_class","container-fluid");

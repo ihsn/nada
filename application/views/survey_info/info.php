@@ -56,6 +56,24 @@
                     <?php echo t('get_microdata');?>
                 </a>
                 <?php endif;?>
+                <?php if(isset($reproducibility_package) && $survey['type']=='script' && $reproducibility_package['_links']['type']):?>
+                    <?php
+                        $link_type_class='fa fa-download';
+                        if ($reproducibility_package['_links']['type']=='link'){
+                            $link_type_class='fas fa-external-link-alt';
+                        }
+                    ?>
+
+                <a  
+                    href="<?php echo $reproducibility_package['_links']['download'];?>" 
+                    class="get-microdata-btn badge badge-primary wb-text-link-uppercase float-left ml-3" 
+                    target="_blank"
+                    title="<?php echo t('get_reproducibility_package');?>">                    
+                    <span class="<?php echo $link_type_class;?>"></span>
+                    <?php echo t('get_reproducibility_package');?>
+                </a>
+                <?php endif;?>
+
             </div>
 		</div>
 
