@@ -554,6 +554,10 @@ class Dataset_model extends CI_Model {
 		//default values, if no values are passed in $options
 		$data['changed']=date("U");
 
+		if (isset($options['created'])){
+			unset($options['created']);
+		}
+
 		foreach($options as $key=>$value){
 			if (in_array($key,$this->survey_fields) ){
 				$data[$key]=$value;
