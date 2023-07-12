@@ -56,16 +56,27 @@ $data= array_remove_empty($data);
     <?php foreach($data as $row):?>
     <tr>
         <?php foreach($columns as $column):?>
+            <?php 
+                $display_options=isset($column['display_options']) ? $column['display_options'] : false;
+            ?>
         <td>            
             <?php if (in_array($column['type'],array('array','nested_array','simple_array'))):?>
                 <?php 
                     $column['hide_column_headings']=true;
                     $column['hide_field_title']=true;
-                    $display_field=isset($template['display_field']) ? $template['display_field'] : '';
+                    $display_field=isset($template['display_field']) ? $template['display_field'] : '';                    
                 ?>
                 <?php  echo $this->load->view('display_templates/fields/field_array',array('data'=>isset($row[$column['key']]) ? $row[$column['key']] : [] ,'template'=>$column),true);?>
             <?php else:?>
-                <?php echo isset($row[$column['key']]) ? $row[$column['key']] : '';?>
+                <?php if ($display_options!==false):?>
+                        <?php if(isset($row[$column['key']]) && isset($display_options['is_uri'])):?>
+                            <a href="<?php echo isset($row[$column['key']]) ? $row[$column['key']] : '';?>" target="_blank">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        <?php endif;?>
+                    <?php else:?>
+                    <?php echo isset($row[$column['key']]) ? $row[$column['key']] : '';?>
+                <?php endif;?>
             <?php endif;?>
         </td>
         <?php endforeach;?>

@@ -310,6 +310,111 @@
                                     }
                                 ],
                                 "help_text": ""
+                            },
+                            {
+                                "key": "project_desc_container1674845183788",
+                                "title": "Data",
+                                "type": "section",
+                                "items": [
+                                    {
+                                        "key": "project_desc.datasets",
+                                        "title": "Datasets",
+                                        "help_text": "This field is used to provide an itemized list of datasets used in the project. The data are not documented here (specific metadata are available for documenting data of different types, like the DDI for microdata, the ISO 19139 for geographic datasets, etc.)",
+                                        "type": "nested_array",
+                                        "display_options": {
+                                            "header_fields": [
+                                                "name",
+                                                "idno"
+                                            ]
+                                        },
+                                        "props": [
+                                            {
+                                                "key": "name",
+                                                "title": "Name",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.name",
+                                                "help_text": "The dataset name (title).",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "idno",
+                                                "title": "Dataset ID",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.idno",
+                                                "help_text": "The unique identifier of the dataset. If the dataset has multiple identifiers including a DOI, the DOI should be used here.",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "note",
+                                                "title": "Note",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.note",
+                                                "help_text": "A brief description of the dataset.",
+                                                "display_type": "textarea"
+                                            },
+                                            {
+                                                "key": "access_type",
+                                                "title": "Access policy",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.access_type",
+                                                "help_text": "The access policy applied to the dataset.",
+                                                "display_type": "textarea"
+                                            },
+                                            {
+                                                "key": "license",
+                                                "title": "License",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.license",
+                                                "help_text": "The access or data use license that applies to the dataset.",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "license_uri",
+                                                "title": "License URL",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.license_uri",
+                                                "help_text": "The URL of a web page where more information on the license can be obtained.",
+                                                "rules": {
+                                                    "is_uri": true
+                                                },
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "uri",
+                                                "type": "string",
+                                                "title": "Data URL",
+                                                "prop_key": "project_desc.datasets.uri",
+                                                "help_text": "The URL where the dataset (or a detailed description of it) can be obtained. This can be a link to a data catalog.",
+                                                "rules": {
+                                                    "is_uri": true
+                                                },
+                                                "display_type": "text"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "key": "project_desc.data_statement",
+                                        "title": "Data statement",
+                                        "help_text": "An overall statement on the data used in the project. A separate field is provided to list and document the origin and key characteristics of the datasets.",
+                                        "type": "string",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "project_desc.confidentiality",
+                                        "type": "string",
+                                        "title": "Confidentiality",
+                                        "help_text": "A confidentiality statement binds the publisher to ethical considerations regarding the subjects of the research. In most cases, the individual identity of an individual that is the subject of research can not be released and special effort is required to assure the preservation of privacy.",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "project_desc.citation_requirement",
+                                        "type": "string",
+                                        "title": "Citation requirement",
+                                        "help_text": "The citation requirement is specific to the output and is a preferred shorthand or means to refer to the publication or published good.",
+                                        "display_type": "textarea"
+                                    }
+                                ],
+                                "help_text": ""
                             }
                         ],
                         "help_text": ""
@@ -645,47 +750,7 @@
                                     }
                                 ],
                                 "help_text": "A list of persons and/or organizations in charge of curating the resources associated with the project."
-                            },
-                            {
-                                "key": "project_desc.sponsors",
-                                "title": "Sponsors",
-                                "help_text": "The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the ‘role’ attribute to distinguish them.",
-                                "type": "array",
-                                "props": [
-                                    {
-                                        "key": "name",
-                                        "title": "Name",
-                                        "type": "string",
-                                        "prop_key": "project_desc.sponsors.name",
-                                        "help_text": "Name of the funding agency/sponsor.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "abbr",
-                                        "title": "Abbreviation",
-                                        "type": "string",
-                                        "prop_key": "project_desc.sponsors.abbr",
-                                        "help_text": "Abbreviation of the funding/sponsoring agency.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "role",
-                                        "title": "Role",
-                                        "type": "string",
-                                        "prop_key": "project_desc.sponsors.role",
-                                        "help_text": "Specific role of the funding/sponsoring agency.",
-                                        "display_type": "textarea"
-                                    },
-                                    {
-                                        "key": "grant_no",
-                                        "title": "Grant No",
-                                        "type": "string",
-                                        "prop_key": "project_desc.sponsors.grant_no",
-                                        "help_text": "Grant or award number.",
-                                        "display_type": "text"
-                                    }
-                                ]
-                            },
+                            },                           
                             {
                                 "key": "project_desc.acknowledgment_statement",
                                 "title": "Acknowledgment statement",
@@ -841,7 +906,11 @@
                                     }
                                 ],
                                 "help_text": "A list of keywords that provide information on the core scope and objectives of the research project. Keywords provide a convenient solution to improve the discoverability of the research, as it allows terms and phrases not found elsewhere in the metadata to be indexed and to make a project discoverable by text-based search engines. A controlled vocabulary will preferably be used (although not required), such as the UNESCO Thesaurus. The list provided here can combine keywords from multiple controlled vocabularies, and user-defined keywords.",
-                                "is_recommended": true
+                                "is_recommended": true,
+                                "display_options": {                                    
+                                    "field_template": "field_array_tags",
+                                    "tag_column":"name"
+                                }
                             },
                             {
                                 "key": "project_desc.themes",
@@ -940,7 +1009,10 @@
                                         "rules": {
                                             "is_uri": true
                                         },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
                                     }
                                 ],
                                 "help_text": "Information on the topics covered in the research project. A controlled vocabulary will preferably be used, for example the CESSDA Topics classification, a typology of topics available in 11 languages; or the Journal of Economic Literature (JEL) Classification System, or the World Bank topics classification. Note that you may use more than one controlled vocabulary. "
@@ -999,111 +1071,7 @@
                         ],
                         "help_text": ""
                     },
-                    {
-                        "key": "project_desc_container1674845183788",
-                        "title": "Data",
-                        "type": "section",
-                        "items": [
-                            {
-                                "key": "project_desc.datasets",
-                                "title": "Datasets",
-                                "help_text": "This field is used to provide an itemized list of datasets used in the project. The data are not documented here (specific metadata are available for documenting data of different types, like the DDI for microdata, the ISO 19139 for geographic datasets, etc.)",
-                                "type": "nested_array",
-                                "display_options": {
-                                    "header_fields": [
-                                        "name",
-                                        "idno"
-                                    ]
-                                },
-                                "props": [
-                                    {
-                                        "key": "name",
-                                        "title": "Name",
-                                        "type": "string",
-                                        "prop_key": "project_desc.datasets.name",
-                                        "help_text": "The dataset name (title).",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "idno",
-                                        "title": "Dataset ID",
-                                        "type": "string",
-                                        "prop_key": "project_desc.datasets.idno",
-                                        "help_text": "The unique identifier of the dataset. If the dataset has multiple identifiers including a DOI, the DOI should be used here.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "note",
-                                        "title": "Note",
-                                        "type": "string",
-                                        "prop_key": "project_desc.datasets.note",
-                                        "help_text": "A brief description of the dataset.",
-                                        "display_type": "textarea"
-                                    },
-                                    {
-                                        "key": "access_type",
-                                        "title": "Access policy",
-                                        "type": "string",
-                                        "prop_key": "project_desc.datasets.access_type",
-                                        "help_text": "The access policy applied to the dataset.",
-                                        "display_type": "textarea"
-                                    },
-                                    {
-                                        "key": "license",
-                                        "title": "License",
-                                        "type": "string",
-                                        "prop_key": "project_desc.datasets.license",
-                                        "help_text": "The access or data use license that applies to the dataset.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "license_uri",
-                                        "title": "License URL",
-                                        "type": "string",
-                                        "prop_key": "project_desc.datasets.license_uri",
-                                        "help_text": "The URL of a web page where more information on the license can be obtained.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "uri",
-                                        "type": "string",
-                                        "title": "Data URL",
-                                        "prop_key": "project_desc.datasets.uri",
-                                        "help_text": "The URL where the dataset (or a detailed description of it) can be obtained. This can be a link to a data catalog.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
-                                    }
-                                ]
-                            },
-                            {
-                                "key": "project_desc.data_statement",
-                                "title": "Data statement",
-                                "help_text": "An overall statement on the data used in the project. A separate field is provided to list and document the origin and key characteristics of the datasets.",
-                                "type": "string",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "project_desc.confidentiality",
-                                "type": "string",
-                                "title": "Confidentiality",
-                                "help_text": "A confidentiality statement binds the publisher to ethical considerations regarding the subjects of the research. In most cases, the individual identity of an individual that is the subject of research can not be released and special effort is required to assure the preservation of privacy.",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "project_desc.citation_requirement",
-                                "type": "string",
-                                "title": "Citation requirement",
-                                "help_text": "The citation requirement is specific to the output and is a preferred shorthand or means to refer to the publication or published good.",
-                                "display_type": "textarea"
-                            }
-                        ],
-                        "help_text": ""
-                    },
+                    
                     {
                         "key": "project_desc_container_disclaimer",
                         "title": "Disclaimer",
@@ -1371,7 +1339,10 @@
                                         "rules": {
                                             "is_uri": true
                                         },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
                                     }
                                 ],
                                 "help_text": "The contacts element provides the public interface for questions associated with the research project. There could be various contacts provided depending upon the organization. It is important to assure that the proper contacts are provided to channel public inquiry."

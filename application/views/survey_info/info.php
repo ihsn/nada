@@ -56,7 +56,7 @@
                     <?php echo t('get_microdata');?>
                 </a>
                 <?php endif;?>
-                <?php if(isset($reproducibility_package) && $survey['type']=='script' && $reproducibility_package['_links']['type']):?>
+                <?php if(isset($reproducibility_package) && $survey['type']=='script' && isset($reproducibility_package['_links']['type'])):?>
                     <?php
                         $link_type_class='fa fa-download';
                         if ($reproducibility_package['_links']['type']=='link'){

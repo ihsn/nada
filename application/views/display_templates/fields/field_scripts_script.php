@@ -68,10 +68,10 @@
 
   <?php foreach($data as $idx=>$row):?>
   <div class="card mb-1">
-    <div class="card-header-x card-heading bg-light border-bottom" id="heading-<?php echo str_replace(".","_",$template['key'].$idx);?>">
+    <div class="card-header-x card-heading bg-light border-bottom p-2" id="heading-<?php echo str_replace(".","_",$template['key'].$idx);?>">
       
-        <a href class="collapsed pl-1" data-toggle="collapse" data-target="#collapse-<?php echo str_replace(".","_",$template['key'].$idx);?>" aria-expanded="false" aria-controls="collapseOne">          
-          <i class="fa" aria-hidden="true"></i>
+        <a href class="collapsed d-block" data-toggle="collapse" data-target="#collapse-<?php echo str_replace(".","_",$template['key'].$idx);?>" aria-expanded="false" aria-controls="collapseOne">          
+          <i class="fa mt-1 float-right" aria-hidden="true"></i>
           <?php if (isset($template['display_options']['header_fields'])):?>
             <?php foreach($template['display_options']['header_fields'] as $header_field):?>
               <?php if (isset($row[$header_field]) && trim($row[$header_field])!=''):?>

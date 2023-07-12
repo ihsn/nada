@@ -44,4 +44,8 @@
 .field-section-container .field-section-container h2{
     font-size:22px;
 }
+
+.badge-tags{
+    font-size:14px!important;
+}
 </style>
