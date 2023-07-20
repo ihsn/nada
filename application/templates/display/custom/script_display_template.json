@@ -27,7 +27,7 @@
                                 "type": "string",
                                 "help_text": "The abstract should provide a clear summary of the purposes, objectives and content of the project. An abstract can make reference to the various outputs associated with the research project.",
                                 "display_type": "textarea"
-                            }
+                            }                            
                         ]
                     },
                     {
@@ -1432,6 +1432,22 @@
                                 "display_type": "text"
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                "type":"section",
+                "key":"citations_section",
+                "title":"Citation",
+                "items":[
+                    {
+                        "key": "widgets.doi.citations",
+                        "title": "Citation",
+                        "type": "widget",
+                        "widget_options":{
+                            "key": "project_desc.title_statement.identifiers",
+                            "widget_field":"scripts-doi-citation"
+                        }
                     }
                 ]
             }            
