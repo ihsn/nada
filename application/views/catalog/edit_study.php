@@ -178,6 +178,12 @@ function update_survey_collection(e) {
 			return false;
 		});
 
+		$('#generate-ddi').on('click',null, function(e) {
+			if (!confirm(t("This will overwrite the existing DDI file. Are you sure?"))){
+				e.preventDefault();
+			}
+		});
+
 	});
 
 
@@ -777,7 +783,8 @@ background: white;
 			<li><a href="<?php echo site_url();?>/admin/pdf_generator/setup/<?php echo $sid;?>"><?php echo t('generate_pdf');?></a></li>
 			<li><a href="<?php echo site_url();?>/admin/catalog/replace_ddi/<?php echo $sid;?>"><?php echo t('replace_ddi');?></a></li>
 			<li><a href="<?php echo site_url();?>/admin/catalog/ddi/<?php echo $sid;?>"><?php echo t('export_ddi');?></a></li>
-			<li><a href="<?php echo site_url();?>/admin/catalog/refresh/<?php echo $sid;?>"><?php echo t('refresh_ddi');?></a></li>
+			<li><a href="<?php echo site_url();?>/admin/catalog/refresh/<?php echo $sid;?>"><?php echo t('refresh_ddi');?></a></li>			
+			<li><a id="generate-ddi" href="<?php echo site_url();?>/admin/catalog/generate_ddi/<?php echo $sid;?>"><?php echo t('Generate DDI');?></a></li>			
 		<?php endif;?>
         <li><a href="<?php echo site_url();?>/admin/catalog/transfer/<?php echo $sid;?>"><?php echo t('transfer_study_ownership');?></a></li>
         <li><a href="<?php echo site_url();?>/admin/catalog/export_rdf/<?php echo $sid;?>"><?php echo t('export_rdf');?></a></li>

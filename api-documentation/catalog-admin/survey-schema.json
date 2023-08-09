@@ -17,15 +17,7 @@
         "access_policy": {
           "type": "string",
           "title": "Data access policy",
-          "description": "Data access policy for attached microdata resources",
-          "enum": [
-            "direct",
-            "open",
-            "public",
-            "licensed",
-            "remote",
-            "data_na"
-          ],
+          "description": "Data access policy for microdata resources - valid values `direct`, `open`, `public`, `licensed`, `remote`, `data_na` ",          
           "default": "data_na"
         },
         "published": {

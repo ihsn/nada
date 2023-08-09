@@ -65,9 +65,16 @@ $type_icons=array(
                             </h5>
                             
                             <div>
-                                <?php if($row['nation']) :?>
-                                    <span class="text-secondary"><?php echo $row['nation'];?></span>
-                                <?php endif;?>
+                                
+                                <?php 
+                                    $dates=array_unique(array($row['year_start'],$row['year_end']));
+                                    $dates=implode(" - ", $dates);
+                                ?>
+
+                                <?php if(!empty($dates)):?>
+                                    <span class="dataset-nation-year text-secondary text-small"><?php echo $row['nation'] ? $row['nation'].", ".$dates : $dates;?></span>
+                                <?php endif; ?>
+
 
                                 <?php if (isset($row['authoring_entity']) && $row['authoring_entity']!=''):?>
                                     <div class="sub-title"><?php echo $row['authoring_entity'];?></div>

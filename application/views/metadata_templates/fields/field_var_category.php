@@ -83,8 +83,10 @@
 
                     if($show_stats && $sum_cases>0){
                         $percent=@round($cat->stats_non_wgtd_value/$sum_cases * 100,1);
-                        $width=@round($cat->stats_non_wgtd_value/$max_value * 100,1);
+                        $width=@round($cat->stats_non_wgtd_value/$max_value * 100,1);                        
+                    }
 
+                    if ($show_stats && $sum_cases_wgtd>0){
                         $percent_wgtd=@round($cat->stats_wgtd_value/$sum_cases_wgtd * 100,1);
                         $width_wgtd=@round($cat->stats_wgtd_value/$max_value_wgtd * 100,1);
                     }

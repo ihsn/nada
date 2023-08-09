@@ -11,6 +11,9 @@ $lang['software']='Software';
 $lang['scripts']='Scripts';
 $lang['data_access']='Data access';
 $lang['disclaimer_copyright']='Disclaimer and copyrights';
+$lang['tags']='Tags';
+$lang['errata']='Errata';
+$lang['reviews_comments']='Reviews comments';
 
 
 $lang['metadata.doc_desc']='Document Description';
@@ -64,6 +67,9 @@ $lang['metadata.project_desc.themes']='Themes';
 $lang['metadata.project_desc.themes.name']='Name';
 $lang['metadata.project_desc.themes.vocabulary']='Vocabulary name';
 $lang['metadata.project_desc.themes.uri']='Vocabulary URI';
+$lang['metadata.project_desc.themes.id']='ID';
+$lang['metadata.project_desc.themes.parent_id']='Parent ID';
+
 $lang['metadata.project_desc.topics']='Topics';
 $lang['metadata.project_desc.topics.id']='ID';
 $lang['metadata.project_desc.topics.name']='Topic';
@@ -74,6 +80,8 @@ $lang['metadata.project_desc.disciplines']='Disciplines';
 $lang['metadata.project_desc.disciplines.name']='Discipline title or name';
 $lang['metadata.project_desc.disciplines.vocabulary']='Vocabulary';
 $lang['metadata.project_desc.disciplines.uri']='URI';
+$lang['metadata.project_desc.disciplines.id']='ID';
+$lang['metadata.project_desc.disciplines.parent_id']='Parent ID';
 $lang['metadata.project_desc.output']='Output';
 $lang['metadata.project_desc.output.type']='Type';
 $lang['metadata.project_desc.output.title']='Title';
@@ -126,10 +134,11 @@ $lang['metadata.project_desc.sponsors.name']='Name';
 $lang['metadata.project_desc.sponsors.abbr']='Abbreviation';
 $lang['metadata.project_desc.sponsors.role']='Role';
 $lang['metadata.project_desc.sponsors.grant_no']='Grant number';
-$lang['metadata.project_desc.acknowledgements']='Other Identifications/ Acknowledgments';
-$lang['metadata.project_desc.acknowledgements.name']='Name';
-$lang['metadata.project_desc.acknowledgements.affiliation']='Affiliation';
-$lang['metadata.project_desc.acknowledgements.role']='Role';
+$lang['metadata.project_desc.acknowledgment_statement']='Acknowledgment statement';
+$lang['metadata.project_desc.acknowledgments']='Other Identifications/ Acknowledgments';
+$lang['metadata.project_desc.acknowledgments.name']='Name';
+$lang['metadata.project_desc.acknowledgments.affiliation']='Affiliation';
+$lang['metadata.project_desc.acknowledgments.role']='Role';
 $lang['metadata.project_desc.related_projects']='Related projects';
 $lang['metadata.project_desc.related_projects.name']='Name';
 $lang['metadata.project_desc.related_projects.uri']='URI';
@@ -181,12 +190,32 @@ $lang['related_projects']='Related projects';
 $lang['contacts']='Contacts';
 $lang['process']='Process';
 
+$lang['metadata.project_desc.process']='Process';
 $lang['metadata.project_desc.process.name']='Name';
 $lang['metadata.project_desc.process.date_start']='Start date';
 $lang['metadata.project_desc.process.date_end']='End date';
 $lang['metadata.project_desc.process.description']='Description';
 
 
-$lang['metadata.project_desc.tags']='Tags';
+$lang['metadata.tags']='Tags';
+$lang['metadata.tags.tag']='Tag';
+$lang['metadata.tags.tag_group']='Tag group';
+$lang['metadata.project_desc.review_board']='Review board';
+$lang['metadata.project_desc.approval_process']='Approval process';
+$lang['metadata.project_desc.approval_process.approval_phase']='Approval phase';
+$lang['metadata.project_desc.approval_process.approval_authority']='Approval authority';
+$lang['metadata.project_desc.approval_process.submission_date']='Submission date';
+$lang['metadata.project_desc.approval_process.reviewer']='Reviewer';
+$lang['metadata.project_desc.approval_process.review_status']='Review status';
+$lang['metadata.project_desc.approval_process.approval_date']='Approval date';
 
-	
+$lang['metadata.project_desc.copyright']='Copyright';
+$lang['metadata.project_desc.errata']='Errata';
+$lang['metadata.project_desc.errata.date']='Date';
+$lang['metadata.project_desc.errata.description']='Description';
+
+$lang['metadata.project_desc.reviews_comments']='Reviews and comments';
+$lang['metadata.project_desc.reviews_comments.comment_date']='Date';
+$lang['metadata.project_desc.reviews_comments.comment_by']='Comment by';
+$lang['metadata.project_desc.reviews_comments.comment_description']='Description';
+$lang['metadata.project_desc.reviews_comments.comment_response']='Response';

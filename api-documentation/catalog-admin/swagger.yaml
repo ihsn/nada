@@ -40,6 +40,7 @@ x-tagGroups:
       - Scripts
       - Survey      
       - Timeseries
+      - Timeseries database
       - Geospatial
       - Images
       - Videos
@@ -762,7 +763,7 @@ paths:
   /datasets/create/timeseriesdb:
     post:
       tags:
-        - Timeseries
+        - Timeseries database
       summary: Create timeseries database
       description: Create a new timeseries database
       operationId: createTimeseriesDB
@@ -782,7 +783,37 @@ paths:
           schema:
             $ref: 'timeseries-db-schema.json'
       security:
-        - ApiKeyAuth: [] 
+        - ApiKeyAuth: []
+  /datasets/update/timeseriesdb/{IDNo}:
+    post:
+      tags:
+        - Timeseries database
+      summary: Update timeseries database
+      description: Update timeseries database
+      operationId: updateTimeseriesDB
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "IDNo"
+          description: Unique IDNo
+          type: string
+          format: string
+          required: true
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'timeseries-db-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'timeseries-db-schema.json'
+      security:
+        - ApiKeyAuth: []
   /datasets/create/timeseries:
       post:
         tags:

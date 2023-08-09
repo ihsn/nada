@@ -23,6 +23,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 	var $variable_fields=array();
 	var $topics=array();
 	var $countries=array();
+	var $regions=array();
 	var $from=0;
 	var $to=0;
 	var $repo='';
@@ -129,6 +130,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         $dataset_types=$this->_build_dataset_type_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
+		$regions=$this->_build_regions_query();
 		$collections=$this->_build_collections_query();
 		$years=$this->_build_years_query();
 		$repository=!empty($this->repo) ? (string)$this->repo : false;
@@ -165,6 +167,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		//repo filter
 		if($repository){
 			$query->createFilterQuery('repo')->setQuery('repositories:'.$helper->escapeTerm($repository));
+		}
+
+		//region filter
+		if($regions){
+			$query->createFilterQuery('region')->setQuery($regions);
 		}
 
 		if ($topics){
@@ -621,6 +628,41 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		return $output;
 	}
 
+	function _build_regions_query()
+	{
+		$regions=$this->regions;
+
+		if (!is_array($regions)){
+			return FALSE;
+		}
+
+		if ( !count($regions)>0){
+			return false;
+		}
+
+		$regions_list=array();
+		foreach($regions as $region)
+		{
+			if (is_numeric($region))
+			{
+				$regions_list[]=(int)$region;
+			}
+		}
+
+		if ( count($regions_list)>0)
+		{
+			$regions_str=implode(' OR ',$regions_list);
+
+			if ($regions_str!='')
+			{
+				return sprintf(' regions:(%s)',$regions_str);
+			}
+
+		}
+
+		return FALSE;
+	}
+
 	/**
 	*
 	* build where for nations
@@ -1022,7 +1064,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		$query->setFields(array(
 				'vid',
 				'labl',
-				'name'
+				'name',
+				'fid'
 			));
 
 		//set a query (all prices starting from 12)

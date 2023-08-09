@@ -41,6 +41,13 @@
         <?php            
             if(!isset($columns)){
              $columns=array_keys($data[0]);
+             foreach($data as $row){                 
+                 foreach(array_keys($row) as $row_col){
+                    if (!in_array($row_col,$columns)){
+                        $columns[]=$row_col;
+                    }
+                 }                 
+             }
             }
 
             //remove empty columns
@@ -53,7 +60,7 @@
             }
             $columns=$non_empty_columns;
         ?>
-        
+        <div class="table-responsive table-overflow-max-height-400">
         <table class="table table-bordered table-striped table-condensed xsl-table table-grid">
             <?php if($hide_column_headings!==true):?>
             <tr>
@@ -95,6 +102,7 @@
                 </tr>
             <?php endforeach;?>
         </table>
+        </div>
         <?php else:?>
         <table class="table xsl-table table-grid">            
                <?php foreach($data as $row):?>

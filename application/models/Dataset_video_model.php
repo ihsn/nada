@@ -158,7 +158,7 @@ class Dataset_video_model extends Dataset_model {
      **/
 	function get_years($options)
 	{
-        $years=explode("-",$this->get_array_nested_value($options,'video_description/date_published'));
+        $years=explode("-",(string)$this->get_array_nested_value($options,'video_description/date_published'));
 
         if(is_array($years)){
             $start=(int)$years[0];

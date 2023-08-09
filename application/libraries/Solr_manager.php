@@ -142,6 +142,8 @@ class Solr_manager{
 			//survey years
             $rows[$key]['years']=$this->get_survey_years($row['survey_uid']);
 
+			$rows[$key]['regions']=$this->get_regions_by_countries($rows[$key]['countries']);
+
 			//custom user defined facets
 			$user_facets_by_study=$this->ci->Facet_model->facet_terms_by_study($row['survey_uid']);
 
@@ -600,6 +602,8 @@ class Solr_manager{
 		$survey['repositories']=$this->get_survey_repositories($survey['survey_uid']);
 		//survey years
 		$survey['years']=$this->get_survey_years($survey['survey_uid']);
+		$survey['regions']=$this->get_regions_by_countries($survey['countries']);
+		
 
 		if ($inc_keywords){
 			//variable keywords
@@ -645,6 +649,7 @@ class Solr_manager{
 
 		$this->ci->db->select("2 as doctype,
 			uid as id,
+			fid,
 			vid,
 			name,
 			labl,
@@ -782,6 +787,7 @@ class Solr_manager{
 		$this->ci->db->select("
 			2 as doctype,
 			variables.uid as id,
+			variables.fid,
 			variables.vid,
 			variables.name,
 			variables.labl,
@@ -947,6 +953,23 @@ class Solr_manager{
 			foreach($result as $row){
 				$output[]=$row['cid'];
 			}
+		}
+		return $output;
+	}
+
+	function get_regions_by_countries($countries_ids)
+	{
+		if (!$countries_ids){
+			return array();
+		}
+
+		$this->ci->db->select("region_id");
+		$this->ci->db->where_in('country_id',$countries_ids);
+		$this->ci->db->group_by('region_id');
+		$result=$this->ci->db->get("region_countries")->result_array();
+
+		foreach($result as $row){
+			$output[]=$row['region_id'];
 		}
 
 		return $output;
@@ -1165,6 +1188,7 @@ class Solr_manager{
 			$row['repositories']=$this->get_survey_repositories($row['survey_uid']);
 			//survey years
             $row['years']=$this->get_survey_years($row['survey_uid']);
+			$row['regions']=$this->get_regions_by_countries($row['countries']);
             
             //metadata
 			$row['metadata']=$this->ci->Dataset_model->decode_metadata($row['metadata']);

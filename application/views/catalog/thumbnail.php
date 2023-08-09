@@ -80,8 +80,8 @@ $(document).ready(function () {
         }*/
 
         $.ajax({
-            url: '<?php echo site_url('api/datasets/thumbnail/'.$idno);?>', 
-            type: 'DELETE',
+            url: '<?php echo site_url('api/datasets/thumbnail_delete/'.$idno);?>', 
+            type: 'POST',
             processData: false,
             contentType: false 
         }).done(function(){           

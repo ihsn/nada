@@ -556,7 +556,10 @@ class Datasets extends MY_REST_Controller
 
 			$response=array(
 				'status'=>'success',
-				'dataset'=>$dataset
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])				
+				)
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -641,7 +644,10 @@ class Datasets extends MY_REST_Controller
 
 			$response=array(
 				'status'=>'success',
-				'dataset'=>$dataset				
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])				
+				)
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -1613,6 +1619,12 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	//alias for thumbnail_delete when REST DELETE method is not supported
+	function thumbnail_delete_post($idno=null)
+	{
+		return $this->thumbnail_delete($idno);
 	}
 
 

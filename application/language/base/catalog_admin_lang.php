@@ -169,8 +169,11 @@ $lang['tab_related_data']="Related studies";
 $lang['license']="License";
 $lang['select_license']="Select license";
 $lang['select_study_thumbnail']='Select image file (PNG, JPG, JPEG, GIF)';
-$lang['Thumbnal']='Thumbnail';
+$lang['Thumbnail']='Thumbnail';
 $lang['Upload thumbnal']='Upload thumbnail';
+$lang['This will overwrite the existing DDI file. Are you sure?']='This will overwrite the existing DDI file. Are you sure?';
+$lang['Generate DDI']='Generate DDI';
+
 
 
 /* End of file catalog_admin_lang.php */

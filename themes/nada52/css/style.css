@@ -2228,3 +2228,17 @@ body.wb-template-blank.wb-fullscreen .btn.fullscreen .fa-expand-alt {
      content: '/';
      margin-right: .3rem;
  }
+
+ .table-overflow-max-height-400{
+    max-height: 400px;
+    overflow-y: auto;
+ }
+
+ .field-markdown h1,
+ .field-markdown h2,
+ .field-markdown h3,
+ .field-markdown h4,
+ .field-markdown h5
+ {
+    font-size:14px;
+ }

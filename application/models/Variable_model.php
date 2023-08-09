@@ -76,7 +76,7 @@ class Variable_model extends CI_Model {
 
             foreach ($variables as $variable) {
                 $last_row_uid=$variable['uid'];
-                yield $variable;
+                yield $this->map_variable_fields($variable);
             }
 
         } while ($variables !== null);
@@ -535,7 +535,7 @@ class Variable_model extends CI_Model {
             'var_qstn_preqtxt',
             'var_qstn_qstnlit',
             'var_qstn_postqtxt',
-            'var_qstn_ivulnstr',
+            'var_qstn_ivuinstr',
             'var_universe',
             'var_sumstat',
             'var_txt',
@@ -604,7 +604,9 @@ class Variable_model extends CI_Model {
             'var_end_pos'=>'loc_end_pos',
             'var_width'=>'loc_width',
             'var_rec_seg_no'=>'loc_rec_seg_no',
+            'var_qstn_ivulnstr'=>'var_qstn_ivuinstr'
         );
+
 
         if (isset($variable['metadata'])){
             foreach($variable['metadata'] as $key=>$value){

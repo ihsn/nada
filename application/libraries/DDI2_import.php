@@ -626,7 +626,7 @@ class DDI2_Import{
             'preqtxt'=>'var_qstn_preqtxt',
             'qstnlit'=>'var_qstn_qstnlit',
             'postqtxt'=>'var_qstn_postqtxt',
-            'ivuinstr'=>'var_qstn_ivulnstr',
+            'ivuinstr'=>'var_qstn_ivuinstr',
             'universe'=>'var_universe',
             'universe_clusion'=>'universe_clusion',
             'sumstat'=>'var_sumstat',

@@ -41,6 +41,13 @@ $metadata['metadata']['description']['distributionInfo']['transferOptions']['onL
 <?php 
 $identification_info=current((array)get_field_value('metadata.description.identificationInfo',$metadata));
 
+$identification_info=get_field_value('metadata.description.identificationInfo',$metadata);
+
+if (isset($identification[0])){
+    $identification_info=$identification_info[0];
+}
+
+
 $identification=array(
     render_field('text','citation.title', get_field_value('citation.title',$identification_info)),
     render_field('text','citation.alternateTitle', get_field_value('citation.alternateTitle',$identification_info)),

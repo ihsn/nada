@@ -1,13 +1,15 @@
 <?php 
 if ($variables): ?>
-<?php $compare_items=explode(",",$this->input->cookie('variable-compare', TRUE));?>
+<?php $compare_items=explode(",",(string)$this->input->cookie('variable-compare', TRUE));?>
 <?php $surveyid=$this->uri->segment(3);?>
 <div class="list-inline var-quick-list var-quick-list<?php echo count($variables)>10 ? '-scroll' : '';?>"">
     <table class="table table-striped table-hover grid-table variable-list">
         <thead>
             <tr>
                 <th><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></th>
+                <?php if (isset($variables[0]['fid'])):?>
                 <th><?php echo t('File');?></th>
+                <?php endif;?>
                 <th><?php echo t('name');?></th>
                 <th><?php echo t('label');?></th>
             </tr>
@@ -25,7 +27,9 @@ if ($variables): ?>
                         <input type="checkbox" class="nada-form-check-input compare" value="<?php echo $surveyid.'/'
                             .$row['vid'] ?>" <?php echo $compare; ?>/>
                     </td>
+                    <?php if (isset($row['fid'])):?>
                     <td><div style="max-width:160px;" class="text-truncate"><?php echo $row['fid'];?></div></td>
+                    <?php endif;?>
                     <td><?php echo anchor('catalog/'.$surveyid.'/variable/'.$row['vid'],$row['name'],array('target'=>'blank_','title'=>$row['labl'],'class'=>'link'));?></td>
                     <td><?php echo $row['labl']?></td>
                 </tr>
