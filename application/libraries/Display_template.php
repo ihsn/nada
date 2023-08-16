@@ -202,7 +202,7 @@ class Display_template{
             return false;
         }
 
-        return $this->ci->load->view('display_templates/fields/field_text',array('data'=>$value,'template'=>$item),true);
+        return $this->ci->load->view('display_templates/fields/field_text_markdown',array('data'=>$value,'template'=>$item),true);
     }
 
 
@@ -265,12 +265,20 @@ class Display_template{
     private function render_widget($item)
     {
         $widget_options=$item['widget_options'];
-        $value=array_data_get($this->metadata, $this->get_metadata_dot_key($widget_options['key']));
+        $value=array_data_get($this->metadata, $this->get_metadata_dot_key($widget_options['data_key']));
         return $this->ci->load->view('display_templates/fields/field_'.$widget_options['widget_field'],
             array(
+                'widgets'=>array_data_get($this->metadata,'metadata.iframe_embeds'),
                 'data'=>$value,
-                'template'=>$item)
+                'metadata'=>$this->metadata,
+                'template'=>$item
+                )
         ,true);
+    }
+
+    function get_metadata($key)
+    {
+        return array_data_get($this->metadata, $this->get_metadata_dot_key($key));
     }
     
 }

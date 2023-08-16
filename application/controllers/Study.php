@@ -56,6 +56,7 @@ class Study extends MY_Controller {
 
 		$this->template->add_js('javascript/linkify.min.js');
 		$this->template->add_js('javascript/linkify-jquery.min.js');		
+		$this->template->add_js('javascript/pym.v1.min.js');
 
 		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
 		$this->template->add_js($json_ld,'inline');
@@ -74,7 +75,7 @@ class Study extends MY_Controller {
 			$this->template->add_meta($name="description", $meta_description,$type='pair');
 		}
 
-		if ($survey['type']=='script'){
+		if (in_array($survey['type'], array('script','survey'))){
 			$output=$this->render_metadata_html($survey);
 		}
 		else{
@@ -94,13 +95,17 @@ class Study extends MY_Controller {
 	function render_metadata_html($project)
 	{
 		$this->load->library("Display_template");
-		try{
+		//try{
 
 			$template=$this->display_template->get_template_project_type($project['type']);
 
+			if (isset($template['template'])){
+				$template=$template['template'];
+			}
+
 			//get external resources
 			$project['resources']=$this->Survey_resource_model->get_survey_resources($project['id']);
-			$this->display_template->initialize($project,$template['template']);
+			$this->display_template->initialize($project,$template);
 
 			$page_options=array(
                 'html'=>$this->display_template->render_html(),
@@ -109,10 +114,10 @@ class Study extends MY_Controller {
 
             return $this->load->view('display_templates/index',$page_options,true);
 			
-		}
+		/*}
 		catch(Exception $e){
 			show_error($e->getMessage());
-		}
+		}*/
 	}
 
 
@@ -966,6 +971,12 @@ class Study extends MY_Controller {
 	  	$this->template->render();
 		return;
 		$this->render_page($sid, $content,'get_microdata');
+	}
+
+	function export_citation($sid=null,$format='ris')
+	{
+		$this->load->library("Datacite_citation");
+		return $this->datacite_citation->export($sid,$format);
 	}
 
 

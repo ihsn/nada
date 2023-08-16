@@ -1445,8 +1445,8 @@
                         "title": "Citation",
                         "type": "widget",
                         "widget_options":{
-                            "key": "project_desc.title_statement.identifiers",
-                            "widget_field":"scripts-doi-citation"
+                            "data_key": "project_desc.title_statement.identifiers",
+                            "widget_field":"doi-citation"
                         }
                     }
                 ]

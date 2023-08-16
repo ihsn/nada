@@ -5,7 +5,7 @@ if (!isset($data) || !is_array($data)){
 
 $doi='';
 foreach($data as $row){
-    if (isset($row['type']) && $row['type']=='doi'){
+    if (isset($row['type']) && strtolower($row['type'])=='doi'){
         if (isset($row['identifier'])){
             $doi=$row['identifier'];
             break;
@@ -23,7 +23,7 @@ if (empty($doi)){
 
     <div class="doi-citation" ><a target="_blank" href="https://citation.crosscite.org/?doi=<?php echo $doi;?>"><i class="fas fa-spinner fa-spin"></i> loading, please wait...</a></div>
 
-    <div class="pt-2" style="font-size:small;">
+    <div class="pt-2" style="font-size:small;display:none">
         <span class="btn btn-sm btn-outline-secondary collapsed" data-toggle="collapse" data-target="#citation_options" aria-expanded="false" aria-controls="citation_options">Citation format <i class="fas fa-cog"></i></span>
     </div>
     
@@ -39,6 +39,28 @@ if (empty($doi)){
                 </select>
             </div>
         </form>
+    </div>
+
+    <div class="mt-3 text-secondary" style="font-size:small;">
+        <?php echo t('Export citation');?>:
+        <?php
+            $formats=array(
+                'ris'=>'RIS',
+                'bib'=>'BibTeX',
+                'json'=>'JSON',
+                'rdf'=>'RDF',
+                'txt'=>'Plain text',
+                //'endnote'=>'EndNote',
+                //'refworks'=>'RefWorks'
+            );
+
+            $export_links=[];
+        ?>
+        <?php foreach($formats as $format_key=>$format):?>
+            <?php $export_links[]='<a href="'.site_url('study/export_citation/'.$metadata['id'].'/'.$format_key).'">'.$format.'</a>'; ?>
+        <?php endforeach;?>
+
+        <?php echo implode(' | ',$export_links);?>
     </div>
 
 </div>
