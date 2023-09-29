@@ -15,9 +15,9 @@ class Reports extends MY_Controller {
  
 	function index()
 	{
-        $this->acl_manager->has_access_or_die('reports', 'view');
+		$this->acl_manager->has_access_or_die('reports', 'view');
 
-        $this->template->set_template('admin5');
+		$this->template->set_template('admin5');
 		//javascript/css needed for showing the date picker
 		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
 		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');	
