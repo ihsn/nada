@@ -64,6 +64,7 @@ $lang['body']="Body";
 $lang['send']="Send";
 $lang['title_download_expired']="Download link has expired!";
 $lang['msg_download_limit_reached']="You have reached your download limit for this file. You are limited to %d downloads for this file. If you would like to have the number of downlaods allowed increased please write to %s to have this changed.";
+$lang['msg_date_limit_reached']="You have reached your download deadline for this file. The deadline was %s. If you would like to extend the deadline to access to the document, please write to %s to change the expiration date.";
 $lang['apply']="Apply";
 $lang['not_attached_any_licensed_files']="You have not attached any licensed files to the survey, visit the &quot;Licensed survey files&quot; page to setup files.";
 $lang['restrict_data_access_by_id']="Restrict data access by IP";
