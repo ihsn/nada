@@ -1010,14 +1010,14 @@ class Ion_auth_model extends CI_Model
 		
 		//user role membership
 
-		//remove any existing user roles
-		$this->db->query(sprintf('delete from %s where user_id=%d',
-							'user_roles', 
-							(int)$id ));
-
         //update user roles info
 		if (is_array($roles) && count($roles)>0)
 		{
+			//remove any existing user roles
+			$this->db->query(sprintf('delete from %s where user_id=%d',
+				'user_roles',
+				(int)$id ));
+
 			foreach($roles as $role_id)
 			{
 				$options=array(
