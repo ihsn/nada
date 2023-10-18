@@ -316,7 +316,53 @@ if ( ! function_exists('get_catalog_root'))
 
 		return $catalog_root;
 	}
-}	
+}
+
+
+
+if ( ! function_exists('get_zip_archive_list'))
+{
+	/**
+	 * 
+	 * 
+	 * Return an array of files and folders of a zip archive
+	 * 
+	 * @ignore - file or folder names or ignore
+	 * 
+	 */
+	function get_zip_archive_list($zipfile_path,$ignore=array())
+	{
+		$zip = new ZipArchive();
+		$zip->open($zipfile_path);
+
+		if (count($ignore)==0){
+			$ignore = array( 'MACOSX/', 'MACOSX/._','.DS_Store' );
+		}
+
+		$output=array();
+
+		for( $i = 0; $i < $zip->numFiles; $i++ ){
+			if (in_array(basename($zip->getNameIndex($i)), $ignore)) {
+				continue;
+			} else
+
+			if(substr($zip->getNameIndex($i), 0, 9) === "__MACOSX/") {
+				continue;
+			} else {
+				$stat = $zip->statIndex($i);
+			}
+
+			if ($stat['size']>0){
+				$output[$stat['name']]=$stat;
+			}
+		}
+
+		return $output;
+	}
+	
+}
+
+
 // ------------------------------------------------------------------------
 /* End of file MY_file_helper.php */
 /* Location: ./system/helpers/MY_file_helper.php */
