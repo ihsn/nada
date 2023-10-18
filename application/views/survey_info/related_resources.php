@@ -27,6 +27,24 @@ $fields_arr=array(
 
 <style>
 .study-metadata .resource-info{padding-left:0px;}
+
+    .zip-preview .item{
+        padding:5x;
+        margin-left:10px;
+    }
+    .zip-preview .item .item{
+        padding-left:10px;
+        margin-left:10px;
+    }
+    .zip-preview .folder{
+        font-weight:normal;
+        font-size:14px;
+    }
+
+    .zip-preview .file{
+        font-size:12px;
+    }
+
 </style>
 
 <?php /* ?>
@@ -251,10 +269,24 @@ $fields_arr=array(
                                             <td class="caption"><?php echo t('download');?></td>
                                             <td><?php echo ($link_text==="") ? "N/A" : '<a class="download" title="'.basename($row['filename']).'" href="'.$url.'">'.$url.'</a>';?></td>
                                         </tr>
+
+                                        <?php if(!$is_url && $ext=='zip'):?>
+                                        <tr>
+                                            <td class="caption"><?php echo t('Zip preview');?></td>
+                                            <td>
+                                                <div style="max-height:500px;overflow:auto;" class="zip-preview">
+                                                <?php echo $this->load->view('survey_info/zip_preview', array(
+                                                    'data'=>$this->Survey_resource_model->get_zip_archive_info($survey_folder.'/'.$row['filename'])
+                                                ),true);?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php endif;?>
                                     </table>
 
                                 </div>
                             <?php endif;?>
+                            
 
                         </div>
                     <?php endforeach;?>

@@ -1609,7 +1609,7 @@ class Survey_resource_model extends CI_Model {
 			}else{
 				$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
 				$resource['filesize']=$this->get_resource_filesize($resource);
-				$resource['is_url']=false;
+				$resource['is_url']=false;				
 			}
 			
 			$resource['link']=$link;
@@ -1618,6 +1618,40 @@ class Survey_resource_model extends CI_Model {
 			$output[]=$resource;
 		}
 		
+		return $output;
+	}
+
+	function resource_attach_zip_preview($survey_folder,$resources)
+	{	
+		foreach($resources as $key=>$resource){
+			$filepath=unix_path($survey_folder.'/'.$resource['filename']);
+			$resources[$key]['zip_preview']=$this->get_zip_archive_info($filepath);
+		}
+
+		return $resources;
+	}
+
+	
+	function get_zip_archive_info($filepath)
+	{
+		$zip_content=get_zip_archive_list($filepath);
+
+		if (!$zip_content){
+			return false;
+		}
+
+		$output=[];
+
+		//convert to a nested array
+		foreach($zip_content as $key=>$value){
+
+			//remove last slash
+			if (substr($key, -1) == '/'){				
+				$key=substr($key, 0, -1);
+			}
+			set_array_nested_value($output, $parents=$key, $value, $glue = '/');
+		}
+
 		return $output;
 	}
 
