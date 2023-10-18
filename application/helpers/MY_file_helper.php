@@ -332,6 +332,10 @@ if ( ! function_exists('get_zip_archive_list'))
 	 */
 	function get_zip_archive_list($zipfile_path,$ignore=array())
 	{
+		if (!class_exists('ZipArchive')){
+			return false;
+		}
+
 		$zip = new ZipArchive();
 		$zip->open($zipfile_path);
 

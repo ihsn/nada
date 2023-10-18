@@ -271,16 +271,17 @@ $fields_arr=array(
                                         </tr>
 
                                         <?php if(!$is_url && $ext=='zip'):?>
-                                        <tr>
-                                            <td class="caption"><?php echo t('Zip preview');?></td>
-                                            <td>
-                                                <div style="max-height:500px;overflow:auto;" class="zip-preview">
-                                                <?php echo $this->load->view('survey_info/zip_preview', array(
-                                                    'data'=>$this->Survey_resource_model->get_zip_archive_info($survey_folder.'/'.$row['filename'])
-                                                ),true);?>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                            <?php $zip_content=$this->Survey_resource_model->get_zip_archive_info($survey_folder.'/'.$row['filename']);?>
+                                            <?php if ($zip_content):?>
+                                            <tr>
+                                                <td class="caption"><?php echo t('Zip preview');?></td>
+                                                <td>
+                                                    <div style="max-height:500px;overflow:auto;" class="zip-preview">
+                                                    <?php echo $this->load->view('survey_info/zip_preview', array('data'=>$zip_content),true);?>                                                    
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php endif;?>    
                                         <?php endif;?>
                                     </table>
 
