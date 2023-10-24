@@ -1788,7 +1788,8 @@ class Datadeposit extends MY_Controller {
 			$study['id']= $data['project'][0]->id;
 			
 			// date field
-			if (isset($study['ver_prod_date_year'])) {
+			if (isset($study['ver_prod_date_year']) && !empty($study['ver_prod_date_year'])) {
+
 				$study['ver_prod_date'] = $this->input->post('ver_prod_date_year') . '-' .
 					$this->input->post('ver_prod_date_month') . '-' .
 					$this->input->post('ver_prod_date_day');
@@ -1799,13 +1800,13 @@ class Datadeposit extends MY_Controller {
 											intval($this->input->post('ver_prod_date_year'))
 											);
 				
-				//var_dump($study['ver_prod_date']);
-				
 				//if not valid, change to NULL
 				if(!$study['ver_prod_date'])
 				{
 					$study['ver_prod_date']=NULL;
 				}
+			} else{
+				$study['ver_prod_date']=NULL;
 			}
 
 			unset($study['ver_prod_date_year']);

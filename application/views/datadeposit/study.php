@@ -516,16 +516,18 @@ $(function() {
                         <select name="coll_mode">
                         <?php if (isset($row[0]->coll_mode) && $row[0]->coll_mode != '--'): ?><option value="--">--</option><?php endif; ?>
                           <?php if (isset($row[0]->coll_mode) && !empty($row[0]->coll_mode)): ?>  
-													<option selected="selected" value="<?php if (isset($row[0]->coll_mode) && !empty($row[0]->coll_mode)) echo $row[0]->coll_mode;?>"> <?php if (isset($row[0]->coll_mode)) echo $row[0]->coll_mode;?></option>
+								<option selected="selected" value="<?php if (isset($row[0]->coll_mode) && !empty($row[0]->coll_mode)) echo $row[0]->coll_mode;?>"> <?php if (isset($row[0]->coll_mode)) echo $row[0]->coll_mode;?></option>
                          <?php endif; ?>
-<option value="Computer Assisted Personal Interview [capi]">Computer Assisted Personal Interview [capi]</option>
-<option value="Computer Assisted Telephone Interview [cati]">Computer Assisted Telephone Interview [cati]</option>
-<option value="Face-to-face [f2f]">Face-to-face [f2f]</option>
-<option value="Mail Questionnaire [mail]">Mail Questionnaire [mail]</option>
-<option value="Focus Group [foc]">Focus Group [foc]</option>
-<option value="Internet [int]">Internet [int]</option>
-<option value="Other [oth]">Other [oth]</option>
-</select>                                      </div>
+                            <option value="">--</option>
+                            <option value="Computer Assisted Personal Interview [capi]">Computer Assisted Personal Interview [capi]</option>
+                            <option value="Computer Assisted Telephone Interview [cati]">Computer Assisted Telephone Interview [cati]</option>
+                            <option value="Face-to-face [f2f]">Face-to-face [f2f]</option>
+                            <option value="Mail Questionnaire [mail]">Mail Questionnaire [mail]</option>
+                            <option value="Focus Group [foc]">Focus Group [foc]</option>
+                            <option value="Internet [int]">Internet [int]</option>
+                            <option value="Other [oth]">Other [oth]</option>
+                        </select>
+                    </div>
                     <div class="field">
                         <label id="coll_notes" for="coll_notes"><?php echo t('notes_on_data_collection'); ?></label>
                         <div class="HelpMsg collSituHelpMsg" style="display:none">
