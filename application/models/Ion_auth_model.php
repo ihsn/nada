@@ -29,7 +29,14 @@ class Ion_auth_model extends CI_Model
 	 * @var string
 	 **/
 	public $tables = array();
-	
+
+	public $columns = array();
+
+	public $identity_column;
+	public $store_salt;
+	public $salt_length;
+	public $meta_join;
+
 	/**
 	 * activation code
 	 *

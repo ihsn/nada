@@ -78,6 +78,10 @@ class Ion_auth
 	 **/
 	public $_extra_set = array();
 
+
+	private $message_start_delimiter;
+	private $message_end_delimiter;
+
 	/**
 	 * __construct
 	 *

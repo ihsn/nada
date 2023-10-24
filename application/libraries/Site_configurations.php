@@ -5,6 +5,8 @@
  **/
 class Site_configurations{
 
+	private $ci;
+	
 	/**
 	 * __construct
 	 *

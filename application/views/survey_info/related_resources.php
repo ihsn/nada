@@ -45,6 +45,8 @@ $fields_arr=array(
         font-size:12px;
     }
 
+    .mouse-pointer{cursor: pointer;}
+
 </style>
 
 <?php /* ?>
@@ -277,7 +279,7 @@ $fields_arr=array(
                                                 <td class="caption"><?php echo t('Zip preview');?></td>
                                                 <td>
                                                     <div style="max-height:500px;overflow:auto;" class="zip-preview">
-                                                    <?php echo $this->load->view('survey_info/zip_preview', array('data'=>$zip_content),true);?>                                                    
+                                                    <?php echo $this->load->view('survey_info/zip_preview', array('data'=>$zip_content, 'resource_id'=>$row['resource_id']),true);?>
                                                     </div>
                                                 </td>
                                             </tr>

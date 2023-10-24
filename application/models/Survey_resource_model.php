@@ -880,22 +880,12 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception("FILE_NOT_AVAILABLE");
 		}
 
-		//resource is microdata type
-
-		//get survey + license type
-
 		//for public use
-
-		//for licensed
-
-		//download file
-
-		//full path to the resource
-		$resource_path=$this->get_resource_download_path($resource_id);
-
-		if (!file_exists($resource_path)){
-			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
-		}
+		if ($download_req['is_microdata']===true && $download_req['license']=='public'){
+			if (!$user_id){
+				throw new Exception(t("USER_NOT_LOGGED_IN"));
+			}
+		}				
 		
 		//licensed access increment download count
 		if ($download_req['is_microdata']===true && $download_req['license']=='licensed'){
@@ -905,6 +895,15 @@ class Survey_resource_model extends CI_Model {
 			$this->Licensed_model->update_download_stats($resource_id,$lic_request_info['requestid'],$user->email);
 		}
 
+
+		//full path to the resource
+		$resource_path=$this->get_resource_download_path($resource_id);
+
+		if (!file_exists($resource_path)){
+			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		//download file
 		$this->load->helper('download');
 		log_message('info','Downloading file <em>'.$resource_path.'</em>');
 		$this->db_logger->write_log('download',basename($resource_path),($download_req['is_microdata'] ? 'microdata': 'resource'),$survey_id);

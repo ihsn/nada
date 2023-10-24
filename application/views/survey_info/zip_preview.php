@@ -21,8 +21,17 @@
             <i class="far fa-file-alt"></i> <?php echo $key;?>
         </div>
     <?php else:?>
-        <div class="folder"><i class="fas fa-folder"></i> <?php echo $key;?></div>
-        <?php echo $this->load->view('survey_info/zip_preview',array('data'=>$value),true);?>        
+        <?php 
+            if ((!isset($parent))){
+                $target=('resource_'.$resource_id);
+            }else{
+                $target=urlencode($key.$resource_id);
+            }            
+            ?>
+        <div class="folder mouse-pointer" type="button" data-toggle="collapse" data-target="#<?php echo $target;?>" aria-expanded="false"><i class="fas fa-folder" ></i> <?php echo $key;?></div>
+        <div class="collapse" id="<?php echo $target;?>" >
+            <?php echo $this->load->view('survey_info/zip_preview',array('data'=>$value, 'parent'=>$key, 'resource_id'=>$resource_id),true);?>
+        </div>
     <?php endif;?>
 <?php endforeach;?>
 </div>
