@@ -25,7 +25,7 @@
             if ((!isset($parent))){
                 $target=('resource_'.$resource_id);
             }else{
-                $target=urlencode($key.$resource_id);
+                $target=urlencode('res_'.$key.$resource_id);
             }            
             ?>
         <div class="folder mouse-pointer" type="button" data-toggle="collapse" data-target="#<?php echo $target;?>" aria-expanded="false"><i class="fas fa-folder" ></i> <?php echo $key;?></div>
