@@ -464,7 +464,7 @@ class Breadcrumb
 			switch ($segments[3])
 			{
 				case 'edit':
-					$breadcrumbs['admin/catalog/edit']=t('edit_study');
+					$breadcrumbs['admin/catalog/edit/'.$segments[4]]=t('edit_study');
 				break;
 				
 				case 'add_study':
