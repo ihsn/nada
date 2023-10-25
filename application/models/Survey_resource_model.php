@@ -1115,7 +1115,15 @@ class Survey_resource_model extends CI_Model {
         $result=$this->db->get('resources')->row_array();
         return $result['total'];
 	}
-	
+
+	function get_microdata_resources_count_by_survey($sid)
+	{
+		$this->db->select('count(resource_id) as total');
+        $this->db->where('survey_id', $sid);
+		$this->db->where("survey_id=$sid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);		
+        $result=$this->db->get('resources')->row_array();
+        return $result['total'];
+	}
 
 
 	/**

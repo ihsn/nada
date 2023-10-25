@@ -392,6 +392,9 @@ class Study extends MY_Controller {
 
         //get a count of related resources for the survey
 		$related_resources_count=$this->Survey_resource_model->get_resources_count_by_survey($sid);
+
+		//count microdata resources
+		$microdata_resources_count=$this->Survey_resource_model->get_microdata_resources_count_by_survey($sid);
 		
 		//get related studies
 		$related_studies=$this->Related_study_model->get_related_studies_list($sid);
@@ -494,7 +497,12 @@ class Study extends MY_Controller {
 						'show_tab'=> (int)$related_resources_count,
 						'label'=>t('related_materials'),
 						'url'=>site_url("catalog/$sid/related-materials"),
-					)
+					),
+					'get_microdata'=>array(
+						'label'=>t('get_microdata'),
+						'url'=>site_url("catalog/$sid/get-microdata"),
+						'show_tab'=> ($microdata_resources_count >0) ? 1 : 0
+					),
 				);
 				break;
 			//case 'geospatial':
