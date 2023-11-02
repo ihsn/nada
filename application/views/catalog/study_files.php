@@ -117,36 +117,37 @@ form{margin:10px;padding:0px;}
 
             </td>
             <?php else:?>
-        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>
-            <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
-            <td><?php echo $file['size'];?></td>
-            <td><?php echo $file['fileperms'];?></td>
-            <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
-            <td>
+				<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>
+				<td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
+				<td><?php echo $file['size'];?></td>
+				<td><?php echo $file['fileperms'];?></td>
+				<td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
+				<td>
+					<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+						<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+					</a>
 
-							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
-								<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-							</a>
+					<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+						<span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+					</a>
 
-							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
-								<span class="glyphicon glyphicon-download" aria-hidden="true"></span>
-							</a>
-
-							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
-								<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-							</a>
-						</td>
+					<a class="delete-file" href="<?php echo site_url('admin/managefiles/'.$survey_id.'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+						<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+					</a>
+				</td>
 			<?php endif;?>
         </tr>
     <?php endforeach;?>
 <?php endif;?>
 </table>
+
 <div style="padding-top:10px;color:#999999;float:left;">
-        	<div style="display:inline;"><i class="fa fa-chain-broken" aria-hidden="true"></i> <?php echo t('not_linked');?></div>
-            <div style="display:inline;margin-left:10px;"><i class="fa fa-database" aria-hidden="true"></i> <?php echo t('data_files');?></div>
-            <div style="display:inline;margin-left:10px;"><i class="fa fa-file-o" aria-hidden="true"></i> <?php echo t('other_resources');?></div>
+	<div style="display:inline;"><i class="fa fa-chain-broken" aria-hidden="true"></i> <?php echo t('not_linked');?></div>
+	<div style="display:inline;margin-left:10px;"><i class="fa fa-database" aria-hidden="true"></i> <?php echo t('data_files');?></div>
+	<div style="display:inline;margin-left:10px;"><i class="fa fa-file-o" aria-hidden="true"></i> <?php echo t('other_resources');?></div>
 </div>
-            <div style="float:right;padding:5px;font-style:italic;"><?php echo t('total_files_count');?><?php echo count($files);?></div>
+<div style="float:right;padding:5px;font-style:italic;"><?php echo t('total_files_count');?><?php echo count($files);?></div>
+
 </form>
 
 <script type='text/javascript' >
@@ -166,6 +167,12 @@ jQuery(document).ready(function(){
 			   if (this.checked==false){
 				$(".manage-files #chk_toggle").attr('checked', false);
 			   }
+			}
+	);
+	$(".manage-files .delete-file").click(
+			function (e)
+			{
+				if (!confirm("<?php echo t('js_confirm_delete');?>")) {return false;}
 			}
 	);
 });
