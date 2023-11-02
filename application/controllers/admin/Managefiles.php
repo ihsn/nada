@@ -505,6 +505,7 @@ class Managefiles extends MY_Controller {
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
 		
 		$filepath=$this->_clean_filepath(urldecode(base64_decode($base64_filepath)));
+		$filepath=basename($filepath);
 		
 		$fullpath=unix_path($folderpath.'/'.$filepath);
 		
@@ -517,7 +518,6 @@ class Managefiles extends MY_Controller {
 		}
 		else if (is_file($fullpath))
 		{
-			//download file
 			$this->load->helper('download');
 			log_message('info','Downloading file <em>'.$fullpath.'</em>');
 			force_download2($fullpath);
@@ -555,6 +555,7 @@ class Managefiles extends MY_Controller {
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
 		
 		$filepath=$this->_clean_filepath(urldecode(base64_decode($base64_filepath)));
+		$filepath=basename($filepath);
 		
 		$fullpath=unix_path($folderpath.'/'.$filepath);
 		
@@ -752,25 +753,7 @@ class Managefiles extends MY_Controller {
 		{
 			@mkdir($targetDir);
 		}
-		
-		
-		// Remove old temp files
-		/* this doesn't really work by now
-			
-		if (is_dir($targetDir) && ($dir = opendir($targetDir))) {
-			while (($file = readdir($dir)) !== false) {
-				$filePath = $targetDir . DIRECTORY_SEPARATOR . $file;
-		
-				// Remove temp files if they are older than the max age
-				if (preg_match('/\\.tmp$/', $file) && (filemtime($filePath) < time() - $maxFileAge))
-					@unlink($filePath);
-			}
-		
-			closedir($dir);
-		} else
-			die('{"jsonrpc" : "2.0", "error" : {"code": 100, "message": "Failed to open temp directory."}, "id" : "id"}');
-		*/
-		
+						
 		// Look for the content type header
 		if (isset($_SERVER["HTTP_CONTENT_TYPE"]))
 			$contentType = $_SERVER["HTTP_CONTENT_TYPE"];
