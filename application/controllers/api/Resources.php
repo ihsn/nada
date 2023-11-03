@@ -13,16 +13,7 @@ class Resources extends MY_REST_Controller
 		$this->load->library("Dataset_manager");		
 		$this->is_authenticated_or_die();
 	}
-	
 
-	//override authentication to support both session authentication + api keys
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
 
 	/**
 	 * 
@@ -40,7 +31,7 @@ class Resources extends MY_REST_Controller
 			}
 			
 			$sid=$this->get_sid_from_idno($idno);
-			$this->has_dataset_access('view',$sid);
+			//$this->has_dataset_access('view',$sid);
 
 			$dctype=$this->input->get("dctype");
 			$resources=$this->Survey_resource_model->get_resources_by_type($sid,$dctype);
@@ -59,9 +50,15 @@ class Resources extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
 
 	/**
 	 * 
@@ -164,7 +161,7 @@ class Resources extends MY_REST_Controller
 						$resource_id=$this->Survey_resource_model->update($resource_id,$options);
 					}
 					else{
-						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");						
+						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");
 					}
 				}
 				else{
@@ -196,7 +193,11 @@ class Resources extends MY_REST_Controller
 	}
 
 
-	//update an existing resource
+	/**
+	 * 
+	 * update an existing resource
+	 * 
+	 **/ 
 	function index_put($idno=null,$resource_id=null)
 	{
 		$options=$this->raw_json_input();
@@ -248,7 +249,12 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
-	//delete a single resource by resource id
+	/**
+	 * 
+	 * 
+	 * delete a single resource by resource id
+	 * 
+	 **/ 
 	function index_delete($idno=null,$resource_id=null)
 	{
 		try{
@@ -281,14 +287,22 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
-	//delete using post
+	/**
+	 * 
+	 * delete using post
+	 * 
+	 **/ 
 	function delete_post($idno=null,$resource_id=null)
 	{
 		return $this->index_delete($idno,$resource_id);
 	}
 
 
-	//delete all resources by study
+	/**
+	 * 
+	 * delete all resources by study
+	 * 
+	 **/ 
 	public function delete_all_delete($idno=null)
 	{	
 		try{
@@ -312,7 +326,11 @@ class Resources extends MY_REST_Controller
 	}
 
 
-	//import rdf file
+	/**
+	 * 
+	 * import rdf file
+	 * 
+	 **/
 	public function import_rdf_post($idno=NULL)
 	{
 		$this->load->model("Survey_model");	
@@ -374,7 +392,8 @@ class Resources extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
-			$this->has_dataset_access('edit',$sid);
+			
+			//$this->has_dataset_access('edit',$sid);
 			$user=$this->api_user();
 
 			if(!$user){
@@ -396,9 +415,6 @@ class Resources extends MY_REST_Controller
 			if($allow_download===false){
 				throw new Exception("You don't have permissions to access the file.");
 			}
-
-			//$resource_filename=$this->Survey_resource_model->get_resource_filename($resource_id);
-			//return $this->Survey_resource_model->download_file($sid,base64_encode($resource_filename));	
 
 			$this->Survey_resource_model->download($user,$sid,$resource_id);
 			die();
@@ -472,4 +488,15 @@ class Resources extends MY_REST_Controller
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}	
 	}	
+
+
+	//override authentication to support both session authentication + api keys
+	function _auth_override_check()
+	{
+		if ($this->session->userdata('user_id')){
+			return true;
+		}
+		parent::_auth_override_check();
+	}
+
 }

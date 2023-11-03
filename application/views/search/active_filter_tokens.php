@@ -65,7 +65,7 @@ $bg=0;
 
     <?php if (is_array($search_options->country)):?>
         <?php foreach($search_options->country as $country):?>
-            <?php if (array_key_exists($country,$countries)):?>
+            <?php if (is_array($countries) && array_key_exists($country,$countries)):?>
                 <span class="badge badge-default wb-badge-close remove-filter country" data-type="country[]" data-value="<?php echo $country;?>"><?php echo $countries[$country];?><i class="fas fa-times"></i></span>
             <?php endif;?>
         <?php endforeach;?>

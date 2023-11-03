@@ -251,18 +251,28 @@ class DDI_Study_Export
 		$this->_DDI_template = $template;
 	}
 	
-	public function to_ddi($data) {
+	public function to_ddi($data) 
+	{
 		if (!isset($this->_DDI_template)) {
 			throw new Exception('DDI Template NOT set');
 		}
-		$data                = $data[0];
+
+		$data= $data[0];
 		$this->_DDI_template = file_get_contents($this->_DDI_template);
+
 		foreach ($this->_variables as $keys => $values) {
 			$keys = str_replace(array('{', '}'), '', $keys);
+
+			//apply date format
+			if ($keys=="ver_prod_date" && isset($data[$keys]) && !empty($data[$keys]) ){
+				$data[$keys] = date("Y-m-d", $data[$keys]);
+			}
+
 			if (isset($data[$keys])) {
 				$this->_variables['{' . $keys . '}'] = $data[$keys];
 			}
 		}
+
 		return $this->_replace_vars($this->_variables);
 	}
 }

@@ -880,22 +880,12 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception("FILE_NOT_AVAILABLE");
 		}
 
-		//resource is microdata type
-
-		//get survey + license type
-
 		//for public use
-
-		//for licensed
-
-		//download file
-
-		//full path to the resource
-		$resource_path=$this->get_resource_download_path($resource_id);
-
-		if (!file_exists($resource_path)){
-			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
-		}
+		if ($download_req['is_microdata']===true && $download_req['license']=='public'){
+			if (!$user_id){
+				throw new Exception(t("USER_NOT_LOGGED_IN"));
+			}
+		}				
 		
 		//licensed access increment download count
 		if ($download_req['is_microdata']===true && $download_req['license']=='licensed'){
@@ -905,6 +895,15 @@ class Survey_resource_model extends CI_Model {
 			$this->Licensed_model->update_download_stats($resource_id,$lic_request_info['requestid'],$user->email);
 		}
 
+
+		//full path to the resource
+		$resource_path=$this->get_resource_download_path($resource_id);
+
+		if (!file_exists($resource_path)){
+			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		//download file
 		$this->load->helper('download');
 		log_message('info','Downloading file <em>'.$resource_path.'</em>');
 		$this->db_logger->write_log('download',basename($resource_path),($download_req['is_microdata'] ? 'microdata': 'resource'),$survey_id);
@@ -1116,7 +1115,15 @@ class Survey_resource_model extends CI_Model {
         $result=$this->db->get('resources')->row_array();
         return $result['total'];
 	}
-	
+
+	function get_microdata_resources_count_by_survey($sid)
+	{
+		$this->db->select('count(resource_id) as total');
+        $this->db->where('survey_id', $sid);
+		$this->db->where("survey_id=$sid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);		
+        $result=$this->db->get('resources')->row_array();
+        return $result['total'];
+	}
 
 
 	/**
@@ -1609,7 +1616,7 @@ class Survey_resource_model extends CI_Model {
 			}else{
 				$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
 				$resource['filesize']=$this->get_resource_filesize($resource);
-				$resource['is_url']=false;
+				$resource['is_url']=false;				
 			}
 			
 			$resource['link']=$link;
@@ -1618,6 +1625,40 @@ class Survey_resource_model extends CI_Model {
 			$output[]=$resource;
 		}
 		
+		return $output;
+	}
+
+	function resource_attach_zip_preview($survey_folder,$resources)
+	{	
+		foreach($resources as $key=>$resource){
+			$filepath=unix_path($survey_folder.'/'.$resource['filename']);
+			$resources[$key]['zip_preview']=$this->get_zip_archive_info($filepath);
+		}
+
+		return $resources;
+	}
+
+	
+	function get_zip_archive_info($filepath)
+	{
+		$zip_content=get_zip_archive_list($filepath);
+
+		if (!$zip_content){
+			return false;
+		}
+
+		$output=[];
+
+		//convert to a nested array
+		foreach($zip_content as $key=>$value){
+
+			//remove last slash
+			if (substr($key, -1) == '/'){				
+				$key=substr($key, 0, -1);
+			}
+			set_array_nested_value($output, $parents=$key, $value, $glue = '/');
+		}
+
 		return $output;
 	}
 

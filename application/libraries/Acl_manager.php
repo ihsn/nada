@@ -7,6 +7,8 @@ use Laminas\Permissions\Acl\Resource\GenericResource as Resource;
 class Acl_manager
 {
 	var $debug=false;
+	private $ci;
+	
 
 	/**
 	 * Constructor
