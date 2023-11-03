@@ -91,7 +91,7 @@
               <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo t('edit'); ?></a> |
               <a href="<?php echo site_url();?>/admin/resources/delete/<?php echo $row->resource_id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete'); ?></a>
               <?php if($row->filename!=''):?>
-              | <a href="<?php echo site_url();?>/catalog/<?php echo $survey_id; ?>/download/<?php echo $row->resource_id;?>"><?php echo t('download'); ?></a>
+              | <a href="<?php echo site_url('admin/resources/download/'.$survey_id.'/'.$row->resource_id);?>"><?php echo t('download'); ?></a>
               <?php endif;?>
             </td>
         </tr>
