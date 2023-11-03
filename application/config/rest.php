@@ -621,3 +621,16 @@ $config['allow_any_cors_domain'] = TRUE;
 |
 */
 $config['allowed_cors_origins'] = [];
+
+
+/*
+|--------------------------------------------------------------------------
+| Disable API
+|--------------------------------------------------------------------------
+|
+| By Default API is enabled. Set to true to disable it.
+|
+| 
+*/
+
+$config['api_disabled']=false;

@@ -11,7 +11,6 @@ require(APPPATH.'/libraries/REST_Controller.php');
  */
 abstract class MY_REST_Controller extends REST_Controller {
     
-    
     /**
      * 
      * Allow only admin users to access the API
@@ -167,6 +166,11 @@ abstract class MY_REST_Controller extends REST_Controller {
 
     public function early_checks()
     {
+        //disable API?
+        if ($this->config->item('api_disabled')==true){
+            show_404();
+        }
+
         //apply ip whitelisting
         if ($this->config->item('rest_ip_whitelist_enabled') === TRUE)
         {
