@@ -22,7 +22,9 @@ class Logs extends MY_Controller {
 	}
 	
 	function index()
-	{			
+	{
+		$this->acl_manager->has_access_or_die('reports', 'view');
+
 		//get array of db rows		
 		$result['rows']=$this->_search();
 		
