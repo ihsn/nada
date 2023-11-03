@@ -407,15 +407,18 @@ class Ion_auth_model extends CI_Model
 		$expiry_time=new DateTime();
 		$expiry_time->modify("4 hour");
 
-		$key=rand(0,9999999);
+		$key=$this->get_random_hash();
 		$key=$key.':'.$user->id.':'.$expiry_time->format("U");
 		$key=base64_encode($key);
-			
+
 		$this->forgotten_password_code = $key;
 		$this->db->where($this->ion_auth->_extra_where);
-		$result=$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));		
+		$result=$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));
+
 		return $result;
 	}
+
+
 	
 	/**
 	 * Forgotten Password Complete
@@ -515,7 +518,7 @@ class Ion_auth_model extends CI_Model
 		}
 
 		//code expired?
-		if(empty($token['expiry']) || date("U") > $token['expiry']){			
+		if(empty($token['expiry']) || date("U") > $token['expiry']){
 			return false;
 		}
 
@@ -1597,4 +1600,15 @@ class Ion_auth_model extends CI_Model
 
 		return $code;
 	}
+
+
+	/**
+	 * 
+	 * Generate a random hash with max length of 14 characters
+	 */
+	function get_random_hash()
+	{
+		return substr(bin2hex(random_bytes(16)),0,14);
+	}
+
 }
