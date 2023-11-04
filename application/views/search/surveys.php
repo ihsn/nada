@@ -120,6 +120,18 @@
     }
 ?>
 
+
+<?php 
+//IDs for all featured studies
+$featured_studies_id_list=array();
+
+if (isset($featured_studies)){
+    foreach($featured_studies as $feature_study){
+        $featured_studies_id_list[]=$feature_study['id'];
+    }
+}
+?>
+
     
 <div id="surveys">
     <span class="result-types-summary">
@@ -138,6 +150,11 @@
 
         if ($is_featured){
             $is_featured_count++;
+        }
+
+        //hide featured study duplicate entry
+        if (!$is_featured && in_array($row['id'],$featured_studies_id_list)){
+            continue;
         }
 
         if(isset($row['thumbnail']) && is_array($row['thumbnail'])){
