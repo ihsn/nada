@@ -449,7 +449,61 @@ paths:
         '200':
           description: successful operation
           schema:
-            $ref: '../catalog-admin/variable-schema.json'          
+            $ref: '../catalog-admin/variable-schema.json'   
+  /catalog/ddi/{idno}:
+    get:
+      tags:
+        - Metadata
+      summary: Download DDI/XML
+      description: Download DDI 2.5 CodeBook XML (available for microdata studies only)
+      operationId: downloadDDI
+      consumes:
+        - application/json
+      produces:
+        - application/xml
+      parameters:
+        - name: IDNo
+          in: path
+          title: Study unique ID
+          description: Study unique ID number
+          type: string
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
+      responses:
+        '200':
+          description: successful operation
+  /catalog/json/{idno}:
+    get:
+      tags:
+        - Metadata
+      summary: Download JSON
+      description: Download study metadata as JSON
+      operationId: downloadJSON
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: IDNo
+          in: path
+          title: Study unique ID
+          description: Study unique ID number
+          type: string
+          required: true
+        - name: id_format
+          in: query
+          title: ID format
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false  
+      responses:
+        '200':
+          description: successful operation
 ###############################################################
 definitions:
   Catalog:
