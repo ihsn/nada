@@ -125,7 +125,8 @@
 //IDs for all featured studies
 $featured_studies_id_list=array();
 
-if (isset($featured_studies)){
+if (isset($featured_studies) && is_array($featured_studies) ){
+
     foreach($featured_studies as $feature_study){
         $featured_studies_id_list[]=$feature_study['id'];
     }
