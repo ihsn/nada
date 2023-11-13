@@ -20,7 +20,13 @@ class Dataset_image_model extends Dataset_model {
 
     function create_dataset($type,$options)
 	{
-		//validate schema
+        //IPTC or DCMI?
+        $sub_schema_type=$this->get_image_schema_type($options);
+
+        //clean metadata
+        $options=$this->clean_metadata($options,$sub_schema_type);
+
+        //validate schema
         $this->validate_schema($type,$options);
 
         //get core fields for listing datasets in the catalog
@@ -28,7 +34,11 @@ class Dataset_image_model extends Dataset_model {
         $options=array_merge($options,$core_fields);
 		
 		if(!isset($core_fields['idno']) || empty($core_fields['idno'])){
-            throw new ValidationException("VALIDATION_ERROR", "image_description.IDNO is required");
+            throw new ValidationException("VALIDATION_ERROR", "IDNO is required");
+		}
+
+        if(!isset($core_fields['title']) || empty($core_fields['title'])){
+            throw new ValidationException("VALIDATION_ERROR", "Title is required");
 		}
 
 		//validate IDNO field
@@ -82,6 +92,12 @@ class Dataset_image_model extends Dataset_model {
                 $options=array_remove_nulls($options);
             }
         }
+
+        //IPTC or DCMI?
+        $sub_schema_type=$this->get_image_schema_type($options);
+
+        //clean metadata
+        $options=$this->clean_metadata($options,$sub_schema_type);
 
         //validate schema
         $this->validate_schema($type,$options);
@@ -147,6 +163,51 @@ class Dataset_image_model extends Dataset_model {
 	 */
 	function get_core_fields($options)
 	{        
+       $core_fields=array();
+
+       //use DCMI schema if filled in
+       $core_fields=$this->get_core_fields_dcmi($options);
+
+       if (empty($core_fields['title'])){
+            $core_fields=$this->get_core_fields_iptc($options);
+       }
+
+        return $core_fields;       
+    }
+
+
+    //get core fields for DCMI schema
+    function get_core_fields_dcmi($options)
+    {
+        $output=array();
+        $output['title']=$this->get_array_nested_value($options,'image_description/dcmi/title');
+        $output['idno']=$this->get_array_nested_value($options,'image_description/idno');
+        
+        //extract country names from the location element
+        $nations=$this->get_country_names_dcmi((array)$this->get_array_nested_value($options,'image_description/dcmi/country'));
+        $output['nations']=$nations;
+        $nation_str=$this->get_country_names_string($nations);        
+        $nation_system_name=$this->Country_model->get_country_system_name($nation_str);
+        $output['nation']=($nation_system_name!==false) ? $nation_system_name : $nation_str;
+        
+        $output['abbreviation']='';
+        
+        $creators=(array)$this->get_array_nested_value($options,'image_description/dcmi/creator');
+		$output['authoring_entity']=implode(",", $creators);
+
+        $date=explode("-",$this->get_array_nested_value($options,'image_description/dcmi/date'));
+
+		if(is_array($date)){
+			$output['year_start']=(int)$date[0];
+			$output['year_end']=(int)$date[0];			
+        }
+        
+        return $output;
+    }
+
+    //get core fields for IPTC schema
+    function get_core_fields_iptc($options)
+    {
         $output=array();
         $output['title']=$this->get_array_nested_value($options,'image_description/iptc/photoVideoMetadataIPTC/headline');
         $output['idno']=$this->get_array_nested_value($options,'image_description/idno');
@@ -174,6 +235,53 @@ class Dataset_image_model extends Dataset_model {
     }
 
 
+    //check which schema to use
+    function get_image_schema_type($options)
+    {    
+        $schema_type=false;
+
+        //check if DCMI schema is used
+        if($this->get_array_nested_value($options,'image_description/dcmi')){
+            $schema_type='dcmi';
+        }
+
+        //check if IPTC schema is used
+        if($this->get_array_nested_value($options,'image_description/iptc')){
+            $schema_type='iptc';
+        }
+    
+        return $schema_type;
+    }
+
+
+    /**
+     * 
+     * Remove metadata from the options array
+     * 
+     */
+    function clean_metadata($options,$schema_type)
+    {
+        if($schema_type=='dcmi'){
+            //remove IPTC schema
+            if (isset($options['image_description']['iptc'])){
+                unset($options['image_description']['iptc']);
+            }            
+        }
+        else if($schema_type=='iptc'){
+            //remove DCMI schema
+            if (isset($options['image_description']['dcmi'])){
+                unset($options['image_description']['dcmi']);
+            }
+        }
+        else{
+            throw new ValidationException("VALIDATION_ERROR", "Invalid schema. Use DCMI or IPTC schema.");
+        }
+
+        return $options;
+    }
+    
+
+
     /**
      * 
      * Return an array of country names
@@ -190,6 +298,29 @@ class Dataset_image_model extends Dataset_model {
         foreach($nations as $nation){
             if(isset($nation['countryName'])){
                 $nation_names[]=$nation['countryName'];
+            }
+        }	
+        return $nation_names;	
+    }
+
+
+    /**
+     * 
+     * Return an array of country names using DCMI schema
+     * 
+     *  names  (@name, @code)
+     */
+    function get_country_names_dcmi($nations)
+    {
+        if(!is_array($nations)){
+            return false;
+        }
+
+        $nation_names=array();
+
+        foreach($nations as $nation){
+            if(isset($nation['name'])){
+                $nation_names[]=$nation['name'];
             }
         }	
         return $nation_names;	
