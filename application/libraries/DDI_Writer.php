@@ -124,12 +124,12 @@ class DDI_Writer
 
         //codeBook start
         $writer->startElement('codeBook');
-        $writer->writeAttribute('version','1.2.2');
+        $writer->writeAttribute('version','2.5');
         $writer->writeAttribute('ID',$dataset['idno']);
         $writer->writeAttribute('xml-lang','en');
-        $writer->writeAttribute('xmlns','http://www.icpsr.umich.edu/DDI');
+        $writer->writeAttribute('xmlns','ddi:codebook:2_5');
         $writer->writeAttribute('xmlns:xsi','http://www.w3.org/2001/XMLSchema-instance');
-        $writer->writeAttribute('xsi:schemaLocation','http://www.icpsr.umich.edu/DDI http://www.icpsr.umich.edu/DDI/Version1-2-2.xsd');
+        $writer->writeAttribute('xsi:schemaLocation','ddi:codebook:2_5 https://ddialliance.org/Specification/DDI-Codebook/2.5/XMLSchema/codebook.xsd');
         
         //document description
         $writer->writeRaw("\n");
@@ -181,6 +181,7 @@ class DDI_Writer
         //document description
         $doc_desc->set([
             'citation.titlStmt.IDNo'=>$dataset_metadata['doc_desc.idno'],
+            'citation.titlStmt.titl'=>$dataset_metadata['doc_desc.title'],
             'citation.prodStmt.producer'=>'',
             'citation.prodStmt.prodDate._value'=>$dataset_metadata['doc_desc.prod_date'],
             'citation.prodStmt.prodDate._attributes'=>['date' => $dataset_metadata['doc_desc.prod_date']],
@@ -262,11 +263,9 @@ class DDI_Writer
             if (is_array($value)) {
                 $arr[$key] = $this->remove_empty($arr[$key]);
             }
-            else{
-                //remove empty but keep if value is 0
-                if (empty($arr[$key]) && strlen((string)$arr[$key]) == 0) {
-                    unset($arr[$key]);
-                }
+    
+            if (empty($arr[$key])) {
+                unset($arr[$key]);
             }
         }
     
@@ -298,6 +297,13 @@ class DDI_Writer
         return ($result->saveXML($result->documentElement));
     }
 
+    function get_var_wgt($var){
+        if (isset($var['var_wgt']) && (int)$var['var_wgt']==1){
+            return 'wgt';
+        }
+        return '';
+    }
+
     function get_var_desc_xml($data)
     {
         $var = new \Adbar\Dot($data);
@@ -311,13 +317,14 @@ class DDI_Writer
                 'files'=>$var['file_id'],
                 'dcml'=>$var['var_dcml'],
                 'intrvl'=>$var['var_intrvl'],
+                'wgt'=> $this->get_var_wgt($var)
             ],
 
             'varFormat'=>[
                 '_value'=> (string)$var['var_format.value'],
                 '_attributes'=>[
                     'type'=>$var['var_format.type'],
-                    'schema'=>$var['var_format.schema'],
+                    //'schema'=>$var['var_format.schema'],//not supported
                     'formatname'=>$var['var_format.name']
                 ]
             ],
@@ -338,18 +345,9 @@ class DDI_Writer
             'qstn.preQTxt'=>$var['var_qstn_preqtxt'],
             'qstn.qstnLit'=>$var['var_qstn_qstnlit'],
             'qstn.postQTxt'=>$var['var_qstn_postqtxt'],
-            'qstn.ivuInstr'=>$var['var_qstn_ivuinstr'],
+            'qstn.ivuInstr'=>$var['var_qstn_ivulnstr'],
 
-            'valrng'=>[
-                'range'=>[
-                    '_attributes'=>[
-                        'UNITS'=>$var['var_val_range.units'],
-                        'min'=>$var['var_val_range.min'],
-                        'max'=>$var['var_val_range.max'],
-                    ]
-                ]
-            ],
-            
+            //'valrng'=>$var[''],//repeatable field - not supported
             'universe'=>$var['var_universe'],
             'sumStat'=> [], //repeatable
             
@@ -377,23 +375,16 @@ class DDI_Writer
         $categories=new \Adbar\Dot($var->get('var_catgry'));
         foreach($categories->all() as $idx=>$cat){
             $output->set([
-                'catgry.'.$idx.'.catValu'=> $cat["value"],
-                'catgry.'.$idx.'.labl'=> $cat["labl"]
+                'catgry.'.$idx.'.catValu'=> $categories["{$idx}.value"],
+                'catgry.'.$idx.'.labl'=> $categories["{$idx}.labl"],
+                'catgry.'.$idx.'.catStat'=>[                    
+                    '_attributes'=>[
+                        'type'=>$sumstats["{$idx}.type"],
+                        'wgtd'=>$sumstats["{$idx}.wgtd"]
+                    ],
+                    '_value'=> (string)$categories["{$idx}.stats.value"]
+                ]
             ]);
-            foreach($categories[$idx]['stats'] as $catIdx=>$catStat){
-                
-                    $output->set([
-                        'catgry.'.$idx.'.catStat.'.$catIdx=>[                    
-                            '_attributes'=>[
-                                'type'=>$catStat['type'],
-                                'wgtd'=>$catStat['wgtd']
-                            ],
-                            '_value'=> (string)$catStat["value"]
-                        ]
-                    ]);                
-            }
-
-            
         }
         
         $output = $this->remove_empty($output->all());
