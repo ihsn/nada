@@ -187,11 +187,10 @@ $lang['metadata.study_desc.method.data_collection.research_instrument']='Questio
 $lang['metadata.study_desc.method.data_collection.instru_development']='Instrument development';
 $lang['metadata.study_desc.method.data_collection.instru_development_type']='Instrument development type';
 $lang['metadata.study_desc.method.data_collection.sources']='Sources';
-$lang['metadata.study_desc.method.data_collection.sources.data_source']='Data source';
-$lang['metadata.study_desc.method.data_collection.sources.data_source.source']='Source';
-$lang['metadata.study_desc.method.data_collection.sources.source_origin']='Origin of Source';
-$lang['metadata.study_desc.method.data_collection.sources.source_char']='Characteristics of Source Noted';
-$lang['metadata.study_desc.method.data_collection.sources.source_doc']='Source documentation';
+$lang['metadata.study_desc.method.data_collection.sources.name']='Data source';
+$lang['metadata.study_desc.method.data_collection.sources.origin']='Origin of Source';
+$lang['metadata.study_desc.method.data_collection.sources.characteristics']='Characteristics';
+
 $lang['metadata.study_desc.method.data_collection.coll_situation']='Data Collection Notes';
 $lang['metadata.study_desc.method.data_collection.act_min']='Supervision';
 $lang['metadata.study_desc.method.data_collection.control_operations']='Control Operations';
