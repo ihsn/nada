@@ -564,12 +564,12 @@ class Dataset_microdata_model extends Dataset_model {
 
         if (is_array($data_coll)){
             foreach($data_coll as $row){
-                $year_=substr($row['start'],0,4);
+                $year_=substr(trim($row['start']),0,4);
                 if((int)$year_>0){
                     $years[]=$year_;
                 }					
                 if(isset($row['end'])){
-                    $year_=substr($row['end'],0,4);
+                    $year_=substr(trim($row['end']),0,4);
                     if((int)$year_>0){
                         $years[]=$year_;
                     }

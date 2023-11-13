@@ -787,7 +787,7 @@ class Dataset_model extends CI_Model {
 		$end=(integer)$end_year;
 
 		if ( ($start_year > 0 && $start_year < 1600) || $start_year > 3000 || ($end_year >0 && $end_year < 1600) || $end_year > 3000){
-			throw new Exception("INVALID_YEAR_RANGE");
+			throw new Exception("INVALID_YEAR_RANGE:" .implode("-",array($start_year,$end_year)));
 		}
 
 		if ($start==0){
@@ -1940,6 +1940,10 @@ class Dataset_model extends CI_Model {
      */
     function get_country_names_string($nations) 
     {
+		if (!is_array($nations)){
+			return '';
+		}
+
         $max_show=3;
 
         $nation_str='';
