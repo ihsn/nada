@@ -9,7 +9,7 @@ info:
     To use the API, you will require the '`API-KEY'`, see the section
     `Authentication` 
 
-  version: "5"
+  version: "5.3"
   title: NADA
   license:
     name: Apache 2.0
@@ -147,8 +147,7 @@ paths:
           - application/json
         parameters:
         - name: published
-          in: path
-          title: Filter by published status
+          in: query
           description: (Optional) Filter by published status - `0`=draft, `1`=published
           type: integer  
         responses:
@@ -169,7 +168,6 @@ paths:
         parameters:
           - in: "formData"
             name: "repositoryid"
-            title: "Collection's unique IDNo"
             type: string
             required: true
             description: Collection identifier containing numbers and letters only
@@ -195,7 +193,6 @@ paths:
           - in: "formData"
             name: thumbnail
             type: string 
-            title: Thumbnail image
             description: Upload an image file or provide path/url
           
           - in: "formData"
@@ -273,7 +270,6 @@ paths:
             name: "repositoryid"
             type: string
             required: true
-            title: "Collection's unique IDNo"
             description: Collection identifier containing numbers and letters only
           
           - in: "formData"
@@ -297,7 +293,6 @@ paths:
           - in: "formData"
             name: thumbnail
             type: string 
-            title: Thumbnail image
             description: Upload an image file or provide path/url
           
           - in: "formData"
@@ -418,15 +413,13 @@ paths:
         produces:
           - application/json
         parameters:
-          - in: "path"
+          - in: "query"
             name: "offset"
-            type: numeric
-            format: numeric
+            type: integer
             description: "Specify the starting row number"
-          - in: "path"
+          - in: "query"
             name: "limit"
-            type: numeric
-            format: numeric  
+            type: integer
             description: "Specify number of rows to return. Default is 50 rows."
         responses:
           '200':
@@ -1133,7 +1126,7 @@ paths:
           - Survey
         summary: Delete all variables
         description: Delete all variables from a datafile or Dataset.
-        operationId: deleteVariables
+        operationId: deleteDatasetVariablesByIDNo
         consumes:
           - application/json
         produces:
@@ -1212,6 +1205,7 @@ paths:
           description: To update partial metadata, set value to `true`. Default is `false` to replace all metadata fields.
           type: boolean
           format: boolean  
+          required: true
         - in: "body"
           name: "body"
           required: true
@@ -1561,8 +1555,9 @@ paths:
         parameters:
           - in: "path"
             name: "datasetIDNo"
-            title: (Optional) IDNO
+            description: Dataset IDNo
             type: string
+            required: true
         consumes:
           - application/json
         produces:
@@ -1787,6 +1782,8 @@ paths:
             $ref: '#/definitions/ResourceFile'
       security:
         - ApiKeyAuth: [] 
+  
+  /datasets/{datasetIDNo}/files/{resourceId}:
     post:
       tags:
         - External resources
@@ -1816,6 +1813,7 @@ paths:
           description: (Optional) Uploaded file is attached to the resource
           type: number
           format: number
+          required: true
       responses:
         '200':
           description: successful operation
@@ -1823,7 +1821,7 @@ paths:
             $ref: '#/definitions/ResourceFile'
       security:
         - ApiKeyAuth: []
-  /datasets/{datasetIDNo}/files/{filename}:
+  /files/{datasetIDNo}/{filename}:
     delete:
       tags:
         - External resources
@@ -1898,46 +1896,41 @@ paths:
           - application/json
         parameters:
           - name: keywords
-            in: path
+            in: query
             description: Search keywords 
             type: string
             format: string
           - name: from
-            in: path
-            title: "Start year"
+            in: query
+            description: "Start year"
             type: integer
             format: integer
           - name: to
-            in: path
-            title: "End year"          
+            in: query
+            description: "End year"          
             type: integer
             format: integer
           - name: ctype
-            in: path
-            title: "Citation type"
+            in: query
             description: Citation types (e.g. book, journal, website). To filter by multiple types, separate by comma. `ctype=book,journal`
             type: string
             format: string
           - name: published
-            in: path
-            title: "Filter by published status"          
+            in: query
             type: integer
             format: integer
-            description: By default all citations are returned. `0` = Draft, `1` = Published
+            description: Filter by published status. By default all citations are returned. `0` = Draft, `1` = Published
           - name: ps
-            in: path
-            title: Page size
+            in: query
             description: Number of results per page. Default is 15 records per page
-            type: int
+            type: integer
           - name: offset
-            in: path
-            title: Offset
-            description: Page to return for the search result
-            type: int
+            in: query
+            description: (Offset) - Page to return for the search result
+            type: integer
           
           - name: sort_by
-            in: path
-            title: Sort results
+            in: query
             description: Sort search results. Valid options are `author`,`title`,`pub_year`
             type: string
             enum:
@@ -1945,8 +1938,7 @@ paths:
             - author
             - pub_year
           - name: sort_order
-            in: path
-            title: Sort order
+            in: query
             description: Set results sort order. Ascending = `asc`, Descending= `desc`
             type: string
             enum:
@@ -1998,13 +1990,13 @@ paths:
             name: "uuid"
             type: string
             format: string
-            title: Citation UUID or ID
+            description: Citation UUID or ID
             required: true
-          - in: "path"
+          - in: "query"
             name: "id_format"
             type: string
             format: string
-            title: Specify citationId format, default format is `uuid`. Valid values `id` or `uuid`.   
+            description: Specify citationId format, default format is `uuid`. Valid values `id` or `uuid`.   
         responses:
           '200':
             description: successful operation
@@ -2026,6 +2018,7 @@ paths:
           - in: "path"
             name: "uuid"
             required: true
+            type: string
         responses:
           '200':
             description: successful operation
@@ -2057,7 +2050,7 @@ paths:
           description: Upload a file
           operationId: postFile
           consumes:
-            - application/json
+            - multipart/form-data
           produces:
             - application/xml
             - application/json
@@ -2089,8 +2082,9 @@ paths:
           - application/xml
           - application/json
         parameters:
-          - in: "path"
+          - in: "query"
             name: "filename"
+            type: string
             required: true
         responses:
           '200':
