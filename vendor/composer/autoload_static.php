@@ -7,13 +7,13 @@ namespace Composer\Autoload;
 class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
 {
     public static $files = array (
-        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
-        'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -29,6 +29,10 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
             'Spatie\\ArrayToXml\\' => 18,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
+        ),
+        'R' => 
+        array (
+            'RenanBr\\BibTexParser\\' => 21,
         ),
         'P' => 
         array (
@@ -93,6 +97,10 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
         'Slim\\Csrf\\' => 
         array (
             0 => __DIR__ . '/..' . '/slim/csrf/src',
+        ),
+        'RenanBr\\BibTexParser\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/renanbr/bibtex-parser/src',
         ),
         'Psr\\Http\\Message\\' => 
         array (
