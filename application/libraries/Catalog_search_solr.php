@@ -160,7 +160,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//SK
 		if($this->study_keywords){
-			$query->setQuery(addslashes($this->study_keywords));
+			$query->setQuery(($this->study_keywords));
 		}
 
 		//repo filter
@@ -412,7 +412,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		}
 
 		$query = $this->solr_client->createSelect();
-		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',addslashes($variable_keywords), implode(" OR ",$survey_arr)) );
+		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',($variable_keywords), implode(" OR ",$survey_arr)) );
 		$query->setStart(0)->setRows(100);
 
 		if ($this->debug){
@@ -966,7 +966,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         $edismax->setMinimumMatch($this->solr_variable_options['mm']);
 		
 		if($this->study_keywords){
-			$query->setQuery(addslashes($this->study_keywords));
+			$query->setQuery($this->study_keywords);
 		}
 
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
