@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Census table type schema",
+  "title": "Table type schema",
   "description": "",
   "type": "object",
   "definitions":{

@@ -3,9 +3,6 @@ info:
   description: >-
     DATA Tables API
 
-
-    To use the API, you will require the '`API-KEY'`, see the section
-    `Authentication` 
   version: "5.0"
   title: DATA Tables
   license:
@@ -19,11 +16,9 @@ x-tagGroups:
   - name: Tables 
     tags:
       - Tables
-  - name: Geographic codes 
-    tags:
-      - Geo codes
 schemes:
   - http
+  - https
 paths:
   /tables:
       get:
@@ -35,19 +30,18 @@ paths:
         consumes:
           - application/json
         produces:
-          - application/xml
           - application/json
         responses:
           '200':
             description: successful operation            
         security:
-          - ApiKeyAuth: []   
+          - ApiKeyAuth: []
   /tables/info/{dbId}/{tableId}:
       get:
         tags:
           - Tables
         summary: Get table info
-        description: Returns table defintion, features, indicators
+        description: Returns table definition
         operationId: tableInfo
         consumes:
           - application/json
@@ -70,65 +64,7 @@ paths:
             schema:
               $ref: "#/definitions/Table"
         security:
-          - ApiKeyAuth: []               
-  /tables/insert/{dbId}/{tableId}:      
-      post:
-        tags:
-          - Tables
-        summary: Insert table data
-        description: Insert data to table
-        operationId: postTable
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: "path"
-            name: "dbId"
-            type: string
-            format: string
-            required: true
-          - in: "path"
-            name: "tableId"
-            type: string
-            format: string
-            required: true
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: 'census-table-schema.json'
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: 'census-table-schema.json'
-        security:
-          - ApiKeyAuth: []  
-  /tables/create_table:
-      post:
-        tags:
-          - Tables
-        summary: Create new table
-        description: Create new table type
-        operationId: createTableType
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: 'census-table_type-schema.json'
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: 'census-table_type-schema.json'
-        security:
-          - ApiKeyAuth: [] 
+          - ApiKeyAuth: []
   /tables/data/{dbId}/{tableId}:
       get:
         tags:
@@ -160,30 +96,6 @@ paths:
             type: integer
             required: false
           - in: "query"
-            name: "geo_level"
-            type: string
-            required: false
-          - in: "query"
-            name: "state_code"
-            type: string
-            required: false
-          - in: "query"
-            name: "district_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "subdistrict_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "town_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "ward_code"
-            type: string
-            required: false      
-          - in: "query"
             name: "indicator"
             type: integer
             required: false      
@@ -206,13 +118,39 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []                        
+          - ApiKeyAuth: []       
+  
+  /tables/create_table:
+      post:
+        tags:
+          - Tables
+        summary: Create new table
+        description: Create new table type
+        operationId: createTableType
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'table_type-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'table_type-schema.json'
+        security:
+          - ApiKeyAuth: [] 
+                   
   /tables/upload:
       post:
         tags:
           - Tables
         summary: Upload CSV
-        description: Upload and import CSV file
+        description: Upload CSV file. By default, it will replace an existing table or create a new one. To append data to an existing table, set `append` to `true`
         operationId: uploadCsv
         consumes:
           - application/json
@@ -231,6 +169,11 @@ paths:
             type: string
             format: string
             required: true  
+          - in: "query"
+            name: "append"
+            description: Append data to existing table
+            type: boolean
+            required: false
           - in: "formData"
             name: "file"
             type: file
@@ -244,30 +187,43 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []
-  /tables/import:
-      post:
-        tags:
-          - Tables
-        summary: Import CSV
-        description: Import CSV for table data. This only works for uploaded CSV files using the `upload` endpoint
-        operationId: importCsv
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: "body"
-            name: "body"
-            required: true
-            schema:
-              $ref: "#/definitions/CsvImport"        
-        responses:
-          '200':
-            description: successful operation
-        security:
-          - ApiKeyAuth: []
+          - ApiKeyAuth: []  
   
+  /tables/insert/{dbId}/{tableId}:      
+        post:
+          tags:
+            - Tables
+          summary: Insert table data
+          description: Insert rows of data as JSON object
+          operationId: postTable
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          parameters:
+            - in: "path"
+              name: "dbId"
+              type: string
+              format: string
+              required: true
+            - in: "path"
+              name: "tableId"
+              type: string
+              format: string
+              required: true
+            - in: "body"
+              name: "body"
+              description: "Table rows as JSON object"
+              required: true
+              schema:
+                type: object
+          responses:
+            '200':
+              description: successful operation
+          security:
+            - ApiKeyAuth: []  
+
+
   /tables/indexes/{dbId}/{tableId}:
       get:
         tags:
@@ -400,51 +356,7 @@ paths:
         security:
           - ApiKeyAuth: []
       
-  /tables/geocodes/:
-      get:
-        tags:
-          - Geo codes
-        summary: Get geo codes
-        description: Get geo codes
-        operationId: getGeocodes
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: "query"
-            name: "geo_level"
-            type: string
-            required: false
-          - in: "query"
-            name: "state_code"
-            type: string
-            required: false
-          - in: "query"
-            name: "district_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "subdistrict_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "town_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "ward_code"
-            type: string
-            required: false      
-          - in: "query"
-            name: "name"
-            type: string
-            required: false                      
-        responses:
-          '200':
-            description: successful operation
-        security:
-          - ApiKeyAuth: []  
+  
 ###############################################################
 securityDefinitions:
   ApiKeyAuth:
