@@ -1498,3 +1498,14 @@ CREATE TABLE `data_access_whitelist` (
   `repository_id` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1;
+
+
+CREATE TABLE `survey_data_api` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sid` int DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `description` varchar(500) DEFAULT NULL,
+  `db_id` varchar(45) DEFAULT NULL,
+  `table_id` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+)AUTO_INCREMENT=1;

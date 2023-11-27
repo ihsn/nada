@@ -187,6 +187,9 @@ $config['auth_library_function'] = '';
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
+$config['auth_override_class_method']['tables']['*'] = 'none';
+
+/*
 $config['auth_override_class_method']['tables']['list'] = 'none';
 $config['auth_override_class_method']['tables']['index'] = 'none';
 $config['auth_override_class_method']['tables']['info'] = 'none';
@@ -197,7 +200,8 @@ $config['auth_override_class_method']['tables']['databases'] = 'none';
 $config['auth_override_class_method']['tables']['population_by_age'] = 'none';
 $config['auth_override_class_method']['tables']['geosearch'] = 'none';
 $config['auth_override_class_method']['tables']['search_place'] = 'none';
-
+$config['auth_override_class_method']['tables']['list'] = 'none';
+*
 
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method']['wildcard_test_cases']['*'] = 'basic';

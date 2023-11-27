@@ -10,6 +10,7 @@ class Tables extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model("Data_table_mongo_model");
 		$this->load->model("Data_table_model");
+		$this->load->model("Survey_data_api_model");
 	}
 
 	//list all tables with count
@@ -149,14 +150,14 @@ class Tables extends MY_REST_Controller
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
 			$result=array(
-				'storageUnit'=>'M',
-				'size'=>$result['size'],
+				//'storageUnit'=>'M',
+				//'size'=>$result['size'],
 				'count'=>$result['count'],
-				'storageSize'=>$result['storageSize'],
-				'nindexes'=>$result['nindexes'],
+				//'storageSize'=>$result['storageSize'],
+				//'nindexes'=>$result['nindexes'],
 				//'indexes'=>$result['indexDetails'],
-				'indexNames'=>array_keys((array)$result['indexDetails']),
-				'result_'=>$result['table_type']
+				//'indexNames'=>array_keys((array)$result['indexDetails']),
+				'metadata'=>$result['table_type']
 			);
 			
 			$response=array(
@@ -382,26 +383,11 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * Get table data
 	 * 
-	 * Filters
-	 * - table id
-	 * - region_type
-	 * - state_code
-	 * - district_code
-	 * - subdistrict_code
-	 * - village_town_code
-	 * - ward_code
-	 * 
-	 * - features
-	 * 
-	 * 
-	 * 
-	 * 
 	 * 
 	 */
 	function data_get($db_id=null,$table_id=null,$limit=100,$offset=0)
 	{
 		try{
-			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
 			
@@ -892,6 +878,144 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+	/**
+	 * 
+	 * Attach data table to a study
+	 * 
+	 */
+	function attach_to_study_post()
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			if (!isset($options['db_id'])){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!isset($options['table_id'])){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			if (!isset($options['sid'])){
+				throw new exception("Missing Param:: sid");
+			}
+
+			$result=$this->Survey_data_api_model->insert($options);
+			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Detach data table from a study
+	 * 
+	 */
+	function detach_from_study_post()
+	{
+		$this->is_authenticated_or_die();
+		
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			if (!isset($options['db_id'])){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!isset($options['table_id'])){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			if (!isset($options['sid'])){
+				throw new exception("Missing Param:: sid");
+			}
+
+			$result=$this->Survey_data_api_model->detach($options['sid'],$options['db_id'],$options['table_id']);			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * List of datassets attached to a study
+	 * 
+	 */
+	function list_by_study_get($sid=null)
+	{
+		$this->is_authenticated_or_die();
+		
+		try{
+			
+			if (!$sid){
+				throw new exception("Missing Param:: sid");
+			}
+
+			$result=$this->Survey_data_api_model->get_by_sid($sid);			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+
 	}
 
 
