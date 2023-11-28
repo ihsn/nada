@@ -20,6 +20,12 @@
           "description": "Data access policy for microdata resources - valid values `direct`, `open`, `public`, `licensed`, `remote`, `data_na` ",          
           "default": "data_na"
         },
+        "data_classification": {
+          "type": "string",
+          "title": "Data classification",
+          "description": "Data classification - valid values `public`, `official`, `confidential`",          
+          "default": "public"
+        },
         "published": {
           "type": "integer",
           "description": "Status of the survey - 0=draft, 1=published",

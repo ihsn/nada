@@ -37,6 +37,7 @@ class Dataset_model extends CI_Model {
 		'changed',
 		'created_by',
 		'changed_by',
+		'data_class_id',
 		'formid',
 		'metadata',
 		'link_study',

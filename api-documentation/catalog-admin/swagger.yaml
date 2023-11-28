@@ -2644,6 +2644,17 @@ definitions:
         type: integer
         format: int64
         readOnly: true
+      data_classification:
+        type: string
+        description:
+          (optional) Data classification
+          
+          * `public` - Public
+          
+          * `official` - Official
+          
+          * `confidential` - Confidential
+
       access_policy:
         type: string
         description:

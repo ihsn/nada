@@ -20,6 +20,7 @@ class Dataset_microdata_model extends Dataset_model {
         $this->load->model('Variable_model');
         $this->load->model('Variable_group_model');
         $this->load->model('Form_model');
+        $this->load->model('Data_classification_model');
     }
 
 
@@ -504,6 +505,13 @@ class Dataset_microdata_model extends Dataset_model {
 
             if($formid){
                 $output['formid']=$formid;
+            }
+        }
+
+        if(isset($options['data_classification'])){
+            $data_class_id=$this->Data_classification_model->get_classification_id($options['data_classification']);
+            if($data_class_id){
+                $output['data_class_id']=$data_class_id;
             }
         }
 

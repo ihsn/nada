@@ -109,4 +109,19 @@ class Data_classification_model extends CI_Model {
 		return false;
 	}
 
+
+	function get_classification_id($code)
+	{
+		$this->db->select('id');
+		$this->db->from('data_classifications');
+		$this->db->where('code', $code); 
+		$query = $this->db->get()->row_array();		
+		
+		if($query){
+			return $query['id'];
+		}
+
+		return false;
+	}
+
 }
