@@ -3,7 +3,7 @@
     <div class="options-container mt-3 mb-3 p-3">
 
         <div class="filter-container border p-3 mt-3 bg-light">
-            <h5>Filters</h5>
+            <h5><?php echo t('Filters');?></h5>
 
             <template v-for="(filter,filter_idx) in filters">
                 <div class="row">
@@ -27,7 +27,7 @@
                     -->
 
                     <div class="col">
-                        <input type="text" class="form-control form-control-sm" v-model="filter.value" placeholder="Enter value" />
+                        <input type="text" class="form-control form-control-sm" v-model="filter.value" placeholder="<?php echo t('Enter value');?>" />
                     </div>
 
                     <div class="col-md-1">
@@ -42,16 +42,16 @@
             <button v-if="filters.length>0" class="btn btn-primary btn-sm mt-3" @click="addFilter"> <v-icon dark left x-small>fas fa-filter</v-icon> Add filter</button>
 
             <div v-if="filters.length == 0" class="mt-3">
-                <button class="btn btn-outline-primary btn-sm" @click="addFilter">Add filter</button>
+                <button class="btn btn-outline-primary btn-sm" @click="addFilter"><?php echo t('Add filter');?></button>
             </div>
         </div>
 
         <div class="border p-3 my-3 bg-light">
             <div class="float-right">
-                <button class="btn btn-outline-primary btn-sm" @click="columnsSelectAll">Select all</button>
-                <button class="btn btn-outline-primary btn-sm" @click="columnsClear">Clear</button>
+                <button class="btn btn-outline-primary btn-sm" @click="columnsSelectAll"><?php echo t('Select all');?></button>
+                <button class="btn btn-outline-primary btn-sm" @click="columnsClear"><?php echo t('Clear');?></button>
             </div>
-            <h5>Variables</h5>
+            <h5><?php echo t('Fields');?></h5>
 
             <div class="input-group mb-3" style="width:300px">
                 <input type="text" class="form-control form-control-sm" v-model="table_columns_search" placeholder="Search..." style="width:250px" />
@@ -105,7 +105,7 @@
                 <div class="float-right">
                     <a href="#" title="Copy" @click="CopyQueryUrlToClipboard"><i class="far fa-clone"></i></a>
                 </div>
-                <label><strong>API query URL:</strong></label>
+                <label><strong><?php echo t('API query URL');?>:</strong></label>
                 <div class="border p-1" style="font-size:small;overflow:auto">
                     <div class="text-monospace">{{query_url}}</div>
                 </div>
@@ -113,7 +113,7 @@
 
 
             <div class="border p-3 my-3 bg-light">
-                <label><strong>API JSON response:</strong></label>
+                <label><strong><?php echo t('API JSON response');?>:</strong></label>
                 <div class="float-right">
                     <a href="#" title="Copy" @click="CopyJsonToClipboard"><i class="far fa-clone"></i></a>
                 </div>
@@ -122,7 +122,7 @@
                 </div>
             </div>
 
-            <button type="button" class="btn btn-outline-primary btn-sm" @click="search">Apply</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" @click="search"><?php echo t('Apply');?></button>
         </div>
 
 

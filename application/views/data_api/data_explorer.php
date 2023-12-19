@@ -2,12 +2,12 @@
 
     <div class="row">
       <div class="col-10">
-      <h3>Data explorer</h3>
+      <h3><?php echo t('Data explorer');?></h3>
       </div>
 
       <div class="col-2">
         <button class="btn btn-default btn-sm float-right" type="button" data-toggle="collapse" data-target="#queryOptions" aria-expanded="false" aria-controls="queryOptions">
-            API options <v-icon small>fas fa-cog</v-icon>
+        <?php echo t('API options');?> <v-icon small>fas fa-cog</v-icon>
         </button>
       </div>
 
@@ -19,9 +19,15 @@
       </div>
 
 
-      <div v-if="rows.total">Showing <strong>{{rows.offset+1}}</strong> - <strong>{{rows.offset+rows.rows_count}}</strong> of <strong>{{rows.found}}</strong></div>
+        <div v-if="rows.total">
+            <div class="float-right"><?php echo t('Total');?>: <strong>{{rows.total}}</strong> </div>
+            <div>
+            Showing <strong>{{rows.offset+1}}</strong> - <strong>{{rows.offset+rows.rows_count}}</strong> of <strong>{{rows.found}}</strong>
+            </div>
+        
+        </div>
       <div v-if="is_searching">
-        <span class="badge badge-info">Loading data ...</span>
+        <span class="badge badge-info"><?php echo t('Loading data ...');?></span>
         <v-skeleton-loader
             type="table-tbody, table-tfoot"
             ></v-skeleton-loader>
@@ -57,7 +63,7 @@
         <template v-if="rows.found">
           <div class="d-flex justify-content-between">
             <div class="col-md-4" style="font-size:small">
-                Page size: <select v-model="page_limit">
+            <?php echo t('Page size');?>: <select v-model="page_limit">
                     <option v-for="option in [15,50,100]" :value="option">{{option}}</option>
                 </select>                
             </div>

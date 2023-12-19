@@ -70,11 +70,11 @@
     
     <div ref="app_is_loading">Loading...</div>
     <template v-if="table_info && table_info.result && table_info.result.metadata">
-      <h2>Dataset API</h2>
+      <h2><?php echo t('Dataset API');?></h2>
       
-      <div v-if="table_info.result"><strong>Dataset</strong>: {{table_info.result.metadata.title}}</div>
+      <div v-if="table_info.result"><strong><?php echo t('Dataset');?></strong>: {{table_info.result.metadata.title}}</div>
       <div v-if="rows.total && table_info.result">
-        <span><strong>Observations:</strong> {{rows.total}}</span>
+        <span><strong><?php echo t('Observations');?>:</strong> {{rows.total}}</span>
       </div>
 
       <div class="mt-3 mb-3" style="white-space:pre-line">{{table_info.result.metadata.description}}</div>
@@ -217,6 +217,7 @@
       filters: {
             handler: function(newValue) {
                 console.log("filter updated", newValue)
+                this.page_offset=0;
                 this.search(false);
             },
             deep: true

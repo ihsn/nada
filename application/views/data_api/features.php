@@ -4,12 +4,12 @@
 
 <div class="row">
     <div class="col-10">
-    <h3>Data dictionary</h3>
+    <h3><?php echo t('Data dictionary');?></h3>
     </div>
 
     <div class="col-2">
       <button class="btn btn-default btn-sm float-right" type="button" >
-        <a target="_blank" :href="apiDatasetInfoUrl">JSON</a>
+        <a target="_blank" :href="apiDatasetInfoUrl"><?php echo t('JSON');?></a>
       </button>
     </div>
 </div>
@@ -17,9 +17,9 @@
 <table class="table" v-if="table_info.result && table_info.result.metadata">
     <tr>
         <th>#</th>
-        <th>Name</th>
-        <th>Label</th>
-        <th>Codelist</th>
+        <th><?php echo t('Name');?></th>
+        <th><?php echo t('Label');?></th>
+        <th><?php echo t('Codelist');?></th>
     </tr>
 <tr v-for="(column,row_index,index) in tableColumnsDictionary">
   <td>{{index+1}}</td>
@@ -28,8 +28,8 @@
   <td>
       <table class="table table-sm table-striped" v-if="column.categories">
         <tr>
-            <th>Value</th>
-            <th>Label</th>
+            <th><?php echo t('Value');?></th>
+            <th><?php echo t('Label');?></th>
         </tr>
         <tr v-for="category in column.categories">
             <td>{{category.value}}</td>
