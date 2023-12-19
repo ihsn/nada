@@ -88,7 +88,15 @@ $lang['user_site_level_permissions']="Permisos a nivel del sitio";
 $lang['assigned_user_groups']="Roles globales de usuario";
 $lang['manage_permissions']="Administrar permisos";
 $lang['permissions_per_collection']="Permisos por colección";
+$lang['reset_password']="Restablecer su contraseña
+";
+$lang['api_keys']="Claves API
+";
+$lang['no_api_keys_found']="No se encontraron claves de API.
+";
+$lang['generate_api_key']="Generar clave API
+";
 
 
-/* End of file users_lang.php */
-/* Location: ./application/language/spanish/users_lang.php */
+/* End of file users */
+/* Location: ./application/language/spanish/users */

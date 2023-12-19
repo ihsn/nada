@@ -24,7 +24,7 @@ $lang['Central Data Catalog']="Catálogo Central de Datos";
 $lang['Bulk data access']="Acceso a datos masivos";
 $lang['Facets']="Facetas";
 $lang['Translate']="Traducir";
-$lang['Data deposit']="depositar datos";
+$lang['Data deposit']="Depositar datos";
 
 
 /* End of file site_menu */

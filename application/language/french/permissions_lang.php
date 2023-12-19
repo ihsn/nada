@@ -16,7 +16,8 @@ $lang['general_site']="Site général";
 $lang['manage_repo_permissions']="Gestion de l'accès aux collections";
 $lang['manage_group_permissions_for']="Gestion des autorisations de groupe pour";
 $lang['apply_changes']="Appliquer les modifications";
+$lang['study_access_denied']="Accès refusé. Vous n'êtes pas autorisé à accéder à cette page.";
 
 
-/* End of file permissions_lang.php */
-/* Location: ./application/language/french/permissions_lang.php */
+/* End of file permissions */
+/* Location: ./application/language/french/permissions */

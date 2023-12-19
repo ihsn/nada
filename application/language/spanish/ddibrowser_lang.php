@@ -22,7 +22,7 @@ $lang['data_files']="Archivos de Datos";
 $lang['variable_search']="Búsqueda de Variables";
 $lang['other_materials']="Otros Materiales";
 $lang['export_metadata']="Exportar Metadato";
-$lang['variable_search_match_found']="%d variables(s) coincidieron con su criterio de búsqueda.";
+$lang['variable_search_match_found']="%s variables(s) coincidieron con su criterio de búsqueda.";
 $lang['name']="Nombre";
 $lang['label']="Etiqueta";
 $lang['question']="Pregunta";
@@ -168,10 +168,6 @@ $lang['include_variable_desc']="Descripción de la variable";
 $lang['include_external_resources']="Recurso externo";
 $lang['Report options']="Opciones del informe:";
 $lang['processing_pdf_report']="Generar informe en PDF, esto puede demorar algunos minutos...";
-$lang['get_microdata']="Obtener Microdatos";
-$lang['study_description']="Descripción de la operación estadística";
-$lang['data_dictionary']="Diccionario de Datos";
-$lang['related_materials']="Materiales Relacionados";
 $lang['citations']="Citas de autor/fuente";
 $lang['review_study']="Revisar";
 $lang['add_note']="Agregar nota";
@@ -186,7 +182,57 @@ $lang['documentation_in_pdf']="Documentación en PDF";
 $lang['download_rdf']="Descargar RDF";
 $lang['reviewer_notes']="Notas del revisor";
 $lang['js_refreshing_page']="Recargando la página, por favor espere...";
+$lang['visit_data_catalog_at']="Visite nuestro catálogo de datos en
+";
+$lang['report_generated_on']="Informe generado el
+";
+$lang['cover']="Carátula
+";
+$lang['file_description']="Descripción del archivo
+";
+$lang['variable_list']="Lista de variables
+";
+$lang['variable_description']="Descripción de la variable
+";
+$lang['external_resources']="Recursos externos
+";
+$lang['report_lang']="Idioma del informe
+";
+$lang['generate_pdf']="Generar PDF
+";
+$lang['Mean']="Media
+";
+$lang['Standard deviation']="Desviación Estándar
+";
+$lang['search_data_dictionary']="Diccionario de datos de búsqueda
+";
+$lang['Total variables(s)']="Total de variables
+";
+$lang['download_study_rdf']="Descargar descripciones de los recursos del estudio (por ejemplo, informes, cuestionarios, documentos técnicos) en formato Dublin Core (RDF)
+";
+$lang['download_study_ddi']="Descargar metadatos del estudio en formato DDI (XML)
+";
+$lang['study_documentation_text']="Descargue los cuestionarios, documentos técnicos e informes que describen el proceso de la encuesta y los resultados clave de este estudio.
+";
+$lang['study_description_text']="La sección proporciona una descripción detallada del estudio (es decir, los metadatos). Los temas cubiertos se relacionan con la metodología de la encuesta, los métodos de muestreo, la recopilación de datos, el financiamiento, las fechas de recolección, la cobertura geográfica y la política de acceso a los datos de este estudio. Descargue los metadatos en varios formatos desde el enlace Exportar metadatos.
+";
+$lang['data_description_text']="Esta sección proporciona información detallada sobre los datos de registros unitarios generados por este estudio. Esto incluye una descripción detallada del contenido de cada archivo de datos y todas las variables dentro de cada archivo. Las variables pueden contener los resultados registrados de una pregunta directa formulada o derivarse de alguna manera. El número de variables y el número de obsevaciones de datos (casos) se resumen para cada variable.
+";
+$lang['related_publications_text']="Los datos de este estudio se utilizan en las siguientes publicaciones:
+";
+$lang['related_studies']="Estudios relacionados
+";
+$lang['variable_group']="Grupo de variables
+";
+$lang['universe']="Universo
+";
+$lang['notes']="Notas
+";
+$lang['text']="Nota
+";
+$lang['definition']="Definición
+";
 
 
-/* End of file ddibrowser_lang.php */
-/* Location: ./application/language/spanish/ddibrowser_lang.php */
+/* End of file ddibrowser */
+/* Location: ./application/language/spanish/ddibrowser */

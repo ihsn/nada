@@ -16,7 +16,9 @@ $lang['general_site']="Sitio General";
 $lang['manage_repo_permissions']="Administrar acceso al repositorio";
 $lang['manage_group_permissions_for']="Administrar permisos del grupo para";
 $lang['apply_changes']="Aplicar cambios";
+$lang['study_access_denied']="Acceso denegado. No tiene permiso para acceder a esta página.
+";
 
 
-/* End of file permissions_lang.php */
-/* Location: ./application/language/spanish/permissions_lang.php */
+/* End of file permissions */
+/* Location: ./application/language/spanish/permissions */

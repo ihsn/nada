@@ -1,13 +1,33 @@
 <?php 
-$lang['identification']='Identification';
+$lang['identification']='Identification'; 
 $lang['version']='Version';
 $lang['scope']='Scope';
 $lang['coverage']='Coverage';
 $lang['producers_sponsors']='Producers and sponsors';
+$lang['data_collection']='Data collection';
+$lang['survey_instrument']='Survey instrument';
 $lang['sampling']='Sampling';
 $lang['metadata_production']='Metadata production';
+$lang['citation']='Citation';
 $lang['data_access']='Access policy';
+$lang['quality_standards']='Quality standards';
 $lang['disclaimer_copyright']='Disclaimer and copyrights';
+$lang['Study authorization']='Study authorization';
+$lang['Data processing']='Data processing';
+$lang['Study activities']='Study activities';
+$lang['Data appraisal']='Data appraisal';
+$lang['Depositor information']='Depositor information';
+$lang['Distributor information']='Distributor information';
+$lang['Contacts']='Contacts';
+$lang['Other identifiers']='Other identifiers';
+$lang['Sample frame']='Sample frame';
+$lang['Mode of data collection']='Mode of data collection';
+$lang['Participants']='Participants';
+$lang['Resources']='Resources';
+$lang['Activity outcome']='Activity outcome';
+$lang['Standard compliance']='Standard compliance';
+$lang['Metadata version']='Metadata version';
+
 
 $lang['metadata.doc_desc.title']='Document title';
 $lang['metadata.doc_desc.idno']='DDI Document ID';
@@ -19,6 +39,9 @@ $lang['metadata.doc_desc.producers.affiliation']='Affiliation';
 $lang['metadata.doc_desc.producers.role']='Role';
 $lang['metadata.doc_desc.prod_date']='Date of Metadata Production';
 $lang['metadata.doc_desc.version_statement.version']='DDI Document version';
+$lang['metadata.doc_desc.version_statement.version_date']='Version date';
+$lang['metadata.doc_desc.version_statement.version_resp']='Version responsibility';
+$lang['metadata.doc_desc.version_statement.version_notes']='Version notes';
 
 $lang['idno']='Survey ID Number';
 $lang['metadata.study_desc.title_statement.idno']='Survey ID number';
@@ -26,6 +49,10 @@ $lang['metadata.study_desc.title_statement.title']='Title';
 $lang['metadata.study_desc.title_statement.sub_title']='Subtitle';
 $lang['metadata.study_desc.title_statement.alternate_title']='Abbreviation or Acronym';
 $lang['metadata.study_desc.title_statement.translated_title']='Translated Title';
+
+$lang['metadata.study_desc.title_statement.identifiers.type']='Type';
+$lang['metadata.study_desc.title_statement.identifiers.identifier']='Identifier';
+
 $lang['metadata.study_desc.authoring_entity']='Primary investigators';
 $lang['metadata.study_desc.authoring_entity.name']='Name';
 $lang['metadata.study_desc.authoring_entity.affiliation']='Affiliation';
@@ -125,6 +152,7 @@ $lang['metadata.study_desc.study_info.universe']='Universe';
 $lang['metadata.study_desc.study_info.data_kind']='Kind of Data';
 $lang['metadata.study_desc.study_info.notes']='Notes';
 $lang['metadata.study_desc.study_info.quality_statement']='Quality Statement';
+$lang['metadata.study_desc.study_info.quality_statement.standards.name']='Standard';
 $lang['metadata.study_desc.study_info.quality_statement.standard_name']='Standard name';
 $lang['metadata.study_desc.study_info.quality_statement.standard_producer']='Standard producer';
 $lang['metadata.study_desc.study_info.quality_statement.standard_compliance_desc']='Standard compliance description';
@@ -152,6 +180,10 @@ $lang['metadata.study_desc.study_development.resource.data_source.source']='Sour
 $lang['metadata.study_desc.study_development.resource.source_origin']='Origin of Source';
 $lang['metadata.study_desc.study_development.resource.source_char']='Characteristics of Source Noted';
 $lang['metadata.study_desc.study_development.outcome']='Development Activity Outcome';
+
+$lang['metadata.study_desc.study_development.development_activity.resources.origin']='Origin';
+$lang['metadata.study_desc.study_development.development_activity.resources.characteristics']='Characteristics';
+
 $lang['metadata.study_desc.method']='Methodology and Processing';
 $lang['metadata.study_desc.method.data_collection']='Data Collection';
 $lang['metadata.study_desc.method.data_collection.time_method']='Time Method';

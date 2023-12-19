@@ -84,6 +84,7 @@ class Dataset_script_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'project_desc/title_statement/title');
         $output['subtitle']=$this->get_array_nested_value($options,'project_desc/title_statement/sub_title');
         $output['idno']=$this->get_array_nested_value($options,'project_desc/title_statement/idno');
+        $output['doi']=$this->get_core_doi($options);
 
         $nations=(array)array_data_get($options, 'project_desc.geographic_units.*.name');        
         $output['nations']=$nations;
@@ -101,6 +102,17 @@ class Dataset_script_model extends Dataset_model {
         $output['year_start']=$years['start'];
         $output['year_end']=$years['end'];
         return $output;
+    }
+
+    function get_core_doi($options)
+    {
+        $identifiers=(array)$this->get_array_nested_value($options,'project_desc/title_statement/identifiers');
+
+        foreach($identifiers as $identifier){
+            if (isset($identifier['type']) && strtolower($identifier['type'])=='doi'){
+                return $identifier['identifier'];
+            }
+        }
     }
 
     /**

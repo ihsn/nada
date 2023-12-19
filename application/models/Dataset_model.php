@@ -238,7 +238,7 @@ class Dataset_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
-		$this->db->select("surveys.id,surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.year_start, 
+		$this->db->select("surveys.id, surveys.doi, surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.year_start, 
 			year_end,nation,surveys.authoring_entity,published,created, changed, varcount, total_views, total_downloads, 
 			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, 
 			surveys.data_class_id, data_classifications.code as data_class_code, data_classifications.title as data_class_title,
@@ -316,7 +316,6 @@ class Dataset_model extends CI_Model {
 			//other identifiers e.g. DOI
 			$this->add_identifiers_to_metadata($sid, $survey['type'], $metadata);
 
-
 			if($tags){
 				$metadata['tags']=$tags;
 			}
@@ -336,7 +335,8 @@ class Dataset_model extends CI_Model {
 	function add_identifiers_to_metadata($sid, $type, &$metadata)
 	{
 		$mappings=[
-			'survey'=>'study_desc/title_statement/identifiers'
+			'survey'=>'study_desc/title_statement/identifiers',
+			'script'=>'project_desc/title_statement/identifiers'
 		];
 
 		$doi=$this->get_doi($sid);
@@ -359,7 +359,7 @@ class Dataset_model extends CI_Model {
 			}
 			
 			//check if DOI already exists
-			foreach($idenfiers as $identifier){
+			foreach($identifiers as $identifier){
 				if ($identifier['type']=='DOI' && $identifier['identifier']==$doi){
 					return;
 				}

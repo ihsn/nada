@@ -1,0 +1,1851 @@
+{
+    "data_type": "survey",
+    "lang": "en",
+    "name": "Survey display template",
+    "version": null,
+    "organization": null,
+    "author": null,
+    "description": null,
+    "template": {
+        "type": "template",
+        "title": "Microdata Project",
+        "items": [
+            {
+                "type": "section_container",
+                "key": "study_desc",
+                "title": "Study description",
+                "class": "mandatory recommended",
+                "expanded": true,
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "study_desc.title_statement",
+                        "title": "Identification",
+                        "class": "mandatory recommended",
+                        "expanded": true,
+                        "items": [
+                            {
+                                "key": "study_desc.title_statement.idno",
+                                "title": "Survey ID",
+                                "type": "string",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.title_statement.title",
+                                "title": "Title",
+                                "type": "string",
+                                "required": true,
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.title_statement.sub_title",
+                                "title": "Subtitle",
+                                "type": "string",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.title_statement.alternate_title",
+                                "title": "Abbreviation or acronym",
+                                "type": "string",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.title_statement.translated_title",
+                                "title": "Translated title",
+                                "type": "string",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.study_info.nation",
+                                "title": "Country",
+                                "type": "array",
+                                "class": "required",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "rules": [],
+                                        "name": "Country name",
+                                        "prop_key": "study_desc.study_info.nation.name",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbreviation",
+                                        "title": "Code",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.nation.abbreviation",
+                                        "display_type": "text"
+                                    }
+                                ]                                
+                            },
+                            {
+                                "key": "study_desc.series_statement.series_name",
+                                "title": "Study type",
+                                "type": "string",                                
+                                "display_type": "dropdown-custom"
+                            },
+                            {
+                                "key": "study_desc.series_statement.series_info",
+                                "title": "Series information",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "widgets.default",
+                                "title": "Widget title",
+                                "type": "widget",
+                                "widget_options": {
+                                    "data_key": "widgets.default",
+                                    "widget_field": "widget_default"
+                                }
+                            },
+                            {
+                                "key": "study_desc.title_statement.identifiers",
+                                "title": "Other identifiers",
+                                "type": "array",
+                                "required": true,
+                                "help_text": "This repeatable element is used to enter identifiers (IDs) other than the \"Primary ID\" (IDNO). It can for example be a Digital Object Identifier (DOI). The \"Primary ID\" can be repeated here (the \"Primary ID\" does not provide a \"Type\" parameter, so if a DOI or other standard ID type is used as main identifier, it is recommended to repeat it here with the identification of the type). ",
+                                "props": [
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "hlep_text": "Type of identifier e.g. `doi`, `handle`, `other`",
+                                        "type": "string",
+                                        "prop_key": "study_desc.title_statement.identifiers.type",
+                                        "help_text": "The type of identifier. For example: “DOI”. ",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "identifier",
+                                        "title": "Identifier",
+                                        "type": "string",
+                                        "prop_key": "study_desc.title_statement.identifiers.identifier",
+                                        "help_text": "The identifier itself.",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.study_info.abstract",
+                                "title": "Abstract",
+                                "type": "string",
+                                "help_text": "An un-formatted summary describing the purpose, nature, and scope of the data collection, special characteristics of its contents, major subject areas covered, and what questions the primary investigator(s) attempted to answer when they conducted the study. The summary should ideally be between 50 and 5000 characters long. The abstract should provide a clear summary of the purposes, objectives and content of the survey. It should be written by a researcher or survey statistician aware of the study. Inclusion of this element is recommended.",
+                                "is_recommended": true,
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.data_kind",
+                                "title": "Kind of data",
+                                "type": "string"
+                            },
+                            {
+                                "key": "study_desc.study_info.analysis_unit",
+                                "title": "Unit of analysis",
+                                "type": "string",
+                                "help_text": "A study can have multiple units of analysis. This field will list the various units that can be analyzed. For example, a Living Standard Measurement Study (LSMS) may have collected data on households and their members (individuals), on dwelling characteristics, on prices in local markets, on household enterprises, on agricultural plots, and on characteristics of health and education facilities in the sample areas.",
+                                "display_type": "text"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "study_description.version",
+                        "title": "Version",
+                        "class": "recommended",
+                        "items": [
+                            {
+                                "key": "study_desc.version_statement.version",
+                                "title": "Version",
+                                "type": "string",
+                                "help_text": "The version number, also known as release or edition. The version statement should contain a version number followed by a version label. The version number should follow a standard convention to be adopted by the data repository. We recommend that larger series be defined by a number to the left of a decimal and iterations of the same series by a sequential number that identifies the release. The left number could for example be (0) for the raw, unedited dataset; (1) for the edited dataset, non anonymized, available for internal use at the data producing agency; and (2) the edited dataset, prepared for dissemination to secondary users (possibly anonymized). For example:\n- v0: Basic raw data, resulting from the data capture process, before any data editing is implemented.\n- v1.0: Edited data, first iteration, for internal use only.\n- v1.1: Edited data, second iteration, for internal use only.\n- v2.1: Edited data, anonymized and packaged for public distribution.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.version_statement.version_date",
+                                "title": "Version date",
+                                "help_text": "The reference date for this version of the dataset. The use of the ISO 8601 standard is highly recommended for the formatting of the date (YYYY-MM-DD). A regular expression can be provided in \"Validation rules\" in user templates to validate the information entered in this element.",
+                                "type": "string",
+                                "display_type": "date"
+                            },
+                            {
+                                "key": "study_desc.version_statement.version_resp",
+                                "title": "Version responsibility",
+                                "help_text": "The person(s) or organization(s) responsible for this version of the study.",
+                                "type": "string",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.version_statement.version_notes",
+                                "title": "Version notes",
+                                "type": "string",
+                                "help_text": "Version notes should provide a brief report on the changes made through the versioning process. The note should indicate how this version differs from other versions of the same dataset.",
+                                "display_type": "textarea"
+                            }
+                        ]
+                    },
+                    {
+                        "key": "study_desc1674579453273",
+                        "title": "Scope",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.study_info.notes",
+                                "title": "Notes",
+                                "type": "text"
+                            },
+                            {
+                                "key": "study_desc.study_info.topics",
+                                "title": "Topics",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "topic",
+                                        "title": "Topic",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.topics.topic",
+                                        "help_text": "The label of the topic. ",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "vocab",
+                                        "title": "Vocabulary",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.topics.vocab",
+                                        "help_text": "The specification (name including the version and date) of the controlled vocabulary from which the topic is taken.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.topics.uri",
+                                        "help_text": "A link (URL) to the controlled vocabulary website.",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.study_info.keywords",
+                                "title": "Keywords",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "keyword",
+                                        "title": "Keyword",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.keywords.keyword",
+                                        "help_text": "A keyword (or phrase).",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "vocab",
+                                        "title": "Vocabulary",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.keywords.vocab",
+                                        "help_text": "The controlled vocabulary from which the keyword is extracted, if any.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.keywords.uri",
+                                        "help_text": "The URL of the controlled vocabulary from which the keyword is extracted, if any.",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "display_options": {
+                                    "field_template": "field_array_tags",
+                                    "tag_column": "keyword"
+                                }
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684331110642",
+                        "title": "Coverage",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.study_info.geog_coverage",
+                                "title": "Geographic coverage",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.geog_coverage_notes",
+                                "title": "Geographic coverage notes",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.geog_unit",
+                                "title": "Geographic unit",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.universe",
+                                "title": "Universe",
+                                "type": "string",
+                                "help_text": "The universe is the group of persons (or other units of observations, like dwellings, facilities, or other) that are the object of the study and to which any analytic results refer. The universe will rarely cover the entire population of the country. Sample household surveys, for example, may not cover homeless, nomads, diplomats, community households. Population censuses do not cover diplomats. Facility surveys may be limited to facilities of a certain type (e.g., public schools). Try to provide the most detailed information possible on the population covered by the survey\/census, focusing on excluded categories of the population. For household surveys, age, nationality, and residence commonly help to delineate a given universe, but any of a number of factors may be involved, such as sex, race, income, veteran status, criminal convictions, etc. In general, it should be possible to tell from the description of the universe whether a given individual or element (hypothetical or real) is a member of the population under study.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.bbox",
+                                "title": "Bounding box",
+                                "type": "array",
+                                "class": "required",
+                                "props": [
+                                    {
+                                        "key": "west",
+                                        "title": "West",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.bbox.west",
+                                        "help_text": "West longitude of the bounding box.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "east",
+                                        "title": "East",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.bbox.east",
+                                        "help_text": "East longitude of the bounding box.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "south",
+                                        "title": "South",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.bbox.south",
+                                        "help_text": "South latitude of the bounding box.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "north",
+                                        "title": "North",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.bbox.north",
+                                        "help_text": "North latitude of the bounding box.",
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "This element is used to define one or multiple geographic bounding box(es), which are the rectangular fundamental geometric description of the geographic coverage of the data. A bounding box is defined by west and east longitudes and north and south latitudes, and includes the largest geographic extent of the dataset’s geographic coverage. The bounding box provides the geographic coordinates of the top left (north\/west) and bottom-right (south\/east) corners of a rectangular area. This element can be used in catalogs as the first pass of a coordinate-based search. This element is optional, but if the \"Bounding polygon\" element is used, then the \"Bounding box\" element must be included. Also, all 4 components (or none) of the element must be entered. The valid range of latitude in degrees is -90 and +90 for the southern and northern hemisphere, respectively. Longitude is in the range -180 and +180 specifying coordinates west and east of the Prime Meridian, respectively."
+                            },
+                            {
+                                "key": "study_desc.study_info.bound_poly",
+                                "title": "Bounding polygon",
+                                "help_text": "The \"Bounding box\" metadata element describes a rectangular area representing the entire geographic coverage of a dataset. The element \"Bounding polygon\" allows for a more detailed description of the geographic coverage, by allowing multiple and non-rectangular polygons (areas) to be described. This is done by providing list(s) of latitude and longitude coordinates that define the area(s). It should only be used to define the outer boundaries of the covered areas. This field is intended to enable a refined coordinate-based search, not to actually map an area. Note that if the \"Bounding polygon\" element is used, then the element \"Bounding box\" MUST be present as well, and all points enclosed by the \"Bounding polygon\" MUST be contained within the bounding box defined in \"Bounding box\".",
+                                "type": "array",
+                                "class": "required",
+                                "props": [
+                                    {
+                                        "key": "lat",
+                                        "title": "Latitude",
+                                        "help_text": "The latitude of the coordinate (Y coordinate).",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.bound_poly.lat",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "lon",
+                                        "title": "Longitude",
+                                        "help_text": "The longitude of the coordinate (X coordinate) .",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.bound_poly.lon",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684331430702",
+                        "title": "producers_sponsors",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.authoring_entity",
+                                "title": "Primary producer\/investigator",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.authoring_entity.name",
+                                        "help_text": "The name of the person, corporate body, or agency responsible for the work’s substantive and intellectual content. The primary investigator will in most cases be an institution, but could also be an individual in the case of small-scale academic surveys. If persons are mentioned, use the appropriate format of Surname, First name.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.authoring_entity.affiliation",
+                                        "help_text": "The affiliation of the person, corporate body, or agency mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "The name and affiliation of the person, corporate body, or agency responsible for the study’s substantive and intellectual content (the \"authoring entity\" or “primary investigator”). Generally, in a survey, the authoring entity will be the institution implementing the survey. Repeat the element for each authoring entity, and enter the “Affiliation” when relevant. If various institutions have been equally involved as main investigators, then should all be listed. This only includes the agencies responsible for the implementation of the study, not sponsoring agencies or entities providing technical assistance (for which other metadata elements are available). The order in which authoring entities are listed is discretionary. It can be alphabetic or by significance of contribution. Individual persons can also be mentioned, if not prohibited by privacy protection rules."
+                            },
+                            {
+                                "key": "study_desc.production_statement.producers",
+                                "title": "Other producers",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.producers.name",
+                                        "help_text": "The name of the person or organization.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbreviation",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.producers.abbreviation",
+                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.producers.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.producers.role",
+                                        "help_text": "A succinct description of the specific contribution by the person or organization in the production of the data.",
+                                        "display_type": "textarea"
+                                    }
+                                ],
+                                "help_text": "This field is used to list other parties and persons that have played a significant but not the leading technical role in implementing and producing the data (which will be listed in \"Authoring entity\"). Do not include here the financial sponsors, who should be listed in \"Funding agencies\"."
+                            },
+                            {
+                                "key": "study_desc.production_statement.funding_agencies",
+                                "title": "Funding agencies",
+                                "help_text": "The source(s) of funds for the production of the study. If different funding agencies sponsored different stages of the production process, use the role attribute to distinguish them.",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.funding_agencies.name",
+                                        "help_text": "The name of the funding agency.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.funding_agencies.abbr",
+                                        "help_text": "The abbreviation (acronym) of the funding agency mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "grant",
+                                        "title": "Grant number",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.funding_agencies.grant",
+                                        "help_text": "The grant number. If an agency has provided more than one grant, list them all separated with a “;”.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "study_desc.production_statement.funding_agencies.role",
+                                        "help_text": "The specific contribution of the funding agency mentioned in \"Name\". This element is used when multiple funding agencies are listed to distinguish their specific contributions.",
+                                        "display_type": "textarea"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.study_info.study_budget",
+                                "title": "Budget",
+                                "help_text": "The budget of a study will ideally be described by budget line. The currency used to describe the budget should be specified. This element can also be used to document issues related to the budget (e.g., documenting possible under-run and over-run).",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.oth_id",
+                                "title": "Other contributors",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.oth_id.name",
+                                        "help_text": "The name of the person or organization.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.oth_id.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "study_desc.oth_id.role",
+                                        "help_text": "A brief description of the specific role of the person or organization mentioned in \"Name\".",
+                                        "display_type": "textarea"
+                                    }
+                                ],
+                                "help_text": "This element is used to acknowledge any other people and organizations that have in some form contributed to the study. This does not include other producers which should be listed in \"Other producers\", and financial sponsors which should be listed in the element \"Funding agencies\"."
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "type": "section",
+                        "key": "study_description.study_authorization",
+                        "help_text": "Provides structured information on the agency that authorized the study, the date of authorization, and an authorization statement",
+                        "title": "Study authorization",
+                        "items": [
+                            {
+                                "key": "study_desc.study_authorization.date",
+                                "title": "Authorization date",
+                                "help_text": "This element will be used when a special legislation is required to conduct the data collection (for example a Census Act) or when the approval of an Ethics Board or other body is required to collect the data. This and other related elements provide a way to capture structured information on the agency that authorized the study, the date of authorization, and the authorization statement. The \"Authorization date\" element is used to store the date when the authorization to conduct the study was granted. The date will preferably be entered in ISO 8601 format (YYYY-MM-DD or YYYY-MM). A Validation rule can be set in user templates to enforce a specific date format. ",
+                                "type": "string",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.study_authorization.agency",
+                                "title": "Authorizing agency",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_authorization.agency.name",
+                                        "help_text": "Name of the agent or agency that authorized the study.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_authorization.agency.affiliation",
+                                        "help_text": "The institutional affiliation of the authorizing agent or agency mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_authorization.agency.abbr",
+                                        "help_text": "The abbreviation of the authorizing agent’s or agency’s name.",
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "This element will be used when a special legislation is required to conduct the data collection (for example a Census Act) or when the approval of an Ethics Board or other body is required to collect the data. This and other related elements provide a way to capture structured information on the agency that authorized the study, the date of authorization, and the authorization statement. This element is used to capture the identification (name, acronym, and affiliation) of the agency that authorized the study."
+                            },
+                            {
+                                "key": "study_desc.study_authorization.authorization_statement",
+                                "title": "Authorization statement",
+                                "help_text": "This element will be used when a special legislation is required to conduct the data collection (for example a Census Act) or when the approval of an Ethics Board or other body is required to collect the data. This and other related elements provide a way to capture structured information on the agency that authorized the study, the date of authorization, and the authorization statement. This element is used to capture the text of the authorization (or a description and link to a document or other resource containing the authorization statement).",
+                                "type": "string",
+                                "display_type": "textarea"
+                            }
+                        ]
+                    },
+                    {
+                        "key": "study_desc1674579234511",
+                        "title": "Sampling",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc16745792345111674579295696",
+                                "title": "Sample frame",
+                                "type": "section",
+                                "items": [
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "help_text": "A description of the sample frame used for identifying the population from which the sample was taken. For example, a telephone book may be a sample frame for a phone survey. Or the listing of enumeration areas (EAs) of a population census can provide a sample frame for a household survey. In addition to the name, label and text describing the sample frame, this structure lists who maintains the sample frame, the period for which it is valid, a use statement, the universe covered, the type of unit contained in the frame as well as the number of units available, the reference period of the frame and procedures used to update the frame. This field capture the name (title) of the sample frame.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.valid_period",
+                                        "title": "Valid periods",
+                                        "help_text": "Defines a time period for the validity of the sampling frame, using a list of events and dates.",
+                                        "type": "array",
+                                        "props": [
+                                            {
+                                                "key": "event",
+                                                "title": "Event",
+                                                "type": "string",
+                                                "help_text": "The event can for example be start or end.",
+                                                "prop_key": "study_desc.method.data_collection.sample_frame.valid_period.event",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "date",
+                                                "title": "Date",
+                                                "type": "string",
+                                                "prop_key": "study_desc.method.data_collection.sample_frame.valid_period.date",
+                                                "help_text": "The date corresponding to the event, preferably entered in ISO 8601 format: YYYY-MM-DD. A validation rule can be set in user templates to enforce the date formatting.",
+                                                "display_type": "text"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.custodian",
+                                        "title": "Custodian",
+                                        "help_text": "Custodian identifies the agency or individual responsible for creating and\/or maintaining the sample frame.",
+                                        "type": "string",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.universe",
+                                        "title": "Universe",
+                                        "help_text": "A description of the universe of population covered by the sample frame. Age, nationality, and residence commonly help to delineate a given universe, but any of a number of factors may be involved, such as sex, race, income, etc. The universe may consist of elements other than persons, such as housing units, court cases, deaths, countries, etc. In general, it should be possible to tell from the description of the universe whether a given individual or element (hypothetical or real) is included in the sample frame.",
+                                        "type": "string",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.frame_unit.unit_type",
+                                        "title": "Unit type",
+                                        "help_text": "The type of the sampling frame unit (for example “household”, or “dwelling”).",
+                                        "type": "string",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.frame_unit.is_primary",
+                                        "title": "Units are primary",
+                                        "type": "boolean",
+                                        "help_text": "This Boolean attribute (true\/false) indicates whether the sample unit is primary or not.",
+                                        "display_type": "dropdown"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.frame_unit.num_of_units",
+                                        "title": "Number of units",
+                                        "help_text": "The number of units in the sample frame, possibly with information on its distribution (e.g. by urban\/rural, province, or other).",
+                                        "type": "string",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.update_procedure",
+                                        "title": "Sampling procedure",
+                                        "help_text": "This element is used to describe how and with what frequency the sample frame is updated. For example: “The lists and boundaries of enumeration areas are updated every ten years at the occasion of the population census cartography work. Listing of households in enumeration areas are updated as and when needed, based on their selection in survey samples.”",
+                                        "type": "string",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "study_desc.method.data_collection.sample_frame.reference_period",
+                                        "title": "Reference periods",
+                                        "help_text": "Indicates the period of time in which the sampling frame was actually used for the study in question. ",
+                                        "type": "array",
+                                        "props": [
+                                            {
+                                                "key": "event",
+                                                "title": "Event",
+                                                "type": "string",
+                                                "help_text": "Indicates the type of event that the date corresponds to, e.g., “start”, “end”, “single”.",
+                                                "prop_key": "study_desc.method.data_collection.sample_frame.reference_period.event",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "date",
+                                                "title": "Date",
+                                                "type": "string",
+                                                "prop_key": "study_desc.method.data_collection.sample_frame.reference_period.date",
+                                                "help_text": "The relevant date preferably entered in ISO 8601 format: YYYY-MM-DD. A validation rule can be set in user templates to enforce the date formatting.",
+                                                "display_type": "text"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "help_text": ""
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.sampling_procedure",
+                                "title": "Sampling procedure",
+                                "type": "string",
+                                "help_text": "This field only applies to sample surveys. It describes the type of sample and sample design used to select the survey respondents to represent the population. This section should include summary information that includes (but is not limited to): sample size (expected and actual) and how the sample size was decided; level of representation of the sample; sample frame used, and listing exercise conducted to update it; sample selection process (e.g., probability proportional to size or over sampling); stratification (implicit and explicit); design omissions in the sample; strategy for absent respondents\/not found\/refusals (replacement or not). Detailed information on the sample design is critical to allow users to adequately calculate sampling errors and confidence intervals for their estimates. To do that, they will need to be able to clearly identify the variables in the dataset that represent the different levels of stratification and the primary sampling unit (PSU).\n\nIn publications and reports, the description of sampling design often contains complex formulas and symbols. As the XML and JSON formats used to store the metadata are plain text files, they cannot contain these complex representations. You may however provide references (title\/author\/date) to documents where such detailed descriptions are provided, and make sure that the documents (or links to the documents) are provided in the catalog where the survey metadata are published.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.sampling_deviation",
+                                "title": "Deviations from sample design",
+                                "help_text": "Sometimes the reality of the field requires a deviation from the sampling design (for example due to difficulty to access to zones due to weather problems, political instability, etc). If for any reason, the sample design has deviated, this can be reported here. This element will provide information indicating the correspondence as well as the possible discrepancies between the sampled units (obtained) and available statistics for the population (age, sex-ratio, marital status, etc.) as a whole.",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.analysis_info.response_rate",
+                                "title": "Response rates",
+                                "type": "string",
+                                "help_text": "The response rate is the percentage of sample units that participated in the survey based on the original sample size. Omissions may occur due to refusal to participate, impossibility to locate the respondent, or other reason. This element is used to provide a narrative description of the response rate, possibly by stratum or other criteria, and if possible with an identification of possible causes. If information is available on the causes of non-response (refusal\/not found\/other), it can be reported here. This field can also be used to describe non-responses in population censuses.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.weight",
+                                "title": "Weighting",
+                                "type": "string",
+                                "help_text": "This field only applies to sample surveys. The use of sampling procedures may make it necessary to apply weights to produce accurate statistical results. Describe here the criteria for using weights in analysis of a collection, and provide a list of variables used as weighting coefficient. If more than one variable is a weighting variable, describe how these variables differ from each other and what the purpose of each one of them is.",
+                                "_ddi_xpath": "stdyDscr.method.dataColl.weight",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684332949622",
+                        "title": "survey_instrument",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.method.data_collection.research_instrument",
+                                "title": "Questionnaires",
+                                "help_text": "The questionnaire (or \"form\", or \"research instrument \") used for collecting the data. The following should be mentioned:\n- List of questionnaires and short description of each (all questionnaires must be provided as external resources)\n- In what language(s) was\/were the questionnaire(s) available?\n- Information on the questionnaire design process (based on a previous questionnaire, based on a standard model questionnaire, review by stakeholders). If a document was compiled that contains the comments provided by the stakeholders on the draft questionnaire, or a report prepared on the questionnaire testing, a reference to these documents can be provided here.",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.instru_development",
+                                "type": "string",
+                                "title": "Instrument development",
+                                "help_text": "Describe any development work on the data collection instrument. This may include a description of the review process, standards followed, and a list of agencies\/people consulted.",
+                                "_ddi_xpath": "stdyDscr.method.dataColl.instrumentDevelopment",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.method_notes",
+                                "title": "Notes on methodology",
+                                "type": "string",
+                                "help_text": "This element is provided to capture any additional relevant information on the data collection methodology, which could not fit in the previous metadata elements.",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684332928200",
+                        "title": "data_collection",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.study_info.coll_dates",
+                                "title": "Dates of data collection",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "start",
+                                        "title": "Start",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.coll_dates.start",
+                                        "help_text": "Date the data collection started (for the specified cycle, if any). Enter the date preferably in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be set in user templates to enforce a specific date format.",
+                                        "display_type": "date"
+                                    },
+                                    {
+                                        "key": "end",
+                                        "title": "End",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.coll_dates.end",
+                                        "help_text": "Date the data collection ended (for the specified cycle, if any). Enter the date preferably in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be set in user templates to enforce a specific date format.",
+                                        "display_type": "date"
+                                    },
+                                    {
+                                        "key": "cycle",
+                                        "title": "Cycle",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.coll_dates.cycle",
+                                        "help_text": "Identification of the cycle of data collection. The cycle attribute permits specification of the relevant cycle, wave, or round of data. For example, a household consumption survey could visit households in four phases (one per quarter). Each quarter would be a cycle, and the specific dates of data collection for each quarter would be entered.",
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "Contains the date(s) when the data were collected, which may be different from the dates the data refer to (see \"Time periods\" element in section \"Geographic and time coverage\"). For example, data may be collected over a period of two weeks (\"Dates of data collection\") about household expenditures during a reference week (\"Time period\") preceding the beginning of data collection. ",
+                                "is_recommended": true
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.time_method",
+                                "title": "Time method",
+                                "help_text": "The time method or time dimension of the data collection. A controlled vocabulary can be used. The entries for this element may include “panel survey”, “cross-section”, “trend study”, or “time-series”.",
+                                "type": "string",
+                                "display_type": "dropdown-custom"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.frequency",
+                                "title": "Frequency",
+                                "help_text": "For data collected at more than one point in time, the frequency with which the data were collected.",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.time_periods",
+                                "title": "Time periods",
+                                "help_text": "This refers to the time period (also known as span) covered by the data. It does not necessarily correspond to the dates of data collection (a specific element \"Dates of data collection\" is also available in the standard).\n",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "start",
+                                        "title": "Start",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.time_periods.start",
+                                        "help_text": "The start date for the cycle being described. Enter the date in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). Indicate open-ended dates with two decimal points (..)",
+                                        "display_type": "date"
+                                    },
+                                    {
+                                        "key": "end",
+                                        "title": "End",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.time_periods.end",
+                                        "help_text": "The end date for the cycle being described. Enter the date in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). Indicate open-ended dates with two decimal points (..)",
+                                        "display_type": "date"
+                                    },
+                                    {
+                                        "key": "cycle",
+                                        "title": "Cycle",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.time_periods.cycle",
+                                        "help_text": "The \"Cycle\" attribute permits specification of the relevant cycle, wave, or round of data.",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.sources",
+                                "title": "Data collection sources",
+                                "type": "array",
+                                "_ddi_xpath": "stdyDscr.method.dataColl.sources",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.sources.name",
+                                        "help_text": "The name and other information on the source. For example, “United States Internal Revenue Service Quarterly Payroll File”",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "origin",
+                                        "title": "Origin",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.sources.origin",
+                                        "help_text": "For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. This may not be relevant to survey data.",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "characteristics",
+                                        "title": "Characteristics",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.sources.characteristics",
+                                        "help_text": "Assessment of characteristics and quality of source material. This may not be relevant to survey data.",
+                                        "display_type": "textarea"
+                                    }
+                                ],
+                                "help_text": "A description of sources used for developing the methodology of the data collection."
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.coll_mode",
+                                "title": "Mode of data collection",
+                                "help_text": "The mode of data collection is the manner in which the interview was conducted or information was gathered. Ideally, a controlled vocabulary will be used to constrain the entries in this field (which could include items like “telephone interview”, “face-to-face paper and pen interview”, “face-to-face computer-assisted interviews (CAPI)”, “mail questionnaire”, “computer-aided telephone interviews (CATI)”, “self-administered web forms”, “measurement by sensor”, and others.\n\nThis is a repeatable field, as some data collection activities implement multi-mode data collection (for example, a population census can offer respondents the options to submit information via web forms, telephone interviews, mailed forms, or face-to-face interviews. ",
+                                "type": "simple_array",                                
+                                "display_type": "dropdown-custom"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.data_collectors",
+                                "title": "Data collectors",
+                                "help_text": "The entity (individual, agency, or institution) responsible for administering the questionnaire or interview or compiling the data.",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.data_collectors.name",
+                                        "help_text": "In most cases, we will record here the name of the agency, not the name of interviewers. Only in the case of very small-scale surveys, with a very limited number of interviewers, the name of persons will be included as well.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.data_collectors.affiliation",
+                                        "help_text": "The affiliation of the data collector mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.data_collectors.abbr",
+                                        "help_text": "The abbreviation given to the agency mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.data_collectors.role",
+                                        "help_text": "The specific role of the person or agency mentioned in \"Name\".",
+                                        "display_type": "textarea"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.collector_training",
+                                "title": "Collector training",
+                                "help_text": "Describes the training provided to data collectors including interviewer training, process testing, compliance with standards etc. This set of elements is repeatable, to capture different aspects of the training process.",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.collector_training.type",
+                                        "help_text": "The type of training being described. For example, “Training of interviewers”, “Training of controllers”, “Training of cartographers”, “Training on the use of tablets for data collection”, etc.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "training",
+                                        "title": "Training",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_collection.collector_training.training",
+                                        "help_text": "A brief description of the training. This may include information on the dates and duration, audience, location, content, trainers, issues, etc.",
+                                        "display_type": "textarea"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.control_operations",
+                                "type": "string",
+                                "title": "Control operations",
+                                "help_text": "This element contains information on the oversight of the data collection, i.e. on methods implemented to facilitate data control usually performed by the primary investigator.",
+                                "_ddi_xpath": "stdyDscr.method.dataColl.ConOps",
+                                "enum": [],
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.act_min",
+                                "title": "Supervision",
+                                "help_text": "A summary of actions taken to minimize data loss. This includes information on actions such as follow-up visits, supervisory checks, historical matching, estimation, etc. Note that this element does not have to include detailed information on response rates, as a specific metadata element is provided for that purpose in section analysis_info \/ response_rate.",
+                                "type": "string",
+                                "enum": [],
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.coll_situation",
+                                "title": "Notes on data collection",
+                                "help_text": "This element is provided to document any specific situations, observations, or events that occurred during data collection. Consider stating such items like: \n    - Was a training of enumerators held? (elaborate) \n    - Was a pilot survey conducted? \n    - Did any events have a bearing on the data quality? (elaborate) \n    - How long did an interview take on average? \n    - In what language(s) were the interviews conducted? \n    - Were there any corrective actions taken by management when problems occurred in the field?",
+                                "type": "string",
+                                "enum": [],
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1686767889862",
+                        "title": "Data processing",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.method.data_processing",
+                                "title": "Data processing",
+                                "help_text": "This element is used to describe how data were electronically captured (e.g., entered in the field, in a centralized manner by data entry clerks, captured electronically using tablets and a CAPI application, via web forms, etc.). Information on devices and software used for data capture can also be provided here. Other data processing procedures not captured elsewhere in the documentation can be described here (tabulation, etc.)",
+                                "_ddi_xpath": "stdyDscr.method.dataProcessing",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_processing.type",
+                                        "help_text": "The type attribute supports better classification of this activity, including the optional use of a controlled vocabulary. The vocabulary could include options like “data capture”, “data validation”, “variable derivation”, “tabulation”, “data visualizations”, anonymization“, ”documentation\", etc.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.data_processing.description",
+                                        "help_text": "A description of a data processing task.",
+                                        "display_type": "textarea"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.method.data_collection.cleaning_operations",
+                                "title": "Cleaning operations",
+                                "type": "string",
+                                "help_text": "A description of the methods used to clean or edit the data, e.g., consistency checking, wild code checking, etc. The data editing should contain information on how the data was treated or controlled for in terms of consistency and coherence. This item does not concern the data entry phase but only the editing of data whether manual or automatic. It should provide answers to questions like: Was a hot-deck or a cold-deck technique used to edit the data? Were corrections made automatically (by program), or by visual control of the questionnaire? What software was used? If materials are available (specifications for data editing, report on data editing, programs used for data editing), they should be listed here and provided as external resources in data catalogs (the best documentation of data editing consists of well-documented reproducible scripts).",
+                                "enum": [],
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1686767799017",
+                        "title": "Study activities",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.study_development.development_activity",
+                                "title": "Study activities",
+                                "help_text": "This section is used to describe the process that led to the production of the final output of the study, from its inception\/design to the dissemination of the final output. Each activity is documented separately. The Generic Statistical Business Process Model (GSBPM) provides a useful decomposition of such a process, which can be used to list the activities to be described. ",
+                                "type": "nested_array",
+                                "props": [
+                                    {
+                                        "key": "activity_type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_development.development_activity.activity_type",
+                                        "help_text": "The type of activity. A controlled vocabulary can be used, possibly comprising the main components of the GSBPM: {Needs specification, Design, Build, Collect, Process, Analyze, Disseminate, Evaluate}).",                                        
+                                        "display_type": "dropdown-custom"
+                                    },
+                                    {
+                                        "key": "activity_description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "_ddi_xpath": "stdyDscr.studyDevelopment.developmentActivity.description",
+                                        "prop_key": "study_desc.study_development.development_activity.activity_description",
+                                        "help_text": "A brief description of the activity.",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "participants",
+                                        "title": "Participants",
+                                        "type": "array",
+                                        "props": [
+                                            {
+                                                "key": "name",
+                                                "title": "Name",
+                                                "type": "string",
+                                                "prop_key": "study_desc.study_development.development_activity.participants.name",
+                                                "help_text": "Name of the participating person or organization.",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "affiliation",
+                                                "title": "Affiliation",
+                                                "type": "string",
+                                                "prop_key": "study_desc.study_development.development_activity.participants.affiliation",
+                                                "help_text": "Affiliation of the person or organization mentioned in \"Name\".",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "role",
+                                                "title": "Role",
+                                                "type": "string",
+                                                "prop_key": "study_desc.study_development.development_activity.participants.role",
+                                                "help_text": "Specific role (participation) of the person or organization mentioned in \"Name\".",
+                                                "display_type": "textarea"
+                                            }
+                                        ],
+                                        "prop_key": "study_desc.study_development.development_activity.participants",
+                                        "help_text": "A list of participants (persons or organizations) in the activity. This is a repeatable set of elements; each participant can be documented separately."
+                                    },
+                                    {
+                                        "key": "resources",
+                                        "title": "Resources",
+                                        "type": "array",
+                                        "_ddi_xpath": "stdyDscr.studyDevelopment.developmentActivity.resource",
+                                        "props": [
+                                            {
+                                                "key": "name",
+                                                "title": "Name",
+                                                "type": "string",
+                                                "prop_key": "study_desc.study_development.development_activity.resources.name",
+                                                "help_text": "The name of the resource.",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "origin",
+                                                "title": "Origin",
+                                                "type": "string",
+                                                "prop_key": "study_desc.study_development.development_activity.resources.origin",
+                                                "help_text": "The origin of the resource mentioned in \"Name\".",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "characteristics",
+                                                "title": "Characteristics",
+                                                "type": "string",
+                                                "prop_key": "study_desc.study_development.development_activity.resources.characteristics",
+                                                "help_text": "The characteristics of the resource mentioned in \"Name\".",
+                                                "display_type": "textarea"
+                                            }
+                                        ],
+                                        "prop_key": "study_desc.study_development.development_activity.resources",
+                                        "help_text": "A description of the data sources and other resources used to implement the activity."
+                                    },
+                                    {
+                                        "key": "outcome",
+                                        "title": "Activity outcome",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_development.development_activity.outcome",
+                                        "help_text": "A brief description of the main outcome of the activity.",
+                                        "display_type": "textarea"
+                                    }
+                                ]
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1686768018000",
+                        "title": "quality_standards",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.study_info.quality_statement.compliance_description",
+                                "title": "Standard compliance",
+                                "type": "string",
+                                "help_text": "A statement on compliance with standard quality assessment procedures. The list of these standards can be documented in the element \"Standards\".",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.quality_statement.standards",
+                                "title": "quality_standards",
+                                "help_text": "An itemized list of quality standards complied with during the execution of the study.",
+                                "type": "array",
+                                "class": "required",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Standard",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.quality_statement.standards.name",
+                                        "help_text": "The name of the quality standard, if such a standard was used. Include the date when the standard was published, and the version of the standard with which the study is compliant, and possibly a URL.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "producer",
+                                        "title": "Producer",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.quality_statement.standards.producer",
+                                        "help_text": "The producer of the quality standard mentioned in \"Standard\".",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.study_info.quality_statement.other_quality_statement",
+                                "title": "Other quality statement",
+                                "type": "string",
+                                "help_text": "Any additional statement on the quality of the data, entered as free text. This can be independent of any particular quality standard.",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684334914432",
+                        "title": "Data appraisal",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.method.analysis_info.sampling_error_estimates",
+                                "title": "Estimates of sampling errors",
+                                "type": "string",
+                                "help_text": "Sampling errors are intended to measure how precisely one can estimate a population value from a given sample. For sampling surveys, it is good practice to calculate and publish sampling error. This field is used to provide information on these calculations (not to provide the sampling errors themselves, which should be made available in publications or reports). Information can be provided on which ratios\/indicators have been subjected to the calculation of sampling errors, and on the software used for computing the sampling error. Reference to a report or other document where the results can be found can also be provided.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.ex_post_evaluation.type",
+                                "title": "Evaluation type",
+                                "type": "string",
+                                "help_text": "The \"Type\" attribute identifies the type of ex-post evaluation, with or without the use of a controlled vocabulary.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.study_info.ex_post_evaluation.evaluation_process",
+                                "title": "Evaluation process",
+                                "type": "string",
+                                "help_text": "A description of the ex-post evaluation process. This may include information on the period when the evaluation was conducted, cost\/budget, relevance, institutional or legal arrangements, etc.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.study_info.ex_post_evaluation.evaluator",
+                                "title": "Evaluators",
+                                "help_text": "The \"Evaluator\" element identifies the person(s) and\/or organization(s) involved in the ex-post evaluation.",
+                                "type": "array",
+                                "class": "required",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.ex_post_evaluation.evaluator.name",
+                                        "help_text": "The name of the person or organization involved in the evaluation.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.ex_post_evaluation.evaluator.abbr",
+                                        "help_text": "An abbreviation for the organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.ex_post_evaluation.evaluator.affiliation",
+                                        "help_text": "The affiliation of the individual or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "study_desc.study_info.ex_post_evaluation.evaluator.role",
+                                        "help_text": "The specific role played by the individual or organization mentioned in \"Name\" in the evaluation process.",
+                                        "display_type": "textarea"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.study_info.ex_post_evaluation.completion_date",
+                                "title": "Completion date",
+                                "type": "string",
+                                "help_text": "Ex-post evaluations are frequently done within large statistical or research organizations, in particular when a study is intended to be repeated. Such evaluations are recommended by the Generic Statistical Business Process Model (GSBPM). This section of the schema is used to describe the evaluation procedures and their outcomes. This field is used to capture the date the ex-post evaluation was completed. It is recommended to enter the date in ISO format (YYYY-MM-DD or YYYY-MM). A validation rule can be set in user templates to enforce a date format.",
+                                "display_type": "date"
+                            },
+                            {
+                                "key": "study_desc.study_info.ex_post_evaluation.outcomes",
+                                "title": "Evaluation outcomes",
+                                "type": "string",
+                                "help_text": "A description of the outcomes of the ex-post evaluation. It may include a reference to an evaluation report.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.analysis_info.data_appraisal",
+                                "title": "Data appraisal",
+                                "type": "string",
+                                "help_text": "This section is used to report any other action taken to assess the reliability of the data, or any observations regarding data quality. Describe here issues such as response variance, interviewer and response bias, question bias, etc. For a population census, this can include information on the main results of a post enumeration survey (a report should be provided in external resources and mentioned here); it can also include relevant comparisons with data from other sources that can be used as benchmarks.",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684336809542",
+                        "title": "data_access",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.data_access.dataset_availability.access_place",
+                                "type": "string",
+                                "title": "Location of dataset",
+                                "help_text": "Name of the location where the data collection is currently stored.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.accsPlac",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.access_place_url",
+                                "type": "string",
+                                "title": "URL for location of dataset",
+                                "help_text": "The URL of the website of the location where the data collection is currently stored.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.accsPlac.@URI",
+                                "rules": {
+                                    "is_uri": true
+                                },
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.original_archive",
+                                "type": "string",
+                                "title": "Archive where study is originally stored",
+                                "help_text": "Archive from which the data collection was obtained, if any (the originating archive). Note that the schema we propose provides an element provenance, which is not part of the DDI, that can be used to document the origin of a dataset.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.origArch",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.coll_size",
+                                "type": "string",
+                                "title": "Extent of collection",
+                                "help_text": "Extent of the collection. This is a summary of the number of physical files that exist in a collection. We will record here the number of files that contain data and note whether the collection contains other machine-readable documentation and\/or other supplementary files and information such as data dictionaries, data definition statements, or data collection instruments. This element will rarely be used.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.collSize",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.complete",
+                                "type": "string",
+                                "title": "Completeness",
+                                "help_text": "This item indicates the relationship of the data collected to the amount of data coded and stored in the data collection. Information as to why certain items of collected information were not included in the data file stored by the archive should be provided here. Example: “Because of embargo provisions, data values for some variables have been masked. Users should consult the data definition statements to see which variables are under embargo.” This element will rarely be used.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.complete",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.file_quantity",
+                                "type": "string",
+                                "title": "Number of files",
+                                "help_text": "The total number of physical files associated with a collection. This element will rarely be used.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.fileQnty",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.notes",
+                                "type": "string",
+                                "title": "Notes on data availability",
+                                "help_text": "Additional information on the dataset availability, not included in one of the elements above.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684334943415",
+                        "title": "Depositor information",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.distribution_statement.depositor",
+                                "title": "Depositor",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.name",
+                                        "help_text": "The name of the depositor. It can be an individual or an organization.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.abbr",
+                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.uri",
+                                        "help_text": "A link (URL) to the depositor website.",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "The name of the person or institution who provided this study to the archive storing it."
+                            },
+                            {
+                                "key": "study_desc.distribution_statement.deposit_date",
+                                "title": "Date of deposit",
+                                "type": "string",
+                                "help_text": "The date that the study was deposited with the archive that originally received it. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
+                                "display_type": "date"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684336915542",
+                        "title": "Distributor information",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.distribution_statement.distributors",
+                                "title": "Distributors",
+                                "type": "array",
+                                "required": false,
+                                "help_text": "The organization(s) designated by the author or producer to generate copies of the study output including any necessary editions or revisions.",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "description": "Organization name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.distributors.name",
+                                        "help_text": "The name of the distributor. It can be an individual or an organization.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.distributors.abbr",
+                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "type": "string",
+                                        "title": "Affiliation",
+                                        "prop_key": "study_desc.distribution_statement.distributors.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.distributors.uri",
+                                        "help_text": "A link (URL) to the ordering service or download facility website.",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.distribution_statement.distribution_date",
+                                "title": "Date of distribution",
+                                "type": "string",
+                                "help_text": "Date that the study was made available for distribution. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
+                                "display_type": "date"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684335103457",
+                        "title": "access_policy",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.data_access.dataset_use.contact",
+                                "title": "Access authority",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.name",
+                                        "help_text": "Name of the person. Note that in some cases, it might be better to provide a title\/function than the actual name of the person. Keep in mind that people do not stay forever in their position.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.affiliation",
+                                        "help_text": "Affiliation of the person mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.uri",
+                                        "help_text": "URL for the person; it can be the URL of the organization the person belongs to.",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "email",
+                                        "title": "Email",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.email",
+                                        "help_text": "The email element is used to indicate an email address for the contact individual mentioned in name. Ideally, a generic email address should be provided. It is easy to configure a mail server in such a way that all messages sent to the generic email address would be automatically forwarded to some staff members.",
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "Users of the data may need further clarification and information on the terms of use and conditions to access the data. This set of elements is used to identify the contact persons who can be used as resource persons regarding problems or questions raised by the user community."
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.conf_dec",
+                                "type": "array",
+                                "title": "Confidentiality declaration",
+                                "help_text": "This element is used to determine if signing of a confidentiality declaration is needed to access a resource. We may indicate here what Affidavit of Confidentiality must be signed before the data can be accessed. Another option is to include this information in the element \"Access conditions\". If there is no confidentiality issue, this field can be left blank.",
+                                "props": [
+                                    {
+                                        "key": "required",
+                                        "type": "boolean",
+                                        "title": "Required",
+                                        "help_text": "Indicate if a confidentiality declaration is required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@required",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.required",
+                                        "display_type": "dropdown"
+                                    },
+                                    {
+                                        "key": "txt",
+                                        "type": "string",
+                                        "title": "Text",
+                                        "help_text": "A statement on confidentiality and limitations to data use. This statement does not replace a more comprehensive data agreement (see \"Access condition\"). ",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.txt",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "form_id",
+                                        "type": "string",
+                                        "title": "Form ID",
+                                        "help_text": "Indicates the number or ID of the confidentiality declaration form that the user must fill out.",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@formNo",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_id",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "form_url",
+                                        "type": "string",
+                                        "title": "Form URL",
+                                        "help_text": "The \"Form URL\" element is used to provide a link to an online confidentiality declaration form.",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@URI",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_url",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.conditions",
+                                "title": "Access conditions",
+                                "type": "string",
+                                "help_text": "Indicates any additional information that will assist the user in understanding the access and use conditions of the data collection. Note that if this information is subject to change, it should not be captured in the study metadata but provided in a data catalog page. ",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.conditions",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.cit_req",
+                                "title": "Citation requirement",
+                                "type": "string",
+                                "help_text": "A citation requirement that indicates the way that the dataset should be referenced when cited in any publication. Providing a citation requirement will guarantee that the data producer gets proper credit, and that results of analysis can be linked to the proper version of the dataset. The data access policy should explicitly mention the obligation to comply with the citation requirement. The citation should include at least the primary investigator, the name and abbreviation of the dataset, the reference year, and the version number. Include also a website where the data or information on the data is made available by the official data depositor. Ideally, the citation requirement will include a DOI (see the DataCite website for recommendations).",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.deposit_req",
+                                "type": "string",
+                                "title": "Deposit requirement",
+                                "help_text": "Information regarding data users’ responsibility for informing archives of their use of data through providing citations to the published work or providing copies of the manuscripts.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.deposReq",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.status",
+                                "type": "string",
+                                "title": "Availability status",
+                                "help_text": "A statement of the data availability. An archive may need to indicate that a collection is unavailable because it is embargoed for a period of time, because it has been superseded, because a new edition is imminent, etc. This element will rarely be used.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.avlStatus",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.spec_perm",
+                                "type": "array",
+                                "title": "Special permissions",
+                                "help_text": "This element is used to determine if any special permission is required to access a resource.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.specPerm",
+                                "props": [
+                                    {
+                                        "key": "required",
+                                        "type": "boolean",
+                                        "title": "Required",
+                                        "help_text": "Indicate if special permissions are required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.required",                                        
+                                        "display_type": "dropdown"
+                                    },
+                                    {
+                                        "key": "txt",
+                                        "type": "string",
+                                        "title": "Text",
+                                        "help_text": "A statement on the special permissions required to access the dataset.",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.txt",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "form_url",
+                                        "type": "string",
+                                        "title": "Form URL",
+                                        "help_text": "The \"Form URL\" is used to provide a link to a special on-line permission form.",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_url",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "form_id",
+                                        "type": "string",
+                                        "title": "Form ID",
+                                        "help_text": "The “Form ID” indicates the number or ID of the special permissions form that the user must fill out.",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_id",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.restrictions",
+                                "type": "string",
+                                "title": "Restrictions",
+                                "help_text": "Any restrictions on access to or use of the collection such as privacy certification or distribution restrictions should be indicated here. These can be restrictions applied by the author, producer, or distributor of the data. This element can for example contain a statement (extracted from the DDI documentation) like: “In preparing the data file(s) for this collection, the National Center for Health Statistics (NCHS) has removed direct identifiers and characteristics that might lead to identification of data subjects. As an additional precaution NCHS requires, under Section 308(d) of the Public Health Service Act (42 U.S.C. 242m), that data collected by NCHS not be used for any purpose other than statistical analysis and reporting. NCHS further requires that analysts not use the data to learn the identity of any persons or establishments and that the director of NCHS be notified if any identities are inadvertently discovered. Users ordering data are expected to adhere to these restrictions.”",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.restrctn",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.notes",
+                                "type": "string",
+                                "title": "Notes on access and use",
+                                "help_text": "Any additional information related to data access that is not contained in the specific metadata elements provided in the section \"Data access and use\".",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684335112393",
+                        "title": "disclaimer_copyright",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.data_access.dataset_use.disclaimer",
+                                "title": "Disclaimer",
+                                "help_text": "A disclaimer limits the liability that the data producer or data custodian has regarding the use of the data. A standard legal statement should be used for all datasets from a same agency. The following formulation could be used: The user of the data acknowledges that the original collector of the data, the authorized distributor of the data, and the relevant funding agency bear no responsibility for use of the data or for interpretations or inferences based upon such uses.",
+                                "type": "string",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.production_statement.copyright",
+                                "title": "Copyright",
+                                "type": "string",
+                                "help_text": "A copyright statement for the study at the appropriate level.",
+                                "display_type": "text"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1686768110079",
+                        "title": "Other information",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_description.study_notes",
+                                "title": "Notes on the study",
+                                "help_text": "This element can be used to provide additional information on the study which cannot be accommodated in the specific metadata elements of the schema, in the form of a free text field.",
+                                "type": "string",
+                                "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684335140110",
+                        "title": "Contacts",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.distribution_statement.contact",
+                                "title": "Contacts",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.contact.name",
+                                        "help_text": "The name of the person or organization that can be contacted.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.contact.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "email",
+                                        "title": "Email",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.contact.email",
+                                        "help_text": "An email address for the contact mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.contact.uri",
+                                        "help_text": "A link (URL) to the contact mentioned in \"Name\".",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "Names and addresses of individuals responsible for the study. Individuals listed as contact persons will be used as resource persons regarding problems or questions raised by users."
+                            }
+                        ],
+                        "help_text": ""
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "id": "doc_description",
+                "key": "doc_description",
+                "title": "Document description",
+                "class": "mandatory recommended",
+                "help_text": "",
+                "expanded": true,
+                "items": [
+                    {
+                        "key": "doc_desc.title_statement",
+                        "title": "metadata_production",
+                        "type": "section",
+                        "required": false,
+                        "help_text": "",
+                        "items": [
+                            {
+                                "key": "doc_desc.idno",
+                                "title": "Document ID",
+                                "type": "string",
+                                "required": false,
+                                "help_text": "A unique identifier for the metadata document. This identifier must be unique in the catalog where the metadata are intended to be published. Ideally, the identifier should also be unique globally. This is different from the \"Primary ID\" in section Study description \/ Title statement, although it is good practice to generate identifiers that establish a clear connection between these two identifiers. The Document ID could also include the metadata document version identifier. For example, if the \"Primary identifier\" of the study is “ALB_LSMS_2012”, the \"Document ID\" in the Metadata information could be “IHSN_DDI_v01_ALB_LSMS_2012” if the DDI metadata are produced by the IHSN. Each organization should establish systematic rules to generate such IDs. A validation rule can be set (using a regular expression) in user templates to enforce a specific ID format. The identifier may not contain blank spaces.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "doc_desc.producers",
+                                "title": "Metadata producers",
+                                "type": "array",
+                                "required": false,
+                                "help_text": "The metadata producer is the person or organization with the financial and\/or administrative responsibility for the processes whereby the metadata document was created. This is a \"Recommended\" element. For catalog administration purposes, information on the producer and on the date of metadata production is useful. ",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "help_text": "The name of the person or organization in charge of the production of the DDI metadata. If the name of individuals cannot be provided due to an organization’s data protection rules, the title of the person, or an anonymized identifier, can be provided (or this field can be left blank if no other option is available).",
+                                        "type": "string",
+                                        "prop_key": "doc_desc.producers.name",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "doc_desc.producers.abbr",
+                                        "help_text": "The initials of the person, or the abbreviation of the organization’s name mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "type": "string",
+                                        "title": "Affiliation",
+                                        "prop_key": "doc_desc.producers.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "doc_desc.producers.role",
+                                        "help_text": "The specific role of the person or organization mentioned in \"Name\" in the production of the DDI metadata.",
+                                        "display_type": "textarea"
+                                    }
+                                ],
+                                "is_recommended": true
+                            },
+                            {
+                                "key": "doc_desc.prod_date",
+                                "title": "Date of metadata production",
+                                "type": "string",
+                                "required": false,
+                                "help_text": "The date the DDI metadata document was produced (not the date it was distributed or archived), preferably entered in ISO 8601 format (YYYY-MM-DD or YYY-MM). A validation rule can be set in user templates to enforce a date format. This is a \"Recommended\" element, as information on the producer and on the date of metadata production is useful for catalog administration purposes.",
+                                "is_recommended": true,
+                                "display_type": "date"
+                            },
+                            {
+                                "key": "doc_description1684333414594",
+                                "title": "Metadata version",
+                                "type": "section",
+                                "items": [
+                                    {
+                                        "key": "doc_desc.version_statement.version",
+                                        "title": "Version",
+                                        "type": "string",
+                                        "help_text": "Documenting a dataset is not a trivial exercise. It may happen that, having identified errors or gaps in a DDI document, or after receiving suggestions for improvement or additional input, the DDI metadata are modified. The \"Version\" element and the elements \"Version date\", \"Version responsibility\", and \"Version notes\" describe the version of the metadata document. The \"Version\" element is used to enter the label of the version of the metadata document, also known as release or edition. For example, \"Version 1.1\" or \"v1.1\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "doc_desc.version_statement.version_date",
+                                        "title": "Version date",
+                                        "type": "string",
+                                        "required": false,
+                                        "help_text": "The date when this version of the metadata document (DDI file) was produced, preferably identifying an exact date. This will usually correspond to the \"Production date\" element. It is recommended to enter the date in the ISO 8601 date format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be entered in customized templates to ensure that dates are entered in the appropriate format. \n",
+                                        "display_type": "date"
+                                    },
+                                    {
+                                        "key": "doc_desc.version_statement.version_resp",
+                                        "title": "Version responsibility",
+                                        "type": "string",
+                                        "required": false,
+                                        "help_text": "The organization or person responsible for this version of the metadata document.\n",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "doc_desc.version_statement.version_notes",
+                                        "title": "Version notes",
+                                        "type": "string",
+                                        "required": false,
+                                        "help_text": "This element can be used to clarify information\/annotation regarding this version of the metadata document, for example to indicate what is new or specific in this version comparing with a previous version. ",
+                                        "display_type": "textarea"
+                                    }
+                                ],
+                                "help_text": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section",
+                "key": "citations_section",
+                "title": "citation",
+                "items": [
+                    {
+                        "key": "widgets.doi.citations",
+                        "title": "citation",
+                        "type": "widget",
+                        "widget_options": {
+                            "data_key": "study_desc.title_statement.identifiers",
+                            "widget_field": "doi-citation"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

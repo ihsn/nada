@@ -88,7 +88,9 @@ $lang['user_site_level_permissions']="Droits d'accès au site";
 $lang['assigned_user_groups']="Rôles de l'utilisateur";
 $lang['manage_permissions']="Gestion des droits d'accès";
 $lang['permissions_per_collection']="Droits d'accès par collection";
+$lang['reset_password']="Réinitialisez votre mot de passe";
+$lang['api_keys']="clés d'API";
 
 
-/* End of file users_lang.php */
-/* Location: ./application/language/french/users_lang.php */
+/* End of file users */
+/* Location: ./application/language/french/users */

@@ -5,16 +5,13 @@ $lang['repositories']="Colecciones";
 $lang['repositoryid']="Identificación de la Colección";
 $lang['organization']="Organización";
 $lang['country']="País";
-$lang['scan_interval_in_days']="Intervalo de exploración (en días)";
 $lang['published']="Publicado";
+$lang['draft']="Borrador";
 $lang['status']="Estado";
 $lang['select_repo_type']="Seleccionar tipo de colección";
 $lang['thumbnail']="Ícono";
 $lang['short_description']="Descripción corta";
 $lang['long_description']="Descripción detallada (esta será la página &quot;acerca de&quot; en la colección)";
-$lang['internal']="Interna";
-$lang['external']="Externa";
-$lang['scan']="Exploración";
 $lang['manage_repository_users']="Administrar el acceso a la colección";
 $lang['manage_users']="Administrar usuarios";
 $lang['msg_select_active_repo']="Hacer clic en la colección que desea administrar para la sesión actual.";
@@ -24,6 +21,7 @@ $lang['repositories_management']="Administrar colecciones";
 $lang['repositories_regional']="Repositorios Regionales";
 $lang['repositories_specialized']="Repositorios Especializados";
 $lang['callback_error_repositoryid_exists']="Seleccionar un nombre único (sólo caracteres y números) como Identificación del Repositorio.";
+$lang['callback_error_repositoryid_is_numeric']="Elija un nombre no numérico para la identificación de la colección.";
 $lang['manage_repo_sections']="Grupos de Colecciones";
 $lang['repository_admins']="Administrar Usuarios";
 $lang['da_by_collection']="Acceso a los Datos por Colección";
@@ -46,7 +44,10 @@ $lang['preview']="Vista previa";
 $lang['user']="Usuario";
 $lang['none']="Ninguno";
 $lang['confirm_collection_status_change']="¿Está seguro/a que desea continuar? Esto cambiará el estado de todas las operaciones estadísticas pertenecientes a esta colección.";
+$lang['section']="Sección";
+$lang['thumbnail_upload_folder_not_set']="La carpeta de carga de miniaturas no se encuentra o no se puede escribir";
+$lang['thumbnail_upload_failed']="Error al cargar la miniatura";
 
 
-/* End of file collection_lang.php */
-/* Location: ./application/language/spanish/collection_lang.php */
+/* End of file collection */
+/* Location: ./application/language/spanish/collection */
