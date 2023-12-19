@@ -15,6 +15,7 @@ class Study extends MY_Controller {
 		$this->load->model("Related_study_model");
 		$this->load->model("Variable_model");
 		$this->load->model("Timeseries_db_model");
+		$this->load->model("Survey_data_api_model");
 		$this->load->model("Widget_model");
 		
 		$this->load->library("Metadata_template");
@@ -304,6 +305,22 @@ class Study extends MY_Controller {
 		$this->render_page($sid, $related_studies_formatted,'related_datasets');
 	}
 
+	public function data_api($sid)
+	{
+		$api_dataset=$this->Survey_data_api_model->get_by_sid($sid);
+		
+		if (!$api_dataset){
+			show_404();
+		}
+
+		$options=array(
+            'db_id'=>$api_dataset[0]['db_id'],
+            'table_id'=>$api_dataset[0]['table_id'],
+        );
+
+        $content=$this->load->view('data_api/preview', $options,true);
+		$this->render_page($sid, $content,'data_api');
+	}
 	
 	public function get_microdata($sid)
 	{
@@ -409,6 +426,9 @@ class Study extends MY_Controller {
 			$timeseries_db=$this->Timeseries_db_model->get_database_by_series_id($sid);
 		}
 
+		//data api
+		$has_data_api=$this->Survey_data_api_model->get_by_sid($sid);
+
 		//default layout template view
 		$display_layout='survey_info/layout';
 
@@ -446,6 +466,11 @@ class Study extends MY_Controller {
 						'label'=>t('related_datasets'),
 						'url'=>site_url("catalog/$sid/related-datasets"),
 						'show_tab'=>count($related_studies)
+					),
+					'data_api'=>array(
+						'label'=>t('Data Api'),
+						'url'=>site_url("catalog/$sid/data-api"),
+						'show_tab'=>$has_data_api
 					)
 				);
 				break;

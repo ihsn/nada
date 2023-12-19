@@ -355,7 +355,101 @@ paths:
             description: successful operation
         security:
           - ApiKeyAuth: []
-      
+  
+  /tables/attach_to_study:
+      post:
+        tags:
+          - Tables
+        summary: Attach table to a study
+        description: Attach table to a study
+        operationId: tableAttachToStudy
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            schema:
+              type: object
+              required:
+                - db_id
+                - table_id
+                - sid
+                - title
+              properties:
+                db_id:
+                  type: string                
+                table_id:
+                  type: string
+                sid:
+                  type: string
+                  description: Study ID
+                title:
+                  type: string
+                  description: Dataset title
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  /tables/detach_from_study:
+      post:
+        tags:
+          - Tables
+        summary: Remove table from study
+        description: Dettach table from study
+        operationId: tableDettachFromStudy
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            schema:
+              type: object
+              required:
+                - db_id
+                - table_id
+                - sid
+                - title
+              properties:
+                db_id:
+                  type: string                
+                table_id:
+                  type: string
+                sid:
+                  type: string
+                  description: Study ID
+                title:
+                  type: string
+                  description: Dataset title
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+  /tables/list_by_study/{sid}:
+      post:
+        tags:
+          - Tables
+        summary: List tables by study
+        description: Get a list of tables attached to a study
+        operationId: tableListByStudy
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: url
+            name: sid
+            type: string
+            description: Study ID
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []    
   
 ###############################################################
 securityDefinitions:
