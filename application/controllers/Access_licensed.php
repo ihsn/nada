@@ -312,15 +312,15 @@ class Access_licensed extends MY_Controller {
 		$download_times=$download_stats['downloads'];
 				
 		if ($download_times>=$download_limit)
-		{			
-			redirect('/access_licensed/expired/'.$request_id.'/'.$download_limit,"refresh");exit;
+		{	
+			return $this->expired($request_id,$download_limit);
 		}
 
 		// Is the expiry date set by admin is passed ?
 		$expiry = $download_stats['expiry'];
 
 		if (time() > $expiry) {
-			redirect('/access_licensed/expired_date/'.$request_id.'/'.$expiry,"refresh");exit;
+			return $this->expired_date($request_id,$expiry);
 		}
 
 		//increment the download tick
@@ -472,7 +472,7 @@ class Access_licensed extends MY_Controller {
 	*
 	* Expired Download Links
 	**/
-	function expired($requestid=NULL,$download_limit=0)
+	private function expired($requestid=NULL,$download_limit=0)
 	{
 		$data['limit']=$download_limit;
 		$data['email']=$this->config->item("website_webmaster_email");
@@ -483,7 +483,7 @@ class Access_licensed extends MY_Controller {
 		$this->template->render();
 	}
 
-	function expired_date($requestid=NULL, $expiry=0)
+	private function expired_date($requestid=NULL, $expiry=0)
 	{
 		$data['expiry'] = date($this->config->item('date_format'), $expiry);
 		$data['email']=$this->config->item("website_webmaster_email");
