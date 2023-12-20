@@ -123,15 +123,17 @@ class Users extends MY_Controller {
 	{  
 		$this->acl_manager->has_access_or_die('user', 'create');
 		$this->data['page_title'] = t("create_user_account");
-              		
-        //validate form input
+
+		$use_complex_password=$this->ci->config->item("require_complex_password");
+
+		//validate form input
 		$this->form_validation->set_rules('username', t('username'), 'xss_clean|max_length[20]|required|callback_username_exists');
     	$this->form_validation->set_rules('email', t('email'), 'max_length[100]|required|valid_email|callback_email_exists');
     	$this->form_validation->set_rules('first_name', t('first_name'), 'max_length[20]|required|xss_clean');
     	$this->form_validation->set_rules('last_name', t('last_name'), 'max_length[20]|required|xss_clean');
     	$this->form_validation->set_rules('phone1', t('phone'), 'max_length[20]|xss_clean|trim');
     	$this->form_validation->set_rules('company', t('company'), 'max_length[255]|xss_clean');
-    	$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]');
+		$this->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->config->item('min_password_length').']|max_length['.$this->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     	$this->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 
 		//phone is required for administrators
