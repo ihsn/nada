@@ -750,6 +750,7 @@ class Ion_auth_model extends CI_Model
 			if ($password_validated)
     		{
         		$this->update_last_login($result->id);
+				$this->session->sess_regenerate();
     		    $this->session->set_userdata('email',  $result->email);
 				$this->session->set_userdata('username',  $result->username);
     		    $this->session->set_userdata('user_id',  $result->id); //everyone likes to overwrite id so we'll use user_id
