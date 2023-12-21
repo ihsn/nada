@@ -289,6 +289,11 @@ class Access_licensed extends MY_Controller {
 		{
 			show_404();
 		}
+
+		if ($user->id != $request['userid']) 
+		{
+			show_404();
+		}
 		
 		//disable downloads for requests not approved
 		if($request['status']!=='APPROVED')
