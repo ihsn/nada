@@ -49,7 +49,9 @@ class RequestBuilder extends BaseRequestBuilder
 
         // add document settings to request
         /** @var \Solarium\QueryType\Update\Query\Document $doc */
-        if (null !== $doc = $query->getDocument()) {
+        $doc = $query->getDocument();
+        if (null !== $doc) {
+            // @phpstan-ignore-next-line we're calling a deprecated method on purpose
             if (null !== $doc->getBoost()) {
                 throw new RuntimeException('Extract does not support document-level boosts, use field boosts instead.');
             }
@@ -73,14 +75,24 @@ class RequestBuilder extends BaseRequestBuilder
 
         // add file to request
         $file = $query->getFile();
-        if (preg_match('/^(http|https):\/\/(.+)/i', $file)) {
+        if (\is_string($file) && preg_match('/^(http|https):\/\/(.+)/i', $file)) {
+            $query->setResourceName($file);
+
             $request->addParam('stream.url', $file);
             $request->setMethod(Request::METHOD_GET);
-        } elseif (is_readable($file)) {
-            $resourceName = basename($query->getFile());
+        } elseif (\is_resource($file) || is_readable($file)) {
+            if (\is_resource($file)) {
+                $resourceName = basename(stream_get_meta_data($file)['uri']);
+            } else {
+                $resourceName = basename($file);
+            }
+
+            $query->setResourceName($resourceName);
+
             if (0 !== strcasecmp('UTF-8', $charset = $request->getParam('ie') ?? 'UTF-8')) {
                 $resourceName = iconv('UTF-8', $charset, $resourceName);
             }
+
             $request->setFileUpload($file);
             $request->addParam('resource.name', $resourceName);
             $request->setMethod(Request::METHOD_POST);

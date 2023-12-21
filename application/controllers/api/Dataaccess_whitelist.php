@@ -1,11 +1,6 @@
 <?php
 
-use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
-
 require(APPPATH.'/libraries/MY_REST_Controller.php');
-
 
 class Dataaccess_whitelist extends MY_REST_Controller
 {

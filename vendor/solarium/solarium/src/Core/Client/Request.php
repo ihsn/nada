@@ -268,9 +268,9 @@ class Request extends Configurable implements RequestParamsInterface
     /**
      * Get the file to upload via "multipart/form-data" POST request.
      *
-     * @return string|null
+     * @return string|resource|null
      */
-    public function getFileUpload(): ?string
+    public function getFileUpload()
     {
         return $this->getOption('file');
     }
@@ -278,19 +278,25 @@ class Request extends Configurable implements RequestParamsInterface
     /**
      * Set the file to upload via "multipart/form-data" POST request.
      *
-     * @param string $filename Name of file to upload
+     * @param string|resource $file Name of file or file pointer resource to upload
      *
      * @throws RuntimeException
      *
      * @return self Provides fluent interface
      */
-    public function setFileUpload($filename): self
+    public function setFileUpload($file): self
     {
-        if (!is_file($filename) || !is_readable($filename)) {
-            throw new RuntimeException(sprintf("Unable to read file '%s' for upload", $filename));
+        if (\is_resource($file)) {
+            $meta = stream_get_meta_data($file);
+
+            if (false === strpos($meta['mode'], 'r') && false === strpos($meta['mode'], '+')) {
+                throw new RuntimeException(sprintf("Unable to read stream '%s' for upload", $meta['uri']));
+            }
+        } elseif (!is_file($file) || !is_readable($file)) {
+            throw new RuntimeException(sprintf("Unable to read file '%s' for upload", $file));
         }
 
-        $this->setOption('file', $filename);
+        $this->setOption('file', $file);
 
         return $this;
     }
@@ -425,11 +431,16 @@ class Request extends Configurable implements RequestParamsInterface
     /**
      * Get an URI for this request.
      *
-     * @return string|null
+     * @return string
      */
-    public function getUri(): ?string
+    public function getUri(): string
     {
-        return $this->getHandler().'?'.$this->getQueryString();
+        $queryString = $this->getQueryString();
+        if ('' === $queryString) {
+            return $this->getHandler() ?? '';
+        }
+
+        return $this->getHandler().'?'.$queryString;
     }
 
     /**
@@ -442,8 +453,11 @@ class Request extends Configurable implements RequestParamsInterface
      *
      * @return self Provides fluent interface
      */
-    public function setAuthentication(string $username, string $password): self
-    {
+    public function setAuthentication(
+        string $username,
+        #[\SensitiveParameter]
+        string $password
+    ): self {
         $this->setOption('username', $username);
         $this->setOption('password', $password);
 

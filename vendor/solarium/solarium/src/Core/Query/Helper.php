@@ -75,9 +75,11 @@ class Helper
      */
     public function escapeTerm(string $input): string
     {
-        $pattern = '/( |\+|-|&&|\|\||!|\(|\)|\{|}|\[|]|\^|"|~|\*|\?|:|\/|\\\)/';
+        if (preg_match('/(^|\s)(AND|OR|TO)($|\s)/', strtoupper($input), $matches)) {
+            return $this->escapePhrase($input);
+        }
 
-        return preg_replace($pattern, '\\\$1', $input);
+        return preg_replace('/( |\+|-|&&|\|\||!|\(|\)|\{|}|\[|]|\^|"|~|\*|\?|:|\/|\\\)/', '\\\$1', $input);
     }
 
     /**
@@ -108,18 +110,30 @@ class Helper
      * a single quote, a double quote, or a right curly bracket. It backslash
      * escapes single quotes and backslashes within that quoted string.
      *
+     * If an optional pre-escaped separator character is passed, a backslash
+     * preceding this character will not be escaped with another backslash.
+     * {@internal Based on splitSmart() in org.apache.solr.common.util.StrUtils}
+     *
      * A value that doesn't require quoting is returned as is.
      *
      * @see https://solr.apache.org/guide/local-parameters-in-queries.html#basic-syntax-of-local-parameters
      *
      * @param string $value
+     * @param string $preEscapedSeparator Separator character that is already escaped with a backslash
      *
      * @return string
      */
-    public function escapeLocalParamValue(string $value): string
+    public function escapeLocalParamValue(string $value, string $preEscapedSeparator = null): string
     {
         if (preg_match('/[ \'"}]/', $value)) {
-            $value = "'".preg_replace("/('|\\\\)/", '\\\$1', $value)."'";
+            $pattern = "/('|\\\\)/";
+
+            if (null !== $preEscapedSeparator) {
+                $char = preg_quote(substr($preEscapedSeparator, 0, 1), '/');
+                $pattern = "/('|\\\\(?!$char))/";
+            }
+
+            $value = "'".preg_replace($pattern, '\\\$1', $value)."'";
         }
 
         return $value;
@@ -137,18 +151,18 @@ class Helper
      * @param int|string|\DateTimeInterface $input Accepted formats: timestamp, date string, DateTime or
      *                                             DateTimeImmutable
      *
-     * @return string|bool false is returned in case of invalid input
+     * @return string|false false is returned in case of invalid input
      */
     public function formatDate($input)
     {
         switch (true) {
-            // input of datetime object
             case $input instanceof \DateTimeInterface:
+                // input of DateTime or DateTimeImmutable object
                 $input = clone $input;
                 break;
-            // input of timestamp or date/time string
             case \is_string($input):
             case is_numeric($input):
+                // input of timestamp or date/time string
                 // if date/time string: convert to timestamp first
                 if (\is_string($input)) {
                     $input = strtotime($input);
@@ -161,26 +175,18 @@ class Helper
                     $input = false;
                 }
                 break;
-            // any other input formats can be added in additional cases here...
-            // case $input instanceof Zend_Date:
-
-            // unsupported input format
             default:
+                // unsupported input format
                 $input = false;
                 break;
         }
 
         // handle the filtered input
         if ($input) {
-            // when we get here the input is always a datetime object
+            // when we get here $input is always a DateTime or DateTimeImmutable object
             $input = $input->setTimezone(new \DateTimeZone('UTC'));
-            // Solr seems to require the format PHP erroneously declares as ISO8601.
-            /** @noinspection DateTimeConstantsUsageInspection */
-            $iso8601 = $input->format(\DateTimeInterface::ISO8601);
-            $iso8601 = strstr($iso8601, '+', true); // strip timezone
-            $iso8601 .= 'Z';
 
-            return $iso8601;
+            return $input->format('Y-m-d\TH:i:s\Z');
         }
 
         // unsupported input

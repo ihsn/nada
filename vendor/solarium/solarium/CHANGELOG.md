@@ -4,6 +4,58 @@ All notable changes to the Solarium library will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.3.1]
+### Added
+- Loadbalancer plugin can failover on an optional list of HTTP status codes
+- Solarium\QueryType\Extract\Query::setFile() now supports file pointer resources
+- Solarium\QueryType\Extract\Result::getFile() and getFileMetadata() to access the retrieved data for `extractOnly=true`
+
+### Fixed
+- Solarium\Core\Query\Helper::escapeTerm() has to quote reserved terms `AND`, `OR`, `TO`
+
+### Changed
+- Solarium\Core\Client\Endpoint::setAuthentication() marks $password as #[\SensitiveParameter] (PHP 8 >= 8.2.0)
+- Solarium\Core\Client\Endpoint::setAuthorizationToken() marks $token as #[\SensitiveParameter] (PHP 8 >= 8.2.0)
+- Solarium\Core\Client\Request::setAuthentication() marks $password as #[\SensitiveParameter] (PHP 8 >= 8.2.0)
+
+
+## [6.3.0]
+### Added
+- Support for Luke queries
+- Solarium\Component\QueryElevation::setExcludeTags()
+- Solarium\Core\Query\Result\QueryType::getStatus() and getQueryTime(), inherited by all Solarium\QueryType Results
+- Solarium\QueryType\CoreAdmin\Result\Result::getInitFailureResults()
+- Solarium\QueryType\Ping\Result::getPingStatus() and getZkConnected()
+- Fluent interface methods for adding/removing excludes in Solarium\Component\Facet\AbstractFacet
+- Fluent interface methods for adding/removing terms in Solarium\Component\Facet\Field
+
+### Fixed
+- JSON serialization of arrays with non-consecutive indices in multivalue fields
+- PHP 8.2 deprecations
+- Handling of escaped literal commas in local parameters for faceting
+
+### Changed
+- Update queries use the JSON request format by default
+- Ping queries set omitHeader=false by default
+
+### Removed
+- Removed deprecated class constant Client::Version. Use Client::getVersion() instead
+- Removed Core/Query/AbstractResponseParser::addHeaderInfo()
+
+### Deprecated
+- Solarium\QueryType\Server\Collections\Result\CreateResult::getStatus(), use getCreateStatus() instead
+- Solarium\QueryType\Server\Collections\Result\DeleteResult::getStatus(), use getDeleteStatus() instead
+- Solarium\QueryType\Server\Collections\Result\ReloadResult::getStatus(), use getReloadStatus() instead
+- LocalParameters::removeTerms(), use removeTerm() instead
+
+
+## [6.2.8]
+### Added
+- PHP 8.2 support
+- JSON formatted update requests
+- Solarium\Component\Highlighting\Highlighting::setQueryFieldPattern()
+
+
 ## [6.2.7]
 ### Added
 - Core\Client\Adapter\Curl::setProxy() to set proxy (instead of through options)
@@ -12,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Plugins unregister event listeners when removed with Client::removePlugin()
-- Workaround for opcache.preload issue in deprected code unless 6.3.0 will be released
+- Workaround for opcache.preload issue in deprecated code unless 6.3.0 will be released
 
 ### Changed
 - `RequestBuilder`s must set a Content-Type on the `Request` for POST and PUT requests. `Adapter`s no longer set a default.

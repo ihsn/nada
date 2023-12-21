@@ -7,13 +7,12 @@ namespace Composer\Autoload;
 class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
 {
     public static $files = array (
-        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
-        'd767e4fc2dc52fe66584ab8c6684783e' => __DIR__ . '/..' . '/adbario/php-dot-notation/src/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -48,6 +47,7 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
             'JsonStreamingParser\\Test\\' => 25,
             'JsonStreamingParser\\' => 20,
             'JsonSchema\\' => 11,
+            'JsonMachine\\' => 12,
         ),
         'G' => 
         array (
@@ -134,6 +134,10 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
         'JsonSchema\\' => 
         array (
             0 => __DIR__ . '/..' . '/justinrainbow/json-schema/src/JsonSchema',
+        ),
+        'JsonMachine\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/halaxa/json-machine/src',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (

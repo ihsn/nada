@@ -10,6 +10,7 @@
 namespace Solarium\Core\Query;
 
 use Solarium\Core\Client\Request;
+use Solarium\Core\Query\LocalParameters\LocalParameter;
 use Solarium\QueryType\Server\AbstractServerQuery;
 
 /**
@@ -49,7 +50,7 @@ abstract class AbstractRequestBuilder implements RequestBuilderInterface
             $request->addParam('json.nl', 'flat');
         }
 
-        $isServerQuery = ($query instanceof AbstractServerQuery);
+        $isServerQuery = $query instanceof AbstractServerQuery;
         $request->setIsServerRequest($isServerQuery);
 
         return $request;
@@ -88,7 +89,13 @@ abstract class AbstractRequestBuilder implements RequestBuilderInterface
                 $paramValue = $paramValue ? 'true' : 'false';
             }
 
-            $params .= $paramName.'='.$helper->escapeLocalParamValue($paramValue).' ';
+            if (LocalParameter::isSplitSmart($paramName)) {
+                $paramValue = $helper->escapeLocalParamValue($paramValue, ',');
+            } else {
+                $paramValue = $helper->escapeLocalParamValue($paramValue);
+            }
+
+            $params .= $paramName.'='.$paramValue.' ';
         }
 
         if ('' !== $params = trim($params)) {
@@ -141,7 +148,7 @@ abstract class AbstractRequestBuilder implements RequestBuilderInterface
     /**
      * Get a helper instance.
      *
-     * Uses lazy loading: the helper is instantiated on first use
+     * Uses lazy loading: the helper is instantiated on first use.
      *
      * @return Helper
      */

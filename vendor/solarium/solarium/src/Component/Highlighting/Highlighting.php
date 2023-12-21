@@ -249,9 +249,39 @@ class Highlighting extends AbstractComponent implements HighlightingInterface, Q
     }
 
     /**
+     * Set queryFieldPattern option.
+     *
+     * @param string|array $queryFieldPattern array or string with comma separated fieldnames
+     *
+     * @return self Provides fluent interface
+     */
+    public function setQueryFieldPattern($queryFieldPattern): self
+    {
+        if (\is_string($queryFieldPattern)) {
+            $queryFieldPattern = explode(',', $queryFieldPattern);
+            $queryFieldPattern = array_map('trim', $queryFieldPattern);
+        }
+
+        $this->setOption('queryfieldpattern', $queryFieldPattern);
+
+        return $this;
+    }
+
+    /**
+     * Get queryFieldPattern option.
+     *
+     * @return array|null
+     */
+    public function getQueryFieldPattern(): ?array
+    {
+        return $this->getOption('queryfieldpattern');
+    }
+
+    /**
      * Initialize options.
      *
-     * The field option needs setup work
+     * {@internal Options that set a list of fields need additional setup work
+     *            because they can be an array or a comma separated string.}
      */
     protected function init()
     {
@@ -259,6 +289,9 @@ class Highlighting extends AbstractComponent implements HighlightingInterface, Q
             switch ($name) {
                 case 'field':
                     $this->addFields($value);
+                    break;
+                case 'queryfieldpattern':
+                    $this->setQueryFieldPattern($value);
                     break;
             }
         }

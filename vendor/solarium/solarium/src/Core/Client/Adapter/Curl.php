@@ -175,8 +175,8 @@ class Curl extends Configurable implements AdapterInterface, TimeoutAwareInterfa
     public function setOption(string $name, $value): Configurable
     {
         if ('proxy' === $name) {
-            trigger_error('Setting proxy as an option is deprecated. Use setProxy() instead.', \E_USER_DEPRECATED);
             $this->setProxy($value);
+            trigger_error('Setting proxy as an option is deprecated. Use setProxy() instead.', \E_USER_DEPRECATED);
         }
 
         return parent::setOption($name, $value);
@@ -201,7 +201,8 @@ class Curl extends Configurable implements AdapterInterface, TimeoutAwareInterfa
     /**
      * Initialization hook.
      *
-     * Checks the availability of Curl_http
+     * {@internal Check if PHP was compiled with cURL support.
+     *            Check for deprecated use of 'proxy' option.}
      *
      * @throws RuntimeException
      */
@@ -213,11 +214,9 @@ class Curl extends Configurable implements AdapterInterface, TimeoutAwareInterfa
             // @codeCoverageIgnoreEnd
         }
 
-        parent::init();
-
         if (isset($this->options['proxy'])) {
-            trigger_error('Setting proxy as an option is deprecated. Use setProxy() instead.', \E_USER_DEPRECATED);
             $this->setProxy($this->options['proxy']);
+            trigger_error('Setting proxy as an option is deprecated. Use setProxy() instead.', \E_USER_DEPRECATED);
         }
     }
 

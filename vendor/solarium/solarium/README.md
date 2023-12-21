@@ -53,6 +53,20 @@ setlocale(LC_NUMERIC, $currentLocale);
 PHP 8.0 has made the float to string conversion locale-independent and will always use the `.` decimal separator.
 The workaround is no longer necessary with PHP versions ≥ 8.0.
 
+### Pitfall when upgrading to 7.x
+
+With Solarium 7 update queries use the JSON request format by default.
+
+If you do require XML specific functionality, set the request format to XML explicitly.
+
+```php
+// get an update query instance
+$update = $client->createUpdate();
+
+// set XML request format
+$update->setRequestFormat($update::REQUEST_FORMAT_XML);
+```
+
 ### Pitfalls when upgrading from 3.x or 4.x or 5.x
 
 #### Setting a timeout
@@ -90,7 +104,7 @@ $client = new Solarium\Client($adapter, $eventDispatcher, $options);
 
 The Symfony EventDispatcher is also no longer automatically available for autoloading.
 If you want to keep using it, you can add it to your project's `composer.json`.
-Alternatively you can use any PSR-14 compatible event dispatcher.
+Alternatively you can use any [PSR-14](https://www.php-fig.org/psr/psr-14/) compatible event dispatcher.
 
 ```json
 {
@@ -99,6 +113,23 @@ Alternatively you can use any PSR-14 compatible event dispatcher.
         "symfony/event-dispatcher": "^4.3 || ^5.0 || ^6.0"
     }
 }
+```
+
+#### Adapters
+
+The `Zend2HttpAdapter`, `GuzzleAdapter`, and `Guzzle3Adapter` were removed in Solarium 6.
+You can use the `Psr18Adapter` with any [PSR-18](https://www.php-fig.org/psr/psr-18/) compliant HTTP client instead.
+
+Example:
+```sh
+composer require php-http/guzzle7-adapter
+composer require nyholm/psr7
+```
+
+```php
+$httpClient = new Http\Adapter\Guzzle7\Client();
+$factory = new Nyholm\Psr7\Factory\Psr17Factory();
+$adapter = new Solarium\Core\Client\Adapter\Psr18Adapter($httpClient, $factory, $factory);
 ```
 
 #### Local parameter names
@@ -136,7 +167,7 @@ In the past, the V1 API endpoint `solr` was not added automatically, so most use
 This bug was discovered with the addition of V2 API support. In almost every setup, the path has to be set to `/`
 instead of `/solr` with this release!
 
-For the same reason it is a must to explicit configure the _core_ or _collection_.
+For the same reason it is a must to explicitly configure the _core_ or _collection_.
 
 So an old setting like
 ```
@@ -200,4 +231,3 @@ You can run the tests in a Windows environment. For all of them to pass, you mus
 * [![codecov](https://codecov.io/gh/solariumphp/solarium/branch/master/graph/badge.svg)](https://codecov.io/gh/solariumphp/solarium)
 * [![SensioLabsInsight](https://insight.sensiolabs.com/projects/292e29f7-10a9-4685-b9ac-37925ebef9ae/small.png)](https://insight.sensiolabs.com/projects/292e29f7-10a9-4685-b9ac-37925ebef9ae)
 * [![Total Downloads](https://poser.pugx.org/solarium/solarium/downloads.svg)](https://packagist.org/packages/solarium/solarium)
-
