@@ -120,6 +120,19 @@
     }
 ?>
 
+
+<?php 
+//IDs for all featured studies
+$featured_studies_id_list=array();
+
+if (isset($featured_studies) && is_array($featured_studies) ){
+
+    foreach($featured_studies as $feature_study){
+        $featured_studies_id_list[]=$feature_study['id'];
+    }
+}
+?>
+
     
 <div id="surveys">
     <span class="result-types-summary">
@@ -138,6 +151,11 @@
 
         if ($is_featured){
             $is_featured_count++;
+        }
+
+        //hide featured study duplicate entry
+        if (!$is_featured && in_array($row['id'],$featured_studies_id_list)){
+            continue;
         }
 
         if(isset($row['thumbnail']) && is_array($row['thumbnail'])){
@@ -262,9 +280,11 @@
                 <?php //Data license + data classification icons ?>
                 <?php if($row['type']=='survey'):?>
                 <div class="wb-license-classification">
+                    <a href="<?php echo site_url('catalog/'.$row['id'].'/get-microdata');?>">
                     <span class="badge wb-data-access wb-badge btn-data-license-<?php echo $row['form_model'];?>" title="<?php echo t("link_data_".$row['form_model'].'_hover');?>">
                         <i class="icon-da-sm icon-da-<?php echo $row['form_model'];?>" ></i> <span class=""><?php echo t("legend_data_".$row['form_model']);?></span>
                     </span>
+                    </a>
         
                     <?php if(isset($data_classifications) && !empty($row['data_class_id'])):?>
                         <?php if(isset($data_classifications[$row['data_class_id']]['code'])):?>

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
+class ComposerStaticInit34ef203522e62aad5379edf5734001c6
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -28,6 +28,10 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
             'Spatie\\ArrayToXml\\' => 18,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
+        ),
+        'R' => 
+        array (
+            'RenanBr\\BibTexParser\\' => 21,
         ),
         'P' => 
         array (
@@ -93,6 +97,10 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
         'Slim\\Csrf\\' => 
         array (
             0 => __DIR__ . '/..' . '/slim/csrf/src',
+        ),
+        'RenanBr\\BibTexParser\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/renanbr/bibtex-parser/src',
         ),
         'Psr\\Http\\Message\\' => 
         array (
@@ -173,9 +181,9 @@ class ComposerStaticInite028826cd22ea780e9a7bc0793633ac7
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInite028826cd22ea780e9a7bc0793633ac7::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInite028826cd22ea780e9a7bc0793633ac7::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInite028826cd22ea780e9a7bc0793633ac7::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit34ef203522e62aad5379edf5734001c6::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit34ef203522e62aad5379edf5734001c6::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit34ef203522e62aad5379edf5734001c6::$classMap;
 
         }, null, ClassLoader::class);
     }

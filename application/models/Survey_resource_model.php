@@ -1295,7 +1295,7 @@ class Survey_resource_model extends CI_Model {
 		}
 		
 		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.$filepath);
+		$fullpath=unix_path($survey_folder.'/'.basename($filepath));
 		
 		//log download
 		$this->db_logger->write_log('download',$fullpath,'external-resource');
@@ -1306,7 +1306,7 @@ class Survey_resource_model extends CI_Model {
 			force_download2($fullpath);
 		}
 		else {
-			throw new Exception("FILE_NOT_FOUND: ".urlencode($filepath));
+			throw new Exception("FILE_NOT_FOUND: ".urlencode(basename($filepath)));
 		}
 	}
 

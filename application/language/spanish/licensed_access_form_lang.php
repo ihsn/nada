@@ -35,11 +35,11 @@ $lang['provide_names']="Ingrese el nombre, título, y afiliaciones de cualquier 
 $lang['ident_needed']="Identificación de los archivos de datos y variables que se necesitan";
 $lang['da_website']="El Catálogo de Metadatos y microdatos provee detalle de metadatos en este sitio Web, incluyendo una descripción de los archivos de datos y variables para cada conjunto de datos. Los investigadores que no necesitan acceso a todo el conjunto de datos pueden indicar qué subconjunto de variables o casos en los que están interesados, considerando que ésto reduce el riesgo de divulgación de información confidencial.";
 $lang['this_request']="Esta solicitud se presenta para acceder a:";
-$lang['whole_dataset']="Todo el conjunto de datos (todos los archivos, todos los casos)";
+$lang['whole_dataset']="Todas las bases de datos (todos los archivos, todos los casos)";
 $lang['subset_data']="Un subconjunto de variables y/o casos (note que las variables tales como los coeficientes de expansión de la muestra e identificadores de registros serán siempre incluidos en los subconjuntos)";
 $lang['data_access_agreement']="Acuerdo de acceso a los Datos";
 $lang['i_read_and_agree']="He leído y estoy de acuerdo con las condiciones";
-$lang['agreement_text']='<p>El representante de la Organización que recibe los datos acuerda en cumplir con las siguientes condiciones:</p>
+$lang['agreement_text']="<p>El representante de la Organización que recibe los datos acuerda en cumplir con las siguientes condiciones:</p>
 <ol>
 <li>El acceso a los datos restringidos está limitado al Investigador Responsable y a otros miembros de grupo de investigadores listados en esta solicitud.</li>
 <li>Las copias de los datos aquí solicitados o cualquier dato creado sobre la base del dato original no deben ser distribuídos a ninguna otra persona fuera de la lista mencionada en este acuerdo de acceso a microdatos, a no ser por una autorización formal de parte del productor de los datos. </li>
@@ -54,8 +54,7 @@ $lang['agreement_text']='<p>El representante de la Organización que recibe los 
 <li>Si existiese algún cambio en el proyecto de investigación, de cualquier índole, con respecto al formulario de solicitud original, es responsabilidad del Investigador Responsable actualizar la información del Acuerdo de Acceso a Microdatos con relación a los cambios. Si los cambios afectan a la organización del Investigador Responsable, deberá realizarse una nueva solicitud, implicando una terminación del acuerdo original. </li>
 <li>Las infracciones de este Acuerdo deben considerarse seriamente. El productor de los datos solicitados tomará acciones contra los responsables sean éstas voluntarias o accidentales. El incumplimiento de las condiciones de este acuerdo puede implicar tomar acciones judiciales. El productor de los datos solicitados informará a las organizaciones asociadas o co-productoras de los microdatos solicitados sobre cualquier violación a este acuerdo. </li>
 </ol> 
-';
-
+";
 $lang['success_request_submitted']="Ha enviado correctamente su solicitud de acceso a microdatos. Un correo electrónico de confirmación le ha sido enviado a su dirección.";
 $lang['track_status_request']="Para realizar el seguimiento del estado de su solicitud, visite";
 $lang['thank_you']="¡Gracias!";
@@ -64,5 +63,5 @@ $lang['view_all_requests']="Ver todos las solicitudes";
 $lang['open_in_new_window']="Abrir en una nueva ventana";
 
 
-/* End of file licensed_access_form_lang.php */
-/* Location: ./application/language/spanish/licensed_access_form_lang.php */
+/* End of file licensed_access_form */
+/* Location: ./application/language/spanish/licensed_access_form */

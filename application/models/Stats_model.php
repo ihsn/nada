@@ -45,7 +45,7 @@ class Stats_model extends CI_Model {
 		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.subtitle,surveys.year_start, surveys.year_end, surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created, surveys.changed");
 		$this->db->join("forms", "surveys.formid=forms.formid","left");
 		$this->db->where("surveys.published", 1); 
-		$this->db->order_by("surveys.changed", "desc"); 
+		$this->db->order_by("surveys.created", "desc"); 
 
 		if($repositoryid){
 			$this->db->join('survey_repos', 'surveys.id= survey_repos.sid','inner');

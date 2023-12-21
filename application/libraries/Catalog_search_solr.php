@@ -160,8 +160,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//SK
 		if($this->study_keywords){
-			//$search_query[]='title:('.$helper->escapeTerm($this->study_keywords). ') ';
-			$query->setQuery($helper->escapeTerm($this->study_keywords));
+			$query->setQuery(($this->study_keywords));
 		}
 
 		//repo filter
@@ -267,7 +266,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			$query->createFilterQuery('countries')->setQuery($countries);
 		}
 
-
 		if($collections){
 			$query->createFilterQuery('collections')->setQuery($collections);
 		}
@@ -277,7 +275,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			$query->createFilterQuery('varcount')->setQuery($varcount);
 		}
 				
-
         //study search 
         $edismax->setQueryFields($this->solr_options['qf']);
 		
@@ -286,11 +283,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         //keywords <N all required, else match percent
         $edismax->setMinimumMatch($this->solr_options['mm']);
 
-        if (count($search_query)>0){
-            //$query->setQuery(implode(" AND ",$search_query));
-        }
-
-        //$debug = $query->getDebug();
         $query->createFilterQuery('study_search')->setQuery('doctype:1');
         $query->setStart($offset)->setRows($limit);
         $query->setFields(array(
@@ -321,7 +313,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
             $debug = $query->getDebug();
         }
 
-        $resultset = $this->solr_client->select($query);//->getData();
+        $resultset = $this->solr_client->select($query);
         $facet = $resultset->getFacetSet()->getFacet('dataset_types');
 
         $dataset_types_facet_counts=array();
@@ -403,9 +395,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
     }
     
 
-    
-
-
 	//find variables by survey list
 	function get_var_count_by_surveys($survey_arr,$variable_keywords)
 	{
@@ -422,31 +411,33 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			return;
 		}
 
-
-		//get a select query instance
 		$query = $this->solr_client->createSelect();
-
-		//set a query (all prices starting from 12)
-		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',$variable_keywords, implode(" OR ",$survey_arr)) );
-
-		//set start and rows param (comparable to SQL limit) using fluent interface
+		$query->setQuery(sprintf('doctype:2 AND labl:(%s) AND sid:(%s)',($variable_keywords), implode(" OR ",$survey_arr)) );
 		$query->setStart(0)->setRows(100);
-
 
 		if ($this->debug){
 			$debug = $query->getDebug();
 		}
-
 	
-		//get grouping component and set a field to group by
+		//Group by SID
 		$groupComponent = $query->getGrouping();
 		$groupComponent->addField('sid'); //group by field
 		$groupComponent->setLimit(0); // maximum number of items per group
 		$groupComponent->setNumberOfGroups(true); // get a group count
 
-		//execute search
-		$resultset = $this->solr_client->select($query);
+		try{
+			//execute search
+			$resultset = $this->solr_client->select($query);
+		}
+		catch(Exception $e){
 
+			if ($this->debug){
+				throw new Exception("Variable search failed: ".$e->getMessage());
+			}
+
+			log_message('error', 'Variable search failed: ' . $e->getMessage());
+			return false;
+		}
 	
 		//get raw query
 		if($this->debug){
@@ -454,7 +445,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 			echo "<HR>";
 			echo $request->getUri();
 			echo "<HR>";
-			//var_dump($resultset->getDebug());
 		}
 	
 
@@ -510,41 +500,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 		return array('title'=>$this->study_keywords);
 	}
 
-
-	function _build_variable_query()
-	{
-		$variable_keywords=trim($this->variable_keywords);
-		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
-
-		if ($variable_keywords==''){
-			return FALSE;
-		}
-
-		$tmp_where=array();
-
-		if (strlen($variable_keywords) >3){
-			//get fulltext index name
-			$fulltext_index=$this->get_variable_search_field(TRUE);
-
-			//FULLTEXT
-			$tmp_where[]=sprintf('MATCH(%s) AGAINST (%s IN BOOLEAN MODE)','v.'.$fulltext_index,$this->ci->db->escape($variable_keywords));
-		}
-		else if (strlen($variable_keywords) ==3){
-			//get concatenated fields for wild card/regex search
-			$regex_fields=$this->get_variable_search_field(FALSE);
-
-			//REGEXP query
-			$variable_keywords=sprintf("[[:<:]]%s[[:>:]]",$variable_keywords);
-			$tmp_where[]=sprintf('%s REGEXP (%s)',$regex_fields,$this->ci->db->escape($variable_keywords));
-		}
-
-		if (count($tmp_where)>0)
-		{
-			return '('.implode(' OR ',$tmp_where).')';
-		}
-
-		return FALSE;
-	}
 
 	/**
 	*
@@ -1011,7 +966,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         $edismax->setMinimumMatch($this->solr_variable_options['mm']);
 		
 		if($this->study_keywords){
-			$query->setQuery($helper->escapeTerm($this->study_keywords));
+			$query->setQuery($this->study_keywords);
 		}
 
 		$query->setStart($offset)->setRows($limit); //get 0-100 rows
@@ -1059,7 +1014,6 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 		//set Edismax
 		$edismax = $query->getEDisMax();
-
 
 		$query->setFields(array(
 				'vid',

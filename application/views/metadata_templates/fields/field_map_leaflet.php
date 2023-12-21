@@ -8,6 +8,7 @@ $api_key=$options['api_key'];
 $field_lat=$options['latitude'];
 $field_lng=$options['longitude'];
 $field_info=$options['loc_info'];
+$show_data_table=isset($options['show_data_table']) ? $options['show_data_table'] : true;
 
 $location_info='';
 
@@ -20,7 +21,7 @@ foreach($data as $row){
     $map_lat_lng['lng']=$row[$field_lng];
   }
 
-  $location_info=$row[$field_info];
+  $location_info=isset($row[$field_info]) ? $row[$field_info] : '';
 }
 
 $field_name=str_replace(".","_",$name);
@@ -42,8 +43,10 @@ $field_name=str_replace(".","_",$name);
     <div class="xsl-caption field-caption"><?php echo t($name);?></div>
     <?php if (!empty($map_lat_lng)):?>
       <div class="map" id="<?php echo $field_name;?>" style="height:300px;background:gainsboro;"></div>
-    <?php endif;?>  
-    <?php echo render_field('array',$name,$data,$options=array('hide_field_title'=>true));?>
+    <?php endif;?>
+    <?php if ($show_data_table!=false):?>
+        <?php echo render_field('array',$name,$data,$options=array('hide_field_title'=>true));?>
+    <?php endif;?>
 </div>
 
 

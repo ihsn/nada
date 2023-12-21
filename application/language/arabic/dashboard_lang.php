@@ -1,5 +1,5 @@
 <?php 
-$lang['dashboard']="لوحة مراقبة
+$lang['dashboard']="لوحة المراقبة
 ";
 $lang['nada_news_updates']="أخبار وتحديثات NADA";
 $lang['users']="المستخدمين
@@ -25,7 +25,7 @@ $lang['bug_report']="خبر عن خلل/ اقترح تحسين
 $lang['run_database_backup_script']="تشغيل برنامج النسخ الاحتياطي
 ";
 $lang['no_cache_files_found']="لم يتم العثور على اي ملفات مؤقتة/كاش ";
-$lang['clear_cache_files']="هناك <b>%d</b> ملفات مؤقتة , <a href=%s> اضغط هنا لحذف  هذه الملفات.</a>";
+$lang['clear_cache_files']="هناك <b>%s</b> ملفات مؤقتة , <a href=%s> اضغط هنا لحذف  هذه الملفات.</a>";
 $lang['recent_studies']="الدراسات التي تم تحديثها مؤخرًا";
 $lang['logged_in_users']="المستخدمين المسجلين دخول ";
 $lang['anonymous_users']="المستخدمون المجهولون الذين يستعرضون الموقع";
@@ -34,8 +34,8 @@ $lang['Administrators']="المسؤولون";
 $lang['History']="تاريخ/سجل";
 $lang['Edit']="تحرير المجموعة";
 $lang['Collection']="مجموعة";
-$lang['collection_contains_n_studies']="تحتوي المجموعة على d% دراسات";
-$lang['catalog_contains_n_studies']="يحتوي الكتالوج على d% دراسات";
+$lang['collection_contains_n_studies']="تحتوي المجموعة على %s دراسات";
+$lang['catalog_contains_n_studies']="يحتوي الكتالوج على %s دراسات";
 $lang['studies_with_no_data_files']="دراسات بدون ملفات بيانات للإستخدام العام PUF";
 $lang['studies_with_no_questionnaires']="دراسات بدون إستمارات";
 $lang['owned']="مملوكة";

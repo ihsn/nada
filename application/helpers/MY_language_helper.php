@@ -61,6 +61,28 @@ if ( ! function_exists('t'))
 	}
 }
 
+if ( ! function_exists('tt'))	
+{
+	function tt($line,$default=null)
+	{
+		$CI =& get_instance();
+		$str = $CI->lang->line($line);
+
+		if ($str=='')
+		{
+			//log missing translations
+			log_message('DEBUG','Missing Translation - '. $line);
+
+			if ($default==null){
+				return $line;
+			}
+
+			return t($default);
+		}
+		return $str;
+	}
+}
+
 // ------------------------------------------------------------------------
 /* End of file language_helper.php */
 /* Location: ./system/helpers/language_helper.php */

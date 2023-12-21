@@ -1,5 +1,5 @@
 <?php 
-$lang['catalog_maintenance']="Administración del Catalogo";
+$lang['catalog_maintenance']="Administración del Catálogo";
 $lang['add_study_to_collection']="Agregar estudio a la colección";
 $lang['upload_ddi_hover']="Cargar un archivo IDD";
 $lang['import_ddi']="Importar DDI";
@@ -40,7 +40,7 @@ $lang['rdf_export']="Exportar a RDF";
 $lang['select_number_of_records_per_page']="Seleccione el número de registros a mostrar por página";
 $lang['study_already_exists']="El estudio ya existe. Por favor, seleccione la opción de sobrescritura para sustituir el estudio existente.";
 $lang['invalid_ddi_file']="Archivo DDI no válido: ";
-$lang['nothing_to_process']="nada para procesar";
+$lang['nothing_to_process']="Nada para procesar";
 $lang['export_study_citations']="Exportar citas al formato ANDA";
 $lang['msg_select_repository']="Seleccionar colección";
 $lang['repositories']="Colecciones";
@@ -90,9 +90,9 @@ $lang['reviewer_notes']="Notas del revisor";
 $lang['study_collections']="Colecciones de estudios";
 $lang['study_aliases']="Alias del estudio";
 $lang['study_warnings']="Alertas!";
-$lang['warning_study_has_no_external_resources']="Al estudio no se le han adjuntado recursos externos";
-$lang['warning_study_has_no_microdata']="Al estudio no se le han adjuntado microdatos";
-$lang['warning_study_has_no_questionnaire']="Al estudio no se le han adjuntado cuestionarios";
+$lang['warning_study_has_no_external_resources']="No se han adjuntado recursos externos al estudio";
+$lang['warning_study_has_no_microdata']="No se han adjuntado microdatos al estudio";
+$lang['warning_study_has_no_questionnaire']="No se han adjuntado cuestionarios al estudio";
 $lang['warning_study_has_pending_licensed_requests']="El estudio tiene solicitudes pendientes de acceso a datos con licencia";
 $lang['warning_study_not_published']="Es estudio no está publicado";
 $lang['warning_study_years_not_set']="Los años de recolección de datos del estudio no se han ingresado";
@@ -138,7 +138,38 @@ $lang['ddi_batch_refresh_title']="Actualizar DDI por lotes";
 $lang['btn_refresh']="Actualizar DDI";
 $lang['refresh_ddi_description']="Actualizar DDI vuelve a cargar en la base de datos los metadatos a partir del DDI";
 $lang['total_studies_found']="Total de estudios encontrados";
+$lang['mark_as_featured']="¿Mostrar como estudio destacado?";
+$lang['msg_study_ownership_has_changed']="¡El dueño del estudio ha cambiado!";
+$lang['replace_ddi_failed_duplicate_study_found']="El catálogo contiene otro estudio con el mismo ID";
+$lang['show_selected_only']="Mostrar sólo lo seleccionado";
+$lang['Data available from external repository']="Datos disponibles en un repositorio externo";
+$lang['Data not available']="Datos no disponibles";
+$lang['error_no_collection_selected']="¡No ha seleccionado una colección!";
+$lang['confirm_publish_records']="¿Confirme que desea publicar el estudio?";
+$lang['confirm_publish']="¿Publicar?";
+$lang['attach_citations']="Adjuntar citas";
+$lang['return_to_edit_page']="Volver a la página de edición";
+$lang['attach_related_data']="Adjuntar datos relacionados";
+$lang['no_related_studies_click_here_to_add']="No hay estudios relacionados adjuntos.";
+$lang['relationship_type']="Tipo de relación";
+$lang['draft']="Borrador";
+$lang['confirm_unpublish_records']="¿Está seguro de que desea anular la publicación de registros?";
+$lang['confirm_unpublish']="Confirmar la anulación de la publicación";
+$lang['idno']="ID del estudio";
+$lang['search_results_for']="Resultados de búsqueda para:";
+$lang['tab_overview']="Descripción general ";
+$lang['tab_manage_files']="Archivos";
+$lang['tab_resources']="Recursos";
+$lang['tab_citations']="Citas";
+$lang['tab_data_files']="Archivos de datos";
+$lang['tab_notes']="Notas";
+$lang['tab_related_data']="Estudios relacionados";
+$lang['license']="Licencia";
+$lang['select_license']="Seleccionar licencia";
+$lang['select_study_thumbnail']="Seleccionar archivo de imagen (PNG, JPG, JPEG, GIF)";
+$lang['Thumbnal']="Vista en Miniatura";
+$lang['Upload thumbnal']="Subir miniatura";
 
 
-/* End of file catalog_admin_lang.php */
-/* Location: ./application/language/spanish/catalog_admin_lang.php */
+/* End of file catalog_admin */
+/* Location: ./application/language/spanish/catalog_admin */

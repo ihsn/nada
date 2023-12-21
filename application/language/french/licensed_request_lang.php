@@ -62,7 +62,7 @@ $lang['subject']="Objet";
 $lang['body']="Message";
 $lang['send']="Envoyer";
 $lang['title_download_expired']="Le lien a expiré!";
-$lang['msg_download_limit_reached']="Vous avez atteint votre limite de téléchargement pour ce fichier. Vous êtes limité à%d téléchargements pour ce fichier. Si vous souhaitez augmenter votre nombre de téléchargements autorisés, veuillez demander à %s.";
+$lang['msg_download_limit_reached']="Vous avez atteint votre limite de téléchargement pour ce fichier. Vous êtes limité à%s téléchargements pour ce fichier. Si vous souhaitez augmenter votre nombre de téléchargements autorisés, veuillez demander à %s.";
 $lang['apply']="Appliquer";
 $lang['not_attached_any_licensed_files']="Vous n'avez pas joint de fichiers sous licence à l'enquête, consultez la page &quot;fichiers d'une enquête sous licence» pour configurer les fichiers.";
 $lang['restrict_data_access_by_id']="Restreindre l'accès aux données par adresse IP";
@@ -112,7 +112,18 @@ $lang['email_sent']="Votre message a été envoyé.";
 $lang['provide_additonal_info_for_your_request']="Utilisez ce champ pour fournir les informations supplémentaires requises pour traiter votre demande de données. ";
 $lang['click_on_a_lic_request_to_see_status_or_download_data']="Cliquez sur une demande pour afficher le statut correspondant ou pour télécharger les données si la demande a été approuvée. ";
 $lang['make_new_lic_request']="Déposer une nouvelle demande";
+$lang['no_microdata_files_found']="Aucun fichier de microdonnées n'a été trouvé!";
+$lang['all_requests']="Toutes les demandes";
+$lang['pending']="En attente";
+$lang['denied']="Refusée";
+$lang['cancelled']="Annulée";
+$lang['study_data_files']="Fichiers de microdonnées";
+$lang['study_resources']="Ressources de l'étude";
+$lang['other_materials']="Autres matériels";
+$lang['datasets_requested']="Ensemble(s) de données demandé(s)";
+$lang['request_title']="Titre de la demande";
+$lang['download_microdata_and_resources']="Télécharger les microdonnées et autres documents connexes";
 
 
-/* End of file licensed_request_lang.php */
-/* Location: ./application/language/french/licensed_request_lang.php */
+/* End of file licensed_request */
+/* Location: ./application/language/french/licensed_request */

@@ -40,5 +40,5 @@ $lang['time_zone_is_required']="Vea como <a target=&quot;_blank&quot; href=&quot
 $lang['not_set']="No establecido";
 
 
-/* End of file install_lang.php */
-/* Location: ./application/language/spanish/install_lang.php */
+/* End of file install */
+/* Location: ./application/language/spanish/install */

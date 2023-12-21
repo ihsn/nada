@@ -302,6 +302,10 @@ class Datasets extends MY_REST_Controller
 				$options['formid']=$this->dataset_manager->get_data_access_type_id($options['formid']);
 			}
 
+			if (isset($input['data_classification'])){
+				$options['data_class_id']=$this->dataset_manager->get_data_classification_id($input['data_classification']);
+			}
+
 			//remove options not set
 			foreach($options as $key=>$value){
 				if($value===false){

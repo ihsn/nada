@@ -22,7 +22,13 @@ if(isset($metadata['resources']) ){
 } 
 
 //$metadata['metadata']['resources']=$metadata['resources'];
+
+//dcmi metadata?
+if(isset($metadata['metadata']['image_description']['dcmi'])){
+    return $this->load->view('metadata_templates/image-template-dcmi',array());
+}
 ?>
+
 
 <?php 
     //rendered html for all sections

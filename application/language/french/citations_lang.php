@@ -95,7 +95,24 @@ $lang['created']="créé(es)";
 $lang['citation_string_invalid']="Format de citation incorrect ou inconnu";
 $lang['attach_to_survey']="Associer une ou plusieurs citations aux enquêtes suivantes (la combinaison de touches CTRL/MAJ permet de sélectionner plusieurs enquêtes)";
 $lang['attach_studies']="Associer des enquêtes";
+$lang['find_studies']="Rechercher des fichiers de données";
+$lang['citations_text']="Une bibliographie des publications qui ont cité l'utilisation d'un ensemble de données figurant dans ce catalogue. La sélection d'une publication dans la liste indiquera quel ensemble de données d'étude a été utilisé et fournira un lien vers l'étude dans le catalogue.";
+$lang['allowed_file_types']="Types de fichiers autorisés";
+$lang['attach_file']="Fichier attaché";
+$lang['max_upload_limit']="Limite de téléchargement maximale";
+$lang['export_citations']="Exportation des citations";
+$lang['export_to_csv']="Exportation au format CSV";
+$lang['sort']="Tri";
+$lang['published-status-1']="Publié";
+$lang['published-status-0']="Brouillon";
+$lang['Refine by']="Affiner par";
+$lang['Flags']="Flags";
+$lang['By user']="par utilisateur";
+$lang['Other options']="Autres options";
+$lang['Has notes']="A des notes";
+$lang['status']="Statuts";
+$lang['Search by title, country and year']="Recherche par titre, pays et année";
 
 
-/* End of file citations_lang.php */
-/* Location: ./application/language/french/citations_lang.php */
+/* End of file citations */
+/* Location: ./application/language/french/citations */

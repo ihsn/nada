@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "becd9566a352698598cc7e464b509974",
+    "content-hash": "ee6f44c03f5dd9fdad356ca886529bd1",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -1161,6 +1161,68 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "renanbr/bibtex-parser",
+            "version": "2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/renanbr/bibtex-parser.git",
+                "reference": "d02d2426822235f5179ecdf635ba710c9d6d2ddd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/renanbr/bibtex-parser/zipball/d02d2426822235f5179ecdf635ba710c9d6d2ddd",
+                "reference": "d02d2426822235f5179ecdf635ba710c9d6d2ddd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=5.7",
+                "ryakad/pandoc-php": "^1.0"
+            },
+            "suggest": {
+                "ryakad/pandoc-php": "Needed to support LaTeX decoder in class RenanBr\\BibTexParser\\Processor\\LatexToUnicodeProcessor",
+                "ueberdosis/pandoc": "Alternate Pandoc PHP package which (if available) will be preferred over ryakad/pandoc-php"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "RenanBr\\BibTexParser\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Renan de Lima Barbosa",
+                    "email": "renandelima@gmail.com"
+                }
+            ],
+            "description": "BibTex Parser provides an API to read .bib files programmatically",
+            "keywords": [
+                "Bibliography",
+                "bib",
+                "bibtex",
+                "citation",
+                "cite",
+                "latex",
+                "parser"
+            ],
+            "support": {
+                "issues": "https://github.com/renanbr/bibtex-parser/issues",
+                "source": "https://github.com/renanbr/bibtex-parser/tree/2.2.0"
+            },
+            "time": "2023-08-25T11:21:46+00:00"
         },
         {
             "name": "salsify/json-streaming-parser",

@@ -62,7 +62,7 @@ $lang['subject']="Asunto";
 $lang['body']="Cuerpo del mensaje";
 $lang['send']="Enviar";
 $lang['title_download_expired']="¡El enlace para la descarga ha caducado!";
-$lang['msg_download_limit_reached']="Usted ha llegado al límite de descarga para éste archivo. Usted está limitado a %d descargas para éste archivo. Si desea tener un mayor número de descargas permitido, por favor escriba a %s para solicitar el cambio.";
+$lang['msg_download_limit_reached']="Usted ha llegado al límite de descarga para éste archivo. Usted está limitado a %s descargas para éste archivo. Si desea tener un mayor número de descargas permitido, por favor escriba a %s para solicitar el cambio.";
 $lang['apply']="Aplicar";
 $lang['not_attached_any_licensed_files']="No ha adjuntado ningún archivo para el acceso a datos con licencia, visite la página &quot;Acceso a datos con licencia&quot; para configurar los archivos.";
 $lang['restrict_data_access_by_id']="Restringir el acceso de datos por IP";
@@ -111,7 +111,29 @@ $lang['email_sent']="email enviado";
 $lang['provide_additonal_info_for_your_request']="Por favor, ingrese información adicional necesaria para procesar su solicitud de datos.";
 $lang['click_on_a_lic_request_to_see_status_or_download_data']="Hacer clic en una solicitud para ver el estado o descargar los microdatos de las solicitudes aprobadas.";
 $lang['make_new_lic_request']="Hacer una nueva solicitud";
+$lang['no_microdata_files_found']="¡No se encontraron archivos de microdatos!
+";
+$lang['all_requests']="Todas las solicitudes
+";
+$lang['pending']="Pendiente
+";
+$lang['denied']="Denegado
+";
+$lang['cancelled']="Cancelado
+";
+$lang['study_data_files']="Archivos de microdatos
+";
+$lang['study_resources']="Recursos del Estudio
+";
+$lang['other_materials']="Otros materiales
+";
+$lang['datasets_requested']="Base(s) de datos solicitada(s)
+";
+$lang['request_title']="Título de la solicitud
+";
+$lang['download_microdata_and_resources']="Descargar Microdatos y otros materiales relacionados
+";
 
 
-/* End of file licensed_request_lang.php */
-/* Location: ./application/language/spanish/licensed_request_lang.php */
+/* End of file licensed_request */
+/* Location: ./application/language/spanish/licensed_request */

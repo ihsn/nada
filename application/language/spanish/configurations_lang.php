@@ -70,7 +70,9 @@ $lang['topic_search_weight']="Filtro por tópico";
 $lang['year_search_weight']="Filtro por año";
 $lang['collection_search_weight']="Filtro por colección";
 $lang['instruction_weight']="La posición controla el orden de los filtros. Los filtros son ordenados por la posición en forma ascendente.";
+$lang['edit_email_settings']="Para configurar el correo electrónico, consulte el archivo <em>config/email.php</em>";
+$lang['test_email_configurations']="Probar configuraciones de correo electrónico";
 
 
-/* End of file configurations_lang.php */
-/* Location: ./application/language/spanish/configurations_lang.php */
+/* End of file configurations */
+/* Location: ./application/language/spanish/configurations */

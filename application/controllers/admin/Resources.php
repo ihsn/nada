@@ -223,6 +223,28 @@ class Resources extends MY_Controller {
 	  		$this->template->render();
 		}		
 	}
+
+
+	/**
+	 * 
+	 * Download resource
+	 * 
+	 * 
+	 */
+	function download($sid=null,$resource_id=null)
+	{
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+		$resource_filepath=$this->Survey_resource_model->get_resource_download_path($resource_id);
+
+		if (!file_exists($resource_filepath))
+		{
+			show_error('File not found');
+		}
+
+		$this->load->helper('download');
+		log_message('info','Downloading file <em>'.$resource_filepath.'</em>');
+		force_download2($resource_filepath);
+	}
 	
 	
 	/**
@@ -301,24 +323,35 @@ class Resources extends MY_Controller {
 			{
 				$db_result=$this->Survey_resource_model->insert($options);
 				
-				if ($db_result){
+				//log
+				if ($db_result)
+				{
 					$this->db_logger->write_log('resource-added',$options['title'].'-'.$options['filename'],'resources',$survey_id);
 				}	
 			}
 			else
 			{
+				//update db
 				$db_result=$this->Survey_resource_model->update($id,$options);
 				
-				if ($db_result){
+				//log
+				if ($db_result)
+				{
 					$this->db_logger->write_log('resource-updated',$options['title'].'-'.$options['filename'],'resources',$survey_id);
 				}
 			}
 						
-			if ($db_result!=false){
+			if ($db_result===TRUE)
+			{
+				//update successful
 				$this->session->set_flashdata('message', t('form_update_success') );
+				
+				//redirect back to the list
 				redirect("admin/catalog/edit/$survey_id/resources");
 			}
-			else{
+			else
+			{
+				//update failed
 				$this->form_validation->set_error(t('form_update_fail'));				
 			}
 		}

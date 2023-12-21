@@ -347,3 +347,26 @@ if (! function_exists('is_assoc_array')) {
     return $keys !== array_keys($keys);
   }
 }
+
+if ( ! function_exists('array_remove_empty'))
+{
+    function array_remove_empty(array &$array)
+    {
+        foreach ($array as $key => &$value) {
+            if (is_array($value)) {
+                $value = array_remove_empty($value);
+                if (count($value)==0){
+                    $value=null;
+                }
+            }else{
+                if(trim($value)==''){
+                    $value=null;
+                }
+            }
+            if ($value===null) {
+                unset($array[$key]);
+            }
+        }
+        return $array;
+    }
+}

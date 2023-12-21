@@ -95,7 +95,16 @@ $lang['created']="Creado";
 $lang['citation_string_invalid']="Formato de cita incorrecto";
 $lang['attach_to_survey']="Adjuntar la(s) cita(s) a las siguientes op. estadísticas (usar CTRL/SHIFT para seleccionar más de una op. estadística)";
 $lang['attach_studies']="Adjuntar operaciones estadísticas";
+$lang['citations_text']="Una bibliografía de publicaciones que han citado el uso de una base de datos incluida en este catálogo. Al seleccionar una publicación de la lista, se mostrará qué base de datos del estudio se utilizó y proporcionará un enlace al estudio en el catálogo.";
+$lang['allowed_file_types']="Tipos de archivo permitidos";
+$lang['attach_file']="Adjuntar archivo";
+$lang['max_upload_limit']="Límite máximo de carga";
+$lang['export_citations']="Exportar citas";
+$lang['export_to_csv']="Exportar a CSV";
+$lang['sort']="Clasificar";
+$lang['published-status-1']="Publicado";
+$lang['published-status-0']="Borrador";
 
 
-/* End of file citations_lang.php */
-/* Location: ./application/language/spanish/citations_lang.php */
+/* End of file citations */
+/* Location: ./application/language/spanish/citations */

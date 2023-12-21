@@ -1,6 +1,6 @@
 <?php 
 $lang['catalog_maintenance']="Gestion du catalogue";
-$lang['add_study_to_collection']="Ajouter une enquête a la collection";
+$lang['add_study_to_collection']="Ajouter une enquête à la collection";
 $lang['upload_ddi_hover']="Charger un fichier DDI";
 $lang['import_ddi']="Importer DDI";
 $lang['import_ddi_hover']="Importation de multiples fichiers DDI";
@@ -19,9 +19,9 @@ $lang['browse_metadata']="Explorer les métadonnées";
 $lang['share_ddi_w_harvester']="DDI accessible par le Harvester?";
 $lang['msg_select_ddi']="Selectionner un fichier DDI:";
 $lang['ddi_overwrite_exist']="Ecraser si l'étude existe déjà?";
-$lang['msg_select_rdf']="Selectioner le fichier RDF (.rdf)";
-$lang['ddi_import_processing']="Veuillez patienter; fichier en cours d'imporation...";
-$lang['batch_import_title']="Importation de DDIs en batch";
+$lang['msg_select_rdf']="Sélectionner le fichier RDF (.rdf)";
+$lang['ddi_import_processing']="Veuillez patienter, fichier en cours d'importation...";
+$lang['batch_import_title']="Importation de DDI en batch";
 $lang['import_ddi_no_files_found']="Auncun fichier DDI n'a été trouvé dans le répertoire d'importation [%s]. Veuillez copier les fichiers DDI dans un répertoire accessible par l'application.";
 $lang['import_ddi_files_found']="%s fichiers trouvés dans le répertoire d'importation. Sélectionnez les fichiers à importer et validez en sélectionnant importer.";
 $lang['btn_import']="Importer";
@@ -58,7 +58,7 @@ $lang['is_harvested_study']="Enquête obtenue";
 $lang['select_publish_unpublish']="Sélectionner l'élément à publier/dépublier";
 $lang['publish']="Publier";
 $lang['series']="Série";
-$lang['data_access']="Accès au données";
+$lang['data_access']="Accès aux données";
 $lang['overwrite_if_exists']="Ecraser les données existantes?";
 $lang['sort_by']="Trier les résultats par :";
 $lang['surveyid']="Réf. de l'enquête";
@@ -138,7 +138,38 @@ $lang['ddi_batch_refresh_title']="Actualiser batch DDI";
 $lang['btn_refresh']="Actualiser DDI";
 $lang['refresh_ddi_description']="Met à jour la base de données avec les métadonnées du fichier DDI.";
 $lang['total_studies_found']="Nombre total d'enquêtes trouvé";
+$lang['mark_as_featured']="Afficher en tant qu'étude vedette ?";
+$lang['msg_study_ownership_has_changed']="La propriété de l'étude a changé !";
+$lang['replace_ddi_failed_duplicate_study_found']="Le catalogue contient une autre étude avec le même identifiant";
+$lang['show_selected_only']="Afficher uniquement la sélection";
+$lang['Data available from external repository']="Données disponibles à partir d'un dépôt externe";
+$lang['Data not available']="Données non disponibles";
+$lang['error_no_collection_selected']="Vous n'avez pas sélectionné une collection!";
+$lang['confirm_publish_records']="Confirmez-vous la publication de l'étude?";
+$lang['confirm_publish']="Publier?";
+$lang['attach_citations']="Joindre des citations";
+$lang['return_to_edit_page']="Retour à la page d'édition";
+$lang['attach_related_data']="Attachement lié";
+$lang['no_related_studies_click_here_to_add']="Aucune étude connexe n'est jointe";
+$lang['relationship_type']="Type de relation";
+$lang['draft']="Brouillon";
+$lang['confirm_unpublish_records']="Voulez-vous vraiment annuler la publication des enregistrements ?";
+$lang['confirm_unpublish']="Confirmer la dépublication";
+$lang['idno']="Identifiant de l'étude";
+$lang['search_results_for']="Résultats de recherche pour: ";
+$lang['tab_overview']="Aperçu";
+$lang['tab_manage_files']="Fichiers";
+$lang['tab_resources']="Ressources";
+$lang['tab_citations']="Citations";
+$lang['tab_data_files']="Fichiers de données";
+$lang['tab_notes']="Notes";
+$lang['tab_related_data']="Etudes liées";
+$lang['license']="Licence";
+$lang['select_license']="Sélectionner licence";
+$lang['select_study_thumbnail']="Sélectionner fichier image (PNG, JPG, JPEG, GIF)";
+$lang['Thumbnal']="Vignette";
+$lang['Upload thumbnal']="Télécharger la vignette";
 
 
-/* End of file catalog_admin_lang.php */
-/* Location: ./application/language/french/catalog_admin_lang.php */
+/* End of file catalog_admin */
+/* Location: ./application/language/french/catalog_admin */

@@ -14,7 +14,15 @@ $lang['access_type_unlimited']="Acceso ilimitado Administrador";
 $lang['group_type_user']="Usuario - acceso para no administradores";
 $lang['group_type_reviewer']="Revisor - acceso para no administradores";
 $lang['group_type_admin']="Administrador";
+$lang['user_groups_add']="Agregar nuevo grupo de usuarios
+";
+$lang['add_permission_url']="Crear permiso
+";
+$lang['user_groups']="Grupos de Usuarios
+";
+$lang['manage_permissions']="Administrar permisos
+";
 
 
-/* End of file user_groups_lang.php */
-/* Location: ./application/language/spanish/user_groups_lang.php */
+/* End of file user_groups */
+/* Location: ./application/language/spanish/user_groups */

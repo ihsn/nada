@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Table type schema",
+  "description": "",
+  "type": "object",
+  "definitions":{
+    "data_dictionary": {
+      "type": "array",
+      "title": "Data dictionary",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name":{
+            "type": "string",
+            "title": "Name"
+          },
+          "label":{
+            "type": "string",
+            "title": "Label"
+          },
+          "data_type":{
+            "type": "string",
+            "title": "Data type",
+            "enum_":[
+              "integer",
+              "double",
+              "string",
+              "boolean",
+              "date"
+            ],
+            "description":"Variable data type. <br><br> `integer` - Numeric values with no floating point values <br><br> `double` - Numeric values with floating point values <br><br> `string` - Text data <br><br> `date` - Date in ISO formats **YYYY-mm-dd** OR **YYYY-mm-ddTHH:MM:ss** or Unix epoch format **integer** "
+          },
+          "categories": {
+            "type": "array",
+            "title": "Variable categories",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "title": "Value",
+                  "type": ["string","number"]
+                },
+                "label": {
+                  "title": "Label",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required":["name"]
+      }
+    }    
+  },
+    "properties": {                
+      "db_id": {
+        "type": "string",
+        "description": "Database ID"
+      },
+      "table_id": {
+        "type": "string",
+        "description": "Table ID number"
+      },
+
+      "title": {
+        "type": "string",
+        "description": "Table title"
+      },
+
+      "description": {
+        "type": "string",
+        "description": "Table description"
+      },
+      
+      "data_dictionary": {
+        "allOf": [ 
+          {"$ref":"#/definitions/data_dictionary"}
+        ],
+        "title":"Data dictionary"
+      }
+
+  },
+  "required":["db_id","table_id","title", "data_dictionary"]
+}

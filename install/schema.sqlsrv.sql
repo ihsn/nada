@@ -654,7 +654,8 @@ CREATE TABLE users (
   salt varchar(40) DEFAULT NULL,
   email varchar(100) NOT NULL,
   activation_code varchar(40) DEFAULT NULL,
-  forgotten_password_code varchar(40) DEFAULT NULL,
+  forgotten_password_code varchar(100) DEFAULT NULL,
+  forgotten_code_expiry int default NULL,
   remember_code varchar(40) DEFAULT NULL,
   created_on int NOT NULL,
   last_login int NOT NULL,
@@ -1640,3 +1641,14 @@ CREATE TABLE survey_facets (
 
 INSERT INTO configurations VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);
+
+
+CREATE TABLE survey_data_api (
+  id int NOT NULL IDENTITY(1,1),
+  sid int DEFAULT NULL,
+  title varchar(255) DEFAULT NULL,
+  description varchar(500) DEFAULT NULL,
+  db_id varchar(45) DEFAULT NULL,
+  table_id varchar(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);

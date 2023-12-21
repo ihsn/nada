@@ -675,7 +675,8 @@ CREATE TABLE `users` (
   `salt` varchar(40) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
   `activation_code` varchar(40) DEFAULT NULL,
-  `forgotten_password_code` varchar(40) DEFAULT NULL,
+  `forgotten_password_code` varchar(100) DEFAULT NULL,
+  'forgotten_code_expiry' int default NULL,
   `remember_code` varchar(40) DEFAULT NULL,
   `created_on` int(11) NOT NULL,
   `last_login` int(11) NOT NULL,
@@ -1497,3 +1498,14 @@ CREATE TABLE `data_access_whitelist` (
   `repository_id` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1;
+
+
+CREATE TABLE `survey_data_api` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sid` int DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `description` varchar(500) DEFAULT NULL,
+  `db_id` varchar(45) DEFAULT NULL,
+  `table_id` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+)AUTO_INCREMENT=1;

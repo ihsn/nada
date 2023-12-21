@@ -6,7 +6,8 @@ $lang['logtype']="النوع
 $lang['section']="الجزء/القسم
 ";
 $lang['url']="عنوان الموقع (URL)";
-$lang['keywords']="كلمات مفتاحية/رئيسية";
+$lang['keywords']="كلمات مفتاحية/رئيسية
+";
 $lang['user']="المستخدم";
 $lang['ip_address']="عنوان IP";
 $lang['logtime']="خُلق/أنشىء";

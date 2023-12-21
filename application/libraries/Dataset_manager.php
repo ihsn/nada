@@ -29,6 +29,7 @@ class Dataset_manager{
         $this->ci->load->model("Dataset_table_model");
         $this->ci->load->model("Dataset_visualization_model");
         $this->ci->load->model("Dataset_video_model");
+        $this->ci->load->model("Data_classification_model");
         $this->ci->load->helper("Array");
     }
 
@@ -205,6 +206,11 @@ class Dataset_manager{
     public function get_data_access_type_id($name)
     {
         return $this->ci->Dataset_model->get_data_access_type_id($name);
+    }
+
+    function get_data_classification_id($name)
+    {
+        return $this->ci->Data_classification_model->get_classification_id($name);
     }
 
     /**

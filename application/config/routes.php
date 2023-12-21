@@ -171,6 +171,7 @@ $route['catalog/(:num)/request-access'] = "study/request_access/$1";
 $route['catalog/(:num)/request-access/(.*)'] = "study/request_access/$1";
 $route['catalog/(:num)/related-datasets'] = "study/related_datasets/$1";
 $route['catalog/(:num)/pdf-documentation'] = "study/pdf_documentation/$1";
+$route['catalog/(:num)/data-api'] = "study/data_api/$1";
 
 
 //$route['catalog/(:num)'] = "ddibrowser/$1";

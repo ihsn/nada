@@ -1,9 +1,12 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-require_once APPPATH."../modules/bibtex/PARSECREATORS.php";
-require_once APPPATH."../modules/bibtex/PARSEENTRIES.php";
-require_once APPPATH."../modules/bibtex/PARSEMONTH.php";
-require_once APPPATH."../modules/bibtex/PARSEPAGE.php";
+
+use RenanBr\BibTexParser\Listener;
+use RenanBr\BibTexParser\Parser;
+use RenanBr\BibTexParser\Processor;
+use RenanBr\BibTexParser\Processor\NamesProcessor;
+
+
 
 /**
  * BibText Import/export class
@@ -35,12 +38,13 @@ class BibTeX{
 			//'note',					//: Miscellaneous extra information
 			'number'=>'issue',					//: The "number" of a journal, magazine, or tech-report, if applicable. (Most publications have a "volume", but no "number" field.)
 			'organization'=>'organization',	//: The conference sponsor
-			'pages'=>'page_from',		//: Page numbers, separated either by commas or double-hyphens.
+			'pages'=>'pages',
+			//'pages'=>'page_from',		//: Page numbers, separated either by commas or double-hyphens.
 			'publisher'=>'publisher',	//: The publisher's name
 			'school'=>'organization',		//: The school where the thesis was written
 			'series'=>'title',			//: The series of books the book was published in (e.g. "The Hardy Boys" or "Lecture Notes in Computer Science")
 			'title'=>'title',			//: The title of the work
-			//'type'=>'ctype',			//: The type of tech-report, for example, "Research Note"
+			'type'=>'ctype',			//: The type of tech-report, for example, "Research Note"
 			'url'=>'url',				//: The WWW address
 			'volume'=>'volume',			//: The volume of a journal or multi-volume book
 			'year'=>'pub_year',			//: The year of publication (or, if unpublished, the year of creation)
@@ -72,56 +76,35 @@ class BibTeX{
 	function __construct($params=NULL)
 	{
 	}
-	
-	/**
-	*
-	* Parse a BibTeX string to Array
-	**/
-	function parse_string($string)
-	{
-		$bibtex = new PARSEENTRIES();
-		
-		//load bibtext string
-		$bibtex->loadBibtexString($string);
-		
-		//parse
-		$bibtex->extractEntries();
 
-		//get arrays
-		list($preamble, $strings, $entries, $undefinedStrings) = $bibtex->returnArrays();
-		
-		if (!is_array($entries))
-		{
+
+	function parse_string($bibtex)
+	{
+		$listener = new Listener();
+		$listener->addProcessor(new Processor\TagNameCaseProcessor(CASE_LOWER));
+		$listener->addProcessor(new NamesProcessor());//process authors
+		// $listener->addProcessor(new Processor\KeywordsProcessor());
+		// $listener->addProcessor(new Processor\DateProcessor());
+		// $listener->addProcessor(new Processor\FillMissingProcessor([/* ... */]));
+		// $listener->addProcessor(new Processor\TrimProcessor());
+		// $listener->addProcessor(new Processor\UrlFromDoiProcessor());
+		// $listener->addProcessor(new Processor\LatexToUnicodeProcessor());
+
+		$parser = new Parser();
+		$parser->addListener($listener);
+
+		$parser->parseString($bibtex);
+		$entries = $listener->export();
+
+
+		if (!is_array($entries)){
 			return FALSE;
 		}
 		
-		return $this->bibtex_to_nada_mapping($entries);
-
-		/*
-		echo '<pre>';
-		//print_r($preamble);
-		print "\n";
-		//print_r($strings);
-		print "\n";
-		print_r($entries);
-		print "\n\n";
-		$authors=$entries[0]['author'];
-		$creator = new PARSECREATORS();
-		$creatorArray = $creator->parse($authors);
-		print_r($creatorArray);
-
-		$this->bibtex_to_nada_mapping($entries);
-		echo '</pre>';
-		*/
+		$result=$this->bibtex_to_nada_mapping($entries);
+		return $result;
 	}
 	
-	/**
-	* 
-	* Parse a BibTeX (.bib) file to Array
-	**/
-	function parse_file($bibtext_file)
-	{
-	}
 	
 	/**
 	*
@@ -187,11 +170,7 @@ class BibTeX{
 		
 		$exportbib= new exportbib;
 		$exportbib->data[]=$addarray;
-		echo $exportbib->bibTex();
-		
-		echo '<pre>';
-		//var_dump($entry);
-		var_dump($addarray);
+		echo $exportbib->bibTex();		
 	}
 	
 	/**
@@ -223,33 +202,33 @@ class BibTeX{
 			//convert authors ino an array
 			if (isset($single_row['authors']))
 			{
-				$authors=$single_row['authors'];
-				$creator = new PARSECREATORS();
-				$author_array = $creator->parse(trim($authors));
-				
+				$authors=$single_row['authors'];				
 				$nada_authors=array();
+
 				//iterate and convert to nada author
-				foreach($author_array as $auth)
+				foreach($single_row['authors'] as $auth)
 				{
-					$tmp["lname"]=trim($auth[2]);
-					$tmp["fname"]=trim($auth[1]);
-					$tmp["initial"]='';
-					$nada_authors[]=$tmp;
+					$nada_authors[]=array(
+						"lname"=> (isset($auth['first']) ? $auth['first'] : ''),
+						"fname"=> (isset($auth['last']) ? $auth['last'] : ''),
+						"initial"=> (isset($auth['von']) ? $auth['von'] : '')
+					);
 				}
 				
 				$single_row['authors']=$nada_authors;
-			}	
-			
+			}
+
 			//map pages from/to
-			if (isset($single_row['page_from']))
+			if (isset($single_row['pages']))
 			{
-				$pages=explode("--",$single_row['page_from']);
+				$pages=explode("--",$single_row['pages']);
 				if (count($pages)==2)
 				{
 					$single_row['page_from']=$pages[0];
 					$single_row['page_to']=$pages[1];
-				}	
+				}				
 			}
+
 			//map citation type. e.g. article, book
 			if (array_key_exists($single_row['ctype'],$this->entry_types))
 			{
@@ -267,7 +246,7 @@ class BibTeX{
 	}
 	
 }
-// END MY_mPDF Class
+// END Bibtex Class
 
-/* End of file MY_mPDF.php */
-/* Location: ./application/libraries/MY_mPDF.php */
+/* End of file Bibtex.php */
+/* Location: ./application/libraries/Bibtex.php */

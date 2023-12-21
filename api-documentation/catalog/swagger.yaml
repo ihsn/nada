@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   description: >-
     The NADA REST API allows searching, browsing and viewing the catalog. Use the metadata endpoints to extract detailed study metadata as JSON. 
@@ -8,7 +8,7 @@ info:
     [http://nada.ihsn.org](http://nada.ihsn.org).  
 
     
-  version: 1.0.0
+  version: 5.3
   title: NADA API
   x-logo:
     url: ""
@@ -37,7 +37,8 @@ x-tagGroups:
     tags:
       - Metadata    
 schemes:
-  - http
+    - http
+    - https
 paths:
 
   /catalog/collections:
@@ -53,10 +54,10 @@ paths:
         - application/xml
         - application/json
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/Collection'
+            $ref: "#/definitions/Collection"
   /catalog/collections/{repoId}:
     get:
       tags:
@@ -77,10 +78,10 @@ paths:
           type: string
           format: string        
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/Collection'
+            $ref: "#/definitions/Collection"
   /catalog/search:
     get:
       tags:
@@ -94,43 +95,35 @@ paths:
         - application/json
       parameters:
         - name: sk
-          in: path
-          title: Study description keywords
+          in: query
           description: Keywords for searching study level metadata
           type: string
         - name: from
-          in: path
-          title: Start year
+          in: query
           description: Starting year for the data collection
-          type: int
+          type: integer
         - name: to
-          in: path
-          title: End year
+          in: query
           description: End year for the data collection
-          type: int
+          type: integer
         - name: country
-          in: path
-          title: Country name
+          in: query
           description: "Provide country name or ISO 3 code. For country names and codes, see endpoint `/api/catalog/country_codes`. For searching multiple countries, provide names separated by pipe(|). \n \n Example `Afghanistan|Indonesia` or `afg|ind` or `afghanistan|ind`"
           type: string
         - name: inc_iso
-          in: path
-          title: Include ISO codes
+          in: query
           description: Set the parameter value to true to include the ISO3 country codes for the results
           type: boolean
         - name: collection
-          in: path
-          title: Filter by collections
+          in: query
           description: Filter results by one or more collections. For filtering multiples, use format `collection1, collection2`
           type: string
         - name: created
-          in: path
-          title: Filter by date created
+          in: query
           description: Filter results by date of creation. Use the date format YYYY-MM-DD. Examples, `2020/04/01` returns records created on and after that date. To specify a date range, use the format `2020/04/01-2020/04/20`
           type: string  
         - name: dtype
-          in: path
-          title: Data access type
+          in: query
           description: Filter by data access types. For multiple values, use comma e.g. `open, direct, remote`
           type: string
           enum:
@@ -142,19 +135,16 @@ paths:
           - remote
           - other 
         - name: ps
-          in: path
-          title: Page size
+          in: query
           description: Number of results per page. Default is 15 records per page
-          type: int
+          type: integer
         - name: page
-          in: path
-          title: Page
+          in: query
           description: Page to return for the search result
-          type: int
+          type: integer
         
         - name: sort_by
-          in: path
-          title: Sort results
+          in: query
           description: Sort search results. Valid options are `rank`,`title`,`year`,`nation`
           type: string
           enum:
@@ -163,16 +153,14 @@ paths:
           - nation
           - year
         - name: sort_order
-          in: path
-          title: Sort order
+          in: query
           description: Set results sort order. Ascending = `asc`, Descending= `desc`
           type: string
           enum:
           - asc
           - desc
         - name: format
-          in: path
-          title: Result format
+          in: query
           description: Supported formats are `json`, `xml`
           type: string     
 
@@ -183,11 +171,11 @@ paths:
           schema:
             $ref: "#/definitions/Catalog"
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/ApiResponse'
-        '400':
+            $ref: "#/definitions/ApiResponse"
+        "400":
           description: Bad input
   
   /catalog/country_codes:
@@ -203,10 +191,10 @@ paths:
         - application/xml
         - application/json
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/CountryCode'      
+            $ref: "#/definitions/CountryCode"
   /catalog/latest:
     get:
       tags:
@@ -220,10 +208,10 @@ paths:
         - application/xml
         - application/json
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/Catalog'
+            $ref: "#/definitions/Catalog"
   
   /catalog/data_access_codes:
     get:
@@ -238,12 +226,12 @@ paths:
         - application/xml
         - application/json
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/DataAccessCode'
+            $ref: "#/definitions/DataAccessCode"
     
-  /catalog/{idno}:
+  /catalog/{IDNo}:
     get:
       tags:
         - Catalog
@@ -259,23 +247,21 @@ paths:
       parameters:
         - name: IDNo
           in: path
-          title: Study unique ID
           description: Study unique ID number
           type: string
           required: true
         - name: id_format
           in: query
-          title: ID format
           description: To use the ID values instead of the IDNo, set id_format to ID
           type: string
           required: false
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-              $ref: '../catalog-admin/survey-schema.json'
+              $ref: "../catalog-admin/survey-schema.json"
 
-  /catalog/{idno}/data_files:
+  /catalog/{IDNo}/data_files:
     get:
       tags:
         - Catalog
@@ -291,21 +277,19 @@ paths:
       parameters:
         - name: IDNo
           in: path
-          title: Study unique ID
           description: Study unique ID number
           type: string
           required: true
         - name: id_format
           in: query
-          title: ID format
           description: To use the ID values instead of the IDNo, set id_format to ID
           type: string
-          required: false  
+          required: false
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/Catalog'  
+            $ref: "#/definitions/Catalog"
   /catalog/{IDNo}/data_files/{fileId}:
     get:
       tags:
@@ -322,27 +306,25 @@ paths:
       parameters:
         - name: IDNo
           in: path
-          title: Study unique ID
           description: Study unique ID number
           type: string
           required: true 
         - name: fileId
           in: path
-          title: File ID
           description: File ID number
           type: string
           required: true
         - name: id_format
           in: query
-          title: ID format
+
           description: To use the ID values instead of the IDNo, set id_format to ID
           type: string
           required: false  
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '../catalog-admin/datafile-schema.json'
+            $ref: "../catalog-admin/datafile-schema.json"
 
   /catalog/{IDNo}/data_files/{fileId}/variables:
     get:
@@ -360,27 +342,24 @@ paths:
       parameters:
         - name: IDNo
           in: path
-          title: Study unique ID
           description: Study unique ID number
           type: string
           required: true 
         - name: fileId
           in: path
-          title: File ID
           description: File ID number
           type: string
           required: true
         - name: id_format
           in: query
-          title: ID format
           description: To use the ID values instead of the IDNo, set id_format to ID
           type: string
-          required: false  
+          required: false
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '#/definitions/Catalog'  
+            $ref: "#/definitions/Catalog"
   
   /catalog/{IDNo}/variables:
     get:
@@ -398,21 +377,19 @@ paths:
       parameters:
         - name: IDNo
           in: path
-          title: Study unique ID
           description: Study unique ID number
           type: string
           required: true
         - name: id_format
           in: query
-          title: ID format
           description: To use the ID values instead of the IDNo, set id_format to ID
           type: string
-          required: false  
+          required: false
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '../catalog-admin/variable-schema.json'
+            $ref: "../catalog-admin/variable-schema.json"
   /catalog/{IDNo}/variables/{varId}:
     get:
       tags:
@@ -429,28 +406,75 @@ paths:
       parameters:
         - name: IDNo
           in: path
-          title: Study unique ID
           description: Study unique ID number
           type: string
           required: true
         - name: varId
           in: path
-          title: Variable ID
           description: Variable ID
           type: string
           required: true
         - name: id_format
           in: query
-          title: ID format
           description: To use the ID values instead of the IDNo, set id_format to ID
           type: string
           required: false  
       responses:
-        '200':
+        "200":
           description: successful operation
           schema:
-            $ref: '../catalog-admin/variable-schema.json'          
-###############################################################
+            $ref: "../catalog-admin/variable-schema.json"
+  /catalog/ddi/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Download DDI/XML
+      description: Download DDI 2.5 CodeBook XML (available for microdata studies only)
+      operationId: downloadDDI
+      consumes:
+        - application/json
+      produces:
+        - application/xml
+      parameters:
+        - name: IDNo
+          in: path
+          description: Study unique ID number
+          type: string
+          required: true
+        - name: id_format
+          in: query
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false
+      responses:
+        "200":
+          description: successful operation
+  /catalog/json/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Download JSON
+      description: Download study metadata as JSON
+      operationId: downloadJSON
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: IDNo
+          in: path
+          description: Study unique ID number
+          type: string
+          required: true
+        - name: id_format
+          in: query
+          description: To use the ID values instead of the IDNo, set id_format to ID
+          type: string
+          required: false
+      responses:
+        "200":
+          description: successful operation
+
 definitions:
   Catalog:
     type: object
@@ -664,7 +688,7 @@ definitions:
         format: int64
         readOnly: true
       user_id:
-        type: int      
+        type: integer
       username:
         type: string
       api-keys:

@@ -10,8 +10,6 @@ require_once 'modules/mongodb/vendor/autoload.php';
 
 class Data_table_mongo_model extends CI_Model {
 
-    private $geo_fields=array();
-
     //table type object holds table definition[features, codelists, etc]
     private $table_type_obj=null;
 
@@ -19,16 +17,10 @@ class Data_table_mongo_model extends CI_Model {
 
     private $db_name;
 
-    public function __construct()
+    public function __construct() 
     {
         parent::__construct();
-        $this->config->load('mongo');
-
-        //$this->load->model("Data_tables_places_model");
-        //$this->geo_fields=$this->Data_tables_places_model->get_geo_mappings();
-        //$this->output->enable_profiler(TRUE);
-        
-        //tood: use a config value to set current database
+        $this->config->load('mongo');        
         $this->db_name=$this->config->item("mongodb_database");
         $this->mongo_client=$this->get_db_connection();
     }
@@ -56,10 +48,7 @@ class Data_table_mongo_model extends CI_Model {
         return new MongoDB\Client(
             "mongodb://${host}:${port}",
                 array(
-                    //"username" => $username, 
-                    //"password" => $password, 
                     "db"=> $this->get_db_name(), 
-                    //'authSource' => $this->get_db_name() 
                 )
         );
 
@@ -104,6 +93,7 @@ class Data_table_mongo_model extends CI_Model {
         
         return $this->db_name;
     }
+
     
     private function get_table_name($db_id,$table_id)
     {
@@ -916,32 +906,6 @@ class Data_table_mongo_model extends CI_Model {
 
     /**
      * 
-     * Get a count of tables with row counts
-     * 
-     */
-    function get_tables_w_count()
-    {
-        return $this->db->query("select table_id,count(table_id) as total from data_tables group by table_id")->result_array();        
-    } 
-
-
-    function get_table_count($table_id)
-    {
-        $this->db->select('count(table_id) as total');
-        $this->db->where('table_id',$table_id);        
-        $result= $this->db->get('data_tables')->row_array();
-
-        if($result){
-            return $result['total'];
-        }
-
-        return false;
-    }
-
-
-
-    /**
-     * 
      * 
      * Get features array - id, name 
      * 
@@ -1280,46 +1244,46 @@ class Data_table_mongo_model extends CI_Model {
 
    function get_filters($db_id, $table_id,$options)
    {
-    $fields=$this->get_table_field_names($db_id,$table_id);
+        $fields=$this->get_table_field_names($db_id,$table_id);
 
-    $features=$fields;
-    $feature_filters=array();
-    $filter_options=array();
+        $features=$fields;
+        $feature_filters=array();
+        $filter_options=array();
 
-    //see if any key matches with the feature name
-    foreach($options as $key=>$value)
-    {
-        if(array_key_exists($key,$features)){
-             $filter_options[$key]=$value; //age=something
+        //see if any key matches with the feature name
+        foreach($options as $key=>$value)
+        {
+            if(array_key_exists($key,$features)){
+                $filter_options[$key]=$value; //age=something
+            }
         }
-    }
-    
-    $tmp_feature_filters=array();
+        
+        $tmp_feature_filters=array();
 
-    //filter by features
-    foreach($filter_options as $feature_key=>$value){
-        $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
-    }
-
-    //fulltext query
-    if(isset($options['ft_query']) && !empty($options['ft_query'])){
-        $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
-    }
-    
-    $feature_filters=array();
-
-    if (!empty($tmp_feature_filters)){
-
-        $feature_filters=array(
-            '$and'=> array()
-        );
-
-        foreach($tmp_feature_filters as $feature_key=>$filter){
-            $feature_filters['$and'][]['$or']=$filter;
+        //filter by features
+        foreach($filter_options as $feature_key=>$value){
+            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
         }
-    }
 
-    return $feature_filters;
+        //fulltext query
+        if(isset($options['ft_query']) && !empty($options['ft_query'])){
+            $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
+        }
+        
+        $feature_filters=array();
+
+        if (!empty($tmp_feature_filters)){
+
+            $feature_filters=array(
+                '$and'=> array()
+            );
+
+            foreach($tmp_feature_filters as $feature_key=>$filter){
+                $feature_filters['$and'][]['$or']=$filter;
+            }
+        }
+
+        return $feature_filters;
    }
 	
 }    

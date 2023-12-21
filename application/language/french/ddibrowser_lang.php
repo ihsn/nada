@@ -22,7 +22,7 @@ $lang['data_files']="Fichiers de données";
 $lang['variable_search']="Recherche de variable";
 $lang['other_materials']="Autres ressources";
 $lang['export_metadata']="Exportation des métadonnées";
-$lang['variable_search_match_found']="%d variables(s) trouvée(s)";
+$lang['variable_search_match_found']="%s variables(s) trouvée(s)";
 $lang['name']="Nom";
 $lang['label']="Libellé";
 $lang['question']="Question";
@@ -168,10 +168,6 @@ $lang['include_variable_desc']="Description de la variable";
 $lang['include_external_resources']="Ressource externe";
 $lang['Report options']="Options de rapport :";
 $lang['processing_pdf_report']="Création du rapport au format PDF en cours. Cette opération peut prendre quelques minutes. Veuillez patienter...";
-$lang['get_microdata']="Charger les microdonnées";
-$lang['study_description']="Description de l'enquête";
-$lang['data_dictionary']="Dictionnaire de données";
-$lang['related_materials']="Informations connexes";
 $lang['citations']="Citations";
 $lang['review_study']="Révision";
 $lang['add_note']="Ajouter une note";
@@ -197,7 +193,21 @@ $lang['report_lang']="Langue du rapport";
 $lang['generate_pdf']="Créer PDF";
 $lang['Mean']="Moyenne";
 $lang['Standard deviation']="Ecart-type";
+$lang['search_data_dictionary']="Rechercher dans le dictionnaire de données";
+$lang['Total variables(s)']="Total variables";
+$lang['download_study_rdf']="Télécharger les descriptions des ressources d'étude (par exemple, rapports, questionnaires, documents techniques) au format Dublin Core RDF";
+$lang['download_study_ddi']="Télécharger les métadonnées de l'étude au format DDI (XML)";
+$lang['study_documentation_text']="Téléchargez les questionnaires, documents techniques et rapports qui décrivent le processus d'enquête et les principaux résultats de cette étude.";
+$lang['study_description_text']="La section fournit une description détaillée de l'étude (c'est-à-dire les métadonnées). Les sujets abordés concernent la méthodologie de l'enquête, les méthodes d'échantillonnage, la collecte des données, le financement, les dates de collecte, la couverture géographique et la politique d'accès aux données de cette étude. Téléchargez les métadonnées dans un certain nombre de formats à partir du lien &quot;Exporter les métadonnées&quot;.";
+$lang['data_description_text']="Cette section fournit des informations détaillées sur les données d'enregistrement d'unité générées par cette étude. Cela comprend une description détaillée du contenu de chaque fichier de données et de toutes les variables de chaque fichier. Les variables peuvent contenir les résultats enregistrés d'une question directe posée ou être dérivées d'une manière ou d'une autre. Le nombre de variables et le nombre de points de données (cas) sont résumés pour chaque variable.";
+$lang['related_publications_text']="Les données de cette étude sont utilisées dans les publications suivantes :";
+$lang['related_studies']="Etudes connexes";
+$lang['variable_group']="Groupe de variables";
+$lang['universe']="Univers";
+$lang['notes']="Notes";
+$lang['text']="Note";
+$lang['definition']="Définition";
 
 
-/* End of file ddibrowser_lang.php */
-/* Location: ./application/language/french/ddibrowser_lang.php */
+/* End of file ddibrowser */
+/* Location: ./application/language/french/ddibrowser */

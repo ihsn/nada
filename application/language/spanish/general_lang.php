@@ -32,7 +32,7 @@ $lang['permissions']="Permisos";
 $lang['search']="Buscar";
 $lang['reset']="Restablecer";
 $lang['no_records_found']="No se encontraron registros";
-$lang['showing %d-%d of %d']="Mostrando %d-%d de %d";
+$lang['showing %s-%s of %s']="Mostrando %s-%s de %s";
 $lang['yes']="Si";
 $lang['no']="No";
 $lang['update']="Actualizar";
@@ -105,7 +105,43 @@ $lang['exit_impersonate']="Salir del modo &quot;hacerse pasar por...&quot;";
 $lang['content_is_not_published']="El contenido de la página actual no está publicado aun y está solo disponible para revisión.";
 $lang['licensed_requests']="Solicitudes de acceso a datos con licencia";
 $lang['create_region']="Crear región";
+$lang['tab_about']="Acerca de
+";
+$lang['tab_datasets']="Bases de datos
+";
+$lang['tab_citations']="Citas
+";
+$lang['tab_collections']="Colecciones
+";
+$lang['collection']="Colección
+";
+$lang['add_country']="Agregar nuevo país
+";
+$lang['countries']="Países
+";
+$lang['iso']="ISO
+";
+$lang['edit_country']="Editar pais
+";
+$lang['country_mappings']="Mapeos de países
+";
+$lang['latest_additions']="Últimas incorporaciones
+";
+$lang['idno']="No. ID
+";
+$lang['related_datasets']="Bases de datos relacionadas
+";
+$lang['JSON']="JSON
+";
+$lang['DDI/XML']="DDI / XML
+";
+$lang['page not found']="Página no encontrada
+";
+$lang['export_to_csv']="Exportar a CSV
+";
+$lang['translate']="Traducir
+";
 
 
-/* End of file general_lang.php */
-/* Location: ./application/language/spanish/general_lang.php */
+/* End of file general */
+/* Location: ./application/language/spanish/general */

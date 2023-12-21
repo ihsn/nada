@@ -86,5 +86,5 @@ $lang['keyword_search_help']="<table cellpadding=&quot;0&quot; cellspacing=&quot
  </ Ul>";
 
 
-/* End of file search_help_lang.php */
-/* Location: ./application/language/spanish/search_help_lang.php */
+/* End of file search_help */
+/* Location: ./application/language/spanish/search_help */

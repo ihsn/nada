@@ -236,7 +236,7 @@ class Chicago_Citation{
 		$fields['title']=$this->format_title($data,'journal');
 		
 		$output=implode(" ",$fields);
-		
+
 		return $output;	
 	}
 
@@ -372,11 +372,17 @@ class Chicago_Citation{
 		}
 		else
 		{
-			$str[]=sprintf('<span class="title">"%s."</span>',anchor('citations/'.$data->id,$data->title));			
-			$str[]=sprintf('<span class="sub-title">%s (%s).</span>',
-								$data->subtitle,
-								$data->pub_year
-								);
+			$str[]=sprintf('<span class="title">"%s."</span>',anchor('citations/'.$data->id,$data->title));
+			
+			$subsitle_=[];
+			$subtitle_[]=($data->pub_year>0) ? sprintf("(%s)",$data->pub_year) : "";
+			$subtitle_[]=($data->subtitle!='') ? sprintf("%s.",$data->subtitle) : "";
+
+			$subtitle_=implode(" ",array_filter($subtitle_));
+
+			$str[]=sprintf('<span class="sub-title">%s</span>',
+				$subtitle_								
+				);
 			return implode(" ",$str);				
 		}			
 	}
@@ -482,9 +488,14 @@ function format_book_title($data)
 		else
 		{
 			$str[]=sprintf('<span class="sub-title">%s.</span>',anchor('citations/'.$data->id,$data->title));
-			$str[]=sprintf('<span>%s.</span>',
+
+			$publisher_=$this->format_book_publisher((array)$data);
+
+			if ($publisher_){
+				$str[]=sprintf('<span>%s.</span>',
 								$this->format_book_publisher((array)$data)
 								);
+			}
 			
 			return implode(" ",$str);				
 		}			

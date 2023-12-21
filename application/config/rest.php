@@ -194,9 +194,6 @@ $config['auth_override_class_method']['tables']['data'] = 'none';
 $config['auth_override_class_method']['tables']['collection_tables'] = 'none';
 $config['auth_override_class_method']['tables']['aggregate'] = 'none';
 $config['auth_override_class_method']['tables']['databases'] = 'none';
-$config['auth_override_class_method']['tables']['population_by_age'] = 'none';
-$config['auth_override_class_method']['tables']['geosearch'] = 'none';
-$config['auth_override_class_method']['tables']['search_place'] = 'none';
 
 
 // ---Uncomment list line for the wildard unit test
@@ -621,3 +618,16 @@ $config['allow_any_cors_domain'] = TRUE;
 |
 */
 $config['allowed_cors_origins'] = [];
+
+
+/*
+|--------------------------------------------------------------------------
+| Disable API
+|--------------------------------------------------------------------------
+|
+| By Default API is enabled. Set to true to disable it.
+|
+| 
+*/
+
+$config['api_disabled']=false;

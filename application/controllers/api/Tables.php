@@ -10,6 +10,7 @@ class Tables extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model("Data_table_mongo_model");
 		$this->load->model("Data_table_model");
+		$this->load->model("Survey_data_api_model");
 	}
 
 	//list all tables with count
@@ -149,14 +150,14 @@ class Tables extends MY_REST_Controller
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
 			$result=array(
-				'storageUnit'=>'M',
-				'size'=>$result['size'],
+				//'storageUnit'=>'M',
+				//'size'=>$result['size'],
 				'count'=>$result['count'],
-				'storageSize'=>$result['storageSize'],
-				'nindexes'=>$result['nindexes'],
+				//'storageSize'=>$result['storageSize'],
+				//'nindexes'=>$result['nindexes'],
 				//'indexes'=>$result['indexDetails'],
-				'indexNames'=>array_keys((array)$result['indexDetails']),
-				'result_'=>$result['table_type']
+				//'indexNames'=>array_keys((array)$result['indexDetails']),
+				'metadata'=>$result['table_type']
 			);
 			
 			$response=array(
@@ -382,26 +383,11 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * Get table data
 	 * 
-	 * Filters
-	 * - table id
-	 * - region_type
-	 * - state_code
-	 * - district_code
-	 * - subdistrict_code
-	 * - village_town_code
-	 * - ward_code
-	 * 
-	 * - features
-	 * 
-	 * 
-	 * 
-	 * 
 	 * 
 	 */
 	function data_get($db_id=null,$table_id=null,$limit=100,$offset=0)
 	{
 		try{
-			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
 			
@@ -531,10 +517,18 @@ class Tables extends MY_REST_Controller
 		fclose($fp);
 	}
 
+
+
 	/**
 	 * 
 	 * 
-	 * Create table row	 
+	 * Create/insert table rows
+	 * 
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 * @options - array of rows to insert
 	 * 
 	 */
 	function insert_post($db_id=NULL, $table_id=NULL)
@@ -564,19 +558,6 @@ class Tables extends MY_REST_Controller
 				$options=$tmp_options;
 			}
 			
-            //validate all rows
-            /*
-			foreach($options as $key=>$row){
-				$this->Census_table_model->validate_table($row);
-            }
-            */
-
-			/*$result=array();
-            foreach($options as $row)
-            {               
-				$result=$this->Census_table_model->insert_table($row['table_id'],$row);
-			}*/
-
 			$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$options);   
 
 			$response=array(
@@ -609,45 +590,23 @@ class Tables extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
 	
 
 	/**
 	 * 
-	 * upload file	 
 	 * 
-	 **/ 
-	private function upload_file($upload_path='datafiles')
-	{		
-		if(!isset($_FILES['file'])){
-			throw new Exception("FILE NOT PROVIDED");
-		}
-
-		if(!file_exists($upload_path)){
-			mkdir($upload_path,0777,true);
-		}
-
-		$file_name=$_FILES['file'];
-		$this->load->library('upload');
-	
-		$config['upload_path'] = $upload_path;
-		$config['overwrite'] = true;
-		$config['encrypt_name']=false;
-		$config['allowed_types'] = 'txt|csv|zip';
-		
-		$this->upload->initialize($config);
-		
-		$upload_result=$this->upload->do_upload('file');
-
-		if(!$upload_result){
-			$error = $this->upload->display_errors();            
-			throw new Exception("UPLOAD_FAILED::".$upload_path. ' - error:: '.$error);
-		}
-
-		$upload_data = $this->upload->data();			
-		return $upload_data;
-	}
-	
-
+	 * Create table via CSV upload
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id	 
+	 * @file - [FILE] - CSV file to upload
+	 * 
+	 * @append - [Boolean] - querystring - append to existing table. Default is overwrite
+	 * 
+	 * Note: This will drop existing table and create a new one	  
+	 * 
+	 */
 	function upload_post($db_id,$table_id)
 	{
 		try{			
@@ -659,6 +618,7 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: tableId");
 			}
 
+			$append=$this->input->get("append") == 'true' ? true : false;
 			$uploaded_file=$this->upload_file('datafiles/'.$db_id);
 			$uploaded_file_path=$uploaded_file['full_path'];
 
@@ -673,8 +633,10 @@ class Tables extends MY_REST_Controller
 				$uploaded_file_path=$this->get_file_from_zip($uploaded_file_path,$unzip_path);
 			}
 
-			//drop existing table
-			$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
+			if (!$append){
+				//drop existing table
+				$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
+			}
 
 			//import csv
 			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file_path, $this->input->post("delimiter"));
@@ -705,88 +667,25 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
-	function file_ext_get()
-	{
-		try{			
-
-			$file=$this->input->get("file");
-
-			$response=array(
-                'status'=>'success',
-				'file_path'=>$this->is_zip_file($file),				
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'files'=>$_FILES
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-	
-
-	
-	private function is_zip_file($file_name)
-	{
-		$file_ext=pathinfo($file_name,PATHINFO_EXTENSION);
-
-		if ($file_ext=='zip'){
-			return true;
-		}
-
-		return false;
-	}
-
-	private function unzip_file($zip_file,$output_path)
-	{
-		$zip = new ZipArchive;
-		if ($zip->open($zip_file) === TRUE) {
-			$zip->extractTo($output_path);
-			$zip->close();
-		} else {
-			throw new Exception("Failed to unzip file: ". $zip_file);
-		}
-	}
-
-	private function get_file_from_zip($zip_file, $output_path)
-	{
-		$this->unzip_file($zip_file,$output_path);
-
-		$base_name=pathinfo($zip_file,PATHINFO_FILENAME);
-
-		$files=array(
-			$output_path.'/'.$base_name.'.csv',
-			$output_path.'/'.$base_name.'.txt',
-			$output_path.'/'.$base_name.'.CSV',
-			$output_path.'/'.$base_name.'.TXT'
-		);
-
-		foreach($files as $file){
-			if(file_exists($file)){
-				return $file;
-			}
-		}
-
-		throw new Exception("CSV file not found in ZIP");
-	}
 
 
 	/**
 	 * 
 	 * 
-	 * Create table row	 
+	 * Create/replace a table by importing a CSV file by file path
 	 * 
+	 *  options:
+	 * 	 @db_id - database id
+	 * 	 @table_id - table id
+	 * 	 @file_path - path to CSV file
+	 * 
+	 *  Note: This will drop existing table and create a new one
 	 */
 	function import_post()
 	{
 		$this->is_admin_or_die();
 
 		try{
-			//$uploaded_file=$this->upload_file();
 			$user_id=$this->get_api_user_id();
 			$options=$this->raw_json_input();
 
@@ -809,15 +708,6 @@ class Tables extends MY_REST_Controller
 			if (!$table_id){
 				throw new exception("Missing Param:: tableId");
 			}
-			
-			/*$table_features=(array)$this->Data_table_model->get_features_by_table($table_id);
-
-			//flip keys with values for looking up features by names e.g. sex instead of feature_1
-			$features_flip=array();
-			if(!empty($table_features)){
-				$features_flip=array_flip($table_features);
-			}
-			*/
 			
 			$start_time=date("H:i:s");
 
@@ -844,6 +734,8 @@ class Tables extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
 
 	
 	/**
@@ -896,7 +788,19 @@ class Tables extends MY_REST_Controller
     }
 	
 
-    
+    /**
+	 * 
+	 * 
+	 * Create table definition
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 * @options - metadata for table
+	 * 
+	 *  - title, description, documentation links, dimensions, etc
+	 * 
+	 */
 	function create_table_post($db_id=NULL, $table_id=NULL)
 	{
 		$this->is_admin_or_die();
@@ -976,212 +880,223 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
+
+	/**
+	 * 
+	 * Attach data table to a study
+	 * 
+	 */
+	function attach_to_study_post()
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			if (!isset($options['db_id'])){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!isset($options['table_id'])){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			if (!isset($options['sid'])){
+				throw new exception("Missing Param:: sid");
+			}
+
+			$result=$this->Survey_data_api_model->insert($options);
+			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Detach data table from a study
+	 * 
+	 */
+	function detach_from_study_post()
+	{
+		$this->is_authenticated_or_die();
+		
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			if (!isset($options['db_id'])){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!isset($options['table_id'])){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			if (!isset($options['sid'])){
+				throw new exception("Missing Param:: sid");
+			}
+
+			$result=$this->Survey_data_api_model->detach($options['sid'],$options['db_id'],$options['table_id']);			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * List of datassets attached to a study
+	 * 
+	 */
+	function list_by_study_get($sid=null)
+	{
+		$this->is_authenticated_or_die();
+		
+		try{
+			
+			if (!$sid){
+				throw new exception("Missing Param:: sid");
+			}
+
+			$result=$this->Survey_data_api_model->get_by_sid($sid);			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+
+	}
+
+
+	/**
+	 * 
+	 * upload file
+	 * 
+	 **/ 
+	private function upload_file($upload_path='datafiles')
+	{		
+		if(!isset($_FILES['file'])){
+			throw new Exception("FILE NOT PROVIDED");
+		}
+
+		if(!file_exists($upload_path)){
+			mkdir($upload_path,0777,true);
+		}
+
+		$file_name=$_FILES['file'];
+		$this->load->library('upload');
 	
+		$config['upload_path'] = $upload_path;
+		$config['overwrite'] = true;
+		$config['encrypt_name']=false;
+		$config['allowed_types'] = 'txt|csv|zip';
+		
+		$this->upload->initialize($config);
+		
+		$upload_result=$this->upload->do_upload('file');
 
-	/**
-	 * 
-	 * 
-	 * Get population by age table
-	 * 
-	 */
-	function population_by_age_get($db_id,$table_id)
-	{
-		try{
-			//$options=$this->raw_json_input();
-
-			$get_params=array();
-			parse_str($_SERVER['QUERY_STRING'], $get_params);
-			
-			$options=array();
-			foreach(array_keys($get_params) as $param){
-				$options[$param]=$this->input->get($param,true);
-			}
-
-			$result=$this->Data_table_mongo_model->population_by_age($db_id,$table_id,$options);
-			
-			$response=array(
-				'status'=>'success',				
-                'result'=>$result
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		if(!$upload_result){
+			$error = $this->upload->display_errors();            
+			throw new Exception("UPLOAD_FAILED::".$upload_path. ' - error:: '.$error);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+
+		$upload_data = $this->upload->data();			
+		return $upload_data;
+	}
+
+	
+	private function is_zip_file($file_name)
+	{
+		$file_ext=pathinfo($file_name,PATHINFO_EXTENSION);
+
+		if ($file_ext=='zip'){
+			return true;
+		}
+
+		return false;
+	}
+
+	private function unzip_file($zip_file,$output_path)
+	{
+		$zip = new ZipArchive;
+		if ($zip->open($zip_file) === TRUE) {
+			$zip->extractTo($output_path);
+			$zip->close();
+		} else {
+			throw new Exception("Failed to unzip file: ". $zip_file);
 		}
 	}
 
-
-
-	/**
-	 * 
-	 * 
-	 * Search for States, districts, towns, etc
-	 * 
-	 * geo_level - state, district, etc
-	 * state - state name
-	 * district - district name
-	 * subdistrict
-	 * town
-	 * village
-	 * 
-	 */
-	function search_place_get()
+	private function get_file_from_zip($zip_file, $output_path)
 	{
-		try{
-			//$options=$this->raw_json_input();
+		$this->unzip_file($zip_file,$output_path);
 
-			$get_params=array();
-			parse_str($_SERVER['QUERY_STRING'], $get_params);
-			
-			$options=array();
-			foreach(array_keys($get_params) as $param){
-				$options[$param]=$this->input->get($param,true);
-			}
+		$base_name=pathinfo($zip_file,PATHINFO_FILENAME);
 
-			$this->load->model("Data_tables_places_model");
-			$result=$this->Data_tables_places_model->search($options);
-			
-			$response=array(
-				'status'=>'success',				
-				'result'=>$result,
-				'query'=>$this->db->last_query()
-			);
+		$files=array(
+			$output_path.'/'.$base_name.'.csv',
+			$output_path.'/'.$base_name.'.txt',
+			$output_path.'/'.$base_name.'.CSV',
+			$output_path.'/'.$base_name.'.TXT'
+		);
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-
-
-
-
-	/**
-	 * 
-	 * 
-	 * Search for States, districts, towns, etc
-	 * 
-	 * geo_level - state, district, etc
-	 * state - state code
-	 * district - district code
-	 * subdistrict
-	 * town
-	 * village
-	 * areaname - text search
-	 * 
-	 * {$text:{$search:"Haniya"}, level:"state"}
-	 * 
-	 */
-	function geosearch_get($db_id=null)
-	{
-		try{
-			//$options=$this->raw_json_input();
-
-			$get_params=array();
-			parse_str($_SERVER['QUERY_STRING'], $get_params);
-			
-			$options=array();
-			foreach(array_keys($get_params) as $param){
-				$options[$param]=$this->input->get($param,true);
-			}
-
-			$fields=$this->input->get("fields");
-
-			$result=$this->Data_table_mongo_model->geo_search($db_id,$options,$fields);
-
-			if (strtolower($this->input->get("codelists"))==='true'){
-				$result['codelist']=$this->geosearch_codelists($db_id,$result['data']);
-			}
-			
-			$this->set_response($result, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-
-
-	private function geosearch_codelists($db_id,$places)
-	{
-		$places_map=array(            
-            'state'=> 'state',
-            'district'=> 'district',
-            'subdistrict'=> 'subdistrict',
-			'town'=>'town_village',
-			'village'=>'town_village',
-            'ward'=> 'ward',
-        );
-
-		$codelist=array();
-
-		foreach($places as $place){
-			
-			$codelist['state'][]=$place['state'];
-			$codelist['district'][]=$place['district'];
-			$codelist['subdistrict'][]=$place['subdistrict'];
-			
-			//$codelist['town_village'][]=$place['town_village'];
-			$codelist['ward'][]=$place['ward'];
-			
-			if ($place['level']=='town'){
-				$codelist['town'][]=$place['town_village'];
-			}else if ($place['level']=='village'){
-				$codelist['village'][]=$place['town_village'];
+		foreach($files as $file){
+			if(file_exists($file)){
+				return $file;
 			}
 		}
 
-		//return $codelist;
-
-		$output=array();
-
-		foreach($codelist as $place_type=>$values){
-			
-			$values=array_filter(array_unique($values));
-
-			if (empty($values) && count($values)<1 ){
-				continue;
-			}
-
-			/*echo $place_type;
-			var_dump($values);
-			continue;*/
-
-			$options=array(
-				'level'=>$place_type
-			);
-
-			$options[$places_map[$place_type]]=implode(",",$values);
-						
-			$result=$this->Data_table_mongo_model->geo_search(
-				$db_id,
-				$options,
-				$fields=implode(",",array('areaname','level', $places_map[$place_type])) );
-			
-			if ($this->input->get("debug")){
-				$output['query'][]=$result;
-			}
-
-			if (isset($result['data'])){
-				foreach($result['data'] as $code_row){
-					$output[$code_row['level']][$code_row[$places_map[$place_type]]]=$code_row['areaname'];
-				}
-			}
-		}
-
-		return $output;
+		throw new Exception("CSV file not found in ZIP");
 	}
 }	

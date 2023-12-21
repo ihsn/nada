@@ -409,11 +409,18 @@ class Ion_auth_model extends CI_Model
 
 		$key=$this->get_random_hash();
 		$key=$key.':'.$user->id.':'.$expiry_time->format("U");
-		$key=base64_encode($key);
+		$key=urlencode(md5($key));
 
 		$this->forgotten_password_code = $key;
 		$this->db->where($this->ion_auth->_extra_where);
-		$result=$this->db->update($this->tables['users'], array('forgotten_password_code' => $key), array('email' => $email));
+
+		$result=$this->db->update($this->tables['users'], 
+			array(
+				'forgotten_password_code' => $key,
+				'forgotten_code_expiry' => $expiry_time->format("U")
+			),
+			array('email' => $email)
+		);
 
 		return $result;
 	}
@@ -443,17 +450,12 @@ class Ion_auth_model extends CI_Model
 
 		$user=(object)$user[0];
 
-		$code_arr=explode(":",base64_decode($code));
 		$token=array(
-			'code' => $code_arr[0],
-			'user_id' => @$code_arr[1],
-			'expiry' => @$code_arr[2]			
+			'code' => $user->forgotten_password_code,
+			'user_id' => $user->id,
+			'expiry' => $user->forgotten_code_expiry
 		);
 		
-		if($user->id != $token['user_id']){
-			return false;
-		}
-
 		//code expired?
 		if(empty($token['expiry']) || date("U") > $token['expiry']){			
 			return false;
@@ -461,7 +463,11 @@ class Ion_auth_model extends CI_Model
 
 		//remove reset code
 		$this->db->where('id',$user->id);
-		$this->db->update($this->tables['users'], array('forgotten_password_code' => null));
+		$this->db->update($this->tables['users'], 
+			array(
+				'forgotten_password_code' => null,
+				'forgotten_code_expiry' => null
+				));
 
 		//login user
 		$this->update_last_login($user->id);
@@ -506,16 +512,11 @@ class Ion_auth_model extends CI_Model
 
 		$user=(object)$user[0];
 
-		$code_arr=explode(":",base64_decode($code));
 		$token=array(
-			'code' => $code_arr[0],
-			'user_id' => @$code_arr[1],
-			'expiry' => @$code_arr[2]			
+			'code' => $user->forgotten_password_code,
+			'user_id' => $user->id,
+			'expiry' => $user->forgotten_code_expiry
 		);
-		
-		if($user->id != $token['user_id']){
-			return false;
-		}
 
 		//code expired?
 		if(empty($token['expiry']) || date("U") > $token['expiry']){
@@ -1604,11 +1605,11 @@ class Ion_auth_model extends CI_Model
 
 	/**
 	 * 
-	 * Generate a random hash with max length of 14 characters
+	 * Generate a random hash
 	 */
 	function get_random_hash()
 	{
-		return substr(bin2hex(random_bytes(16)),0,14);
+		return bin2hex(random_bytes(16));
 	}
 
 }
