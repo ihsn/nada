@@ -1,12 +1,12 @@
 <?php
 /*
- * Copyright 2015-2017 MongoDB, Inc.
+ * Copyright 2015-present MongoDB, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *   https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,26 +38,21 @@ use MongoDB\Operation\ListDatabaseNames;
 use MongoDB\Operation\ListDatabases;
 use MongoDB\Operation\Watch;
 use Throwable;
+
 use function is_array;
 use function is_string;
 
 class Client
 {
-    /** @var array */
-    private static $defaultTypeMap = [
+    public const DEFAULT_URI = 'mongodb://127.0.0.1/';
+
+    private const DEFAULT_TYPE_MAP = [
         'array' => BSONArray::class,
         'document' => BSONDocument::class,
         'root' => BSONDocument::class,
     ];
 
-    /** @var integer */
-    private static $wireVersionForReadConcern = 4;
-
-    /** @var integer */
-    private static $wireVersionForWritableCommandWriteConcern = 5;
-
-    /** @var string */
-    private static $handshakeSeparator = ' / ';
+    private const HANDSHAKE_SEPARATOR = '/';
 
     /** @var string|null */
     private static $version;
@@ -93,19 +88,19 @@ class Client
      *
      * Other options are documented in MongoDB\Driver\Manager::__construct().
      *
-     * @see http://docs.mongodb.org/manual/reference/connection-string/
-     * @see http://php.net/manual/en/mongodb-driver-manager.construct.php
-     * @see http://php.net/manual/en/mongodb.persistence.php#mongodb.persistence.typemaps
-     * @param string $uri           MongoDB connection string
-     * @param array  $uriOptions    Additional connection string options
-     * @param array  $driverOptions Driver-specific options
+     * @see https://mongodb.com/docs/manual/reference/connection-string/
+     * @see https://php.net/manual/en/mongodb-driver-manager.construct.php
+     * @see https://php.net/manual/en/mongodb.persistence.php#mongodb.persistence.typemaps
+     * @param string|null $uri           MongoDB connection string. If none is provided, this defaults to self::DEFAULT_URI.
+     * @param array       $uriOptions    Additional connection string options
+     * @param array       $driverOptions Driver-specific options
      * @throws InvalidArgumentException for parameter/option parsing errors
      * @throws DriverInvalidArgumentException for parameter/option parsing errors in the driver
      * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
      */
-    public function __construct($uri = 'mongodb://127.0.0.1/', array $uriOptions = [], array $driverOptions = [])
+    public function __construct(?string $uri = null, array $uriOptions = [], array $driverOptions = [])
     {
-        $driverOptions += ['typeMap' => self::$defaultTypeMap];
+        $driverOptions += ['typeMap' => self::DEFAULT_TYPE_MAP];
 
         if (! is_array($driverOptions['typeMap'])) {
             throw InvalidArgumentException::invalidType('"typeMap" driver option', $driverOptions['typeMap'], 'array');
@@ -121,8 +116,8 @@ class Client
 
         $driverOptions['driver'] = $this->mergeDriverInfo($driverOptions['driver'] ?? []);
 
-        $this->uri = (string) $uri;
-        $this->typeMap = $driverOptions['typeMap'] ?? null;
+        $this->uri = $uri ?? self::DEFAULT_URI;
+        $this->typeMap = $driverOptions['typeMap'];
 
         unset($driverOptions['typeMap']);
 
@@ -135,7 +130,7 @@ class Client
     /**
      * Return internal properties for debugging purposes.
      *
-     * @see http://php.net/manual/en/language.oop5.magic.php#language.oop5.magic.debuginfo
+     * @see https://php.net/manual/en/language.oop5.magic.php#language.oop5.magic.debuginfo
      * @return array
      */
     public function __debugInfo()
@@ -155,12 +150,12 @@ class Client
      * be selected with complex syntax (e.g. $client->{"that-database"}) or
      * {@link selectDatabase()}.
      *
-     * @see http://php.net/oop5.overloading#object.get
-     * @see http://php.net/types.string#language.types.string.parsing.complex
+     * @see https://php.net/oop5.overloading#object.get
+     * @see https://php.net/types.string#language.types.string.parsing.complex
      * @param string $databaseName Name of the database to select
      * @return Database
      */
-    public function __get($databaseName)
+    public function __get(string $databaseName)
     {
         return $this->selectDatabase($databaseName);
     }
@@ -206,7 +201,7 @@ class Client
      * @throws InvalidArgumentException for parameter/option parsing errors
      * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
      */
-    public function dropDatabase($databaseName, array $options = [])
+    public function dropDatabase(string $databaseName, array $options = [])
     {
         if (! isset($options['typeMap'])) {
             $options['typeMap'] = $this->typeMap;
@@ -214,7 +209,7 @@ class Client
 
         $server = select_server($this->manager, $options);
 
-        if (! isset($options['writeConcern']) && server_supports_feature($server, self::$wireVersionForWritableCommandWriteConcern) && ! is_in_transaction($options)) {
+        if (! isset($options['writeConcern']) && ! is_in_transaction($options)) {
             $options['writeConcern'] = $this->writeConcern;
         }
 
@@ -236,7 +231,7 @@ class Client
     /**
      * Return the read concern for this client.
      *
-     * @see http://php.net/manual/en/mongodb-driver-readconcern.isdefault.php
+     * @see https://php.net/manual/en/mongodb-driver-readconcern.isdefault.php
      * @return ReadConcern
      */
     public function getReadConcern()
@@ -267,7 +262,7 @@ class Client
     /**
      * Return the write concern for this client.
      *
-     * @see http://php.net/manual/en/mongodb-driver-writeconcern.isdefault.php
+     * @see https://php.net/manual/en/mongodb-driver-writeconcern.isdefault.php
      * @return WriteConcern
      */
     public function getWriteConcern()
@@ -283,7 +278,7 @@ class Client
      * @throws InvalidArgumentException for parameter/option parsing errors
      * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
      */
-    public function listDatabaseNames(array $options = []) : Iterator
+    public function listDatabaseNames(array $options = []): Iterator
     {
         $operation = new ListDatabaseNames($options);
         $server = select_server($this->manager, $options);
@@ -295,7 +290,6 @@ class Client
      * List databases.
      *
      * @see ListDatabases::__construct() for supported options
-     * @param array $options
      * @return DatabaseInfoIterator
      * @throws UnexpectedValueException if the command response was malformed
      * @throws InvalidArgumentException for parameter/option parsing errors
@@ -319,7 +313,7 @@ class Client
      * @return Collection
      * @throws InvalidArgumentException for parameter/option parsing errors
      */
-    public function selectCollection($databaseName, $collectionName, array $options = [])
+    public function selectCollection(string $databaseName, string $collectionName, array $options = [])
     {
         $options += ['typeMap' => $this->typeMap];
 
@@ -335,7 +329,7 @@ class Client
      * @return Database
      * @throws InvalidArgumentException for parameter/option parsing errors
      */
-    public function selectDatabase($databaseName, array $options = [])
+    public function selectDatabase(string $databaseName, array $options = [])
     {
         $options += ['typeMap' => $this->typeMap];
 
@@ -345,7 +339,7 @@ class Client
     /**
      * Start a new client session.
      *
-     * @see http://php.net/manual/en/mongodb-driver-manager.startsession.php
+     * @see https://php.net/manual/en/mongodb-driver-manager.startsession.php
      * @param array $options Session options
      * @return Session
      */
@@ -358,7 +352,7 @@ class Client
      * Create a change stream for watching changes to the cluster.
      *
      * @see Watch::__construct() for supported options
-     * @param array $pipeline List of pipeline operations
+     * @param array $pipeline Aggregation pipeline
      * @param array $options  Command options
      * @return ChangeStream
      * @throws InvalidArgumentException for parameter/option parsing errors
@@ -371,7 +365,7 @@ class Client
 
         $server = select_server($this->manager, $options);
 
-        if (! isset($options['readConcern']) && server_supports_feature($server, self::$wireVersionForReadConcern) && ! is_in_transaction($options)) {
+        if (! isset($options['readConcern']) && ! is_in_transaction($options)) {
             $options['readConcern'] = $this->readConcern;
         }
 
@@ -384,7 +378,7 @@ class Client
         return $operation->execute($server);
     }
 
-    private static function getVersion() : string
+    private static function getVersion(): string
     {
         if (self::$version === null) {
             try {
@@ -397,7 +391,7 @@ class Client
         return self::$version;
     }
 
-    private function mergeDriverInfo(array $driver) : array
+    private function mergeDriverInfo(array $driver): array
     {
         $mergedDriver = [
             'name' => 'PHPLIB',
@@ -409,7 +403,7 @@ class Client
                 throw InvalidArgumentException::invalidType('"name" handshake option', $driver['name'], 'string');
             }
 
-            $mergedDriver['name'] .= self::$handshakeSeparator . $driver['name'];
+            $mergedDriver['name'] .= self::HANDSHAKE_SEPARATOR . $driver['name'];
         }
 
         if (isset($driver['version'])) {
@@ -417,7 +411,7 @@ class Client
                 throw InvalidArgumentException::invalidType('"version" handshake option', $driver['version'], 'string');
             }
 
-            $mergedDriver['version'] .= self::$handshakeSeparator . $driver['version'];
+            $mergedDriver['version'] .= self::HANDSHAKE_SEPARATOR . $driver['version'];
         }
 
         if (isset($driver['platform'])) {
