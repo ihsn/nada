@@ -89,7 +89,7 @@
       			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
       			<td nowrap="nowrap">
               <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo t('edit'); ?></a> |
-              <a href="<?php echo site_url();?>/admin/resources/delete/<?php echo $row->resource_id;?>/?destination=<?php echo $this->uri->uri_string();?>"><?php echo t('delete'); ?></a>
+              <a href="<?php echo site_url('admin/resources/delete/'.$row->survey_id.'/'.$row->resource_id.'?destination='.$this->uri->uri_string());?>"><?php echo t('delete'); ?></a>
               <?php if($row->filename!=''):?>
               | <a href="<?php echo site_url('admin/resources/download/'.$survey_id.'/'.$row->resource_id);?>"><?php echo t('download'); ?></a>
               <?php endif;?>

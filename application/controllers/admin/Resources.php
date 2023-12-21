@@ -135,17 +135,19 @@ class Resources extends MY_Controller {
 	*
 	* Delete one or more resources
 	**/
-	function delete($id)
+	function delete($sid,$resource_id)
 	{			
+		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+
 		//array of id to be deleted
 		$delete_arr=array();
 	
 		//is ajax call
 		$ajax=$this->input->get_post('ajax');
 
-		if (!is_numeric($id))
+		if (!is_numeric($resource_id))
 		{
-			$tmp_arr=explode(",",$id);
+			$tmp_arr=explode(",",$resource_id);
 		
 			foreach($tmp_arr as $key=>$value)
 			{
@@ -170,7 +172,7 @@ class Resources extends MY_Controller {
 		}		
 		else
 		{
-			$delete_arr[]=$id;
+			$delete_arr[]=$resource_id;
 		}
 		
 		if ($this->input->post('cancel')!='')
