@@ -351,6 +351,11 @@ class Acl_manager
 
 		//check roles has access to resource
 		foreach($permissions as $perm){
+			
+			if ($acl->hasResource($perm['resource'])){
+				continue;
+			}
+
 			$acl->addResource(new Resource($perm['resource']));
 			$acl->allow($perm['role_id'],$perm['resource'], $perm['permissions']);
 		}
@@ -358,6 +363,11 @@ class Acl_manager
 		//resources by repository
 		if(!empty($repositoryid)){
 			foreach($permissions as $perm){			
+
+				if ($acl->hasResource($repositoryid.'-'.$perm['resource'])){
+					continue;
+				}
+
 				$acl->addResource(new Resource($repositoryid.'-'.$perm['resource']));
 				$acl->allow($perm['role_id'],$repositoryid.'-'.$perm['resource'], $perm['permissions']);
 			}
@@ -397,121 +407,4 @@ class Acl_manager
 		}
 	}
 
-
-	function role_has_access($roles)
-	{
-		$acl = new Acl();
-
-		$acl->addRole(new Role('user'))    
-			->addRole(new Role('admin'))
-			->addRole(new Role('study_manager'))
-			->addRole(new Role('lsms_collection_manager'))
-			->addRole(new Role('lsms_collection_editor'))
-			->addRole(new Role('lsms_collection_reviewer'))
-			->addRole(new Role('findex_collection_manager'))
-			->addRole(new Role('citation_manager'))
-			->addRole(new Role('licensed_request_manager'));
-
-		/*
-		$acl->addResource(new Resource('lsms_collection'));
-		$acl->addResource(new Resource('findex_collection'));
-		$acl->addResource(new Resource('study'));
-		*/
-
-
-		$acl->addResource(new Resource('study'));
-
-		//afr and lsms inherit from study
-		$acl->addResource(new Resource('afr'), 'study');
-		//$acl->addResource(new Resource('lsms'), 'study');
-
-		$acl->addResource(new Resource('lsms'));
-
-
-		//allow full control for admin
-		$acl->allow('admin',null, null);
-
-		//can edit, import, but not publish, delete
-		$acl->allow('lsms_collection_editor', 'lsms', array('view','edit','import','resources.admin', 'uploads.admin'));
-
-		//can only publish, delete nothing else
-		$acl->allow('lsms_collection_reviewer', 'lsms', array('unpublish','publish','view'));
-
-		//everything
-		$acl->allow('lsms_collection_manager', 'lsms');
-
-
-		//isAllowed(user_role, resource, rules, permissions)
-		echo $acl->isAllowed('admin', 'afr','publish') ? 'user is allowed afr '."<BR/>" : 'user is denied';
-	}
-
-
-	//todo: remove everything below
-
-	/**
-	* Return Repo object with basic info - repositoryid, title
-	**/
-	/*function get_repo($id)
-	{
-		//get repo info
-		$this->ci->db->select("repositoryid,id,title");
-		$this->ci->db->where("id",$id);
-		$query=$this->ci->db->get("repositories");
-
-		if (!$query){
-			return FALSE;
-		}
-		
-		$result=$query->row_array();
-		
-		if ($result){
-			return (object)$result;
-		}
-		return FALSE;
-	}*/
-	
-	
-	
-	
-	
-	/**
-	*
-	* Return user groups
-	**/
-	/*function get_user_groups($user_id)
-	{
-		return $this->ci->ion_auth->get_groups_by_user($user_id);		
-	}*/
-
-
-	/**
-	*
-	* Check if user has UNLIMITED access
-	**/
-	/*function user_has_unlimited_access($user_id=NULL)
-	{
-		if($user_id==NULL)
-		{
-			$user=$this->current_user();
-			$user_id=$user->id;
-		}
-
-	
-		$groups=$this->get_user_groups($user_id);
-		
-		if (!$groups)
-		{
-			return FALSE;
-		}
-		
-		return $this->has_unlimited_access($groups);
-	}
-
-	function has_unlimited_access($groups){
-		return true;
-	}*/
-
-	
-		
 }
-
