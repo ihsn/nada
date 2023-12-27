@@ -224,7 +224,8 @@ var app = new Vue({
             "name":this.name,
             "facet_type":"user",
             "enabled":this.enabled,
-            "mappings":this.options
+            "mappings":this.options,
+            '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
         }
         console.log(data);
 

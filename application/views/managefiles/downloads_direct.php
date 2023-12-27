@@ -33,7 +33,7 @@
 	$page_url=site_url().$this->uri->uri_string();
 ?>
 
-<form autocomplete="off">
+<?php echo form_open();?>
     
     <!-- grid -->
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
@@ -64,7 +64,7 @@
 			<?php endif;?>
     <?php endforeach;?>
     </table>
-</form>
+<?php echo form_close();?>
 <?php else: ?>
 <?php echo t('no_records_found');?>
 <?php endif; ?>

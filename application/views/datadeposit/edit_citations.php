@@ -93,7 +93,7 @@ table .input-flex{margin-bottom:5px;}
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
-<form method="post" class="form">
+<?php echo form_open(null, 'class="form"'); ?>
 
 <div id="citation-preview" class="field">
 <!--
@@ -167,7 +167,7 @@ table .input-flex{margin-bottom:5px;}
     </div>
     <a class="btn_cancel" href="<?php echo site_url('datadeposit/citations/'.$this->uri->segment(3));?>" >Cancel</a></div>
 </div>
-</form>
+<?php echo form_close();?>
 
 <script type="text/javascript">
 	function clear_studies()

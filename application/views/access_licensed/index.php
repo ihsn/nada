@@ -82,7 +82,7 @@
 	}
 ?>
 
-<form autocomplete="off" style="margin-top:25px;">
+<?php echo form_open(null, 'style="margin-top:25px;"');?>
 
 	<!-- batch operations -->
     <table width="100%">
@@ -133,7 +133,10 @@
     <div class="nada-pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
-</form>
+
+<?php echo form_close();?>
+	
+
 <?php else: ?>
 	<?php echo t('no_records_found');?>
 <?php endif; ?>
@@ -184,7 +187,10 @@ function batch_delete(){
 	$.ajax({
 		timeout:1000*120,
 		dataType: "json",
-		data:{ submit: "submit"},
+		data:{ 
+			submit: "submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 		type:'POST', 
 		url: CI.base_url+'/admin/licensed_requests/delete/'+selected+'/?ajax=true',
 		success: function(data) {

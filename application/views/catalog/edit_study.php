@@ -52,9 +52,14 @@ $(document).ready(function () {
 		//study publish/unpublish
 		$(document.body).on("click","#survey .publish, .survey-publish .publish", function(){
 			var studyid=$(this).attr("data-sid");
-			if ($(this).attr("data-value")==0){				
-				$this=this;				
-				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1', {submit:"submit"}, function( data ) {
+			var form_data= {
+				'submit':'submit',
+				'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+			};
+
+			if ($(this).attr("data-value")==0){
+				$this=this;
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/1?ajax=1', form_data, function( data ) {
 					$($this).attr("data-value",1);
 					$($this).html("<?php echo t('published');?>");
 					$($this).removeClass("btn-warning");
@@ -66,7 +71,7 @@ $(document).ready(function () {
 			}
 			else{
 				$this=this;	
-				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1', {submit:"submit"}, function( data ) {
+				$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/0?ajax=1', form_data, function( data ) {
 					$($this).html("<?php echo t('draft');?>");
 					$($this).attr("data-value",0);
 					$($this).removeClass("btn-success");
@@ -84,15 +89,18 @@ $(document).ready(function () {
 			var studyid=$(this).attr("data-sid");
 			var repoid=$(this).attr("data-repositoryid");
 			var status=0;
+			var form_data= {
+				'submit':'submit',
+				'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+			};
 
+			console.log(form_data);
 			if ($(this).is(":checked")) {
 				status=1;
 			}
 
-			$.post(CI.base_url+'/admin/catalog/set_featured_study/'+repoid+'/'+studyid+'/'+status+'?ajax=1',{submit:"submit"});
+			$.post(CI.base_url+'/admin/catalog/set_featured_study/'+repoid+'/'+studyid+'/'+status+'?ajax=1',form_data);
 		});
-
-
 
 
 		bind_behaviours();

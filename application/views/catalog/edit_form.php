@@ -1,4 +1,4 @@
-<form method="post" enctype="multipart/form-data" class="form">
+<?php echo form_open_multipart(null, 'class="form"');?>        
 <h1>Edit survey information</h1>
 <div class="field">
 	<label for="report_url"><img src="images/report.png" border="0"/> <?php print ('Reports and analytical output'); ?></label>
@@ -58,23 +58,4 @@
 <input type="submit" name="Cancel" id="cancel" value="<?php echo ('Cancel'); ?>" />
 </div>
 
-
-<?php return;?>
-        <td class="field-caption" ><div align="right"><?php print ('Microdata request form'); ?> </div></td>
-        <td><img src="images/form_direct.gif" border="0"/></td>
-        <td><select name="request_form" id="request_form" class="input-flat" style="width:300px;">
-              <?php echo $forms_options; ?>
-        </select></td>
-      </tr>
-      <tr valign="top">
-        <td class="field-caption" align="right" > </td>
-        <td><img src="images/shared.png" border="0"/></td>
-        <td><input type="checkbox" name="chk_shared" id="chk_shared" value="1" <?php echo ($data['chk_shared']==1)? 'checked' : '' ?>/>
-          <?php print ('Share with Harvester?'); ?></td>
-      </tr>
-    </table>
-    <div class="html-form-submit">    
-          <input type="submit" name="submit" id="submit" value="<?php print ('Update');?>" class="input-flat"/>
-          <input type="button" name="close" id="close" value="<?php print ('Cancel');?>" class="input-flat" onClick="parent.on_editsurvey_close();"/>
-    </div>	
-  </form>
+<?php echo form_close();?>

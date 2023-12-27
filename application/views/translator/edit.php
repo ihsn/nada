@@ -29,14 +29,16 @@
             </div>
 
             <div class="list-group-item list-group-item-action  edit-lang">
-            <form class="choose-lang" method="post" action="<?php echo site_url("admin/translate/change_lang"); ?>" name="change-lang" id="form-change-lang">
-            <h5 class="mb-1">Select language to translate  </h5>
-            <select class="form-control-sm" name="lang" id="lang">
-                <?php foreach ($languages as $lang): ?>
-                <option value="<?php echo $lang; ?>" <?php echo ($language == $lang) ? 'selected="selected"' : ''; ?> ><?php echo $lang; ?></option>
-                <?php endforeach;?>
-            </select>
-            </form>
+
+              <?php echo form_open(site_url("admin/translate/change_lang"), 'class="choose-lang" name="change-lang" id="form-change-lang" ');?>
+                <h5 class="mb-1">Select language to translate  </h5>
+                <select class="form-control-sm" name="lang" id="lang">
+                    <?php foreach ($languages as $lang): ?>
+                    <option value="<?php echo $lang; ?>" <?php echo ($language == $lang) ? 'selected="selected"' : ''; ?> ><?php echo $lang; ?></option>
+                    <?php endforeach;?>
+                </select>
+              <?php echo form_close();?>
+
             </div>
 
 

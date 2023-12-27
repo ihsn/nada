@@ -74,7 +74,7 @@
     $persist_qfields=array('keywords','field','collection','ctype');
     ?>
 
-    <form autocomplete="off" class="citations-listing">
+    <?php echo form_open(null, 'class="citations-listing"');?>
         <div id="sort-results-by" class="sort-results-by nada-sort-links">
                 <?php echo t('sort_results_by');?>:
                 <span><?php echo create_sort_link($sort_by,$sort_order,'authors',t('authors'),$page_url,$persist_qfields ); ?></span>
@@ -131,7 +131,7 @@
         <?php else: ?>
             <?php echo t('no_records_found');?>
         <?php endif; ?>
-    </form>
+    <?php echo form_close();?>
 </div>
 
 <?php

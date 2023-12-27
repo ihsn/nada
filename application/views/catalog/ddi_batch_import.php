@@ -166,7 +166,14 @@ var batch_import = {
 		if ($("#overwrite").is(":checked")){overwrite=1}
 		repositoryid=$("#repositoryid").val();
 		//post	
-		this.xhr=$.post(CI.base_url+"/admin/catalog/do_batch_import",{id:id,overwrite:overwrite,repositoryid:repositoryid},func_data, "json");
+		this.xhr=$.post(CI.base_url+"/admin/catalog/do_batch_import",
+			{
+				id:id,overwrite:overwrite,
+				repositoryid:repositoryid,
+				'<?php echo $this->security->get_csrf_token_name(); ?>' : '<?php echo $this->security->get_csrf_hash(); ?>'
+			},
+			func_data, "json"
+		);
 		
 		//handle json returned values
 		function func_data(data){

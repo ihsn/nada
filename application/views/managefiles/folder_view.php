@@ -52,7 +52,8 @@ form{margin:10px;padding:0px;}
 
 <?php include 'tabs.php';?>
 
-<form method="post" enctype="multipart/form-data" class="form">
+<?php echo form_open_multipart(null, 'class="form"'); ?>
+
 <div class="actions">
 	<div style="float:left;color:gainsboro;">		
     	<input type="image"  src="images/bin_closed.png" class="" title="<?php echo t('delete_selection');?>" name="delete" value="<?php echo t('delete_selection');?>" onclick="return batch_delete();"/> |
@@ -188,7 +189,8 @@ form{margin:10px;padding:0px;}
             <div style="display:inline;margin-left:10px;" class="resource-legend"><img src="images/page_green.png"/> <?php echo t('other_resources');?></div>
 </div>
             <div style="float:right;padding:5px;font-style:italic;"><?php echo t('total_files_count');?><?php echo count($files);?></div>
-</form>
+            
+<?php echo form_close(); ?>
 
 <script type='text/javascript' >
 //checkbox select/deselect

@@ -20,7 +20,7 @@
 ?>
 
 
-<form autocomplete="off">
+<?php echo form_open();?>
 
 	<!-- batch operations -->
     <table width="100%">
@@ -59,7 +59,7 @@
         </tr>
     <?php endforeach;?>
     </table>
-</form>
+<?php echo form_close();?>
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
 <?php endif; ?>
@@ -115,7 +115,10 @@ function batch_delete(){
 		timeout:1000*120,
 		cache:false,
         dataType: "json",
-		data:{ submit: "submit"},
+		data:{ 
+			submit: "submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 		type:'POST', 
 		url: CI.base_url+'/admin/da_collections/delete/'+selected+'/?ajax=true',
 		success: function(data) {

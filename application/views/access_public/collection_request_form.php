@@ -27,7 +27,7 @@
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 
-<form style="padding:0px;margin:0px" name="orderform" id="orderform" method="post" >
+<?php echo form_open(null,'style="padding:0px;margin:0px" name="orderform" id="orderform"');?>
 
 	<input type="hidden" name="surveytitle" value="<?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?>" />
 	<input type="hidden" name="surveyid" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?>" />
@@ -90,7 +90,8 @@
       </td>
     </tr>
   </table>
-</form>
+<?php echo form_close();?>
+
 <script type="text/javascript">
 	function isagree(){
 		$("#submit").attr('disabled', !$("#chk_agree").is(":checked"))	

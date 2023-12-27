@@ -19,7 +19,8 @@ $(function() {
 	$("#btn_admin_note").live('click', function() {
 		data = {
 			note: $("input[name='admin_note']").val(),
-			type: 'admin'
+			type: 'admin',
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
 		};
 		$.post("<?php echo site_url('admin/catalog_notes/add') . '/' . $this->uri->segment(4); ?>", data, function(data) {	
 			$("#admin_notes_container").html(data);

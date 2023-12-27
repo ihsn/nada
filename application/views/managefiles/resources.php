@@ -58,7 +58,8 @@
 		$pager='showing 1 - '.$this->pagination->get_total_rows(). ' of '.$this->pagination->get_total_rows();
 	}
 ?>
-<form autocomplete="off">
+
+<?php echo form_open();?>
 	<!-- batch operations -->
     <table width="100%">
         <tr>
@@ -106,7 +107,7 @@
 <?php else: ?>
 No records found
 <?php endif; ?>
-</form>
+<?php echo form_close();?>
 </div>
 <script type='text/javascript' >
 //checkbox select/deselect
@@ -154,7 +155,10 @@ function batch_delete(){
 	$.ajax({
 		timeout:1000*120,
 		dataType: "json",
-		data:{ submit: "submit"},
+		data:{ 
+			submit: "submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 		type:'POST', 
 		url: CI.base_url+'/admin/resources/delete/'+selected+'/?ajax=true',
 		success: function(data) {

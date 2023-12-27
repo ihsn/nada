@@ -1,4 +1,4 @@
-<form method="post" class="form-edit-note" action="<?php echo $action_url; ?>" style="padding:10px;">
+<?php echo form_open($action_url,'class="form-edit-note" style="padding:10px;"');?>
 
 <div class="field">
     <label class="inline"><?php echo t('select_note_type');?>
@@ -14,4 +14,4 @@
         </div>
     <?php endif;?>
 </div>
-</form>
+<?php echo form_close();?>

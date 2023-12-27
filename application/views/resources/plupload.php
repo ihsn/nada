@@ -49,7 +49,11 @@ $(function() {
 		chunk_size : '2mb',
 		unique_names : false,
 		multiple_queues:true,
-		multipart_params: { 'upload_folder': 'default', 'overwrite':0},
+		multipart_params: { 
+			'upload_folder': 'default', 
+			'overwrite':0,
+			'<?php echo $this->security->get_csrf_token_name();?>':'<?php echo $this->security->get_csrf_hash();?>'
+		},
 
 		// Resize images on clientside if we can
 		//resize : {width : 800, height : 800, quality : 100},
@@ -139,7 +143,7 @@ $(function() {
 </script>
 <div class="container-fluid">
 <h3><?php echo t('upload_external_resources');?></h3>
-<form method="post" enctype="multipart/form-data" >
+<?php echo form_open_multipart();?>
 	<div id="uploader">
 		<p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
 
@@ -154,7 +158,8 @@ $(function() {
         <input type="submit" name="upload" value="<?php echo t('upload');?>"/>
         </div>
 	</div>
-</form>
+<?php echo form_close();?>
+
 <div> Max upload file size: <?php echo $max_resource_upload_size;?> mb </div>
 <div style="margin-top:20px;">
 	<a class="btn btn-primary" href="<?php echo site_url('admin/catalog/edit/'.$this->uri->segment(4));?>">

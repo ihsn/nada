@@ -18,7 +18,11 @@ $(function() {
 		chunk_size : '2mb',
 		unique_names : false,
 		multiple_queues:true,
-		multipart_params: { 'upload_folder': 'default', 'overwrite':0},
+		multipart_params: { 
+			'upload_folder': 'default', 
+			'overwrite':0,
+			'<?php echo $this->security->get_csrf_token_name(); ?>' : '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 
 		// Specify what files to browse for
 		filters : [
@@ -103,8 +107,8 @@ $(function() {
 });
 </script>
 
-<form method="post" enctype="multipart/form-data" >
+<?php echo form_open_multipart();?>	
 	<div id="uploader">
 		<p>You browser doesn't have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
 	</div>
-</form>
+<?php echo form_close();?>

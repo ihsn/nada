@@ -126,29 +126,41 @@ $selected_page=$this->uri->segment(5);
                   </div>
 
                   <div class="box-body study-publish-box collapse">
-										<form method="post" action="<?php echo site_url();?>/admin/catalog/update">
-											<input type="hidden" name="sid" value="<?php echo $id;?>"/>
+						
+						<?php echo form_open('admin/catalog/update');?>
+							<input type="hidden" name="sid" value="<?php echo $id;?>"/>
 
-											<div class="form-group">
-										    <input type="link_indicator"
-													class="form-control"
-													placeholder="Indicator URL"
-													name="link_indicator"
-													type="text"
-													id="link_indicator"
-													value="<?php echo get_form_value('link_indicator',isset($link_indicator) ? $link_indicator : '') ; ?>"
-													/>
-										  </div>
-
-											<input class="btn btn-default" type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>" />
-											<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle btn btn-link"/>
-										</form>
-									</div>
-
+							<div class="form-group">
+							<input type="link_indicator"
+									class="form-control"
+									placeholder="Indicator URL"
+									name="link_indicator"
+									type="text"
+									id="link_indicator"
+									value="<?php echo get_form_value('link_indicator',isset($link_indicator) ? $link_indicator : '') ; ?>"
+									/>
 							</div>
+
+							<input class="btn btn-default" type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>" />
+							<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle btn btn-link"/>
+						<?php echo form_close();?>
+				  </div>
+				</div>
+
+			</td>
+		</tr>
+
+		<?php 
+		/*<tr>
+			<td><?php echo t('study_abstract');?></td>
+			<td>
+					</div>
+
+				</div>
 
             </td>
         </tr>
+		*/?>
 
          <tr>
             <td><?php echo t('study_website');?></td>
@@ -164,23 +176,24 @@ $selected_page=$this->uri->segment(5);
 										</div>
 
 										<div class="box-body study-publish-box collapse">
-					                <form method="post" action="<?php echo site_url();?>/admin/catalog/update">
-					                    <input type="hidden" name="sid" value="<?php echo $id;?>"/>
+					                
+											<?php echo form_open('admin/catalog/update');?>
+												<input type="hidden" name="sid" value="<?php echo $id;?>"/>
 
-															<div class="form-group">
-																<input
-																	class="form-control"
-																	placeholder="Study URL"
-																	name="link_study"
-																	type="text"
-																	id="link_study"
-																	value="<?php echo get_form_value('link_study',isset($link_study) ? $link_study : '') ; ?>"
-																	/>
-															</div>
+																	<div class="form-group">
+																		<input
+																			class="form-control"
+																			placeholder="Study URL"
+																			name="link_study"
+																			type="text"
+																			id="link_study"
+																			value="<?php echo get_form_value('link_study',isset($link_study) ? $link_study : '') ; ?>"
+																			/>
+																	</div>
 
-					                    <input type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>"  class="btn btn-default"/>
-					                    <input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle btn btn-link"/>
-					                </form>
+												<input type="submit" name="submit" id="submit" value="<?php echo t('update'); ?>"  class="btn btn-default"/>
+												<input type="button" value="<?php echo t('cancel');?>" name="cancel" class="cancel-toggle btn btn-link"/>
+											<?php echo form_close();?>
 										</div>
 									</div>
             </td>
@@ -225,9 +238,8 @@ $selected_page=$this->uri->segment(5);
             <td><?php echo t('DOI');?></td>
             <td>
 				<div class="doi-container">
-					<form method="post" action="<?php echo site_url();?>/admin/catalog/update_doi">
+					<?php echo form_open('admin/catalog/update_doi');?>
 						<input type="hidden" name="sid" value="<?php echo $id;?>"/>
-
 
 						<div class="input-group">
 							<input
@@ -244,9 +256,7 @@ $selected_page=$this->uri->segment(5);
 						</div>
 
 						<p class="small">Click here to <a href="<?php echo site_url('admin/catalog/doi/'.$id);?>">generate a new DOI</a></p>
-
-												
-					</form>
+					<?php echo form_close();?>
 				</div>
             </td>
         </tr>

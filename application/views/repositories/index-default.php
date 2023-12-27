@@ -79,7 +79,7 @@ $repository_types=array(
 	}
 ?>
 
-<form autocomplete="off">
+<?php echo form_open();?>
 
 	<!-- batch operations -->
     <table width="100%">
@@ -128,7 +128,7 @@ $repository_types=array(
     <div class="nada-pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
-</form>
+<?php echo form_close();?>
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
 <?php endif; ?>
@@ -147,14 +147,20 @@ jQuery(document).ready(function(){
 			$(this).html('<?php echo t("published");?>');
 			$(this).addClass("btn-success");
 			$(this).removeClass("btn-danger");
-			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/1?ajax=1',{submit:"submit"});
+			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/1?ajax=1',{
+				submit:"submit",
+				'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+			});
 		}
 		else{
 			$(this).html('<?php echo t("draft");?>');
 			$(this).attr("data-value",0);
 			$(this).removeClass("btn-success");
 			$(this).addClass("btn-danger");
-			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/0?ajax=1',{submit:"submit"});
+			$.post(CI.base_url+'/admin/repositories/publish/'+id+'/0?ajax=1',{
+				submit:"submit",
+				'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+			});
 		}
 	
 	});	
@@ -164,7 +170,10 @@ jQuery(document).ready(function(){
 		var id=$(this).attr("data-id");
 		var value=$(this).val();
 		console.log(value, id);
-		$.post(CI.base_url+'/admin/repositories/weight/'+id+'/'+value+'?ajax=1',{submit:"submit"});
+		$.post(CI.base_url+'/admin/repositories/weight/'+id+'/'+value+'?ajax=1',{
+			submit:"submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		});
 	});	
 
 });

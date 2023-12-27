@@ -15,7 +15,10 @@ $(function() {
 	});
 	
 	$("#btn_survey_alias").on('click',null, function() {
-		data = { alternate_id: $("input[name='txt_survey_alias']").val() };
+		data = { 
+			alternate_id: $("input[name='txt_survey_alias']").val(),
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		};
 		$.post("<?php echo site_url('admin/survey_alias/add/'.$this->uri->segment(4)); ?>", data, function(data) {	
 			$("#survey-aliases").html(data);
 		});

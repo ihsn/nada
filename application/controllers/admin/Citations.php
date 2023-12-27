@@ -228,8 +228,8 @@ class Citations extends MY_Controller {
 		{
 			//see if the edited citation has surveys attached, otherwise assign empty array
 			$selected_surveys=isset($data['related_surveys']) ? $data['related_surveys'] : array();
-        }                
-
+        }
+        
 		//IDs of selected surveys
 		$data['selected_surveys_id_arr']=$this->_get_related_surveys_array($selected_surveys);
 
@@ -674,8 +674,8 @@ class Citations extends MY_Controller {
 	function import()
 	{
         $this->acl_manager->has_access_or_die('citation', 'create');
-		$this->template->add_css('javascript/jquery/themes/base/minified/jquery-ui.min.css');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery-ui.custom.min.js');
+		$this->template->add_css('javascript/jquery/themes/base/jquery-ui.css');
+		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');
 
 		$this->form_validation->set_rules('citation_string', t('citation_string'), 'xss_clean|trim|required');
 		$string=$this->input->post("citation_string");

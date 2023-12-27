@@ -2,7 +2,7 @@
 .flex{width:100%;}
 </style>
 <div class='content-container'>
-<form method="post">
+<?php echo form_open();?>
 
 <div class="field">
   <label for="id"><?php echo t('Paste survey ID(s) here');?><span class="required">*</span></label>
@@ -15,5 +15,5 @@
 </div>
 
 <input type="submit" name="submit" value="Submit"/>
-</form>
+<?php echo form_close();?>
 </div>

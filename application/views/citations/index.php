@@ -212,7 +212,7 @@ $publish_options=array(
 
 
 
-    <form autocomplete="off" >
+    <?php echo form_open();?>
         <!-- batch operations -->
         <table width="100%" style="margin-top:20px;">
             <tr>
@@ -386,7 +386,7 @@ $publish_options=array(
                         </div>
                     <?php endif; ?>
                 <div class="mb-5"></div>
-                </form>
+                <?php echo form_close();?>
         </div>
 
     </div>
@@ -460,7 +460,10 @@ $publish_options=array(
             $.ajax({
                 timeout:1000*120,
                 dataType: "json",
-                data:{ submit: "submit"},
+                data:{ 
+                    submit: "submit",
+                    '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+                },
                 type:'POST',
                 url: CI.base_url+'/admin/citations/delete/'+selected+'/?ajax=true',
                 success: function(data) {

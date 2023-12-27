@@ -69,7 +69,7 @@
 	}
 ?>
 
-<form autocomplete="off">
+<?php echo form_open();?>
 
 	<!-- batch operations -->
     <table width="100%">
@@ -109,7 +109,7 @@
     <div class="nada-pagination">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
-</form>
+<?php echo form_close();?>
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
 <?php endif; ?>

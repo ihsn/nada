@@ -57,6 +57,7 @@
 		$('#send_email').click(function() {
 			$.post( "<?php echo site_url('datadeposit/email_summary/');?>", 
 				{ 
+					'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>',
 					email: $("#share_email").val(),
 					pid: <?php echo $project[0]->id; ?>
 			} );

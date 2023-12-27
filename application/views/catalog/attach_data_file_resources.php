@@ -41,7 +41,7 @@
         </tr>
     </table>
 
-<form method="post" action="<?php echo site_url('admin/catalog/attach_data_file_resources_post/'.$sid.'/'.$file_id);?>" >
+<?php echo form_open('admin/catalog/attach_data_file_resources_post/'.$sid.'/'.$file_id);?>
     <h5>Select all the external resources that are used by this data file</h5>    
     <table class="table table-striped table-bordered">
         <tr>
@@ -99,7 +99,7 @@
 <a type="button" class="btn btn-info navbar-btn" href="<?php echo site_url('admin/catalog/edit/'.$survey['id'].'/data-files');?>">
 Cancel
 </a>
-</form>
+<?php echo form_close();?>
 
 </div>
 

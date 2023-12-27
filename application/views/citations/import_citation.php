@@ -196,15 +196,15 @@ $flag_options=array(
 			<?php echo form_dropdown('flag', $flag_options, get_form_value("flag",isset($flag) ? $flag : ''),array('class'=>'form-control','id'=>'flag')); ?>
 		</div>
 
-		<fieldset class="field-expanded border">
+		<fieldset class="field-expanded border" style="display:none;">
 			<label class=" m-2"><?php echo t('related_studies');?></label>
-		<div class="field  m-2">
-			<div id="related-surveys  m-2" class="related-surveys">    	
+			<div class="field  m-2">
+				<div id="related-surveys  m-2" class="related-surveys">    	
 					<?php echo $survey_list; ?>
-			</div> 
-	<a  class="add_survey" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
-</div>
-</fieldset>
+				</div> 
+				<a  class="add_survey" href="javascript:void(0);"><?php echo t('attach_studies');?></a>   
+			</div>
+		</fieldset>
 <?php
 /*
 <div class="field">

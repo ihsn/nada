@@ -1,8 +1,9 @@
 <nav class="navbar navbar-dark bg-primary justify-content-between mb-5">
   <a class="navbar-brand" href="<?php echo site_url('admin/catalog/edit/'.$dataset['id']);?>"><?php echo $dataset['title'];?></a>
-  <form class="form-inline">    
+  
+  <?php echo form_open(null,'class="form-inline"');?>   
     <a href="<?php echo site_url('admin/catalog/edit/'.$dataset['id']);?>" class="btn btn-default my-2 my-sm-0" ><i class="fas fa-arrow-alt-circle-left"></i> Return to study edit page</a>
-  </form>
+  <?php echo form_close();?>
 </nav>
 
 
@@ -46,7 +47,8 @@ var app = new Vue({
 			"title":'<?php echo $dataset['title'] ;?>',
 			"publisher":'<?php echo $doi_options['publisher'] ;?>',
 			"publication_year":'<?php echo $dataset['year_start'] ;?>',
-			"url":'<?php echo site_url('catalog/'.$dataset['id']);?>'
+			"url":'<?php echo site_url('catalog/'.$dataset['id']);?>',
+      '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
     },
     doi:'',
     doi_prefix: '<?php echo $doi_options['prefix'];?>',
@@ -88,7 +90,8 @@ var app = new Vue({
             //dataType: 'json',
             //async: false,
             data: {
-              'doi':vm.doi
+              'doi':vm.doi,
+              '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
             },
             success: function (data) {
                 alert("Updated");

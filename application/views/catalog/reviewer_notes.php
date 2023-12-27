@@ -19,8 +19,10 @@ $(function() {
 	$("#btn_reviewer_note").live('click', function() {
 		data = {
 			note: $("input[name='reviewer_note']").val(),
-			type: 'reviewer'
+			type: 'reviewer',
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
 		};
+		
 		$.post("<?php echo site_url('admin/catalog_notes/add') . '/' . $this->uri->segment(4); ?>", data, function(data) {	
 			$("#reviewer_notes_container").html(data);
 		});

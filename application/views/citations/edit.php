@@ -90,13 +90,13 @@ label, legend {
 
 .highlight { background-color: rgb(250, 223, 173) }
 
-.row-<?php echo $this->uri->segment(4);?>{
+.row-<?php echo $id;?>{
     background:rgb(250, 252, 219);
     padding:5px;
     border-left:4px solid orange;
 }
 
-.row-<?php echo $this->uri->segment(4);?> .highlight{
+.row-<?php echo $id;?> .highlight{
     background:none;
 }
 
@@ -495,7 +495,10 @@ label, legend {
         var sid_arr=$.data(document.body,"attached_surveys");
 
         //prepare for post
-        var form_data={sid: sid_arr.join(",")};
+        var form_data={
+          sid: sid_arr.join(","),
+          '<?php echo $this->security->get_csrf_token_name(); ?>' : '<?php echo $this->security->get_csrf_hash(); ?>'
+        };
 
         var attached_surveys=$.post( "<?php echo site_url('admin/citations/get_formatted_surveys')?>", form_data );
 

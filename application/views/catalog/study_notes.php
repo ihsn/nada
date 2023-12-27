@@ -60,8 +60,9 @@ $(function() {
 
 <div class="panel panel-default">
   <div class="panel-body" style="background:#eee;">
+		<?php echo form_open('admin/catalog_notes/add/'.$id, 'class="form-post-note" style="padding:10px;"'); ?>
 
-		<form method="post" class="form-post-note" action="<?php echo site_url('admin/catalog_notes/add/'.$id); ?>" style="padding:10px;">
+		<input type="hidden" name="<?=$csrf['name'];?>" value="<?=$csrf['hash'];?>" />
 
 		<div class="form-group">
 		    <label class="inline"><?php echo t('select_note_type');?>
@@ -75,7 +76,7 @@ $(function() {
 		<div class="form-group">
 				<button id="submit-form" type="button" class="btn btn-default"><?php echo t('Submit');?></button>
 		</div>
-		</form>
+		<?php echo form_close(); ?>
 
 
 </div>

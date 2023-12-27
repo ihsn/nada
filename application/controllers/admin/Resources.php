@@ -343,18 +343,18 @@ class Resources extends MY_Controller {
 				}
 			}
 						
-			if ($db_result===TRUE)
+			if (!$db_result)
+			{
+				//update failed
+				$this->form_validation->set_error(t('form_update_fail'));
+			}
+			else
 			{
 				//update successful
 				$this->session->set_flashdata('message', t('form_update_success') );
 				
 				//redirect back to the list
 				redirect("admin/catalog/edit/$survey_id/resources");
-			}
-			else
-			{
-				//update failed
-				$this->form_validation->set_error(t('form_update_fail'));				
 			}
 		}
 		else

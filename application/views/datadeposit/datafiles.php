@@ -68,7 +68,7 @@
 <div id="upload_box">
 	<h3><?php echo t('upload_files'); ?></h3>
 	<div id="close-upload-form">Close</div>
-    <form class="form form-upload-resources" method="post" action="<?php echo site_url('datadeposit/process_normal_uploads/'.$this->uri->segment(3)); ?>" enctype="multipart/form-data" >
+	<?php echo form_open_multipart (site_url('datadeposit/process_normal_uploads/'.$this->uri->segment(3), array('class'=>'form form-upload-resources'))); ?>
     <div id="file-uploads">
 	<div class="allowed-file-types-container"><span class="caption">Allowed file types:</span> <span class="allowed-file-types"><?php echo str_replace(",",", ",$allowed); ?></span></div>
     <div id="uploader">
@@ -90,7 +90,7 @@
         <input type="submit" name="upload" value="Upload"/>
       </div>
     </div>
-  </form>
+  <?php echo form_close(); ?>
 </div>
 </div>
 
@@ -237,7 +237,11 @@ function delete_resources(items)
         timeout:1000*120,
         cache:false,
         dataType: "html",
-        data:{ answer: "Yes",'delete':"Submit"},
+        data:{ 
+			answer: "Yes",
+			'delete':"Submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
         type:'POST', 
         url: CI.base_url+'/datadeposit/batch_delete_resource/'+items,
         success: function(data) {

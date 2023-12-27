@@ -50,7 +50,7 @@
 </div>
 
 <div class="col-md-9">
-<form method="post">
+<?php echo form_open(); ?>	
 	<!--<pre>		
 		<?php //var_dump($_POST['resource']['dashboard']); var_dump($this->input->post('resource'));
 			//var_dump($post_values);
@@ -193,7 +193,7 @@
 
 	</table>
 	<button type="submit" class="btn btn-primary"><?php echo t('submit');?></button>
-</form>
+<?php echo form_close();?>
 </div>
 
 </div>

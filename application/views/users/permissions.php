@@ -43,7 +43,7 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
 	<i class="fa fa-plus-circle" aria-hidden="true">&nbsp;</i> <?php echo t('create_user_account'); ?></a>
 </div>
 
-<form method="post">
+<?php echo form_open();?>>
 <h3 class=" text-primary  text-capitalize mb-3">
 <fieldset>
 <legend><?php echo t('user_site_level_permissions'); ?></legend>
@@ -162,7 +162,9 @@ legend{font-weight:bold;font-size:20px;padding:10px;}
 
 <input class="btn btn-primary btn-sm" type="submit" name="submit" value="<?php echo t('update'); ?>"/>
 <a class="btn btn-secondary btn-sm" href="<?php echo site_url($destination); ?>"><?php echo t('cancel'); ?></a>
-</form>
+
+<?php echo form_close();?>
+
 </div>
 
 

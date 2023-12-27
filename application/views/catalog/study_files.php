@@ -39,8 +39,7 @@ form{margin:10px;padding:0px;}
 	font-size:14px;margin:3px;
 }
 </style>
-
-<form method="post" enctype="multipart/form-data" class="form manage-files" action="<?php echo site_url('admin/managefiles/'.$survey_id.'/batch_delete');?>">
+<?php echo form_open_multipart(site_url('admin/managefiles/'.$survey_id.'/batch_delete'), 'class="form manage-files"');?>
 <input type="hidden" name="ajax" value="1"/>
 <div class="actions">
 	<div style="float:left">
@@ -148,7 +147,7 @@ form{margin:10px;padding:0px;}
 </div>
 <div style="float:right;padding:5px;font-style:italic;"><?php echo t('total_files_count');?><?php echo count($files);?></div>
 
-</form>
+<?php echo form_close();?>
 
 <script type='text/javascript' >
 //checkbox select/deselect

@@ -35,14 +35,14 @@
             </button>
         </div>
         <div class="modal-body">
-        <form id="form-thumbnail" style="margin-left:10px;" class="form-xinline" enctype="multipart/form-data" action="<?php echo site_url('api/datasets/thumbnail/'.$idno);?>" method="post">
+        <?php echo form_open_multipart('api/datasets/thumbnail/'.$idno, 'style="margin-left:10px;"');?>
 
         <div class="form-group">
             <input type="file" class="form-control" name="file" id="thumbnail-file" xstyle="width:100px;">
             <p class="text-muted"><?php echo t('select_study_thumbnail');?></p>
         </div>
 
-        </form>
+        <?php echo form_close();?>
 
         </div>
         <div class="modal-footer">

@@ -1,6 +1,7 @@
 <h1 class="xsl-title"><?php echo t('search_data_dictionary');?></h1>
 <?php $url=site_url('catalog/'.$sid.'/search'); ?>
-<form action="" id="form_vsearch">
+
+<?php echo form_open(null, 'id="form_vsearch"'); ?>
 
     <div class="input-group input-group-sm">            
         <input type="text" class="form-control" name="vk"  value="<?php echo form_prep($this->input->get('vk')); ?>" size="60" maxlength="100"/>
@@ -13,5 +14,5 @@
         </span>
     </div>
     
-</form>
+<?php echo form_close();?>
 <div id="variable-list"></div>

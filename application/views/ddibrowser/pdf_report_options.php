@@ -43,7 +43,7 @@ $(document).ready(function () {
 <div class="alert alert-warning" style="color:black;"><?php echo sprintf(t('study_contains_too_many_variables'),$varcount);?></div>
 <?php endif;?>
 
-<form method="post" class="form">
+<?php echo form_open();?>    
 <div class="form-group">
     <label for="website_title"><?php echo t('website_title');?></label>
     <input name="website_title" type="text" id="website_title" size="50" class="form-control"  value="<?php echo get_form_value('website_title',isset($website_title) ? $website_title : ''); ?>"/>
@@ -99,7 +99,7 @@ $(document).ready(function () {
 
 </div>
 
-</form>
+<?php echo form_close();?>
 
 </div>
 

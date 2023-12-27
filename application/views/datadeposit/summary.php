@@ -74,7 +74,10 @@ fieldset{border:0px}
 		re= /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
 		if (re.test(email)) {
 			$.post("<?php echo site_url('datadeposit/email_to_friend'), '/', $this->uri->segment(3); ?>", 
-				{email: email},
+				{
+                    email: email,
+                    '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+                },
 				function(data) {
 					if (data) {
 						alert("<?php echo t('email_sent_successful'); ?>");

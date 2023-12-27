@@ -43,7 +43,8 @@ function remove_tag_handler(){
 function add_tag() {
 	data = {
 		tag: $("#tag").val(),
-		type: 'admin'
+		type: 'admin',
+		'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
 	};
 	url=CI.base_url+'/admin/catalog_tags/add/<?php echo $this->uri->segment(4); ?>';
 	$.ajax({

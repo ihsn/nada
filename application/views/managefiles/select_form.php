@@ -14,7 +14,7 @@ foreach($this->form_list as $key=>$value)
 
 <?php include 'tabs.php';?>
 <div class="body-container" style="padding:10px;background-color:gainsboro;margin-top:10px;margin-bottom:20px;">
-<form autocomplete="off" method="post" >
+<?php echo form_open();?>
     <div>
 		<?php echo t('msg_select_data_access_type');?>: 
 		<?php echo form_dropdown('formid', $this->form_list, get_form_value("formid",isset($formid) ? $formid : '')); ?>
@@ -23,5 +23,5 @@ foreach($this->form_list as $key=>$value)
 	<?php if (isset($this->form_message) ):?>
     	<div style="font-size:14px;font-weight:bold;padding:10px;background-color:#F2F2F2;border:1px solid gainsboro;margin-top:10px;margin-bottom:10px;"><?php echo $this->form_message;?></div>
     <?php endif;?>
-</form>    
+<?php echo form_close();?>
 </div>

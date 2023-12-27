@@ -4,7 +4,7 @@
     <div class="sidebar-filter-entries">
         <input type="hidden"/>
         <p class="mb-0"><?php echo t('show_studies_conducted_between');?></p>
-        <form>
+        <?php echo form_open();?>
             <div class="form-group mb-0">
                 <input type="hidden"/>
                 <?php echo form_dropdown('from', $years, ((isset($search_options->from) && $search_options->from!='') ? $search_options->from : end($years)), 'id="from"  class="form-control"'); ?>
@@ -13,7 +13,7 @@
             <div class="form-group">
                 <?php echo form_dropdown('to', $years, (isset($search_options->to) && $search_options->to!='') ? $search_options->to: '','id="to" class="form-control"'); ?>
             </div>
-        </form>
+        <?php echo form_close();?>
     </div>
 
 </div>

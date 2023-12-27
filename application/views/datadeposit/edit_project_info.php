@@ -10,7 +10,7 @@
     <?php $error = $this->session->flashdata('error'); ?>
     <?php echo ($error != "") ? '<div class="error">' . $error . '</div>' : ''; ?>
 
-    <form method="post">
+    <?php echo form_open();?>
 
     <div class="field">
         <label for="title"><span class="required">*</span>Title:</label>
@@ -53,5 +53,7 @@
     </div>
 
 </div>
-</form>
+
+<?php echo form_close();?>
+
 </div>

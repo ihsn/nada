@@ -200,7 +200,11 @@ $(function() {
 		chunk_size : '2mb',
 		unique_names : false,
 		multiple_queues:true,
-		multipart_params: { 'upload_folder': 'default', 'overwrite':0},
+		multipart_params: { 
+			'upload_folder': 'default', 
+			'overwrite':0,
+			'<?php echo $this->security->get_csrf_token_name(); ?>' : '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 
 		// Resize images on clientside if we can
 		resize : {width : 800, height : 800, quality : 100},

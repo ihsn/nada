@@ -138,10 +138,10 @@ $(document).ready(function(){
             sid: <?php echo $id;?>,
             data_class_id: $("#data-classifications").val(),
             formid: $('#select-data-access').val(),
-            link_da: $("#link_da").val()
+            link_da: $("#link_da").val(),
+            '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
         };
 
-        console.log(data);
         url=CI.base_url+'/admin/catalog/update';
         $.ajax({
             type: "POST",

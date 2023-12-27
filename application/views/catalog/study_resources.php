@@ -161,7 +161,10 @@ function batch_delete(){
 	$.ajax({
 		timeout:1000*120,
 		dataType: "json",
-		data:{ submit: "submit"},
+		data:{ 
+			submit: "submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+			},
 		type:'POST',
 		url: CI.base_url+'/admin/resources/delete/'+selected+'/?ajax=true',
 		success: function(data) {

@@ -87,11 +87,12 @@
 	<tr>
 		<td nowrap="nowrap"></td>
 		<td style="font-weight:bold;">
-        <form method="post" action="<?php echo site_url('access_licensed/additional_info/'.$id);?>" style="margin-top:10px;">
+        
+		<?php echo form_open('access_licensed/additional_info/'.$id, 'style="margin-top:10px;"');?>
         	<label><?php echo t('provide_additonal_info_for_your_request');?></label>
 			<textarea style="width:100%;height:200px;" name="moreinfo"></textarea>        
             <div style="margin-top:10px;"><input type="submit" name="submit" value="Submit"/></div>
-        </form>
+        <?php echo form_close();?>
         </td>
 	</tr>	
 <?php endif;?>

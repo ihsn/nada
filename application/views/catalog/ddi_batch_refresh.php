@@ -123,7 +123,11 @@ var batch_import = {
 			});		
 		
 		//post	
-		this.xhr=$.post(CI.base_url+"/admin/catalog/refresh/"+id+'/?ajax=1',{id:id},func_data, "json");
+		this.xhr=$.post(CI.base_url+"/admin/catalog/refresh/"+id+'/?ajax=1',
+			{
+				id:id,
+				'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+			},func_data, "json");
 		
 		//handle json returned values
 		function func_data(data){

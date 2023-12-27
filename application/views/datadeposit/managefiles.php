@@ -29,7 +29,8 @@ input, textarea, select {
 ?>
 
 <h1 >Edit Resource <span class="resource-file-name"><?php echo $file[0]->filename;?></span></h1>
-<form method="post">
+
+<?php echo form_open();?>
 	<input name="resource_id" type="hidden" id="resource_id" value=""/>
     
     <div class="field">
@@ -59,4 +60,4 @@ input, textarea, select {
         <a class="btn_cancel" href="<?php echo site_url('datadeposit'); ?>/datafiles/<?php echo intval($file[0]->project_id); ?>">Cancel</a>
 	</div>
 
-</form>
+<?php echo form_close();?>

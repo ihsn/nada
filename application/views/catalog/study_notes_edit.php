@@ -1,7 +1,7 @@
 <style>
 .note_body_text{height:200px;}
 </style>
-<form method="post" class="form-edit-note" action="<?php echo $action_url; ?>" style="padding:10px;">
+<?php echo form_open($action_url, 'class="form-edit-note" style="padding:10px;"');?>
 
 <?php if (isset($show_note_types) && $show_note_types===TRUE):?>
 <div class="field">
@@ -19,4 +19,4 @@
         </div>
     <?php endif;?>
 </div>
-</form>
+<?php echo form_close();?>

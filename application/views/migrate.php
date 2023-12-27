@@ -89,8 +89,10 @@ $db['nada2']['dbcollat'] = "utf8_general_ci";
 
 <p>3) Copy files and folders under <b>stock/datasets</b> to nada 3 datafiles folder: <b><?php echo $this->config->item("catalog_root"); ?></b></p>
 <p>Click on the upgrade button after you have made changes to the database.php and migrate.php.</p>
-<form method="post">
-<p><input type="submit" name="upgrade" value="Run migrate script"/></p>
-</form>
+
+<?php echo form_open();?>    
+    <p><input type="submit" name="upgrade" value="Run migrate script"/></p>
+<?php echo form_close();?>
+
 </body>
 </html>

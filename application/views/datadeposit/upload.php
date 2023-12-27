@@ -2,7 +2,7 @@
 <?php if (!$this->input->get('ajax')): ?>
 <div class="instruction-box"><?php echo t('instructions_datafiles_usage'); ?></div>
 <?php endif; ?>
-<form style="margin-top:20px" method="post" action="<?php echo site_url();?>/datadeposit/process_normal_uploads/<?php echo (int) $this->uri->segment(3); ?>" enctype="multipart/form-data" class="form">
+<?php echo form_open_multipart('datadeposit/process_normal_uploads/'.(int) $this->uri->segment(3),'style="margin-top:20px" class="form"' );?>
 <?php /*
 <label for="collection">Select Type *</label>
  <?php echo form_dropdown('collection', $option_formats, isset($dcformat) ? $dcformat : ''); ?>
@@ -687,15 +687,7 @@ $(function() {
 
 	</div>
 
-
-
-
-
-
-
-
-
-</form>
+<?php echo form_close();?>
 
 
 <script type='text/javascript' >

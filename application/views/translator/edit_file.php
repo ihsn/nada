@@ -1,5 +1,6 @@
 <div class="content" >
-<form method="post">
+
+<?php echo form_open();?>
 
 <?php if ($template_file!=''):?>
 	<table class="table table-striped" cellpadding="0" cellspacing="0">
@@ -52,5 +53,7 @@
         <h1>How to use Translation editor</h1>
         <p>Use the left pane to select the language and the translation file to start editing</p>
     <?php endif;?>
-</form>
+
+<?php echo form_close();?>
+
 </div>

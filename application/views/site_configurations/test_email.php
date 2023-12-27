@@ -20,7 +20,7 @@ fieldset legend{
 <h3 class="mt-5 mb-5">Test email configurations</h3>
 
 
-<form method="post" id="email-form" >
+<?php echo form_open(null, array('id'=>'email-form'));?>
 
 
     <div class="form-group row">
@@ -147,7 +147,7 @@ fieldset legend{
       <button type="button" id="btn_submit" class="btn btn-primary">Send email</button>
     </div>
   </div>
-</form>
+<?php echo form_close();?>
 
 <pre style="display:none;" id="email_output">  <i class="fas fa-spinner fa-spin"></i>
 </pre>

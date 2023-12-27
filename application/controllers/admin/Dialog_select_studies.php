@@ -16,7 +16,7 @@ class Dialog_select_studies extends MY_Controller {
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
-		$this->load->helper("catalog");
+		//$this->load->helper("catalog");
 		$this->template->set_template('blank_iframe');
 		
 		//load language file

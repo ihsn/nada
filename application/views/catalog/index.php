@@ -125,6 +125,10 @@ jQuery(document).ready(function(){
 	//publish/draft status
 	$('.publish-toggle').change(function() {
 		var studyid=$(this).attr("data-sid");
+		var form_data= {
+			'submit':'submit',
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		};
 		
 		if ($(this).prop('checked')){
 			status=1
@@ -133,7 +137,7 @@ jQuery(document).ready(function(){
 			status=0
 		}
 
-		$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/'+status+'?ajax=1',{submit:"submit"},
+		$.post(CI.base_url+'/admin/catalog/publish/'+studyid+'/'+status+'?ajax=1',form_data,
 			function(data){
 			//toggle_study_status( elem );
 			}, "json")

@@ -40,7 +40,7 @@
 <hr>
 
 <h3><?php echo t('Roles');?></h3>
-<form method="post">
+<?php echo form_open();?>
 	<table class="table table-striped table-hover">
 		<thead>
 		<tr>
@@ -65,7 +65,7 @@
 	<?php endforeach;?>
 	</tbody>
 	</table>
-</form>
+<?php echo form_close();?>
 
 
 </div>

@@ -40,11 +40,13 @@
 
 </div>
 <?php if ($db_connect===TRUE):?>
-<form method="post" action="<?php echo site_url();?>/install/installing">
-<div class="bg-light text-right p-2">
-<input class="btn btn-sm btn-primary" type="submit" value="<?php echo t('install_database'); ?>" />
-</div>
-</form>
+
+	<?php echo form_open(site_url('install/installing'));?>
+		<div class="bg-light text-right p-2">
+			<input class="btn btn-sm btn-primary" type="submit" value="<?php echo t('install_database'); ?>" />
+		</div>
+	<?php echo form_close();?>
+
 <?php else:?>
 <div class="red">
 	<?php echo t('database_error_cant_continue');?>

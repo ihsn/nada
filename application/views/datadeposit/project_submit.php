@@ -33,7 +33,7 @@ $to_catalog_options=$this->config->item('to_catalog_options','datadeposit');
     	<?php echo ($project[0]->access == 'owner') ? t('instructions_project_submit') : t('instructions_project_contributor_review'); ?>
     </div>
  
-    <form method="post" class="form clearfix project-submit">
+	<?php echo form_open(null, 'class="form clearfix project-submit"'); ?>
 
     <div class="field">
         <label for="accesspolicy">            
@@ -121,7 +121,7 @@ $to_catalog_options=$this->config->item('to_catalog_options','datadeposit');
     	<input type="button" name="confirm_submit" value="Submit" class="submit-button" id="first_submit">
     <?php //endif;?>
     
-	</form>
+	<?php echo form_close();?>
 </div>
 
 

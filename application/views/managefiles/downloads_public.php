@@ -33,7 +33,7 @@
 	$page_url=site_url().$this->uri->uri_string();
 ?>
 
-<form autocomplete="off">
+<?php echo form_open();?>
     
     <!-- grid -->
     <table class="grid-table" width="100%" cellspacing="0" cellpadding="0">
@@ -64,7 +64,9 @@
 			<?php endif;?>
     <?php endforeach;?>
     </table>
-</form>
+
+<?php echo form_close();?>
+
 <?php else: ?>
 <?php t('no_records_found');?>
 <?php endif; ?>
@@ -115,7 +117,10 @@ function batch_delete(){
 	$.ajax({
 		timeout:1000*120,
 		dataType: "json",
-		data:{ submit: "submit"},
+		data:{ 
+			submit: "submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 		type:'POST', 
 		url: CI.base_url+'/admin/menu/delete/'+selected+'/?ajax=true',
 		success: function(data) {

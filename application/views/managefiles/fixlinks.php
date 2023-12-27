@@ -5,10 +5,12 @@
 
 <h1><?php echo t('title_fix_broken');?></h1>
 <?php if (!$this->input->post("submit") ):?>
-<form method="post">
-	<div><?php echo t('instruction_fix_broken');?></div>
-	<input type="submit" value="<?php echo t('fix_it');?>" name="submit" style="width:100px;"/>
-</form>
+
+	<?php echo form_open();?>
+		<div><?php echo t('instruction_fix_broken');?></div>
+		<input type="submit" value="<?php echo t('fix_it');?>" name="submit" style="width:100px;"/>
+	<?php echo form_close();?>
+
 <?php endif;?>
 
 <?php if ($links):?>

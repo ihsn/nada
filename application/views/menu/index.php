@@ -83,7 +83,7 @@
 	}
 ?>
 
-<form autocomplete="off" class="form-group">
+<?php echo form_open(null, 'class="form-group"');?>
 
 	<!-- batch operations -->
 	<div class="row  mt-5 mb-2">
@@ -145,7 +145,7 @@
     <div class="text-right nada-pagination small">
 		<em><?php echo $pager; ?></em>&nbsp;&nbsp;&nbsp; <?php echo $page_nums;?>
     </div>
-</form>
+<?php echo form_close();?>
 <?php else: ?>
 <?php echo t('no_records_found'); ?>
 <?php endif;?>
@@ -225,7 +225,10 @@ function batch_delete(){
 		timeout:1000*120,
 		cache:false,
         dataType: "json",
-		data:{ submit: "submit"},
+		data:{ 
+			submit: "submit",
+			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+		},
 		type:'POST',
 		url: CI.base_url+'/admin/menu/delete/'+selected+'/?ajax=true',
 		success: function(data) {

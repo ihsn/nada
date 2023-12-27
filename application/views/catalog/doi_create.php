@@ -6,7 +6,7 @@
 
   <div class="card-body">
 
-    <form class="create-doi-form">
+    <?php echo form_open('admin/catalog/doi_create',array('class'=>'create-doi-form'));?>
   
     <div class="form-group row">
         <label for="prefix" class="col-sm-2 col-form-label">Prefix</label>
@@ -97,7 +97,7 @@
       </div>  
     </div>
   </div>
-</form>
+<?php echo form_close();?>
 
   </div>
 </div>

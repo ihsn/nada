@@ -28,7 +28,8 @@ if (empty($doi)){
     </div>
     
     <div class="collapse clearfix bg-light p-3" id="citation_options">
-        <form class="form-inline pt-2">
+        
+        <?php echo form_open(null, 'class="form-inline pt-2"'); ?>
             <div class="form-group">
                 <label for="doi_format" class="mr-2">Format</label>
                 <select class="form-control form-control-sm" id="doi_format">
@@ -38,7 +39,8 @@ if (empty($doi)){
                     <option value="chicago-fullnote-bibliography-16th-edition">Chicago</option>
                 </select>
             </div>
-        </form>
+        <?php echo form_close(); ?>
+        
     </div>
 
     <div class="mt-3 text-secondary" style="font-size:small;">

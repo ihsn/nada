@@ -34,7 +34,7 @@ s.flex-textarea{height:35px;}
 
 <body>
 
-<form method="post">
+<?php echo form_open();?>
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr valign="top">
 <td class="left-menu">
@@ -136,7 +136,7 @@ s.flex-textarea{height:35px;}
 </td>
 </tr>
 </table>
-</form>
+<?php echo form_close();?>
 
 <div style="background-color:gray;color:white;font-weight:bold;padding:10px;">Preview</div>
 <div style="text-align:right;">

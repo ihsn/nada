@@ -10,7 +10,7 @@ label{font-weight:bold;}
 
 <div class="container-fluid">
 <h3 class="page-title mt-5 mb-3"><?php echo t('reports');?></h3>
-<form style="background-color:#E6E6E6;padding:10px;margin-bottom:20px;" id="form_report">	
+<?php echo form_open(null,'style="background-color:#E6E6E6;padding:10px;margin-bottom:20px;" id="form_report"');?>
 	<div class="form-title"><?php echo t('select_reporting_period');?></div>
     <label for="from"><?php echo t('from');?></label>
     <input type="text" name="from" id="from" size="30" maxlength="15" class="date" value="<?php echo form_prep($this->input->get("from")); ?>"/>
@@ -33,7 +33,8 @@ label{font-weight:bold;}
     <input class="btn btn-primary btn-sm" type="submit" name="Submit" value="<?php echo t('submit');?>" onClick="do_report();return false;"/>
     
     <div style="padding-top:10px;"><a href="<?php echo site_url();?>/admin/logs/"><?php echo t('view_complete_site_logs');?></a></div>
-</form>
+<?php echo form_close();?>
+	
 <div id="report-body"></div>
 </div>
 <script type="text/javascript">

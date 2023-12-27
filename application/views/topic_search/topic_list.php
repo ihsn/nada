@@ -89,10 +89,10 @@ div.right {
 .topic-heading{background-color:gainsboro;padding:5px;}
 .topic-items{background:white;display:inline;list-style:none;padding:0px;margin:0px;}
 .topic-items li{padding:5px;margin-left:10px;}
-.topic{}
+
 </style>
 
-<form name="topic_search_form" id="topic_search_form" method="post" >
+<?php echo form_open(null, 'name="topic_search_form" id="topic_search_form"');?>
 <ul id="tabmenu">
 	<li><a href="#">Project</a></li>
     <li class="selected"><a href="#">studies</a></li>
@@ -108,7 +108,8 @@ div.right {
     </div>
 </div>
 <div id="surveys"><?php echo $survey_list; ?></div>
-    </form>
+
+<?php echo form_close();?>
 
 
 

@@ -45,8 +45,9 @@ h3{font-size:1em;font-weight:bold;}
 	$project_users=implode(", ",array_merge($project->collaborators,$project->owner));
 	$project->status=strtolower($project->status);
 ?>
-<div style="margin-bottom:10px;font-weight:bold"><?php echo t('request_status');?>: <em><?php echo t($project->status); ?></em></div>
-	<form method="post" id="manage-project-status">
+<div style="margin-bottom:10px;font-weight:bold"><?php echo t('request_status');?>: <em><?php echo t($project->status); ?></em></div>	
+	<?php echo form_open(null, 'id="manage-project-status"');?>
+
         <div class="field action">
             <div>
                 <b style="padding-right:15px;"><?php echo t('select_action');?></b>
@@ -79,7 +80,7 @@ h3{font-size:1em;font-weight:bold;}
         <div id="status-text" style="margin-top:10px;margin-bottom:10px;"></div>
         <input type="hidden" name="project_id" value="<?php echo $project->id;?>"/>
 		<input type="button" name="update" id="update_status" value="<?php echo t('update');?>" />        
-	</form>
+	<?php echo form_close();?>
 
 <script type="text/javascript">
 $(function() {

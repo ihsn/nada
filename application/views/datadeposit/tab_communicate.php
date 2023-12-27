@@ -1,4 +1,4 @@
-<form class="form" name="form_compose_email" id="form-communicate">
+<?php echo form_open(null, 'id="form-communicate" name="form_compose_email"');?>
   <div class="field">
     <label><?php echo t('compose_email');?></label>
   </div>
@@ -24,7 +24,7 @@
   <div class="field">
     <input type="button" name="submit" id="communicate-submit" value="<?php echo t('send');?>" />
   </div>
-</form>
+<?php echo form_close();?>
 
 
 <script type="text/javascript">

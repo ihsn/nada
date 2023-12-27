@@ -8,7 +8,7 @@
 ?>
 <h1 class="xsl-title"><?php echo t('export_documentation');?></h1>
 <p><?php echo t('download_instructions');?></p>
-<form method="post" action="<?php echo site_url().'/catalog/'.$this->uri->segment(2); ?>/export">
+<?php echo form_open(site_url('catalog/'.$this->uri->segment(2).'/export'));?>
 	<fieldset>
 	    <legend><?php echo t('select_output_format');?></legend>
         <div>
@@ -17,4 +17,4 @@
         </div>
     </fieldset>
     <input type="submit" value="<?php echo t('generate');?>" name="generate"/>
-</form>
+<?php echo form_close();?>

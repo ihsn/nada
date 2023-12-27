@@ -35,7 +35,7 @@ padding:15px;
 
 
 <?php if ($show_form):?>
-<form method="post" action="<?php echo site_url('datadeposit/request_reopen/'.$id);?>" >
+<?php echo form_open(site_url('datadeposit/request_reopen/'.$id));?>
     <div class="field">
 		<label style="clear:both" for="reason"><span style="color:red;">*</span> Request reopen reason:</label>
         <br />
@@ -47,6 +47,6 @@ padding:15px;
     
 	<input type="submit" name="submit" value="Submit" class="submit-button" id="submit">    
     <a href="<?php echo site_url('datadeposit/projects');?>">Cancel</a>
-</form>
+<?php echo form_close();?>
 <?php endif;?>
 </div>
