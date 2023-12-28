@@ -2242,3 +2242,10 @@ body.wb-template-blank.wb-fullscreen .btn.fullscreen .fa-expand-alt {
  {
     font-size:14px;
  }
+
+ .login-form .reason{ 
+    padding: 15px;
+    font-size: 16px;
+    background: #f1e5bc;
+    margin-bottom: 46px;    
+  }

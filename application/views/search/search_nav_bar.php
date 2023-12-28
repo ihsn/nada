@@ -45,7 +45,7 @@
                 </div>
                 */ ?>
 
-                <div class="search-count col-5 text-md-left mb-2 mb-md-0 pt-2">
+                <div class="search-count col-md-5 text-md-left mb-2 mb-md-0 pt-2">
                     <?php echo sprintf(t('showing_studies'),
                         number_format(($surveys['limit']*$current_page)-$surveys['limit']+1),
                         number_format(($surveys['limit']*($current_page-1))+ count($surveys['rows'])),
