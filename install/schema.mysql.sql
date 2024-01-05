@@ -668,22 +668,22 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
-  `id` mediumint(8) NOT NULL AUTO_INCREMENT,
+  `id` mediumint NOT NULL AUTO_INCREMENT,
   `ip_address` char(16) NOT NULL,
   `username` varchar(100) NOT NULL,
   `password` varchar(1000) NOT NULL,
   `salt` varchar(40) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
   `activation_code` varchar(40) DEFAULT NULL,
-  `forgotten_password_code` varchar(100) DEFAULT NULL,
-  'forgotten_code_expiry' int default NULL,
+  `forgotten_password_code` varchar(40) DEFAULT NULL,
   `remember_code` varchar(40) DEFAULT NULL,
-  `created_on` int(11) NOT NULL,
-  `last_login` int(11) NOT NULL,
-  `active` tinyint(3) DEFAULT NULL,
+  `created_on` int NOT NULL,
+  `last_login` int NOT NULL,
+  `active` tinyint DEFAULT NULL,
   `authtype` varchar(40) DEFAULT NULL,
   `otp_code` varchar(45) DEFAULT NULL,
-  `otp_expiry` int(11) DEFAULT NULL,
+  `otp_expiry` int DEFAULT NULL,
+  `forgotten_code_expiry` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
