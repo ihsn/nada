@@ -59,7 +59,7 @@ class Datacite_citation
 			];
 
 			$context = stream_context_create($stream_options);
-			$response = file_get_contents('https://doi.org/10.1126/science.169.3946.635', false, $context);
+			$response = file_get_contents($doi, false, $context);
 			$filename=$survey['idno'].'-citation.'.$format;
 
 			header("Cache-Control: public");

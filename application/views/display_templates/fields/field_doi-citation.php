@@ -49,8 +49,8 @@ if (empty($doi)){
             $formats=array(
                 'ris'=>'RIS',
                 'bib'=>'BibTeX',
-                'json'=>'JSON',
-                'rdf'=>'RDF',
+                //'json'=>'JSON',
+                //'rdf'=>'RDF',
                 'txt'=>'Plain text',
                 //'endnote'=>'EndNote',
                 //'refworks'=>'RefWorks'
@@ -59,10 +59,12 @@ if (empty($doi)){
             $export_links=[];
         ?>
         <?php foreach($formats as $format_key=>$format):?>
-            <?php $export_links[]='<a href="'.site_url('study/export_citation/'.$metadata['id'].'/'.$format_key).'">'.$format.'</a>'; ?>
+            <?php $export_links[]='<a onclick="citation_export('."'".$format_key."'".')" href="#'.$format_key.'">'.$format.'</a>'; ?>
         <?php endforeach;?>
 
         <?php echo implode(' | ',$export_links);?>
+
+        <div id="export-citation-status"></div>
     </div>
 
 </div>
@@ -96,12 +98,61 @@ if (empty($doi)){
         });
     }
 
-    $(document).ready(function(){
+    function citation_export(format='txt')
+    {
+        var doi='<?php echo $doi;?>';
+        var url='https://doi.org/'+doi;
+        var citation_export_status=$('#export-citation-status');
+        var formats={
+            'ris':'application/x-research-info-systems',
+            'bib':'application/x-bibtex',
+            'xml':'application/xml',
+            'json':'application/json',
+            'rdf':'application/rdf+xml',
+            'rdf_turtle':'text/turtle',
+            'txt':'text/x-bibliography',
+        };
+        
+        citation_export_status.html('<i class="fas fa-spinner fa-spin"></i> exporting, please wait...');
+
+        $.ajax({
+            url: url,
+            dataType: 'html',
+            headers:{
+                Accept: formats[format]
+            },
+            success: function(data){
+                var citation=data;
+                js_download('citation.'+format,citation);
+                citation_export_status.html('');
+            },
+            error: function(data){
+                citation_export_status.html('<i class="fas fa-exclamation-triangle"></i> Citation is not available.');                                
+            }
+        });
+    }
+
+    function js_download(filename, text) 
+    {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    $(document).ready(function()
+    {
         get_citation_by_doi();
         
         $("#doi_format").change(function(){
             get_citation_by_doi();
-        });        
+        });
+               
     });
 
 </script>
