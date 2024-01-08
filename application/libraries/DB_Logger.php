@@ -62,9 +62,9 @@ class DB_Logger{
 				'sessionid'	=> session_id(),
 				'logtype'	=> $type,
 				'surveyid'	=> (int)$surveyid,
-				'keyword'	=> $message,
+				'keyword'	=> substr((string)$message,0,250),
 				'username'	=> $username,
-				'section'	=> substr((string)$section,0,255),
+				'section'	=> substr((string)$section,0,250),
 				'useragent'	=> substr(strtolower($_SERVER['HTTP_USER_AGENT']),0,300)
 				);
 		
