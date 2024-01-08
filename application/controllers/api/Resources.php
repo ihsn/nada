@@ -249,6 +249,18 @@ class Resources extends MY_REST_Controller
 		}		
 	}
 
+	
+	/**
+	 * 
+	 * update using post when PUT is not supported
+	 * 
+	 **/
+	function update_post($idno=null, $resource_id=null)
+	{
+		return $this->index_put($idno, $resource_id);
+	}
+
+
 	/**
 	 * 
 	 * 

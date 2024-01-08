@@ -349,6 +349,10 @@ class Dataset_model extends CI_Model {
 
 			$identifiers=get_array_nested_value($metadata,$mappings[$type],"/");
 
+			if (!$identifiers){
+				return;
+			}
+
 			$doi_identifier=[
 				'type'=>'DOI',				
 				'identifier'=>$doi
@@ -357,7 +361,7 @@ class Dataset_model extends CI_Model {
 			if (!is_array($identifiers)){
 				set_array_nested_value($metadata,$mappings[$type],$doi_identifier,"/");
 			}
-			
+
 			//check if DOI already exists
 			foreach($identifiers as $identifier){
 				if ($identifier['type']=='DOI' && $identifier['identifier']==$doi){
