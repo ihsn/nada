@@ -11,6 +11,7 @@ td.caption{
 <?php endif;?>
 <div style="padding-top:20px;overflow:hidden;">
 <h2><?php echo t('study_data_files');?></h2>
+<?php echo $this->load->view('data_feedback/index',null,true);?>
 <div class="resources data-files">
     <?php $class="data-file";$count=0;$show_rows=150; ?>
 	<?php foreach($resources_microdata as $row):?>
