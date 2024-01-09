@@ -158,7 +158,7 @@ class Display_template{
     {
         $output=array();
         $output[]='<div class="field-section-container pb-3">';
-        $output[]='<h2 class="field-section" id="'.$item['key'].'">'.tt($item['title'], strtolower($item['title'])).'</h2>';
+        $output[]='<h2 class="field-section" id="'.$item['key'].'">'.tt(strtolower($item['title']),$item['title']).'</h2>';
 
         if (isset($item['items'])){
             $el_html=$this->render_element($item['items']);

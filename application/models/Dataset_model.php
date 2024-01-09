@@ -238,6 +238,10 @@ class Dataset_model extends CI_Model {
 	//get the survey by id
     function get_row($sid)
     {
+		if (!is_numeric($sid) || is_float($sid)){
+            return false;
+        }
+
 		$this->db->select("surveys.id, surveys.doi, surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.year_start, 
 			year_end,nation,surveys.authoring_entity,published,created, changed, varcount, total_views, total_downloads, 
 			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, 

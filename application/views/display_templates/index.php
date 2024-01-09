@@ -5,7 +5,7 @@
             <div class="nav flex-column">
             <?php foreach($sidebar as $key=>$item):?>
                 <li class="nav-item">                    
-                    <a class="nav-link" href="#<?php echo str_replace(".",".",$key);?>"><?php echo tt($item, strtolower($item));?></a>
+                    <a class="nav-link" href="#<?php echo str_replace(".",".",$key);?>"><?php echo tt(strtolower($item),$item);?></a>
                 </li>
             <?php endforeach;?>
             </div>
