@@ -33,7 +33,7 @@ if (isset($years['min_year']) && isset($years['max_year'])){
     </h6> 
 
     <div id="facet-<?php echo $filter_id;?>" class="sidebar-filter-entries <?php echo $filter_collapse ? 'collapse' :'';?>">        
-        <?php echo form_open();?>
+        <form>
             <div class="row">
             <div class="col">
                 <p class="mb-0 pb-0"><?php echo t('from');?></p>
@@ -48,7 +48,7 @@ if (isset($years['min_year']) && isset($years['max_year'])){
                 </div>
             </div>
             </div>
-        <?php echo form_close();?>
+        </form>
     </div>
 
 </div>
